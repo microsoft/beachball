@@ -43,3 +43,8 @@ export function getChangeFilePath(cwd?: string) {
 
   return null;
 }
+
+export function isChildOf(child: string, parent: string) {
+  const relativePath = path.relative(child, parent);
+  return /^[.\/\\]+$/.test(relativePath);
+}
