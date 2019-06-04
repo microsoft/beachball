@@ -2,5 +2,17 @@
   "name": "beachball",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsc -w --preserveWatchOutput"
+  },
+  "dependencies": {
+    "prompts": "~2.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.0.4",
+    "@types/prompts": "~2.0.0",
+    "typescript": "^3.5.1"
+  }
 }
