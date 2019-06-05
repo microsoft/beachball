@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "bin": {
+    "beachball": "./bin/beachball.js"
+  },
   "scripts": {
     "build": "tsc",
     "start": "tsc -w --preserveWatchOutput"
