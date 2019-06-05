@@ -1,7 +1,12 @@
 import path from 'path';
 import fs from 'fs';
 
-function searchUp(pathName: string, cwd?: string) {
+/**
+ * Starting from `cwd`, searches up the directory hierarchy for `pathName`
+ * @param pathName
+ * @param cwd
+ */
+export function searchUp(pathName: string, cwd?: string) {
   if (!cwd) {
     cwd = process.cwd();
   }
@@ -34,11 +39,11 @@ export function findPackageRoot(cwd?: string) {
   return searchUp('package.json', cwd);
 }
 
-export function getChangeFilePath(cwd?: string) {
+export function getChangePath(cwd?: string) {
   const gitRoot = findGitRoot(cwd);
 
   if (gitRoot) {
-    return path.join(gitRoot, 'beachbump');
+    return path.join(gitRoot, 'change');
   }
 
   return null;
