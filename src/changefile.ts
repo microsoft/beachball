@@ -1,16 +1,15 @@
-import prompts from 'prompts';
-import { getRecentCommitMessages, getUserEmail, getChanges, getBranchName, getCurrentHash } from './git';
+import { ChangeInfo } from './ChangeInfo';
+import { getChangedPackages } from './getChangedPackages';
+import { getChangePath } from './paths';
+import { getRecentCommitMessages, getUserEmail, getBranchName, getCurrentHash } from './git';
 import fs from 'fs-extra';
 import path from 'path';
-import { getChangePath, findPackageRoot } from './paths';
-import { findLernaConfig, getPackagePatterns } from './monorepo';
-import minimatch from 'minimatch';
+import prompts from 'prompts';
 
-interface ChangeInfo {
-  type: 'patch' | 'minor' | 'major' | 'none';
-  description: string;
-}
-
+/**
+ * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash
+ * @param cwd
+ */
 export async function promptForChange(cwd?: string) {
   const changedPackages = getChangedPackages(cwd);
   const recentMessages = getRecentCommitMessages(cwd) || [];
@@ -44,56 +43,22 @@ export async function promptForChange(cwd?: string) {
       }
     ]);
 
-    packageChangeInfo[pkg] = response;
+    packageChangeInfo[pkg] = {
+      ...response,
+      packageName: pkg,
+      email: getUserEmail(cwd) || 'email not defined',
+      hash: getCurrentHash(cwd) || 'hash not available'
+    };
   }, Promise.resolve());
 
   return packageChangeInfo;
 }
 
-function getChangedPackages(cwd?: string) {
-  const changes = getChanges(cwd);
-
-  const packageRoots: { [pathName: string]: string } = {};
-
-  if (changes) {
-    // Discover package roots from modded files
-    changes.forEach(moddedFile => {
-      const root = findPackageRoot(path.join(cwd || process.cwd(), path.dirname(moddedFile)));
-
-      if (root && !packageRoots[root]) {
-        try {
-          const packageName = JSON.parse(fs.readFileSync(path.join(root, 'package.json')).toString()).name;
-          packageRoots[root] = packageName;
-        } catch (e) {
-          // Ignore JSON errors
-        }
-      }
-    });
-  }
-
-  if (findLernaConfig(cwd)) {
-    const packagePatterns = getPackagePatterns(cwd);
-
-    return Object.keys(packageRoots)
-      .filter(pkgPath => {
-        for (let pattern of packagePatterns) {
-          const relativePath = path.relative(cwd || process.cwd(), pkgPath);
-
-          if (minimatch(relativePath, pattern)) {
-            return true;
-          }
-        }
-
-        return false;
-      })
-      .map(pkgPath => {
-        return packageRoots[pkgPath];
-      });
-  } else {
-    return Object.values(packageRoots);
-  }
-}
-
+/**
+ * Loops through the `changes` and writes out a list of change files
+ * @param changes
+ * @param cwd
+ */
 export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd?: string) {
   const changePath = getChangePath(cwd);
   const branchName = getBranchName(cwd);
@@ -108,13 +73,7 @@ export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd
       const prefix = pkgName.replace(/[^a-zA-Z0-9@]/g, '-');
       const fileName = `${prefix}-${getTimeStamp()}-${suffix}.json`;
       const changeFile = path.join(changePath, fileName);
-      const change = {
-        ...changes[pkgName],
-        scope: pkgName,
-        author: getUserEmail(cwd),
-        sha1: getCurrentHash(cwd)
-      };
-
+      const change = changes[pkgName];
       fs.writeFileSync(changeFile, JSON.stringify(change, null, 2));
     });
   }
