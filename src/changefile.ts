@@ -1,7 +1,7 @@
 import { ChangeInfo } from './ChangeInfo';
 import { getChangedPackages } from './getChangedPackages';
 import { getChangePath } from './paths';
-import { getRecentCommitMessages, getUserEmail, getBranchName, getCurrentHash } from './git';
+import { getRecentCommitMessages, getUserEmail, getBranchName, getCurrentHash, stageAndCommit } from './git';
 import fs from 'fs-extra';
 import path from 'path';
 import prompts from 'prompts';
@@ -85,6 +85,8 @@ export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd
       const change = changes[pkgName];
       fs.writeFileSync(changeFile, JSON.stringify(change, null, 2));
     });
+
+    stageAndCommit([path.join(changePath, '*.json')], 'Change files', cwd);
   }
 }
 
