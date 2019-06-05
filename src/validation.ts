@@ -25,7 +25,7 @@ export function isChangeFileNeeded(cwd?: string) {
   const changeFilePackageSet = new Set<string>();
   changeFiles.forEach(file => {
     try {
-      const changeInfo: ChangeInfo = JSON.parse(fs.readFileSync(path.join(cwd || process.cwd(), file)).toString());
+      const changeInfo: ChangeInfo = JSON.parse(fs.readFileSync(path.join(changePath, file)).toString());
       changeFilePackageSet.add(changeInfo.packageName);
     } catch (e) {
       console.warn(`Invalid change file encountered: ${file}`);

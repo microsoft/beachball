@@ -43,6 +43,11 @@ export async function promptForChange(cwd?: string) {
       }
     ]);
 
+    if (Object.keys(response).length === 0) {
+      console.log('Cancelled, no change files are written');
+      return;
+    }
+
     packageChangeInfo[pkg] = {
       ...response,
       packageName: pkg,
@@ -60,6 +65,10 @@ export async function promptForChange(cwd?: string) {
  * @param cwd
  */
 export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd?: string) {
+  if (Object.keys(changes).length === 0) {
+    return;
+  }
+
   const changePath = getChangePath(cwd);
   const branchName = getBranchName(cwd);
 
