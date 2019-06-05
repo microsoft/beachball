@@ -112,3 +112,27 @@ export function getUserEmail(cwd?: string) {
     console.error('Cannot gather information about user.email: ', e.message);
   }
 }
+
+export function getBranchName(cwd?: string) {
+  try {
+    const results = git(['rev-parse', '--abbrev-ref', 'HEAD'], { cwd });
+
+    if (results) {
+      return results.stdout;
+    }
+  } catch (e) {
+    console.error('Cannot get branch name: ', e.message);
+  }
+}
+
+export function getCurrentHash(cwd?: string) {
+  try {
+    const results = git(['rev-parse', 'HEAD'], { cwd });
+
+    if (results) {
+      return results.stdout;
+    }
+  } catch (e) {
+    console.error('Cannot get current git hash');
+  }
+}

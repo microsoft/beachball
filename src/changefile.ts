@@ -1,17 +1,22 @@
 import prompts from 'prompts';
-import { getRecentCommitMessages, getUserEmail, getChanges } from './git';
-import fs from 'fs';
+import { getRecentCommitMessages, getUserEmail, getChanges, getBranchName, getCurrentHash } from './git';
+import fs from 'fs-extra';
 import path from 'path';
 import { getChangePath, findPackageRoot } from './paths';
 import { findLernaConfig, getPackagePatterns } from './monorepo';
 import minimatch from 'minimatch';
 
+interface ChangeInfo {
+  type: 'patch' | 'minor' | 'major' | 'none';
+  description: string;
+}
+
 export async function promptForChange(cwd?: string) {
   const changedPackages = getChangedPackages(cwd);
   const recentMessages = getRecentCommitMessages(cwd) || [];
-  const packageChangeInfo: any = {};
+  const packageChangeInfo: { [pkgname: string]: ChangeInfo } = {};
 
-  return await changedPackages.reduce(async (currentPromise, pkg) => {
+  await changedPackages.reduce(async (currentPromise, pkg) => {
     await currentPromise;
 
     console.log('');
@@ -40,7 +45,9 @@ export async function promptForChange(cwd?: string) {
     ]);
 
     packageChangeInfo[pkg] = response;
-  }, Promise.resolve<any>(null));
+  }, Promise.resolve());
+
+  return packageChangeInfo;
 }
 
 function getChangedPackages(cwd?: string) {
@@ -87,15 +94,44 @@ function getChangedPackages(cwd?: string) {
   }
 }
 
-export function writeChangeFile(changePromptResponse: ReturnType<typeof promptForChange>, cwd?: string) {
-  const changePath = getChangePath(cwd)!;
-  const changeFile = path.join(changePath, 'change.json');
+export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd?: string) {
+  const changePath = getChangePath(cwd);
+  const branchName = getBranchName(cwd);
 
-  const change = {
-    ...changePromptResponse,
-    scopes: getChangedPackages(),
-    author: getUserEmail()
-  };
+  if (changePath && !fs.existsSync(changePath)) {
+    fs.mkdirpSync(changePath);
+  }
 
-  fs.writeFileSync(changeFile, JSON.stringify(change, null, 2));
+  if (changes && branchName && changePath) {
+    Object.keys(changes).forEach(pkgName => {
+      const suffix = branchName.replace(/[\/\\]/g, '-');
+      const prefix = pkgName.replace(/[^a-zA-Z0-9@]/g, '-');
+      const fileName = `${prefix}-${getTimeStamp()}-${suffix}.json`;
+      const changeFile = path.join(changePath, fileName);
+      const change = {
+        ...changes[pkgName],
+        scope: pkgName,
+        author: getUserEmail(cwd),
+        sha1: getCurrentHash(cwd)
+      };
+
+      fs.writeFileSync(changeFile, JSON.stringify(change, null, 2));
+    });
+  }
+}
+
+function leftPadTwoZeros(someString: string) {
+  return ('00' + someString).slice(-2);
+}
+
+function getTimeStamp() {
+  let date = new Date();
+  return [
+    date.getFullYear(),
+    leftPadTwoZeros((date.getMonth() + 1).toString()),
+    leftPadTwoZeros(date.getDate().toString()),
+    leftPadTwoZeros(date.getHours().toString()),
+    leftPadTwoZeros(date.getMinutes().toString()),
+    leftPadTwoZeros(date.getSeconds().toString())
+  ].join('-');
 }

@@ -8,10 +8,12 @@
     "start": "tsc -w --preserveWatchOutput"
   },
   "dependencies": {
+    "fs-extra": "^8.0.1",
     "prompts": "~2.1.0",
     "minimatch": "^3.0.4"
   },
   "devDependencies": {
+    "@types/fs-extra": "^7.0.0",
     "@types/minimatch": "^3.0.3",
     "@types/node": "^12.0.4",
     "@types/prompts": "~2.0.0",
