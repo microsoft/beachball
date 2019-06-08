@@ -34,7 +34,7 @@ export function getUncommittedChanges(cwd?: string) {
 
     const lines = changes.split(/\n/) || [];
 
-    return lines.map(line => line.trim().split(/ /)[1]);
+    return lines.map(line => line.trim().split(/\s+/)[1]);
   } catch (e) {
     console.error('Cannot gather information about changes: ', e.message);
   }
@@ -68,11 +68,12 @@ export function getChanges(cwd?: string) {
 
     const results = git(['--no-pager', 'diff', '--name-only', forkPoint + '...'], { cwd });
 
-    if (!results) {
+    if (!results.success) {
       return [];
     }
 
     let changes = results.stdout;
+
     let lines = changes.split(/\n/) || [];
 
     return lines.map(line => line.trim());

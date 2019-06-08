@@ -6,12 +6,16 @@ export function findLernaConfig(cwd?: string) {
   return searchUp('lerna.json', cwd);
 }
 
-export function getPackagePatterns(cwd?: string) {
+export function getPackagePatterns(cwd?: string): string[] {
   const config = findLernaConfig(cwd);
 
   if (config) {
-    const lernaConfig = JSON.parse(fs.readFileSync(path.join(config, 'lerna.json')).toString());
-    return lernaConfig.packages || ['packages/*'];
+    try {
+      const lernaConfig = JSON.parse(fs.readFileSync(path.join(config, 'lerna.json')).toString());
+      return lernaConfig.packages || ['packages/*'];
+    } catch (e) {
+      throw new Error('Cannot parse the lerna.json configuration file!');
+    }
   }
 
   return [];

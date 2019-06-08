@@ -1,15 +1,17 @@
 import { promptForChange, writeChangeFiles } from './changefile';
 import { getUncommittedChanges } from './git';
 import { isChangeFileNeeded } from './validation';
+import { bump } from './bump';
 
-const argv = process.argv.splice(2);
+// TODO: maybe bring in a full argument parser
+let argv = process.argv.splice(2);
 
 const commands = ['check', 'bump'];
 let command = null;
 
 if (commands.includes(argv[0])) {
   command = argv[0];
-  argv.unshift();
+  argv.shift();
 }
 
 const cwd = argv[0] || process.cwd();
@@ -20,6 +22,7 @@ const cwd = argv[0] || process.cwd();
       break;
 
     case 'bump':
+      bump(cwd);
       break;
 
     default:

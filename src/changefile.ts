@@ -105,3 +105,24 @@ function getTimeStamp() {
     leftPadTwoZeros(date.getSeconds().toString())
   ].join('-');
 }
+
+export function readChangeFiles(cwd?: string) {
+  const changePath = getChangePath(cwd);
+
+  if (!changePath || !fs.existsSync(changePath)) {
+    return [];
+  }
+
+  const changeFiles = fs.readdirSync(changePath);
+  const changes: ChangeInfo[] = [];
+
+  changeFiles.forEach(changeFile => {
+    try {
+      changes.push(JSON.parse(fs.readFileSync(path.join(changePath, changeFile)).toString()));
+    } catch (e) {
+      console.warn(`Invalid change file detected: ${changeFile}`);
+    }
+  });
+
+  return changes;
+}
