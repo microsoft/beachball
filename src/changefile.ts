@@ -24,7 +24,7 @@ export async function promptForChange(cwd?: string) {
     const response = await prompts([
       {
         type: 'autocomplete',
-        name: 'description',
+        name: 'comment',
         message: 'Describe changes (type or choose one)',
         suggest: input => {
           return Promise.resolve([...recentMessages.filter(msg => msg.startsWith(input)), input]);
@@ -52,7 +52,8 @@ export async function promptForChange(cwd?: string) {
       ...response,
       packageName: pkg,
       email: getUserEmail(cwd) || 'email not defined',
-      hash: getCurrentHash(cwd) || 'hash not available'
+      commit: getCurrentHash(cwd) || 'hash not available',
+      date: new Date().toISOString()
     };
   }, Promise.resolve());
 
@@ -125,4 +126,27 @@ export function readChangeFiles(cwd?: string) {
   });
 
   return changes;
+}
+
+export function getPackageChanges(cwd?: string) {
+  const changeTypeWeights = {
+    major: 3,
+    minor: 2,
+    patch: 1,
+    none: 0
+  };
+  const changes = readChangeFiles(cwd);
+  const changePerPackage: { [pkgName: string]: ChangeInfo['type'] } = {};
+  changes.forEach(change => {
+    const { packageName } = change;
+
+    if (
+      !changePerPackage[packageName] ||
+      (change.type !== 'none' && changeTypeWeights[change.type] > changeTypeWeights[changePerPackage[packageName]])
+    ) {
+      changePerPackage[packageName] = change.type;
+    }
+  });
+
+  return changePerPackage;
 }

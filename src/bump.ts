@@ -1,10 +1,9 @@
-import { readChangeFiles } from './changefile';
-import { ChangeInfo } from './ChangeInfo';
-import { findLernaConfig, getPackagePatterns } from './monorepo';
-import fs from 'fs';
-import path from 'path';
-import glob from 'glob';
 import { findPackageRoot, findGitRoot } from './paths';
+import { getPackageChanges } from './changefile';
+import { getPackagePatterns } from './monorepo';
+import fs from 'fs';
+import glob from 'glob';
+import path from 'path';
 import semver from 'semver';
 
 interface PackageInfo {
@@ -19,46 +18,29 @@ export function bump(cwd?: string) {
   cwd = cwd || process.cwd();
 
   const gitRoot = findGitRoot(cwd) || cwd;
-  const changeTypeWeights = {
-    major: 3,
-    minor: 2,
-    patch: 1,
-    none: 0
-  };
 
   // Collate the changes per package
-  const changes = readChangeFiles(cwd);
-  const changePerPackage: { [pkgName: string]: ChangeInfo['type'] } = {};
-  changes.forEach(change => {
-    const { packageName } = change;
-
-    if (
-      !changePerPackage[packageName] ||
-      (change.type !== 'none' && changeTypeWeights[change.type] > changeTypeWeights[changePerPackage[packageName]])
-    ) {
-      changePerPackage[packageName] = change.type;
-    }
-  });
+  const packageChangeTypes = getPackageChanges(cwd);
 
   // Gather all package info from package.json
   const packageInfos = getPackageInfos(cwd);
 
   // Apply package.json version updates
-  Object.keys(changePerPackage).forEach(pkgName => {
+  Object.keys(packageChangeTypes).forEach(pkgName => {
     const info = packageInfos[pkgName];
-    const change = changePerPackage[pkgName];
+    const changeType = packageChangeTypes[pkgName];
     const packageJsonPath = path.join(gitRoot, info.packageJsonPath);
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
 
-    if (change !== 'none') {
-      packageJson.version = semver.inc(packageJson.version, change);
+    if (changeType !== 'none') {
+      packageJson.version = semver.inc(packageJson.version, changeType);
       info.version = packageJson.version;
     }
 
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
   });
 
-  // Apply package dependency bumps as well as a second pass
+  // Apply package dependency bumps
   Object.keys(packageInfos).forEach(pkgName => {
     const info = packageInfos[pkgName];
     const packageJsonPath = path.join(gitRoot, info.packageJsonPath);
@@ -79,6 +61,8 @@ export function bump(cwd?: string) {
 
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
   });
+
+  // Generate changelog
 }
 
 function bumpMinSemverRange(minVersion: string, semverRange: string) {
@@ -108,14 +92,14 @@ function getPackageInfos(cwd?: string) {
     packagePatterns.forEach(pattern => {
       const packageJsonPattern = path.join(pattern, 'package.json');
       const packageJsonFiles = glob.sync(packageJsonPattern, { cwd: gitRoot });
-      packageJsonFiles.forEach(packageJsonFile => {
+      packageJsonFiles.forEach(packageJsonPath => {
         try {
-          const packageJson = require(path.join(gitRoot, packageJsonFile));
+          const packageJson = require(path.join(gitRoot, packageJsonPath));
 
           packageInfos[packageJson.name] = {
             name: packageJson.name,
             version: packageJson.version,
-            packageJsonPath: packageJsonFile,
+            packageJsonPath,
             dependencies: packageJson.dependencies,
             devDependencies: packageJson.devDependencies
           };
@@ -125,13 +109,13 @@ function getPackageInfos(cwd?: string) {
       });
     });
   } else {
-    const packageJsonFile = findPackageRoot(cwd)!;
-    const packageJson = require(path.join(gitRoot, packageJsonFile));
+    const packageJsonPath = path.join(findPackageRoot(cwd)!, 'package.json');
+    const packageJson = require(packageJsonPath);
 
     packageInfos[packageJson.name] = {
       name: packageJson.name,
       version: packageJson.version,
-      packageJsonPath: path.join(cwd!, packageJsonFile),
+      packageJsonPath: 'package.json',
       dependencies: packageJson.dependencies,
       devDependencies: packageJson.devDependencies
     };
@@ -139,5 +123,3 @@ function getPackageInfos(cwd?: string) {
 
   return packageInfos;
 }
-
-function bumpPackage(pkgName: string, changeType: ChangeInfo['type'], cwd?: string) {}
