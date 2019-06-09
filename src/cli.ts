@@ -1,10 +1,11 @@
 import { promptForChange, writeChangeFiles } from './changefile';
 import { getUncommittedChanges } from './git';
 import { isChangeFileNeeded, isGitAvailable } from './validation';
-import { bump } from './bump';
+import { bump, getPackageInfos } from './bump';
 import parser from 'yargs-parser';
 import { findPackageRoot } from './paths';
 import { publish } from './publish';
+import { writeChangelog } from './changelog';
 
 let argv = process.argv.splice(2);
 let args = parser(argv, {
@@ -40,6 +41,10 @@ const cwd = args.path || findPackageRoot(process.cwd());
     case 'check':
       console.log('No change files are needed');
       break;
+
+    case 'changelog':
+      const packageInfos = getPackageInfos(cwd);
+      writeChangelog(packageInfos, cwd);
 
     case 'publish':
       publish(cwd);

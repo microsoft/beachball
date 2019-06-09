@@ -1,12 +1,13 @@
 import { findPackageRoot, findGitRoot } from './paths';
-import { getPackageChanges } from './changefile';
+import { getPackageChangeTypes } from './changefile';
 import { getPackagePatterns } from './monorepo';
 import fs from 'fs';
 import glob from 'glob';
 import path from 'path';
 import semver from 'semver';
+import { writeChangelog } from './changelog';
 
-interface PackageInfo {
+export interface PackageInfo {
   name: string;
   packageJsonPath: string;
   version: string;
@@ -20,7 +21,7 @@ export function bump(cwd?: string) {
   const gitRoot = findGitRoot(cwd) || cwd;
 
   // Collate the changes per package
-  const packageChangeTypes = getPackageChanges(cwd);
+  const packageChangeTypes = getPackageChangeTypes(cwd);
 
   // Gather all package info from package.json
   const packageInfos = getPackageInfos(cwd);
@@ -63,6 +64,7 @@ export function bump(cwd?: string) {
   });
 
   // Generate changelog
+  writeChangelog(packageInfos, cwd);
 }
 
 function bumpMinSemverRange(minVersion: string, semverRange: string) {
@@ -81,7 +83,7 @@ function bumpMinSemverRange(minVersion: string, semverRange: string) {
   return minVersion;
 }
 
-function getPackageInfos(cwd?: string) {
+export function getPackageInfos(cwd?: string) {
   cwd = cwd || process.cwd();
 
   const gitRoot = findGitRoot(cwd) || cwd;

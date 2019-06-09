@@ -53,7 +53,7 @@ export async function promptForChange(cwd?: string) {
       packageName: pkg,
       email: getUserEmail(cwd) || 'email not defined',
       commit: getCurrentHash(cwd) || 'hash not available',
-      date: new Date().toISOString()
+      date: new Date()
     };
   }, Promise.resolve());
 
@@ -89,6 +89,16 @@ export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd
 
     stageAndCommit([path.join(changePath, '*.json')], 'Change files', cwd);
   }
+}
+
+export function unlinkChangeFiles(cwd?: string) {
+  const changePath = getChangePath(cwd);
+
+  if (!changePath) {
+    return;
+  }
+
+  fs.removeSync(changePath);
 }
 
 function leftPadTwoZeros(someString: string) {
@@ -128,7 +138,7 @@ export function readChangeFiles(cwd?: string) {
   return changes;
 }
 
-export function getPackageChanges(cwd?: string) {
+export function getPackageChangeTypes(cwd?: string) {
   const changeTypeWeights = {
     major: 3,
     minor: 2,

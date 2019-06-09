@@ -4,5 +4,5 @@ export interface ChangeInfo {
   packageName: string;
   email: string;
   commit: string;
-  date: string;
+  date: Date;
 }
