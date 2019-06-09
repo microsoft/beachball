@@ -17,7 +17,6 @@ function getAllChangedPackages(cwd?: string) {
   const changes = getChanges(cwd);
 
   const packageRoots: { [pathName: string]: string } = {};
-
   if (changes) {
     // Discover package roots from modded files
     changes.forEach(moddedFile => {
@@ -72,6 +71,10 @@ export function getChangedPackages(cwd?: string) {
   const changeFiles = changeFileDirents.filter(dirent => dirent.isFile).map(dirent => dirent.name);
   const changeFilePackageSet = new Set<string>();
   changeFiles.forEach(file => {
+    if (path.basename(file) === 'CHANGELOG.md') {
+      return;
+    }
+
     try {
       const changeInfo: ChangeInfo = JSON.parse(fs.readFileSync(path.join(changePath, file)).toString());
       changeFilePackageSet.add(changeInfo.packageName);

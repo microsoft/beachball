@@ -65,6 +65,11 @@ export function bump(cwd?: string) {
 
   // Generate changelog
   writeChangelog(packageInfos, cwd);
+
+  return {
+    packageChangeTypes,
+    packageInfos
+  };
 }
 
 function bumpMinSemverRange(minVersion: string, semverRange: string) {

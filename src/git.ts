@@ -76,7 +76,7 @@ export function getChanges(cwd?: string) {
 
     let lines = changes.split(/\n/) || [];
 
-    return lines.map(line => line.trim());
+    return lines.filter(line => line.trim() !== '').map(line => line.trim());
   } catch (e) {
     console.error('Cannot gather information about changes: ', e.message);
   }
