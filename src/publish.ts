@@ -2,7 +2,6 @@ import { bump, BumpInfo } from './bump';
 import { CliOptions } from './CliOptions';
 import { git, revertLocalChanges } from './git';
 import { packagePublish, listPackageVersions } from './packageManager';
-import path from 'path';
 
 export function publish(options: CliOptions) {
   const { path: cwd, branch, registry, tag, message } = options;
