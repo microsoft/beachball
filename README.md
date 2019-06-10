@@ -1,4 +1,4 @@
-# beachball v1.1.0
+# beachball
 
 the sunniest version bumping tool
 
