@@ -73,10 +73,11 @@ export function publish(options: CliOptions) {
       process.exit(1);
     }
 
-    // Step 3. Push to remote
-    // push
+    // Step 3. Tag & Push to remote
+    tagPackages(bumpInfo, cwd);
+
     console.log(`pushing to ${remote}/${branch}`);
-    git(['push', remote, branch]);
+    git(['push', '--follow-tags', remote, branch]);
   }
 }
 
@@ -100,4 +101,12 @@ function mergePublishBranch(publishBranch: string, branch: string, message: stri
   }
 
   return mergePublishBranchResult;
+}
+
+function tagPackages(bumpInfo: BumpInfo, cwd: string) {
+  Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
+    const packageInfo = bumpInfo.packageInfos[pkg];
+    console.log(`Tagging - ${packageInfo.name}@${packageInfo.version}`);
+    git(['tag', `${packageInfo.name}_v${packageInfo.version}`], { cwd });
+  });
 }
