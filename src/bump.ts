@@ -1,11 +1,11 @@
 import { findPackageRoot, findGitRoot } from './paths';
 import { getPackageChangeTypes } from './changefile';
 import { getPackagePatterns } from './monorepo';
+import { writeChangelog } from './changelog';
 import fs from 'fs';
 import glob from 'glob';
 import path from 'path';
 import semver from 'semver';
-import { writeChangelog } from './changelog';
 
 export interface PackageInfo {
   name: string;

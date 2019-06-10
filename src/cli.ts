@@ -1,12 +1,12 @@
-import { promptForChange, writeChangeFiles } from './changefile';
+import { bump, getPackageInfos } from './bump';
+import { CliOptions } from './CliOptions';
+import { findPackageRoot } from './paths';
 import { getUncommittedChanges } from './git';
 import { isChangeFileNeeded, isGitAvailable } from './validation';
-import { bump, getPackageInfos } from './bump';
-import parser from 'yargs-parser';
-import { findPackageRoot } from './paths';
+import { promptForChange, writeChangeFiles } from './changefile';
 import { publish } from './publish';
 import { writeChangelog } from './changelog';
-import { CliOptions } from './CliOptions';
+import parser from 'yargs-parser';
 
 let argv = process.argv.splice(2);
 let args = parser(argv, {
