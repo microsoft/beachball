@@ -126,6 +126,7 @@ function tagPackages(bumpInfo: BumpInfo, tag: string, cwd: string) {
 
 function validatePackageVersions(bumpInfo: BumpInfo, registry: string) {
   let hasErrors: boolean = false;
+
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     process.stdout.write(`Validating package version - ${packageInfo.name}@${packageInfo.version}`);
@@ -137,9 +138,9 @@ function validatePackageVersions(bumpInfo: BumpInfo, registry: string) {
       );
       hasErrors = true;
     } else {
-      process.stdout.write('OK!\n');
+      process.stdout.write(' OK!\n');
     }
   });
 
-  return hasErrors;
+  return !hasErrors;
 }
