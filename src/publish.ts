@@ -44,6 +44,8 @@ export function publish(options: CliOptions) {
       displayManualRecovery(bumpInfo);
       process.exit(1);
     }
+
+    tagPackages(bumpInfo, tag, cwd);
   } else {
     const remote = 'origin';
 
@@ -74,7 +76,7 @@ export function publish(options: CliOptions) {
     }
 
     // Step 3. Tag & Push to remote
-    tagPackages(bumpInfo, cwd);
+    tagPackages(bumpInfo, tag, cwd);
 
     console.log(`pushing to ${remote}/${branch}`);
     git(['push', '--follow-tags', remote, branch]);
@@ -103,10 +105,15 @@ function mergePublishBranch(publishBranch: string, branch: string, message: stri
   return mergePublishBranchResult;
 }
 
-function tagPackages(bumpInfo: BumpInfo, cwd: string) {
+function tagPackages(bumpInfo: BumpInfo, tag: string, cwd: string) {
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     console.log(`Tagging - ${packageInfo.name}@${packageInfo.version}`);
     git(['tag', `${packageInfo.name}_v${packageInfo.version}`], { cwd });
   });
+
+  // Adds a special dist-tag based tag in git
+  if (tag !== 'latest') {
+    git(['tag', '-f', tag], { cwd });
+  }
 }
