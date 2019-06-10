@@ -15,6 +15,7 @@ let args = parser(argv, {
     branch: ['b'],
     tag: ['t'],
     registry: ['r'],
+    message: ['m'],
     help: ['h', '?']
   }
 });
@@ -31,7 +32,8 @@ const options: CliOptions = {
   registry: args.registry || 'http://registry.npmjs.org',
   branch: args.branch || 'master',
   tag: args.tag || 'latest',
-  path: args.path || findPackageRoot(process.cwd())
+  path: args.path || findPackageRoot(process.cwd()),
+  message: args.message || 'applying package updates'
 };
 
 (async () => {
@@ -63,7 +65,7 @@ const options: CliOptions = {
       writeChangelog(packageInfos, options.path);
 
     case 'publish':
-      publish(args, options.path);
+      publish(options);
       break;
 
     case 'bump':
@@ -94,6 +96,10 @@ Prerequisites:
 
   git and a remote named "origin"
 
+Usage:
+
+  beachball [command] [options]
+
 Commands:
 
   change (default)    - a tool to help create change files in the change/ folder
@@ -107,6 +113,8 @@ Options:
   --registry, -r      - registry, defaults to https://registry.npmjs.org
   --tag, -t           - dist-tag for npm publishes
   --branch, -b        - target branch from origin (default: master)
+  --message, -m       - custom message for the checkin (default: applying package updates)
+  --help, -?, -h      - this very help message
 
 Examples:
 

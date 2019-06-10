@@ -2,21 +2,21 @@ import { bump, BumpInfo } from './bump';
 import { packagePublish } from './packageManager';
 import path from 'path';
 import { git, revertLocalChanges } from './git';
+import { CliOptions } from './CliOptions';
 
-interface PublishArgs {
-  _: string[];
-  branch?: string;
-  tag?: string;
-  registry?: string;
-}
-
-export function publish(args: PublishArgs, cwd: string) {
-  const branch = args.branch || 'master';
-  const registry = args.registry || 'https://registry.npmjs.org';
+export function publish(options: CliOptions) {
+  const { path: cwd, branch, registry, tag, message } = options;
 
   // checkout publish branch
   const publishBranch = 'publish_' + String(new Date().getTime());
   git(['checkout', '-b', publishBranch]);
+
+  console.log(`Publishing from beachball
+
+  registry: ${registry}
+  target branch: ${branch}
+  tag: ${tag}
+`);
 
   // Step 1. Bump + npm publish
   // bump the version
@@ -27,7 +27,7 @@ export function publish(args: PublishArgs, cwd: string) {
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
-    packagePublish(path.dirname(packageInfo.packageJsonPath), registry);
+    packagePublish(path.dirname(packageInfo.packageJsonPath), registry, tag);
   });
 
   // Step 2.
@@ -37,7 +37,7 @@ export function publish(args: PublishArgs, cwd: string) {
 
   if (!remoteResult.success) {
     console.log('Remote "origin" not found. Committing changes locally.');
-    const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, cwd);
+    const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
 
     if (!mergePublishBranchResult.success) {
       console.error('CRITICAL ERROR: merging to target has failed!');
@@ -65,7 +65,7 @@ export function publish(args: PublishArgs, cwd: string) {
     bump(cwd);
 
     // checkin
-    const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, cwd);
+    const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
 
     if (!mergePublishBranchResult.success) {
       console.error('CRITICAL ERROR: merging to target has failed!');
@@ -89,9 +89,9 @@ function displayManualRecovery(bumpInfo: BumpInfo) {
   });
 }
 
-function mergePublishBranch(publishBranch: string, branch: string, cwd: string) {
+function mergePublishBranch(publishBranch: string, branch: string, message: string, cwd: string) {
   git(['add', '.'], { cwd });
-  git(['commit', '-m', '<beachball> applying package updates'], { cwd });
+  git(['commit', '-m', message], { cwd });
   git(['checkout', branch], { cwd });
 
   const mergePublishBranchResult = git(['merge', '-X', 'ours', publishBranch], { cwd });

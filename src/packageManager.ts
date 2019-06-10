@@ -21,6 +21,6 @@ export function npm(args: string[], options?: { cwd: string }) {
   }
 }
 
-export function packagePublish(packagePath: string, registry: string) {
-  npm(['publish', '--registry', registry], { cwd: packagePath });
+export function packagePublish(packagePath: string, registry: string, tag: string) {
+  npm(['publish', '--registry', registry, '--tag', tag], { cwd: packagePath });
 }

@@ -4,4 +4,5 @@ export interface CliOptions {
   branch: string;
   tag: string;
   path: string;
+  message: string;
 }
