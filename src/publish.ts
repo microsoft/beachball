@@ -1,7 +1,7 @@
 import { bump, BumpInfo } from './bump';
 import { CliOptions } from './CliOptions';
 import { git, revertLocalChanges } from './git';
-import { packagePublish } from './packageManager';
+import { packagePublish, listPackageVersions } from './packageManager';
 import path from 'path';
 
 export function publish(options: CliOptions) {
@@ -21,13 +21,19 @@ export function publish(options: CliOptions) {
   // Step 1. Bump + npm publish
   // bump the version
   console.log('Bumping version for npm publish');
-  const bumpInfo = bump(cwd);
+  const bumpInfo = bump(registry, cwd);
+
+  if (!validatePackageVersions(bumpInfo, registry)) {
+    displayManualRecovery(bumpInfo);
+    console.error('No packages have been published');
+    process.exit(1);
+  }
 
   // npm / yarn publish
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
-    packagePublish(path.dirname(packageInfo.packageJsonPath), registry, tag);
+    packagePublish(packageInfo, registry, tag);
   });
 
   // Step 2.
@@ -64,7 +70,7 @@ export function publish(options: CliOptions) {
 
     // bump the version
     console.log('Bumping the versions for git push');
-    bump(cwd);
+    bump(registry, cwd);
 
     // checkin
     const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
@@ -84,7 +90,7 @@ export function publish(options: CliOptions) {
 }
 
 function displayManualRecovery(bumpInfo: BumpInfo) {
-  console.error('Published versions to npm registry are not merged back to git. Manually update these package and versions:');
+  console.error('Manually update these package and versions:');
 
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
@@ -116,4 +122,24 @@ function tagPackages(bumpInfo: BumpInfo, tag: string, cwd: string) {
   if (tag !== 'latest') {
     git(['tag', '-f', tag], { cwd });
   }
+}
+
+function validatePackageVersions(bumpInfo: BumpInfo, registry: string) {
+  let hasErrors: boolean = false;
+  Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
+    const packageInfo = bumpInfo.packageInfos[pkg];
+    process.stdout.write(`Validating package version - ${packageInfo.name}@${packageInfo.version}`);
+
+    const publishedVersions = listPackageVersions(packageInfo.name, registry);
+    if (publishedVersions.includes(packageInfo.version)) {
+      console.error(
+        `\nERROR: Attempting to bump to a version that already exists in the registry: ${packageInfo.name}@${packageInfo.version}`
+      );
+      hasErrors = true;
+    } else {
+      process.stdout.write('OK!\n');
+    }
+  });
+
+  return hasErrors;
 }

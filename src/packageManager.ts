@@ -1,5 +1,7 @@
+import { PackageInfo } from './bump';
 import { spawnSync } from 'child_process';
 import os from 'os';
+import path from 'path';
 
 export function npm(args: string[], options?: { cwd: string }) {
   const npmCmd = os.platform() === 'win32' ? 'npm.cmd' : 'npm';
@@ -21,6 +23,24 @@ export function npm(args: string[], options?: { cwd: string }) {
   }
 }
 
-export function packagePublish(packagePath: string, registry: string, tag: string) {
+export function packagePublish(packageInfo: PackageInfo, registry: string, tag: string) {
+  const packagePath = path.dirname(packageInfo.packageJsonPath);
+
   npm(['publish', '--registry', registry, '--tag', tag], { cwd: packagePath });
+}
+
+const packageVersions: { [pkgName: string]: string[] } = {};
+
+export function listPackageVersions(packageName: string, registry: string) {
+  if (!packageVersions[packageName]) {
+    const showResult = npm(['show', '--registry', registry, '--json', packageName]);
+    if (showResult.success) {
+      const packageInfo = JSON.parse(showResult.stdout);
+      packageVersions[packageName] = packageInfo.versions;
+    } else {
+      packageVersions[packageName] = [];
+    }
+  }
+
+  return packageVersions[packageName];
 }

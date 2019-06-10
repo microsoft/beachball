@@ -69,7 +69,7 @@ const options: CliOptions = {
       break;
 
     case 'bump':
-      bump(options.path);
+      bump(options.registry, options.path);
       break;
 
     default:
