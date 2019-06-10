@@ -6,11 +6,7 @@ import fs from 'fs';
  * @param pathName
  * @param cwd
  */
-export function searchUp(pathName: string, cwd?: string) {
-  if (!cwd) {
-    cwd = process.cwd();
-  }
-
+export function searchUp(pathName: string, cwd: string) {
   const root = path.parse(cwd).root;
 
   let found = false;
@@ -31,15 +27,15 @@ export function searchUp(pathName: string, cwd?: string) {
   return null;
 }
 
-export function findGitRoot(cwd?: string) {
+export function findGitRoot(cwd: string) {
   return searchUp('.git', cwd);
 }
 
-export function findPackageRoot(cwd?: string) {
+export function findPackageRoot(cwd: string) {
   return searchUp('package.json', cwd);
 }
 
-export function getChangePath(cwd?: string) {
+export function getChangePath(cwd: string) {
   const gitRoot = findGitRoot(cwd);
 
   if (gitRoot) {

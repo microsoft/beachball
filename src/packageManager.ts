@@ -1,7 +1,7 @@
 import { spawnSync } from 'child_process';
 import os from 'os';
 
-export function npm(args: string[], options?: { cwd?: string }) {
+export function npm(args: string[], options?: { cwd: string }) {
   const npmCmd = os.platform() === 'win32' ? 'npm.cmd' : 'npm';
 
   const results = spawnSync(npmCmd, args, options);
@@ -21,7 +21,6 @@ export function npm(args: string[], options?: { cwd?: string }) {
   }
 }
 
-export function packagePublish(packagePath?: string) {
-  const registry = 'http://localhost:4873';
+export function packagePublish(packagePath: string, registry: string) {
   npm(['publish', '--registry', registry], { cwd: packagePath });
 }

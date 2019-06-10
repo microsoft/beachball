@@ -1,6 +1,6 @@
 import { spawnSync } from 'child_process';
 
-export function git(args: string[], options?: { cwd?: string }) {
+export function git(args: string[], options?: { cwd: string }) {
   const results = spawnSync('git', args, options);
 
   if (results.status === 0) {
@@ -18,7 +18,7 @@ export function git(args: string[], options?: { cwd?: string }) {
   }
 }
 
-export function getUncommittedChanges(cwd?: string) {
+export function getUncommittedChanges(cwd: string) {
   try {
     const results = git(['status', '--porcelain'], { cwd });
 
@@ -40,33 +40,9 @@ export function getUncommittedChanges(cwd?: string) {
   }
 }
 
-export function getForkPoint(cwd?: string, targetBranch: string = 'origin/master') {
+export function getChanges(branch: string, cwd: string) {
   try {
-    let results = git(['merge-base', '--fork-point', targetBranch, 'HEAD'], { cwd });
-
-    if (!results.success) {
-      results = git(['merge-base', '--fork-point', 'master', 'HEAD'], { cwd });
-    }
-
-    if (!results.success) {
-      return null;
-    }
-
-    return results.stdout;
-  } catch (e) {
-    return targetBranch;
-  }
-}
-
-export function getChanges(cwd?: string) {
-  try {
-    const forkPoint = getForkPoint(cwd);
-
-    if (!forkPoint) {
-      return [];
-    }
-
-    const results = git(['--no-pager', 'diff', '--name-only', forkPoint + '...'], { cwd });
+    const results = git(['--no-pager', 'diff', '--name-only', branch + '...'], { cwd });
 
     if (!results.success) {
       return [];
@@ -82,15 +58,9 @@ export function getChanges(cwd?: string) {
   }
 }
 
-export function getRecentCommitMessages(cwd?: string) {
+export function getRecentCommitMessages(branch: string, cwd: string) {
   try {
-    const forkPoint = getForkPoint(cwd);
-
-    if (!forkPoint) {
-      return [];
-    }
-
-    const results = git(['log', '--decorate', '--pretty=format:%s', forkPoint, 'HEAD'], { cwd });
+    const results = git(['log', '--decorate', '--pretty=format:%s', branch, 'HEAD'], { cwd });
 
     if (!results.success) {
       return [];
@@ -105,7 +75,7 @@ export function getRecentCommitMessages(cwd?: string) {
   }
 }
 
-export function getUserEmail(cwd?: string) {
+export function getUserEmail(cwd: string) {
   try {
     const results = git(['config', 'user.email'], { cwd });
 
@@ -119,7 +89,7 @@ export function getUserEmail(cwd?: string) {
   }
 }
 
-export function getBranchName(cwd?: string) {
+export function getBranchName(cwd: string) {
   try {
     const results = git(['rev-parse', '--abbrev-ref', 'HEAD'], { cwd });
 
@@ -133,7 +103,7 @@ export function getBranchName(cwd?: string) {
   return null;
 }
 
-export function getCurrentHash(cwd?: string) {
+export function getCurrentHash(cwd: string) {
   try {
     const results = git(['rev-parse', 'HEAD'], { cwd });
 
@@ -147,7 +117,7 @@ export function getCurrentHash(cwd?: string) {
   return null;
 }
 
-export function stageAndCommit(patterns: string[], message: string, cwd?: string) {
+export function stageAndCommit(patterns: string[], message: string, cwd: string) {
   try {
     patterns.forEach(pattern => {
       git(['add', pattern], { cwd });
@@ -163,4 +133,24 @@ export function stageAndCommit(patterns: string[], message: string, cwd?: string
   } catch (e) {
     console.error('Cannot stage and commit changes', e.message);
   }
+}
+
+export function revertLocalChanges(cwd: string) {
+  const stash = `beachball_${new Date().getTime()}`;
+  git(['stash', 'push', '-u', '-m', stash], { cwd });
+  const results = git(['stash', 'list']);
+  if (results.success) {
+    const lines = results.stdout.split(/\n/);
+    const foundLine = lines.find(line => line.includes(stash));
+
+    if (foundLine) {
+      const matched = foundLine.match(/^[^:]+/);
+      if (matched) {
+        git(['stash', 'drop', matched[0]]);
+        return true;
+      }
+    }
+  }
+
+  return false;
 }

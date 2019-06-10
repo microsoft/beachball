@@ -15,9 +15,9 @@ export interface PackageInfo {
   devDependencies: { [dep: string]: string };
 }
 
-export function bump(cwd?: string) {
-  cwd = cwd || process.cwd();
+export type BumpInfo = ReturnType<typeof bump>;
 
+export function bump(cwd: string) {
   const gitRoot = findGitRoot(cwd) || cwd;
 
   // Collate the changes per package
@@ -88,9 +88,7 @@ function bumpMinSemverRange(minVersion: string, semverRange: string) {
   return minVersion;
 }
 
-export function getPackageInfos(cwd?: string) {
-  cwd = cwd || process.cwd();
-
+export function getPackageInfos(cwd: string) {
   const gitRoot = findGitRoot(cwd) || cwd;
   const packagePatterns = getPackagePatterns(cwd);
   const packageInfos: { [pkgName: string]: PackageInfo } = {};

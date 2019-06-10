@@ -10,9 +10,9 @@ import prompts from 'prompts';
  * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash
  * @param cwd
  */
-export async function promptForChange(cwd?: string) {
-  const changedPackages = getChangedPackages(cwd);
-  const recentMessages = getRecentCommitMessages(cwd) || [];
+export async function promptForChange(branch: string, cwd: string) {
+  const changedPackages = getChangedPackages(branch, cwd);
+  const recentMessages = getRecentCommitMessages(branch, cwd) || [];
   const packageChangeInfo: { [pkgname: string]: ChangeInfo } = {};
 
   await changedPackages.reduce(async (currentPromise, pkg) => {
@@ -65,7 +65,7 @@ export async function promptForChange(cwd?: string) {
  * @param changes
  * @param cwd
  */
-export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd?: string) {
+export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd: string) {
   if (Object.keys(changes).length === 0) {
     return;
   }
@@ -91,7 +91,7 @@ export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd
   }
 }
 
-export function unlinkChangeFiles(cwd?: string) {
+export function unlinkChangeFiles(cwd: string) {
   const changePath = getChangePath(cwd);
 
   if (!changePath) {
@@ -117,7 +117,7 @@ function getTimeStamp() {
   ].join('-');
 }
 
-export function readChangeFiles(cwd?: string) {
+export function readChangeFiles(cwd: string) {
   const changePath = getChangePath(cwd);
 
   if (!changePath || !fs.existsSync(changePath)) {
@@ -138,7 +138,7 @@ export function readChangeFiles(cwd?: string) {
   return changes;
 }
 
-export function getPackageChangeTypes(cwd?: string) {
+export function getPackageChangeTypes(cwd: string) {
   const changeTypeWeights = {
     major: 3,
     minor: 2,

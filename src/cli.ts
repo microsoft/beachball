@@ -6,25 +6,41 @@ import parser from 'yargs-parser';
 import { findPackageRoot } from './paths';
 import { publish } from './publish';
 import { writeChangelog } from './changelog';
+import { CliOptions } from './CliOptions';
 
 let argv = process.argv.splice(2);
 let args = parser(argv, {
   alias: {
-    path: ['p']
+    path: ['p'],
+    branch: ['b'],
+    tag: ['t'],
+    registry: ['r'],
+    help: ['h', '?']
   }
 });
 
+if (args.help) {
+  showHelp();
+  process.exit(0);
+}
+
 const defaultCommand = 'change';
-const command = args._.length === 0 ? defaultCommand : args._[0];
-const cwd = args.path || findPackageRoot(process.cwd());
+
+const options: CliOptions = {
+  command: args._.length === 0 ? defaultCommand : args._[0],
+  registry: args.registry || 'http://registry.npmjs.org',
+  branch: args.branch || 'master',
+  tag: args.tag || 'latest',
+  path: args.path || findPackageRoot(process.cwd())
+};
 
 (async () => {
-  if (!isGitAvailable(cwd)) {
+  if (!isGitAvailable(options.path)) {
     console.error('Please make sure git is installed and initialize the repository with "git init".');
     process.exit(1);
   }
 
-  const uncommitted = getUncommittedChanges(cwd);
+  const uncommitted = getUncommittedChanges(options.path);
 
   if (uncommitted && uncommitted.length > 0) {
     console.warn('There are uncommitted changes in your repository. Please commit these files first:');
@@ -32,40 +48,71 @@ const cwd = args.path || findPackageRoot(process.cwd());
     return;
   }
 
-  if (isChangeFileNeeded(cwd) && command !== 'change') {
+  if (isChangeFileNeeded(options.branch, options.path) && options.command !== 'change') {
     console.log('Change files are needed!');
     process.exit(1);
   }
 
-  switch (command) {
+  switch (options.command) {
     case 'check':
       console.log('No change files are needed');
       break;
 
     case 'changelog':
-      const packageInfos = getPackageInfos(cwd);
-      writeChangelog(packageInfos, cwd);
+      const packageInfos = getPackageInfos(options.path);
+      writeChangelog(packageInfos, options.path);
 
     case 'publish':
-      publish(cwd);
+      publish(args, options.path);
       break;
 
     case 'bump':
-      bump(cwd);
+      bump(options.path);
       break;
 
     default:
-      if (!isChangeFileNeeded(cwd)) {
+      if (!isChangeFileNeeded(options.branch, options.path)) {
         console.log('No change files are needed');
         return;
       }
 
-      const changes = await promptForChange(cwd);
+      const changes = await promptForChange(options.branch, options.path);
 
       if (changes) {
-        writeChangeFiles(changes, cwd);
+        writeChangeFiles(changes, options.path);
       }
 
       break;
   }
 })();
+
+function showHelp() {
+  const packageJson = require('../package.json');
+  console.log(`beachball v${packageJson.version} - the sunniest version bumping tool
+
+Prerequisites:
+
+  git and a remote named "origin"
+
+Commands:
+
+  change (default)    - a tool to help create change files in the change/ folder
+  check               - checks whether a change file is needed for this branch
+  changelog           - based on change files, create changelogs and then unlinks the change files
+  bump                - bumps versions as well as generating changelogs
+  publish             - bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into master
+
+Options:
+
+  --registry, -r      - registry, defaults to https://registry.npmjs.org
+  --tag, -t           - dist-tag for npm publishes
+  --branch, -b        - target branch from origin (default: master)
+
+Examples:
+
+  $ beachball
+  $ beachball check
+  $ beachball publish -r http://localhost:4873 -t beta -b beta
+
+`);
+}

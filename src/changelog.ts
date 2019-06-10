@@ -21,7 +21,7 @@ interface PackageChangelog {
   };
 }
 
-export function getPackageChangelogs(packageInfos: { [pkg: string]: PackageInfo }, cwd?: string) {
+export function getPackageChangelogs(packageInfos: { [pkg: string]: PackageInfo }, cwd: string) {
   const changes = readChangeFiles(cwd);
   const changelogs: { [pkgName: string]: PackageChangelog } = {};
   changes.forEach(change => {
@@ -45,7 +45,7 @@ export function getPackageChangelogs(packageInfos: { [pkg: string]: PackageInfo 
   return changelogs;
 }
 
-export function writeChangelog(packageInfos: { [pkg: string]: PackageInfo }, cwd?: string) {
+export function writeChangelog(packageInfos: { [pkg: string]: PackageInfo }, cwd: string) {
   const changelogs = getPackageChangelogs(packageInfos, cwd);
 
   Object.keys(changelogs).forEach(pkg => {

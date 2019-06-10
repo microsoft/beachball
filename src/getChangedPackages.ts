@@ -10,17 +10,15 @@ import path from 'path';
  * Gets all the changed packages, regardless of the change files
  * @param cwd
  */
-function getAllChangedPackages(cwd?: string) {
-  cwd = cwd || process.cwd();
-
+function getAllChangedPackages(branch: string, cwd: string) {
   const gitRoot = findGitRoot(cwd) || cwd;
-  const changes = getChanges(cwd);
+  const changes = getChanges(branch, cwd);
 
   const packageRoots: { [pathName: string]: string } = {};
   if (changes) {
     // Discover package roots from modded files
     changes.forEach(moddedFile => {
-      const root = findPackageRoot(path.join(cwd!, path.dirname(moddedFile)));
+      const root = findPackageRoot(path.join(cwd, path.dirname(moddedFile)));
 
       if (root && !packageRoots[root]) {
         try {
@@ -59,9 +57,9 @@ function getAllChangedPackages(cwd?: string) {
  * Gets all the changed packages, accounting for change files
  * @param cwd
  */
-export function getChangedPackages(cwd?: string) {
+export function getChangedPackages(branch: string, cwd: string) {
   const changePath = getChangePath(cwd);
-  const changedPackages = getAllChangedPackages(cwd);
+  const changedPackages = getAllChangedPackages(branch, cwd);
 
   if (!changePath || !fs.existsSync(changePath)) {
     return changedPackages;
