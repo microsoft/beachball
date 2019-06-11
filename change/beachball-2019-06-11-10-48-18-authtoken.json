@@ -1,0 +1,8 @@
+{
+  "comment": "adds support for auth token",
+  "type": "minor",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "05defcc525d28a53054279d1eac35c6b6bfec257",
+  "date": "2019-06-11T17:48:18.270Z"
+}
