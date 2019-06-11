@@ -49,11 +49,11 @@ const options: CliOptions = {
   if (uncommitted && uncommitted.length > 0) {
     console.warn('There are uncommitted changes in your repository. Please commit these files first:');
     console.warn('- ' + uncommitted.join('\n- '));
-    return;
+    process.exit(1);
   }
 
   if (isChangeFileNeeded(options.branch, options.path) && options.command !== 'change') {
-    console.log('Change files are needed!');
+    console.log('Change files are needed! Run "beachball" to generate change files.');
     process.exit(1);
   }
 
