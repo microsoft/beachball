@@ -1,0 +1,8 @@
+{
+  "comment": "fail on change files",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "6d5200f335de7e719855215f7b1188d7a0da88fc",
+  "date": "2019-06-11T19:34:17.453Z"
+}
