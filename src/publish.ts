@@ -4,7 +4,7 @@ import { git, revertLocalChanges } from './git';
 import { packagePublish, listPackageVersions } from './packageManager';
 
 export function publish(options: CliOptions) {
-  const { path: cwd, branch, registry, tag, message } = options;
+  const { path: cwd, branch, registry, tag, token, message } = options;
 
   // checkout publish branch
   const publishBranch = 'publish_' + String(new Date().getTime());
@@ -32,7 +32,7 @@ export function publish(options: CliOptions) {
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
-    packagePublish(packageInfo, registry, tag);
+    packagePublish(packageInfo, registry, token, tag);
   });
 
   // Step 2.

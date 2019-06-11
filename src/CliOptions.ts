@@ -1,8 +1,9 @@
 export interface CliOptions {
-  command: string;
-  registry: string;
   branch: string;
-  tag: string;
-  path: string;
+  command: string;
   message: string;
+  path: string;
+  registry: string;
+  tag: string;
+  token: string;
 }

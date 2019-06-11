@@ -16,6 +16,7 @@ let args = parser(argv, {
     tag: ['t'],
     registry: ['r'],
     message: ['m'],
+    token: ['n'],
     help: ['h', '?']
   }
 });
@@ -28,12 +29,13 @@ if (args.help) {
 const defaultCommand = 'change';
 
 const options: CliOptions = {
-  command: args._.length === 0 ? defaultCommand : args._[0],
-  registry: args.registry || 'http://registry.npmjs.org',
   branch: args.branch || 'master',
-  tag: args.tag || 'latest',
+  command: args._.length === 0 ? defaultCommand : args._[0],
+  message: args.message || 'applying package updates',
   path: args.path || findPackageRoot(process.cwd()),
-  message: args.message || 'applying package updates'
+  registry: args.registry || 'http://registry.npmjs.org',
+  tag: args.tag || 'latest',
+  token: ''
 };
 
 (async () => {
