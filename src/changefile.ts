@@ -150,7 +150,7 @@ export function getPackageChangeTypes(cwd: string) {
   changes.forEach(change => {
     const { packageName } = change;
 
-    if (change.type !== 'none') {
+    if (change.type === 'none') {
       return;
     }
 

@@ -42,8 +42,8 @@ export function publish(options: CliOptions) {
   // - For repos with remotes: reset, fetch latest from origin/master (to ensure less chance of conflict), then bump again + commit
   const remoteResult = git(['remote', 'get-url', 'origin']);
 
-  if (!remoteResult.success) {
-    console.log('Remote "origin" not found. Committing changes locally.');
+  if (!remoteResult.success || !options.push) {
+    console.log('Committing changes locally.');
     const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
 
     if (!mergePublishBranchResult.success) {
@@ -85,10 +85,8 @@ export function publish(options: CliOptions) {
     // Step 3. Tag & Push to remote
     tagPackages(bumpInfo, tag, cwd);
 
-    if (options.push) {
-      console.log(`pushing to ${remote}/${branch}`);
-      git(['push', '--follow-tags', remote, branch]);
-    }
+    console.log(`pushing to ${remote}/${branch}`);
+    git(['push', '--follow-tags', remote, branch]);
   }
 }
 
