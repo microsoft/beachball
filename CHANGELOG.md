@@ -1,6 +1,13 @@
 # Changelog - beachball
 
-This log was last generated on Tue, 11 Jun 2019 19:34:32 GMT and should not be manually modified.
+This log was last generated on Wed, 12 Jun 2019 01:53:04 GMT and should not be manually modified.
+
+## 1.4.0
+Wed, 12 Jun 2019 01:53:04 GMT
+
+### Minor
+
+- adds no-publish and no-push, skips bump of none (kchau@microsoft.com)
 
 ## 1.3.1
 Tue, 11 Jun 2019 19:34:32 GMT

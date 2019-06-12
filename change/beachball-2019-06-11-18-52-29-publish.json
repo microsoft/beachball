@@ -1,8 +1,0 @@
-{
-  "comment": "adds no-publish and no-push, skips bump of none",
-  "type": "minor",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "23aa562c00a48a9edfd58df791b71ce23b5a1887",
-  "date": "2019-06-12T01:52:29.351Z"
-}
