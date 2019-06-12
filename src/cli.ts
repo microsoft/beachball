@@ -11,7 +11,6 @@ import parser from 'yargs-parser';
 let argv = process.argv.splice(2);
 let args = parser(argv, {
   alias: {
-    path: ['p'],
     branch: ['b'],
     tag: ['t'],
     registry: ['r'],
@@ -32,7 +31,9 @@ const options: CliOptions = {
   branch: args.branch || 'master',
   command: args._.length === 0 ? defaultCommand : args._[0],
   message: args.message || 'applying package updates',
-  path: args.path || findPackageRoot(process.cwd()),
+  path: findPackageRoot(process.cwd()) || process.cwd(),
+  publish: args.publish === false ? false : true,
+  push: args.push === false ? false : true,
   registry: args.registry || 'http://registry.npmjs.org',
   tag: args.tag || 'latest',
   token: ''
@@ -116,6 +117,8 @@ Options:
   --tag, -t           - dist-tag for npm publishes
   --branch, -b        - target branch from origin (default: master)
   --message, -m       - custom message for the checkin (default: applying package updates)
+  --no-push           - skip pushing changes back to git remote origin
+  --no-publish        - skip publishing to the npm registry
   --help, -?, -h      - this very help message
 
 Examples:

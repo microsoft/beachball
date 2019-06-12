@@ -6,4 +6,6 @@ export interface CliOptions {
   registry: string;
   tag: string;
   token: string;
+  push: boolean;
+  publish: boolean;
 }

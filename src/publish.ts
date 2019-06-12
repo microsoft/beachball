@@ -29,11 +29,13 @@ export function publish(options: CliOptions) {
   }
 
   // npm / yarn publish
-  Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
-    const packageInfo = bumpInfo.packageInfos[pkg];
-    console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
-    packagePublish(packageInfo, registry, token, tag);
-  });
+  if (options.publish) {
+    Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
+      const packageInfo = bumpInfo.packageInfos[pkg];
+      console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
+      packagePublish(packageInfo, registry, token, tag);
+    });
+  }
 
   // Step 2.
   // - For repos with no remotes: just commit and move on!
@@ -83,8 +85,10 @@ export function publish(options: CliOptions) {
     // Step 3. Tag & Push to remote
     tagPackages(bumpInfo, tag, cwd);
 
-    console.log(`pushing to ${remote}/${branch}`);
-    git(['push', '--follow-tags', remote, branch]);
+    if (options.push) {
+      console.log(`pushing to ${remote}/${branch}`);
+      git(['push', '--follow-tags', remote, branch]);
+    }
   }
 }
 

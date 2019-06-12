@@ -150,10 +150,11 @@ export function getPackageChangeTypes(cwd: string) {
   changes.forEach(change => {
     const { packageName } = change;
 
-    if (
-      !changePerPackage[packageName] ||
-      (change.type !== 'none' && changeTypeWeights[change.type] > changeTypeWeights[changePerPackage[packageName]])
-    ) {
+    if (change.type !== 'none') {
+      return;
+    }
+
+    if (!changePerPackage[packageName] || changeTypeWeights[change.type] > changeTypeWeights[changePerPackage[packageName]]) {
       changePerPackage[packageName] = change.type;
     }
   });
