@@ -1,26 +1,43 @@
 import { bump, BumpInfo } from './bump';
 import { CliOptions } from './CliOptions';
-import { git, revertLocalChanges } from './git';
+import { git, revertLocalChanges, getRemoteBranch, parseRemoteBranch, getBranchName } from './git';
 import { packagePublish, listPackageVersions } from './packageManager';
+import prompts from 'prompts';
 
-export function publish(options: CliOptions) {
-  const { path: cwd, branch, registry, tag, token, message } = options;
+export async function publish(options: CliOptions) {
+  const { path: cwd, branch, registry, tag, token, message, access } = options;
+
+  const remoteFullBranchName = getRemoteBranch(branch, cwd);
+
+  console.log(`Publishing from beachball
+
+  registry: ${registry}
+  current branch: ${getBranchName(cwd)}
+  target branch: ${branch}
+  remote tracked branch: ${remoteFullBranchName || '[not tracking a remote]'}
+  tag: ${tag}
+`);
+
+  if (!options.yes) {
+    const response = await prompts({
+      type: 'confirm',
+      name: 'yes',
+      message: 'Is everything correct (use the --yes or -y arg to skip this prompt)?'
+    });
+
+    if (!response.yes) {
+      return;
+    }
+  }
 
   // checkout publish branch
   const publishBranch = 'publish_' + String(new Date().getTime());
   git(['checkout', '-b', publishBranch]);
 
-  console.log(`Publishing from beachball
-
-  registry: ${registry}
-  target branch: ${branch}
-  tag: ${tag}
-`);
-
   // Step 1. Bump + npm publish
   // bump the version
   console.log('Bumping version for npm publish');
-  const bumpInfo = bump(registry, cwd);
+  const bumpInfo = bump(cwd);
 
   if (!validatePackageVersions(bumpInfo, registry)) {
     displayManualRecovery(bumpInfo);
@@ -33,16 +50,14 @@ export function publish(options: CliOptions) {
     Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
       const packageInfo = bumpInfo.packageInfos[pkg];
       console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
-      packagePublish(packageInfo, registry, token, tag);
+      packagePublish(packageInfo, registry, token, tag, access);
     });
   }
 
   // Step 2.
   // - For repos with no remotes: just commit and move on!
   // - For repos with remotes: reset, fetch latest from origin/master (to ensure less chance of conflict), then bump again + commit
-  const remoteResult = git(['remote', 'get-url', 'origin']);
-
-  if (!remoteResult.success || !options.push) {
+  if (!remoteFullBranchName || !options.push) {
     console.log('Committing changes locally.');
     const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
 
@@ -54,16 +69,16 @@ export function publish(options: CliOptions) {
 
     tagPackages(bumpInfo, tag, cwd);
   } else {
-    const remote = 'origin';
+    const { remote, remoteBranch } = parseRemoteBranch(remoteFullBranchName);
 
     console.log('Reverting and fetching from remote');
 
     // pull in latest from origin branch
     revertLocalChanges(cwd);
     git(['fetch', remote], { cwd });
-    const mergeResult = git(['merge', '-X', 'theirs', `${remote}/${branch}`], { cwd });
+    const mergeResult = git(['merge', '-X', 'theirs', `${remoteFullBranchName}`], { cwd });
     if (!mergeResult.success) {
-      console.error('CRITICAL ERROR: pull from master has failed!');
+      console.error(`CRITICAL ERROR: pull from ${remoteFullBranchName} has failed!`);
       console.error(mergeResult.stderr);
       displayManualRecovery(bumpInfo);
       process.exit(1);
@@ -71,7 +86,7 @@ export function publish(options: CliOptions) {
 
     // bump the version
     console.log('Bumping the versions for git push');
-    bump(registry, cwd);
+    bump(cwd);
 
     // checkin
     const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
@@ -85,8 +100,8 @@ export function publish(options: CliOptions) {
     // Step 3. Tag & Push to remote
     tagPackages(bumpInfo, tag, cwd);
 
-    console.log(`pushing to ${remote}/${branch}`);
-    git(['push', '--follow-tags', remote, branch]);
+    console.log(`pushing to ${remoteFullBranchName}`);
+    git(['push', '--follow-tags', remote, `${branch}:${remoteBranch}`]);
   }
 }
 

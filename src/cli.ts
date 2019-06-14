@@ -1,7 +1,7 @@
 import { bump, getPackageInfos } from './bump';
 import { CliOptions } from './CliOptions';
 import { findPackageRoot } from './paths';
-import { getUncommittedChanges } from './git';
+import { getUncommittedChanges, getParentBranch } from './git';
 import { isChangeFileNeeded, isGitAvailable } from './validation';
 import { promptForChange, writeChangeFiles } from './changefile';
 import { publish } from './publish';
@@ -16,7 +16,8 @@ let args = parser(argv, {
     registry: ['r'],
     message: ['m'],
     token: ['n'],
-    help: ['h', '?']
+    help: ['h', '?'],
+    yes: ['y']
   }
 });
 
@@ -26,17 +27,19 @@ if (args.help) {
 }
 
 const defaultCommand = 'change';
-
+const cwd = findPackageRoot(process.cwd()) || process.cwd();
 const options: CliOptions = {
-  branch: args.branch || 'master',
+  branch: args.branch || getParentBranch(cwd) || 'master',
   command: args._.length === 0 ? defaultCommand : args._[0],
   message: args.message || 'applying package updates',
-  path: findPackageRoot(process.cwd()) || process.cwd(),
+  path: cwd,
   publish: args.publish === false ? false : true,
   push: args.push === false ? false : true,
   registry: args.registry || 'http://registry.npmjs.org',
   tag: args.tag || 'latest',
-  token: ''
+  token: '',
+  yes: args.yes === true || false,
+  access: args.access || 'restricted'
 };
 
 (async () => {
@@ -72,7 +75,7 @@ const options: CliOptions = {
       break;
 
     case 'bump':
-      bump(options.registry, options.path);
+      bump(options.path);
       break;
 
     default:
@@ -120,6 +123,7 @@ Options:
   --no-push           - skip pushing changes back to git remote origin
   --no-publish        - skip publishing to the npm registry
   --help, -?, -h      - this very help message
+  --yes, -y           - skips the prompts for publish
 
 Examples:
 

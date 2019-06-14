@@ -154,3 +154,53 @@ export function revertLocalChanges(cwd: string) {
 
   return false;
 }
+
+export function getParentBranch(cwd: string) {
+  const branchName = getBranchName(cwd);
+
+  if (!branchName) {
+    return null;
+  }
+
+  const showBranchResult = git(['show-branch', '-a'], { cwd });
+
+  if (showBranchResult.success) {
+    const showBranchLines = showBranchResult.stdout.split(/\n/);
+    const parentLine = showBranchLines.find(line => line.indexOf('*') > -1 && line.indexOf(branchName) < 0 && line.indexOf('publish_') < 0);
+
+    if (!parentLine) {
+      return null;
+    }
+
+    const matched = parentLine.match(/\[(.*)\]/);
+
+    if (!matched) {
+      return null;
+    }
+
+    return matched[1];
+  }
+
+  return null;
+}
+
+export function getRemoteBranch(branch: string, cwd: string) {
+  const results = git(['rev-parse', '--abbrev-ref', '--symbolic-full-name', `${branch}@\{u\}`], { cwd });
+
+  if (results.success) {
+    return results.stdout.trim();
+  }
+
+  return null;
+}
+
+export function parseRemoteBranch(branch: string) {
+  const firstSlashPos = branch.indexOf('/', 0);
+  const remote = branch.substring(0, firstSlashPos);
+  const remoteBranch = branch.substring(firstSlashPos + 1);
+
+  return {
+    remote,
+    remoteBranch
+  };
+}

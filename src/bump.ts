@@ -17,7 +17,7 @@ export interface PackageInfo {
 
 export type BumpInfo = ReturnType<typeof bump>;
 
-export function bump(registry: string, cwd: string) {
+export function bump(cwd: string) {
   const gitRoot = findGitRoot(cwd) || cwd;
 
   // Collate the changes per package

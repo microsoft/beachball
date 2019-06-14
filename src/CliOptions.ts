@@ -8,4 +8,6 @@ export interface CliOptions {
   token: string;
   push: boolean;
   publish: boolean;
+  yes: boolean;
+  access: 'public' | 'restricted';
 }

@@ -23,12 +23,18 @@ export function npm(args: string[], options?: { cwd: string }) {
   }
 }
 
-export function packagePublish(packageInfo: PackageInfo, registry: string, token: string, tag: string) {
+export function packagePublish(packageInfo: PackageInfo, registry: string, token: string, tag: string, access: string) {
   const packagePath = path.dirname(packageInfo.packageJsonPath);
   const args = ['publish', '--registry', registry, '--tag', tag];
+
   if (token) {
     const shorthand = registry.substring(registry.indexOf('//'));
     args.push(`--${shorthand}:_authToken=${token}`);
+  }
+
+  if (access && packageInfo.name.startsWith('@')) {
+    args.push('--access');
+    args.push(access);
   }
 
   npm(args, { cwd: packagePath });
