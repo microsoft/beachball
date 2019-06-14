@@ -1,6 +1,13 @@
 # Changelog - beachball
 
-This log was last generated on Wed, 12 Jun 2019 01:53:04 GMT and should not be manually modified.
+This log was last generated on Fri, 14 Jun 2019 19:35:56 GMT and should not be manually modified.
+
+## 1.5.0
+Fri, 14 Jun 2019 19:35:56 GMT
+
+### Minor
+
+- find the right fork point (kchau@microsoft.com)
 
 ## 1.4.0
 Wed, 12 Jun 2019 01:53:04 GMT
