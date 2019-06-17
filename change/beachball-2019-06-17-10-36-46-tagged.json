@@ -1,0 +1,8 @@
+{
+  "comment": "Be more specific in publish to disambiguate the tag and target branch",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "6817ea3310203bde7ad88fe85f2b439662eda1e1",
+  "date": "2019-06-17T17:36:46.157Z"
+}
