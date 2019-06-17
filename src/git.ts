@@ -103,6 +103,24 @@ export function getBranchName(cwd: string) {
   return null;
 }
 
+export function getFullBranchRef(branch: string, cwd: string) {
+  const showRefResults = git(['show-ref', '--heads', branch], { cwd });
+  if (showRefResults.success) {
+    return showRefResults.stdout.split(' ')[1];
+  }
+
+  return null;
+}
+
+export function getShortBranchName(fullBranchRef: string, cwd: string) {
+  const showRefResults = git(['name-rev', '--name-only', fullBranchRef], { cwd });
+  if (showRefResults.success) {
+    return showRefResults.stdout;
+  }
+
+  return null;
+}
+
 export function getCurrentHash(cwd: string) {
   try {
     const results = git(['rev-parse', 'HEAD'], { cwd });

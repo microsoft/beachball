@@ -1,19 +1,29 @@
 import { bump, BumpInfo } from './bump';
 import { CliOptions } from './CliOptions';
-import { git, revertLocalChanges, getRemoteBranch, parseRemoteBranch, getBranchName } from './git';
+import { git, revertLocalChanges, getRemoteBranch, parseRemoteBranch, getBranchName, getFullBranchRef, getShortBranchName } from './git';
 import { packagePublish, listPackageVersions } from './packageManager';
 import prompts from 'prompts';
 
 export async function publish(options: CliOptions) {
   const { path: cwd, branch, registry, tag, token, message, access } = options;
 
-  const remoteFullBranchName = getRemoteBranch(branch, cwd);
+  const targetBranchRef = getFullBranchRef(branch, cwd);
+
+  if (!targetBranchRef) {
+    console.error(`Target branch does not exist: ${targetBranchRef}`);
+    process.exit(1);
+
+    // return here to appease the TS compiler errors, but we both know that process has already exited... shhh...
+    return;
+  }
+
+  const remoteFullBranchName = getRemoteBranch(getShortBranchName(targetBranchRef, cwd)!, cwd);
 
   console.log(`Publishing from beachball
 
   registry: ${registry}
   current branch: ${getBranchName(cwd)}
-  target branch: ${branch}
+  target branch: ${branch} (${targetBranchRef})
   remote tracked branch: ${remoteFullBranchName || '[not tracking a remote]'}
   tag: ${tag}
 `);
@@ -100,8 +110,10 @@ export async function publish(options: CliOptions) {
     // Step 3. Tag & Push to remote
     tagPackages(bumpInfo, tag, cwd);
 
-    console.log(`pushing to ${remoteFullBranchName}`);
-    git(['push', '--follow-tags', remote, `${branch}:${remoteBranch}`]);
+    console.log(`pushing to ${remoteFullBranchName}, running the following command for git push:`);
+    const pushArgs = ['push', '--follow-tags', remote, `${targetBranchRef}:${remoteBranch}`];
+    console.log('git ' + pushArgs.join(' '));
+    git(pushArgs);
   }
 }
 
