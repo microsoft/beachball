@@ -1,6 +1,13 @@
 # Changelog - beachball
 
-This log was last generated on Fri, 14 Jun 2019 19:35:56 GMT and should not be manually modified.
+This log was last generated on Mon, 17 Jun 2019 17:36:58 GMT and should not be manually modified.
+
+## 1.5.1
+Mon, 17 Jun 2019 17:36:58 GMT
+
+### Patches
+
+- Be more specific in publish to disambiguate the tag and target branch (kchau@microsoft.com)
 
 ## 1.5.0
 Fri, 14 Jun 2019 19:35:56 GMT
