@@ -37,6 +37,7 @@ export function packagePublish(packageInfo: PackageInfo, registry: string, token
     args.push(access);
   }
 
+  console.log(`publish command: ${args.join(' ')}`);
   return npm(args, { cwd: packagePath });
 }
 
