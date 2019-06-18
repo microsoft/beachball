@@ -1,8 +1,8 @@
 import { bump, getPackageInfos } from './bump';
 import { CliOptions } from './CliOptions';
 import { findPackageRoot } from './paths';
-import { getUncommittedChanges, getParentBranch } from './git';
-import { isChangeFileNeeded, isGitAvailable } from './validation';
+import { getUncommittedChanges, getParentBranch, getDefaultRemoteMaster, getRemoteBranch } from './git';
+import { isChangeFileNeeded as checkChangeFileNeeded, isGitAvailable, isValidTargetBranch } from './validation';
 import { promptForChange, writeChangeFiles } from './changefile';
 import { publish } from './publish';
 import { writeChangelog } from './changelog';
@@ -26,10 +26,15 @@ if (args.help) {
   process.exit(0);
 }
 
+if (args.branch && !isValidTargetBranch(args.branch)) {
+  console.error(`Target branch needs to be a valid remote branch (e.g. origin/master): ${args.branch}`);
+  process.exit(1);
+}
+
 const defaultCommand = 'change';
 const cwd = findPackageRoot(process.cwd()) || process.cwd();
 const options: CliOptions = {
-  branch: args.branch || getParentBranch(cwd) || 'master',
+  branch: args.branch || getDefaultRemoteMaster(cwd),
   command: args._.length === 0 ? defaultCommand : args._[0],
   message: args.message || 'applying package updates',
   path: cwd,
@@ -56,7 +61,9 @@ const options: CliOptions = {
     process.exit(1);
   }
 
-  if (isChangeFileNeeded(options.branch, options.path) && options.command !== 'change') {
+  const isChangeNeeded = checkChangeFileNeeded(options.branch, options.path);
+
+  if (isChangeNeeded && options.command !== 'change') {
     console.log('Change files are needed! Run "beachball" to generate change files.');
     process.exit(1);
   }
@@ -79,7 +86,7 @@ const options: CliOptions = {
       break;
 
     default:
-      if (!isChangeFileNeeded(options.branch, options.path)) {
+      if (!isChangeNeeded) {
         console.log('No change files are needed');
         return;
       }

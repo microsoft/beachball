@@ -1,4 +1,8 @@
 import { spawnSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { findGitRoot } from './paths';
+import url from 'url';
 
 export function git(args: string[], options?: { cwd: string }) {
   const results = spawnSync('git', args, options);
@@ -176,7 +180,7 @@ export function revertLocalChanges(cwd: string) {
 export function getParentBranch(cwd: string) {
   const branchName = getBranchName(cwd);
 
-  if (!branchName) {
+  if (!branchName || branchName === 'HEAD') {
     return null;
   }
 
@@ -221,4 +225,42 @@ export function parseRemoteBranch(branch: string) {
     remote,
     remoteBranch
   };
+}
+
+export function getDefaultRemoteMaster(cwd: string) {
+  let packageJson: any;
+
+  try {
+    packageJson = JSON.parse(fs.readFileSync(path.join(findGitRoot(cwd)!, 'package.json')).toString());
+  } catch (e) {
+    console.log('failed to read package.json');
+    throw new Error('invalid package.json detected');
+  }
+
+  const { repository } = packageJson;
+
+  let repositoryUrl = '';
+
+  if (typeof repository === 'string') {
+    repositoryUrl = repository;
+  } else if (repository && repository.url) {
+    repositoryUrl = repository.url;
+  }
+
+  const normalizedUrl = url.format(url.parse(repositoryUrl)).toLowerCase();
+  const remotesResult = git(['remote', '-v'], { cwd });
+
+  if (remotesResult.success) {
+    const allRemotes = remotesResult.stdout.split('\n').map(line => line.substring(line.indexOf('\t'), line.lastIndexOf(' ')).trim());
+
+    if (allRemotes.length > 0) {
+      const remote = allRemotes.find(r => url.format(url.parse(r)).toLowerCase() === normalizedUrl);
+
+      if (remote) {
+        return `${remote}/master`;
+      }
+    }
+  }
+
+  return 'origin/master';
 }
