@@ -42,7 +42,7 @@ const options: CliOptions = {
   push: args.push === false ? false : true,
   registry: args.registry || 'https://registry.npmjs.org',
   tag: args.tag || 'latest',
-  token: '',
+  token: args.token || '',
   yes: args.yes === true || false,
   access: args.access || 'restricted'
 };
