@@ -1,0 +1,8 @@
+{
+  "comment": "enable token argument",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "9a86208d60ad37f1c3185240100bc7bdc9af9ef9",
+  "date": "2019-06-18T05:57:06.554Z"
+}
