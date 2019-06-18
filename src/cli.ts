@@ -40,7 +40,7 @@ const options: CliOptions = {
   path: cwd,
   publish: args.publish === false ? false : true,
   push: args.push === false ? false : true,
-  registry: args.registry || 'https://registry.npmjs.org',
+  registry: args.registry || 'https://registry.npmjs.org/',
   tag: args.tag || 'latest',
   token: args.token || '',
   yes: args.yes === true || false,
