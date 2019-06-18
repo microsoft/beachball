@@ -1,6 +1,13 @@
 # Changelog - beachball
 
-This log was last generated on Tue, 18 Jun 2019 05:27:14 GMT and should not be manually modified.
+This log was last generated on Tue, 18 Jun 2019 05:44:02 GMT and should not be manually modified.
+
+## 1.6.2
+Tue, 18 Jun 2019 05:44:02 GMT
+
+### Patches
+
+- use a specific registry and also displaynpm publish command (kchau@microsoft.com)
 
 ## 1.6.1
 Tue, 18 Jun 2019 05:27:14 GMT

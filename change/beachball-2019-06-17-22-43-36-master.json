@@ -1,8 +1,0 @@
-{
-  "comment": "use a specific registry and also displaynpm publish command",
-  "type": "patch",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "c9cc1f5e4fceea45aa5f6a31f8e7c314b0ee4cf1",
-  "date": "2019-06-18T05:43:36.152Z"
-}
