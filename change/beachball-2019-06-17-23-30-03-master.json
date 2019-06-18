@@ -1,0 +1,8 @@
+{
+  "comment": "making the default registry have a trailing slash to publish with token correctly",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "0685843e232c713c3838c6cddca66de3c562726e",
+  "date": "2019-06-18T06:30:03.809Z"
+}
