@@ -7,24 +7,13 @@ import prompts from 'prompts';
 export async function publish(options: CliOptions) {
   const { path: cwd, branch, registry, tag, token, message, access } = options;
 
-  const targetBranchRef = getFullBranchRef(branch, cwd);
-
-  if (!targetBranchRef) {
-    console.error(`Target branch does not exist: ${targetBranchRef}`);
-    process.exit(1);
-
-    // return here to appease the TS compiler errors, but we both know that process has already exited... shhh...
-    return;
-  }
-
-  const remoteFullBranchName = getRemoteBranch(getShortBranchName(targetBranchRef, cwd)!, cwd);
+  const currentBranch = getBranchName(cwd);
 
   console.log(`Publishing from beachball
 
   registry: ${registry}
-  current branch: ${getBranchName(cwd)}
-  target branch: ${branch} (${targetBranchRef})
-  remote tracked branch: ${remoteFullBranchName || '[not tracking a remote]'}
+  current branch: ${currentBranch}
+  target branch: ${branch}
   tag: ${tag}
 `);
 
@@ -75,7 +64,7 @@ export async function publish(options: CliOptions) {
   // Step 2.
   // - For repos with no remotes: just commit and move on!
   // - For repos with remotes: reset, fetch latest from origin/master (to ensure less chance of conflict), then bump again + commit
-  if (!remoteFullBranchName || !options.push) {
+  if (!branch || !options.push) {
     console.log('Committing changes locally.');
     const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
 
@@ -87,16 +76,16 @@ export async function publish(options: CliOptions) {
 
     tagPackages(bumpInfo, tag, cwd);
   } else {
-    const { remote, remoteBranch } = parseRemoteBranch(remoteFullBranchName);
+    const { remote, remoteBranch } = parseRemoteBranch(branch);
 
     console.log('Reverting and fetching from remote');
 
     // pull in latest from origin branch
     revertLocalChanges(cwd);
     git(['fetch', remote], { cwd });
-    const mergeResult = git(['merge', '-X', 'theirs', `${remoteFullBranchName}`], { cwd });
+    const mergeResult = git(['merge', '-X', 'theirs', `${branch}`], { cwd });
     if (!mergeResult.success) {
-      console.error(`CRITICAL ERROR: pull from ${remoteFullBranchName} has failed!`);
+      console.error(`CRITICAL ERROR: pull from ${branch} has failed!`);
       console.error(mergeResult.stderr);
       displayManualRecovery(bumpInfo);
       process.exit(1);
@@ -118,8 +107,8 @@ export async function publish(options: CliOptions) {
     // Step 3. Tag & Push to remote
     tagPackages(bumpInfo, tag, cwd);
 
-    console.log(`pushing to ${remoteFullBranchName}, running the following command for git push:`);
-    const pushArgs = ['push', '--follow-tags', remote, `${targetBranchRef}:${remoteBranch}`];
+    console.log(`pushing to ${branch}, running the following command for git push:`);
+    const pushArgs = ['push', '--follow-tags', '--no-verify', '--verbose', remote, `HEAD:${remoteBranch}`];
     console.log('git ' + pushArgs.join(' '));
     git(pushArgs);
   }
