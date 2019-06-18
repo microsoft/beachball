@@ -1,6 +1,13 @@
 # Changelog - beachball
 
-This log was last generated on Tue, 18 Jun 2019 05:58:35 GMT and should not be manually modified.
+This log was last generated on Tue, 18 Jun 2019 06:30:58 GMT and should not be manually modified.
+
+## 1.6.4
+Tue, 18 Jun 2019 06:30:58 GMT
+
+### Patches
+
+- making the default registry have a trailing slash to publish with token correctly (kchau@microsoft.com)
 
 ## 1.6.3
 Tue, 18 Jun 2019 05:58:35 GMT
