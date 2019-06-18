@@ -64,7 +64,7 @@ export async function publish(options: CliOptions) {
       if (result.success) {
         console.log('Published!');
       } else {
-        console.log('Error publishing');
+        displayManualRecovery(bumpInfo);
         console.error(result.stderr);
         process.exit(1);
         return;
@@ -126,7 +126,7 @@ export async function publish(options: CliOptions) {
 }
 
 function displayManualRecovery(bumpInfo: BumpInfo) {
-  console.error('Manually update these package and versions:');
+  console.error('Something went wrong with the publish! Manually update these package and versions:');
 
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
