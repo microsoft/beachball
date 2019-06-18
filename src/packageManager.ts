@@ -37,7 +37,7 @@ export function packagePublish(packageInfo: PackageInfo, registry: string, token
     args.push(access);
   }
 
-  npm(args, { cwd: packagePath });
+  return npm(args, { cwd: packagePath });
 }
 
 const packageVersions: { [pkgName: string]: string[] } = {};

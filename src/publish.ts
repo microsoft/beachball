@@ -60,7 +60,15 @@ export async function publish(options: CliOptions) {
     Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
       const packageInfo = bumpInfo.packageInfos[pkg];
       console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
-      packagePublish(packageInfo, registry, token, tag, access);
+      const result = packagePublish(packageInfo, registry, token, tag, access);
+      if (result.success) {
+        console.log('Published!');
+      } else {
+        console.log('Error publishing');
+        console.error(result.stderr);
+        process.exit(1);
+        return;
+      }
     });
   }
 
