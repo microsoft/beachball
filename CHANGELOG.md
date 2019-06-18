@@ -1,6 +1,13 @@
 # Changelog - beachball
 
-This log was last generated on Mon, 17 Jun 2019 17:36:58 GMT and should not be manually modified.
+This log was last generated on Tue, 18 Jun 2019 05:13:35 GMT and should not be manually modified.
+
+## 1.6.0
+Tue, 18 Jun 2019 05:13:35 GMT
+
+### Minor
+
+- -b now takes remote branch full name (kchau@microsoft.com)
 
 ## 1.5.1
 Mon, 17 Jun 2019 17:36:58 GMT

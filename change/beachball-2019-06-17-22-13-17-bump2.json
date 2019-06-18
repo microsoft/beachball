@@ -1,8 +1,0 @@
-{
-  "comment": "-b now takes remote branch full name",
-  "type": "minor",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "7cfe948727a2888408a1aa4a232347dd4ff0c3c1",
-  "date": "2019-06-18T05:13:17.553Z"
-}
