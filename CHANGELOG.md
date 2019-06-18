@@ -1,6 +1,13 @@
 # Changelog - beachball
 
-This log was last generated on Tue, 18 Jun 2019 05:44:02 GMT and should not be manually modified.
+This log was last generated on Tue, 18 Jun 2019 05:58:35 GMT and should not be manually modified.
+
+## 1.6.3
+Tue, 18 Jun 2019 05:58:35 GMT
+
+### Patches
+
+- enable token argument (kchau@microsoft.com)
 
 ## 1.6.2
 Tue, 18 Jun 2019 05:44:02 GMT
