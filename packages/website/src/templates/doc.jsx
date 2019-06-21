@@ -1,3 +1,5 @@
+import { graphql } from 'gatsby'
+
 import React from 'react'
 import Helmet from 'react-helmet'
 import styled from 'styled-components'
@@ -7,7 +9,7 @@ import SiteHeader from '../components/Layout/Header'
 import config from '../../data/SiteConfig'
 import TableOfContents from '../components/Layout/TableOfContents'
 
-export default class LessonTemplate extends React.Component {
+export default class DocTemplate extends React.Component {
   render() {
     const { slug } = this.props.pathContext
     const postNode = this.props.data.postBySlug
@@ -101,20 +103,14 @@ const ToCContainer = styled.div`
 
 /* eslint no-undef: "off" */
 export const pageQuery = graphql`
-  query LessonBySlug($slug: String!) {
+  query DocBySlug($slug: String!) {
     postBySlug: markdownRemark(fields: { slug: { eq: $slug } }) {
       html
-      timeToRead
-      excerpt
       frontmatter {
         title
-        cover
-        date
-        category
-        tags
       }
     }
-    tableOfContents: lessonsJson {
+    tableOfContents: docsJson {
       chapters {
         title
         entries {
@@ -126,38 +122,6 @@ export const pageQuery = graphql`
               }
               frontmatter {
                 title
-              }
-            }
-          }
-        }
-        chapters {
-          title
-          entries {
-            entry {
-              id
-              childMarkdownRemark {
-                fields {
-                  slug
-                }
-                frontmatter {
-                  title
-                }
-              }
-            }
-          }
-          chapters {
-            title
-            entries {
-              entry {
-                id
-                childMarkdownRemark {
-                  fields {
-                    slug
-                  }
-                  frontmatter {
-                    title
-                  }
-                }
               }
             }
           }

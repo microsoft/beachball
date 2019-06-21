@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { FaGithubAlt } from 'react-icons/lib/fa'
+import { FaGithubAlt } from 'react-icons/fa'
 import siteConfig from '../../data/SiteConfig'
 import styled from 'styled-components'
 

@@ -1,8 +1,8 @@
+import { graphql } from 'gatsby'
 import React from 'react'
 import Helmet from 'react-helmet'
 import styled from 'styled-components'
 
-import SEO from '../components/SEO'
 import config from '../../data/SiteConfig'
 import CtaButton from '../components/CtaButton'
 import Navigation from '../components/Layout/Navigation'
@@ -11,12 +11,11 @@ import beachBallSvg from '../assets/beach-ball.svg'
 
 class Index extends React.Component {
   render() {
-    const allSEOMarkdown = this.props.data.allMarkdown.edges
+    //const allSEOMarkdown = this.props.data.allMarkdown.edges
 
     return (
       <div className="index-container">
         <Helmet title={config.siteTitle} />
-        <SEO postEdges={allSEOMarkdown} />
         <main>
           <IndexHeadContainer>
             <Navigation />
@@ -29,12 +28,7 @@ class Index extends React.Component {
             </Hero>
           </IndexHeadContainer>
           <BodyContainer>
-            <h2>A Gatsby Template for Content</h2>
-            <p>
-              Made for modern documentation sites. Table of Contents
-              automatically generated from markdown files.{' '}
-            </p>
-            <CtaButton to={'/lesson-one'}>See Your First Post</CtaButton>
+            <CtaButton to={'/getting-started'}>Getting Started</CtaButton>
 
             <div className="contributors">
               <div>
@@ -110,43 +104,15 @@ const BodyContainer = styled.div`
 /* eslint no-undef: "off" */
 export const query = graphql`
   query IndexQuery {
-    allMarkdown: allMarkdownRemark(
-      limit: 2000
-      sort: { fields: [frontmatter___date], order: DESC }
-    ) {
+    allMarkdown: allMarkdownRemark(limit: 2000) {
       edges {
         node {
           fields {
             slug
           }
           excerpt
-          timeToRead
           frontmatter {
             title
-            tags
-            cover
-            date
-          }
-        }
-      }
-    }
-    posts: allMarkdownRemark(
-      limit: 2000
-      filter: { frontmatter: { type: { eq: "post" } } }
-      sort: { fields: [frontmatter___date], order: DESC }
-    ) {
-      edges {
-        node {
-          fields {
-            slug
-          }
-          excerpt
-          timeToRead
-          frontmatter {
-            title
-            tags
-            cover
-            date
           }
         }
       }

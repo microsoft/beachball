@@ -1,0 +1,10 @@
+{
+  "id": "table-of-contents",
+  "chapters": [
+    {
+      "title": "Main Chapter",
+      "entries": [{ "entry": "./getting_started.md" }],
+      "chapters": []
+    }
+  ]
+}

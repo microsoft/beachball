@@ -1,6 +1,6 @@
 module.exports = {
   blogPostDir: 'posts', // The name of directory that contains your posts.
-  lessonsDir: 'lessons', // The name of the directory that contains lessons or docs.
+  docDir: 'docs', // The name of the directory that contains lessons or docs.
   siteTitle: 'Beachball', // Site title.
   siteTitleAlt: 'The Sunniest Version Bumper', // Alternative site title for SEO.
   siteLogo: '/logos/logo-1024.png', // Logo used for SEO and manifest.
