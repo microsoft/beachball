@@ -25,14 +25,14 @@ module.exports = {
         fonts: [`crimson text:400, 400i, 700, 700i`, `space mono:400,700`]
       }
     },
-    {
-      resolve: 'gatsby-plugin-react-svg',
-      options: {
-        rule: {
-          include: /\.svg$/
-        }
-      }
-    },
+    // {
+    //   resolve: 'gatsby-plugin-react-svg',
+    //   options: {
+    //     rule: {
+    //       include: /\.svg$/
+    //     }
+    //   }
+    // },
     {
       resolve: 'gatsby-source-filesystem',
       options: {

@@ -8,6 +8,7 @@ import SEO from '../components/SEO'
 import SiteHeader from '../components/Layout/Header'
 import config from '../../data/SiteConfig'
 import TableOfContents from '../components/Layout/TableOfContents'
+import Layout from '../layouts'
 
 export default class DocTemplate extends React.Component {
   render() {
@@ -21,28 +22,30 @@ export default class DocTemplate extends React.Component {
       post.category_id = config.postDefaultCategoryID
     }
     return (
-      <div>
-        <Helmet>
-          <title>{`${post.title} | ${config.siteTitle}`}</title>
-        </Helmet>
-        <SEO postPath={slug} postNode={postNode} postSEO />
-        <BodyGrid>
-          <HeaderContainer>
-            <SiteHeader location={this.props.location} />
-          </HeaderContainer>
-          <ToCContainer>
-            <TableOfContents
-              chapters={this.props.data.tableOfContents.chapters}
-            />
-          </ToCContainer>
-          <BodyContainer>
-            <div>
-              <h1>{post.title}</h1>
-              <div dangerouslySetInnerHTML={{ __html: postNode.html }} />
-            </div>
-          </BodyContainer>
-        </BodyGrid>
-      </div>
+      <Layout location={this.props.location}>
+        <div>
+          <Helmet>
+            <title>{`${post.title} | ${config.siteTitle}`}</title>
+          </Helmet>
+          <SEO postPath={slug} postNode={postNode} postSEO />
+          <BodyGrid>
+            <HeaderContainer>
+              <SiteHeader location={this.props.location} />
+            </HeaderContainer>
+            <ToCContainer>
+              <TableOfContents
+                chapters={this.props.data.tableOfContents.chapters}
+              />
+            </ToCContainer>
+            <BodyContainer>
+              <div>
+                <h1>{post.title}</h1>
+                <div dangerouslySetInnerHTML={{ __html: postNode.html }} />
+              </div>
+            </BodyContainer>
+          </BodyGrid>
+        </div>
+      </Layout>
     )
   }
 }

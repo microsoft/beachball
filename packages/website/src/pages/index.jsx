@@ -7,6 +7,8 @@ import config from '../../data/SiteConfig'
 import CtaButton from '../components/CtaButton'
 import Navigation from '../components/Layout/Navigation'
 
+import Layout from '../layouts'
+
 import beachBallSvg from '../assets/beach-ball.svg'
 
 class Index extends React.Component {
@@ -14,45 +16,47 @@ class Index extends React.Component {
     //const allSEOMarkdown = this.props.data.allMarkdown.edges
 
     return (
-      <div className="index-container">
-        <Helmet title={config.siteTitle} />
-        <main>
-          <IndexHeadContainer>
-            <Navigation />
-            <Hero>
-              <LogoRow>
-                <BeachBallLogo src={beachBallSvg} />
-                <h1>{config.siteTitle}</h1>
-              </LogoRow>
-              <h4>{config.siteDescription}</h4>
-            </Hero>
-          </IndexHeadContainer>
-          <BodyContainer>
-            <CtaButton to={'/getting-started'}>Getting Started</CtaButton>
+      <Layout location={this.props.location}>
+        <div className="index-container">
+          <Helmet title={config.siteTitle} />
+          <main>
+            <IndexHeadContainer>
+              <Navigation />
+              <Hero>
+                <LogoRow>
+                  <BeachBallLogo src={beachBallSvg} />
+                  <h1>{config.siteTitle}</h1>
+                </LogoRow>
+                <h4>{config.siteDescription}</h4>
+              </Hero>
+            </IndexHeadContainer>
+            <BodyContainer>
+              <CtaButton to={'/getting-started'}>Getting Started</CtaButton>
 
-            <div className="contributors">
-              <div>
-                Icons made by{' '}
-                <a href="https://www.freepik.com/" title="Freepik">
-                  Freepik
-                </a>{' '}
-                from{' '}
-                <a href="https://www.flaticon.com/" title="Flaticon">
-                  www.flaticon.com
-                </a>{' '}
-                is licensed by{' '}
-                <a
-                  href="http://creativecommons.org/licenses/by/3.0/"
-                  title="Creative Commons BY 3.0"
-                  target="_blank"
-                >
-                  CC 3.0 BY
-                </a>
+              <div className="contributors">
+                <div>
+                  Icons made by{' '}
+                  <a href="https://www.freepik.com/" title="Freepik">
+                    Freepik
+                  </a>{' '}
+                  from{' '}
+                  <a href="https://www.flaticon.com/" title="Flaticon">
+                    www.flaticon.com
+                  </a>{' '}
+                  is licensed by{' '}
+                  <a
+                    href="http://creativecommons.org/licenses/by/3.0/"
+                    title="Creative Commons BY 3.0"
+                    target="_blank"
+                  >
+                    CC 3.0 BY
+                  </a>
+                </div>
               </div>
-            </div>
-          </BodyContainer>
-        </main>
-      </div>
+            </BodyContainer>
+          </main>
+        </div>
+      </Layout>
     )
   }
 }

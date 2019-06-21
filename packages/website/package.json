@@ -6,6 +6,7 @@
   "author": "Ken Chau",
   "dependencies": {
     "babel-plugin-lodash": "^3.2.11",
+    "babel-plugin-styled-components": "^1.10.1",
     "gatsby": "^2.10.0",
     "gatsby-link": "^2.2.0",
     "gatsby-plugin-catch-links": "^2.1.0",
@@ -37,7 +38,7 @@
     "react-icons": "^3.7.0",
     "react-share": "^3.0.0",
     "react-twitter-widgets": "^1.7.1",
-    "styled-components": "^4.3.2",
+    "styled-components": "^3.0.0",
     "prismjs": "^1.16.0"
   },
   "devDependencies": {
