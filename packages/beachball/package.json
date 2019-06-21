@@ -1,0 +1,35 @@
+{
+  "name": "beachball",
+  "version": "1.6.4",
+  "main": "index.js",
+  "license": "MIT",
+  "bin": {
+    "beachball": "./bin/beachball.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kenotron/beachball"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "tsc -w --preserveWatchOutput"
+  },
+  "dependencies": {
+    "fs-extra": "^8.0.1",
+    "glob": "^7.1.4",
+    "prompts": "~2.1.0",
+    "minimatch": "^3.0.4",
+    "semver": "^6.1.1",
+    "yargs-parser": "^13.1.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^7.0.0",
+    "@types/glob": "^7.1.1",
+    "@types/minimatch": "^3.0.3",
+    "@types/node": "^12.0.4",
+    "@types/prompts": "~2.0.0",
+    "@types/semver": "^6.0.0",
+    "@types/yargs-parser": "^13.0.0",
+    "typescript": "^3.5.1"
+  }
+}
