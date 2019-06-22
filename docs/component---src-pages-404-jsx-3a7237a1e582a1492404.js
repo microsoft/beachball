@@ -1,0 +1,2 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[4],{170:function(n,e,t){"use strict";t.r(e),e.default=function(){return React.createElement("div",null,"no found page eh")}}}]);
+//# sourceMappingURL=component---src-pages-404-jsx-3a7237a1e582a1492404.js.map

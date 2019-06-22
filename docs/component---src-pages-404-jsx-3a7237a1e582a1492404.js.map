@@ -1,0 +1,1 @@
+{"version":3,"sources":["webpack:///./src/pages/404.jsx"],"names":["__webpack_require__","r","__webpack_exports__","React","createElement"],"mappings":"0FAAAA,EAAAC,EAAAC,GAAeA,EAAA,mBACb,OAAOC,MAAAC,cAAA","file":"component---src-pages-404-jsx-3a7237a1e582a1492404.js","sourcesContent":["export default () => {\n  return <div>no found page eh</div>\n}\n"],"sourceRoot":""}

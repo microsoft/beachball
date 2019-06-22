@@ -8,6 +8,7 @@
   "license": "MIT",
   "scripts": {
     "build": "lerna run build --stream",
+    "postbuild": "rimraf docs && ncp packages/website/public docs",
     "start": "lerna run start",
     "change": "beachball change",
     "check": "beachball check",
@@ -15,7 +16,9 @@
   },
   "devDependencies": {
     "beachball": "^1.6.4",
-    "lerna": "^3.13.2"
+    "lerna": "^3.13.2",
+    "rimraf": "^2.6.3",
+    "ncp": "^2.0.0"
   },
   "workspaces": {
     "packages": [
