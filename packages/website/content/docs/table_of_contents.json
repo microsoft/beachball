@@ -2,8 +2,11 @@
   "id": "table-of-contents",
   "chapters": [
     {
-      "title": "Main Chapter",
-      "entries": [{ "entry": "./getting_started.md" }],
+      "title": "Overview",
+      "entries": [
+        { "entry": "./getting_started.md" },
+        { "entry": "./change_files.md" }
+      ],
       "chapters": []
     }
   ]

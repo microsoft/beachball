@@ -1,97 +1,105 @@
 import { graphql } from 'gatsby'
 import React from 'react'
 import Helmet from 'react-helmet'
+import { ThemeContext } from 'styled-components'
 import styled from 'styled-components'
+import {
+  FaSync,
+  FaRobot,
+  FaNewspaper,
+  FaCheckDouble,
+  FaTerminal
+} from 'react-icons/fa'
+import { DiGitBranch } from 'react-icons/di'
 
 import config from '../../data/SiteConfig'
 import CtaButton from '../components/CtaButton'
 import Navigation from '../components/Layout/Navigation'
-
 import Layout from '../layouts'
-
 import beachBallSvg from '../assets/beach-ball.svg'
-import Footer from '../components/Layout/Footer'
 
-class Index extends React.Component {
-  render() {
-    //const allSEOMarkdown = this.props.data.allMarkdown.edges
+const Index = props => {
+  return (
+    <Layout location={props.location}>
+      <div className="index-container">
+        <Helmet title={config.siteTitle} />
+        <main>
+          <IndexHeadContainer>
+            <Navigation />
+            <Hero>
+              <LogoRow>
+                <BeachBallLogo src={beachBallSvg} />
+                <h1>{config.siteTitle}</h1>
+              </LogoRow>
+              <h4>{config.siteDescription}</h4>
+              <CtaButton to={'/getting-started'}>Getting Started</CtaButton>
+            </Hero>
+          </IndexHeadContainer>
+          <BodyContainer>
+            <FeatureRow>
+              <Feature>
+                <FaSync size="3rem" />
+                <h4>Synchronized in git and npm</h4>
+                keep your git and npm versions in sync in CI and local workflows
+              </Feature>
+              <Feature>
+                <FaRobot size="3rem" />
+                <h4>Automated Version Bumps</h4>
+                one command line to bump package(s) in your repo with semver
+              </Feature>
+            </FeatureRow>
 
-    return (
-      <Layout location={this.props.location}>
-        <div className="index-container">
-          <Helmet title={config.siteTitle} />
-          <main>
-            <IndexHeadContainer>
-              <Navigation />
-              <Hero>
-                <LogoRow>
-                  <BeachBallLogo src={beachBallSvg} />
-                  <h1>{config.siteTitle}</h1>
-                </LogoRow>
-                <h4>{config.siteDescription}</h4>
-                <CtaButton to={'/getting-started'}>Getting Started</CtaButton>
-              </Hero>
-            </IndexHeadContainer>
-            <BodyContainer>
-              <FeatureRow>
-                <Feature>
-                  <h3>Synchronized in git and npm</h3>
-                  keep your git and npm versions in sync in CI and local
-                  workflows
-                </Feature>
-                <Feature>
-                  <h3>Automated Version Bumps</h3>
-                  one command line to bump package(s) in your repo with semver
-                </Feature>
-                <Feature>
-                  <h3>Generates Changelogs</h3>
-                  same command will generate changelogs for your users
-                </Feature>
-              </FeatureRow>
-
-              <FeatureRow>
-                <Feature>
-                  <h3>Single or Monorepo</h3>
-                  compatible out of the box for single repo or lerna repos
-                </Feature>
-                <Feature>
-                  <h3>Pre-Publish Validation Checks</h3>
-                  double and triple check git repo and npm registry before
-                  publish
-                </Feature>
-                <Feature>
-                  <h3>Zero Config Versioning</h3>
-                  no config is required to get started
-                </Feature>
-              </FeatureRow>
-            </BodyContainer>
-            <FooterContainer>
-              <div className="contributors">
-                <div>
-                  Icons made by{' '}
-                  <a href="https://www.freepik.com/" title="Freepik">
-                    Freepik
-                  </a>{' '}
-                  from{' '}
-                  <a href="https://www.flaticon.com/" title="Flaticon">
-                    www.flaticon.com
-                  </a>{' '}
-                  is licensed by{' '}
-                  <a
-                    href="http://creativecommons.org/licenses/by/3.0/"
-                    title="Creative Commons BY 3.0"
-                    target="_blank"
-                  >
-                    CC 3.0 BY
-                  </a>
-                </div>
+            <FeatureRow>
+              <Feature>
+                <FaNewspaper size="3rem" />
+                <h4>Generates Changelogs</h4>
+                same command will generate changelogs for your users
+              </Feature>
+              <Feature>
+                <DiGitBranch size="3rem" />
+                <h4>Single or Monorepo</h4>
+                compatible out of the box for single repo or lerna repos
+              </Feature>
+            </FeatureRow>
+            <FeatureRow>
+              <Feature>
+                <FaCheckDouble size="3rem" />
+                <h4>Pre-Publish Validation Checks</h4>
+                double and triple check git repo and npm registry before publish
+              </Feature>
+              <Feature>
+                <FaTerminal size="3rem" />
+                <h4>Zero Config Versioning</h4>
+                no config is required to get started, do more in one line
+              </Feature>
+            </FeatureRow>
+          </BodyContainer>
+          <FooterContainer>
+            <div className="contributors">
+              <div>
+                Icons made by{' '}
+                <a href="https://www.freepik.com/" title="Freepik">
+                  Freepik
+                </a>{' '}
+                from{' '}
+                <a href="https://www.flaticon.com/" title="Flaticon">
+                  www.flaticon.com
+                </a>{' '}
+                is licensed by{' '}
+                <a
+                  href="http://creativecommons.org/licenses/by/3.0/"
+                  title="Creative Commons BY 3.0"
+                  target="_blank"
+                >
+                  CC 3.0 BY
+                </a>
               </div>
-            </FooterContainer>
-          </main>
-        </div>
-      </Layout>
-    )
-  }
+            </div>
+          </FooterContainer>
+        </main>
+      </div>
+    </Layout>
+  )
 }
 
 export default Index
@@ -99,13 +107,23 @@ export default Index
 const FeatureRow = styled.div`
   display: flex;
   justify-content: stretch;
-  margin-bottom: 40px;
+  margin: 40px 0;
 `
 
 const Feature = styled.div`
   flex: 1;
-  font-size: 1.8rem;
-  text-align: center;
+  font-size: 1.4rem;
+
+  margin: 0;
+  padding: 0;
+
+  & h4 {
+    margin: 0;
+  }
+
+  &:first-child {
+    margin-right: 25px;
+  }
 `
 
 const LogoRow = styled.div`

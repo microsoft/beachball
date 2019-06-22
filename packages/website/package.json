@@ -38,7 +38,7 @@
     "react-icons": "^3.7.0",
     "react-share": "^3.0.0",
     "react-twitter-widgets": "^1.7.1",
-    "styled-components": "^3.0.0",
+    "styled-components": "^4.3.2",
     "prismjs": "^1.16.0"
   },
   "devDependencies": {
