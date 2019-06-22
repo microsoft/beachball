@@ -7,8 +7,11 @@
   "author": "Ken <kchau@microsoft.com>",
   "license": "MIT",
   "scripts": {
-    "build": "lerna run build",
-    "start": "lerna run start"
+    "build": "lerna run build --stream",
+    "start": "lerna run start",
+    "change": "beachball change",
+    "check": "beachball check",
+    "publish:beachball": "beachball publish"
   },
   "devDependencies": {
     "beachball": "^1.6.4",

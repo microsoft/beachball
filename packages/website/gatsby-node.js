@@ -71,9 +71,3 @@ exports.createPages = ({ graphql, boundActionCreators }) => {
     )
   })
 }
-
-exports.onCreateWebpackConfig = ({ config, stage }) => {
-  if (stage === 'build-javascript') {
-    config.plugin('Lodash', webpackLodashPlugin, null)
-  }
-}
