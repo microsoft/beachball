@@ -18,7 +18,7 @@ export default ctaButton
 const ButtonContainer = styled.div`
   border: 1px solid ${props => props.theme.accentDark};
   border-radius: 3px;
-  padding: 25px;
+  padding: 10px 20px;
   font-size: 2rem;
   color: ${props => props.theme.accentDark};
   display: inline-block;

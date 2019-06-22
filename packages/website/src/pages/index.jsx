@@ -29,10 +29,41 @@ class Index extends React.Component {
                   <h1>{config.siteTitle}</h1>
                 </LogoRow>
                 <h4>{config.siteDescription}</h4>
+                <CtaButton to={'/getting-started'}>Getting Started</CtaButton>
               </Hero>
             </IndexHeadContainer>
             <BodyContainer>
-              <CtaButton to={'/getting-started'}>Getting Started</CtaButton>
+              <FeatureRow>
+                <Feature>
+                  <h3>Synchronized in git and npm</h3>
+                  keep your git and npm versions in sync in CI and local
+                  workflows
+                </Feature>
+                <Feature>
+                  <h3>Automated Version Bumps</h3>
+                  one command line to bump package(s) in your repo with semver
+                </Feature>
+                <Feature>
+                  <h3>Generates Changelogs</h3>
+                  same command will generate changelogs for your users
+                </Feature>
+              </FeatureRow>
+
+              <FeatureRow>
+                <Feature>
+                  <h3>Single or Monorepo</h3>
+                  compatible out of the box for single repo or lerna repos
+                </Feature>
+                <Feature>
+                  <h3>Pre-Publish Validation Checks</h3>
+                  double and triple check git repo and npm registry before
+                  publish
+                </Feature>
+                <Feature>
+                  <h3>Zero Config Versioning</h3>
+                  no config is required to get started
+                </Feature>
+              </FeatureRow>
             </BodyContainer>
             <FooterContainer>
               <div className="contributors">
@@ -64,6 +95,18 @@ class Index extends React.Component {
 }
 
 export default Index
+
+const FeatureRow = styled.div`
+  display: flex;
+  justify-content: stretch;
+  margin-bottom: 40px;
+`
+
+const Feature = styled.div`
+  flex: 1;
+  font-size: 1.8rem;
+  text-align: center;
+`
 
 const LogoRow = styled.div`
   display: flex;
@@ -109,7 +152,7 @@ const BodyContainer = styled.div`
 
 const FooterContainer = styled.div`
   background: ${props => props.theme.lightGrey};
-  position: absolute;
+
   bottom: 0;
   width: 100%;
   height: 100px; /* Height of the footer */
