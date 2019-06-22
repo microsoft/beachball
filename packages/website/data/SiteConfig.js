@@ -4,8 +4,8 @@ module.exports = {
   siteTitle: 'Beachball', // Site title.
   siteTitleAlt: 'The Sunniest Version Bumper', // Alternative site title for SEO.
   siteLogo: '/logos/logo-1024.png', // Logo used for SEO and manifest.
-  siteUrl: 'https://ericwindmill.com', // Domain of your website without pathPrefix.
-  pathPrefix: '/', // Prefixes all links. For cases when deployed to example.github.io/gatsby-advanced-starter/.
+  siteUrl: 'https://kenotron.github.io', // Domain of your website without pathPrefix.
+  pathPrefix: '/beachball', // Prefixes all links. For cases when deployed to example.github.io/gatsby-advanced-starter/.
   siteDescription: 'The Sunniest Semantic Version Bumper', // Website description used for RSS feeds/meta description tag.
   siteRss: '/rss.xml', // Path to the RSS file.
   postDefaultCategoryID: 'Tech', // Default category for posts.
