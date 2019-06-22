@@ -10,6 +10,7 @@ import Navigation from '../components/Layout/Navigation'
 import Layout from '../layouts'
 
 import beachBallSvg from '../assets/beach-ball.svg'
+import Footer from '../components/Layout/Footer'
 
 class Index extends React.Component {
   render() {
@@ -32,7 +33,8 @@ class Index extends React.Component {
             </IndexHeadContainer>
             <BodyContainer>
               <CtaButton to={'/getting-started'}>Getting Started</CtaButton>
-
+            </BodyContainer>
+            <FooterContainer>
               <div className="contributors">
                 <div>
                   Icons made by{' '}
@@ -53,7 +55,7 @@ class Index extends React.Component {
                   </a>
                 </div>
               </div>
-            </BodyContainer>
+            </FooterContainer>
           </main>
         </div>
       </Layout>
@@ -101,6 +103,20 @@ const BodyContainer = styled.div`
     margin: 100px auto 0;
   }
   .contributors a {
+    font-size: 1rem;
+  }
+`
+
+const FooterContainer = styled.div`
+  background: ${props => props.theme.lightGrey};
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100px; /* Height of the footer */
+  padding-top: 30px;
+  display: flex;
+  justify-content: center;
+  & a {
     font-size: 1rem;
   }
 `
