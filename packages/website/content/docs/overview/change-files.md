@@ -4,7 +4,7 @@ tags: overview
 category: doc
 ---
 
-There are [very popular](https://semantic-release.gitbook.io/semantic-release/) and excellent packages out there that does version bumping already! So, how does `beachball` differ from those? `beachball` does NOT rely on commit messages for determining the next semantic version. Rather, it uses something called a "change file".
+There are <a href="https://semantic-release.gitbook.io/semantic-release/" target="_blank">very popular</a> and excellent packages available which manage package versioning already. Beachball works differently: `beachball` does \_not\_ rely on commit messages for determining the next semantic version. Rather, it uses something called a "change file".
 
 ### What is a Change File?
 

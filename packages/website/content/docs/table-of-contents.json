@@ -1,0 +1,26 @@
+{
+  "id": "table-of-contents",
+  "chapters": [
+    {
+      "title": "Overview",
+      "entries": [
+        { "entry": "./overview/getting-started.md" },
+        { "entry": "./overview/installation.md" },
+        { "entry": "./overview/change-files.md" },
+        { "entry": "./overview/ci-integration.md" }
+      ],
+      "chapters": []
+    },
+    {
+      "title": "CLI Reference",
+      "entries": [
+        { "entry": "./cli/change.md" },
+        { "entry": "./cli/check.md" },
+        { "entry": "./cli/bump.md" },
+        { "entry": "./cli/publish.md" },
+        { "entry": "./cli/options.md" }
+      ],
+      "chapters": []
+    }
+  ]
+}
