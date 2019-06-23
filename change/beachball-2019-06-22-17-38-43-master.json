@@ -1,8 +1,0 @@
-{
-  "comment": "adding smarts about which change files are already in master",
-  "type": "minor",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "1949cc0c91371d40e868ecc099259e394da86e09",
-  "date": "2019-06-23T00:38:37.679Z"
-}

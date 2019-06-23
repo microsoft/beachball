@@ -1,6 +1,13 @@
 # Changelog - beachball
 
-This log was last generated on Tue, 18 Jun 2019 06:30:58 GMT and should not be manually modified.
+This log was last generated on Sun, 23 Jun 2019 00:40:35 GMT and should not be manually modified.
+
+## 1.7.0
+Sun, 23 Jun 2019 00:40:35 GMT
+
+### Minor
+
+- adding smarts about which change files are already in master (kchau@microsoft.com)
 
 ## 1.6.4
 Tue, 18 Jun 2019 06:30:58 GMT
