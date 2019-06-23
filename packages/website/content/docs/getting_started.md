@@ -6,40 +6,19 @@ category: doc
 
 Javascript ecosystem moves fast. It moves so fast that sometimes the tools need to catch up to it. One of the reasons that this particular ecosystem is so vibrant and agile is in its ability to share code via npm packages. This has led to an explosion of versions of packages in the npm registries. These days, we have public and private registries. Developers also have to keep their git repos sync'ed up with the npm registry versions... what a hassle!
 
-## But Enough Talk, Have At You!
+## Beachball Workflow
 
-There are two options to get started with `beachball`.
+First off, a ~~picture~~ diagram is worth a thousand words, so here it is:
 
-### Option 1: no install
+![Process](./process.svg)
+[diagram source in draw.io](./beachball.drawio)
 
-Thanks to `npx`, you can use `beachball` without any installation:
+Without any configuration, `beachball` fits into your workflow. When you have made some commits to your branch, simply fire up `beachball change` to generate change files. During PR review and feedback loops, your colleagues might remind you to modify your change file descriptions or change type. This then gets merged to the target branch (e.g. `master`). After this, `beachball publish` is either called by a continuous integration (CI) system or manually by a developer. When this is called, three things happen:
 
-```bash
-npx beachball --help
-```
+1. All change files are deleted (more than one change file can be checked in before a single publish happens)
 
-### Option 2: Install and Run as NPM Scripts
+2. Versions are bumped, checked in locally and pushed remotely
 
-To get started, place this in the `devDependencies` section of your `package.json`:
+3. npm packages are published to a public or private registry
 
-```bash
-npm install -D beachball
-```
-
-or for yarn users:
-
-```bash
-yarn add -D beachball
-```
-
-After that, add some scripts to call `beachball` commands:
-
-```json
-{
-  "scripts": {
-    "change": "beachball change",
-    "check": "beachball check",
-    "beachball:publish": "beachball publish"
-  }
-}
-```
+At that point, your repo is ready for the next change!

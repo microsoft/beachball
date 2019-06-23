@@ -5,6 +5,7 @@
       "title": "Overview",
       "entries": [
         { "entry": "./getting_started.md" },
+        { "entry": "./installation.md" },
         { "entry": "./change_files.md" }
       ],
       "chapters": []
