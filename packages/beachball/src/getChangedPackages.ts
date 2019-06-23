@@ -22,8 +22,12 @@ function getAllChangedPackages(branch: string, cwd: string) {
 
       if (root && !packageRoots[root]) {
         try {
-          const packageName = JSON.parse(fs.readFileSync(path.join(root, 'package.json')).toString()).name;
-          packageRoots[root] = packageName;
+          const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json')).toString());
+
+          if (!packageJson.private) {
+            const packageName = packageJson.name;
+            packageRoots[root] = packageName;
+          }
         } catch (e) {
           // Ignore JSON errors
         }
