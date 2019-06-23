@@ -1,7 +1,7 @@
 import { ChangeInfo } from './ChangeInfo';
 import { findLernaConfig, getPackagePatterns } from './monorepo';
 import { findPackageRoot, findGitRoot, getChangePath } from './paths';
-import { getChanges } from './git';
+import { getChanges, git } from './git';
 import fs from 'fs';
 import minimatch from 'minimatch';
 import path from 'path';
@@ -61,15 +61,19 @@ export function getChangedPackages(branch: string, cwd: string) {
   const changePath = getChangePath(cwd);
   const changedPackages = getAllChangedPackages(branch, cwd);
 
-  if (!changePath || !fs.existsSync(changePath)) {
+  const changeFileResult = git(['ls-tree', '-r', '--name-only', '--full-tree', branch, 'change'], { cwd });
+
+  if (!changePath || !fs.existsSync(changePath) || !changeFileResult.success) {
     return changedPackages;
   }
 
+  const remoteChangeFiles = changeFileResult.stdout.split(/\n/).map(line => path.basename(line.trim()));
   const changeFileDirents = fs.readdirSync(changePath, { withFileTypes: true });
   const changeFiles = changeFileDirents.filter(dirent => dirent.isFile).map(dirent => dirent.name);
   const changeFilePackageSet = new Set<string>();
+
   changeFiles.forEach(file => {
-    if (path.basename(file) === 'CHANGELOG.md') {
+    if (file === 'CHANGELOG.md' || file === 'CHANGELOG.md' || remoteChangeFiles.includes(file)) {
       return;
     }
 

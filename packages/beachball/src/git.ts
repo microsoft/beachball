@@ -251,16 +251,22 @@ export function getDefaultRemoteMaster(cwd: string) {
   const remotesResult = git(['remote', '-v'], { cwd });
 
   if (remotesResult.success) {
-    const allRemotes = remotesResult.stdout.split('\n').map(line => line.substring(line.indexOf('\t'), line.lastIndexOf(' ')).trim());
+    const allRemotes: { [url: string]: string } = {};
+    remotesResult.stdout.split('\n').forEach(line => {
+      const parts = line.split(/\s+/);
+      allRemotes[parts[1]] = url.format(url.parse(parts[0])).toLowerCase();
+    });
 
-    if (allRemotes.length > 0) {
-      const remote = allRemotes.find(r => url.format(url.parse(r)).toLowerCase() === normalizedUrl);
+    if (Object.keys(allRemotes).length > 0) {
+      const remote = allRemotes[normalizedUrl];
 
       if (remote) {
+        console.log(`Found a matching remote URL from package.json named "${remote}/master"`);
         return `${remote}/master`;
       }
     }
   }
 
+  console.log(`Defaults to "origin/master"`);
   return 'origin/master';
 }
