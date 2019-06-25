@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "https://github.com/kenotron/beachball.git",
+  "repository": "https://github.com/microsoft/beachball.git",
   "author": "Ken <kchau@microsoft.com>",
   "license": "MIT",
   "scripts": {
