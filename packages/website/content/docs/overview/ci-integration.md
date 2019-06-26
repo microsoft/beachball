@@ -4,7 +4,7 @@ tags: overview
 category: doc
 ---
 
-For the repository and package owners or admins who want to automate the bumping of versions based on change files with `beachball`, you'll need to provide some information for your Continuous Integration (CI) systems. These one-time setup steps will be unique for different CI system naturally, but the general idea remain the same. `beachball publish` needs write access to with are the git repo and npm registry.
+For the repository and package owners who want to automate the bumping of versions based on change files with `beachball`, you'll need to provide some information for your Continuous Integration (CI) systems. These one-time setup steps will be unique for different CI system naturally, but the general idea remain the same. `beachball publish` needs write access to with are the git repo and npm registry.
 
 ## git Repository
 
