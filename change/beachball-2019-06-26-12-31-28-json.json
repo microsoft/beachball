@@ -1,0 +1,8 @@
+{
+  "comment": "Also writes out json for changelogs while fixing the sitemap",
+  "type": "minor",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "a6ab43d841e73c5ae7d9245935f457cad443220e",
+  "date": "2019-06-26T19:31:28.447Z"
+}
