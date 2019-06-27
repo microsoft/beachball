@@ -1,0 +1,8 @@
+{
+  "comment": "use object.values",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "9ebba1ab1069e9373667995b8583e1a299084864",
+  "date": "2019-06-27T21:09:56.075Z"
+}
