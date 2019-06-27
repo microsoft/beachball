@@ -5,8 +5,7 @@ import fs from 'fs';
 
 interface ChangelogEntry {
   comment: string;
-  email: string;
-  author?: string;
+  author: string;
   commit: string;
 }
 
@@ -14,7 +13,7 @@ interface PackageChangelog {
   name: string;
   date: Date;
   version: string;
-  changes: {
+  comments: {
     patch?: ChangelogEntry[];
     minor?: ChangelogEntry[];
     major?: ChangelogEntry[];
@@ -25,7 +24,7 @@ interface PackageChangelog {
 interface ChangelogJsonEntry {
   date: string;
   version: string;
-  changes: {
+  comments: {
     patch?: ChangelogEntry[];
     minor?: ChangelogEntry[];
     major?: ChangelogEntry[];
@@ -50,11 +49,11 @@ export function getPackageChangelogs(packageInfos: { [pkg: string]: PackageInfo 
       date: new Date()
     };
 
-    changelogs[packageName].changes = changelogs[packageName].changes || {};
-    changelogs[packageName].changes[change.type] = changelogs[packageName].changes[change.type] || [];
-    changelogs[packageName].changes[change.type]!.push({
+    changelogs[packageName].comments = changelogs[packageName].comments || {};
+    changelogs[packageName].comments[change.type] = changelogs[packageName].comments[change.type] || [];
+    changelogs[packageName].comments[change.type]!.push({
       comment: change.comment,
-      email: change.email,
+      author: change.email,
       commit: change.commit
     });
   });
@@ -75,11 +74,11 @@ export function writeChangelog(packageInfos: { [pkg: string]: PackageInfo }, cwd
 
     try {
       const changelogJsonFile = path.join(packagePath, 'CHANGELOG.json');
-      const previousJson = fs.existsSync(changelogJsonFile) ? JSON.parse(fs.readFileSync(changelogJsonFile).toString()) : {};
+      const previousJson = fs.existsSync(changelogJsonFile) ? JSON.parse(fs.readFileSync(changelogJsonFile).toString()) : { entries: [] };
       const nextJson = renderJsonChangelog(previousJson, changelogs[pkg]);
       fs.writeFileSync(changelogJsonFile, JSON.stringify(nextJson, null, 2));
     } catch (e) {
-      console.warn('The CHANGELOG.json file is invalid, skipping writing to it');
+      console.warn('The CHANGELOG.json file is invalid, skipping writing to it', e);
     }
   });
 
@@ -95,7 +94,7 @@ function renderJsonChangelog(previous: ChangelogJson, changelog: PackageChangelo
   const newEntry: ChangelogJsonEntry = {
     date: changelog.date.toUTCString(),
     version: changelog.version,
-    changes: changelog.changes
+    comments: changelog.comments
   };
 
   result.entries.unshift(newEntry);
@@ -121,8 +120,14 @@ function renderPackageChangelog(changelog: PackageChangelog) {
   return (
     `\n## ${changelog.version}\n` +
     `${changelog.date.toUTCString()}\n` +
-    (changelog.changes.major ? '\n### Major\n\n' + changelog.changes.major.map(change => `- ${change.comment} (${change.email})\n`) : '') +
-    (changelog.changes.minor ? '\n### Minor\n\n' + changelog.changes.minor.map(change => `- ${change.comment} (${change.email})\n`) : '') +
-    (changelog.changes.patch ? '\n### Patches\n\n' + changelog.changes.patch.map(change => `- ${change.comment} (${change.email})\n`) : '')
+    (changelog.comments.major
+      ? '\n### Major\n\n' + changelog.comments.major.map(change => `- ${change.comment} (${change.author})\n`)
+      : '') +
+    (changelog.comments.minor
+      ? '\n### Minor\n\n' + changelog.comments.minor.map(change => `- ${change.comment} (${change.author})\n`)
+      : '') +
+    (changelog.comments.patch
+      ? '\n### Patches\n\n' + changelog.comments.patch.map(change => `- ${change.comment} (${change.author})\n`)
+      : '')
   );
 }

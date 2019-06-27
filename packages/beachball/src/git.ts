@@ -229,11 +229,15 @@ export function parseRemoteBranch(branch: string) {
 }
 
 function normalizeRepoUrl(repositoryUrl: string) {
-  const parsed = gitUrlParse(repositoryUrl);
-  return parsed
-    .toString('https')
-    .replace(/\.git$/, '')
-    .toLowerCase();
+  try {
+    const parsed = gitUrlParse(repositoryUrl);
+    return parsed
+      .toString('https')
+      .replace(/\.git$/, '')
+      .toLowerCase();
+  } catch (e) {
+    return '';
+  }
 }
 
 export function getDefaultRemoteMaster(cwd: string) {
