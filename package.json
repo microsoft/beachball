@@ -15,7 +15,7 @@
     "publish:beachball": "beachball publish"
   },
   "devDependencies": {
-    "beachball": "^1.6.4",
+    "beachball": "^1.8.1",
     "lerna": "^3.13.2",
     "rimraf": "^2.6.3",
     "ncp": "^2.0.0"
