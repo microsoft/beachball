@@ -1,0 +1,8 @@
+{
+  "comment": "matching changelog.json format to rush's formatting",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "4825d4100cc29c5b08f9531b2d96780c2a992500",
+  "date": "2019-06-27T21:22:38.339Z"
+}
