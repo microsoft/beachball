@@ -1,8 +1,0 @@
-{
-  "comment": "update to not require lerna.config knowledge as well as updates the docs",
-  "type": "minor",
-  "packageName": "/Users/ken/workspace/beachball/packages/beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "62eedc0d6296b3e32357619c59d36978646e54cc",
-  "date": "2019-06-27T20:58:10.014Z"
-}

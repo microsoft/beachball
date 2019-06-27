@@ -32,7 +32,7 @@ function getAllChangedPackages(branch: string, cwd: string) {
     });
   }
 
-  return Object.keys(packageRoots);
+  return Object.values(packageRoots);
 }
 
 /**
