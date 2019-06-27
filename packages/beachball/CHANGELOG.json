@@ -1,0 +1,18 @@
+{
+  "name": "beachball",
+  "entries": [
+    {
+      "date": "Thu, 27 Jun 2019 21:23:00 GMT",
+      "version": "1.8.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "matching changelog.json format to rush's formatting",
+            "author": "kchau@microsoft.com",
+            "commit": "4825d4100cc29c5b08f9531b2d96780c2a992500"
+          }
+        ]
+      }
+    }
+  ]
+}
