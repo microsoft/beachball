@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { findGitRoot } from './paths';
 import url from 'url';
+import gitUrlParse from 'git-url-parse';
 
 export function git(args: string[], options?: { cwd: string }) {
   const results = spawnSync('git', args, options);
@@ -227,6 +228,14 @@ export function parseRemoteBranch(branch: string) {
   };
 }
 
+function normalizeRepoUrl(repositoryUrl: string) {
+  const parsed = gitUrlParse(repositoryUrl);
+  return parsed
+    .toString('https')
+    .replace(/\.git$/, '')
+    .toLowerCase();
+}
+
 export function getDefaultRemoteMaster(cwd: string) {
   let packageJson: any;
 
@@ -247,14 +256,14 @@ export function getDefaultRemoteMaster(cwd: string) {
     repositoryUrl = repository.url;
   }
 
-  const normalizedUrl = url.format(url.parse(repositoryUrl)).toLowerCase();
+  const normalizedUrl = normalizeRepoUrl(repositoryUrl);
   const remotesResult = git(['remote', '-v'], { cwd });
 
   if (remotesResult.success) {
     const allRemotes: { [url: string]: string } = {};
     remotesResult.stdout.split('\n').forEach(line => {
       const parts = line.split(/\s+/);
-      allRemotes[parts[1]] = url.format(url.parse(parts[0])).toLowerCase();
+      allRemotes[normalizeRepoUrl(parts[1])] = parts[0];
     });
 
     if (Object.keys(allRemotes).length > 0) {
