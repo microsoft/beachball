@@ -57,7 +57,7 @@ const Index = props => {
             <Feature>
               <DiGitBranch size="3rem" />
               <h4>Single or Monorepo</h4>
-              compatible out of the box for single repo or lerna repos
+              compatible out of the box for single repo or monorepos
             </Feature>
           </FeatureRow>
           <FeatureRow>
@@ -193,7 +193,10 @@ const FooterContainer = styled.footer`
 /* eslint no-undef: "off" */
 export const query = graphql`
   query IndexQuery {
-    allMarkdown: allMarkdownRemark(limit: 2000, sort:{ order: ASC, fields: [fields___slug]}) {
+    allMarkdown: allMarkdownRemark(
+      limit: 2000
+      sort: { order: ASC, fields: [fields___slug] }
+    ) {
       edges {
         node {
           fields {

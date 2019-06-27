@@ -10,14 +10,12 @@ import prompts from 'prompts';
  * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash
  * @param cwd
  */
-export async function promptForChange(branch: string, cwd: string) {
-  const changedPackages = getChangedPackages(branch, cwd);
+export async function promptForChange(branch: string, specificPackage: string, cwd: string) {
+  const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(branch, cwd);
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
   const packageChangeInfo: { [pkgname: string]: ChangeInfo } = {};
 
-  await changedPackages.reduce(async (currentPromise, pkg) => {
-    await currentPromise;
-
+  for (let pkg of changedPackages) {
     console.log('');
     console.log(`Please describe the changes for: ${pkg}`);
 
@@ -55,7 +53,7 @@ export async function promptForChange(branch: string, cwd: string) {
       commit: getCurrentHash(cwd) || 'hash not available',
       date: new Date()
     };
-  }, Promise.resolve());
+  }
 
   return packageChangeInfo;
 }

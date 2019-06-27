@@ -1,6 +1,6 @@
 import { findPackageRoot, findGitRoot } from './paths';
 import { getPackageChangeTypes } from './changefile';
-import { getPackagePatterns } from './monorepo';
+import { getPackageInfos } from './monorepo';
 import { writeChangelog } from './changelog';
 import fs from 'fs';
 import glob from 'glob';
@@ -86,45 +86,4 @@ function bumpMinSemverRange(minVersion: string, semverRange: string) {
   }
 
   return minVersion;
-}
-
-export function getPackageInfos(cwd: string) {
-  const gitRoot = findGitRoot(cwd) || cwd;
-  const packagePatterns = getPackagePatterns(cwd);
-  const packageInfos: { [pkgName: string]: PackageInfo } = {};
-
-  if (packagePatterns && packagePatterns.length > 0) {
-    packagePatterns.forEach(pattern => {
-      const packageJsonPattern = path.join(pattern, 'package.json');
-      const packageJsonFiles = glob.sync(packageJsonPattern, { cwd: gitRoot });
-      packageJsonFiles.forEach(packageJsonPath => {
-        try {
-          const packageJson = require(path.join(gitRoot, packageJsonPath));
-
-          packageInfos[packageJson.name] = {
-            name: packageJson.name,
-            version: packageJson.version,
-            packageJsonPath,
-            dependencies: packageJson.dependencies,
-            devDependencies: packageJson.devDependencies
-          };
-        } catch (e) {
-          // Pass, the package.json is invalid
-        }
-      });
-    });
-  } else {
-    const packageJsonPath = path.join(findPackageRoot(cwd)!, 'package.json');
-    const packageJson = require(packageJsonPath);
-
-    packageInfos[packageJson.name] = {
-      name: packageJson.name,
-      version: packageJson.version,
-      packageJsonPath: 'package.json',
-      dependencies: packageJson.dependencies,
-      devDependencies: packageJson.devDependencies
-    };
-  }
-
-  return packageInfos;
 }

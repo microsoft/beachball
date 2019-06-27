@@ -1,9 +1,7 @@
 import { ChangeInfo } from './ChangeInfo';
-import { findLernaConfig, getPackagePatterns } from './monorepo';
-import { findPackageRoot, findGitRoot, getChangePath } from './paths';
+import { findPackageRoot, getChangePath } from './paths';
 import { getChanges, git } from './git';
 import fs from 'fs';
-import minimatch from 'minimatch';
 import path from 'path';
 
 /**
@@ -11,7 +9,6 @@ import path from 'path';
  * @param cwd
  */
 function getAllChangedPackages(branch: string, cwd: string) {
-  const gitRoot = findGitRoot(cwd) || cwd;
   const changes = getChanges(branch, cwd);
 
   const packageRoots: { [pathName: string]: string } = {};
@@ -35,26 +32,7 @@ function getAllChangedPackages(branch: string, cwd: string) {
     });
   }
 
-  if (findLernaConfig(cwd)) {
-    const packagePatterns = getPackagePatterns(cwd);
-
-    return Object.keys(packageRoots)
-      .filter(pkgPath => {
-        for (let pattern of packagePatterns) {
-          const relativePath = path.relative(gitRoot, pkgPath);
-          if (minimatch(relativePath, pattern)) {
-            return true;
-          }
-        }
-
-        return false;
-      })
-      .map(pkgPath => {
-        return packageRoots[pkgPath];
-      });
-  } else {
-    return Object.values(packageRoots);
-  }
+  return Object.keys(packageRoots);
 }
 
 /**

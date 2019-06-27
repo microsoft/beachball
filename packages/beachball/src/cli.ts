@@ -1,11 +1,10 @@
-import { bump, getPackageInfos } from './bump';
+import { bump } from './bump';
 import { CliOptions } from './CliOptions';
 import { findPackageRoot } from './paths';
-import { getUncommittedChanges, getParentBranch, getDefaultRemoteMaster, getRemoteBranch } from './git';
-import { isChangeFileNeeded as checkChangeFileNeeded, isGitAvailable, isValidTargetBranch } from './validation';
+import { getUncommittedChanges, getDefaultRemoteMaster } from './git';
+import { isChangeFileNeeded as checkChangeFileNeeded, isGitAvailable, isValidTargetBranch, isValidPackageName } from './validation';
 import { promptForChange, writeChangeFiles } from './changefile';
 import { publish } from './publish';
-import { writeChangelog } from './changelog';
 import parser from 'yargs-parser';
 
 let argv = process.argv.splice(2);
@@ -17,7 +16,8 @@ let args = parser(argv, {
     message: ['m'],
     token: ['n'],
     help: ['h', '?'],
-    yes: ['y']
+    yes: ['y'],
+    package: ['p']
   }
 });
 
@@ -44,27 +44,35 @@ const options: CliOptions = {
   tag: args.tag || 'latest',
   token: args.token || '',
   yes: args.yes === true || false,
-  access: args.access || 'restricted'
+  access: args.access || 'restricted',
+  package: args.package || ''
 };
 
 (async () => {
+  // Validation Steps
+
   if (!isGitAvailable(options.path)) {
-    console.error('Please make sure git is installed and initialize the repository with "git init".');
+    console.error('ERROR: Please make sure git is installed and initialize the repository with "git init".');
     process.exit(1);
   }
 
   const uncommitted = getUncommittedChanges(options.path);
 
   if (uncommitted && uncommitted.length > 0) {
-    console.warn('There are uncommitted changes in your repository. Please commit these files first:');
-    console.warn('- ' + uncommitted.join('\n- '));
+    console.error('ERROR: There are uncommitted changes in your repository. Please commit these files first:');
+    console.error('- ' + uncommitted.join('\n- '));
     process.exit(1);
   }
 
   const isChangeNeeded = checkChangeFileNeeded(options.branch, options.path);
 
   if (isChangeNeeded && options.command !== 'change') {
-    console.log('Change files are needed! Run "beachball" to generate change files.');
+    console.error('ERROR: Change files are needed! Run "beachball" to generate change files.');
+    process.exit(1);
+  }
+
+  if (options.package && !isValidPackageName(options.package, options.path)) {
+    console.error('ERROR: Specified package name is not valid');
     process.exit(1);
   }
 
@@ -72,10 +80,6 @@ const options: CliOptions = {
     case 'check':
       console.log('No change files are needed');
       break;
-
-    case 'changelog':
-      const packageInfos = getPackageInfos(options.path);
-      writeChangelog(packageInfos, options.path);
 
     case 'publish':
       publish(options);
@@ -86,12 +90,12 @@ const options: CliOptions = {
       break;
 
     default:
-      if (!isChangeNeeded) {
+      if (!isChangeNeeded && !options.package) {
         console.log('No change files are needed');
         return;
       }
 
-      const changes = await promptForChange(options.branch, options.path);
+      const changes = await promptForChange(options.branch, options.package, options.path);
 
       if (changes) {
         writeChangeFiles(changes, options.path);
@@ -131,6 +135,7 @@ Options:
   --no-publish        - skip publishing to the npm registry
   --help, -?, -h      - this very help message
   --yes, -y           - skips the prompts for publish
+  --package, -p       - manually specify a package to create a change file; creates a change file regardless of diffs
 
 Examples:
 

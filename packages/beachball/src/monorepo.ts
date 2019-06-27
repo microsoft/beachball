@@ -1,22 +1,56 @@
-import { searchUp } from './paths';
+import { searchUp, findPackageRoot } from './paths';
 import fs from 'fs';
 import path from 'path';
+import { listAllTrackedFiles } from './git';
+import { fileURLToPath } from 'url';
 
-export function findLernaConfig(cwd: string) {
-  return searchUp('lerna.json', cwd);
+export interface PackageInfo {
+  name: string;
+  packageJsonPath: string;
+  version: string;
+  dependencies: { [dep: string]: string };
+  devDependencies: { [dep: string]: string };
 }
 
-export function getPackagePatterns(cwd: string): string[] {
-  const config = findLernaConfig(cwd);
+export function getAllPackages(cwd: string): string[] {
+  const infos = getPackageInfos(cwd);
+  return Object.keys(infos);
+}
 
-  if (config) {
-    try {
-      const lernaConfig = JSON.parse(fs.readFileSync(path.join(config, 'lerna.json')).toString());
-      return lernaConfig.packages || ['packages/*'];
-    } catch (e) {
-      throw new Error('Cannot parse the lerna.json configuration file!');
-    }
+export function getPackageInfos(cwd: string) {
+  const trackedFiles = listAllTrackedFiles(cwd);
+  const packageJsonFiles = trackedFiles.filter(file => path.basename(file) === 'package.json');
+  const packageInfos: { [pkgName: string]: PackageInfo } = {};
+
+  if (packageJsonFiles && packageJsonFiles.length > 0) {
+    packageJsonFiles.forEach(packageJsonPath => {
+      try {
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+
+        packageInfos[packageJson.name] = {
+          name: packageJson.name,
+          version: packageJson.version,
+          packageJsonPath,
+          dependencies: packageJson.dependencies,
+          devDependencies: packageJson.devDependencies
+        };
+      } catch (e) {
+        // Pass, the package.json is invalid
+        console.warn(`Invalid package.json file detected ${packageJsonPath}`);
+      }
+    });
+  } else {
+    const packageJsonPath = path.join(findPackageRoot(cwd)!, 'package.json');
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+
+    packageInfos[packageJson.name] = {
+      name: packageJson.name,
+      version: packageJson.version,
+      packageJsonPath,
+      dependencies: packageJson.dependencies,
+      devDependencies: packageJson.devDependencies
+    };
   }
 
-  return [];
+  return packageInfos;
 }

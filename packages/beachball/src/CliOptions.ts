@@ -10,4 +10,5 @@ export interface CliOptions {
   publish: boolean;
   yes: boolean;
   access: 'public' | 'restricted';
+  package: string;
 }

@@ -270,3 +270,13 @@ export function getDefaultRemoteMaster(cwd: string) {
   console.log(`Defaults to "origin/master"`);
   return 'origin/master';
 }
+
+export function listAllTrackedFiles(cwd: string) {
+  const results = git(['ls-tree', '-r', '--name-only', '--full-tree', 'HEAD'], { cwd });
+
+  if (results.success) {
+    return results.stdout.split(/\n/);
+  }
+
+  return [];
+}

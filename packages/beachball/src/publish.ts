@@ -9,12 +9,17 @@ export async function publish(options: CliOptions) {
 
   const currentBranch = getBranchName(cwd);
 
-  console.log(`Publishing from beachball
+  console.log(`Publishing with the following configuration:
 
   registry: ${registry}
+  
   current branch: ${currentBranch}
   target branch: ${branch}
   tag: ${tag}
+
+  publishes to npm registry: ${options.publish ? 'yes' : 'no'}
+  pushes to remote git repo: ${options.push && options.branch ? 'yes' : 'no'}
+
 `);
 
   if (!options.yes) {
@@ -59,25 +64,16 @@ export async function publish(options: CliOptions) {
         return;
       }
     });
+  } else {
+    console.log('Skipping publish');
   }
 
   // Step 2.
-  // - For repos with no remotes: just commit and move on!
-  // - For repos with remotes: reset, fetch latest from origin/master (to ensure less chance of conflict), then bump again + commit
+  // - reset, fetch latest from origin/master (to ensure less chance of conflict), then bump again + commit
   if (!branch || !options.push) {
-    console.log('Committing changes locally.');
-    const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
-
-    if (!mergePublishBranchResult.success) {
-      console.error('CRITICAL ERROR: merging to target has failed!');
-      displayManualRecovery(bumpInfo);
-      process.exit(1);
-    }
-
-    tagPackages(bumpInfo, tag, cwd);
+    console.log('Skipping git push and tagging');
   } else {
     const { remote, remoteBranch } = parseRemoteBranch(branch);
-
     console.log('Reverting and fetching from remote');
 
     // pull in latest from origin branch

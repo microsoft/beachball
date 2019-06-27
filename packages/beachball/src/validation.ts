@@ -1,6 +1,7 @@
 import { findGitRoot } from './paths';
 import { getChangedPackages } from './getChangedPackages';
 import { git } from './git';
+import { getAllPackages } from './monorepo';
 
 export function isChangeFileNeeded(branch: string, cwd: string) {
   console.log(`Checking for changes against "${branch}"`);
@@ -21,4 +22,9 @@ export function isValidTargetBranch(branch?: string) {
   }
 
   return false;
+}
+
+export function isValidPackageName(pkg: string, cwd: string) {
+  const packages = getAllPackages(cwd);
+  return packages.includes(pkg);
 }

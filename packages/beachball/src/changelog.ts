@@ -23,14 +23,14 @@ interface PackageChangelog {
 }
 
 interface ChangelogJsonEntry {
-  date: string,
-  version: string,
+  date: string;
+  version: string;
   changes: {
     patch?: ChangelogEntry[];
     minor?: ChangelogEntry[];
     major?: ChangelogEntry[];
     none?: ChangelogEntry[];
-  }
+  };
 }
 
 interface ChangelogJson {
@@ -79,7 +79,7 @@ export function writeChangelog(packageInfos: { [pkg: string]: PackageInfo }, cwd
       const nextJson = renderJsonChangelog(previousJson, changelogs[pkg]);
       fs.writeFileSync(changelogJsonFile, JSON.stringify(nextJson, null, 2));
     } catch (e) {
-      console.warn("The CHANGELOG.json file is invalid, skipping writing to it")
+      console.warn('The CHANGELOG.json file is invalid, skipping writing to it');
     }
   });
 
@@ -87,8 +87,6 @@ export function writeChangelog(packageInfos: { [pkg: string]: PackageInfo }, cwd
 }
 
 function renderJsonChangelog(previous: ChangelogJson, changelog: PackageChangelog) {
-  console.log('previous\n', previous.entries);
-
   const result: ChangelogJson = {
     name: changelog.name,
     entries: [...previous.entries] || []
@@ -98,7 +96,7 @@ function renderJsonChangelog(previous: ChangelogJson, changelog: PackageChangelo
     date: changelog.date.toUTCString(),
     version: changelog.version,
     changes: changelog.changes
-  }
+  };
 
   result.entries.unshift(newEntry);
 
@@ -112,9 +110,9 @@ function renderChangelog(previous: string, changelog: PackageChangelog) {
     renderPackageChangelog(changelog) +
     (previous
       ? previous
-        .split(/\n/g)
-        .slice(3)
-        .join('\n')
+          .split(/\n/g)
+          .slice(3)
+          .join('\n')
       : '')
   );
 }
