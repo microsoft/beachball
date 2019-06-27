@@ -1,6 +1,13 @@
 # Changelog - beachball
 
-This log was last generated on Thu, 27 Jun 2019 17:50:36 GMT and should not be manually modified.
+This log was last generated on Thu, 27 Jun 2019 21:10:15 GMT and should not be manually modified.
+
+## 1.8.1
+Thu, 27 Jun 2019 21:10:15 GMT
+
+### Patches
+
+- use object.values (kchau@microsoft.com)
 
 ## 1.8.0
 Thu, 27 Jun 2019 17:50:36 GMT
