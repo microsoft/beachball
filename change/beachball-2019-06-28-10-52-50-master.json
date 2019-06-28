@@ -1,8 +1,0 @@
-{
-  "comment": "adds support for tags in CHANGELOG.json",
-  "type": "minor",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "8cc04ec43d3346dde7ad7eb84a1f4ce985f61a4c",
-  "date": "2019-06-28T17:52:50.661Z"
-}
