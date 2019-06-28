@@ -2,6 +2,7 @@ import { readChangeFiles, unlinkChangeFiles } from './changefile';
 import { PackageInfo } from './bump';
 import path from 'path';
 import fs from 'fs';
+import { generateTag } from './tag';
 
 interface ChangelogEntry {
   comment: string;
@@ -24,6 +25,7 @@ interface PackageChangelog {
 interface ChangelogJsonEntry {
   date: string;
   version: string;
+  tag: string;
   comments: {
     patch?: ChangelogEntry[];
     minor?: ChangelogEntry[];
@@ -93,6 +95,7 @@ function renderJsonChangelog(previous: ChangelogJson, changelog: PackageChangelo
 
   const newEntry: ChangelogJsonEntry = {
     date: changelog.date.toUTCString(),
+    tag: generateTag(changelog.name, changelog.version),
     version: changelog.version,
     comments: changelog.comments
   };
@@ -103,16 +106,13 @@ function renderJsonChangelog(previous: ChangelogJson, changelog: PackageChangelo
 }
 
 function renderChangelog(previous: string, changelog: PackageChangelog) {
+  const previousLogEntries = previous ? '\n' + previous.substring(previous.indexOf('##')) : '';
+
   return (
-    `# Changelog - ${changelog.name}\n\n` +
+    `# Change Log - ${changelog.name}\n\n` +
     `This log was last generated on ${changelog.date.toUTCString()} and should not be manually modified.\n` +
     renderPackageChangelog(changelog) +
-    (previous
-      ? previous
-          .split(/\n/g)
-          .slice(3)
-          .join('\n')
-      : '')
+    previousLogEntries
   );
 }
 
@@ -124,7 +124,7 @@ function renderPackageChangelog(changelog: PackageChangelog) {
       ? '\n### Major\n\n' + changelog.comments.major.map(change => `- ${change.comment} (${change.author})\n`)
       : '') +
     (changelog.comments.minor
-      ? '\n### Minor\n\n' + changelog.comments.minor.map(change => `- ${change.comment} (${change.author})\n`)
+      ? '\n### Minor changes\n\n' + changelog.comments.minor.map(change => `- ${change.comment} (${change.author})\n`)
       : '') +
     (changelog.comments.patch
       ? '\n### Patches\n\n' + changelog.comments.patch.map(change => `- ${change.comment} (${change.author})\n`)

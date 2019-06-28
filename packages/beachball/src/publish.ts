@@ -3,6 +3,7 @@ import { CliOptions } from './CliOptions';
 import { git, revertLocalChanges, getRemoteBranch, parseRemoteBranch, getBranchName, getFullBranchRef, getShortBranchName } from './git';
 import { packagePublish, listPackageVersions } from './packageManager';
 import prompts from 'prompts';
+import { generateTag } from './tag';
 
 export async function publish(options: CliOptions) {
   const { path: cwd, branch, registry, tag, token, message, access } = options;
@@ -136,7 +137,7 @@ function tagPackages(bumpInfo: BumpInfo, tag: string, cwd: string) {
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     console.log(`Tagging - ${packageInfo.name}@${packageInfo.version}`);
-    git(['tag', `${packageInfo.name}_v${packageInfo.version}`], { cwd });
+    git(['tag', generateTag(packageInfo.name, packageInfo.version)], { cwd });
   });
 
   // Adds a special dist-tag based tag in git
