@@ -1,0 +1,8 @@
+{
+  "comment": "makes the bump skip unknown packages",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "2421da762b583cf4fbaa86d04e9a3c8d9d11a53d",
+  "date": "2019-07-02T15:41:02.171Z"
+}
