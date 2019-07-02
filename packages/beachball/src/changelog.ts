@@ -69,10 +69,12 @@ export function writeChangelog(packageInfos: { [pkg: string]: PackageInfo }, cwd
   Object.keys(changelogs).forEach(pkg => {
     const packagePath = path.dirname(packageInfos[pkg].packageJsonPath);
 
-    const changelogFile = path.join(packagePath, 'CHANGELOG.md');
-    const previousContent = fs.existsSync(changelogFile) ? fs.readFileSync(changelogFile).toString() : '';
-    const nextContent = renderChangelog(previousContent, changelogs[pkg]);
-    fs.writeFileSync(changelogFile, nextContent);
+    if (changelogs[pkg].comments.major || changelogs[pkg].comments.minor || changelogs[pkg].comments.patch) {
+      const changelogFile = path.join(packagePath, 'CHANGELOG.md');
+      const previousContent = fs.existsSync(changelogFile) ? fs.readFileSync(changelogFile).toString() : '';
+      const nextContent = renderChangelog(previousContent, changelogs[pkg]);
+      fs.writeFileSync(changelogFile, nextContent);
+    }
 
     try {
       const changelogJsonFile = path.join(packagePath, 'CHANGELOG.json');
