@@ -1,6 +1,13 @@
-# Changelog - beachball
+# Change Log - beachball
 
-This log was last generated on Thu, 27 Jun 2019 21:23:00 GMT and should not be manually modified.
+This log was last generated on Fri, 28 Jun 2019 17:53:25 GMT and should not be manually modified.
+
+## 1.9.0
+Fri, 28 Jun 2019 17:53:25 GMT
+
+### Minor changes
+
+- adds support for tags in CHANGELOG.json (kchau@microsoft.com)
 
 ## 1.8.2
 Thu, 27 Jun 2019 21:23:00 GMT
