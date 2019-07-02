@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 02 Jul 2019 15:41:45 GMT",
+      "tag": "beachball_v1.9.1",
+      "version": "1.9.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "makes the bump skip unknown packages",
+            "author": "kchau@microsoft.com",
+            "commit": "2421da762b583cf4fbaa86d04e9a3c8d9d11a53d"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 28 Jun 2019 17:53:25 GMT",
       "tag": "beachball_v1.9.0",
       "version": "1.9.0",
