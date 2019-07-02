@@ -1,8 +1,0 @@
-{
-  "comment": "do not put none changes inside changelog.md",
-  "type": "patch",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "6d7be8b787535a212e7a1f0e6a985de0424672ce",
-  "date": "2019-07-02T16:04:20.880Z"
-}
