@@ -29,6 +29,12 @@ export function bump(cwd: string) {
   // Apply package.json version updates
   Object.keys(packageChangeTypes).forEach(pkgName => {
     const info = packageInfos[pkgName];
+
+    if (!info) {
+      console.log(`Unknown package named "${pkgName}" detected from change files, skipping!`);
+      return;
+    }
+
     const changeType = packageChangeTypes[pkgName];
     const packageJsonPath = path.join(gitRoot, info.packageJsonPath);
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
