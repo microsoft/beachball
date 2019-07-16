@@ -6952,9 +6952,9 @@ gatsby-telemetry@^1.1.0:
     uuid "3.3.2"
 
 gatsby-transformer-json@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/gatsby-transformer-json/-/gatsby-transformer-json-2.2.0.tgz#a27eb4dce9face97f083a15fb275b7e9bfe86242"
-  integrity sha512-8eOCldgrIBSyrm+RvbX/Or1TfHiqKQP7eJROt8j7RTOY5qzXliA3W2FsItcN68fI4sktVPZ12+gyqtndFE8XKQ==
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/gatsby-transformer-json/-/gatsby-transformer-json-2.2.2.tgz#115573dd9d028a58124d15536ddb1629121f733e"
+  integrity sha512-wKC8A+/M9gGd9SmF1V8hIgFK2t0VRD6cu2/Xz0snFjt+BOur+cn7lCrsUI5kEHiQio8GXnfLmSLTZ6SRBH0iHA==
   dependencies:
     "@babel/runtime" "^7.0.0"
     bluebird "^3.5.0"
