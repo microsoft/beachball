@@ -1,5 +1,7 @@
+export type ChangeType = 'prerelease' | 'patch' | 'minor' | 'major' | 'none';
+
 export interface ChangeInfo {
-  type: 'patch' | 'minor' | 'major' | 'none';
+  type: ChangeType;
   comment: string;
   packageName: string;
   email: string;

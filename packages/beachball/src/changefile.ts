@@ -1,10 +1,12 @@
-import { ChangeInfo } from './ChangeInfo';
+import { ChangeInfo, ChangeType } from './ChangeInfo';
 import { getChangedPackages } from './getChangedPackages';
 import { getChangePath } from './paths';
 import { getRecentCommitMessages, getUserEmail, getBranchName, getCurrentHash, stageAndCommit } from './git';
 import fs from 'fs-extra';
 import path from 'path';
 import prompts from 'prompts';
+import { getPackageInfos } from './monorepo';
+import { prerelease } from 'semver';
 
 /**
  * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash
@@ -15,9 +17,33 @@ export async function promptForChange(branch: string, specificPackage: string, c
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
   const packageChangeInfo: { [pkgname: string]: ChangeInfo } = {};
 
+  const packageInfos = getPackageInfos(cwd);
+
   for (let pkg of changedPackages) {
     console.log('');
     console.log(`Please describe the changes for: ${pkg}`);
+
+    const showPrereleaseOption = prerelease(packageInfos[pkg].version);
+    const changeTypePrompt : prompts.PromptObject<string> = {
+      type: 'select',
+      name: 'type',
+      message: 'Change type',
+      choices: [
+        ...(showPrereleaseOption ? [{value:'prerelease', title: 'Prerelease - bump prerelease version'}] : []),
+        { value: 'patch', title: 'Patch      - bug fixes; no backwards incompatible changes.' },
+        { value: 'minor', title: 'Minor      - small feature; backwards compatible changes.' },
+        { value: 'none', title: 'None       - this change does not affect the published package in any way.' },
+        { value: 'major', title: 'Major      - major feature; breaking changes.' }
+      ].filter(choice => !packageInfos[pkg].disallowedChangeTypes.includes(choice.value))
+    };
+
+    if (changeTypePrompt.choices!.length === 0) {
+      console.log('No valid changeTypes available, aborting');
+      return;
+    }
+    
+    const showChangeTypePrompt = changeTypePrompt.choices!.length > 1;
+
 
     const response = await prompts([
       {
@@ -28,18 +54,8 @@ export async function promptForChange(branch: string, specificPackage: string, c
           return Promise.resolve([...recentMessages.filter(msg => msg.startsWith(input)), input]);
         }
       },
-      {
-        type: 'select',
-        name: 'type',
-        message: 'Change type',
-        choices: [
-          { value: 'patch', title: 'Patch - bug fixes; no backwards incompatible changes.' },
-          { value: 'minor', title: 'Minor - small feature; backwards compatible changes.' },
-          { value: 'none', title: 'None - this change does not affect the published package in any way.' },
-          { value: 'major', title: 'Major - major feature; breaking changes.' }
-        ]
-      }
-    ]);
+      ...(showChangeTypePrompt ? [changeTypePrompt] : []),
+    ]) as {comment:string, type: ChangeType};
 
     if (Object.keys(response).length === 0) {
       console.log('Cancelled, no change files are written');
@@ -138,9 +154,10 @@ export function readChangeFiles(cwd: string) {
 
 export function getPackageChangeTypes(cwd: string) {
   const changeTypeWeights = {
-    major: 3,
-    minor: 2,
-    patch: 1,
+    major: 4,
+    minor: 3,
+    patch: 2,
+    prerelease: 1,
     none: 0
   };
   const changes = readChangeFiles(cwd);

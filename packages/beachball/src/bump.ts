@@ -1,19 +1,12 @@
-import { findPackageRoot, findGitRoot } from './paths';
+import { findGitRoot } from './paths';
 import { getPackageChangeTypes } from './changefile';
-import { getPackageInfos } from './monorepo';
+import { getPackageInfos, PackageInfo } from './monorepo';
 import { writeChangelog } from './changelog';
 import fs from 'fs';
-import glob from 'glob';
 import path from 'path';
 import semver from 'semver';
 
-export interface PackageInfo {
-  name: string;
-  packageJsonPath: string;
-  version: string;
-  dependencies: { [dep: string]: string };
-  devDependencies: { [dep: string]: string };
-}
+export type PackageInfo = PackageInfo;
 
 export type BumpInfo = ReturnType<typeof bump>;
 
