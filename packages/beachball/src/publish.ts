@@ -1,6 +1,6 @@
 import { bump, BumpInfo } from './bump';
 import { CliOptions } from './CliOptions';
-import { git, revertLocalChanges, getRemoteBranch, parseRemoteBranch, getBranchName, getFullBranchRef, getShortBranchName } from './git';
+import { git, revertLocalChanges, parseRemoteBranch, getBranchName } from './git';
 import { packagePublish, listPackageVersions } from './packageManager';
 import prompts from 'prompts';
 import { generateTag } from './tag';

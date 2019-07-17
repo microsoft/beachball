@@ -15,6 +15,7 @@ interface PackageChangelog {
   date: Date;
   version: string;
   comments: {
+    prerelease?: ChangelogEntry[];
     patch?: ChangelogEntry[];
     minor?: ChangelogEntry[];
     major?: ChangelogEntry[];
@@ -27,6 +28,7 @@ interface ChangelogJsonEntry {
   version: string;
   tag: string;
   comments: {
+    prerelease?: ChangelogEntry[];
     patch?: ChangelogEntry[];
     minor?: ChangelogEntry[];
     major?: ChangelogEntry[];
@@ -69,7 +71,7 @@ export function writeChangelog(packageInfos: { [pkg: string]: PackageInfo }, cwd
   Object.keys(changelogs).forEach(pkg => {
     const packagePath = path.dirname(packageInfos[pkg].packageJsonPath);
 
-    if (changelogs[pkg].comments.major || changelogs[pkg].comments.minor || changelogs[pkg].comments.patch) {
+    if (changelogs[pkg].comments.major || changelogs[pkg].comments.minor || changelogs[pkg].comments.patch || changelogs[pkg].comments.prerelease) {
       const changelogFile = path.join(packagePath, 'CHANGELOG.md');
       const previousContent = fs.existsSync(changelogFile) ? fs.readFileSync(changelogFile).toString() : '';
       const nextContent = renderChangelog(previousContent, changelogs[pkg]);
@@ -130,6 +132,9 @@ function renderPackageChangelog(changelog: PackageChangelog) {
       : '') +
     (changelog.comments.patch
       ? '\n### Patches\n\n' + changelog.comments.patch.map(change => `- ${change.comment} (${change.author})\n`)
-      : '')
+      : '') +
+      (changelog.comments.prerelease
+        ? '\n### Changes\n\n' + changelog.comments.prerelease.map(change => `- ${change.comment} (${change.author})\n`)
+        : '')
   );
 }
