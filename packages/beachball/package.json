@@ -23,7 +23,7 @@
     "yargs-parser": "^13.1.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "^7.0.0",
+    "@types/fs-extra": "^8.0.0",
     "@types/git-url-parse": "^9.0.0",
     "@types/glob": "^7.1.1",
     "@types/minimatch": "^3.0.3",
