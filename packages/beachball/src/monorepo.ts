@@ -58,7 +58,7 @@ export function getPackageInfos(cwd: string) {
           fs.readFileSync(packageJsonPath, 'utf-8')
         );
 
-        return infoFromPackageJson(packageJson, packageJsonPath);
+        packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonPath);
       } catch (e) {
         // Pass, the package.json is invalid
         console.warn(`Invalid package.json file detected ${packageJsonPath}`);
