@@ -1,0 +1,8 @@
+{
+  "comment": "Fix shouldPublish option",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "acoates@microsoft.com",
+  "commit": "601fceda704673ba053ac66be029b0850217ffe4",
+  "date": "2019-07-18T19:30:02.615Z"
+}
