@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 18 Jul 2019 18:39:14 GMT",
+      "tag": "beachball_v1.10.0",
+      "version": "1.10.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add prerelease option",
+            "author": "kchau@microsoft.com",
+            "commit": "17d5af93c9843a14c06cf8b1e72c1a6e2397b986"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 02 Jul 2019 16:05:08 GMT",
       "tag": "beachball_v1.9.2",
       "version": "1.9.2",

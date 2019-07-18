@@ -1,6 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 02 Jul 2019 16:05:08 GMT and should not be manually modified.
+This log was last generated on Thu, 18 Jul 2019 18:39:14 GMT and should not be manually modified.
+
+## 1.10.0
+Thu, 18 Jul 2019 18:39:14 GMT
+
+### Minor changes
+
+- Add prerelease option (kchau@microsoft.com)
 
 ## 1.9.2
 Tue, 02 Jul 2019 16:05:08 GMT
