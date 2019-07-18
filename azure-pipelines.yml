@@ -17,9 +17,9 @@ steps:
     displayName: 'yarn'
 
   - script: |
-      yarn checkchange
-    displayName: 'yarn checkchange'
-
-  - script: |
       yarn build
     displayName: 'yarn build'
+
+  - script: |
+      yarn checkchange
+    displayName: 'yarn checkchange'
