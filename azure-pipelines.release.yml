@@ -26,9 +26,6 @@ steps:
       yarn
     displayName: 'yarn'
   - script: |
-      yarn checkchange
-    displayName: 'check change files'
-  - script: |
       yarn build
     displayName: 'build'
   - script: |
