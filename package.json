@@ -8,6 +8,7 @@
   "license": "MIT",
   "scripts": {
     "build": "lerna run build --stream",
+    "build:beachball": "lerna run build --scope beachball",
     "postbuild": "rimraf docs && ncp packages/website/public docs",
     "start": "lerna run start",
     "change": "node ./packages/beachball/lib/cli.js change",

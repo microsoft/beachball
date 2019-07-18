@@ -17,8 +17,8 @@ steps:
     displayName: 'yarn'
 
   - script: |
-      yarn build
-    displayName: 'yarn build'
+      yarn build:beachball
+    displayName: 'yarn build:beachball'
 
   - script: |
       yarn checkchange
