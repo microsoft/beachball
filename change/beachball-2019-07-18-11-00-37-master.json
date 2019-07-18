@@ -1,0 +1,8 @@
+{
+  "comment": "Add prerelease option",
+  "type": "minor",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "17d5af93c9843a14c06cf8b1e72c1a6e2397b986",
+  "date": "2019-07-18T18:00:37.819Z"
+}
