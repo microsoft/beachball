@@ -8,14 +8,14 @@
   "license": "MIT",
   "scripts": {
     "build": "lerna run build --stream",
+    "build:beachball": "lerna run build --scope beachball",
     "postbuild": "rimraf docs && ncp packages/website/public docs",
     "start": "lerna run start",
-    "change": "beachball change",
-    "check": "beachball check",
-    "publish:beachball": "beachball publish"
+    "change": "node ./packages/beachball/lib/cli.js change",
+    "checkchange": "node ./packages/beachball/lib/cli.js check",
+    "publish:beachball": "node ./packages/beachball/lib/cli.js publish"
   },
   "devDependencies": {
-    "beachball": "^1.9.2",
     "lerna": "^3.13.2",
     "rimraf": "^2.6.3",
     "ncp": "^2.0.0"

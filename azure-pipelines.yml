@@ -1,21 +1,25 @@
 trigger: none
 
 pr:
-- master
+  - master
 
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '10.x'
-  displayName: 'Install Node.js'
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '10.x'
+    displayName: 'Install Node.js'
 
-- script: |
-    yarn
-  displayName: 'yarn'
+  - script: |
+      yarn
+    displayName: 'yarn'
 
-- script: |
-    yarn build
-  displayName: 'yarn build'
+  - script: |
+      yarn build:beachball
+    displayName: 'yarn build:beachball'
+
+  - script: |
+      yarn checkchange
+    displayName: 'yarn checkchange'
