@@ -11,7 +11,7 @@
     "postbuild": "rimraf docs && ncp packages/website/public docs",
     "start": "lerna run start",
     "change": "beachball change",
-    "check": "beachball check",
+    "checkchange": "beachball check",
     "publish:beachball": "beachball publish"
   },
   "devDependencies": {
