@@ -29,11 +29,11 @@ export async function promptForChange(branch: string, specificPackage: string, c
       name: 'type',
       message: 'Change type',
       choices: [
-        ...(showPrereleaseOption ? [{value:'prerelease', title: 'Prerelease - bump prerelease version'}] : []),
-        { value: 'patch', title: 'Patch      - bug fixes; no backwards incompatible changes.' },
-        { value: 'minor', title: 'Minor      - small feature; backwards compatible changes.' },
-        { value: 'none', title: 'None       - this change does not affect the published package in any way.' },
-        { value: 'major', title: 'Major      - major feature; breaking changes.' }
+        ...(showPrereleaseOption ? [{value:'prerelease', title: ' [1mPrerelease[22m - bump prerelease version'}] : []),
+        { value: 'patch', title: ' [1mPatch[22m      - bug fixes; no backwards incompatible changes.' },
+        { value: 'minor', title: ' [1mMinor[22m      - small feature; backwards compatible changes.' },
+        { value: 'none', title: ' [1mNone[22m       - this change does not affect the published package in any way.' },
+        { value: 'major', title: ' [1mMajor[22m      - major feature; breaking changes.' }
       ].filter(choice => !packageInfos[pkg].disallowedChangeTypes.includes(choice.value))
     };
 

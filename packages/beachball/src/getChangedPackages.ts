@@ -21,7 +21,7 @@ function getAllChangedPackages(branch: string, cwd: string) {
         try {
           const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json')).toString());
 
-          if (!packageJson.private) {
+          if (!packageJson.private && (!packageJson.beachball || !packageJson.beachball.shouldPublish)) {
             const packageName = packageJson.name;
             packageRoots[root] = packageName;
           }
