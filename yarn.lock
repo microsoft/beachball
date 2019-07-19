@@ -2006,9 +2006,9 @@
   integrity sha512-d0BOAicT0tEdbdVQlLGOVul1kvg6YvbaADRCThGCz5NJ0e9r00SofcR1x69hmlCyrHuB6jd4cKzL9bMLjPnpAA==
 
 "@types/prompts@~2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@types/prompts/-/prompts-2.0.0.tgz#28551307ae9e10f5e5b703edcd7261c84b8a5f2f"
-  integrity sha512-Rl7itDnYA+Eunkd8WUcB7SF8B0cuzykwDWeQ2rfZry8fqdXJ3piw5B+SgzHWBYQuHCwF7E5iyozQf3BziCuXhA==
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@types/prompts/-/prompts-2.0.1.tgz#afae5a8b0616a33cd31557bec74e2fd4a32f4afe"
+  integrity sha512-AhtMcmETelF8wFDV1ucbChKhLgsc+ytXZXkNz/nnTAMSDeqsjALknEFxi7ZtLgS/G8bV2rp90LhDW5SGACimIQ==
 
 "@types/prop-types@*":
   version "15.7.1"
