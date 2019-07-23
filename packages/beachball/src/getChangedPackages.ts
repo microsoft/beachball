@@ -50,7 +50,7 @@ export function getChangedPackages(branch: string, cwd: string) {
   }
 
   const remoteChangeFiles = changeFileResult.stdout.split(/\n/).map(line => path.basename(line.trim()));
-  const changeFiles = fs.readdirSync(changePath).filter(entry => fs.statSync(entry).isFile);
+  const changeFiles = fs.readdirSync(changePath).filter(entry => fs.statSync(path.join(changePath, entry)).isFile);
   const changeFilePackageSet = new Set<string>();
 
   changeFiles.forEach(file => {
