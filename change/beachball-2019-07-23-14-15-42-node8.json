@@ -1,0 +1,8 @@
+{
+  "comment": "making beachball node 8 compatible",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "557b8a2234a2f5ec8026422767bf90ad0080e74a",
+  "date": "2019-07-23T21:15:42.528Z"
+}
