@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 23 Jul 2019 21:27:22 GMT",
+      "tag": "beachball_v1.10.2",
+      "version": "1.10.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "making beachball node 8 compatible",
+            "author": "kchau@microsoft.com",
+            "commit": "557b8a2234a2f5ec8026422767bf90ad0080e74a"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 18 Jul 2019 20:18:23 GMT",
       "tag": "beachball_v1.10.1",
       "version": "1.10.1",

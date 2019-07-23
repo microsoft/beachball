@@ -1,6 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 18 Jul 2019 20:18:23 GMT and should not be manually modified.
+This log was last generated on Tue, 23 Jul 2019 21:27:22 GMT and should not be manually modified.
+
+## 1.10.2
+Tue, 23 Jul 2019 21:27:22 GMT
+
+### Patches
+
+- making beachball node 8 compatible (kchau@microsoft.com)
 
 ## 1.10.1
 Thu, 18 Jul 2019 20:18:23 GMT
