@@ -6737,11 +6737,12 @@ gatsby-plugin-google-fonts@^1.0.1:
   integrity sha512-p1NVkn27GUnDA5qHM+Z4cCcLCJIardzZXMon3640sT4xuL/AZJbsx3HEt2KY/5oZu0UXIkytkxzV2Da4rQeUIg==
 
 gatsby-plugin-manifest@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/gatsby-plugin-manifest/-/gatsby-plugin-manifest-2.2.0.tgz#e16d39bd415026594465e1763cc2abd43729a7d1"
-  integrity sha512-VcSe6cT+H0pbll5l5rs8+AAdBnH4nsTJ81plvw/Oyn8WnsnWcD/c1RbQLSrTGl6CKGLlUtrwrPuYFNYe50AsZg==
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/gatsby-plugin-manifest/-/gatsby-plugin-manifest-2.2.4.tgz#62d144c9fcdf2c476a460bcaacc26359db6e486d"
+  integrity sha512-zhRLmqWzp9oMfxo2S01Lev0QL7YRLSLNzseGb/tcyR5YOhBPMJzObHnD6MORbKPnxYWzVoghqf5/DjmzTVsacw==
   dependencies:
     "@babel/runtime" "^7.0.0"
+    gatsby-core-utils "^1.0.0"
     semver "^5.6.0"
     sharp "^0.22.1"
 
