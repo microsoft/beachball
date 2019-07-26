@@ -105,7 +105,7 @@ export async function publish(options: CliOptions) {
     tagPackages(bumpInfo, tag, cwd);
 
     console.log(`pushing to ${branch}, running the following command for git push:`);
-    const pushArgs = ['push', '--follow-tags', '--no-verify', '--verbose', remote, `HEAD:${remoteBranch}`];
+    const pushArgs = ['push', '--no-verify', '--verbose', remote, `HEAD:${remoteBranch}`];
     console.log('git ' + pushArgs.join(' '));
     git(pushArgs);
   }
@@ -137,12 +137,13 @@ function tagPackages(bumpInfo: BumpInfo, tag: string, cwd: string) {
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     console.log(`Tagging - ${packageInfo.name}@${packageInfo.version}`);
-    git(['tag', generateTag(packageInfo.name, packageInfo.version)], { cwd });
+    const generatedTag = generateTag(packageInfo.name, packageInfo.version);
+    git(['tag', '-a', generatedTag, '-f', '-m', generatedTag], { cwd });
   });
 
   // Adds a special dist-tag based tag in git
   if (tag !== 'latest') {
-    git(['tag', '-f', tag], { cwd });
+    git(['tag', '-a', '-f', tag, '-m', tag], { cwd });
   }
 }
 
