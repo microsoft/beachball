@@ -1,8 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Fixes #64, #65, #62, #2 - usability changes",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "805be76628f7762f628825e3031eac76187e7f59",
-  "date": "2019-07-26T17:58:35.341Z"
-}

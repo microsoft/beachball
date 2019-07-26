@@ -1,6 +1,6 @@
 {
   "name": "beachball",
-  "version": "1.10.3",
+  "version": "1.11.0",
   "main": "index.js",
   "license": "MIT",
   "bin": {

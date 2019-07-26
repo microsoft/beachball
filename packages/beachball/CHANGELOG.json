@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 26 Jul 2019 18:00:02 GMT",
+      "tag": "beachball_v1.11.0",
+      "version": "1.11.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Fixes #64, #65, #62, #2 - usability changes",
+            "author": "kchau@microsoft.com",
+            "commit": "805be76628f7762f628825e3031eac76187e7f59"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 26 Jul 2019 04:30:54 GMT",
       "tag": "beachball_v1.10.3",
       "version": "1.10.3",
