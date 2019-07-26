@@ -47,7 +47,7 @@ export function getUncommittedChanges(cwd: string) {
 
 export function getChanges(branch: string, cwd: string) {
   try {
-    const results = git(['--no-pager', 'diff', '--name-only', branch + '...'], { cwd });
+    const results = git(['--no-pager', 'diff', '--name-only', branch + '..'], { cwd });
 
     if (!results.success) {
       return [];
@@ -57,7 +57,10 @@ export function getChanges(branch: string, cwd: string) {
 
     let lines = changes.split(/\n/) || [];
 
-    return lines.filter(line => line.trim() !== '').map(line => line.trim());
+    return lines
+      .filter(line => line.trim() !== '')
+      .map(line => line.trim())
+      .filter(line => !line.includes('node_modules'));
   } catch (e) {
     console.error('Cannot gather information about changes: ', e.message);
   }

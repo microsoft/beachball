@@ -105,7 +105,7 @@ export async function publish(options: CliOptions) {
     tagPackages(bumpInfo, tag, cwd);
 
     console.log(`pushing to ${branch}, running the following command for git push:`);
-    const pushArgs = ['push', '--no-verify', '--verbose', remote, `HEAD:${remoteBranch}`];
+    const pushArgs = ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`];
     console.log('git ' + pushArgs.join(' '));
     git(pushArgs);
   }
