@@ -11,4 +11,6 @@ export interface CliOptions {
   yes: boolean;
   access: 'public' | 'restricted';
   package: string;
+  changehint: string;
+  type?: 'patch' | 'minor' | 'major' | 'prerelease' | null;
 }

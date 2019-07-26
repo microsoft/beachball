@@ -32,5 +32,10 @@
     "@types/semver": "^6.0.0",
     "@types/yargs-parser": "^13.0.0",
     "typescript": "^3.5.1"
+  },
+  "beachball": {
+    "disallowedChangeTypes": [
+      "major"
+    ]
   }
 }

@@ -28,3 +28,7 @@ export function isValidPackageName(pkg: string, cwd: string) {
   const packages = getAllPackages(cwd);
   return packages.includes(pkg);
 }
+
+export function isValidChangeType(changeType: string) {
+  return ['patch', 'major', 'minor', 'prerelease'].includes(changeType);
+}

@@ -7,12 +7,15 @@ import path from 'path';
 import prompts from 'prompts';
 import { getPackageInfos } from './monorepo';
 import { prerelease } from 'semver';
+import { CliOptions } from './CliOptions';
 
 /**
  * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash
  * @param cwd
  */
-export async function promptForChange(branch: string, specificPackage: string, cwd: string) {
+export async function promptForChange(options: CliOptions) {
+  const { branch, path: cwd, package: specificPackage } = options;
+
   const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(branch, cwd);
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
   const packageChangeInfo: { [pkgname: string]: ChangeInfo } = {};
@@ -24,12 +27,12 @@ export async function promptForChange(branch: string, specificPackage: string, c
     console.log(`Please describe the changes for: ${pkg}`);
 
     const showPrereleaseOption = prerelease(packageInfos[pkg].version);
-    const changeTypePrompt : prompts.PromptObject<string> = {
+    const changeTypePrompt: prompts.PromptObject<string> = {
       type: 'select',
       name: 'type',
       message: 'Change type',
       choices: [
-        ...(showPrereleaseOption ? [{value:'prerelease', title: ' [1mPrerelease[22m - bump prerelease version'}] : []),
+        ...(showPrereleaseOption ? [{ value: 'prerelease', title: ' [1mPrerelease[22m - bump prerelease version' }] : []),
         { value: 'patch', title: ' [1mPatch[22m      - bug fixes; no backwards incompatible changes.' },
         { value: 'minor', title: ' [1mMinor[22m      - small feature; backwards compatible changes.' },
         { value: 'none', title: ' [1mNone[22m       - this change does not affect the published package in any way.' },
@@ -41,25 +44,37 @@ export async function promptForChange(branch: string, specificPackage: string, c
       console.log('No valid changeTypes available, aborting');
       return;
     }
-    
-    const showChangeTypePrompt = changeTypePrompt.choices!.length > 1;
 
-
-    const response = await prompts([
-      {
-        type: 'autocomplete',
-        name: 'comment',
-        message: 'Describe changes (type or choose one)',
-        suggest: input => {
-          return Promise.resolve([...recentMessages.filter(msg => msg.startsWith(input)), input]);
-        }
-      },
-      ...(showChangeTypePrompt ? [changeTypePrompt] : []),
-    ]) as {comment:string, type: ChangeType};
-
-    if (Object.keys(response).length === 0) {
-      console.log('Cancelled, no change files are written');
+    if (options.type && packageInfos[pkg].disallowedChangeTypes.includes(options.type)) {
+      console.log(`${options.type} type is not allowed, aborting`);
       return;
+    }
+
+    const descriptionPrompt: prompts.PromptObject<string> = {
+      type: 'autocomplete',
+      name: 'comment',
+      message: 'Describe changes (type or choose one)',
+      suggest: input => {
+        return Promise.resolve([...recentMessages.filter(msg => msg.startsWith(input)), input]);
+      }
+    };
+
+    const showChangeTypePrompt = !options.type && changeTypePrompt.choices!.length > 1;
+
+    const questions = [...(showChangeTypePrompt ? [changeTypePrompt] : []), ...(!options.message ? [descriptionPrompt] : [])];
+
+    let response: { comment: string; type: ChangeType } = {
+      type: options.type || 'none',
+      comment: options.message || ''
+    };
+
+    if (questions.length > 0) {
+      response = (await prompts(questions)) as { comment: string; type: ChangeType };
+
+      if (Object.keys(response).length === 0) {
+        console.log('Cancelled, no change files are written');
+        return;
+      }
     }
 
     packageChangeInfo[pkg] = {
@@ -92,16 +107,23 @@ export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd
   }
 
   if (changes && branchName && changePath) {
+    const changeFiles: string[] = [];
+
     Object.keys(changes).forEach(pkgName => {
       const suffix = branchName.replace(/[\/\\]/g, '-');
       const prefix = pkgName.replace(/[^a-zA-Z0-9@]/g, '-');
       const fileName = `${prefix}-${getTimeStamp()}-${suffix}.json`;
       const changeFile = path.join(changePath, fileName);
       const change = changes[pkgName];
+      changeFiles.push(changeFile);
       fs.writeFileSync(changeFile, JSON.stringify(change, null, 2));
     });
 
-    stageAndCommit([path.join(changePath, '*.json')], 'Change files', cwd);
+    stageAndCommit(changeFiles, 'Change files', cwd);
+
+    console.log(`git committed these change files:
+${changeFiles.map(f => ` - ${f}`).join('\n')}
+`);
   }
 }
 

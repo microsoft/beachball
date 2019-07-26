@@ -53,8 +53,10 @@ export function getChangedPackages(branch: string, cwd: string) {
   const changeFiles = fs.readdirSync(changePath).filter(entry => fs.statSync(path.join(changePath, entry)).isFile);
   const changeFilePackageSet = new Set<string>();
 
+  // Loop through the change files, building up a set of packages that we can skip
   changeFiles.forEach(file => {
-    if (file === 'CHANGELOG.md' || file === 'CHANGELOG.md' || remoteChangeFiles.includes(file)) {
+    // Skip change files that are in remote branch - do NOT skip the packages that are present in those remote change files
+    if (remoteChangeFiles.includes(file)) {
       return;
     }
 
@@ -65,6 +67,10 @@ export function getChangedPackages(branch: string, cwd: string) {
       console.warn(`Invalid change file encountered: ${file}`);
     }
   });
+
+  if (changeFilePackageSet.size > 0) {
+    console.log(`Your local repository already has change files for these packages: ${[...changeFilePackageSet].sort().join(', ')}`);
+  }
 
   return changedPackages.filter(pkgName => !changeFilePackageSet.has(pkgName));
 }

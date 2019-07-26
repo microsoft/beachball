@@ -109,6 +109,11 @@ export async function publish(options: CliOptions) {
     console.log('git ' + pushArgs.join(' '));
     git(pushArgs);
   }
+
+  if (currentBranch) {
+    console.log(`git checkout ${currentBranch}`);
+    git(['checkout', currentBranch], { cwd });
+  }
 }
 
 function displayManualRecovery(bumpInfo: BumpInfo) {
