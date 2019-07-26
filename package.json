@@ -13,7 +13,7 @@
     "start": "lerna run start",
     "change": "node ./packages/beachball/lib/cli.js change",
     "checkchange": "node ./packages/beachball/lib/cli.js check",
-    "publish:beachball": "node ./packages/beachball/lib/cli.js publish"
+    "pub": "node ./packages/beachball/lib/cli.js publish"
   },
   "devDependencies": {
     "lerna": "^3.13.2",
