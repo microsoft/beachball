@@ -1,8 +1,0 @@
-{
-  "comment": "make git tags to be pushed",
-  "type": "patch",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "1a5d86eab58d1ff35e95b61af196e2df9d28212c",
-  "date": "2019-07-26T04:30:26.204Z"
-}

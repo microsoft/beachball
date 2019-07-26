@@ -1,6 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 23 Jul 2019 21:27:22 GMT and should not be manually modified.
+This log was last generated on Fri, 26 Jul 2019 04:30:54 GMT and should not be manually modified.
+
+## 1.10.3
+Fri, 26 Jul 2019 04:30:54 GMT
+
+### Patches
+
+- make git tags to be pushed (kchau@microsoft.com)
 
 ## 1.10.2
 Tue, 23 Jul 2019 21:27:22 GMT
