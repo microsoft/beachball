@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "default branch name should be master",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "edb36e3f8744bc6e6d5400280d2dad31b8e8db17",
+  "date": "2019-07-31T21:40:32.664Z"
+}
