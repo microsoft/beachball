@@ -243,7 +243,7 @@ function normalizeRepoUrl(repositoryUrl: string) {
   }
 }
 
-export function getDefaultRemoteBranch(branch: string = 'origin', cwd: string) {
+export function getDefaultRemoteBranch(branch: string = 'master', cwd: string) {
   const defaultRemote = getDefaultRemote(cwd);
   return `${defaultRemote}/${branch}`;
 }
