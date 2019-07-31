@@ -282,7 +282,6 @@ export function getDefaultRemote(cwd: string) {
       const remote = allRemotes[normalizedUrl];
 
       if (remote) {
-        console.log(`Found a matching remote URL from package.json named "${remote}"`);
         return remote;
       }
     }

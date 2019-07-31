@@ -15,6 +15,7 @@ import parser from 'yargs-parser';
 
 let argv = process.argv.splice(2);
 let args = parser(argv, {
+  string: ['branch', 'tag', 'message', 'package'],
   alias: {
     branch: ['b'],
     tag: ['t'],
@@ -32,15 +33,14 @@ if (args.help) {
   process.exit(0);
 }
 
-if (args.branch && !isValidTargetBranch(args.branch)) {
-  console.error(`Target branch needs to be a valid remote branch (e.g. origin/master): ${args.branch}`);
-  process.exit(1);
-}
-
 const defaultCommand = 'change';
 const cwd = findGitRoot(process.cwd()) || process.cwd();
+
+const branch = args.branch && args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd);
+console.log(`Target branch is "${branch}"`);
+
 const options: CliOptions = {
-  branch: args.branch || getDefaultRemoteBranch(args.branch, cwd),
+  branch,
   command: args._.length === 0 ? defaultCommand : args._[0],
   message: args.message || '',
   path: cwd,
