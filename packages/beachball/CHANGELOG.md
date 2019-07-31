@@ -1,6 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 26 Jul 2019 18:00:02 GMT and should not be manually modified.
+This log was last generated on Wed, 31 Jul 2019 22:00:03 GMT and should not be manually modified.
+
+## 1.11.1
+Wed, 31 Jul 2019 22:00:03 GMT
+
+### Patches
+
+- default branch name should be master (kchau@microsoft.com)
 
 ## 1.11.0
 Fri, 26 Jul 2019 18:00:02 GMT

@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 31 Jul 2019 22:00:03 GMT",
+      "tag": "beachball_v1.11.1",
+      "version": "1.11.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "default branch name should be master",
+            "author": "kchau@microsoft.com",
+            "commit": "edb36e3f8744bc6e6d5400280d2dad31b8e8db17"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 26 Jul 2019 18:00:02 GMT",
       "tag": "beachball_v1.11.0",
       "version": "1.11.0",
