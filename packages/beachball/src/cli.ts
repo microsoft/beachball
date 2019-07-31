@@ -2,13 +2,7 @@ import { bump } from './bump';
 import { CliOptions } from './CliOptions';
 import { findGitRoot } from './paths';
 import { getUncommittedChanges, getDefaultRemoteBranch } from './git';
-import {
-  isChangeFileNeeded as checkChangeFileNeeded,
-  isGitAvailable,
-  isValidTargetBranch,
-  isValidPackageName,
-  isValidChangeType
-} from './validation';
+import { isChangeFileNeeded as checkChangeFileNeeded, isGitAvailable, isValidPackageName, isValidChangeType } from './validation';
 import { promptForChange, writeChangeFiles } from './changefile';
 import { publish } from './publish';
 import parser from 'yargs-parser';
