@@ -1,7 +1,7 @@
 import { bump } from './bump';
 import { CliOptions } from './CliOptions';
 import { findGitRoot } from './paths';
-import { getUncommittedChanges, getDefaultRemoteMaster } from './git';
+import { getUncommittedChanges, getDefaultRemoteBranch } from './git';
 import {
   isChangeFileNeeded as checkChangeFileNeeded,
   isGitAvailable,
@@ -40,7 +40,7 @@ if (args.branch && !isValidTargetBranch(args.branch)) {
 const defaultCommand = 'change';
 const cwd = findGitRoot(process.cwd()) || process.cwd();
 const options: CliOptions = {
-  branch: args.branch || getDefaultRemoteMaster(cwd),
+  branch: args.branch || getDefaultRemoteBranch(args.branch, cwd),
   command: args._.length === 0 ? defaultCommand : args._[0],
   message: args.message || '',
   path: cwd,

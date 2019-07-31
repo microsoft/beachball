@@ -243,7 +243,12 @@ function normalizeRepoUrl(repositoryUrl: string) {
   }
 }
 
-export function getDefaultRemoteMaster(cwd: string) {
+export function getDefaultRemoteBranch(branch: string = 'origin', cwd: string) {
+  const defaultRemote = getDefaultRemote(cwd);
+  return `${defaultRemote}/${branch}`;
+}
+
+export function getDefaultRemote(cwd: string) {
   let packageJson: any;
 
   try {
@@ -277,14 +282,14 @@ export function getDefaultRemoteMaster(cwd: string) {
       const remote = allRemotes[normalizedUrl];
 
       if (remote) {
-        console.log(`Found a matching remote URL from package.json named "${remote}/master"`);
-        return `${remote}/master`;
+        console.log(`Found a matching remote URL from package.json named "${remote}"`);
+        return remote;
       }
     }
   }
 
-  console.log(`Defaults to "origin/master"`);
-  return 'origin/master';
+  console.log(`Defaults to "origin"`);
+  return 'origin';
 }
 
 export function listAllTrackedFiles(cwd: string) {
