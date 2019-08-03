@@ -9,6 +9,7 @@
   "scripts": {
     "build:all": "lerna run build --stream",
     "build": "lerna run build --scope beachball",
+    "test": "lerna run test --scope beachball",
     "postbuild:all": "rimraf docs && ncp packages/website/public docs",
     "start": "lerna run start",
     "change": "node ./packages/beachball/lib/cli.js change",
