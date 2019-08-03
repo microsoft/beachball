@@ -1,6 +1,6 @@
 import { bump, BumpInfo } from './bump';
 import { CliOptions } from './CliOptions';
-import { git, revertLocalChanges, parseRemoteBranch, getBranchName } from './git';
+import { git, gitFailFast, revertLocalChanges, parseRemoteBranch, getBranchName } from './git';
 import { packagePublish, listPackageVersions } from './packageManager';
 import prompts from 'prompts';
 import { generateTag } from './tag';
@@ -37,7 +37,7 @@ export async function publish(options: CliOptions) {
 
   // checkout publish branch
   const publishBranch = 'publish_' + String(new Date().getTime());
-  git(['checkout', '-b', publishBranch]);
+  gitFailFast(['checkout', '-b', publishBranch]);
 
   // Step 1. Bump + npm publish
   // bump the version
@@ -79,7 +79,7 @@ export async function publish(options: CliOptions) {
 
     // pull in latest from origin branch
     revertLocalChanges(cwd);
-    git(['fetch', remote], { cwd });
+    gitFailFast(['fetch', remote], { cwd });
     const mergeResult = git(['merge', '-X', 'theirs', `${branch}`], { cwd });
     if (!mergeResult.success) {
       console.error(`CRITICAL ERROR: pull from ${branch} has failed!`);
@@ -107,12 +107,19 @@ export async function publish(options: CliOptions) {
     console.log(`pushing to ${branch}, running the following command for git push:`);
     const pushArgs = ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`];
     console.log('git ' + pushArgs.join(' '));
-    git(pushArgs);
+    const pushResult = git(pushArgs);
+    if (!pushResult.success) {
+      console.error(`CRITICAL ERROR: push to ${branch} has failed!`);
+      console.error(pushResult.stderr);
+      displayManualRecovery(bumpInfo);
+      process.exit(1);
+    }
+
   }
 
   if (currentBranch) {
     console.log(`git checkout ${currentBranch}`);
-    git(['checkout', currentBranch], { cwd });
+    gitFailFast(['checkout', currentBranch], { cwd });
   }
 }
 
@@ -126,16 +133,32 @@ function displayManualRecovery(bumpInfo: BumpInfo) {
 }
 
 function mergePublishBranch(publishBranch: string, branch: string, message: string, cwd: string) {
-  git(['add', '.'], { cwd });
-  git(['commit', '-m', message], { cwd });
-  git(['checkout', branch], { cwd });
-
-  const mergePublishBranchResult = git(['merge', '-X', 'ours', publishBranch], { cwd });
-  if (mergePublishBranchResult.success) {
-    git(['branch', '-D', publishBranch]);
+  let result = git(['add', '.'], { cwd });
+  if (!result.success) {
+    return result;
+  }
+  result = git(['commit', '-m', message], { cwd });
+  if (!result.success) {
+    return result;
   }
 
-  return mergePublishBranchResult;
+  result = git(['checkout', branch], { cwd });
+  if (!result.success) {
+    return result;
+  }
+
+  result = git(['merge', '-X', 'ours', publishBranch], { cwd });
+  if (!result.success) {
+    return result;
+  }
+
+  result = git(['branch', '-D', publishBranch]);
+
+  return result;
+}
+
+function createTag(tag: string, cwd: string) {
+  gitFailFast(['tag', '-a', '-f', tag, '-m', tag], { cwd });
 }
 
 function tagPackages(bumpInfo: BumpInfo, tag: string, cwd: string) {
@@ -143,12 +166,12 @@ function tagPackages(bumpInfo: BumpInfo, tag: string, cwd: string) {
     const packageInfo = bumpInfo.packageInfos[pkg];
     console.log(`Tagging - ${packageInfo.name}@${packageInfo.version}`);
     const generatedTag = generateTag(packageInfo.name, packageInfo.version);
-    git(['tag', '-a', generatedTag, '-f', '-m', generatedTag], { cwd });
+    createTag(generatedTag, cwd);
   });
 
   // Adds a special dist-tag based tag in git
   if (tag !== 'latest') {
-    git(['tag', '-a', '-f', tag, '-m', tag], { cwd });
+    createTag(tag, cwd);
   }
 }
 

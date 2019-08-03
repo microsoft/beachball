@@ -23,6 +23,15 @@ export function git(args: string[], options?: { cwd: string }) {
   }
 }
 
+export function gitFailFast(args: string[], options?: { cwd: string }) {
+  const gitResult = git(args, options);
+  if (!gitResult.success) {
+    console.error(`CRITICAL ERROR: running git command: git ${args.join(' ')}!`);
+    console.error(gitResult.stderr);
+    process.exit(1);
+  }
+}
+
 export function getUncommittedChanges(cwd: string) {
   try {
     const results = git(['status', '--porcelain'], { cwd });
@@ -180,6 +189,7 @@ export function revertLocalChanges(cwd: string) {
 
   return false;
 }
+
 
 export function getParentBranch(cwd: string) {
   const branchName = getBranchName(cwd);

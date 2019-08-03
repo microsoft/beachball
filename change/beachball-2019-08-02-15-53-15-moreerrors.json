@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Beachball publish should error if git commands fail",
+  "packageName": "beachball",
+  "email": "acoates@microsoft.com",
+  "commit": "23088348c2c82d9194ed49112a426579e215b935",
+  "date": "2019-08-02T22:53:15.352Z"
+}
