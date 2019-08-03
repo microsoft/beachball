@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "make the mergepublish portion spit out more explicit messages",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "0c523af46d6acb4cc578fec20076491b8457c668",
+  "date": "2019-08-03T03:55:59.519Z"
+}
