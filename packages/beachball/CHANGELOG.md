@@ -1,6 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Sat, 03 Aug 2019 03:08:37 GMT and should not be manually modified.
+This log was last generated on Sat, 03 Aug 2019 03:11:15 GMT and should not be manually modified.
+
+## 1.11.3
+Sat, 03 Aug 2019 03:11:15 GMT
+
+### Patches
+
+- adds some comment about git fail fast and when to use it (kchau@microsoft.com)
 
 ## 1.11.2
 Sat, 03 Aug 2019 03:08:37 GMT
