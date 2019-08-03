@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "change format of the error message a tiny bit",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "3c6c1bb8122eaa94a3c536b0bca371eac14d5c93",
+  "date": "2019-08-03T04:03:28.270Z"
+}
