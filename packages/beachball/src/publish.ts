@@ -147,6 +147,7 @@ function mergePublishBranch(publishBranch: string, branch: string, message: stri
     result = git(step, { cwd });
     if (!result.success) {
       console.error(`[mergePublishBranch (${index + 1} / ${mergeSteps.length})] trying to run "git ${step.join(' ')}"`);
+      console.error(result.stdout && result.stdout.toString().trim());
       console.error(result.stderr && result.stderr.toString().trim());
       return result;
     }
