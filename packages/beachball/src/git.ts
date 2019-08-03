@@ -5,6 +5,11 @@ import { findGitRoot } from './paths';
 import url from 'url';
 import gitUrlParse from 'git-url-parse';
 
+/**
+ * Runs git command - use this for read only commands
+ * @param args
+ * @param options
+ */
 export function git(args: string[], options?: { cwd: string }) {
   const results = spawnSync('git', args, options);
 
@@ -23,6 +28,11 @@ export function git(args: string[], options?: { cwd: string }) {
   }
 }
 
+/**
+ * Runs git command - use this for commands that makes changes to the file system
+ * @param args
+ * @param options
+ */
 export function gitFailFast(args: string[], options?: { cwd: string }) {
   const gitResult = git(args, options);
   if (!gitResult.success) {
@@ -189,7 +199,6 @@ export function revertLocalChanges(cwd: string) {
 
   return false;
 }
-
 
 export function getParentBranch(cwd: string) {
   const branchName = getBranchName(cwd);
