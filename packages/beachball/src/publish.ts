@@ -114,7 +114,6 @@ export async function publish(options: CliOptions) {
       displayManualRecovery(bumpInfo);
       process.exit(1);
     }
-
   }
 
   if (currentBranch) {
@@ -133,28 +132,27 @@ function displayManualRecovery(bumpInfo: BumpInfo) {
 }
 
 function mergePublishBranch(publishBranch: string, branch: string, message: string, cwd: string) {
-  let result = git(['add', '.'], { cwd });
-  if (!result.success) {
-    return result;
-  }
-  result = git(['commit', '-m', message], { cwd });
-  if (!result.success) {
-    return result;
+  let result: ReturnType<typeof git>;
+
+  let mergeSteps = [
+    ['add', '.'],
+    ['commit', '-m', message],
+    ['checkout', branch],
+    ['merge', '-X', 'ours', publishBranch],
+    ['branch', '-D', publishBranch]
+  ];
+
+  for (let index = 0; index < mergeSteps.length; index++) {
+    const step = mergeSteps[index];
+    result = git(step, { cwd });
+    if (!result.success) {
+      console.error(`[mergePublishBranch (${index + 1} / ${mergeSteps.length})] trying to run "git ${step.join(' ')}"`);
+      console.error(result.stderr && result.stderr.toString().trim());
+      return result;
+    }
   }
 
-  result = git(['checkout', branch], { cwd });
-  if (!result.success) {
-    return result;
-  }
-
-  result = git(['merge', '-X', 'ours', publishBranch], { cwd });
-  if (!result.success) {
-    return result;
-  }
-
-  result = git(['branch', '-D', publishBranch]);
-
-  return result;
+  return result!;
 }
 
 function createTag(tag: string, cwd: string) {

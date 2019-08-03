@@ -37,7 +37,7 @@ export function gitFailFast(args: string[], options?: { cwd: string }) {
   const gitResult = git(args, options);
   if (!gitResult.success) {
     console.error(`CRITICAL ERROR: running git command: git ${args.join(' ')}!`);
-    console.error(gitResult.stderr);
+    console.error(gitResult.stderr.toString().trim());
     process.exit(1);
   }
 }
