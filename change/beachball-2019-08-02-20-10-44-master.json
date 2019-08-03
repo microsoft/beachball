@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "adds some comment about git fail fast and when to use it",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "7f47ba9e4fae797be7e0e12d19055bb3ba0cd39a",
-  "date": "2019-08-03T03:10:44.816Z"
-}
