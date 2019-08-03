@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 03 Aug 2019 04:05:33 GMT",
+      "tag": "beachball_v1.11.5",
+      "version": "1.11.5",
+      "comments": {
+        "patch": [
+          {
+            "comment": "change format of the error message a tiny bit",
+            "author": "kchau@microsoft.com",
+            "commit": "3c6c1bb8122eaa94a3c536b0bca371eac14d5c93"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 03 Aug 2019 03:59:51 GMT",
       "tag": "beachball_v1.11.4",
       "version": "1.11.4",

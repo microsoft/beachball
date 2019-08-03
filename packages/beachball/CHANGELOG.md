@@ -1,6 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Sat, 03 Aug 2019 03:59:51 GMT and should not be manually modified.
+This log was last generated on Sat, 03 Aug 2019 04:05:33 GMT and should not be manually modified.
+
+## 1.11.5
+Sat, 03 Aug 2019 04:05:33 GMT
+
+### Patches
+
+- change format of the error message a tiny bit (kchau@microsoft.com)
 
 ## 1.11.4
 Sat, 03 Aug 2019 03:59:51 GMT
