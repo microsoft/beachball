@@ -1,6 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Sat, 03 Aug 2019 03:11:15 GMT and should not be manually modified.
+This log was last generated on Sat, 03 Aug 2019 03:59:51 GMT and should not be manually modified.
+
+## 1.11.4
+Sat, 03 Aug 2019 03:59:51 GMT
+
+### Patches
+
+- make the mergepublish portion spit out more explicit messages (kchau@microsoft.com)
 
 ## 1.11.3
 Sat, 03 Aug 2019 03:11:15 GMT

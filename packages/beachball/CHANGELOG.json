@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 03 Aug 2019 03:59:51 GMT",
+      "tag": "beachball_v1.11.4",
+      "version": "1.11.4",
+      "comments": {
+        "patch": [
+          {
+            "comment": "make the mergepublish portion spit out more explicit messages",
+            "author": "kchau@microsoft.com",
+            "commit": "0c523af46d6acb4cc578fec20076491b8457c668"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 03 Aug 2019 03:11:15 GMT",
       "tag": "beachball_v1.11.3",
       "version": "1.11.3",
