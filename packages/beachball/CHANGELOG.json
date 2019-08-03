@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 03 Aug 2019 03:08:37 GMT",
+      "tag": "beachball_v1.11.2",
+      "version": "1.11.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Beachball publish should error if git commands fail",
+            "author": "acoates@microsoft.com",
+            "commit": "23088348c2c82d9194ed49112a426579e215b935"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 31 Jul 2019 22:00:03 GMT",
       "tag": "beachball_v1.11.1",
       "version": "1.11.1",
