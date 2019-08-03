@@ -1,6 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 31 Jul 2019 22:00:03 GMT and should not be manually modified.
+This log was last generated on Sat, 03 Aug 2019 03:08:37 GMT and should not be manually modified.
+
+## 1.11.2
+Sat, 03 Aug 2019 03:08:37 GMT
+
+### Patches
+
+- Beachball publish should error if git commands fail (acoates@microsoft.com)
 
 ## 1.11.1
 Wed, 31 Jul 2019 22:00:03 GMT
