@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 07 Aug 2019 00:23:45 GMT",
+      "tag": "beachball_v1.11.6",
+      "version": "1.11.6",
+      "comments": {
+        "patch": [
+          {
+            "comment": "adds a fetch before diff changes, more info from when change files are needed",
+            "author": "kchau@microsoft.com",
+            "commit": "a84a82e8c6b57286d56c84e9b6cc8f6e5908f7db"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 03 Aug 2019 04:05:33 GMT",
       "tag": "beachball_v1.11.5",
       "version": "1.11.5",

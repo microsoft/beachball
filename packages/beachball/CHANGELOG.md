@@ -1,6 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Sat, 03 Aug 2019 04:05:33 GMT and should not be manually modified.
+This log was last generated on Wed, 07 Aug 2019 00:23:45 GMT and should not be manually modified.
+
+## 1.11.6
+Wed, 07 Aug 2019 00:23:45 GMT
+
+### Patches
+
+- adds a fetch before diff changes, more info from when change files are needed (kchau@microsoft.com)
 
 ## 1.11.5
 Sat, 03 Aug 2019 04:05:33 GMT
