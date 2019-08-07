@@ -3,10 +3,15 @@ import { getChangedPackages } from './getChangedPackages';
 import { git } from './git';
 import { getAllPackages } from './monorepo';
 
-export function isChangeFileNeeded(branch: string, cwd: string) {
+export function isChangeFileNeeded(branch: string, cwd: string, fetch: boolean) {
   console.log(`Checking for changes against "${branch}"`);
 
-  const changedPackages = getChangedPackages(branch, cwd);
+  const changedPackages = getChangedPackages(branch, cwd, fetch);
+
+  if (changedPackages.length > 0) {
+    console.log(`Found changes in the following packages: [${changedPackages.join(', ')}]`);
+  }
+
   return changedPackages.length > 0;
 }
 

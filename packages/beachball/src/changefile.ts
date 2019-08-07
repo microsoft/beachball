@@ -14,9 +14,9 @@ import { CliOptions } from './CliOptions';
  * @param cwd
  */
 export async function promptForChange(options: CliOptions) {
-  const { branch, path: cwd, package: specificPackage } = options;
+  const { branch, path: cwd, package: specificPackage, fetch } = options;
 
-  const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(branch, cwd);
+  const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(branch, cwd, fetch);
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
   const packageChangeInfo: { [pkgname: string]: ChangeInfo } = {};
 

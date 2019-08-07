@@ -65,6 +65,14 @@ export function getUncommittedChanges(cwd: string) {
   }
 }
 
+export function fetchAll(cwd: string) {
+  const results = git(['fetch', '-a'], { cwd });
+  if (!results.success) {
+    console.error('Cannot fetch all remotes');
+    throw new Error('Cannot fetch');
+  }
+}
+
 export function getChanges(branch: string, cwd: string) {
   try {
     const results = git(['--no-pager', 'diff', '--name-only', branch + '..'], { cwd });

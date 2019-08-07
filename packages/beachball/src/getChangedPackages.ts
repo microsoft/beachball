@@ -1,6 +1,6 @@
 import { ChangeInfo } from './ChangeInfo';
 import { findPackageRoot, getChangePath } from './paths';
-import { getChanges, git } from './git';
+import { getChanges, git, fetchAll } from './git';
 import fs from 'fs';
 import path from 'path';
 
@@ -39,8 +39,14 @@ function getAllChangedPackages(branch: string, cwd: string) {
  * Gets all the changed packages, accounting for change files
  * @param cwd
  */
-export function getChangedPackages(branch: string, cwd: string) {
+export function getChangedPackages(branch: string, cwd: string, fetch: boolean) {
   const changePath = getChangePath(cwd);
+
+  if (fetch) {
+    console.log('fetching latest from remotes');
+    fetchAll(cwd);
+  }
+
   const changedPackages = getAllChangedPackages(branch, cwd);
 
   const changeFileResult = git(['ls-tree', '-r', '--name-only', '--full-tree', branch, 'change'], { cwd });

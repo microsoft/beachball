@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "adds a fetch before diff changes, more info from when change files are needed",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "a84a82e8c6b57286d56c84e9b6cc8f6e5908f7db",
+  "date": "2019-08-07T00:15:26.505Z"
+}

@@ -47,7 +47,8 @@ const options: CliOptions = {
   access: args.access || 'restricted',
   package: args.package || '',
   changehint: args.changehint || 'Run "beachball change" to create a change file',
-  type: args.type || null
+  type: args.type || null,
+  fetch: args.fetch !== false
 };
 
 (async () => {
@@ -66,7 +67,7 @@ const options: CliOptions = {
     process.exit(1);
   }
 
-  const isChangeNeeded = checkChangeFileNeeded(options.branch, options.path);
+  const isChangeNeeded = checkChangeFileNeeded(options.branch, options.path, options.fetch);
 
   if (isChangeNeeded && options.command !== 'change') {
     console.error('ERROR: Change files are needed!');
