@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Improve package list formatting",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "commit": "0249b760217e50fdd510fe34e67242893c5cd601",
+  "date": "2019-08-12T20:25:16.629Z"
+}
