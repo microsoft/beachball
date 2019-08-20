@@ -75,7 +75,7 @@ export function fetchAll(cwd: string) {
 
 export function getChanges(branch: string, cwd: string) {
   try {
-    const results = git(['--no-pager', 'diff', '--name-only', branch + '..'], { cwd });
+    const results = git(['--no-pager', 'diff', '--name-only', branch + '...'], { cwd });
 
     if (!results.success) {
       return [];

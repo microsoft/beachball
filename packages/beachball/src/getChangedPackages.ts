@@ -49,25 +49,20 @@ export function getChangedPackages(branch: string, cwd: string, fetch: boolean) 
 
   const changedPackages = getAllChangedPackages(branch, cwd);
 
-  const changeFileResult = git(['ls-tree', '-r', '--name-only', '--full-tree', branch, 'change'], { cwd });
+  const changeFilesResult = git(['diff', '--name-only', '--no-renames', '--diff-filter=A', `${branch}...`], { cwd });
 
-  if (!changePath || !fs.existsSync(changePath) || !changeFileResult.success) {
+  if (!changePath || !fs.existsSync(changePath) || !changeFilesResult.success) {
     return changedPackages;
   }
 
-  const remoteChangeFiles = changeFileResult.stdout.split(/\n/).map(line => path.basename(line.trim()));
-  const changeFiles = fs.readdirSync(changePath).filter(entry => fs.statSync(path.join(changePath, entry)).isFile);
+  const changes = changeFilesResult.stdout.split(/\n/);
+  const changeFiles = changes.filter(name => path.dirname(name) === 'change');
   const changeFilePackageSet = new Set<string>();
 
   // Loop through the change files, building up a set of packages that we can skip
   changeFiles.forEach(file => {
-    // Skip change files that are in remote branch - do NOT skip the packages that are present in those remote change files
-    if (remoteChangeFiles.includes(file)) {
-      return;
-    }
-
     try {
-      const changeInfo: ChangeInfo = JSON.parse(fs.readFileSync(path.join(changePath, file)).toString());
+      const changeInfo: ChangeInfo = JSON.parse(fs.readFileSync(file, 'utf-8'));
       changeFilePackageSet.add(changeInfo.packageName);
     } catch (e) {
       console.warn(`Invalid change file encountered: ${file}`);
