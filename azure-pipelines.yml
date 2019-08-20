@@ -21,5 +21,9 @@ steps:
     displayName: 'yarn build'
 
   - script: |
+      yarn test
+    displayName: 'yarn test'
+
+  - script: |
       yarn checkchange
     displayName: 'yarn checkchange'
