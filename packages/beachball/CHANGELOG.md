@@ -1,6 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 07 Aug 2019 00:23:45 GMT and should not be manually modified.
+This log was last generated on Tue, 20 Aug 2019 15:18:38 GMT and should not be manually modified.
+
+## 1.11.7
+Tue, 20 Aug 2019 15:18:38 GMT
+
+### Patches
+
+- fixes the issue with change command not generating change files due to the master having their change files deleted by publishing (kchau@microsoft.com)
 
 ## 1.11.6
 Wed, 07 Aug 2019 00:23:45 GMT

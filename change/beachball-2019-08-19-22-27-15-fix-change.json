@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fixes the issue with change command not generating change files due to the master having their change files deleted by publishing",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "4d5fa644a4c9ea7abcf4d482c63f52c2649a4835",
-  "date": "2019-08-20T05:27:15.181Z"
-}

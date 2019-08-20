@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 20 Aug 2019 15:18:38 GMT",
+      "tag": "beachball_v1.11.7",
+      "version": "1.11.7",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fixes the issue with change command not generating change files due to the master having their change files deleted by publishing",
+            "author": "kchau@microsoft.com",
+            "commit": "4d5fa644a4c9ea7abcf4d482c63f52c2649a4835"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 07 Aug 2019 00:23:45 GMT",
       "tag": "beachball_v1.11.6",
       "version": "1.11.6",
