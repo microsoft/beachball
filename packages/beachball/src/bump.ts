@@ -1,6 +1,6 @@
 import { findGitRoot } from './paths';
 import { getPackageChangeTypes } from './changefile';
-import { getPackageInfos, PackageInfo } from './monorepo';
+import { getPublicPackageInfos, PackageInfo } from './monorepo';
 import { writeChangelog } from './changelog';
 import fs from 'fs';
 import path from 'path';
@@ -17,14 +17,14 @@ export function bump(cwd: string) {
   const packageChangeTypes = getPackageChangeTypes(cwd);
 
   // Gather all package info from package.json
-  const packageInfos = getPackageInfos(cwd);
+  const packageInfos = getPublicPackageInfos(cwd);
 
   // Apply package.json version updates
   Object.keys(packageChangeTypes).forEach(pkgName => {
     const info = packageInfos[pkgName];
 
     if (!info) {
-      console.log(`Unknown package named "${pkgName}" detected from change files, skipping!`);
+      console.log(`Unknown public package named "${pkgName}" detected from change files, skipping!`);
       return;
     }
 

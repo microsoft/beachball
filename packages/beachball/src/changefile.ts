@@ -5,7 +5,7 @@ import { getRecentCommitMessages, getUserEmail, getBranchName, getCurrentHash, s
 import fs from 'fs-extra';
 import path from 'path';
 import prompts from 'prompts';
-import { getPackageInfos } from './monorepo';
+import { getPublicPackageInfos } from './monorepo';
 import { prerelease } from 'semver';
 import { CliOptions } from './CliOptions';
 
@@ -20,7 +20,7 @@ export async function promptForChange(options: CliOptions) {
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
   const packageChangeInfo: { [pkgname: string]: ChangeInfo } = {};
 
-  const packageInfos = getPackageInfos(cwd);
+  const packageInfos = getPublicPackageInfos(cwd);
 
   for (let pkg of changedPackages) {
     console.log('');
