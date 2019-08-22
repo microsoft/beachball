@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Integration tests with real on-disk repositories.",
-  "packageName": "beachball",
-  "email": "jdh@microsoft.com",
-  "commit": "0a72a2512360cc2eb1543941d83481c44fc9cdb0",
-  "date": "2019-08-21T22:19:56.273Z"
-}

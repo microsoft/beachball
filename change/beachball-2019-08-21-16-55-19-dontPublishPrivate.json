@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "modify logic to not run on private packages",
-  "packageName": "beachball",
-  "email": "legray@microsoft.com",
-  "commit": "0d6a560425d15d376c7382bb822fb8aa99315eb5",
-  "date": "2019-08-21T23:55:19.258Z"
-}

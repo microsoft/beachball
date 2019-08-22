@@ -1,6 +1,14 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 20 Aug 2019 15:18:38 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Aug 2019 18:17:34 GMT and should not be manually modified.
+
+## 1.11.8
+Thu, 22 Aug 2019 18:17:34 GMT
+
+### Patches
+
+- Integration tests with real on-disk repositories. (jdh@microsoft.com)
+,- modify logic to not run on private packages (legray@microsoft.com)
 
 ## 1.11.7
 Tue, 20 Aug 2019 15:18:38 GMT
