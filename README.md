@@ -52,9 +52,21 @@ target branch from origin (default: master)
 
 custom message for the checkin (default: applying package updates)
 
+### `--no-push`
+
+skip pushing changes back to git remote origin
+
+### `--no-publish`
+
+skip publishing to the npm registry
+
 ### --help, -?, -h
 
-help message
+show help message
+
+### `--yes, -y`
+
+skips the prompts for publish
 
 ## Examples
 
