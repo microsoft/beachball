@@ -12,6 +12,8 @@
   },
   "scripts": {
     "build": "tsc",
+    "test": "jest",
+    "test-watch": "jest --watch",
     "start": "tsc -w --preserveWatchOutput"
   },
   "dependencies": {
@@ -26,11 +28,16 @@
     "@types/fs-extra": "^8.0.0",
     "@types/git-url-parse": "^9.0.0",
     "@types/glob": "^7.1.1",
+    "@types/jest": "^24.0.17",
     "@types/minimatch": "^3.0.3",
     "@types/node": "^8.10.51",
     "@types/prompts": "~2.0.0",
     "@types/semver": "^6.0.0",
+    "@types/tmp": "^0.1.0",
     "@types/yargs-parser": "^13.0.0",
+    "jest": "^24.8.0",
+    "tmp": "^0.1.0",
+    "ts-jest": "^24.0.2",
     "typescript": "^3.5.1"
   },
   "beachball": {
