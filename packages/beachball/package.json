@@ -1,20 +1,20 @@
 {
   "name": "beachball",
-  "version": "1.11.8",
-  "main": "index.js",
-  "license": "MIT",
-  "bin": {
-    "beachball": "./bin/beachball.js"
-  },
+  "version": "1.11.9",
   "repository": {
     "type": "git",
     "url": "https://github.com/microsoft/beachball"
   },
+  "license": "MIT",
+  "main": "index.js",
+  "bin": {
+    "beachball": "./bin/beachball.js"
+  },
   "scripts": {
     "build": "tsc",
+    "start": "tsc -w --preserveWatchOutput",
     "test": "jest",
-    "test-watch": "jest --watch",
-    "start": "tsc -w --preserveWatchOutput"
+    "test-watch": "jest --watch"
   },
   "dependencies": {
     "fs-extra": "^8.0.1",
@@ -36,9 +36,12 @@
     "@types/tmp": "^0.1.0",
     "@types/yargs-parser": "^13.0.0",
     "jest": "^24.8.0",
+    "remark-parse": "~7.0.1",
     "tmp": "^0.1.0",
     "ts-jest": "^24.0.2",
-    "typescript": "^3.5.1"
+    "typescript": "^3.5.1",
+    "unified": "^8.3.2",
+    "unist-util-select": "^2.0.2"
   },
   "beachball": {
     "disallowedChangeTypes": [

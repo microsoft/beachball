@@ -1,5 +1,5 @@
-import { RepositoryFactory, Repository } from './fixtures/repository';
-import { isChangeFileNeeded } from './validation';
+import { RepositoryFactory, Repository } from '../fixtures/repository';
+import { isChangeFileNeeded } from '../validation';
 
 describe('validation', () => {
   let repositoryFactory: RepositoryFactory;

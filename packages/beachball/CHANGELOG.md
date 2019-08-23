@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 22 Aug 2019 18:17:34 GMT and should not be manually modified.
+This log was last generated on Fri, 23 Aug 2019 03:52:35 GMT and should not be manually modified.
 
+## 1.11.9
+Fri, 23 Aug 2019 03:52:35 GMT
+
+### Patches
+
+- fixing changelog formatting (kchau@microsoft.com)
 ## 1.11.8
 Thu, 22 Aug 2019 18:17:34 GMT
 

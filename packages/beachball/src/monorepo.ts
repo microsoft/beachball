@@ -40,26 +40,20 @@ function infoFromPackageJson(
     dependencies: packageJson.dependencies,
     devDependencies: packageJson.devDependencies,
     disallowedChangeTypes:
-      packageJson.beachball && packageJson.beachball.disallowedChangeTypes
-        ? packageJson.beachball.disallowedChangeTypes
-        : [],
+      packageJson.beachball && packageJson.beachball.disallowedChangeTypes ? packageJson.beachball.disallowedChangeTypes : [],
     private: packageJson.private !== undefined ? packageJson.private : false
   };
 }
 
 export function getPublicPackageInfos(cwd: string) {
   const trackedFiles = listAllTrackedFiles(cwd);
-  const packageJsonFiles = trackedFiles.filter(
-    file => path.basename(file) === 'package.json'
-  );
+  const packageJsonFiles = trackedFiles.filter(file => path.basename(file) === 'package.json');
   const packageInfos: { [pkgName: string]: PackageInfo } = {};
 
   if (packageJsonFiles && packageJsonFiles.length > 0) {
     packageJsonFiles.forEach(packageJsonPath => {
       try {
-        const packageJson = JSON.parse(
-          fs.readFileSync(packageJsonPath, 'utf-8')
-        );
+        const packageJson = JSON.parse(fs.readFileSync(path.join(cwd, packageJsonPath), 'utf-8'));
 
         let packageInfo: PackageInfo = infoFromPackageJson(packageJson, packageJsonPath);
 
@@ -75,10 +69,7 @@ export function getPublicPackageInfos(cwd: string) {
     const packageJsonPath = path.join(findPackageRoot(cwd)!, 'package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
-    packageInfos[packageJson.name] = infoFromPackageJson(
-      packageJson,
-      packageJsonPath
-    );
+    packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonPath);
   }
   return packageInfos;
 }
