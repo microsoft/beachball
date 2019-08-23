@@ -77,8 +77,8 @@ describe('validation', () => {
       const tree = parseMarkdown(text);
       const listItems = selectAll('listItem paragraph text', tree);
 
-      expect(listItems[0].value).toBe('comment 2 (test@testtestme.com)');
-      expect(listItems[1].value).toBe('comment 1 (test@testtestme.com)');
+      expect(listItems.find(item => item.value === 'comment 2 (test@testtestme.com)')).toBeTruthy();
+      expect(listItems.find(item => item.value === 'comment 1 (test@testtestme.com)')).toBeTruthy();
     });
   });
 });
