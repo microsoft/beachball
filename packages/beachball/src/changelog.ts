@@ -77,14 +77,14 @@ export function writeChangelog(packageInfos: { [pkg: string]: PackageInfo }, cwd
       changelogs[pkg].comments.patch ||
       changelogs[pkg].comments.prerelease
     ) {
-      const changelogFile = path.join(packagePath, 'CHANGELOG.md');
+      const changelogFile = path.join(cwd, packagePath, 'CHANGELOG.md');
       const previousContent = fs.existsSync(changelogFile) ? fs.readFileSync(changelogFile).toString() : '';
       const nextContent = renderChangelog(previousContent, changelogs[pkg]);
       fs.writeFileSync(changelogFile, nextContent);
     }
 
     try {
-      const changelogJsonFile = path.join(packagePath, 'CHANGELOG.json');
+      const changelogJsonFile = path.join(cwd, packagePath, 'CHANGELOG.json');
       const previousJson = fs.existsSync(changelogJsonFile) ? JSON.parse(fs.readFileSync(changelogJsonFile).toString()) : { entries: [] };
       const nextJson = renderJsonChangelog(previousJson, changelogs[pkg]);
       fs.writeFileSync(changelogJsonFile, JSON.stringify(nextJson, null, 2));
