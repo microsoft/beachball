@@ -2,7 +2,6 @@ import { spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { findGitRoot } from './paths';
-import url from 'url';
 import gitUrlParse from 'git-url-parse';
 
 /**
