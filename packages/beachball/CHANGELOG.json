@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 23 Aug 2019 03:52:35 GMT",
+      "tag": "beachball_v1.11.9",
+      "version": "1.11.9",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fixing changelog formatting",
+            "author": "kchau@microsoft.com",
+            "commit": "c4997de03aca9b1219fba3300dadf13a7d51fc2b"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Aug 2019 18:17:34 GMT",
       "tag": "beachball_v1.11.8",
       "version": "1.11.8",

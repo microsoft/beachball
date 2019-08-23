@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fixing changelog formatting",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "c4997de03aca9b1219fba3300dadf13a7d51fc2b",
-  "date": "2019-08-22T20:39:38.662Z"
-}
