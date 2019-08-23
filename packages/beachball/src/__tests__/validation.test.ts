@@ -26,5 +26,12 @@ describe('validation', () => {
       const result = isChangeFileNeeded('origin/master', repository.rootPath, false);
       expect(result).toBeTruthy();
     });
+
+    it('is false when changes are CHANGELOG files', async () => {
+      await repository.branch('feature-0');
+      await repository.commitChange('CHANGELOG.md');
+      const result = isChangeFileNeeded('origin/master', repository.rootPath, false);
+      expect(result).toBeFalsy();
+    });
   });
 });

@@ -14,7 +14,7 @@ Thu, 22 Aug 2019 18:17:34 GMT
 ### Patches
 
 - Integration tests with real on-disk repositories. (jdh@microsoft.com)
-,- modify logic to not run on private packages (legray@microsoft.com)
+- modify logic to not run on private packages (legray@microsoft.com)
 
 ## 1.11.7
 Tue, 20 Aug 2019 15:18:38 GMT
