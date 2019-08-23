@@ -1,0 +1,60 @@
+{
+  "name": "foo",
+  "entries": [
+    {
+      "date": "Thu, 22 Aug 2019 21:49:27 GMT",
+      "tag": "foo_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "comment 1",
+            "author": "test@testtestme.com",
+            "commit": "sha1"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Aug 2019 21:48:26 GMT",
+      "tag": "foo_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "comment 1",
+            "author": "test@testtestme.com",
+            "commit": "sha1"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Aug 2019 21:46:01 GMT",
+      "tag": "foo_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "comment 1",
+            "author": "test@testtestme.com",
+            "commit": "sha1"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Aug 2019 21:45:15 GMT",
+      "tag": "foo_vundefined",
+      "comments": {
+        "patch": [
+          {
+            "comment": "comment 1",
+            "author": "test@testtestme.com",
+            "commit": "sha1"
+          }
+        ]
+      }
+    }
+  ]
+}

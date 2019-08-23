@@ -113,7 +113,15 @@ export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd
       const suffix = branchName.replace(/[\/\\]/g, '-');
       const prefix = pkgName.replace(/[^a-zA-Z0-9@]/g, '-');
       const fileName = `${prefix}-${getTimeStamp()}-${suffix}.json`;
-      const changeFile = path.join(changePath, fileName);
+      let changeFile = path.join(changePath, fileName);
+
+      if (fs.existsSync(changeFile)) {
+        const nextFileName = `${prefix}-${getTimeStamp()}-${suffix}-${Math.random()
+          .toString(36)
+          .substr(2, 9)}.json`;
+        changeFile = path.join(changePath, nextFileName);
+      }
+
       const change = changes[pkgName];
       changeFiles.push(changeFile);
       fs.writeFileSync(changeFile, JSON.stringify(change, null, 2));
