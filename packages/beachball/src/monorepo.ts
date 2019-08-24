@@ -10,6 +10,7 @@ export interface PackageInfo {
   dependencies?: { [dep: string]: string };
   devDependencies?: { [dep: string]: string };
   disallowedChangeTypes: string[];
+  private: boolean;
 }
 
 interface BeachBallPackageConfig {
@@ -17,7 +18,7 @@ interface BeachBallPackageConfig {
 }
 
 export function getAllPackages(cwd: string): string[] {
-  const infos = getPackageInfos(cwd);
+  const infos = getPublicPackageInfos(cwd);
   return Object.keys(infos);
 }
 
@@ -28,6 +29,7 @@ function infoFromPackageJson(
     dependencies?: { [dep: string]: string };
     devDependencies?: { [dep: string]: string };
     beachball?: BeachBallPackageConfig;
+    private?: boolean;
   },
   packageJsonPath: string
 ): PackageInfo {
@@ -38,27 +40,26 @@ function infoFromPackageJson(
     dependencies: packageJson.dependencies,
     devDependencies: packageJson.devDependencies,
     disallowedChangeTypes:
-      packageJson.beachball && packageJson.beachball.disallowedChangeTypes
-        ? packageJson.beachball.disallowedChangeTypes
-        : []
+      packageJson.beachball && packageJson.beachball.disallowedChangeTypes ? packageJson.beachball.disallowedChangeTypes : [],
+    private: packageJson.private !== undefined ? packageJson.private : false
   };
 }
 
-export function getPackageInfos(cwd: string) {
+export function getPublicPackageInfos(cwd: string) {
   const trackedFiles = listAllTrackedFiles(cwd);
-  const packageJsonFiles = trackedFiles.filter(
-    file => path.basename(file) === 'package.json'
-  );
+  const packageJsonFiles = trackedFiles.filter(file => path.basename(file) === 'package.json');
   const packageInfos: { [pkgName: string]: PackageInfo } = {};
 
   if (packageJsonFiles && packageJsonFiles.length > 0) {
     packageJsonFiles.forEach(packageJsonPath => {
       try {
-        const packageJson = JSON.parse(
-          fs.readFileSync(packageJsonPath, 'utf-8')
-        );
+        const packageJson = JSON.parse(fs.readFileSync(path.join(cwd, packageJsonPath), 'utf-8'));
 
-        packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonPath);
+        let packageInfo: PackageInfo = infoFromPackageJson(packageJson, packageJsonPath);
+
+        if (!packageInfo.private) {
+          packageInfos[packageJson.name] = packageInfo;
+        }
       } catch (e) {
         // Pass, the package.json is invalid
         console.warn(`Invalid package.json file detected ${packageJsonPath}`);
@@ -68,10 +69,7 @@ export function getPackageInfos(cwd: string) {
     const packageJsonPath = path.join(findPackageRoot(cwd)!, 'package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
-    packageInfos[packageJson.name] = infoFromPackageJson(
-      packageJson,
-      packageJsonPath
-    );
+    packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonPath);
   }
   return packageInfos;
 }

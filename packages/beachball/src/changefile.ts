@@ -5,7 +5,7 @@ import { getRecentCommitMessages, getUserEmail, getBranchName, getCurrentHash, s
 import fs from 'fs-extra';
 import path from 'path';
 import prompts from 'prompts';
-import { getPackageInfos } from './monorepo';
+import { getPublicPackageInfos } from './monorepo';
 import { prerelease } from 'semver';
 import { CliOptions } from './CliOptions';
 
@@ -20,7 +20,7 @@ export async function promptForChange(options: CliOptions) {
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
   const packageChangeInfo: { [pkgname: string]: ChangeInfo } = {};
 
-  const packageInfos = getPackageInfos(cwd);
+  const packageInfos = getPublicPackageInfos(cwd);
 
   for (let pkg of changedPackages) {
     console.log('');
@@ -113,7 +113,15 @@ export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd
       const suffix = branchName.replace(/[\/\\]/g, '-');
       const prefix = pkgName.replace(/[^a-zA-Z0-9@]/g, '-');
       const fileName = `${prefix}-${getTimeStamp()}-${suffix}.json`;
-      const changeFile = path.join(changePath, fileName);
+      let changeFile = path.join(changePath, fileName);
+
+      if (fs.existsSync(changeFile)) {
+        const nextFileName = `${prefix}-${getTimeStamp()}-${suffix}-${Math.random()
+          .toString(36)
+          .substr(2, 9)}.json`;
+        changeFile = path.join(changePath, nextFileName);
+      }
+
       const change = changes[pkgName];
       changeFiles.push(changeFile);
       fs.writeFileSync(changeFile, JSON.stringify(change, null, 2));

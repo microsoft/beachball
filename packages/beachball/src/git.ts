@@ -2,7 +2,6 @@ import { spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { findGitRoot } from './paths';
-import url from 'url';
 import gitUrlParse from 'git-url-parse';
 
 /**
@@ -75,7 +74,7 @@ export function fetchAll(cwd: string) {
 
 export function getChanges(branch: string, cwd: string) {
   try {
-    const results = git(['--no-pager', 'diff', '--name-only', branch + '..'], { cwd });
+    const results = git(['--no-pager', 'diff', '--name-only', branch + '...'], { cwd });
 
     if (!results.success) {
       return [];

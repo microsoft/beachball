@@ -2,6 +2,67 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 23 Aug 2019 16:30:54 GMT",
+      "tag": "beachball_v1.12.0",
+      "version": "1.12.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "ignores changelogs",
+            "author": "kchau@microsoft.com",
+            "commit": "beffde9ca9e2b54bee42a0c00e108f533656d9a7"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 23 Aug 2019 03:52:35 GMT",
+      "tag": "beachball_v1.11.9",
+      "version": "1.11.9",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fixing changelog formatting",
+            "author": "kchau@microsoft.com",
+            "commit": "c4997de03aca9b1219fba3300dadf13a7d51fc2b"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Aug 2019 18:17:34 GMT",
+      "tag": "beachball_v1.11.8",
+      "version": "1.11.8",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Integration tests with real on-disk repositories.",
+            "author": "jdh@microsoft.com",
+            "commit": "0a72a2512360cc2eb1543941d83481c44fc9cdb0"
+          },
+          {
+            "comment": "modify logic to not run on private packages",
+            "author": "legray@microsoft.com",
+            "commit": "0d6a560425d15d376c7382bb822fb8aa99315eb5"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 20 Aug 2019 15:18:38 GMT",
+      "tag": "beachball_v1.11.7",
+      "version": "1.11.7",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fixes the issue with change command not generating change files due to the master having their change files deleted by publishing",
+            "author": "kchau@microsoft.com",
+            "commit": "4d5fa644a4c9ea7abcf4d482c63f52c2649a4835"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 07 Aug 2019 00:23:45 GMT",
       "tag": "beachball_v1.11.6",
       "version": "1.11.6",

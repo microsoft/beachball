@@ -1,6 +1,33 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 07 Aug 2019 00:23:45 GMT and should not be manually modified.
+This log was last generated on Fri, 23 Aug 2019 16:30:54 GMT and should not be manually modified.
+
+## 1.12.0
+Fri, 23 Aug 2019 16:30:54 GMT
+
+### Minor changes
+
+- ignores changelogs (kchau@microsoft.com)
+## 1.11.9
+Fri, 23 Aug 2019 03:52:35 GMT
+
+### Patches
+
+- fixing changelog formatting (kchau@microsoft.com)
+## 1.11.8
+Thu, 22 Aug 2019 18:17:34 GMT
+
+### Patches
+
+- Integration tests with real on-disk repositories. (jdh@microsoft.com)
+- modify logic to not run on private packages (legray@microsoft.com)
+
+## 1.11.7
+Tue, 20 Aug 2019 15:18:38 GMT
+
+### Patches
+
+- fixes the issue with change command not generating change files due to the master having their change files deleted by publishing (kchau@microsoft.com)
 
 ## 1.11.6
 Wed, 07 Aug 2019 00:23:45 GMT
