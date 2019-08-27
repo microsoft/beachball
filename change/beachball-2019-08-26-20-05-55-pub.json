@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "making publish skip when there is no changes",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "e1657c4891dd180282e8c1e5578536ab8bbc8576",
+  "date": "2019-08-27T03:05:55.418Z"
+}
