@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 23 Aug 2019 16:30:54 GMT and should not be manually modified.
+This log was last generated on Tue, 27 Aug 2019 03:11:47 GMT and should not be manually modified.
 
+## 1.12.1
+Tue, 27 Aug 2019 03:11:47 GMT
+
+### Patches
+
+- making publish skip when there is no changes (kchau@microsoft.com)
 ## 1.12.0
 Fri, 23 Aug 2019 16:30:54 GMT
 
