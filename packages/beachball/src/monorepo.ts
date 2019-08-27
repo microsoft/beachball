@@ -18,7 +18,7 @@ interface BeachBallPackageConfig {
 }
 
 export function getAllPackages(cwd: string): string[] {
-  const infos = getPublicPackageInfos(cwd);
+  const infos = getPackageInfos(cwd);
   return Object.keys(infos);
 }
 
@@ -40,12 +40,14 @@ function infoFromPackageJson(
     dependencies: packageJson.dependencies,
     devDependencies: packageJson.devDependencies,
     disallowedChangeTypes:
-      packageJson.beachball && packageJson.beachball.disallowedChangeTypes ? packageJson.beachball.disallowedChangeTypes : [],
-    private: packageJson.private !== undefined ? packageJson.private : false
+      packageJson.beachball && packageJson.beachball.disallowedChangeTypes
+        ? packageJson.beachball.disallowedChangeTypes
+        : [],
+    private: packageJson.private !== undefined ? packageJson.private : false,
   };
 }
 
-export function getPublicPackageInfos(cwd: string) {
+export function getPackageInfos(cwd: string) {
   const trackedFiles = listAllTrackedFiles(cwd);
   const packageJsonFiles = trackedFiles.filter(file => path.basename(file) === 'package.json');
   const packageInfos: { [pkgName: string]: PackageInfo } = {};
@@ -55,11 +57,7 @@ export function getPublicPackageInfos(cwd: string) {
       try {
         const packageJson = JSON.parse(fs.readFileSync(path.join(cwd, packageJsonPath), 'utf-8'));
 
-        let packageInfo: PackageInfo = infoFromPackageJson(packageJson, packageJsonPath);
-
-        if (!packageInfo.private) {
-          packageInfos[packageJson.name] = packageInfo;
-        }
+        packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonPath);
       } catch (e) {
         // Pass, the package.json is invalid
         console.warn(`Invalid package.json file detected ${packageJsonPath}`);

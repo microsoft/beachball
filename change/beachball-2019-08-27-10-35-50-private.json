@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "make sure to bump the deps of monorepo packages of other packages even if the packages are private",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "f44c276e8e1d1dc350dd184d88f73f0ab31904f8",
+  "date": "2019-08-27T17:35:50.087Z"
+}

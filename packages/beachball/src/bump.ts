@@ -1,6 +1,6 @@
 import { findGitRoot } from './paths';
 import { getPackageChangeTypes } from './changefile';
-import { getPublicPackageInfos, PackageInfo } from './monorepo';
+import { getPackageInfos, PackageInfo } from './monorepo';
 import { writeChangelog } from './changelog';
 import fs from 'fs';
 import path from 'path';
@@ -17,14 +17,14 @@ export function bump(cwd: string) {
   const packageChangeTypes = getPackageChangeTypes(cwd);
 
   // Gather all package info from package.json
-  const packageInfos = getPublicPackageInfos(cwd);
+  const packageInfos = getPackageInfos(cwd);
 
   // Apply package.json version updates
   Object.keys(packageChangeTypes).forEach(pkgName => {
     const info = packageInfos[pkgName];
 
     if (!info) {
-      console.log(`Unknown public package named "${pkgName}" detected from change files, skipping!`);
+      console.log(`Unknown package named "${pkgName}" detected from change files, skipping!`);
       return;
     }
 
@@ -32,7 +32,8 @@ export function bump(cwd: string) {
     const packageJsonPath = path.join(gitRoot, info.packageJsonPath);
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
 
-    if (changeType !== 'none') {
+    // Don't bump 'none' type or private packages
+    if (changeType !== 'none' && !packageJson.private) {
       packageJson.version = semver.inc(packageJson.version, changeType);
       info.version = packageJson.version;
     }
@@ -67,7 +68,7 @@ export function bump(cwd: string) {
 
   return {
     packageChangeTypes,
-    packageInfos
+    packageInfos,
   };
 }
 
