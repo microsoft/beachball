@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 27 Aug 2019 03:11:47 GMT and should not be manually modified.
+This log was last generated on Tue, 27 Aug 2019 17:44:33 GMT and should not be manually modified.
 
+## 1.12.2
+Tue, 27 Aug 2019 17:44:33 GMT
+
+### Patches
+
+- make sure to bump the deps of monorepo packages of other packages even if the packages are private (kchau@microsoft.com)
 ## 1.12.1
 Tue, 27 Aug 2019 03:11:47 GMT
 
