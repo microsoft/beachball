@@ -4,10 +4,19 @@ import { git, gitFailFast, revertLocalChanges, parseRemoteBranch, getBranchName 
 import { packagePublish, listPackageVersions } from './packageManager';
 import prompts from 'prompts';
 import { generateTag } from './tag';
+import { getPackageChangeTypes } from './changefile';
 
 export async function publish(options: CliOptions) {
   const { path: cwd, branch, registry, tag, token, message, access } = options;
 
+  // First, validate that we have changes to publish
+  const packageChangeTypes = getPackageChangeTypes(cwd);
+  if (Object.keys(packageChangeTypes).length === 0) {
+    console.log('Nothing to bump, skipping publish!');
+    return;
+  }
+
+  // Collate the changes per package
   const currentBranch = getBranchName(cwd);
 
   console.log(`Publishing with the following configuration:
@@ -27,7 +36,7 @@ export async function publish(options: CliOptions) {
     const response = await prompts({
       type: 'confirm',
       name: 'yes',
-      message: 'Is everything correct (use the --yes or -y arg to skip this prompt)?'
+      message: 'Is everything correct (use the --yes or -y arg to skip this prompt)?',
     });
 
     if (!response.yes) {
@@ -139,7 +148,7 @@ function mergePublishBranch(publishBranch: string, branch: string, message: stri
     ['commit', '-m', message],
     ['checkout', branch],
     ['merge', '-X', 'ours', publishBranch],
-    ['branch', '-D', publishBranch]
+    ['branch', '-D', publishBranch],
   ];
 
   for (let index = 0; index < mergeSteps.length; index++) {
