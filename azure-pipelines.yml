@@ -27,3 +27,9 @@ steps:
   - script: |
       yarn checkchange
     displayName: 'yarn checkchange'
+
+  - task: ComponentGovernanceComponentDetection@0
+    inputs:
+      scanType: 'Register'
+      verbosity: 'Verbose'
+      alertWarningLevel: 'High'
