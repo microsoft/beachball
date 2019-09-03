@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 03 Sep 2019 19:59:44 GMT",
+      "tag": "beachball_v1.13.0",
+      "version": "1.13.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "allow staged files to be counted for changes as well",
+            "author": "kchau@microsoft.com",
+            "commit": "7c4f51cdf4131bbf415781dc8af98cc575a78f73"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 27 Aug 2019 17:44:33 GMT",
       "tag": "beachball_v1.12.2",
       "version": "1.12.2",
