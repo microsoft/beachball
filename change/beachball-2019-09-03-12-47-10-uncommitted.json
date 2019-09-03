@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "allow staged files to be counted for changes as well",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "7c4f51cdf4131bbf415781dc8af98cc575a78f73",
+  "date": "2019-09-03T19:47:10.719Z"
+}
