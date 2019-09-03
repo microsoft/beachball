@@ -1,6 +1,6 @@
 import { ChangeInfo } from './ChangeInfo';
 import { findPackageRoot, getChangePath } from './paths';
-import { getChanges, git, fetchAll } from './git';
+import { getChanges, getStagedChanges, git, fetchAll } from './git';
 import fs from 'fs';
 import path from 'path';
 
@@ -9,7 +9,7 @@ import path from 'path';
  * @param cwd
  */
 function getAllChangedPackages(branch: string, cwd: string) {
-  const changes = getChanges(branch, cwd);
+  const changes = [...(getChanges(branch, cwd) || []), ...(getStagedChanges(branch, cwd) || [])];
   const ignoredFiles = ['CHANGELOG.md', 'CHANGELOG.json'];
   const packageRoots: { [pathName: string]: string } = {};
   if (changes) {

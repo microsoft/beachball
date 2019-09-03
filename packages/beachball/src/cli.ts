@@ -1,8 +1,13 @@
 import { bump } from './bump';
 import { CliOptions } from './CliOptions';
 import { findGitRoot } from './paths';
-import { getUncommittedChanges, getDefaultRemoteBranch } from './git';
-import { isChangeFileNeeded as checkChangeFileNeeded, isGitAvailable, isValidPackageName, isValidChangeType } from './validation';
+import { getUntrackedChanges, getDefaultRemoteBranch } from './git';
+import {
+  isChangeFileNeeded as checkChangeFileNeeded,
+  isGitAvailable,
+  isValidPackageName,
+  isValidChangeType,
+} from './validation';
 import { promptForChange, writeChangeFiles } from './changefile';
 import { publish } from './publish';
 import parser from 'yargs-parser';
@@ -18,8 +23,8 @@ let args = parser(argv, {
     token: ['n'],
     help: ['h', '?'],
     yes: ['y'],
-    package: ['p']
-  }
+    package: ['p'],
+  },
 });
 
 if (args.help) {
@@ -48,7 +53,7 @@ const options: CliOptions = {
   package: args.package || '',
   changehint: args.changehint || 'Run "beachball change" to create a change file',
   type: args.type || null,
-  fetch: args.fetch !== false
+  fetch: args.fetch !== false,
 };
 
 (async () => {
@@ -59,12 +64,12 @@ const options: CliOptions = {
     process.exit(1);
   }
 
-  const uncommitted = getUncommittedChanges(options.path);
+  const untracked = getUntrackedChanges(options.path);
 
-  if (uncommitted && uncommitted.length > 0) {
-    console.error('ERROR: There are uncommitted changes in your repository. Please commit these files first:');
-    console.error('- ' + uncommitted.join('\n- '));
-    process.exit(1);
+  if (untracked && untracked.length > 0) {
+    console.warn('WARN: There are untracked changes in your repository:');
+    console.warn('- ' + untracked.join('\n- '));
+    console.warn('Changes in these files will not trigger a prompt for change descriptions');
   }
 
   const isChangeNeeded = checkChangeFileNeeded(options.branch, options.path, options.fetch);
