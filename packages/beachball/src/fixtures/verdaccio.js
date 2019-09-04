@@ -16,19 +16,10 @@ if (!port) {
   const config = {
     self_path: __dirname,
     storage: './storage',
-    auth: {
-      htpasswd: {
-        file: 'htpasswd'
-      }
-    },
     packages: {
-      '@*/*': {
-        access: '$all',
-        publish: '$all'
-      },
       '**': {
-        access: '$all',
-        publish: '$all'
+        access: '$anonymous',
+        publish: '$anonymous'
       }
     },
     store: {
