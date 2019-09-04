@@ -14,8 +14,6 @@ if (!port) {
   console.error('Please provide a port');
 } else {
   const config = {
-    self_path: __dirname,
-    storage: './storage',
     packages: {
       '**': {
         access: '$anonymous',
