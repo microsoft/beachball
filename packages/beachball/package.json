@@ -17,6 +17,7 @@
     "test-watch": "jest --watch"
   },
   "dependencies": {
+    "find-free-port": "~2.0.0",
     "fs-extra": "^8.0.1",
     "git-url-parse": "^11.1.2",
     "glob": "^7.1.4",
@@ -40,6 +41,8 @@
     "tmp": "^0.1.0",
     "ts-jest": "^24.0.2",
     "typescript": "^3.5.1",
+    "verdaccio": "^4.2.2",
+    "verdaccio-memory": "^8.0.0",
     "unified": "^8.3.2",
     "unist-util-select": "^2.0.2"
   },
