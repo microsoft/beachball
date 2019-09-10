@@ -46,7 +46,7 @@ export async function publish(options: CliOptions) {
 
   // checkout publish branch
   const publishBranch = 'publish_' + String(new Date().getTime());
-  gitFailFast(['checkout', '-b', publishBranch]);
+  gitFailFast(['checkout', '-b', publishBranch], { cwd });
 
   // Step 1. Bump + npm publish
   // bump the version
