@@ -2,6 +2,27 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 10 Sep 2019 19:37:18 GMT",
+      "tag": "beachball_v1.13.1",
+      "version": "1.13.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Add publish unit tests using verdaccio.",
+            "author": "jagore@microsoft.com",
+            "commit": "3f512dc332c525abb677ba491804b17611e6bc86"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Fixing packageJsonPath to contain full path",
+            "author": "kchau@microsoft.com",
+            "commit": "89d0be658b6afb0e3082593680c9f0a4a6174b7d"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 03 Sep 2019 19:59:44 GMT",
       "tag": "beachball_v1.13.0",
       "version": "1.13.0",

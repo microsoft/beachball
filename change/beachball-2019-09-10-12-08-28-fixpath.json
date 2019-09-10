@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fixing packageJsonPath to contain full path",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "89d0be658b6afb0e3082593680c9f0a4a6174b7d",
-  "date": "2019-09-10T19:08:28.393Z"
-}

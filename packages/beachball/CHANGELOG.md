@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 03 Sep 2019 19:59:44 GMT and should not be manually modified.
+This log was last generated on Tue, 10 Sep 2019 19:37:18 GMT and should not be manually modified.
 
+## 1.13.1
+Tue, 10 Sep 2019 19:37:18 GMT
+
+### Patches
+
+- Fixing packageJsonPath to contain full path (kchau@microsoft.com)
 ## 1.13.0
 Tue, 03 Sep 2019 19:59:44 GMT
 

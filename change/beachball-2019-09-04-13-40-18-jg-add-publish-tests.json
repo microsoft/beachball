@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add publish unit tests using verdaccio.",
-  "packageName": "beachball",
-  "email": "jagore@microsoft.com",
-  "commit": "3f512dc332c525abb677ba491804b17611e6bc86",
-  "date": "2019-09-04T20:40:18.126Z"
-}
