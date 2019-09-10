@@ -46,7 +46,7 @@ export async function publish(options: CliOptions) {
 
   // checkout publish branch
   const publishBranch = 'publish_' + String(new Date().getTime());
-  gitFailFast(['checkout', '-b', publishBranch]);
+  gitFailFast(['checkout', '-b', publishBranch], { cwd });
 
   // Step 1. Bump + npm publish
   // bump the version
@@ -64,6 +64,10 @@ export async function publish(options: CliOptions) {
     Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
       const packageInfo = bumpInfo.packageInfos[pkg];
       console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
+      console.dir(packageInfo);
+      // TODO: should publish from cwd. cwd arg to packagePublish for API consistency or change working dir here?
+      // TODO: it's also possible this should be taken care of with path in packageInfo.packageJsonPath,
+      //       but there is no path information. should earlier functions embed cwd in packageJsonPath?
       const result = packagePublish(packageInfo, registry, token, tag, access);
       if (result.success) {
         console.log('Published!');

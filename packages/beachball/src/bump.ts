@@ -1,9 +1,7 @@
-import { findGitRoot } from './paths';
 import { getPackageChangeTypes } from './changefile';
 import { getPackageInfos, PackageInfo } from './monorepo';
 import { writeChangelog } from './changelog';
 import fs from 'fs';
-import path from 'path';
 import semver from 'semver';
 
 export type PackageInfo = PackageInfo;
@@ -11,8 +9,6 @@ export type PackageInfo = PackageInfo;
 export type BumpInfo = ReturnType<typeof bump>;
 
 export function bump(cwd: string) {
-  const gitRoot = findGitRoot(cwd) || cwd;
-
   // Collate the changes per package
   const packageChangeTypes = getPackageChangeTypes(cwd);
 
@@ -29,7 +25,7 @@ export function bump(cwd: string) {
     }
 
     const changeType = packageChangeTypes[pkgName];
-    const packageJsonPath = path.join(gitRoot, info.packageJsonPath);
+    const packageJsonPath = info.packageJsonPath;
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
 
     // Don't bump 'none' type or private packages
@@ -44,7 +40,7 @@ export function bump(cwd: string) {
   // Apply package dependency bumps
   Object.keys(packageInfos).forEach(pkgName => {
     const info = packageInfos[pkgName];
-    const packageJsonPath = path.join(gitRoot, info.packageJsonPath);
+    const packageJsonPath = info.packageJsonPath;
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
 
     ['dependencies', 'devDependencies'].forEach(depKind => {
