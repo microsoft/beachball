@@ -7,6 +7,7 @@ describe('packageManager', () => {
 
   beforeAll(() => {
     registry = new Registry();
+    jest.setTimeout(30000);
   });
 
   afterAll(() => {

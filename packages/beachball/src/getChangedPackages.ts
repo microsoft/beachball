@@ -1,6 +1,6 @@
 import { ChangeInfo } from './ChangeInfo';
 import { findPackageRoot, getChangePath } from './paths';
-import { getChanges, getStagedChanges, git, fetchAll } from './git';
+import { getChanges, getStagedChanges, git, fetchRemote, parseRemoteBranch } from './git';
 import fs from 'fs';
 import path from 'path';
 
@@ -46,7 +46,8 @@ export function getChangedPackages(branch: string, cwd: string, fetch: boolean) 
 
   if (fetch) {
     console.log('fetching latest from remotes');
-    fetchAll(cwd);
+    const { remote } = parseRemoteBranch(branch);
+    fetchRemote(remote, cwd);
   }
 
   const changedPackages = getAllChangedPackages(branch, cwd);
