@@ -75,10 +75,10 @@ export function getUntrackedChanges(cwd: string) {
   }
 }
 
-export function fetchAll(cwd: string) {
-  const results = git(['fetch', '-a'], { cwd });
+export function fetchRemote(remote: string, cwd: string) {
+  const results = git(['fetch', remote], { cwd });
   if (!results.success) {
-    console.error('Cannot fetch all remotes');
+    console.error(`Cannot fetch remote: ${remote}`);
     throw new Error('Cannot fetch');
   }
 }
