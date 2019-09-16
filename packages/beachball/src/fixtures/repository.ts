@@ -123,7 +123,7 @@ export class Repository {
     }
 
     await runInDirectory(this.root.name, [
-      `git clone ${originName ? originName + ' ' : ''}${path} .`,
+      `git clone ${originName ? '-o ' + originName + ' ' : ''}${path} .`,
       'git config user.email ci@example.com',
       'git config user.name CIUSER',
     ]);
