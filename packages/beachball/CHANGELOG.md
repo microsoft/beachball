@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 10 Sep 2019 19:37:18 GMT and should not be manually modified.
+This log was last generated on Mon, 16 Sep 2019 22:57:40 GMT and should not be manually modified.
 
+## 1.13.2
+Mon, 16 Sep 2019 22:57:40 GMT
+
+### Patches
+
+- adding fetching for specific remote instead of all (kchau@microsoft.com)
 ## 1.13.1
 Tue, 10 Sep 2019 19:37:18 GMT
 

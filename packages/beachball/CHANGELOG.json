@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 16 Sep 2019 22:57:40 GMT",
+      "tag": "beachball_v1.13.2",
+      "version": "1.13.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "adding fetching for specific remote instead of all",
+            "author": "kchau@microsoft.com",
+            "commit": "7513d7ec192a5ddfc9e802a382fd4667bdb2b53d"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 10 Sep 2019 19:37:18 GMT",
       "tag": "beachball_v1.13.1",
       "version": "1.13.1",

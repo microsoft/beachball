@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "adding fetching for specific remote instead of all",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "7513d7ec192a5ddfc9e802a382fd4667bdb2b53d",
-  "date": "2019-09-16T22:24:44.951Z"
-}
