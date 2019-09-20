@@ -4,7 +4,7 @@ tags: cli
 category: doc
 ---
 
-It is useful to enforce that [change files](../change-files) are checked in for each PR before they enter the target branch. In this way, all changes are captured and would affect semver appropriately. To check to make sure all changes are captured in change files, simply run:
+It is useful to enforce that [change files](./change-files) are checked in for each PR before they enter the target branch. In this way, all changes are captured and would affect semver appropriately. To check to make sure all changes are captured in change files, simply run:
 
 ```bash
 $ beachball check
