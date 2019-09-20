@@ -7474,6 +7474,13 @@ gatsby-plugin-react-svg@^2.1.1:
   dependencies:
     svg-react-loader "^0.4.4"
 
+gatsby-plugin-remove-trailing-slashes@2.0.11:
+  version "2.0.11"
+  resolved "https://registry.npmjs.org/gatsby-plugin-remove-trailing-slashes/-/gatsby-plugin-remove-trailing-slashes-2.0.11.tgz#72bfa5d68009b9759c2d5aa63565cd4cd67a8fff"
+  integrity sha512-pJWTRM6ty0kc8O5b0C0zkUjMItvTIvLLEMCuX6UwGbt53EQyqn7vSgujJRSVKWCrOR+wBtLDYcm31++VR4xF3w==
+  dependencies:
+    "@babel/runtime" "^7.0.0"
+
 gatsby-plugin-sharp@^2.2.1:
   version "2.2.10"
   resolved "https://registry.yarnpkg.com/gatsby-plugin-sharp/-/gatsby-plugin-sharp-2.2.10.tgz#94f3f62faa939a1337baa168b1735ce9381b4c50"

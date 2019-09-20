@@ -1,6 +1,5 @@
 const path = require('path')
 const _ = require('lodash')
-const webpackLodashPlugin = require('lodash-webpack-plugin')
 
 exports.onCreateNode = ({ node, boundActionCreators, getNode }) => {
   const { createNodeField } = boundActionCreators
@@ -20,54 +19,47 @@ exports.onCreateNode = ({ node, boundActionCreators, getNode }) => {
     ) {
       slug = `/${_.kebabCase(node.frontmatter.title)}`
     } else if (parsedFilePath.name !== 'index' && parsedFilePath.dir !== '') {
-      slug = `/${parsedFilePath.dir}/${parsedFilePath.name}/`
+      slug = `/${parsedFilePath.dir}/${parsedFilePath.name}`
     } else if (parsedFilePath.dir === '') {
-      slug = `/${parsedFilePath.name}/`
+      slug = `/${parsedFilePath.name}`
     } else {
-      slug = `/${parsedFilePath.dir}/`
+      slug = `/${parsedFilePath.dir}`
     }
     createNodeField({ node, name: 'slug', value: slug })
   }
 }
 
-exports.createPages = ({ graphql, boundActionCreators }) => {
-  const { createPage } = boundActionCreators
-
-  return new Promise((resolve, reject) => {
-    const docPage = path.resolve('src/templates/doc.jsx')
-    resolve(
-      graphql(
-        `
-          {
-            allMarkdownRemark {
-              edges {
-                node {
-                  frontmatter {
-                    title
-                  }
-                  fields {
-                    slug
-                  }
-                }
-              }
+exports.createPages = async ({ graphql, actions }) => {
+  const { createPage } = actions
+  const docPage = path.resolve('src/templates/doc.jsx')
+  const result = await graphql(`
+    {
+      allMarkdownRemark {
+        edges {
+          node {
+            frontmatter {
+              title
+            }
+            fields {
+              slug
             }
           }
-        `
-      ).then(result => {
-        if (result.errors) {
-          reject(result.errors)
         }
+      }
+    }
+  `)
 
-        result.data.allMarkdownRemark.edges.forEach(edge => {
-          createPage({
-            path: edge.node.fields.slug,
-            component: docPage,
-            context: {
-              slug: edge.node.fields.slug
-            }
-          })
-        })
-      })
-    )
-  })
+  if (result.errors) {
+    throw result.errors
+  }
+
+  for (let edge of result.data.allMarkdownRemark.edges) {
+    await createPage({
+      path: edge.node.fields.slug,
+      component: docPage,
+      context: {
+        slug: edge.node.fields.slug
+      }
+    })
+  }
 }
