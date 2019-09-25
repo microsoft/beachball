@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "make tests work on windows",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "45b5ed66ec87d05678f62dbd383ff7425015c3d4",
-  "date": "2019-09-25T20:41:05.853Z"
-}
