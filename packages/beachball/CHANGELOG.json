@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 25 Sep 2019 20:49:49 GMT",
+      "tag": "beachball_v1.13.3",
+      "version": "1.13.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "make tests work on windows",
+            "author": "kchau@microsoft.com",
+            "commit": "45b5ed66ec87d05678f62dbd383ff7425015c3d4"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 16 Sep 2019 22:57:40 GMT",
       "tag": "beachball_v1.13.2",
       "version": "1.13.2",

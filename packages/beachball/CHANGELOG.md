@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 16 Sep 2019 22:57:40 GMT and should not be manually modified.
+This log was last generated on Wed, 25 Sep 2019 20:49:49 GMT and should not be manually modified.
 
+## 1.13.3
+Wed, 25 Sep 2019 20:49:49 GMT
+
+### Patches
+
+- make tests work on windows (kchau@microsoft.com)
 ## 1.13.2
 Mon, 16 Sep 2019 22:57:40 GMT
 
