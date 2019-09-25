@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "fix a clean up routine in test fixture for repositories",
+  "packageName": "beachball",
+  "email": "odbuild@microsoft.com",
+  "commit": "13610e182b36fc99a66c8d0a55e309fbd63857f3",
+  "date": "2019-09-25T21:37:29.407Z"
+}
