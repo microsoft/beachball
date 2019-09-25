@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 25 Sep 2019 20:49:49 GMT and should not be manually modified.
+This log was last generated on Wed, 25 Sep 2019 21:40:51 GMT and should not be manually modified.
 
+## 1.13.4
+Wed, 25 Sep 2019 21:40:51 GMT
+
+### Patches
+
+- Add option to specify a defaultNpmTag on a per package basis (acoates@microsoft.com)
 ## 1.13.3
 Wed, 25 Sep 2019 20:49:49 GMT
 

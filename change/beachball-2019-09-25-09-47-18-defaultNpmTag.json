@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add option to specify a defaultNpmTag on a per package basis",
-  "packageName": "beachball",
-  "email": "acoates@microsoft.com",
-  "commit": "e5a188e542554b22ca01a8b5ecb979dccf44095a",
-  "date": "2019-09-25T16:47:18.705Z"
-}
