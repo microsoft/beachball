@@ -25,7 +25,7 @@ export function npm(args: string[], options?: { cwd: string }) {
 
 export function packagePublish(packageInfo: PackageInfo, registry: string, token: string, tag: string, access: string) {
   const packagePath = path.dirname(packageInfo.packageJsonPath);
-  const args = ['publish', '--registry', registry, '--tag', tag || packageInfo.defaultNpmTag || 'latest'];
+  const args = ['publish', '--registry', registry, '--tag', tag || packageInfo.defaultNpmTag];
 
   if (token) {
     const shorthand = registry.substring(registry.indexOf('//'));

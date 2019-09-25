@@ -19,6 +19,7 @@ fs.writeFileSync(tmpPackageFile, testPackageJson, 'utf8');
 export const testPackageInfo: PackageInfo = {
   name: testPackage.name,
   packageJsonPath: tmpPackageFile,
+  defaultNpmTag: 'latest',
   version: testPackage.version,
   disallowedChangeTypes: [],
   private: false

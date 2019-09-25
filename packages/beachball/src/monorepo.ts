@@ -10,7 +10,7 @@ export interface PackageInfo {
   dependencies?: { [dep: string]: string };
   devDependencies?: { [dep: string]: string };
   disallowedChangeTypes: string[];
-  defaultNpmTag?: string;
+  defaultNpmTag: string;
   private: boolean;
 }
 
@@ -45,7 +45,8 @@ function infoFromPackageJson(
       packageJson.beachball && packageJson.beachball.disallowedChangeTypes
         ? packageJson.beachball.disallowedChangeTypes
         : [],
-    defaultNpmTag: packageJson.beachball ? packageJson.beachball.defaultNpmTag : undefined,
+    defaultNpmTag:
+      packageJson.beachball && packageJson.beachball.defaultNpmTag ? packageJson.beachball.defaultNpmTag : 'latest',
     private: packageJson.private !== undefined ? packageJson.private : false,
   };
 }
