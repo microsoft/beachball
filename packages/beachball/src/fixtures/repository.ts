@@ -2,11 +2,11 @@ import { exec as nativeExec } from 'child_process';
 import * as process from 'process';
 import * as tmp from 'tmp';
 import path from 'path';
-import { writeFile, remove } from 'fs-extra';
+import * as fs from 'fs-extra';
 import { promisify } from 'util';
 
-const writeFileAsync = promisify(writeFile);
-const removeAsync = promisify(remove);
+const writeFileAsync = promisify(fs.writeFile);
+const removeAsync = promisify(fs.remove);
 
 const packageJson = JSON.stringify({
   name: 'foo',
@@ -68,6 +68,16 @@ async function runInDirectory(targetDirectory: string, commands: string[]) {
   process.chdir(targetDirectory);
   await runCommands(commands);
   process.chdir(originalDirectory);
+}
+
+async function touchAsync(filename:string) {
+  const time = new Date();
+
+  try {
+    await fs.utimes(filename, time, time);
+  } catch (err) {
+    await fs.close(await fs.open(filename, 'w'));
+  }
 }
 
 export class RepositoryFactory {
@@ -133,8 +143,10 @@ export class Repository {
     if (!this.root) {
       throw new Error('Must initialize before cloning');
     }
+
+    await touchAsync(path.join(this.root.name, newFilename));
+
     await runInDirectory(this.root.name, [
-      `touch ${newFilename}`,
       `git add ${newFilename}`,
       `git commit -m '${newFilename}'`,
     ]);
@@ -160,6 +172,6 @@ export class Repository {
       throw new Error('Must initialize before clean up');
     }
 
-    await removeAsync(this.root.name);
+    //await removeAsync(this.root.name);
   }
 }
