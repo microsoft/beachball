@@ -70,7 +70,7 @@ async function runInDirectory(targetDirectory: string, commands: string[]) {
   process.chdir(originalDirectory);
 }
 
-async function touchAsync(filename:string) {
+async function touchAsync(filename: string) {
   const time = new Date();
 
   try {
@@ -146,10 +146,7 @@ export class Repository {
 
     await touchAsync(path.join(this.root.name, newFilename));
 
-    await runInDirectory(this.root.name, [
-      `git add ${newFilename}`,
-      `git commit -m '${newFilename}'`,
-    ]);
+    await runInDirectory(this.root.name, [`git add ${newFilename}`, `git commit -m '${newFilename}'`]);
   }
 
   async branch(branchName: string) {
@@ -172,6 +169,6 @@ export class Repository {
       throw new Error('Must initialize before clean up');
     }
 
-    //await removeAsync(this.root.name);
+    await removeAsync(this.root.name);
   }
 }
