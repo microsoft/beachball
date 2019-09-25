@@ -178,7 +178,7 @@ function tagPackages(bumpInfo: BumpInfo, tag: string, cwd: string) {
   });
 
   // Adds a special dist-tag based tag in git
-  if (tag !== 'latest') {
+  if (tag && tag !== 'latest') {
     createTag(tag, cwd);
   }
 }
