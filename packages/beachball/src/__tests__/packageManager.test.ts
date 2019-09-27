@@ -14,7 +14,7 @@ describe('packageManager', () => {
     registry.stop();
   });
 
-  describe('packagePublish', () => {
+  describe('npm publish', () => {
     beforeEach(async () => {
       await registry.reset();
     });

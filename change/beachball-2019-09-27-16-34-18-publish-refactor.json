@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "adds publish test for git push as well as refactoring publish to be more readable",
+  "packageName": "beachball",
+  "email": "odbuild@microsoft.com",
+  "commit": "085a15a91e592e7119c9a3d1222b781e197f1bd7",
+  "date": "2019-09-27T23:34:18.859Z"
+}
