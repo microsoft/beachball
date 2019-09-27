@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 25 Sep 2019 21:40:51 GMT and should not be manually modified.
+This log was last generated on Fri, 27 Sep 2019 23:42:49 GMT and should not be manually modified.
 
+## 1.13.5
+Fri, 27 Sep 2019 23:42:49 GMT
+
+### Patches
+
+- adds publish test for git push as well as refactoring publish to be more readable (odbuild@microsoft.com)
 ## 1.13.4
 Wed, 25 Sep 2019 21:40:51 GMT
 
