@@ -6,8 +6,83 @@ import prompts from 'prompts';
 import { generateTag } from './tag';
 import { getPackageChangeTypes } from './changefile';
 
+function publishToRegistry(options: CliOptions) {
+  const { path: cwd, registry, tag, token, access } = options;
+  console.log('Bumping version for npm publish');
+  const bumpInfo = bump(cwd);
+
+  if (!validatePackageVersions(bumpInfo, registry)) {
+    displayManualRecovery(bumpInfo);
+    console.error('No packages have been published');
+    process.exit(1);
+  }
+
+  Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
+    const packageInfo = bumpInfo.packageInfos[pkg];
+    console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
+    const result = packagePublish(packageInfo, registry, token, tag, access);
+    if (result.success) {
+      console.log('Published!');
+    } else {
+      displayManualRecovery(bumpInfo);
+      console.error(result.stderr);
+      process.exit(1);
+      return;
+    }
+  });
+
+  console.log('Reverting');
+  revertLocalChanges(cwd);
+}
+
+function bumpAndPush(publishBranch: string, options: CliOptions) {
+  const { path: cwd, branch, tag, message } = options;
+  const { remote, remoteBranch } = parseRemoteBranch(branch);
+  console.log('Fetching from remote');
+
+  // pull in latest from origin branch
+  gitFailFast(['fetch', remote], { cwd });
+  const mergeResult = git(['merge', '-X', 'theirs', `${branch}`], { cwd });
+  if (!mergeResult.success) {
+    console.error(`CRITICAL ERROR: pull from ${branch} has failed!`);
+    console.error(mergeResult.stderr);
+    process.exit(1);
+  }
+
+  // bump the version
+  console.log('Bumping the versions for git push');
+  const bumpInfo = bump(cwd);
+
+  // checkin
+  const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
+
+  if (!mergePublishBranchResult.success) {
+    console.error('CRITICAL ERROR: merging to target has failed!');
+    displayManualRecovery(bumpInfo);
+    process.exit(1);
+  }
+
+  // Step 3. Tag & Push to remote
+  tagPackages(bumpInfo, tag, cwd);
+
+  console.log(`pushing to ${branch}, running the following command for git push:`);
+  const pushArgs = ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`];
+  console.log('git ' + pushArgs.join(' '));
+  const pushResult = git(pushArgs, { cwd });
+
+  if (!pushResult.success) {
+    console.error(`CRITICAL ERROR: push to ${branch} has failed!`);
+    console.error(pushResult.stderr);
+    displayManualRecovery(bumpInfo);
+    process.exit(1);
+  } else {
+    console.log(pushResult.stdout.toString());
+    console.log(pushResult.stderr.toString());
+  }
+}
+
 export async function publish(options: CliOptions) {
-  const { path: cwd, branch, registry, tag, token, message, access } = options;
+  const { path: cwd, branch, registry, tag, message } = options;
 
   // First, validate that we have changes to publish
   const packageChangeTypes = getPackageChangeTypes(cwd);
@@ -49,80 +124,19 @@ export async function publish(options: CliOptions) {
   gitFailFast(['checkout', '-b', publishBranch], { cwd });
 
   // Step 1. Bump + npm publish
-  // bump the version
-  console.log('Bumping version for npm publish');
-  const bumpInfo = bump(cwd);
-
-  if (!validatePackageVersions(bumpInfo, registry)) {
-    displayManualRecovery(bumpInfo);
-    console.error('No packages have been published');
-    process.exit(1);
-  }
-
   // npm / yarn publish
   if (options.publish) {
-    Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
-      const packageInfo = bumpInfo.packageInfos[pkg];
-      console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
-      const result = packagePublish(packageInfo, registry, token, tag, access);
-      if (result.success) {
-        console.log('Published!');
-      } else {
-        displayManualRecovery(bumpInfo);
-        console.error(result.stderr);
-        process.exit(1);
-        return;
-      }
-    });
+    publishToRegistry(options);
   } else {
     console.log('Skipping publish');
   }
 
   // Step 2.
   // - reset, fetch latest from origin/master (to ensure less chance of conflict), then bump again + commit
-  if (!branch || !options.push) {
-    console.log('Skipping git push and tagging');
+  if (branch && options.push) {
+    bumpAndPush(publishBranch, options);
   } else {
-    const { remote, remoteBranch } = parseRemoteBranch(branch);
-    console.log('Reverting and fetching from remote');
-
-    // pull in latest from origin branch
-    revertLocalChanges(cwd);
-    gitFailFast(['fetch', remote], { cwd });
-    const mergeResult = git(['merge', '-X', 'theirs', `${branch}`], { cwd });
-    if (!mergeResult.success) {
-      console.error(`CRITICAL ERROR: pull from ${branch} has failed!`);
-      console.error(mergeResult.stderr);
-      displayManualRecovery(bumpInfo);
-      process.exit(1);
-    }
-
-    // bump the version
-    console.log('Bumping the versions for git push');
-    bump(cwd);
-
-    // checkin
-    const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
-
-    if (!mergePublishBranchResult.success) {
-      console.error('CRITICAL ERROR: merging to target has failed!');
-      displayManualRecovery(bumpInfo);
-      process.exit(1);
-    }
-
-    // Step 3. Tag & Push to remote
-    tagPackages(bumpInfo, tag, cwd);
-
-    console.log(`pushing to ${branch}, running the following command for git push:`);
-    const pushArgs = ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`];
-    console.log('git ' + pushArgs.join(' '));
-    const pushResult = git(pushArgs);
-    if (!pushResult.success) {
-      console.error(`CRITICAL ERROR: push to ${branch} has failed!`);
-      console.error(pushResult.stderr);
-      displayManualRecovery(bumpInfo);
-      process.exit(1);
-    }
+    console.log('Skipping git push and tagging');
   }
 
   if (currentBranch) {

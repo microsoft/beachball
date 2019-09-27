@@ -8,10 +8,10 @@ import { promisify } from 'util';
 const writeFileAsync = promisify(fs.writeFile);
 const removeAsync = promisify(fs.remove);
 
-const packageJson = JSON.stringify({
+export const packageJsonFixture = {
   name: 'foo',
   version: '1.0.0',
-});
+};
 
 async function dirAsync(options: tmp.DirOptions): Promise<tmp.DirResult> {
   return new Promise((resolve, reject) => {
@@ -70,16 +70,6 @@ async function runInDirectory(targetDirectory: string, commands: string[]) {
   process.chdir(originalDirectory);
 }
 
-async function touchAsync(filename: string) {
-  const time = new Date();
-
-  try {
-    await fs.utimes(filename, time, time);
-  } catch (err) {
-    await fs.close(await fs.open(filename, 'w'));
-  }
-}
-
 export class RepositoryFactory {
   root?: tmp.DirResult;
 
@@ -95,7 +85,7 @@ export class RepositoryFactory {
     await tmpRepo.cloneFrom(this.root.name);
     await tmpRepo.commitChange('README');
 
-    await writeFileAsync(path.join(tmpRepo.rootPath, 'package.json'), packageJson);
+    await writeFileAsync(path.join(tmpRepo.rootPath, 'package.json'), JSON.stringify(packageJsonFixture, null, 2));
     await tmpRepo.commitChange('package.json');
     await tmpRepo.push('origin', 'HEAD:master');
 
@@ -114,6 +104,8 @@ export class RepositoryFactory {
 }
 
 export class Repository {
+  origin?: string;
+
   root?: tmp.DirResult;
 
   async initialize() {
@@ -137,6 +129,8 @@ export class Repository {
       'git config user.email ci@example.com',
       'git config user.name CIUSER',
     ]);
+
+    this.origin = path;
   }
 
   async commitChange(newFilename: string) {
@@ -144,7 +138,7 @@ export class Repository {
       throw new Error('Must initialize before cloning');
     }
 
-    await touchAsync(path.join(this.root.name, newFilename));
+    await fs.ensureFile(path.join(this.root.name, newFilename));
 
     await runInDirectory(this.root.name, [`git add ${newFilename}`, `git commit -m '${newFilename}'`]);
   }
