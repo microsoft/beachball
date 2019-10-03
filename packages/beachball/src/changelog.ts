@@ -1,8 +1,9 @@
-import { readChangeFiles, unlinkChangeFiles } from './changefile';
+import { unlinkChangeFiles } from './changefile';
 import { PackageInfo } from './bump';
 import path from 'path';
 import fs from 'fs';
 import { generateTag } from './tag';
+import { ChangeInfo } from './ChangeInfo';
 
 interface ChangelogEntry {
   comment: string;
@@ -41,8 +42,7 @@ interface ChangelogJson {
   entries: ChangelogJsonEntry[];
 }
 
-export function getPackageChangelogs(packageInfos: { [pkg: string]: PackageInfo }, cwd: string) {
-  const changes = readChangeFiles(cwd);
+export function getPackageChangelogs(changes: ChangeInfo[], packageInfos: { [pkg: string]: PackageInfo }) {
   const changelogs: { [pkgName: string]: PackageChangelog } = {};
   changes.forEach(change => {
     const { packageName } = change;
@@ -65,8 +65,8 @@ export function getPackageChangelogs(packageInfos: { [pkg: string]: PackageInfo 
   return changelogs;
 }
 
-export function writeChangelog(packageInfos: { [pkg: string]: PackageInfo }, cwd: string) {
-  const changelogs = getPackageChangelogs(packageInfos, cwd);
+export function writeChangelog(changes: ChangeInfo[], packageInfos: { [pkg: string]: PackageInfo }, cwd: string) {
+  const changelogs = getPackageChangelogs(changes, packageInfos);
 
   Object.keys(changelogs).forEach(pkg => {
     const packagePath = path.dirname(packageInfos[pkg].packageJsonPath);
@@ -95,7 +95,7 @@ export function writeChangelog(packageInfos: { [pkg: string]: PackageInfo }, cwd
     }
   });
 
-  unlinkChangeFiles(cwd);
+  unlinkChangeFiles(changes, cwd);
 }
 
 function renderJsonChangelog(previous: ChangelogJson, changelog: PackageChangelog) {

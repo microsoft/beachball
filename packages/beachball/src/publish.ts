@@ -1,15 +1,15 @@
-import { bump, BumpInfo } from './bump';
+import { bump, BumpInfo, performBump, gatherBumpInfo } from './bump';
 import { CliOptions } from './CliOptions';
 import { git, gitFailFast, revertLocalChanges, parseRemoteBranch, getBranchName } from './git';
 import { packagePublish, listPackageVersions } from './packageManager';
 import prompts from 'prompts';
 import { generateTag } from './tag';
-import { getPackageChangeTypes } from './changefile';
+import { getPackageChangeTypes, readChangeFiles } from './changefile';
 
-function publishToRegistry(options: CliOptions) {
+function publishToRegistry(bumpInfo: BumpInfo, options: CliOptions) {
   const { path: cwd, registry, tag, token, access } = options;
-  console.log('Bumping version for npm publish');
-  const bumpInfo = bump(cwd);
+
+  performBump(bumpInfo, cwd);
 
   if (!validatePackageVersions(bumpInfo, registry)) {
     displayManualRecovery(bumpInfo);
@@ -31,13 +31,16 @@ function publishToRegistry(options: CliOptions) {
     }
   });
 
-  console.log('Reverting');
-  revertLocalChanges(cwd);
+  return;
 }
 
-function bumpAndPush(publishBranch: string, options: CliOptions) {
+function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: CliOptions) {
   const { path: cwd, branch, tag, message } = options;
   const { remote, remoteBranch } = parseRemoteBranch(branch);
+
+  console.log('Reverting');
+  revertLocalChanges(cwd);
+
   console.log('Fetching from remote');
 
   // pull in latest from origin branch
@@ -51,7 +54,7 @@ function bumpAndPush(publishBranch: string, options: CliOptions) {
 
   // bump the version
   console.log('Bumping the versions for git push');
-  const bumpInfo = bump(cwd);
+  performBump(bumpInfo, cwd);
 
   // checkin
   const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
@@ -85,7 +88,8 @@ export async function publish(options: CliOptions) {
   const { path: cwd, branch, registry, tag, message } = options;
 
   // First, validate that we have changes to publish
-  const packageChangeTypes = getPackageChangeTypes(cwd);
+  const changes = readChangeFiles(cwd);
+  const packageChangeTypes = getPackageChangeTypes(changes);
   if (Object.keys(packageChangeTypes).length === 0) {
     console.log('Nothing to bump, skipping publish!');
     return;
@@ -123,10 +127,13 @@ export async function publish(options: CliOptions) {
   const publishBranch = 'publish_' + String(new Date().getTime());
   gitFailFast(['checkout', '-b', publishBranch], { cwd });
 
+  console.log('Bumping version for npm publish');
+  const bumpInfo = gatherBumpInfo(cwd);
+
   // Step 1. Bump + npm publish
   // npm / yarn publish
   if (options.publish) {
-    publishToRegistry(options);
+    publishToRegistry(bumpInfo, options);
   } else {
     console.log('Skipping publish');
   }
@@ -134,7 +141,7 @@ export async function publish(options: CliOptions) {
   // Step 2.
   // - reset, fetch latest from origin/master (to ensure less chance of conflict), then bump again + commit
   if (branch && options.push) {
-    bumpAndPush(publishBranch, options);
+    bumpAndPush(bumpInfo, publishBranch, options);
   } else {
     console.log('Skipping git push and tagging');
   }
