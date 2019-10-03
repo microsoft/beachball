@@ -217,18 +217,16 @@ function validatePackageVersions(bumpInfo: BumpInfo, registry: string) {
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
 
-    if (packageInfo) {
-      process.stdout.write(`Validating package version - ${packageInfo.name}@${packageInfo.version}`);
+    process.stdout.write(`Validating package version - ${packageInfo.name}@${packageInfo.version}`);
 
-      const publishedVersions = listPackageVersions(packageInfo.name, registry);
-      if (publishedVersions.includes(packageInfo.version)) {
-        console.error(
-          `\nERROR: Attempting to bump to a version that already exists in the registry: ${packageInfo.name}@${packageInfo.version}`
-        );
-        hasErrors = true;
-      } else {
-        process.stdout.write(' OK!\n');
-      }
+    const publishedVersions = listPackageVersions(packageInfo.name, registry);
+    if (publishedVersions.includes(packageInfo.version)) {
+      console.error(
+        `\nERROR: Attempting to bump to a version that already exists in the registry: ${packageInfo.name}@${packageInfo.version}`
+      );
+      hasErrors = true;
+    } else {
+      process.stdout.write(' OK!\n');
     }
   });
 
