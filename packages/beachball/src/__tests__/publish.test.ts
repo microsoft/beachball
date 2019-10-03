@@ -1,9 +1,11 @@
 import { Repository, RepositoryFactory, packageJsonFixture } from '../fixtures/repository';
-import { publish } from '../publish';
+import { publish, bumpAndPush } from '../publish';
 import path from 'path';
 import fs from 'fs';
 import { writeChangeFiles } from '../changefile';
-import { git } from '../git';
+import { git, gitFailFast } from '../git';
+import { gatherBumpInfo } from '../bump';
+import { CliOptions } from '../CliOptions';
 
 describe('publish command', () => {
   let repositoryFactory: RepositoryFactory;
@@ -55,5 +57,80 @@ describe('publish command', () => {
     const packageJson = JSON.parse(fs.readFileSync(path.join(newRepo.rootPath, 'package.json'), 'utf-8'));
 
     expect(packageJson.version).toBe('1.1.0');
+  });
+
+  it('can handle a merge when there are change files present', async () => {
+    // 1. clone a new repo1, write a change file in repo1
+    const repo1 = await repositoryFactory.cloneRepository();
+
+    writeChangeFiles(
+      {
+        foo: {
+          type: 'minor',
+          comment: 'test',
+          commit: 'test',
+          date: new Date('2019-01-01'),
+          email: 'test@test.com',
+          packageName: 'foo',
+        },
+      },
+      repo1.rootPath
+    );
+
+    git(['push', 'origin', 'master'], { cwd: repo1.rootPath });
+
+    // 2. simulate the start of a publish from repo1
+    const publishBranch = 'publish_test';
+    gitFailFast(['checkout', '-b', publishBranch], { cwd: repo1.rootPath });
+
+    console.log('Bumping version for npm publish');
+    const bumpInfo = gatherBumpInfo(repo1.rootPath);
+
+    const options: CliOptions = {
+      branch: 'origin/master',
+      command: 'publish',
+      message: 'apply package updates',
+      path: repo1.rootPath,
+      publish: false,
+      push: true,
+      registry: 'http://localhost:99999/',
+      tag: 'latest',
+      token: '',
+      yes: true,
+      access: 'public',
+      package: 'foo',
+      changehint: 'Run "beachball change" to create a change file',
+      type: null,
+      fetch: true,
+    };
+
+    // 3. Meanwhile, in repo2, also create a new change file
+    const repo2 = await repositoryFactory.cloneRepository();
+
+    writeChangeFiles(
+      {
+        foo2: {
+          type: 'minor',
+          comment: 'test',
+          commit: 'test',
+          date: new Date('2019-01-01'),
+          email: 'test@test.com',
+          packageName: 'foo2',
+        },
+      },
+      repo2.rootPath
+    );
+
+    git(['push', 'origin', 'master'], { cwd: repo2.rootPath });
+
+    // 4. Pretend to continue on with repo1's publish
+    await bumpAndPush(bumpInfo, publishBranch, options);
+
+    // 5. In a brand new cloned repo, make assertions
+    const newRepo = await repositoryFactory.cloneRepository();
+
+    console.log(newRepo.rootPath);
+    process.exit(0);
+    expect(fs.existsSync(path.join(newRepo.rootPath, 'change'))).toBeTruthy();
   });
 });

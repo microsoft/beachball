@@ -153,13 +153,16 @@ export function unlinkChangeFiles(changes: ChangeInfo[], cwd: string) {
     return;
   }
 
+  console.log('Removing change files:');
   for (const change of changes) {
     if (change.file) {
+      console.log(`- ${change.file}`);
       fs.removeSync(path.join(changePath, change.file));
     }
   }
 
   if (fs.existsSync(changePath) && fs.readdirSync(changePath).length === 0) {
+    console.log('Removing change path');
     fs.removeSync(changePath);
   }
 }

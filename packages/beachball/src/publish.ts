@@ -6,7 +6,7 @@ import prompts from 'prompts';
 import { generateTag } from './tag';
 import { getPackageChangeTypes, readChangeFiles } from './changefile';
 
-function publishToRegistry(bumpInfo: BumpInfo, options: CliOptions) {
+export function publishToRegistry(bumpInfo: BumpInfo, options: CliOptions) {
   const { path: cwd, registry, tag, token, access } = options;
 
   performBump(bumpInfo, cwd);
@@ -41,7 +41,7 @@ function publishToRegistry(bumpInfo: BumpInfo, options: CliOptions) {
   return;
 }
 
-function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: CliOptions) {
+export function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: CliOptions) {
   const { path: cwd, branch, tag, message } = options;
   const { remote, remoteBranch } = parseRemoteBranch(branch);
 
