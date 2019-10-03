@@ -195,7 +195,8 @@ export function readChangeFiles(cwd: string) {
 
   changeFiles.forEach(changeFile => {
     try {
-      changes.push({ ...JSON.parse(fs.readFileSync(path.join(changePath, changeFile)).toString()), file: changeFile });
+      const packageJson = JSON.parse(fs.readFileSync(path.join(changePath, changeFile)).toString());
+      changes.push({ ...packageJson, file: changeFile });
     } catch (e) {
       console.warn(`Invalid change file detected: ${changeFile}`);
     }
