@@ -19,15 +19,22 @@ function publishToRegistry(bumpInfo: BumpInfo, options: CliOptions) {
 
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
-    console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
-    const result = packagePublish(packageInfo, registry, token, tag, access);
-    if (result.success) {
-      console.log('Published!');
+
+    if (!packageInfo.private) {
+      console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
+      const result = packagePublish(packageInfo, registry, token, tag, access);
+      if (result.success) {
+        console.log('Published!');
+      } else {
+        displayManualRecovery(bumpInfo);
+        console.error(result.stderr);
+        process.exit(1);
+        return;
+      }
     } else {
-      displayManualRecovery(bumpInfo);
-      console.error(result.stderr);
-      process.exit(1);
-      return;
+      console.warn(
+        `Skipping publish of ${packageInfo.name} since it is marked private. Version has been bumped to ${packageInfo.version}`
+      );
     }
   });
 

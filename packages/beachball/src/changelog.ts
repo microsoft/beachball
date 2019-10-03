@@ -1,4 +1,3 @@
-import { unlinkChangeFiles } from './changefile';
 import { PackageInfo } from './bump';
 import path from 'path';
 import fs from 'fs';
@@ -65,7 +64,7 @@ export function getPackageChangelogs(changes: ChangeInfo[], packageInfos: { [pkg
   return changelogs;
 }
 
-export function writeChangelog(changes: ChangeInfo[], packageInfos: { [pkg: string]: PackageInfo }, cwd: string) {
+export function writeChangelog(changes: ChangeInfo[], packageInfos: { [pkg: string]: PackageInfo }) {
   const changelogs = getPackageChangelogs(changes, packageInfos);
 
   Object.keys(changelogs).forEach(pkg => {
@@ -94,8 +93,6 @@ export function writeChangelog(changes: ChangeInfo[], packageInfos: { [pkg: stri
       console.warn('The CHANGELOG.json file is invalid, skipping writing to it', e);
     }
   });
-
-  unlinkChangeFiles(changes, cwd);
 }
 
 function renderJsonChangelog(previous: ChangelogJson, changelog: PackageChangelog) {

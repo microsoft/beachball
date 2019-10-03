@@ -71,7 +71,7 @@ describe('validation', () => {
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(repository.rootPath);
 
-      writeChangelog(changes, packageInfos, repository.rootPath);
+      writeChangelog(changes, packageInfos);
 
       const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
       const text = await readFileAsync(changelogFile, 'utf-8');

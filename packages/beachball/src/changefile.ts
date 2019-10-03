@@ -128,6 +128,8 @@ export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd
       const change = changes[pkgName];
       change.file = changeFile;
       fs.writeFileSync(changeFile, JSON.stringify(change, null, 2));
+
+      changeFiles.push(changeFile);
     });
 
     stageAndCommit(changeFiles, 'Change files', cwd);
@@ -157,7 +159,7 @@ export function unlinkChangeFiles(changes: ChangeInfo[], cwd: string) {
     }
   }
 
-  if (fs.readdirSync(changePath).length === 0) {
+  if (fs.existsSync(changePath) && fs.readdirSync(changePath).length === 0) {
     fs.removeSync(changePath);
   }
 }

@@ -1,4 +1,4 @@
-import { getPackageChangeTypes, readChangeFiles } from './changefile';
+import { getPackageChangeTypes, readChangeFiles, unlinkChangeFiles } from './changefile';
 import { getPackageInfos, PackageInfo } from './monorepo';
 import { writeChangelog } from './changelog';
 import fs from 'fs';
@@ -77,7 +77,10 @@ export function performBump(
   });
 
   // Generate changelog
-  writeChangelog(changes, packageInfos, cwd);
+  writeChangelog(changes, packageInfos);
+
+  // Unlink changelogs
+  unlinkChangeFiles(changes, cwd);
 
   return {
     changes,
