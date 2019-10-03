@@ -6,6 +6,7 @@ import { writeChangeFiles } from '../changefile';
 import { git, gitFailFast } from '../git';
 import { gatherBumpInfo } from '../bump';
 import { CliOptions } from '../CliOptions';
+import { ChangeInfo } from '../ChangeInfo';
 
 describe('publish command', () => {
   let repositoryFactory: RepositoryFactory;
@@ -128,9 +129,13 @@ describe('publish command', () => {
 
     // 5. In a brand new cloned repo, make assertions
     const newRepo = await repositoryFactory.cloneRepository();
-
-    console.log(newRepo.rootPath);
-    process.exit(0);
-    expect(fs.existsSync(path.join(newRepo.rootPath, 'change'))).toBeTruthy();
+    const newChangePath = path.join(newRepo.rootPath, 'change');
+    expect(fs.existsSync(newChangePath)).toBeTruthy();
+    const changeFiles = fs.readdirSync(newChangePath);
+    expect(changeFiles.length).toBe(1);
+    const changeFileContent: ChangeInfo = JSON.parse(
+      fs.readFileSync(path.join(newChangePath, changeFiles[0]), 'utf-8')
+    );
+    expect(changeFileContent.packageName).toBe('foo2');
   });
 });
