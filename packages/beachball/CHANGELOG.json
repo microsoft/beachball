@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 04 Oct 2019 15:11:40 GMT",
+      "tag": "beachball_v1.14.1",
+      "version": "1.14.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fixed package publishing for private packages",
+            "author": "kchau@microsoft.com",
+            "commit": "72363ccc692514ac2129ecf46e73cd9d562762f1"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 04 Oct 2019 00:52:18 GMT",
       "tag": "beachball_v1.14.0",
       "version": "1.14.0",

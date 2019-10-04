@@ -1,9 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fixed package publishing for private packages",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "72363ccc692514ac2129ecf46e73cd9d562762f1",
-  "date": "2019-10-04T15:03:36.210Z",
-  "file": "/Users/ken/workspace/beachball/change/beachball-2019-10-04-08-03-36-private.json"
-}
