@@ -1,11 +1,11 @@
 import { getPackageChangeTypes, readChangeFiles, unlinkChangeFiles } from './changefile';
-import { getPackageInfos, PackageInfo } from './monorepo';
+import { getPackageInfos } from './monorepo';
 import { writeChangelog } from './changelog';
 import fs from 'fs';
 import semver from 'semver';
 import { ChangeInfo } from './ChangeInfo';
 
-export type PackageInfo = PackageInfo;
+export { PackageInfo } from './PackageInfo';
 
 export type BumpInfo = ReturnType<typeof bump>;
 
@@ -53,6 +53,11 @@ export function performBump(
       return;
     }
 
+    if (info.private) {
+      console.log(`Skipping bumping private package "${pkgName}"`);
+      return;
+    }
+
     const changeType = packageChangeTypes[pkgName];
     const packageJsonPath = info.packageJsonPath;
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
@@ -66,7 +71,7 @@ export function performBump(
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
   });
 
-  // Apply package dependency bumps
+  // Apply package dependency bumps, make sure to also write out to private package package.json's
   Object.keys(packageInfos).forEach(pkgName => {
     const info = packageInfos[pkgName];
     const packageJsonPath = info.packageJsonPath;
@@ -92,7 +97,7 @@ export function performBump(
   writeChangelog(changes, packageInfos);
 
   // Unlink changelogs
-  unlinkChangeFiles(changes, cwd);
+  unlinkChangeFiles(changes, packageInfos, cwd);
 
   return {
     changes,
