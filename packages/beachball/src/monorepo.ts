@@ -2,17 +2,7 @@ import { findPackageRoot, findGitRoot } from './paths';
 import fs from 'fs';
 import path from 'path';
 import { listAllTrackedFiles } from './git';
-
-export interface PackageInfo {
-  name: string;
-  packageJsonPath: string;
-  version: string;
-  dependencies?: { [dep: string]: string };
-  devDependencies?: { [dep: string]: string };
-  disallowedChangeTypes: string[];
-  defaultNpmTag: string;
-  private: boolean;
-}
+import { PackageInfo } from './PackageInfo';
 
 interface BeachBallPackageConfig {
   defaultNpmTag?: string;

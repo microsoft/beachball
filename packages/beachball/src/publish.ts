@@ -200,6 +200,12 @@ function createTag(tag: string, cwd: string) {
 function tagPackages(bumpInfo: BumpInfo, tag: string, cwd: string) {
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
+
+    // Skip tagging for private packages
+    if (packageInfo.private) {
+      return;
+    }
+
     console.log(`Tagging - ${packageInfo.name}@${packageInfo.version}`);
     const generatedTag = generateTag(packageInfo.name, packageInfo.version);
     createTag(generatedTag, cwd);
@@ -216,6 +222,11 @@ function validatePackageVersions(bumpInfo: BumpInfo, registry: string) {
 
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
+
+    // Ignore private packages
+    if (packageInfo.private) {
+      return;
+    }
 
     process.stdout.write(`Validating package version - ${packageInfo.name}@${packageInfo.version}`);
 

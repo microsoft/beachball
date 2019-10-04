@@ -8,6 +8,7 @@ import prompts from 'prompts';
 import { getPackageInfos } from './monorepo';
 import { prerelease } from 'semver';
 import { CliOptions } from './CliOptions';
+import { PackageInfo } from './PackageInfo';
 
 /**
  * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash
@@ -146,7 +147,7 @@ ${changeFiles.map(f => ` - ${f}`).join('\n')}
  * @param changes existing change files to be removed
  * @param cwd
  */
-export function unlinkChangeFiles(changes: ChangeInfo[], cwd: string) {
+export function unlinkChangeFiles(changes: ChangeInfo[], packageInfos: { [pkg: string]: PackageInfo }, cwd: string) {
   const changePath = getChangePath(cwd);
 
   if (!changePath || !changes) {
@@ -155,7 +156,7 @@ export function unlinkChangeFiles(changes: ChangeInfo[], cwd: string) {
 
   console.log('Removing change files:');
   for (const change of changes) {
-    if (change.file) {
+    if (change.file && packageInfos[change.packageName] && !packageInfos[change.packageName].private) {
       console.log(`- ${change.file}`);
       fs.removeSync(path.join(changePath, change.file));
     }
