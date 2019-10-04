@@ -6,7 +6,7 @@ import { promisify } from 'util';
 import { RepositoryFactory, Repository } from '../fixtures/repository';
 import { writeChangelog } from '../changelog';
 
-import { writeChangeFiles } from '../changefile';
+import { writeChangeFiles, readChangeFiles } from '../changefile';
 import { getPackageInfos } from '../monorepo';
 
 import unified from 'unified';
@@ -66,10 +66,12 @@ describe('validation', () => {
         repository.rootPath
       );
 
+      const changes = readChangeFiles(repository.rootPath);
+
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(repository.rootPath);
 
-      writeChangelog(packageInfos, repository.rootPath);
+      writeChangelog(changes, packageInfos);
 
       const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
       const text = await readFileAsync(changelogFile, 'utf-8');

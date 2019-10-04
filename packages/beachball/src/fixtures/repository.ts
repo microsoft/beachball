@@ -133,12 +133,16 @@ export class Repository {
     this.origin = path;
   }
 
-  async commitChange(newFilename: string) {
+  async commitChange(newFilename: string, content?: string) {
     if (!this.root) {
       throw new Error('Must initialize before cloning');
     }
 
     await fs.ensureFile(path.join(this.root.name, newFilename));
+
+    if (content) {
+      await fs.writeFile(path.join(this.root.name, newFilename), content);
+    }
 
     await runInDirectory(this.root.name, [`git add ${newFilename}`, `git commit -m '${newFilename}'`]);
   }

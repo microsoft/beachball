@@ -36,8 +36,8 @@ export async function promptForChange(options: CliOptions) {
         { value: 'patch', title: ' [1mPatch[22m      - bug fixes; no backwards incompatible changes.' },
         { value: 'minor', title: ' [1mMinor[22m      - small feature; backwards compatible changes.' },
         { value: 'none', title: ' [1mNone[22m       - this change does not affect the published package in any way.' },
-        { value: 'major', title: ' [1mMajor[22m      - major feature; breaking changes.' }
-      ].filter(choice => !packageInfos[pkg].disallowedChangeTypes.includes(choice.value))
+        { value: 'major', title: ' [1mMajor[22m      - major feature; breaking changes.' },
+      ].filter(choice => !packageInfos[pkg].disallowedChangeTypes.includes(choice.value)),
     };
 
     if (changeTypePrompt.choices!.length === 0) {
@@ -56,16 +56,19 @@ export async function promptForChange(options: CliOptions) {
       message: 'Describe changes (type or choose one)',
       suggest: input => {
         return Promise.resolve([...recentMessages.filter(msg => msg.startsWith(input)), input]);
-      }
+      },
     };
 
     const showChangeTypePrompt = !options.type && changeTypePrompt.choices!.length > 1;
 
-    const questions = [...(showChangeTypePrompt ? [changeTypePrompt] : []), ...(!options.message ? [descriptionPrompt] : [])];
+    const questions = [
+      ...(showChangeTypePrompt ? [changeTypePrompt] : []),
+      ...(!options.message ? [descriptionPrompt] : []),
+    ];
 
     let response: { comment: string; type: ChangeType } = {
       type: options.type || 'none',
-      comment: options.message || ''
+      comment: options.message || '',
     };
 
     if (questions.length > 0) {
@@ -82,7 +85,7 @@ export async function promptForChange(options: CliOptions) {
       packageName: pkg,
       email: getUserEmail(cwd) || 'email not defined',
       commit: getCurrentHash(cwd) || 'hash not available',
-      date: new Date()
+      date: new Date(),
     };
   }
 
@@ -123,8 +126,10 @@ export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd
       }
 
       const change = changes[pkgName];
-      changeFiles.push(changeFile);
+      change.file = changeFile;
       fs.writeFileSync(changeFile, JSON.stringify(change, null, 2));
+
+      changeFiles.push(changeFile);
     });
 
     stageAndCommit(changeFiles, 'Change files', cwd);
@@ -135,14 +140,31 @@ ${changeFiles.map(f => ` - ${f}`).join('\n')}
   }
 }
 
-export function unlinkChangeFiles(cwd: string) {
+/**
+ * Unlink only change files that are specified in the changes param
+ *
+ * @param changes existing change files to be removed
+ * @param cwd
+ */
+export function unlinkChangeFiles(changes: ChangeInfo[], cwd: string) {
   const changePath = getChangePath(cwd);
 
-  if (!changePath) {
+  if (!changePath || !changes) {
     return;
   }
 
-  fs.removeSync(changePath);
+  console.log('Removing change files:');
+  for (const change of changes) {
+    if (change.file) {
+      console.log(`- ${change.file}`);
+      fs.removeSync(path.join(changePath, change.file));
+    }
+  }
+
+  if (fs.existsSync(changePath) && fs.readdirSync(changePath).length === 0) {
+    console.log('Removing change path');
+    fs.removeSync(changePath);
+  }
 }
 
 function leftPadTwoZeros(someString: string) {
@@ -157,7 +179,7 @@ function getTimeStamp() {
     leftPadTwoZeros(date.getDate().toString()),
     leftPadTwoZeros(date.getHours().toString()),
     leftPadTwoZeros(date.getMinutes().toString()),
-    leftPadTwoZeros(date.getSeconds().toString())
+    leftPadTwoZeros(date.getSeconds().toString()),
   ].join('-');
 }
 
@@ -173,7 +195,8 @@ export function readChangeFiles(cwd: string) {
 
   changeFiles.forEach(changeFile => {
     try {
-      changes.push(JSON.parse(fs.readFileSync(path.join(changePath, changeFile)).toString()));
+      const packageJson = JSON.parse(fs.readFileSync(path.join(changePath, changeFile)).toString());
+      changes.push({ ...packageJson, file: changeFile });
     } catch (e) {
       console.warn(`Invalid change file detected: ${changeFile}`);
     }
@@ -182,15 +205,14 @@ export function readChangeFiles(cwd: string) {
   return changes;
 }
 
-export function getPackageChangeTypes(cwd: string) {
+export function getPackageChangeTypes(changes: ChangeInfo[]) {
   const changeTypeWeights = {
     major: 4,
     minor: 3,
     patch: 2,
     prerelease: 1,
-    none: 0
+    none: 0,
   };
-  const changes = readChangeFiles(cwd);
   const changePerPackage: { [pkgName: string]: ChangeInfo['type'] } = {};
   changes.forEach(change => {
     const { packageName } = change;
@@ -199,7 +221,10 @@ export function getPackageChangeTypes(cwd: string) {
       return;
     }
 
-    if (!changePerPackage[packageName] || changeTypeWeights[change.type] > changeTypeWeights[changePerPackage[packageName]]) {
+    if (
+      !changePerPackage[packageName] ||
+      changeTypeWeights[change.type] > changeTypeWeights[changePerPackage[packageName]]
+    ) {
       changePerPackage[packageName] = change.type;
     }
   });

@@ -1,15 +1,15 @@
-import { bump, BumpInfo } from './bump';
+import { bump, BumpInfo, performBump, gatherBumpInfo } from './bump';
 import { CliOptions } from './CliOptions';
 import { git, gitFailFast, revertLocalChanges, parseRemoteBranch, getBranchName } from './git';
 import { packagePublish, listPackageVersions } from './packageManager';
 import prompts from 'prompts';
 import { generateTag } from './tag';
-import { getPackageChangeTypes } from './changefile';
+import { getPackageChangeTypes, readChangeFiles } from './changefile';
 
-function publishToRegistry(options: CliOptions) {
+export function publishToRegistry(bumpInfo: BumpInfo, options: CliOptions) {
   const { path: cwd, registry, tag, token, access } = options;
-  console.log('Bumping version for npm publish');
-  const bumpInfo = bump(cwd);
+
+  performBump(bumpInfo, cwd);
 
   if (!validatePackageVersions(bumpInfo, registry)) {
     displayManualRecovery(bumpInfo);
@@ -19,25 +19,35 @@ function publishToRegistry(options: CliOptions) {
 
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
-    console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
-    const result = packagePublish(packageInfo, registry, token, tag, access);
-    if (result.success) {
-      console.log('Published!');
+
+    if (!packageInfo.private) {
+      console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
+      const result = packagePublish(packageInfo, registry, token, tag, access);
+      if (result.success) {
+        console.log('Published!');
+      } else {
+        displayManualRecovery(bumpInfo);
+        console.error(result.stderr);
+        process.exit(1);
+        return;
+      }
     } else {
-      displayManualRecovery(bumpInfo);
-      console.error(result.stderr);
-      process.exit(1);
-      return;
+      console.warn(
+        `Skipping publish of ${packageInfo.name} since it is marked private. Version has been bumped to ${packageInfo.version}`
+      );
     }
   });
 
-  console.log('Reverting');
-  revertLocalChanges(cwd);
+  return;
 }
 
-function bumpAndPush(publishBranch: string, options: CliOptions) {
+export function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: CliOptions) {
   const { path: cwd, branch, tag, message } = options;
   const { remote, remoteBranch } = parseRemoteBranch(branch);
+
+  console.log('Reverting');
+  revertLocalChanges(cwd);
+
   console.log('Fetching from remote');
 
   // pull in latest from origin branch
@@ -51,7 +61,7 @@ function bumpAndPush(publishBranch: string, options: CliOptions) {
 
   // bump the version
   console.log('Bumping the versions for git push');
-  const bumpInfo = bump(cwd);
+  performBump(bumpInfo, cwd);
 
   // checkin
   const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
@@ -85,7 +95,8 @@ export async function publish(options: CliOptions) {
   const { path: cwd, branch, registry, tag, message } = options;
 
   // First, validate that we have changes to publish
-  const packageChangeTypes = getPackageChangeTypes(cwd);
+  const changes = readChangeFiles(cwd);
+  const packageChangeTypes = getPackageChangeTypes(changes);
   if (Object.keys(packageChangeTypes).length === 0) {
     console.log('Nothing to bump, skipping publish!');
     return;
@@ -123,10 +134,13 @@ export async function publish(options: CliOptions) {
   const publishBranch = 'publish_' + String(new Date().getTime());
   gitFailFast(['checkout', '-b', publishBranch], { cwd });
 
+  console.log('Bumping version for npm publish');
+  const bumpInfo = gatherBumpInfo(cwd);
+
   // Step 1. Bump + npm publish
   // npm / yarn publish
   if (options.publish) {
-    publishToRegistry(options);
+    publishToRegistry(bumpInfo, options);
   } else {
     console.log('Skipping publish');
   }
@@ -134,7 +148,7 @@ export async function publish(options: CliOptions) {
   // Step 2.
   // - reset, fetch latest from origin/master (to ensure less chance of conflict), then bump again + commit
   if (branch && options.push) {
-    bumpAndPush(publishBranch, options);
+    bumpAndPush(bumpInfo, publishBranch, options);
   } else {
     console.log('Skipping git push and tagging');
   }
@@ -202,6 +216,7 @@ function validatePackageVersions(bumpInfo: BumpInfo, registry: string) {
 
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
+
     process.stdout.write(`Validating package version - ${packageInfo.name}@${packageInfo.version}`);
 
     const publishedVersions = listPackageVersions(packageInfo.name, registry);

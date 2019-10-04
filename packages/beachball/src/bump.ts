@@ -1,19 +1,48 @@
-import { getPackageChangeTypes } from './changefile';
+import { getPackageChangeTypes, readChangeFiles, unlinkChangeFiles } from './changefile';
 import { getPackageInfos, PackageInfo } from './monorepo';
 import { writeChangelog } from './changelog';
 import fs from 'fs';
 import semver from 'semver';
+import { ChangeInfo } from './ChangeInfo';
 
 export type PackageInfo = PackageInfo;
 
 export type BumpInfo = ReturnType<typeof bump>;
 
-export function bump(cwd: string) {
+export function gatherBumpInfo(cwd: string) {
   // Collate the changes per package
-  const packageChangeTypes = getPackageChangeTypes(cwd);
-
-  // Gather all package info from package.json
+  const changes = readChangeFiles(cwd);
+  const packageChangeTypes = getPackageChangeTypes(changes);
   const packageInfos = getPackageInfos(cwd);
+
+  // Clear non-existent changes
+  const filteredChanges = changes.filter(change => {
+    return packageInfos[change.packageName];
+  });
+
+  // Clear non-existent changeTypes
+  Object.keys(packageChangeTypes).forEach(packageName => {
+    if (!packageInfos[packageName]) {
+      delete packageChangeTypes[packageName];
+    }
+  });
+
+  return {
+    packageChangeTypes,
+    packageInfos,
+    changes: filteredChanges,
+  };
+}
+
+export function performBump(
+  bumpInfo: {
+    changes: ChangeInfo[];
+    packageInfos: ReturnType<typeof getPackageInfos>;
+    packageChangeTypes: ReturnType<typeof getPackageChangeTypes>;
+  },
+  cwd: string
+) {
+  const { changes, packageInfos, packageChangeTypes } = bumpInfo;
 
   // Apply package.json version updates
   Object.keys(packageChangeTypes).forEach(pkgName => {
@@ -60,12 +89,20 @@ export function bump(cwd: string) {
   });
 
   // Generate changelog
-  writeChangelog(packageInfos, cwd);
+  writeChangelog(changes, packageInfos);
+
+  // Unlink changelogs
+  unlinkChangeFiles(changes, cwd);
 
   return {
+    changes,
     packageChangeTypes,
     packageInfos,
   };
+}
+
+export function bump(cwd: string) {
+  return performBump(gatherBumpInfo(cwd), cwd);
 }
 
 function bumpMinSemverRange(minVersion: string, semverRange: string) {
