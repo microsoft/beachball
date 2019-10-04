@@ -15,10 +15,22 @@ export function gatherBumpInfo(cwd: string) {
   const packageChangeTypes = getPackageChangeTypes(changes);
   const packageInfos = getPackageInfos(cwd);
 
+  // Clear non-existent changes
+  const filteredChanges = changes.filter(change => {
+    return packageInfos[change.packageName];
+  });
+
+  // Clear non-existent changeTypes
+  Object.keys(packageChangeTypes).forEach(packageName => {
+    if (!packageInfos[packageName]) {
+      delete packageChangeTypes[packageName];
+    }
+  });
+
   return {
     packageChangeTypes,
     packageInfos,
-    changes,
+    changes: filteredChanges,
   };
 }
 
