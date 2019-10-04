@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 27 Sep 2019 23:42:49 GMT and should not be manually modified.
+This log was last generated on Fri, 04 Oct 2019 00:52:18 GMT and should not be manually modified.
 
+## 1.14.0
+Fri, 04 Oct 2019 00:52:18 GMT
+
+### Minor changes
+
+- Adding robustness in how publish works so merging is safer (odbuild@microsoft.com)
 ## 1.13.5
 Fri, 27 Sep 2019 23:42:49 GMT
 

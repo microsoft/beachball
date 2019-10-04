@@ -1,9 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Adding robustness in how publish works so merging is safer",
-  "packageName": "beachball",
-  "email": "odbuild@microsoft.com",
-  "commit": "76425bfb7e76b1471cf7fe1de40930af4ecf4938",
-  "date": "2019-10-04T00:25:55.225Z",
-  "file": "/Users/ken/workspace/beachball/change/beachball-2019-10-03-17-25-55-bump-specific-change.json"
-}
