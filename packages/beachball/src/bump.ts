@@ -3,8 +3,7 @@ import { getPackageInfos } from './monorepo';
 import { writeChangelog } from './changelog';
 import fs from 'fs';
 import semver from 'semver';
-import { ChangeInfo, ChangeSet } from './ChangeInfo';
-import { filter } from 'minimatch';
+import { ChangeSet } from './ChangeInfo';
 
 export { PackageInfo } from './PackageInfo';
 
