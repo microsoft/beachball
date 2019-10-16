@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "make sure that we don't have file names in change files",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "ff943956e212d97df0e781a50b8cfce189108a51",
+  "date": "2019-10-16T20:49:41.330Z"
+}
