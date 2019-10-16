@@ -7,5 +7,6 @@ export interface ChangeInfo {
   email: string;
   commit: string;
   date: Date;
-  file?: string;
 }
+
+export type ChangeSet = Map<string, ChangeInfo>;

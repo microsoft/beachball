@@ -2,7 +2,7 @@ import { PackageInfo } from './bump';
 import path from 'path';
 import fs from 'fs';
 import { generateTag } from './tag';
-import { ChangeInfo } from './ChangeInfo';
+import { ChangeInfo, ChangeSet } from './ChangeInfo';
 
 interface ChangelogEntry {
   comment: string;
@@ -41,9 +41,10 @@ interface ChangelogJson {
   entries: ChangelogJsonEntry[];
 }
 
-export function getPackageChangelogs(changes: ChangeInfo[], packageInfos: { [pkg: string]: PackageInfo }) {
+export function getPackageChangelogs(changeSet: ChangeSet, packageInfos: { [pkg: string]: PackageInfo }) {
   const changelogs: { [pkgName: string]: PackageChangelog } = {};
-  changes.forEach(change => {
+
+  for (let [_, change] of changeSet) {
     const { packageName } = change;
 
     changelogs[packageName] = changelogs[packageName] || {
@@ -59,13 +60,13 @@ export function getPackageChangelogs(changes: ChangeInfo[], packageInfos: { [pkg
       author: change.email,
       commit: change.commit,
     });
-  });
+  }
 
   return changelogs;
 }
 
-export function writeChangelog(changes: ChangeInfo[], packageInfos: { [pkg: string]: PackageInfo }) {
-  const changelogs = getPackageChangelogs(changes, packageInfos);
+export function writeChangelog(changeSet: ChangeSet, packageInfos: { [pkg: string]: PackageInfo }) {
+  const changelogs = getPackageChangelogs(changeSet, packageInfos);
 
   Object.keys(changelogs).forEach(pkg => {
     const packagePath = path.dirname(packageInfos[pkg].packageJsonPath);
