@@ -1,4 +1,4 @@
-import { ChangeInfo, ChangeType } from './ChangeInfo';
+import { ChangeInfo, ChangeType, ChangeSet } from './ChangeInfo';
 import { getChangedPackages } from './getChangedPackages';
 import { getChangePath } from './paths';
 import { getRecentCommitMessages, getUserEmail, getBranchName, getCurrentHash, stageAndCommit } from './git';
@@ -127,7 +127,6 @@ export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd
       }
 
       const change = changes[pkgName];
-      change.file = changeFile;
       fs.writeFileSync(changeFile, JSON.stringify(change, null, 2));
 
       changeFiles.push(changeFile);
@@ -147,18 +146,18 @@ ${changeFiles.map(f => ` - ${f}`).join('\n')}
  * @param changes existing change files to be removed
  * @param cwd
  */
-export function unlinkChangeFiles(changes: ChangeInfo[], packageInfos: { [pkg: string]: PackageInfo }, cwd: string) {
+export function unlinkChangeFiles(changeSet: ChangeSet, packageInfos: { [pkg: string]: PackageInfo }, cwd: string) {
   const changePath = getChangePath(cwd);
 
-  if (!changePath || !changes) {
+  if (!changePath || !changeSet) {
     return;
   }
 
   console.log('Removing change files:');
-  for (const change of changes) {
-    if (change.file && packageInfos[change.packageName] && !packageInfos[change.packageName].private) {
-      console.log(`- ${change.file}`);
-      fs.removeSync(path.join(changePath, change.file));
+  for (let [changeFile, change] of changeSet) {
+    if (changeFile && packageInfos[change.packageName] && !packageInfos[change.packageName].private) {
+      console.log(`- ${changeFile}`);
+      fs.removeSync(path.join(changePath, changeFile));
     }
   }
 
@@ -185,28 +184,28 @@ function getTimeStamp() {
 }
 
 export function readChangeFiles(cwd: string) {
+  const changeSet: ChangeSet = new Map();
   const changePath = getChangePath(cwd);
 
   if (!changePath || !fs.existsSync(changePath)) {
-    return [];
+    return changeSet;
   }
 
   const changeFiles = fs.readdirSync(changePath);
-  const changes: ChangeInfo[] = [];
 
   changeFiles.forEach(changeFile => {
     try {
       const packageJson = JSON.parse(fs.readFileSync(path.join(changePath, changeFile)).toString());
-      changes.push({ ...packageJson, file: changeFile });
+      changeSet.set(changeFile, packageJson);
     } catch (e) {
       console.warn(`Invalid change file detected: ${changeFile}`);
     }
   });
 
-  return changes;
+  return changeSet;
 }
 
-export function getPackageChangeTypes(changes: ChangeInfo[]) {
+export function getPackageChangeTypes(changeSet: ChangeSet) {
   const changeTypeWeights = {
     major: 4,
     minor: 3,
@@ -215,11 +214,11 @@ export function getPackageChangeTypes(changes: ChangeInfo[]) {
     none: 0,
   };
   const changePerPackage: { [pkgName: string]: ChangeInfo['type'] } = {};
-  changes.forEach(change => {
+  for (let [_, change] of changeSet) {
     const { packageName } = change;
 
     if (change.type === 'none') {
-      return;
+      continue;
     }
 
     if (
@@ -228,7 +227,7 @@ export function getPackageChangeTypes(changes: ChangeInfo[]) {
     ) {
       changePerPackage[packageName] = change.type;
     }
-  });
+  }
 
   return changePerPackage;
 }

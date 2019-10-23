@@ -3,7 +3,7 @@ import { getPackageInfos } from './monorepo';
 import { writeChangelog } from './changelog';
 import fs from 'fs';
 import semver from 'semver';
-import { ChangeInfo } from './ChangeInfo';
+import { ChangeSet } from './ChangeInfo';
 
 export { PackageInfo } from './PackageInfo';
 
@@ -16,9 +16,12 @@ export function gatherBumpInfo(cwd: string) {
   const packageInfos = getPackageInfos(cwd);
 
   // Clear non-existent changes
-  const filteredChanges = changes.filter(change => {
-    return packageInfos[change.packageName];
-  });
+  const filteredChanges: ChangeSet = new Map();
+  for (let [changeFile, change] of changes) {
+    if (packageInfos[change.packageName]) {
+      filteredChanges.set(changeFile, change);
+    }
+  }
 
   // Clear non-existent changeTypes
   Object.keys(packageChangeTypes).forEach(packageName => {
@@ -36,7 +39,7 @@ export function gatherBumpInfo(cwd: string) {
 
 export function performBump(
   bumpInfo: {
-    changes: ChangeInfo[];
+    changes: ChangeSet;
     packageInfos: ReturnType<typeof getPackageInfos>;
     packageChangeTypes: ReturnType<typeof getPackageChangeTypes>;
   },
