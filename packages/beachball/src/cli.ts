@@ -24,11 +24,17 @@ let args = parser(argv, {
     help: ['h', '?'],
     yes: ['y'],
     package: ['p'],
+    version: ['v'],
   },
 });
 
 if (args.help) {
   showHelp();
+  process.exit(0);
+}
+
+if (args.version) {
+  showVersion();
   process.exit(0);
 }
 
@@ -54,6 +60,7 @@ const options: CliOptions = {
   changehint: args.changehint || 'Run "beachball change" to create a change file',
   type: args.type || null,
   fetch: args.fetch !== false,
+  version: args.version === true || false,
 };
 
 (async () => {
@@ -122,11 +129,15 @@ const options: CliOptions = {
   }
 })();
 
-function showHelp() {
+function showVersion() {
   const packageJson = require('../package.json');
-  console.log(`beachball v${packageJson.version} - the sunniest version bumping tool
+  console.log(`beachball v${packageJson.version} - the sunniest version bumping tool`);
+}
 
-Prerequisites:
+function showHelp() {
+  showVersion();
+
+  console.log(`Prerequisites:
 
   git and a remote named "origin"
 

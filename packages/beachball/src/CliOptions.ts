@@ -14,4 +14,5 @@ export interface CliOptions {
   package: string;
   changehint: string;
   type?: 'patch' | 'minor' | 'major' | 'prerelease' | null;
+  version?: boolean;
 }
