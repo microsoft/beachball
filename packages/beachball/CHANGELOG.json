@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 04 Nov 2019 23:56:08 GMT",
+      "tag": "beachball_v1.14.3",
+      "version": "1.14.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "deletes none type change files",
+            "author": "kchau@microsoft.com",
+            "commit": "979cd078441993ad8b0ad5617003c9e204f47679"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 23 Oct 2019 17:32:05 GMT",
       "tag": "beachball_v1.14.2",
       "version": "1.14.2",
