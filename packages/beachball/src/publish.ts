@@ -19,6 +19,11 @@ export function publishToRegistry(bumpInfo: BumpInfo, options: CliOptions) {
 
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
+    const changeType = bumpInfo.packageChangeTypes[pkg];
+
+    if (changeType === 'none') {
+      return;
+    }
 
     if (!packageInfo.private) {
       console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
@@ -200,9 +205,10 @@ function createTag(tag: string, cwd: string) {
 function tagPackages(bumpInfo: BumpInfo, tag: string, cwd: string) {
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
+    const changeType = bumpInfo.packageChangeTypes[pkg];
 
-    // Skip tagging for private packages
-    if (packageInfo.private) {
+    // Do not tag change type of "none" or private packages
+    if (changeType === 'none' || packageInfo.private) {
       return;
     }
 
@@ -222,9 +228,10 @@ function validatePackageVersions(bumpInfo: BumpInfo, registry: string) {
 
   Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
+    const changeType = bumpInfo.packageChangeTypes[pkg];
 
-    // Ignore private packages
-    if (packageInfo.private) {
+    // Ignore private packages or change type "none" packages
+    if (changeType === 'none' || packageInfo.private) {
       return;
     }
 
