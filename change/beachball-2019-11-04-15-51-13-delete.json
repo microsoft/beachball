@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "deletes none type change files",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "979cd078441993ad8b0ad5617003c9e204f47679",
+  "date": "2019-11-04T23:51:13.367Z"
+}
