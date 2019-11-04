@@ -56,6 +56,11 @@ export function performBump(
       return;
     }
 
+    if (packageChangeTypes[pkgName] === 'none') {
+      console.log(`"${pkgName}" has a "none" change type, no version bump is required.`);
+      return;
+    }
+
     if (info.private) {
       console.log(`Skipping bumping private package "${pkgName}"`);
       return;

@@ -217,10 +217,6 @@ export function getPackageChangeTypes(changeSet: ChangeSet) {
   for (let [_, change] of changeSet) {
     const { packageName } = change;
 
-    if (change.type === 'none') {
-      continue;
-    }
-
     if (
       !changePerPackage[packageName] ||
       changeTypeWeights[change.type] > changeTypeWeights[changePerPackage[packageName]]
