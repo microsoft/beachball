@@ -3,13 +3,16 @@ import { getPackageInfos } from './monorepo';
 import { writeChangelog } from './changelog';
 import fs from 'fs';
 import semver from 'semver';
-import { ChangeSet } from './ChangeInfo';
+import { ChangeSet, ChangeType } from './ChangeInfo';
+import { PackageInfo } from './PackageInfo';
 
-export { PackageInfo } from './PackageInfo';
+export type BumpInfo = {
+  changes: ChangeSet;
+  packageInfos: { [pkgName: string]: PackageInfo };
+  packageChangeTypes: { [pkgName: string]: ChangeType };
+};
 
-export type BumpInfo = ReturnType<typeof bump>;
-
-export function gatherBumpInfo(cwd: string) {
+export function gatherBumpInfo(cwd: string): BumpInfo {
   // Collate the changes per package
   const changes = readChangeFiles(cwd);
   const packageChangeTypes = getPackageChangeTypes(changes);
@@ -38,13 +41,9 @@ export function gatherBumpInfo(cwd: string) {
 }
 
 export function performBump(
-  bumpInfo: {
-    changes: ChangeSet;
-    packageInfos: ReturnType<typeof getPackageInfos>;
-    packageChangeTypes: ReturnType<typeof getPackageChangeTypes>;
-  },
+  bumpInfo: BumpInfo,
   cwd: string
-) {
+): BumpInfo {
   const { changes, packageInfos, packageChangeTypes } = bumpInfo;
 
   // Apply package.json version updates

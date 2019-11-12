@@ -1,8 +1,8 @@
-import { PackageInfo } from './bump';
 import path from 'path';
 import fs from 'fs';
 import { generateTag } from './tag';
-import { ChangeInfo, ChangeSet } from './ChangeInfo';
+import { ChangeSet } from './ChangeInfo';
+import { PackageInfo } from './PackageInfo';
 
 interface ChangelogEntry {
   comment: string;

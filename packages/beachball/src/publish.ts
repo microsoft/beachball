@@ -1,4 +1,4 @@
-import { bump, BumpInfo, performBump, gatherBumpInfo } from './bump';
+import { BumpInfo, performBump, gatherBumpInfo } from './bump';
 import { CliOptions } from './CliOptions';
 import { git, gitFailFast, revertLocalChanges, parseRemoteBranch, getBranchName } from './git';
 import { packagePublish, listPackageVersions } from './packageManager';

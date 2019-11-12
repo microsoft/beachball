@@ -1,4 +1,4 @@
-import { PackageInfo } from './bump';
+import { PackageInfo } from './PackageInfo';
 import { spawnSync } from 'child_process';
 import os from 'os';
 import path from 'path';
