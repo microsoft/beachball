@@ -41,6 +41,7 @@ describe('publish command', () => {
       message: 'apply package updates',
       path: repo.rootPath,
       publish: false,
+      bumpDeps: false,
       push: true,
       registry: 'http://localhost:99999/',
       tag: 'latest',
@@ -93,6 +94,7 @@ describe('publish command', () => {
       message: 'apply package updates',
       path: repo1.rootPath,
       publish: false,
+      bumpDeps: false,
       push: true,
       registry: 'http://localhost:99999/',
       tag: 'latest',
@@ -137,5 +139,5 @@ describe('publish command', () => {
       fs.readFileSync(path.join(newChangePath, changeFiles[0]), 'utf-8')
     );
     expect(changeFileContent.packageName).toBe('foo2');
-  });
+  }, 30000);
 });
