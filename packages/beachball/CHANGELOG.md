@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 04 Nov 2019 23:56:08 GMT and should not be manually modified.
+This log was last generated on Wed, 13 Nov 2019 23:31:43 GMT and should not be manually modified.
 
+## 1.15.0
+Wed, 13 Nov 2019 23:31:43 GMT
+
+### Minor changes
+
+- Add --bump-deps flag to bump all dependent packages (rezha@microsoft.com)
 ## 1.14.3
 Mon, 04 Nov 2019 23:56:08 GMT
 

@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 13 Nov 2019 23:31:43 GMT",
+      "tag": "beachball_v1.15.0",
+      "version": "1.15.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add --bump-deps flag to bump all dependent packages",
+            "author": "rezha@microsoft.com",
+            "commit": "134d94a729dcc5d67bf8901ade19fca44a8b5a6a"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 04 Nov 2019 23:56:08 GMT",
       "tag": "beachball_v1.14.3",
       "version": "1.14.3",
