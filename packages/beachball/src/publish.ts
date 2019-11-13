@@ -17,7 +17,12 @@ export function publishToRegistry(bumpInfo: BumpInfo, options: CliOptions) {
     process.exit(1);
   }
 
-  Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
+  let packagesToPublish: string[] = Object.keys(bumpInfo.packageChangeTypes);
+  if (bumpInfo.bumpedDependents) {
+    packagesToPublish = packagesToPublish.concat(bumpInfo.bumpedDependents);
+  }
+
+  packagesToPublish.forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     const changeType = bumpInfo.packageChangeTypes[pkg];
 

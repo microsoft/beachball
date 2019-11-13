@@ -10,6 +10,7 @@ export type BumpInfo = {
   changes: ChangeSet;
   packageInfos: { [pkgName: string]: PackageInfo };
   packageChangeTypes: { [pkgName: string]: ChangeType };
+  bumpedDependents?: string[];
 };
 
 export function gatherBumpInfo(cwd: string): BumpInfo {
@@ -44,7 +45,7 @@ export function performBump(
   bumpInfo: BumpInfo,
   cwd: string,
   bumpDeps: boolean
-): BumpInfo {
+) {
   const { changes, packageInfos, packageChangeTypes } = bumpInfo;
 
   // Apply package.json version updates
@@ -82,6 +83,7 @@ export function performBump(
   // If --bump-deps is set, update all dependent package.json's
   if (bumpDeps) {
     const bumpedPackages = Object.keys(packageChangeTypes);
+    const bumpedDependents: string[] = [];
     let bumpedFlag = false;
 
     do {
@@ -103,12 +105,15 @@ export function performBump(
             fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
 
             bumpedPackages.push(pkgName);
+            bumpedDependents.push(pkgName);
             bumpedFlag = true;
             break;
           }
         }
       });
     } while (bumpedFlag);
+
+    bumpInfo.bumpedDependents = bumpedDependents;
   }
 
   // Apply package dependency bumps, make sure to also write out to private package package.json's
@@ -145,12 +150,6 @@ export function performBump(
 
   // Unlink changelogs
   unlinkChangeFiles(changes, packageInfos, cwd);
-
-  return {
-    changes,
-    packageChangeTypes,
-    packageInfos,
-  };
 }
 
 export function bump(cwd: string, bumpDeps: boolean) {
