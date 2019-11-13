@@ -9,7 +9,7 @@ import { getPackageChangeTypes, readChangeFiles } from './changefile';
 export function publishToRegistry(bumpInfo: BumpInfo, options: CliOptions) {
   const { path: cwd, registry, tag, token, access } = options;
 
-  performBump(bumpInfo, cwd);
+  performBump(bumpInfo, cwd, options.bumpDeps);
 
   if (!validatePackageVersions(bumpInfo, registry)) {
     displayManualRecovery(bumpInfo);
@@ -66,7 +66,7 @@ export function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: 
 
   // bump the version
   console.log('Bumping the versions for git push');
-  performBump(bumpInfo, cwd);
+  performBump(bumpInfo, cwd, options.bumpDeps);
 
   // checkin
   const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);

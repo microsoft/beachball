@@ -42,7 +42,8 @@ export function gatherBumpInfo(cwd: string): BumpInfo {
 
 export function performBump(
   bumpInfo: BumpInfo,
-  cwd: string
+  cwd: string,
+  bumpDeps: boolean
 ): BumpInfo {
   const { changes, packageInfos, packageChangeTypes } = bumpInfo;
 
@@ -78,11 +79,44 @@ export function performBump(
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
   });
 
+  // If --bump-deps is set, update all dependent package.json's
+  if (bumpDeps) {
+    const bumpedPackages = Object.keys(packageChangeTypes);
+    let bumpedFlag = false;
+
+    do {
+      bumpedFlag = false;
+      Object.keys(packageInfos).forEach(pkgName => {
+        if (bumpedPackages.includes(pkgName)) {
+          return;
+        }
+
+        const info = packageInfos[pkgName];
+        const packageJsonPath = info.packageJsonPath;
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
+
+        const allDeps = { ...packageJson.dependencies, ...packageJson.devDependencies };
+        for (const dep of Object.keys(allDeps)) {
+          if (bumpedPackages.includes(dep)) {
+            packageJson.version = semver.inc(packageJson.version, "patch");
+            info.version = packageJson.version;
+            fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+
+            bumpedPackages.push(pkgName);
+            bumpedFlag = true;
+            break;
+          }
+        }
+      });
+    } while (bumpedFlag);
+  }
+
   // Apply package dependency bumps, make sure to also write out to private package package.json's
   Object.keys(packageInfos).forEach(pkgName => {
     const info = packageInfos[pkgName];
     const packageJsonPath = info.packageJsonPath;
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
+    let packageJsonChanged = false;
 
     ['dependencies', 'devDependencies'].forEach(depKind => {
       if (packageJson[depKind]) {
@@ -91,13 +125,19 @@ export function performBump(
 
           if (packageInfo) {
             const existingVersionRange = packageJson[depKind][dep];
-            packageJson[depKind][dep] = bumpMinSemverRange(packageInfo.version, existingVersionRange);
+            const bumpedVersionRange = bumpMinSemverRange(packageInfo.version, existingVersionRange);
+            if (existingVersionRange !== bumpedVersionRange) {
+              packageJson[depKind][dep] = bumpedVersionRange;
+              packageJsonChanged = true;
+            }
           }
         });
       }
     });
 
-    fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+    if (packageJsonChanged) {
+      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+    }
   });
 
   // Generate changelog
@@ -113,8 +153,8 @@ export function performBump(
   };
 }
 
-export function bump(cwd: string) {
-  return performBump(gatherBumpInfo(cwd), cwd);
+export function bump(cwd: string, bumpDeps: boolean) {
+  return performBump(gatherBumpInfo(cwd), cwd, bumpDeps);
 }
 
 function bumpMinSemverRange(minVersion: string, semverRange: string) {
