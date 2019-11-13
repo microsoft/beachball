@@ -139,5 +139,5 @@ describe('publish command', () => {
       fs.readFileSync(path.join(newChangePath, changeFiles[0]), 'utf-8')
     );
     expect(changeFileContent.packageName).toBe('foo2');
-  }, 30000);
+  });
 });
