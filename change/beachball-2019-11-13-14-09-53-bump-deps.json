@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "Add --bump-deps flag to bump all dependent packages",
+  "packageName": "beachball",
+  "email": "rezha@microsoft.com",
+  "commit": "134d94a729dcc5d67bf8901ade19fca44a8b5a6a",
+  "date": "2019-11-13T22:09:53.152Z"
+}
