@@ -50,6 +50,7 @@ const options: CliOptions = {
   message: args.message || '',
   path: cwd,
   publish: args.publish === false ? false : true,
+  bumpDeps: args.bumpDeps === false ? false: true,
   push: args.push === false ? false : true,
   registry: args.registry || 'https://registry.npmjs.org/',
   tag: args.tag,
@@ -110,7 +111,7 @@ const options: CliOptions = {
       break;
 
     case 'bump':
-      bump(options.path);
+      bump(options.path, options.bumpDeps);
       break;
 
     default:

@@ -1,4 +1,4 @@
-import { bump, BumpInfo, performBump, gatherBumpInfo } from './bump';
+import { BumpInfo, performBump, gatherBumpInfo } from './bump';
 import { CliOptions } from './CliOptions';
 import { git, gitFailFast, revertLocalChanges, parseRemoteBranch, getBranchName } from './git';
 import { packagePublish, listPackageVersions } from './packageManager';
@@ -9,7 +9,7 @@ import { getPackageChangeTypes, readChangeFiles } from './changefile';
 export function publishToRegistry(bumpInfo: BumpInfo, options: CliOptions) {
   const { path: cwd, registry, tag, token, access } = options;
 
-  performBump(bumpInfo, cwd);
+  performBump(bumpInfo, cwd, options.bumpDeps);
 
   if (!validatePackageVersions(bumpInfo, registry)) {
     displayManualRecovery(bumpInfo);
@@ -17,7 +17,7 @@ export function publishToRegistry(bumpInfo: BumpInfo, options: CliOptions) {
     process.exit(1);
   }
 
-  Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
+  getBumpedPackages(bumpInfo).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     const changeType = bumpInfo.packageChangeTypes[pkg];
 
@@ -66,7 +66,7 @@ export function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: 
 
   // bump the version
   console.log('Bumping the versions for git push');
-  performBump(bumpInfo, cwd);
+  performBump(bumpInfo, cwd, options.bumpDeps);
 
   // checkin
   const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
@@ -164,10 +164,18 @@ export async function publish(options: CliOptions) {
   }
 }
 
+function getBumpedPackages(bumpInfo: BumpInfo): string[] {
+  let bumpedPackages: string[] = Object.keys(bumpInfo.packageChangeTypes);
+  if (bumpInfo.bumpedDependents) {
+    bumpedPackages = bumpedPackages.concat(bumpInfo.bumpedDependents);
+  }
+  return bumpedPackages;
+}
+
 function displayManualRecovery(bumpInfo: BumpInfo) {
   console.error('Something went wrong with the publish! Manually update these package and versions:');
 
-  Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
+  getBumpedPackages(bumpInfo).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     console.error(`- ${packageInfo.name}@${packageInfo.version}`);
   });
@@ -203,7 +211,7 @@ function createTag(tag: string, cwd: string) {
 }
 
 function tagPackages(bumpInfo: BumpInfo, tag: string, cwd: string) {
-  Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
+  getBumpedPackages(bumpInfo).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     const changeType = bumpInfo.packageChangeTypes[pkg];
 
@@ -226,7 +234,7 @@ function tagPackages(bumpInfo: BumpInfo, tag: string, cwd: string) {
 function validatePackageVersions(bumpInfo: BumpInfo, registry: string) {
   let hasErrors: boolean = false;
 
-  Object.keys(bumpInfo.packageChangeTypes).forEach(pkg => {
+  getBumpedPackages(bumpInfo).forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     const changeType = bumpInfo.packageChangeTypes[pkg];
 

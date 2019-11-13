@@ -3,13 +3,17 @@ import { getPackageInfos } from './monorepo';
 import { writeChangelog } from './changelog';
 import fs from 'fs';
 import semver from 'semver';
-import { ChangeSet } from './ChangeInfo';
+import { ChangeSet, ChangeType } from './ChangeInfo';
+import { PackageInfo } from './PackageInfo';
 
-export { PackageInfo } from './PackageInfo';
+export type BumpInfo = {
+  changes: ChangeSet;
+  packageInfos: { [pkgName: string]: PackageInfo };
+  packageChangeTypes: { [pkgName: string]: ChangeType };
+  bumpedDependents?: string[];
+};
 
-export type BumpInfo = ReturnType<typeof bump>;
-
-export function gatherBumpInfo(cwd: string) {
+export function gatherBumpInfo(cwd: string): BumpInfo {
   // Collate the changes per package
   const changes = readChangeFiles(cwd);
   const packageChangeTypes = getPackageChangeTypes(changes);
@@ -38,12 +42,9 @@ export function gatherBumpInfo(cwd: string) {
 }
 
 export function performBump(
-  bumpInfo: {
-    changes: ChangeSet;
-    packageInfos: ReturnType<typeof getPackageInfos>;
-    packageChangeTypes: ReturnType<typeof getPackageChangeTypes>;
-  },
-  cwd: string
+  bumpInfo: BumpInfo,
+  cwd: string,
+  bumpDeps: boolean
 ) {
   const { changes, packageInfos, packageChangeTypes } = bumpInfo;
 
@@ -79,11 +80,48 @@ export function performBump(
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
   });
 
+  // If --bump-deps is set, update all dependent package.json's
+  if (bumpDeps) {
+    const bumpedPackages = Object.keys(packageChangeTypes);
+    const bumpedDependents: string[] = [];
+    let bumpedFlag = false;
+
+    do {
+      bumpedFlag = false;
+      Object.keys(packageInfos).forEach(pkgName => {
+        if (bumpedPackages.includes(pkgName)) {
+          return;
+        }
+
+        const info = packageInfos[pkgName];
+        const packageJsonPath = info.packageJsonPath;
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
+
+        const allDeps = { ...packageJson.dependencies, ...packageJson.devDependencies };
+        for (const dep of Object.keys(allDeps)) {
+          if (bumpedPackages.includes(dep)) {
+            packageJson.version = semver.inc(packageJson.version, "patch");
+            info.version = packageJson.version;
+            fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+
+            bumpedPackages.push(pkgName);
+            bumpedDependents.push(pkgName);
+            bumpedFlag = true;
+            break;
+          }
+        }
+      });
+    } while (bumpedFlag);
+
+    bumpInfo.bumpedDependents = bumpedDependents;
+  }
+
   // Apply package dependency bumps, make sure to also write out to private package package.json's
   Object.keys(packageInfos).forEach(pkgName => {
     const info = packageInfos[pkgName];
     const packageJsonPath = info.packageJsonPath;
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
+    let packageJsonChanged = false;
 
     ['dependencies', 'devDependencies'].forEach(depKind => {
       if (packageJson[depKind]) {
@@ -92,13 +130,19 @@ export function performBump(
 
           if (packageInfo) {
             const existingVersionRange = packageJson[depKind][dep];
-            packageJson[depKind][dep] = bumpMinSemverRange(packageInfo.version, existingVersionRange);
+            const bumpedVersionRange = bumpMinSemverRange(packageInfo.version, existingVersionRange);
+            if (existingVersionRange !== bumpedVersionRange) {
+              packageJson[depKind][dep] = bumpedVersionRange;
+              packageJsonChanged = true;
+            }
           }
         });
       }
     });
 
-    fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+    if (packageJsonChanged) {
+      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+    }
   });
 
   // Generate changelog
@@ -106,16 +150,10 @@ export function performBump(
 
   // Unlink changelogs
   unlinkChangeFiles(changes, packageInfos, cwd);
-
-  return {
-    changes,
-    packageChangeTypes,
-    packageInfos,
-  };
 }
 
-export function bump(cwd: string) {
-  return performBump(gatherBumpInfo(cwd), cwd);
+export function bump(cwd: string, bumpDeps: boolean) {
+  return performBump(gatherBumpInfo(cwd), cwd, bumpDeps);
 }
 
 function bumpMinSemverRange(minVersion: string, semverRange: string) {
