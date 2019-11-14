@@ -33,5 +33,15 @@ describe('validation', () => {
       const result = isChangeFileNeeded('origin/master', repository.rootPath, false);
       expect(result).toBeFalsy();
     });
+
+    it('throws if the remote is invalid', async () => {
+      await repository.setRemoteUrl('origin', 'file:///__nonexistent');
+      await repository.branch('feature-0');
+      await repository.commitChange('CHANGELOG.md');
+
+      expect(() => {
+        isChangeFileNeeded('origin/master', repository.rootPath, true);
+      }).toThrow();
+    });
   });
 });

@@ -169,4 +169,14 @@ export class Repository {
 
     await removeAsync(this.root.name);
   }
+
+  /**
+   * Set to invalid root
+   */
+  async setRemoteUrl(remote: string, remoteUrl: string) {
+    if (!this.root) {
+      throw new Error('Must initialize before change remote url');
+    }
+    await runInDirectory(this.root.name, [`git remote set-url ${remote} ${remoteUrl}`]);
+  }
 }
