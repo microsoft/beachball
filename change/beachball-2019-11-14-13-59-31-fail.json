@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "catch eerrors throw and make sure we exit with a real status code",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "09f66b7836ff2618a535cc33d80c432c8a18c38c",
+  "date": "2019-11-14T21:59:31.428Z"
+}
