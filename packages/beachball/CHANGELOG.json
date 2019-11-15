@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 15 Nov 2019 20:01:55 GMT",
+      "tag": "beachball_v1.15.1",
+      "version": "1.15.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "catch eerrors throw and make sure we exit with a real status code",
+            "author": "kchau@microsoft.com",
+            "commit": "09f66b7836ff2618a535cc33d80c432c8a18c38c"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 13 Nov 2019 23:31:43 GMT",
       "tag": "beachball_v1.15.0",
       "version": "1.15.0",

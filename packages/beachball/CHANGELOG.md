@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 13 Nov 2019 23:31:43 GMT and should not be manually modified.
+This log was last generated on Fri, 15 Nov 2019 20:01:55 GMT and should not be manually modified.
 
+## 1.15.1
+Fri, 15 Nov 2019 20:01:55 GMT
+
+### Patches
+
+- catch eerrors throw and make sure we exit with a real status code (kchau@microsoft.com)
 ## 1.15.0
 Wed, 13 Nov 2019 23:31:43 GMT
 
