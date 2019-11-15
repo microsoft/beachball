@@ -50,7 +50,7 @@ const options: CliOptions = {
   message: args.message || '',
   path: cwd,
   publish: args.publish === false ? false : true,
-  bumpDeps: args.bumpDeps === false ? false: true,
+  bumpDeps: args.bumpDeps === false ? false : true,
   push: args.push === false ? false : true,
   registry: args.registry || 'https://registry.npmjs.org/',
   tag: args.tag,
@@ -128,7 +128,13 @@ const options: CliOptions = {
 
       break;
   }
-})();
+})().catch(e => {
+  showVersion();
+  console.error('An error has been detected while running beachball!');
+  console.error(e);
+
+  process.exit(1);
+});
 
 function showVersion() {
   const packageJson = require('../package.json');
