@@ -11,6 +11,10 @@ import { ChangeInfo } from '../ChangeInfo';
 describe('publish command', () => {
   let repositoryFactory: RepositoryFactory;
 
+  beforeAll(() => {
+    jest.setTimeout(30000);
+  })
+
   beforeEach(async () => {
     repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
