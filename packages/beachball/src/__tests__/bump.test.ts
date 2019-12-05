@@ -41,6 +41,17 @@ describe('version bumping', () => {
     );
 
     await repo.commitChange(
+      'packages/pkg-4/package.json',
+      JSON.stringify({
+        name: 'pkg-4',
+        version: '1.0.0',
+        peerDependencies: {
+          'pkg-3': '1.0.0'
+        }
+      })
+    );
+
+    await repo.commitChange(
       'package.json',
       JSON.stringify({
         name: 'foo-repo',
@@ -75,6 +86,7 @@ describe('version bumping', () => {
 
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe('1.1.0');
     expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe('1.0.0');
+    expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe('1.0.0');
   });
 
   it('bumps all dependent packages with `bumpDeps` flag', async () => {
@@ -108,6 +120,17 @@ describe('version bumping', () => {
         version: '1.0.0',
         devDependencies: {
           'pkg-2': '1.0.0'
+        }
+      })
+    );
+
+    await repo.commitChange(
+      'packages/pkg-4/package.json',
+      JSON.stringify({
+        name: 'pkg-4',
+        version: '1.0.0',
+        peerDependencies: {
+          'pkg-3': '1.0.0'
         }
       })
     );
@@ -147,5 +170,6 @@ describe('version bumping', () => {
 
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe('1.1.0');
     expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe('1.0.1');
+    expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe('1.0.1');
   });
 });

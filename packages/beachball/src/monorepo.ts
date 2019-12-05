@@ -20,6 +20,7 @@ function infoFromPackageJson(
     version: string;
     dependencies?: { [dep: string]: string };
     devDependencies?: { [dep: string]: string };
+    peerDependencies?: { [dep: string]: string };
     beachball?: BeachBallPackageConfig;
     private?: boolean;
   },
@@ -31,6 +32,7 @@ function infoFromPackageJson(
     packageJsonPath,
     dependencies: packageJson.dependencies,
     devDependencies: packageJson.devDependencies,
+    peerDependencies: packageJson.peerDependencies,
     disallowedChangeTypes:
       packageJson.beachball && packageJson.beachball.disallowedChangeTypes
         ? packageJson.beachball.disallowedChangeTypes

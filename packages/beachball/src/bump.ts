@@ -97,7 +97,7 @@ export function performBump(
         const packageJsonPath = info.packageJsonPath;
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
 
-        const allDeps = { ...packageJson.dependencies, ...packageJson.devDependencies };
+        const allDeps = { ...packageJson.dependencies, ...packageJson.devDependencies, ...packageJson.peerDependencies };
         for (const dep of Object.keys(allDeps)) {
           if (bumpedPackages.includes(dep)) {
             packageJson.version = semver.inc(packageJson.version, "patch");
@@ -123,7 +123,7 @@ export function performBump(
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
     let packageJsonChanged = false;
 
-    ['dependencies', 'devDependencies'].forEach(depKind => {
+    ['dependencies', 'devDependencies', 'peerDependencies'].forEach(depKind => {
       if (packageJson[depKind]) {
         Object.keys(packageJson[depKind]).forEach(dep => {
           const packageInfo = packageInfos[dep];
