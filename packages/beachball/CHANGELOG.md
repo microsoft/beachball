@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 15 Nov 2019 20:01:55 GMT and should not be manually modified.
+This log was last generated on Thu, 05 Dec 2019 00:40:40 GMT and should not be manually modified.
 
+## 1.16.0
+Thu, 05 Dec 2019 00:40:40 GMT
+
+### Minor changes
+
+- Bump peerDependencies (rezha@microsoft.com)
 ## 1.15.1
 Fri, 15 Nov 2019 20:01:55 GMT
 

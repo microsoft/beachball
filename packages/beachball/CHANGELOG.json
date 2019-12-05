@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 05 Dec 2019 00:40:40 GMT",
+      "tag": "beachball_v1.16.0",
+      "version": "1.16.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Bump peerDependencies",
+            "author": "rezha@microsoft.com",
+            "commit": "db97eb0aa7067a166b0b147ff5f8306459e1b940"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 15 Nov 2019 20:01:55 GMT",
       "tag": "beachball_v1.15.1",
       "version": "1.15.1",
