@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "adding ability to have config files",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "d8350f4ef0758ccf185066d9694dbe024f4ca666",
+  "date": "2019-12-10T06:52:30.424Z"
+}
