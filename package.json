@@ -17,7 +17,7 @@
     "pub": "node ./packages/beachball/lib/cli.js publish"
   },
   "devDependencies": {
-    "lerna": "^3.13.2",
+    "lerna": "^3.19.0",
     "rimraf": "^2.6.3",
     "ncp": "^2.0.0"
   },
