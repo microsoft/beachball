@@ -1,12 +1,12 @@
 import { BumpInfo, performBump, gatherBumpInfo } from './bump';
-import { CliOptions } from './CliOptions';
+import { BeachballOptions } from './BeachballOptions';
 import { git, gitFailFast, revertLocalChanges, parseRemoteBranch, getBranchName } from './git';
 import { packagePublish, listPackageVersions } from './packageManager';
 import prompts from 'prompts';
 import { generateTag } from './tag';
 import { getPackageChangeTypes, readChangeFiles } from './changefile';
 
-export function publishToRegistry(bumpInfo: BumpInfo, options: CliOptions) {
+export function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions) {
   const { path: cwd, registry, tag, token, access } = options;
 
   performBump(bumpInfo, cwd, options.bumpDeps);
@@ -46,7 +46,7 @@ export function publishToRegistry(bumpInfo: BumpInfo, options: CliOptions) {
   return;
 }
 
-export function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: CliOptions) {
+export function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: BeachballOptions) {
   const { path: cwd, branch, tag, message } = options;
   const { remote, remoteBranch } = parseRemoteBranch(branch);
 
@@ -96,7 +96,7 @@ export function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: 
   }
 }
 
-export async function publish(options: CliOptions) {
+export async function publish(options: BeachballOptions) {
   const { path: cwd, branch, registry, tag, message } = options;
 
   // First, validate that we have changes to publish

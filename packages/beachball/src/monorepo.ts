@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { listAllTrackedFiles } from './git';
 import { PackageInfo } from './PackageInfo';
+import { getPackageOptions } from './options';
 
 interface BeachBallPackageConfig {
   defaultNpmTag?: string;
@@ -33,13 +34,8 @@ function infoFromPackageJson(
     dependencies: packageJson.dependencies,
     devDependencies: packageJson.devDependencies,
     peerDependencies: packageJson.peerDependencies,
-    disallowedChangeTypes:
-      packageJson.beachball && packageJson.beachball.disallowedChangeTypes
-        ? packageJson.beachball.disallowedChangeTypes
-        : [],
-    defaultNpmTag:
-      packageJson.beachball && packageJson.beachball.defaultNpmTag ? packageJson.beachball.defaultNpmTag : 'latest',
     private: packageJson.private !== undefined ? packageJson.private : false,
+    options: getPackageOptions(path.dirname(packageJsonPath)),
   };
 }
 

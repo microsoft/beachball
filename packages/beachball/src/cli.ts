@@ -1,7 +1,5 @@
 import { bump } from './bump';
-import { CliOptions } from './CliOptions';
-import { findGitRoot } from './paths';
-import { getUntrackedChanges, getDefaultRemoteBranch } from './git';
+import { getUntrackedChanges } from './git';
 import {
   isChangeFileNeeded as checkChangeFileNeeded,
   isGitAvailable,
@@ -10,63 +8,23 @@ import {
 } from './validation';
 import { promptForChange, writeChangeFiles } from './changefile';
 import { publish } from './publish';
-import parser from 'yargs-parser';
-
-let argv = process.argv.splice(2);
-let args = parser(argv, {
-  string: ['branch', 'tag', 'message', 'package'],
-  alias: {
-    branch: ['b'],
-    tag: ['t'],
-    registry: ['r'],
-    message: ['m'],
-    token: ['n'],
-    help: ['h', '?'],
-    yes: ['y'],
-    package: ['p'],
-    version: ['v'],
-  },
-});
-
-if (args.help) {
-  showHelp();
-  process.exit(0);
-}
-
-if (args.version) {
-  showVersion();
-  process.exit(0);
-}
-
-const defaultCommand = 'change';
-const cwd = findGitRoot(process.cwd()) || process.cwd();
-
-const branch = args.branch && args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd);
-console.log(`Target branch is "${branch}"`);
-
-const options: CliOptions = {
-  branch,
-  command: args._.length === 0 ? defaultCommand : args._[0],
-  message: args.message || '',
-  path: cwd,
-  publish: args.publish === false ? false : true,
-  bumpDeps: args.bumpDeps === false ? false : true,
-  push: args.push === false ? false : true,
-  registry: args.registry || 'https://registry.npmjs.org/',
-  tag: args.tag,
-  token: args.token || '',
-  yes: args.yes === true || false,
-  access: args.access || 'restricted',
-  package: args.package || '',
-  changehint: args.changehint || 'Run "beachball change" to create a change file',
-  type: args.type || null,
-  fetch: args.fetch !== false,
-  version: args.version === true || false,
-};
+import { showVersion, showHelp } from './help';
+import { getOptions } from './options';
 
 (async () => {
-  // Validation Steps
+  const options = getOptions();
 
+  if (options.help) {
+    showHelp();
+    process.exit(0);
+  }
+
+  if (options.version) {
+    showVersion();
+    process.exit(0);
+  }
+
+  // Validation Steps
   if (!isGitAvailable(options.path)) {
     console.error('ERROR: Please make sure git is installed and initialize the repository with "git init".');
     process.exit(1);
@@ -85,7 +43,6 @@ const options: CliOptions = {
   if (isChangeNeeded && options.command !== 'change') {
     console.error('ERROR: Change files are needed!');
     console.log(options.changehint);
-
     process.exit(1);
   }
 
@@ -99,6 +56,7 @@ const options: CliOptions = {
     process.exit(1);
   }
 
+  // Run the commands
   switch (options.command) {
     case 'check':
       console.log('No change files are needed');
@@ -135,50 +93,3 @@ const options: CliOptions = {
 
   process.exit(1);
 });
-
-function showVersion() {
-  const packageJson = require('../package.json');
-  console.log(`beachball v${packageJson.version} - the sunniest version bumping tool`);
-}
-
-function showHelp() {
-  showVersion();
-
-  console.log(`Prerequisites:
-
-  git and a remote named "origin"
-
-Usage:
-
-  beachball [command] [options]
-
-Commands:
-
-  change (default)    - a tool to help create change files in the change/ folder
-  check               - checks whether a change file is needed for this branch
-  changelog           - based on change files, create changelogs and then unlinks the change files
-  bump                - bumps versions as well as generating changelogs
-  publish             - bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into master
-
-Options:
-
-  --registry, -r      - registry, defaults to https://registry.npmjs.org
-  --tag, -t           - dist-tag for npm publishes
-  --branch, -b        - target branch from origin (default: master)
-  --message, -m       - for publish command: custom publish message for the checkin (default: applying package updates); 
-                        for change command: description of the change
-  --no-push           - skip pushing changes back to git remote origin
-  --no-publish        - skip publishing to the npm registry
-  --help, -?, -h      - this very help message
-  --yes, -y           - skips the prompts for publish
-  --package, -p       - manually specify a package to create a change file; creates a change file regardless of diffs
-  --changehint        - give your developers a customized hint message when they forget to add a change file
-
-Examples:
-
-  $ beachball
-  $ beachball check
-  $ beachball publish -r http://localhost:4873 -t beta -b beta
-
-`);
-}

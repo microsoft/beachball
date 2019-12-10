@@ -59,6 +59,8 @@ describe('publishToRegistry', () => {
       changehint: 'Run "beachball change" to create a change file',
       type: null,
       fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -134,6 +136,8 @@ describe('publishToRegistry', () => {
       changehint: 'Run "beachball change" to create a change file',
       type: null,
       fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foopkg', '--json']);
@@ -204,6 +208,8 @@ describe('publishToRegistry', () => {
       changehint: 'Run "beachball change" to create a change file',
       type: null,
       fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'badname', '--json']);
