@@ -74,9 +74,11 @@ export function getChangedPackages(branch: string, cwd: string, fetch: boolean) 
 
   if (changeFilePackageSet.size > 0) {
     console.log(
-      `Your local repository already has change files for these packages: ${[...changeFilePackageSet]
-        .sort()
-        .join(', ')}`
+      'Your local repository already has change files for these packages:' +
+        [...changeFilePackageSet]
+          .sort()
+          .map(pkg => `\n  ${pkg}`)
+          .join('')
     );
   }
 
