@@ -16,4 +16,5 @@ export interface CliOptions {
   changehint: string;
   type?: 'patch' | 'minor' | 'major' | 'prerelease' | null;
   version?: boolean;
+  disallowedChangeTypes?: 'patch' | 'minor' | 'major' | 'prerelease' | null;
 }

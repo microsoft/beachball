@@ -9,6 +9,7 @@ import { getPackageInfos } from './monorepo';
 import { prerelease } from 'semver';
 import { CliOptions } from './CliOptions';
 import { PackageInfo } from './PackageInfo';
+import { getPackageOptions } from './options';
 
 /**
  * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash
@@ -38,7 +39,12 @@ export async function promptForChange(options: CliOptions) {
         { value: 'minor', title: ' [1mMinor[22m      - small feature; backwards compatible changes.' },
         { value: 'none', title: ' [1mNone[22m       - this change does not affect the published package in any way.' },
         { value: 'major', title: ' [1mMajor[22m      - major feature; breaking changes.' },
-      ].filter(choice => !packageInfos[pkg].disallowedChangeTypes.includes(choice.value)),
+      ].filter(
+        choice =>
+          !getPackageOptions(path.dirname(packageInfos[pkg].packageJsonPath)).disallowedChangeTypes.includes(
+            choice.value
+          )
+      ),
     };
 
     if (changeTypePrompt.choices!.length === 0) {
