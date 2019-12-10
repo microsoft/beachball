@@ -7,9 +7,8 @@ import path from 'path';
 import prompts from 'prompts';
 import { getPackageInfos } from './monorepo';
 import { prerelease } from 'semver';
-import { RepoOptions, BeachballOptions } from './BeachballOptions';
+import { BeachballOptions } from './BeachballOptions';
 import { PackageInfo } from './PackageInfo';
-import { getPackageOptions } from './options';
 
 /**
  * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash

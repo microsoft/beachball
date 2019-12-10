@@ -4,10 +4,16 @@ import { RepoOptions, BeachballOptions, CliOptions, PackageOptions } from './Bea
 import { findGitRoot } from './paths';
 import { getDefaultRemoteBranch } from './git';
 
+/**
+ * Gets all repo level options (default + root options + cli options)
+ */
 export function getOptions(): BeachballOptions {
   return { ...getDefaultOptions(), ...getRootOptions(), ...getCliOptions() };
 }
 
+/**
+ * Gets all package level options (default + root options + package options + cli options)
+ */
 export function getPackageOptions(packagePath: string): PackageOptions {
   const configExplorer = cosmiconfigSync('beachball', { cache: false });
   const searchResults = configExplorer.search(packagePath);

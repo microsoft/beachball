@@ -1,5 +1,5 @@
 import { BumpInfo, performBump, gatherBumpInfo } from './bump';
-import { RepoOptions, BeachballOptions } from './BeachballOptions';
+import { BeachballOptions } from './BeachballOptions';
 import { git, gitFailFast, revertLocalChanges, parseRemoteBranch, getBranchName } from './git';
 import { packagePublish, listPackageVersions } from './packageManager';
 import prompts from 'prompts';
@@ -46,7 +46,7 @@ export function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions)
   return;
 }
 
-export function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: RepoOptions) {
+export function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: BeachballOptions) {
   const { path: cwd, branch, tag, message } = options;
   const { remote, remoteBranch } = parseRemoteBranch(branch);
 
