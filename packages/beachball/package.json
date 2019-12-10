@@ -42,7 +42,7 @@
     "remark-parse": "~7.0.1",
     "tmp": "^0.1.0",
     "ts-jest": "^24.0.2",
-    "typescript": "^3.5.1",
+    "typescript": "^3.7.3",
     "verdaccio": "^4.2.2",
     "verdaccio-memory": "^8.0.0",
     "unified": "^8.3.2",

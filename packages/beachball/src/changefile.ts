@@ -7,7 +7,7 @@ import path from 'path';
 import prompts from 'prompts';
 import { getPackageInfos } from './monorepo';
 import { prerelease } from 'semver';
-import { CliOptions } from './CliOptions';
+import { RepoOptions, BeachballOptions } from './BeachballOptions';
 import { PackageInfo } from './PackageInfo';
 import { getPackageOptions } from './options';
 
@@ -15,7 +15,7 @@ import { getPackageOptions } from './options';
  * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash
  * @param cwd
  */
-export async function promptForChange(options: CliOptions) {
+export async function promptForChange(options: BeachballOptions) {
   const { branch, path: cwd, package: specificPackage, fetch } = options;
 
   const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(branch, cwd, fetch);
@@ -28,6 +28,8 @@ export async function promptForChange(options: CliOptions) {
     console.log('');
     console.log(`Please describe the changes for: ${pkg}`);
 
+    const packageOptions = packageInfos[pkg].options;
+
     const showPrereleaseOption = prerelease(packageInfos[pkg].version);
     const changeTypePrompt: prompts.PromptObject<string> = {
       type: 'select',
@@ -39,12 +41,7 @@ export async function promptForChange(options: CliOptions) {
         { value: 'minor', title: ' [1mMinor[22m      - small feature; backwards compatible changes.' },
         { value: 'none', title: ' [1mNone[22m       - this change does not affect the published package in any way.' },
         { value: 'major', title: ' [1mMajor[22m      - major feature; breaking changes.' },
-      ].filter(
-        choice =>
-          !getPackageOptions(path.dirname(packageInfos[pkg].packageJsonPath)).disallowedChangeTypes.includes(
-            choice.value
-          )
-      ),
+      ].filter(choice => !packageOptions?.disallowedChangeTypes?.includes(choice.value as ChangeType)),
     };
 
     if (changeTypePrompt.choices!.length === 0) {
@@ -52,7 +49,7 @@ export async function promptForChange(options: CliOptions) {
       return;
     }
 
-    if (options.type && packageInfos[pkg].disallowedChangeTypes.includes(options.type)) {
+    if (options.type && packageOptions?.disallowedChangeTypes?.includes(options.type as ChangeType)) {
       console.log(`${options.type} type is not allowed, aborting`);
       return;
     }

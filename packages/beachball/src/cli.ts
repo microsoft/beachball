@@ -8,11 +8,21 @@ import {
 } from './validation';
 import { promptForChange, writeChangeFiles } from './changefile';
 import { publish } from './publish';
-import { showVersion } from './help';
+import { showVersion, showHelp } from './help';
 import { getOptions } from './options';
 
 (async () => {
   const options = getOptions();
+
+  if (options.help) {
+    showHelp();
+    process.exit(0);
+  }
+
+  if (options.version) {
+    showVersion();
+    process.exit(0);
+  }
 
   // Validation Steps
   if (!isGitAvailable(options.path)) {

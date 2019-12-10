@@ -1,12 +1,70 @@
 import { cosmiconfigSync } from 'cosmiconfig';
-
 import parser from 'yargs-parser';
-import { CliOptions } from './CliOptions';
+import { RepoOptions, BeachballOptions, CliOptions, PackageOptions } from './BeachballOptions';
 import { findGitRoot } from './paths';
 import { getDefaultRemoteBranch } from './git';
-import { showVersion, showHelp } from './help';
 
-export function getOptions() {
+export function getOptions(): BeachballOptions {
+  return { ...getDefaultOptions(), ...getRootOptions(), ...getCliOptions() };
+}
+
+export function getPackageOptions(packagePath: string): PackageOptions {
+  const configExplorer = cosmiconfigSync('beachball', { cache: false });
+  const searchResults = configExplorer.search(packagePath);
+
+  const defaultOptions = getDefaultOptions();
+  const rootOptions = getRootOptions();
+
+  return {
+    ...defaultOptions,
+    ...rootOptions,
+    ...(searchResults && searchResults.config),
+    ...getCliOptions(),
+  };
+}
+
+function getRootOptions(): RepoOptions {
+  const configExplorer = cosmiconfigSync('beachball');
+  const searchResults = configExplorer.search();
+
+  if (searchResults && searchResults.config) {
+    return searchResults.config;
+  }
+
+  return {} as RepoOptions;
+}
+
+function getDefaultOptions() {
+  return {
+    branch: 'origin/master',
+    command: 'change',
+    message: '',
+    publish: true,
+    bumpDeps: true,
+    push: true,
+    registry: 'https://registry.npmjs.org/',
+    token: '',
+    tag: '',
+    yes: false,
+    access: 'restricted',
+    package: '',
+    changehint: 'Run "beachball change" to create a change file',
+    type: null,
+    fetch: true,
+    version: false,
+    disallowedChangeTypes: null,
+    defaultNpmTag: 'latest',
+  } as BeachballOptions;
+}
+
+// CLI Options cache
+let cliOptions: CliOptions;
+
+function getCliOptions(): CliOptions {
+  if (cliOptions) {
+    return cliOptions;
+  }
+
   const argv = process.argv.splice(2);
   const args = parser(argv, {
     string: ['branch', 'tag', 'message', 'package'],
@@ -23,59 +81,16 @@ export function getOptions() {
     },
   });
 
-  if (args.help) {
-    showHelp();
-    process.exit(0);
-  }
+  const { _, restArgs } = args;
 
-  if (args.version) {
-    showVersion();
-    process.exit(0);
-  }
-
-  const defaultCommand = 'change';
   const cwd = findGitRoot(process.cwd()) || process.cwd();
 
-  const branch = args.branch && args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd);
-
-  console.log(`Target branch is "${branch}"`);
-
-  const options: CliOptions = {
-    branch,
-    command: args._.length === 0 ? defaultCommand : args._[0],
-    message: args.message || '',
+  cliOptions = {
+    ...(_.length === 0 && { command: _[0] }),
+    ...restArgs,
     path: cwd,
-    publish: args.publish === false ? false : true,
-    bumpDeps: args.bumpDeps === false ? false : true,
-    push: args.push === false ? false : true,
-    registry: args.registry || 'https://registry.npmjs.org/',
-    tag: args.tag,
-    token: args.token || '',
-    yes: args.yes === true || false,
-    access: args.access || 'restricted',
-    package: args.package || '',
-    changehint: args.changehint || 'Run "beachball change" to create a change file',
-    type: args.type || null,
-    fetch: args.fetch !== false,
-    version: args.version === true || false,
-  };
+    branch: args.branch && args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd),
+  } as CliOptions;
 
-  const configExplorer = cosmiconfigSync('beachball');
-  const searchResults = configExplorer.search();
-
-  if (searchResults && searchResults.config) {
-    return { ...searchResults.config, ...options };
-  }
-
-  return options;
-}
-
-export function getPackageOptions(packagePath: string) {
-  const options = getOptions();
-  const configExplorer = cosmiconfigSync('beachball');
-  const searchResults = configExplorer.search(packagePath);
-
-  if (searchResults && searchResults.config) {
-    return { ...searchResults.config, ...options };
-  }
+  return cliOptions;
 }

@@ -5,7 +5,7 @@ import fs from 'fs';
 import { writeChangeFiles } from '../changefile';
 import { git, gitFailFast } from '../git';
 import { gatherBumpInfo } from '../bump';
-import { CliOptions } from '../CliOptions';
+import { BeachballOptions } from '../BeachballOptions';
 import { ChangeInfo } from '../ChangeInfo';
 
 describe('publish command', () => {
@@ -13,7 +13,7 @@ describe('publish command', () => {
 
   beforeAll(() => {
     jest.setTimeout(30000);
-  })
+  });
 
   beforeEach(async () => {
     repositoryFactory = new RepositoryFactory();
@@ -56,6 +56,8 @@ describe('publish command', () => {
       changehint: 'Run "beachball change" to create a change file',
       type: null,
       fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
     });
 
     const newRepo = await repositoryFactory.cloneRepository();
@@ -92,7 +94,7 @@ describe('publish command', () => {
     console.log('Bumping version for npm publish');
     const bumpInfo = gatherBumpInfo(repo1.rootPath);
 
-    const options: CliOptions = {
+    const options: BeachballOptions = {
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -109,6 +111,8 @@ describe('publish command', () => {
       changehint: 'Run "beachball change" to create a change file',
       type: null,
       fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
     };
 
     // 3. Meanwhile, in repo2, also create a new change file
