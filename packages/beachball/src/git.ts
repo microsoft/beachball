@@ -14,15 +14,15 @@ export function git(args: string[], options?: { cwd: string }) {
 
   if (results.status === 0) {
     return {
-      stderr: results.stderr.toString().trim(),
-      stdout: results.stdout.toString().trim(),
-      success: true
+      stderr: results.stderr.toString().trimRight(),
+      stdout: results.stdout.toString().trimRight(),
+      success: true,
     };
   } else {
     return {
-      stderr: results.stderr.toString().trim(),
-      stdout: results.stdout.toString().trim(),
-      success: false
+      stderr: results.stderr.toString().trimRight(),
+      stdout: results.stdout.toString().trimRight(),
+      success: false,
     };
   }
 }
@@ -36,15 +36,15 @@ export function gitFailFast(args: string[], options?: { cwd: string }) {
   const gitResult = git(args, options);
   if (!gitResult.success) {
     console.error(`CRITICAL ERROR: running git command: git ${args.join(' ')}!`);
-    console.error(gitResult.stdout && gitResult.stdout.toString().trim());
-    console.error(gitResult.stderr && gitResult.stderr.toString().trim());
+    console.error(gitResult.stdout && gitResult.stdout.toString().trimRight());
+    console.error(gitResult.stderr && gitResult.stderr.toString().trimRight());
     process.exit(1);
   }
 }
 
-export function getUncommittedChanges(cwd: string) {
+export function getUntrackedChanges(cwd: string) {
   try {
-    const results = git(['status', '--porcelain'], { cwd });
+    const results = git(['status', '-z'], { cwd });
 
     if (!results.success) {
       return [];
@@ -56,18 +56,29 @@ export function getUncommittedChanges(cwd: string) {
       return [];
     }
 
-    const lines = changes.split(/\n/) || [];
+    const lines = changes.split(/\0/).filter(line => line) || [];
 
-    return lines.map(line => line.trim().split(/\s+/)[1]);
+    const untracked: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line[0] === ' ' || line[0] === '?') {
+        untracked.push(line.substr(3));
+      } else if (line[0] === 'R') {
+        i++;
+      }
+    }
+
+    return untracked;
   } catch (e) {
     console.error('Cannot gather information about changes: ', e.message);
   }
 }
 
-export function fetchAll(cwd: string) {
-  const results = git(['fetch', '-a'], { cwd });
+export function fetchRemote(remote: string, cwd: string) {
+  const results = git(['fetch', remote], { cwd });
   if (!results.success) {
-    console.error('Cannot fetch all remotes');
+    console.error(`Cannot fetch remote: ${remote}`);
     throw new Error('Cannot fetch');
   }
 }
@@ -75,6 +86,27 @@ export function fetchAll(cwd: string) {
 export function getChanges(branch: string, cwd: string) {
   try {
     const results = git(['--no-pager', 'diff', '--name-only', branch + '...'], { cwd });
+
+    if (!results.success) {
+      return [];
+    }
+
+    let changes = results.stdout;
+
+    let lines = changes.split(/\n/) || [];
+
+    return lines
+      .filter(line => line.trim() !== '')
+      .map(line => line.trim())
+      .filter(line => !line.includes('node_modules'));
+  } catch (e) {
+    console.error('Cannot gather information about changes: ', e.message);
+  }
+}
+
+export function getStagedChanges(branch: string, cwd: string) {
+  try {
+    const results = git(['--no-pager', 'diff', '--staged', '--name-only'], { cwd });
 
     if (!results.success) {
       return [];
@@ -219,7 +251,9 @@ export function getParentBranch(cwd: string) {
 
   if (showBranchResult.success) {
     const showBranchLines = showBranchResult.stdout.split(/\n/);
-    const parentLine = showBranchLines.find(line => line.indexOf('*') > -1 && line.indexOf(branchName) < 0 && line.indexOf('publish_') < 0);
+    const parentLine = showBranchLines.find(
+      line => line.indexOf('*') > -1 && line.indexOf(branchName) < 0 && line.indexOf('publish_') < 0
+    );
 
     if (!parentLine) {
       return null;
@@ -254,7 +288,7 @@ export function parseRemoteBranch(branch: string) {
 
   return {
     remote,
-    remoteBranch
+    remoteBranch,
   };
 }
 

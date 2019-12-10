@@ -1,70 +1,41 @@
 import { bump } from './bump';
-import { CliOptions } from './CliOptions';
-import { findGitRoot } from './paths';
-import { getUncommittedChanges, getDefaultRemoteBranch } from './git';
-import { isChangeFileNeeded as checkChangeFileNeeded, isGitAvailable, isValidPackageName, isValidChangeType } from './validation';
+import { getUntrackedChanges } from './git';
+import {
+  isChangeFileNeeded as checkChangeFileNeeded,
+  isGitAvailable,
+  isValidPackageName,
+  isValidChangeType,
+} from './validation';
 import { promptForChange, writeChangeFiles } from './changefile';
 import { publish } from './publish';
-import parser from 'yargs-parser';
-
-let argv = process.argv.splice(2);
-let args = parser(argv, {
-  string: ['branch', 'tag', 'message', 'package'],
-  alias: {
-    branch: ['b'],
-    tag: ['t'],
-    registry: ['r'],
-    message: ['m'],
-    token: ['n'],
-    help: ['h', '?'],
-    yes: ['y'],
-    package: ['p']
-  }
-});
-
-if (args.help) {
-  showHelp();
-  process.exit(0);
-}
-
-const defaultCommand = 'change';
-const cwd = findGitRoot(process.cwd()) || process.cwd();
-
-const branch = args.branch && args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd);
-console.log(`Target branch is "${branch}"`);
-
-const options: CliOptions = {
-  branch,
-  command: args._.length === 0 ? defaultCommand : args._[0],
-  message: args.message || '',
-  path: cwd,
-  publish: args.publish === false ? false : true,
-  push: args.push === false ? false : true,
-  registry: args.registry || 'https://registry.npmjs.org/',
-  tag: args.tag || 'latest',
-  token: args.token || '',
-  yes: args.yes === true || false,
-  access: args.access || 'restricted',
-  package: args.package || '',
-  changehint: args.changehint || 'Run "beachball change" to create a change file',
-  type: args.type || null,
-  fetch: args.fetch !== false
-};
+import { showVersion, showHelp } from './help';
+import { getOptions } from './options';
 
 (async () => {
-  // Validation Steps
+  const options = getOptions();
 
+  if (options.help) {
+    showHelp();
+    process.exit(0);
+  }
+
+  if (options.version) {
+    showVersion();
+    process.exit(0);
+  }
+
+  // Validation Steps
   if (!isGitAvailable(options.path)) {
     console.error('ERROR: Please make sure git is installed and initialize the repository with "git init".');
     process.exit(1);
   }
 
-  const uncommitted = getUncommittedChanges(options.path);
+  const untracked = getUntrackedChanges(options.path);
 
-  if (uncommitted && uncommitted.length > 0) {
-    console.error('ERROR: There are uncommitted changes in your repository. Please commit these files first:');
-    console.error('- ' + uncommitted.join('\n- '));
-    process.exit(1);
+  if (untracked && untracked.length > 0) {
+    console.warn('WARN: There are untracked changes in your repository:');
+    console.warn('- ' + untracked.join('\n- '));
+    console.warn('Changes in these files will not trigger a prompt for change descriptions');
   }
 
   const isChangeNeeded = checkChangeFileNeeded(options.branch, options.path, options.fetch);
@@ -72,7 +43,6 @@ const options: CliOptions = {
   if (isChangeNeeded && options.command !== 'change') {
     console.error('ERROR: Change files are needed!');
     console.log(options.changehint);
-
     process.exit(1);
   }
 
@@ -86,6 +56,7 @@ const options: CliOptions = {
     process.exit(1);
   }
 
+  // Run the commands
   switch (options.command) {
     case 'check':
       console.log('No change files are needed');
@@ -98,7 +69,7 @@ const options: CliOptions = {
       break;
 
     case 'bump':
-      bump(options.path);
+      bump(options.path, options.bumpDeps);
       break;
 
     default:
@@ -115,47 +86,10 @@ const options: CliOptions = {
 
       break;
   }
-})();
+})().catch(e => {
+  showVersion();
+  console.error('An error has been detected while running beachball!');
+  console.error(e);
 
-function showHelp() {
-  const packageJson = require('../package.json');
-  console.log(`beachball v${packageJson.version} - the sunniest version bumping tool
-
-Prerequisites:
-
-  git and a remote named "origin"
-
-Usage:
-
-  beachball [command] [options]
-
-Commands:
-
-  change (default)    - a tool to help create change files in the change/ folder
-  check               - checks whether a change file is needed for this branch
-  changelog           - based on change files, create changelogs and then unlinks the change files
-  bump                - bumps versions as well as generating changelogs
-  publish             - bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into master
-
-Options:
-
-  --registry, -r      - registry, defaults to https://registry.npmjs.org
-  --tag, -t           - dist-tag for npm publishes
-  --branch, -b        - target branch from origin (default: master)
-  --message, -m       - for publish command: custom publish message for the checkin (default: applying package updates); 
-                        for change command: description of the change
-  --no-push           - skip pushing changes back to git remote origin
-  --no-publish        - skip publishing to the npm registry
-  --help, -?, -h      - this very help message
-  --yes, -y           - skips the prompts for publish
-  --package, -p       - manually specify a package to create a change file; creates a change file regardless of diffs
-  --changehint        - give your developers a customized hint message when they forget to add a change file
-
-Examples:
-
-  $ beachball
-  $ beachball check
-  $ beachball publish -r http://localhost:4873 -t beta -b beta
-
-`);
-}
+  process.exit(1);
+});

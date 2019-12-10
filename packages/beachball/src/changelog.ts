@@ -1,8 +1,8 @@
-import { readChangeFiles, unlinkChangeFiles } from './changefile';
-import { PackageInfo } from './bump';
 import path from 'path';
 import fs from 'fs';
 import { generateTag } from './tag';
+import { ChangeSet } from './ChangeInfo';
+import { PackageInfo } from './PackageInfo';
 
 interface ChangelogEntry {
   comment: string;
@@ -41,16 +41,16 @@ interface ChangelogJson {
   entries: ChangelogJsonEntry[];
 }
 
-export function getPackageChangelogs(packageInfos: { [pkg: string]: PackageInfo }, cwd: string) {
-  const changes = readChangeFiles(cwd);
+export function getPackageChangelogs(changeSet: ChangeSet, packageInfos: { [pkg: string]: PackageInfo }) {
   const changelogs: { [pkgName: string]: PackageChangelog } = {};
-  changes.forEach(change => {
+
+  for (let [_, change] of changeSet) {
     const { packageName } = change;
 
     changelogs[packageName] = changelogs[packageName] || {
       name: packageName,
       version: packageInfos[packageName].version,
-      date: new Date()
+      date: new Date(),
     };
 
     changelogs[packageName].comments = changelogs[packageName].comments || {};
@@ -58,15 +58,15 @@ export function getPackageChangelogs(packageInfos: { [pkg: string]: PackageInfo 
     changelogs[packageName].comments[change.type]!.push({
       comment: change.comment,
       author: change.email,
-      commit: change.commit
+      commit: change.commit,
     });
-  });
+  }
 
   return changelogs;
 }
 
-export function writeChangelog(packageInfos: { [pkg: string]: PackageInfo }, cwd: string) {
-  const changelogs = getPackageChangelogs(packageInfos, cwd);
+export function writeChangelog(changeSet: ChangeSet, packageInfos: { [pkg: string]: PackageInfo }) {
+  const changelogs = getPackageChangelogs(changeSet, packageInfos);
 
   Object.keys(changelogs).forEach(pkg => {
     const packagePath = path.dirname(packageInfos[pkg].packageJsonPath);
@@ -77,36 +77,36 @@ export function writeChangelog(packageInfos: { [pkg: string]: PackageInfo }, cwd
       changelogs[pkg].comments.patch ||
       changelogs[pkg].comments.prerelease
     ) {
-      const changelogFile = path.join(cwd, packagePath, 'CHANGELOG.md');
+      const changelogFile = path.join(packagePath, 'CHANGELOG.md');
       const previousContent = fs.existsSync(changelogFile) ? fs.readFileSync(changelogFile).toString() : '';
       const nextContent = renderChangelog(previousContent, changelogs[pkg]);
       fs.writeFileSync(changelogFile, nextContent);
     }
 
     try {
-      const changelogJsonFile = path.join(cwd, packagePath, 'CHANGELOG.json');
-      const previousJson = fs.existsSync(changelogJsonFile) ? JSON.parse(fs.readFileSync(changelogJsonFile).toString()) : { entries: [] };
+      const changelogJsonFile = path.join(packagePath, 'CHANGELOG.json');
+      const previousJson = fs.existsSync(changelogJsonFile)
+        ? JSON.parse(fs.readFileSync(changelogJsonFile).toString())
+        : { entries: [] };
       const nextJson = renderJsonChangelog(previousJson, changelogs[pkg]);
       fs.writeFileSync(changelogJsonFile, JSON.stringify(nextJson, null, 2));
     } catch (e) {
       console.warn('The CHANGELOG.json file is invalid, skipping writing to it', e);
     }
   });
-
-  unlinkChangeFiles(cwd);
 }
 
 function renderJsonChangelog(previous: ChangelogJson, changelog: PackageChangelog) {
   const result: ChangelogJson = {
     name: changelog.name,
-    entries: [...previous.entries] || []
+    entries: [...previous.entries] || [],
   };
 
   const newEntry: ChangelogJsonEntry = {
     date: changelog.date.toUTCString(),
     tag: generateTag(changelog.name, changelog.version),
     version: changelog.version,
-    comments: changelog.comments
+    comments: changelog.comments,
   };
 
   result.entries.unshift(newEntry);
@@ -133,13 +133,16 @@ function renderPackageChangelog(changelog: PackageChangelog) {
       ? '\n### Major\n\n' + changelog.comments.major.map(change => `- ${change.comment} (${change.author})`).join('\n')
       : '') +
     (changelog.comments.minor
-      ? '\n### Minor changes\n\n' + changelog.comments.minor.map(change => `- ${change.comment} (${change.author})`).join('\n')
+      ? '\n### Minor changes\n\n' +
+        changelog.comments.minor.map(change => `- ${change.comment} (${change.author})`).join('\n')
       : '') +
     (changelog.comments.patch
-      ? '\n### Patches\n\n' + changelog.comments.patch.map(change => `- ${change.comment} (${change.author})`).join('\n')
+      ? '\n### Patches\n\n' +
+        changelog.comments.patch.map(change => `- ${change.comment} (${change.author})`).join('\n')
       : '') +
     (changelog.comments.prerelease
-      ? '\n### Changes\n\n' + changelog.comments.prerelease.map(change => `- ${change.comment} (${change.author})`).join('\n')
+      ? '\n### Changes\n\n' +
+        changelog.comments.prerelease.map(change => `- ${change.comment} (${change.author})`).join('\n')
       : '')
   );
 }

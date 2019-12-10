@@ -6,8 +6,8 @@ import { promisify } from 'util';
 import { RepositoryFactory, Repository } from '../fixtures/repository';
 import { writeChangelog } from '../changelog';
 
-import { writeChangeFiles } from '../changefile';
-import { getPublicPackageInfos } from '../monorepo';
+import { writeChangeFiles, readChangeFiles } from '../changefile';
+import { getPackageInfos } from '../monorepo';
 
 import unified from 'unified';
 import remarkParse from 'remark-parse';
@@ -45,8 +45,8 @@ describe('validation', () => {
             date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
             email: 'test@testtestme.com',
             packageName: 'foo',
-            type: 'patch'
-          }
+            type: 'patch',
+          },
         },
         repository.rootPath
       );
@@ -60,16 +60,18 @@ describe('validation', () => {
             date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
             email: 'test@testtestme.com',
             packageName: 'foo',
-            type: 'patch'
-          }
+            type: 'patch',
+          },
         },
         repository.rootPath
       );
 
-      // Gather all package info from package.json
-      const packageInfos = getPublicPackageInfos(repository.rootPath);
+      const changes = readChangeFiles(repository.rootPath);
 
-      writeChangelog(packageInfos, repository.rootPath);
+      // Gather all package info from package.json
+      const packageInfos = getPackageInfos(repository.rootPath);
+
+      writeChangelog(changes, packageInfos);
 
       const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
       const text = await readFileAsync(changelogFile, 'utf-8');

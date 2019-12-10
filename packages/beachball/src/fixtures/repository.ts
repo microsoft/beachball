@@ -1,15 +1,17 @@
 import { exec as nativeExec } from 'child_process';
 import * as process from 'process';
 import * as tmp from 'tmp';
-import { writeFile } from 'fs';
+import path from 'path';
+import * as fs from 'fs-extra';
 import { promisify } from 'util';
 
-const writeFileAsync = promisify(writeFile);
+const writeFileAsync = promisify(fs.writeFile);
+const removeAsync = promisify(fs.remove);
 
-const packageJson = JSON.stringify({
+export const packageJsonFixture = {
   name: 'foo',
-  version: '1.0.0'
-});
+  version: '1.0.0',
+};
 
 async function dirAsync(options: tmp.DirOptions): Promise<tmp.DirResult> {
   return new Promise((resolve, reject) => {
@@ -35,7 +37,7 @@ function exec(command: string): Promise<PsResult> {
       const result = {
         stderr,
         stdout,
-        status
+        status,
       };
       if (status) {
         reject(result);
@@ -76,15 +78,17 @@ export class RepositoryFactory {
 
     this.root = await dirAsync({ prefix: 'beachball-repository-upstream-' });
     process.chdir(this.root!.name);
-    await runCommands([
-      'git init',
-      'git config user.email ci@example.com',
-      'git config user.name CIUSER',
-      'touch README',
-      'git add README'
-    ]);
-    await writeFileAsync('package.json', packageJson);
-    await runCommands(['git add package.json', 'git commit -m README']);
+    await runCommands(['git init --bare']);
+
+    const tmpRepo = new Repository();
+    await tmpRepo.initialize();
+    await tmpRepo.cloneFrom(this.root.name);
+    await tmpRepo.commitChange('README');
+
+    await writeFileAsync(path.join(tmpRepo.rootPath, 'package.json'), JSON.stringify(packageJsonFixture, null, 2));
+    await tmpRepo.commitChange('package.json');
+    await tmpRepo.push('origin', 'HEAD:master');
+
     process.chdir(originalDirectory);
   }
 
@@ -100,6 +104,8 @@ export class RepositoryFactory {
 }
 
 export class Repository {
+  origin?: string;
+
   root?: tmp.DirResult;
 
   async initialize() {
@@ -113,19 +119,32 @@ export class Repository {
     return this.root.name;
   }
 
-  async cloneFrom(path: string): Promise<void> {
+  async cloneFrom(path: string, originName?: string): Promise<void> {
     if (!this.root) {
       throw new Error('Must initialize before cloning');
     }
 
-    await runInDirectory(this.root.name, [`git clone ${path} .`, 'git config user.email ci@example.com', 'git config user.name CIUSER']);
+    await runInDirectory(this.root.name, [
+      `git clone ${originName ? '-o ' + originName + ' ' : ''}${path} .`,
+      'git config user.email ci@example.com',
+      'git config user.name CIUSER',
+    ]);
+
+    this.origin = path;
   }
 
-  async commitChange(newFilename: string) {
+  async commitChange(newFilename: string, content?: string) {
     if (!this.root) {
       throw new Error('Must initialize before cloning');
     }
-    await runInDirectory(this.root.name, [`touch ${newFilename}`, `git add ${newFilename}`, `git commit -m '${newFilename}'`]);
+
+    await fs.ensureFile(path.join(this.root.name, newFilename));
+
+    if (content) {
+      await fs.writeFile(path.join(this.root.name, newFilename), content);
+    }
+
+    await runInDirectory(this.root.name, [`git add ${newFilename}`, `git commit -m '${newFilename}'`]);
   }
 
   async branch(branchName: string) {
@@ -133,5 +152,31 @@ export class Repository {
       throw new Error('Must initialize before cloning');
     }
     await runInDirectory(this.root.name, [`git checkout -b ${branchName}`]);
+  }
+
+  async push(remote: string, branch: string) {
+    if (!this.root) {
+      throw new Error('Must initialize before push');
+    }
+
+    await runInDirectory(this.root.name, [`git push ${remote} ${branch}`]);
+  }
+
+  async cleanUp() {
+    if (!this.root) {
+      throw new Error('Must initialize before clean up');
+    }
+
+    await removeAsync(this.root.name);
+  }
+
+  /**
+   * Set to invalid root
+   */
+  async setRemoteUrl(remote: string, remoteUrl: string) {
+    if (!this.root) {
+      throw new Error('Must initialize before change remote url');
+    }
+    await runInDirectory(this.root.name, [`git remote set-url ${remote} ${remoteUrl}`]);
   }
 }

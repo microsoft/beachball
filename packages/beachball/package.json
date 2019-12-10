@@ -1,6 +1,6 @@
 {
   "name": "beachball",
-  "version": "1.12.0",
+  "version": "1.16.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/microsoft/beachball"
@@ -17,6 +17,7 @@
     "test-watch": "jest --watch"
   },
   "dependencies": {
+    "cosmiconfig": "^6.0.0",
     "fs-extra": "^8.0.1",
     "git-url-parse": "^11.1.2",
     "glob": "^7.1.4",
@@ -25,6 +26,7 @@
     "yargs-parser": "^13.1.0"
   },
   "devDependencies": {
+    "@types/cosmiconfig": "6.0.0",
     "@types/fs-extra": "^8.0.0",
     "@types/git-url-parse": "^9.0.0",
     "@types/glob": "^7.1.1",
@@ -35,11 +37,14 @@
     "@types/semver": "^6.0.0",
     "@types/tmp": "^0.1.0",
     "@types/yargs-parser": "^13.0.0",
+    "find-free-port": "~2.0.0",
     "jest": "^24.8.0",
     "remark-parse": "~7.0.1",
     "tmp": "^0.1.0",
     "ts-jest": "^24.0.2",
-    "typescript": "^3.5.1",
+    "typescript": "^3.7.3",
+    "verdaccio": "^4.2.2",
+    "verdaccio-memory": "^8.0.0",
     "unified": "^8.3.2",
     "unist-util-select": "^2.0.2"
   },

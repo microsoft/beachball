@@ -1,30 +1,33 @@
-import { ChangeInfo, ChangeType } from './ChangeInfo';
+import { ChangeInfo, ChangeType, ChangeSet } from './ChangeInfo';
 import { getChangedPackages } from './getChangedPackages';
 import { getChangePath } from './paths';
 import { getRecentCommitMessages, getUserEmail, getBranchName, getCurrentHash, stageAndCommit } from './git';
 import fs from 'fs-extra';
 import path from 'path';
 import prompts from 'prompts';
-import { getPublicPackageInfos } from './monorepo';
+import { getPackageInfos } from './monorepo';
 import { prerelease } from 'semver';
-import { CliOptions } from './CliOptions';
+import { BeachballOptions } from './BeachballOptions';
+import { PackageInfo } from './PackageInfo';
 
 /**
  * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash
  * @param cwd
  */
-export async function promptForChange(options: CliOptions) {
+export async function promptForChange(options: BeachballOptions) {
   const { branch, path: cwd, package: specificPackage, fetch } = options;
 
   const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(branch, cwd, fetch);
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
   const packageChangeInfo: { [pkgname: string]: ChangeInfo } = {};
 
-  const packageInfos = getPublicPackageInfos(cwd);
+  const packageInfos = getPackageInfos(cwd);
 
   for (let pkg of changedPackages) {
     console.log('');
     console.log(`Please describe the changes for: ${pkg}`);
+
+    const packageOptions = packageInfos[pkg].options;
 
     const showPrereleaseOption = prerelease(packageInfos[pkg].version);
     const changeTypePrompt: prompts.PromptObject<string> = {
@@ -36,8 +39,8 @@ export async function promptForChange(options: CliOptions) {
         { value: 'patch', title: ' [1mPatch[22m      - bug fixes; no backwards incompatible changes.' },
         { value: 'minor', title: ' [1mMinor[22m      - small feature; backwards compatible changes.' },
         { value: 'none', title: ' [1mNone[22m       - this change does not affect the published package in any way.' },
-        { value: 'major', title: ' [1mMajor[22m      - major feature; breaking changes.' }
-      ].filter(choice => !packageInfos[pkg].disallowedChangeTypes.includes(choice.value))
+        { value: 'major', title: ' [1mMajor[22m      - major feature; breaking changes.' },
+      ].filter(choice => !packageOptions?.disallowedChangeTypes?.includes(choice.value as ChangeType)),
     };
 
     if (changeTypePrompt.choices!.length === 0) {
@@ -45,7 +48,7 @@ export async function promptForChange(options: CliOptions) {
       return;
     }
 
-    if (options.type && packageInfos[pkg].disallowedChangeTypes.includes(options.type)) {
+    if (options.type && packageOptions?.disallowedChangeTypes?.includes(options.type as ChangeType)) {
       console.log(`${options.type} type is not allowed, aborting`);
       return;
     }
@@ -56,16 +59,19 @@ export async function promptForChange(options: CliOptions) {
       message: 'Describe changes (type or choose one)',
       suggest: input => {
         return Promise.resolve([...recentMessages.filter(msg => msg.startsWith(input)), input]);
-      }
+      },
     };
 
     const showChangeTypePrompt = !options.type && changeTypePrompt.choices!.length > 1;
 
-    const questions = [...(showChangeTypePrompt ? [changeTypePrompt] : []), ...(!options.message ? [descriptionPrompt] : [])];
+    const questions = [
+      ...(showChangeTypePrompt ? [changeTypePrompt] : []),
+      ...(!options.message ? [descriptionPrompt] : []),
+    ];
 
     let response: { comment: string; type: ChangeType } = {
       type: options.type || 'none',
-      comment: options.message || ''
+      comment: options.message || '',
     };
 
     if (questions.length > 0) {
@@ -82,7 +88,7 @@ export async function promptForChange(options: CliOptions) {
       packageName: pkg,
       email: getUserEmail(cwd) || 'email not defined',
       commit: getCurrentHash(cwd) || 'hash not available',
-      date: new Date()
+      date: new Date(),
     };
   }
 
@@ -123,8 +129,9 @@ export function writeChangeFiles(changes: { [pkgname: string]: ChangeInfo }, cwd
       }
 
       const change = changes[pkgName];
-      changeFiles.push(changeFile);
       fs.writeFileSync(changeFile, JSON.stringify(change, null, 2));
+
+      changeFiles.push(changeFile);
     });
 
     stageAndCommit(changeFiles, 'Change files', cwd);
@@ -135,14 +142,31 @@ ${changeFiles.map(f => ` - ${f}`).join('\n')}
   }
 }
 
-export function unlinkChangeFiles(cwd: string) {
+/**
+ * Unlink only change files that are specified in the changes param
+ *
+ * @param changes existing change files to be removed
+ * @param cwd
+ */
+export function unlinkChangeFiles(changeSet: ChangeSet, packageInfos: { [pkg: string]: PackageInfo }, cwd: string) {
   const changePath = getChangePath(cwd);
 
-  if (!changePath) {
+  if (!changePath || !changeSet) {
     return;
   }
 
-  fs.removeSync(changePath);
+  console.log('Removing change files:');
+  for (let [changeFile, change] of changeSet) {
+    if (changeFile && packageInfos[change.packageName] && !packageInfos[change.packageName].private) {
+      console.log(`- ${changeFile}`);
+      fs.removeSync(path.join(changePath, changeFile));
+    }
+  }
+
+  if (fs.existsSync(changePath) && fs.readdirSync(changePath).length === 0) {
+    console.log('Removing change path');
+    fs.removeSync(changePath);
+  }
 }
 
 function leftPadTwoZeros(someString: string) {
@@ -157,52 +181,51 @@ function getTimeStamp() {
     leftPadTwoZeros(date.getDate().toString()),
     leftPadTwoZeros(date.getHours().toString()),
     leftPadTwoZeros(date.getMinutes().toString()),
-    leftPadTwoZeros(date.getSeconds().toString())
+    leftPadTwoZeros(date.getSeconds().toString()),
   ].join('-');
 }
 
 export function readChangeFiles(cwd: string) {
+  const changeSet: ChangeSet = new Map();
   const changePath = getChangePath(cwd);
 
   if (!changePath || !fs.existsSync(changePath)) {
-    return [];
+    return changeSet;
   }
 
   const changeFiles = fs.readdirSync(changePath);
-  const changes: ChangeInfo[] = [];
 
   changeFiles.forEach(changeFile => {
     try {
-      changes.push(JSON.parse(fs.readFileSync(path.join(changePath, changeFile)).toString()));
+      const packageJson = JSON.parse(fs.readFileSync(path.join(changePath, changeFile)).toString());
+      changeSet.set(changeFile, packageJson);
     } catch (e) {
       console.warn(`Invalid change file detected: ${changeFile}`);
     }
   });
 
-  return changes;
+  return changeSet;
 }
 
-export function getPackageChangeTypes(cwd: string) {
+export function getPackageChangeTypes(changeSet: ChangeSet) {
   const changeTypeWeights = {
     major: 4,
     minor: 3,
     patch: 2,
     prerelease: 1,
-    none: 0
+    none: 0,
   };
-  const changes = readChangeFiles(cwd);
   const changePerPackage: { [pkgName: string]: ChangeInfo['type'] } = {};
-  changes.forEach(change => {
+  for (let [_, change] of changeSet) {
     const { packageName } = change;
 
-    if (change.type === 'none') {
-      return;
-    }
-
-    if (!changePerPackage[packageName] || changeTypeWeights[change.type] > changeTypeWeights[changePerPackage[packageName]]) {
+    if (
+      !changePerPackage[packageName] ||
+      changeTypeWeights[change.type] > changeTypeWeights[changePerPackage[packageName]]
+    ) {
       changePerPackage[packageName] = change.type;
     }
-  });
+  }
 
   return changePerPackage;
 }

@@ -8,3 +8,5 @@ export interface ChangeInfo {
   commit: string;
   date: Date;
 }
+
+export type ChangeSet = Map<string, ChangeInfo>;

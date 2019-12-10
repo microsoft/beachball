@@ -6,6 +6,7 @@
   "files.trimTrailingWhitespace": true,
   "javascript.preferences.quoteStyle": "single",
   "typescript.preferences.quoteStyle": "single",
+  "typescript.tsdk": "node_modules/typescript/lib",
   "search.exclude": {
     "**/node_modules": true,
     "**/lib": true

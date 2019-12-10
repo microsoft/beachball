@@ -1,7 +1,8 @@
-import { PackageInfo } from './bump';
+import { PackageInfo } from './PackageInfo';
 import { spawnSync } from 'child_process';
 import os from 'os';
 import path from 'path';
+import { getPackageOptions } from './options';
 
 export function npm(args: string[], options?: { cwd: string }) {
   const npmCmd = os.platform() === 'win32' ? 'npm.cmd' : 'npm';
@@ -12,20 +13,28 @@ export function npm(args: string[], options?: { cwd: string }) {
     return {
       stderr: results.stderr.toString().trim(),
       stdout: results.stdout.toString().trim(),
-      success: true
+      success: true,
     };
   } else {
     return {
       stderr: results.stderr.toString().trim(),
       stdout: results.stdout.toString().trim(),
-      success: false
+      success: false,
     };
   }
 }
 
-export function packagePublish(packageInfo: PackageInfo, registry: string, token: string, tag: string, access: string) {
+export function packagePublish(
+  packageInfo: PackageInfo,
+  registry: string,
+  token: string,
+  tag: string | undefined,
+  access: string
+) {
+  const packageOptions = packageInfo.options;
+
   const packagePath = path.dirname(packageInfo.packageJsonPath);
-  const args = ['publish', '--registry', registry, '--tag', tag];
+  const args = ['publish', '--registry', registry, '--tag', tag || packageOptions.defaultNpmTag];
 
   if (token) {
     const shorthand = registry.substring(registry.indexOf('//'));

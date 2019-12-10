@@ -1,7 +1,97 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 23 Aug 2019 16:30:54 GMT and should not be manually modified.
+This log was last generated on Thu, 05 Dec 2019 00:40:40 GMT and should not be manually modified.
 
+## 1.16.0
+Thu, 05 Dec 2019 00:40:40 GMT
+
+### Minor changes
+
+- Bump peerDependencies (rezha@microsoft.com)
+## 1.15.1
+Fri, 15 Nov 2019 20:01:55 GMT
+
+### Patches
+
+- catch eerrors throw and make sure we exit with a real status code (kchau@microsoft.com)
+## 1.15.0
+Wed, 13 Nov 2019 23:31:43 GMT
+
+### Minor changes
+
+- Add --bump-deps flag to bump all dependent packages (rezha@microsoft.com)
+## 1.14.3
+Mon, 04 Nov 2019 23:56:08 GMT
+
+### Patches
+
+- deletes none type change files (kchau@microsoft.com)
+## 1.14.2
+Wed, 23 Oct 2019 17:32:05 GMT
+
+### Patches
+
+- make sure that we don't have file names in change files (kchau@microsoft.com)
+## 1.14.1
+Fri, 04 Oct 2019 15:11:40 GMT
+
+### Patches
+
+- fixed package publishing for private packages (kchau@microsoft.com)
+## 1.14.0
+Fri, 04 Oct 2019 00:52:18 GMT
+
+### Minor changes
+
+- Adding robustness in how publish works so merging is safer (odbuild@microsoft.com)
+## 1.13.5
+Fri, 27 Sep 2019 23:42:49 GMT
+
+### Patches
+
+- adds publish test for git push as well as refactoring publish to be more readable (odbuild@microsoft.com)
+## 1.13.4
+Wed, 25 Sep 2019 21:40:51 GMT
+
+### Patches
+
+- Add option to specify a defaultNpmTag on a per package basis (acoates@microsoft.com)
+## 1.13.3
+Wed, 25 Sep 2019 20:49:49 GMT
+
+### Patches
+
+- make tests work on windows (kchau@microsoft.com)
+## 1.13.2
+Mon, 16 Sep 2019 22:57:40 GMT
+
+### Patches
+
+- adding fetching for specific remote instead of all (kchau@microsoft.com)
+## 1.13.1
+Tue, 10 Sep 2019 19:37:18 GMT
+
+### Patches
+
+- Fixing packageJsonPath to contain full path (kchau@microsoft.com)
+## 1.13.0
+Tue, 03 Sep 2019 19:59:44 GMT
+
+### Minor changes
+
+- allow staged files to be counted for changes as well (kchau@microsoft.com)
+## 1.12.2
+Tue, 27 Aug 2019 17:44:33 GMT
+
+### Patches
+
+- make sure to bump the deps of monorepo packages of other packages even if the packages are private (kchau@microsoft.com)
+## 1.12.1
+Tue, 27 Aug 2019 03:11:47 GMT
+
+### Patches
+
+- making publish skip when there is no changes (kchau@microsoft.com)
 ## 1.12.0
 Fri, 23 Aug 2019 16:30:54 GMT
 
