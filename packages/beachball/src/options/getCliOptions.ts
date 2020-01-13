@@ -28,10 +28,11 @@ export function getCliOptions(): CliOptions {
   const { _, restArgs } = args;
   const cwd = findGitRoot(process.cwd()) || process.cwd();
   cliOptions = {
-    ...(_.length === 0 && { command: _[0] }),
+    ...(_.length > 0 && { command: _[0] }),
     ...restArgs,
     path: cwd,
     branch: args.branch && args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd),
   } as CliOptions;
+
   return cliOptions;
 }
