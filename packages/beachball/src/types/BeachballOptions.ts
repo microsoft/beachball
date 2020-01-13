@@ -23,6 +23,8 @@ export interface CliOptions {
   type?: ChangeType | null;
   help?: boolean;
   version?: boolean;
+
+  /** FUTURE: this feature hasn't been created yet */
   groups?: VersionGroupOptions[];
 }
 
@@ -56,5 +58,6 @@ export interface VersionGroupOptions {
   /** minimatch pattern (or array of minimatch) to detect which packages should be excluded in this group */
   exclude: string | string[];
 
+  /** name of the version group */
   name?: string;
 }
