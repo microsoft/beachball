@@ -1,6 +1,6 @@
-import { ChangeInfo } from './ChangeInfo';
-import { findPackageRoot, getChangePath } from './paths';
-import { getChanges, getStagedChanges, git, fetchRemote, parseRemoteBranch } from './git';
+import { ChangeInfo } from '../types/ChangeInfo';
+import { findPackageRoot, getChangePath } from '../paths';
+import { getChanges, getStagedChanges, git, fetchRemote, parseRemoteBranch } from '../git';
 import fs from 'fs';
 import path from 'path';
 

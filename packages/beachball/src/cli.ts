@@ -1,15 +1,14 @@
-import { bump } from './bump';
+import { bump } from './commands/bump';
 import { getUntrackedChanges } from './git';
-import {
-  isChangeFileNeeded as checkChangeFileNeeded,
-  isGitAvailable,
-  isValidPackageName,
-  isValidChangeType,
-} from './validation';
-import { promptForChange, writeChangeFiles } from './changefile';
-import { publish } from './publish';
+import { isChangeFileNeeded as checkChangeFileNeeded } from './validation/isChangeFileNeeded';
+import { isGitAvailable } from './validation/isGitAvailable';
+import { isValidPackageName } from './validation/isValidPackageName';
+import { isValidChangeType } from './validation/isValidChangeType';
+import { promptForChange } from './changefile/promptForChange';
+import { writeChangeFiles } from './changefile/writeChangeFiles';
+import { publish } from './commands/publish';
 import { showVersion, showHelp } from './help';
-import { getOptions } from './options';
+import { getOptions } from './options/getOptions';
 
 (async () => {
   const options = getOptions();

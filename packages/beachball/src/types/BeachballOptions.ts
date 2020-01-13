@@ -2,6 +2,8 @@ import { ChangeType } from './ChangeInfo';
 
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
+export type VersionStrategy = 'lockedStep' | 'changeFiles';
+
 export interface CliOptions {
   branch: string;
   command: string;
@@ -21,6 +23,7 @@ export interface CliOptions {
   type?: ChangeType | null;
   help?: boolean;
   version?: boolean;
+  groups?: VersionGroupOptions[];
 }
 
 export interface RepoOptions {
@@ -42,4 +45,16 @@ export interface RepoOptions {
 export interface PackageOptions {
   disallowedChangeTypes: ChangeType[] | null;
   defaultNpmTag: string;
+}
+
+export interface VersionGroupOptions {
+  versionStrategy: VersionStrategy;
+
+  /** minimatch pattern (or array of minimatch) to detect which packages should be included in this group */
+  include: string | string[];
+
+  /** minimatch pattern (or array of minimatch) to detect which packages should be excluded in this group */
+  exclude: string | string[];
+
+  name?: string;
 }

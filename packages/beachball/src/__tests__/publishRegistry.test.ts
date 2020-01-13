@@ -1,8 +1,8 @@
 import { Registry } from '../fixtures/registry';
-import { npm } from '../packageManager';
-import { writeChangeFiles } from '../changefile';
+import { npm } from '../packageManager/npm';
+import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { git } from '../git';
-import { publish } from '../publish';
+import { publish } from '../commands/publish';
 import { RepositoryFactory } from '../fixtures/repository';
 
 describe('publishToRegistry', () => {

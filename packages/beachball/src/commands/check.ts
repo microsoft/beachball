@@ -1,14 +1,14 @@
-import { ChangeInfo, ChangeType, ChangeSet } from './ChangeInfo';
-import { getChangedPackages } from './getChangedPackages';
-import { getChangePath } from './paths';
-import { getRecentCommitMessages, getUserEmail, getBranchName, getCurrentHash, stageAndCommit } from './git';
+import { ChangeInfo, ChangeType, ChangeSet } from '../types/ChangeInfo';
+import { getChangedPackages } from '../changefile/getChangedPackages';
+import { getChangePath } from '../paths';
+import { getRecentCommitMessages, getUserEmail, getBranchName, getCurrentHash, stageAndCommit } from '../git';
 import fs from 'fs-extra';
 import path from 'path';
 import prompts from 'prompts';
-import { getPackageInfos } from './monorepo';
+import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { prerelease } from 'semver';
-import { BeachballOptions } from './BeachballOptions';
-import { PackageInfo } from './PackageInfo';
+import { BeachballOptions } from '../types/BeachballOptions';
+import { PackageInfo } from '../types/PackageInfo';
 
 /**
  * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash

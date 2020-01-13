@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import * as tmp from 'tmp';
-import { PackageInfo } from '../PackageInfo';
+import { PackageInfo } from '../types/PackageInfo';
 
 export const testTag = 'testbeachballtag';
 

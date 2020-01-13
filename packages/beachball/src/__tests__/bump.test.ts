@@ -1,8 +1,8 @@
 import { RepositoryFactory } from '../fixtures/repository';
-import { writeChangeFiles } from '../changefile';
+import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { git } from '../git';
-import { bump } from '../bump';
-import { getPackageInfos } from '../monorepo';
+import { bump } from '../commands/bump';
+import { getPackageInfos } from '../monorepo/getPackageInfos';
 
 describe('version bumping', () => {
   it('bumps only packages with change files', async () => {
@@ -24,8 +24,8 @@ describe('version bumping', () => {
         name: 'pkg-2',
         version: '1.0.0',
         dependencies: {
-          'pkg-1': '1.0.0'
-        }
+          'pkg-1': '1.0.0',
+        },
       })
     );
 
@@ -35,8 +35,8 @@ describe('version bumping', () => {
         name: 'pkg-3',
         version: '1.0.0',
         devDependencies: {
-          'pkg-2': '1.0.0'
-        }
+          'pkg-2': '1.0.0',
+        },
       })
     );
 
@@ -46,8 +46,8 @@ describe('version bumping', () => {
         name: 'pkg-4',
         version: '1.0.0',
         peerDependencies: {
-          'pkg-3': '1.0.0'
-        }
+          'pkg-3': '1.0.0',
+        },
       })
     );
 
@@ -79,7 +79,7 @@ describe('version bumping', () => {
     bump(repo.rootPath, false);
 
     const packageInfos = getPackageInfos(repo.rootPath);
-    
+
     expect(packageInfos['pkg-1'].version).toBe('1.1.0');
     expect(packageInfos['pkg-2'].version).toBe('1.0.0');
     expect(packageInfos['pkg-3'].version).toBe('1.0.0');
@@ -108,8 +108,8 @@ describe('version bumping', () => {
         name: 'pkg-2',
         version: '1.0.0',
         dependencies: {
-          'pkg-1': '1.0.0'
-        }
+          'pkg-1': '1.0.0',
+        },
       })
     );
 
@@ -119,8 +119,8 @@ describe('version bumping', () => {
         name: 'pkg-3',
         version: '1.0.0',
         devDependencies: {
-          'pkg-2': '1.0.0'
-        }
+          'pkg-2': '1.0.0',
+        },
       })
     );
 
@@ -130,8 +130,8 @@ describe('version bumping', () => {
         name: 'pkg-4',
         version: '1.0.0',
         peerDependencies: {
-          'pkg-3': '1.0.0'
-        }
+          'pkg-3': '1.0.0',
+        },
       })
     );
 
@@ -163,7 +163,7 @@ describe('version bumping', () => {
     bump(repo.rootPath, true);
 
     const packageInfos = getPackageInfos(repo.rootPath);
-    
+
     expect(packageInfos['pkg-1'].version).toBe('1.1.0');
     expect(packageInfos['pkg-2'].version).toBe('1.0.1');
     expect(packageInfos['pkg-3'].version).toBe('1.0.1');

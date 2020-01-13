@@ -1,12 +1,13 @@
 import { Repository, RepositoryFactory, packageJsonFixture } from '../fixtures/repository';
-import { publish, bumpAndPush } from '../publish';
+import { bumpAndPush } from '../publish/bumpAndPush';
+import { publish } from '../commands/publish';
 import path from 'path';
 import fs from 'fs';
-import { writeChangeFiles } from '../changefile';
+import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { git, gitFailFast } from '../git';
-import { gatherBumpInfo } from '../bump';
-import { BeachballOptions } from '../BeachballOptions';
-import { ChangeInfo } from '../ChangeInfo';
+import { gatherBumpInfo } from '../bump/gatherBumpInfo';
+import { BeachballOptions } from '../types/BeachballOptions';
+import { ChangeInfo } from '../types/ChangeInfo';
 
 describe('publish command', () => {
   let repositoryFactory: RepositoryFactory;
