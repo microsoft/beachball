@@ -3,6 +3,7 @@ import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { git } from '../git';
 import { bump } from '../commands/bump';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
+import { BeachballOptions } from '../types/BeachballOptions';
 
 describe('version bumping', () => {
   it('bumps only packages with change files', async () => {
@@ -76,7 +77,7 @@ describe('version bumping', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    bump(repo.rootPath, false);
+    bump({ path: repo.rootPath, bumpDeps: false } as BeachballOptions);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -160,7 +161,7 @@ describe('version bumping', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    bump(repo.rootPath, true);
+    bump({ path: repo.rootPath, bumpDeps: true } as BeachballOptions);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 

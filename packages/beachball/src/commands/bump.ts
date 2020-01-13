@@ -1,5 +1,8 @@
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { performBump } from '../bump/performBump';
-export function bump(cwd: string, bumpDeps: boolean) {
-  return performBump(gatherBumpInfo(cwd), cwd, bumpDeps);
+import { BeachballOptions } from '../types/BeachballOptions';
+
+export function bump(options: BeachballOptions) {
+  const { path, bumpDeps } = options;
+  return performBump(gatherBumpInfo(path), path, bumpDeps);
 }

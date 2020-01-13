@@ -7,7 +7,7 @@ import { readChangeFiles } from '../changefile/readChangeFiles';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publishToRegistry } from '../publish/publishToRegistry';
 export async function publish(options: BeachballOptions) {
-  const { path: cwd, branch, registry, tag, message } = options;
+  const { path: cwd, branch, registry, tag } = options;
   // First, validate that we have changes to publish
   const changes = readChangeFiles(cwd);
   const packageChangeTypes = getPackageChangeTypes(changes);
