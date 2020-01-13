@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "refactored to get ready to support version groups",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "3a7f106759d2fdd386e485f99ddd6d6d7502c5c5",
+  "date": "2020-01-13T21:33:43.847Z"
+}
