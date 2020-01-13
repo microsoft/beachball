@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "fixed a bug in getting the command right in the cli",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "00fae278120296bda44cab5778cc28a31fa18b89",
+  "date": "2020-01-13T23:23:38.126Z"
+}
