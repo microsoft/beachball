@@ -10,3 +10,7 @@ export interface PackageInfo {
   private: boolean;
   options: PackageOptions;
 }
+
+export interface PackageInfos {
+  [pkgName: string]: PackageInfo;
+}

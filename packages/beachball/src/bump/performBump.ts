@@ -4,6 +4,7 @@ import fs from 'fs';
 import semver from 'semver';
 import { bumpMinSemverRange } from './bumpMinSemverRange';
 import { BumpInfo } from '../types/BumpInfo';
+
 export function performBump(bumpInfo: BumpInfo, cwd: string, bumpDeps: boolean) {
   const { changes, packageInfos, packageChangeTypes } = bumpInfo;
   // Apply package.json version updates
