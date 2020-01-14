@@ -28,7 +28,9 @@ export function gatherBumpInfo(cwd: string): BumpInfo {
   return {
     packageChangeTypes,
     packageInfos,
+    packageGroups: {},
     changes: filteredChanges,
     modifiedPackages: new Set<string>(),
+    dependents: {},
   };
 }

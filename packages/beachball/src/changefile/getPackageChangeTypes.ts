@@ -30,7 +30,7 @@ export function isChangeTypeGreater(a: ChangeType, b: ChangeType) {
   }
 }
 
-export function maxChangeType(a: ChangeType, b: ChangeType) {
+export function getMaxChangeType(a: ChangeType, b: ChangeType) {
   if (!b && !a) {
     return 'none';
   }

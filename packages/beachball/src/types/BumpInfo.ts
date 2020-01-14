@@ -5,5 +5,8 @@ export type BumpInfo = {
   changes: ChangeSet;
   packageInfos: { [pkgName: string]: PackageInfo };
   packageChangeTypes: { [pkgName: string]: ChangeType };
+  packageGroups: { [pkgName: string]: string[] };
+  dependents: { [pkgName: string]: string[] };
+
   modifiedPackages: Set<string>;
 };

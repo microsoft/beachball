@@ -6,7 +6,7 @@ import { validatePackageVersions } from './validatePackageVersions';
 import { displayManualRecovery } from './displayManualRecovery';
 export function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions) {
   const { path: cwd, registry, tag, token, access } = options;
-  performBump(bumpInfo, cwd, options.bumpDeps);
+  performBump(bumpInfo, options);
   if (!validatePackageVersions(bumpInfo, registry)) {
     displayManualRecovery(bumpInfo);
     console.error('No packages have been published');

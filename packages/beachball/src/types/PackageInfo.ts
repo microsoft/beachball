@@ -9,6 +9,7 @@ export interface PackageInfo {
   peerDependencies?: { [dep: string]: string };
   private: boolean;
   options: PackageOptions;
+  group?: string;
 }
 
 export interface PackageInfos {

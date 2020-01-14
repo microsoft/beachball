@@ -1,6 +1,11 @@
 import { BumpInfo } from '../types/BumpInfo';
 import semver from 'semver';
 
+/**
+ * Bumps an individual package version based on the change type
+ * @param pkgName
+ * @param bumpInfo
+ */
 export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo) {
   const { packageChangeTypes, packageInfos, modifiedPackages } = bumpInfo;
   const info = packageInfos[pkgName];

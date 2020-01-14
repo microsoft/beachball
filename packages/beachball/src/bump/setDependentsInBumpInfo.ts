@@ -1,9 +1,12 @@
 import { BumpInfo } from '../types/BumpInfo';
 /**
- * Gets dependents (if "BigApp" deps on "SomeUtil", "BigApp" would be the dependent)
+ * Gets dependents for all packages
+ *
+ * Example: "BigApp" deps on "SomeUtil", "BigApp" would be the dependent
+ *
  * @param bumpInfo
  */
-export function getDependents(bumpInfo: BumpInfo) {
+export function setDependentsInBumpInfo(bumpInfo: BumpInfo) {
   const packageInfos = bumpInfo.packageInfos;
   const packages = Object.keys(packageInfos);
   const dependents = {};
@@ -24,5 +27,6 @@ export function getDependents(bumpInfo: BumpInfo) {
       }
     });
   });
-  return dependents;
+
+  bumpInfo.dependents = dependents;
 }

@@ -4,6 +4,7 @@ import { isValidPackageName } from './isValidPackageName';
 import { getOptions } from '../options/getOptions';
 import { isValidChangeType } from './isValidChangeType';
 import { isChangeFileNeeded } from './isChangeFileNeeded';
+import { isValidGroupOptions } from './isValidGroupOptions';
 
 export function validate(validateOptions: { allowMissingChangeFiles: boolean } = { allowMissingChangeFiles: false }) {
   const options = getOptions();
@@ -37,6 +38,12 @@ export function validate(validateOptions: { allowMissingChangeFiles: boolean } =
   if (isChangeNeeded && !validateOptions.allowMissingChangeFiles) {
     console.error('ERROR: Change files are needed!');
     console.log(options.changehint);
+    process.exit(1);
+  }
+
+  if (options.groups && !isValidGroupOptions(options.groups)) {
+    console.error('ERROR: Groups defined inside the configuration is invalid');
+    console.log(options.groups);
     process.exit(1);
   }
 
