@@ -3,7 +3,6 @@ import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { packagePublish } from '../packageManager/packagePublish';
 import { validatePackageVersions } from './validatePackageVersions';
-import { getBumpedPackages } from './getBumpedPackages';
 import { displayManualRecovery } from './displayManualRecovery';
 export function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions) {
   const { path: cwd, registry, tag, token, access } = options;
@@ -13,7 +12,7 @@ export function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions)
     console.error('No packages have been published');
     process.exit(1);
   }
-  getBumpedPackages(bumpInfo).forEach(pkg => {
+  bumpInfo.modifiedPackages.forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     const changeType = bumpInfo.packageChangeTypes[pkg];
     if (changeType === 'none') {

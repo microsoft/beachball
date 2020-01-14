@@ -1,6 +1,5 @@
 import { BumpInfo } from '../types/BumpInfo';
 import { generateTag } from '../tag';
-import { getBumpedPackages } from "./getBumpedPackages";
 import { gitFailFast } from '../git';
 
 function createTag(tag: string, cwd: string) {
@@ -8,7 +7,7 @@ function createTag(tag: string, cwd: string) {
 }
 
 export function tagPackages(bumpInfo: BumpInfo, tag: string, cwd: string) {
-  getBumpedPackages(bumpInfo).forEach(pkg => {
+  bumpInfo.modifiedPackages.forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     const changeType = bumpInfo.packageChangeTypes[pkg];
     // Do not tag change type of "none" or private packages
