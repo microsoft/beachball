@@ -28,8 +28,6 @@ export function updateRelatedChangeType(
   packageChangeTypes[pkgName] = maxChangeType;
 
   if (packageInfos[pkgName].group) {
-    console.log(packageGroups[packageInfos[pkgName].group!]);
-
     packageGroups[packageInfos[pkgName].group!].forEach(groupPkgName => {
       maxChangeType = getMaxChangeType(maxChangeType, packageChangeTypes[groupPkgName]);
     });
