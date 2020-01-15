@@ -1,4 +1,4 @@
-import { Repository, RepositoryFactory, packageJsonFixture } from '../fixtures/repository';
+import { RepositoryFactory } from '../fixtures/repository';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publish } from '../commands/publish';
 import path from 'path';
@@ -9,7 +9,7 @@ import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { ChangeInfo } from '../types/ChangeInfo';
 
-describe('publish command', () => {
+describe('publish command (git)', () => {
   let repositoryFactory: RepositoryFactory;
 
   beforeAll(() => {
@@ -45,7 +45,7 @@ describe('publish command', () => {
       command: 'publish',
       message: 'apply package updates',
       path: repo.rootPath,
-      publish: false,
+      publish: true,
       bumpDeps: false,
       push: true,
       registry: 'http://localhost:99999/',

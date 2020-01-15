@@ -5,7 +5,7 @@ import { git } from '../git';
 import { publish } from '../commands/publish';
 import { RepositoryFactory } from '../fixtures/repository';
 
-describe('publishToRegistry', () => {
+describe('publish command (registry)', () => {
   let registry: Registry;
 
   beforeAll(() => {
