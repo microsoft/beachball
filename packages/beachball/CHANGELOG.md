@@ -1,7 +1,19 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 05 Dec 2019 00:40:40 GMT and should not be manually modified.
+This log was last generated on Wed, 15 Jan 2020 03:17:45 GMT and should not be manually modified.
 
+## 1.18.0
+Wed, 15 Jan 2020 03:17:45 GMT
+
+### Minor changes
+
+- adding ability to have config files (kchau@microsoft.com)
+- refactored to get ready to support version groups (kchau@microsoft.com)
+- Adds a new feature of version groups that would allow "locked versions" updates (kchau@microsoft.com)
+### Patches
+
+- Improve package list formatting (elcraig@microsoft.com)
+- fixed a bug in getting the command right in the cli (kchau@microsoft.com)
 ## 1.16.0
 Thu, 05 Dec 2019 00:40:40 GMT
 

@@ -2,6 +2,42 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 15 Jan 2020 03:17:45 GMT",
+      "tag": "beachball_v1.18.0",
+      "version": "1.18.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Improve package list formatting",
+            "author": "elcraig@microsoft.com",
+            "commit": "0249b760217e50fdd510fe34e67242893c5cd601"
+          },
+          {
+            "comment": "fixed a bug in getting the command right in the cli",
+            "author": "kchau@microsoft.com",
+            "commit": "00fae278120296bda44cab5778cc28a31fa18b89"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "adding ability to have config files",
+            "author": "kchau@microsoft.com",
+            "commit": "d8350f4ef0758ccf185066d9694dbe024f4ca666"
+          },
+          {
+            "comment": "refactored to get ready to support version groups",
+            "author": "kchau@microsoft.com",
+            "commit": "3a7f106759d2fdd386e485f99ddd6d6d7502c5c5"
+          },
+          {
+            "comment": "Adds a new feature of version groups that would allow \"locked versions\" updates",
+            "author": "kchau@microsoft.com",
+            "commit": "89059dddb028ff0f704effca2b1b4232806e5d5f"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 05 Dec 2019 00:40:40 GMT",
       "tag": "beachball_v1.16.0",
       "version": "1.16.0",

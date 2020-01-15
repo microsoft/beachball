@@ -1,8 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Adds a new feature of version groups that would allow \"locked versions\" updates",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "89059dddb028ff0f704effca2b1b4232806e5d5f",
-  "date": "2020-01-14T23:57:46.036Z"
-}
