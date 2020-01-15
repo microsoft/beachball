@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "adding a e2e test case, testing both git and registry",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "693b67138e091a5fc62c31fff90dd93b9984d79e",
+  "date": "2020-01-15T05:37:50.996Z"
+}
