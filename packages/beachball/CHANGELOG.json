@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 15 Jan 2020 06:49:10 GMT",
+      "tag": "beachball_v1.18.1",
+      "version": "1.18.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "adding a e2e test case, testing both git and registry",
+            "author": "kchau@microsoft.com",
+            "commit": "693b67138e091a5fc62c31fff90dd93b9984d79e"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 15 Jan 2020 04:54:51 GMT",
       "tag": "beachball_v1.18.1",
       "version": "1.18.1",
