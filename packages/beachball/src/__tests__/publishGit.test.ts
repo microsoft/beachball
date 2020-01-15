@@ -45,7 +45,7 @@ describe('publish command (git)', () => {
       command: 'publish',
       message: 'apply package updates',
       path: repo.rootPath,
-      publish: true,
+      publish: false,
       bumpDeps: false,
       push: true,
       registry: 'http://localhost:99999/',
