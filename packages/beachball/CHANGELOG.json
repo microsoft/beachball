@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 15 Jan 2020 04:54:51 GMT",
+      "tag": "beachball_v1.18.1",
+      "version": "1.18.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fixes tagging and also publish brand new packages if not exists",
+            "author": "kchau@microsoft.com",
+            "commit": "09a7071c0c71193224e203aaa0f51fa2dfc395c4"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 15 Jan 2020 03:17:45 GMT",
       "tag": "beachball_v1.18.0",
       "version": "1.18.0",

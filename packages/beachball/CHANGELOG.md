@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 15 Jan 2020 03:17:45 GMT and should not be manually modified.
+This log was last generated on Wed, 15 Jan 2020 04:54:51 GMT and should not be manually modified.
 
+## 1.18.1
+Wed, 15 Jan 2020 04:54:51 GMT
+
+### Patches
+
+- Fixes tagging and also publish brand new packages if not exists (kchau@microsoft.com)
 ## 1.18.0
 Wed, 15 Jan 2020 03:17:45 GMT
 
