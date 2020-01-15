@@ -20,5 +20,6 @@ export function validatePackageVersions(bumpInfo: BumpInfo, registry: string) {
       process.stdout.write(' OK!\n');
     }
   });
+
   return !hasErrors;
 }

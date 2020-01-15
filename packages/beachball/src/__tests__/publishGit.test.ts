@@ -51,6 +51,7 @@ describe('publish command', () => {
       registry: 'http://localhost:99999/',
       tag: 'latest',
       token: '',
+      new: false,
       yes: true,
       access: 'public',
       package: 'foo',
@@ -93,7 +94,6 @@ describe('publish command', () => {
     gitFailFast(['checkout', '-b', publishBranch], { cwd: repo1.rootPath });
 
     console.log('Bumping version for npm publish');
-    const bumpInfo = gatherBumpInfo(repo1.rootPath);
 
     const options: BeachballOptions = {
       branch: 'origin/master',
@@ -107,6 +107,7 @@ describe('publish command', () => {
       tag: 'latest',
       token: '',
       yes: true,
+      new: false,
       access: 'public',
       package: 'foo',
       changehint: 'Run "beachball change" to create a change file',
@@ -115,6 +116,8 @@ describe('publish command', () => {
       disallowedChangeTypes: null,
       defaultNpmTag: 'latest',
     };
+
+    const bumpInfo = gatherBumpInfo(options);
 
     // 3. Meanwhile, in repo2, also create a new change file
     const repo2 = await repositoryFactory.cloneRepository();

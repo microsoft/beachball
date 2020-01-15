@@ -3,8 +3,10 @@ import { readChangeFiles } from '../changefile/readChangeFiles';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { ChangeSet } from '../types/ChangeInfo';
 import { BumpInfo } from '../types/BumpInfo';
+import { bumpInPlace } from './bumpInPlace';
+import { BeachballOptions } from '../types/BeachballOptions';
 
-export function gatherBumpInfo(cwd: string): BumpInfo {
+function gatherPreBumpInfo(cwd: string): BumpInfo {
   // Collate the changes per package
   const changes = readChangeFiles(cwd);
   const packageChangeTypes = getPackageChangeTypes(changes);
@@ -31,6 +33,13 @@ export function gatherBumpInfo(cwd: string): BumpInfo {
     packageGroups: {},
     changes: filteredChanges,
     modifiedPackages: new Set<string>(),
+    newPackages: new Set<string>(),
     dependents: {},
   };
+}
+
+export function gatherBumpInfo(options: BeachballOptions): BumpInfo {
+  const bumpInfo = gatherPreBumpInfo(options.path);
+  bumpInPlace(bumpInfo, options);
+  return bumpInfo;
 }

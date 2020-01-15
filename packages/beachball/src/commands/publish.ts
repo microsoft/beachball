@@ -6,6 +6,7 @@ import { getPackageChangeTypes } from '../changefile/getPackageChangeTypes';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publishToRegistry } from '../publish/publishToRegistry';
+import { getNewPackages } from '../publish/getNewPackages';
 export async function publish(options: BeachballOptions) {
   const { path: cwd, branch, registry, tag } = options;
   // First, validate that we have changes to publish
@@ -43,7 +44,12 @@ export async function publish(options: BeachballOptions) {
   const publishBranch = 'publish_' + String(new Date().getTime());
   gitFailFast(['checkout', '-b', publishBranch], { cwd });
   console.log('Bumping version for npm publish');
-  const bumpInfo = gatherBumpInfo(cwd);
+  const bumpInfo = gatherBumpInfo(options);
+
+  if (options.new) {
+    bumpInfo.newPackages = new Set<string>(getNewPackages(bumpInfo, options.registry));
+  }
+
   // Step 1. Bump + npm publish
   // npm / yarn publish
   if (options.publish) {

@@ -4,6 +4,7 @@ import fs from 'fs';
 import { BumpInfo } from '../types/BumpInfo';
 import { bumpInPlace } from './bumpInPlace';
 import { BeachballOptions } from '../types/BeachballOptions';
+import { getNewPackages } from '../publish/getNewPackages';
 
 /**
  * Performs the bump, writes to the file system
@@ -15,8 +16,6 @@ import { BeachballOptions } from '../types/BeachballOptions';
  * @param bumpDeps
  */
 export function performBump(bumpInfo: BumpInfo, options: BeachballOptions) {
-  bumpInPlace(bumpInfo, options);
-
   const { modifiedPackages, packageInfos, changes } = bumpInfo;
 
   for (const pkgName of modifiedPackages) {
