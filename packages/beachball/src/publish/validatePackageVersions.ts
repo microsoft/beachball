@@ -1,9 +1,8 @@
 import { BumpInfo } from '../types/BumpInfo';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
-import { getBumpedPackages } from './getBumpedPackages';
 export function validatePackageVersions(bumpInfo: BumpInfo, registry: string) {
   let hasErrors: boolean = false;
-  getBumpedPackages(bumpInfo).forEach(pkg => {
+  bumpInfo.modifiedPackages.forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     const changeType = bumpInfo.packageChangeTypes[pkg];
     // Ignore private packages or change type "none" packages

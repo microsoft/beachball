@@ -1,13 +1,15 @@
 import { isGitAvailable } from './isGitAvailable';
 import { getUntrackedChanges } from '../git';
 import { isValidPackageName } from './isValidPackageName';
-import { getOptions } from '../options/getOptions';
 import { isValidChangeType } from './isValidChangeType';
 import { isChangeFileNeeded } from './isChangeFileNeeded';
+import { isValidGroupOptions } from './isValidGroupOptions';
+import { BeachballOptions } from '../types/BeachballOptions';
 
-export function validate(validateOptions: { allowMissingChangeFiles: boolean } = { allowMissingChangeFiles: false }) {
-  const options = getOptions();
-
+export function validate(
+  options: BeachballOptions,
+  validateOptions: { allowMissingChangeFiles: boolean } = { allowMissingChangeFiles: false }
+) {
   // Validation Steps
   if (!isGitAvailable(options.path)) {
     console.error('ERROR: Please make sure git is installed and initialize the repository with "git init".');
@@ -37,6 +39,12 @@ export function validate(validateOptions: { allowMissingChangeFiles: boolean } =
   if (isChangeNeeded && !validateOptions.allowMissingChangeFiles) {
     console.error('ERROR: Change files are needed!');
     console.log(options.changehint);
+    process.exit(1);
+  }
+
+  if (options.groups && !isValidGroupOptions(options.groups)) {
+    console.error('ERROR: Groups defined inside the configuration is invalid');
+    console.log(options.groups);
     process.exit(1);
   }
 

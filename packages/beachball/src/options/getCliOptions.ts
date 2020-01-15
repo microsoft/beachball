@@ -10,6 +10,7 @@ export function getCliOptions(): CliOptions {
   if (cliOptions) {
     return cliOptions;
   }
+
   const argv = process.argv.splice(2);
   const args = parser(argv, {
     string: ['branch', 'tag', 'message', 'package'],
@@ -25,11 +26,12 @@ export function getCliOptions(): CliOptions {
       version: ['v'],
     },
   });
-  const { _, restArgs } = args;
+
+  const { _, ...restArgs } = args;
   const cwd = findGitRoot(process.cwd()) || process.cwd();
   cliOptions = {
     ...(_.length > 0 && { command: _[0] }),
-    ...restArgs,
+    ...(restArgs as any),
     path: cwd,
     branch: args.branch && args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd),
   } as CliOptions;

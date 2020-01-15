@@ -1,10 +1,10 @@
-import { performBump } from "../bump/performBump";
+import { performBump } from '../bump/performBump';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { git, gitFailFast, revertLocalChanges, parseRemoteBranch } from '../git';
 import { tagPackages } from './tagPackages';
-import { mergePublishBranch } from "./mergePublishBranch";
-import { displayManualRecovery } from "./displayManualRecovery";
+import { mergePublishBranch } from './mergePublishBranch';
+import { displayManualRecovery } from './displayManualRecovery';
 export function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: BeachballOptions) {
   const { path: cwd, branch, tag, message } = options;
   const { remote, remoteBranch } = parseRemoteBranch(branch);
@@ -21,7 +21,7 @@ export function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: 
   }
   // bump the version
   console.log('Bumping the versions for git push');
-  performBump(bumpInfo, cwd, options.bumpDeps);
+  performBump(bumpInfo, options);
   // checkin
   const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
   if (!mergePublishBranchResult.success) {
@@ -40,8 +40,7 @@ export function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: 
     console.error(pushResult.stderr);
     displayManualRecovery(bumpInfo);
     process.exit(1);
-  }
-  else {
+  } else {
     console.log(pushResult.stdout.toString());
     console.log(pushResult.stderr.toString());
   }
