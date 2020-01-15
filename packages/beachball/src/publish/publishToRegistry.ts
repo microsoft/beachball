@@ -4,15 +4,20 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { packagePublish } from '../packageManager/packagePublish';
 import { validatePackageVersions } from './validatePackageVersions';
 import { displayManualRecovery } from './displayManualRecovery';
+import { getNewPackages } from './getNewPackages';
 export function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions) {
-  const { path: cwd, registry, tag, token, access } = options;
+  const { registry, tag, token, access } = options;
+  const { modifiedPackages, newPackages } = bumpInfo;
+
   performBump(bumpInfo, options);
+
   if (!validatePackageVersions(bumpInfo, registry)) {
     displayManualRecovery(bumpInfo);
     console.error('No packages have been published');
     process.exit(1);
   }
-  bumpInfo.modifiedPackages.forEach(pkg => {
+
+  [...modifiedPackages, ...newPackages].forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     const changeType = bumpInfo.packageChangeTypes[pkg];
     if (changeType === 'none') {

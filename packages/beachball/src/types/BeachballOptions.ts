@@ -15,6 +15,7 @@ export interface CliOptions {
   bumpDeps: boolean;
   fetch: boolean;
   yes: boolean;
+  new: boolean;
   access: 'public' | 'restricted';
   package: string;
   changehint: string;

@@ -5,7 +5,7 @@ import { updateRelatedChangeType } from './updateRelatedChangeType';
 import { bumpPackageInfoVersion } from './bumpPackageInfoVersion';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { setGroupsInBumpInfo } from './setGroupsInBumpInfo';
-import { gatherBumpInfo } from './gatherBumpInfo';
+
 /**
  * Updates BumpInfo according to change types, bump deps, and version groups
  *

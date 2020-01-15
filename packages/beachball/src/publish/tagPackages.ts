@@ -7,7 +7,9 @@ function createTag(tag: string, cwd: string) {
 }
 
 export function tagPackages(bumpInfo: BumpInfo, tag: string, cwd: string) {
-  bumpInfo.modifiedPackages.forEach(pkg => {
+  const { modifiedPackages, newPackages } = bumpInfo;
+
+  [...modifiedPackages, ...newPackages].forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
     const changeType = bumpInfo.packageChangeTypes[pkg];
     // Do not tag change type of "none" or private packages
