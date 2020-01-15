@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Fixes tagging and also publish brand new packages if not exists",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "09a7071c0c71193224e203aaa0f51fa2dfc395c4",
+  "date": "2020-01-15T04:41:35.192Z"
+}
