@@ -6,7 +6,6 @@ import { bumpPackageInfoVersion } from './bumpPackageInfoVersion';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { setGroupsInBumpInfo } from './setGroupsInBumpInfo';
 import { gatherBumpInfo } from './gatherBumpInfo';
-import { getOptions } from '../options/getOptions';
 /**
  * Updates BumpInfo according to change types, bump deps, and version groups
  *
@@ -47,7 +46,7 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
             const bumpedVersionRange = bumpMinSemverRange(packageInfo.version, existingVersionRange);
             if (existingVersionRange !== bumpedVersionRange) {
               info[depKind][dep] = bumpedVersionRange;
-              modifiedPackages.add(dep);
+              modifiedPackages.add(pkgName);
             }
           }
         });
@@ -56,11 +55,4 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
   });
 
   return bumpInfo;
-}
-
-if (require.main === module) {
-  const bumpInfo = gatherBumpInfo(process.cwd());
-  const options = getOptions();
-  bumpInPlace(bumpInfo, options);
-  console.log(bumpInfo.packageInfos['xd'].version);
 }

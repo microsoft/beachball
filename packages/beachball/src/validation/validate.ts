@@ -1,14 +1,15 @@
 import { isGitAvailable } from './isGitAvailable';
 import { getUntrackedChanges } from '../git';
 import { isValidPackageName } from './isValidPackageName';
-import { getOptions } from '../options/getOptions';
 import { isValidChangeType } from './isValidChangeType';
 import { isChangeFileNeeded } from './isChangeFileNeeded';
 import { isValidGroupOptions } from './isValidGroupOptions';
+import { BeachballOptions } from '../types/BeachballOptions';
 
-export function validate(validateOptions: { allowMissingChangeFiles: boolean } = { allowMissingChangeFiles: false }) {
-  const options = getOptions();
-
+export function validate(
+  options: BeachballOptions,
+  validateOptions: { allowMissingChangeFiles: boolean } = { allowMissingChangeFiles: false }
+) {
   // Validation Steps
   if (!isGitAvailable(options.path)) {
     console.error('ERROR: Please make sure git is installed and initialize the repository with "git init".');

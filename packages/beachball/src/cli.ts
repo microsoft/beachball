@@ -22,24 +22,24 @@ import { validate } from './validation/validate';
   // Run the commands
   switch (options.command) {
     case 'check':
-      validate();
+      validate(options);
       console.log('No change files are needed');
       break;
 
     case 'publish':
-      validate();
+      validate(options);
       // set a default publish message
       options.message = options.message || 'applying package updates';
       publish(options);
       break;
 
     case 'bump':
-      validate();
+      validate(options);
       bump(options);
       break;
 
     default:
-      const { isChangeNeeded } = validate({ allowMissingChangeFiles: true });
+      const { isChangeNeeded } = validate(options, { allowMissingChangeFiles: true });
 
       if (!isChangeNeeded && !options.package) {
         console.log('No change files are needed');
