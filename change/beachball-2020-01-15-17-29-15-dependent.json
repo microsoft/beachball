@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "adding some unit tests for bump low level logic as well as adding ability to have change files dictate what change type to use for dependent bumps",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "5b585063249326737061db439aa52c35f67b8fe3",
-  "date": "2020-01-16T01:29:15.886Z"
-}

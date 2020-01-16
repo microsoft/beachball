@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 16 Jan 2020 04:52:54 GMT",
+      "tag": "beachball_v1.18.2",
+      "version": "1.18.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "adding some unit tests for bump low level logic as well as adding ability to have change files dictate what change type to use for dependent bumps",
+            "author": "kchau@microsoft.com",
+            "commit": "5b585063249326737061db439aa52c35f67b8fe3"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 15 Jan 2020 06:49:10 GMT",
       "tag": "beachball_v1.18.1",
       "version": "1.18.1",

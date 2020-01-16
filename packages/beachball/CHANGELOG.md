@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 15 Jan 2020 04:54:51 GMT and should not be manually modified.
+This log was last generated on Thu, 16 Jan 2020 04:52:54 GMT and should not be manually modified.
 
+## 1.18.2
+Thu, 16 Jan 2020 04:52:54 GMT
+
+### Patches
+
+- adding some unit tests for bump low level logic as well as adding ability to have change files dictate what change type to use for dependent bumps (kchau@microsoft.com)
 ## 1.18.1
 Wed, 15 Jan 2020 04:54:51 GMT
 
