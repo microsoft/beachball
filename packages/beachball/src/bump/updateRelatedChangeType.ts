@@ -54,12 +54,6 @@ export function updateRelatedChangeType(
     new Set(dependentPackages).forEach(parent => {
       if (packageChangeTypes[parent] !== depChangeType) {
         // propagate the dependentChangeType of the current package to the subsequent related packages
-        dependentChangeTypes[parent] = getMaxChangeType(
-          depChangeType,
-          dependentChangeTypes[pkgName],
-          packageInfos[parent].options.disallowedChangeTypes
-        );
-
         updateRelatedChangeType(parent, depChangeType, bumpInfo, bumpDeps);
       }
     });

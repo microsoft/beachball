@@ -140,6 +140,48 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.packageChangeTypes['unrelated']).toBeUndefined();
   });
 
+  it('should bump dependent package, if a dependency was in a group', () => {
+    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+      dependentChangeTypes: {
+        dep: 'minor',
+      },
+      dependents: {
+        dep: ['bar'],
+        foo: ['app'],
+      },
+      packageInfos: {
+        foo: {
+          group: 'grp',
+        },
+        bar: {
+          group: 'grp',
+          dependencies: {
+            dep: '1.0.0',
+          },
+        },
+        dep: {
+          name: 'dep',
+          options: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
+        },
+        app: {
+          name: 'app',
+          dependencies: {
+            foo: '1.0.0',
+          },
+          options: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
+        },
+      },
+      packageGroups: { grp: ['foo', 'bar'] },
+    });
+
+    updateRelatedChangeType('dep', 'patch', bumpInfo, true);
+
+    expect(bumpInfo.packageChangeTypes['foo']).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['bar']).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['dep']).toBe('patch');
+    expect(bumpInfo.packageChangeTypes['app']).toBe('patch');
+  });
+
   it('should respect disallowed change type', () => {
     const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
       packageInfos: {

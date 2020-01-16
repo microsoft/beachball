@@ -1,13 +1,13 @@
-import { RepositoryFactory } from '../../fixtures/repository';
-import { bumpAndPush } from '../../publish/bumpAndPush';
-import { publish } from '../../commands/publish';
+import { RepositoryFactory } from '../fixtures/repository';
+import { bumpAndPush } from '../publish/bumpAndPush';
+import { publish } from '../commands/publish';
 import path from 'path';
 import fs from 'fs';
-import { writeChangeFiles } from '../../changefile/writeChangeFiles';
-import { git, gitFailFast } from '../../git';
-import { gatherBumpInfo } from '../../bump/gatherBumpInfo';
-import { BeachballOptions } from '../../types/BeachballOptions';
-import { ChangeInfo } from '../../types/ChangeInfo';
+import { writeChangeFiles } from '../changefile/writeChangeFiles';
+import { git, gitFailFast } from '../git';
+import { gatherBumpInfo } from '../bump/gatherBumpInfo';
+import { BeachballOptions } from '../types/BeachballOptions';
+import { ChangeInfo } from '../types/ChangeInfo';
 
 describe('publish command (git)', () => {
   let repositoryFactory: RepositoryFactory;

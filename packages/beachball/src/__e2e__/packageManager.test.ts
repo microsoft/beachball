@@ -1,7 +1,7 @@
-import { Registry } from '../../fixtures/registry';
-import { testPackageInfo, testTag } from '../../fixtures/package';
-import { packagePublish } from '../../packageManager/packagePublish';
-import { npm } from '../../packageManager/npm';
+import { Registry } from '../fixtures/registry';
+import { testPackageInfo, testTag } from '../fixtures/package';
+import { packagePublish } from '../packageManager/packagePublish';
+import { npm } from '../packageManager/npm';
 
 describe('packageManager', () => {
   let registry: Registry;
