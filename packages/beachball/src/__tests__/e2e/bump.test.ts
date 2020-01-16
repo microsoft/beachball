@@ -1,9 +1,9 @@
-import { RepositoryFactory } from '../fixtures/repository';
-import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { git } from '../git';
-import { bump } from '../commands/bump';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { BeachballOptions } from '../types/BeachballOptions';
+import { RepositoryFactory } from '../../fixtures/repository';
+import { writeChangeFiles } from '../../changefile/writeChangeFiles';
+import { git } from '../../git';
+import { bump } from '../../commands/bump';
+import { getPackageInfos } from '../../monorepo/getPackageInfos';
+import { BeachballOptions } from '../../types/BeachballOptions';
 
 describe('version bumping', () => {
   it('bumps only packages with change files', async () => {

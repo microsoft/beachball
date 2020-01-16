@@ -1,4 +1,4 @@
-import { getMaxChangeType } from '../changefile/getPackageChangeTypes';
+import { getMaxChangeType, getAllowedChangeType } from '../changefile/getPackageChangeTypes';
 import { ChangeType } from '../types/ChangeInfo';
 import { BumpInfo } from '../types/BumpInfo';
 
@@ -18,23 +18,30 @@ export function updateRelatedChangeType(
   bumpInfo: BumpInfo,
   bumpDeps: boolean
 ) {
-  const { packageChangeTypes, packageGroups, dependents, packageInfos } = bumpInfo;
+  const { packageChangeTypes, packageGroups, dependents, packageInfos, dependentChangeTypes } = bumpInfo;
 
-  // Prevent any more work if there are no changes to the changeType
-  let maxChangeType = packageChangeTypes[pkgName];
-  maxChangeType = getMaxChangeType(changeType, maxChangeType);
+  const disallowedChangeTypes = packageInfos[pkgName].options.disallowedChangeTypes;
+
+  let depChangeType = getAllowedChangeType(dependentChangeTypes[pkgName], disallowedChangeTypes);
 
   // Handle groups
-  packageChangeTypes[pkgName] = maxChangeType;
+  packageChangeTypes[pkgName] = getMaxChangeType(changeType, packageChangeTypes[pkgName], disallowedChangeTypes);
 
   if (packageInfos[pkgName].group) {
+    let maxGroupChangeType = depChangeType;
+
+    // calculate maxChangeType
     packageGroups[packageInfos[pkgName].group!].forEach(groupPkgName => {
-      maxChangeType = getMaxChangeType(maxChangeType, packageChangeTypes[groupPkgName]);
+      maxGroupChangeType = getMaxChangeType(
+        maxGroupChangeType,
+        packageChangeTypes[groupPkgName],
+        disallowedChangeTypes
+      );
     });
 
     packageGroups[packageInfos[pkgName].group!].forEach(groupPkgName => {
-      if (packageChangeTypes[groupPkgName] !== maxChangeType) {
-        updateRelatedChangeType(groupPkgName, maxChangeType, bumpInfo, bumpDeps);
+      if (packageChangeTypes[groupPkgName] !== maxGroupChangeType) {
+        updateRelatedChangeType(groupPkgName, maxGroupChangeType, bumpInfo, bumpDeps);
       }
     });
   }
@@ -44,8 +51,8 @@ export function updateRelatedChangeType(
     const dependentPackages = dependents[pkgName];
     if (dependentPackages) {
       dependentPackages.forEach(parent => {
-        if (packageChangeTypes[parent] !== maxChangeType) {
-          updateRelatedChangeType(parent, maxChangeType, bumpInfo, bumpDeps);
+        if (packageChangeTypes[parent] !== depChangeType) {
+          updateRelatedChangeType(parent, depChangeType, bumpInfo, bumpDeps);
         }
       });
     }

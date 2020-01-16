@@ -3,16 +3,16 @@ import fs from 'fs';
 
 import { promisify } from 'util';
 
-import { RepositoryFactory, Repository } from '../fixtures/repository';
-import { writeChangelog } from '../changelog/writeChangelog';
+import { RepositoryFactory, Repository } from '../../fixtures/repository';
+import { writeChangelog } from '../../changelog/writeChangelog';
 
-import { getPackageInfos } from '../monorepo/getPackageInfos';
+import { getPackageInfos } from '../../monorepo/getPackageInfos';
 
 import unified from 'unified';
 import remarkParse from 'remark-parse';
 import { selectAll } from 'unist-util-select';
-import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { readChangeFiles } from '../changefile/readChangeFiles';
+import { writeChangeFiles } from '../../changefile/writeChangeFiles';
+import { readChangeFiles } from '../../changefile/readChangeFiles';
 
 const readFileAsync = promisify(fs.readFile);
 

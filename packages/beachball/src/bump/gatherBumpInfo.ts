@@ -11,6 +11,7 @@ function gatherPreBumpInfo(cwd: string): BumpInfo {
   const changes = readChangeFiles(cwd);
   const packageChangeTypes = getPackageChangeTypes(changes);
   const packageInfos = getPackageInfos(cwd);
+  const dependentChangeTypes = {};
 
   // Clear non-existent changes
   const filteredChanges: ChangeSet = new Map();
@@ -18,6 +19,8 @@ function gatherPreBumpInfo(cwd: string): BumpInfo {
     if (packageInfos[change.packageName]) {
       filteredChanges.set(changeFile, change);
     }
+
+    dependentChangeTypes[change.packageName] = change.dependentChangeType || 'patch';
   }
 
   // Clear non-existent changeTypes
@@ -34,6 +37,7 @@ function gatherPreBumpInfo(cwd: string): BumpInfo {
     changes: filteredChanges,
     modifiedPackages: new Set<string>(),
     newPackages: new Set<string>(),
+    dependentChangeTypes: {},
     dependents: {},
   };
 }
