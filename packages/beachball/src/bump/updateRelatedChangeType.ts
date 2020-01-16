@@ -40,6 +40,7 @@ export function updateRelatedChangeType(
         groupOptions[groupName]?.disallowedChangeTypes
       );
 
+      // disregard the target disallowed types for now and will be culled at the subsequent update steps
       dependentChangeTypes[groupPkgName] = getMaxChangeType(depChangeType, dependentChangeTypes[groupPkgName], []);
     });
 
@@ -54,6 +55,8 @@ export function updateRelatedChangeType(
     new Set(dependentPackages).forEach(parent => {
       if (packageChangeTypes[parent] !== depChangeType) {
         // propagate the dependentChangeType of the current package to the subsequent related packages
+        dependentChangeTypes[parent] = depChangeType;
+
         updateRelatedChangeType(parent, depChangeType, bumpInfo, bumpDeps);
       }
     });

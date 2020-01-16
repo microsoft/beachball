@@ -179,7 +179,7 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.packageChangeTypes['foo']).toBe('minor');
     expect(bumpInfo.packageChangeTypes['bar']).toBe('minor');
     expect(bumpInfo.packageChangeTypes['dep']).toBe('patch');
-    expect(bumpInfo.packageChangeTypes['app']).toBe('patch');
+    expect(bumpInfo.packageChangeTypes['app']).toBe('minor');
   });
 
   it('should respect disallowed change type', () => {
