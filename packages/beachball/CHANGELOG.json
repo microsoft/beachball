@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 16 Jan 2020 20:27:41 GMT",
+      "tag": "beachball_v1.18.3",
+      "version": "1.18.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update depedent package bump logic to propagate the change types",
+            "author": "kchau@microsoft.com",
+            "commit": "39146f5f7094b19732e04659c7df8f7a3fc9922a"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 16 Jan 2020 04:52:54 GMT",
       "tag": "beachball_v1.18.2",
       "version": "1.18.2",

@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 16 Jan 2020 04:52:54 GMT and should not be manually modified.
+This log was last generated on Thu, 16 Jan 2020 20:27:41 GMT and should not be manually modified.
 
+## 1.18.3
+Thu, 16 Jan 2020 20:27:41 GMT
+
+### Patches
+
+- update depedent package bump logic to propagate the change types (kchau@microsoft.com)
 ## 1.18.2
 Thu, 16 Jan 2020 04:52:54 GMT
 
