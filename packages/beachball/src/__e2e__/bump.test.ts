@@ -328,7 +328,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-2'].version).toBe('1.1.0');
     expect(packageInfos['pkg-3'].version).toBe('1.1.0');
     expect(packageInfos['commonlib'].version).toBe('1.1.0');
-    expect(packageInfos['app'].version).toBe('1.1.0');
+    expect(packageInfos['app'].version).toBe('1.0.1');
     expect(packageInfos['unrelated'].version).toBe('1.0.0');
   });
 });
