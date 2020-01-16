@@ -14,7 +14,8 @@
         "${workspaceRoot}/node_modules/.bin/jest",
         "--runInBand",
         "--config",
-        "${workspaceRoot}/packages/beachball/jest.config.js"
+        "${workspaceRoot}/packages/beachball/jest.config.js",
+        "${fileBasename}"
       ],
       "windows": {
         "args": [
@@ -22,7 +23,8 @@
           "${workspaceRoot}/node_modules/jest/bin/jest.js",
           "--runInBand",
           "--config",
-          "${workspaceRoot}/packages/beachball/jest.config.js"
+          "${workspaceRoot}/packages/beachball/jest.config.js",
+          "${fileBasename}"
         ]
       },
       "console": "integratedTerminal",

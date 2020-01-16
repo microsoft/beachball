@@ -70,6 +70,7 @@ describe('version bumping', () => {
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'pkg-1',
+          dependentChangeType: 'patch',
         },
       },
       repo.rootPath
@@ -154,6 +155,7 @@ describe('version bumping', () => {
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'pkg-1',
+          dependentChangeType: 'patch',
         },
       },
       repo.rootPath
@@ -166,12 +168,12 @@ describe('version bumping', () => {
     const packageInfos = getPackageInfos(repo.rootPath);
 
     expect(packageInfos['pkg-1'].version).toBe('1.1.0');
-    expect(packageInfos['pkg-2'].version).toBe('1.1.0');
-    expect(packageInfos['pkg-3'].version).toBe('1.1.0');
+    expect(packageInfos['pkg-2'].version).toBe('1.0.1');
+    expect(packageInfos['pkg-3'].version).toBe('1.0.1');
 
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe('1.1.0');
-    expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe('1.1.0');
-    expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe('1.1.0');
+    expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe('1.0.1');
+    expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe('1.0.1');
   });
 
   it('bumps all grouped packages', async () => {
@@ -220,6 +222,7 @@ describe('version bumping', () => {
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'pkg-1',
+          dependentChangeType: 'patch',
         },
       },
       repo.rootPath
@@ -237,7 +240,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].version).toBe('1.0.0');
   });
 
-  fit('bumps all grouped AND dependent packages', async () => {
+  it('bumps all grouped AND dependent packages', async () => {
     const repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
@@ -305,6 +308,7 @@ describe('version bumping', () => {
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'commonlib',
+          dependentChangeType: 'minor',
         },
       },
       repo.rootPath
@@ -324,7 +328,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-2'].version).toBe('1.1.0');
     expect(packageInfos['pkg-3'].version).toBe('1.1.0');
     expect(packageInfos['commonlib'].version).toBe('1.1.0');
-    expect(packageInfos['app'].version).toBe('1.1.0');
+    expect(packageInfos['app'].version).toBe('1.0.1');
     expect(packageInfos['unrelated'].version).toBe('1.0.0');
   });
 });

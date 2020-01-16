@@ -7,6 +7,7 @@ export interface ChangeInfo {
   email: string;
   commit: string;
   date: Date;
+  dependentChangeType?: ChangeType;
 }
 
 export type ChangeSet = Map<string, ChangeInfo>;

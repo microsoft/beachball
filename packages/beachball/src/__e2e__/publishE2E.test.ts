@@ -35,6 +35,7 @@ describe('publish command (e2e)', () => {
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
+          dependentChangeType: 'patch',
         },
       },
       repo.rootPath

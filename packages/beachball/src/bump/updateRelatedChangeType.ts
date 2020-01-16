@@ -1,4 +1,4 @@
-import { getMaxChangeType } from '../changefile/getPackageChangeTypes';
+import { getMaxChangeType, getAllowedChangeType } from '../changefile/getPackageChangeTypes';
 import { ChangeType } from '../types/ChangeInfo';
 import { BumpInfo } from '../types/BumpInfo';
 
@@ -18,36 +18,44 @@ export function updateRelatedChangeType(
   bumpInfo: BumpInfo,
   bumpDeps: boolean
 ) {
-  const { packageChangeTypes, packageGroups, dependents, packageInfos } = bumpInfo;
+  const { packageChangeTypes, packageGroups, dependents, packageInfos, dependentChangeTypes, groupOptions } = bumpInfo;
 
-  // Prevent any more work if there are no changes to the changeType
-  let maxChangeType = packageChangeTypes[pkgName];
-  maxChangeType = getMaxChangeType(changeType, maxChangeType);
+  const disallowedChangeTypes = packageInfos[pkgName].options.disallowedChangeTypes;
+
+  let depChangeType = getMaxChangeType('patch', dependentChangeTypes[pkgName], disallowedChangeTypes);
+  let dependentPackages = dependents[pkgName];
 
   // Handle groups
-  packageChangeTypes[pkgName] = maxChangeType;
+  packageChangeTypes[pkgName] = getMaxChangeType(changeType, packageChangeTypes[pkgName], disallowedChangeTypes);
 
   if (packageInfos[pkgName].group) {
-    packageGroups[packageInfos[pkgName].group!].forEach(groupPkgName => {
-      maxChangeType = getMaxChangeType(maxChangeType, packageChangeTypes[groupPkgName]);
+    let maxGroupChangeType = depChangeType;
+    const groupName = packageInfos[pkgName].group!;
+
+    // calculate maxChangeType
+    packageGroups[groupName].forEach(groupPkgName => {
+      maxGroupChangeType = getMaxChangeType(
+        maxGroupChangeType,
+        packageChangeTypes[groupPkgName],
+        groupOptions[groupName]?.disallowedChangeTypes
+      );
+
+      dependentChangeTypes[groupPkgName] = getMaxChangeType(depChangeType, dependentChangeTypes[groupPkgName], []);
     });
 
-    packageGroups[packageInfos[pkgName].group!].forEach(groupPkgName => {
-      if (packageChangeTypes[groupPkgName] !== maxChangeType) {
-        updateRelatedChangeType(groupPkgName, maxChangeType, bumpInfo, bumpDeps);
+    packageGroups[groupName].forEach(groupPkgName => {
+      if (packageChangeTypes[groupPkgName] !== maxGroupChangeType) {
+        updateRelatedChangeType(groupPkgName, maxGroupChangeType, bumpInfo, bumpDeps);
       }
     });
   }
 
-  if (bumpDeps) {
-    // Change dependents
-    const dependentPackages = dependents[pkgName];
-    if (dependentPackages) {
-      dependentPackages.forEach(parent => {
-        if (packageChangeTypes[parent] !== maxChangeType) {
-          updateRelatedChangeType(parent, maxChangeType, bumpInfo, bumpDeps);
-        }
-      });
-    }
+  if (bumpDeps && dependentPackages) {
+    new Set(dependentPackages).forEach(parent => {
+      if (packageChangeTypes[parent] !== depChangeType) {
+        // propagate the dependentChangeType of the current package to the subsequent related packages
+        updateRelatedChangeType(parent, depChangeType, bumpInfo, bumpDeps);
+      }
+    });
   }
 }
