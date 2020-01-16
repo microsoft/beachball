@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "update depedent package bump logic to propagate the change types",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "39146f5f7094b19732e04659c7df8f7a3fc9922a",
+  "date": "2020-01-16T19:55:27.469Z"
+}
