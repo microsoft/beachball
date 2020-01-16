@@ -182,6 +182,65 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.packageChangeTypes['app']).toBe('minor');
   });
 
+  it('should propagate dependent change type across group', () => {
+    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+      dependentChangeTypes: {
+        mergeStyles: 'minor',
+      },
+      dependents: {
+        mergeStyles: ['styling'],
+        styling: ['bar'],
+        utils: ['bar'],
+        bar: ['datetime'],
+        datetimeUtils: ['datetime'],
+      },
+      packageInfos: {
+        styling: {
+          name: 'styling',
+          dependencies: {
+            mergeStyles: '1.0.0',
+          },
+        },
+        utils: {
+          name: 'utils',
+        },
+        mergeStyles: {
+          name: 'mergeStyles',
+        },
+        foo: {
+          group: 'grp',
+        },
+        bar: {
+          group: 'grp',
+          dependencies: {
+            styling: '1.0.0',
+            utils: '1.0.0',
+          },
+        },
+        datetime: {
+          name: 'datetime',
+          dependencies: {
+            bar: '1.0.0',
+            datetimeUtils: '1.0.0',
+          },
+        },
+        datetimeUtils: {
+          name: 'app',
+        },
+      },
+      packageGroups: { grp: ['foo', 'bar'] },
+    });
+
+    updateRelatedChangeType('mergeStyles', 'patch', bumpInfo, true);
+    updateRelatedChangeType('datetimeUtils', 'patch', bumpInfo, true);
+
+    expect(bumpInfo.packageChangeTypes['foo']).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['bar']).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['mergeStyles']).toBe('patch');
+    expect(bumpInfo.packageChangeTypes['datetime']).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['datetimeUtils']).toBe('patch');
+  });
+
   it('should respect disallowed change type', () => {
     const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
       packageInfos: {

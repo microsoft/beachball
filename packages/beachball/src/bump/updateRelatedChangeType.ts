@@ -20,7 +20,7 @@ export function updateRelatedChangeType(
 ) {
   const { packageChangeTypes, packageGroups, dependents, packageInfos, dependentChangeTypes, groupOptions } = bumpInfo;
 
-  const disallowedChangeTypes = packageInfos[pkgName].options.disallowedChangeTypes;
+  const disallowedChangeTypes = packageInfos[pkgName].options?.disallowedChangeTypes ?? [];
 
   let depChangeType = getMaxChangeType('patch', dependentChangeTypes[pkgName], disallowedChangeTypes);
   let dependentPackages = dependents[pkgName];
