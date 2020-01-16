@@ -12,8 +12,8 @@ const defaultPort = 4873;
 export class Registry {
   // The biggest issue here is with tests launching in parallel creating registries, finding free ports,
   // and racing to grab ports they see as free. This means some tests will always fail on grabbing ports.
-  // This class will attempt to find a free port, and once it does, continue using it, even through stops 
-  // and restarts. There's a theoretical chance of something grabbing the port between stops and restarts, 
+  // This class will attempt to find a free port, and once it does, continue using it, even through stops
+  // and restarts. There's a theoretical chance of something grabbing the port between stops and restarts,
   // but probably not a practical concern.
   private server?: ChildProcess = undefined;
   private port?: number = undefined;
@@ -42,30 +42,30 @@ export class Registry {
         console.log(`Could not start server, trying again on port ${tryPort}`);
       }
     }
-  };
+  }
 
   private async startWithPort(port: number) {
     return new Promise((resolve, reject) => {
       this.server = spawn(process.execPath, [verdaccioApi, port.toString()]);
 
-      this.server.stdout.on('data', (data) => {
+      this.server.stdout.on('data', data => {
         if (data.includes('verdaccio running')) {
           resolve();
         }
       });
 
-      this.server.stderr.on('data', (data) => {
+      this.server.stderr.on('data', data => {
         reject();
       });
 
-      this.server.on('error', (data) => {
+      this.server.on('error', data => {
         reject();
       });
-    })
-  };
+    });
+  }
 
   stop() {
-    if(this.server) {
+    if (this.server) {
       this.server.kill();
       this.server = undefined;
     }

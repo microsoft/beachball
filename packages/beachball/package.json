@@ -13,9 +13,10 @@
   "scripts": {
     "build": "tsc",
     "start": "tsc -w --preserveWatchOutput",
+    "jest": "jest",
     "test": "yarn test:unit && yarn test:e2e",
     "test:unit": "jest --config jest.config.js",
-    "test:e2e": "jest --config jest.e2e.js --runInBand",
+    "test:e2e": "jest --runInBand --config jest.e2e.js",
     "test-watch": "jest --watch"
   },
   "dependencies": {
