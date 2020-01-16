@@ -55,6 +55,8 @@ export interface VersionGroupOptions {
   /** minimatch pattern (or array of minimatch) to detect which packages should be excluded in this group */
   exclude?: string | string[];
 
+  disallowedChangeTypes: ChangeType[] | null;
+
   /** name of the version group */
   name: string;
 }

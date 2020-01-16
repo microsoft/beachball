@@ -47,6 +47,7 @@ describe('validation', () => {
             email: 'test@testtestme.com',
             packageName: 'foo',
             type: 'patch',
+            dependentChangeType: 'patch',
           },
         },
         repository.rootPath
@@ -62,6 +63,7 @@ describe('validation', () => {
             email: 'test@testtestme.com',
             packageName: 'foo',
             type: 'patch',
+            dependentChangeType: 'patch',
           },
         },
         repository.rootPath

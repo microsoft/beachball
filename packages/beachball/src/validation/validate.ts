@@ -42,7 +42,7 @@ export function validate(
     process.exit(1);
   }
 
-  if (options.groups && !isValidGroupOptions(options.groups)) {
+  if (options.groups && !isValidGroupOptions(options.path, options.groups)) {
     console.error('ERROR: Groups defined inside the configuration is invalid');
     console.log(options.groups);
     process.exit(1);

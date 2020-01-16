@@ -12,6 +12,7 @@ function gatherPreBumpInfo(cwd: string): BumpInfo {
   const packageChangeTypes = getPackageChangeTypes(changes);
   const packageInfos = getPackageInfos(cwd);
   const dependentChangeTypes = {};
+  const groupOptions = {};
 
   // Clear non-existent changes
   const filteredChanges: ChangeSet = new Map();
@@ -37,7 +38,8 @@ function gatherPreBumpInfo(cwd: string): BumpInfo {
     changes: filteredChanges,
     modifiedPackages: new Set<string>(),
     newPackages: new Set<string>(),
-    dependentChangeTypes: {},
+    dependentChangeTypes,
+    groupOptions,
     dependents: {},
   };
 }

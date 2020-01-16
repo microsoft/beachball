@@ -33,6 +33,7 @@ describe('publish command (git)', () => {
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
+          dependentChangeType: 'patch',
         },
       },
       repo.rootPath
@@ -82,6 +83,7 @@ describe('publish command (git)', () => {
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
+          dependentChangeType: 'patch',
         },
       },
       repo1.rootPath
@@ -131,6 +133,7 @@ describe('publish command (git)', () => {
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo2',
+          dependentChangeType: 'patch',
         },
       },
       repo2.rootPath

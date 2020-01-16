@@ -35,6 +35,7 @@ describe('publish command (registry)', () => {
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
+          dependentChangeType: 'patch',
         },
       },
       repo.rootPath
@@ -113,6 +114,7 @@ describe('publish command (registry)', () => {
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foopkg',
+          dependentChangeType: 'patch',
         },
       },
       repo.rootPath
@@ -186,6 +188,7 @@ describe('publish command (registry)', () => {
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'badname',
+          dependentChangeType: 'patch',
         },
       },
       repo.rootPath

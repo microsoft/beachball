@@ -23,6 +23,7 @@ describe('updateRelatedChangeType', () => {
     modifiedPackages: new Set(),
     newPackages: new Set(),
     packageGroups: {},
+    groupOptions: {},
   } as unknown) as BumpInfo;
 
   it('should bump dependent packages with "patch" change type by default', () => {
@@ -101,13 +102,13 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.packageChangeTypes['unrelated']).toBeUndefined();
   });
 
-  it('should bump all packages in a group together with dependents', () => {
+  it('should bump all grouped packages, if a dependency was bumped', () => {
     const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
       dependentChangeTypes: {
-        bar: 'patch',
+        dep: 'minor',
       },
       dependents: {
-        bar: ['dep'],
+        dep: ['bar'],
       },
       packageInfos: {
         foo: {
@@ -131,7 +132,7 @@ describe('updateRelatedChangeType', () => {
       packageGroups: { grp: ['foo', 'bar'] },
     });
 
-    updateRelatedChangeType('foo', 'minor', bumpInfo, true);
+    updateRelatedChangeType('dep', 'patch', bumpInfo, true);
 
     expect(bumpInfo.packageChangeTypes['foo']).toBe('minor');
     expect(bumpInfo.packageChangeTypes['bar']).toBe('minor');

@@ -18,43 +18,50 @@ export function updateRelatedChangeType(
   bumpInfo: BumpInfo,
   bumpDeps: boolean
 ) {
-  const { packageChangeTypes, packageGroups, dependents, packageInfos, dependentChangeTypes } = bumpInfo;
+  const { packageChangeTypes, packageGroups, dependents, packageInfos, dependentChangeTypes, groupOptions } = bumpInfo;
 
   const disallowedChangeTypes = packageInfos[pkgName].options.disallowedChangeTypes;
 
-  let depChangeType = getAllowedChangeType(dependentChangeTypes[pkgName], disallowedChangeTypes);
+  let depChangeType = getMaxChangeType('patch', dependentChangeTypes[pkgName], disallowedChangeTypes);
+  let dependentPackages = dependents[pkgName];
 
   // Handle groups
   packageChangeTypes[pkgName] = getMaxChangeType(changeType, packageChangeTypes[pkgName], disallowedChangeTypes);
 
   if (packageInfos[pkgName].group) {
     let maxGroupChangeType = depChangeType;
+    const groupName = packageInfos[pkgName].group!;
 
     // calculate maxChangeType
-    packageGroups[packageInfos[pkgName].group!].forEach(groupPkgName => {
+    packageGroups[groupName].forEach(groupPkgName => {
       maxGroupChangeType = getMaxChangeType(
         maxGroupChangeType,
         packageChangeTypes[groupPkgName],
-        disallowedChangeTypes
+        groupOptions[groupName]?.disallowedChangeTypes
       );
+
+      dependentChangeTypes[groupPkgName] = getMaxChangeType(depChangeType, dependentChangeTypes[groupPkgName], []);
     });
 
-    packageGroups[packageInfos[pkgName].group!].forEach(groupPkgName => {
+    packageGroups[groupName].forEach(groupPkgName => {
       if (packageChangeTypes[groupPkgName] !== maxGroupChangeType) {
         updateRelatedChangeType(groupPkgName, maxGroupChangeType, bumpInfo, bumpDeps);
       }
     });
   }
 
-  if (bumpDeps) {
-    // Change dependents
-    const dependentPackages = dependents[pkgName];
-    if (dependentPackages) {
-      dependentPackages.forEach(parent => {
-        if (packageChangeTypes[parent] !== depChangeType) {
-          updateRelatedChangeType(parent, depChangeType, bumpInfo, bumpDeps);
-        }
-      });
-    }
+  if (bumpDeps && dependentPackages) {
+    new Set(dependentPackages).forEach(parent => {
+      if (packageChangeTypes[parent] !== depChangeType) {
+        // propagate the dependentChangeType of the current package to the subsequent related packages
+        dependentChangeTypes[parent] = getMaxChangeType(
+          depChangeType,
+          dependentChangeTypes[pkgName],
+          packageInfos[parent].options.disallowedChangeTypes
+        );
+
+        updateRelatedChangeType(parent, depChangeType, bumpInfo, bumpDeps);
+      }
+    });
   }
 }

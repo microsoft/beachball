@@ -15,3 +15,5 @@ export interface PackageInfo {
 export interface PackageInfos {
   [pkgName: string]: PackageInfo;
 }
+
+export type PackageGroups = { [pkgName: string]: string[] };
