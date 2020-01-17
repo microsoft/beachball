@@ -5,4 +5,9 @@ describe('getAllowedChangeTypes', () => {
     const changeType = getAllowedChangeType('major', ['major', 'minor']);
     expect(changeType).toBe('patch');
   });
+
+  fit('can handle prerelease only case', () => {
+    const changeType = getAllowedChangeType('patch', ['major', 'minor', 'patch']);
+    expect(changeType).toBe('prerelease');
+  });
 });

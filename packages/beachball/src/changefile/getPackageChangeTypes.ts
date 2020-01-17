@@ -1,12 +1,15 @@
 import { ChangeInfo, ChangeSet, ChangeType } from '../types/ChangeInfo';
 
-const ChangeTypeWeights = {
-  major: 4,
-  minor: 3,
-  patch: 2,
-  prerelease: 1,
-  none: 0,
-};
+const SortedChangeTypes: ChangeType[] = ['none', 'prerelease', 'patch', 'minor', 'major'];
+
+/**
+ *  Change type weights
+ *  Note: the order in which this is defined is IMPORTANT
+ */
+const ChangeTypeWeights = SortedChangeTypes.reduce((weights, changeType, index) => {
+  weights[changeType] = index;
+  return weights;
+}, {});
 
 export function getPackageChangeTypes(changeSet: ChangeSet) {
   const changePerPackage: {
@@ -40,8 +43,8 @@ export function getAllowedChangeType(changeType: ChangeType, disallowedChangeTyp
   }
 
   while (disallowedChangeTypes.includes(changeType) && changeType !== 'none') {
-    // minus 2 here because of 0 and 1 based index conversion
-    changeType = Object.keys(ChangeTypeWeights)[ChangeTypeWeights[changeType] - 2] as keyof typeof ChangeTypeWeights;
+    const nextChangeTypeWeight = ChangeTypeWeights[changeType] - 1;
+    changeType = SortedChangeTypes[nextChangeTypeWeight];
   }
 
   return changeType;
