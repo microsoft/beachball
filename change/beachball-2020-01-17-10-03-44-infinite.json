@@ -1,9 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fixing a bug about infinite loop in allowed type",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "0344896618e0e5874288389c99e7d9530cc64c18",
-  "dependentChangeType": "patch",
-  "date": "2020-01-17T18:03:44.767Z"
-}

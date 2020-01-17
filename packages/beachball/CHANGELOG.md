@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 16 Jan 2020 20:27:41 GMT and should not be manually modified.
+This log was last generated on Fri, 17 Jan 2020 18:13:36 GMT and should not be manually modified.
 
+## 1.18.4
+Fri, 17 Jan 2020 18:13:36 GMT
+
+### Patches
+
+- fixing a bug about infinite loop in allowed type (kchau@microsoft.com)
 ## 1.18.3
 Thu, 16 Jan 2020 20:27:41 GMT
 

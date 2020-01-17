@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 17 Jan 2020 18:13:36 GMT",
+      "tag": "beachball_v1.18.4",
+      "version": "1.18.4",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fixing a bug about infinite loop in allowed type",
+            "author": "kchau@microsoft.com",
+            "commit": "0344896618e0e5874288389c99e7d9530cc64c18"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 16 Jan 2020 20:27:41 GMT",
       "tag": "beachball_v1.18.3",
       "version": "1.18.3",
