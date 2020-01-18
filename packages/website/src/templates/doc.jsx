@@ -10,6 +10,8 @@ import config from '../../data/SiteConfig'
 import TableOfContents from '../components/Layout/TableOfContents'
 import Layout from '../layouts'
 
+import tw from 'tailwind.macro'
+
 export default class DocTemplate extends React.Component {
   render() {
     const { slug } = this.props.pathContext
@@ -28,10 +30,10 @@ export default class DocTemplate extends React.Component {
             <title>{`${post.title} | ${config.siteTitle}`}</title>
           </Helmet>
           <SEO postPath={slug} postNode={postNode} postSEO />
-          <BodyGrid>
-            <HeaderContainer>
-              <SiteHeader location={this.props.location} />
-            </HeaderContainer>
+          <HeaderContainer>
+            <SiteHeader location={this.props.location} />
+          </HeaderContainer>
+          <ContentContainer className="container">
             <ToCContainer>
               <TableOfContents
                 chapters={this.props.data.tableOfContents.chapters}
@@ -43,66 +45,20 @@ export default class DocTemplate extends React.Component {
                 <div dangerouslySetInnerHTML={{ __html: postNode.html }} />
               </div>
             </BodyContainer>
-          </BodyGrid>
+          </ContentContainer>
         </div>
       </Layout>
     )
   }
 }
 
-const BodyGrid = styled.div`
-  height: 100vh;
-  display: grid;
-  grid-template-rows: 75px 1fr;
-  grid-template-columns: 300px 1fr;
+const ContentContainer = tw.div`mx-auto flex`
 
-  @media screen and (max-width: 600px) {
-    display: flex;
-    flex-direction: column;
-    height: inherit;
-  }
-`
+const BodyContainer = tw.div`flex-1 p-8`
 
-const BodyContainer = styled.div`
-  grid-column: 2 / 3;
-  grid-row: 2 / 3;
-  overflow: scroll;
-  justify-self: center;
-  width: 100%;
-  padding: ${props => props.theme.sitePadding};
-  @media screen and (max-width: 600px) {
-    order: 2;
-  }
+const HeaderContainer = styled.div``
 
-  & > div {
-    max-width: ${props => props.theme.contentWidthLaptop};
-    margin: auto;
-  }
-
-  & > h1 {
-    color: ${props => props.theme.accentDark};
-  }
-`
-
-const HeaderContainer = styled.div`
-  grid-column: 1 / 3;
-  grid-row: 1 / 2;
-  z-index: 2;
-  @media screen and (max-width: 600px) {
-    order: 1;
-  }
-`
-
-const ToCContainer = styled.div`
-  grid-column: 1 / 2;
-  grid-row: 2 / 3;
-  background: ${props => props.theme.lightGrey};
-  overflow: scroll;
-  @media screen and (max-width: 600px) {
-    order: 3;
-    overflow: inherit;
-  }
-`
+const ToCContainer = tw.div`w-1/5`
 
 /* eslint no-undef: "off" */
 export const pageQuery = graphql`

@@ -1,0 +1,30 @@
+@tailwind base;
+
+html,
+body {
+  font-size: 20px;
+}
+
+p {
+  @apply mb-2 font-serif text-lg font-light leading-loose;
+}
+
+h1 {
+  @apply mb-2 text-4xl;
+}
+
+h2 {
+  @apply mb-2 text-2xl;
+}
+
+h3 {
+  @apply mb-2 text-xl;
+}
+
+h4 {
+  @apply mb-2 text-lg;
+}
+
+@tailwind components;
+
+@tailwind utilities;

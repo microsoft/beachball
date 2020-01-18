@@ -1,3 +1,5 @@
+import '../utils/globals.css'
+
 import { graphql } from 'gatsby'
 import React from 'react'
 import Helmet from 'react-helmet'
@@ -16,16 +18,16 @@ import CtaButton from '../components/CtaButton'
 import Navigation from '../components/Layout/Navigation'
 import Layout from '../layouts'
 import beachBallSvg from '../assets/beach-ball.svg'
+import tw from 'tailwind.macro'
 
 const Index = props => {
   return (
     <Layout location={props.location}>
       <IndexContainer>
         <Helmet title={config.siteTitle} />
-
         <IndexHeadContainer>
           <Navigation />
-          <Hero>
+          <Hero className="font-hero text-4xl">
             <LogoRow>
               <BeachBallLogo src={beachBallSvg} />
               <h1>{config.siteTitle}</h1>
@@ -102,11 +104,7 @@ const Index = props => {
 
 export default Index
 
-const IndexContainer = styled.div`
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-`
+const IndexContainer = styled('div')``
 
 const FeatureRow = styled.div`
   display: flex;
