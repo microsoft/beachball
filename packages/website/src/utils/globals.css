@@ -5,24 +5,33 @@ body {
   font-size: 20px;
 }
 
-p {
-  @apply mb-2 font-serif text-lg font-light leading-loose;
+ol {
+  @apply list-disc mx-4 p-0 font-normal;
 }
 
-h1 {
-  @apply mb-2 text-4xl;
+p,
+li {
+  @apply mb-4 font-serif text-lg font-light leading-loose;
 }
 
-h2 {
-  @apply mb-2 text-2xl;
+.mdContent h1 {
+  @apply mb-4 text-4xl;
 }
 
-h3 {
-  @apply mb-2 text-xl;
+.mdContent h2 {
+  @apply mb-4 text-2xl;
 }
 
-h4 {
-  @apply mb-2 text-lg;
+.mdContent h3 {
+  @apply mb-4 text-xl;
+}
+
+.mdContent h4 {
+  @apply mb-4 text-lg;
+}
+
+.mermaid svg {
+  @apply mx-auto p-6 border shadow border-gray-500 my-6;
 }
 
 @tailwind components;

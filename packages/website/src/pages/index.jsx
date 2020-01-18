@@ -25,17 +25,19 @@ const Index = props => {
     <Layout location={props.location}>
       <IndexContainer>
         <Helmet title={config.siteTitle} />
-        <IndexHeadContainer>
-          <Navigation />
-          <Hero className="font-hero text-4xl">
-            <LogoRow>
-              <BeachBallLogo src={beachBallSvg} />
-              <h1>{config.siteTitle}</h1>
-            </LogoRow>
-            <h4>{config.siteDescription}</h4>
-            <CtaButton to={'/getting-started'}>Getting Started</CtaButton>
-          </Hero>
-        </IndexHeadContainer>
+        <Navigation />
+        <IndexSection>
+          <IndexHeadContainer className="container">
+            <Hero className="font-hero">
+              <LogoRow>
+                <BeachBallLogo src={beachBallSvg} />
+                <HeroText>{config.siteTitle}</HeroText>
+              </LogoRow>
+              <HeroSubText>{config.siteDescription}</HeroSubText>
+              <CtaButton to={'/getting-started'}>Getting Started</CtaButton>
+            </Hero>
+          </IndexHeadContainer>
+        </IndexSection>
         <BodyContainer>
           <FeatureRow>
             <Feature>
@@ -128,34 +130,26 @@ const Feature = styled.div`
   }
 `
 
-const LogoRow = styled.div`
-  display: flex;
-  margin: 0 auto;
-  align-items: center;
-  justify-content: center;
-`
+const LogoRow = tw.div`flex justify-center mb-4`
 
 const BeachBallLogo = styled.img`
   height: 40px;
   width: 40px;
-  margin-right: 5px;
+  ${tw`mr-5 self-center`}
 `
 
-const IndexHeadContainer = styled.div`
-  background: ${props => props.theme.brand};
-  padding: ${props => props.theme.sitePadding};
-  text-align: center;
-`
+const IndexSection = tw.div`mx-auto bg-yellow-400`
+
+const IndexHeadContainer = tw.div`mx-auto bg-yellow-400 text-center`
 
 const Hero = styled.div`
-  padding: 50px 0;
-  & h1 {
-    font-weight: 600;
-    margin: 0;
-    padding: 0;
-    line-height: 60px;
-  }
+  min-height: 500px;
+  ${tw`mx-auto flex flex-col justify-center`};
 `
+
+const HeroText = tw.h1`font-bold text-4xl`
+
+const HeroSubText = tw.h4`text-2xl mb-4`
 
 const BodyContainer = styled.div`
   padding: ${props => props.theme.sitePadding};

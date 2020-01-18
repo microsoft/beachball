@@ -2,52 +2,25 @@ import React from 'react'
 import Link from 'gatsby-link'
 import styled from 'styled-components'
 import UserLinks from '../UserLinks'
+import tw from 'tailwind.macro'
 
-const NavContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  background: ${props => props.theme.brand};
-
-  .nav-link {
-    font-size: 1.6rem;
-    margin-right: 10px;
-    font-weight: 200;
-    color: black;
-  }
-
-  @media screen and (max-width: 600px) {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    section {
-      margin-bottom: 20px;
-    }
-
-    span {
-      display: none;
-    }
-  }
-`
+const NavContainer = tw.div`bg-gray-200 fixed w-full shadow`
+const NavContent = tw.div`mx-auto flex justify-between h-10 items-center`
+const StyledLink = tw(Link)`mr-5`
 
 class Navigation extends React.Component {
   render() {
     return (
       <NavContainer>
-        <section>
-          <Link className="nav-link" to="/">
-            {' '}
-            HOME{' '}
-          </Link>
-          <Link className="nav-link" to="/getting-started">
-            {' '}
-            DOCS{' '}
-          </Link>
-        </section>
-        <span>
-          <UserLinks />
-        </span>
+        <NavContent className="container">
+          <section>
+            <StyledLink to="/">BEACHBALL</StyledLink>
+            <StyledLink to="/getting-started">DOCS</StyledLink>
+          </section>
+          <span>
+            <UserLinks />
+          </span>
+        </NavContent>
       </NavContainer>
     )
   }

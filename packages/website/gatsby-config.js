@@ -53,7 +53,13 @@ module.exports = {
           'gatsby-remark-mermaid',
           'gatsby-remark-prismjs',
           'gatsby-remark-copy-linked-files',
-          'gatsby-remark-autolink-headers'
+          {
+            resolve: 'gatsby-remark-autolink-headers',
+            options: {
+              className: `autolink-header`,
+              isIconAfterHeader: true
+            }
+          }
         ]
       }
     },

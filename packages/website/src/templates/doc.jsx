@@ -40,7 +40,7 @@ export default class DocTemplate extends React.Component {
               />
             </ToCContainer>
             <BodyContainer>
-              <div>
+              <div className="mdContent">
                 <h1>{post.title}</h1>
                 <div dangerouslySetInnerHTML={{ __html: postNode.html }} />
               </div>
@@ -52,11 +52,11 @@ export default class DocTemplate extends React.Component {
   }
 }
 
-const ContentContainer = tw.div`mx-auto flex`
+const ContentContainer = tw.div`mx-auto flex pt-8`
 
-const BodyContainer = tw.div`flex-1 p-8`
+const BodyContainer = tw.div`w-4/5 p-8`
 
-const HeaderContainer = styled.div``
+const HeaderContainer = tw.div``
 
 const ToCContainer = tw.div`w-1/5`
 

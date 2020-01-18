@@ -45,13 +45,13 @@ const TableOfContents = ({ chapters }) => (
 
 export default TableOfContents
 
-const TOCWrapper = tw.div`m-0 p-8`
+const TOCWrapper = tw.div`m-0 py-8`
 
 const StyledChapterList = tw.ol`list-none m-0`
 
-const StyledLinkList = tw.ol`list-none`
+const StyledLinkList = tw.ol`list-none m-0`
 
-const EntryTitle = tw.h6`font-light`
+const EntryTitle = tw.h6`font-light  m-0`
 
 const ChapterListItem = tw.li`m-0 mb-2`
 
