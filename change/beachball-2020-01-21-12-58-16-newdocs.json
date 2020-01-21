@@ -1,0 +1,9 @@
+{
+  "type": "none",
+  "comment": "get rid of comment that was unnecessary",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "commit": "4323fc24f7eb96db43676cdbbdac3187a30ac713",
+  "dependentChangeType": "patch",
+  "date": "2020-01-21T20:58:16.628Z"
+}

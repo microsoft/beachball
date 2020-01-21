@@ -1,3 +1,5 @@
+import '../utils/globals.css'
+
 import { graphql } from 'gatsby'
 import React from 'react'
 import Helmet from 'react-helmet'
@@ -16,62 +18,83 @@ import CtaButton from '../components/CtaButton'
 import Navigation from '../components/Layout/Navigation'
 import Layout from '../layouts'
 import beachBallSvg from '../assets/beach-ball.svg'
+import tw from 'tailwind.macro'
 
 const Index = props => {
   return (
     <Layout location={props.location}>
       <IndexContainer>
         <Helmet title={config.siteTitle} />
-
-        <IndexHeadContainer>
-          <Navigation />
-          <Hero>
-            <LogoRow>
-              <BeachBallLogo src={beachBallSvg} />
-              <h1>{config.siteTitle}</h1>
-            </LogoRow>
-            <h4>{config.siteDescription}</h4>
-            <CtaButton to={'/getting-started'}>Getting Started</CtaButton>
-          </Hero>
-        </IndexHeadContainer>
-        <BodyContainer>
-          <FeatureRow>
+        <Navigation />
+        <IndexSection>
+          <IndexHeadContainer className="container">
+            <Hero className="font-hero">
+              <LogoRow>
+                <BeachBallLogo src={beachBallSvg} />
+                <HeroText>{config.siteTitle}</HeroText>
+              </LogoRow>
+              <HeroSubText>{config.siteDescription}</HeroSubText>
+              <CtaButton to={'/getting-started'}>Getting Started</CtaButton>
+            </Hero>
+          </IndexHeadContainer>
+        </IndexSection>
+        <BodyContainer className="container">
+          <FeatureList className="grid grid-automin-300px">
             <Feature>
-              <FaSync size="3rem" />
-              <h4>Synchronized in git and npm</h4>
-              keep your git and npm versions in sync in CI and local workflows
+              <FeatureHeader>
+                <FaSync size="2rem" className="mr-2" />
+                <h4>Synchronized in git and npm</h4>
+              </FeatureHeader>
+              <FeatureDesc>
+                keep your git and npm versions in sync in CI and local workflows
+              </FeatureDesc>
             </Feature>
             <Feature>
-              <FaRobot size="3rem" />
-              <h4>Automated Version Bumps</h4>
-              one command line to bump package(s) in your repo with semver
-            </Feature>
-          </FeatureRow>
-
-          <FeatureRow>
-            <Feature>
-              <FaNewspaper size="3rem" />
-              <h4>Generates Changelogs</h4>
-              same command will generate changelogs for your users
+              <FeatureHeader>
+                <FaRobot size="2rem" className="mr-2" />
+                <h4>Automated Version Bumps</h4>
+              </FeatureHeader>
+              <FeatureDesc>
+                one command line to bump package(s) in your repo with semver
+              </FeatureDesc>
             </Feature>
             <Feature>
-              <DiGitBranch size="3rem" />
-              <h4>Single or Monorepo</h4>
-              compatible out of the box for single repo or monorepos
-            </Feature>
-          </FeatureRow>
-          <FeatureRow>
-            <Feature>
-              <FaCheckDouble size="3rem" />
-              <h4>Pre-Publish Validation Checks</h4>
-              double and triple check git repo and npm registry before publish
+              <FeatureHeader>
+                <FaNewspaper size="2rem" className="mr-2" />
+                <h4>Generates Changelogs</h4>
+              </FeatureHeader>
+              <FeatureDesc>
+                same command will generate changelogs for your users
+              </FeatureDesc>
             </Feature>
             <Feature>
-              <FaTerminal size="3rem" />
-              <h4>Zero Config Versioning</h4>
-              no config is required to get started, do more in one line
+              <FeatureHeader>
+                <DiGitBranch size="2rem" className="mr-2" />
+                <h4>Single or Monorepo</h4>
+              </FeatureHeader>
+              <FeatureDesc>
+                compatible out of the box for single repo or monorepos
+              </FeatureDesc>
             </Feature>
-          </FeatureRow>
+            <Feature>
+              <FeatureHeader>
+                <FaCheckDouble size="2rem" className="mr-2" />
+                <h4>Pre-Publish Validation Checks</h4>
+              </FeatureHeader>
+              <FeatureDesc>
+                double and triple check git repo and npm registry before publish
+              </FeatureDesc>
+            </Feature>
+            <Feature>
+              <FeatureHeader>
+                <FaTerminal size="2rem" className="mr-2" />
+                <h4>Zero Config Versioning</h4>
+              </FeatureHeader>
+              <FeatureDesc>
+                no config is required to get started, do more in one line
+              </FeatureDesc>
+            </Feature>
+          </FeatureList>
         </BodyContainer>
         <FooterContainer>
           <div className="contributors">
@@ -102,93 +125,40 @@ const Index = props => {
 
 export default Index
 
-const IndexContainer = styled.div`
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-`
+const IndexContainer = styled('div')``
 
-const FeatureRow = styled.div`
-  display: flex;
-  justify-content: stretch;
-  margin: 40px 0;
-`
+const FeatureList = tw.div`w-3/4 grid grid-automin-300px grid-gap-4 mt-4 mx-auto`
 
-const Feature = styled.div`
-  flex: 1;
-  font-size: 1.4rem;
+const FeatureHeader = tw.div`flex text-lg font-black items-center mb-4`
 
-  margin: 0;
-  padding: 0;
+const Feature = tw.div`text-base font-light mb-8`
 
-  & h4 {
-    margin: 0;
-  }
+const FeatureDesc = tw.div`col-span-2`
 
-  &:first-child {
-    margin-right: 25px;
-  }
-`
-
-const LogoRow = styled.div`
-  display: flex;
-  margin: 0 auto;
-  align-items: center;
-  justify-content: center;
-`
+const LogoRow = tw.div`flex justify-center mb-4`
 
 const BeachBallLogo = styled.img`
   height: 40px;
   width: 40px;
-  margin-right: 5px;
+  ${tw`mr-5 self-center`}
 `
 
-const IndexHeadContainer = styled.div`
-  background: ${props => props.theme.brand};
-  padding: ${props => props.theme.sitePadding};
-  text-align: center;
-`
+const IndexSection = tw.div`mx-auto bg-yellow-400`
+
+const IndexHeadContainer = tw.div`mx-auto bg-yellow-400 text-center`
 
 const Hero = styled.div`
-  padding: 50px 0;
-  & h1 {
-    font-weight: 600;
-    margin: 0;
-    padding: 0;
-    line-height: 60px;
-  }
+  min-height: 500px;
+  ${tw`mx-auto flex flex-col justify-center`};
 `
 
-const BodyContainer = styled.div`
-  padding: ${props => props.theme.sitePadding};
-  max-width: ${props => props.theme.contentWidthLaptop};
-  margin: 0 auto;
+const HeroText = tw.h1`font-bold text-4xl`
 
-  flex-grow: 1;
+const HeroSubText = tw.h4`text-2xl mb-4`
 
-  .contributors {
-    margin: 100px auto 0;
-  }
+const BodyContainer = tw.div`mx-auto mt-8`
 
-  .contributors a {
-    font-size: 1rem;
-  }
-
-  margin-bottom: 100px;
-`
-
-const FooterContainer = styled.footer`
-  background: ${props => props.theme.lightGrey};
-
-  height: 100px;
-
-  padding-top: 30px;
-  display: flex;
-  justify-content: center;
-  & a {
-    font-size: 1rem;
-  }
-`
+const FooterContainer = tw.footer`bg-gray-300 text-xs h-16 text-center pt-4`
 
 /* eslint no-undef: "off" */
 export const query = graphql`

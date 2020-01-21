@@ -6,9 +6,17 @@
       "entries": [
         { "entry": "./overview/getting-started.md" },
         { "entry": "./overview/installation.md" },
-        { "entry": "./overview/change-files.md" },
-        { "entry": "./overview/ci-integration.md" },
         { "entry": "./overview/configuration.md" }
+      ],
+      "chapters": []
+    },
+    {
+      "title": "Concepts",
+      "entries": [
+        { "entry": "./concepts/change-files.md" },
+        { "entry": "./concepts/ci-integration.md" },
+        { "entry": "./concepts/bump-algorithm.md" },
+        { "entry": "./concepts/groups.md" }
       ],
       "chapters": []
     },

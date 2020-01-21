@@ -2,9 +2,10 @@ import React from 'react'
 import Helmet from 'react-helmet'
 import { ThemeProvider } from 'styled-components'
 import config from '../../data/SiteConfig'
-import './css/index.css'
+// import './css/index.css'
 import './css/prism-okaidia.css'
 import theme from './theme'
+import tw from 'tailwind.macro'
 
 export default class MainLayout extends React.Component {
   getLocalTitle() {
@@ -41,7 +42,7 @@ export default class MainLayout extends React.Component {
   render() {
     const { children } = this.props
     return (
-      <div>
+      <div className="font-sans">
         <Helmet>
           <title>{`${config.siteTitle} |  ${this.getLocalTitle()}`}</title>
           <meta name="description" content={config.siteDescription} />

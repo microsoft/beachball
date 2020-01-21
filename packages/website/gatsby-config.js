@@ -18,13 +18,21 @@ module.exports = {
   },
   plugins: [
     'gatsby-plugin-react-helmet',
-    'gatsby-plugin-styled-components',
     {
       resolve: `gatsby-plugin-google-fonts`,
       options: {
-        fonts: [`crimson text:400, 400i, 700, 700i`, `space mono:400,700`]
+        fonts: [`Roboto\:300,400,700`, `Roboto Slab\:300,400,700`]
+      },
+      display: 'swap'
+    },
+    {
+      resolve: `gatsby-plugin-postcss`,
+      options: {
+        postCssPlugins: [require('tailwindcss'), require('autoprefixer')]
       }
     },
+
+    'gatsby-plugin-styled-components',
     {
       resolve: 'gatsby-source-filesystem',
       options: {
@@ -42,19 +50,17 @@ module.exports = {
               maxWidth: 690
             }
           },
-          {
-            resolve: 'gatsby-remark-responsive-iframe'
-          },
+          'gatsby-remark-mermaid',
           'gatsby-remark-prismjs',
           'gatsby-remark-copy-linked-files',
-          'gatsby-remark-autolink-headers'
+          {
+            resolve: 'gatsby-remark-autolink-headers',
+            options: {
+              className: `autolink-header`,
+              isIconAfterHeader: true
+            }
+          }
         ]
-      }
-    },
-    {
-      resolve: 'gatsby-plugin-google-analytics',
-      options: {
-        trackingId: config.googleAnalyticsID
       }
     },
     {
@@ -65,7 +71,6 @@ module.exports = {
     },
     'gatsby-plugin-sharp',
     'gatsby-plugin-catch-links',
-    'gatsby-plugin-twitter',
     'gatsby-transformer-json',
     {
       resolve: 'gatsby-plugin-manifest',

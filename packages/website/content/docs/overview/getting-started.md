@@ -10,8 +10,32 @@ Javascript ecosystem moves fast. It moves so fast that sometimes the tools need 
 
 First off, a ~~picture~~ diagram is worth a thousand words, so here it is:
 
-![Process](./process.svg)
-[diagram source in draw.io](./beachball.drawio)
+```mermaid
+graph TB
+  setup(Project Setup)
+  innerloop(Inner Loop)
+  pr(Pull Request)
+  publish(Publish)
+  changelog[changelog.md]
+  git[git repo]
+  npm[npm registry]
+
+  setup --> innerloop
+  innerloop -- beachball change --> pr
+  pr -- beachball publish --> publish
+
+  publish --> changelog
+  publish --> git
+  publish --> npm
+
+  subgraph " "
+    changelog
+    git
+    npm
+  end
+```
+
+## Brief Description of Workflow
 
 Without any configuration, `beachball` fits into your workflow. When you have made some commits to your branch, simply fire up `beachball change` to generate change files. During PR review and feedback loops, your colleagues might remind you to modify your change file descriptions or change type. This then gets merged to the target branch (e.g. `master`). After this, `beachball publish` is either called by a continuous integration (CI) system or manually by a developer. When this is called, three things happen:
 

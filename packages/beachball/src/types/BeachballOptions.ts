@@ -22,8 +22,6 @@ export interface CliOptions {
   type?: ChangeType | null;
   help?: boolean;
   version?: boolean;
-
-  /** FUTURE: this feature hasn't been created yet */
   groups?: VersionGroupOptions[];
 }
 
