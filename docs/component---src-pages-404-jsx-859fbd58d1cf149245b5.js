@@ -1,0 +1,2 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[4],{pssB:function(n,e,o){"use strict";o.r(e);var t=o("ERkP"),u=o.n(t);e.default=function(){return u.a.createElement("div",null,"no found page eh")}}}]);
+//# sourceMappingURL=component---src-pages-404-jsx-859fbd58d1cf149245b5.js.map

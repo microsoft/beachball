@@ -35,7 +35,7 @@
     "gatsby-plugin-manifest": "^2.2.37",
     "gatsby-plugin-nprogress": "^2.1.18",
     "gatsby-plugin-offline": "^3.0.32",
-    "gatsby-plugin-postcss ": "^2.1.19",
+    "gatsby-plugin-postcss": "^2.1.19",
     "gatsby-plugin-react-helmet": "^3.1.21",
     "gatsby-plugin-react-svg": "^3.0.0",
     "gatsby-plugin-remove-trailing-slashes": "^2.1.20",

@@ -15,15 +15,14 @@ There are two types of configurations:
 
 ### Configuration files (cosmiconfig)
 
-Each type of configuration can be specified one of several ways. The configuration of beachball is provided by [`cosmiconfig`](https://github.com/davidtheclark/cosmiconfig), therefore, you can specify configuration in different kinds of files (and even as CLI arguments):
+Each type of configuration can be specified one of several ways. The configuration of beachball is provided by [`cosmiconfig`](https://github.com/davidtheclark/cosmiconfig), therefore, you can specify configuration in different kinds of files (and even as CLI arguments).
 
 - `beachball` key inside `package.json`
 - .beachballrc
 - .beachballrc.json
-- .beachballrc.yaml
-- .beachballrc.yml
-- .beachballrc.js
 - beachball.config.js
+
+> Be consistent! We encourage you to use the same convention within the same monorepo! When in doubt, just use `beachball.config.js`.
 
 ### `beachball.config.js`
 
@@ -37,66 +36,39 @@ module.exports = {
 }
 ```
 
+You can place these in either the root of a repo or within a package like so (package config overrides the repo configuration where applicable). For example:
+
+```
+packages/
+  foo/
+    src/
+    package.json
+    beachball.config.js
+  bar/
+    src/
+    package.json
+package.json
+beachball.config.js
+```
+
 ## Listing of Options
 
-| Option                | Type                     | Alias | Default                     | Option Type          | Description                                                                                     |
-| --------------------- | ------------------------ | ----- | --------------------------- | -------------------- | ----------------------------------------------------------------------------------------------- |
-| branch                | string                   |       | origin/master               |                      | The target branch (with remote)                                                                 |
-| path                  | string                   |       | (cwd)                       |                      | The directory to run beachball                                                                  |
-| registry              | string                   | r     | https://registry.npmjs.org/ |                      | Target NPM registry to publish                                                                  |
-| tag                   | string                   |       | latest                      |                      | tag for git and dist-tag for npm when published                                                 |
-| token                 | string                   | n     |                             |                      | auth token for publishing to private NPM registry                                               |
-| push                  | bool                     |       | true                        |                      | whether to push to the remote git branch (no-push to skip)                                      |
-| publish               | bool                     |       | true                        |                      | whether to publish to npm registyr (no-publish to skip)                                         |
-| bumpDeps              | bool                     |       | true                        |                      | bump dependent packages during publish (bump A if A depends on B)                               |
-| fetch                 | bool                     |       | true                        |                      | fetch from remote before doing diff comparisons                                                 |
-| yes                   | bool                     | y     | true                        |                      | non-interactively confirm publish command                                                       |
-| defaultNpmTag         | string                   |       |                             | package              | the default dist-tag used for NPM publish                                                       |
-| disallowedChangeTypes | string[]                 |       |                             | repo, group, package | what change types are disallowed                                                                |
-| shouldPublish         | bool                     |       |                             | package              | to manually handle whether or not a package should be published with beachball                  |
-| access                | 'public' \| 'restricted' |       |                             | repo                 | publishes private packages access level                                                         |
-| package               | string                   |       |                             | repo                 | specifies which package the command relates to (overrides change detection based on `git diff`) |
-| changehint            | string                   |       |                             | repo                 | customizable hint message for when change files are not detected but required                   |
-
-|
-| groups | VersionGroupOptions[] (see groups) | | | repo | specifies groups of packages that need to be version bumped at the same time |
-
-### defaultNpmTag
-
-By default `beachball` will tag a package as `latest` when publishing. You can run `beachball publish --tag next` to tell beachball to publish all changed packages using the `next` tag. But in some cases you may want the default tag to be different for a specific package.
-
-```json
-{
-  "beachball": {
-    "defaultNpmTag": "next"
-  }
-}
-```
-
-This will make `beachball` publish a specific package using a different tag, when no tag is specified in the `beachball publish` command.
-
-### disallowedChangeTypes
-
-If you want to restrict the change types that are available within a specific package `beachball` you can specify a list of change types that will be hidden from the options when creating change files.
-
-```json
-{
-  "beachball": {
-    "disallowedChangeTypes": ["major", "minor"]
-  }
-}
-```
-
-This will prevent the user from selecting `major` or `minor` for their change types for this package. Effectively restricting the change types to `patch`.
-
-### shouldPublish
-
-By default `beachball` will not create change files for packages that are marked as private. If you have a package that is not marked private, but that you want to manage the publishing of manually you can specify `shouldPublish` to be false.
-
-```json
-{
-  "beachball": {
-    "shouldPublish": false
-  }
-}
-```
+| Option                | Type                               | Alias | Default                     | Option Type          | Description                                                                                     |
+| --------------------- | ---------------------------------- | ----- | --------------------------- | -------------------- | ----------------------------------------------------------------------------------------------- |
+| branch                | string                             |       | origin/master               |                      | The target branch (with remote)                                                                 |
+| path                  | string                             |       | (cwd)                       |                      | The directory to run beachball                                                                  |
+| registry              | string                             | r     | https://registry.npmjs.org/ |                      | Target NPM registry to publish                                                                  |
+| tag                   | string                             |       | latest                      |                      | tag for git and dist-tag for npm when published                                                 |
+| token                 | string                             | n     |                             |                      | auth token for publishing to private NPM registry                                               |
+| push                  | bool                               |       | true                        |                      | whether to push to the remote git branch (no-push to skip)                                      |
+| publish               | bool                               |       | true                        |                      | whether to publish to npm registyr (no-publish to skip)                                         |
+| bumpDeps              | bool                               |       | true                        |                      | bump dependent packages during publish (bump A if A depends on B)                               |
+| fetch                 | bool                               |       | true                        |                      | fetch from remote before doing diff comparisons                                                 |
+| yes                   | bool                               | y     | true                        |                      | non-interactively confirm publish command                                                       |
+| defaultNpmTag         | string                             |       |                             | package              | the default dist-tag used for NPM publish                                                       |
+| disallowedChangeTypes | string[]                           |       |                             | repo, group, package | what change types are disallowed                                                                |
+| shouldPublish         | bool                               |       |                             | package              | to manually handle whether or not a package should be published with beachball                  |
+| access                | 'public' \| 'restricted'           |       |                             | repo                 | publishes private packages access level                                                         |
+| package               | string                             |       |                             | repo                 | specifies which package the command relates to (overrides change detection based on `git diff`) |
+| changehint            | string                             |       |                             | repo                 | customizable hint message for when change files are not detected but required                   |
+| groups                | VersionGroupOptions[] (see groups) |       |                             | repo                 | specifies groups of packages that need to be version bumped at the same time                    |

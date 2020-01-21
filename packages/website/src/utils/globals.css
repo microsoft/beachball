@@ -35,11 +35,19 @@ li {
 }
 
 .mermaid svg {
-  @apply mx-auto p-6 border shadow border-gray-500 my-6;
+  @apply w-auto p-6 mx-auto border shadow border-gray-500 my-6;
 }
 
 .mdContent table {
   @apply text-sm font-light mb-8;
+}
+
+.mdContent blockquote {
+  @apply border py-2 px-4 shadow bg-blue-200 text-sm font-light mb-8 border-2 border-black;
+}
+
+.mdContent blockquote p {
+  @apply p-0 m-0;
 }
 
 .mdContent tr {
@@ -52,10 +60,6 @@ li {
 
 .mdContent td {
   @apply px-2 py-2;
-}
-
-nav {
-  z-index: 1000000;
 }
 
 @tailwind components;
