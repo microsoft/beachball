@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 21 Jan 2020 21:05:43 GMT",
+      "tag": "beachball_v1.18.4",
+      "version": "1.18.4",
+      "comments": {
+        "none": [
+          {
+            "comment": "get rid of comment that was unnecessary",
+            "author": "kchau@microsoft.com",
+            "commit": "4323fc24f7eb96db43676cdbbdac3187a30ac713"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 17 Jan 2020 18:13:36 GMT",
       "tag": "beachball_v1.18.4",
       "version": "1.18.4",
