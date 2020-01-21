@@ -17596,6 +17596,11 @@ tailwind.macro@^1.0.0-alpha.10:
     dset "^2.0.1"
     tailwindcss "^1.0.0-beta.8"
 
+tailwindcss-grid@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/tailwindcss-grid/-/tailwindcss-grid-1.2.1.tgz#44d6310f754078b1a49fa30d0a4dfd69d09a4413"
+  integrity sha512-H/IjlRgREBUbBz3hlC+inGX45S8qx3T6pIY3aa2MJuy85tiSUk5BsdJDmkoCNA3HWfIyL1+NFJSgKyv+ADOJFw==
+
 tailwindcss@^1.0.0-beta.8, tailwindcss@^1.1.4:
   version "1.1.4"
   resolved "https://registry.yarnpkg.com/tailwindcss/-/tailwindcss-1.1.4.tgz#786bd5faaf485c9eddcb821dd55666c56baa814e"

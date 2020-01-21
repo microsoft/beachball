@@ -61,7 +61,8 @@
     "react-icons": "^3.8.0",
     "styled-components": "^5.0.0",
     "tailwind.macro": "^1.0.0-alpha.10",
-    "tailwindcss": "^1.1.4"
+    "tailwindcss": "^1.1.4",
+    "tailwindcss-grid": "^1.2.1"
   },
   "devDependencies": {
     "cli-glob": "^0.1.0",
