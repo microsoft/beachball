@@ -2,11 +2,15 @@
 
 html,
 body {
-  font-size: 20px;
+  font-size: 16px;
 }
 
 ol {
-  @apply list-disc mx-4 p-0 font-normal;
+  @apply list-decimal mx-4 my-0 p-0 font-normal;
+}
+
+ul {
+  @apply list-disc mx-4 my-0 p-0 font-normal;
 }
 
 p,
@@ -32,6 +36,26 @@ li {
 
 .mermaid svg {
   @apply mx-auto p-6 border shadow border-gray-500 my-6;
+}
+
+.mdContent table {
+  @apply text-sm font-light mb-8;
+}
+
+.mdContent tr {
+  @apply border-t border-b py-2;
+}
+
+.mdContent th {
+  @apply font-bold text-left px-2 py-2;
+}
+
+.mdContent td {
+  @apply px-2 py-2;
+}
+
+nav {
+  z-index: 1000000;
 }
 
 @tailwind components;

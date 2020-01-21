@@ -52,11 +52,11 @@ export default class DocTemplate extends React.Component {
   }
 }
 
-const ContentContainer = tw.div`mx-auto flex pt-8`
+const ContentContainer = tw.div`mx-auto flex pt-8 h-10`
 
 const BodyContainer = tw.div`w-4/5 p-8`
 
-const HeaderContainer = tw.div``
+const HeaderContainer = tw.div`z-50`
 
 const ToCContainer = tw.div`w-1/5`
 

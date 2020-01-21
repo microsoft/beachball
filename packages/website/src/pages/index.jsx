@@ -129,9 +129,9 @@ const IndexContainer = styled('div')``
 
 const FeatureList = tw.div`w-3/4 grid grid-automin-300px grid-gap-4 mt-4 mx-auto`
 
-const FeatureHeader = tw.div`flex text-lg items-center mb-4`
+const FeatureHeader = tw.div`flex text-lg font-black items-center mb-4`
 
-const Feature = tw.div`text-sm mb-8`
+const Feature = tw.div`text-base font-light mb-8`
 
 const FeatureDesc = tw.div`col-span-2`
 
@@ -158,7 +158,7 @@ const HeroSubText = tw.h4`text-2xl mb-4`
 
 const BodyContainer = tw.div`mx-auto mt-8`
 
-const FooterContainer = tw.footer`bg-gray-300 h-16 text-center pt-4`
+const FooterContainer = tw.footer`bg-gray-300 text-xs h-16 text-center pt-4`
 
 /* eslint no-undef: "off" */
 export const query = graphql`

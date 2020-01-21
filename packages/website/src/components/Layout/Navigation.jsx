@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import UserLinks from '../UserLinks'
 import tw from 'tailwind.macro'
 
-const NavContainer = tw.div`bg-gray-200 fixed w-full shadow`
+const NavContainer = tw.div`bg-gray-200 w-full shadow`
 const NavContent = tw.div`mx-auto flex justify-between h-10 items-center`
 const StyledLink = tw(Link)`mr-5`
 

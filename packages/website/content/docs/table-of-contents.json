@@ -5,10 +5,17 @@
       "title": "Overview",
       "entries": [
         { "entry": "./overview/getting-started.md" },
-        { "entry": "./overview/installation.md" },
+        { "entry": "./overview/installation.md" }
+      ],
+      "chapters": []
+    },
+    {
+      "title": "Digging Deeper",
+      "entries": [
         { "entry": "./overview/change-files.md" },
         { "entry": "./overview/ci-integration.md" },
-        { "entry": "./overview/configuration.md" }
+        { "entry": "./overview/configuration.md" },
+        { "entry": "./overview/groups.md" }
       ],
       "chapters": []
     },
