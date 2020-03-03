@@ -23,6 +23,7 @@ export interface CliOptions {
   help?: boolean;
   version?: boolean;
   groups?: VersionGroupOptions[];
+  scope?: string[] | null;
 }
 
 export interface RepoOptions {

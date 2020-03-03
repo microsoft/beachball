@@ -34,7 +34,7 @@ export function validate(
     process.exit(1);
   }
 
-  const isChangeNeeded = isChangeFileNeeded(options.branch, options.path, options.fetch);
+  const isChangeNeeded = isChangeFileNeeded(options);
 
   if (isChangeNeeded && !validateOptions.allowMissingChangeFiles) {
     console.error('ERROR: Change files are needed!');

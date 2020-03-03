@@ -1,7 +1,10 @@
 import { getChangedPackages } from '../changefile/getChangedPackages';
-export function isChangeFileNeeded(branch: string, cwd: string, fetch: boolean) {
+import { BeachballOptions } from '../types/BeachballOptions';
+export function isChangeFileNeeded(options: BeachballOptions) {
+  const { branch, path: cwd, fetch } = options;
+
   console.log(`Checking for changes against "${branch}"`);
-  const changedPackages = getChangedPackages(branch, cwd, fetch);
+  const changedPackages = getChangedPackages(options);
   if (changedPackages.length > 0) {
     console.log(
       `Found changes in the following packages: ${[...changedPackages]
