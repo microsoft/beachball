@@ -6,7 +6,7 @@ import path from 'path';
 export function getScopedPackages(options: BeachballOptions) {
   const packageInfos = getPackageInfos(options.path);
   if (!options.scope) {
-    return packageInfos;
+    return Object.keys(packageInfos);
   }
 
   const scopes = options.scope!.map(scope => path.join(options.path, scope));
