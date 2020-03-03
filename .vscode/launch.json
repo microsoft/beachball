@@ -15,7 +15,7 @@
         "--runInBand",
         "--config",
         "${workspaceRoot}/packages/beachball/jest.config.js",
-        "${fileBasename}"
+        "${fileBasenameNoExtension}}"
       ],
       "windows": {
         "args": [
@@ -24,7 +24,33 @@
           "--runInBand",
           "--config",
           "${workspaceRoot}/packages/beachball/jest.config.js",
-          "${fileBasename}"
+          "${fileBasenameNoExtension}"
+        ]
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Jest E2E Tests",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "--inspect-brk",
+        "${workspaceRoot}/node_modules/.bin/jest",
+        "--runInBand",
+        "--config",
+        "${workspaceRoot}/packages/beachball/jest.e2e.js",
+        "${fileBasenameNoExtension}"
+      ],
+      "windows": {
+        "args": [
+          "--inspect-brk",
+          "${workspaceRoot}/node_modules/jest/bin/jest.js",
+          "--runInBand",
+          "--config",
+          "${workspaceRoot}/packages/beachball/jest.config.js",
+          "${fileBasenameNoExtension}"
         ]
       },
       "console": "integratedTerminal",

@@ -11,9 +11,9 @@ import { BeachballOptions } from '../types/BeachballOptions';
  * @param cwd
  */
 export async function promptForChange(options: BeachballOptions) {
-  const { branch, path: cwd, package: specificPackage, fetch } = options;
+  const { branch, path: cwd, package: specificPackage } = options;
 
-  const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(branch, cwd, fetch);
+  const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(options);
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
   const packageChangeInfo: { [pkgname: string]: ChangeInfo } = {};
 

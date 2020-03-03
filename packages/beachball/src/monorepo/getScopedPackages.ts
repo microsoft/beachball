@@ -1,14 +1,22 @@
 import { BeachballOptions } from '../types/BeachballOptions';
-import { getAllPackages } from './getAllPackages';
+import { getPackageInfos } from './getPackageInfos';
 import minimatch from 'minimatch';
+import path from 'path';
 
 export function getScopedPackages(options: BeachballOptions) {
-  const allPackages = getAllPackages(options.path);
+  const packageInfos = getPackageInfos(options.path);
   if (!options.scope) {
-    return allPackages;
+    return packageInfos;
   }
 
-  return allPackages.filter(pkg => {
-    return options.scope?.some(scope => minimatch(pkg, scope));
-  });
+  const scopes = options.scope!.map(scope => path.join(options.path, scope));
+  const scopedPackages: string[] = [];
+
+  for (let [pkgName, info] of Object.entries(packageInfos)) {
+    if (scopes.some(scope => minimatch(path.dirname(info.packageJsonPath), scope))) {
+      scopedPackages.push(pkgName);
+    }
+  }
+
+  return scopedPackages;
 }
