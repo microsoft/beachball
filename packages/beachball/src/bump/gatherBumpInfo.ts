@@ -10,9 +10,9 @@ import { getScopedPackages } from '../monorepo/getScopedPackages';
 function gatherPreBumpInfo(options: BeachballOptions): BumpInfo {
   const { path: cwd } = options;
   // Collate the changes per package
-  const packageInfos = getPackageInfos(cwd);
   const changes = readChangeFiles(options);
   const packageChangeTypes = getPackageChangeTypes(changes);
+  const packageInfos = getPackageInfos(cwd);
   const dependentChangeTypes = {};
   const groupOptions = {};
 

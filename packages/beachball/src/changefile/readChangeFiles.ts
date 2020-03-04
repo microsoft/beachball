@@ -21,7 +21,7 @@ export function readChangeFiles(options: BeachballOptions) {
       if (scopedPackages.includes(packageName)) {
         changeSet.set(changeFile, packageJson);
       } else {
-        console.log(`Skipping reading change file for package ${packageName}`);
+        console.log(`Skipping reading change file for out-of-scope package ${packageName}`);
       }
     } catch (e) {
       console.warn(`Invalid change file detected: ${changeFile}`);
