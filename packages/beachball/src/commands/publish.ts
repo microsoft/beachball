@@ -7,10 +7,11 @@ import { readChangeFiles } from '../changefile/readChangeFiles';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import { getNewPackages } from '../publish/getNewPackages';
+
 export async function publish(options: BeachballOptions) {
   const { path: cwd, branch, registry, tag } = options;
   // First, validate that we have changes to publish
-  const changes = readChangeFiles(cwd);
+  const changes = readChangeFiles(options);
   const packageChangeTypes = getPackageChangeTypes(changes);
   if (Object.keys(packageChangeTypes).length === 0) {
     console.log('Nothing to bump, skipping publish!');

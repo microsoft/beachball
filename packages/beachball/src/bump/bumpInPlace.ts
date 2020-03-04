@@ -17,7 +17,6 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
   const { bumpDeps } = options;
   const { packageInfos, packageChangeTypes, modifiedPackages } = bumpInfo;
   const changes = { ...packageChangeTypes };
-
   // pass 1: figure out all the change types for all the packages taking into account the bumpDeps option and version groups
   if (bumpDeps) {
     setDependentsInBumpInfo(bumpInfo);

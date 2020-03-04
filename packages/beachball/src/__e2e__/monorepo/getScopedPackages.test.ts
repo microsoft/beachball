@@ -38,7 +38,7 @@ describe('getScopedPackages', () => {
     expect(scopedPackages.includes('bar')).toBeTruthy();
   });
 
-  fit('can mix and match with excluded packages', async () => {
+  it('can mix and match with excluded packages', async () => {
     const scopedPackages = getScopedPackages({
       path: repo.rootPath,
       scope: ['packages/b*', '!packages/grouped/*'],
