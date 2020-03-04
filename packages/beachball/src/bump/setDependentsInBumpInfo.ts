@@ -6,12 +6,16 @@ import { BumpInfo } from '../types/BumpInfo';
  *
  * @param bumpInfo
  */
-export function setDependentsInBumpInfo(bumpInfo: BumpInfo) {
-  const packageInfos = bumpInfo.packageInfos;
+export function setDependentsInBumpInfo(bumpInfo: BumpInfo): void {
+  const { packageInfos, scopedPackages } = bumpInfo;
   const packages = Object.keys(packageInfos);
   const dependents = {};
 
   packages.forEach(pkgName => {
+    if (!scopedPackages.has(pkgName)) {
+      return;
+    }
+
     const info = packageInfos[pkgName];
     const depTypes = ['dependencies', 'devDependencies', 'peerDependencies'];
     depTypes.forEach(depType => {

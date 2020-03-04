@@ -13,6 +13,7 @@ import remarkParse from 'remark-parse';
 import { selectAll } from 'unist-util-select';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { readChangeFiles } from '../changefile/readChangeFiles';
+import { BeachballOptions } from '../types/BeachballOptions';
 
 const readFileAsync = promisify(fs.readFile);
 
@@ -69,7 +70,7 @@ describe('validation', () => {
         repository.rootPath
       );
 
-      const changes = readChangeFiles(repository.rootPath);
+      const changes = readChangeFiles({ path: repository.rootPath } as BeachballOptions);
 
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(repository.rootPath);

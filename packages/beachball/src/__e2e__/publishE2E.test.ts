@@ -4,6 +4,7 @@ import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { git } from '../git';
 import { publish } from '../commands/publish';
 import { RepositoryFactory } from '../fixtures/repository';
+import { MonoRepoFactory } from '../fixtures/monorepo';
 
 describe('publish command (e2e)', () => {
   let registry: Registry;
@@ -80,5 +81,57 @@ describe('publish command (e2e)', () => {
 
     expect(gitResults.success).toBeTruthy();
     expect(gitResults.stdout).toBe('foo_v1.1.0');
+  });
+
+  it('should not perform npm publish on out-of-scope package', async () => {
+    const repositoryFactory = new MonoRepoFactory();
+    await repositoryFactory.create();
+    const repo = await repositoryFactory.cloneRepository();
+
+    writeChangeFiles(
+      {
+        foo: {
+          type: 'minor',
+          comment: 'test',
+          commit: 'test',
+          date: new Date('2019-01-01'),
+          email: 'test@test.com',
+          packageName: 'foo',
+          dependentChangeType: 'patch',
+        },
+      },
+      repo.rootPath
+    );
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    await publish({
+      branch: 'origin/master',
+      command: 'publish',
+      message: 'apply package updates',
+      path: repo.rootPath,
+      publish: true,
+      bumpDeps: true,
+      push: true,
+      registry: registry.getUrl(),
+      tag: 'latest',
+      token: '',
+      yes: true,
+      new: false,
+      access: 'public',
+      package: '',
+      changehint: 'Run "beachball change" to create a change file',
+      type: null,
+      fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
+      scope: ['!packages/foo'],
+    });
+
+    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
+    expect(showResult.success).toBeFalsy();
+
+    const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
+    expect(gitResults.success).toBeFalsy();
   });
 });

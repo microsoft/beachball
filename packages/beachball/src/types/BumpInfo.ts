@@ -12,4 +12,5 @@ export type BumpInfo = {
   dependentChangeTypes: { [pkgName: string]: ChangeType };
   modifiedPackages: Set<string>;
   newPackages: Set<string>;
+  scopedPackages: Set<string>;
 };
