@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 04 Mar 2020 00:13:30 GMT and should not be manually modified.
+This log was last generated on Wed, 04 Mar 2020 02:47:34 GMT and should not be manually modified.
 
+## 1.20.0
+Wed, 04 Mar 2020 02:47:34 GMT
+
+### Minor changes
+
+- Feature: scoped publish (xgao@microsoft.com)
 ## 1.19.0
 Wed, 04 Mar 2020 00:13:30 GMT
 
