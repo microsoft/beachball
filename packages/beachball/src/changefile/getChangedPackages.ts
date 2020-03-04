@@ -3,13 +3,18 @@ import { findPackageRoot, getChangePath } from '../paths';
 import { getChanges, getStagedChanges, git, fetchRemote, parseRemoteBranch } from '../git';
 import fs from 'fs';
 import path from 'path';
+import { getScopedPackages } from '../monorepo/getScopedPackages';
+import { BeachballOptions } from '../types/BeachballOptions';
 
 /**
  * Gets all the changed packages, regardless of the change files
  * @param cwd
  */
-function getAllChangedPackages(branch: string, cwd: string) {
+function getAllChangedPackages(options: BeachballOptions) {
+  const { branch, path: cwd } = options;
+
   const changes = [...(getChanges(branch, cwd) || []), ...(getStagedChanges(branch, cwd) || [])];
+  const scopedPackages = getScopedPackages(options);
   const ignoredFiles = ['CHANGELOG.md', 'CHANGELOG.json'];
   const packageRoots: { [pathName: string]: string } = {};
   if (changes) {
@@ -25,7 +30,10 @@ function getAllChangedPackages(branch: string, cwd: string) {
 
             if (!packageJson.private && (!packageJson.beachball || packageJson.beachball.shouldPublish !== false)) {
               const packageName = packageJson.name;
-              packageRoots[root] = packageName;
+
+              if (scopedPackages.includes(packageName)) {
+                packageRoots[root] = packageName;
+              }
             }
           } catch (e) {
             // Ignore JSON errors
@@ -41,7 +49,9 @@ function getAllChangedPackages(branch: string, cwd: string) {
  * Gets all the changed packages, accounting for change files
  * @param cwd
  */
-export function getChangedPackages(branch: string, cwd: string, fetch: boolean) {
+export function getChangedPackages(options: BeachballOptions) {
+  const { fetch, path: cwd, branch } = options;
+
   const changePath = getChangePath(cwd);
 
   if (fetch) {
@@ -50,7 +60,7 @@ export function getChangedPackages(branch: string, cwd: string, fetch: boolean) 
     fetchRemote(remote, cwd);
   }
 
-  const changedPackages = getAllChangedPackages(branch, cwd);
+  const changedPackages = getAllChangedPackages(options);
 
   const changeFilesResult = git(['diff', '--name-only', '--no-renames', '--diff-filter=A', `${branch}...`], { cwd });
 

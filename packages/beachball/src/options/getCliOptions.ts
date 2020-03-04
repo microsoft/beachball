@@ -14,6 +14,7 @@ export function getCliOptions(): CliOptions {
   const argv = process.argv.splice(2);
   const args = parser(argv, {
     string: ['branch', 'tag', 'message', 'package'],
+    array: ['scope'],
     alias: {
       branch: ['b'],
       tag: ['t'],
