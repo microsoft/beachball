@@ -7,7 +7,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug Jest Tests",
+      "name": "Debug Unit Jest Tests",
       "cwd": "${workspaceFolder}",
       "args": [
         "--inspect-brk",
@@ -33,7 +33,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug Jest E2E Tests",
+      "name": "Debug E2E Jest Tests",
       "cwd": "${workspaceFolder}",
       "args": [
         "--inspect-brk",
@@ -49,7 +49,7 @@
           "${workspaceRoot}/node_modules/jest/bin/jest.js",
           "--runInBand",
           "--config",
-          "${workspaceRoot}/packages/beachball/jest.config.js",
+          "${workspaceRoot}/packages/beachball/jest.e2e.js",
           "${fileBasenameNoExtension}"
         ]
       },

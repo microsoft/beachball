@@ -9,11 +9,20 @@ export function getScopedPackages(options: BeachballOptions) {
     return Object.keys(packageInfos);
   }
 
-  const scopes = options.scope!.map(scope => path.join(options.path, scope));
+  let includeScopes = options.scope!.filter(s => !s.startsWith('!'));
+  includeScopes = includeScopes.length > 0 ? includeScopes : ['**/*', '', '*'];
+  const excludeScopes = options.scope!.filter(s => s.startsWith('!'));
+
   const scopedPackages: string[] = [];
 
   for (let [pkgName, info] of Object.entries(packageInfos)) {
-    if (scopes.some(scope => minimatch(path.dirname(info.packageJsonPath), scope))) {
+    const relativePath = path.relative(options.path, path.dirname(info.packageJsonPath));
+
+    let shouldInclude = includeScopes.reduce((flag, scope) => flag || minimatch(relativePath, scope), false);
+
+    shouldInclude = excludeScopes.reduce((flag, scope) => flag && minimatch(relativePath, scope), shouldInclude);
+
+    if (shouldInclude) {
       scopedPackages.push(pkgName);
     }
   }
