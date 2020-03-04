@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 04 Mar 2020 00:13:30 GMT",
+      "tag": "beachball_v1.19.0",
+      "version": "1.19.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Adds a new feature to do scoping of checks and change",
+            "author": "kchau@microsoft.com",
+            "commit": "a0abcc58d5b41011d370b5751fce768339dff2d5"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 21 Jan 2020 21:05:43 GMT",
       "tag": "beachball_v1.18.4",
       "version": "1.18.4",

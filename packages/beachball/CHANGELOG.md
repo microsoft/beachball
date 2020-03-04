@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 17 Jan 2020 18:13:36 GMT and should not be manually modified.
+This log was last generated on Wed, 04 Mar 2020 00:13:30 GMT and should not be manually modified.
 
+## 1.19.0
+Wed, 04 Mar 2020 00:13:30 GMT
+
+### Minor changes
+
+- Adds a new feature to do scoping of checks and change (kchau@microsoft.com)
 ## 1.18.4
 Fri, 17 Jan 2020 18:13:36 GMT
 
