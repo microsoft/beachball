@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 05 Mar 2020 17:01:38 GMT",
+      "tag": "beachball_v1.20.1",
+      "version": "1.20.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "adding some bumpminrange test and add support for * as range",
+            "author": "kchau@microsoft.com",
+            "commit": "1d6abc44cea96fafbfbbafa7f6792d97ee2c545d"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 04 Mar 2020 02:47:34 GMT",
       "tag": "beachball_v1.20.0",
       "version": "1.20.0",

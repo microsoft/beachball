@@ -1,9 +1,0 @@
-{
-  "type": "patch",
-  "comment": "adding some bumpminrange test and add support for * as range",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "commit": "1d6abc44cea96fafbfbbafa7f6792d97ee2c545d",
-  "dependentChangeType": "patch",
-  "date": "2020-03-05T16:56:01.079Z"
-}

@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 04 Mar 2020 02:47:34 GMT and should not be manually modified.
+This log was last generated on Thu, 05 Mar 2020 17:01:38 GMT and should not be manually modified.
 
+## 1.20.1
+Thu, 05 Mar 2020 17:01:38 GMT
+
+### Patches
+
+- adding some bumpminrange test and add support for * as range (kchau@microsoft.com)
 ## 1.20.0
 Wed, 04 Mar 2020 02:47:34 GMT
 
