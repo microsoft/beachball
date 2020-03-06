@@ -18,6 +18,11 @@ export function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions)
   }
 
   [...modifiedPackages, ...newPackages].forEach(pkg => {
+    if (!bumpInfo.scopedPackages.has(pkg)) {
+      console.log(`Skipping publish for out-of-scope package ${pkg}`);
+      return;
+    }
+
     const packageInfo = bumpInfo.packageInfos[pkg];
     const changeType = bumpInfo.packageChangeTypes[pkg];
     if (changeType === 'none') {
