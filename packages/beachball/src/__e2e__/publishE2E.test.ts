@@ -103,6 +103,21 @@ describe('publish command (e2e)', () => {
       repo.rootPath
     );
 
+    writeChangeFiles(
+      {
+        bar: {
+          type: 'minor',
+          comment: 'test',
+          commit: 'test',
+          date: new Date('2019-01-01'),
+          email: 'test@test.com',
+          packageName: 'bar',
+          dependentChangeType: 'patch',
+        },
+      },
+      repo.rootPath
+    );
+
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
     await publish({
@@ -128,10 +143,26 @@ describe('publish command (e2e)', () => {
       scope: ['!packages/foo'],
     });
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-    expect(showResult.success).toBeFalsy();
+    const fooNpmResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
+    expect(fooNpmResult.success).toBeFalsy();
 
-    const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
-    expect(gitResults.success).toBeFalsy();
+    const fooGitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
+    expect(fooGitResults.success).toBeFalsy();
+
+    const barNpmResult = npm(['--registry', registry.getUrl(), 'show', 'bar', '--json']);
+
+    expect(barNpmResult.success).toBeTruthy();
+
+    const show = JSON.parse(barNpmResult.stdout);
+    expect(show.name).toEqual('bar');
+    expect(show.versions.length).toEqual(1);
+    expect(show['dist-tags'].latest).toEqual('1.4.0');
+
+    git(['checkout', 'master'], { cwd: repo.rootPath });
+    git(['pull'], { cwd: repo.rootPath });
+    const barGitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
+
+    expect(barGitResults.success).toBeTruthy();
+    expect(barGitResults.stdout).toBe('bar_v1.4.0');
   });
 });
