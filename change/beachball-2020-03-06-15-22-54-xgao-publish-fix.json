@@ -1,9 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Scoped publish: make sure toskip validation/publish for out-of-scope package",
-  "packageName": "beachball",
-  "email": "xgao@microsoft.com",
-  "commit": "ffe05b2858745d25f6a4b6810fa5dc87ad8ed271",
-  "dependentChangeType": "patch",
-  "date": "2020-03-06T23:22:54.807Z"
-}

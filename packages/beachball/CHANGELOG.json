@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 07 Mar 2020 00:06:17 GMT",
+      "tag": "beachball_v1.20.2",
+      "version": "1.20.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Scoped publish: make sure toskip validation/publish for out-of-scope package",
+            "author": "xgao@microsoft.com",
+            "commit": "ffe05b2858745d25f6a4b6810fa5dc87ad8ed271"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 05 Mar 2020 17:01:38 GMT",
       "tag": "beachball_v1.20.1",
       "version": "1.20.1",

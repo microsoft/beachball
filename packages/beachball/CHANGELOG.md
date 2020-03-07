@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 05 Mar 2020 17:01:38 GMT and should not be manually modified.
+This log was last generated on Sat, 07 Mar 2020 00:06:17 GMT and should not be manually modified.
 
+## 1.20.2
+Sat, 07 Mar 2020 00:06:17 GMT
+
+### Patches
+
+- Scoped publish: make sure toskip validation/publish for out-of-scope package (xgao@microsoft.com)
 ## 1.20.1
 Thu, 05 Mar 2020 17:01:38 GMT
 
