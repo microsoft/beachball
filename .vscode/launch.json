@@ -15,7 +15,7 @@
         "--runInBand",
         "--config",
         "${workspaceRoot}/packages/beachball/jest.config.js",
-        "${fileBasenameNoExtension}}"
+        "${fileBasenameNoExtension}"
       ],
       "windows": {
         "args": [
