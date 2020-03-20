@@ -18,7 +18,7 @@ export function isValidGroupOptions(root: string, groups: VersionGroupOptions[])
   // make sure no disallowed changetype options exist inside an individual package
 
   for (const grp of Object.keys(packageGroups)) {
-    const pkgs = packageGroups[grp];
+    const pkgs = packageGroups[grp].packageNames;
     for (const pkgName of pkgs) {
       if (packageInfos[pkgName].options.disallowedChangeTypes) {
         console.error(

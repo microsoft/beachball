@@ -92,7 +92,7 @@ describe('updateRelatedChangeType', () => {
         },
         unrelated: {},
       },
-      packageGroups: { grp: ['foo', 'bar'] },
+      packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
     updateRelatedChangeType('foo', 'minor', bumpInfo, true);
@@ -129,7 +129,7 @@ describe('updateRelatedChangeType', () => {
           options: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
         },
       },
-      packageGroups: { grp: ['foo', 'bar'] },
+      packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
     updateRelatedChangeType('dep', 'patch', bumpInfo, true);
@@ -171,7 +171,7 @@ describe('updateRelatedChangeType', () => {
           options: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
         },
       },
-      packageGroups: { grp: ['foo', 'bar'] },
+      packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
     updateRelatedChangeType('dep', 'patch', bumpInfo, true);
@@ -228,7 +228,7 @@ describe('updateRelatedChangeType', () => {
           name: 'app',
         },
       },
-      packageGroups: { grp: ['foo', 'bar'] },
+      packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
     updateRelatedChangeType('mergeStyles', 'patch', bumpInfo, true);

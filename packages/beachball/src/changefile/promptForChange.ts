@@ -5,6 +5,8 @@ import prompts from 'prompts';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { prerelease } from 'semver';
 import { BeachballOptions } from '../types/BeachballOptions';
+import { getPackageGroups } from '../monorepo/getPackageGroups';
+import { PackageGroups, PackageInfos } from '../types/PackageInfo';
 
 /**
  * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash
@@ -18,12 +20,13 @@ export async function promptForChange(options: BeachballOptions) {
   const packageChangeInfo: { [pkgname: string]: ChangeInfo } = {};
 
   const packageInfos = getPackageInfos(cwd);
+  const packageGroups = getPackageGroups(packageInfos, options.path, options.groups);
 
   for (let pkg of changedPackages) {
     console.log('');
     console.log(`Please describe the changes for: ${pkg}`);
 
-    const packageOptions = packageInfos[pkg].options;
+    const disallowedChangeTypes = getDisallowedChangeTypes(pkg, packageInfos, packageGroups);
 
     const showPrereleaseOption = prerelease(packageInfos[pkg].version);
     const changeTypePrompt: prompts.PromptObject<string> = {
@@ -36,7 +39,7 @@ export async function promptForChange(options: BeachballOptions) {
         { value: 'minor', title: ' [1mMinor[22m      - small feature; backwards compatible changes.' },
         { value: 'none', title: ' [1mNone[22m       - this change does not affect the published package in any way.' },
         { value: 'major', title: ' [1mMajor[22m      - major feature; breaking changes.' },
-      ].filter(choice => !packageOptions?.disallowedChangeTypes?.includes(choice.value as ChangeType)),
+      ].filter(choice => !disallowedChangeTypes?.includes(choice.value as ChangeType)),
     };
 
     if (changeTypePrompt.choices!.length === 0) {
@@ -44,7 +47,7 @@ export async function promptForChange(options: BeachballOptions) {
       return;
     }
 
-    if (options.type && packageOptions?.disallowedChangeTypes?.includes(options.type as ChangeType)) {
+    if (options.type && disallowedChangeTypes?.includes(options.type as ChangeType)) {
       console.log(`${options.type} type is not allowed, aborting`);
       return;
     }
@@ -90,4 +93,19 @@ export async function promptForChange(options: BeachballOptions) {
   }
 
   return packageChangeInfo;
+}
+
+function getDisallowedChangeTypes(
+  packageName: string,
+  packageInfos: PackageInfos,
+  packageGroups: PackageGroups
+): ChangeType[] | null {
+  for (const groupName of Object.keys(packageGroups)) {
+    const groupsInfo = packageGroups[groupName];
+    if (groupsInfo.packageNames.indexOf(packageName) > -1) {
+      return groupsInfo.disallowedChangeTypes;
+    }
+  }
+
+  return packageInfos[packageName].options.disallowedChangeTypes;
 }
