@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 20 Mar 2020 20:37:09 GMT and should not be manually modified.
+This log was last generated on Fri, 20 Mar 2020 23:50:38 GMT and should not be manually modified.
 
+## 1.20.4
+Fri, 20 Mar 2020 23:50:38 GMT
+
+### Patches
+
+- Fix version group bumping logic (xgao@microsoft.com)
 ## 1.20.3
 Fri, 20 Mar 2020 20:37:09 GMT
 
