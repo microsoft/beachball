@@ -78,7 +78,7 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.packageChangeTypes['bar']).toBe('minor');
   });
 
-  it('should bump all packages in a group together', () => {
+  it('should bump all packages in a group together as minor', () => {
     const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
       dependentChangeTypes: {
         foo: 'minor',
@@ -99,6 +99,81 @@ describe('updateRelatedChangeType', () => {
 
     expect(bumpInfo.packageChangeTypes['foo']).toBe('minor');
     expect(bumpInfo.packageChangeTypes['bar']).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['unrelated']).toBeUndefined();
+  });
+
+  it('should bump all packages in a group together as patch', () => {
+    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+      dependentChangeTypes: {
+        foo: 'patch',
+      },
+      packageInfos: {
+        foo: {
+          group: 'grp',
+        },
+        bar: {
+          group: 'grp',
+        },
+        unrelated: {},
+      },
+      packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
+    });
+
+    updateRelatedChangeType('foo', 'patch', bumpInfo, true);
+
+    expect(bumpInfo.packageChangeTypes['foo']).toBe('patch');
+    expect(bumpInfo.packageChangeTypes['bar']).toBe('patch');
+    expect(bumpInfo.packageChangeTypes['unrelated']).toBeUndefined();
+  });
+
+  it('should bump all packages in a group together as none', () => {
+    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+      dependentChangeTypes: {
+        foo: 'patch',
+      },
+      packageInfos: {
+        foo: {
+          group: 'grp',
+        },
+        bar: {
+          group: 'grp',
+        },
+        unrelated: {},
+      },
+      packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
+    });
+
+    updateRelatedChangeType('foo', 'none', bumpInfo, true);
+
+    expect(bumpInfo.packageChangeTypes['foo']).toBe('none');
+    expect(bumpInfo.packageChangeTypes['bar']).toBe('none');
+    expect(bumpInfo.packageChangeTypes['unrelated']).toBeUndefined();
+  });
+
+  it('should bump all packages in a group together as none with dependents', () => {
+    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+      dependents: {
+        foo: ['bar'],
+      },
+      dependentChangeTypes: {
+        foo: 'none',
+      },
+      packageInfos: {
+        foo: {
+          group: 'grp',
+        },
+        bar: {
+          group: 'grp',
+        },
+        unrelated: {},
+      },
+      packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
+    });
+
+    updateRelatedChangeType('foo', 'none', bumpInfo, true);
+
+    expect(bumpInfo.packageChangeTypes['foo']).toBe('none');
+    expect(bumpInfo.packageChangeTypes['bar']).toBe('none');
     expect(bumpInfo.packageChangeTypes['unrelated']).toBeUndefined();
   });
 
