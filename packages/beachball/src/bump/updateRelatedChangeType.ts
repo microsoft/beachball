@@ -1,4 +1,4 @@
-import { getMaxChangeType, getAllowedChangeType } from '../changefile/getPackageChangeTypes';
+import { getMaxChangeType, MinChangeType } from '../changefile/getPackageChangeTypes';
 import { ChangeType } from '../types/ChangeInfo';
 import { BumpInfo } from '../types/BumpInfo';
 
@@ -22,7 +22,7 @@ export function updateRelatedChangeType(
 
   const disallowedChangeTypes = packageInfos[pkgName].options?.disallowedChangeTypes ?? [];
 
-  let depChangeType = getMaxChangeType('patch', dependentChangeTypes[pkgName], disallowedChangeTypes);
+  let depChangeType = getMaxChangeType(MinChangeType, dependentChangeTypes[pkgName], disallowedChangeTypes);
   let dependentPackages = dependents[pkgName];
 
   // Handle groups
@@ -30,7 +30,7 @@ export function updateRelatedChangeType(
 
   const groupName = packageInfos[pkgName].group;
   if (groupName) {
-    let maxGroupChangeType = depChangeType;
+    let maxGroupChangeType: ChangeType = MinChangeType;
 
     // calculate maxChangeType
     packageGroups[groupName].packageNames.forEach(groupPkgName => {

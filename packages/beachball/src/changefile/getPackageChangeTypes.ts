@@ -3,6 +3,11 @@ import { ChangeInfo, ChangeSet, ChangeType } from '../types/ChangeInfo';
 const SortedChangeTypes: ChangeType[] = ['none', 'prerelease', 'patch', 'minor', 'major'];
 
 /**
+ * Change type with the smallest weight.
+ */
+export const MinChangeType = SortedChangeTypes[0];
+
+/**
  *  Change type weights
  *  Note: the order in which this is defined is IMPORTANT
  */
