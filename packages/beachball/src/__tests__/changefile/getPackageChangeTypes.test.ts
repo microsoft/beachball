@@ -6,7 +6,7 @@ describe('getAllowedChangeTypes', () => {
     expect(changeType).toBe('patch');
   });
 
-  fit('can handle prerelease only case', () => {
+  it('can handle prerelease only case', () => {
     const changeType = getAllowedChangeType('patch', ['major', 'minor', 'patch']);
     expect(changeType).toBe('prerelease');
   });
