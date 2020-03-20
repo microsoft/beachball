@@ -87,7 +87,7 @@ export async function promptForChange(options: BeachballOptions) {
       packageName: pkg,
       email: getUserEmail(cwd) || 'email not defined',
       commit: getCurrentHash(cwd) || 'hash not available',
-      dependentChangeType: 'patch',
+      dependentChangeType: response.type === 'none' ? 'none' : 'patch',
       date: new Date(),
     };
   }
