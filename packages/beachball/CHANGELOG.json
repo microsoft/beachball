@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 20 Mar 2020 20:37:09 GMT",
+      "tag": "beachball_v1.20.3",
+      "version": "1.20.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix promptChangeFiles to honor disallowedChangeTypes defined in version groups",
+            "author": "xgao@microsoft.com",
+            "commit": "632170f7e1bcf16cfdf06551cd671a45d754a857"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 07 Mar 2020 00:06:17 GMT",
       "tag": "beachball_v1.20.2",
       "version": "1.20.2",

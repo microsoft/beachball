@@ -1,9 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix promptChangeFiles to honor disallowedChangeTypes defined in version groups",
-  "packageName": "beachball",
-  "email": "xgao@microsoft.com",
-  "commit": "632170f7e1bcf16cfdf06551cd671a45d754a857",
-  "dependentChangeType": "patch",
-  "date": "2020-03-20T20:12:52.561Z"
-}
