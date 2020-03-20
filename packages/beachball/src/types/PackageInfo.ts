@@ -1,4 +1,5 @@
 import { PackageOptions } from './BeachballOptions';
+import { ChangeType } from './ChangeInfo';
 
 export interface PackageInfo {
   name: string;
@@ -16,4 +17,9 @@ export interface PackageInfos {
   [pkgName: string]: PackageInfo;
 }
 
-export type PackageGroups = { [pkgName: string]: string[] };
+export interface PackageGroupsInfo {
+  packageNames: string[];
+  disallowedChangeTypes: ChangeType[] | null;
+}
+
+export type PackageGroups = { [groupName: string]: PackageGroupsInfo };

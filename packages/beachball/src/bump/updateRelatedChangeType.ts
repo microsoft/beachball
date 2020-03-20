@@ -28,12 +28,12 @@ export function updateRelatedChangeType(
   // Handle groups
   packageChangeTypes[pkgName] = getMaxChangeType(changeType, packageChangeTypes[pkgName], disallowedChangeTypes);
 
-  if (packageInfos[pkgName].group) {
+  const groupName = packageInfos[pkgName].group;
+  if (groupName) {
     let maxGroupChangeType = depChangeType;
-    const groupName = packageInfos[pkgName].group!;
 
     // calculate maxChangeType
-    packageGroups[groupName].forEach(groupPkgName => {
+    packageGroups[groupName].packageNames.forEach(groupPkgName => {
       maxGroupChangeType = getMaxChangeType(
         maxGroupChangeType,
         packageChangeTypes[groupPkgName],
@@ -44,7 +44,7 @@ export function updateRelatedChangeType(
       dependentChangeTypes[groupPkgName] = getMaxChangeType(depChangeType, dependentChangeTypes[groupPkgName], []);
     });
 
-    packageGroups[groupName].forEach(groupPkgName => {
+    packageGroups[groupName].packageNames.forEach(groupPkgName => {
       if (packageChangeTypes[groupPkgName] !== maxGroupChangeType) {
         updateRelatedChangeType(groupPkgName, maxGroupChangeType, bumpInfo, bumpDeps);
       }

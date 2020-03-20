@@ -1,5 +1,4 @@
-import { BeachballOptions, VersionGroupOptions } from '../types/BeachballOptions';
-import { getPackageInfos } from './getPackageInfos';
+import { VersionGroupOptions } from '../types/BeachballOptions';
 import path from 'path';
 import minimatch from 'minimatch';
 import { PackageInfos, PackageGroups } from '../types/PackageInfo';
@@ -32,16 +31,25 @@ export function getPackageGroups(packageInfos: PackageInfos, root: string, group
 
       for (const groupOption of groups) {
         if (isInGroup(relativePath, groupOption)) {
+          const groupName = groupOption.name;
+
           if (packageInfos[pkgName].group) {
             console.error(
-              `Error: ${pkgName} cannot belong to multiple groups: [${groupOption.name}, ${packageInfos[pkgName].group}]!`
+              `Error: ${pkgName} cannot belong to multiple groups: [${groupName}, ${packageInfos[pkgName].group}]!`
             );
             process.exit(1);
           }
 
-          packageInfos[pkgName].group = groupOption.name;
-          packageGroups[groupOption.name] = packageGroups[groupOption.name] || [];
-          packageGroups[groupOption.name].push(pkgName);
+          packageInfos[pkgName].group = groupName;
+
+          if (!packageGroups[groupName]) {
+            packageGroups[groupName] = {
+              packageNames: [],
+              disallowedChangeTypes: groupOption.disallowedChangeTypes,
+            };
+          }
+
+          packageGroups[groupName].packageNames.push(pkgName);
         }
       }
     }
