@@ -105,6 +105,10 @@ export class Repository {
     await runInDirectory(this.root.name, [`git push ${remote} ${branch}`]);
   }
 
+  /**
+   * Clean up created repo. This isn't necessary to call manually in most cases because `tmp` will automatically
+   * remove created directories on program exit (assuming `tmp.setGracefulCleanup()` is still called somewhere).
+   */
   async cleanUp() {
     if (!this.root) {
       throw new Error('Must initialize before clean up');
