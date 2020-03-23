@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 23 Mar 2020 19:20:05 GMT and should not be manually modified.
+This log was last generated on Mon, 23 Mar 2020 21:24:15 GMT and should not be manually modified.
 
+## 1.22.0
+Mon, 23 Mar 2020 21:24:15 GMT
+
+### Minor changes
+
+- ChangeLog: add empty options interface (xgao@microsoft.com)
 ## 1.21.0
 Mon, 23 Mar 2020 19:20:05 GMT
 

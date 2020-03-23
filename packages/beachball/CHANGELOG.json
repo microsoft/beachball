@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 23 Mar 2020 21:24:15 GMT",
+      "tag": "beachball_v1.22.0",
+      "version": "1.22.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "ChangeLog: add empty options interface",
+            "author": "xgao@microsoft.com",
+            "commit": "c06fc11ed9fc3fc724a85e433bd7db770c56fe8b"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 23 Mar 2020 19:20:05 GMT",
       "tag": "beachball_v1.21.0",
       "version": "1.21.0",
