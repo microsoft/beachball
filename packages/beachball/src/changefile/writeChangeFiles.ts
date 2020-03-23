@@ -1,4 +1,4 @@
-import { ChangeInfo } from '../types/ChangeInfo';
+import { ChangeFileInfo } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
 import { getBranchName, stageAndCommit } from '../git';
 import fs from 'fs-extra';
@@ -11,7 +11,7 @@ import { getTimeStamp } from './getTimeStamp';
  */
 export function writeChangeFiles(
   changes: {
-    [pkgname: string]: ChangeInfo;
+    [pkgname: string]: ChangeFileInfo;
   },
   cwd: string
 ): string[] {

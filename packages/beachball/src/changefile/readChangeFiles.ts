@@ -1,4 +1,4 @@
-import { ChangeSet, FullChangeInfo } from '../types/ChangeInfo';
+import { ChangeSet, ChangeInfo } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
 import fs from 'fs-extra';
 import path from 'path';
@@ -17,7 +17,7 @@ export function readChangeFiles(options: BeachballOptions): ChangeSet {
   const changeFiles = fs.readdirSync(changePath);
   changeFiles.forEach(changeFile => {
     try {
-      const changeInfo: FullChangeInfo = {
+      const changeInfo: ChangeInfo = {
         ...fs.readJSONSync(path.join(changePath, changeFile)),
         // Add the commit hash where the file was actually first introduced
         commit: getFileAddedHash(changePath, cwd) || '',

@@ -1,4 +1,4 @@
-import { ChangeInfo, ChangeType } from '../types/ChangeInfo';
+import { ChangeFileInfo, ChangeType } from '../types/ChangeInfo';
 import { getChangedPackages } from './getChangedPackages';
 import { getRecentCommitMessages, getUserEmail, getCurrentHash } from '../git';
 import prompts from 'prompts';
@@ -16,7 +16,7 @@ export async function promptForChange(options: BeachballOptions) {
 
   const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(options);
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
-  const packageChangeInfo: { [pkgname: string]: ChangeInfo } = {};
+  const packageChangeInfo: { [pkgname: string]: ChangeFileInfo } = {};
 
   const packageInfos = getPackageInfos(cwd);
   const packageGroups = getPackageGroups(packageInfos, options.path, options.groups);

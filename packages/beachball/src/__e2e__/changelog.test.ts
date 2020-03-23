@@ -14,7 +14,7 @@ import { selectAll } from 'unist-util-select';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { ChangeInfo } from '../types/ChangeInfo';
+import { ChangeFileInfo } from '../types/ChangeInfo';
 
 const readFileAsync = promisify(fs.readFile);
 
@@ -62,7 +62,7 @@ describe('changelog generation', () => {
     });
 
     it('uses hash of original commit', async () => {
-      const changeInfo: ChangeInfo = {
+      const changeInfo: ChangeFileInfo = {
         comment: 'comment 1',
         date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
         email: 'test@testtestme.com',
