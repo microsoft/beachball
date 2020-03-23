@@ -75,7 +75,6 @@ describe('version bumping', () => {
         'pkg-1': {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'pkg-1',
@@ -163,7 +162,6 @@ describe('version bumping', () => {
         'pkg-1': {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'pkg-1',
@@ -233,7 +231,6 @@ describe('version bumping', () => {
         'pkg-1': {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'pkg-1',
@@ -322,7 +319,6 @@ describe('version bumping', () => {
         commonlib: {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'commonlib',
@@ -363,7 +359,6 @@ describe('version bumping', () => {
         foo: {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
@@ -395,7 +390,6 @@ describe('version bumping', () => {
         bar: {
           type: 'patch',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'bar',

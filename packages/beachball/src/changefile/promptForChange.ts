@@ -10,7 +10,6 @@ import { PackageGroups, PackageInfos } from '../types/PackageInfo';
 
 /**
  * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash
- * @param cwd
  */
 export async function promptForChange(options: BeachballOptions) {
   const { branch, path: cwd, package: specificPackage } = options;
@@ -86,7 +85,6 @@ export async function promptForChange(options: BeachballOptions) {
       ...response,
       packageName: pkg,
       email: getUserEmail(cwd) || 'email not defined',
-      commit: getCurrentHash(cwd) || 'hash not available',
       dependentChangeType: response.type === 'none' ? 'none' : 'patch',
       date: new Date(),
     };

@@ -14,6 +14,7 @@ import { selectAll } from 'unist-util-select';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { BeachballOptions } from '../types/BeachballOptions';
+import { ChangeInfo } from '../types/ChangeInfo';
 
 const readFileAsync = promisify(fs.readFile);
 
@@ -23,27 +24,77 @@ function parseMarkdown(markdown: string) {
     .parse(markdown);
 }
 
-describe('validation', () => {
+describe('changelog generation', () => {
   let repositoryFactory: RepositoryFactory;
+  let repository: Repository;
+
   beforeAll(async () => {
     repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
   });
 
-  describe('writeChangelog', () => {
-    let repository: Repository;
+  beforeEach(async () => {
+    repository = await repositoryFactory.cloneRepository();
+  });
 
-    beforeEach(async () => {
-      repository = await repositoryFactory.cloneRepository();
-    });
-
-    it('generate changelog is a valid markdown file', async () => {
+  describe('readChangelog', () => {
+    it('adds actual commit hash', async () => {
       await repository.commitChange('foo');
       writeChangeFiles(
         {
           foo: {
             comment: 'comment 1',
-            commit: 'sha1-1',
+            date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
+            email: 'test@testtestme.com',
+            packageName: 'foo',
+            type: 'patch',
+            dependentChangeType: 'patch',
+          },
+        },
+        repository.rootPath
+      );
+
+      const currentHash = await repository.getCurrentHash();
+      const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions);
+      const changes = [...changeSet.values()];
+      expect(changes).toHaveLength(1);
+      expect(changes[0].commit).toBe(currentHash);
+    });
+
+    it('uses hash of original commit', async () => {
+      const changeInfo: ChangeInfo = {
+        comment: 'comment 1',
+        date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
+        email: 'test@testtestme.com',
+        packageName: 'foo',
+        type: 'patch',
+        dependentChangeType: 'patch',
+      };
+
+      await repository.commitChange('foo');
+      const changeFilePaths = writeChangeFiles({ foo: changeInfo }, repository.rootPath);
+      const changeFilePath = path.relative(repository.rootPath, changeFilePaths[0]);
+      const changeFileAddedHash = await repository.getCurrentHash();
+
+      // change the change file
+      await repository.commitChange(changeFilePath, JSON.stringify({ ...changeInfo, comment: 'comment 2' }, null, 2));
+      await repository.commitChange(changeFilePath, JSON.stringify({ ...changeInfo, comment: 'comment 3' }, null, 2));
+
+      // keeps original hash
+      const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions);
+      const changes = [...changeSet.values()];
+      expect(changes).toHaveLength(1);
+      expect(changes[0].commit).toBe(changeFileAddedHash);
+    });
+  });
+
+  describe('writeChangelog', () => {
+    it('generates changelog that is a valid markdown file', async () => {
+      await repository.commitChange('foo');
+      writeChangeFiles(
+        {
+          foo: {
+            comment: 'comment 1',
             date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
             email: 'test@testtestme.com',
             packageName: 'foo',
@@ -59,7 +110,6 @@ describe('validation', () => {
         {
           foo: {
             comment: 'comment 2',
-            commit: 'sha1-2',
             date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
             email: 'test@testtestme.com',
             packageName: 'foo',

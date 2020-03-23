@@ -6,8 +6,6 @@ import gitUrlParse from 'git-url-parse';
 
 /**
  * Runs git command - use this for read only commands
- * @param args
- * @param options
  */
 export function git(args: string[], options?: { cwd: string }) {
   const results = spawnSync('git', args, options);
@@ -29,8 +27,6 @@ export function git(args: string[], options?: { cwd: string }) {
 
 /**
  * Runs git command - use this for commands that makes changes to the file system
- * @param args
- * @param options
  */
 export function gitFailFast(args: string[], options?: { cwd: string }) {
   const gitResult = git(args, options);
@@ -200,6 +196,22 @@ export function getCurrentHash(cwd: string) {
   }
 
   return null;
+}
+
+/**
+ * Get the commit hash in which the file was first added.
+ */
+export function getFileAddedHash(filename: string, cwd: string) {
+  const results = git(['rev-list', 'HEAD', filename], { cwd });
+
+  if (results.success) {
+    return results.stdout
+      .trim()
+      .split('\n')
+      .slice(-1)[0];
+  }
+
+  return undefined;
 }
 
 export function stageAndCommit(patterns: string[], message: string, cwd: string) {

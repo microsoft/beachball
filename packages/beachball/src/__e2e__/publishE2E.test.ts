@@ -32,7 +32,6 @@ describe('publish command (e2e)', () => {
         foo: {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
@@ -93,7 +92,6 @@ describe('publish command (e2e)', () => {
         foo: {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
@@ -108,7 +106,6 @@ describe('publish command (e2e)', () => {
         bar: {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'bar',

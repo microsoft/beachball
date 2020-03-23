@@ -76,7 +76,10 @@ export class Repository {
     this.origin = path;
   }
 
-  async commitChange(newFilename: string, content?: string) {
+  /**
+   * @returns The hash of the new commit
+   */
+  async commitChange(newFilename: string, content?: string): Promise<string> {
     if (!this.root) {
       throw new Error('Must initialize before cloning');
     }
@@ -87,7 +90,21 @@ export class Repository {
       await fs.writeFile(path.join(this.root.name, newFilename), content);
     }
 
-    await runInDirectory(this.root.name, [`git add ${newFilename}`, `git commit -m '${newFilename}'`]);
+    const result = await runInDirectory(this.root.name, [
+      `git add ${newFilename}`,
+      `git commit -m '${newFilename}'`,
+      'git rev-parse HEAD',
+    ]);
+    return result.slice(-1)[0].stdout.trim();
+  }
+
+  async getCurrentHash(): Promise<string> {
+    if (!this.root) {
+      throw new Error('Must initialize before getting head');
+    }
+
+    const result = await runInDirectory(this.root.name, ['git rev-parse HEAD']);
+    return result[0].stdout.trim();
   }
 
   async branch(branchName: string) {

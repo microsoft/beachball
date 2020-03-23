@@ -23,10 +23,11 @@ export function exec(command: string): Promise<PsResult> {
   });
 }
 
-export async function runCommands(commands: string[]): Promise<void> {
+export async function runCommands(commands: string[]): Promise<PsResult[]> {
+  const results: PsResult[] = [];
   for (let i = 0; i < commands.length; i++) {
     try {
-      await exec(commands[i]);
+      results.push(await exec(commands[i]));
     } catch (e) {
       console.error('runCommands failed:');
       console.error(e.stdout);
@@ -36,11 +37,16 @@ export async function runCommands(commands: string[]): Promise<void> {
       throw e;
     }
   }
+  return results;
 }
 
-export async function runInDirectory(targetDirectory: string, commands: string[]) {
+/**
+ * @returns The results of the commands run
+ */
+export async function runInDirectory(targetDirectory: string, commands: string[]): Promise<PsResult[]> {
   const originalDirectory = process.cwd();
   process.chdir(targetDirectory);
-  await runCommands(commands);
+  const results = await runCommands(commands);
   process.chdir(originalDirectory);
+  return results;
 }

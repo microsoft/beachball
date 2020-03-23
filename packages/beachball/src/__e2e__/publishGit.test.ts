@@ -29,7 +29,6 @@ describe('publish command (git)', () => {
         foo: {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
@@ -79,7 +78,6 @@ describe('publish command (git)', () => {
         foo: {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
@@ -129,7 +127,6 @@ describe('publish command (git)', () => {
         foo2: {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo2',
