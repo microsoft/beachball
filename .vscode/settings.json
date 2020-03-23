@@ -9,6 +9,7 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "search.exclude": {
     "**/node_modules": true,
-    "**/lib": true
+    "**/lib": true,
+    "docs": true
   }
 }

@@ -31,7 +31,6 @@ describe('publish command (registry)', () => {
         foo: {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
@@ -110,7 +109,6 @@ describe('publish command (registry)', () => {
         foopkg: {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foopkg',
@@ -184,7 +182,6 @@ describe('publish command (registry)', () => {
         badname: {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'badname',

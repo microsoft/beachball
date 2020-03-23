@@ -7,7 +7,7 @@ import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { git, gitFailFast } from '../git';
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { ChangeInfo } from '../types/ChangeInfo';
+import { ChangeFileInfo } from '../types/ChangeInfo';
 
 describe('publish command (git)', () => {
   let repositoryFactory: RepositoryFactory;
@@ -29,7 +29,6 @@ describe('publish command (git)', () => {
         foo: {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
@@ -79,7 +78,6 @@ describe('publish command (git)', () => {
         foo: {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
@@ -129,7 +127,6 @@ describe('publish command (git)', () => {
         foo2: {
           type: 'minor',
           comment: 'test',
-          commit: 'test',
           date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo2',
@@ -150,7 +147,7 @@ describe('publish command (git)', () => {
     expect(fs.existsSync(newChangePath)).toBeTruthy();
     const changeFiles = fs.readdirSync(newChangePath);
     expect(changeFiles.length).toBe(1);
-    const changeFileContent: ChangeInfo = JSON.parse(
+    const changeFileContent: ChangeFileInfo = JSON.parse(
       fs.readFileSync(path.join(newChangePath, changeFiles[0]), 'utf-8')
     );
     expect(changeFileContent.packageName).toBe('foo2');

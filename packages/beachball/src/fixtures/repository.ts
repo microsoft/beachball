@@ -76,7 +76,7 @@ export class Repository {
     this.origin = path;
   }
 
-  async commitChange(newFilename: string, content?: string) {
+  async commitChange(newFilename: string, content?: string): Promise<void> {
     if (!this.root) {
       throw new Error('Must initialize before cloning');
     }
@@ -88,6 +88,15 @@ export class Repository {
     }
 
     await runInDirectory(this.root.name, [`git add ${newFilename}`, `git commit -m '${newFilename}'`]);
+  }
+
+  async getCurrentHash(): Promise<string> {
+    if (!this.root) {
+      throw new Error('Must initialize before getting head');
+    }
+
+    const result = await runInDirectory(this.root.name, ['git rev-parse HEAD']);
+    return result[0].stdout.trim();
   }
 
   async branch(branchName: string) {
@@ -105,6 +114,10 @@ export class Repository {
     await runInDirectory(this.root.name, [`git push ${remote} ${branch}`]);
   }
 
+  /**
+   * Clean up created repo. This isn't necessary to call manually in most cases because `tmp` will automatically
+   * remove created directories on program exit (assuming `tmp.setGracefulCleanup()` is still called somewhere).
+   */
   async cleanUp() {
     if (!this.root) {
       throw new Error('Must initialize before clean up');

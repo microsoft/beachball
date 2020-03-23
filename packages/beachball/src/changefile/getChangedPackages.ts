@@ -1,4 +1,4 @@
-import { ChangeInfo } from '../types/ChangeInfo';
+import { ChangeFileInfo } from '../types/ChangeInfo';
 import { findPackageRoot, getChangePath } from '../paths';
 import { getChanges, getStagedChanges, git, fetchRemote, parseRemoteBranch } from '../git';
 import fs from 'fs';
@@ -75,7 +75,7 @@ export function getChangedPackages(options: BeachballOptions) {
   // Loop through the change files, building up a set of packages that we can skip
   changeFiles.forEach(file => {
     try {
-      const changeInfo: ChangeInfo = JSON.parse(fs.readFileSync(file, 'utf-8'));
+      const changeInfo: ChangeFileInfo = JSON.parse(fs.readFileSync(file, 'utf-8'));
       changeFilePackageSet.add(changeInfo.packageName);
     } catch (e) {
       console.warn(`Invalid change file encountered: ${file}`);

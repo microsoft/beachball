@@ -1,4 +1,4 @@
-import { ChangeInfo, ChangeSet, ChangeType } from '../types/ChangeInfo';
+import { ChangeFileInfo, ChangeSet, ChangeType } from '../types/ChangeInfo';
 
 const SortedChangeTypes: ChangeType[] = ['none', 'prerelease', 'patch', 'minor', 'major'];
 
@@ -18,7 +18,7 @@ const ChangeTypeWeights = SortedChangeTypes.reduce((weights, changeType, index) 
 
 export function getPackageChangeTypes(changeSet: ChangeSet) {
   const changePerPackage: {
-    [pkgName: string]: ChangeInfo['type'];
+    [pkgName: string]: ChangeFileInfo['type'];
   } = {};
 
   for (let [_, change] of changeSet) {

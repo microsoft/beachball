@@ -1,4 +1,4 @@
-import { ChangeInfo, ChangeType } from '../types/ChangeInfo';
+import { ChangeFileInfo, ChangeType } from '../types/ChangeInfo';
 import { getChangedPackages } from './getChangedPackages';
 import { getRecentCommitMessages, getUserEmail, getCurrentHash } from '../git';
 import prompts from 'prompts';
@@ -10,14 +10,13 @@ import { PackageGroups, PackageInfos } from '../types/PackageInfo';
 
 /**
  * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash
- * @param cwd
  */
 export async function promptForChange(options: BeachballOptions) {
   const { branch, path: cwd, package: specificPackage } = options;
 
   const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(options);
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
-  const packageChangeInfo: { [pkgname: string]: ChangeInfo } = {};
+  const packageChangeInfo: { [pkgname: string]: ChangeFileInfo } = {};
 
   const packageInfos = getPackageInfos(cwd);
   const packageGroups = getPackageGroups(packageInfos, options.path, options.groups);
@@ -86,7 +85,6 @@ export async function promptForChange(options: BeachballOptions) {
       ...response,
       packageName: pkg,
       email: getUserEmail(cwd) || 'email not defined',
-      commit: getCurrentHash(cwd) || 'hash not available',
       dependentChangeType: response.type === 'none' ? 'none' : 'patch',
       date: new Date(),
     };
