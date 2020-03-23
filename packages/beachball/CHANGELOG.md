@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 20 Mar 2020 23:50:38 GMT and should not be manually modified.
+This log was last generated on Mon, 23 Mar 2020 19:20:05 GMT and should not be manually modified.
 
+## 1.21.0
+Mon, 23 Mar 2020 19:20:05 GMT
+
+### Minor changes
+
+- Delay inferring commit hash until changelog generation (and remove commit from changefiles) (elcraig@microsoft.com)
 ## 1.20.4
 Fri, 20 Mar 2020 23:50:38 GMT
 

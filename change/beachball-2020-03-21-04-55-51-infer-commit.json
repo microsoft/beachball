@@ -1,8 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Delay inferring commit hash until changelog generation (and remove commit from changefiles)",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-03-21T11:55:51.028Z"
-}

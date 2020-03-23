@@ -2,6 +2,20 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 23 Mar 2020 19:20:05 GMT",
+      "tag": "beachball_v1.21.0",
+      "version": "1.21.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Delay inferring commit hash until changelog generation (and remove commit from changefiles)",
+            "author": "elcraig@microsoft.com",
+            "commit": "c06fc11ed9fc3fc724a85e433bd7db770c56fe8b"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 20 Mar 2020 23:50:38 GMT",
       "tag": "beachball_v1.20.4",
       "version": "1.20.4",
