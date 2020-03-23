@@ -22,7 +22,6 @@ export interface CliOptions {
   type?: ChangeType | null;
   help?: boolean;
   version?: boolean;
-  groups?: VersionGroupOptions[];
   scope?: string[] | null;
 }
 
@@ -40,6 +39,8 @@ export interface RepoOptions {
   changehint: string;
   disallowedChangeTypes: ChangeType[] | null;
   defaultNpmTag: string;
+  groups?: VersionGroupOptions[];
+  changeLog?: ChangeLogOptions;
 }
 
 export interface PackageOptions {
@@ -59,3 +60,8 @@ export interface VersionGroupOptions {
   /** name of the version group */
   name: string;
 }
+
+/**
+ * Options for change log related configurations.
+ */
+export interface ChangeLogOptions {}
