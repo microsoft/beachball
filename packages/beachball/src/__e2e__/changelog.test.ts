@@ -4,7 +4,7 @@ import fs from 'fs';
 import { promisify } from 'util';
 
 import { RepositoryFactory, Repository } from '../fixtures/repository';
-import { writeChangelog, writeGroupedChangelog } from '../changelog/writeChangelog';
+import { writeChangelog } from '../changelog/writeChangelog';
 
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 
@@ -100,7 +100,7 @@ describe('changelog generation', () => {
   });
 
   describe('writeChangelog', () => {
-    it('generates changelog that is a valid markdown file', async () => {
+    it('generates correct changelog', async () => {
       await repository.commitChange('foo');
       writeChangeFiles(
         {
@@ -131,12 +131,13 @@ describe('changelog generation', () => {
         repository.rootPath
       );
 
-      const changes = readChangeFiles({ path: repository.rootPath } as BeachballOptions);
+      const beachballOptions = { path: repository.rootPath } as BeachballOptions;
+      const changes = readChangeFiles(beachballOptions);
 
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(repository.rootPath);
 
-      writeChangelog(changes, packageInfos);
+      writeChangelog(beachballOptions, changes, packageInfos);
 
       const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
       const text = await readFileAsync(changelogFile, 'utf-8');
@@ -147,10 +148,8 @@ describe('changelog generation', () => {
       expect(listItems.find(item => item.value === 'comment 2 (test@testtestme.com)')).toBeTruthy();
       expect(listItems.find(item => item.value === 'comment 1 (test@testtestme.com)')).toBeTruthy();
     });
-  });
 
-  describe('writeGroupedChangelog', () => {
-    it('generates changelog that is a valid markdown file', async () => {
+    it('generates correct grouped changelog', async () => {
       await monoRepo.commitChange('foo');
       writeChangeFiles(
         {
@@ -199,22 +198,133 @@ describe('changelog generation', () => {
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(monoRepo.rootPath);
 
-      writeGroupedChangelog(changes, packageInfos, beachballOptions);
+      writeChangelog(beachballOptions, changes, packageInfos);
 
-      const changelogFile = path.join(monoRepo.rootPath, 'CHANGELOG.md');
-      const text = await readFileAsync(changelogFile, 'utf-8');
+      // Validate changelog for foo package
+      const fooChangelogFile = path.join(monoRepo.rootPath, 'packages', 'foo', 'CHANGELOG.md');
+      const fooChangelogText = await readFileAsync(fooChangelogFile, 'utf-8');
+      const fooChangelogTree = parseMarkdown(fooChangelogText);
+      const fooChangelogHeadings = selectAll('heading text', fooChangelogTree);
+      expect(fooChangelogHeadings.length).toEqual(3);
+      expect(fooChangelogHeadings[0].value).toEqual('Change Log - foo');
+      expect(fooChangelogHeadings[1].value).toEqual('1.0.0');
+      expect(fooChangelogHeadings[2].value).toEqual('Patches');
 
-      const tree = parseMarkdown(text);
+      const fooChangelogListItems = selectAll('listItem paragraph text', fooChangelogTree);
+      expect(fooChangelogListItems.length).toEqual(1);
+      expect(fooChangelogListItems[0].value).toEqual('comment 1 (test@testtestme.com)');
 
-      const headings = selectAll('heading text', tree);
-      expect(headings.length).toEqual(3);
-      expect(headings[0].value).toEqual('Change Log - foo');
-      expect(headings[1].value).toEqual('1.0.0');
-      expect(headings[2].value).toEqual('Patches');
+      // Validate changelog for bar package
+      const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
+      const barChangelogText = await readFileAsync(barChangelogFile, 'utf-8');
+      const barChangelogTree = parseMarkdown(barChangelogText);
+      const barChangelogHeadings = selectAll('heading text', barChangelogTree);
+      expect(barChangelogHeadings.length).toEqual(3);
+      expect(barChangelogHeadings[0].value).toEqual('Change Log - bar');
+      expect(barChangelogHeadings[1].value).toEqual('1.3.4');
+      expect(barChangelogHeadings[2].value).toEqual('Patches');
 
-      const listItems = selectAll('listItem paragraph text', tree);
-      expect(listItems.find(item => item.value === 'comment 2 (test@testtestme.com)')).toBeTruthy();
-      expect(listItems.find(item => item.value === 'comment 1 (test@testtestme.com)')).toBeTruthy();
+      const barChangelogListItems = selectAll('listItem paragraph text', barChangelogTree);
+      expect(barChangelogListItems.length).toEqual(1);
+      expect(barChangelogListItems[0].value).toEqual('comment 2 (test@testtestme.com)');
+
+      // Validate grouped changelog for foo and bar packages
+      const groupedChangelogFile = path.join(monoRepo.rootPath, 'CHANGELOG.md');
+      const groupedChangelogText = await readFileAsync(groupedChangelogFile, 'utf-8');
+      const groupedChangelogTree = parseMarkdown(groupedChangelogText);
+
+      const groupedChangelogHeadings = selectAll('heading text', groupedChangelogTree);
+      expect(groupedChangelogHeadings.length).toEqual(3);
+      expect(groupedChangelogHeadings[0].value).toEqual('Change Log - foo');
+      expect(groupedChangelogHeadings[1].value).toEqual('1.0.0');
+      expect(groupedChangelogHeadings[2].value).toEqual('Patches');
+
+      const groupedChangelogListItems = selectAll('listItem paragraph text', groupedChangelogTree);
+      expect(groupedChangelogListItems.length).toEqual(2);
+      expect(groupedChangelogListItems[0].value).toEqual('comment 1 (test@testtestme.com)');
+      expect(groupedChangelogListItems[1].value).toEqual('comment 2 (test@testtestme.com)');
+    });
+
+    it('generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog', async () => {
+      await monoRepo.commitChange('foo');
+      writeChangeFiles(
+        {
+          foo: {
+            comment: 'comment 1',
+            date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
+            email: 'test@testtestme.com',
+            packageName: 'foo',
+            type: 'patch',
+            dependentChangeType: 'patch',
+          },
+        },
+        monoRepo.rootPath
+      );
+
+      await monoRepo.commitChange('bar');
+      writeChangeFiles(
+        {
+          bar: {
+            comment: 'comment 2',
+            date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
+            email: 'test@testtestme.com',
+            packageName: 'bar',
+            type: 'patch',
+            dependentChangeType: 'patch',
+          },
+        },
+        monoRepo.rootPath
+      );
+
+      const beachballOptions = {
+        path: monoRepo.rootPath,
+        changelog: {
+          groups: [
+            {
+              masterPackageName: 'foo',
+              changelogPath: path.join(monoRepo.rootPath, 'packages', 'foo'),
+              include: ['packages/foo', 'packages/bar'],
+            },
+          ],
+        },
+      } as BeachballOptions;
+
+      const changes = readChangeFiles(beachballOptions);
+
+      // Gather all package info from package.json
+      const packageInfos = getPackageInfos(monoRepo.rootPath);
+
+      writeChangelog(beachballOptions, changes, packageInfos);
+
+      // Validate changelog for bar package
+      const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
+      const barChangelogText = await readFileAsync(barChangelogFile, 'utf-8');
+      const barChangelogTree = parseMarkdown(barChangelogText);
+      const barChangelogHeadings = selectAll('heading text', barChangelogTree);
+      expect(barChangelogHeadings.length).toEqual(3);
+      expect(barChangelogHeadings[0].value).toEqual('Change Log - bar');
+      expect(barChangelogHeadings[1].value).toEqual('1.3.4');
+      expect(barChangelogHeadings[2].value).toEqual('Patches');
+
+      const barChangelogListItems = selectAll('listItem paragraph text', barChangelogTree);
+      expect(barChangelogListItems.length).toEqual(1);
+      expect(barChangelogListItems[0].value).toEqual('comment 2 (test@testtestme.com)');
+
+      // Validate grouped changelog for foo and bar packages
+      const groupedChangelogFile = path.join(monoRepo.rootPath, 'packages', 'foo', 'CHANGELOG.md');
+      const groupedChangelogText = await readFileAsync(groupedChangelogFile, 'utf-8');
+      const groupedChangelogTree = parseMarkdown(groupedChangelogText);
+
+      const groupedChangelogHeadings = selectAll('heading text', groupedChangelogTree);
+      expect(groupedChangelogHeadings.length).toEqual(3);
+      expect(groupedChangelogHeadings[0].value).toEqual('Change Log - foo');
+      expect(groupedChangelogHeadings[1].value).toEqual('1.0.0');
+      expect(groupedChangelogHeadings[2].value).toEqual('Patches');
+
+      const groupedChangelogListItems = selectAll('listItem paragraph text', groupedChangelogTree);
+      expect(groupedChangelogListItems.length).toEqual(2);
+      expect(groupedChangelogListItems[0].value).toEqual('comment 1 (test@testtestme.com)');
+      expect(groupedChangelogListItems[1].value).toEqual('comment 2 (test@testtestme.com)');
     });
   });
 });

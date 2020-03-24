@@ -1,5 +1,5 @@
 import { unlinkChangeFiles } from '../changefile/unlinkChangeFiles';
-import { writeChangelog, writeGroupedChangelog } from '../changelog/writeChangelog';
+import { writeChangelog } from '../changelog/writeChangelog';
 import fs from 'fs';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
@@ -32,8 +32,7 @@ export function performBump(bumpInfo: BumpInfo, options: BeachballOptions) {
   }
 
   // Generate changelog
-  writeChangelog(changes, packageInfos);
-  writeGroupedChangelog(changes, packageInfos, options);
+  writeChangelog(options, changes, packageInfos);
 
   // Unlink changelogs
   unlinkChangeFiles(changes, packageInfos, options.path);

@@ -12,32 +12,41 @@ import { PackageChangelog } from '../types/ChangeLog';
 import { mergeChangelogs } from './mergeChangelogs';
 
 export function writeChangelog(
+  options: BeachballOptions,
   changeSet: ChangeSet,
   packageInfos: {
     [pkg: string]: PackageInfo;
   }
 ): void {
+  const groupedChangelogPaths = writeGroupedChangelog(options, changeSet, packageInfos);
+  const groupedChangelogPathSet = new Set(groupedChangelogPaths);
+
   const changelogs = getPackageChangelogs(changeSet, packageInfos);
   Object.keys(changelogs).forEach(pkg => {
     const packagePath = path.dirname(packageInfos[pkg].packageJsonPath);
-    writeChangelogFiles(changelogs[pkg], packagePath);
+    console.log('excludedChangelogPaths', { groupedChangelogPathSet, packagePath });
+    if (groupedChangelogPathSet?.has(packagePath)) {
+      console.log(`Skip writing change log to ${packagePath}.`);
+    } else {
+      writeChangelogFiles(changelogs[pkg], packagePath);
+    }
   });
 }
 
-export function writeGroupedChangelog(
+function writeGroupedChangelog(
+  options: BeachballOptions,
   changeSet: ChangeSet,
   packageInfos: {
     [pkg: string]: PackageInfo;
-  },
-  options: BeachballOptions
-): void {
+  }
+): string[] {
   if (!options.changelog) {
-    return;
+    return [];
   }
 
   const { groups: changelogGroups } = options.changelog;
   if (!changelogGroups || changelogGroups.length < 1) {
-    return;
+    return [];
   }
 
   const changelogs = getPackageChangelogs(changeSet, packageInfos);
@@ -53,7 +62,7 @@ export function writeGroupedChangelog(
       const { changelogPath } = group;
       if (!fs.existsSync(changelogPath)) {
         console.warn(`changelog path doesn't exist: ${changelogPath}`);
-        return;
+        return [];
       }
 
       if (isInGroup) {
@@ -69,12 +78,16 @@ export function writeGroupedChangelog(
     });
   }
 
+  const changelogAbsolutePaths: string[] = [];
   for (const changelogPath in groupedChangelogs) {
     const { masterChangelog, changelogs } = groupedChangelogs[changelogPath];
     const groupedChangelog = mergeChangelogs(masterChangelog, changelogs);
 
     writeChangelogFiles(groupedChangelog, changelogPath);
+    changelogAbsolutePaths.push(path.resolve(changelogPath));
   }
+
+  return changelogAbsolutePaths;
 }
 
 function writeChangelogFiles(changelog: PackageChangelog, changelogPath: string): void {
