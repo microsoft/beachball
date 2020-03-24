@@ -1,24 +1,7 @@
 import { VersionGroupOptions } from '../types/BeachballOptions';
 import path from 'path';
-import minimatch from 'minimatch';
 import { PackageInfos, PackageGroups } from '../types/PackageInfo';
-
-function isInGroup(relativePath: string, group: VersionGroupOptions) {
-  const includePatterns = typeof group.include === 'string' ? [group.include] : group.include;
-  let includedFlag = includePatterns.reduce((included, pattern) => included || minimatch(relativePath, pattern), false);
-
-  let excludedFlag = false;
-
-  if (group.exclude) {
-    const excludePatterns = typeof group.exclude === 'string' ? [group.exclude] : group.exclude;
-    excludedFlag = excludePatterns.reduce(
-      (excluded: boolean, pattern: string) => excluded || minimatch(relativePath, pattern),
-      false
-    );
-  }
-
-  return includedFlag && !excludedFlag;
-}
+import { isPathIncluded } from './utils';
 
 export function getPackageGroups(packageInfos: PackageInfos, root: string, groups: VersionGroupOptions[] | undefined) {
   const packageGroups: PackageGroups = {};
@@ -30,7 +13,7 @@ export function getPackageGroups(packageInfos: PackageInfos, root: string, group
       const relativePath = path.relative(root, packagePath);
 
       for (const groupOption of groups) {
-        if (isInGroup(relativePath, groupOption)) {
+        if (isPathIncluded(relativePath, groupOption.include, groupOption.exclude)) {
           const groupName = groupOption.name;
 
           if (packageInfos[pkgName].group) {

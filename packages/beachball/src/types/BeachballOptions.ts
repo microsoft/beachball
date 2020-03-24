@@ -40,7 +40,7 @@ export interface RepoOptions {
   disallowedChangeTypes: ChangeType[] | null;
   defaultNpmTag: string;
   groups?: VersionGroupOptions[];
-  changeLog?: ChangeLogOptions;
+  changelog?: ChangelogOptions;
 }
 
 export interface PackageOptions {
@@ -64,16 +64,18 @@ export interface VersionGroupOptions {
 /**
  * Options for change log related configurations.
  */
-export interface ChangeLogOptions {
-  groups: ChangeLogGroupOptions[];
+export interface ChangelogOptions {
+  groups: ChangelogGroupOptions[];
 }
 
-export interface ChangeLogGroupOptions {
+export interface ChangelogGroupOptions {
+  masterPackageName: string;
+
   /** minimatch pattern (or array of minimatch) to detect which packages should be included in this group */
   include: string | string[];
 
   /** minimatch pattern (or array of minimatch) to detect which packages should be excluded in this group */
   exclude?: string | string[];
 
-  changeLogPath: string;
+  changelogPath: string;
 }
