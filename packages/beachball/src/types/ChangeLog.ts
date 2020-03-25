@@ -2,6 +2,7 @@ export interface ChangelogEntry {
   comment: string;
   author: string;
   commit: string;
+  package: string;
 }
 
 export interface PackageChangelog {

@@ -5,6 +5,7 @@ import { isValidChangeType } from './isValidChangeType';
 import { isChangeFileNeeded } from './isChangeFileNeeded';
 import { isValidGroupOptions } from './isValidGroupOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
+import { isValidChangelogOptions } from './isValidChangelogOptions';
 
 export function validate(
   options: BeachballOptions,
@@ -45,6 +46,12 @@ export function validate(
   if (options.groups && !isValidGroupOptions(options.path, options.groups)) {
     console.error('ERROR: Groups defined inside the configuration is invalid');
     console.log(options.groups);
+    process.exit(1);
+  }
+
+  if (options.changelog && !isValidChangelogOptions(options.changelog)) {
+    console.error('ERROR: Changelog defined inside the configuration is invalid');
+    console.log(options.changelog);
     process.exit(1);
   }
 

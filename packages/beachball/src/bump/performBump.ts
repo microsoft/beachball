@@ -2,9 +2,7 @@ import { unlinkChangeFiles } from '../changefile/unlinkChangeFiles';
 import { writeChangelog } from '../changelog/writeChangelog';
 import fs from 'fs';
 import { BumpInfo } from '../types/BumpInfo';
-import { bumpInPlace } from './bumpInPlace';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { getNewPackages } from '../publish/getNewPackages';
 
 /**
  * Performs the bump, writes to the file system
@@ -34,7 +32,7 @@ export function performBump(bumpInfo: BumpInfo, options: BeachballOptions) {
   }
 
   // Generate changelog
-  writeChangelog(changes, packageInfos);
+  writeChangelog(options, changes, packageInfos);
 
   // Unlink changelogs
   unlinkChangeFiles(changes, packageInfos, options.path);
