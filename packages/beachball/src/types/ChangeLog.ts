@@ -9,6 +9,7 @@ export interface PackageChangelog {
   name: string;
   date: Date;
   version: string;
+  tag: string;
   comments: {
     prerelease?: ChangelogEntry[];
     patch?: ChangelogEntry[];

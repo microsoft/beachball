@@ -1,10 +1,30 @@
-import { PackageChangelog, ChangelogEntry } from '../types/ChangeLog';
+import { PackageChangelog, ChangelogEntry, ChangelogJsonEntry } from '../types/ChangeLog';
 import _ from 'lodash';
+import { GitHubInfo } from '../types/BeachballOptions';
 
-export function renderPackageChangelog(changelog: PackageChangelog, isGroupedChangelog: boolean = false) {
+export interface PackageChangelogRenderOptions {
+  changelog: PackageChangelog;
+  isGroupedChangelog: boolean;
+  previousChangelogEntry: ChangelogJsonEntry | undefined;
+  github?: GitHubInfo;
+}
+
+export function renderPackageChangelog(options: PackageChangelogRenderOptions): string {
+  const { changelog, isGroupedChangelog, previousChangelogEntry, github } = options;
+  const header =
+    github && changelog.tag
+      ? `[${changelog.version}](https://github.com/${github.owner}/${github.repo}/tree/${changelog.tag})`
+      : changelog.version;
+
+  let subHeader = changelog.date.toUTCString();
+  subHeader +=
+    github && previousChangelogEntry?.tag
+      ? `\n[Compare changes](https://github.com/${github.owner}/${github.repo}/tree/${previousChangelogEntry?.tag}..${changelog.tag})`
+      : '';
+
   return (
-    `\n## ${changelog.version}\n` +
-    `${changelog.date.toUTCString()}\n` +
+    `\n## ${header}\n` +
+    `${subHeader}\n` +
     (changelog.comments.major
       ? '\n### Major\n\n' + renderChangelogEntries(changelog.comments.major, isGroupedChangelog)
       : '') +

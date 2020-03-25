@@ -39,8 +39,19 @@ export interface RepoOptions {
   changehint: string;
   disallowedChangeTypes: ChangeType[] | null;
   defaultNpmTag: string;
+  github?: GitHubInfo;
   groups?: VersionGroupOptions[];
   changelog?: ChangelogOptions;
+}
+
+/**
+ * If user is using GitHub, provide essential information to beachball to generate better changelog.
+ */
+export interface GitHubInfo {
+  /** name of the respository (e.g. beachball for https://github.com/microsoft/beachball) */
+  repo: string;
+  /** owner of the repository, which can be GitHub username or organization name. (e.g. microsoft for https://github.com/microsoft/beachball) */
+  owner: string;
 }
 
 export interface PackageOptions {
