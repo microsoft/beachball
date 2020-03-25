@@ -24,9 +24,8 @@ export function writeChangelog(
   const changelogs = getPackageChangelogs(changeSet, packageInfos);
   Object.keys(changelogs).forEach(pkg => {
     const packagePath = path.dirname(packageInfos[pkg].packageJsonPath);
-    console.log('excludedChangelogPaths', { groupedChangelogPathSet, packagePath });
     if (groupedChangelogPathSet?.has(packagePath)) {
-      console.log(`Skip writing change log to ${packagePath}.`);
+      console.log(`Skip writing change log to ${packagePath} because grouped change log has generated here.`);
     } else {
       writeChangelogFiles(changelogs[pkg], packagePath);
     }
