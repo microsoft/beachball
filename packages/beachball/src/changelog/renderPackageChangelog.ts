@@ -19,7 +19,7 @@ export function renderPackageChangelog(options: PackageChangelogRenderOptions): 
   let subHeader = changelog.date.toUTCString();
   subHeader +=
     github && previousChangelogEntry?.tag
-      ? `\n[Compare changes](https://github.com/${github.owner}/${github.repo}/tree/${previousChangelogEntry?.tag}..${changelog.tag})`
+      ? `\n[Compare changes](https://github.com/${github.owner}/${github.repo}/compare/${previousChangelogEntry?.tag}..${changelog.tag})`
       : '';
 
   return (
