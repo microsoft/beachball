@@ -1,3 +1,7 @@
+<!--
+If making changes, don't forget to update the version at the repo root too!
+-->
+
 # beachball
 
 the sunniest version bumping tool
@@ -77,3 +81,7 @@ skips the prompts for publish
 
   $ beachball publish -r http://localhost:4873 -t beta
 ```
+
+<!--
+If making changes, don't forget to update the version at the repo root too!
+-->
