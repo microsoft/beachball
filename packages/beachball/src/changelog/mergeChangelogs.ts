@@ -1,26 +1,33 @@
 import _ from 'lodash';
 import { PackageChangelog } from '../types/ChangeLog';
+import { PackageInfo } from '../types/PackageInfo';
 
 /**
  * Merge multiple PackageChangelog into one.
  * `name`, `date` and `version` will be using the values from master changelog. `comments` are merged.
  */
-export function mergeChangelogs(masterChangelog: PackageChangelog, changelogs: PackageChangelog[]): PackageChangelog {
-  if (changelogs.length < 1) {
-    return masterChangelog;
+export function mergeChangelogs(
+  changelogs: PackageChangelog[],
+  masterPackage: PackageInfo
+): PackageChangelog | undefined {
+  if (changelogs.length < 1 || !masterPackage) {
+    return undefined;
   }
 
-  const result = _.cloneDeep(masterChangelog);
+  const result: PackageChangelog = {
+    name: masterPackage.name,
+    version: masterPackage.version,
+    date: new Date(),
+    comments: {},
+  };
 
-  changelogs
-    .filter(cl => cl.name !== masterChangelog.name)
-    .forEach(changelog => {
-      Object.keys(changelog.comments).forEach(changeType => {
-        if (changelog.comments[changeType]) {
-          result.comments[changeType] = (result.comments[changeType] || []).concat(changelog.comments[changeType]);
-        }
-      });
+  changelogs.forEach(changelog => {
+    Object.keys(changelog.comments).forEach(changeType => {
+      if (changelog.comments[changeType]) {
+        result.comments[changeType] = (result.comments[changeType] || []).concat(changelog.comments[changeType]);
+      }
     });
+  });
 
   return result;
 }

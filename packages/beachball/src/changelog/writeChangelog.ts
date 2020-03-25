@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import _ from 'lodash';
 import { ChangeSet } from '../types/ChangeInfo';
-import { PackageInfo } from '../types/PackageInfo';
+import { PackageInfo, PackageInfos } from '../types/PackageInfo';
 import { getPackageChangelogs } from './getPackageChangelogs';
 import { renderChangelog } from './renderChangelog';
 import { renderJsonChangelog } from './renderJsonChangelog';
@@ -50,40 +50,46 @@ function writeGroupedChangelog(
 
   const changelogs = getPackageChangelogs(changeSet, packageInfos);
   const groupedChangelogs: {
-    [path: string]: { changelogs: PackageChangelog[]; masterChangelog: PackageChangelog };
+    [path: string]: { changelogs: PackageChangelog[]; masterPackage: PackageInfo };
   } = {};
 
   for (const pkg in changelogs) {
     const packagePath = path.dirname(packageInfos[pkg].packageJsonPath);
     const relativePath = path.relative(options.path, packagePath);
-    changelogGroups.forEach(group => {
-      const isInGroup = isPathIncluded(relativePath, group.include, group.exclude);
-      const { changelogPath } = group;
+    for (const group of changelogGroups) {
+      const { changelogPath, masterPackageName } = group;
+      const masterPackage = packageInfos[masterPackageName];
+      if (!masterPackage) {
+        console.warn(`master pakcage ${masterPackageName} does not exist.`);
+        continue;
+      }
       if (!fs.existsSync(changelogPath)) {
-        console.warn(`changelog path doesn't exist: ${changelogPath}`);
-        return [];
+        console.warn(`changelog path ${changelogPath} does not exist.`);
+        continue;
       }
 
+      const isInGroup = isPathIncluded(relativePath, group.include, group.exclude);
       if (isInGroup) {
         if (!groupedChangelogs[changelogPath]) {
           groupedChangelogs[changelogPath] = {
             changelogs: [],
-            masterChangelog: changelogs[group.masterPackageName],
+            masterPackage,
           };
         }
 
         groupedChangelogs[changelogPath].changelogs.push(changelogs[pkg]);
       }
-    });
+    }
   }
 
   const changelogAbsolutePaths: string[] = [];
   for (const changelogPath in groupedChangelogs) {
-    const { masterChangelog, changelogs } = groupedChangelogs[changelogPath];
-    const groupedChangelog = mergeChangelogs(masterChangelog, changelogs);
-
-    writeChangelogFiles(groupedChangelog, changelogPath);
-    changelogAbsolutePaths.push(path.resolve(changelogPath));
+    const { masterPackage, changelogs } = groupedChangelogs[changelogPath];
+    const groupedChangelog = mergeChangelogs(changelogs, masterPackage);
+    if (groupedChangelog) {
+      writeChangelogFiles(groupedChangelog, changelogPath);
+      changelogAbsolutePaths.push(path.resolve(changelogPath));
+    }
   }
 
   return changelogAbsolutePaths;

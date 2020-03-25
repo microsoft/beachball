@@ -241,8 +241,8 @@ describe('changelog generation', () => {
 
       const groupedChangelogListItems = selectAll('listItem paragraph text', groupedChangelogTree);
       expect(groupedChangelogListItems.length).toEqual(2);
-      expect(groupedChangelogListItems[0].value).toEqual('comment 1 (test@testtestme.com)');
-      expect(groupedChangelogListItems[1].value).toEqual('comment 2 (test@testtestme.com)');
+      expect(groupedChangelogListItems[0].value).toEqual('comment 2 (test@testtestme.com)');
+      expect(groupedChangelogListItems[1].value).toEqual('comment 1 (test@testtestme.com)');
     });
 
     it('generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog', async () => {
@@ -323,8 +323,8 @@ describe('changelog generation', () => {
 
       const groupedChangelogListItems = selectAll('listItem paragraph text', groupedChangelogTree);
       expect(groupedChangelogListItems.length).toEqual(2);
-      expect(groupedChangelogListItems[0].value).toEqual('comment 1 (test@testtestme.com)');
-      expect(groupedChangelogListItems[1].value).toEqual('comment 2 (test@testtestme.com)');
+      expect(groupedChangelogListItems[0].value).toEqual('comment 2 (test@testtestme.com)');
+      expect(groupedChangelogListItems[1].value).toEqual('comment 1 (test@testtestme.com)');
     });
   });
 });

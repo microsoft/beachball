@@ -69,6 +69,7 @@ export interface ChangelogOptions {
 }
 
 export interface ChangelogGroupOptions {
+  /** the main package which a group of changes bubbles up to. all changes within the group are used to describe changes for the master package. */
   masterPackageName: string;
 
   /** minimatch pattern (or array of minimatch) to detect which packages should be included in this group */
