@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import _ from 'lodash';
 import { ChangeSet } from '../types/ChangeInfo';
-import { PackageInfo, PackageInfos } from '../types/PackageInfo';
+import { PackageInfo } from '../types/PackageInfo';
 import { getPackageChangelogs } from './getPackageChangelogs';
 import { renderChangelog } from './renderChangelog';
 import { renderJsonChangelog } from './renderJsonChangelog';
@@ -25,9 +25,9 @@ export function writeChangelog(
   Object.keys(changelogs).forEach(pkg => {
     const packagePath = path.dirname(packageInfos[pkg].packageJsonPath);
     if (groupedChangelogPathSet?.has(packagePath)) {
-      console.log(`Skip writing change log to ${packagePath} because grouped change log has generated here.`);
+      console.log(`Changelog for ${pkg} has been written as a group here: ${packagePath}`);
     } else {
-      writeChangelogFiles(changelogs[pkg], packagePath);
+      writeChangelogFiles(changelogs[pkg], packagePath, false);
     }
   });
 }
@@ -87,7 +87,7 @@ function writeGroupedChangelog(
     const { masterPackage, changelogs } = groupedChangelogs[changelogPath];
     const groupedChangelog = mergeChangelogs(changelogs, masterPackage);
     if (groupedChangelog) {
-      writeChangelogFiles(groupedChangelog, changelogPath);
+      writeChangelogFiles(groupedChangelog, changelogPath, true);
       changelogAbsolutePaths.push(path.resolve(changelogPath));
     }
   }
@@ -95,7 +95,7 @@ function writeGroupedChangelog(
   return changelogAbsolutePaths;
 }
 
-function writeChangelogFiles(changelog: PackageChangelog, changelogPath: string): void {
+function writeChangelogFiles(changelog: PackageChangelog, changelogPath: string, isGroupedChangelog: boolean): void {
   if (
     changelog.comments.major ||
     changelog.comments.minor ||
@@ -105,7 +105,7 @@ function writeChangelogFiles(changelog: PackageChangelog, changelogPath: string)
     const changelogFile = path.join(changelogPath, 'CHANGELOG.md');
     const previousContent = fs.existsSync(changelogFile) ? fs.readFileSync(changelogFile).toString() : '';
 
-    const nextContent = renderChangelog(previousContent, changelog);
+    const nextContent = renderChangelog(previousContent, changelog, isGroupedChangelog);
     fs.writeFileSync(changelogFile, nextContent);
   }
   try {
