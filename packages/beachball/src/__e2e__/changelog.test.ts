@@ -239,10 +239,15 @@ describe('changelog generation', () => {
       expect(groupedChangelogHeadings[1].value).toEqual('1.0.0');
       expect(groupedChangelogHeadings[2].value).toEqual('Patches');
 
-      const groupedChangelogListItems = selectAll('listItem paragraph text', groupedChangelogTree);
-      expect(groupedChangelogListItems.length).toEqual(2);
-      expect(groupedChangelogListItems[0].value).toEqual('comment 2 (test@testtestme.com)');
-      expect(groupedChangelogListItems[1].value).toEqual('comment 1 (test@testtestme.com)');
+      const groupedChangelogPackageNameListItems = selectAll('listItem paragraph inlineCode', groupedChangelogTree);
+      expect(groupedChangelogPackageNameListItems.length).toEqual(2);
+      expect(groupedChangelogPackageNameListItems[0].value).toEqual('bar');
+      expect(groupedChangelogPackageNameListItems[1].value).toEqual('foo');
+
+      const groupedChangelogCommentListItems = selectAll('listItem paragraph text', groupedChangelogTree);
+      expect(groupedChangelogCommentListItems.length).toEqual(2);
+      expect(groupedChangelogCommentListItems[0].value).toEqual('comment 2 (test@testtestme.com)');
+      expect(groupedChangelogCommentListItems[1].value).toEqual('comment 1 (test@testtestme.com)');
     });
 
     it('generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog', async () => {
@@ -321,10 +326,15 @@ describe('changelog generation', () => {
       expect(groupedChangelogHeadings[1].value).toEqual('1.0.0');
       expect(groupedChangelogHeadings[2].value).toEqual('Patches');
 
-      const groupedChangelogListItems = selectAll('listItem paragraph text', groupedChangelogTree);
-      expect(groupedChangelogListItems.length).toEqual(2);
-      expect(groupedChangelogListItems[0].value).toEqual('comment 2 (test@testtestme.com)');
-      expect(groupedChangelogListItems[1].value).toEqual('comment 1 (test@testtestme.com)');
+      const groupedChangelogPackageNameListItems = selectAll('listItem paragraph inlineCode', groupedChangelogTree);
+      expect(groupedChangelogPackageNameListItems.length).toEqual(2);
+      expect(groupedChangelogPackageNameListItems[0].value).toEqual('bar');
+      expect(groupedChangelogPackageNameListItems[1].value).toEqual('foo');
+
+      const groupedChangelogCommentListItems = selectAll('listItem paragraph text', groupedChangelogTree);
+      expect(groupedChangelogCommentListItems.length).toEqual(2);
+      expect(groupedChangelogCommentListItems[0].value).toEqual('comment 2 (test@testtestme.com)');
+      expect(groupedChangelogCommentListItems[1].value).toEqual('comment 1 (test@testtestme.com)');
     });
   });
 });
