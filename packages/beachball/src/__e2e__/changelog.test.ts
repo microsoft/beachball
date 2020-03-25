@@ -147,6 +147,23 @@ describe('changelog generation', () => {
 
       expect(listItems.find(item => item.value === 'comment 2 (test@testtestme.com)')).toBeTruthy();
       expect(listItems.find(item => item.value === 'comment 1 (test@testtestme.com)')).toBeTruthy();
+
+      const changelogJsonFile = path.join(repository.rootPath, 'CHANGELOG.json');
+      const jsonText = await readFileAsync(changelogJsonFile, 'utf-8');
+      const changelogJson = JSON.parse(jsonText);
+      expect(changelogJson.name).toEqual('foo');
+      expect(changelogJson.entries.length).toEqual(1);
+      expect(changelogJson.entries[0].date).toBeTruthy();
+      expect(changelogJson.entries[0].tag).toEqual('foo_v1.0.0');
+      expect(changelogJson.entries[0].version).toEqual('1.0.0');
+      expect(changelogJson.entries[0].comments.patch).toBeDefined();
+      expect(changelogJson.entries[0].comments.patch.length).toEqual(2);
+
+      const comment = changelogJson.entries[0].comments.patch[0];
+      expect(comment.author).toEqual('test@testtestme.com');
+      expect(comment.comment).toEqual('comment 2');
+      expect(comment.commit).toBeTruthy();
+      expect(comment.package).toEqual('foo');
     });
 
     it('generates correct grouped changelog', async () => {
