@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 25 Mar 2020 19:43:44 GMT",
+      "tag": "beachball_v1.23.0",
+      "version": "1.23.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "ChangeLog: support grouped change log generation",
+            "author": "xgao@microsoft.com",
+            "commit": "c06fc11ed9fc3fc724a85e433bd7db770c56fe8b",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 23 Mar 2020 21:24:15 GMT",
       "tag": "beachball_v1.22.0",
       "version": "1.22.0",
