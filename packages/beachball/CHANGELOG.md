@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 25 Mar 2020 19:43:44 GMT and should not be manually modified.
+This log was last generated on Wed, 25 Mar 2020 20:20:02 GMT and should not be manually modified.
 
+## 1.23.1
+Wed, 25 Mar 2020 20:20:02 GMT
+
+### Patches
+
+- Change lodash from a devDepedency to a dependency (jdh@microsoft.com)
 ## 1.23.0
 Wed, 25 Mar 2020 19:43:44 GMT
 

@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Change lodash from a devDepedency to a dependency",
-  "packageName": "beachball",
-  "email": "jdh@microsoft.com",
-  "commit": "30813126c9d8d01534f12c9a90b392dc62696ad7",
-  "date": "2020-03-25T20:14:24.059Z"
-}
