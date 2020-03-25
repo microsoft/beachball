@@ -1,10 +1,8 @@
-import { PackageInfo } from './PackageInfo';
-
 export interface ChangelogEntry {
   comment: string;
   author: string;
   commit: string;
-  package: PackageInfo;
+  package: string;
 }
 
 export interface PackageChangelog {

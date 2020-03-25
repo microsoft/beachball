@@ -17,9 +17,7 @@ describe('mergeChangelogs', () => {
             comment: 'comment_master',
             author: 'author_master',
             commit: 'commit_master',
-            package: {
-              name: 'master',
-            } as PackageInfo,
+            package: 'master',
           },
         ],
       },
@@ -37,9 +35,7 @@ describe('mergeChangelogs', () => {
               comment: 'comment_foo',
               author: 'author_foo',
               commit: 'commit_foo',
-              package: {
-                name: 'foo',
-              } as PackageInfo,
+              package: 'foo',
             },
           ],
         },
@@ -66,9 +62,7 @@ describe('mergeChangelogs', () => {
               comment: 'comment_foo',
               author: 'author_foo',
               commit: 'commit_foo',
-              package: {
-                name: 'foo',
-              } as PackageInfo,
+              package: 'foo',
             },
           ],
         },

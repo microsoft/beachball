@@ -24,7 +24,7 @@ export function getPackageChangelogs(
       comment: change.comment,
       author: change.email,
       commit: change.commit,
-      package: packageInfos[packageName],
+      package: packageName,
     });
   }
   return changelogs;

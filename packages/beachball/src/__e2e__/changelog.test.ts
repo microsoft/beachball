@@ -180,6 +180,20 @@ describe('changelog generation', () => {
         monoRepo.rootPath
       );
 
+      writeChangeFiles(
+        {
+          bar: {
+            comment: 'comment 3',
+            date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
+            email: 'test@testtestme.com',
+            packageName: 'bar',
+            type: 'patch',
+            dependentChangeType: 'patch',
+          },
+        },
+        monoRepo.rootPath
+      );
+
       const beachballOptions = {
         path: monoRepo.rootPath,
         changelog: {
@@ -225,8 +239,9 @@ describe('changelog generation', () => {
       expect(barChangelogHeadings[2].value).toEqual('Patches');
 
       const barChangelogListItems = selectAll('listItem paragraph text', barChangelogTree);
-      expect(barChangelogListItems.length).toEqual(1);
-      expect(barChangelogListItems[0].value).toEqual('comment 2 (test@testtestme.com)');
+      expect(barChangelogListItems.length).toEqual(2);
+      expect(barChangelogListItems[0].value).toEqual('comment 3 (test@testtestme.com)');
+      expect(barChangelogListItems[1].value).toEqual('comment 2 (test@testtestme.com)');
 
       // Validate grouped changelog for foo and bar packages
       const groupedChangelogFile = path.join(monoRepo.rootPath, 'CHANGELOG.md');
@@ -245,9 +260,10 @@ describe('changelog generation', () => {
       expect(groupedChangelogPackageNameListItems[1].value).toEqual('foo');
 
       const groupedChangelogCommentListItems = selectAll('listItem paragraph text', groupedChangelogTree);
-      expect(groupedChangelogCommentListItems.length).toEqual(2);
-      expect(groupedChangelogCommentListItems[0].value).toEqual('comment 2 (test@testtestme.com)');
-      expect(groupedChangelogCommentListItems[1].value).toEqual('comment 1 (test@testtestme.com)');
+      expect(groupedChangelogCommentListItems.length).toEqual(3);
+      expect(groupedChangelogCommentListItems[0].value).toEqual('comment 3 (test@testtestme.com)');
+      expect(groupedChangelogCommentListItems[1].value).toEqual('comment 2 (test@testtestme.com)');
+      expect(groupedChangelogCommentListItems[2].value).toEqual('comment 1 (test@testtestme.com)');
     });
 
     it('generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog', async () => {
