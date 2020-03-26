@@ -129,7 +129,7 @@ function writeChangelogFiles(
     if (renderCustomPackageChangelog) {
       renderPackageChangelog = () => {
         try {
-          console.log('Using customized renderer for PackageChangelog.');
+          console.log('Using custom renderer for PackageChangelog.');
           return renderCustomPackageChangelog({
             changelogJson: previousJson,
             packageChangelog: changelog,
