@@ -1,4 +1,5 @@
 import { ChangeType } from './ChangeInfo';
+import { ChangelogJson, PackageChangelog } from './ChangeLog';
 
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
@@ -66,6 +67,18 @@ export interface VersionGroupOptions {
  */
 export interface ChangelogOptions {
   groups: ChangelogGroupOptions[];
+  renderPackageChangelog(options: PackageChangelogRenderOptions): string;
+}
+
+export interface PackageChangelogRenderOptions {
+  /** Existing json in CHANGEJSON.json.  */
+  changelogJson: ChangelogJson | undefined;
+
+  /** Package changelog that is going to be added to full changelog. */
+  packageChangelog: PackageChangelog;
+
+  /** True if the changelog which is being rendered is a grouped changelog. */
+  isGroupedChangelog: boolean;
 }
 
 export interface ChangelogGroupOptions {

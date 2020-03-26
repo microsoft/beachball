@@ -1,9 +1,10 @@
 import { generateTag } from '../tag';
 import { PackageChangelog, ChangelogJson, ChangelogJsonEntry } from '../types/ChangeLog';
-export function renderJsonChangelog(previous: ChangelogJson, changelog: PackageChangelog) {
+
+export function renderJsonChangelog(changelog: PackageChangelog, previous: ChangelogJson | undefined) {
   const result: ChangelogJson = {
     name: changelog.name,
-    entries: [...previous.entries] || [],
+    entries: previous?.entries ? [...previous.entries] : [],
   };
   const newEntry: ChangelogJsonEntry = {
     date: changelog.date.toUTCString(),
