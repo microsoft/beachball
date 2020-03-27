@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 27 Mar 2020 17:05:51 GMT",
+      "tag": "beachball_v1.23.1",
+      "version": "1.23.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "fix unstable tests by having change files read in deterministic order",
+            "author": "xgao@microsoft.com",
+            "commit": "c06fc11ed9fc3fc724a85e433bd7db770c56fe8b",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 25 Mar 2020 20:20:02 GMT",
       "tag": "beachball_v1.23.1",
       "version": "1.23.1",

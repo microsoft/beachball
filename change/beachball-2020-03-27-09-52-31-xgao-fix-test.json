@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "fix unstable tests by having change files read in deterministic order",
-  "packageName": "beachball",
-  "email": "xgao@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-03-27T16:52:31.027Z"
-}
