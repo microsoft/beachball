@@ -3,11 +3,11 @@ import { getChangePath } from '../paths';
 import fs from 'fs-extra';
 import path from 'path';
 import { PackageInfo } from '../types/PackageInfo';
+
 /**
  * Unlink only change files that are specified in the changes param
  *
  * @param changes existing change files to be removed
- * @param cwd
  */
 export function unlinkChangeFiles(
   changeSet: ChangeSet,

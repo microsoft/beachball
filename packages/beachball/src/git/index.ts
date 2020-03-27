@@ -1,5 +1,5 @@
 import { spawnSync } from 'child_process';
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 import { findGitRoot } from '../paths';
 import gitUrlParse from 'git-url-parse';
@@ -325,7 +325,7 @@ export function getDefaultRemote(cwd: string) {
   let packageJson: any;
 
   try {
-    packageJson = JSON.parse(fs.readFileSync(path.join(findGitRoot(cwd)!, 'package.json')).toString());
+    packageJson = fs.readJSONSync(path.join(findGitRoot(cwd)!, 'package.json'));
   } catch (e) {
     console.log('failed to read package.json');
     throw new Error('invalid package.json detected');

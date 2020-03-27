@@ -11,20 +11,20 @@ export const SortedChangeTypes: ChangeType[] = ['none', 'prerelease', 'patch', '
 export const MinChangeType = SortedChangeTypes[0];
 
 /**
- * Change type weights
- * Note: the order in which this is defined is IMPORTANT
+ * Change type weights.
+ * Note: the order in which this is defined is IMPORTANT.
  */
-const ChangeTypeWeights = SortedChangeTypes.reduce((weights, changeType, index) => {
+const ChangeTypeWeights: { [t in ChangeType]: number } = SortedChangeTypes.reduce((weights, changeType, index) => {
   weights[changeType] = index;
   return weights;
-}, {});
+}, {} as { [t in ChangeType]: number });
 
 export function getPackageChangeTypes(changeSet: ChangeSet) {
   const changePerPackage: {
     [pkgName: string]: ChangeFileInfo['type'];
   } = {};
 
-  for (let [_, change] of changeSet) {
+  for (let change of changeSet.values()) {
     const { packageName } = change;
     if (!changePerPackage[packageName] || isChangeTypeGreater(change.type, changePerPackage[packageName])) {
       changePerPackage[packageName] = change.type;

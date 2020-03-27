@@ -1,22 +1,8 @@
 import path from 'path';
-import { PackageInfo } from '../types/PackageInfo';
-import { getPackageOptions } from "../options/getPackageOptions";
-import { PackageOptions } from '../types/BeachballOptions';
-export function infoFromPackageJson(packageJson: {
-  name: string;
-  version: string;
-  dependencies?: {
-    [dep: string]: string;
-  };
-  devDependencies?: {
-    [dep: string]: string;
-  };
-  peerDependencies?: {
-    [dep: string]: string;
-  };
-  beachball?: PackageOptions;
-  private?: boolean;
-}, packageJsonPath: string): PackageInfo {
+import { PackageInfo, PackageJson } from '../types/PackageInfo';
+import { getPackageOptions } from '../options/getPackageOptions';
+
+export function infoFromPackageJson(packageJson: PackageJson, packageJsonPath: string): PackageInfo {
   return {
     name: packageJson.name!,
     version: packageJson.version,

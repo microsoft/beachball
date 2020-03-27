@@ -1,8 +1,8 @@
-import { RepositoryFactory, Repository } from '../fixtures/repository';
+import { RepositoryFactory } from '../fixtures/repository';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publish } from '../commands/publish';
 import path from 'path';
-import fs from 'fs';
+import fs from 'fs-extra';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { git, gitFailFast } from '../git';
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
@@ -69,7 +69,7 @@ describe('publish command (git)', () => {
 
     const newRepo = await repositoryFactory.cloneRepository();
 
-    const packageJson = JSON.parse(fs.readFileSync(path.join(newRepo.rootPath, 'package.json'), 'utf-8'));
+    const packageJson = fs.readJSONSync(path.join(newRepo.rootPath, 'package.json'));
 
     expect(packageJson.version).toBe('1.1.0');
   });
@@ -153,9 +153,7 @@ describe('publish command (git)', () => {
     expect(fs.existsSync(newChangePath)).toBeTruthy();
     const changeFiles = fs.readdirSync(newChangePath);
     expect(changeFiles.length).toBe(1);
-    const changeFileContent: ChangeFileInfo = JSON.parse(
-      fs.readFileSync(path.join(newChangePath, changeFiles[0]), 'utf-8')
-    );
+    const changeFileContent: ChangeFileInfo = fs.readJSONSync(path.join(newChangePath, changeFiles[0]));
     expect(changeFileContent.packageName).toBe('foo2');
   });
 });

@@ -5,13 +5,12 @@ import { updateRelatedChangeType } from './updateRelatedChangeType';
 import { bumpPackageInfoVersion } from './bumpPackageInfoVersion';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { setGroupsInBumpInfo } from './setGroupsInBumpInfo';
+import { PackageDeps } from '../types/PackageInfo';
 
 /**
  * Updates BumpInfo according to change types, bump deps, and version groups
  *
  * NOTE: THIS FUNCTION MUTATES STATE!
- * @param bumpInfo
- * @param bumpDeps
  */
 export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
   const { bumpDeps } = options;
@@ -37,14 +36,15 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
   Object.keys(packageInfos).forEach(pkgName => {
     const info = packageInfos[pkgName];
     ['dependencies', 'devDependencies', 'peerDependencies'].forEach(depKind => {
-      if (info[depKind]) {
-        Object.keys(info[depKind]).forEach(dep => {
+      const deps: PackageDeps | undefined = (info as any)[depKind];
+      if (deps) {
+        Object.keys(deps).forEach(dep => {
           const packageInfo = packageInfos[dep];
           if (packageInfo) {
-            const existingVersionRange = info[depKind][dep];
+            const existingVersionRange = deps[dep];
             const bumpedVersionRange = bumpMinSemverRange(packageInfo.version, existingVersionRange);
             if (existingVersionRange !== bumpedVersionRange) {
-              info[depKind][dep] = bumpedVersionRange;
+              deps[dep] = bumpedVersionRange;
               modifiedPackages.add(pkgName);
             }
           }

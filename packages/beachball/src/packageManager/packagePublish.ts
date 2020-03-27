@@ -1,6 +1,7 @@
 import { PackageInfo } from '../types/PackageInfo';
 import path from 'path';
 import { npm } from './npm';
+
 export function packagePublish(
   packageInfo: PackageInfo,
   registry: string,

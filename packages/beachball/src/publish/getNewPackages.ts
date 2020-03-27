@@ -1,5 +1,6 @@
 import { BumpInfo } from '../types/BumpInfo';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
+
 export function getNewPackages(bumpInfo: BumpInfo, registry: string) {
   const { modifiedPackages, packageInfos } = bumpInfo;
 

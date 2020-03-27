@@ -62,7 +62,7 @@ describe('changelog generation', () => {
     await monoRepoFactory.cleanUp();
   });
 
-  describe('readChangelog', () => {
+  describe('readChangeFiles', () => {
     it('adds actual commit hash', async () => {
       const repository = await repositoryFactory.cloneRepository();
       await repository.commitChange('foo');

@@ -1,13 +1,27 @@
-import { PackageOptions } from './BeachballOptions';
+import { PackageOptions, BeachballOptions } from './BeachballOptions';
 import { ChangeType } from './ChangeInfo';
+
+export interface PackageDeps {
+  [dep: string]: string;
+}
+
+export interface PackageJson {
+  name: string;
+  version: string;
+  dependencies?: PackageDeps;
+  devDependencies?: PackageDeps;
+  peerDependencies?: PackageDeps;
+  private?: boolean;
+  beachball?: BeachballOptions;
+}
 
 export interface PackageInfo {
   name: string;
   packageJsonPath: string;
   version: string;
-  dependencies?: { [dep: string]: string };
-  devDependencies?: { [dep: string]: string };
-  peerDependencies?: { [dep: string]: string };
+  dependencies?: PackageDeps;
+  devDependencies?: PackageDeps;
+  peerDependencies?: PackageDeps;
   private: boolean;
   options: PackageOptions;
   group?: string;

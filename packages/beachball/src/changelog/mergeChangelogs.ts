@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { PackageChangelog } from '../types/ChangeLog';
 import { PackageInfo } from '../types/PackageInfo';
 import { generateTag } from '../tag';
+import { ChangeType } from '../types/ChangeInfo';
 
 /**
  * Merge multiple PackageChangelog into one.
@@ -24,9 +25,9 @@ export function mergeChangelogs(
   };
 
   changelogs.forEach(changelog => {
-    Object.keys(changelog.comments).forEach(changeType => {
+    (Object.keys(changelog.comments) as ChangeType[]).forEach(changeType => {
       if (changelog.comments[changeType]) {
-        result.comments[changeType] = (result.comments[changeType] || []).concat(changelog.comments[changeType]);
+        result.comments[changeType] = (result.comments[changeType] || []).concat(changelog.comments[changeType]!);
       }
     });
   });

@@ -1,15 +1,15 @@
 import { BumpInfo } from '../types/BumpInfo';
+import { PackageDeps } from '../types/PackageInfo';
+
 /**
  * Gets dependents for all packages
  *
  * Example: "BigApp" deps on "SomeUtil", "BigApp" would be the dependent
- *
- * @param bumpInfo
  */
 export function setDependentsInBumpInfo(bumpInfo: BumpInfo): void {
   const { packageInfos, scopedPackages } = bumpInfo;
   const packages = Object.keys(packageInfos);
-  const dependents = {};
+  const dependents: BumpInfo['dependents'] = {};
 
   packages.forEach(pkgName => {
     if (!scopedPackages.has(pkgName)) {
@@ -19,8 +19,9 @@ export function setDependentsInBumpInfo(bumpInfo: BumpInfo): void {
     const info = packageInfos[pkgName];
     const depTypes = ['dependencies', 'devDependencies', 'peerDependencies'];
     depTypes.forEach(depType => {
-      if (info[depType]) {
-        for (let [dep, _] of Object.entries(info[depType])) {
+      const deps: PackageDeps | undefined = (info as any)[depType];
+      if (deps) {
+        for (let dep of Object.keys(deps)) {
           if (packages.includes(dep)) {
             dependents[dep] = dependents[dep] || [];
             if (!dependents[dep].includes(pkgName)) {

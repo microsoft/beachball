@@ -1,4 +1,5 @@
 import { BeachballOptions } from '../types/BeachballOptions';
+
 export function getDefaultOptions() {
   return {
     branch: 'origin/master',
@@ -21,6 +22,6 @@ export function getDefaultOptions() {
     defaultNpmTag: 'latest',
     scope: null,
     retries: 3,
-    timeout: undefined
+    timeout: undefined,
   } as BeachballOptions;
 }

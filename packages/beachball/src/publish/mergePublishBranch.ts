@@ -1,4 +1,5 @@
 import { git } from '../git';
+
 export function mergePublishBranch(publishBranch: string, branch: string, message: string, cwd: string) {
   let result: ReturnType<typeof git>;
   let mergeSteps = [
@@ -8,6 +9,7 @@ export function mergePublishBranch(publishBranch: string, branch: string, messag
     ['merge', '-X', 'ours', publishBranch],
     ['branch', '-D', publishBranch],
   ];
+
   for (let index = 0; index < mergeSteps.length; index++) {
     const step = mergeSteps[index];
     result = git(step, { cwd });

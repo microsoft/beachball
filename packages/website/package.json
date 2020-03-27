@@ -17,7 +17,7 @@
     "lint": "npm run lint:js && npm run lint:md",
     "lint:js": "eslint --ext .js,.jsx --ignore-pattern public,static . && npm run prettier -- --list-different",
     "lint:md": "remark content/posts/",
-    "prettier": "prettier '{,!(node_modules,.cache)/**/}*.{js,jsx}'",
+    "prettier": "prettier --write '{,!(node_modules,.cache)/**/}*.{js,jsx}'",
     "serve": "gatsby serve",
     "start": "gatsby develop"
   },
@@ -72,7 +72,7 @@
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-react": "^7.1.0",
-    "prettier": "^1.18.2",
+    "prettier": "^1.19.0",
     "remark-cli": "^7.0.1",
     "remark-preset-lint-recommended": "^3.0.1",
     "stylefmt": "^6.0.0"

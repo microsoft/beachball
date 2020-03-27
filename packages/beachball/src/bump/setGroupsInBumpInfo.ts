@@ -1,4 +1,4 @@
-import { BeachballOptions, VersionGroupOptions } from '../types/BeachballOptions';
+import { BeachballOptions } from '../types/BeachballOptions';
 import { BumpInfo } from '../types/BumpInfo';
 import { getPackageGroups } from '../monorepo/getPackageGroups';
 
