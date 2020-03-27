@@ -15,6 +15,17 @@ export function readChangeFiles(options: BeachballOptions): ChangeSet {
     return changeSet;
   }
   const changeFiles = fs.readdirSync(changePath);
+  try {
+    // sort the change files by modified time. Most recent modified file comes first.
+    changeFiles.sort(function(f1, f2) {
+      return (
+        fs.statSync(path.join(changePath, f2)).mtime.getTime() - fs.statSync(path.join(changePath, f1)).mtime.getTime()
+      );
+    });
+  } catch (err) {
+    console.warn('Failed to sort change files', err);
+  }
+
   changeFiles.forEach(changeFile => {
     try {
       const changeInfo: ChangeInfo = {
