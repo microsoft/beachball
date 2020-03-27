@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Improve manual recovery message if some packages succeeded",
+  "comment": "Improve manual recovery message if some packages succeeded; increase maxBuffer for publish",
   "packageName": "beachball",
   "email": "elcraig@microsoft.com",
   "dependentChangeType": "patch",
