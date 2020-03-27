@@ -4,15 +4,17 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { packagePublish } from '../packageManager/packagePublish';
 import { validatePackageVersions } from './validatePackageVersions';
 import { displayManualRecovery } from './displayManualRecovery';
-import { getNewPackages } from './getNewPackages';
+
 export function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions) {
   const { registry, tag, token, access } = options;
   const { modifiedPackages, newPackages } = bumpInfo;
 
   performBump(bumpInfo, options);
 
+  const succeededPackages = new Set<string>();
+
   if (!validatePackageVersions(bumpInfo, registry)) {
-    displayManualRecovery(bumpInfo);
+    displayManualRecovery(bumpInfo, succeededPackages);
     console.error('No packages have been published');
     process.exit(1);
   }
@@ -33,11 +35,11 @@ export function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions)
       const result = packagePublish(packageInfo, registry, token, tag, access);
       if (result.success) {
         console.log('Published!');
+        succeededPackages.add(pkg);
       } else {
-        displayManualRecovery(bumpInfo);
+        displayManualRecovery(bumpInfo, succeededPackages);
         console.error(result.stderr);
         process.exit(1);
-        return;
       }
     } else {
       console.warn(
