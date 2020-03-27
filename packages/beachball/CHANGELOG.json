@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 27 Mar 2020 19:03:31 GMT",
+      "tag": "beachball_v1.23.2",
+      "version": "1.23.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Improve manual recovery message if some packages succeeded; increase maxBuffer for publish",
+            "author": "elcraig@microsoft.com",
+            "commit": "c06fc11ed9fc3fc724a85e433bd7db770c56fe8b",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 27 Mar 2020 17:05:51 GMT",
       "tag": "beachball_v1.23.1",
       "version": "1.23.1",

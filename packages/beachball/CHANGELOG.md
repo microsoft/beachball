@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 25 Mar 2020 20:20:02 GMT and should not be manually modified.
+This log was last generated on Fri, 27 Mar 2020 19:03:31 GMT and should not be manually modified.
 
+## 1.23.2
+Fri, 27 Mar 2020 19:03:31 GMT
+
+### Patches
+
+- Improve manual recovery message if some packages succeeded; increase maxBuffer for publish (elcraig@microsoft.com)
 ## 1.23.1
 Wed, 25 Mar 2020 20:20:02 GMT
 

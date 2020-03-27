@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Improve manual recovery message if some packages succeeded; increase maxBuffer for publish",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-03-27T00:18:49.686Z"
-}
