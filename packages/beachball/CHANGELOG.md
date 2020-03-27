@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 27 Mar 2020 19:03:31 GMT and should not be manually modified.
+This log was last generated on Fri, 27 Mar 2020 23:29:23 GMT and should not be manually modified.
 
+## 1.23.3
+Fri, 27 Mar 2020 23:29:23 GMT
+
+### Patches
+
+- Add readme to beachball package (elcraig@microsoft.com)
 ## 1.23.2
 Fri, 27 Mar 2020 19:03:31 GMT
 

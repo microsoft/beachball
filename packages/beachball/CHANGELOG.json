@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 27 Mar 2020 23:29:23 GMT",
+      "tag": "beachball_v1.23.3",
+      "version": "1.23.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add readme to beachball package",
+            "author": "elcraig@microsoft.com",
+            "commit": "c06fc11ed9fc3fc724a85e433bd7db770c56fe8b",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 27 Mar 2020 19:03:31 GMT",
       "tag": "beachball_v1.23.2",
       "version": "1.23.2",

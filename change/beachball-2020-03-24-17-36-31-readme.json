@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add readme to beachball package",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-03-25T00:36:31.445Z"
-}
