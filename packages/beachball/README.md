@@ -1,5 +1,5 @@
 <!--
-If making changes, don't forget to update the version under packages/beachball/README.md too!
+If making changes, don't forget to update the version at the repo root too!
 -->
 
 # beachball
@@ -83,5 +83,5 @@ skips the prompts for publish
 ```
 
 <!--
-If making changes, don't forget to update the version under packages/beachball/README.md too!
+If making changes, don't forget to update the version at the repo root too!
 -->
