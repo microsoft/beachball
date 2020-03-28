@@ -1,4 +1,4 @@
-import { PackageChangelog } from '../../types/ChangeLog';
+import { PackageChangelog } from '../../types/Changelog';
 import { mergeChangelogs } from '../../changelog/mergeChangelogs';
 import { PackageInfo } from '../../types/PackageInfo';
 
@@ -11,6 +11,7 @@ describe('mergeChangelogs', () => {
       name: 'master',
       date: mockDate,
       version: '1.0.0',
+      tag: 'master_v1.0.0',
       comments: {
         patch: [
           {
@@ -29,6 +30,7 @@ describe('mergeChangelogs', () => {
         name: 'foo',
         date: mockDate2,
         version: '1.0.0',
+        tag: 'foo_v1.0.0',
         comments: {
           patch: [
             {
@@ -56,6 +58,7 @@ describe('mergeChangelogs', () => {
         name: 'foo',
         date: mockDate2,
         version: '1.0.0',
+        tag: 'foo_v1.0.0',
         comments: {
           patch: [
             {

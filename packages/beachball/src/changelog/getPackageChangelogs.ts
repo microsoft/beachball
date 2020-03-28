@@ -1,6 +1,7 @@
 import { ChangeSet } from '../types/ChangeInfo';
 import { PackageInfo } from '../types/PackageInfo';
-import { PackageChangelog } from '../types/ChangeLog';
+import { PackageChangelog } from '../types/Changelog';
+import { generateTag } from '../tag';
 
 export function getPackageChangelogs(
   changeSet: ChangeSet,
@@ -13,11 +14,17 @@ export function getPackageChangelogs(
   } = {};
   for (let [_, change] of changeSet) {
     const { packageName } = change;
-    changelogs[packageName] = changelogs[packageName] || {
-      name: packageName,
-      version: packageInfos[packageName].version,
-      date: new Date(),
-    };
+    if (!changelogs[packageName]) {
+      const version = packageInfos[packageName].version;
+      changelogs[packageName] = {
+        name: packageName,
+        version,
+        tag: generateTag(packageName, version),
+        date: new Date(),
+        comments: {},
+      };
+    }
+
     changelogs[packageName].comments = changelogs[packageName].comments || {};
     changelogs[packageName].comments[change.type] = changelogs[packageName].comments[change.type] || [];
     changelogs[packageName].comments[change.type]!.push({

@@ -1,5 +1,6 @@
 import { ChangeType } from './ChangeInfo';
 import { ChangeFilePromptOptions } from './ChangeFilePrompt';
+import { ChangelogOptions } from './ChangelogOptions';
 
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
@@ -67,24 +68,4 @@ export interface VersionGroupOptions {
 
   /** name of the version group */
   name: string;
-}
-
-/**
- * Options for change log related configurations.
- */
-export interface ChangelogOptions {
-  groups: ChangelogGroupOptions[];
-}
-
-export interface ChangelogGroupOptions {
-  /** the main package which a group of changes bubbles up to. all changes within the group are used to describe changes for the master package. */
-  masterPackageName: string;
-
-  /** minimatch pattern (or array of minimatch) to detect which packages should be included in this group */
-  include: string | string[];
-
-  /** minimatch pattern (or array of minimatch) to detect which packages should be excluded in this group */
-  exclude?: string | string[];
-
-  changelogPath: string;
 }

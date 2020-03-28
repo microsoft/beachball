@@ -1,5 +1,5 @@
 import path from 'path';
-import fs from 'fs';
+import fs from 'fs-extra';
 import _ from 'lodash';
 import { ChangeSet } from '../types/ChangeInfo';
 import { PackageInfo } from '../types/PackageInfo';
@@ -8,7 +8,7 @@ import { renderChangelog } from './renderChangelog';
 import { renderJsonChangelog } from './renderJsonChangelog';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { isPathIncluded } from '../monorepo/utils';
-import { PackageChangelog } from '../types/ChangeLog';
+import { PackageChangelog, ChangelogJson } from '../types/Changelog';
 import { mergeChangelogs } from './mergeChangelogs';
 
 export function writeChangelog(
@@ -27,7 +27,7 @@ export function writeChangelog(
     if (groupedChangelogPathSet?.has(packagePath)) {
       console.log(`Changelog for ${pkg} has been written as a group here: ${packagePath}`);
     } else {
-      writeChangelogFiles(changelogs[pkg], packagePath, false);
+      writeChangelogFiles(options, changelogs[pkg], packagePath, false);
     }
   });
 }
@@ -60,7 +60,7 @@ function writeGroupedChangelog(
       const { changelogPath, masterPackageName } = group;
       const masterPackage = packageInfos[masterPackageName];
       if (!masterPackage) {
-        console.warn(`master pakcage ${masterPackageName} does not exist.`);
+        console.warn(`master package ${masterPackageName} does not exist.`);
         continue;
       }
       if (!fs.existsSync(changelogPath)) {
@@ -87,7 +87,7 @@ function writeGroupedChangelog(
     const { masterPackage, changelogs } = groupedChangelogs[changelogPath];
     const groupedChangelog = mergeChangelogs(changelogs, masterPackage);
     if (groupedChangelog) {
-      writeChangelogFiles(groupedChangelog, changelogPath, true);
+      writeChangelogFiles(options, groupedChangelog, changelogPath, true);
       changelogAbsolutePaths.push(path.resolve(changelogPath));
     }
   }
@@ -95,27 +95,43 @@ function writeGroupedChangelog(
   return changelogAbsolutePaths;
 }
 
-function writeChangelogFiles(changelog: PackageChangelog, changelogPath: string, isGroupedChangelog: boolean): void {
-  if (
-    changelog.comments.major ||
-    changelog.comments.minor ||
-    changelog.comments.patch ||
-    changelog.comments.prerelease
-  ) {
+function writeChangelogFiles(
+  options: BeachballOptions,
+  newEntry: PackageChangelog,
+  changelogPath: string,
+  isGrouped: boolean
+): void {
+  let previousJson: ChangelogJson | undefined;
+
+  // Update CHANGELOG.json
+  const changelogJsonFile = path.join(changelogPath, 'CHANGELOG.json');
+  try {
+    previousJson = fs.existsSync(changelogJsonFile) ? fs.readJSONSync(changelogJsonFile) : undefined;
+  } catch (e) {
+    console.warn('CHANGELOG.json is invalid. Skipping writing to it.', e);
+  }
+  if (previousJson) {
+    try {
+      const nextJson = renderJsonChangelog(newEntry, previousJson);
+      fs.writeJSONSync(changelogJsonFile, nextJson, { spaces: 2 });
+    } catch (e) {
+      console.warn('Problem writing to CHANGELOG.json:', e);
+    }
+  }
+
+  // Update CHANGELOG.md
+  if (newEntry.comments.major || newEntry.comments.minor || newEntry.comments.patch || newEntry.comments.prerelease) {
     const changelogFile = path.join(changelogPath, 'CHANGELOG.md');
     const previousContent = fs.existsSync(changelogFile) ? fs.readFileSync(changelogFile).toString() : '';
 
-    const nextContent = renderChangelog(previousContent, changelog, isGroupedChangelog);
-    fs.writeFileSync(changelogFile, nextContent);
-  }
-  try {
-    const changelogJsonFile = path.join(changelogPath, 'CHANGELOG.json');
-    const previousJson = fs.existsSync(changelogJsonFile)
-      ? JSON.parse(fs.readFileSync(changelogJsonFile).toString())
-      : { entries: [] };
-    const nextJson = renderJsonChangelog(previousJson, changelog);
-    fs.writeFileSync(changelogJsonFile, JSON.stringify(nextJson, null, 2));
-  } catch (e) {
-    console.warn('The CHANGELOG.json file is invalid, skipping writing to it', e);
+    const newChangelog = renderChangelog({
+      previousJson,
+      previousContent,
+      newEntry,
+      isGrouped,
+      changelogOptions: options.changelog || {},
+    });
+
+    fs.writeFileSync(changelogFile, newChangelog);
   }
 }
