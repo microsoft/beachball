@@ -20,5 +20,6 @@ export function getDefaultOptions() {
     disallowedChangeTypes: null,
     defaultNpmTag: 'latest',
     scope: null,
+    retries: 3,
   } as BeachballOptions;
 }

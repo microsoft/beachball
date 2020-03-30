@@ -21,6 +21,57 @@ describe('publish command (registry)', () => {
     await registry.reset();
   });
 
+  it('will perform retries', async () => {
+    registry.stop();
+
+    const repositoryFactory = new RepositoryFactory();
+    await repositoryFactory.create();
+    const repo = await repositoryFactory.cloneRepository();
+
+    writeChangeFiles(
+      {
+        foo: {
+          type: 'minor',
+          comment: 'test',
+          date: new Date('2019-01-01'),
+          email: 'test@test.com',
+          packageName: 'foo',
+          dependentChangeType: 'patch',
+        },
+      },
+      repo.rootPath
+    );
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    expect(async () => {
+      await publish({
+        branch: 'origin/master',
+        command: 'publish',
+        message: 'apply package updates',
+        path: repo.rootPath,
+        publish: true,
+        bumpDeps: false,
+        push: false,
+        registry: registry.getUrl(),
+        tag: 'latest',
+        token: '',
+        yes: true,
+        new: false,
+        access: 'public',
+        package: 'foo',
+        changehint: 'Run "beachball change" to create a change file',
+        type: null,
+        fetch: true,
+        disallowedChangeTypes: null,
+        defaultNpmTag: 'latest',
+        retries: 3,
+      });
+    }).toThrow();
+
+    await registry.start();
+  });
+
   it('can perform a successful npm publish', async () => {
     const repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
@@ -62,6 +113,7 @@ describe('publish command (registry)', () => {
       fetch: true,
       disallowedChangeTypes: null,
       defaultNpmTag: 'latest',
+      retries: 3,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -140,6 +192,7 @@ describe('publish command (registry)', () => {
       fetch: true,
       disallowedChangeTypes: null,
       defaultNpmTag: 'latest',
+      retries: 3,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foopkg', '--json']);
@@ -213,6 +266,7 @@ describe('publish command (registry)', () => {
       fetch: true,
       disallowedChangeTypes: null,
       defaultNpmTag: 'latest',
+      retries: 3,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'badname', '--json']);

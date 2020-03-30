@@ -23,6 +23,7 @@ export interface CliOptions {
   help?: boolean;
   version?: boolean;
   scope?: string[] | null;
+  retries?: number;
 }
 
 export interface RepoOptions {
@@ -39,6 +40,9 @@ export interface RepoOptions {
   changehint: string;
   disallowedChangeTypes: ChangeType[] | null;
   defaultNpmTag: string;
+
+  /** number of retries for a package publish before failing */
+  retries: number;
   groups?: VersionGroupOptions[];
   changelog?: ChangelogOptions;
 }

@@ -63,6 +63,7 @@ describe('publish command (e2e)', () => {
       fetch: true,
       disallowedChangeTypes: null,
       defaultNpmTag: 'latest',
+      retries: 3,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -138,6 +139,7 @@ describe('publish command (e2e)', () => {
       disallowedChangeTypes: null,
       defaultNpmTag: 'latest',
       scope: ['!packages/foo'],
+      retries: 3,
     });
 
     const fooNpmResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);

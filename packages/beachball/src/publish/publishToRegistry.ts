@@ -32,15 +32,26 @@ export function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions)
     }
     if (!packageInfo.private) {
       console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
-      const result = packagePublish(packageInfo, registry, token, tag, access);
-      if (result.success) {
-        console.log('Published!');
-        succeededPackages.add(pkg);
-      } else {
-        displayManualRecovery(bumpInfo, succeededPackages);
-        console.error(result.stderr);
-        process.exit(1);
-      }
+
+      let result;
+      let retries = 0;
+
+      do {
+        result = packagePublish(packageInfo, registry, token, tag, access);
+
+        if (result.success) {
+          console.log('Published!');
+          succeededPackages.add(pkg);
+          return;
+        } else {
+          retries++;
+          console.log(`Published failed, retrying... (${retries}/${options.retries})`);
+        }
+      } while (retries <= options.retries);
+
+      displayManualRecovery(bumpInfo, succeededPackages);
+      console.error(result.stderr);
+      throw new Error('Error publishing, refer to the previous error messages for recovery instructions');
     } else {
       console.warn(
         `Skipping publish of ${packageInfo.name} since it is marked private. Version has been bumped to ${packageInfo.version}`
