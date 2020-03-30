@@ -6,7 +6,7 @@ import { validatePackageVersions } from './validatePackageVersions';
 import { displayManualRecovery } from './displayManualRecovery';
 
 export function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions) {
-  const { registry, tag, token, access } = options;
+  const { registry, tag, token, access, timeout } = options;
   const { modifiedPackages, newPackages } = bumpInfo;
 
   performBump(bumpInfo, options);
@@ -37,7 +37,7 @@ export function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions)
       let retries = 0;
 
       do {
-        result = packagePublish(packageInfo, registry, token, tag, access);
+        result = packagePublish(packageInfo, registry, token, tag, access, timeout);
 
         if (result.success) {
           console.log('Published!');
@@ -45,7 +45,10 @@ export function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions)
           return;
         } else {
           retries++;
-          console.log(`Published failed, retrying... (${retries}/${options.retries})`);
+
+          if (retries <= options.retries) {
+            console.log(`Published failed, retrying... (${retries}/${options.retries})`);
+          }
         }
       } while (retries <= options.retries);
 

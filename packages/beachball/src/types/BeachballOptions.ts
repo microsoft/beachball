@@ -19,11 +19,12 @@ export interface CliOptions {
   access: 'public' | 'restricted';
   package: string;
   changehint: string;
+  retries: number;
   type?: ChangeType | null;
   help?: boolean;
   version?: boolean;
   scope?: string[] | null;
-  retries?: number;
+  timeout?: number;
 }
 
 export interface RepoOptions {

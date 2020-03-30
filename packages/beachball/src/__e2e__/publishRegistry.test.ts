@@ -44,30 +44,31 @@ describe('publish command (registry)', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    expect(async () => {
-      await publish({
-        branch: 'origin/master',
-        command: 'publish',
-        message: 'apply package updates',
-        path: repo.rootPath,
-        publish: true,
-        bumpDeps: false,
-        push: false,
-        registry: registry.getUrl(),
-        tag: 'latest',
-        token: '',
-        yes: true,
-        new: false,
-        access: 'public',
-        package: 'foo',
-        changehint: 'Run "beachball change" to create a change file',
-        type: null,
-        fetch: true,
-        disallowedChangeTypes: null,
-        defaultNpmTag: 'latest',
-        retries: 3,
-      });
-    }).toThrow();
+    const publishPromise = publish({
+      branch: 'origin/master',
+      command: 'publish',
+      message: 'apply package updates',
+      path: repo.rootPath,
+      publish: true,
+      bumpDeps: false,
+      push: false,
+      registry: 'httppppp://somethingwrong',
+      tag: 'latest',
+      token: '',
+      yes: true,
+      new: false,
+      access: 'public',
+      package: 'foo',
+      changehint: 'Run "beachball change" to create a change file',
+      type: null,
+      fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
+      retries: 3,
+      timeout: 100
+    });
+
+    await expect(publishPromise).rejects.toThrow();
 
     await registry.start();
   });
