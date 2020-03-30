@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "Change file prompt: support customizing prompt questions",
+  "packageName": "beachball",
+  "email": "xgao@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-03-30T20:44:57.439Z"
+}
