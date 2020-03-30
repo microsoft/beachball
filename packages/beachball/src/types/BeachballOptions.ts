@@ -1,4 +1,5 @@
 import { ChangeType } from './ChangeInfo';
+import { ChangeFilePromptOptions } from './ChangeFilePrompt';
 
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
@@ -46,11 +47,13 @@ export interface RepoOptions {
   retries: number;
   groups?: VersionGroupOptions[];
   changelog?: ChangelogOptions;
+  changeFilePrompt?: ChangeFilePromptOptions;
 }
 
 export interface PackageOptions {
   disallowedChangeTypes: ChangeType[] | null;
   defaultNpmTag: string;
+  changeFilePrompt?: ChangeFilePromptOptions;
 }
 
 export interface VersionGroupOptions {
