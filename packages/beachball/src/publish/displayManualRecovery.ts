@@ -17,8 +17,14 @@ export function displayManualRecovery(bumpInfo: BumpInfo, succeededPackages: Set
   if (succeededLines.length) {
     console.warn(
       'These packages and versions were successfully published, but may be invalid due to depending on ' +
-        'package versions for which publishing failed:'
+      'package versions for which publishing failed:'
     );
+
     succeededLines.forEach(console.warn);
+
+    console.warn('To recover from this, you should run "beachball sync" to update local package.json ' +
+      'files to synchronize package.json version. If necessary, unpublish any invalid packages from the above ' +
+      'list after "beachball sync".'
+    )
   }
 }
