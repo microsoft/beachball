@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 30 Mar 2020 20:34:38 GMT and should not be manually modified.
+This log was last generated on Mon, 30 Mar 2020 20:58:37 GMT and should not be manually modified.
 
+## 1.25.0
+Mon, 30 Mar 2020 20:58:37 GMT
+
+### Minor changes
+
+- Change file prompt: support customizing prompt questions (xgao@microsoft.com)
 ## 1.24.0
 Mon, 30 Mar 2020 20:34:38 GMT
 
