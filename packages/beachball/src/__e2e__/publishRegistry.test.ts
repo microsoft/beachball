@@ -44,6 +44,8 @@ describe('publish command (registry)', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
+    const spy = jest.spyOn(console, 'log').mockImplementation();
+
     const publishPromise = publish({
       branch: 'origin/master',
       command: 'publish',
@@ -68,7 +70,11 @@ describe('publish command (registry)', () => {
       timeout: 100
     });
 
+
     await expect(publishPromise).rejects.toThrow();
+    expect(spy).toHaveBeenCalledWith('Published failed, retrying... (3/3)')
+
+    spy.mockRestore();
 
     await registry.start();
   });
