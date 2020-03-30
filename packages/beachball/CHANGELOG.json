@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 30 Mar 2020 20:34:38 GMT",
+      "tag": "beachball_v1.24.0",
+      "version": "1.24.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "adding a retries option",
+            "author": "kchau@microsoft.com",
+            "commit": "c06fc11ed9fc3fc724a85e433bd7db770c56fe8b",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 27 Mar 2020 23:29:23 GMT",
       "tag": "beachball_v1.23.3",
       "version": "1.23.3",
