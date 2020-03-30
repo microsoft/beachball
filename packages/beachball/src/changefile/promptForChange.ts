@@ -69,13 +69,13 @@ export async function promptForChange(options: BeachballOptions) {
       description: !options.message ? descriptionPrompt : undefined,
     };
 
-    let questions = [defaultPrompt.changeType, defaultPrompt.description].filter(q => !!q) as prompts.PromptObject<
-      string
-    >[];
+    let questions = [defaultPrompt.changeType, defaultPrompt.description];
 
     if (packageInfo.options.changeFilePrompt?.changePrompt) {
       questions = packageInfo.options.changeFilePrompt?.changePrompt(defaultPrompt);
     }
+
+    questions = questions.filter(q => !!q);
 
     let response: { comment: string; type: ChangeType } = {
       type: options.type || 'none',
@@ -83,7 +83,7 @@ export async function promptForChange(options: BeachballOptions) {
     };
 
     if (questions.length > 0) {
-      response = (await prompts(questions)) as { comment: string; type: ChangeType };
+      response = (await prompts(questions as prompts.PromptObject[])) as { comment: string; type: ChangeType };
 
       if (Object.keys(response).length === 0) {
         console.log('Cancelled, no change files are written');
