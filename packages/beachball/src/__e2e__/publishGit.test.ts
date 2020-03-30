@@ -60,6 +60,7 @@ describe('publish command (git)', () => {
       fetch: true,
       disallowedChangeTypes: null,
       defaultNpmTag: 'latest',
+      retries: 3,
     });
 
     const newRepo = await repositoryFactory.cloneRepository();
@@ -115,6 +116,7 @@ describe('publish command (git)', () => {
       fetch: true,
       disallowedChangeTypes: null,
       defaultNpmTag: 'latest',
+      retries: 3,
     };
 
     const bumpInfo = gatherBumpInfo(options);

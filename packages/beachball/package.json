@@ -1,6 +1,7 @@
 {
   "name": "beachball",
   "version": "1.23.3",
+  "description": "The Sunniest Semantic Version Bumper",
   "repository": {
     "type": "git",
     "url": "https://github.com/microsoft/beachball"
@@ -12,12 +13,12 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "tsc -w --preserveWatchOutput",
     "jest": "jest",
+    "start": "tsc -w --preserveWatchOutput",
     "test": "yarn test:unit && yarn test:e2e",
-    "test:unit": "jest --config jest.config.js",
+    "test-watch": "jest --watch",
     "test:e2e": "jest --runInBand --config jest.e2e.js",
-    "test-watch": "jest --watch"
+    "test:unit": "jest --config jest.config.js"
   },
   "dependencies": {
     "cosmiconfig": "^6.0.0",

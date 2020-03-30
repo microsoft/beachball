@@ -6,7 +6,8 @@ export function packagePublish(
   registry: string,
   token: string,
   tag: string | undefined,
-  access: string
+  access: string,
+  timeout?: number | undefined
 ) {
   const packageOptions = packageInfo.options;
   const packagePath = path.dirname(packageInfo.packageJsonPath);
@@ -20,5 +21,5 @@ export function packagePublish(
     args.push(access);
   }
   console.log(`publish command: ${args.join(' ')}`);
-  return npm(args, { cwd: packagePath });
+  return npm(args, { cwd: packagePath, timeout });
 }

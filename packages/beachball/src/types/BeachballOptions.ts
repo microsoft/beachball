@@ -19,10 +19,12 @@ export interface CliOptions {
   access: 'public' | 'restricted';
   package: string;
   changehint: string;
+  retries: number;
   type?: ChangeType | null;
   help?: boolean;
   version?: boolean;
   scope?: string[] | null;
+  timeout?: number;
 }
 
 export interface RepoOptions {
@@ -39,6 +41,9 @@ export interface RepoOptions {
   changehint: string;
   disallowedChangeTypes: ChangeType[] | null;
   defaultNpmTag: string;
+
+  /** number of retries for a package publish before failing */
+  retries: number;
   groups?: VersionGroupOptions[];
   changelog?: ChangelogOptions;
 }
