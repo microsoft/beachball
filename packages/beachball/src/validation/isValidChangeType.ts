@@ -1,3 +1,3 @@
 export function isValidChangeType(changeType: string) {
-  return ['patch', 'major', 'minor', 'prerelease'].includes(changeType);
+  return ['patch', 'major', 'minor', 'prerelease', 'none'].includes(changeType);
 }
