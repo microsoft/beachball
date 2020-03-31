@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 31 Mar 2020 18:52:13 GMT",
+      "tag": "beachball_v1.25.1",
+      "version": "1.25.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "adding a sync command to help recover",
+            "author": "kchau@microsoft.com",
+            "commit": "c06fc11ed9fc3fc724a85e433bd7db770c56fe8b",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 30 Mar 2020 20:58:37 GMT",
       "tag": "beachball_v1.25.0",
       "version": "1.25.0",

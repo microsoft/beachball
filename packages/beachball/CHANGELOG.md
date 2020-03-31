@@ -1,7 +1,13 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 30 Mar 2020 20:58:37 GMT and should not be manually modified.
+This log was last generated on Tue, 31 Mar 2020 18:52:13 GMT and should not be manually modified.
 
+## 1.25.1
+Tue, 31 Mar 2020 18:52:13 GMT
+
+### Patches
+
+- adding a sync command to help recover (kchau@microsoft.com)
 ## 1.25.0
 Mon, 30 Mar 2020 20:58:37 GMT
 

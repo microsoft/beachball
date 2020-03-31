@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "adding a sync command to help recover",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-03-30T21:47:30.808Z"
-}
