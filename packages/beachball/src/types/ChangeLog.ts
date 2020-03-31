@@ -21,13 +21,13 @@ export interface ChangelogEntry {
  * If using grouped changelogs, it could be for multiple packages.
  */
 export interface PackageChangelog {
-  /** Package name */
+  /** Package name (if a grouped changelog, for the primary package) */
   name: string;
   /** Version creation date */
   date: Date;
-  /** Version number */
+  /** Version number (if a grouped changelog, for the primary package) */
   version: string;
-  /** Corresponding git tag name */
+  /** Corresponding git tag name (if a grouped changelog, for the primary package) */
   tag: string;
   /** Changes in this version */
   comments: { [k in ChangeType]?: ChangelogEntry[] };

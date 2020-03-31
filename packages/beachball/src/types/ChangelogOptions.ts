@@ -14,6 +14,8 @@ export interface ChangelogOptions {
 
   /**
    * Use this for full custom rendering of the entire changelog markdown for a particular package version.
+   * Default renderers (and `customRenderers` if provided) will be available in `renderInfo.renderers`
+   * but will not be called automatically.
    */
   renderPackageChangelog?: (renderInfo: PackageChangelogRenderInfo) => string;
 
@@ -51,7 +53,7 @@ export interface PackageChangelogRenderInfo {
   previousJson: ChangelogJson | undefined;
 
   /** Changelog for a package version that is going to be added to full changelog. */
-  newEntry: PackageChangelog;
+  newVersionChangelog: PackageChangelog;
 
   /** True if this is a grouped changelog. */
   isGrouped: boolean;
@@ -68,7 +70,7 @@ export interface ChangelogRenderers {
   /**
    * Custom renderer for the header for a particular package version.
    *
-   * Default is like this:
+   * Default is like this (no leading or trailing newlines):
    * ```txt
    * ## 1.23.1
    * Wed, 25 Mar 2020 20:20:02 GMT
@@ -79,11 +81,11 @@ export interface ChangelogRenderers {
   /**
    * Custom renderer for the section about `changeType` changes for a particular package version.
    *
-   * Default is like this:
+   * Default is like this (no leading or trailing newlines):
    * ```txt
    * ### Minor changes
    *
-   * - ChangeLog: add empty options interface (xgao@microsoft.com)
+   * - Really interesting change (user1@microsoft.com)
    * ```
    */
   renderChangeTypeSection?: (changeType: ChangeType, renderInfo: PackageChangelogRenderInfo) => string;
@@ -91,7 +93,7 @@ export interface ChangelogRenderers {
   /**
    * Custom renderer for the section header about `changeType` changes for a particular package version.
    *
-   * Default is like this:
+   * Default is like this (no leading or trailing newlines):
    * ```txt
    * ### Minor changes
    * ```
@@ -99,11 +101,31 @@ export interface ChangelogRenderers {
   renderChangeTypeHeader?: (changeType: ChangeType, renderInfo: PackageChangelogRenderInfo) => string;
 
   /**
+   * Custom renderer for the list of `changeType` changes (not including the change type header)
+   * for a particular package version.
+   *
+   * Default is like this for non-grouped changelogs (no leading or trailing newlines):
+   * ```txt
+   * - Really interesting change (user1@microsoft.com)
+   * - Boring change (user2@microsoft.com)
+   * ```
+   *
+   * Or like this for grouped changelogs:
+   * ```txt
+   * - `foo`
+   *   - Really interesting change (user1@microsoft.com)
+   * - `bar`
+   *   - Boring change (user2@microsoft.com)
+   * ```
+   */
+  renderEntries?: (changeType: ChangeType, renderInfo: PackageChangelogRenderInfo) => string;
+
+  /**
    * Custom renderer for an individual change entry.
    *
-   * Default is like this:
+   * Default is like this (no leading or trailing newlines):
    * ```txt
-   * - ChangeLog: add empty options interface (xgao@microsoft.com)
+   * - Really interesting change (user1@microsoft.com)
    * ```
    */
   renderEntry?: (entry: ChangelogEntry, renderInfo: PackageChangelogRenderInfo) => string;

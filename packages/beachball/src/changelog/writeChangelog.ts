@@ -97,7 +97,7 @@ function writeGroupedChangelog(
 
 function writeChangelogFiles(
   options: BeachballOptions,
-  newEntry: PackageChangelog,
+  newVersionChangelog: PackageChangelog,
   changelogPath: string,
   isGrouped: boolean
 ): void {
@@ -112,7 +112,7 @@ function writeChangelogFiles(
   }
   if (previousJson) {
     try {
-      const nextJson = renderJsonChangelog(newEntry, previousJson);
+      const nextJson = renderJsonChangelog(newVersionChangelog, previousJson);
       fs.writeJSONSync(changelogJsonFile, nextJson, { spaces: 2 });
     } catch (e) {
       console.warn('Problem writing to CHANGELOG.json:', e);
@@ -120,14 +120,19 @@ function writeChangelogFiles(
   }
 
   // Update CHANGELOG.md
-  if (newEntry.comments.major || newEntry.comments.minor || newEntry.comments.patch || newEntry.comments.prerelease) {
+  if (
+    newVersionChangelog.comments.major ||
+    newVersionChangelog.comments.minor ||
+    newVersionChangelog.comments.patch ||
+    newVersionChangelog.comments.prerelease
+  ) {
     const changelogFile = path.join(changelogPath, 'CHANGELOG.md');
     const previousContent = fs.existsSync(changelogFile) ? fs.readFileSync(changelogFile).toString() : '';
 
     const newChangelog = renderChangelog({
       previousJson,
       previousContent,
-      newEntry,
+      newVersionChangelog,
       isGrouped,
       changelogOptions: options.changelog || {},
     });

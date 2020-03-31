@@ -11,9 +11,9 @@ export function renderChangelog(renderOptions: MarkdownChangelogRenderOptions): 
   const {
     previousJson,
     previousContent,
-    newEntry,
+    newVersionChangelog,
     isGrouped,
-    changelogOptions: { renderPackageChangelog: customRenderPackageChangelog, customRenderers = {} },
+    changelogOptions: { renderPackageChangelog: customRenderPackageChangelog, customRenderers },
   } = renderOptions;
 
   const previousLogEntries = previousContent ? previousContent.substring(previousContent.indexOf('##')) : '';
@@ -25,16 +25,23 @@ export function renderChangelog(renderOptions: MarkdownChangelogRenderOptions): 
 
     const renderInfo: PackageChangelogRenderInfo = {
       previousJson,
-      newEntry,
+      newVersionChangelog,
       isGrouped,
       renderers: {
         ...defaultRenderers,
         ...customRenderers,
       },
     };
-    const packageChangelogContent = (customRenderPackageChangelog || renderPackageChangelog)(renderInfo);
 
-    return [renderChangelogHeader(newEntry), packageChangelogContent, previousLogEntries].join('\n\n');
+    return (
+      [
+        renderChangelogHeader(newVersionChangelog),
+        (customRenderPackageChangelog || renderPackageChangelog)(renderInfo),
+        previousLogEntries,
+      ]
+        .join('\n\n')
+        .trim() + '\n'
+    );
   } catch (err) {
     console.log('Error occurred rendering package version changelog:', err);
     return '';
@@ -44,6 +51,6 @@ export function renderChangelog(renderOptions: MarkdownChangelogRenderOptions): 
 function renderChangelogHeader(changelog: PackageChangelog): string {
   return (
     `# Change Log - ${changelog.name}\n\n` +
-    `This log was last generated on ${changelog.date.toUTCString()} and should not be manually modified.\n`
+    `This log was last generated on ${changelog.date.toUTCString()} and should not be manually modified.`
   );
 }

@@ -13,6 +13,7 @@
         "--inspect-brk",
         "${workspaceRoot}/node_modules/.bin/jest",
         "--runInBand",
+        "--watch",
         "--config",
         "${workspaceRoot}/packages/beachball/jest.config.js",
         "${fileBasenameNoExtension}"
@@ -22,6 +23,7 @@
           "--inspect-brk",
           "${workspaceRoot}/node_modules/jest/bin/jest.js",
           "--runInBand",
+          "--watch",
           "--config",
           "${workspaceRoot}/packages/beachball/jest.config.js",
           "${fileBasenameNoExtension}"
