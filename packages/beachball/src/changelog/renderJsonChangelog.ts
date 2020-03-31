@@ -1,5 +1,5 @@
 import { generateTag } from '../tag';
-import { PackageChangelog, ChangelogJson, ChangelogJsonEntry } from '../types/Changelog';
+import { PackageChangelog, ChangelogJson, ChangelogJsonEntry } from '../types/ChangeLog';
 
 export function renderJsonChangelog(changelog: PackageChangelog, previousChangelog: ChangelogJson | undefined) {
   const result: ChangelogJson = {

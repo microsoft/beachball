@@ -1,4 +1,4 @@
-import { ChangelogEntry } from '../types/Changelog';
+import { ChangelogEntry } from '../types/ChangeLog';
 import _ from 'lodash';
 import { PackageChangelogRenderInfo, ChangelogRenderers } from '../types/ChangelogOptions';
 import { ChangeType } from '../types/ChangeInfo';

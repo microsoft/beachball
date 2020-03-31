@@ -1,6 +1,6 @@
 import { ChangeSet } from '../types/ChangeInfo';
 import { PackageInfo } from '../types/PackageInfo';
-import { PackageChangelog } from '../types/Changelog';
+import { PackageChangelog } from '../types/ChangeLog';
 import { generateTag } from '../tag';
 
 export function getPackageChangelogs(

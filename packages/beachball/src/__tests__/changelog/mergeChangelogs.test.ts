@@ -1,4 +1,4 @@
-import { PackageChangelog } from '../../types/Changelog';
+import { PackageChangelog } from '../../types/ChangeLog';
 import { mergeChangelogs } from '../../changelog/mergeChangelogs';
 import { PackageInfo } from '../../types/PackageInfo';
 

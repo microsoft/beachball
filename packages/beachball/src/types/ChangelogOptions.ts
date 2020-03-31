@@ -1,4 +1,4 @@
-import { ChangelogJson, PackageChangelog, ChangelogEntry } from './Changelog';
+import { ChangelogJson, PackageChangelog, ChangelogEntry } from './ChangeLog';
 import { ChangeType } from './ChangeInfo';
 
 /**

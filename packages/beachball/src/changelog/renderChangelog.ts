@@ -1,4 +1,4 @@
-import { PackageChangelog } from '../types/Changelog';
+import { PackageChangelog } from '../types/ChangeLog';
 import { renderPackageChangelog, defaultRenderers } from './renderPackageChangelog';
 import { ChangelogOptions, PackageChangelogRenderInfo } from '../types/ChangelogOptions';
 

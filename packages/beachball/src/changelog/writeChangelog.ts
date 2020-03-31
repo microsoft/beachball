@@ -8,7 +8,7 @@ import { renderChangelog } from './renderChangelog';
 import { renderJsonChangelog } from './renderJsonChangelog';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { isPathIncluded } from '../monorepo/utils';
-import { PackageChangelog, ChangelogJson } from '../types/Changelog';
+import { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
 import { mergeChangelogs } from './mergeChangelogs';
 
 export function writeChangelog(
