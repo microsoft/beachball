@@ -1,6 +1,7 @@
 import { bump } from './commands/bump';
 import { change } from './commands/change';
 import { publish } from './commands/publish';
+import { sync } from './commands/sync';
 
 import { showVersion, showHelp } from './help';
 import { getOptions } from './options/getOptions';
@@ -36,6 +37,11 @@ import { validate } from './validation/validate';
     case 'bump':
       validate(options);
       bump(options);
+      break;
+
+
+    case 'sync':
+      sync(options);
       break;
 
     default:

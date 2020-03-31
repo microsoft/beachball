@@ -38,6 +38,10 @@ bumps versions as well as generating changelogs
 
 bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into master
 
+### sync
+
+synchronizes published versions of packages from a registry, makes local package.json changes to match what is published
+
 ## Options
 
 ### --registry, -r
