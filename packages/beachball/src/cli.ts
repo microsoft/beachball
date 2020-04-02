@@ -31,12 +31,12 @@ import { validate } from './validation/validate';
       validate(options);
       // set a default publish message
       options.message = options.message || 'applying package updates';
-      publish(options);
+      await publish(options);
       break;
 
     case 'bump':
       validate(options);
-      bump(options);
+      await bump(options);
       break;
 
 

@@ -54,14 +54,14 @@ export async function publish(options: BeachballOptions) {
   // Step 1. Bump + npm publish
   // npm / yarn publish
   if (options.publish) {
-    publishToRegistry(bumpInfo, options);
+    await publishToRegistry(bumpInfo, options);
   } else {
     console.log('Skipping publish');
   }
   // Step 2.
   // - reset, fetch latest from origin/master (to ensure less chance of conflict), then bump again + commit
   if (branch && options.push) {
-    bumpAndPush(bumpInfo, publishBranch, options);
+    await bumpAndPush(bumpInfo, publishBranch, options);
   } else {
     console.log('Skipping git push and tagging');
   }

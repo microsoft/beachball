@@ -8,12 +8,8 @@ import { BeachballOptions } from '../types/BeachballOptions';
  * Performs the bump, writes to the file system
  *
  * deletes change files, update package.json, and changelogs
- *
- * @param bumpInfo
- * @param cwd
- * @param bumpDeps
  */
-export function performBump(bumpInfo: BumpInfo, options: BeachballOptions) {
+export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions) {
   const { modifiedPackages, packageInfos, changes } = bumpInfo;
 
   for (const pkgName of modifiedPackages) {
@@ -32,7 +28,7 @@ export function performBump(bumpInfo: BumpInfo, options: BeachballOptions) {
   }
 
   // Generate changelog
-  writeChangelog(options, changes, packageInfos);
+  await writeChangelog(options, changes, packageInfos);
 
   // Unlink changelogs
   unlinkChangeFiles(changes, packageInfos, options.path);

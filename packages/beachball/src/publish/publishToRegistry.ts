@@ -5,11 +5,11 @@ import { packagePublish } from '../packageManager/packagePublish';
 import { validatePackageVersions } from './validatePackageVersions';
 import { displayManualRecovery } from './displayManualRecovery';
 
-export function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions) {
+export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions) {
   const { registry, tag, token, access, timeout } = options;
   const { modifiedPackages, newPackages } = bumpInfo;
 
-  performBump(bumpInfo, options);
+  await performBump(bumpInfo, options);
 
   const succeededPackages = new Set<string>();
 
