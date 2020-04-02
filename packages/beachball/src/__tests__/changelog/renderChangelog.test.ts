@@ -1,4 +1,5 @@
-import { MarkdownChangelogRenderOptions, renderChangelog } from '../../changelog/renderChangelog';
+import * as _ from 'lodash';
+import { MarkdownChangelogRenderOptions, renderChangelog, markerComment } from '../../changelog/renderChangelog';
 
 const previousContent = `# Change Log - foo
 
@@ -7,6 +8,22 @@ This log was last generated on Wed, 21 Aug 2019 21:20:40 GMT and should not be m
 ## 1.2.0
 
 (content here)
+`;
+
+const previousContentWithMarker = `# Change Log - foo
+
+This log was last generated on Wed, 21 Aug 2019 21:20:40 GMT and should not be manually modified.
+
+${markerComment}
+
+## 1.2.0
+
+(content here)
+`;
+
+const badPreviousContent = `# Change Log - foo
+
+This log was last generated on Mon, 02 Mar 2020 12:25:44 GMT and should not be manually modified.
 `;
 
 describe('renderChangelog', () => {
@@ -42,10 +59,32 @@ describe('renderChangelog', () => {
     expect(renderChangelog(options)).toMatchSnapshot();
   });
 
-  it('merges with previous content', () => {
+  it('merges with previous content using h2', () => {
     const options = getOptions();
     const result = renderChangelog(options);
     expect(result).toContain('last generated on Thu, 22 Aug 2019 21:20:40 GMT'); // uses new date
+    expect(result).toContain(markerComment);
+    expect(result).toMatchSnapshot();
+  });
+
+  it('merges with previous content using marker', () => {
+    const options = getOptions();
+    options.previousContent = previousContentWithMarker;
+    const result = renderChangelog(options);
+    expect(result).toContain('last generated on Thu, 22 Aug 2019 21:20:40 GMT'); // uses new date
+    expect(result).toContain(markerComment);
+    expect(result.match(new RegExp(markerComment, 'g'))).toHaveLength(1); // old marker comment removed
+    expect(result).toMatchSnapshot();
+  });
+
+  it('keeps previous content if no marker or h2 is found', () => {
+    const options = getOptions();
+    options.previousContent = badPreviousContent;
+    const result = renderChangelog(options);
+    expect(result).toContain('last generated on Thu, 22 Aug 2019 21:20:40 GMT'); // uses new date
+    // keeps the old content in case it's relevant--even though it doesn't make sense in this case
+    expect(result).toContain('Mon, 02 Mar 2020 12:25:44 GMT');
+    expect(result.match(/# Change Log - foo/g)).toHaveLength(2);
     expect(result).toMatchSnapshot();
   });
 

@@ -7,16 +7,27 @@ export interface MarkdownChangelogRenderOptions extends Omit<PackageChangelogRen
   changelogOptions: ChangelogOptions;
 }
 
+export const markerComment = '<!-- Start content -->';
+
 export function renderChangelog(renderOptions: MarkdownChangelogRenderOptions): string {
   const {
     previousJson,
-    previousContent,
+    previousContent = '',
     newVersionChangelog,
     isGrouped,
     changelogOptions: { renderPackageChangelog: customRenderPackageChangelog, customRenderers },
   } = renderOptions;
 
-  const previousLogEntries = previousContent ? previousContent.substring(previousContent.indexOf('##')) : '';
+  let previousLogEntries: string;
+  if (previousContent.includes(markerComment)) {
+    // Preferably determine where the previous entries start based on a special comment
+    previousLogEntries = previousContent.split(markerComment, 2)[1].trim();
+  } else {
+    // Otherwise look for an h2 (used as version header with default renderer).
+    // If that's not present, preserve the previous content as-is.
+    const h2Match = previousContent.match(/^## /m);
+    previousLogEntries = h2Match ? previousContent.substring(h2Match.index!) : previousContent;
+  }
 
   try {
     if (customRenderPackageChangelog || customRenderers) {
@@ -36,6 +47,7 @@ export function renderChangelog(renderOptions: MarkdownChangelogRenderOptions): 
     return (
       [
         renderChangelogHeader(newVersionChangelog),
+        markerComment,
         (customRenderPackageChangelog || renderPackageChangelog)(renderInfo),
         previousLogEntries,
       ]
