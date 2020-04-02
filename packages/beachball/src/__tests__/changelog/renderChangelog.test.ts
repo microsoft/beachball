@@ -1,29 +1,12 @@
-import * as _ from 'lodash';
 import { MarkdownChangelogRenderOptions, renderChangelog, markerComment } from '../../changelog/renderChangelog';
 
-const previousContent = `# Change Log - foo
+const previousHeader = `# Change Log - foo
 
-This log was last generated on Wed, 21 Aug 2019 21:20:40 GMT and should not be manually modified.
+This log was last generated on Wed, 21 Aug 2019 21:20:40 GMT and should not be manually modified.`;
 
-## 1.2.0
-
-(content here)
-`;
-
-const previousContentWithMarker = `# Change Log - foo
-
-This log was last generated on Wed, 21 Aug 2019 21:20:40 GMT and should not be manually modified.
-
-${markerComment}
-
-## 1.2.0
+const previousVersion = `## 1.2.0
 
 (content here)
-`;
-
-const badPreviousContent = `# Change Log - foo
-
-This log was last generated on Mon, 02 Mar 2020 12:25:44 GMT and should not be manually modified.
 `;
 
 describe('renderChangelog', () => {
@@ -47,7 +30,7 @@ describe('renderChangelog', () => {
           ],
         },
       },
-      previousContent,
+      previousContent: [previousHeader, markerComment, previousVersion].join('\n\n'),
       previousJson: {} as any,
       changelogOptions: {},
     };
@@ -59,17 +42,8 @@ describe('renderChangelog', () => {
     expect(renderChangelog(options)).toMatchSnapshot();
   });
 
-  it('merges with previous content using h2', () => {
-    const options = getOptions();
-    const result = renderChangelog(options);
-    expect(result).toContain('last generated on Thu, 22 Aug 2019 21:20:40 GMT'); // uses new date
-    expect(result).toContain(markerComment);
-    expect(result).toMatchSnapshot();
-  });
-
   it('merges with previous content using marker', () => {
     const options = getOptions();
-    options.previousContent = previousContentWithMarker;
     const result = renderChangelog(options);
     expect(result).toContain('last generated on Thu, 22 Aug 2019 21:20:40 GMT'); // uses new date
     expect(result).toContain(markerComment);
@@ -77,30 +51,37 @@ describe('renderChangelog', () => {
     expect(result).toMatchSnapshot();
   });
 
+  it('merges with previous content using h2', () => {
+    const options = getOptions();
+    options.previousContent = [previousHeader, previousVersion].join('\n\n');
+    const result = renderChangelog(options);
+    expect(result).toContain('last generated on Thu, 22 Aug 2019 21:20:40 GMT'); // uses new date
+    expect(result).toContain(markerComment);
+    expect(result).toMatchSnapshot();
+  });
+
   it('keeps previous content if no marker or h2 is found', () => {
     const options = getOptions();
-    options.previousContent = badPreviousContent;
+    options.previousContent = previousHeader;
     const result = renderChangelog(options);
     expect(result).toContain('last generated on Thu, 22 Aug 2019 21:20:40 GMT'); // uses new date
     // keeps the old content in case it's relevant--even though it doesn't make sense in this case
-    expect(result).toContain('Mon, 02 Mar 2020 12:25:44 GMT');
+    expect(result).toContain('Wed, 21 Aug 2019 21:20:40 GMT');
     expect(result.match(/# Change Log - foo/g)).toHaveLength(2);
     expect(result).toMatchSnapshot();
   });
 
   it('merges default and custom renderers', () => {
     const options = getOptions();
-    options.changelogOptions = {
-      customRenderers: {
-        renderHeader: renderInfo => {
-          return [
-            `## ${renderInfo.newVersionChangelog.version}`,
-            renderInfo.newVersionChangelog.date.toUTCString(),
-            `[Compare changes](http://real-github-compare-link)`,
-          ].join('\n');
-        },
-        renderEntry: (entry, renderInfo) => `- ${entry.comment} (${entry.author}, PR #123)`,
+    options.changelogOptions.customRenderers = {
+      renderHeader: renderInfo => {
+        return [
+          `## ${renderInfo.newVersionChangelog.version}`,
+          renderInfo.newVersionChangelog.date.toUTCString(),
+          `[Compare changes](http://real-github-compare-link)`,
+        ].join('\n');
       },
+      renderEntry: (entry, renderInfo) => `- ${entry.comment} (${entry.author}, PR #123)`,
     };
 
     const result = renderChangelog(options);
@@ -111,12 +92,12 @@ describe('renderChangelog', () => {
 
   it('uses full custom renderer', () => {
     const options = getOptions();
-    options.changelogOptions = {
-      renderPackageChangelog: renderInfo => `## ${renderInfo.newVersionChangelog.version}\n\nno notes for you`,
-    };
+    options.changelogOptions.renderPackageChangelog = renderInfo =>
+      `## ${renderInfo.newVersionChangelog.version}\n\nno notes for you`;
 
     const result = renderChangelog(options);
     expect(result).toContain('# Change Log - foo'); // still includes header
+    expect(result).toContain(markerComment); // still includes marker comment
     expect(result).toContain('no notes for you'); // uses custom version body
     expect(result).toContain('content here'); // includes previous content
     expect(result).toMatchSnapshot();
