@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 02 Apr 2020 23:34:28 GMT",
+      "tag": "beachball_v1.25.2",
+      "version": "1.25.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "e2e tests should clean up properly",
+            "author": "elcraig@microsoft.com",
+            "commit": "c06fc11ed9fc3fc724a85e433bd7db770c56fe8b",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 31 Mar 2020 18:55:18 GMT",
       "tag": "beachball_v1.25.2",
       "version": "1.25.2",
