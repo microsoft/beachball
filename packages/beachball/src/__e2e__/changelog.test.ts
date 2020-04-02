@@ -76,6 +76,7 @@ describe('changelog generation', () => {
     });
 
     it('uses hash of original commit', async () => {
+      const repository = await repositoryFactory.cloneRepository();
       const changeInfo: ChangeFileInfo = getChange();
 
       await repository.commitChange('foo');
