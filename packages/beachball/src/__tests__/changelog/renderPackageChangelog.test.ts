@@ -47,139 +47,139 @@ describe('changelog renderers -', () => {
   }
 
   describe('renderEntry', () => {
-    it('has correct output', () => {
+    it('has correct output', async () => {
       const renderInfo = getRenderInfo();
-      const result = renderEntry(renderInfo.newVersionChangelog.comments.minor![0], renderInfo);
+      const result = await renderEntry(renderInfo.newVersionChangelog.comments.minor![0], renderInfo);
       doBasicTests(result);
     });
 
-    it('has correct grouped output', () => {
+    it('has correct grouped output', async () => {
       const renderInfo = getGroupedRenderInfo();
-      const result = renderEntry(renderInfo.newVersionChangelog.comments.minor![0], renderInfo);
+      const result = await renderEntry(renderInfo.newVersionChangelog.comments.minor![0], renderInfo);
       doBasicTests(result);
     });
   });
 
   describe('renderEntries', () => {
-    it('has correct output', () => {
+    it('has correct output', async () => {
       const renderInfo = getRenderInfo();
-      const result = renderEntries('minor', renderInfo);
+      const result = await renderEntries('minor', renderInfo);
       doBasicTests(result);
     });
 
-    it('has correct grouped output', () => {
+    it('has correct grouped output', async () => {
       const renderInfo = getGroupedRenderInfo();
-      const result = renderEntries('minor', renderInfo);
+      const result = await renderEntries('minor', renderInfo);
       doBasicTests(result);
     });
   });
 
   describe('renderChangeTypeHeader', () => {
-    it('has correct output', () => {
+    it('has correct output', async () => {
       const renderInfo = getRenderInfo();
-      const result = renderChangeTypeHeader('minor', renderInfo);
+      const result = await renderChangeTypeHeader('minor', renderInfo);
       doBasicTests(result);
     });
 
-    it('has correct grouped output', () => {
+    it('has correct grouped output', async () => {
       const renderInfo = getGroupedRenderInfo();
-      const result = renderChangeTypeHeader('minor', renderInfo);
+      const result = await renderChangeTypeHeader('minor', renderInfo);
       doBasicTests(result);
     });
   });
 
   describe('renderChangeTypeSection', () => {
-    it('has correct output', () => {
+    it('has correct output', async () => {
       const renderInfo = getRenderInfo();
-      const result = renderChangeTypeSection('minor', renderInfo);
+      const result = await renderChangeTypeSection('minor', renderInfo);
       doBasicTests(result);
     });
 
-    it('has correct grouped output', () => {
+    it('has correct grouped output', async () => {
       const renderInfo = getGroupedRenderInfo();
-      const result = renderChangeTypeSection('minor', renderInfo);
+      const result = await renderChangeTypeSection('minor', renderInfo);
       doBasicTests(result);
     });
   });
 
   describe('renderHeader', () => {
-    it('has correct output', () => {
+    it('has correct output', async () => {
       const renderInfo = getRenderInfo();
-      const result = renderHeader(renderInfo);
+      const result = await renderHeader(renderInfo);
       doBasicTests(result);
     });
 
-    it('has correct grouped output', () => {
+    it('has correct grouped output', async () => {
       const renderInfo = getGroupedRenderInfo();
-      const result = renderHeader(renderInfo);
+      const result = await renderHeader(renderInfo);
       doBasicTests(result);
     });
   });
 
   describe('renderPackageChangelog', () => {
-    it('has correct output', () => {
+    it('has correct output', async () => {
       const renderInfo = getRenderInfo();
-      const result = renderPackageChangelog(renderInfo);
+      const result = await renderPackageChangelog(renderInfo);
       doBasicTests(result);
     });
 
-    it('has correct grouped output', () => {
+    it('has correct grouped output', async () => {
       const renderInfo = getGroupedRenderInfo();
-      const result = renderPackageChangelog(renderInfo);
+      const result = await renderPackageChangelog(renderInfo);
       doBasicTests(result);
     });
 
-    it('uses custom renderEntry', () => {
+    it('uses custom renderEntry', async () => {
       const renderInfo = getGroupedRenderInfo();
-      renderInfo.renderers.renderEntry = (entry, renderInfo) => `- ${entry.comment} (#123)`;
+      renderInfo.renderers.renderEntry = async (entry, renderInfo) => `- ${entry.comment} (#123)`;
 
-      const result = renderPackageChangelog(renderInfo);
+      const result = await renderPackageChangelog(renderInfo);
       expect(result).toContain('#123');
       expect(result).toMatchSnapshot();
     });
 
-    it('uses custom renderEntries', () => {
+    it('uses custom renderEntries', async () => {
       const renderInfo = getRenderInfo();
-      renderInfo.renderers.renderEntries = (changeType, renderInfo) => {
+      renderInfo.renderers.renderEntries = async (changeType, renderInfo) => {
         const entries = renderInfo.newVersionChangelog.comments[changeType];
         return entries ? entries.map(entry => `${entry.comment}!!!`).join('\n\n') : '';
       };
 
-      const result = renderPackageChangelog(renderInfo);
+      const result = await renderPackageChangelog(renderInfo);
       expect(result).toContain('!!!');
       expect(result).toMatchSnapshot();
     });
 
-    it('uses custom renderChangeTypeHeader', () => {
+    it('uses custom renderChangeTypeHeader', async () => {
       const renderInfo = getRenderInfo();
-      renderInfo.renderers.renderChangeTypeHeader = (changeType, renderInfo) =>
+      renderInfo.renderers.renderChangeTypeHeader = async (changeType, renderInfo) =>
         changeType === 'minor' || changeType === 'major' ? '### Important stuff' : '### Boring stuff';
 
-      const result = renderPackageChangelog(renderInfo);
+      const result = await renderPackageChangelog(renderInfo);
       expect(result).toContain('### Important stuff');
       expect(result).toMatchSnapshot();
     });
 
-    it('uses custom renderChangeTypeSection', () => {
+    it('uses custom renderChangeTypeSection', async () => {
       const renderInfo = getRenderInfo();
-      renderInfo.renderers.renderChangeTypeSection = (changeType, renderInfo) =>
+      renderInfo.renderers.renderChangeTypeSection = async (changeType, renderInfo) =>
         changeType === 'minor' || changeType === 'major' ? renderChangeTypeSection(changeType, renderInfo) : '';
 
-      const result = renderPackageChangelog(renderInfo);
+      const result = await renderPackageChangelog(renderInfo);
       expect(result).not.toContain('Patches');
       expect(result).toMatchSnapshot();
     });
 
-    it('uses custom renderHeader', () => {
+    it('uses custom renderHeader', async () => {
       const renderInfo = getRenderInfo();
-      renderInfo.renderers.renderHeader = renderInfo =>
+      renderInfo.renderers.renderHeader = async renderInfo =>
         [
           `## ${renderInfo.newVersionChangelog.version}`,
           renderInfo.newVersionChangelog.date.toUTCString(),
           `[Compare changes](http://real-github-compare-link)`,
         ].join('\n');
 
-      const result = renderPackageChangelog(renderInfo);
+      const result = await renderPackageChangelog(renderInfo);
       expect(result).toContain('Compare changes');
       expect(result).toMatchSnapshot();
     });

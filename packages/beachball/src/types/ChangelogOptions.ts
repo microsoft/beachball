@@ -17,7 +17,7 @@ export interface ChangelogOptions {
    * Default renderers (and `customRenderers` if provided) will be available in `renderInfo.renderers`
    * but will not be called automatically.
    */
-  renderPackageChangelog?: (renderInfo: PackageChangelogRenderInfo) => string;
+  renderPackageChangelog?: (renderInfo: PackageChangelogRenderInfo) => Promise<string>;
 
   /**
    * Fine-grained custom renderers for individual parts of the changelog.
@@ -76,7 +76,7 @@ export interface ChangelogRenderers {
    * Wed, 25 Mar 2020 20:20:02 GMT
    * ```
    */
-  renderHeader?: (renderInfo: PackageChangelogRenderInfo) => string;
+  renderHeader?: (renderInfo: PackageChangelogRenderInfo) => Promise<string>;
 
   /**
    * Custom renderer for the section about `changeType` changes for a particular package version.
@@ -88,7 +88,7 @@ export interface ChangelogRenderers {
    * - Really interesting change (user1@microsoft.com)
    * ```
    */
-  renderChangeTypeSection?: (changeType: ChangeType, renderInfo: PackageChangelogRenderInfo) => string;
+  renderChangeTypeSection?: (changeType: ChangeType, renderInfo: PackageChangelogRenderInfo) => Promise<string>;
 
   /**
    * Custom renderer for the section header about `changeType` changes for a particular package version.
@@ -98,7 +98,7 @@ export interface ChangelogRenderers {
    * ### Minor changes
    * ```
    */
-  renderChangeTypeHeader?: (changeType: ChangeType, renderInfo: PackageChangelogRenderInfo) => string;
+  renderChangeTypeHeader?: (changeType: ChangeType, renderInfo: PackageChangelogRenderInfo) => Promise<string>;
 
   /**
    * Custom renderer for the list of `changeType` changes (not including the change type header)
@@ -118,7 +118,7 @@ export interface ChangelogRenderers {
    *   - Boring change (user2@microsoft.com)
    * ```
    */
-  renderEntries?: (changeType: ChangeType, renderInfo: PackageChangelogRenderInfo) => string;
+  renderEntries?: (changeType: ChangeType, renderInfo: PackageChangelogRenderInfo) => Promise<string>;
 
   /**
    * Custom renderer for an individual change entry.
@@ -128,5 +128,5 @@ export interface ChangelogRenderers {
    * - Really interesting change (user1@microsoft.com)
    * ```
    */
-  renderEntry?: (entry: ChangelogEntry, renderInfo: PackageChangelogRenderInfo) => string;
+  renderEntry?: (entry: ChangelogEntry, renderInfo: PackageChangelogRenderInfo) => Promise<string>;
 }

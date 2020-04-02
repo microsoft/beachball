@@ -19,57 +19,77 @@ export const defaultRenderers: Required<ChangelogRenderers> = {
   renderEntry: _renderEntry,
 };
 
-export function renderPackageChangelog(renderInfo: PackageChangelogRenderInfo) {
+export async function renderPackageChangelog(renderInfo: PackageChangelogRenderInfo): Promise<string> {
   const { renderHeader, renderChangeTypeSection } = renderInfo.renderers;
-  const versionHeader = renderHeader(renderInfo);
+  const versionHeader = await renderHeader(renderInfo);
 
   return [
     versionHeader,
-    renderChangeTypeSection('major', renderInfo),
-    renderChangeTypeSection('minor', renderInfo),
-    renderChangeTypeSection('patch', renderInfo),
-    renderChangeTypeSection('prerelease', renderInfo),
+    await renderChangeTypeSection('major', renderInfo),
+    await renderChangeTypeSection('minor', renderInfo),
+    await renderChangeTypeSection('patch', renderInfo),
+    await renderChangeTypeSection('prerelease', renderInfo),
   ]
     .filter(Boolean)
     .join('\n\n');
 }
 
-function _renderHeader(renderInfo: PackageChangelogRenderInfo): string {
+async function _renderHeader(renderInfo: PackageChangelogRenderInfo): Promise<string> {
   return `## ${renderInfo.newVersionChangelog.version}\n\n${renderInfo.newVersionChangelog.date.toUTCString()}`;
 }
 
-function _renderChangeTypeSection(changeType: ChangeType, renderInfo: PackageChangelogRenderInfo): string {
+async function _renderChangeTypeSection(
+  changeType: ChangeType,
+  renderInfo: PackageChangelogRenderInfo
+): Promise<string> {
   const { renderChangeTypeHeader, renderEntries } = renderInfo.renderers;
   const entries = renderInfo.newVersionChangelog.comments[changeType];
   return entries && entries.length
-    ? `${renderChangeTypeHeader(changeType, renderInfo)}\n\n${renderEntries(changeType, renderInfo)}`
+    ? `${await renderChangeTypeHeader(changeType, renderInfo)}\n\n${await renderEntries(changeType, renderInfo)}`
     : '';
 }
 
-function _renderChangeTypeHeader(changeType: ChangeType, renderInfo: PackageChangelogRenderInfo): string {
+async function _renderChangeTypeHeader(
+  changeType: ChangeType,
+  renderInfo: PackageChangelogRenderInfo
+): Promise<string> {
   return `### ${groupNames[changeType]}`;
 }
 
-function _renderEntries(changeType: ChangeType, renderInfo: PackageChangelogRenderInfo): string {
+async function _renderEntries(changeType: ChangeType, renderInfo: PackageChangelogRenderInfo): Promise<string> {
   const entries = renderInfo.newVersionChangelog.comments[changeType];
   if (!entries || !entries.length) {
     return '';
   }
-  const { renderEntry } = renderInfo.renderers;
-  if (renderInfo.isGrouped) {
-    const entriesMap = _.groupBy(entries, entry => entry.package);
 
-    return Object.keys(entriesMap)
-      .map(pkgName => {
-        const entriesText = entriesMap[pkgName].map(entry => `  ${renderEntry(entry, renderInfo)}`).join('\n');
-        return `- \`${pkgName}\`\n${entriesText}`;
-      })
-      .join('\n');
+  if (renderInfo.isGrouped) {
+    const entriesByPackage = _.entries(_.groupBy(entries, entry => entry.package));
+
+    // Use a for loop here (not map) so that if renderEntry does network requests, we don't fire them all at once
+    let packagesText: string[] = [];
+    for (const [pkgName, pkgEntries] of entriesByPackage) {
+      const entriesText = (await _renderEntriesBasic(pkgEntries, renderInfo)).map(entry => `  ${entry}`).join('\n');
+
+      packagesText.push(`- \`${pkgName}\`\n${entriesText}`);
+    }
+    return packagesText.join('\n');
   }
 
-  return entries.map(entry => renderEntry(entry, renderInfo)).join('\n');
+  return (await _renderEntriesBasic(entries, renderInfo)).join('\n');
 }
 
-function _renderEntry(entry: ChangelogEntry, renderInfo: PackageChangelogRenderInfo): string {
+async function _renderEntriesBasic(
+  entries: ChangelogEntry[],
+  renderInfo: PackageChangelogRenderInfo
+): Promise<string[]> {
+  // Use a for loop here (not map) so that if renderEntry does network requests, we don't fire them all at once
+  let results: string[] = [];
+  for (const entry of entries) {
+    results.push(await renderInfo.renderers.renderEntry(entry, renderInfo));
+  }
+  return results;
+}
+
+async function _renderEntry(entry: ChangelogEntry, renderInfo: PackageChangelogRenderInfo): Promise<string> {
   return `- ${entry.comment} (${entry.author})`;
 }

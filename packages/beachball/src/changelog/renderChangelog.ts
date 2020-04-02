@@ -9,7 +9,7 @@ export interface MarkdownChangelogRenderOptions extends Omit<PackageChangelogRen
 
 export const markerComment = '<!-- Start content -->';
 
-export function renderChangelog(renderOptions: MarkdownChangelogRenderOptions): string {
+export async function renderChangelog(renderOptions: MarkdownChangelogRenderOptions): Promise<string> {
   const {
     previousJson,
     previousContent = '',
@@ -48,7 +48,7 @@ export function renderChangelog(renderOptions: MarkdownChangelogRenderOptions): 
       [
         renderChangelogHeader(newVersionChangelog),
         markerComment,
-        (customRenderPackageChangelog || renderPackageChangelog)(renderInfo),
+        await (customRenderPackageChangelog || renderPackageChangelog)(renderInfo),
         previousLogEntries,
       ]
         .join('\n\n')
