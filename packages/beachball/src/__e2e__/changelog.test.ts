@@ -1,23 +1,23 @@
 import path from 'path';
-import fs from 'fs';
+import fs from 'fs-extra';
 
-import { promisify } from 'util';
-
-import { RepositoryFactory, Repository } from '../fixtures/repository';
+import { RepositoryFactory } from '../fixtures/repository';
 import { writeChangelog } from '../changelog/writeChangelog';
 
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 
 import unified from 'unified';
 import remarkParse from 'remark-parse';
-import { selectAll } from 'unist-util-select';
+import { selectAll as _selectAll } from 'unist-util-select';
+import { Node } from 'unist';
+
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { ChangeFileInfo } from '../types/ChangeInfo';
 import { MonoRepoFactory } from '../fixtures/monorepo';
 
-const readFileAsync = promisify(fs.readFile);
+const selectAll: (selector: string, tree: Node) => Node[] = _selectAll;
 
 function parseMarkdown(markdown: string) {
   return unified()
@@ -28,8 +28,6 @@ function parseMarkdown(markdown: string) {
 describe('changelog generation', () => {
   let repositoryFactory: RepositoryFactory;
   let monoRepoFactory: MonoRepoFactory;
-  let repository: Repository;
-  let monoRepo: Repository;
 
   beforeAll(async () => {
     repositoryFactory = new RepositoryFactory();
@@ -38,18 +36,14 @@ describe('changelog generation', () => {
     await monoRepoFactory.create();
   });
 
-  beforeEach(async () => {
-    repository = await repositoryFactory.cloneRepository();
-    monoRepo = await monoRepoFactory.cloneRepository();
-  });
-
   afterAll(async () => {
-    await repository.cleanUp();
-    await monoRepo.cleanUp();
+    await repositoryFactory.cleanUp();
+    await monoRepoFactory.cleanUp();
   });
 
   describe('readChangelog', () => {
     it('adds actual commit hash', async () => {
+      const repository = await repositoryFactory.cloneRepository();
       await repository.commitChange('foo');
       writeChangeFiles(
         {
@@ -73,6 +67,7 @@ describe('changelog generation', () => {
     });
 
     it('uses hash of original commit', async () => {
+      const repository = await repositoryFactory.cloneRepository();
       const changeInfo: ChangeFileInfo = {
         comment: 'comment 1',
         date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
@@ -101,6 +96,7 @@ describe('changelog generation', () => {
 
   describe('writeChangelog', () => {
     it('generates correct changelog', async () => {
+      const repository = await repositoryFactory.cloneRepository();
       await repository.commitChange('foo');
       writeChangeFiles(
         {
@@ -140,7 +136,7 @@ describe('changelog generation', () => {
       writeChangelog(beachballOptions, changes, packageInfos);
 
       const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
-      const text = await readFileAsync(changelogFile, 'utf-8');
+      const text = await fs.readFile(changelogFile, 'utf-8');
 
       const tree = parseMarkdown(text);
       const listItems = selectAll('listItem paragraph text', tree);
@@ -149,8 +145,7 @@ describe('changelog generation', () => {
       expect(listItems.find(item => item.value === 'comment 1 (test@testtestme.com)')).toBeTruthy();
 
       const changelogJsonFile = path.join(repository.rootPath, 'CHANGELOG.json');
-      const jsonText = await readFileAsync(changelogJsonFile, 'utf-8');
-      const changelogJson = JSON.parse(jsonText);
+      const changelogJson = await fs.readJSON(changelogJsonFile);
       expect(changelogJson.name).toEqual('foo');
       expect(changelogJson.entries.length).toEqual(1);
       expect(changelogJson.entries[0].date).toBeTruthy();
@@ -167,6 +162,7 @@ describe('changelog generation', () => {
     });
 
     it('generates correct grouped changelog', async () => {
+      const monoRepo = await monoRepoFactory.cloneRepository();
       await monoRepo.commitChange('foo');
       writeChangeFiles(
         {
@@ -233,7 +229,7 @@ describe('changelog generation', () => {
 
       // Validate changelog for foo package
       const fooChangelogFile = path.join(monoRepo.rootPath, 'packages', 'foo', 'CHANGELOG.md');
-      const fooChangelogText = await readFileAsync(fooChangelogFile, 'utf-8');
+      const fooChangelogText = await fs.readFile(fooChangelogFile, 'utf-8');
       const fooChangelogTree = parseMarkdown(fooChangelogText);
       const fooChangelogHeadings = selectAll('heading text', fooChangelogTree);
       expect(fooChangelogHeadings.length).toEqual(3);
@@ -247,7 +243,7 @@ describe('changelog generation', () => {
 
       // Validate changelog for bar package
       const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
-      const barChangelogText = await readFileAsync(barChangelogFile, 'utf-8');
+      const barChangelogText = await fs.readFile(barChangelogFile, 'utf-8');
       const barChangelogTree = parseMarkdown(barChangelogText);
       const barChangelogHeadings = selectAll('heading text', barChangelogTree);
       expect(barChangelogHeadings.length).toEqual(3);
@@ -262,7 +258,7 @@ describe('changelog generation', () => {
 
       // Validate grouped changelog for foo and bar packages
       const groupedChangelogFile = path.join(monoRepo.rootPath, 'CHANGELOG.md');
-      const groupedChangelogText = await readFileAsync(groupedChangelogFile, 'utf-8');
+      const groupedChangelogText = await fs.readFile(groupedChangelogFile, 'utf-8');
       const groupedChangelogTree = parseMarkdown(groupedChangelogText);
 
       const groupedChangelogHeadings = selectAll('heading text', groupedChangelogTree);
@@ -284,6 +280,7 @@ describe('changelog generation', () => {
     });
 
     it('generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog', async () => {
+      const monoRepo = await monoRepoFactory.cloneRepository();
       await monoRepo.commitChange('foo');
       writeChangeFiles(
         {
@@ -336,7 +333,7 @@ describe('changelog generation', () => {
 
       // Validate changelog for bar package
       const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
-      const barChangelogText = await readFileAsync(barChangelogFile, 'utf-8');
+      const barChangelogText = await fs.readFile(barChangelogFile, 'utf-8');
       const barChangelogTree = parseMarkdown(barChangelogText);
       const barChangelogHeadings = selectAll('heading text', barChangelogTree);
       expect(barChangelogHeadings.length).toEqual(3);
@@ -350,7 +347,7 @@ describe('changelog generation', () => {
 
       // Validate grouped changelog for foo and bar packages
       const groupedChangelogFile = path.join(monoRepo.rootPath, 'packages', 'foo', 'CHANGELOG.md');
-      const groupedChangelogText = await readFileAsync(groupedChangelogFile, 'utf-8');
+      const groupedChangelogText = await fs.readFile(groupedChangelogFile, 'utf-8');
       const groupedChangelogTree = parseMarkdown(groupedChangelogText);
 
       const groupedChangelogHeadings = selectAll('heading text', groupedChangelogTree);

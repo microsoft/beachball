@@ -1,13 +1,10 @@
 import * as process from 'process';
 import path from 'path';
 import * as fs from 'fs-extra';
-import { promisify } from 'util';
 import { runCommands } from './exec';
-import { tmpdir, DirResult } from './tmpdir';
+import { tmpdir } from './tmpdir';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { Repository } from './repository';
-
-const writeFileAsync = promisify(fs.writeFile);
+import { Repository, RepositoryFactory } from './repository';
 
 export const packageJsonFixtures = {
   'packages/foo': {
@@ -45,19 +42,20 @@ const beachballConfigFixture = {
   ],
 } as BeachballOptions;
 
-export class MonoRepoFactory {
-  root?: DirResult;
+export class MonoRepoFactory extends RepositoryFactory {
+  root?: string;
 
   async create(): Promise<void> {
     const originalDirectory = process.cwd();
 
     this.root = await tmpdir({ prefix: 'beachball-monorepository-upstream-' });
-    process.chdir(this.root!.name);
+    process.chdir(this.root);
     await runCommands(['git init --bare']);
 
     const tmpRepo = new Repository();
+    this.childRepos.push(tmpRepo);
     await tmpRepo.initialize();
-    await tmpRepo.cloneFrom(this.root.name);
+    await tmpRepo.cloneFrom(this.root);
     await tmpRepo.commitChange('README');
 
     await Object.keys(packageJsonFixtures).reduce(async (p, pkg) => {
@@ -67,7 +65,7 @@ export class MonoRepoFactory {
 
       fs.mkdirpSync(path.dirname(packageJsonFile));
 
-      await writeFileAsync(packageJsonFile, JSON.stringify(packageJsonFixture, null, 2));
+      await fs.writeFile(packageJsonFile, JSON.stringify(packageJsonFixture, null, 2));
       await tmpRepo.commitChange(packageJsonFile);
     }, Promise.resolve());
 
@@ -79,15 +77,5 @@ export class MonoRepoFactory {
     await tmpRepo.push('origin', 'HEAD:master');
 
     process.chdir(originalDirectory);
-  }
-
-  async cloneRepository(): Promise<Repository> {
-    if (!this.root) {
-      throw new Error('Must create before cloning');
-    }
-    const newRepo = new Repository();
-    await newRepo.initialize();
-    await newRepo.cloneFrom(this.root.name);
-    return newRepo;
   }
 }

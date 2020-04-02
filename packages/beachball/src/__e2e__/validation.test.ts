@@ -9,6 +9,10 @@ describe('validation', () => {
     await repositoryFactory.create();
   });
 
+  afterAll(async () => {
+    await repositoryFactory.cleanUp();
+  });
+
   describe('isChangeFileNeeded', () => {
     let repository: Repository;
 

@@ -2,19 +2,19 @@ import { exec as nativeExec } from 'child_process';
 
 export interface PsResult {
   stderr: string;
-  status: Error | null;
+  error: Error | null;
   stdout: string;
 }
 
 export function exec(command: string): Promise<PsResult> {
   return new Promise(function(resolve, reject) {
-    nativeExec(command, (status, stdout, stderr) => {
+    nativeExec(command, (error, stdout, stderr) => {
       const result = {
         stderr,
         stdout,
-        status,
+        error,
       };
-      if (status) {
+      if (error) {
         reject(result);
       } else {
         resolve(result);
@@ -29,11 +29,7 @@ export async function runCommands(commands: string[]): Promise<PsResult[]> {
     try {
       results.push(await exec(commands[i]));
     } catch (e) {
-      console.error('runCommands failed:');
-      console.error(e.stdout);
-      console.error(e.stderr);
-      console.error(e);
-      console.error(e.message);
+      console.error('runCommands failed:', e);
       throw e;
     }
   }
