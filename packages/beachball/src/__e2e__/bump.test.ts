@@ -9,14 +9,23 @@ import { getChangePath } from '../paths';
 import { MonoRepoFactory } from '../fixtures/monorepo';
 
 describe('version bumping', () => {
+  let repositoryFactory: RepositoryFactory | undefined;
+
   function getChangeFiles(cwd: string): string[] {
     const changePath = getChangePath(cwd);
     const changeFiles = changePath && fs.existsSync(changePath) ? fs.readdirSync(changePath) : [];
     return changeFiles;
   }
 
+  afterEach(async () => {
+    if (repositoryFactory) {
+      repositoryFactory.cleanUp();
+      repositoryFactory = undefined;
+    }
+  });
+
   it('bumps only packages with change files', async () => {
-    const repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
 
@@ -103,7 +112,7 @@ describe('version bumping', () => {
   });
 
   it('bumps all dependent packages with `bumpDeps` flag', async () => {
-    const repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
 
@@ -190,7 +199,7 @@ describe('version bumping', () => {
   });
 
   it('bumps all grouped packages', async () => {
-    const repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
 
@@ -256,7 +265,7 @@ describe('version bumping', () => {
   });
 
   it('bumps all grouped AND dependent packages', async () => {
-    const repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
 
@@ -350,7 +359,7 @@ describe('version bumping', () => {
   });
 
   it('should not bump out-of-scope package even if package has change', async () => {
-    const repositoryFactory = new MonoRepoFactory();
+    repositoryFactory = new MonoRepoFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
 
@@ -381,7 +390,7 @@ describe('version bumping', () => {
   });
 
   it('should not bump out-of-scope package even if dependency of the package has change', async () => {
-    const repositoryFactory = new MonoRepoFactory();
+    repositoryFactory = new MonoRepoFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
 

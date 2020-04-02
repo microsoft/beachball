@@ -1,4 +1,4 @@
-import { RepositoryFactory } from '../fixtures/repository';
+import { RepositoryFactory, Repository } from '../fixtures/repository';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publish } from '../commands/publish';
 import path from 'path';
@@ -19,6 +19,10 @@ describe('publish command (git)', () => {
   beforeEach(async () => {
     repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
+  });
+
+  afterEach(async () => {
+    await repositoryFactory.cleanUp();
   });
 
   it('can perform a successful git push', async () => {

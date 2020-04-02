@@ -7,6 +7,8 @@ import { RepositoryFactory } from '../fixtures/repository';
 
 describe('publish command (registry)', () => {
   let registry: Registry;
+  let repositoryFactory: RepositoryFactory | undefined;
+  let spy: jest.SpyInstance | undefined;
 
   beforeAll(() => {
     registry = new Registry();
@@ -21,10 +23,21 @@ describe('publish command (registry)', () => {
     await registry.reset();
   });
 
+  afterEach(async () => {
+    if (repositoryFactory) {
+      await repositoryFactory.cleanUp();
+      repositoryFactory = undefined;
+    }
+    if (spy) {
+      spy.mockRestore();
+      spy = undefined;
+    }
+  });
+
   it('will perform retries', async () => {
     registry.stop();
 
-    const repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
 
@@ -44,7 +57,7 @@ describe('publish command (registry)', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    const spy = jest.spyOn(console, 'log').mockImplementation();
+    spy = jest.spyOn(console, 'log').mockImplementation();
 
     const publishPromise = publish({
       branch: 'origin/master',
@@ -67,12 +80,11 @@ describe('publish command (registry)', () => {
       disallowedChangeTypes: null,
       defaultNpmTag: 'latest',
       retries: 3,
-      timeout: 100
+      timeout: 100,
     });
 
-
     await expect(publishPromise).rejects.toThrow();
-    expect(spy).toHaveBeenCalledWith('Published failed, retrying... (3/3)')
+    expect(spy).toHaveBeenCalledWith('Published failed, retrying... (3/3)');
 
     spy.mockRestore();
 
@@ -80,7 +92,7 @@ describe('publish command (registry)', () => {
   });
 
   it('can perform a successful npm publish', async () => {
-    const repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
 
@@ -133,7 +145,7 @@ describe('publish command (registry)', () => {
   });
 
   it('can perform a successful npm publish even with private packages', async () => {
-    const repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
 
@@ -208,7 +220,7 @@ describe('publish command (registry)', () => {
   });
 
   it('can perform a successful npm publish even with a non-existent package listed in the change file', async () => {
-    const repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
 

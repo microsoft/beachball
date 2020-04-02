@@ -8,6 +8,7 @@ import { MonoRepoFactory } from '../fixtures/monorepo';
 
 describe('publish command (e2e)', () => {
   let registry: Registry;
+  let repositoryFactory: RepositoryFactory | undefined;
 
   beforeAll(() => {
     registry = new Registry();
@@ -22,8 +23,15 @@ describe('publish command (e2e)', () => {
     await registry.reset();
   });
 
+  afterEach(async () => {
+    if (repositoryFactory) {
+      await repositoryFactory.cleanUp();
+      repositoryFactory = undefined;
+    }
+  });
+
   it('can perform a successful npm publish', async () => {
-    const repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
 
@@ -84,7 +92,7 @@ describe('publish command (e2e)', () => {
   });
 
   it('should not perform npm publish on out-of-scope package', async () => {
-    const repositoryFactory = new MonoRepoFactory();
+    repositoryFactory = new MonoRepoFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
 

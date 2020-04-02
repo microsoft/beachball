@@ -4,12 +4,16 @@ import { MonoRepoFactory } from '../../fixtures/monorepo';
 import { Repository } from '../../fixtures/repository';
 
 describe('getScopedPackages', () => {
+  let repoFactory: MonoRepoFactory;
   let repo: Repository;
 
   beforeAll(async () => {
-    const repoFactory = new MonoRepoFactory();
+    repoFactory = new MonoRepoFactory();
     await repoFactory.create();
     repo = await repoFactory.cloneRepository();
+  });
+  afterAll(async () => {
+    await repoFactory.cleanUp();
   });
 
   it('can scope packages', async () => {
