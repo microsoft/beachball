@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 03 Apr 2020 00:56:37 GMT and should not be manually modified.
+This log was last generated on Fri, 03 Apr 2020 15:58:44 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.27.0
+
+Fri, 03 Apr 2020 15:58:44 GMT
+
+### Minor changes
+
+- Export public-facing types from root (elcraig@microsoft.com)
 
 ## 1.26.0
 
