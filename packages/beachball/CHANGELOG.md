@@ -1,6 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 31 Mar 2020 18:55:18 GMT and should not be manually modified.
+This log was last generated on Fri, 03 Apr 2020 00:56:37 GMT and should not be manually modified.
+
+<!-- Start content -->
+
+## 1.26.0
+
+Fri, 03 Apr 2020 00:56:37 GMT
+
+### Minor changes
+
+- Add custom render functions for changelog parts (elcraig@microsoft.com)
 
 ## 1.25.2
 Tue, 31 Mar 2020 18:55:18 GMT

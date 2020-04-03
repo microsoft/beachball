@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 03 Apr 2020 00:56:37 GMT",
+      "tag": "beachball_v1.26.0",
+      "version": "1.26.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add custom render functions for changelog parts",
+            "author": "elcraig@microsoft.com",
+            "commit": "c06fc11ed9fc3fc724a85e433bd7db770c56fe8b",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 02 Apr 2020 23:34:28 GMT",
       "tag": "beachball_v1.25.2",
       "version": "1.25.2",
