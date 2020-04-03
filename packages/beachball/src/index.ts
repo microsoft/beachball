@@ -7,6 +7,7 @@ export type BeachballConfig = Partial<RepoOptions> & Partial<PackageOptions>;
 export { VersionGroupOptions } from './types/BeachballOptions';
 export { ChangeFilePromptOptions } from './types/ChangeFilePrompt';
 export { ChangeType } from './types/ChangeInfo';
+export { ChangelogEntry, ChangelogJson, PackageChangelog } from './types/ChangeLog';
 export {
   ChangelogOptions,
   ChangelogGroupOptions,
