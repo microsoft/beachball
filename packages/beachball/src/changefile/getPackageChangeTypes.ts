@@ -1,6 +1,9 @@
 import { ChangeFileInfo, ChangeSet, ChangeType } from '../types/ChangeInfo';
 
-const SortedChangeTypes: ChangeType[] = ['none', 'prerelease', 'patch', 'minor', 'major'];
+/**
+ * List of all change types from least to most significant.
+ */
+export const SortedChangeTypes: ChangeType[] = ['none', 'prerelease', 'patch', 'minor', 'major'];
 
 /**
  * Change type with the smallest weight.
@@ -8,8 +11,8 @@ const SortedChangeTypes: ChangeType[] = ['none', 'prerelease', 'patch', 'minor',
 export const MinChangeType = SortedChangeTypes[0];
 
 /**
- *  Change type weights
- *  Note: the order in which this is defined is IMPORTANT
+ * Change type weights
+ * Note: the order in which this is defined is IMPORTANT
  */
 const ChangeTypeWeights = SortedChangeTypes.reduce((weights, changeType, index) => {
   weights[changeType] = index;

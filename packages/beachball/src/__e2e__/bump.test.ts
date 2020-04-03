@@ -95,7 +95,7 @@ describe('version bumping', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    bump({ path: repo.rootPath, bumpDeps: false } as BeachballOptions);
+    await bump({ path: repo.rootPath, bumpDeps: false } as BeachballOptions);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -182,7 +182,7 @@ describe('version bumping', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    bump({ path: repo.rootPath, bumpDeps: true } as BeachballOptions);
+    await bump({ path: repo.rootPath, bumpDeps: true } as BeachballOptions);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -251,7 +251,7 @@ describe('version bumping', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    bump({ path: repo.rootPath, groups: [{ include: 'packages/*', name: 'testgroup' }] } as BeachballOptions);
+    await bump({ path: repo.rootPath, groups: [{ include: 'packages/*', name: 'testgroup' }] } as BeachballOptions);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -339,7 +339,7 @@ describe('version bumping', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    bump({
+    await bump({
       path: repo.rootPath,
       groups: [{ include: 'packages/grp/*', name: 'grp' }],
       bumpDeps: true,
@@ -379,7 +379,7 @@ describe('version bumping', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    bump({ path: repo.rootPath, bumpDeps: true, scope: ['!packages/foo'] } as BeachballOptions);
+    await bump({ path: repo.rootPath, bumpDeps: true, scope: ['!packages/foo'] } as BeachballOptions);
 
     const packageInfos = getPackageInfos(repo.rootPath);
     expect(packageInfos['foo'].version).toBe('1.0.0');
@@ -410,7 +410,7 @@ describe('version bumping', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    bump({ path: repo.rootPath, bumpDeps: true, scope: ['!packages/foo'] } as BeachballOptions);
+    await bump({ path: repo.rootPath, bumpDeps: true, scope: ['!packages/foo'] } as BeachballOptions);
 
     const packageInfos = getPackageInfos(repo.rootPath);
     expect(packageInfos['foo'].version).toBe('1.0.0');

@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "Add custom render functions for changelog parts",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-03-28T01:25:51.983Z"
+}

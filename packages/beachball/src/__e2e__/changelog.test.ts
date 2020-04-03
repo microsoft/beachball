@@ -1,28 +1,49 @@
 import path from 'path';
 import fs from 'fs-extra';
+import _ from 'lodash';
 
 import { RepositoryFactory } from '../fixtures/repository';
 import { writeChangelog } from '../changelog/writeChangelog';
 
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 
-import unified from 'unified';
-import remarkParse from 'remark-parse';
-import { selectAll as _selectAll } from 'unist-util-select';
-import { Node } from 'unist';
-
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { readChangeFiles } from '../changefile/readChangeFiles';
+import { SortedChangeTypes } from '../changefile/getPackageChangeTypes';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { ChangeFileInfo } from '../types/ChangeInfo';
 import { MonoRepoFactory } from '../fixtures/monorepo';
+import { ChangelogJson } from '../types/ChangeLog';
 
-const selectAll: (selector: string, tree: Node) => Node[] = _selectAll;
+function getChange(partialChange: Partial<ChangeFileInfo> = {}): ChangeFileInfo {
+  return {
+    comment: 'comment 1',
+    date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
+    email: 'test@testtestme.com',
+    packageName: 'foo',
+    type: 'patch',
+    dependentChangeType: 'patch',
+    ...partialChange,
+  };
+}
 
-function parseMarkdown(markdown: string) {
-  return unified()
-    .use(remarkParse)
-    .parse(markdown);
+function cleanMarkdownForSnapshot(text: string) {
+  return text.replace(/\w\w\w, \d\d \w\w\w [\d :]+?GMT/gm, '(date)');
+}
+
+function cleanJsonForSnapshot(changelog: ChangelogJson) {
+  changelog = _.cloneDeep(changelog);
+  for (const entry of changelog.entries) {
+    entry.date = '(date)';
+    for (const changeType of SortedChangeTypes) {
+      if (entry.comments[changeType]) {
+        for (const comment of entry.comments[changeType]!) {
+          comment.commit = '(sha1)';
+        }
+      }
+    }
+  }
+  return changelog;
 }
 
 describe('changelog generation', () => {
@@ -45,19 +66,7 @@ describe('changelog generation', () => {
     it('adds actual commit hash', async () => {
       const repository = await repositoryFactory.cloneRepository();
       await repository.commitChange('foo');
-      writeChangeFiles(
-        {
-          foo: {
-            comment: 'comment 1',
-            date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
-            email: 'test@testtestme.com',
-            packageName: 'foo',
-            type: 'patch',
-            dependentChangeType: 'patch',
-          },
-        },
-        repository.rootPath
-      );
+      writeChangeFiles({ foo: getChange() }, repository.rootPath);
 
       const currentHash = await repository.getCurrentHash();
       const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions);
@@ -68,14 +77,7 @@ describe('changelog generation', () => {
 
     it('uses hash of original commit', async () => {
       const repository = await repositoryFactory.cloneRepository();
-      const changeInfo: ChangeFileInfo = {
-        comment: 'comment 1',
-        date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
-        email: 'test@testtestme.com',
-        packageName: 'foo',
-        type: 'patch',
-        dependentChangeType: 'patch',
-      };
+      const changeInfo: ChangeFileInfo = getChange();
 
       await repository.commitChange('foo');
       const changeFilePaths = writeChangeFiles({ foo: changeInfo }, repository.rootPath);
@@ -98,34 +100,10 @@ describe('changelog generation', () => {
     it('generates correct changelog', async () => {
       const repository = await repositoryFactory.cloneRepository();
       await repository.commitChange('foo');
-      writeChangeFiles(
-        {
-          foo: {
-            comment: 'comment 1',
-            date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
-            email: 'test@testtestme.com',
-            packageName: 'foo',
-            type: 'patch',
-            dependentChangeType: 'patch',
-          },
-        },
-        repository.rootPath
-      );
+      writeChangeFiles({ foo: getChange() }, repository.rootPath);
 
       await repository.commitChange('bar');
-      writeChangeFiles(
-        {
-          foo: {
-            comment: 'comment 2',
-            date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
-            email: 'test@testtestme.com',
-            packageName: 'foo',
-            type: 'patch',
-            dependentChangeType: 'patch',
-          },
-        },
-        repository.rootPath
-      );
+      writeChangeFiles({ foo: getChange({ comment: 'comment 2' }) }, repository.rootPath);
 
       const beachballOptions = { path: repository.rootPath } as BeachballOptions;
       const changes = readChangeFiles(beachballOptions);
@@ -133,79 +111,27 @@ describe('changelog generation', () => {
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(repository.rootPath);
 
-      writeChangelog(beachballOptions, changes, packageInfos);
+      await writeChangelog(beachballOptions, changes, packageInfos);
 
       const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
-      const text = await fs.readFile(changelogFile, 'utf-8');
-
-      const tree = parseMarkdown(text);
-      const listItems = selectAll('listItem paragraph text', tree);
-
-      expect(listItems.find(item => item.value === 'comment 2 (test@testtestme.com)')).toBeTruthy();
-      expect(listItems.find(item => item.value === 'comment 1 (test@testtestme.com)')).toBeTruthy();
+      const text = await fs.readFile(changelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(text)).toMatchSnapshot();
 
       const changelogJsonFile = path.join(repository.rootPath, 'CHANGELOG.json');
-      const changelogJson = await fs.readJSON(changelogJsonFile);
-      expect(changelogJson.name).toEqual('foo');
-      expect(changelogJson.entries.length).toEqual(1);
-      expect(changelogJson.entries[0].date).toBeTruthy();
-      expect(changelogJson.entries[0].tag).toEqual('foo_v1.0.0');
-      expect(changelogJson.entries[0].version).toEqual('1.0.0');
-      expect(changelogJson.entries[0].comments.patch).toBeDefined();
-      expect(changelogJson.entries[0].comments.patch.length).toEqual(2);
-
-      const comment = changelogJson.entries[0].comments.patch[0];
-      expect(comment.author).toEqual('test@testtestme.com');
-      expect(comment.comment).toEqual('comment 2');
-      expect(comment.commit).toBeTruthy();
-      expect(comment.package).toEqual('foo');
+      const jsonText = await fs.readFile(changelogJsonFile, { encoding: 'utf-8' });
+      const changelogJson = JSON.parse(jsonText);
+      expect(cleanJsonForSnapshot(changelogJson)).toMatchSnapshot();
     });
 
     it('generates correct grouped changelog', async () => {
       const monoRepo = await monoRepoFactory.cloneRepository();
       await monoRepo.commitChange('foo');
-      writeChangeFiles(
-        {
-          foo: {
-            comment: 'comment 1',
-            date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
-            email: 'test@testtestme.com',
-            packageName: 'foo',
-            type: 'patch',
-            dependentChangeType: 'patch',
-          },
-        },
-        monoRepo.rootPath
-      );
+      writeChangeFiles({ foo: getChange() }, monoRepo.rootPath);
 
       await monoRepo.commitChange('bar');
-      writeChangeFiles(
-        {
-          bar: {
-            comment: 'comment 2',
-            date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
-            email: 'test@testtestme.com',
-            packageName: 'bar',
-            type: 'patch',
-            dependentChangeType: 'patch',
-          },
-        },
-        monoRepo.rootPath
-      );
+      writeChangeFiles({ bar: getChange({ packageName: 'bar', comment: 'comment 2' }) }, monoRepo.rootPath);
 
-      writeChangeFiles(
-        {
-          bar: {
-            comment: 'comment 3',
-            date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
-            email: 'test@testtestme.com',
-            packageName: 'bar',
-            type: 'patch',
-            dependentChangeType: 'patch',
-          },
-        },
-        monoRepo.rootPath
-      );
+      writeChangeFiles({ bar: getChange({ packageName: 'bar', comment: 'comment 3' }) }, monoRepo.rootPath);
 
       const beachballOptions = {
         path: monoRepo.rootPath,
@@ -225,91 +151,31 @@ describe('changelog generation', () => {
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(monoRepo.rootPath);
 
-      writeChangelog(beachballOptions, changes, packageInfos);
+      await writeChangelog(beachballOptions, changes, packageInfos);
 
       // Validate changelog for foo package
       const fooChangelogFile = path.join(monoRepo.rootPath, 'packages', 'foo', 'CHANGELOG.md');
-      const fooChangelogText = await fs.readFile(fooChangelogFile, 'utf-8');
-      const fooChangelogTree = parseMarkdown(fooChangelogText);
-      const fooChangelogHeadings = selectAll('heading text', fooChangelogTree);
-      expect(fooChangelogHeadings.length).toEqual(3);
-      expect(fooChangelogHeadings[0].value).toEqual('Change Log - foo');
-      expect(fooChangelogHeadings[1].value).toEqual('1.0.0');
-      expect(fooChangelogHeadings[2].value).toEqual('Patches');
-
-      const fooChangelogListItems = selectAll('listItem paragraph text', fooChangelogTree);
-      expect(fooChangelogListItems.length).toEqual(1);
-      expect(fooChangelogListItems[0].value).toEqual('comment 1 (test@testtestme.com)');
+      const fooChangelogText = await fs.readFile(fooChangelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(fooChangelogText)).toMatchSnapshot();
 
       // Validate changelog for bar package
       const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
-      const barChangelogText = await fs.readFile(barChangelogFile, 'utf-8');
-      const barChangelogTree = parseMarkdown(barChangelogText);
-      const barChangelogHeadings = selectAll('heading text', barChangelogTree);
-      expect(barChangelogHeadings.length).toEqual(3);
-      expect(barChangelogHeadings[0].value).toEqual('Change Log - bar');
-      expect(barChangelogHeadings[1].value).toEqual('1.3.4');
-      expect(barChangelogHeadings[2].value).toEqual('Patches');
-
-      const barChangelogListItems = selectAll('listItem paragraph text', barChangelogTree);
-      expect(barChangelogListItems.length).toEqual(2);
-      expect(barChangelogListItems[0].value).toEqual('comment 3 (test@testtestme.com)');
-      expect(barChangelogListItems[1].value).toEqual('comment 2 (test@testtestme.com)');
+      const barChangelogText = await fs.readFile(barChangelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(barChangelogText)).toMatchSnapshot();
 
       // Validate grouped changelog for foo and bar packages
       const groupedChangelogFile = path.join(monoRepo.rootPath, 'CHANGELOG.md');
-      const groupedChangelogText = await fs.readFile(groupedChangelogFile, 'utf-8');
-      const groupedChangelogTree = parseMarkdown(groupedChangelogText);
-
-      const groupedChangelogHeadings = selectAll('heading text', groupedChangelogTree);
-      expect(groupedChangelogHeadings.length).toEqual(3);
-      expect(groupedChangelogHeadings[0].value).toEqual('Change Log - foo');
-      expect(groupedChangelogHeadings[1].value).toEqual('1.0.0');
-      expect(groupedChangelogHeadings[2].value).toEqual('Patches');
-
-      const groupedChangelogPackageNameListItems = selectAll('listItem paragraph inlineCode', groupedChangelogTree);
-      expect(groupedChangelogPackageNameListItems.length).toEqual(2);
-      expect(groupedChangelogPackageNameListItems[0].value).toEqual('bar');
-      expect(groupedChangelogPackageNameListItems[1].value).toEqual('foo');
-
-      const groupedChangelogCommentListItems = selectAll('listItem paragraph text', groupedChangelogTree);
-      expect(groupedChangelogCommentListItems.length).toEqual(3);
-      expect(groupedChangelogCommentListItems[0].value).toEqual('comment 3 (test@testtestme.com)');
-      expect(groupedChangelogCommentListItems[1].value).toEqual('comment 2 (test@testtestme.com)');
-      expect(groupedChangelogCommentListItems[2].value).toEqual('comment 1 (test@testtestme.com)');
+      const groupedChangelogText = await fs.readFile(groupedChangelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot();
     });
 
     it('generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog', async () => {
       const monoRepo = await monoRepoFactory.cloneRepository();
       await monoRepo.commitChange('foo');
-      writeChangeFiles(
-        {
-          foo: {
-            comment: 'comment 1',
-            date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
-            email: 'test@testtestme.com',
-            packageName: 'foo',
-            type: 'patch',
-            dependentChangeType: 'patch',
-          },
-        },
-        monoRepo.rootPath
-      );
+      writeChangeFiles({ foo: getChange() }, monoRepo.rootPath);
 
       await monoRepo.commitChange('bar');
-      writeChangeFiles(
-        {
-          bar: {
-            comment: 'comment 2',
-            date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
-            email: 'test@testtestme.com',
-            packageName: 'bar',
-            type: 'patch',
-            dependentChangeType: 'patch',
-          },
-        },
-        monoRepo.rootPath
-      );
+      writeChangeFiles({ bar: getChange({ packageName: 'bar', comment: 'comment 2' }) }, monoRepo.rootPath);
 
       const beachballOptions = {
         path: monoRepo.rootPath,
@@ -329,42 +195,17 @@ describe('changelog generation', () => {
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(monoRepo.rootPath);
 
-      writeChangelog(beachballOptions, changes, packageInfos);
+      await writeChangelog(beachballOptions, changes, packageInfos);
 
       // Validate changelog for bar package
       const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
-      const barChangelogText = await fs.readFile(barChangelogFile, 'utf-8');
-      const barChangelogTree = parseMarkdown(barChangelogText);
-      const barChangelogHeadings = selectAll('heading text', barChangelogTree);
-      expect(barChangelogHeadings.length).toEqual(3);
-      expect(barChangelogHeadings[0].value).toEqual('Change Log - bar');
-      expect(barChangelogHeadings[1].value).toEqual('1.3.4');
-      expect(barChangelogHeadings[2].value).toEqual('Patches');
-
-      const barChangelogListItems = selectAll('listItem paragraph text', barChangelogTree);
-      expect(barChangelogListItems.length).toEqual(1);
-      expect(barChangelogListItems[0].value).toEqual('comment 2 (test@testtestme.com)');
+      const barChangelogText = await fs.readFile(barChangelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(barChangelogText)).toMatchSnapshot();
 
       // Validate grouped changelog for foo and bar packages
       const groupedChangelogFile = path.join(monoRepo.rootPath, 'packages', 'foo', 'CHANGELOG.md');
-      const groupedChangelogText = await fs.readFile(groupedChangelogFile, 'utf-8');
-      const groupedChangelogTree = parseMarkdown(groupedChangelogText);
-
-      const groupedChangelogHeadings = selectAll('heading text', groupedChangelogTree);
-      expect(groupedChangelogHeadings.length).toEqual(3);
-      expect(groupedChangelogHeadings[0].value).toEqual('Change Log - foo');
-      expect(groupedChangelogHeadings[1].value).toEqual('1.0.0');
-      expect(groupedChangelogHeadings[2].value).toEqual('Patches');
-
-      const groupedChangelogPackageNameListItems = selectAll('listItem paragraph inlineCode', groupedChangelogTree);
-      expect(groupedChangelogPackageNameListItems.length).toEqual(2);
-      expect(groupedChangelogPackageNameListItems[0].value).toEqual('bar');
-      expect(groupedChangelogPackageNameListItems[1].value).toEqual('foo');
-
-      const groupedChangelogCommentListItems = selectAll('listItem paragraph text', groupedChangelogTree);
-      expect(groupedChangelogCommentListItems.length).toEqual(2);
-      expect(groupedChangelogCommentListItems[0].value).toEqual('comment 2 (test@testtestme.com)');
-      expect(groupedChangelogCommentListItems[1].value).toEqual('comment 1 (test@testtestme.com)');
+      const groupedChangelogText = await fs.readFile(groupedChangelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot();
     });
   });
 });

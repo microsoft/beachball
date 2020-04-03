@@ -16,9 +16,10 @@
     "jest": "jest",
     "start": "tsc -w --preserveWatchOutput",
     "test": "yarn test:unit && yarn test:e2e",
-    "test-watch": "jest --watch",
+    "test:watch": "jest --watch",
     "test:e2e": "jest --runInBand --config jest.e2e.js",
-    "test:unit": "jest --config jest.config.js"
+    "test:unit": "jest --config jest.config.js",
+    "update-snapshots": "jest --config jest.config.js --updateSnapshot"
   },
   "dependencies": {
     "cosmiconfig": "^6.0.0",
@@ -46,12 +47,9 @@
     "@types/yargs-parser": "^13.0.0",
     "find-free-port": "~2.0.0",
     "jest": "^24.8.0",
-    "remark-parse": "~7.0.1",
     "tmp": "^0.1.0",
     "ts-jest": "^24.0.2",
     "typescript": "^3.7.3",
-    "unified": "^8.3.2",
-    "unist-util-select": "^2.0.2",
     "verdaccio": "^4.2.2",
     "verdaccio-memory": "^8.0.0"
   },

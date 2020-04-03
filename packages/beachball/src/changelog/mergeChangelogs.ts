@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import { PackageChangelog } from '../types/ChangeLog';
 import { PackageInfo } from '../types/PackageInfo';
+import { generateTag } from '../tag';
 
 /**
  * Merge multiple PackageChangelog into one.
@@ -17,6 +18,7 @@ export function mergeChangelogs(
   const result: PackageChangelog = {
     name: masterPackage.name,
     version: masterPackage.version,
+    tag: generateTag(masterPackage.name, masterPackage.version),
     date: new Date(),
     comments: {},
   };

@@ -1,4 +1,4 @@
-import { ChangelogOptions, ChangelogGroupOptions } from '../types/BeachballOptions';
+import { ChangelogOptions, ChangelogGroupOptions } from '../types/ChangelogOptions';
 
 export function isValidChangelogOptions(options: ChangelogOptions): boolean {
   if (options.groups) {
