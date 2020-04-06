@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 06 Apr 2020 21:44:28 GMT",
+      "tag": "beachball_v1.28.0",
+      "version": "1.28.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Export more types",
+            "author": "elcraig@microsoft.com",
+            "commit": "c06fc11ed9fc3fc724a85e433bd7db770c56fe8b",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 03 Apr 2020 15:58:44 GMT",
       "tag": "beachball_v1.27.0",
       "version": "1.27.0",

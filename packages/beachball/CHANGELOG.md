@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 03 Apr 2020 15:58:44 GMT and should not be manually modified.
+This log was last generated on Mon, 06 Apr 2020 21:44:28 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.28.0
+
+Mon, 06 Apr 2020 21:44:28 GMT
+
+### Minor changes
+
+- Export more types (elcraig@microsoft.com)
 
 ## 1.27.0
 
