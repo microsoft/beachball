@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 06 Apr 2020 21:44:28 GMT and should not be manually modified.
+This log was last generated on Wed, 08 Apr 2020 23:42:38 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.28.1
+
+Wed, 08 Apr 2020 23:42:38 GMT
+
+### Patches
+
+- Fix a bug with inferring the commit hash (elcraig@microsoft.com)
 
 ## 1.28.0
 
