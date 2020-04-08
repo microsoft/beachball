@@ -28,10 +28,11 @@ export function readChangeFiles(options: BeachballOptions): ChangeSet {
 
   changeFiles.forEach(changeFile => {
     try {
+      const changeFilePath = path.join(changePath, changeFile);
       const changeInfo: ChangeInfo = {
-        ...fs.readJSONSync(path.join(changePath, changeFile)),
+        ...fs.readJSONSync(changeFilePath),
         // Add the commit hash where the file was actually first introduced
-        commit: getFileAddedHash(changePath, cwd) || '',
+        commit: getFileAddedHash(changeFilePath, cwd) || '',
       };
 
       const packageName = changeInfo.packageName;
