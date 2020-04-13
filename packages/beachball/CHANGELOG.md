@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 08 Apr 2020 23:42:38 GMT and should not be manually modified.
+This log was last generated on Mon, 13 Apr 2020 22:25:28 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.28.2
+
+Mon, 13 Apr 2020 22:25:28 GMT
+
+### Patches
+
+- Making beachball getPackageInfos scale much better with a different git command (kchau@microsoft.com)
 
 ## 1.28.1
 
