@@ -364,11 +364,12 @@ export function getDefaultRemote(cwd: string) {
   return 'origin';
 }
 
-export function listAllTrackedFiles(cwd: string) {
-  const results = git(['ls-tree', '-r', '--name-only', '--full-tree', 'HEAD'], { cwd });
-
-  if (results.success) {
-    return results.stdout.split(/\n/);
+export function listAllTrackedFiles(patterns: string[], cwd: string) {
+  if (patterns) {
+    const results = git(['ls-files', ...patterns], { cwd });
+    if (results.success) {
+      return results.stdout.split(/\n/);
+    }
   }
 
   return [];
