@@ -6,8 +6,7 @@ import { PackageInfos } from '../types/PackageInfo';
 import { infoFromPackageJson } from './infoFromPackageJson';
 export function getPackageInfos(cwd: string) {
   const gitRoot = findGitRoot(cwd)!;
-  const trackedFiles = listAllTrackedFiles(gitRoot);
-  const packageJsonFiles = trackedFiles.filter(file => path.basename(file) === 'package.json');
+  const packageJsonFiles = listAllTrackedFiles(['**/package.json', 'package.json'], gitRoot);
   const packageInfos: PackageInfos = {};
   if (packageJsonFiles && packageJsonFiles.length > 0) {
     packageJsonFiles.forEach(packageJsonPath => {
