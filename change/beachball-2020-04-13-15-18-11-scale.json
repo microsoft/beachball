@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Making beachball getPackageInfos scale much better with a different git command",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-04-13T22:18:11.489Z"
+}
