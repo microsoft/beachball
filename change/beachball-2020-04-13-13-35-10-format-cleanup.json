@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Formatting cleanup; use fs-extra everywhere",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-04-13T20:35:10.230Z"
+}
