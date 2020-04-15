@@ -5,6 +5,8 @@ import { git } from '../git';
 import { publish } from '../commands/publish';
 import { RepositoryFactory } from '../fixtures/repository';
 import { MonoRepoFactory } from '../fixtures/monorepo';
+import fs from 'fs';
+import path from 'path';
 
 describe('publish command (e2e)', () => {
   let registry: Registry;
@@ -171,5 +173,80 @@ describe('publish command (e2e)', () => {
 
     expect(barGitResults.success).toBeTruthy();
     expect(barGitResults.stdout).toBe('bar_v1.4.0');
+  });
+
+  fit('should respect prepublish hooks', async () => {
+    repositoryFactory = new MonoRepoFactory();
+    await repositoryFactory.create();
+    const repo = await repositoryFactory.cloneRepository();
+
+    writeChangeFiles(
+      {
+        foo: {
+          type: 'minor',
+          comment: 'test',
+          date: new Date('2019-01-01'),
+          email: 'test@test.com',
+          packageName: 'foo',
+          dependentChangeType: 'patch',
+        },
+      },
+      repo.rootPath
+    );
+
+    const beachballConfigFixture = {
+      hooks: {
+        prepublish: bumpInfo => {
+          bumpInfo.packageInfos.foo.version = bumpInfo.packageInfos.foo.version + '-beta';
+        },
+      },
+    };
+
+    await repo.commitChange(
+      'beachball.config.js',
+      'module.exports = ' + JSON.stringify(beachballConfigFixture, null, 2)
+    );
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    await publish({
+      branch: 'origin/master',
+      command: 'publish',
+      message: 'apply package updates',
+      path: repo.rootPath,
+      publish: true,
+      bumpDeps: true,
+      push: true,
+      registry: registry.getUrl(),
+      tag: 'latest',
+      token: '',
+      yes: true,
+      new: false,
+      access: 'public',
+      package: '',
+      changehint: 'Run "beachball change" to create a change file',
+      type: null,
+      fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
+      retries: 3,
+    });
+
+    const fooNpmResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
+    expect(fooNpmResult.success).toBeTruthy();
+    const show = JSON.parse(fooNpmResult.stdout);
+    expect(show.name).toEqual('bar');
+    expect(show.versions.length).toEqual(1);
+    expect(show['dist-tags'].latest).toEqual('1.1.0-beta');
+
+    git(['checkout', 'master'], { cwd: repo.rootPath });
+    git(['pull'], { cwd: repo.rootPath });
+
+    const fooGitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
+    expect(fooGitResults.success).toBeTruthy();
+    expect(fooGitResults.stdout).toBe('foo_v1.1.0-beta');
+
+    const fooPackageJson = JSON.parse(fs.readFileSync(path.join(repo.rootPath, 'packages/foo/package.json'), 'utf-8'));
+    expect(fooPackageJson.version).toBe('1.1.0');
   });
 });
