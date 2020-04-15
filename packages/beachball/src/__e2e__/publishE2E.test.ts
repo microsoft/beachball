@@ -176,7 +176,7 @@ describe('publish command (e2e)', () => {
     expect(barGitResults.stdout).toBe('bar_v1.4.0');
   });
 
-  fit('should respect prepublish hooks', async () => {
+  it('should respect prepublish hooks', async () => {
     repositoryFactory = new MonoRepoFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
