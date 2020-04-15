@@ -52,8 +52,13 @@ export interface RepoOptions {
   changeFilePrompt?: ChangeFilePromptOptions;
 
   hooks?: {
-    /** Prepublish hook gets run right before npm publish, the changes will be reverted before pushing */
-    prepublish?: (bumpInfo: BumpInfo) => BumpInfo | Promise<BumpInfo>;
+    /**
+     * Prepublish hook gets run right before npm publish (during performBump)
+     * the changes will be reverted before pushing
+     *
+     * This hook expects manipulation to the bumpInfo object (side effects)
+     */
+    prepublish?: (bumpInfo: BumpInfo) => void | Promise<void>;
   };
 }
 

@@ -9,17 +9,16 @@ export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOp
   const { registry, tag, token, access, timeout } = options;
   const { modifiedPackages, newPackages } = bumpInfo;
 
-  await performBump(bumpInfo, options);
-
   // Execute prepublish hook if available
   if (options.hooks?.prepublish) {
-    const results = options.hooks.prepublish(bumpInfo);
-    if (results instanceof Promise) {
-      bumpInfo = await results;
-    } else {
-      bumpInfo = results;
+    const maybePromise = options.hooks.prepublish(bumpInfo);
+
+    if (maybePromise instanceof Promise) {
+      await maybePromise;
     }
   }
+
+  await performBump(bumpInfo, options);
 
   const succeededPackages = new Set<string>();
 
