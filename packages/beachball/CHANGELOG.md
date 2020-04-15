@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 15 Apr 2020 23:24:07 GMT and should not be manually modified.
+This log was last generated on Wed, 15 Apr 2020 23:41:45 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.29.0
+
+Wed, 15 Apr 2020 23:41:45 GMT
+
+### Minor changes
+
+- adding a hooks option for prepublish foolery (kchau@microsoft.com)
 
 ## 1.28.3
 

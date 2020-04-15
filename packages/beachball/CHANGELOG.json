@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 15 Apr 2020 23:41:45 GMT",
+      "tag": "beachball_v1.29.0",
+      "version": "1.29.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "adding a hooks option for prepublish foolery",
+            "author": "kchau@microsoft.com",
+            "commit": "bddea2333552ba0d5fabfb5c18396ffcb00e39ce",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 15 Apr 2020 23:24:07 GMT",
       "tag": "beachball_v1.28.3",
       "version": "1.28.3",
