@@ -7,6 +7,7 @@ import { RepositoryFactory } from '../fixtures/repository';
 import { MonoRepoFactory } from '../fixtures/monorepo';
 import fs from 'fs';
 import path from 'path';
+import { BumpInfo } from '../types/BumpInfo';
 
 describe('publish command (e2e)', () => {
   let registry: Registry;
@@ -194,19 +195,6 @@ describe('publish command (e2e)', () => {
       repo.rootPath
     );
 
-    const beachballConfigFixture = {
-      hooks: {
-        prepublish: bumpInfo => {
-          bumpInfo.packageInfos.foo.version = bumpInfo.packageInfos.foo.version + '-beta';
-        },
-      },
-    };
-
-    await repo.commitChange(
-      'beachball.config.js',
-      'module.exports = ' + JSON.stringify(beachballConfigFixture, null, 2)
-    );
-
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
     await publish({
@@ -230,21 +218,28 @@ describe('publish command (e2e)', () => {
       disallowedChangeTypes: null,
       defaultNpmTag: 'latest',
       retries: 3,
+      hooks: {
+        prepublish: (bumpInfo: BumpInfo) => {
+          bumpInfo.packageInfos.foo.version = bumpInfo.packageInfos.foo.version + '-beta';
+        }
+      }
     });
 
+    // All npm results should refer to 1.1.0-beta (the mod in the publish step above)    
     const fooNpmResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
     expect(fooNpmResult.success).toBeTruthy();
     const show = JSON.parse(fooNpmResult.stdout);
-    expect(show.name).toEqual('bar');
+    expect(show.name).toEqual('foo');
     expect(show.versions.length).toEqual(1);
     expect(show['dist-tags'].latest).toEqual('1.1.0-beta');
 
     git(['checkout', 'master'], { cwd: repo.rootPath });
     git(['pull'], { cwd: repo.rootPath });
 
+    // All git results should refer to 1.1.0
     const fooGitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
     expect(fooGitResults.success).toBeTruthy();
-    expect(fooGitResults.stdout).toBe('foo_v1.1.0-beta');
+    expect(fooGitResults.stdout).toBe('foo_v1.1.0');
 
     const fooPackageJson = JSON.parse(fs.readFileSync(path.join(repo.rootPath, 'packages/foo/package.json'), 'utf-8'));
     expect(fooPackageJson.version).toBe('1.1.0');
