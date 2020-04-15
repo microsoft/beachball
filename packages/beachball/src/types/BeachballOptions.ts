@@ -1,6 +1,7 @@
 import { ChangeType } from './ChangeInfo';
 import { ChangeFilePromptOptions } from './ChangeFilePrompt';
 import { ChangelogOptions } from './ChangelogOptions';
+import { BumpInfo } from './BumpInfo';
 
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
@@ -49,6 +50,11 @@ export interface RepoOptions {
   groups?: VersionGroupOptions[];
   changelog?: ChangelogOptions;
   changeFilePrompt?: ChangeFilePromptOptions;
+
+  hooks?: {
+    /** Prepublish hook gets run right before npm publish, the changes will be reverted before pushing */
+    prepublish?: (bumpInfo: BumpInfo) => void | Promise<void>;
+  };
 }
 
 export interface PackageOptions {
