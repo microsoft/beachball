@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 15 Apr 2020 23:24:07 GMT",
+      "tag": "beachball_v1.28.3",
+      "version": "1.28.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Sync: honor scope and avoid private package",
+            "author": "xgao@microsoft.com",
+            "commit": "6d8fdbfc6b64883d3ab2146bb8dbafaaa3ace28f",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 13 Apr 2020 22:25:28 GMT",
       "tag": "beachball_v1.28.2",
       "version": "1.28.2",

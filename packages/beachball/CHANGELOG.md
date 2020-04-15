@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 13 Apr 2020 22:25:28 GMT and should not be manually modified.
+This log was last generated on Wed, 15 Apr 2020 23:24:07 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.28.3
+
+Wed, 15 Apr 2020 23:24:07 GMT
+
+### Patches
+
+- Sync: honor scope and avoid private package (xgao@microsoft.com)
 
 ## 1.28.2
 

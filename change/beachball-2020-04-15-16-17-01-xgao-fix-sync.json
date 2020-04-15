@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Sync: honor scope and avoid private package",
-  "packageName": "beachball",
-  "email": "xgao@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-04-15T23:17:01.308Z"
-}
