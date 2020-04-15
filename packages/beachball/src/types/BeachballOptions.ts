@@ -53,7 +53,7 @@ export interface RepoOptions {
 
   hooks?: {
     /** Prepublish hook gets run right before npm publish, the changes will be reverted before pushing */
-    prepublish?: (bumpInfo: BumpInfo) => void | Promise<void>;
+    prepublish?: (bumpInfo: BumpInfo) => BumpInfo | Promise<BumpInfo>;
   };
 }
 

@@ -15,7 +15,9 @@ export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOp
   if (options.hooks?.prepublish) {
     const results = options.hooks.prepublish(bumpInfo);
     if (results instanceof Promise) {
-      await results;
+      bumpInfo = await results;
+    } else {
+      bumpInfo = results;
     }
   }
 
