@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "10x spawnSync max buffer",
+  "packageName": "beachball",
+  "email": "xgao@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-04-16T02:38:24.492Z"
+}
