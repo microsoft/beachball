@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 16 Apr 2020 02:44:52 GMT",
+      "tag": "beachball_v1.29.1",
+      "version": "1.29.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "10x spawnSync max buffer",
+            "author": "xgao@microsoft.com",
+            "commit": "6e11ebb74888ab0800f50540431084170630b292",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 15 Apr 2020 23:41:45 GMT",
       "tag": "beachball_v1.29.0",
       "version": "1.29.0",

@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 15 Apr 2020 23:41:45 GMT and should not be manually modified.
+This log was last generated on Thu, 16 Apr 2020 02:44:52 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.29.1
+
+Thu, 16 Apr 2020 02:44:52 GMT
+
+### Patches
+
+- 10x spawnSync max buffer (xgao@microsoft.com)
 
 ## 1.29.0
 
