@@ -3,7 +3,8 @@ import os from 'os';
 
 export function npm(args: string[], options: SpawnSyncOptions = {}) {
   const npmCmd = os.platform() === 'win32' ? 'npm.cmd' : 'npm';
-  const results = spawnSync(npmCmd, args, { maxBuffer: 1024 * 1024, ...options });
+  const maxBuffer = 1024 * 1024 * 10; // default is 1024 * 1024
+  const results = spawnSync(npmCmd, args, { maxBuffer, ...options });
 
   if (results.status === 0) {
     return {
