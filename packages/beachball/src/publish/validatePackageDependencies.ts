@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import { BumpInfo } from '../types/BumpInfo';
 import { shouldPublishPackage } from './shouldPublishPackage';
 
@@ -30,9 +29,7 @@ export function validatePackageDependencies(bumpInfo: BumpInfo): boolean {
     });
   });
 
-  allDeps = _.uniq(allDeps);
-
-  for (const dep of allDeps) {
+  for (const dep of new Set(allDeps)) {
     if (packageInfos[dep] && packageInfos[dep].private === true) {
       console.error(`Private package ${dep} should not be a dependency.`);
       hasErrors = true;
