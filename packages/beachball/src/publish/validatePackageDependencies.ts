@@ -5,8 +5,6 @@ import { shouldPublishPackage } from './shouldPublishPackage';
  * Validate no private package is listed as package dependency for packages which will be published.
  */
 export function validatePackageDependencies(bumpInfo: BumpInfo): boolean {
-  process.stdout.write(`Validating no private package among package dependencies`);
-
   let hasErrors: boolean = false;
   const { modifiedPackages, newPackages, packageInfos } = bumpInfo;
 
@@ -20,18 +18,16 @@ export function validatePackageDependencies(bumpInfo: BumpInfo): boolean {
     }
 
     const packageInfo = packageInfos[pkg];
-    ['dependencies', 'devDependencies'].forEach(depKind => {
-      const deps = packageInfo[depKind];
-      if (deps) {
-        const depPkgNames = Object.keys(deps);
-        allDeps = allDeps.concat(depPkgNames);
-      }
-    });
+    if (packageInfo.dependencies) {
+      const depPkgNames = Object.keys(packageInfo.dependencies);
+      allDeps = allDeps.concat(depPkgNames);
+    }
   });
 
+  process.stdout.write(`Validating no private package among package dependencies`);
   for (const dep of new Set(allDeps)) {
     if (packageInfos[dep] && packageInfos[dep].private === true) {
-      console.error(`Private package ${dep} should not be a dependency.`);
+      console.error(`\nPrivate package ${dep} should not be a dependency.`);
       hasErrors = true;
     }
   }

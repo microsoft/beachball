@@ -44,7 +44,7 @@ describe('validatePackageDependencies', () => {
     expect(validatePackageDependencies(bumpInfo)).toBeFalsy();
   });
 
-  it('invalid when devDependencies contains private package', () => {
+  it('valid when devDependencies contains private package', () => {
     const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
       packageInfos: {
         foo: {
@@ -60,7 +60,7 @@ describe('validatePackageDependencies', () => {
       newPackages: new Set(['foo']),
     });
 
-    expect(validatePackageDependencies(bumpInfo)).toBeFalsy();
+    expect(validatePackageDependencies(bumpInfo)).toBeTruthy();
   });
 
   it('valid when no private package is listed as dependency', () => {
