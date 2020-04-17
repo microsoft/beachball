@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 17 Apr 2020 22:11:50 GMT",
+      "tag": "beachball_v1.29.2",
+      "version": "1.29.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "reduce npm publish log by set loglevel to warn",
+            "author": "xgao@microsoft.com",
+            "commit": "42db255ec3772920d3a000b7808fb002b01e83fb",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 16 Apr 2020 02:44:52 GMT",
       "tag": "beachball_v1.29.1",
       "version": "1.29.1",

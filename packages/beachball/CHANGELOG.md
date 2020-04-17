@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 16 Apr 2020 02:44:52 GMT and should not be manually modified.
+This log was last generated on Fri, 17 Apr 2020 22:11:50 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.29.2
+
+Fri, 17 Apr 2020 22:11:50 GMT
+
+### Patches
+
+- reduce npm publish log by set loglevel to warn (xgao@microsoft.com)
 
 ## 1.29.1
 
