@@ -11,7 +11,7 @@ export function packagePublish(
 ) {
   const packageOptions = packageInfo.options;
   const packagePath = path.dirname(packageInfo.packageJsonPath);
-  const args = ['publish', '--registry', registry, '--tag', tag || packageOptions.defaultNpmTag];
+  const args = ['publish', '--registry', registry, '--tag', tag || packageOptions.defaultNpmTag, '--loglevel', 'warn'];
   if (token) {
     const shorthand = registry.substring(registry.indexOf('//'));
     args.push(`--${shorthand}:_authToken=${token}`);
