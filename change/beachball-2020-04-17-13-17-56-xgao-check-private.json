@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "validate private package not being a dependency",
+  "packageName": "beachball",
+  "email": "xgao@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-04-17T20:17:56.586Z"
+}
