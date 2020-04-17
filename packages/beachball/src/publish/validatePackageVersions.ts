@@ -1,26 +1,20 @@
 import { BumpInfo } from '../types/BumpInfo';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
+import { shouldPublishPackage } from './shouldPublishPackage';
 
-export function validatePackageVersions(bumpInfo: BumpInfo, registry: string) {
+/**
+ * Validate a package being published is not already published.
+ */
+export function validatePackageVersions(bumpInfo: BumpInfo, registry: string): boolean {
   let hasErrors: boolean = false;
   bumpInfo.modifiedPackages.forEach(pkg => {
+    const { publish, reasonToSkip } = shouldPublishPackage(bumpInfo, pkg);
+    if (!publish) {
+      console.log(`Skipping package version validation - ${reasonToSkip}`);
+      return;
+    }
+
     const packageInfo = bumpInfo.packageInfos[pkg];
-    const changeType = bumpInfo.packageChangeTypes[pkg];
-
-    if (changeType === 'none') {
-      console.log(`Skipping change type as none package ${pkg}`);
-      return;
-    }
-
-    if (packageInfo.private) {
-      console.log(`Skipping private package ${pkg}`);
-      return;
-    }
-    if (!bumpInfo.scopedPackages.has(pkg)) {
-      console.log(`Skipping out-of-scope package ${pkg}`);
-      return;
-    }
-
     process.stdout.write(`Validating package version - ${packageInfo.name}@${packageInfo.version}`);
     const publishedVersions = listPackageVersions(packageInfo.name, registry);
     if (publishedVersions.includes(packageInfo.version)) {
