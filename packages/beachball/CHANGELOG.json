@@ -2,6 +2,51 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 17 Apr 2020 22:32:59 GMT",
+      "tag": "beachball_v1.29.4",
+      "version": "1.29.4",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Publish packages in the right order based on their dependency graph",
+            "author": "xgao@microsoft.com",
+            "commit": "096b3fc845467fddd90976582f520305ad3045bc",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 17 Apr 2020 22:15:02 GMT",
+      "tag": "beachball_v1.29.3",
+      "version": "1.29.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "validate private package not being a dependency",
+            "author": "xgao@microsoft.com",
+            "commit": "8917472911b7cd6980a2d7a85b525f041484224f",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 17 Apr 2020 22:11:50 GMT",
+      "tag": "beachball_v1.29.2",
+      "version": "1.29.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "reduce npm publish log by set loglevel to warn",
+            "author": "xgao@microsoft.com",
+            "commit": "42db255ec3772920d3a000b7808fb002b01e83fb",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 16 Apr 2020 02:44:52 GMT",
       "tag": "beachball_v1.29.1",
       "version": "1.29.1",

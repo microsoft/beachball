@@ -1,8 +1,32 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 16 Apr 2020 02:44:52 GMT and should not be manually modified.
+This log was last generated on Fri, 17 Apr 2020 22:32:59 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.29.4
+
+Fri, 17 Apr 2020 22:32:59 GMT
+
+### Patches
+
+- Publish packages in the right order based on their dependency graph (xgao@microsoft.com)
+
+## 1.29.3
+
+Fri, 17 Apr 2020 22:15:02 GMT
+
+### Patches
+
+- validate private package not being a dependency (xgao@microsoft.com)
+
+## 1.29.2
+
+Fri, 17 Apr 2020 22:11:50 GMT
+
+### Patches
+
+- reduce npm publish log by set loglevel to warn (xgao@microsoft.com)
 
 ## 1.29.1
 

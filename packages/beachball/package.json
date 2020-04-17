@@ -1,6 +1,6 @@
 {
   "name": "beachball",
-  "version": "1.29.1",
+  "version": "1.29.4",
   "description": "The Sunniest Semantic Version Bumper",
   "repository": {
     "type": "git",
@@ -31,7 +31,8 @@
     "minimatch": "^3.0.4",
     "prompts": "~2.1.0",
     "semver": "^6.1.1",
-    "yargs-parser": "^13.1.0"
+    "yargs-parser": "^13.1.0",
+    "toposort": "^2.0.2"
   },
   "devDependencies": {
     "@types/cosmiconfig": "6.0.0",
