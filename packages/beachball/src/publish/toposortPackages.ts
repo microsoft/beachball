@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import toposort from 'toposort';
 import { PackageInfos } from '../types/PackageInfo';
 
@@ -28,7 +27,7 @@ export function toposortPackages(packages: string[], packageInfos: PackageInfos)
       }
     });
 
-    allDeps = _.uniq(allDeps).filter(pkg => packageSet.has(pkg));
+    allDeps = [...new Set(allDeps)].filter(pkg => packageSet.has(pkg));
     if (allDeps.length > 0) {
       allDeps.forEach(depPkgName => {
         dependencyGraph.push([depPkgName, pkgName]);
