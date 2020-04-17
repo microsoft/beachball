@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 17 Apr 2020 22:15:02 GMT",
+      "tag": "beachball_v1.29.3",
+      "version": "1.29.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "validate private package not being a dependency",
+            "author": "xgao@microsoft.com",
+            "commit": "8917472911b7cd6980a2d7a85b525f041484224f",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 17 Apr 2020 22:11:50 GMT",
       "tag": "beachball_v1.29.2",
       "version": "1.29.2",

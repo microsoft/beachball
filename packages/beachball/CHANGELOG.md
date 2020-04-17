@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 17 Apr 2020 22:11:50 GMT and should not be manually modified.
+This log was last generated on Fri, 17 Apr 2020 22:15:02 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.29.3
+
+Fri, 17 Apr 2020 22:15:02 GMT
+
+### Patches
+
+- validate private package not being a dependency (xgao@microsoft.com)
 
 ## 1.29.2
 
