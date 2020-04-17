@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 17 Apr 2020 22:15:02 GMT and should not be manually modified.
+This log was last generated on Fri, 17 Apr 2020 22:32:59 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.29.4
+
+Fri, 17 Apr 2020 22:32:59 GMT
+
+### Patches
+
+- Publish packages in the right order based on their dependency graph (xgao@microsoft.com)
 
 ## 1.29.3
 
