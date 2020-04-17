@@ -58,7 +58,7 @@ export interface RepoOptions {
      * This allows for file modifications which will be reflected in the published package but not be reflected in the
      * repository.
      */
-    prepublish?: (packagePath: string, name: string, version: string) => void;
+    prepublish?: (packagePath: string, name: string, version: string) => void | Promise<void>;
   };
 }
 

@@ -35,7 +35,7 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
 
   const packagesToPublish = toposortPackages([...modifiedPackages, ...newPackages], packageInfos);
 
-  packagesToPublish.forEach(pkg => {
+  for (const pkg of packagesToPublish) {
     const { publish, reasonToSkip } = shouldPublishPackage(bumpInfo, pkg);
     if (!publish) {
       console.log(`Skipping publish - ${reasonToSkip}`);
@@ -47,7 +47,10 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
 
     // run the prepublish hook once, after version bumping but before actually executing npm publish (with retries)
     if (prepublishHook) {
-      prepublishHook(path.dirname(packageInfo.packageJsonPath), packageInfo.name, packageInfo.version);
+      const maybeAwait = prepublishHook(path.dirname(packageInfo.packageJsonPath), packageInfo.name, packageInfo.version);
+      if (maybeAwait instanceof Promise) {
+        await maybeAwait;
+      }
     }
 
     let result;
@@ -72,5 +75,5 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
     displayManualRecovery(bumpInfo, succeededPackages);
     console.error(result.stderr);
     throw new Error('Error publishing, refer to the previous error messages for recovery instructions');
-  });
+  }
 }
