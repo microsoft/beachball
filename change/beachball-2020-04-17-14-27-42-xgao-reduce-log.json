@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "reduce npm publish log by set loglevel to warn",
+  "packageName": "beachball",
+  "email": "xgao@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-04-17T21:27:42.607Z"
+}
