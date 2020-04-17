@@ -15,11 +15,11 @@ describe('toposortPackages', () => {
     const packageInfos = ({
       foo: {
         dependencies: {
-          bar: '1.0.0',
+          foo3: '1.0.0',
           bar2: '1.0.0',
         },
       },
-      bar: {
+      foo3: {
         dependencies: {
           foo2: '1.0.0',
         },
@@ -27,7 +27,7 @@ describe('toposortPackages', () => {
       foo2: {},
     } as any) as PackageInfos;
 
-    expect(toposortPackages(['foo', 'bar', 'foo2'], packageInfos)).toEqual(['foo2', 'bar', 'foo']);
+    expect(toposortPackages(['foo', 'foo2', 'foo3'], packageInfos)).toEqual(['foo2', 'foo3', 'foo']);
   });
 
   it('sort packages with different kinds of dependencies', () => {
@@ -63,19 +63,19 @@ describe('toposortPackages', () => {
     const packageInfos = ({
       foo: {
         dependencies: {
+          foo3: '1.0.0',
           bar: '1.0.0',
-          bar2: '1.0.0',
         },
       },
-      bar: {
+      foo2: {},
+      foo3: {
         dependencies: {
           foo2: '1.0.0',
         },
       },
-      foo2: {},
     } as any) as PackageInfos;
 
-    expect(toposortPackages(['foo', 'bar'], packageInfos)).toEqual(['bar', 'foo']);
+    expect(toposortPackages(['foo', 'foo3'], packageInfos)).toEqual(['foo3', 'foo']);
   });
 
   it('throws if contains circular dependencies', () => {
