@@ -7,7 +7,6 @@ import { RepositoryFactory } from '../fixtures/repository';
 import { MonoRepoFactory } from '../fixtures/monorepo';
 import fs from 'fs';
 import path from 'path';
-import { BumpInfo } from '../types/BumpInfo';
 
 describe('publish command (e2e)', () => {
   let registry: Registry;
@@ -219,29 +218,34 @@ describe('publish command (e2e)', () => {
       defaultNpmTag: 'latest',
       retries: 3,
       hooks: {
-        prepublish: (bumpInfo: BumpInfo) => {
-          bumpInfo.packageInfos.foo.version = bumpInfo.packageInfos.foo.version + '-beta';
-        }
-      }
+        prepublish: (packagePath: string) => {
+          const packageJsonPath = path.join(packagePath, 'package.json');
+          const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+          if (packageJson.onPublish) {
+            Object.assign(packageJson, packageJson.onPublish);
+            delete packageJson.onPublish;
+            fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+          }
+        },
+      },
     });
 
-    // All npm results should refer to 1.1.0-beta (the mod in the publish step above)    
+    // Query the information from package.json from the registry to see if it was successfully patched
     const fooNpmResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
     expect(fooNpmResult.success).toBeTruthy();
     const show = JSON.parse(fooNpmResult.stdout);
     expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.1.0-beta');
+    expect(show.main).toEqual('lib/index.js');
+    expect(show.hasOwnProperty('onPublish')).toBeFalsy();
 
     git(['checkout', 'master'], { cwd: repo.rootPath });
     git(['pull'], { cwd: repo.rootPath });
 
-    // All git results should refer to 1.1.0
+    // All git results should still have previous information
     const fooGitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
     expect(fooGitResults.success).toBeTruthy();
-    expect(fooGitResults.stdout).toBe('foo_v1.1.0');
-
     const fooPackageJson = JSON.parse(fs.readFileSync(path.join(repo.rootPath, 'packages/foo/package.json'), 'utf-8'));
-    expect(fooPackageJson.version).toBe('1.1.0');
+    expect(fooPackageJson.main).toBe('src/index.ts');
+    expect(fooPackageJson.onPublish.main).toBe('lib/index.js');
   });
 });

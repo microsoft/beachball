@@ -5,20 +5,13 @@ import { packagePublish } from '../packageManager/packagePublish';
 import { validatePackageVersions } from './validatePackageVersions';
 import { displayManualRecovery } from './displayManualRecovery';
 import _ from 'lodash';
+import path from 'path';
 
 export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions) {
   const { registry, tag, token, access, timeout } = options;
   const bumpInfo = _.cloneDeep(originalBumpInfo);
   const { modifiedPackages, newPackages } = bumpInfo;
-
-  // Execute prepublish hook if available
-  if (options.hooks?.prepublish) {
-    const maybePromise = options.hooks.prepublish(bumpInfo);
-
-    if (maybePromise instanceof Promise) {
-      await maybePromise;
-    }
-  }
+  const prepublish = options.hooks?.prepublish;
 
   await performBump(bumpInfo, options);
 
@@ -46,6 +39,11 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
 
       let result;
       let retries = 0;
+
+      // run the prepublish hook once, after version bumping but before actually executing npm publish (with retries)
+      if (prepublish) {
+        prepublish(path.dirname(packageInfo.packageJsonPath), packageInfo.name, packageInfo.version);
+      }
 
       do {
         result = packagePublish(packageInfo, registry, token, tag, access, timeout);

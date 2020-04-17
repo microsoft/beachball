@@ -13,6 +13,10 @@ export const packageJsonFixtures = {
     dependencies: {
       bar: '^1.3.4',
     },
+    main: 'src/index.ts',
+    onPublish: {
+      main: 'lib/index.js',
+    },
   },
 
   'packages/bar': {

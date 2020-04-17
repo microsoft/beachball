@@ -1,7 +1,6 @@
 import { ChangeType } from './ChangeInfo';
 import { ChangeFilePromptOptions } from './ChangeFilePrompt';
 import { ChangelogOptions } from './ChangelogOptions';
-import { BumpInfo } from './BumpInfo';
 
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
@@ -53,12 +52,13 @@ export interface RepoOptions {
 
   hooks?: {
     /**
-     * Prepublish hook gets run right before npm publish (during performBump)
-     * the changes will be reverted before pushing
+     * Runs for each package after version bumps have been processed and committed to git, but before the actual
+     * publish command.
      *
-     * This hook expects manipulation to the bumpInfo object (side effects)
+     * This allows for file modifications which will be reflected in the published package but not be reflected in the
+     * repository.
      */
-    prepublish?: (bumpInfo: BumpInfo) => void | Promise<void>;
+    prepublish?: (packagePath: string, name: string, version: string) => void;
   };
 }
 
