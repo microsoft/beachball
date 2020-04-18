@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import path from 'path';
 import { performBump } from '../bump/performBump';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
@@ -14,14 +15,6 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   const bumpInfo = _.cloneDeep(originalBumpInfo);
   const { modifiedPackages, newPackages, packageInfos } = bumpInfo;
 
-  // Execute prepublish hook if available
-  if (options.hooks?.prepublish) {
-    const maybePromise = options.hooks.prepublish(bumpInfo);
-
-    if (maybePromise instanceof Promise) {
-      await maybePromise;
-    }
-  }
 
   await performBump(bumpInfo, options);
 
@@ -40,15 +33,29 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
     process.exit(1);
   }
 
-  const packagesToPublish = toposortPackages([...modifiedPackages, ...newPackages], packageInfos);
-
-  packagesToPublish.forEach(pkg => {
+  // get the packages to publish, reducing the set by packages that don't need publishing
+  const packagesToPublish = toposortPackages([...modifiedPackages, ...newPackages], packageInfos).filter(pkg => {
     const { publish, reasonToSkip } = shouldPublishPackage(bumpInfo, pkg);
     if (!publish) {
       console.log(`Skipping publish - ${reasonToSkip}`);
-      return;
     }
+    return publish;
+  });
 
+  // if there is a prepublish hook perform a prepublish pass, calling the routine on each package
+  const prepublishHook = options.hooks?.prepublish;
+  if (prepublishHook) {
+    for (const pkg of packagesToPublish) {
+      const packageInfo = bumpInfo.packageInfos[pkg];
+      const maybeAwait = prepublishHook(path.dirname(packageInfo.packageJsonPath), packageInfo.name, packageInfo.version);
+      if (maybeAwait instanceof Promise) {
+        await maybeAwait;
+      }
+    }
+  }
+
+  // finally pass through doing the actual npm publish command
+  for (const pkg of packagesToPublish) {
     const packageInfo = bumpInfo.packageInfos[pkg];
     console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
 
@@ -74,5 +81,5 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
     displayManualRecovery(bumpInfo, succeededPackages);
     console.error(result.stderr);
     throw new Error('Error publishing, refer to the previous error messages for recovery instructions');
-  });
+  }
 }
