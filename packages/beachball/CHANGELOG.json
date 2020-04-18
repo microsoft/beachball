@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 18 Apr 2020 00:23:31 GMT",
+      "tag": "beachball_v1.30.0",
+      "version": "1.30.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "update prepublish hook to work on files rather than bumpInfo",
+            "author": "jasonmo@microsoft.com",
+            "commit": "9f79bfd9c7b1f656a9277237129faf8297f43084",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 17 Apr 2020 22:32:59 GMT",
       "tag": "beachball_v1.29.4",
       "version": "1.29.4",

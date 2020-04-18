@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 17 Apr 2020 22:32:59 GMT and should not be manually modified.
+This log was last generated on Sat, 18 Apr 2020 00:23:31 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.30.0
+
+Sat, 18 Apr 2020 00:23:31 GMT
+
+### Minor changes
+
+- update prepublish hook to work on files rather than bumpInfo (jasonmo@microsoft.com)
 
 ## 1.29.4
 
