@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "fixing tests to be able to be run on windows",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-04-20T21:13:00.836Z"
-}

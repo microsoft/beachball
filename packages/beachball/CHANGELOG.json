@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 20 Apr 2020 22:43:02 GMT",
+      "tag": "beachball_v1.30.1",
+      "version": "1.30.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "fixing tests to be able to be run on windows",
+            "author": "kchau@microsoft.com",
+            "commit": "a441a6b95638c296e0c07acce722fefc49ed93a4",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 20 Apr 2020 19:30:21 GMT",
       "tag": "beachball_v1.30.1",
       "version": "1.30.1",
