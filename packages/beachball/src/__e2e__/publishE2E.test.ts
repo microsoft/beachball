@@ -169,7 +169,7 @@ describe('publish command (e2e)', () => {
 
     git(['checkout', 'master'], { cwd: repo.rootPath });
     git(['pull'], { cwd: repo.rootPath });
-    const barGitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
+    const barGitResults = git(['describe', '--abbrev=0', 'bar_v1.4.0'], { cwd: repo.rootPath });
 
     expect(barGitResults.success).toBeTruthy();
     expect(barGitResults.stdout).toBe('bar_v1.4.0');
