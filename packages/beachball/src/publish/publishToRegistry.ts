@@ -68,7 +68,7 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
       if (result.success) {
         console.log('Published!');
         succeededPackages.add(pkg);
-        return;
+        break;
       } else {
         retries++;
 
@@ -78,8 +78,10 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
       }
     } while (retries <= options.retries);
 
-    displayManualRecovery(bumpInfo, succeededPackages);
-    console.error(result.stderr);
-    throw new Error('Error publishing, refer to the previous error messages for recovery instructions');
+    if (!result.success) {
+      displayManualRecovery(bumpInfo, succeededPackages);
+      console.error(result.stderr);
+      throw new Error('Error publishing, refer to the previous error messages for recovery instructions');
+    }
   }
 }

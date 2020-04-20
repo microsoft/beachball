@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Fix multi-package publishing regression (#327).",
+  "packageName": "beachball",
+  "email": "reli@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-04-20T08:01:13.833Z"
+}

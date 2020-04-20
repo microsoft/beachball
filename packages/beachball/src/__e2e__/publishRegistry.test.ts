@@ -219,6 +219,88 @@ describe('publish command (registry)', () => {
     expect(showResult.success).toBeFalsy();
   });
 
+  it('can perform a successful npm publish when multiple packages changed at same time', async () => {
+    repositoryFactory = new RepositoryFactory();
+    await repositoryFactory.create();
+    const repo = await repositoryFactory.cloneRepository();
+
+    await repo.commitChange(
+      'packages/foopkg/package.json',
+      JSON.stringify({
+        name: 'foopkg',
+        version: '1.0.0',
+        dependencies: {
+          barpkg: '^1.0.0',
+        }
+      })
+    );
+
+    await repo.commitChange(
+      'packages/barpkg/package.json',
+      JSON.stringify({
+        name: 'barpkg',
+        version: '1.0.0',
+      })
+    );
+
+    writeChangeFiles(
+      {
+        foopkg: {
+          type: 'minor',
+          comment: 'test',
+          date: new Date('2019-01-01'),
+          email: 'test@test.com',
+          packageName: 'foopkg',
+          dependentChangeType: 'patch',
+        },
+        barpkg: {
+          type: 'minor',
+          comment: 'test',
+          date: new Date('2019-01-01'),
+          email: 'test@test.com',
+          packageName: 'barpkg',
+          dependentChangeType: 'patch',
+        },
+      },
+      repo.rootPath
+    );
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    await publish({
+      branch: 'origin/master',
+      command: 'publish',
+      message: 'apply package updates',
+      path: repo.rootPath,
+      publish: true,
+      bumpDeps: false,
+      push: false,
+      registry: registry.getUrl(),
+      tag: 'latest',
+      token: '',
+      yes: true,
+      new: false,
+      access: 'public',
+      package: 'foopkg',
+      changehint: 'Run "beachball change" to create a change file',
+      type: null,
+      fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
+      retries: 3,
+    });
+
+    const showResultFoo = npm(['--registry', registry.getUrl(), 'show', 'foopkg', '--json']);
+    expect(showResultFoo.success).toBeTruthy();
+    const showFoo = JSON.parse(showResultFoo.stdout);
+    expect(showFoo['dist-tags'].latest).toEqual('1.1.0');
+
+    const showResultBar = npm(['--registry', registry.getUrl(), 'show', 'barpkg', '--json']);
+    expect(showResultBar.success).toBeTruthy();
+    const showBar = JSON.parse(showResultFoo.stdout);
+    expect(showBar['dist-tags'].latest).toEqual('1.1.0');
+  });
+
   it('can perform a successful npm publish even with a non-existent package listed in the change file', async () => {
     repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
