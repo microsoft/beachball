@@ -85,6 +85,7 @@ export class Repository {
     this.origin = path;
   }
 
+  /** Commits a change, automatically uses root path, do not pass absolute paths here */
   async commitChange(newFilename: string, content?: string): Promise<void> {
     if (!this.root) {
       throw new Error('Must initialize before cloning');

@@ -62,16 +62,15 @@ export class MonoRepoFactory extends RepositoryFactory {
     await tmpRepo.cloneFrom(this.root);
     await tmpRepo.commitChange('README');
 
-    await Object.keys(packageJsonFixtures).reduce(async (p, pkg) => {
-      await p;
+    for (const pkg of Object.keys(packageJsonFixtures)) {
       const packageJsonFixture = packageJsonFixtures[pkg];
-      const packageJsonFile = path.join(tmpRepo.rootPath, pkg, 'package.json');
+      const packageJsonFile = path.join(pkg, 'package.json');
 
-      fs.mkdirpSync(path.dirname(packageJsonFile));
+      fs.mkdirpSync(path.join(tmpRepo.rootPath, pkg));
 
-      await fs.writeFile(packageJsonFile, JSON.stringify(packageJsonFixture, null, 2));
+      await fs.writeFile(path.join(tmpRepo.rootPath, packageJsonFile), JSON.stringify(packageJsonFixture, null, 2));
       await tmpRepo.commitChange(packageJsonFile);
-    }, Promise.resolve());
+    }
 
     await tmpRepo.commitChange('package.json', JSON.stringify({ name: 'monorepo-fixture', version: '1.0.0' }, null, 2));
     await tmpRepo.commitChange(
