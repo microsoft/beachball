@@ -8,6 +8,7 @@ export interface PackageDeps {
 export interface PackageJson {
   name: string;
   version: string;
+  main?: string;
   dependencies?: PackageDeps;
   devDependencies?: PackageDeps;
   peerDependencies?: PackageDeps;

@@ -1,5 +1,5 @@
 import toposort from 'toposort';
-import { PackageInfos } from '../types/PackageInfo';
+import { PackageInfos, PackageDeps } from '../types/PackageInfo';
 
 /**
  * Topological sort the packages based on its dependency graph.
@@ -20,7 +20,7 @@ export function toposortPackages(packages: string[], packageInfos: PackageInfos)
         throw new Error(`Package info is missing for ${pkgName}.`);
       }
 
-      const deps = packageInfos[pkgName][depKind];
+      const deps: PackageDeps | undefined = (info as any)[depKind];
       if (deps) {
         const depPkgNames = Object.keys(deps);
         allDeps = allDeps.concat(depPkgNames);
@@ -38,7 +38,7 @@ export function toposortPackages(packages: string[], packageInfos: PackageInfos)
   });
 
   try {
-    return toposort(dependencyGraph).filter(pkg => !!pkg);
+    return toposort(dependencyGraph).filter((pkg): pkg is string => !!pkg);
   } catch (err) {
     throw new Error(`Failed to do toposort for packages: ${err?.message}`);
   }

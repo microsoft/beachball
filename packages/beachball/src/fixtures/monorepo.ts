@@ -18,7 +18,7 @@ export const packageJsonFixtures: { [path: string]: PackageJson } = {
     onPublish: {
       main: 'lib/index.js',
     },
-  },
+  } as PackageJson,
 
   'packages/bar': {
     name: 'bar',
