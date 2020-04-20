@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Sat, 18 Apr 2020 00:23:31 GMT and should not be manually modified.
+This log was last generated on Mon, 20 Apr 2020 19:30:21 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.30.1
+
+Mon, 20 Apr 2020 19:30:21 GMT
+
+### Patches
+
+- Fix multi-package publishing regression (#327). (reli@microsoft.com)
 
 ## 1.30.0
 

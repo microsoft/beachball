@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 20 Apr 2020 19:30:21 GMT",
+      "tag": "beachball_v1.30.1",
+      "version": "1.30.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix multi-package publishing regression (#327).",
+            "author": "reli@microsoft.com",
+            "commit": "c77675b2f414a050ca1d49d66ebfd46c6cc2e5c8",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 18 Apr 2020 00:23:31 GMT",
       "tag": "beachball_v1.30.0",
       "version": "1.30.0",
