@@ -15,7 +15,6 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   const bumpInfo = _.cloneDeep(originalBumpInfo);
   const { modifiedPackages, newPackages, packageInfos } = bumpInfo;
 
-
   await performBump(bumpInfo, options);
 
   const succeededPackages = new Set<string>();
@@ -47,7 +46,11 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   if (prepublishHook) {
     for (const pkg of packagesToPublish) {
       const packageInfo = bumpInfo.packageInfos[pkg];
-      const maybeAwait = prepublishHook(path.dirname(packageInfo.packageJsonPath), packageInfo.name, packageInfo.version);
+      const maybeAwait = prepublishHook(
+        path.dirname(packageInfo.packageJsonPath),
+        packageInfo.name,
+        packageInfo.version
+      );
       if (maybeAwait instanceof Promise) {
         await maybeAwait;
       }
