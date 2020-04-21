@@ -5,8 +5,9 @@ import { runCommands } from './exec';
 import { tmpdir } from './tmpdir';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { Repository, RepositoryFactory } from './repository';
+import { PackageJson } from '../types/PackageInfo';
 
-export const packageJsonFixtures = {
+export const packageJsonFixtures: { [path: string]: PackageJson } = {
   'packages/foo': {
     name: 'foo',
     version: '1.0.0',
@@ -17,7 +18,7 @@ export const packageJsonFixtures = {
     onPublish: {
       main: 'lib/index.js',
     },
-  },
+  } as PackageJson,
 
   'packages/bar': {
     name: 'bar',
@@ -32,7 +33,7 @@ export const packageJsonFixtures = {
   'packages/grouped/b': {
     name: 'b',
     version: '3.1.2',
-    dependencies: ['bar'],
+    dependencies: ['bar'] as any,
   },
 };
 
@@ -68,7 +69,7 @@ export class MonoRepoFactory extends RepositoryFactory {
 
       fs.mkdirpSync(path.join(tmpRepo.rootPath, pkg));
 
-      await fs.writeFile(path.join(tmpRepo.rootPath, packageJsonFile), JSON.stringify(packageJsonFixture, null, 2));
+      fs.writeJSONSync(path.join(tmpRepo.rootPath, packageJsonFile), packageJsonFixture, { spaces: 2 });
       await tmpRepo.commitChange(packageJsonFile);
     }
 

@@ -39,7 +39,6 @@ import { validate } from './validation/validate';
       await bump(options);
       break;
 
-
     case 'sync':
       sync(options);
       break;

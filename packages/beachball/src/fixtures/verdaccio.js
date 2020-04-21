@@ -5,7 +5,7 @@ const startServer = require('verdaccio').default;
 const store = require('verdaccio-memory').default;
 
 const arguments = {
-  port: process.argv[2]
+  port: process.argv[2],
 };
 
 const port = arguments.port;
@@ -17,22 +17,22 @@ if (!port) {
     packages: {
       '**': {
         access: '$anonymous',
-        publish: '$anonymous'
-      }
+        publish: '$anonymous',
+      },
     },
     store: {
       memory: {
-        limit: 1000
-      }
-    }
+        limit: 1000,
+      },
+    },
   };
-  
+
   const addr = {
     port: port,
     path: '/',
-    host: 'localhost'
+    host: 'localhost',
   };
-  
+
   startServer(config, port, store, '1.0.0', 'verdaccio', (webServer, addrs, pkgName, pkgVersion) => {
     webServer.listen(addr.port || addr.path, addr.host, () => {
       // This is logged to tell whoever spawns us that we're ready.
@@ -41,4 +41,3 @@ if (!port) {
     });
   });
 }
-

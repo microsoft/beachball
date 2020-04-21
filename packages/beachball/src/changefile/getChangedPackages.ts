@@ -1,14 +1,13 @@
 import { ChangeFileInfo } from '../types/ChangeInfo';
 import { findPackageRoot, getChangePath } from '../paths';
 import { getChanges, getStagedChanges, git, fetchRemote, parseRemoteBranch } from '../git';
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { BeachballOptions } from '../types/BeachballOptions';
 
 /**
  * Gets all the changed packages, regardless of the change files
- * @param cwd
  */
 function getAllChangedPackages(options: BeachballOptions) {
   const { branch, path: cwd } = options;
@@ -26,7 +25,7 @@ function getAllChangedPackages(options: BeachballOptions) {
 
         if (root && !packageRoots[root]) {
           try {
-            const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json')).toString());
+            const packageJson = fs.readJSONSync(path.join(root, 'package.json'));
 
             if (!packageJson.private && (!packageJson.beachball || packageJson.beachball.shouldPublish !== false)) {
               const packageName = packageJson.name;
@@ -47,7 +46,6 @@ function getAllChangedPackages(options: BeachballOptions) {
 
 /**
  * Gets all the changed packages, accounting for change files
- * @param cwd
  */
 export function getChangedPackages(options: BeachballOptions) {
   const { fetch, path: cwd, branch } = options;
@@ -75,7 +73,7 @@ export function getChangedPackages(options: BeachballOptions) {
   // Loop through the change files, building up a set of packages that we can skip
   changeFiles.forEach(file => {
     try {
-      const changeInfo: ChangeFileInfo = JSON.parse(fs.readFileSync(file, 'utf-8'));
+      const changeInfo: ChangeFileInfo = fs.readJSONSync(file);
       changeFilePackageSet.add(changeInfo.packageName);
     } catch (e) {
       console.warn(`Invalid change file encountered: ${file}`);

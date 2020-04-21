@@ -231,7 +231,7 @@ describe('publish command (registry)', () => {
         version: '1.0.0',
         dependencies: {
           barpkg: '^1.0.0',
-        }
+        },
       })
     );
 

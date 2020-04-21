@@ -40,7 +40,7 @@ export function writeChangeFiles(
       }
 
       const change = changes[pkgName];
-      fs.writeFileSync(changeFile, JSON.stringify(change, null, 2));
+      fs.writeJSONSync(changeFile, change, { spaces: 2 });
       return changeFile;
     });
 

@@ -12,7 +12,7 @@ export function getPackageChangelogs(
   const changelogs: {
     [pkgName: string]: PackageChangelog;
   } = {};
-  for (let [_, change] of changeSet) {
+  for (let change of changeSet.values()) {
     const { packageName } = change;
     if (!changelogs[packageName]) {
       const version = packageInfos[packageName].version;

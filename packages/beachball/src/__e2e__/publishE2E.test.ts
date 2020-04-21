@@ -5,7 +5,7 @@ import { git } from '../git';
 import { publish } from '../commands/publish';
 import { RepositoryFactory } from '../fixtures/repository';
 import { MonoRepoFactory } from '../fixtures/monorepo';
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 
 describe('publish command (e2e)', () => {
@@ -220,7 +220,7 @@ describe('publish command (e2e)', () => {
       hooks: {
         prepublish: (packagePath: string) => {
           const packageJsonPath = path.join(packagePath, 'package.json');
-          const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+          const packageJson = fs.readJSONSync(packageJsonPath);
           if (packageJson.onPublish) {
             Object.assign(packageJson, packageJson.onPublish);
             delete packageJson.onPublish;
@@ -244,7 +244,7 @@ describe('publish command (e2e)', () => {
     // All git results should still have previous information
     const fooGitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
     expect(fooGitResults.success).toBeTruthy();
-    const fooPackageJson = JSON.parse(fs.readFileSync(path.join(repo.rootPath, 'packages/foo/package.json'), 'utf-8'));
+    const fooPackageJson = fs.readJSONSync(path.join(repo.rootPath, 'packages/foo/package.json'));
     expect(fooPackageJson.main).toBe('src/index.ts');
     expect(fooPackageJson.onPublish.main).toBe('lib/index.js');
   });

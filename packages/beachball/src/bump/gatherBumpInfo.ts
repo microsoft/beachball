@@ -13,7 +13,7 @@ function gatherPreBumpInfo(options: BeachballOptions): BumpInfo {
   const changes = readChangeFiles(options);
   const packageChangeTypes = getPackageChangeTypes(changes);
   const packageInfos = getPackageInfos(cwd);
-  const dependentChangeTypes = {};
+  const dependentChangeTypes: BumpInfo['dependentChangeTypes'] = {};
   const groupOptions = {};
 
   // Clear non-existent changes

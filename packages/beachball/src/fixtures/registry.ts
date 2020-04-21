@@ -1,4 +1,5 @@
 import { ChildProcess, spawn } from 'child_process';
+// @ts-ignore
 import fp from 'find-free-port';
 
 const verdaccioApi = require.resolve('./verdaccio.js');

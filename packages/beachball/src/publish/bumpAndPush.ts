@@ -9,6 +9,7 @@ import { displayManualRecovery } from './displayManualRecovery';
 export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: BeachballOptions) {
   const { path: cwd, branch, tag, message } = options;
   const { remote, remoteBranch } = parseRemoteBranch(branch);
+
   console.log('Reverting');
   revertLocalChanges(cwd);
 
@@ -34,8 +35,9 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     process.exit(1);
   }
 
-  // Step 3. Tag & Push to remote
+  // Tag & Push to remote
   tagPackages(bumpInfo, tag, cwd);
+
   console.log(`pushing to ${branch}, running the following command for git push:`);
   const pushArgs = ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`];
   console.log('git ' + pushArgs.join(' '));

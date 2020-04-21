@@ -3,6 +3,7 @@ import { PackageOptions } from '../types/BeachballOptions';
 import { getCliOptions } from './getCliOptions';
 import { getRootOptions } from './getRootOptions';
 import { getDefaultOptions } from './getDefaultOptions';
+
 /**
  * Gets all package level options (default + root options + package options + cli options)
  */

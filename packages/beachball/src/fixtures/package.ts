@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 import * as tmp from 'tmp';
 import { PackageInfo } from '../types/PackageInfo';
@@ -13,8 +13,7 @@ const testPackage = {
 // Create a test package.json in a temporary location for use in tests.
 var tmpPackageFile = path.join(tmp.dirSync().name, 'package.json');
 
-var testPackageJson = JSON.stringify(testPackage);
-fs.writeFileSync(tmpPackageFile, testPackageJson, 'utf8');
+fs.writeJSONSync(tmpPackageFile, testPackage, { spaces: 2 });
 
 export const testPackageInfo: PackageInfo = {
   name: testPackage.name,

@@ -6,11 +6,6 @@ import { BumpInfo } from '../types/BumpInfo';
  * Updates package change types based on dependents (e.g given A -> B, if B has a minor change, A should also have minor change)
  *
  * This function is recursive and will futher call itself to update related dependent packages noting groups and bumpDeps flag
- *
- * @param pkgName
- * @param changeType
- * @param bumpInfo
- * @param dependents
  */
 export function updateRelatedChangeType(
   pkgName: string,
