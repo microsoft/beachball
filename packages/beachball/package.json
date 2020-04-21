@@ -51,7 +51,7 @@
     "@types/yargs-parser": "^13.0.0",
     "find-free-port": "~2.0.0",
     "jest": "^24.8.0",
-    "prettier": "^1.19.0",
+    "prettier": "^2.0.4",
     "tmp": "^0.1.0",
     "ts-jest": "^24.0.2",
     "typescript": "^3.7.3",
