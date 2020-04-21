@@ -69,7 +69,7 @@ export class MonoRepoFactory extends RepositoryFactory {
 
       fs.mkdirpSync(path.join(tmpRepo.rootPath, pkg));
 
-      fs.writeJSONSync(packageJsonFile, packageJsonFixture, { spaces: 2 });
+      fs.writeJSONSync(path.join(tmpRepo.rootPath, packageJsonFile), packageJsonFixture, { spaces: 2 });
       await tmpRepo.commitChange(packageJsonFile);
     }
 
