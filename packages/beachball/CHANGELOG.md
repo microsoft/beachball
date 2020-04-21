@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 20 Apr 2020 19:30:21 GMT and should not be manually modified.
+This log was last generated on Tue, 21 Apr 2020 00:12:02 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.30.2
+
+Tue, 21 Apr 2020 00:12:02 GMT
+
+### Patches
+
+- Formatting cleanup; use fs-extra everywhere (elcraig@microsoft.com)
 
 ## 1.30.1
 
