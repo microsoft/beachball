@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Sync should limit to current major version",
+  "comment": "Sync should limit to current major version and skip prerelease",
   "packageName": "beachball",
   "email": "elcraig@microsoft.com",
   "dependentChangeType": "patch",
