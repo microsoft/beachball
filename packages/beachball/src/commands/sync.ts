@@ -14,6 +14,11 @@ export async function sync(options: BeachballOptions) {
       continue;
     }
 
+    if (semver.prerelease(info.version)) {
+      console.log(`Warning: cannot sync prerelease package "${pkg}@${info.version}"`);
+      continue;
+    }
+
     // Get the latest of *this major version* of the package.
     // To do this we have to get all versions within this major version then take the latest.
     const npmArgs = ['view', `${pkg}@${semver.major(info.version)}`, 'version', '--json'];
