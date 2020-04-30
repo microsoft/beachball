@@ -11,6 +11,7 @@ export function readChangeFiles(options: BeachballOptions): ChangeSet {
   const scopedPackages = getScopedPackages(options);
   const changeSet: ChangeSet = new Map();
   const changePath = getChangePath(cwd);
+
   if (!changePath || !fs.existsSync(changePath)) {
     return changeSet;
   }

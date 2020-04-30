@@ -6,6 +6,7 @@ import { isChangeFileNeeded } from './isChangeFileNeeded';
 import { isValidGroupOptions } from './isValidGroupOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { isValidChangelogOptions } from './isValidChangelogOptions';
+import { readChangeFiles } from '../changefile/readChangeFiles';
 
 export function validate(
   options: BeachballOptions,
@@ -53,6 +54,16 @@ export function validate(
     console.error('ERROR: Changelog defined inside the configuration is invalid');
     console.log(options.changelog);
     process.exit(1);
+  }
+
+  const changeSet = readChangeFiles(options);
+  for (const [changeFile, change] of changeSet) {
+    if (!change.type || !isValidChangeType(change.type)) {
+      console.error(
+        `ERROR: there is an invalid change type detected ${changeFile}: "${change.type}" is not a valid change type`
+      );
+      process.exit(1);
+    }
   }
 
   return {
