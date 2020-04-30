@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 30 Apr 2020 19:33:20 GMT",
+      "tag": "beachball_v1.31.0",
+      "version": "1.31.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "checks for invalid beachball change file on check and all operations",
+            "author": "kchau@microsoft.com",
+            "commit": "ad457fe2273d14aaac97e8f6a4bbb1c0c9406d4f",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 21 Apr 2020 00:12:02 GMT",
       "tag": "beachball_v1.30.2",
       "version": "1.30.2",

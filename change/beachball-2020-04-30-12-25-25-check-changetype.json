@@ -1,8 +1,0 @@
-{
-  "type": "minor",
-  "comment": "checks for invalid beachball change file on check and all operations",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-04-30T19:25:25.085Z"
-}
