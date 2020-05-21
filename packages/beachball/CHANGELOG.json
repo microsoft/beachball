@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 21 May 2020 23:56:52 GMT",
+      "tag": "beachball_v1.31.1",
+      "version": "1.31.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "validate the disallowedChangeTypes for publishing",
+            "author": "kchau@microsoft.com",
+            "commit": "994e357205bd6fd244f2660d7be7c744bba2d703",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 30 Apr 2020 19:33:20 GMT",
       "tag": "beachball_v1.31.0",
       "version": "1.31.0",

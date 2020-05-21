@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 30 Apr 2020 19:33:20 GMT and should not be manually modified.
+This log was last generated on Thu, 21 May 2020 23:56:52 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.31.1
+
+Thu, 21 May 2020 23:56:52 GMT
+
+### Patches
+
+- validate the disallowedChangeTypes for publishing (kchau@microsoft.com)
 
 ## 1.31.0
 
