@@ -7,6 +7,9 @@ import { isValidGroupOptions } from './isValidGroupOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { isValidChangelogOptions } from './isValidChangelogOptions';
 import { readChangeFiles } from '../changefile/readChangeFiles';
+import { getPackageInfos } from '../monorepo/getPackageInfos';
+import { getPackageGroups } from '../monorepo/getPackageGroups';
+import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes';
 
 export function validate(
   options: BeachballOptions,
@@ -57,8 +60,13 @@ export function validate(
   }
 
   const changeSet = readChangeFiles(options);
+  const packageInfos = getPackageInfos(options.path);
+  const packageGroups = getPackageGroups(packageInfos, options.path, options.groups);
+
   for (const [changeFile, change] of changeSet) {
-    if (!change.type || !isValidChangeType(change.type)) {
+    const disallowedChangeTypes = getDisallowedChangeTypes(change.packageName, packageInfos, packageGroups);
+
+    if (!change.type || !isValidChangeType(change.type) || disallowedChangeTypes?.includes(change.type)) {
       console.error(
         `ERROR: there is an invalid change type detected ${changeFile}: "${change.type}" is not a valid change type`
       );

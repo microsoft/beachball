@@ -6,9 +6,9 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { prerelease } from 'semver';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getPackageGroups } from '../monorepo/getPackageGroups';
-import { PackageGroups, PackageInfos } from '../types/PackageInfo';
 import { isValidChangeType } from '../validation/isValidChangeType';
 import { DefaultPrompt } from '../types/ChangeFilePrompt';
+import { getDisallowedChangeTypes } from './getDisallowedChangeTypes';
 
 /**
  * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash
@@ -106,19 +106,4 @@ export async function promptForChange(options: BeachballOptions) {
   }
 
   return packageChangeInfo;
-}
-
-function getDisallowedChangeTypes(
-  packageName: string,
-  packageInfos: PackageInfos,
-  packageGroups: PackageGroups
-): ChangeType[] | null {
-  for (const groupName of Object.keys(packageGroups)) {
-    const groupsInfo = packageGroups[groupName];
-    if (groupsInfo.packageNames.indexOf(packageName) > -1) {
-      return groupsInfo.disallowedChangeTypes;
-    }
-  }
-
-  return packageInfos[packageName].options.disallowedChangeTypes;
 }
