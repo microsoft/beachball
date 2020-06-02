@@ -72,3 +72,4 @@ beachball.config.js
 | package               | string                             |       |                             | repo                 | specifies which package the command relates to (overrides change detection based on `git diff`) |
 | changehint            | string                             |       |                             | repo                 | customizable hint message for when change files are not detected but required                   |
 | groups                | VersionGroupOptions[] (see groups) |       |                             | repo                 | specifies groups of packages that need to be version bumped at the same time                    |
+| autoTag               | boolean                            |       | true                        | repo                 | whether to create auto git tags for published packages (eg: foo_v1.0.1)                         |

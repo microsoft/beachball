@@ -36,7 +36,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
   }
 
   // Tag & Push to remote
-  tagPackages(bumpInfo, tag, cwd);
+  tagPackages(bumpInfo, options.autoTag, tag, cwd);
 
   console.log(`pushing to ${branch}, running the following command for git push:`);
   const pushArgs = ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`];
