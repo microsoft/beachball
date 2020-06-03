@@ -84,7 +84,7 @@ describe('publish command (registry)', () => {
     });
 
     await expect(publishPromise).rejects.toThrow();
-    expect(spy).toHaveBeenCalledWith('Published failed, retrying... (3/3)');
+    expect(spy).toHaveBeenCalledWith('\nRetrying... (3/3)');
 
     spy.mockRestore();
 
