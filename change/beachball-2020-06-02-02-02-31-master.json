@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "add gitTags option to control git created tags",
-  "packageName": "beachball",
-  "email": "ahkotb@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-06-02T09:02:31.383Z"
-}

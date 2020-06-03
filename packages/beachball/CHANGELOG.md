@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 03 Jun 2020 17:06:31 GMT and should not be manually modified.
+This log was last generated on Wed, 03 Jun 2020 20:35:49 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.31.3
+
+Wed, 03 Jun 2020 20:35:49 GMT
+
+### Patches
+
+- add gitTags option to control git created tags (ahkotb@microsoft.com)
 
 ## 1.31.2
 

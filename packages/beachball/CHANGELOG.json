@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 03 Jun 2020 20:35:49 GMT",
+      "tag": "beachball_v1.31.3",
+      "version": "1.31.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "add gitTags option to control git created tags",
+            "author": "ahkotb@microsoft.com",
+            "commit": "97535c45ffd0256ccb7cb681ca44694defc275a7",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 03 Jun 2020 17:06:31 GMT",
       "tag": "beachball_v1.31.2",
       "version": "1.31.2",
