@@ -6,10 +6,10 @@ function createTag(tag: string, cwd: string) {
   gitFailFast(['tag', '-a', '-f', tag, '-m', tag], { cwd });
 }
 
-export function tagPackages(bumpInfo: BumpInfo, autoTag: boolean, tag: string, cwd: string) {
+export function tagPackages(bumpInfo: BumpInfo, gitTags: boolean, tag: string, cwd: string) {
   const { modifiedPackages, newPackages } = bumpInfo;
 
-  if (autoTag) {
+  if (gitTags) {
     [...modifiedPackages, ...newPackages].forEach(pkg => {
       const packageInfo = bumpInfo.packageInfos[pkg];
       const changeType = bumpInfo.packageChangeTypes[pkg];
@@ -21,9 +21,9 @@ export function tagPackages(bumpInfo: BumpInfo, autoTag: boolean, tag: string, c
       const generatedTag = generateTag(packageInfo.name, packageInfo.version);
       createTag(generatedTag, cwd);
     });
-  }
-  // Adds a special dist-tag based tag in git
-  if (tag && tag !== 'latest') {
-    createTag(tag, cwd);
+    // Adds a special dist-tag based tag in git
+    if (tag && tag !== 'latest') {
+      createTag(tag, cwd);
+    }
   }
 }

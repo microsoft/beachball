@@ -15,7 +15,7 @@ export function getCliOptions(): CliOptions {
   const args = parser(argv, {
     string: ['branch', 'tag', 'message', 'package'],
     array: ['scope'],
-    boolean: ['autoTag'],
+    boolean: ['git-tags'],
     alias: {
       branch: ['b'],
       tag: ['t'],

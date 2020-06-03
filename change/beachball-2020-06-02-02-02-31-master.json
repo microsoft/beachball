@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "add autoTag option to control git auto created tags (ie: foo_v1.0.0)",
+  "comment": "add gitTags option to control git created tags",
   "packageName": "beachball",
   "email": "ahkotb@microsoft.com",
   "dependentChangeType": "patch",

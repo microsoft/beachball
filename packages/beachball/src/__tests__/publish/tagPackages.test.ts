@@ -34,8 +34,17 @@ describe('tagPackages', () => {
   beforeEach(() => {
     (gitFailFast as jest.Mock).mockReset();
   });
-  it('auto tag enabled', () => {
-    tagPackages(bumpInfo, /* autotag */ true, /* tag */ '', /* cwd*/ '');
+
+  it('createTag is not called when gitTags is false', () => {
+    tagPackages(bumpInfo, /* gitTag */ false, /* tag */ 'abc', /* cwd*/ '');
+    expect(gitFailFast).not.toBeCalled();
+
+    tagPackages(bumpInfo, /* gitTag */ false, /* tag */ 'latest', /* cwd*/ '');
+    expect(gitFailFast).not.toBeCalled();
+  });
+
+  it('createTag is called when gitTags is true', () => {
+    tagPackages(bumpInfo, /* gitTags */ true, /* tag */ '', /* cwd*/ '');
     // verify git is being called to create new auto tag for foo and bar
     const newFooTag = generateTag('foo', bumpInfo.packageInfos['foo'].version);
     const newBarTag = generateTag('bar', bumpInfo.packageInfos['bar'].version);
@@ -44,19 +53,14 @@ describe('tagPackages', () => {
     expect(gitFailFast).toHaveBeenNthCalledWith(2, ...createTagParameters(newBarTag, ''));
   });
 
-  it('tag is passed', () => {
-    tagPackages(bumpInfo, /* autotag */ false, /* tag */ 'abc', /* cwd*/ 'cwd');
-    expect(gitFailFast).toBeCalledWith(...createTagParameters('abc', 'cwd'));
-  });
-
-  it('autotag and tag are disabled', () => {
-    tagPackages(bumpInfo, /* autotag */ false, /* tag */ '', /* cwd*/ '');
-    // verify git is not being called to create a new auto tag (foo_v1.0.0) as auto tag is disabled
-    expect(gitFailFast).not.toBeCalled();
-  });
-
-  it('createTag is not called when latest is passed as a tag', () => {
-    tagPackages(bumpInfo, /* autotag */ false, /* tag */ 'latest', /* cwd*/ '');
-    expect(gitFailFast).not.toBeCalled();
+  it('createTag is called when gitTags is true and a tag is passed', () => {
+    tagPackages(bumpInfo, /* gitTags */ true, /* tag */ 'abc', /* cwd*/ '');
+    // verify git is being called to create new auto tag for foo and bar
+    const newFooTag = generateTag('foo', bumpInfo.packageInfos['foo'].version);
+    const newBarTag = generateTag('bar', bumpInfo.packageInfos['bar'].version);
+    expect(gitFailFast).toBeCalledTimes(3);
+    expect(gitFailFast).toHaveBeenNthCalledWith(1, ...createTagParameters(newFooTag, ''));
+    expect(gitFailFast).toHaveBeenNthCalledWith(2, ...createTagParameters(newBarTag, ''));
+    expect(gitFailFast).toHaveBeenNthCalledWith(3, ...createTagParameters('abc', ''));
   });
 });
