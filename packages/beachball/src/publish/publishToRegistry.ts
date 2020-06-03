@@ -75,8 +75,11 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
       } else {
         retries++;
 
+        console.log('Publish failed:');
+        console.log(result.stderr);
+
         if (retries <= options.retries) {
-          console.log(`Published failed, retrying... (${retries}/${options.retries})`);
+          console.log(`\nRetrying... (${retries}/${options.retries})`);
         }
       }
     } while (retries <= options.retries);
