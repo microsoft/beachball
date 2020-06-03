@@ -10,6 +10,7 @@ export interface CliOptions {
   message: string;
   path: string;
   registry: string;
+  gitTags: boolean;
   tag: string;
   token: string;
   push: boolean;
@@ -34,6 +35,7 @@ export interface RepoOptions {
   message: string;
   path: string;
   registry: string;
+  gitTags: boolean;
   tag: string;
   push: boolean;
   publish: boolean;

@@ -10,6 +10,7 @@ export function getDefaultOptions() {
     push: true,
     registry: 'https://registry.npmjs.org/',
     token: '',
+    gitTags: true,
     tag: '',
     yes: false,
     access: 'restricted',

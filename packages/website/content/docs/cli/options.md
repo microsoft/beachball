@@ -16,6 +16,10 @@ registry, defaults to https://registry.npmjs.org
 
 dist-tag for npm publishes
 
+###### `--no-git-tags`
+
+don't create git tags for published packages
+
 ###### `--branch, -b`
 
 target branch from origin (default: origin/master)
