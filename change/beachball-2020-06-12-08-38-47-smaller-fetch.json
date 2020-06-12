@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Change the fetch to be scoped to the branch needed to do the diffing not the entire remote",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-06-12T15:38:47.564Z"
+}
