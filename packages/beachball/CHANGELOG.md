@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 03 Jun 2020 20:35:49 GMT and should not be manually modified.
+This log was last generated on Fri, 12 Jun 2020 15:55:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.31.4
+
+Fri, 12 Jun 2020 15:55:32 GMT
+
+### Patches
+
+- Change the fetch to be scoped to the branch needed to do the diffing not the entire remote (kchau@microsoft.com)
 
 ## 1.31.3
 

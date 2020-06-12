@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 12 Jun 2020 15:55:32 GMT",
+      "tag": "beachball_v1.31.4",
+      "version": "1.31.4",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Change the fetch to be scoped to the branch needed to do the diffing not the entire remote",
+            "author": "kchau@microsoft.com",
+            "commit": "4190afd94193672a13207b774f89a7ceeb2e026f",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 03 Jun 2020 20:35:49 GMT",
       "tag": "beachball_v1.31.3",
       "version": "1.31.3",
