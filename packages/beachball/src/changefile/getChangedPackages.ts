@@ -53,9 +53,9 @@ export function getChangedPackages(options: BeachballOptions) {
   const changePath = getChangePath(cwd);
 
   if (fetch) {
-    console.log('fetching latest from remotes');
-    const { remote } = parseRemoteBranch(branch);
-    fetchRemote(remote, cwd);
+    const { remote, remoteBranch } = parseRemoteBranch(branch);
+    console.log(`fetching latest from remotes "${remote}/${remoteBranch}"`);
+    fetchRemote(remote, remoteBranch, cwd);
   }
 
   const changedPackages = getAllChangedPackages(options);
