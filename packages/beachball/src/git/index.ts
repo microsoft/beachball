@@ -71,8 +71,8 @@ export function getUntrackedChanges(cwd: string) {
   }
 }
 
-export function fetchRemote(remote: string, cwd: string) {
-  const results = git(['fetch', remote], { cwd });
+export function fetchRemote(remote: string, remoteBranch: string, cwd: string) {
+  const results = git(['fetch', remote, remoteBranch], { cwd });
   if (!results.success) {
     console.error(`Cannot fetch remote: ${remote}`);
     throw new Error('Cannot fetch');
