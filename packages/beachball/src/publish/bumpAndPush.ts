@@ -2,7 +2,7 @@ import { performBump } from '../bump/performBump';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { git, gitFailFast, revertLocalChanges, parseRemoteBranch } from '../git';
-import { tagPackages } from './tagPackages';
+import { tagDistTag, tagPackages } from './tagPackages';
 import { mergePublishBranch } from './mergePublishBranch';
 import { displayManualRecovery } from './displayManualRecovery';
 
@@ -36,7 +36,10 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
   }
 
   // Tag & Push to remote
-  tagPackages(bumpInfo, options.gitTags, tag, cwd);
+  if (options.gitTags) {
+    tagPackages(bumpInfo, cwd);
+    tagDistTag(tag, cwd);
+  }
 
   console.log(`pushing to ${branch}, running the following command for git push:`);
   const pushArgs = ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`];
