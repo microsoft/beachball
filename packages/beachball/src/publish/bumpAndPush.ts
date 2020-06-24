@@ -36,8 +36,8 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
   }
 
   // Tag & Push to remote
+  tagPackages(bumpInfo, cwd);
   if (options.gitTags) {
-    tagPackages(bumpInfo, cwd);
     tagDistTag(tag, cwd);
   }
 
