@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 25 Jun 2020 16:07:16 GMT",
+      "tag": "beachball_v1.32.0",
+      "version": "1.32.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Allow Individual Packages to Opt Out of Git Tags",
+            "author": "ngerlem@microsoft.com",
+            "commit": "e363eb386be02506adc0e5d3e89aa5080f105389",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 12 Jun 2020 15:55:32 GMT",
       "tag": "beachball_v1.31.4",
       "version": "1.31.4",

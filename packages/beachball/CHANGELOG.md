@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 12 Jun 2020 15:55:32 GMT and should not be manually modified.
+This log was last generated on Thu, 25 Jun 2020 16:07:16 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.32.0
+
+Thu, 25 Jun 2020 16:07:16 GMT
+
+### Minor changes
+
+- Allow Individual Packages to Opt Out of Git Tags (ngerlem@microsoft.com)
 
 ## 1.31.4
 

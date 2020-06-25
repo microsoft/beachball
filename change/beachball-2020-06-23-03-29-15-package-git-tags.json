@@ -1,8 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Allow Individual Packages to Opt Out of Git Tags",
-  "packageName": "beachball",
-  "email": "ngerlem@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-06-23T10:29:15.562Z"
-}
