@@ -21,6 +21,7 @@ export const testPackageInfo: PackageInfo = {
   version: testPackage.version,
   private: false,
   options: {
+    gitTags: true,
     defaultNpmTag: 'latest',
     disallowedChangeTypes: [],
   },
