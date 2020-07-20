@@ -16,7 +16,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
   let completed = false;
   let tryNumber = 0;
 
-  while (tryNumber < BUMP_PUSH_RETRIES && completed) {
+  while (tryNumber < BUMP_PUSH_RETRIES && !completed) {
     tryNumber++;
     console.log(`Trying to push to git. Attempt ${tryNumber}/${BUMP_PUSH_RETRIES}`);
     console.log('Reverting');
