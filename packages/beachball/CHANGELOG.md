@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 20 Jul 2020 19:32:41 GMT and should not be manually modified.
+This log was last generated on Mon, 20 Jul 2020 20:54:36 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.32.2
+
+Mon, 20 Jul 2020 20:54:36 GMT
+
+### Patches
+
+- adds a retry to git push (kchau@microsoft.com)
 
 ## 1.32.1
 
