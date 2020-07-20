@@ -20,7 +20,7 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   const succeededPackages = new Set<string>();
 
   let invalid = false;
-  if (!validatePackageVersions(bumpInfo, registry)) {
+  if (!(await validatePackageVersions(bumpInfo, registry))) {
     displayManualRecovery(bumpInfo, succeededPackages);
     invalid = true;
   } else if (!validatePackageDependencies(bumpInfo)) {

@@ -1,35 +1,37 @@
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { npm } from '../packageManager/npm';
+import { listPackageVersions } from '../packageManager/listPackageVersions';
 import semver from 'semver';
-import fs from 'fs-extra';
+import { setDependentVersions } from '../bump/setDependentVersions';
+import { writePackageJson } from '../bump/performBump';
 
 export async function sync(options: BeachballOptions) {
   const packageInfos = getPackageInfos(options.path);
   const scopedPackages = new Set(getScopedPackages(options));
 
-  for (const [pkg, info] of Object.entries(packageInfos)) {
-    if (!scopedPackages.has(pkg) || info.private) {
-      continue;
-    }
+  const infos = new Map(Object.entries(packageInfos).filter(([pkg, info]) => !info.private && scopedPackages.has(pkg)));
+  const publishedVersions = await listPackageVersions([...infos.keys()], options.registry);
 
-    const npmArgs = ['view', pkg, 'version'];
-    if (options.registry) {
-      npmArgs.push('--registry');
-      npmArgs.push(options.registry);
-    }
-    const result = npm(npmArgs);
-    const publishedVersion = result.stdout;
+  const modifiedPackages = new Set<string>();
 
-    if (publishedVersion && semver.lt(info.version, publishedVersion)) {
-      console.log(
-        `There is a newer version of "${pkg}@${info.version}". Syncing to the published version ${publishedVersion}`
-      );
+  for (const [pkg, info] of infos.entries()) {
+    if (publishedVersions[pkg]) {
+      const publishedVersion = semver.sort(publishedVersions[pkg])[publishedVersions[pkg].length - 1];
 
-      const packageJson = fs.readJsonSync(info.packageJsonPath);
-      packageJson.version = publishedVersion;
-      fs.writeJsonSync(info.packageJsonPath, packageJson, { spaces: 2 });
+      if (publishedVersion && semver.lt(info.version, publishedVersion)) {
+        console.log(
+          `There is a newer version of "${pkg}@${info.version}". Syncing to the published version ${publishedVersion}`
+        );
+
+        packageInfos[pkg].version = publishedVersion;
+        modifiedPackages.add(pkg);
+      }
     }
   }
+
+  const dependentModifiedPackages = setDependentVersions(packageInfos);
+  dependentModifiedPackages.forEach(pkg => modifiedPackages.add(pkg));
+
+  writePackageJson(modifiedPackages, packageInfos);
 }

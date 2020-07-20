@@ -48,7 +48,7 @@ export async function publish(options: BeachballOptions) {
   const bumpInfo = gatherBumpInfo(options);
 
   if (options.new) {
-    bumpInfo.newPackages = new Set<string>(getNewPackages(bumpInfo, options.registry));
+    bumpInfo.newPackages = new Set<string>(await getNewPackages(bumpInfo, options.registry));
   }
 
   // Step 1. Bump + npm publish

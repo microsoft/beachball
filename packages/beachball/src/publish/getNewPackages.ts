@@ -1,10 +1,12 @@
 import { BumpInfo } from '../types/BumpInfo';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
 
-export function getNewPackages(bumpInfo: BumpInfo, registry: string) {
+export async function getNewPackages(bumpInfo: BumpInfo, registry: string) {
   const { modifiedPackages, packageInfos } = bumpInfo;
 
   const newPackages = Object.keys(packageInfos).filter(pkg => !modifiedPackages.has(pkg));
+
+  const publishedVersions = await listPackageVersions(newPackages, registry);
 
   return newPackages.filter(pkg => {
     const packageInfo = packageInfos[pkg];
@@ -13,9 +15,7 @@ export function getNewPackages(bumpInfo: BumpInfo, registry: string) {
       return false;
     }
 
-    const publishedVersions = listPackageVersions(packageInfo.name, registry);
-
-    if (publishedVersions.length === 0) {
+    if (!publishedVersions[pkg] || publishedVersions[pkg].length === 0) {
       console.log(`New package detected: ${pkg}`);
       return true;
     }
