@@ -12,7 +12,6 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
   const { path: cwd, branch, tag, message } = options;
   const { remote, remoteBranch } = parseRemoteBranch(branch);
 
-  let error = '';
   let completed = false;
   let tryNumber = 0;
 
@@ -27,7 +26,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     gitFailFast(['fetch', remote], { cwd });
     const mergeResult = git(['merge', '-X', 'theirs', `${branch}`], { cwd });
     if (!mergeResult.success) {
-      error = `CRITICAL ERROR: pull from ${branch} has failed!\n${mergeResult.stderr}`;
+      console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: pull from ${branch} has failed!\n${mergeResult.stderr}`);
       continue;
     }
 
@@ -38,7 +37,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     // checkin
     const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
     if (!mergePublishBranchResult.success) {
-      error = `CRITICAL ERROR: merging to target has failed!`;
+      console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: merging to target has failed!`);
       continue;
     }
 
@@ -55,7 +54,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     const pushResult = git(pushArgs, { cwd });
 
     if (!pushResult.success) {
-      error = `CRITICAL ERROR: push to ${branch} has failed!\n${pushResult.stderr}`;
+      console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: push to ${branch} has failed!\n${pushResult.stderr}`);
       continue;
     } else {
       console.log(pushResult.stdout.toString());
@@ -64,8 +63,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     }
   }
 
-  if (error) {
-    console.error(error);
+  if (!completed) {
     displayManualRecovery(bumpInfo);
     process.exit(1);
   }
