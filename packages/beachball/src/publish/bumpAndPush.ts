@@ -55,7 +55,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     const pushResult = git(pushArgs, { cwd });
 
     if (!pushResult.success) {
-      error = `CRITICAL ERROR: push to ${branch} has failed!\n${pushResult.stderr}`);
+      error = `CRITICAL ERROR: push to ${branch} has failed!\n${pushResult.stderr}`;
       continue;
     } else {
       console.log(pushResult.stdout.toString());
