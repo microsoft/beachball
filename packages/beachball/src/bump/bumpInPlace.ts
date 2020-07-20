@@ -1,11 +1,10 @@
-import { bumpMinSemverRange } from './bumpMinSemverRange';
 import { BumpInfo } from '../types/BumpInfo';
 import { setDependentsInBumpInfo } from './setDependentsInBumpInfo';
 import { updateRelatedChangeType } from './updateRelatedChangeType';
 import { bumpPackageInfoVersion } from './bumpPackageInfoVersion';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { setGroupsInBumpInfo } from './setGroupsInBumpInfo';
-import { PackageDeps } from '../types/PackageInfo';
+import { setDependentVersions } from './setDependentVersions';
 
 /**
  * Updates BumpInfo according to change types, bump deps, and version groups
@@ -33,25 +32,8 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
   });
 
   // pass 3: Bump all the dependencies packages
-  Object.keys(packageInfos).forEach(pkgName => {
-    const info = packageInfos[pkgName];
-    ['dependencies', 'devDependencies', 'peerDependencies'].forEach(depKind => {
-      const deps: PackageDeps | undefined = (info as any)[depKind];
-      if (deps) {
-        Object.keys(deps).forEach(dep => {
-          const packageInfo = packageInfos[dep];
-          if (packageInfo) {
-            const existingVersionRange = deps[dep];
-            const bumpedVersionRange = bumpMinSemverRange(packageInfo.version, existingVersionRange);
-            if (existingVersionRange !== bumpedVersionRange) {
-              deps[dep] = bumpedVersionRange;
-              modifiedPackages.add(pkgName);
-            }
-          }
-        });
-      }
-    });
-  });
+  const dependentModifiedPackages = setDependentVersions(packageInfos);
+  dependentModifiedPackages.forEach(pkg => modifiedPackages.add(pkg));
 
   return bumpInfo;
 }

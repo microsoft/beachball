@@ -1,21 +1,31 @@
-import { spawnSync, SpawnSyncOptions } from 'child_process';
-import os from 'os';
+import { SpawnSyncOptions } from 'child_process';
+import execa from 'execa';
 
 export function npm(args: string[], options: SpawnSyncOptions = {}) {
-  const npmCmd = os.platform() === 'win32' ? 'npm.cmd' : 'npm';
-  const maxBuffer = 1024 * 1024 * 10; // default is 1024 * 1024
-  const results = spawnSync(npmCmd, args, { maxBuffer, ...options });
-
-  if (results.status === 0) {
+  try {
+    const result = execa.sync('npm', args, { ...options });
     return {
-      stderr: results.stderr.toString().trim(),
-      stdout: results.stdout.toString().trim(),
-      success: true,
+      ...result,
+      success: !result.failed,
     };
-  } else {
+  } catch (e) {
     return {
-      stderr: results.stderr.toString().trim(),
-      stdout: results.stdout.toString().trim(),
+      ...e,
+      success: false,
+    };
+  }
+}
+
+export async function npmAsync(args: string[], options: SpawnSyncOptions = {}) {
+  try {
+    const result = await execa('npm', args, { ...options });
+    return {
+      ...result,
+      success: !result.failed,
+    };
+  } catch (e) {
+    return {
+      ...e,
       success: false,
     };
   }
