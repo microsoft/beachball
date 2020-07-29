@@ -36,6 +36,8 @@ Options:
   --yes, -y           - skips the prompts for publish
   --package, -p       - manually specify a package to create a change file; creates a change file regardless of diffs
   --changehint        - give your developers a customized hint message when they forget to add a change file
+  --since             - for bump command: allows to specify the range of change files used to bump packages by using git refs (branch name, commit SHA, etc);
+                        for publish command: bumps and publishes packages based on the specified range of the change files.
 
 Examples:
 
