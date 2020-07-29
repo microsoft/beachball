@@ -15,7 +15,7 @@ export function getCliOptions(): CliOptions {
   const args = parser(argv, {
     string: ['branch', 'tag', 'message', 'package', 'since'],
     array: ['scope'],
-    boolean: ['git-tags'],
+    boolean: ['git-tags', 'keep-change-files'],
     alias: {
       branch: ['b'],
       tag: ['t'],
@@ -36,6 +36,7 @@ export function getCliOptions(): CliOptions {
     ...(restArgs as any),
     path: cwd,
     fromRef: args.since,
+    keepChangeFiles: args['keep-change-files'],
     branch: args.branch && args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd),
   } as CliOptions;
 
