@@ -1,8 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Implements the `--keep-change-files` flag to prevent change files from being deleted by bump and publish commands",
-  "packageName": "beachball",
-  "email": "arabisho@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-08-05T19:57:19.938Z"
-}

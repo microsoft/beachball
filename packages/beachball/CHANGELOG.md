@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 05 Aug 2020 19:12:35 GMT and should not be manually modified.
+This log was last generated on Wed, 05 Aug 2020 20:06:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.34.0
+
+Wed, 05 Aug 2020 20:06:03 GMT
+
+### Minor changes
+
+- Implements the `--keep-change-files` flag to prevent change files from being deleted by bump and publish commands (arabisho@microsoft.com)
 
 ## 1.33.0
 
