@@ -29,6 +29,7 @@ export interface CliOptions {
   scope?: string[] | null;
   timeout?: number;
   fromRef?: string;
+  keepChangeFiles?: boolean;
 }
 
 export interface RepoOptions {

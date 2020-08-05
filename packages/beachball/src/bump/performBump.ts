@@ -36,6 +36,8 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
   // Generate changelog
   await writeChangelog(options, changes, packageInfos);
 
-  // Unlink changelogs
-  unlinkChangeFiles(changes, packageInfos, options.path);
+  if (!options.keepChangeFiles) {
+    // Unlink changelogs
+    unlinkChangeFiles(changes, packageInfos, options.path);
+  }
 }
