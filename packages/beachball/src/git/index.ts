@@ -101,6 +101,14 @@ export function getChangesBetweenRefs(fromRef: string, toRef: string, options: s
   }
 }
 
+export function getStagedChanges(branch: string, cwd: string) {
+  try {
+    return processGitOutput(git(['--no-pager', 'diff', '--staged', '--name-only'], { cwd }));
+  } catch (e) {
+    console.error('Cannot gather information about changes: ', e.message);
+  }
+}
+
 function processGitOutput(output: ProcessOutput) {
   if (!output.success) {
     return [];
@@ -113,27 +121,6 @@ function processGitOutput(output: ProcessOutput) {
     .filter(line => line.trim() !== '')
     .map(line => line.trim())
     .filter(line => !line.includes('node_modules'));
-}
-
-export function getStagedChanges(branch: string, cwd: string) {
-  try {
-    const results = git(['--no-pager', 'diff', '--staged', '--name-only'], { cwd });
-
-    if (!results.success) {
-      return [];
-    }
-
-    let changes = results.stdout;
-
-    let lines = changes.split(/\n/) || [];
-
-    return lines
-      .filter(line => line.trim() !== '')
-      .map(line => line.trim())
-      .filter(line => !line.includes('node_modules'));
-  } catch (e) {
-    console.error('Cannot gather information about changes: ', e.message);
-  }
 }
 
 export function getRecentCommitMessages(branch: string, cwd: string) {
