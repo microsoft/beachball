@@ -4,10 +4,16 @@ import path from 'path';
 import { findGitRoot } from '../paths';
 import gitUrlParse from 'git-url-parse';
 
+type ProcessOutput = {
+  stderr: string;
+  stdout: string;
+  success: boolean;
+};
+
 /**
  * Runs git command - use this for read only commands
  */
-export function git(args: string[], options?: { cwd: string }) {
+export function git(args: string[], options?: { cwd: string }): ProcessOutput {
   const results = spawnSync('git', args, options);
 
   if (results.status === 0) {
@@ -81,20 +87,15 @@ export function fetchRemote(remote: string, remoteBranch: string, cwd: string) {
 
 export function getChanges(branch: string, cwd: string) {
   try {
-    const results = git(['--no-pager', 'diff', '--name-only', branch + '...'], { cwd });
+    return processGitOutput(git(['--no-pager', 'diff', '--name-only', branch + '...'], { cwd }));
+  } catch (e) {
+    console.error('Cannot gather information about changes: ', e.message);
+  }
+}
 
-    if (!results.success) {
-      return [];
-    }
-
-    let changes = results.stdout;
-
-    let lines = changes.split(/\n/) || [];
-
-    return lines
-      .filter(line => line.trim() !== '')
-      .map(line => line.trim())
-      .filter(line => !line.includes('node_modules'));
+export function getChangesBetweenRefs(fromRef: string, toRef: string, options: string[], cwd: string) {
+  try {
+    return processGitOutput(git(['--no-pager', 'diff', '--name-only', ...options, fromRef, toRef, '.'], { cwd }));
   } catch (e) {
     console.error('Cannot gather information about changes: ', e.message);
   }
@@ -102,23 +103,24 @@ export function getChanges(branch: string, cwd: string) {
 
 export function getStagedChanges(branch: string, cwd: string) {
   try {
-    const results = git(['--no-pager', 'diff', '--staged', '--name-only'], { cwd });
-
-    if (!results.success) {
-      return [];
-    }
-
-    let changes = results.stdout;
-
-    let lines = changes.split(/\n/) || [];
-
-    return lines
-      .filter(line => line.trim() !== '')
-      .map(line => line.trim())
-      .filter(line => !line.includes('node_modules'));
+    return processGitOutput(git(['--no-pager', 'diff', '--staged', '--name-only'], { cwd }));
   } catch (e) {
     console.error('Cannot gather information about changes: ', e.message);
   }
+}
+
+function processGitOutput(output: ProcessOutput) {
+  if (!output.success) {
+    return [];
+  }
+
+  let stdout = output.stdout;
+  let lines = stdout.split(/\n/) || [];
+
+  return lines
+    .filter(line => line.trim() !== '')
+    .map(line => line.trim())
+    .filter(line => !line.includes('node_modules'));
 }
 
 export function getRecentCommitMessages(branch: string, cwd: string) {

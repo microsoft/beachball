@@ -13,7 +13,7 @@ export function getCliOptions(): CliOptions {
 
   const argv = process.argv.splice(2);
   const args = parser(argv, {
-    string: ['branch', 'tag', 'message', 'package'],
+    string: ['branch', 'tag', 'message', 'package', 'since'],
     array: ['scope'],
     boolean: ['git-tags'],
     alias: {
@@ -35,6 +35,7 @@ export function getCliOptions(): CliOptions {
     ...(_.length > 0 && { command: _[0] }),
     ...(restArgs as any),
     path: cwd,
+    fromRef: args.since,
     branch: args.branch && args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd),
   } as CliOptions;
 

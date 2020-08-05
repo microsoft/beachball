@@ -28,6 +28,7 @@ export interface CliOptions {
   version?: boolean;
   scope?: string[] | null;
   timeout?: number;
+  fromRef?: string;
 }
 
 export interface RepoOptions {
