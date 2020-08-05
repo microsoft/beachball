@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 05 Aug 2020 19:12:35 GMT",
+      "tag": "beachball_v1.33.0",
+      "version": "1.33.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "The `--since` flag implementation is added for filtering change files using git refs.",
+            "author": "arabisho@microsoft.com",
+            "commit": "580aecbb33127170e3af3a63655beb4c26a38194",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 20 Jul 2020 20:54:36 GMT",
       "tag": "beachball_v1.32.2",
       "version": "1.32.2",

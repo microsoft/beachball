@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 20 Jul 2020 20:54:36 GMT and should not be manually modified.
+This log was last generated on Wed, 05 Aug 2020 19:12:35 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.33.0
+
+Wed, 05 Aug 2020 19:12:35 GMT
+
+### Minor changes
+
+- The `--since` flag implementation is added for filtering change files using git refs. (arabisho@microsoft.com)
 
 ## 1.32.2
 
