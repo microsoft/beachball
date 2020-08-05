@@ -106,8 +106,8 @@ function processGitOutput(output: ProcessOutput) {
     return [];
   }
 
-  let changes = output.stdout;
-  let lines = changes.split(/\n/) || [];
+  let stdout = output.stdout;
+  let lines = stdout.split(/\n/) || [];
 
   return lines
     .filter(line => line.trim() !== '')
