@@ -30,6 +30,7 @@ export interface CliOptions {
   timeout?: number;
   fromRef?: string;
   keepChangeFiles?: boolean;
+  bump: boolean;
 }
 
 export interface RepoOptions {

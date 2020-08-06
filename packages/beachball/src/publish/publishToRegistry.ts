@@ -15,7 +15,9 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   const bumpInfo = _.cloneDeep(originalBumpInfo);
   const { modifiedPackages, newPackages, packageInfos } = bumpInfo;
 
-  await performBump(bumpInfo, options);
+  if (options.bump) {
+    await performBump(bumpInfo, options);
+  }
 
   const succeededPackages = new Set<string>();
 
