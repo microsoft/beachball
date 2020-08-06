@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 05 Aug 2020 20:06:03 GMT and should not be manually modified.
+This log was last generated on Thu, 06 Aug 2020 19:31:46 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.35.0
+
+Thu, 06 Aug 2020 19:31:46 GMT
+
+### Minor changes
+
+- --no-bump flag implementation (arabisho@microsoft.com)
 
 ## 1.34.0
 

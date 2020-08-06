@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 06 Aug 2020 19:31:46 GMT",
+      "tag": "beachball_v1.35.0",
+      "version": "1.35.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "--no-bump flag implementation",
+            "author": "arabisho@microsoft.com",
+            "commit": "ad160a5a45a0af898e720f6faa2fa3bfc04f1ecd",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 05 Aug 2020 20:06:03 GMT",
       "tag": "beachball_v1.34.0",
       "version": "1.34.0",
