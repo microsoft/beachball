@@ -27,8 +27,9 @@ export async function publish(options: BeachballOptions) {
   target branch: ${branch}
   tag: ${tag}
 
+  bumps versions: ${options.bump ? 'yes' : 'no'}
   publishes to npm registry: ${options.publish ? 'yes' : 'no'}
-  pushes to remote git repo: ${options.push && options.branch ? 'yes' : 'no'}
+  pushes to remote git repo: ${options.bump && options.push && options.branch ? 'yes' : 'no'}
 
 `);
   if (!options.yes) {
@@ -44,7 +45,11 @@ export async function publish(options: BeachballOptions) {
   // checkout publish branch
   const publishBranch = 'publish_' + String(new Date().getTime());
   gitFailFast(['checkout', '-b', publishBranch], { cwd });
-  console.log('Bumping version for npm publish');
+
+  if (options.bump) {
+    console.log('Bumping version for npm publish');
+  }
+
   const bumpInfo = gatherBumpInfo(options);
 
   if (options.new) {
@@ -60,7 +65,7 @@ export async function publish(options: BeachballOptions) {
   }
   // Step 2.
   // - reset, fetch latest from origin/master (to ensure less chance of conflict), then bump again + commit
-  if (branch && options.push) {
+  if (options.bump && branch && options.push) {
     await bumpAndPush(bumpInfo, publishBranch, options);
   } else {
     console.log('Skipping git push and tagging');

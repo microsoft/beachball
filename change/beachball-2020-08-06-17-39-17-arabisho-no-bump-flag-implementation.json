@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "--no-bump flag implementation",
+  "packageName": "beachball",
+  "email": "arabisho@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-08-06T15:39:17.525Z"
+}

@@ -32,6 +32,7 @@ Options:
                         for change command: description of the change
   --no-push           - skip pushing changes back to git remote origin
   --no-publish        - skip publishing to the npm registry
+  --no-bump           - skip both bumping versions and pushing changes back to git remote origin when publishing;
   --help, -?, -h      - this very help message
   --yes, -y           - skips the prompts for publish
   --package, -p       - manually specify a package to create a change file; creates a change file regardless of diffs

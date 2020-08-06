@@ -75,6 +75,7 @@ describe('publish command (e2e)', () => {
       disallowedChangeTypes: null,
       defaultNpmTag: 'latest',
       retries: 3,
+      bump: true,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -92,6 +93,68 @@ describe('publish command (e2e)', () => {
 
     expect(gitResults.success).toBeTruthy();
     expect(gitResults.stdout).toBe('foo_v1.1.0');
+  });
+
+  it('can perform a successful npm publish without bump', async () => {
+    repositoryFactory = new RepositoryFactory();
+    await repositoryFactory.create();
+    const repo = await repositoryFactory.cloneRepository();
+
+    writeChangeFiles(
+      {
+        foo: {
+          type: 'minor',
+          comment: 'test',
+          date: new Date('2019-01-01'),
+          email: 'test@test.com',
+          packageName: 'foo',
+          dependentChangeType: 'patch',
+        },
+      },
+      repo.rootPath
+    );
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    await publish({
+      branch: 'origin/master',
+      command: 'publish',
+      message: 'apply package updates',
+      path: repo.rootPath,
+      publish: true,
+      bumpDeps: true,
+      push: true,
+      registry: registry.getUrl(),
+      gitTags: true,
+      tag: 'latest',
+      token: '',
+      yes: true,
+      new: false,
+      access: 'public',
+      package: '',
+      changehint: 'Run "beachball change" to create a change file',
+      type: null,
+      fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
+      retries: 3,
+      bump: false,
+    });
+
+    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
+
+    expect(showResult.success).toBeTruthy();
+
+    const show = JSON.parse(showResult.stdout);
+    expect(show.name).toEqual('foo');
+    expect(show.versions.length).toEqual(1);
+    expect(show['dist-tags'].latest).toEqual('1.0.0');
+
+    git(['checkout', 'master'], { cwd: repo.rootPath });
+    git(['pull'], { cwd: repo.rootPath });
+
+    const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
+    expect(gitResults.success).toBeFalsy();
   });
 
   it('should not perform npm publish on out-of-scope package', async () => {
@@ -152,6 +215,7 @@ describe('publish command (e2e)', () => {
       defaultNpmTag: 'latest',
       scope: ['!packages/foo'],
       retries: 3,
+      bump: true,
     });
 
     const fooNpmResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -220,6 +284,7 @@ describe('publish command (e2e)', () => {
       disallowedChangeTypes: null,
       defaultNpmTag: 'latest',
       retries: 3,
+      bump: true,
       hooks: {
         prepublish: (packagePath: string) => {
           const packageJsonPath = path.join(packagePath, 'package.json');

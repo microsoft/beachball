@@ -24,5 +24,6 @@ export function getDefaultOptions() {
     scope: null,
     retries: 3,
     timeout: undefined,
+    bump: true,
   } as BeachballOptions;
 }
