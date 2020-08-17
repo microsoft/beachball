@@ -28,7 +28,7 @@ export async function listLatestPackageVersions(packageList: string[], registry:
     all.push(
       limit(async () => {
         const info = await getNpmPackageInfo(pkg, registry);
-        versions[pkg] = info['dist-tags'] ? info['dist-tags'].latest : undefined;
+        versions[pkg] = info['dist-tags'] && info['dist-tags'].latest ? info['dist-tags'].latest : undefined;
       })
     );
   }
@@ -47,7 +47,7 @@ export async function listPackageVersions(packageList: string[], registry: strin
     all.push(
       limit(async () => {
         const info = await getNpmPackageInfo(pkg, registry);
-        versions[pkg] = info ? info.versions : [];
+        versions[pkg] = info && info.versions ? info.versions : [];
       })
     );
   }
