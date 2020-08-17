@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 17 Aug 2020 23:07:36 GMT",
+      "tag": "beachball_v1.35.1",
+      "version": "1.35.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "making sync actually just ask for latest dist-tag",
+            "author": "kchau@microsoft.com",
+            "commit": "da7cf72d27041b1e69fb956ae0ff7e097919a5b1",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 06 Aug 2020 19:31:46 GMT",
       "tag": "beachball_v1.35.0",
       "version": "1.35.0",

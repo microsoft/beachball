@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "making sync actually just ask for latest dist-tag",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-08-17T22:46:31.083Z"
-}

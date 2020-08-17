@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 06 Aug 2020 19:31:46 GMT and should not be manually modified.
+This log was last generated on Mon, 17 Aug 2020 23:07:36 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.35.1
+
+Mon, 17 Aug 2020 23:07:36 GMT
+
+### Patches
+
+- making sync actually just ask for latest dist-tag (kchau@microsoft.com)
 
 ## 1.35.0
 
