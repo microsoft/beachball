@@ -78,8 +78,4 @@ export function validate(
       process.exit(1);
     }
   }
-
-  return {
-    isChangeNeeded,
-  };
 }
