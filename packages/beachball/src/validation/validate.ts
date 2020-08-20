@@ -13,9 +13,8 @@ import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes
 
 export function validate(
   options: BeachballOptions,
-  validateOptions: { allowMissingChangeFiles?: boolean; allowFetching?: boolean } = {
+  validateOptions: { allowMissingChangeFiles: boolean } = {
     allowMissingChangeFiles: false,
-    allowFetching: true,
   }
 ) {
   // Validation Steps
@@ -44,10 +43,10 @@ export function validate(
 
   let isChangeNeeded = false;
 
-  if (validateOptions.allowFetching) {
+  if (!validateOptions.allowMissingChangeFiles) {
     isChangeNeeded = isChangeFileNeeded(options);
 
-    if (isChangeNeeded && !validateOptions.allowMissingChangeFiles) {
+    if (isChangeNeeded) {
       console.error('ERROR: Change files are needed!');
       console.log(options.changehint);
       process.exit(1);
