@@ -42,8 +42,10 @@ export function validate(
     process.exit(1);
   }
 
+  let isChangeNeeded = false;
+
   if (validateOptions.allowFetching) {
-    const isChangeNeeded = isChangeFileNeeded(options);
+    isChangeNeeded = isChangeFileNeeded(options);
 
     if (isChangeNeeded && !validateOptions.allowMissingChangeFiles) {
       console.error('ERROR: Change files are needed!');
@@ -78,4 +80,8 @@ export function validate(
       process.exit(1);
     }
   }
+
+  return {
+    isChangeNeeded,
+  };
 }
