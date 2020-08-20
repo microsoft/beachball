@@ -13,7 +13,10 @@ import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes
 
 export function validate(
   options: BeachballOptions,
-  validateOptions: { allowMissingChangeFiles: boolean } = { allowMissingChangeFiles: false }
+  validateOptions: { allowMissingChangeFiles?: boolean; allowFetching?: boolean } = {
+    allowMissingChangeFiles: false,
+    allowFetching: true,
+  }
 ) {
   // Validation Steps
   if (!isGitAvailable(options.path)) {
@@ -39,12 +42,14 @@ export function validate(
     process.exit(1);
   }
 
-  const isChangeNeeded = isChangeFileNeeded(options);
+  if (validateOptions.allowFetching) {
+    const isChangeNeeded = isChangeFileNeeded(options);
 
-  if (isChangeNeeded && !validateOptions.allowMissingChangeFiles) {
-    console.error('ERROR: Change files are needed!');
-    console.log(options.changehint);
-    process.exit(1);
+    if (isChangeNeeded && !validateOptions.allowMissingChangeFiles) {
+      console.error('ERROR: Change files are needed!');
+      console.log(options.changehint);
+      process.exit(1);
+    }
   }
 
   if (options.groups && !isValidGroupOptions(options.path, options.groups)) {
