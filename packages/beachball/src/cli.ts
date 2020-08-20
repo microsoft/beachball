@@ -28,7 +28,7 @@ import { validate } from './validation/validate';
       break;
 
     case 'publish':
-      validate(options, { allowMissingChangeFiles: true });
+      validate(options, { allowFetching: false });
 
       // set a default publish message
       options.message = options.message || 'applying package updates';
