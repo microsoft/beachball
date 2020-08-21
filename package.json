@@ -1,11 +1,17 @@
 {
   "name": "beachball",
   "version": "1.35.2",
-  "private": true,
-  "repository": "https://github.com/microsoft/beachball.git",
+  "description": "The Sunniest Semantic Version Bumper",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/beachball"
+  },
   "license": "MIT",
-  "author": "Ken <kchau@microsoft.com>",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "bin": {
+    "beachball": "./bin/beachball.js"
+  },
   "scripts": {
     "build": "tsc",
     "change": "node ./lib/cli.js change",
@@ -13,11 +19,17 @@
     "docs": "vuepress dev docs --host localhost",
     "docs:build": "vuepress build docs",
     "gh-pages": "gh-pages",
+    "jest": "jest",
+    "prettier": "prettier --write --config ../../.prettierrc --ignore-path ../../.prettierignore 'src/**/*'",
     "pub": "node ./lib/cli.js publish",
     "release": "beachball publish -y",
     "release:docs": "yarn docs:build && yarn decks:build && yarn gh-pages -d docs/.vuepress/dist --dotfiles",
     "start": "tsc -w --preserveWatchOutput",
-    "test": "jest"
+    "test": "yarn test:unit && yarn test:e2e",
+    "test:e2e": "jest --runInBand --config jest.e2e.js",
+    "test:unit": "jest --config jest.config.js",
+    "test:watch": "jest --watch",
+    "update-snapshots": "jest --config jest.config.js --updateSnapshot"
   },
   "dependencies": {
     "cosmiconfig": "^6.0.0",
