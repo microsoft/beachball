@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "do not fetch before npm publish",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-08-20T23:04:11.044Z"
+}

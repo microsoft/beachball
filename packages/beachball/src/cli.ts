@@ -28,7 +28,8 @@ import { validate } from './validation/validate';
       break;
 
     case 'publish':
-      validate(options);
+      validate(options, { allowFetching: false });
+
       // set a default publish message
       options.message = options.message || 'applying package updates';
       await publish(options);
