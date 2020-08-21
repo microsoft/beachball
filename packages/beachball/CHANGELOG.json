@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 21 Aug 2020 16:14:19 GMT",
+      "tag": "beachball_v1.35.2",
+      "version": "1.35.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "do not fetch before npm publish",
+            "author": "kchau@microsoft.com",
+            "commit": "e11b4e9860d204ab395dfa4437269da4e1051aa8",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 17 Aug 2020 23:07:36 GMT",
       "tag": "beachball_v1.35.1",
       "version": "1.35.1",

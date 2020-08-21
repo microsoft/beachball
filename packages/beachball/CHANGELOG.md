@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 17 Aug 2020 23:07:36 GMT and should not be manually modified.
+This log was last generated on Fri, 21 Aug 2020 16:14:19 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.35.2
+
+Fri, 21 Aug 2020 16:14:19 GMT
+
+### Patches
+
+- do not fetch before npm publish (kchau@microsoft.com)
 
 ## 1.35.1
 
