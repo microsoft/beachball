@@ -45,7 +45,7 @@ import { validate } from './validation/validate';
       break;
 
     default:
-      const { isChangeNeeded } = validate(options, { allowMissingChangeFiles: true });
+      const { isChangeNeeded } = validate(options, { allowFetching: true, allowMissingChangeFiles: true });
 
       if (!isChangeNeeded && !options.package) {
         console.log('No change files are needed');
