@@ -18,8 +18,8 @@ const defaultValidationOptions: ValidationOptions = {
   allowFetching: true,
 }
 
-export function validate(options: BeachballOptions, partialValidateOptions?: PartialValidateOptions) {
-  const validateOptions: ValidationOptions = Object.assign(defaultValidationOptions, partialValidateOptions || {})
+export function validate(options: BeachballOptions, validateOptionsOverride?: PartialValidateOptions) {
+  const validateOptions: ValidationOptions = Object.assign({}, defaultValidationOptions, validateOptionsOverride || {})
 
   // Validation Steps
   if (!isGitAvailable(options.path)) {
