@@ -22,7 +22,7 @@
     "jest": "jest",
     "prettier": "prettier --write --config ../../.prettierrc --ignore-path ../../.prettierignore 'src/**/*'",
     "pub": "node ./lib/cli.js publish",
-    "release": "beachball publish -y",
+    "release": "node ./lib/cli.js publish -y",
     "release:docs": "yarn docs:build && yarn gh-pages -d docs/.vuepress/dist --dotfiles",
     "start": "tsc -w --preserveWatchOutput",
     "test": "yarn test:unit && yarn test:e2e",
