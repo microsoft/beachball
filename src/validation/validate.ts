@@ -11,15 +11,15 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { getPackageGroups } from '../monorepo/getPackageGroups';
 import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes';
 
-type ValidationOptions = { allowMissingChangeFiles: boolean; allowFetching: boolean }
-type PartialValidateOptions = { allowMissingChangeFiles?: boolean; allowFetching?: boolean }
+type ValidationOptions = { allowMissingChangeFiles: boolean; allowFetching: boolean };
+type PartialValidateOptions = Partial<ValidationOptions>;
 const defaultValidationOptions: ValidationOptions = {
   allowMissingChangeFiles: false,
   allowFetching: true,
-}
+};
 
 export function validate(options: BeachballOptions, validateOptionsOverride?: PartialValidateOptions) {
-  const validateOptions: ValidationOptions = Object.assign({}, defaultValidationOptions, validateOptionsOverride || {})
+  const validateOptions: ValidationOptions = Object.assign({}, defaultValidationOptions, validateOptionsOverride || {});
 
   // Validation Steps
   if (!isGitAvailable(options.path)) {
