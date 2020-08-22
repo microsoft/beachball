@@ -11,13 +11,16 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { getPackageGroups } from '../monorepo/getPackageGroups';
 import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes';
 
-export function validate(
-  options: BeachballOptions,
-  validateOptions: { allowMissingChangeFiles?: boolean; allowFetching?: boolean } = {
-    allowMissingChangeFiles: false,
-    allowFetching: true,
-  }
-) {
+type ValidationOptions = { allowMissingChangeFiles: boolean; allowFetching: boolean };
+type PartialValidateOptions = Partial<ValidationOptions>;
+const defaultValidationOptions: ValidationOptions = {
+  allowMissingChangeFiles: false,
+  allowFetching: true,
+};
+
+export function validate(options: BeachballOptions, validateOptionsOverride?: PartialValidateOptions) {
+  const validateOptions: ValidationOptions = Object.assign({}, defaultValidationOptions, validateOptionsOverride || {});
+
   // Validation Steps
   if (!isGitAvailable(options.path)) {
     console.error('ERROR: Please make sure git is installed and initialize the repository with "git init".');
