@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sun, 23 Aug 2020 01:36:24 GMT",
+      "tag": "beachball_v1.35.3",
+      "version": "1.35.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix broken \"beachball change\" (#386).",
+            "author": "reli@microsoft.com",
+            "commit": "a6e2ad3ad9489eb2bb49a6b650eaa65478fc80cb",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 21 Aug 2020 16:14:19 GMT",
       "tag": "beachball_v1.35.2",
       "version": "1.35.2",

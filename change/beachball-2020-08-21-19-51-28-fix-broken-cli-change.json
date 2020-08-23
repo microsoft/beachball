@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix broken \"beachball change\" (#386).",
-  "packageName": "beachball",
-  "email": "reli@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-08-22T02:51:28.696Z"
-}
