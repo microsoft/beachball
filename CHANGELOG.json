@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 28 Aug 2020 21:28:56 GMT",
+      "tag": "beachball_v1.35.4",
+      "version": "1.35.4",
+      "comments": {
+        "patch": [
+          {
+            "comment": "add testing and fixes to retries for pushes",
+            "author": "kchau@microsoft.com",
+            "commit": "b2d5096f936a9e0879c42663d76461f98eb7a63e",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sun, 23 Aug 2020 01:36:24 GMT",
       "tag": "beachball_v1.35.3",
       "version": "1.35.3",
