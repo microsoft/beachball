@@ -1,8 +1,8 @@
 import * as process from 'process';
 import path from 'path';
 import * as fs from 'fs-extra';
-import { runCommands, runInDirectory } from './exec';
 import { tmpdir } from './tmpdir';
+import { git } from '../git';
 
 export const packageJsonFixture = {
   name: 'foo',
@@ -14,43 +14,45 @@ export class RepositoryFactory {
   /** Cloned child repos, tracked so we can clean them up */
   childRepos: Repository[] = [];
 
-  async create(): Promise<void> {
+  create() {
     const originalDirectory = process.cwd();
 
-    this.root = await tmpdir({ prefix: 'beachball-repository-upstream-' });
+    this.root = tmpdir({ prefix: 'beachball-repository-upstream-' });
     process.chdir(this.root);
-    await runCommands(['git init --bare']);
+    git(['init', '--bare'], { cwd: this.root });
 
     const tmpRepo = new Repository();
     this.childRepos.push(tmpRepo);
-    await tmpRepo.initialize();
-    await tmpRepo.cloneFrom(this.root);
-    await tmpRepo.commitChange('README');
+    tmpRepo.initialize();
+    tmpRepo.cloneFrom(this.root);
+    tmpRepo.commitChange('README');
 
-    await fs.writeJSON(path.join(tmpRepo.rootPath, 'package.json'), packageJsonFixture, { spaces: 2 });
-    await tmpRepo.commitChange('package.json');
-    await tmpRepo.push('origin', 'HEAD:master');
+    fs.writeJSONSync(path.join(tmpRepo.rootPath, 'package.json'), packageJsonFixture, {
+      spaces: 2,
+    });
+    tmpRepo.commitChange('package.json');
+    tmpRepo.push('origin', 'HEAD:master');
 
     process.chdir(originalDirectory);
   }
 
-  async cloneRepository(): Promise<Repository> {
+  cloneRepository(): Repository {
     if (!this.root) {
       throw new Error('Must create before cloning');
     }
     const newRepo = new Repository();
-    await newRepo.initialize();
-    await newRepo.cloneFrom(this.root);
+    newRepo.initialize();
+    newRepo.cloneFrom(this.root);
     return newRepo;
   }
 
-  async cleanUp() {
+  cleanUp() {
     if (!this.root) {
       throw new Error('Must create before cleaning up');
     }
-    await fs.remove(this.root);
+    fs.removeSync(this.root);
     for (const repo of this.childRepos) {
-      await repo.cleanUp();
+      repo.cleanUp();
     }
   }
 }
@@ -60,8 +62,8 @@ export class Repository {
 
   root?: string;
 
-  async initialize() {
-    this.root = await tmpdir({ prefix: 'beachball-repository-cloned-' });
+  initialize() {
+    this.root = tmpdir({ prefix: 'beachball-repository-cloned-' });
   }
 
   get rootPath(): string {
@@ -71,74 +73,74 @@ export class Repository {
     return this.root;
   }
 
-  async cloneFrom(path: string, originName?: string): Promise<void> {
+  cloneFrom(path: string, originName?: string) {
     if (!this.root) {
       throw new Error('Must initialize before cloning');
     }
 
-    await runInDirectory(this.root, [
-      `git clone ${originName ? '-o ' + originName + ' ' : ''}${path} .`,
-      'git config user.email ci@example.com',
-      'git config user.name CIUSER',
-    ]);
+    git(['clone', ...(originName ? ['-o', originName] : []), path, '.'], { cwd: this.root });
+    git(['config', 'user.email', 'ci@example.com'], { cwd: this.root });
+    git(['config', 'user.name', 'CIUSER'], { cwd: this.root });
 
     this.origin = path;
   }
 
   /** Commits a change, automatically uses root path, do not pass absolute paths here */
-  async commitChange(newFilename: string, content?: string): Promise<void> {
+  commitChange(newFilename: string, content?: string) {
     if (!this.root) {
       throw new Error('Must initialize before cloning');
     }
 
-    await fs.ensureFile(path.join(this.root, newFilename));
+    fs.ensureFileSync(path.join(this.root, newFilename));
 
     if (content) {
-      await fs.writeFile(path.join(this.root, newFilename), content);
+      fs.writeFileSync(path.join(this.root, newFilename), content);
     }
 
-    await runInDirectory(this.root, [`git add ${newFilename}`, `git commit -m '${newFilename}'`]);
+    git(['add', newFilename], { cwd: this.root });
+    git(['commit', '-m', `"${newFilename}"`], { cwd: this.root });
   }
 
-  async getCurrentHash(): Promise<string> {
+  getCurrentHash() {
     if (!this.root) {
       throw new Error('Must initialize before getting head');
     }
 
-    const result = await runInDirectory(this.root, ['git rev-parse HEAD']);
-    return result[0].stdout.trim();
+    const result = git(['rev-parse', 'HEAD'], { cwd: this.root });
+    return result.stdout.trim();
   }
 
-  async branch(branchName: string) {
+  branch(branchName: string) {
     if (!this.root) {
       throw new Error('Must initialize before cloning');
     }
-    await runInDirectory(this.root, [`git checkout -b ${branchName}`]);
+
+    git(['checkout', '-b', branchName], { cwd: this.root });
   }
 
-  async push(remote: string, branch: string) {
+  push(remote: string, branch: string) {
     if (!this.root) {
       throw new Error('Must initialize before push');
     }
 
-    await runInDirectory(this.root, [`git push ${remote} ${branch}`]);
+    git(['push', remote, branch], { cwd: this.root });
   }
 
-  async cleanUp() {
+  cleanUp() {
     if (!this.root) {
       throw new Error('Must initialize before clean up');
     }
 
-    await fs.remove(this.root);
+    fs.removeSync(this.root);
   }
 
   /**
    * Set to invalid root
    */
-  async setRemoteUrl(remote: string, remoteUrl: string) {
+  setRemoteUrl(remote: string, remoteUrl: string) {
     if (!this.root) {
       throw new Error('Must initialize before change remote url');
     }
-    await runInDirectory(this.root, [`git remote set-url ${remote} ${remoteUrl}`]);
+    git(['remote', 'set-url', remote, remoteUrl], { cwd: this.root });
   }
 }

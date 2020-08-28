@@ -1,11 +1,11 @@
 import * as process from 'process';
 import path from 'path';
 import * as fs from 'fs-extra';
-import { runCommands } from './exec';
 import { tmpdir } from './tmpdir';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { Repository, RepositoryFactory } from './repository';
 import { PackageJson } from '../types/PackageInfo';
+import { git } from '../git';
 
 export const packageJsonFixtures: { [path: string]: PackageJson } = {
   'packages/foo': {
@@ -50,18 +50,18 @@ const beachballConfigFixture = {
 export class MonoRepoFactory extends RepositoryFactory {
   root?: string;
 
-  async create(): Promise<void> {
+  create() {
     const originalDirectory = process.cwd();
 
-    this.root = await tmpdir({ prefix: 'beachball-monorepository-upstream-' });
+    this.root = tmpdir({ prefix: 'beachball-monorepository-upstream-' });
     process.chdir(this.root);
-    await runCommands(['git init --bare']);
+    git(['init', '--bare'], { cwd: this.root });
 
     const tmpRepo = new Repository();
     this.childRepos.push(tmpRepo);
-    await tmpRepo.initialize();
-    await tmpRepo.cloneFrom(this.root);
-    await tmpRepo.commitChange('README');
+    tmpRepo.initialize();
+    tmpRepo.cloneFrom(this.root);
+    tmpRepo.commitChange('README');
 
     for (const pkg of Object.keys(packageJsonFixtures)) {
       const packageJsonFixture = packageJsonFixtures[pkg];
@@ -69,16 +69,23 @@ export class MonoRepoFactory extends RepositoryFactory {
 
       fs.mkdirpSync(path.join(tmpRepo.rootPath, pkg));
 
-      fs.writeJSONSync(path.join(tmpRepo.rootPath, packageJsonFile), packageJsonFixture, { spaces: 2 });
-      await tmpRepo.commitChange(packageJsonFile);
+      fs.writeJSONSync(path.join(tmpRepo.rootPath, packageJsonFile), packageJsonFixture, {
+        spaces: 2,
+      });
+      tmpRepo.commitChange(packageJsonFile);
     }
 
-    await tmpRepo.commitChange('package.json', JSON.stringify({ name: 'monorepo-fixture', version: '1.0.0' }, null, 2));
-    await tmpRepo.commitChange(
+    tmpRepo.commitChange(
+      'package.json',
+      JSON.stringify({ name: 'monorepo-fixture', version: '1.0.0' }, null, 2)
+    );
+
+    tmpRepo.commitChange(
       'beachball.config.js',
       'module.exports = ' + JSON.stringify(beachballConfigFixture, null, 2)
     );
-    await tmpRepo.push('origin', 'HEAD:master');
+
+    tmpRepo.push('origin', 'HEAD:master');
 
     process.chdir(originalDirectory);
   }

@@ -6,15 +6,7 @@ import * as tmp from 'tmp';
 // Clean up created directories when the program exits (even on uncaught exception)
 tmp.setGracefulCleanup();
 
-export async function tmpdir(options: tmp.DirOptions): Promise<string> {
-  return new Promise((resolve, reject) => {
-    // "unsafe" means delete on exit even if it still contains files...which actually is safe
-    tmp.dir({ ...options, unsafeCleanup: true }, (err, name) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(name);
-      }
-    });
-  });
+export function tmpdir(options: tmp.DirOptions): string {
+  // "unsafe" means delete on exit even if it still contains files...which actually is safe
+  return tmp.dirSync({ ...options, unsafeCleanup: true }).name;
 }
