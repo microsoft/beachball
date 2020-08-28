@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "add testing and fixes to retries for pushes",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-08-28T21:23:44.189Z"
+}
