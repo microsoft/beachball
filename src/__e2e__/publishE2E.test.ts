@@ -1,7 +1,7 @@
 import { Registry } from '../fixtures/registry';
 import { npm } from '../packageManager/npm';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { git } from '../git';
+import { git, addGitObserver } from '../git';
 import { publish } from '../commands/publish';
 import { RepositoryFactory } from '../fixtures/repository';
 import { MonoRepoFactory } from '../fixtures/monorepo';
@@ -93,6 +93,103 @@ describe('publish command (e2e)', () => {
 
     expect(gitResults.success).toBeTruthy();
     expect(gitResults.stdout).toBe('foo_v1.1.0');
+  });
+
+  fit('can perform a successful npm publish from a race condition', async () => {
+    repositoryFactory = new RepositoryFactory();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
+
+    writeChangeFiles(
+      {
+        foo: {
+          type: 'minor',
+          comment: 'test',
+          date: new Date('2019-01-01'),
+          email: 'test@test.com',
+          packageName: 'foo',
+          dependentChangeType: 'patch',
+        },
+      },
+      repo.rootPath
+    );
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    // Adds a step that injects a race condition
+    let fetchCount = 0;
+
+    addGitObserver((args, output) => {
+      if (args[0] === 'fetch') {
+        if (fetchCount === 0) {
+          const anotherRepo = repositoryFactory!.cloneRepository();
+          // inject a checkin
+          const packageJsonFile = path.join(anotherRepo.rootPath, 'package.json');
+          const contents = JSON.parse(fs.readFileSync(packageJsonFile, 'utf-8'));
+          fs.writeFileSync(
+            packageJsonFile,
+            JSON.stringify(
+              {
+                ...contents,
+                version: '1.0.2',
+              },
+              null,
+              2
+            )
+          );
+
+          git(['add', packageJsonFile], { cwd: anotherRepo.rootPath });
+          git(['commit', '-m', 'test'], { cwd: anotherRepo.rootPath });
+          git(['push', 'origin', 'HEAD:master'], { cwd: anotherRepo.rootPath });
+        }
+
+        fetchCount++;
+      }
+    });
+
+    await publish({
+      branch: 'origin/master',
+      command: 'publish',
+      message: 'apply package updates',
+      path: repo.rootPath,
+      publish: true,
+      bumpDeps: true,
+      push: true,
+      registry: registry.getUrl(),
+      gitTags: true,
+      tag: 'latest',
+      token: '',
+      yes: true,
+      new: false,
+      access: 'public',
+      package: '',
+      changehint: 'Run "beachball change" to create a change file',
+      type: null,
+      fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
+      retries: 3,
+      bump: true,
+    });
+
+    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
+
+    expect(showResult.success).toBeTruthy();
+
+    const show = JSON.parse(showResult.stdout);
+    expect(show.name).toEqual('foo');
+    expect(show.versions.length).toEqual(1);
+    expect(show['dist-tags'].latest).toEqual('1.1.0');
+
+    git(['checkout', 'master'], { cwd: repo.rootPath });
+    git(['pull'], { cwd: repo.rootPath });
+    const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
+
+    expect(gitResults.success).toBeTruthy();
+    expect(gitResults.stdout).toBe('foo_v1.1.0');
+
+    // this indicates 2 tries
+    expect(fetchCount).toBe(2);
   });
 
   it('can perform a successful npm publish without bump', async () => {

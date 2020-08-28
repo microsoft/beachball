@@ -10,32 +10,62 @@ type ProcessOutput = {
   success: boolean;
 };
 
+// Observes the git operations called from git() or gitFailFast()
+type GitObserver = (args: string[], output: ProcessOutput) => void;
+const observers: GitObserver[] = [];
+let observing: boolean;
+
+/**
+ * Adds an observer for the git operations, e.g. for testing
+ * @param observer
+ */
+export function addGitObserver(observer: GitObserver) {
+  observers.push(observer);
+}
+
 /**
  * Runs git command - use this for read only commands
  */
 export function git(args: string[], options?: { cwd: string }): ProcessOutput {
   const results = spawnSync('git', args, options);
+  let output: ProcessOutput;
 
   if (results.status === 0) {
-    return {
+    output = {
       stderr: results.stderr.toString().trimRight(),
       stdout: results.stdout.toString().trimRight(),
       success: true,
     };
   } else {
-    return {
+    output = {
       stderr: results.stderr.toString().trimRight(),
       stdout: results.stdout.toString().trimRight(),
       success: false,
     };
   }
+
+  // notify observers, flipping the observing bit to prevent infinite loops
+  if (!observing) {
+    observing = true;
+    for (const observer of observers) {
+      observer(args, output);
+    }
+    observing = false;
+  }
+
+  return output;
 }
 
 /**
  * Runs git command - use this for commands that makes changes to the file system
+ *
  */
-export function gitFailFast(args: string[], options?: { cwd: string }) {
+export function gitFailFast(
+  args: string[],
+  options?: { cwd: string; onComplete?: (args: string[], output: ProcessOutput) => void }
+) {
   const gitResult = git(args, options);
+
   if (!gitResult.success) {
     console.error(`CRITICAL ERROR: running git command: git ${args.join(' ')}!`);
     console.error(gitResult.stdout && gitResult.stdout.toString().trimRight());
@@ -93,9 +123,16 @@ export function getChanges(branch: string, cwd: string) {
   }
 }
 
-export function getChangesBetweenRefs(fromRef: string, toRef: string, options: string[], cwd: string) {
+export function getChangesBetweenRefs(
+  fromRef: string,
+  toRef: string,
+  options: string[],
+  cwd: string
+) {
   try {
-    return processGitOutput(git(['--no-pager', 'diff', '--name-only', ...options, fromRef, toRef, '.'], { cwd }));
+    return processGitOutput(
+      git(['--no-pager', 'diff', '--name-only', ...options, fromRef, toRef, '.'], { cwd })
+    );
   } catch (e) {
     console.error('Cannot gather information about changes: ', e.message);
   }
@@ -286,7 +323,9 @@ export function getParentBranch(cwd: string) {
 }
 
 export function getRemoteBranch(branch: string, cwd: string) {
-  const results = git(['rev-parse', '--abbrev-ref', '--symbolic-full-name', `${branch}@\{u\}`], { cwd });
+  const results = git(['rev-parse', '--abbrev-ref', '--symbolic-full-name', `${branch}@\{u\}`], {
+    cwd,
+  });
 
   if (results.success) {
     return results.stdout.trim();

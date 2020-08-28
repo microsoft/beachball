@@ -63,6 +63,7 @@ export async function publish(options: BeachballOptions) {
   } else {
     console.log('Skipping publish');
   }
+
   // Step 2.
   // - reset, fetch latest from origin/master (to ensure less chance of conflict), then bump again + commit
   if (options.bump && branch && options.push) {
@@ -70,8 +71,13 @@ export async function publish(options: BeachballOptions) {
   } else {
     console.log('Skipping git push and tagging');
   }
+
+  // Step 3.
+  // Clean up: switch back to current branch, delete publish branch
   if (currentBranch) {
     console.log(`git checkout ${currentBranch}`);
     gitFailFast(['checkout', currentBranch], { cwd });
   }
+
+  gitFailFast(['branch', '-D', publishBranch], { cwd });
 }
