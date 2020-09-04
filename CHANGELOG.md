@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 28 Aug 2020 21:28:56 GMT and should not be manually modified.
+This log was last generated on Fri, 04 Sep 2020 21:04:07 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.35.5
+
+Fri, 04 Sep 2020 21:04:07 GMT
+
+### Patches
+
+- handles detached head when publishing (kchau@microsoft.com)
 
 ## 1.35.4
 
