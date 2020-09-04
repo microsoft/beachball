@@ -1,6 +1,6 @@
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { gitFailFast, getBranchName } from '../git';
+import { gitFailFast, getBranchName, getCurrentHash } from '../git';
 import prompts from 'prompts';
 import { getPackageChangeTypes } from '../changefile/getPackageChangeTypes';
 import { readChangeFiles } from '../changefile/readChangeFiles';
@@ -19,11 +19,13 @@ export async function publish(options: BeachballOptions) {
   }
   // Collate the changes per package
   const currentBranch = getBranchName(cwd);
+  const currentHash = getCurrentHash(cwd);
   console.log(`Publishing with the following configuration:
 
   registry: ${registry}
 
   current branch: ${currentBranch}
+  current hash: ${currentHash}
   target branch: ${branch}
   tag: ${tag}
 
@@ -44,6 +46,8 @@ export async function publish(options: BeachballOptions) {
   }
   // checkout publish branch
   const publishBranch = 'publish_' + String(new Date().getTime());
+
+  console.log(`creating temporary publish branch ${publishBranch}`);
   gitFailFast(['checkout', '-b', publishBranch], { cwd });
 
   if (options.bump) {
@@ -74,10 +78,21 @@ export async function publish(options: BeachballOptions) {
 
   // Step 3.
   // Clean up: switch back to current branch, delete publish branch
-  if (currentBranch) {
+
+  const revParseSuccessful = currentBranch || currentHash;
+  const inBranch = currentBranch && currentBranch !== 'HEAD';
+  const hasHash = currentHash !== null;
+  if (inBranch) {
     console.log(`git checkout ${currentBranch}`);
-    gitFailFast(['checkout', currentBranch], { cwd });
+    gitFailFast(['checkout', currentBranch!], { cwd });
+  } else if (hasHash) {
+    console.log(`Looks like the repo was detached from a branch`);
+    console.log(`git checkout ${currentHash}`);
+    gitFailFast(['checkout', currentHash!], { cwd });
   }
 
-  gitFailFast(['branch', '-D', publishBranch], { cwd });
+  if (revParseSuccessful) {
+    console.log(`deleting temporary publish branch ${publishBranch}`);
+    gitFailFast(['branch', '-D', publishBranch], { cwd });
+  }
 }
