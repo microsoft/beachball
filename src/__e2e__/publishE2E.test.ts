@@ -95,7 +95,7 @@ describe('publish command (e2e)', () => {
     expect(gitResults.stdout).toBe('foo_v1.1.0');
   });
 
-  fit('can perform a successful npm publish in detached HEAD', async () => {
+  it('can perform a successful npm publish in detached HEAD', async () => {
     repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
