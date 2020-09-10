@@ -20,7 +20,7 @@ export function isValidGroupOptions(root: string, groups: VersionGroupOptions[])
   for (const grp of Object.keys(packageGroups)) {
     const pkgs = packageGroups[grp].packageNames;
     for (const pkgName of pkgs) {
-      if (packageInfos[pkgName].options.disallowedChangeTypes) {
+      if (packageInfos[pkgName].options.disallowedChangeTypes && !packageGroups[grp].disallowedChangeTypes) {
         console.error(
           `Cannot have a disallowedChangeType inside a package config (${pkgName}) when there is a group defined; use the groups.disallowedChangeTypes instead.`
         );
