@@ -25,7 +25,7 @@ export interface PackageInfo {
   peerDependencies?: PackageDeps;
   private: boolean;
   combinedOptions: PackageOptions;
-  packageOptions: PackageOptions;
+  packageOptions: Partial<PackageOptions>;
   group?: string;
 }
 

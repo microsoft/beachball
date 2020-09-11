@@ -3,7 +3,7 @@ import { PackageInfo, PackageJson } from '../types/PackageInfo';
 import { getPackageOptions, getCombinedPackageOptions } from '../options/getPackageOptions';
 
 export function infoFromPackageJson(packageJson: PackageJson, packageJsonPath: string): PackageInfo {
-  const actualOptions = getPackageOptions(path.dirname(packageJsonPath));
+  const packageOptions = getPackageOptions(path.dirname(packageJsonPath));
   return {
     name: packageJson.name!,
     version: packageJson.version,
@@ -12,7 +12,7 @@ export function infoFromPackageJson(packageJson: PackageJson, packageJsonPath: s
     devDependencies: packageJson.devDependencies,
     peerDependencies: packageJson.peerDependencies,
     private: packageJson.private !== undefined ? packageJson.private : false,
-    combinedOptions: getCombinedPackageOptions(actualOptions),
-    packageOptions: getPackageOptions(path.dirname(packageJsonPath)),
+    combinedOptions: getCombinedPackageOptions(packageOptions),
+    packageOptions,
   };
 }
