@@ -33,7 +33,7 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
 
   writePackageJson(modifiedPackages, packageInfos);
 
-  if (!options.generateChangelog) {
+  if (options.generateChangelog) {
     // Generate changelog
     await writeChangelog(options, changes, packageInfos);
   }

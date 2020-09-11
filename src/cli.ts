@@ -42,7 +42,7 @@ import { validate } from './validation/validate';
       break;
 
     case 'canary':
-      validate(options);
+      validate(options, { allowFetching: false });
       await canary(options);
       break;
 
