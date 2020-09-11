@@ -8,7 +8,7 @@ import { getDefaultOptions } from './getDefaultOptions';
  * Gets all package level options (default + root options + package options + cli options)
  * This function inherits packageOptions from the rootOptions
  */
-export function getPackageOptions(actualPackageOptions: PackageOptions): PackageOptions {
+export function getCombinedPackageOptions(actualPackageOptions: PackageOptions): PackageOptions {
   const defaultOptions = getDefaultOptions();
   const rootOptions = getRootOptions();
   return {
@@ -22,7 +22,7 @@ export function getPackageOptions(actualPackageOptions: PackageOptions): Package
 /**
  * Gets all the package options from the configuration file of the package itself without inheritance
  */
-export function getActualPackageOptions(packagePath: string): PackageOptions {
+export function getPackageOptions(packagePath: string): PackageOptions {
   const configExplorer = cosmiconfigSync('beachball', { cache: false });
   const searchResults = configExplorer.search(packagePath);
   return searchResults && searchResults.config;
