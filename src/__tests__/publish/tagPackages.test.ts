@@ -20,16 +20,16 @@ const noTagBumpInfo = ({
     foo: {
       name: 'foo',
       version: '1.0.0',
-      options: {
+      combinedOptions: {
         gitTags: false,
-      }
+      },
     },
     bar: {
       name: 'bar',
       version: '1.0.1',
-      options: {
+      combinedOptions: {
         gitTags: false,
-      }
+      },
     },
   },
   modifiedPackages: new Set(['foo', 'bar']),
@@ -45,16 +45,16 @@ const oneTagBumpInfo = ({
     foo: {
       name: 'foo',
       version: '1.0.0',
-      options: {
+      combinedOptions: {
         gitTags: true,
-      }
+      },
     },
     bar: {
       name: 'bar',
       version: '1.0.1',
-      options: {
+      combinedOptions: {
         gitTags: false,
-      }
+      },
     },
   },
   modifiedPackages: new Set(['foo', 'bar']),

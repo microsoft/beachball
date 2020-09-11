@@ -38,7 +38,10 @@ export async function promptForChange(options: BeachballOptions) {
         ...(showPrereleaseOption ? [{ value: 'prerelease', title: ' [1mPrerelease[22m - bump prerelease version' }] : []),
         { value: 'patch', title: ' [1mPatch[22m      - bug fixes; no backwards incompatible changes.' },
         { value: 'minor', title: ' [1mMinor[22m      - small feature; backwards compatible changes.' },
-        { value: 'none', title: ' [1mNone[22m       - this change does not affect the published package in any way.' },
+        {
+          value: 'none',
+          title: ' [1mNone[22m       - this change does not affect the published package in any way.',
+        },
         { value: 'major', title: ' [1mMajor[22m      - major feature; breaking changes.' },
       ].filter(choice => !disallowedChangeTypes?.includes(choice.value as ChangeType)),
     };
@@ -71,8 +74,8 @@ export async function promptForChange(options: BeachballOptions) {
 
     let questions = [defaultPrompt.changeType, defaultPrompt.description];
 
-    if (packageInfo.options.changeFilePrompt?.changePrompt) {
-      questions = packageInfo.options.changeFilePrompt?.changePrompt(defaultPrompt);
+    if (packageInfo.combinedOptions.changeFilePrompt?.changePrompt) {
+      questions = packageInfo.combinedOptions.changeFilePrompt?.changePrompt(defaultPrompt);
     }
 
     questions = questions.filter(q => !!q);

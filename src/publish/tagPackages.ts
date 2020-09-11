@@ -13,7 +13,7 @@ export function tagPackages(bumpInfo: BumpInfo, cwd: string) {
     const packageInfo = bumpInfo.packageInfos[pkg];
     const changeType = bumpInfo.packageChangeTypes[pkg];
     // Do not tag change type of "none", private packages, or packages opting out of tagging
-    if (changeType === 'none' || packageInfo.private || !packageInfo.options.gitTags) {
+    if (changeType === 'none' || packageInfo.private || !packageInfo.combinedOptions.gitTags) {
       return;
     }
     console.log(`Tagging - ${packageInfo.name}@${packageInfo.version}`);

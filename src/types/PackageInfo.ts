@@ -24,7 +24,12 @@ export interface PackageInfo {
   devDependencies?: PackageDeps;
   peerDependencies?: PackageDeps;
   private: boolean;
-  options: PackageOptions;
+
+  /** options that are combined from the root configuration */
+  combinedOptions: PackageOptions;
+
+  /** options that are SPECIFIC to the package from its configuration file (might be nothing) */
+  packageOptions: Partial<PackageOptions>;
   group?: string;
 }
 

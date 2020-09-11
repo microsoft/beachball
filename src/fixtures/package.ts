@@ -20,7 +20,12 @@ export const testPackageInfo: PackageInfo = {
   packageJsonPath: tmpPackageFile,
   version: testPackage.version,
   private: false,
-  options: {
+  combinedOptions: {
+    gitTags: true,
+    defaultNpmTag: 'latest',
+    disallowedChangeTypes: [],
+  },
+  packageOptions: {
     gitTags: true,
     defaultNpmTag: 'latest',
     disallowedChangeTypes: [],
