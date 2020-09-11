@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "Adds the ability to create and publish canary packages",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-09-11T23:37:59.115Z"
+}
