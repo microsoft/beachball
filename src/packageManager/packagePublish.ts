@@ -10,9 +10,17 @@ export function packagePublish(
   access: string,
   timeout?: number | undefined
 ) {
-  const packageOptions = packageInfo.options;
+  const packageOptions = packageInfo.combinedOptions;
   const packagePath = path.dirname(packageInfo.packageJsonPath);
-  const args = ['publish', '--registry', registry, '--tag', tag || packageOptions.defaultNpmTag, '--loglevel', 'warn'];
+  const args = [
+    'publish',
+    '--registry',
+    registry,
+    '--tag',
+    tag || packageOptions.defaultNpmTag,
+    '--loglevel',
+    'warn',
+  ];
   if (token) {
     const shorthand = registry.substring(registry.indexOf('//'));
     args.push(`--${shorthand}:_authToken=${token}`);

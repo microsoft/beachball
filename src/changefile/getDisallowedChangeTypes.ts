@@ -11,5 +11,5 @@ export function getDisallowedChangeTypes(
       return groupsInfo.disallowedChangeTypes;
     }
   }
-  return packageInfos[packageName].options.disallowedChangeTypes;
+  return packageInfos[packageName].combinedOptions.disallowedChangeTypes;
 }
