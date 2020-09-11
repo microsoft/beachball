@@ -13,11 +13,11 @@ describe('updateRelatedChangeType', () => {
     packageInfos: {
       foo: {
         name: 'foo',
-        options: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
+        combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
       },
       bar: {
         name: 'bar',
-        options: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
+        combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
       },
     },
     modifiedPackages: new Set(),
@@ -197,11 +197,11 @@ describe('updateRelatedChangeType', () => {
         },
         dep: {
           name: 'dep',
-          options: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
+          combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
         },
         unrelated: {
           name: 'unrelated',
-          options: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
+          combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
         },
       },
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
@@ -236,14 +236,14 @@ describe('updateRelatedChangeType', () => {
         },
         dep: {
           name: 'dep',
-          options: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
+          combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
         },
         app: {
           name: 'app',
           dependencies: {
             foo: '1.0.0',
           },
-          options: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
+          combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
         },
       },
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
@@ -320,7 +320,7 @@ describe('updateRelatedChangeType', () => {
     const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
       packageInfos: {
         foo: {
-          options: { disallowedChangeTypes: ['minor', 'major'], defaultNpmTag: 'latest' },
+          combinedOptions: { disallowedChangeTypes: ['minor', 'major'], defaultNpmTag: 'latest' },
         },
       },
     });
