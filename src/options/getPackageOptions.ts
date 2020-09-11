@@ -25,8 +25,8 @@ export function getCombinedPackageOptions(actualPackageOptions: Partial<PackageO
 export function getPackageOptions(packagePath: string): Partial<PackageOptions> {
   const configExplorer = cosmiconfigSync('beachball', { cache: false });
   try {
-    const results = configExplorer.load(packagePath);
-    return results && results.config;
+    const results = configExplorer.load(path.join(packagePath, 'package.json'));
+    return (results && results.config) || {};
   } catch (e) {
     // File does not exist, returns the default packageOptions
     return {};
