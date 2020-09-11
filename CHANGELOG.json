@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 11 Sep 2020 23:57:23 GMT",
+      "tag": "beachball_v1.36.0",
+      "version": "1.36.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Adds the ability to create and publish canary packages",
+            "author": "kchau@microsoft.com",
+            "commit": "72fce75636b9b300d3712df9952caef97d14842c",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 11 Sep 2020 22:07:20 GMT",
       "tag": "beachball_v1.35.6",
       "version": "1.35.6",

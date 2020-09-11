@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 11 Sep 2020 22:07:20 GMT and should not be manually modified.
+This log was last generated on Fri, 11 Sep 2020 23:57:23 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.36.0
+
+Fri, 11 Sep 2020 23:57:23 GMT
+
+### Minor changes
+
+- Adds the ability to create and publish canary packages (kchau@microsoft.com)
 
 ## 1.35.6
 
