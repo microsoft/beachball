@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 11 Sep 2020 22:07:20 GMT",
+      "tag": "beachball_v1.35.6",
+      "version": "1.35.6",
+      "comments": {
+        "patch": [
+          {
+            "comment": "making a distinction between packageOptions and combinedOptions",
+            "author": "kchau@microsoft.com",
+            "commit": "f4e854d13e57219a8393a62c5c6f322a1fa25bba",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 04 Sep 2020 21:04:07 GMT",
       "tag": "beachball_v1.35.5",
       "version": "1.35.5",

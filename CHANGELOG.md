@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 04 Sep 2020 21:04:07 GMT and should not be manually modified.
+This log was last generated on Fri, 11 Sep 2020 22:07:20 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.35.6
+
+Fri, 11 Sep 2020 22:07:20 GMT
+
+### Patches
+
+- making a distinction between packageOptions and combinedOptions (kchau@microsoft.com)
 
 ## 1.35.5
 
