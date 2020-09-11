@@ -31,6 +31,7 @@ export interface CliOptions {
   fromRef?: string;
   keepChangeFiles?: boolean;
   bump: boolean;
+  canaryName?: string | undefined;
 }
 
 export interface RepoOptions {
@@ -48,6 +49,7 @@ export interface RepoOptions {
   changehint: string;
   disallowedChangeTypes: ChangeType[] | null;
   defaultNpmTag: string;
+  generateChangelog: boolean;
 
   /** number of retries for a package publish before failing */
   retries: number;

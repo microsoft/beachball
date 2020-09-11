@@ -83,6 +83,7 @@ describe('publish command (registry)', () => {
       retries: 3,
       timeout: 100,
       bump: true,
+      generateChangelog: true,
     });
 
     await expect(publishPromise).rejects.toThrow();
@@ -137,6 +138,7 @@ describe('publish command (registry)', () => {
       defaultNpmTag: 'latest',
       retries: 3,
       bump: true,
+      generateChangelog: true,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -218,6 +220,7 @@ describe('publish command (registry)', () => {
       defaultNpmTag: 'latest',
       retries: 3,
       bump: true,
+      generateChangelog: true,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foopkg', '--json']);
@@ -296,6 +299,7 @@ describe('publish command (registry)', () => {
       defaultNpmTag: 'latest',
       retries: 3,
       bump: true,
+      generateChangelog: true,
     });
 
     const showResultFoo = npm(['--registry', registry.getUrl(), 'show', 'foopkg', '--json']);
@@ -378,6 +382,7 @@ describe('publish command (registry)', () => {
       defaultNpmTag: 'latest',
       retries: 3,
       bump: true,
+      generateChangelog: true,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'badname', '--json']);

@@ -76,6 +76,7 @@ describe('publish command (e2e)', () => {
       defaultNpmTag: 'latest',
       retries: 3,
       bump: true,
+      generateChangelog: true,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -141,6 +142,7 @@ describe('publish command (e2e)', () => {
       defaultNpmTag: 'latest',
       retries: 3,
       bump: true,
+      generateChangelog: true,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -228,6 +230,7 @@ describe('publish command (e2e)', () => {
       defaultNpmTag: 'latest',
       retries: 3,
       bump: true,
+      generateChangelog: true,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -294,6 +297,7 @@ describe('publish command (e2e)', () => {
       defaultNpmTag: 'latest',
       retries: 3,
       bump: false,
+      generateChangelog: true,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -371,6 +375,7 @@ describe('publish command (e2e)', () => {
       scope: ['!packages/foo'],
       retries: 3,
       bump: true,
+      generateChangelog: true,
     });
 
     const fooNpmResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -440,6 +445,7 @@ describe('publish command (e2e)', () => {
       defaultNpmTag: 'latest',
       retries: 3,
       bump: true,
+      generateChangelog: true,
       hooks: {
         prepublish: (packagePath: string) => {
           const packageJsonPath = path.join(packagePath, 'package.json');
