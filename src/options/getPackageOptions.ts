@@ -23,7 +23,17 @@ export function getCombinedPackageOptions(actualPackageOptions: PackageOptions):
  * Gets all the package options from the configuration file of the package itself without inheritance
  */
 export function getPackageOptions(packagePath: string): PackageOptions {
+  const defaultOptions = getDefaultOptions();
   const configExplorer = cosmiconfigSync('beachball', { cache: false });
-  const searchResults = configExplorer.search(packagePath);
-  return searchResults && searchResults.config;
+  try {
+    const results = configExplorer.load(packagePath);
+    return results && results.config;
+  } catch (e) {
+    // File does not exist, returns the default packageOptions
+    return {
+      gitTags: defaultOptions.gitTags,
+      disallowedChangeTypes: defaultOptions.disallowedChangeTypes,
+      defaultNpmTag: defaultOptions.defaultNpmTag,
+    };
+  }
 }
