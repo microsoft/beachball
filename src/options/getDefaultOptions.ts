@@ -25,5 +25,7 @@ export function getDefaultOptions() {
     retries: 3,
     timeout: undefined,
     bump: true,
+    canaryName: undefined,
+    generateChangelog: true,
   } as BeachballOptions;
 }

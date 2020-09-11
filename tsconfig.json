@@ -9,6 +9,7 @@
     "sourceMap": true,
     "strict": true,
     "noUnusedLocals": true,
+    "noImplicitAny": false,
     "esModuleInterop": true,
     "skipLibCheck": true
   },
