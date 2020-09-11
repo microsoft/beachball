@@ -59,7 +59,7 @@ describe('packageManager', () => {
     it('publish package with defaultNpmTag publishes as defaultNpmTag', () => {
       const testPackageInfoWithDefaultNpmTag = {
         ...testPackageInfo,
-        options: { gitTags: true, defaultNpmTag: testTag, disallowedChangeTypes: null },
+        combinedOptions: { gitTags: true, defaultNpmTag: testTag, disallowedChangeTypes: null },
       };
       const publishResult = packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', undefined, '');
       expect(publishResult.success).toBeTruthy();
@@ -83,7 +83,7 @@ describe('packageManager', () => {
     it('publish with specified tag overrides defaultNpmTag', () => {
       const testPackageInfoWithDefaultNpmTag = {
         ...testPackageInfo,
-        options: { gitTags: true, defaultNpmTag: 'thisShouldNotBeUsed', disallowedChangeTypes: null },
+        combinedOptions: { gitTags: true, defaultNpmTag: 'thisShouldNotBeUsed', disallowedChangeTypes: null },
       };
       const publishResult = packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', testTag, '');
       expect(publishResult.success).toBeTruthy();
