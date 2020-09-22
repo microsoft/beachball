@@ -8,11 +8,7 @@ import { displayManualRecovery } from './displayManualRecovery';
 
 const BUMP_PUSH_RETRIES = 5;
 
-export async function bumpAndPush(
-  bumpInfo: BumpInfo,
-  publishBranch: string,
-  options: BeachballOptions
-) {
+export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: BeachballOptions) {
   const { path: cwd, branch, tag, message } = options;
   const { remote, remoteBranch } = parseRemoteBranch(branch);
 
@@ -27,12 +23,10 @@ export async function bumpAndPush(
 
     // pull in latest from origin branch
     console.log('Fetching from remote');
-    gitFailFast(['fetch', remote], { cwd });
+    gitFailFast(['fetch', remote, remoteBranch], { cwd });
     const mergeResult = git(['merge', '-X', 'theirs', `${branch}`], { cwd });
     if (!mergeResult.success) {
-      console.warn(
-        `[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: pull from ${branch} has failed!\n${mergeResult.stderr}`
-      );
+      console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: pull from ${branch} has failed!\n${mergeResult.stderr}`);
       continue;
     }
 
@@ -54,22 +48,13 @@ export async function bumpAndPush(
     }
 
     console.log(`pushing to ${branch}, running the following command for git push:`);
-    const pushArgs = [
-      'push',
-      '--no-verify',
-      '--follow-tags',
-      '--verbose',
-      remote,
-      `HEAD:${remoteBranch}`,
-    ];
+    const pushArgs = ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`];
     console.log('git ' + pushArgs.join(' '));
 
     const pushResult = git(pushArgs, { cwd });
 
     if (!pushResult.success) {
-      console.warn(
-        `[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: push to ${branch} has failed!\n${pushResult.stderr}`
-      );
+      console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: push to ${branch} has failed!\n${pushResult.stderr}`);
       continue;
     } else {
       console.log(pushResult.stdout.toString());
