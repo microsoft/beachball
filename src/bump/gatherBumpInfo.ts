@@ -6,27 +6,39 @@ import { BumpInfo } from '../types/BumpInfo';
 import { bumpInPlace } from './bumpInPlace';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
+import { getChangePath } from '../paths';
+import path from 'path';
 
 function gatherPreBumpInfo(options: BeachballOptions): BumpInfo {
   const { path: cwd } = options;
   // Collate the changes per package
-  const changes = readChangeFiles(options);
-  const packageChangeTypes = getPackageChangeTypes(changes);
   const packageInfos = getPackageInfos(cwd);
+  const changes = readChangeFiles(options);
+  const changePath = getChangePath(cwd);
+
   const dependentChangeTypes: BumpInfo['dependentChangeTypes'] = {};
   const groupOptions = {};
 
-  // Clear non-existent changes
+  // Clear changes for non-existent and accidental private packages
+  // NOTE: likely these are from the same PR that deleted or modified the private flag
   const filteredChanges: ChangeSet = new Map();
   for (let [changeFile, change] of changes) {
-    if (packageInfos[change.packageName]) {
-      filteredChanges.set(changeFile, change);
+    if (!packageInfos[change.packageName] || packageInfos[change.packageName].private) {
+      console.warn(
+        `Invalid change file detected (non-existent package or private package); delete this file "${path.resolve(
+          changePath!,
+          changeFile
+        )}"`
+      );
+      continue;
     }
 
+    filteredChanges.set(changeFile, change);
     dependentChangeTypes[change.packageName] = change.dependentChangeType || 'patch';
   }
 
   // Clear non-existent changeTypes
+  const packageChangeTypes = getPackageChangeTypes(filteredChanges);
   Object.keys(packageChangeTypes).forEach(packageName => {
     if (!packageInfos[packageName]) {
       delete packageChangeTypes[packageName];

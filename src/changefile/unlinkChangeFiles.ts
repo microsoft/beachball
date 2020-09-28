@@ -17,7 +17,7 @@ export function unlinkChangeFiles(
   cwd: string
 ) {
   const changePath = getChangePath(cwd);
-  if (!changePath || !changeSet) {
+  if (!changePath || !changeSet || changeSet.size === 0) {
     return;
   }
   console.log('Removing change files:');
