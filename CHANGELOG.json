@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 28 Sep 2020 21:12:06 GMT",
+      "tag": "beachball_v1.36.2",
+      "version": "1.36.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "avoid bump loop by being more selective about what gets bumped",
+            "author": "kchau@microsoft.com",
+            "commit": "b2694eda86c6c73dbbff3d58a71969370789a0aa",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 22 Sep 2020 02:55:40 GMT",
       "tag": "beachball_v1.36.1",
       "version": "1.36.1",

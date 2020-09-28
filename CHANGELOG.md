@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 22 Sep 2020 02:55:40 GMT and should not be manually modified.
+This log was last generated on Mon, 28 Sep 2020 21:12:06 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.36.2
+
+Mon, 28 Sep 2020 21:12:06 GMT
+
+### Patches
+
+- avoid bump loop by being more selective about what gets bumped (kchau@microsoft.com)
 
 ## 1.36.1
 
