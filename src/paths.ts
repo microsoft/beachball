@@ -12,6 +12,7 @@ export function searchUp(pathName: string, cwd: string) {
   while (!found && cwd !== root) {
     if (fs.existsSync(path.join(cwd, pathName))) {
       found = true;
+      console.log('hi');
       break;
     }
 
