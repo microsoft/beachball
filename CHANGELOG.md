@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 28 Sep 2020 21:12:06 GMT and should not be manually modified.
+This log was last generated on Wed, 07 Oct 2020 23:22:24 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.37.0
+
+Wed, 07 Oct 2020 23:22:24 GMT
+
+### Minor changes
+
+- bumps very specific deps, don't go overboard with spreading (kchau@microsoft.com)
 
 ## 1.36.2
 

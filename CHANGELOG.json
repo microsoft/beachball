@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 07 Oct 2020 23:22:24 GMT",
+      "tag": "beachball_v1.37.0",
+      "version": "1.37.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "bumps very specific deps, don't go overboard with spreading",
+            "author": "kchau@microsoft.com",
+            "commit": "93a95c0c3a0d79db44a1d30f78b3e1daa28967af",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 28 Sep 2020 21:12:06 GMT",
       "tag": "beachball_v1.36.2",
       "version": "1.36.2",
