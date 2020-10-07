@@ -7,6 +7,10 @@ import { git } from '../git';
 export const packageJsonFixture = {
   name: 'foo',
   version: '1.0.0',
+  dependencies: {
+    bar: '1.0.0',
+    baz: '1.0.0',
+  },
 };
 
 export class RepositoryFactory {
