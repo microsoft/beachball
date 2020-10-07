@@ -22,7 +22,9 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
         const modifiedDeps = Object.keys(updatedDepsVersions).filter(dep => modifiedPackages.has(dep));
 
         for (const dep of modifiedDeps) {
-          packageJson[depKind] = updatedDepsVersions[dep];
+          if (packageJson[depKind] && packageJson[depKind][dep]) {
+            packageJson[depKind][dep] = updatedDepsVersions[dep];
+          }
         }
       }
     });
