@@ -13,9 +13,19 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
     packageJson.version = info.version;
 
     ['dependencies', 'devDependencies', 'peerDependencies'].forEach(depKind => {
-      const deps: PackageDeps | undefined = (info as any)[depKind];
-      if (deps) {
-        packageJson[depKind] = { ...packageJson[depKind], ...deps };
+      // updatedDeps contains all of the dependencies in the bump info since the beginning of a build job
+      const updatedDepsVersions: PackageDeps | undefined = (info as any)[depKind];
+      if (updatedDepsVersions) {
+        // to be cautious, only update internal && modifiedPackages, since some other dependency
+        // changes could have occurred since the beginning of the build job and the next merge step
+        // would overwrite those incorrectly!
+        const modifiedDeps = Object.keys(updatedDepsVersions).filter(dep => modifiedPackages.has(dep));
+
+        for (const dep of modifiedDeps) {
+          if (packageJson[depKind] && packageJson[depKind][dep]) {
+            packageJson[depKind][dep] = updatedDepsVersions[dep];
+          }
+        }
       }
     });
 
