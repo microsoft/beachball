@@ -54,7 +54,7 @@
     "@types/jest": "^24.0.17",
     "@types/lodash": "^4.14.149",
     "@types/minimatch": "^3.0.3",
-    "@types/node": "^8.10.51",
+    "@types/node": "^14.11.10",
     "@types/p-limit": "^2.2.0",
     "@types/prompts": "~2.0.0",
     "@types/tmp": "^0.1.0",
