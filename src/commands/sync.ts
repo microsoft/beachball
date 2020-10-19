@@ -1,7 +1,7 @@
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { listLatestPackageVersions } from '../packageManager/listPackageVersions';
+import { listPackageVersionsByTag } from '../packageManager/listPackageVersions';
 import semver from 'semver';
 import { setDependentVersions } from '../bump/setDependentVersions';
 import { writePackageJson } from '../bump/performBump';
@@ -11,7 +11,11 @@ export async function sync(options: BeachballOptions) {
   const scopedPackages = new Set(getScopedPackages(options));
 
   const infos = new Map(Object.entries(packageInfos).filter(([pkg, info]) => !info.private && scopedPackages.has(pkg)));
-  const publishedVersions = await listLatestPackageVersions([...infos.keys()], options.registry);
+  const publishedVersions = await listPackageVersionsByTag(
+    [...infos.keys()],
+    options.registry,
+    options.tag ? options.tag : 'latest'
+  );
 
   const modifiedPackages = new Set<string>();
 
