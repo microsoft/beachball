@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 07 Oct 2020 23:22:24 GMT and should not be manually modified.
+This log was last generated on Mon, 19 Oct 2020 16:43:47 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.38.0
+
+Mon, 19 Oct 2020 16:43:47 GMT
+
+### Minor changes
+
+- Update sync command to respect the --tag value (arabisho@microsoft.com)
 
 ## 1.37.0
 

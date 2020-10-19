@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 19 Oct 2020 16:43:47 GMT",
+      "tag": "beachball_v1.38.0",
+      "version": "1.38.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Update sync command to respect the --tag value",
+            "author": "arabisho@microsoft.com",
+            "commit": "757e85a27149659b36952d47b58b2ffa333e8841",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 07 Oct 2020 23:22:24 GMT",
       "tag": "beachball_v1.37.0",
       "version": "1.37.0",

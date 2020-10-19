@@ -1,8 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Update sync command to respect the --tag value",
-  "packageName": "beachball",
-  "email": "arabisho@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-10-19T11:52:16.112Z"
-}
