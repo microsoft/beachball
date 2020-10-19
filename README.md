@@ -50,7 +50,8 @@ registry, defaults to https://registry.npmjs.org
 
 ### --tag, -t
 
-dist-tag for npm publishes
+- for the publish command: dist-tag for npm publishes
+- for the sync command: will use specified tag to set the version
 
 ### --branch, -b
 
