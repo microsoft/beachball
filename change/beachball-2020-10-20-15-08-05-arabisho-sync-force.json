@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "Implements the --force flag for sync",
+  "packageName": "beachball",
+  "email": "arabisho@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-10-20T13:08:05.276Z"
+}

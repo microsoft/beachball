@@ -32,6 +32,7 @@ export interface CliOptions {
   keepChangeFiles?: boolean;
   bump: boolean;
   canaryName?: string | undefined;
+  forceVersions?: boolean;
 }
 
 export interface RepoOptions {

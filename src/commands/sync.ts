@@ -23,7 +23,7 @@ export async function sync(options: BeachballOptions) {
     if (publishedVersions[pkg]) {
       const publishedVersion = publishedVersions[pkg];
 
-      if (publishedVersion && semver.lt(info.version, publishedVersion)) {
+      if (publishedVersion && (options.forceVersions || semver.lt(info.version, publishedVersion))) {
         console.log(
           `There is a newer version of "${pkg}@${info.version}". Syncing to the published version ${publishedVersion}`
         );
