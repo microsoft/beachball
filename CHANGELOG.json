@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 21 Oct 2020 18:27:09 GMT",
+      "tag": "beachball_v1.39.0",
+      "version": "1.39.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "For out-of-scope package, do not update its dependencies versions along with its own version.",
+            "author": "xgao@microsoft.com",
+            "commit": "d2c075b372d0eaece29c6bfbb0805cd5fc96d6b0",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 19 Oct 2020 16:43:47 GMT",
       "tag": "beachball_v1.38.0",
       "version": "1.38.0",

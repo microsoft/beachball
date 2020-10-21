@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 19 Oct 2020 16:43:47 GMT and should not be manually modified.
+This log was last generated on Wed, 21 Oct 2020 18:27:09 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.39.0
+
+Wed, 21 Oct 2020 18:27:09 GMT
+
+### Minor changes
+
+- For out-of-scope package, do not update its dependencies versions along with its own version. (xgao@microsoft.com)
 
 ## 1.38.0
 

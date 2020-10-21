@@ -1,8 +1,0 @@
-{
-  "type": "minor",
-  "comment": "For out-of-scope package, do not update its dependencies versions along with its own version.",
-  "packageName": "beachball",
-  "email": "xgao@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-10-21T17:49:12.375Z"
-}
