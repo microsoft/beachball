@@ -20,7 +20,7 @@ export async function getNpmPackageInfo(packageName: string, registry: string) {
   return packageVersions[packageName];
 }
 
-export async function listPackageVersionsByTag(packageInfos: PackageInfo[], registry: string) {
+export async function listPackageVersionsByTag(packageInfos: PackageInfo[], registry: string, tag: string) {
   const limit = pLimit(NPM_CONCURRENCY);
   const all: Promise<void>[] = [];
   const versions: { [pkg: string]: string } = {};
@@ -29,8 +29,8 @@ export async function listPackageVersionsByTag(packageInfos: PackageInfo[], regi
     all.push(
       limit(async () => {
         const info = await getNpmPackageInfo(pkg.name, registry);
-        const tag = pkg.combinedOptions.tag || pkg.combinedOptions.defaultNpmTag;
-        versions[pkg.name] = info['dist-tags'] && info['dist-tags'][tag] ? info['dist-tags'][tag] : undefined;
+        const npmTag = tag || pkg.combinedOptions.tag || pkg.combinedOptions.defaultNpmTag;
+        versions[pkg.name] = info['dist-tags'] && info['dist-tags'][npmTag] ? info['dist-tags'][npmTag] : undefined;
       })
     );
   }

@@ -19,10 +19,12 @@ async function createRepoPackage(repo: Repository, name: string, version: string
 
 async function createTempPackage(name: string, version: string, tag: string = 'latest') {
   const packageJsonFile = path.join(tmp.dirSync().name, 'package.json');
-  const packageJson = {
+  const packageJson: any = {
     name: name,
     version: version,
-    tag,
+    beachball: {
+      tag
+    }
   };
 
   fs.writeJSONSync(packageJsonFile, packageJson, { spaces: 2 });
