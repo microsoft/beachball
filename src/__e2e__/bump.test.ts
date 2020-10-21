@@ -478,7 +478,7 @@ describe('version bumping', () => {
     expect(changeFiles.length).toBe(1);
   });
 
-  it('should not bump out-of-scope package even if dependency of the package has change', async () => {
+  it('should not bump out-of-scope package and its dependencies even if dependency of the package has change', async () => {
     repositoryFactory = new MonoRepoFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
@@ -504,7 +504,7 @@ describe('version bumping', () => {
     const packageInfos = getPackageInfos(repo.rootPath);
     expect(packageInfos['foo'].version).toBe('1.0.0');
     expect(packageInfos['bar'].version).toBe('1.3.5');
-    expect(packageInfos['foo'].dependencies?.bar).toBe('^1.3.5');
+    expect(packageInfos['foo'].dependencies?.bar).toBe('^1.3.4');
 
     const changeFiles = getChangeFiles(repo.rootPath);
     expect(changeFiles.length).toBe(0);

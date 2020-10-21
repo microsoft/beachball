@@ -34,7 +34,7 @@ export async function sync(options: BeachballOptions) {
     }
   }
 
-  const dependentModifiedPackages = setDependentVersions(packageInfos);
+  const dependentModifiedPackages = setDependentVersions(packageInfos, scopedPackages);
   dependentModifiedPackages.forEach(pkg => modifiedPackages.add(pkg));
 
   writePackageJson(modifiedPackages, packageInfos);
