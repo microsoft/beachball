@@ -21,7 +21,7 @@ describe('packageManager', () => {
     });
 
     it('can publish', () => {
-      const publishResult = packagePublish(testPackageInfo, registry.getUrl(), '', testTag, '');
+      const publishResult = packagePublish(testPackageInfo, registry.getUrl(), '', '');
       expect(publishResult.success).toBeTruthy();
 
       const showResult = npm(['--registry', registry.getUrl(), 'show', testPackageInfo.name, '--json']);
@@ -35,15 +35,15 @@ describe('packageManager', () => {
     });
 
     it('errors on republish', () => {
-      let publishResult = packagePublish(testPackageInfo, registry.getUrl(), '', testTag, '');
+      let publishResult = packagePublish(testPackageInfo, registry.getUrl(), '', '');
       expect(publishResult.success).toBeTruthy();
 
-      publishResult = packagePublish(testPackageInfo, registry.getUrl(), '', testTag, '');
+      publishResult = packagePublish(testPackageInfo, registry.getUrl(), '', '');
       expect(publishResult.success).toBeFalsy();
     });
 
     it('publish with no tag publishes latest', () => {
-      const publishResult = packagePublish(testPackageInfo, registry.getUrl(), '', undefined, '');
+      const publishResult = packagePublish(testPackageInfo, registry.getUrl(), '', '');
       expect(publishResult.success).toBeTruthy();
 
       const showResult = npm(['--registry', registry.getUrl(), 'show', testPackageInfo.name, '--json']);
@@ -59,9 +59,9 @@ describe('packageManager', () => {
     it('publish package with defaultNpmTag publishes as defaultNpmTag', () => {
       const testPackageInfoWithDefaultNpmTag = {
         ...testPackageInfo,
-        combinedOptions: { gitTags: true, defaultNpmTag: testTag, disallowedChangeTypes: null },
+        combinedOptions: { gitTags: true, tag: null, defaultNpmTag: testTag, disallowedChangeTypes: null },
       };
-      const publishResult = packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', undefined, '');
+      const publishResult = packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', '');
       expect(publishResult.success).toBeTruthy();
 
       const showResult = npm([
@@ -83,9 +83,9 @@ describe('packageManager', () => {
     it('publish with specified tag overrides defaultNpmTag', () => {
       const testPackageInfoWithDefaultNpmTag = {
         ...testPackageInfo,
-        combinedOptions: { gitTags: true, defaultNpmTag: 'thisShouldNotBeUsed', disallowedChangeTypes: null },
+        combinedOptions: { gitTags: true, tag: testTag, defaultNpmTag: 'thisShouldNotBeUsed', disallowedChangeTypes: null },
       };
-      const publishResult = packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', testTag, '');
+      const publishResult = packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', '');
       expect(publishResult.success).toBeTruthy();
 
       const showResult = npm([

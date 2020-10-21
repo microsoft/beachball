@@ -72,6 +72,7 @@ export interface RepoOptions {
 export interface PackageOptions {
   gitTags: boolean;
   disallowedChangeTypes: ChangeType[] | null;
+  tag: string | null;
   defaultNpmTag: string;
   changeFilePrompt?: ChangeFilePromptOptions;
 }

@@ -1,5 +1,6 @@
 import { npmAsync } from './npm';
 import pLimit from 'p-limit';
+import { PackageInfo } from '../types/PackageInfo';
 
 const packageVersions: { [pkgName: string]: any } = {};
 
@@ -19,16 +20,17 @@ export async function getNpmPackageInfo(packageName: string, registry: string) {
   return packageVersions[packageName];
 }
 
-export async function listPackageVersionsByTag(packageList: string[], registry: string, tag: string) {
+export async function listPackageVersionsByTag(packageInfos: PackageInfo[], registry: string) {
   const limit = pLimit(NPM_CONCURRENCY);
   const all: Promise<void>[] = [];
   const versions: { [pkg: string]: string } = {};
 
-  for (const pkg of packageList) {
+  for (const pkg of packageInfos) {
     all.push(
       limit(async () => {
-        const info = await getNpmPackageInfo(pkg, registry);
-        versions[pkg] = info['dist-tags'] && info['dist-tags'][tag] ? info['dist-tags'][tag] : undefined;
+        const info = await getNpmPackageInfo(pkg.name, registry);
+        const tag = pkg.combinedOptions.tag || pkg.combinedOptions.defaultNpmTag;
+        versions[pkg.name] = info['dist-tags'] && info['dist-tags'][tag] ? info['dist-tags'][tag] : undefined;
       })
     );
   }

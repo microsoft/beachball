@@ -6,7 +6,6 @@ export function packagePublish(
   packageInfo: PackageInfo,
   registry: string,
   token: string,
-  tag: string | undefined,
   access: string,
   timeout?: number | undefined
 ) {
@@ -17,7 +16,7 @@ export function packagePublish(
     '--registry',
     registry,
     '--tag',
-    tag || packageOptions.defaultNpmTag,
+    packageOptions.tag || packageOptions.defaultNpmTag,
     '--loglevel',
     'warn',
   ];
