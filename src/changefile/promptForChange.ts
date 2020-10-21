@@ -104,7 +104,6 @@ export async function promptForChange(options: BeachballOptions) {
       packageName: pkg,
       email: getUserEmail(cwd) || 'email not defined',
       dependentChangeType: response.type === 'none' ? 'none' : 'patch',
-      date: new Date(),
     };
   }
 

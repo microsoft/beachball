@@ -46,7 +46,6 @@ describe('publish command (registry)', () => {
         foo: {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
           dependentChangeType: 'patch',
@@ -104,7 +103,6 @@ describe('publish command (registry)', () => {
         foo: {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
           dependentChangeType: 'patch',
@@ -186,7 +184,6 @@ describe('publish command (registry)', () => {
         foopkg: {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foopkg',
           dependentChangeType: 'patch',
@@ -257,7 +254,6 @@ describe('publish command (registry)', () => {
         foopkg: {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foopkg',
           dependentChangeType: 'patch',
@@ -265,7 +261,6 @@ describe('publish command (registry)', () => {
         barpkg: {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'barpkg',
           dependentChangeType: 'patch',
@@ -348,7 +343,6 @@ describe('publish command (registry)', () => {
         badname: {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'badname',
           dependentChangeType: 'patch',

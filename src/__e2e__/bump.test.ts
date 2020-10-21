@@ -84,7 +84,6 @@ describe('version bumping', () => {
         'pkg-1': {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',
@@ -157,7 +156,6 @@ describe('version bumping', () => {
         'pkg-1': {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',
@@ -176,7 +174,6 @@ describe('version bumping', () => {
         'pkg-3': {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-02'),
           email: 'test@test.com',
           packageName: 'pkg-3',
           dependentChangeType: 'patch',
@@ -260,7 +257,6 @@ describe('version bumping', () => {
         'pkg-1': {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',
@@ -329,7 +325,6 @@ describe('version bumping', () => {
         'pkg-1': {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',
@@ -417,7 +412,6 @@ describe('version bumping', () => {
         commonlib: {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'commonlib',
           dependentChangeType: 'minor',
@@ -457,7 +451,6 @@ describe('version bumping', () => {
         foo: {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
           dependentChangeType: 'patch',
@@ -488,7 +481,6 @@ describe('version bumping', () => {
         bar: {
           type: 'patch',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'bar',
           dependentChangeType: 'patch',
@@ -570,7 +562,6 @@ describe('version bumping', () => {
         'pkg-1': {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',

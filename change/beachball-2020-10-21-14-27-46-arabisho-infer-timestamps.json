@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Remove timestamp from change files",
+  "packageName": "beachball",
+  "email": "arabisho@microsoft.com",
+  "dependentChangeType": "patch"
+}
