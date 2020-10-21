@@ -17,11 +17,14 @@ async function createRepoPackage(repo: Repository, name: string, version: string
   await repo.commitChange(`packages/${name}/package.json`, JSON.stringify(packageJson));
 }
 
-async function createTempPackage(name: string, version: string) {
+async function createTempPackage(name: string, version: string, tag: string = 'latest') {
   const packageJsonFile = path.join(tmp.dirSync().name, 'package.json');
-  const packageJson = {
+  const packageJson: any = {
     name: name,
     version: version,
+    beachball: {
+      tag
+    }
   };
 
   fs.writeJSONSync(packageJsonFile, packageJson, { spaces: 2 });
@@ -59,14 +62,14 @@ describe('sync command (e2e)', () => {
 
     const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
 
-    expect(packagePublish(packageInfosBeforeSync['foopkg'], registry.getUrl(), '', 'latest', '').success).toBeTruthy();
-    expect(packagePublish(packageInfosBeforeSync['barpkg'], registry.getUrl(), '', 'latest', '').success).toBeTruthy();
+    expect(packagePublish(packageInfosBeforeSync['foopkg'], registry.getUrl(), '', '').success).toBeTruthy();
+    expect(packagePublish(packageInfosBeforeSync['barpkg'], registry.getUrl(), '', '').success).toBeTruthy();
 
     const newFooInfo = await createTempPackage('foopkg', '1.2.0');
     const newBarInfo = await createTempPackage('barpkg', '3.0.0');
 
-    expect(packagePublish(newFooInfo, registry.getUrl(), '', 'latest', '').success).toBeTruthy();
-    expect(packagePublish(newBarInfo, registry.getUrl(), '', 'latest', '').success).toBeTruthy();
+    expect(packagePublish(newFooInfo, registry.getUrl(), '', '').success).toBeTruthy();
+    expect(packagePublish(newBarInfo, registry.getUrl(), '', '').success).toBeTruthy();
 
     await sync({
       branch: 'origin/master',
@@ -110,14 +113,14 @@ describe('sync command (e2e)', () => {
 
     const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
 
-    expect(packagePublish(packageInfosBeforeSync['apkg'], registry.getUrl(), '', 'latest', '').success).toBeTruthy();
-    expect(packagePublish(packageInfosBeforeSync['bpkg'], registry.getUrl(), '', 'latest', '').success).toBeTruthy();
+    expect(packagePublish(packageInfosBeforeSync['apkg'], registry.getUrl(), '', '').success).toBeTruthy();
+    expect(packagePublish(packageInfosBeforeSync['bpkg'], registry.getUrl(), '', '').success).toBeTruthy();
 
-    const newFooInfo = await createTempPackage('apkg', '2.0.0');
-    const newBarInfo = await createTempPackage('bpkg', '3.0.0');
+    const newFooInfo = await createTempPackage('apkg', '2.0.0', 'beta');
+    const newBarInfo = await createTempPackage('bpkg', '3.0.0', 'latest');
 
-    expect(packagePublish(newFooInfo, registry.getUrl(), '', 'beta', '').success).toBeTruthy();
-    expect(packagePublish(newBarInfo, registry.getUrl(), '', 'latest', '').success).toBeTruthy();
+    expect(packagePublish(newFooInfo, registry.getUrl(), '', '').success).toBeTruthy();
+    expect(packagePublish(newBarInfo, registry.getUrl(), '', '').success).toBeTruthy();
 
     await sync({
       branch: 'origin/master',

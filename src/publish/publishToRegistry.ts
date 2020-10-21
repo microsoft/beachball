@@ -11,7 +11,7 @@ import { shouldPublishPackage } from './shouldPublishPackage';
 import { validatePackageDependencies } from './validatePackageDependencies';
 
 export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions) {
-  const { registry, tag, token, access, timeout } = options;
+  const { registry, token, access, timeout } = options;
   const bumpInfo = _.cloneDeep(originalBumpInfo);
   const { modifiedPackages, newPackages, packageInfos } = bumpInfo;
 
@@ -62,13 +62,13 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   // finally pass through doing the actual npm publish command
   for (const pkg of packagesToPublish) {
     const packageInfo = bumpInfo.packageInfos[pkg];
-    console.log(`Publishing - ${packageInfo.name}@${packageInfo.version}`);
+    console.log(`Publishing - ${packageInfo.name}@${packageInfo.version} with tag ${packageInfo.combinedOptions.tag}.`);
 
     let result;
     let retries = 0;
 
     do {
-      result = packagePublish(packageInfo, registry, token, tag, access, timeout);
+      result = packagePublish(packageInfo, registry, token, access, timeout);
 
       if (result.success) {
         console.log('Published!');

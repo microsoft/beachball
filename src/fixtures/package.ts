@@ -22,11 +22,13 @@ export const testPackageInfo: PackageInfo = {
   private: false,
   combinedOptions: {
     gitTags: true,
+    tag: testTag,
     defaultNpmTag: 'latest',
     disallowedChangeTypes: [],
   },
   packageOptions: {
     gitTags: true,
+    tag: testTag,
     defaultNpmTag: 'latest',
     disallowedChangeTypes: [],
   },

@@ -12,9 +12,9 @@ export async function sync(options: BeachballOptions) {
 
   const infos = new Map(Object.entries(packageInfos).filter(([pkg, info]) => !info.private && scopedPackages.has(pkg)));
   const publishedVersions = await listPackageVersionsByTag(
-    [...infos.keys()],
+    [...infos.values()],
     options.registry,
-    options.tag ? options.tag : 'latest'
+    options.tag
   );
 
   const modifiedPackages = new Set<string>();
