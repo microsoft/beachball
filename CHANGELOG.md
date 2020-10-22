@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 21 Oct 2020 18:27:09 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Oct 2020 00:00:35 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.39.1
+
+Thu, 22 Oct 2020 00:00:35 GMT
+
+### Patches
+
+- Fix package level tag option. (xgao@microsoft.com)
 
 ## 1.39.0
 

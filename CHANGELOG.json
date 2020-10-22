@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 22 Oct 2020 00:00:35 GMT",
+      "tag": "beachball_v1.39.1",
+      "version": "1.39.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix package level tag option.",
+            "author": "xgao@microsoft.com",
+            "commit": "208abfcf9a4c9f6b8a25f99f3016c410157e3352",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 21 Oct 2020 18:27:09 GMT",
       "tag": "beachball_v1.39.0",
       "version": "1.39.0",
