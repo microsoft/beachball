@@ -41,6 +41,7 @@ Options:
   --since             - for the bump command: allows to specify the range of change files used to bump packages by using git refs (branch name, commit SHA, etc);
                         for the publish command: bumps and publishes packages based on the specified range of the change files.
   --keep-change-files - for the bump and publish commands: when specified, both bump and publish commands do not delete the change files on the disk.
+  --force             - force the sync command to skip the version comparison and use the version in the registry as is.
 
 Examples:
 

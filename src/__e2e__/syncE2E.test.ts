@@ -154,4 +154,56 @@ describe('sync command (e2e)', () => {
     expect(packageInfosAfterSync['bpkg'].version).toEqual('2.2.0');
     expect(packageInfosAfterSync['cpkg'].version).toEqual('3.0.0');
   });
+
+  it('can perform a successful sync by forcing dist tag version', async () => {
+    const repo = await repositoryFactory.cloneRepository();
+
+    await createRepoPackage(repo, 'epkg', '1.0.0');
+    await createRepoPackage(repo, 'fpkg', '2.2.0');
+    await createRepoPackage(repo, 'gpkg', '3.0.0');
+
+    const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
+
+    expect(packagePublish(packageInfosBeforeSync['epkg'], registry.getUrl(), '', 'latest', '').success).toBeTruthy();
+    expect(packagePublish(packageInfosBeforeSync['fpkg'], registry.getUrl(), '', 'latest', '').success).toBeTruthy();
+
+    const newFooInfo = await createTempPackage('epkg', '1.0.0-1');
+    const newBarInfo = await createTempPackage('fpkg', '3.0.0');
+
+    expect(packagePublish(newFooInfo, registry.getUrl(), '', 'prerelease', '').success).toBeTruthy();
+    expect(packagePublish(newBarInfo, registry.getUrl(), '', 'latest', '').success).toBeTruthy();
+
+    await sync({
+      branch: 'origin/master',
+      command: 'sync',
+      message: '',
+      path: repo.rootPath,
+      publish: false,
+      bumpDeps: false,
+      push: false,
+      registry: registry.getUrl(),
+      gitTags: false,
+      tag: 'prerelease',
+      token: '',
+      yes: true,
+      new: false,
+      access: 'public',
+      package: '',
+      changehint: 'Run "beachball change" to create a change file',
+      type: null,
+      fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
+      retries: 3,
+      bump: false,
+      generateChangelog: false,
+      forceVersions: true
+    });
+
+    const packageInfosAfterSync = getPackageInfos(repo.rootPath);
+
+    expect(packageInfosAfterSync['epkg'].version).toEqual('1.0.0-1');
+    expect(packageInfosAfterSync['fpkg'].version).toEqual('2.2.0');
+    expect(packageInfosAfterSync['gpkg'].version).toEqual('3.0.0');
+  });
 });
