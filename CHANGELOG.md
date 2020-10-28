@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 28 Oct 2020 20:56:33 GMT and should not be manually modified.
+This log was last generated on Wed, 28 Oct 2020 20:58:56 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.41.0
+
+Wed, 28 Oct 2020 20:58:56 GMT
+
+### Minor changes
+
+- Replace timestamps with uuids in change file names (arabisho@microsoft.com)
 
 ## 1.40.0
 

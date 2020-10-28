@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 28 Oct 2020 20:58:56 GMT",
+      "tag": "beachball_v1.41.0",
+      "version": "1.41.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Replace timestamps with uuids in change file names",
+            "author": "arabisho@microsoft.com",
+            "commit": "e72ab212c3b3cd7dc5c531050f52c8ec300786ae",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 28 Oct 2020 20:56:33 GMT",
       "tag": "beachball_v1.40.0",
       "version": "1.40.0",
