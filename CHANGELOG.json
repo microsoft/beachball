@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 28 Oct 2020 20:56:33 GMT",
+      "tag": "beachball_v1.40.0",
+      "version": "1.40.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Remove timestamp from change files",
+            "author": "arabisho@microsoft.com",
+            "commit": "58884b64f40aca08c38c6130400d3b48f789d213",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Oct 2020 00:00:35 GMT",
       "tag": "beachball_v1.39.1",
       "version": "1.39.1",

@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 22 Oct 2020 00:00:35 GMT and should not be manually modified.
+This log was last generated on Wed, 28 Oct 2020 20:56:33 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.40.0
+
+Wed, 28 Oct 2020 20:56:33 GMT
+
+### Minor changes
+
+- Remove timestamp from change files (arabisho@microsoft.com)
 
 ## 1.39.1
 
