@@ -1,8 +1,20 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 28 Oct 2020 20:58:56 GMT and should not be manually modified.
+This log was last generated on Wed, 28 Oct 2020 21:21:29 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.42.0
+
+Wed, 28 Oct 2020 21:21:29 GMT
+
+### Minor changes
+
+- Implements the --force flag for sync (arabisho@microsoft.com)
+
+### Patches
+
+- Fix syncE2E tests (arabisho@microsoft.com)
 
 ## 1.41.0
 

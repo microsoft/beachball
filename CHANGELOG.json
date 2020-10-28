@@ -2,6 +2,29 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 28 Oct 2020 21:21:29 GMT",
+      "tag": "beachball_v1.42.0",
+      "version": "1.42.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Implements the --force flag for sync",
+            "author": "arabisho@microsoft.com",
+            "commit": "519ea76461edec413c1f045921cf1c3467af950a",
+            "package": "beachball"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Fix syncE2E tests",
+            "author": "arabisho@microsoft.com",
+            "commit": "519ea76461edec413c1f045921cf1c3467af950a",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 28 Oct 2020 20:58:56 GMT",
       "tag": "beachball_v1.41.0",
       "version": "1.41.0",
