@@ -33,7 +33,6 @@ describe('publish command (git)', () => {
         foo: {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
           dependentChangeType: 'patch',
@@ -86,7 +85,6 @@ describe('publish command (git)', () => {
         foo: {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo',
           dependentChangeType: 'patch',
@@ -139,7 +137,6 @@ describe('publish command (git)', () => {
         foo2: {
           type: 'minor',
           comment: 'test',
-          date: new Date('2019-01-01'),
           email: 'test@test.com',
           packageName: 'foo2',
           dependentChangeType: 'patch',

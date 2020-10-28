@@ -18,7 +18,6 @@ import { ChangelogJson } from '../types/ChangeLog';
 function getChange(partialChange: Partial<ChangeFileInfo> = {}): ChangeFileInfo {
   return {
     comment: 'comment 1',
-    date: new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)'),
     email: 'test@testtestme.com',
     packageName: 'foo',
     type: 'patch',
