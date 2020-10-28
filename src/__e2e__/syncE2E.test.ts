@@ -23,8 +23,8 @@ async function createTempPackage(name: string, version: string, tag: string = 'l
     name: name,
     version: version,
     beachball: {
-      tag
-    }
+      tag,
+    },
   };
 
   fs.writeJSONSync(packageJsonFile, packageJson, { spaces: 2 });
@@ -164,14 +164,23 @@ describe('sync command (e2e)', () => {
 
     const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
 
-    expect(packagePublish(packageInfosBeforeSync['epkg'], registry.getUrl(), '', 'latest', '').success).toBeTruthy();
-    expect(packagePublish(packageInfosBeforeSync['fpkg'], registry.getUrl(), '', 'latest', '').success).toBeTruthy();
+    const epkg = packageInfosBeforeSync['epkg'];
+    const fpkg = packageInfosBeforeSync['fpkg'];
+
+    epkg.combinedOptions.tag = 'latest';
+    fpkg.combinedOptions.tag = 'latest';
+
+    expect(packagePublish(epkg, registry.getUrl(), '', '').success).toBeTruthy();
+    expect(packagePublish(fpkg, registry.getUrl(), '', '').success).toBeTruthy();
 
     const newFooInfo = await createTempPackage('epkg', '1.0.0-1');
     const newBarInfo = await createTempPackage('fpkg', '3.0.0');
 
-    expect(packagePublish(newFooInfo, registry.getUrl(), '', 'prerelease', '').success).toBeTruthy();
-    expect(packagePublish(newBarInfo, registry.getUrl(), '', 'latest', '').success).toBeTruthy();
+    newFooInfo.combinedOptions.tag = 'prerelease';
+    newBarInfo.combinedOptions.tag = 'latest';
+
+    expect(packagePublish(newFooInfo, registry.getUrl(), '', '').success).toBeTruthy();
+    expect(packagePublish(newBarInfo, registry.getUrl(), '', '').success).toBeTruthy();
 
     await sync({
       branch: 'origin/master',
@@ -197,7 +206,7 @@ describe('sync command (e2e)', () => {
       retries: 3,
       bump: false,
       generateChangelog: false,
-      forceVersions: true
+      forceVersions: true,
     });
 
     const packageInfosAfterSync = getPackageInfos(repo.rootPath);
