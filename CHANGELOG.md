@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 28 Oct 2020 21:21:29 GMT and should not be manually modified.
+This log was last generated on Fri, 20 Nov 2020 18:02:40 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.43.0
+
+Fri, 20 Nov 2020 18:02:40 GMT
+
+### Minor changes
+
+- Allow branch name to fall back to config file. Fixes #377 (jdh@microsoft.com)
 
 ## 1.42.0
 

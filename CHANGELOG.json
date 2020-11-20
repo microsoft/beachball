@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 20 Nov 2020 18:02:40 GMT",
+      "tag": "beachball_v1.43.0",
+      "version": "1.43.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Allow branch name to fall back to config file. Fixes #377",
+            "author": "jdh@microsoft.com",
+            "commit": "7d3a8b9d996653ddb09c44c89fbde0d7d1eafff9",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 28 Oct 2020 21:21:29 GMT",
       "tag": "beachball_v1.42.0",
       "version": "1.42.0",
