@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 20 Nov 2020 18:46:16 GMT",
+      "tag": "beachball_v1.43.1",
+      "version": "1.43.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Respect --token argument in the sync command",
+            "author": "arabisho@microsoft.com",
+            "commit": "0fc24595ec6e273c66159fbb6e67c3f4f1e2fbaa",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 20 Nov 2020 18:02:40 GMT",
       "tag": "beachball_v1.43.0",
       "version": "1.43.0",

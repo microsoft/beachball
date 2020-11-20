@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Respect --token argument in the sync command",
-  "packageName": "beachball",
-  "email": "arabisho@microsoft.com",
-  "dependentChangeType": "patch"
-}

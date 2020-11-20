@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 20 Nov 2020 18:02:40 GMT and should not be manually modified.
+This log was last generated on Fri, 20 Nov 2020 18:46:16 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.43.1
+
+Fri, 20 Nov 2020 18:46:16 GMT
+
+### Patches
+
+- Respect --token argument in the sync command (arabisho@microsoft.com)
 
 ## 1.43.0
 
