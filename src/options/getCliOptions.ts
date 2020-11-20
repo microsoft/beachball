@@ -38,8 +38,10 @@ export function getCliOptions(): CliOptions {
     fromRef: args.since,
     keepChangeFiles: args['keep-change-files'],
     forceVersions: args['force'],
-    branch: args.branch && args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd),
   } as CliOptions;
+  if (args.branch) {
+    cliOptions.branch = args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd);
+  }
 
   return cliOptions;
 }
