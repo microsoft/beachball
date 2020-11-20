@@ -14,7 +14,8 @@ export async function sync(options: BeachballOptions) {
   const publishedVersions = await listPackageVersionsByTag(
     [...infos.values()],
     options.registry,
-    options.tag
+    options.tag,
+    options.token
   );
 
   const modifiedPackages = new Set<string>();
