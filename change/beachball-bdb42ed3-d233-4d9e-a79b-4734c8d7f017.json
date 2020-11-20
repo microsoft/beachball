@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Allow branch name to fall back to config file. Fixes #377",
+  "packageName": "beachball",
+  "email": "jdh@microsoft.com",
+  "dependentChangeType": "patch"
+}
