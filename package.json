@@ -43,7 +43,7 @@
     "prompts": "~2.1.0",
     "semver": "^6.1.1",
     "toposort": "^2.0.2",
-    "yargs-parser": "^13.1.0",
+    "yargs-parser": "^20.2.4",
     "uuid": "^8.3.1"
   },
   "devDependencies": {
@@ -60,7 +60,7 @@
     "@types/prompts": "~2.0.0",
     "@types/tmp": "^0.1.0",
     "@types/toposort": "^2.0.3",
-    "@types/yargs-parser": "^13.0.0",
+    "@types/yargs-parser": "^15.0.0",
     "find-free-port": "~2.0.0",
     "jest": "^24.8.0",
     "ncp": "^2.0.0",
