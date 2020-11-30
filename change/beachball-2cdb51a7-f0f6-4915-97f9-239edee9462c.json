@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Bump yargs version",
-  "packageName": "beachball",
-  "email": "1581488+christiango@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}

@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 30 Nov 2020 18:16:10 GMT",
+      "tag": "beachball_v1.44.0",
+      "version": "1.44.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Bump yargs version",
+            "author": "1581488+christiango@users.noreply.github.com",
+            "commit": "f180748cf98d1e26ba69f55146e24cf90f28efb2",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 20 Nov 2020 18:46:16 GMT",
       "tag": "beachball_v1.43.1",
       "version": "1.43.1",

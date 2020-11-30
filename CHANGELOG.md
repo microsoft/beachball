@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 20 Nov 2020 18:46:16 GMT and should not be manually modified.
+This log was last generated on Mon, 30 Nov 2020 18:16:10 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.44.0
+
+Mon, 30 Nov 2020 18:16:10 GMT
+
+### Minor changes
+
+- Bump yargs version (1581488+christiango@users.noreply.github.com)
 
 ## 1.43.1
 
