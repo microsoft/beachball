@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 01 Dec 2020 23:16:33 GMT",
+      "tag": "beachball_v1.45.0",
+      "version": "1.45.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Expose 'disallowed-change-types' as a CLI option",
+            "author": "arabisho@microsoft.com",
+            "commit": "5a75f948137a811193dcf73e07e5067be6e3aeb2",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 30 Nov 2020 18:16:10 GMT",
       "tag": "beachball_v1.44.0",
       "version": "1.44.0",

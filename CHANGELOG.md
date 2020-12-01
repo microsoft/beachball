@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 30 Nov 2020 18:16:10 GMT and should not be manually modified.
+This log was last generated on Tue, 01 Dec 2020 23:16:33 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.45.0
+
+Tue, 01 Dec 2020 23:16:33 GMT
+
+### Minor changes
+
+- Expose 'disallowed-change-types' as a CLI option (arabisho@microsoft.com)
 
 ## 1.44.0
 
