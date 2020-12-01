@@ -14,7 +14,7 @@ export function getCliOptions(): CliOptions {
   const argv = process.argv.splice(2);
   const args = parser(argv, {
     string: ['branch', 'tag', 'message', 'package', 'since'],
-    array: ['scope'],
+    array: ['scope', 'disallowed-change-types'],
     boolean: ['git-tags', 'keep-change-files', 'force'],
     alias: {
       branch: ['b'],
@@ -38,6 +38,7 @@ export function getCliOptions(): CliOptions {
     fromRef: args.since,
     keepChangeFiles: args['keep-change-files'],
     forceVersions: args['force'],
+    disallowedChangeTypes: args['disallowed-change-types'],
   } as CliOptions;
   if (args.branch) {
     cliOptions.branch = args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd);

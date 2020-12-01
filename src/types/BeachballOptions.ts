@@ -33,6 +33,7 @@ export interface CliOptions {
   bump: boolean;
   canaryName?: string | undefined;
   forceVersions?: boolean;
+  disallowedChangeTypes: ChangeType[] | null;
 }
 
 export interface RepoOptions {
