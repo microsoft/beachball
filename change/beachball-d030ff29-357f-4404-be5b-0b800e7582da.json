@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Expose 'disallowed-change-types' as a CLI option",
+  "packageName": "beachball",
+  "email": "arabisho@microsoft.com",
+  "dependentChangeType": "patch"
+}
