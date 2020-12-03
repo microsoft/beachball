@@ -38,8 +38,13 @@ export function getCliOptions(): CliOptions {
     fromRef: args.since,
     keepChangeFiles: args['keep-change-files'],
     forceVersions: args['force'],
-    disallowedChangeTypes: args['disallowed-change-types'],
   } as CliOptions;
+
+  const disallowedChangeTypesArgs = args['disallowed-change-types'];
+  if (disallowedChangeTypesArgs) {
+    cliOptions.disallowedChangeTypes = disallowedChangeTypesArgs;
+  }
+
   if (args.branch) {
     cliOptions.branch = args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd);
   }
