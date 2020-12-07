@@ -11,7 +11,7 @@ import { DefaultPrompt } from '../types/ChangeFilePrompt';
 import { getDisallowedChangeTypes } from './getDisallowedChangeTypes';
 
 /**
- * Uses `prompts` package to prompt for change type and description, fills in git user.email, scope, and the commit hash
+ * Uses `prompts` package to prompt for change type and description, fills in git user.email and scope
  */
 export async function promptForChange(options: BeachballOptions) {
   const { branch, path: cwd, package: specificPackage } = options;
@@ -93,6 +93,11 @@ export async function promptForChange(options: BeachballOptions) {
         return;
       }
 
+      // fallback to the options.type if type is absent in the user input
+      if (!response.type && options.type) {
+        response = { ...response, type: options.type };
+      }
+
       if (!isValidChangeType(response.type)) {
         console.error('Prompt response contains invalid change type.');
         return;
@@ -103,7 +108,7 @@ export async function promptForChange(options: BeachballOptions) {
       ...response,
       packageName: pkg,
       email: getUserEmail(cwd) || 'email not defined',
-      dependentChangeType: response.type === 'none' ? 'none' : 'patch',
+      dependentChangeType: options.dependentChangeType || (response.type === 'none' ? 'none' : 'patch'),
     };
   }
 

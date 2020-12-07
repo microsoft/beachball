@@ -95,6 +95,7 @@ describe('sync command (e2e)', () => {
       retries: 3,
       bump: false,
       generateChangelog: false,
+      dependentChangeType: null,
     });
 
     const packageInfosAfterSync = getPackageInfos(repo.rootPath);
@@ -146,6 +147,7 @@ describe('sync command (e2e)', () => {
       retries: 3,
       bump: false,
       generateChangelog: false,
+      dependentChangeType: null,
     });
 
     const packageInfosAfterSync = getPackageInfos(repo.rootPath);
@@ -207,6 +209,7 @@ describe('sync command (e2e)', () => {
       bump: false,
       generateChangelog: false,
       forceVersions: true,
+      dependentChangeType: null,
     });
 
     const packageInfosAfterSync = getPackageInfos(repo.rootPath);

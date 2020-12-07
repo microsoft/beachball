@@ -27,6 +27,12 @@ export function validate(options: BeachballOptions, validateOptionsOverride?: Pa
     process.exit(1);
   }
 
+  const dependentChangeType = options.dependentChangeType;
+  if (dependentChangeType && !isValidChangeType(dependentChangeType)) {
+    console.error(`ERROR: Invalid dependent change type: ${dependentChangeType}`);
+    process.exit(1);
+  }
+
   const untracked = getUntrackedChanges(options.path);
 
   if (untracked && untracked.length > 0) {

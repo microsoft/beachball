@@ -76,6 +76,7 @@ describe('publish command (e2e)', () => {
       retries: 3,
       bump: true,
       generateChangelog: true,
+      dependentChangeType: null,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -141,6 +142,7 @@ describe('publish command (e2e)', () => {
       retries: 3,
       bump: true,
       generateChangelog: true,
+      dependentChangeType: null,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -228,6 +230,7 @@ describe('publish command (e2e)', () => {
       retries: 3,
       bump: true,
       generateChangelog: true,
+      dependentChangeType: null,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -318,6 +321,7 @@ describe('publish command (e2e)', () => {
       retries: 3,
       bump: true,
       generateChangelog: true,
+      dependentChangeType: null,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -388,6 +392,7 @@ describe('publish command (e2e)', () => {
       retries: 3,
       bump: false,
       generateChangelog: true,
+      dependentChangeType: null,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -464,6 +469,7 @@ describe('publish command (e2e)', () => {
       retries: 3,
       bump: true,
       generateChangelog: true,
+      dependentChangeType: null,
     });
 
     const fooNpmResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -544,6 +550,7 @@ describe('publish command (e2e)', () => {
           }
         },
       },
+      dependentChangeType: null,
     });
 
     // Query the information from package.json from the registry to see if it was successfully patched

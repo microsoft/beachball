@@ -83,6 +83,7 @@ describe('publish command (registry)', () => {
       timeout: 100,
       bump: true,
       generateChangelog: true,
+      dependentChangeType: null,
     });
 
     await expect(publishPromise).rejects.toThrow();
@@ -137,6 +138,7 @@ describe('publish command (registry)', () => {
       retries: 3,
       bump: true,
       generateChangelog: true,
+      dependentChangeType: null,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -218,6 +220,7 @@ describe('publish command (registry)', () => {
       retries: 3,
       bump: true,
       generateChangelog: true,
+      dependentChangeType: null,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foopkg', '--json']);
@@ -295,6 +298,7 @@ describe('publish command (registry)', () => {
       retries: 3,
       bump: true,
       generateChangelog: true,
+      dependentChangeType: null,
     });
 
     const showResultFoo = npm(['--registry', registry.getUrl(), 'show', 'foopkg', '--json']);
@@ -377,6 +381,7 @@ describe('publish command (registry)', () => {
       retries: 3,
       bump: true,
       generateChangelog: true,
+      dependentChangeType: null,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'badname', '--json']);

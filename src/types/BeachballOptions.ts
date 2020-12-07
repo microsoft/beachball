@@ -34,6 +34,7 @@ export interface CliOptions {
   canaryName?: string | undefined;
   forceVersions?: boolean;
   disallowedChangeTypes: ChangeType[] | null;
+  dependentChangeType: ChangeType | null;
 }
 
 export interface RepoOptions {
