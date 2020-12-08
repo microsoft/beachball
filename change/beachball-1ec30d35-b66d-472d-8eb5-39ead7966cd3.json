@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Set disallowedChangeTypes property only if arg is present",
-  "packageName": "beachball",
-  "email": "arabisho@microsoft.com",
-  "dependentChangeType": "patch"
-}

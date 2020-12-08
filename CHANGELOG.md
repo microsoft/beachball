@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 01 Dec 2020 23:16:33 GMT and should not be manually modified.
+This log was last generated on Tue, 08 Dec 2020 18:18:13 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.45.1
+
+Tue, 08 Dec 2020 18:18:13 GMT
+
+### Patches
+
+- Set disallowedChangeTypes property only if arg is present (arabisho@microsoft.com)
 
 ## 1.45.0
 
