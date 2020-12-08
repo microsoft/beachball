@@ -27,12 +27,6 @@ export function validate(options: BeachballOptions, validateOptionsOverride?: Pa
     process.exit(1);
   }
 
-  const dependentChangeType = options.dependentChangeType;
-  if (dependentChangeType && !isValidChangeType(dependentChangeType)) {
-    console.error(`ERROR: Invalid dependent change type: ${dependentChangeType}`);
-    process.exit(1);
-  }
-
   const untracked = getUntrackedChanges(options.path);
 
   if (untracked && untracked.length > 0) {
@@ -43,6 +37,11 @@ export function validate(options: BeachballOptions, validateOptionsOverride?: Pa
 
   if (options.package && !isValidPackageName(options.package, options.path)) {
     console.error('ERROR: Specified package name is not valid');
+    process.exit(1);
+  }
+
+  if (options.dependentChangeType && !isValidChangeType(options.dependentChangeType)) {
+    console.error(`ERROR: dependent change type ${options.dependentChangeType} is not valid`);
     process.exit(1);
   }
 
