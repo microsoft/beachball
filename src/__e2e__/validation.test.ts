@@ -1,6 +1,10 @@
 import { RepositoryFactory, Repository } from '../fixtures/repository';
 import { isChangeFileNeeded } from '../validation/isChangeFileNeeded';
 import { BeachballOptions } from '../types/BeachballOptions';
+import { writeChangeFiles } from '../changefile/writeChangeFiles';
+import { areChangeFilesDeleted } from '../validation/areChangeFilesDeleted';
+import { getChangePath } from '../paths';
+import fs from 'fs-extra';
 
 describe('validation', () => {
   let repositoryFactory: RepositoryFactory;
@@ -63,6 +67,54 @@ describe('validation', () => {
           fetch: true,
         } as BeachballOptions);
       }).toThrow();
+    });
+  });
+
+  describe('areChangeFilesDeleted', () => {
+    let repository: Repository;
+
+    beforeEach(async () => {
+      repository = await repositoryFactory.cloneRepository();
+
+      writeChangeFiles(
+        {
+          'pkg-1': {
+            type: 'minor',
+            comment: 'test',
+            email: 'test@test.com',
+            packageName: 'pkg-1',
+            dependentChangeType: 'patch',
+          },
+        },
+        repository.rootPath
+      );
+
+      await repository.push('origin', 'master');
+    });
+
+    it('is false when no change files are deleted', async () => {
+      await repository.branch('feature-0');
+
+      const result = areChangeFilesDeleted({
+        branch: 'origin/master',
+        path: repository.rootPath,
+      } as BeachballOptions);
+      expect(result).toBeFalsy();
+    });
+
+    it('is true when change files are deleted', async () => {
+      await repository.branch('feature-0');
+
+      const changeDirPath = getChangePath(repository.rootPath) ?? fail('No change folder found');
+      fs.removeSync(changeDirPath);
+
+      await repository.commitAll();
+
+      const result = areChangeFilesDeleted({
+        branch: 'origin/master',
+        path: repository.rootPath,
+      } as BeachballOptions);
+      expect(result).toBeTruthy();
     });
   });
 });
