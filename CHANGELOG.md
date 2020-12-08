@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 08 Dec 2020 18:55:00 GMT and should not be manually modified.
+This log was last generated on Tue, 08 Dec 2020 19:53:12 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.47.0
+
+Tue, 08 Dec 2020 19:53:12 GMT
+
+### Minor changes
+
+- Implement the 'disallow-deleted-change-files' flag (arabisho@microsoft.com)
 
 ## 1.46.0
 

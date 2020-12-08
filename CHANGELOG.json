@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 08 Dec 2020 19:53:12 GMT",
+      "tag": "beachball_v1.47.0",
+      "version": "1.47.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Implement the 'disallow-deleted-change-files' flag",
+            "author": "arabisho@microsoft.com",
+            "commit": "a023cbe084645b9f411e6d43e7ca95cb0e27d31d",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 08 Dec 2020 18:55:00 GMT",
       "tag": "beachball_v1.46.0",
       "version": "1.46.0",
