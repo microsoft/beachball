@@ -35,6 +35,7 @@ export interface CliOptions {
   forceVersions?: boolean;
   disallowedChangeTypes: ChangeType[] | null;
   dependentChangeType: ChangeType | null;
+  disallowDeletedChangeFiles?: boolean;
 }
 
 export interface RepoOptions {

@@ -28,6 +28,7 @@ export function readChangeFiles(options: BeachballOptions): ChangeSet {
         '--diff-filter=d', // excluding deleted files from the diff.
         '--relative', // results will include path relative to the cwd, i.e. only file names.
       ],
+      '*.json',
       changePath
     );
 

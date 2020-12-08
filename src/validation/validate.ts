@@ -10,6 +10,7 @@ import { readChangeFiles } from '../changefile/readChangeFiles';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { getPackageGroups } from '../monorepo/getPackageGroups';
 import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes';
+import { areChangeFilesDeleted } from './areChangeFilesDeleted';
 
 type ValidationOptions = { allowMissingChangeFiles: boolean; allowFetching: boolean };
 type PartialValidateOptions = Partial<ValidationOptions>;
@@ -58,6 +59,11 @@ export function validate(options: BeachballOptions, validateOptionsOverride?: Pa
     if (isChangeNeeded && !validateOptions.allowMissingChangeFiles) {
       console.error('ERROR: Change files are needed!');
       console.log(options.changehint);
+      process.exit(1);
+    }
+
+    if (options.disallowDeletedChangeFiles && areChangeFilesDeleted(options)) {
+      console.error('ERROR: Change files must not be deleted!');
       process.exit(1);
     }
   }

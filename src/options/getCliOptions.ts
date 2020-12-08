@@ -15,7 +15,7 @@ export function getCliOptions(): CliOptions {
   const args = parser(argv, {
     string: ['branch', 'tag', 'message', 'package', 'since', 'dependent-change-type'],
     array: ['scope', 'disallowed-change-types'],
-    boolean: ['git-tags', 'keep-change-files', 'force'],
+    boolean: ['git-tags', 'keep-change-files', 'force', 'disallow-deleted-change-files'],
     alias: {
       branch: ['b'],
       tag: ['t'],
@@ -37,6 +37,7 @@ export function getCliOptions(): CliOptions {
     path: cwd,
     fromRef: args.since,
     keepChangeFiles: args['keep-change-files'],
+    disallowDeletedChangeFiles: args['disallow-deleted-change-files'],
     forceVersions: args['force'],
   } as CliOptions;
 

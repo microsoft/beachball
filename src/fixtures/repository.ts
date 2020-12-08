@@ -105,6 +105,16 @@ export class Repository {
     git(['commit', '-m', `"${newFilename}"`], { cwd: this.root });
   }
 
+  /** Commits a change, automatically uses root path, do not pass absolute paths here */
+  commitAll() {
+    if (!this.root) {
+      throw new Error('Must initialize before cloning');
+    }
+
+    git(['add', '-A'], { cwd: this.root });
+    git(['commit', '-m', 'Committing everything'], { cwd: this.root });
+  }
+
   getCurrentHash() {
     if (!this.root) {
       throw new Error('Must initialize before getting head');

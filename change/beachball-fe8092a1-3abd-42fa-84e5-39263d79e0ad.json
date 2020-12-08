@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Implement the 'disallow-deleted-change-files' flag",
+  "packageName": "beachball",
+  "email": "arabisho@microsoft.com",
+  "dependentChangeType": "patch"
+}
