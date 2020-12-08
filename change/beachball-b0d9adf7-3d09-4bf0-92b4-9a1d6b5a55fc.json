@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Expose dependent-change-type as CLI argument",
+  "packageName": "beachball",
+  "email": "arabisho@microsoft.com",
+  "dependentChangeType": "patch"
+}
