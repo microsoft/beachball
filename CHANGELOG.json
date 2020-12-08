@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 08 Dec 2020 18:55:00 GMT",
+      "tag": "beachball_v1.46.0",
+      "version": "1.46.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Expose dependent-change-type as CLI argument",
+            "author": "arabisho@microsoft.com",
+            "commit": "a919976c7db6d1fbca0695485ca627b1a606f3b2",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 08 Dec 2020 18:18:13 GMT",
       "tag": "beachball_v1.45.1",
       "version": "1.45.1",

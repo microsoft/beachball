@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 08 Dec 2020 18:18:13 GMT and should not be manually modified.
+This log was last generated on Tue, 08 Dec 2020 18:55:00 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.46.0
+
+Tue, 08 Dec 2020 18:55:00 GMT
+
+### Minor changes
+
+- Expose dependent-change-type as CLI argument (arabisho@microsoft.com)
 
 ## 1.45.1
 
