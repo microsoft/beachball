@@ -67,6 +67,7 @@ describe('publish command (git)', () => {
       retries: 3,
       bump: true,
       generateChangelog: true,
+      dependentChangeType: null,
     });
 
     const newRepo = await repositoryFactory.cloneRepository();
@@ -125,6 +126,7 @@ describe('publish command (git)', () => {
       retries: 3,
       bump: true,
       generateChangelog: true,
+      dependentChangeType: null,
     };
 
     const bumpInfo = gatherBumpInfo(options);
