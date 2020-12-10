@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Cap the output from git to avoid process crashing with enobufs",
+  "packageName": "beachball",
+  "email": "arabisho@microsoft.com",
+  "dependentChangeType": "patch"
+}
