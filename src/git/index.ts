@@ -157,7 +157,7 @@ function processGitOutput(output: ProcessOutput) {
 
 export function getRecentCommitMessages(branch: string, cwd: string) {
   try {
-    const results = git(['log', '--decorate', '--pretty=format:%s', branch, 'HEAD'], { cwd });
+    const results = git(['log', '--decorate', '--pretty=format:%s', '--max-count=100', branch, 'HEAD'], { cwd });
 
     if (!results.success) {
       return [];
