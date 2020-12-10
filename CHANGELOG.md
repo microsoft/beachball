@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 08 Dec 2020 19:53:12 GMT and should not be manually modified.
+This log was last generated on Thu, 10 Dec 2020 21:14:31 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.47.1
+
+Thu, 10 Dec 2020 21:14:31 GMT
+
+### Patches
+
+- Cap the output from git to avoid process crashing with enobufs (arabisho@microsoft.com)
 
 ## 1.47.0
 

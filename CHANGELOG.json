@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 10 Dec 2020 21:14:31 GMT",
+      "tag": "beachball_v1.47.1",
+      "version": "1.47.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Cap the output from git to avoid process crashing with enobufs",
+            "author": "arabisho@microsoft.com",
+            "commit": "13810657966c31e44857ceef375b3804e1d036f9",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 08 Dec 2020 19:53:12 GMT",
       "tag": "beachball_v1.47.0",
       "version": "1.47.0",
