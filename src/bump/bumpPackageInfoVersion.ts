@@ -1,10 +1,11 @@
 import { BumpInfo } from '../types/BumpInfo';
 import semver from 'semver';
+import { BeachballOptions } from '../types/BeachballOptions';
 
 /**
  * Bumps an individual package version based on the change type
  */
-export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo) {
+export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo, options: BeachballOptions) {
   const { packageChangeTypes, packageInfos, modifiedPackages } = bumpInfo;
   const info = packageInfos[pkgName];
   const changeType = packageChangeTypes[pkgName];
@@ -21,7 +22,7 @@ export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo) {
     return;
   }
   if (!info.private) {
-    info.version = semver.inc(info.version, changeType) as string;
+    info.version = semver.inc(info.version, changeType, options.prereleasePrefix) as string;
     modifiedPackages.add(pkgName);
   }
 }
