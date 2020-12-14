@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Adding a new option that allows to specify a pre-release prefix",
-  "packageName": "beachball",
-  "email": "arabisho@microsoft.com",
-  "dependentChangeType": "patch"
-}

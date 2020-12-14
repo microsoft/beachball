@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 14 Dec 2020 21:08:05 GMT",
+      "tag": "beachball_v1.48.0",
+      "version": "1.48.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Adding a new option that allows to specify a pre-release prefix",
+            "author": "arabisho@microsoft.com",
+            "commit": "7c69d8e23da108b91488084314d3c811607a6842",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 10 Dec 2020 21:14:31 GMT",
       "tag": "beachball_v1.47.1",
       "version": "1.47.1",

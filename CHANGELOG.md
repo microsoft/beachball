@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 10 Dec 2020 21:14:31 GMT and should not be manually modified.
+This log was last generated on Mon, 14 Dec 2020 21:08:05 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.48.0
+
+Mon, 14 Dec 2020 21:08:05 GMT
+
+### Minor changes
+
+- Adding a new option that allows to specify a pre-release prefix (arabisho@microsoft.com)
 
 ## 1.47.1
 
