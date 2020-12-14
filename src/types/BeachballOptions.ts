@@ -36,6 +36,7 @@ export interface CliOptions {
   disallowedChangeTypes: ChangeType[] | null;
   dependentChangeType: ChangeType | null;
   disallowDeletedChangeFiles?: boolean;
+  prereleasePrefix?: string | null;
 }
 
 export interface RepoOptions {

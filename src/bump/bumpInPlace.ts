@@ -28,7 +28,7 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
 
   // pass 2: actually bump the packages in the bumpInfo in memory (no disk writes at this point)
   Object.keys(packageChangeTypes).forEach(pkgName => {
-    bumpPackageInfoVersion(pkgName, bumpInfo);
+    bumpPackageInfoVersion(pkgName, bumpInfo, options);
   });
 
   // pass 3: Bump all the dependencies packages

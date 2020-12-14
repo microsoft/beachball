@@ -43,3 +43,7 @@ show help message
 ###### `--yes, -y`
 
 skips the prompts for publish
+
+###### `--prerelease-prefix`
+
+sets a prerelease prefix for packages that are expected to receive a prerelease bump (for example, --prerelease-prefix "beta" will produce the "x.y.z-beta.prerelease" version)
