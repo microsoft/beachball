@@ -21,17 +21,20 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
 
   const succeededPackages = new Set<string>();
 
-  let invalid = false;
-  if (!(await validatePackageVersions(bumpInfo, registry))) {
-    displayManualRecovery(bumpInfo, succeededPackages);
-    invalid = true;
-  } else if (!validatePackageDependencies(bumpInfo)) {
-    invalid = true;
-  }
+  if (!options.skipPackageValidationOnPublish) {
+    let invalid = false;
 
-  if (invalid) {
-    console.error('No packages have been published');
-    process.exit(1);
+    if (!(await validatePackageVersions(bumpInfo, registry))) {
+      displayManualRecovery(bumpInfo, succeededPackages);
+      invalid = true;
+    } else if (!validatePackageDependencies(bumpInfo)) {
+      invalid = true;
+    }
+
+    if (invalid) {
+      console.error('No packages have been published');
+      process.exit(1);
+    }
   }
 
   // get the packages to publish, reducing the set by packages that don't need publishing
