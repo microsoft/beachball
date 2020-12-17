@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Adding a new flag to skip package validation before publishing",
+  "packageName": "beachball",
+  "email": "arabisho@microsoft.com",
+  "dependentChangeType": "patch"
+}
