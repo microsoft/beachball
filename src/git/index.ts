@@ -126,7 +126,7 @@ export function getChanges(branch: string, cwd: string) {
 export function getChangesBetweenRefs(fromRef: string, toRef: string, options: string[], pattern: string, cwd: string) {
   try {
     return processGitOutput(
-      git(['--no-pager', 'diff', '--name-only', ...options, fromRef, toRef, '--', pattern], { cwd })
+      git(['--no-pager', 'diff', '--name-only', ...options, `${fromRef}...${toRef}`, '--', pattern], { cwd })
     );
   } catch (e) {
     console.error('Cannot gather information about changes: ', e.message);
