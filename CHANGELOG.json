@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 18 Dec 2020 18:31:08 GMT",
+      "tag": "beachball_v1.48.1",
+      "version": "1.48.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Use merge base for comparing two refs",
+            "author": "arabisho@microsoft.com",
+            "commit": "57fa2163ea6ba6db3835071bbe1e1fd783db08e8",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 14 Dec 2020 21:08:05 GMT",
       "tag": "beachball_v1.48.0",
       "version": "1.48.0",

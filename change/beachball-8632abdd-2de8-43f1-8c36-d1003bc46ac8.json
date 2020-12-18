@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Use merge base for comparing two refs",
-  "packageName": "beachball",
-  "email": "arabisho@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 14 Dec 2020 21:08:05 GMT and should not be manually modified.
+This log was last generated on Fri, 18 Dec 2020 18:31:08 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.48.1
+
+Fri, 18 Dec 2020 18:31:08 GMT
+
+### Patches
+
+- Use merge base for comparing two refs (arabisho@microsoft.com)
 
 ## 1.48.0
 
