@@ -1,11 +1,11 @@
-import { findGitRoot, getChangePath } from '../paths';
+import { findProjectRoot, getChangePath } from '../paths';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getChangesBetweenRefs } from '../git';
 
 export function areChangeFilesDeleted(options: BeachballOptions): boolean {
   const { branch, path: cwd } = options;
 
-  const gitRoot = findGitRoot(cwd);
+  const gitRoot = findProjectRoot(cwd);
   if (!gitRoot) {
     console.error('Failed to find the root of git repository');
     process.exit(1);

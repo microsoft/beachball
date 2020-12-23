@@ -1,8 +1,8 @@
-import { findGitRoot } from '../paths';
+import { findProjectRoot } from '../paths';
 import { git } from '../git';
 
 export function isGitAvailable(cwd: string) {
   const result = git(['--version']);
-  const gitRoot = findGitRoot(cwd);
+  const gitRoot = findProjectRoot(cwd);
   return result.success && gitRoot;
 }

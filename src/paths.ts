@@ -26,7 +26,7 @@ export function searchUp(pathName: string, cwd: string) {
   return null;
 }
 
-export function findGitRoot(cwd: string) {
+export function findProjectRoot(cwd: string) {
   const root = getWorkspaceRoot(cwd) || searchUp('.git', cwd);
   return root;
 }
@@ -36,7 +36,7 @@ export function findPackageRoot(cwd: string) {
 }
 
 export function getChangePath(cwd: string) {
-  const gitRoot = findGitRoot(cwd);
+  const gitRoot = findProjectRoot(cwd);
 
   if (gitRoot) {
     return path.join(gitRoot, 'change');

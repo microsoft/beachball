@@ -1,7 +1,7 @@
 import { spawnSync } from 'child_process';
 import fs from 'fs-extra';
 import path from 'path';
-import { findGitRoot } from '../paths';
+import { findProjectRoot } from '../paths';
 import gitUrlParse from 'git-url-parse';
 
 type ProcessOutput = {
@@ -363,7 +363,7 @@ export function getDefaultRemote(cwd: string) {
   let packageJson: any;
 
   try {
-    packageJson = fs.readJSONSync(path.join(findGitRoot(cwd)!, 'package.json'));
+    packageJson = fs.readJSONSync(path.join(findProjectRoot(cwd)!, 'package.json'));
   } catch (e) {
     console.log('failed to read package.json');
     throw new Error('invalid package.json detected');

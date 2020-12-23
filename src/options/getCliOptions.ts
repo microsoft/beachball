@@ -1,6 +1,6 @@
 import parser from 'yargs-parser';
 import { CliOptions } from '../types/BeachballOptions';
-import { findGitRoot } from '../paths';
+import { findProjectRoot } from '../paths';
 import { getDefaultRemoteBranch } from '../git';
 
 // CLI Options cache
@@ -30,7 +30,7 @@ export function getCliOptions(): CliOptions {
   });
 
   const { _, ...restArgs } = args;
-  const cwd = findGitRoot(process.cwd()) || process.cwd();
+  const cwd = findProjectRoot(process.cwd()) || process.cwd();
   cliOptions = {
     ...(_.length > 0 && { command: _[0] }),
     ...(restArgs as any),
