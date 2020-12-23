@@ -27,8 +27,12 @@ export function searchUp(pathName: string, cwd: string) {
 }
 
 export function findProjectRoot(cwd: string) {
-  const root = getWorkspaceRoot(cwd) || searchUp('.git', cwd);
-  return root;
+  let workspaceRoot: string | undefined;
+  try {
+    workspaceRoot = getWorkspaceRoot(cwd);
+  } catch {}
+
+  return workspaceRoot || searchUp('.git', cwd);
 }
 
 export function findPackageRoot(cwd: string) {
