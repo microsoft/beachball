@@ -117,7 +117,7 @@ export function fetchRemote(remote: string, remoteBranch: string, cwd: string) {
 
 export function getChanges(branch: string, cwd: string) {
   try {
-    return processGitOutput(git(['--no-pager', 'diff', '--name-only', branch + '...'], { cwd }));
+    return processGitOutput(git(['--no-pager', 'diff', '--relative', '--name-only', branch + '...'], { cwd }));
   } catch (e) {
     console.error('Cannot gather information about changes: ', e.message);
   }
@@ -126,7 +126,9 @@ export function getChanges(branch: string, cwd: string) {
 export function getChangesBetweenRefs(fromRef: string, toRef: string, options: string[], pattern: string, cwd: string) {
   try {
     return processGitOutput(
-      git(['--no-pager', 'diff', '--name-only', ...options, `${fromRef}...${toRef}`, '--', pattern], { cwd })
+      git(['--no-pager', 'diff', '--relative', '--name-only', ...options, `${fromRef}...${toRef}`, '--', pattern], {
+        cwd,
+      })
     );
   } catch (e) {
     console.error('Cannot gather information about changes: ', e.message);
@@ -135,7 +137,7 @@ export function getChangesBetweenRefs(fromRef: string, toRef: string, options: s
 
 export function getStagedChanges(branch: string, cwd: string) {
   try {
-    return processGitOutput(git(['--no-pager', 'diff', '--staged', '--name-only'], { cwd }));
+    return processGitOutput(git(['--no-pager', 'diff', '--relative', '--staged', '--name-only'], { cwd }));
   } catch (e) {
     console.error('Cannot gather information about changes: ', e.message);
   }
