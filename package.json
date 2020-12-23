@@ -43,8 +43,9 @@
     "prompts": "~2.1.0",
     "semver": "^6.1.1",
     "toposort": "^2.0.2",
-    "yargs-parser": "^20.2.4",
-    "uuid": "^8.3.1"
+    "uuid": "^8.3.1",
+    "workspace-tools": "^0.10.2",
+    "yargs-parser": "^20.2.4"
   },
   "devDependencies": {
     "@types/cosmiconfig": "6.0.0",
@@ -62,6 +63,7 @@
     "@types/toposort": "^2.0.3",
     "@types/yargs-parser": "^15.0.0",
     "find-free-port": "~2.0.0",
+    "gh-pages": "^3.1.0",
     "jest": "^24.8.0",
     "ncp": "^2.0.0",
     "prettier": "^1.19.0",
@@ -72,7 +74,6 @@
     "verdaccio": "^4.2.2",
     "verdaccio-memory": "^8.0.0",
     "vuepress": "^1.5.3",
-    "vuepress-plugin-mermaidjs": "^1.6.0",
-    "gh-pages": "^3.1.0"
+    "vuepress-plugin-mermaidjs": "^1.6.0"
   }
 }
