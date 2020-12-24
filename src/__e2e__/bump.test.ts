@@ -467,8 +467,8 @@ describe('version bumping', () => {
     expect(packageInfos['foo'].version).toBe('1.0.0');
     expect(packageInfos['bar'].version).toBe('1.3.4');
 
-    const changeFilesA = getChangeFiles(repo.rootPath);
-    expect(changeFilesA.length).toBe(1);
+    const changeFiles = getChangeFiles(repo.rootPath);
+    expect(changeFiles.length).toBe(1);
   });
 
   it('should not bump out-of-scope package and its dependencies even if dependency of the package has change', async () => {
