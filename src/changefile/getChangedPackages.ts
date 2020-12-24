@@ -60,7 +60,10 @@ export function getChangedPackages(options: BeachballOptions) {
 
   const changedPackages = getAllChangedPackages(options);
 
-  const changeFilesResult = git(['diff', '--name-only', '--no-renames', '--diff-filter=A', `${branch}...`], { cwd });
+  const changeFilesResult = git(
+    ['diff', '--name-only', '--relative', '--no-renames', '--diff-filter=A', `${branch}...`],
+    { cwd }
+  );
 
   if (!changePath || !fs.existsSync(changePath) || !changeFilesResult.success) {
     return changedPackages;
