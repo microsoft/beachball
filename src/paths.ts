@@ -36,7 +36,7 @@ export function findProjectRoot(cwd: string) {
     workspaceRoot = getWorkspaceRoot(cwd);
   } catch {}
 
-  return workspaceRoot || searchUp('.git', cwd);
+  return workspaceRoot || findGitRoot(cwd);
 }
 
 export function findPackageRoot(cwd: string) {
