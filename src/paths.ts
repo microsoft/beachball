@@ -26,6 +26,10 @@ export function searchUp(pathName: string, cwd: string) {
   return null;
 }
 
+export function findGitRoot(cwd: string) {
+  return searchUp('.git', cwd);
+}
+
 export function findProjectRoot(cwd: string) {
   let workspaceRoot: string | undefined;
   try {
