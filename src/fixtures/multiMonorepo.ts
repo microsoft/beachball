@@ -88,8 +88,8 @@ export class MultiMonoRepoFactory extends RepositoryFactory {
       tmpRepo.commitChange(packageJsonFile);
     }
 
-    tmpRepo.commitChange('package.json', JSON.stringify({ name: 'multi-monorepo-fixture', version: '1.0.0' }, null, 2));
-    tmpRepo.commitChange('yarn.lock', '');
+    tmpRepo.commitChange('repo-a/yarn.lock', '');
+    tmpRepo.commitChange('repo-b/yarn.lock', '');
 
     tmpRepo.commitChange(
       'repo-a/beachball.config.js',
