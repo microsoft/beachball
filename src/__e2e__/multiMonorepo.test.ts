@@ -8,7 +8,7 @@ import { bump } from '../commands/bump';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getChangePath } from '../paths';
-import { MultiMonoRepoFactory } from '../fixtures/multi-monorepo';
+import { MultiMonoRepoFactory } from '../fixtures/multiMonorepo';
 
 describe('changed files', () => {
   let repositoryFactory: RepositoryFactory | undefined;
