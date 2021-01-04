@@ -5,9 +5,9 @@ import { getChangesBetweenRefs } from '../git';
 export function areChangeFilesDeleted(options: BeachballOptions): boolean {
   const { branch, path: cwd } = options;
 
-  const gitRoot = findProjectRoot(cwd);
-  if (!gitRoot) {
-    console.error('Failed to find the root of git repository');
+  const root = findProjectRoot(cwd);
+  if (!root) {
+    console.error('Failed to find the project root');
     process.exit(1);
   }
 
@@ -25,7 +25,7 @@ export function areChangeFilesDeleted(options: BeachballOptions): boolean {
       '--diff-filter=D', // showing only deleted files from the diff.
     ],
     `${changePath}/*.json`,
-    gitRoot
+    root
   );
 
   // if this value is undefined, git has failed to execute the command above.

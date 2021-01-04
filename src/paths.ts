@@ -44,10 +44,10 @@ export function findPackageRoot(cwd: string) {
 }
 
 export function getChangePath(cwd: string) {
-  const gitRoot = findProjectRoot(cwd);
+  const root = findProjectRoot(cwd);
 
-  if (gitRoot) {
-    return path.join(gitRoot, 'change');
+  if (root) {
+    return path.join(root, 'change');
   }
 
   return null;
