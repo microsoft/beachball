@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Roll-up the changelogs to dependents",
+  "packageName": "beachball",
+  "email": "arabisho@microsoft.com",
+  "dependentChangeType": "patch"
+}
