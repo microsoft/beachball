@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 05 Jan 2021 05:46:59 GMT",
+      "tag": "beachball_v1.48.2",
+      "version": "1.48.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add support for multiple project roots within a repo",
+            "author": "bewegger@microsoft.com",
+            "commit": "e752b65c09276a27a2564140d41ee882fa0862d7",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 18 Dec 2020 18:31:08 GMT",
       "tag": "beachball_v1.48.1",
       "version": "1.48.1",

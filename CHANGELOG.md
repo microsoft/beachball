@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 18 Dec 2020 18:31:08 GMT and should not be manually modified.
+This log was last generated on Tue, 05 Jan 2021 05:46:59 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.48.2
+
+Tue, 05 Jan 2021 05:46:59 GMT
+
+### Patches
+
+- Add support for multiple project roots within a repo (bewegger@microsoft.com)
 
 ## 1.48.1
 
