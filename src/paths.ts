@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs-extra';
+import { getWorkspaceRoot } from 'workspace-tools';
 
 /**
  * Starting from `cwd`, searches up the directory hierarchy for `pathName`
@@ -29,15 +30,24 @@ export function findGitRoot(cwd: string) {
   return searchUp('.git', cwd);
 }
 
+export function findProjectRoot(cwd: string) {
+  let workspaceRoot: string | undefined;
+  try {
+    workspaceRoot = getWorkspaceRoot(cwd);
+  } catch {}
+
+  return workspaceRoot || findGitRoot(cwd);
+}
+
 export function findPackageRoot(cwd: string) {
   return searchUp('package.json', cwd);
 }
 
 export function getChangePath(cwd: string) {
-  const gitRoot = findGitRoot(cwd);
+  const root = findProjectRoot(cwd);
 
-  if (gitRoot) {
-    return path.join(gitRoot, 'change');
+  if (root) {
+    return path.join(root, 'change');
   }
 
   return null;

@@ -1,7 +1,7 @@
 import { spawnSync } from 'child_process';
 import fs from 'fs-extra';
 import path from 'path';
-import { findGitRoot } from '../paths';
+import { findProjectRoot } from '../paths';
 import gitUrlParse from 'git-url-parse';
 
 type ProcessOutput = {
@@ -117,7 +117,7 @@ export function fetchRemote(remote: string, remoteBranch: string, cwd: string) {
 
 export function getChanges(branch: string, cwd: string) {
   try {
-    return processGitOutput(git(['--no-pager', 'diff', '--name-only', branch + '...'], { cwd }));
+    return processGitOutput(git(['--no-pager', 'diff', '--relative', '--name-only', branch + '...'], { cwd }));
   } catch (e) {
     console.error('Cannot gather information about changes: ', e.message);
   }
@@ -126,7 +126,9 @@ export function getChanges(branch: string, cwd: string) {
 export function getChangesBetweenRefs(fromRef: string, toRef: string, options: string[], pattern: string, cwd: string) {
   try {
     return processGitOutput(
-      git(['--no-pager', 'diff', '--name-only', ...options, `${fromRef}...${toRef}`, '--', pattern], { cwd })
+      git(['--no-pager', 'diff', '--relative', '--name-only', ...options, `${fromRef}...${toRef}`, '--', pattern], {
+        cwd,
+      })
     );
   } catch (e) {
     console.error('Cannot gather information about changes: ', e.message);
@@ -135,7 +137,7 @@ export function getChangesBetweenRefs(fromRef: string, toRef: string, options: s
 
 export function getStagedChanges(branch: string, cwd: string) {
   try {
-    return processGitOutput(git(['--no-pager', 'diff', '--staged', '--name-only'], { cwd }));
+    return processGitOutput(git(['--no-pager', 'diff', '--relative', '--staged', '--name-only'], { cwd }));
   } catch (e) {
     console.error('Cannot gather information about changes: ', e.message);
   }
@@ -361,7 +363,7 @@ export function getDefaultRemote(cwd: string) {
   let packageJson: any;
 
   try {
-    packageJson = fs.readJSONSync(path.join(findGitRoot(cwd)!, 'package.json'));
+    packageJson = fs.readJSONSync(path.join(findProjectRoot(cwd)!, 'package.json'));
   } catch (e) {
     console.log('failed to read package.json');
     throw new Error('invalid package.json detected');

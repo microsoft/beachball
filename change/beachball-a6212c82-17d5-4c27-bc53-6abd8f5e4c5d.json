@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add support for multiple project roots within a repo",
+  "packageName": "beachball",
+  "email": "bewegger@microsoft.com",
+  "dependentChangeType": "patch"
+}
