@@ -1,7 +1,7 @@
 import { getPackageChangeTypes } from '../changefile/getPackageChangeTypes';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { ChangeSet } from '../types/ChangeInfo';
+import { ChangeInfo, ChangeSet } from '../types/ChangeInfo';
 import { BumpInfo } from '../types/BumpInfo';
 import { bumpInPlace } from './bumpInPlace';
 import { BeachballOptions } from '../types/BeachballOptions';
@@ -56,6 +56,7 @@ function gatherPreBumpInfo(options: BeachballOptions): BumpInfo {
     dependentChangeTypes,
     groupOptions,
     dependents: {},
+    dependentChangeInfos: new Array<ChangeInfo>(),
   };
 }
 

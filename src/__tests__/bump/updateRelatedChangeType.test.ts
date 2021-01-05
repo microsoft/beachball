@@ -1,6 +1,7 @@
 import { updateRelatedChangeType } from '../../bump/updateRelatedChangeType';
 import { BumpInfo } from '../../types/BumpInfo';
 import _ from 'lodash';
+import { ChangeInfo } from '../../types/ChangeInfo';
 
 describe('updateRelatedChangeType', () => {
   const bumpInfoFixture: BumpInfo = ({
@@ -26,13 +27,24 @@ describe('updateRelatedChangeType', () => {
     groupOptions: {},
   } as unknown) as BumpInfo;
 
+  const changeInfoFixture: ChangeInfo = {
+    dependentChangeType: 'none',
+    packageName: '',
+    comment: '',
+    commit: '',
+    email: '',
+    type: 'none',
+  };
+
   it('should bump dependent packages with "patch" change type by default', () => {
     const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
       dependents: {
         foo: ['bar'],
       },
       packageChangeTypes: {
-        foo: 'minor',
+        foo: {
+          type: 'minor',
+        },
       },
       dependentChangeTypes: {
         foo: 'patch',
@@ -46,10 +58,16 @@ describe('updateRelatedChangeType', () => {
       },
     });
 
-    updateRelatedChangeType('foo', 'minor', bumpInfo, true);
+    updateRelatedChangeType(
+      'foo',
+      { ...changeInfoFixture, type: 'minor' },
+      bumpInfo,
+      new Map<string, Array<ChangeInfo>>(),
+      true
+    );
 
-    expect(bumpInfo.packageChangeTypes['foo']).toBe('minor');
-    expect(bumpInfo.packageChangeTypes['bar']).toBe('patch');
+    expect(bumpInfo.packageChangeTypes['foo'].type).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['bar'].type).toBe('patch');
   });
 
   it('should bump dependent packages according to the bumpInfo.dependentChangeTypes', () => {
@@ -58,7 +76,7 @@ describe('updateRelatedChangeType', () => {
         foo: ['bar'],
       },
       packageChangeTypes: {
-        foo: 'patch',
+        foo: { type: 'patch' },
       },
       dependentChangeTypes: {
         foo: 'minor',
@@ -72,10 +90,16 @@ describe('updateRelatedChangeType', () => {
       },
     });
 
-    updateRelatedChangeType('foo', 'patch', bumpInfo, true);
+    updateRelatedChangeType(
+      'foo',
+      { ...changeInfoFixture, type: 'patch' },
+      bumpInfo,
+      new Map<string, Array<ChangeInfo>>(),
+      true
+    );
 
-    expect(bumpInfo.packageChangeTypes['foo']).toBe('patch');
-    expect(bumpInfo.packageChangeTypes['bar']).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['foo'].type).toBe('patch');
+    expect(bumpInfo.packageChangeTypes['bar'].type).toBe('minor');
   });
 
   it('should bump all packages in a group together as minor', () => {
@@ -95,10 +119,16 @@ describe('updateRelatedChangeType', () => {
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
-    updateRelatedChangeType('foo', 'minor', bumpInfo, true);
+    updateRelatedChangeType(
+      'foo',
+      { ...changeInfoFixture, type: 'minor' },
+      bumpInfo,
+      new Map<string, Array<ChangeInfo>>(),
+      true
+    );
 
-    expect(bumpInfo.packageChangeTypes['foo']).toBe('minor');
-    expect(bumpInfo.packageChangeTypes['bar']).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['foo'].type).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['bar'].type).toBe('minor');
     expect(bumpInfo.packageChangeTypes['unrelated']).toBeUndefined();
   });
 
@@ -119,10 +149,16 @@ describe('updateRelatedChangeType', () => {
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
-    updateRelatedChangeType('foo', 'patch', bumpInfo, true);
+    updateRelatedChangeType(
+      'foo',
+      { ...changeInfoFixture, type: 'patch' },
+      bumpInfo,
+      new Map<string, Array<ChangeInfo>>(),
+      true
+    );
 
-    expect(bumpInfo.packageChangeTypes['foo']).toBe('patch');
-    expect(bumpInfo.packageChangeTypes['bar']).toBe('patch');
+    expect(bumpInfo.packageChangeTypes['foo'].type).toBe('patch');
+    expect(bumpInfo.packageChangeTypes['bar'].type).toBe('patch');
     expect(bumpInfo.packageChangeTypes['unrelated']).toBeUndefined();
   });
 
@@ -143,10 +179,16 @@ describe('updateRelatedChangeType', () => {
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
-    updateRelatedChangeType('foo', 'none', bumpInfo, true);
+    updateRelatedChangeType(
+      'foo',
+      { ...changeInfoFixture, type: 'none' },
+      bumpInfo,
+      new Map<string, Array<ChangeInfo>>(),
+      true
+    );
 
-    expect(bumpInfo.packageChangeTypes['foo']).toBe('none');
-    expect(bumpInfo.packageChangeTypes['bar']).toBe('none');
+    expect(bumpInfo.packageChangeTypes['foo'].type).toBe('none');
+    expect(bumpInfo.packageChangeTypes['bar'].type).toBe('none');
     expect(bumpInfo.packageChangeTypes['unrelated']).toBeUndefined();
   });
 
@@ -170,10 +212,16 @@ describe('updateRelatedChangeType', () => {
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
-    updateRelatedChangeType('foo', 'none', bumpInfo, true);
+    updateRelatedChangeType(
+      'foo',
+      { ...changeInfoFixture, type: 'none' },
+      bumpInfo,
+      new Map<string, Array<ChangeInfo>>(),
+      true
+    );
 
-    expect(bumpInfo.packageChangeTypes['foo']).toBe('none');
-    expect(bumpInfo.packageChangeTypes['bar']).toBe('none');
+    expect(bumpInfo.packageChangeTypes['foo'].type).toBe('none');
+    expect(bumpInfo.packageChangeTypes['bar'].type).toBe('none');
     expect(bumpInfo.packageChangeTypes['unrelated']).toBeUndefined();
   });
 
@@ -207,11 +255,17 @@ describe('updateRelatedChangeType', () => {
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
-    updateRelatedChangeType('dep', 'patch', bumpInfo, true);
+    updateRelatedChangeType(
+      'dep',
+      { ...changeInfoFixture, type: 'patch' },
+      bumpInfo,
+      new Map<string, Array<ChangeInfo>>(),
+      true
+    );
 
-    expect(bumpInfo.packageChangeTypes['foo']).toBe('minor');
-    expect(bumpInfo.packageChangeTypes['bar']).toBe('minor');
-    expect(bumpInfo.packageChangeTypes['dep']).toBe('patch');
+    expect(bumpInfo.packageChangeTypes['foo'].type).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['bar'].type).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['dep'].type).toBe('patch');
     expect(bumpInfo.packageChangeTypes['unrelated']).toBeUndefined();
   });
 
@@ -249,12 +303,18 @@ describe('updateRelatedChangeType', () => {
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
-    updateRelatedChangeType('dep', 'patch', bumpInfo, true);
+    updateRelatedChangeType(
+      'dep',
+      { ...changeInfoFixture, type: 'patch' },
+      bumpInfo,
+      new Map<string, Array<ChangeInfo>>(),
+      true
+    );
 
-    expect(bumpInfo.packageChangeTypes['foo']).toBe('minor');
-    expect(bumpInfo.packageChangeTypes['bar']).toBe('minor');
-    expect(bumpInfo.packageChangeTypes['dep']).toBe('patch');
-    expect(bumpInfo.packageChangeTypes['app']).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['foo'].type).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['bar'].type).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['dep'].type).toBe('patch');
+    expect(bumpInfo.packageChangeTypes['app'].type).toBe('minor');
   });
 
   it('should propagate dependent change type across group', () => {
@@ -306,14 +366,26 @@ describe('updateRelatedChangeType', () => {
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
-    updateRelatedChangeType('mergeStyles', 'patch', bumpInfo, true);
-    updateRelatedChangeType('datetimeUtils', 'patch', bumpInfo, true);
+    updateRelatedChangeType(
+      'mergeStyles',
+      { ...changeInfoFixture, type: 'patch' },
+      bumpInfo,
+      new Map<string, Array<ChangeInfo>>(),
+      true
+    );
+    updateRelatedChangeType(
+      'datetimeUtils',
+      { ...changeInfoFixture, type: 'patch' },
+      bumpInfo,
+      new Map<string, Array<ChangeInfo>>(),
+      true
+    );
 
-    expect(bumpInfo.packageChangeTypes['foo']).toBe('minor');
-    expect(bumpInfo.packageChangeTypes['bar']).toBe('minor');
-    expect(bumpInfo.packageChangeTypes['mergeStyles']).toBe('patch');
-    expect(bumpInfo.packageChangeTypes['datetime']).toBe('minor');
-    expect(bumpInfo.packageChangeTypes['datetimeUtils']).toBe('patch');
+    expect(bumpInfo.packageChangeTypes['foo'].type).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['bar'].type).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['mergeStyles'].type).toBe('patch');
+    expect(bumpInfo.packageChangeTypes['datetime'].type).toBe('minor');
+    expect(bumpInfo.packageChangeTypes['datetimeUtils'].type).toBe('patch');
   });
 
   it('should respect disallowed change type', () => {
@@ -325,8 +397,14 @@ describe('updateRelatedChangeType', () => {
       },
     });
 
-    updateRelatedChangeType('foo', 'major', bumpInfo, true);
+    updateRelatedChangeType(
+      'foo',
+      { ...changeInfoFixture, type: 'major' },
+      bumpInfo,
+      new Map<string, Array<ChangeInfo>>(),
+      true
+    );
 
-    expect(bumpInfo.packageChangeTypes['foo']).toBe('patch');
+    expect(bumpInfo.packageChangeTypes['foo'].type).toBe('patch');
   });
 });

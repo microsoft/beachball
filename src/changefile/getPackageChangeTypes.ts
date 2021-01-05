@@ -1,4 +1,4 @@
-import { ChangeFileInfo, ChangeSet, ChangeType } from '../types/ChangeInfo';
+import { ChangeInfo, ChangeSet, ChangeType } from '../types/ChangeInfo';
 
 /**
  * List of all change types from least to most significant.
@@ -21,13 +21,13 @@ const ChangeTypeWeights: { [t in ChangeType]: number } = SortedChangeTypes.reduc
 
 export function getPackageChangeTypes(changeSet: ChangeSet) {
   const changePerPackage: {
-    [pkgName: string]: ChangeFileInfo['type'];
+    [pkgName: string]: ChangeInfo;
   } = {};
 
   for (let change of changeSet.values()) {
     const { packageName } = change;
-    if (!changePerPackage[packageName] || isChangeTypeGreater(change.type, changePerPackage[packageName])) {
-      changePerPackage[packageName] = change.type;
+    if (!changePerPackage[packageName] || isChangeTypeGreater(change.type, changePerPackage[packageName].type)) {
+      changePerPackage[packageName] = change;
     }
   }
   return changePerPackage;

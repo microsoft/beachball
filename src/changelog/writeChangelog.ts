@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import _ from 'lodash';
-import { ChangeSet } from '../types/ChangeInfo';
+import { ChangeInfo, ChangeSet } from '../types/ChangeInfo';
 import { PackageInfo } from '../types/PackageInfo';
 import { getPackageChangelogs } from './getPackageChangelogs';
 import { renderChangelog } from './renderChangelog';
@@ -14,14 +14,15 @@ import { mergeChangelogs } from './mergeChangelogs';
 export async function writeChangelog(
   options: BeachballOptions,
   changeSet: ChangeSet,
+  dependentChangeInfos: Array<ChangeInfo>,
   packageInfos: {
     [pkg: string]: PackageInfo;
   }
 ): Promise<void> {
-  const groupedChangelogPaths = await writeGroupedChangelog(options, changeSet, packageInfos);
+  const groupedChangelogPaths = await writeGroupedChangelog(options, changeSet, dependentChangeInfos, packageInfos);
   const groupedChangelogPathSet = new Set(groupedChangelogPaths);
 
-  const changelogs = getPackageChangelogs(changeSet, packageInfos);
+  const changelogs = getPackageChangelogs(changeSet, dependentChangeInfos, packageInfos);
   // Use a standard for loop here to prevent potentially firing off multiple network requests at once
   // (in case any custom renderers have network requests)
   for (const pkg of Object.keys(changelogs)) {
@@ -37,6 +38,7 @@ export async function writeChangelog(
 async function writeGroupedChangelog(
   options: BeachballOptions,
   changeSet: ChangeSet,
+  dependentChangeInfos: Array<ChangeInfo>,
   packageInfos: {
     [pkg: string]: PackageInfo;
   }
@@ -50,7 +52,7 @@ async function writeGroupedChangelog(
     return [];
   }
 
-  const changelogs = getPackageChangelogs(changeSet, packageInfos);
+  const changelogs = getPackageChangelogs(changeSet, dependentChangeInfos, packageInfos);
   const groupedChangelogs: {
     [path: string]: { changelogs: PackageChangelog[]; masterPackage: PackageInfo };
   } = {};

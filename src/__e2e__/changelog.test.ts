@@ -11,7 +11,7 @@ import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { SortedChangeTypes } from '../changefile/getPackageChangeTypes';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { ChangeFileInfo } from '../types/ChangeInfo';
+import { ChangeFileInfo, ChangeInfo } from '../types/ChangeInfo';
 import { MonoRepoFactory } from '../fixtures/monorepo';
 import { ChangelogJson } from '../types/ChangeLog';
 
@@ -110,7 +110,7 @@ describe('changelog generation', () => {
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(repository.rootPath);
 
-      await writeChangelog(beachballOptions, changes, packageInfos);
+      await writeChangelog(beachballOptions, changes, new Array<ChangeInfo>(), packageInfos);
 
       const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
       const text = await fs.readFile(changelogFile, { encoding: 'utf-8' });
@@ -150,7 +150,7 @@ describe('changelog generation', () => {
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(monoRepo.rootPath);
 
-      await writeChangelog(beachballOptions, changes, packageInfos);
+      await writeChangelog(beachballOptions, changes, new Array<ChangeInfo>(), packageInfos);
 
       // Validate changelog for foo package
       const fooChangelogFile = path.join(monoRepo.rootPath, 'packages', 'foo', 'CHANGELOG.md');
@@ -194,7 +194,7 @@ describe('changelog generation', () => {
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(monoRepo.rootPath);
 
-      await writeChangelog(beachballOptions, changes, packageInfos);
+      await writeChangelog(beachballOptions, changes, new Array<ChangeInfo>(), packageInfos);
 
       // Validate changelog for bar package
       const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');

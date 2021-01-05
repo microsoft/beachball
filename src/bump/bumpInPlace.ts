@@ -5,6 +5,7 @@ import { bumpPackageInfoVersion } from './bumpPackageInfoVersion';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { setGroupsInBumpInfo } from './setGroupsInBumpInfo';
 import { setDependentVersions } from './setDependentVersions';
+import { ChangeInfo } from '../types/ChangeInfo';
 
 /**
  * Updates BumpInfo according to change types, bump deps, and version groups
@@ -22,8 +23,10 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
 
   setGroupsInBumpInfo(bumpInfo, options);
 
+  const dependentChangeInfos = new Map<string, Array<ChangeInfo>>();
   Object.keys(changes).forEach(pkgName => {
-    updateRelatedChangeType(pkgName, changes[pkgName], bumpInfo, bumpDeps);
+    // that's where you need to identify the email and commit SHAs of the underlying change file
+    updateRelatedChangeType(pkgName, changes[pkgName], bumpInfo, dependentChangeInfos, bumpDeps);
   });
 
   // pass 2: actually bump the packages in the bumpInfo in memory (no disk writes at this point)
@@ -31,7 +34,15 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
     bumpPackageInfoVersion(pkgName, bumpInfo, options);
   });
 
-  // pass 3: Bump all the dependencies packages
+  // pass 3: update the dependentChangeInfos with relevant comments
+  dependentChangeInfos.forEach((changeInfos, dependencyName) => {
+    changeInfos.forEach(changeInfo => {
+      changeInfo.comment = `Bump ${dependencyName} to v${packageInfos[dependencyName].version}`;
+      bumpInfo.dependentChangeInfos.push(changeInfo);
+    });
+  });
+
+  // pass 4: Bump all the dependencies packages
   const dependentModifiedPackages = setDependentVersions(packageInfos, scopedPackages);
   dependentModifiedPackages.forEach(pkg => modifiedPackages.add(pkg));
 
