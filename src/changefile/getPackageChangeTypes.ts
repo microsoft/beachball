@@ -58,6 +58,18 @@ export function getAllowedChangeType(changeType: ChangeType, disallowedChangeTyp
   return changeType;
 }
 
+export function updateChangeInfoWithMaxType(
+  changeInfo: ChangeInfo,
+  inputA: ChangeType,
+  inputB: ChangeType,
+  disallowedChangeTypes: ChangeType[] | null
+): ChangeInfo {
+  return {
+    ...changeInfo,
+    type: getMaxChangeType(inputA, inputB, disallowedChangeTypes),
+  };
+}
+
 export function getMaxChangeType(inputA: ChangeType, inputB: ChangeType, disallowedChangeTypes: ChangeType[] | null) {
   const a = getAllowedChangeType(inputA, disallowedChangeTypes);
   const b = getAllowedChangeType(inputB, disallowedChangeTypes);

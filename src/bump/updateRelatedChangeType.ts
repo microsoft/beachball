@@ -1,4 +1,4 @@
-import { getMaxChangeType, MinChangeType } from '../changefile/getPackageChangeTypes';
+import { getMaxChangeType, MinChangeType, updateChangeInfoWithMaxType } from '../changefile/getPackageChangeTypes';
 import { BumpInfo } from '../types/BumpInfo';
 import { ChangeInfo } from '../types/ChangeInfo';
 
@@ -9,9 +9,9 @@ import { ChangeInfo } from '../types/ChangeInfo';
  */
 export function updateRelatedChangeType(
   pkgName: string,
-  changeType: ChangeInfo,
+  changeInfo: ChangeInfo,
   bumpInfo: BumpInfo,
-  dependentChangeInfos: Map<string, Array<ChangeInfo>>,
+  dependentChangeInfos: Map<string, Map<string, ChangeInfo>>,
   bumpDeps: boolean
 ) {
   const { packageChangeTypes, packageGroups, dependents, packageInfos, dependentChangeTypes, groupOptions } = bumpInfo;
@@ -19,70 +19,82 @@ export function updateRelatedChangeType(
   const packageInfo = packageInfos[pkgName];
   const disallowedChangeTypes = packageInfo.combinedOptions?.disallowedChangeTypes ?? [];
 
-  let depChangeType = {
-    ...changeType,
-    type: getMaxChangeType(MinChangeType, dependentChangeTypes[pkgName], disallowedChangeTypes),
-  };
+  let depChangeInfo = updateChangeInfoWithMaxType(
+    changeInfo,
+    MinChangeType,
+    dependentChangeTypes[pkgName],
+    disallowedChangeTypes
+  );
 
   let dependentPackages = dependents[pkgName];
 
   // Handle groups
-  packageChangeTypes[pkgName] = {
-    ...packageChangeTypes[pkgName],
-    type: getMaxChangeType(changeType.type, packageChangeTypes[pkgName]?.type, disallowedChangeTypes),
-  };
+  packageChangeTypes[pkgName] = updateChangeInfoWithMaxType(
+    packageChangeTypes[pkgName],
+    changeInfo.type,
+    packageChangeTypes[pkgName]?.type,
+    disallowedChangeTypes
+  );
 
   const groupName = packageInfos[pkgName].group;
   if (groupName) {
-    let maxGroupChangeType: ChangeInfo = {
-      ...changeType,
+    let groupChangeInfo: ChangeInfo = {
+      ...changeInfo,
       type: MinChangeType,
     };
 
     // calculate maxChangeType
     packageGroups[groupName].packageNames.forEach(groupPkgName => {
-      maxGroupChangeType = {
-        ...maxGroupChangeType,
+      groupChangeInfo = {
+        ...groupChangeInfo,
         type: getMaxChangeType(
-          maxGroupChangeType.type,
+          groupChangeInfo.type,
           packageChangeTypes[groupPkgName]?.type,
           groupOptions[groupName]?.disallowedChangeTypes
         ),
       };
 
       // disregard the target disallowed types for now and will be culled at the subsequent update steps
-      dependentChangeTypes[groupPkgName] = getMaxChangeType(depChangeType.type, dependentChangeTypes[groupPkgName], []);
+      dependentChangeTypes[groupPkgName] = getMaxChangeType(depChangeInfo.type, dependentChangeTypes[groupPkgName], []);
     });
 
     packageGroups[groupName].packageNames.forEach(groupPkgName => {
-      if (packageChangeTypes[groupPkgName]?.type !== maxGroupChangeType.type) {
-        updateRelatedChangeType(groupPkgName, maxGroupChangeType, bumpInfo, dependentChangeInfos, bumpDeps);
+      if (packageChangeTypes[groupPkgName]?.type !== groupChangeInfo.type) {
+        updateRelatedChangeType(groupPkgName, groupChangeInfo, bumpInfo, dependentChangeInfos, bumpDeps);
       }
     });
   }
 
   if (bumpDeps && dependentPackages) {
     new Set(dependentPackages).forEach(parent => {
-      if (packageChangeTypes[parent]?.type !== depChangeType.type) {
+      if (packageChangeTypes[parent]?.type !== depChangeInfo.type) {
         // propagate the dependentChangeType of the current package to the subsequent related packages
-        dependentChangeTypes[parent] = depChangeType.type;
+        dependentChangeTypes[parent] = depChangeInfo.type;
 
         let changeInfos = dependentChangeInfos.get(pkgName);
         if (!changeInfos) {
-          changeInfos = new Array<ChangeInfo>();
+          changeInfos = new Map<string, ChangeInfo>();
           dependentChangeInfos.set(pkgName, changeInfos);
         }
 
-        changeInfos.push({
-          type: depChangeType.type,
+        let prevChangeInfo = changeInfos.get(parent);
+        let nextChangeInfo: ChangeInfo = {
+          type: depChangeInfo.type,
           packageName: parent,
-          email: depChangeType.email,
-          dependentChangeType: depChangeType.type,
-          commit: depChangeType.commit,
+          email: depChangeInfo.email,
+          commit: depChangeInfo.commit,
           comment: '', // comment will be populated at later stages when new versions are computed
-        });
+        };
 
-        updateRelatedChangeType(parent, depChangeType, bumpInfo, dependentChangeInfos, bumpDeps);
+        if (prevChangeInfo) {
+          nextChangeInfo = {
+            ...nextChangeInfo,
+            type: getMaxChangeType(prevChangeInfo.type, nextChangeInfo.type, disallowedChangeTypes),
+          };
+        }
+
+        changeInfos.set(parent, nextChangeInfo);
+        updateRelatedChangeType(parent, depChangeInfo, bumpInfo, dependentChangeInfos, bumpDeps);
       }
     });
   }

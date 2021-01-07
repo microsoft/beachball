@@ -23,9 +23,8 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
 
   setGroupsInBumpInfo(bumpInfo, options);
 
-  const dependentChangeInfos = new Map<string, Array<ChangeInfo>>();
+  const dependentChangeInfos = new Map<string, Map<string, ChangeInfo>>();
   Object.keys(changes).forEach(pkgName => {
-    // that's where you need to identify the email and commit SHAs of the underlying change file
     updateRelatedChangeType(pkgName, changes[pkgName], bumpInfo, dependentChangeInfos, bumpDeps);
   });
 
@@ -36,10 +35,10 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
 
   // pass 3: update the dependentChangeInfos with relevant comments
   dependentChangeInfos.forEach((changeInfos, dependencyName) => {
-    changeInfos.forEach(changeInfo => {
+    for (let changeInfo of changeInfos.values()) {
       changeInfo.comment = `Bump ${dependencyName} to v${packageInfos[dependencyName].version}`;
       bumpInfo.dependentChangeInfos.push(changeInfo);
-    });
+    }
   });
 
   // pass 4: Bump all the dependencies packages
