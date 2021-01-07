@@ -15,6 +15,8 @@ This log was last generated on (date) and should not be manually modified.
 
 - comment 2 (test@testtestme.com)
 - comment 1 (test@testtestme.com)
+- additional comment 1 (test@testtestme.com)
+- additional comment 2 (test@testtestme.com)
 "
 `;
 
@@ -33,6 +35,18 @@ Object {
           Object {
             "author": "test@testtestme.com",
             "comment": "comment 1",
+            "commit": "(sha1)",
+            "package": "foo",
+          },
+          Object {
+            "author": "test@testtestme.com",
+            "comment": "additional comment 1",
+            "commit": "(sha1)",
+            "package": "foo",
+          },
+          Object {
+            "author": "test@testtestme.com",
+            "comment": "additional comment 2",
             "commit": "(sha1)",
             "package": "foo",
           },

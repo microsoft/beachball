@@ -110,7 +110,11 @@ describe('changelog generation', () => {
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(repository.rootPath);
 
-      await writeChangelog(beachballOptions, changes, new Array<ChangeInfo>(), packageInfos);
+      const dependentChangeInfos = new Array<ChangeInfo>();
+      dependentChangeInfos.push({ ...getChange({ comment: 'additional comment 1' }), commit: '' });
+      dependentChangeInfos.push({ ...getChange({ comment: 'additional comment 2' }), commit: '' });
+
+      await writeChangelog(beachballOptions, changes, dependentChangeInfos, packageInfos);
 
       const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
       const text = await fs.readFile(changelogFile, { encoding: 'utf-8' });
