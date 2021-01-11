@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Prevent prompt from overriding the message passed by CLI args",
+  "packageName": "beachball",
+  "email": "arabisho@microsoft.com",
+  "dependentChangeType": "patch"
+}

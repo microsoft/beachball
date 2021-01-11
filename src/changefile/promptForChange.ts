@@ -98,6 +98,11 @@ export async function promptForChange(options: BeachballOptions) {
         response = { ...response, type: options.type };
       }
 
+      // fallback to the options.message if message is absent in the user input
+      if (!response.comment && options.message) {
+        response = { ...response, comment: options.message };
+      }
+
       if (!isValidChangeType(response.type)) {
         console.error('Prompt response contains invalid change type.');
         return;
