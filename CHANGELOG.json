@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 11 Jan 2021 10:30:42 GMT",
+      "tag": "beachball_v1.48.3",
+      "version": "1.48.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Prevent prompt from overriding the message passed by CLI args",
+            "author": "arabisho@microsoft.com",
+            "commit": "a0eab37c0a4880304b79232e63c65241daabde51",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Jan 2021 05:46:59 GMT",
       "tag": "beachball_v1.48.2",
       "version": "1.48.2",

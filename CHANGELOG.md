@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 05 Jan 2021 05:46:59 GMT and should not be manually modified.
+This log was last generated on Mon, 11 Jan 2021 10:30:42 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.48.3
+
+Mon, 11 Jan 2021 10:30:42 GMT
+
+### Patches
+
+- Prevent prompt from overriding the message passed by CLI args (arabisho@microsoft.com)
 
 ## 1.48.2
 
