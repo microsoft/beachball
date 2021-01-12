@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 12 Jan 2021 20:28:35 GMT",
+      "tag": "beachball_v1.49.0",
+      "version": "1.49.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Roll-up the changelogs to dependents",
+            "author": "arabisho@microsoft.com",
+            "commit": "3a2f081fd36cedc6124ba4253d8abac2e8a145b7",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 11 Jan 2021 10:30:42 GMT",
       "tag": "beachball_v1.48.3",
       "version": "1.48.3",
