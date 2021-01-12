@@ -39,13 +39,13 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
  * deletes change files, update package.json, and changelogs
  */
 export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions) {
-  const { modifiedPackages, packageInfos, changes } = bumpInfo;
+  const { modifiedPackages, packageInfos, changes, dependentChangeInfos } = bumpInfo;
 
   writePackageJson(modifiedPackages, packageInfos);
 
   if (options.generateChangelog) {
     // Generate changelog
-    await writeChangelog(options, changes, packageInfos);
+    await writeChangelog(options, changes, dependentChangeInfos, packageInfos);
   }
 
   if (!options.keepChangeFiles) {
