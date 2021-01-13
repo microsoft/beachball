@@ -36,7 +36,7 @@ export async function promptForChange(options: BeachballOptions) {
       message: 'Change type',
       choices: [
         ...(showPrereleaseOption ? [{ value: 'prerelease', title: ' [1mPrerelease[22m - bump prerelease version' }] : []),
-        { value: 'patch', title: ' [1mPatch[22m      - bug fixes; no backwards incompatible changes.' },
+        { value: 'patch', title: ' [1mPatch[22m      - bug fixes; backwards compatible changes.' },
         { value: 'minor', title: ' [1mMinor[22m      - small feature; backwards compatible changes.' },
         {
           value: 'none',
