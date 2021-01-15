@@ -3,21 +3,31 @@ import { CliOptions } from '../types/BeachballOptions';
 import { findProjectRoot } from '../paths';
 import { getDefaultRemoteBranch } from '../git';
 
-// CLI Options cache
-let cliOptions: CliOptions;
+let cachedCliOptions: CliOptions;
 
-export function getCliOptions(): CliOptions {
-  if (cliOptions) {
-    return cliOptions;
+export function getCliOptions(argv: string[]) : CliOptions {
+  // Special case caching to process.argv which should be immutable
+  if (argv === process.argv) {
+    if (!cachedCliOptions) {
+      cachedCliOptions = getCliOptionsUncached(process.argv);
+    }
+    return cachedCliOptions;
+  } else {
+    return getCliOptionsUncached(argv);
   }
+}
 
-  const argv = process.argv.splice(2);
-  const args = parser(argv, {
-    string: ['branch', 'tag', 'message', 'package', 'since', 'dependent-change-type'],
+function getCliOptionsUncached(argv: string[]): CliOptions {
+  // Be careful not to mutate the input argv
+  const trimmedArgv = [...argv].splice(2);
+
+  const args = parser(trimmedArgv, {
+    string: ['branch', 'tag', 'message', 'package', 'since', 'dependent-change-type', 'config'],
     array: ['scope', 'disallowed-change-types'],
     boolean: ['git-tags', 'keep-change-files', 'force', 'disallow-deleted-change-files'],
     alias: {
       branch: ['b'],
+      config: ['c'],
       tag: ['t'],
       registry: ['r'],
       message: ['m'],
@@ -31,14 +41,15 @@ export function getCliOptions(): CliOptions {
 
   const { _, ...restArgs } = args;
   const cwd = findProjectRoot(process.cwd()) || process.cwd();
-  cliOptions = {
+  const cliOptions = {
     ...(_.length > 0 && { command: _[0] }),
     ...(restArgs as any),
     path: cwd,
     fromRef: args.since,
     keepChangeFiles: args['keep-change-files'],
     disallowDeletedChangeFiles: args['disallow-deleted-change-files'],
-    forceVersions: args['force'],
+    forceVersions: args.force,
+    configPath: args.config,
   } as CliOptions;
 
   const disallowedChangeTypesArgs = args['disallowed-change-types'];
