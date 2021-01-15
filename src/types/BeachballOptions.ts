@@ -23,7 +23,8 @@ export interface CliOptions {
   package: string;
   changehint: string;
   retries: number;
-  type?: ChangeType | null;
+  /** Type/types to choose as default when creating a changefile, ordered by precedence of choice */
+  type?: ChangeType[] | null;
   help?: boolean;
   version?: boolean;
   scope?: string[] | null;

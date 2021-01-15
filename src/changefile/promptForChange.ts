@@ -51,8 +51,14 @@ export async function promptForChange(options: BeachballOptions) {
       return;
     }
 
-    if (options.type && disallowedChangeTypes?.includes(options.type as ChangeType)) {
-      console.log(`${options.type} type is not allowed, aborting`);
+    const bestOptionType = bestSpecifiedType(options, disallowedChangeTypes);
+
+    if (options.type && bestOptionType === null) {
+      if (options.type.length === 1) {
+        console.log(`${options.type} type is not allowed, aborting`);
+      } else {
+        console.log(`None of "${options.type}" are allowed change types, aborting`)
+      }
       return;
     }
 
@@ -81,7 +87,7 @@ export async function promptForChange(options: BeachballOptions) {
     questions = questions.filter(q => !!q);
 
     let response: { comment: string; type: ChangeType } = {
-      type: options.type || 'none',
+      type: bestOptionType || 'none',
       comment: options.message || '',
     };
 
@@ -94,8 +100,8 @@ export async function promptForChange(options: BeachballOptions) {
       }
 
       // fallback to the options.type if type is absent in the user input
-      if (!response.type && options.type) {
-        response = { ...response, type: options.type };
+      if (!response.type && bestOptionType) {
+        response = { ...response, type: bestOptionType };
       }
 
       // fallback to the options.message if message is absent in the user input
@@ -118,4 +124,17 @@ export async function promptForChange(options: BeachballOptions) {
   }
 
   return packageChangeInfo;
+}
+
+/**
+ * Pick the most preferable default type specified in options given a list of disallowed types
+ */
+function bestSpecifiedType(options: BeachballOptions, disallowedChangeTypes: ChangeType[] | null): ChangeType | null {
+  for (const optionType of options.type || []) {
+    if (!disallowedChangeTypes?.includes(optionType)) {
+      return optionType;
+    }
+  }
+
+  return null;
 }

@@ -46,9 +46,11 @@ export function validate(options: BeachballOptions, validateOptionsOverride?: Pa
     process.exit(1);
   }
 
-  if (options.type && !isValidChangeType(options.type)) {
-    console.error(`ERROR: change type ${options.type} is not valid`);
-    process.exit(1);
+  for (const type of options.type || []) {
+    if (!isValidChangeType(type)) {
+      console.error(`ERROR: change type ${type} is not valid`);
+      process.exit(1);
+    }
   }
 
   let isChangeNeeded = false;

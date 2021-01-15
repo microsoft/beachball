@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Allow the \"type\" CLI arg to accept multiple types",
+  "packageName": "beachball",
+  "email": "ngerlem@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -14,7 +14,7 @@ export function getCliOptions(): CliOptions {
   const argv = process.argv.splice(2);
   const args = parser(argv, {
     string: ['branch', 'tag', 'message', 'package', 'since', 'dependent-change-type'],
-    array: ['scope', 'disallowed-change-types'],
+    array: ['scope', 'disallowed-change-types', 'type'],
     boolean: ['git-tags', 'keep-change-files', 'force', 'disallow-deleted-change-files'],
     alias: {
       branch: ['b'],

@@ -59,7 +59,8 @@ target branch from origin (default: master)
 
 ### --message, -m
 
-custom message for the checkin (default: applying package updates)
+- for the publish command: custom message for the checkin (default: applying package updates)
+- for the change command: uses the given changelog msessage instead of prompting
 
 ### --no-push
 
@@ -76,6 +77,10 @@ show help message
 ### --yes, -y
 
 skips the prompts for publish
+
+### --type
+Allows specifying a default type for the "change" command to avoid prompting. Multiple types may be
+specified in order of preference, where the first allowed by a package is picked.
 
 ## Examples
 
