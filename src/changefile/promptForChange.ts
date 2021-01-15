@@ -101,6 +101,9 @@ export async function promptForChange(options: BeachballOptions) {
       //    but we didn't display it due to showChangeTypePrompt === false;
       //    so set the type to 'none'
       if (!response.type) {
+        if (!options.type) {
+          console.log("WARN: change type 'none' assumed by default");
+        }
         response = { ...response, type: options.type || 'none' };
       }
 
