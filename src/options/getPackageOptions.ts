@@ -11,12 +11,13 @@ import path from 'path';
  */
 export function getCombinedPackageOptions(actualPackageOptions: Partial<PackageOptions>): PackageOptions {
   const defaultOptions = getDefaultOptions();
-  const rootOptions = getRootOptions(process.argv);
+  const cliOptions = getCliOptions(process.argv);
+  const rootOptions = getRootOptions(cliOptions);
   return {
     ...defaultOptions,
     ...rootOptions,
     ...actualPackageOptions,
-    ...getCliOptions(process.argv),
+    ...cliOptions,
   };
 }
 

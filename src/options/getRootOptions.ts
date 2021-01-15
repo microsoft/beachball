@@ -1,14 +1,11 @@
 import { cosmiconfigSync } from 'cosmiconfig';
-import { RepoOptions } from '../types/BeachballOptions';
-import { getCliOptions } from './getCliOptions';
+import { RepoOptions, CliOptions } from '../types/BeachballOptions';
 
-export function getRootOptions(argv: string[]): RepoOptions {
-  const {configPath} = getCliOptions(argv);
-
-  if (configPath) {
-    const repoOptions = tryLoadConfig(configPath);
+export function getRootOptions(cliOptions: CliOptions): RepoOptions {
+  if (cliOptions.configPath) {
+    const repoOptions = tryLoadConfig(cliOptions.configPath);
     if (!repoOptions) {
-      console.error(`Config file "${configPath}" could not be loaded`);
+      console.error(`Config file "${cliOptions.configPath}" could not be loaded`);
       process.exit(1);
     }
 
