@@ -93,9 +93,18 @@ export async function promptForChange(options: BeachballOptions) {
         return;
       }
 
-      // fallback to the options.type if type is absent in the user input
-      if (!response.type && options.type) {
-        response = { ...response, type: options.type };
+      // if type is absent in the user input, there are two possiblities for
+      // proceeding next:
+      // 1) if options.type is defined, use that
+      // 2) otherwise, we hit the edge case when options.type is undefined
+      //    and there was only one possible ChangeType to display, 'none'
+      //    but we didn't display it due to showChangeTypePrompt === false;
+      //    so set the type to 'none'
+      if (!response.type) {
+        if (!options.type) {
+          console.log("WARN: change type 'none' assumed by default");
+        }
+        response = { ...response, type: options.type || 'none' };
       }
 
       // fallback to the options.message if message is absent in the user input
