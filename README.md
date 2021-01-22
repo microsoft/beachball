@@ -44,6 +44,10 @@ synchronizes published versions of packages from a registry, makes local package
 
 ## Options
 
+### --config, -c
+
+Explicit configuration file to use instead of the configuration automatically detected by cosmicconfig.
+
 ### --registry, -r
 
 registry, defaults to https://registry.npmjs.org

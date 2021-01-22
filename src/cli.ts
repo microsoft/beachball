@@ -9,7 +9,7 @@ import { getOptions } from './options/getOptions';
 import { validate } from './validation/validate';
 
 (async () => {
-  const options = getOptions();
+  const options = getOptions(process.argv);
 
   if (options.help) {
     showHelp();

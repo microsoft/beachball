@@ -6,6 +6,7 @@ import { getDefaultOptions } from './getDefaultOptions';
 /**
  * Gets all repo level options (default + root options + cli options)
  */
-export function getOptions(): BeachballOptions {
-  return { ...getDefaultOptions(), ...getRootOptions(), ...getCliOptions() };
+export function getOptions(argv: string[]): BeachballOptions {
+  const cliOptions = getCliOptions(argv);
+  return { ...getDefaultOptions(), ...getRootOptions(cliOptions), ...cliOptions };
 }
