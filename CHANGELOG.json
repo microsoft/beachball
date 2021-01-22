@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 22 Jan 2021 23:56:47 GMT",
+      "tag": "beachball_v1.50.0",
+      "version": "1.50.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Allow passing --config to specify config file",
+            "author": "ngerlem@microsoft.com",
+            "commit": "63f41d44014d929448b0e8d01229b5cb7354bc05",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 12 Jan 2021 20:28:35 GMT",
       "tag": "beachball_v1.49.0",
       "version": "1.49.0",

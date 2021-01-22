@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Allow passing --config to specify config file",
-  "packageName": "beachball",
-  "email": "ngerlem@microsoft.com",
-  "dependentChangeType": "patch"
-}
