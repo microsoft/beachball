@@ -6,6 +6,6 @@ export async function change(options: BeachballOptions) {
   const changes = await promptForChange(options);
 
   if (changes) {
-    writeChangeFiles(changes, options.path);
+    writeChangeFiles(changes, options.path, options.commit);
   }
 }

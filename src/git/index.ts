@@ -250,12 +250,18 @@ export function getFileAddedHash(filename: string, cwd: string) {
   return undefined;
 }
 
-export function stageAndCommit(patterns: string[], message: string, cwd: string) {
+export function stage(patterns: string[], cwd: string) {
   try {
     patterns.forEach(pattern => {
       git(['add', pattern], { cwd });
     });
+  } catch (e) {
+    console.error('Cannot stage changes', e.message);
+  }
+}
 
+export function commit(message: string, cwd: string) {
+  try {
     const commitResults = git(['commit', '-m', message], { cwd });
 
     if (!commitResults.success) {
@@ -264,7 +270,7 @@ export function stageAndCommit(patterns: string[], message: string, cwd: string)
       console.error(commitResults.stderr);
     }
   } catch (e) {
-    console.error('Cannot stage and commit changes', e.message);
+    console.error('Cannot commit changes', e.message);
   }
 }
 

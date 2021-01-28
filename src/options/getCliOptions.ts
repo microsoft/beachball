@@ -5,7 +5,7 @@ import { getDefaultRemoteBranch } from '../git';
 
 let cachedCliOptions: CliOptions;
 
-export function getCliOptions(argv: string[]) : CliOptions {
+export function getCliOptions(argv: string[]): CliOptions {
   // Special case caching to process.argv which should be immutable
   if (argv === process.argv) {
     if (!cachedCliOptions) {
@@ -24,7 +24,7 @@ function getCliOptionsUncached(argv: string[]): CliOptions {
   const args = parser(trimmedArgv, {
     string: ['branch', 'tag', 'message', 'package', 'since', 'dependent-change-type', 'config'],
     array: ['scope', 'disallowed-change-types'],
-    boolean: ['git-tags', 'keep-change-files', 'force', 'disallow-deleted-change-files'],
+    boolean: ['git-tags', 'keep-change-files', 'force', 'disallow-deleted-change-files', 'no-commit'],
     alias: {
       branch: ['b'],
       config: ['c'],

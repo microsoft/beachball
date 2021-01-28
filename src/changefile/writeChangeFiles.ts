@@ -1,6 +1,6 @@
 import { ChangeFileInfo } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
-import { getBranchName, stageAndCommit } from '../git';
+import { getBranchName, stage, commit } from '../git';
 import fs from 'fs-extra';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,7 +13,8 @@ export function writeChangeFiles(
   changes: {
     [pkgname: string]: ChangeFileInfo;
   },
-  cwd: string
+  cwd: string,
+  commitChangeFiles = true
 ): string[] {
   if (Object.keys(changes).length === 0) {
     return [];
@@ -37,11 +38,16 @@ export function writeChangeFiles(
       return changeFile;
     });
 
-    stageAndCommit(changeFiles, 'Change files', cwd);
+    stage(changeFiles, cwd);
+    if (commitChangeFiles) {
+      commit('Change files', cwd);
+    }
 
-    console.log(`git committed these change files:
-${changeFiles.map(f => ` - ${f}`).join('\n')}
-`);
+    console.log(
+      `git ${commitChangeFiles ? 'commited' : 'staged'} these change files: ${changeFiles
+        .map(f => ` - ${f}`)
+        .join('\n')}`
+    );
     return changeFiles;
   }
 
