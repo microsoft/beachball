@@ -4,30 +4,38 @@ import { shouldPublishPackage } from './shouldPublishPackage';
 /**
  * Validate no private package is listed as package dependency for packages which will be published.
  */
-export function validatePackageDependencies(bumpInfo: BumpInfo): boolean {
+export function validatePackageDependencies(bumpInfo: BumpInfo, quiet?: boolean): boolean {
   let hasErrors: boolean = false;
   const { modifiedPackages, newPackages, packageInfos } = bumpInfo;
 
   const packagesToValidate = [...modifiedPackages, ...newPackages];
-  let allDeps: string[] = [];
-  packagesToValidate.forEach(pkg => {
+  const allDeps: { [pkg: string]: string[] } = {};
+  for (const pkg of packagesToValidate) {
     const { publish, reasonToSkip } = shouldPublishPackage(bumpInfo, pkg);
     if (!publish) {
-      console.log(`Skipping package dep validation - ${reasonToSkip}`);
-      return;
+      if (!quiet) {
+        console.log(`Skipping package dep validation - ${reasonToSkip}`);
+      }
+      continue;
     }
 
     const packageInfo = packageInfos[pkg];
     if (packageInfo.dependencies) {
-      const depPkgNames = Object.keys(packageInfo.dependencies);
-      allDeps = allDeps.concat(depPkgNames);
+      for (const dep of Object.keys(packageInfo.dependencies)) {
+        if (!allDeps[dep]) {
+          allDeps[dep] = [];
+        }
+        allDeps[dep].push(pkg);
+      }
     }
-  });
+  }
 
   process.stdout.write(`Validating no private package among package dependencies`);
-  for (const dep of new Set(allDeps)) {
+  for (const [dep, usedBy] of Object.entries(allDeps)) {
     if (packageInfos[dep] && packageInfos[dep].private === true) {
-      console.error(`\nPrivate package ${dep} should not be a dependency.`);
+      console.error(
+        `\nERROR: Private package ${dep} should not be a dependency of published package(s) ${usedBy.join(', ')}.`
+      );
       hasErrors = true;
     }
   }
