@@ -103,6 +103,7 @@ export async function promptForChange(options: BeachballOptions) {
       if (!response.type) {
         if (!options.type) {
           console.log("WARN: change type 'none' assumed by default");
+          console.log('(Not what you intended? Check the repo-level and package-level beachball configs.)');
         }
         response = { ...response, type: options.type || 'none' };
       }
