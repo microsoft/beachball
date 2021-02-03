@@ -9,7 +9,8 @@ export function validatePackageDependencies(bumpInfo: BumpInfo, quiet?: boolean)
   const { modifiedPackages, newPackages, packageInfos } = bumpInfo;
 
   const packagesToValidate = [...modifiedPackages, ...newPackages];
-  const allDeps: { [pkg: string]: string[] } = {};
+  /** Mapping from dep to all validated packages that depend on it */
+  const allDeps: { [dep: string]: string[] } = {};
   for (const pkg of packagesToValidate) {
     const { publish, reasonToSkip } = shouldPublishPackage(bumpInfo, pkg);
     if (!publish) {
