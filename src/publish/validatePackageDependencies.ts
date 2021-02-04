@@ -4,7 +4,7 @@ import { shouldPublishPackage } from './shouldPublishPackage';
 /**
  * Validate no private package is listed as package dependency for packages which will be published.
  */
-export function validatePackageDependencies(bumpInfo: BumpInfo, quiet?: boolean): boolean {
+export function validatePackageDependencies(bumpInfo: BumpInfo): boolean {
   let hasErrors: boolean = false;
   const { modifiedPackages, newPackages, packageInfos } = bumpInfo;
 
@@ -14,9 +14,7 @@ export function validatePackageDependencies(bumpInfo: BumpInfo, quiet?: boolean)
   for (const pkg of packagesToValidate) {
     const { publish, reasonToSkip } = shouldPublishPackage(bumpInfo, pkg);
     if (!publish) {
-      if (!quiet) {
-        console.log(`Skipping package dep validation - ${reasonToSkip}`);
-      }
+      console.log(`Skipping package dep validation - ${reasonToSkip}`);
       continue;
     }
 

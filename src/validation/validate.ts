@@ -99,7 +99,7 @@ export function validate(options: BeachballOptions, validateOptionsOverride?: Pa
 
   if (!isChangeNeeded) {
     const bumpInfo = gatherBumpInfo(options);
-    if (!validatePackageDependencies(bumpInfo, true)) {
+    if (!validatePackageDependencies(bumpInfo)) {
       console.error(`ERROR: one or more published packages depend on an unpublished package!
 
 Consider one of the following solutions:
