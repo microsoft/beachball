@@ -38,6 +38,7 @@ export interface CliOptions {
   disallowDeletedChangeFiles?: boolean;
   prereleasePrefix?: string | null;
   configPath?: string;
+  commit?: boolean;
 }
 
 export interface RepoOptions {
