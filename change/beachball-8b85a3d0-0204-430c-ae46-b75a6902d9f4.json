@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "check: Add validation of published package deps",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

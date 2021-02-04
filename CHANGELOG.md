@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 22 Jan 2021 23:56:47 GMT and should not be manually modified.
+This log was last generated on Thu, 04 Feb 2021 18:56:24 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.50.1
+
+Thu, 04 Feb 2021 18:56:24 GMT
+
+### Patches
+
+- check: Add validation of published package deps (elcraig@microsoft.com)
 
 ## 1.50.0
 

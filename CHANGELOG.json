@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 04 Feb 2021 18:56:24 GMT",
+      "tag": "beachball_v1.50.1",
+      "version": "1.50.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "check: Add validation of published package deps",
+            "author": "elcraig@microsoft.com",
+            "commit": "fc8a0abccfae73a9e7dda68d3ed147101f16978e",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 22 Jan 2021 23:56:47 GMT",
       "tag": "beachball_v1.50.0",
       "version": "1.50.0",
