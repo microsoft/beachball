@@ -11,6 +11,8 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { getPackageGroups } from '../monorepo/getPackageGroups';
 import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes';
 import { areChangeFilesDeleted } from './areChangeFilesDeleted';
+import { validatePackageDependencies } from '../publish/validatePackageDependencies';
+import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 
 type ValidationOptions = { allowMissingChangeFiles: boolean; allowFetching: boolean };
 type PartialValidateOptions = Partial<ValidationOptions>;
@@ -91,6 +93,19 @@ export function validate(options: BeachballOptions, validateOptionsOverride?: Pa
       console.error(
         `ERROR: there is an invalid change type detected ${changeFile}: "${change.type}" is not a valid change type`
       );
+      process.exit(1);
+    }
+  }
+
+  if (!isChangeNeeded) {
+    const bumpInfo = gatherBumpInfo(options);
+    if (!validatePackageDependencies(bumpInfo)) {
+      console.error(`ERROR: one or more published packages depend on an unpublished package!
+
+Consider one of the following solutions:
+- If the unpublished package should be published, remove "private": true from its package.json.
+- If it should NOT be published, verify that it is only listed under devDependencies of published packages.
+`);
       process.exit(1);
     }
   }
