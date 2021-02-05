@@ -73,6 +73,12 @@ export interface RepoOptions {
      * repository.
      */
     prepublish?: (packagePath: string, name: string, version: string) => void | Promise<void>;
+
+    /**
+     * Runs for each package after the publish command.
+     *
+     */
+    postpublish?: (packagePath: string, name: string, version: string) => void | Promise<void>;
   };
 }
 

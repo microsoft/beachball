@@ -92,4 +92,20 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
       throw new Error('Error publishing, refer to the previous error messages for recovery instructions');
     }
   }
+
+  // if there is a postpublish hook perform a postpublish pass, calling the routine on each package
+  const postpublishHook = options.hooks?.postpublish;
+  if (postpublishHook) {
+    for (const pkg of packagesToPublish) {
+      const packageInfo = bumpInfo.packageInfos[pkg];
+      const maybeAwait = postpublishHook(
+        path.dirname(packageInfo.packageJsonPath),
+        packageInfo.name,
+        packageInfo.version
+      );
+      if (maybeAwait instanceof Promise) {
+        await maybeAwait;
+      }
+    }
+  }
 }
