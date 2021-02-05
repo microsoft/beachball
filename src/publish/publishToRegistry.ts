@@ -43,15 +43,11 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
     return publish;
   });
 
-
-  // finally pass through doing the actual npm publish command
-  for (const pkg of packagesToPublish) {
-    const packageInfo = packageInfos[pkg];
-    console.log(`Publishing - ${packageInfo.name}@${packageInfo.version} with tag ${packageInfo.combinedOptions.tag}.`);
-
-    // if there is a prepublish hook perform a prepublish
-    const prepublishHook = options.hooks?.prepublish;
-    if (prepublishHook) {
+  // if there is a prepublish hook perform a prepublish pass, calling the routine on each package
+  const prepublishHook = options.hooks?.prepublish;
+  if (prepublishHook) {
+    for (const pkg of packagesToPublish) {
+      const packageInfo = bumpInfo.packageInfos[pkg];
       const maybeAwait = prepublishHook(
         path.dirname(packageInfo.packageJsonPath),
         packageInfo.name,
@@ -61,6 +57,12 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
         await maybeAwait;
       }
     }
+  }
+
+  // finally pass through doing the actual npm publish command
+  for (const pkg of packagesToPublish) {
+    const packageInfo = bumpInfo.packageInfos[pkg];
+    console.log(`Publishing - ${packageInfo.name}@${packageInfo.version} with tag ${packageInfo.combinedOptions.tag}.`);
 
     let result;
     let retries = 0;
@@ -71,20 +73,6 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
       if (result.success) {
         console.log('Published!');
         succeededPackages.add(pkg);
-
-        // if there is a postpublish hook perform a postpublish
-        const postpublishHook = options.hooks?.postpublish;
-        if (postpublishHook) {
-          const maybeAwait = postpublishHook(
-            path.dirname(packageInfo.packageJsonPath),
-            packageInfo.name,
-            packageInfo.version
-          );
-          if (maybeAwait instanceof Promise) {
-            await maybeAwait;
-          }
-        }
-
         break;
       } else {
         retries++;
@@ -102,6 +90,22 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
       displayManualRecovery(bumpInfo, succeededPackages);
       console.error(result.stderr);
       throw new Error('Error publishing, refer to the previous error messages for recovery instructions');
+    }
+  }
+
+  // if there is a postpublish hook perform a postpublish pass, calling the routine on each package
+  const postpublishHook = options.hooks?.postpublish;
+  if (postpublishHook) {
+    for (const pkg of packagesToPublish) {
+      const packageInfo = bumpInfo.packageInfos[pkg];
+      const maybeAwait = postpublishHook(
+        path.dirname(packageInfo.packageJsonPath),
+        packageInfo.name,
+        packageInfo.version
+      );
+      if (maybeAwait instanceof Promise) {
+        await maybeAwait;
+      }
     }
   }
 }
