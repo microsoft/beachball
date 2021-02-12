@@ -76,6 +76,7 @@ export interface RepoOptions {
 
     /**
      * Runs for each package after the publish command.
+     * Any file changes made in this step will **not** be committed automatically.
      */
     postpublish?: (packagePath: string, name: string, version: string) => void | Promise<void>;
   };
