@@ -2,7 +2,7 @@
 home: true
 # heroImage: /hero.png
 heroText: The Sunniest Semantic Version Bumper
-tagline: Run all your npm scripts in topological order incrementally with cloud cache
+tagline: Makes automating npm publishing a breeze
 actionText: Get Started →
 actionLink: /overview/getting-started
 features:
