@@ -13,6 +13,7 @@ export function getCombinedPackageOptions(actualPackageOptions: Partial<PackageO
   const defaultOptions = getDefaultOptions();
   const cliOptions = getCliOptions(process.argv);
   const rootOptions = getRootOptions(cliOptions);
+
   return {
     ...defaultOptions,
     ...rootOptions,
@@ -26,11 +27,17 @@ export function getCombinedPackageOptions(actualPackageOptions: Partial<PackageO
  */
 export function getPackageOptions(packagePath: string): Partial<PackageOptions> {
   const configExplorer = cosmiconfigSync('beachball', { cache: false });
+  console.log(configExplorer);
   try {
     const results = configExplorer.load(path.join(packagePath, 'package.json'));
-    return (results && results.config) || {};
+    if (results && results.config) {
+      return results.config;
+    }
+
+    throw new Error('Config is undefined or empty');
   } catch (e) {
     // File does not exist, returns the default packageOptions
+    console.warn(`${packagePath} has no beachball config`);
     return {};
   }
 }
