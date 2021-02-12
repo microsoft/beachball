@@ -13,11 +13,7 @@ module.exports = {
         title: 'Overview',
         collapsable: false, // optional, defaults to true
         sidebarDepth: 1, // optional, defaults to 1
-        children: [
-          '/overview/installation',
-          '/overview/getting-started',
-          '/overview/configuration',
-        ],
+        children: ['/overview/installation', '/overview/getting-started', '/overview/configuration'],
       },
       {
         title: 'Concepts', // required
@@ -34,7 +30,7 @@ module.exports = {
         title: 'Command Line Args', // required
         collapsable: false, // optional, defaults to true
         sidebarDepth: 1, // optional, defaults to 1
-        children: ['/cli/bump', '/cli/change', '/cli/check', '/cli/options', '/cli/publish'],
+        children: ['/cli/options', '/cli/bump', '/cli/change', '/cli/check', '/cli/publish', '/cli/sync'],
       },
     ],
   },

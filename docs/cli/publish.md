@@ -1,8 +1,9 @@
 ---
-title: 'publish'
 tags: cli
 category: doc
 ---
+
+# `publish`
 
 Publishing automates all the bumping and synchronizing of package versions in git remotes as well as the npm registry. The steps taken by the publish command are designed to be run so that it minimizes the chances of failure by doing validation upfront.
 
@@ -19,4 +20,4 @@ By publishing, it'll perform the following tasks:
 
 It might be surprising that `beachball publish` does so many steps, especially the step about reverting changes! In most version bumping systems that automates git repo version with npm registry, they assume that the source code is fresh by the time they push the changes back to the git repository. This is almost never the case when the build takes more than a few minutes! So, `beachball` fetches latest before we push back to the target branch. In large systems, it has been observed that without the git fetch, it becomes a source of conflict.
 
-All the options for publish are documented in the CLI [options](./options) page 
+All the options for publish are documented in the CLI [options](./options) page

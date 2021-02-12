@@ -1,12 +1,12 @@
 ---
-title: 'options'
+title: 'Common Options'
 tags: cli
 category: doc
 ---
 
-This is a listing of all the options available. Not every option applies to all the commands.
+# All Beachball CLI Options
 
-## All Beachball CLI Options
+This is a listing of all the options available. Not every option applies to all the commands.
 
 ###### `--registry, -r`
 

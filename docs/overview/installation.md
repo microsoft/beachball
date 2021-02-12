@@ -1,8 +1,9 @@
 ---
-title: 'Installation'
 tags: overview
 category: doc
 ---
+
+# Installation
 
 There are two options to install `beachball`.
 

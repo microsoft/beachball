@@ -18,8 +18,6 @@
     "checkchange": "node ./lib/cli.js check",
     "docs": "vuepress dev docs --host localhost",
     "docs:build": "vuepress build docs",
-    "gh-pages": "gh-pages",
-    "jest": "jest",
     "prettier": "prettier --write --config ../../.prettierrc --ignore-path ../../.prettierignore 'src/**/*'",
     "pub": "node ./lib/cli.js publish",
     "release": "node ./lib/cli.js publish -y",
