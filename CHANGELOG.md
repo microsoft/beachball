@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 04 Feb 2021 18:56:24 GMT and should not be manually modified.
+This log was last generated on Tue, 16 Feb 2021 16:43:02 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.51.0
+
+Tue, 16 Feb 2021 16:43:02 GMT
+
+### Minor changes
+
+- Add postpublish hook (mmaclachlan@ccri.com)
 
 ## 1.50.1
 

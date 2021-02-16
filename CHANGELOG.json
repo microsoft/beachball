@@ -2,6 +2,29 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 16 Feb 2021 16:43:02 GMT",
+      "tag": "beachball_v1.51.0",
+      "version": "1.51.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Add docs for sync; doc formatting improvements",
+            "author": "elcraig@microsoft.com",
+            "commit": "fd914e83a7227026955cb4b40c728a6d38439a4d",
+            "package": "beachball"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add postpublish hook",
+            "author": "mmaclachlan@ccri.com",
+            "commit": "fd914e83a7227026955cb4b40c728a6d38439a4d",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 16 Feb 2021 16:40:49 GMT",
       "tag": "beachball_v1.50.1",
       "version": "1.50.1",
