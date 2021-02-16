@@ -571,4 +571,67 @@ describe('publish command (e2e)', () => {
     expect(fooPackageJson.main).toBe('src/index.ts');
     expect(fooPackageJson.onPublish.main).toBe('lib/index.js');
   });
+
+  it('should respect postpublish hooks', async () => {
+    repositoryFactory = new MonoRepoFactory();
+    await repositoryFactory.create();
+    const repo = await repositoryFactory.cloneRepository();
+    let notified;
+
+    writeChangeFiles(
+      {
+        foo: {
+          type: 'minor',
+          comment: 'test',
+          email: 'test@test.com',
+          packageName: 'foo',
+          dependentChangeType: 'patch',
+        },
+      },
+      repo.rootPath
+    );
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    await publish({
+      branch: 'origin/master',
+      command: 'publish',
+      message: 'apply package updates',
+      path: repo.rootPath,
+      publish: true,
+      bumpDeps: true,
+      push: true,
+      registry: registry.getUrl(),
+      gitTags: true,
+      tag: 'latest',
+      token: '',
+      yes: true,
+      new: false,
+      access: 'public',
+      package: '',
+      changehint: 'Run "beachball change" to create a change file',
+      type: null,
+      fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
+      retries: 3,
+      bump: true,
+      generateChangelog: true,
+      hooks: {
+        postpublish: (packagePath) => {
+          const packageJsonPath = path.join(packagePath, 'package.json');
+          const packageJson = fs.readJSONSync(packageJsonPath);
+          if (packageJson.afterPublish) {
+            notified = packageJson.afterPublish.notify;
+          }
+        },
+      },
+      dependentChangeType: null,
+    });
+
+    const fooPackageJson = fs.readJSONSync(path.join(repo.rootPath, 'packages/foo/package.json'));
+    expect(fooPackageJson.main).toBe('src/index.ts');
+    expect(notified).toBeDefined();
+    expect(notified).toBe(fooPackageJson.afterPublish.notify);
+  });
 });
