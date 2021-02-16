@@ -33,3 +33,4 @@ jobs:
       - run: yarn release -y -n $NPM_AUTHTOKEN
         env:
           NPM_AUTHTOKEN: ${{ secrets.npm_authtoken }}
+      - run: yarn release:docs

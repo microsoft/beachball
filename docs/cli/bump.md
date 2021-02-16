@@ -1,8 +1,9 @@
 ---
-title: 'bump'
 tags: cli
 category: doc
 ---
+
+# `bump`
 
 Bumps versions locally without publishing to the remote git repo or npm registry. This command will also generate changelogs.
 

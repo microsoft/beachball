@@ -1,8 +1,9 @@
 ---
-title: 'Version Groups'
 tags: groups, lock step
 category: doc
 ---
+
+# Version Groups
 
 By default, all packages in the repository are versioned based solely on the changes as specified by the change files. Developers are expected to create these change files along with the bump type for the packages as they go.
 
@@ -18,8 +19,8 @@ In the [configuration](../overview/configuration) section, we discussed how to c
 
 ```js
 module.exports = {
-  bumpDeps: true
-}
+  bumpDeps: true,
+};
 ```
 
 We can add a group by adding it to the configuration like this:
