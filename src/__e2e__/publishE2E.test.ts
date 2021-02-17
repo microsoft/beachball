@@ -1,7 +1,7 @@
 import { Registry } from '../fixtures/registry';
 import { npm } from '../packageManager/npm';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { git, addGitObserver } from '../git';
+import { git, addGitObserver } from 'workspace-tools';
 import { publish } from '../commands/publish';
 import { RepositoryFactory } from '../fixtures/repository';
 import { MonoRepoFactory } from '../fixtures/monorepo';
@@ -618,7 +618,7 @@ describe('publish command (e2e)', () => {
       bump: true,
       generateChangelog: true,
       hooks: {
-        postpublish: (packagePath) => {
+        postpublish: packagePath => {
           const packageJsonPath = path.join(packagePath, 'package.json');
           const packageJson = fs.readJSONSync(packageJsonPath);
           if (packageJson.afterPublish) {

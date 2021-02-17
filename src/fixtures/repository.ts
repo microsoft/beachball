@@ -2,7 +2,7 @@ import * as process from 'process';
 import path from 'path';
 import * as fs from 'fs-extra';
 import { tmpdir } from './tmpdir';
-import { git } from '../git';
+import { git } from 'workspace-tools';
 
 export const packageJsonFixture = {
   name: 'foo',

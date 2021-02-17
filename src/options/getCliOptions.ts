@@ -1,7 +1,7 @@
 import parser from 'yargs-parser';
 import { CliOptions } from '../types/BeachballOptions';
 import { findProjectRoot } from '../paths';
-import { getDefaultRemoteBranch } from '../git';
+import { getDefaultRemoteBranch } from 'workspace-tools';
 
 let cachedCliOptions: CliOptions;
 

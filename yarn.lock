@@ -11625,10 +11625,10 @@ worker-farm@^1.7.0:
   dependencies:
     errno "~0.1.7"
 
-workspace-tools@^0.10.2:
-  version "0.10.2"
-  resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.10.2.tgz#e5d04c8aa67ed534c364a94baef3039367a2a8a8"
-  integrity sha512-g4WkDpGF1OunuiL/eQ93rOqKYI9l0SPrYEKV/58flToD5K1uBy4uCqM5wMUR+1WkOI7AzLoo6By+x/Qn3y9qrw==
+workspace-tools@^0.12.2:
+  version "0.12.2"
+  resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.12.2.tgz#2de5c7329c39a1aa4b2a979c523bbdbcf6798305"
+  integrity sha512-uF5WFTKNIhfLGIUv5EaH7cwXZVn8sI9BrmU0eI8ySVbhMqRe6WWNcNf5q0hICXP4sIXpCuxO8DqLPySm71mPfQ==
   dependencies:
     "@pnpm/lockfile-file" "^3.0.7"
     "@pnpm/logger" "^3.2.2"

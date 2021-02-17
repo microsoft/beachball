@@ -1,6 +1,6 @@
 import { ChangeFileInfo } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
-import { getBranchName, stage, commit } from '../git';
+import { getBranchName, stage, commit } from 'workspace-tools';
 import fs from 'fs-extra';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';

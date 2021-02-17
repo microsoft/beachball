@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "replacing the git util from beachball with the workspace-tools one",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -5,7 +5,7 @@ import { tmpdir } from './tmpdir';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { Repository, RepositoryFactory } from './repository';
 import { PackageJson } from '../types/PackageInfo';
-import { git } from '../git';
+import { git } from 'workspace-tools';
 
 export const packageJsonFixtures: { [path: string]: PackageJson } = {
   'packages/foo': {
@@ -19,7 +19,7 @@ export const packageJsonFixtures: { [path: string]: PackageJson } = {
       main: 'lib/index.js',
     },
     afterPublish: {
-      notify: 'message'
+      notify: 'message',
     },
   } as PackageJson,
 
@@ -78,15 +78,9 @@ export class MonoRepoFactory extends RepositoryFactory {
       tmpRepo.commitChange(packageJsonFile);
     }
 
-    tmpRepo.commitChange(
-      'package.json',
-      JSON.stringify({ name: 'monorepo-fixture', version: '1.0.0' }, null, 2)
-    );
+    tmpRepo.commitChange('package.json', JSON.stringify({ name: 'monorepo-fixture', version: '1.0.0' }, null, 2));
 
-    tmpRepo.commitChange(
-      'beachball.config.js',
-      'module.exports = ' + JSON.stringify(beachballConfigFixture, null, 2)
-    );
+    tmpRepo.commitChange('beachball.config.js', 'module.exports = ' + JSON.stringify(beachballConfigFixture, null, 2));
 
     tmpRepo.push('origin', 'HEAD:master');
 

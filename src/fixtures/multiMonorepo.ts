@@ -5,7 +5,7 @@ import { tmpdir } from './tmpdir';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { Repository, RepositoryFactory } from './repository';
 import { PackageJson } from '../types/PackageInfo';
-import { git } from '../git';
+import { git } from 'workspace-tools';
 
 export const packageJsonFixtures: { [path: string]: PackageJson } = ['repo-a', 'repo-b'].reduce(
   (fixtures, repo) => ({

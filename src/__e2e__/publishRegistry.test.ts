@@ -1,7 +1,7 @@
 import { Registry } from '../fixtures/registry';
 import { npm } from '../packageManager/npm';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { git } from '../git';
+import { git } from 'workspace-tools';
 import { publish } from '../commands/publish';
 import { RepositoryFactory } from '../fixtures/repository';
 

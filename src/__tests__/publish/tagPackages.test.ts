@@ -1,9 +1,9 @@
 import { tagPackages, tagDistTag } from '../../publish/tagPackages';
 import { generateTag } from '../../tag';
 import { BumpInfo } from '../../types/BumpInfo';
-import { gitFailFast } from '../../git';
+import { gitFailFast } from 'workspace-tools';
 
-jest.mock('../../git', () => ({
+jest.mock('workspace-tools', () => ({
   gitFailFast: jest.fn(),
 }));
 

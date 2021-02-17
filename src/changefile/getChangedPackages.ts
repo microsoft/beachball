@@ -1,6 +1,6 @@
 import { ChangeFileInfo } from '../types/ChangeInfo';
 import { findPackageRoot, getChangePath } from '../paths';
-import { getChanges, getStagedChanges, git, fetchRemote, parseRemoteBranch } from '../git';
+import { getChanges, getStagedChanges, git, fetchRemoteBranch, parseRemoteBranch } from 'workspace-tools';
 import fs from 'fs-extra';
 import path from 'path';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
@@ -12,7 +12,7 @@ import { BeachballOptions } from '../types/BeachballOptions';
 function getAllChangedPackages(options: BeachballOptions) {
   const { branch, path: cwd } = options;
 
-  const changes = [...(getChanges(branch, cwd) || []), ...(getStagedChanges(branch, cwd) || [])];
+  const changes = [...(getChanges(branch, cwd) || []), ...(getStagedChanges(cwd) || [])];
   const scopedPackages = getScopedPackages(options);
   const ignoredFiles = ['CHANGELOG.md', 'CHANGELOG.json'];
   const packageRoots: { [pathName: string]: string } = {};
@@ -55,7 +55,7 @@ export function getChangedPackages(options: BeachballOptions) {
   if (fetch) {
     const { remote, remoteBranch } = parseRemoteBranch(branch);
     console.log(`fetching latest from remotes "${remote}/${remoteBranch}"`);
-    fetchRemote(remote, remoteBranch, cwd);
+    fetchRemoteBranch(remote, remoteBranch, cwd);
   }
 
   const changedPackages = getAllChangedPackages(options);
