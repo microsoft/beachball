@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 17 Feb 2021 00:12:20 GMT",
+      "tag": "beachball_v1.51.1",
+      "version": "1.51.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "replacing the git util from beachball with the workspace-tools one",
+            "author": "kchau@microsoft.com",
+            "commit": "7fddbdea5866cfbcb602e63ff04dadd51748a683",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 16 Feb 2021 16:43:02 GMT",
       "tag": "beachball_v1.51.0",
       "version": "1.51.0",

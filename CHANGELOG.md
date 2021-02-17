@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 16 Feb 2021 16:43:02 GMT and should not be manually modified.
+This log was last generated on Wed, 17 Feb 2021 00:12:20 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.51.1
+
+Wed, 17 Feb 2021 00:12:20 GMT
+
+### Patches
+
+- replacing the git util from beachball with the workspace-tools one (kchau@microsoft.com)
 
 ## 1.51.0
 
