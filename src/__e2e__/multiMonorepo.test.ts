@@ -3,7 +3,7 @@ import path from 'path';
 import { RepositoryFactory } from '../fixtures/repository';
 import { getChangedPackages } from '../changefile/getChangedPackages';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { git } from '../git';
+import { git } from 'workspace-tools';
 import { bump } from '../commands/bump';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';

@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import { RepositoryFactory } from '../fixtures/repository';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { git } from '../git';
+import { git } from 'workspace-tools';
 import { bump } from '../commands/bump';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';

@@ -4,7 +4,7 @@ import { publish } from '../commands/publish';
 import path from 'path';
 import fs from 'fs-extra';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { git, gitFailFast } from '../git';
+import { git, gitFailFast } from 'workspace-tools';
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { ChangeFileInfo } from '../types/ChangeInfo';

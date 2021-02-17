@@ -4,7 +4,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
-import { getFileAddedHash, getChangesBetweenRefs } from '../git';
+import { getFileAddedHash, getChangesBetweenRefs } from 'workspace-tools';
 
 export function readChangeFiles(options: BeachballOptions): ChangeSet {
   const { path: cwd } = options;

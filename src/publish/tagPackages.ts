@@ -1,6 +1,6 @@
 import { BumpInfo } from '../types/BumpInfo';
 import { generateTag } from '../tag';
-import { gitFailFast } from '../git';
+import { gitFailFast } from 'workspace-tools';
 
 function createTag(tag: string, cwd: string) {
   gitFailFast(['tag', '-a', '-f', tag, '-m', tag], { cwd });

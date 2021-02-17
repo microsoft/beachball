@@ -1,5 +1,5 @@
 import { isGitAvailable } from './isGitAvailable';
-import { getUntrackedChanges } from '../git';
+import { getUntrackedChanges } from 'workspace-tools';
 import { isValidPackageName } from './isValidPackageName';
 import { isValidChangeType } from './isValidChangeType';
 import { isChangeFileNeeded } from './isChangeFileNeeded';

@@ -1,6 +1,6 @@
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { gitFailFast, getBranchName, getCurrentHash } from '../git';
+import { gitFailFast, getBranchName, getCurrentHash } from 'workspace-tools';
 import prompts from 'prompts';
 import { getPackageChangeTypes } from '../changefile/getPackageChangeTypes';
 import { readChangeFiles } from '../changefile/readChangeFiles';

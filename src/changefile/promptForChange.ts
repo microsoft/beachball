@@ -1,6 +1,6 @@
 import { ChangeFileInfo, ChangeType } from '../types/ChangeInfo';
 import { getChangedPackages } from './getChangedPackages';
-import { getRecentCommitMessages, getUserEmail } from '../git';
+import { getRecentCommitMessages, getUserEmail } from 'workspace-tools';
 import prompts from 'prompts';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { prerelease } from 'semver';
