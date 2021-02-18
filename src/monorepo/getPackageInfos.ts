@@ -1,19 +1,58 @@
 import { findPackageRoot, findProjectRoot } from '../paths';
 import fs from 'fs-extra';
 import path from 'path';
-import { listAllTrackedFiles } from 'workspace-tools';
+import { getWorkspaces, listAllTrackedFiles } from 'workspace-tools';
 import { PackageInfos } from '../types/PackageInfo';
 import { infoFromPackageJson } from './infoFromPackageJson';
 
 export function getPackageInfos(cwd: string) {
-  const root = findProjectRoot(cwd)!;
-  const packageJsonFiles = listAllTrackedFiles(['**/package.json', 'package.json'], root);
+  const projectRoot = findProjectRoot(cwd);
+  const packageRoot = findPackageRoot(cwd);
+
+  return (
+    (projectRoot && getPackageInfosFromWorkspace(projectRoot)) ||
+    (projectRoot && getPackageInfosFromNonWorkspaceMonorepo(projectRoot)) ||
+    (packageRoot && getPackageInfosFromSingleRepo(packageRoot)) ||
+    {}
+  );
+}
+
+function getPackageInfosFromWorkspace(projectRoot: string) {
+  try {
+    const packageInfos: PackageInfos = {};
+
+    // first try using the workspace provided packages (if available)
+    const workspaceInfo = getWorkspaces(projectRoot);
+
+    if (workspaceInfo && workspaceInfo.length > 0) {
+      workspaceInfo.forEach(info => {
+        const { path: packagePath, packageJson } = info;
+        const packageJsonPath = path.join(packagePath, 'package.json');
+
+        try {
+          packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonPath);
+        } catch (e) {
+          // Pass, the package.json is invalid
+          console.warn(`Invalid package.json file detected ${packageJsonPath}: `, e);
+        }
+      });
+
+      return packageInfos;
+    }
+  } catch (e) {
+    // not a recognized workspace from workspace-tools
+  }
+}
+
+function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string) {
+  const packageJsonFiles = listAllTrackedFiles(['**/package.json', 'package.json'], projectRoot);
+
   const packageInfos: PackageInfos = {};
 
   if (packageJsonFiles && packageJsonFiles.length > 0) {
     packageJsonFiles.forEach(packageJsonPath => {
       try {
-        const packageJsonFullPath = path.join(root, packageJsonPath);
+        const packageJsonFullPath = path.join(projectRoot, packageJsonPath);
         const packageJson = fs.readJSONSync(packageJsonFullPath);
         packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonFullPath);
       } catch (e) {
@@ -21,10 +60,15 @@ export function getPackageInfos(cwd: string) {
         console.warn(`Invalid package.json file detected ${packageJsonPath}: `, e);
       }
     });
-  } else {
-    const packageJsonFullPath = path.join(root, findPackageRoot(cwd)!, 'package.json');
-    const packageJson = fs.readJSONSync(packageJsonFullPath);
-    packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonFullPath);
+
+    return packageInfos;
   }
+}
+
+function getPackageInfosFromSingleRepo(packageRoot: string) {
+  const packageInfos: PackageInfos = {};
+  const packageJsonFullPath = path.resolve(packageRoot, 'package.json');
+  const packageJson = fs.readJSONSync(packageJsonFullPath);
+  packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonFullPath);
   return packageInfos;
 }
