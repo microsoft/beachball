@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 18 Feb 2021 21:54:39 GMT",
+      "tag": "beachball_v1.51.2",
+      "version": "1.51.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "more workspace-tools integration: getPackageInfos",
+            "author": "kchau@microsoft.com",
+            "commit": "8d3b312f514b46d111a4c27f420498c3ce6edbe1",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 17 Feb 2021 00:12:20 GMT",
       "tag": "beachball_v1.51.1",
       "version": "1.51.1",

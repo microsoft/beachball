@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "more workspace-tools integration: getPackageInfos",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "dependentChangeType": "patch"
-}

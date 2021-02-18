@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 17 Feb 2021 00:12:20 GMT and should not be manually modified.
+This log was last generated on Thu, 18 Feb 2021 21:54:39 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.51.2
+
+Thu, 18 Feb 2021 21:54:39 GMT
+
+### Patches
+
+- more workspace-tools integration: getPackageInfos (kchau@microsoft.com)
 
 ## 1.51.1
 
