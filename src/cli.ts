@@ -48,7 +48,6 @@ import { validate } from './validation/validate';
       break;
 
     case 'init':
-      validate(options, { allowFetching: false });
       await init(options);
       break;
 

@@ -14,10 +14,10 @@ export async function init(options: BeachballOptions) {
   }
 
   const packageJsonFilePath = path.join(root, 'package.json');
-  const npmCmd = path.dirname(process.execPath) + (os.platform() === 'win32' ? 'npm.cmd' : 'npm');
+  const npmCmd = path.join(path.dirname(process.execPath), os.platform() === 'win32' ? 'npm.cmd' : 'npm');
 
   if (fs.existsSync(packageJsonFilePath)) {
-    const beachballInfo = JSON.parse(spawnSync(npmCmd, ['info', 'beachball', '--json']).toString());
+    const beachballInfo = JSON.parse(spawnSync(npmCmd, ['info', 'beachball', '--json']).stdout);
     const beachballVersion = beachballInfo['dist-tags'].latest;
 
     const packageJson = JSON.parse(fs.readFileSync(packageJsonFilePath, 'utf-8'));
@@ -29,5 +29,9 @@ export async function init(options: BeachballOptions) {
     packageJson.scripts.release = 'beachball publish';
 
     fs.writeFileSync(packageJsonFilePath, JSON.stringify(packageJson, null, 2));
+
+    console.log(
+      'beachball has been initialized, please run `yarn` or `npm install` to install beachball into your repo'
+    );
   }
 }
