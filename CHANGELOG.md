@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 18 Feb 2021 21:54:39 GMT and should not be manually modified.
+This log was last generated on Thu, 18 Feb 2021 22:45:51 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.52.0
+
+Thu, 18 Feb 2021 22:45:51 GMT
+
+### Minor changes
+
+- adding an init command (kchau@microsoft.com)
 
 ## 1.51.2
 

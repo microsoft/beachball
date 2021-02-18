@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 18 Feb 2021 22:45:51 GMT",
+      "tag": "beachball_v1.52.0",
+      "version": "1.52.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "adding an init command",
+            "author": "kchau@microsoft.com",
+            "commit": "4901eaa73f68d18d613b339d4ee29511452183c4",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 18 Feb 2021 21:54:39 GMT",
       "tag": "beachball_v1.51.2",
       "version": "1.51.2",

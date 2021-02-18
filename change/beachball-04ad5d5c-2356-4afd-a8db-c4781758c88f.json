@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "adding an init command",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "dependentChangeType": "patch"
-}
