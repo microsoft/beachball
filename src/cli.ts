@@ -1,6 +1,7 @@
 import { bump } from './commands/bump';
 import { canary } from './commands/canary';
 import { change } from './commands/change';
+import { init } from './commands/init';
 import { publish } from './commands/publish';
 import { sync } from './commands/sync';
 
@@ -44,6 +45,10 @@ import { validate } from './validation/validate';
     case 'canary':
       validate(options, { allowFetching: false });
       await canary(options);
+      break;
+
+    case 'init':
+      await init(options);
       break;
 
     case 'sync':
