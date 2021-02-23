@@ -31,7 +31,6 @@ export async function canary(options: BeachballOptions) {
       newVersion = semver.inc(newVersion, 'prerelease', options.canaryName || 'canary');
     } while (packageVersions[pkg].includes(newVersion));
 
-    bumpInfo.packageInfos[pkg] = bumpInfo.packageInfos[pkg] || {};
     bumpInfo.packageInfos[pkg].version = newVersion;
   }
 
