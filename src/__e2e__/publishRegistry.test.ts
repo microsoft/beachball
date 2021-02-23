@@ -59,6 +59,7 @@ describe('publish command (registry)', () => {
     spy = jest.spyOn(console, 'log').mockImplementation();
 
     const publishPromise = publish({
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -115,6 +116,7 @@ describe('publish command (registry)', () => {
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
     await publish({
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -197,6 +199,7 @@ describe('publish command (registry)', () => {
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
     await publish({
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -275,6 +278,7 @@ describe('publish command (registry)', () => {
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
     await publish({
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -358,6 +362,7 @@ describe('publish command (registry)', () => {
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
     await publish({
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
