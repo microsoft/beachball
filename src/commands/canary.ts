@@ -17,7 +17,9 @@ export async function canary(options: BeachballOptions) {
 
   const packageVersions = await listPackageVersions([...bumpInfo.modifiedPackages], options.registry);
 
-  for (const pkg of bumpInfo.modifiedPackages) {
+  const packages = options.all ? Object.keys(oldPackageInfo) : bumpInfo.modifiedPackages;
+
+  for (const pkg of packages) {
     let newVersion = oldPackageInfo[pkg].version;
 
     do {

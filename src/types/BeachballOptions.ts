@@ -5,6 +5,7 @@ import { ChangelogOptions } from './ChangelogOptions';
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
 export interface CliOptions {
+  all: boolean;
   branch: string;
   command: string;
   message: string;
