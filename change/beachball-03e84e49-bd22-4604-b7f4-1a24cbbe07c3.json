@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "adds a --all canary option",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "dependentChangeType": "patch"
-}

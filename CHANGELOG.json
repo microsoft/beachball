@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 23 Feb 2021 20:40:17 GMT",
+      "tag": "beachball_v1.53.0",
+      "version": "1.53.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "adds a --all canary option",
+            "author": "kchau@microsoft.com",
+            "commit": "db651cab1c284436c12fa0e676f669226aff0ea3",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 18 Feb 2021 22:45:51 GMT",
       "tag": "beachball_v1.52.0",
       "version": "1.52.0",

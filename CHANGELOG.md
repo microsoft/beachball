@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 18 Feb 2021 22:45:51 GMT and should not be manually modified.
+This log was last generated on Tue, 23 Feb 2021 20:40:17 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.53.0
+
+Tue, 23 Feb 2021 20:40:17 GMT
+
+### Minor changes
+
+- adds a --all canary option (kchau@microsoft.com)
 
 ## 1.52.0
 
