@@ -53,6 +53,7 @@ describe('publish command (e2e)', () => {
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
     await publish({
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -119,6 +120,7 @@ describe('publish command (e2e)', () => {
     git(['checkout', '--detach'], { cwd: repo.rootPath });
 
     await publish({
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -207,6 +209,7 @@ describe('publish command (e2e)', () => {
     });
 
     await publish({
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -298,6 +301,7 @@ describe('publish command (e2e)', () => {
     });
 
     await publish({
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -369,6 +373,7 @@ describe('publish command (e2e)', () => {
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
     await publish({
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -445,6 +450,7 @@ describe('publish command (e2e)', () => {
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
     await publish({
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -516,6 +522,7 @@ describe('publish command (e2e)', () => {
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
     await publish({
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -594,6 +601,7 @@ describe('publish command (e2e)', () => {
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
     await publish({
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',

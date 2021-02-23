@@ -44,6 +44,7 @@ describe('publish command (git)', () => {
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
     await publish({
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -103,6 +104,7 @@ describe('publish command (git)', () => {
     console.log('Bumping version for npm publish');
 
     const options: BeachballOptions = {
+      all: false,
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',

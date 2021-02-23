@@ -2,6 +2,7 @@ import { BeachballOptions } from '../types/BeachballOptions';
 
 export function getDefaultOptions() {
   return {
+    all: false,
     branch: 'origin/master',
     command: 'change',
     message: '',

@@ -72,6 +72,7 @@ describe('sync command (e2e)', () => {
     expect(packagePublish(newBarInfo, registry.getUrl(), '', '').success).toBeTruthy();
 
     await sync({
+      all: false,
       branch: 'origin/master',
       command: 'sync',
       message: '',
@@ -124,6 +125,7 @@ describe('sync command (e2e)', () => {
     expect(packagePublish(newBarInfo, registry.getUrl(), '', '').success).toBeTruthy();
 
     await sync({
+      all: false,
       branch: 'origin/master',
       command: 'sync',
       message: '',
@@ -185,6 +187,7 @@ describe('sync command (e2e)', () => {
     expect(packagePublish(newBarInfo, registry.getUrl(), '', '').success).toBeTruthy();
 
     await sync({
+      all: false,
       branch: 'origin/master',
       command: 'sync',
       message: '',
