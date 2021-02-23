@@ -9,23 +9,29 @@ import { BeachballOptions } from '../types/BeachballOptions';
 
 export async function canary(options: BeachballOptions) {
   const oldPackageInfo = getPackageInfos(options.path);
+
   const bumpInfo = gatherBumpInfo(options);
 
   options.keepChangeFiles = true;
   options.generateChangelog = false;
   options.tag = options.canaryName || 'canary';
 
-  const packages = options.all ? Object.keys(oldPackageInfo) : bumpInfo.modifiedPackages;
+  if (options.all) {
+    for (const pkg of Object.keys(oldPackageInfo)) {
+      bumpInfo.modifiedPackages.add(pkg);
+    }
+  }
 
-  const packageVersions = await listPackageVersions([...packages], options.registry);
+  const packageVersions = await listPackageVersions([...bumpInfo.modifiedPackages], options.registry);
 
-  for (const pkg of packages) {
+  for (const pkg of bumpInfo.modifiedPackages) {
     let newVersion = oldPackageInfo[pkg].version;
 
     do {
       newVersion = semver.inc(newVersion, 'prerelease', options.canaryName || 'canary');
     } while (packageVersions[pkg].includes(newVersion));
 
+    bumpInfo.packageInfos[pkg] = bumpInfo.packageInfos[pkg] || {};
     bumpInfo.packageInfos[pkg].version = newVersion;
   }
 
