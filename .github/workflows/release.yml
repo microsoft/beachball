@@ -34,3 +34,5 @@ jobs:
         env:
           NPM_AUTHTOKEN: ${{ secrets.npm_authtoken }}
       - run: yarn release:docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
