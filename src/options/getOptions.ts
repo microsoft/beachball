@@ -1,6 +1,6 @@
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getCliOptions } from './getCliOptions';
-import { getRootOptions } from './getRootOptions';
+import { getRepoOptions } from './getRepoOptions';
 import { getDefaultOptions } from './getDefaultOptions';
 
 /**
@@ -8,5 +8,5 @@ import { getDefaultOptions } from './getDefaultOptions';
  */
 export function getOptions(argv: string[]): BeachballOptions {
   const cliOptions = getCliOptions(argv);
-  return { ...getDefaultOptions(), ...getRootOptions(cliOptions), ...cliOptions };
+  return { ...getDefaultOptions(), ...getRepoOptions(cliOptions), ...cliOptions };
 }

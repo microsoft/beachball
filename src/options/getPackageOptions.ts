@@ -1,21 +1,21 @@
 import { cosmiconfigSync } from 'cosmiconfig';
 import { PackageOptions } from '../types/BeachballOptions';
 import { getCliOptions } from './getCliOptions';
-import { getRootOptions } from './getRootOptions';
+import { getRepoOptions } from './getRepoOptions';
 import { getDefaultOptions } from './getDefaultOptions';
 import path from 'path';
 
 /**
  * Gets all package level options (default + root options + package options + cli options)
- * This function inherits packageOptions from the rootOptions
+ * This function inherits packageOptions from the repoOptions
  */
 export function getCombinedPackageOptions(actualPackageOptions: Partial<PackageOptions>): PackageOptions {
   const defaultOptions = getDefaultOptions();
   const cliOptions = getCliOptions(process.argv);
-  const rootOptions = getRootOptions(cliOptions);
+  const repoOptions = getRepoOptions(cliOptions);
   return {
     ...defaultOptions,
-    ...rootOptions,
+    ...repoOptions,
     ...actualPackageOptions,
     ...cliOptions,
   };
