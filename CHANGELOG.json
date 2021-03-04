@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 04 Mar 2021 18:56:14 GMT",
+      "tag": "beachball_v1.53.1",
+      "version": "1.53.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix detection of default remote branch when it's not specified at CLI",
+            "author": "elcraig@microsoft.com",
+            "commit": "cd61645e8e50de5893d7361b85eeca86ed9cb64a",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 23 Feb 2021 20:40:17 GMT",
       "tag": "beachball_v1.53.0",
       "version": "1.53.0",

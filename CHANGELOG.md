@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 23 Feb 2021 20:40:17 GMT and should not be manually modified.
+This log was last generated on Thu, 04 Mar 2021 18:56:14 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.53.1
+
+Thu, 04 Mar 2021 18:56:14 GMT
+
+### Patches
+
+- Fix detection of default remote branch when it's not specified at CLI (elcraig@microsoft.com)
 
 ## 1.53.0
 

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix detection of default remote branch when it's not specified at CLI",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
