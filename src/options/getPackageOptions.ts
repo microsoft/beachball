@@ -7,15 +7,15 @@ import path from 'path';
 
 /**
  * Gets all package level options (default + root options + package options + cli options)
- * This function inherits packageOptions from the rootOptions
+ * This function inherits packageOptions from the repoOptions
  */
 export function getCombinedPackageOptions(actualPackageOptions: Partial<PackageOptions>): PackageOptions {
   const defaultOptions = getDefaultOptions();
   const cliOptions = getCliOptions(process.argv);
-  const rootOptions = getRepoOptions(cliOptions);
+  const repoOptions = getRepoOptions(cliOptions);
   return {
     ...defaultOptions,
-    ...rootOptions,
+    ...repoOptions,
     ...actualPackageOptions,
     ...cliOptions,
   };

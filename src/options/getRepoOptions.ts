@@ -11,15 +11,19 @@ export function getRepoOptions(cliOptions: CliOptions): RepoOptions {
       process.exit(1);
     }
   } else {
-    repoOptions = trySearchConfig();
+    repoOptions = trySearchConfig() || ({} as RepoOptions);
   }
-  repoOptions = repoOptions || ({} as RepoOptions);
 
+  // Only if the branch isn't specified in cliOptions (which takes precedence), fix it up or add it
+  // in repoOptions. (We don't want to do the getDefaultRemoteBranch() lookup unconditionally to
+  // avoid potential for log messages/errors which aren't relevant if the branch was specified on
+  // the command line.)
   if (!cliOptions.branch) {
-    // Add or fix up the branch in repoOptions if it's not specified in cliOptions (which takes precedence)
     if (repoOptions.branch && !repoOptions.branch.includes('/')) {
+      // Add a remote to the branch if it's not already included
       repoOptions.branch = getDefaultRemoteBranch(repoOptions.branch, cliOptions.path);
     } else if (!repoOptions.branch) {
+      // Branch is not specified at all. Add in the default remote and branch.
       repoOptions.branch = getDefaultRemoteBranch('master', cliOptions.path);
     }
   }
