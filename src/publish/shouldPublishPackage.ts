@@ -23,6 +23,14 @@ export function shouldPublishPackage(
       reasonToSkip: `package ${pkgName} is private`,
     };
   }
+
+  if (packageInfo.packageOptions.shouldPublish === false) {
+    return {
+      publish: false,
+      reasonToSkip: `package ${pkgName} has shouldPublish set to false`,
+    };
+  }
+
   if (!bumpInfo.scopedPackages.has(pkgName)) {
     return {
       publish: false,

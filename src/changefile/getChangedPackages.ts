@@ -27,7 +27,7 @@ function getAllChangedPackages(options: BeachballOptions) {
           try {
             const packageJson = fs.readJSONSync(path.join(root, 'package.json'));
 
-            if (!packageJson.private && (!packageJson.beachball || packageJson.beachball.shouldPublish !== false)) {
+            if (!packageJson.private) {
               const packageName = packageJson.name;
 
               if (scopedPackages.includes(packageName)) {
