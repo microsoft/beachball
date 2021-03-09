@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update canary command to respect --no-publish flag",
+  "packageName": "beachball",
+  "email": "mail@jamesburnside.com",
+  "dependentChangeType": "patch"
+}
