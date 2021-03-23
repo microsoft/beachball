@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 04 Mar 2021 18:56:14 GMT and should not be manually modified.
+This log was last generated on Tue, 23 Mar 2021 17:35:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.53.2
+
+Tue, 23 Mar 2021 17:35:03 GMT
+
+### Patches
+
+- Update canary command to respect --no-publish flag (mail@jamesburnside.com)
 
 ## 1.53.1
 
