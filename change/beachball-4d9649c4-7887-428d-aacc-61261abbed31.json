@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "adds a feature of adding publish-config, bumps requirement to node 12",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "dependentChangeType": "patch"
+}
