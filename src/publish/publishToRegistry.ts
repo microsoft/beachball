@@ -9,6 +9,7 @@ import { displayManualRecovery } from './displayManualRecovery';
 import { toposortPackages } from './toposortPackages';
 import { shouldPublishPackage } from './shouldPublishPackage';
 import { validatePackageDependencies } from './validatePackageDependencies';
+import { performPublishConfigOverrides } from './performPublishConfigOverrides';
 
 export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions) {
   const { registry, token, access, timeout } = options;
@@ -42,6 +43,9 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
     }
     return publish;
   });
+
+  // perform publishConfig overrides requires this procedure to ONLY be run right before npm publish, but NOT in the git push
+  performPublishConfigOverrides(packagesToPublish, bumpInfo.packageInfos);
 
   // if there is a prepublish hook perform a prepublish pass, calling the routine on each package
   const prepublishHook = options.hooks?.prepublish;
