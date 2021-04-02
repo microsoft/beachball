@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 23 Mar 2021 17:35:03 GMT and should not be manually modified.
+This log was last generated on Fri, 02 Apr 2021 17:49:52 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.1.0
+
+Fri, 02 Apr 2021 17:49:52 GMT
+
+### Minor changes
+
+- adds a feature of adding publish-config, bumps requirement to node 12 (kchau@microsoft.com)
 
 ## 1.53.2
 

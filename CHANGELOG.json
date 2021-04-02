@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 02 Apr 2021 17:49:52 GMT",
+      "tag": "beachball_v2.1.0",
+      "version": "2.1.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "adds a feature of adding publish-config, bumps requirement to node 12",
+            "author": "kchau@microsoft.com",
+            "commit": "2b0e17b388ced2801941a6fc6f0d1a4ef9f3e961",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 02 Apr 2021 17:34:25 GMT",
       "tag": "beachball_v2.0.0",
       "version": "2.0.0",
