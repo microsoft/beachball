@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 02 Apr 2021 17:34:25 GMT",
+      "tag": "beachball_v2.0.0",
+      "version": "2.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "MAJOR BUMP! Adding a requirement of node engine 12+",
+            "author": "kchau@microsoft.com",
+            "commit": "490d791eca1ad854df73202c88ae5fb99ca57c89",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 23 Mar 2021 17:35:03 GMT",
       "tag": "beachball_v1.53.2",
       "version": "1.53.2",
