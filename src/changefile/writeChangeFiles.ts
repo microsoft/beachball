@@ -40,7 +40,9 @@ export function writeChangeFiles(
 
     stage(changeFiles, cwd);
     if (commitChangeFiles) {
-      commit('Change files', cwd);
+      // only commit change files, ignore other staged files/changes
+      const commitOptions = `${changeFiles.join(' ')}`;
+      commit('Change files', cwd, [commitOptions]);
     }
 
     console.log(
