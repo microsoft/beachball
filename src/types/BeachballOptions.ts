@@ -44,6 +44,7 @@ export interface CliOptions
   timeout?: number;
   token: string;
   type?: ChangeType | null;
+  useConventionalCommits: boolean;
   verbose?: boolean;
   version?: boolean;
   yes: boolean;
@@ -141,7 +142,7 @@ export interface HooksOptions {
    * Runs for each package, before writing changelog and package.json updates
    * to the filesystem. May be called multiple times during publish.
    */
-   prebump?: (packagePath: string, name: string, version: string) => void | Promise<void>;
+  prebump?: (packagePath: string, name: string, version: string) => void | Promise<void>;
 
   /**
    * Runs for each package, after writing changelog and package.json updates
