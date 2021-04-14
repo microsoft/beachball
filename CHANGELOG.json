@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 14 Apr 2021 15:34:23 GMT",
+      "tag": "beachball_v2.2.0",
+      "version": "2.2.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "feat: Bump workspace-tools",
+            "author": "asgramme@microsoft.com",
+            "commit": "ef711902e218bc624a1f33ea1c6bbac2eecc0d23",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 02 Apr 2021 17:49:52 GMT",
       "tag": "beachball_v2.1.0",
       "version": "2.1.0",

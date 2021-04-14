@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 02 Apr 2021 17:49:52 GMT and should not be manually modified.
+This log was last generated on Wed, 14 Apr 2021 15:34:23 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.2.0
+
+Wed, 14 Apr 2021 15:34:23 GMT
+
+### Minor changes
+
+- feat: Bump workspace-tools (asgramme@microsoft.com)
 
 ## 2.1.0
 

@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "feat: Bump workspace-tools",
-  "packageName": "beachball",
-  "email": "asgramme@microsoft.com",
-  "dependentChangeType": "patch"
-}
