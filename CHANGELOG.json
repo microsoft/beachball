@@ -2,6 +2,51 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 14 Apr 2021 15:34:23 GMT",
+      "tag": "beachball_v2.2.0",
+      "version": "2.2.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "feat: Bump workspace-tools",
+            "author": "asgramme@microsoft.com",
+            "commit": "ef711902e218bc624a1f33ea1c6bbac2eecc0d23",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 02 Apr 2021 17:49:52 GMT",
+      "tag": "beachball_v2.1.0",
+      "version": "2.1.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "adds a feature of adding publish-config, bumps requirement to node 12",
+            "author": "kchau@microsoft.com",
+            "commit": "2b0e17b388ced2801941a6fc6f0d1a4ef9f3e961",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 02 Apr 2021 17:34:25 GMT",
+      "tag": "beachball_v2.0.0",
+      "version": "2.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "MAJOR BUMP! Adding a requirement of node engine 12+",
+            "author": "kchau@microsoft.com",
+            "commit": "490d791eca1ad854df73202c88ae5fb99ca57c89",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 23 Mar 2021 17:35:03 GMT",
       "tag": "beachball_v1.53.2",
       "version": "1.53.2",

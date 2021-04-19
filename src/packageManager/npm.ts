@@ -1,7 +1,6 @@
-import { SpawnSyncOptions } from 'child_process';
 import execa from 'execa';
 
-export function npm(args: string[], options: SpawnSyncOptions = {}) {
+export function npm(args: string[], options: execa.SyncOptions = {}) {
   try {
     const result = execa.sync('npm', args, { ...options });
     return {
@@ -16,7 +15,7 @@ export function npm(args: string[], options: SpawnSyncOptions = {}) {
   }
 }
 
-export async function npmAsync(args: string[], options: SpawnSyncOptions = {}) {
+export async function npmAsync(args: string[], options: execa.Options = {}) {
   try {
     const result = await execa('npm', args, { ...options });
     return {

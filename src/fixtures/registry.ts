@@ -49,9 +49,13 @@ export class Registry {
     return new Promise((resolve, reject) => {
       this.server = spawn(process.execPath, [verdaccioApi, port.toString()]);
 
+      if (!this.server || !this.server.stdout || !this.server.stderr) {
+        return reject();
+      }
+
       this.server.stdout.on('data', data => {
         if (data.includes('verdaccio running')) {
-          resolve();
+          resolve(port);
         }
       });
 
