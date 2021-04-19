@@ -41,8 +41,8 @@ export function writeChangeFiles(
     stage(changeFiles, cwd);
     if (commitChangeFiles) {
       // only commit change files, ignore other staged files/changes
-      const commitOptions = `${changeFiles.join(' ')}`;
-      commit('Change files', cwd, [commitOptions]);
+      const commitOptions = ['--only', path.join(changePath, '*.json')];
+      commit('Change files', cwd, commitOptions);
     }
 
     console.log(
