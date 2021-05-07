@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Only commit changefiles and ignore other staged files on 'beachball change command'",
-  "packageName": "beachball",
-  "email": "nickykalu@microsoft.com",
-  "dependentChangeType": "patch"
-}

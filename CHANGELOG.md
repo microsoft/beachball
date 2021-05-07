@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 14 Apr 2021 15:34:23 GMT and should not be manually modified.
+This log was last generated on Fri, 07 May 2021 15:12:45 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.3.0
+
+Fri, 07 May 2021 15:12:45 GMT
+
+### Minor changes
+
+- Only commit changefiles and ignore other staged files on 'beachball change command' (nickykalu@microsoft.com)
 
 ## 2.2.0
 
