@@ -1,19 +1,15 @@
-import { npmAsync } from './npm';
+import { getNpmAuthArgs, npmAsync } from './npm';
 import pLimit from 'p-limit';
 import { PackageInfo } from '../types/PackageInfo';
+import { AuthType } from '../types/Auth';
 
 const packageVersions: { [pkgName: string]: any } = {};
 
 const NPM_CONCURRENCY = 5;
 
-export async function getNpmPackageInfo(packageName: string, registry: string, token: string | null = null) {
+export async function getNpmPackageInfo(packageName: string, registry: string, token?: string, authType?: AuthType) {
   if (!packageVersions[packageName]) {
-    const args = ['show', '--registry', registry, '--json', packageName];
-
-    if (token) {
-      const shorthand = registry.substring(registry.indexOf('//'));
-      args.push(`--${shorthand}:_authToken=${token}`);
-    }
+    const args = ['show', '--registry', registry, '--json', packageName, ...getNpmAuthArgs(registry, token, authType)];
 
     const showResult = await npmAsync(args);
     if (showResult.success) {
@@ -31,7 +27,8 @@ export async function listPackageVersionsByTag(
   packageInfos: PackageInfo[],
   registry: string,
   tag: string,
-  token?: string | null
+  token?: string,
+  authType?: AuthType
 ) {
   const limit = pLimit(NPM_CONCURRENCY);
   const all: Promise<void>[] = [];
@@ -40,7 +37,7 @@ export async function listPackageVersionsByTag(
   for (const pkg of packageInfos) {
     all.push(
       limit(async () => {
-        const info = await getNpmPackageInfo(pkg.name, registry, token);
+        const info = await getNpmPackageInfo(pkg.name, registry, token, authType);
         const npmTag = tag || pkg.combinedOptions.tag || pkg.combinedOptions.defaultNpmTag;
         versions[pkg.name] = info['dist-tags'] && info['dist-tags'][npmTag] ? info['dist-tags'][npmTag] : undefined;
       })

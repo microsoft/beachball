@@ -45,6 +45,7 @@ describe('publish command (git)', () => {
 
     await publish({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -105,6 +106,7 @@ describe('publish command (git)', () => {
 
     const options: BeachballOptions = {
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',

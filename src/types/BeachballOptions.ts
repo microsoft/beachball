@@ -1,3 +1,4 @@
+import { AuthType } from './Auth';
 import { ChangeType } from './ChangeInfo';
 import { ChangeFilePromptOptions } from './ChangeFilePrompt';
 import { ChangelogOptions } from './ChangelogOptions';
@@ -6,6 +7,7 @@ export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
 export interface CliOptions {
   all: boolean;
+  authType: AuthType;
   branch: string;
   command: string;
   message: string;

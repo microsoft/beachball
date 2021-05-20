@@ -1,6 +1,7 @@
 import { isGitAvailable } from './isGitAvailable';
 import { getUntrackedChanges } from 'workspace-tools';
 import { isValidPackageName } from './isValidPackageName';
+import { isValidAuthType } from './isValidAuthType';
 import { isValidChangeType } from './isValidChangeType';
 import { isChangeFileNeeded } from './isChangeFileNeeded';
 import { isValidGroupOptions } from './isValidGroupOptions';
@@ -40,6 +41,11 @@ export function validate(options: BeachballOptions, validateOptionsOverride?: Pa
 
   if (options.package && !isValidPackageName(options.package, options.path)) {
     console.error('ERROR: Specified package name is not valid');
+    process.exit(1);
+  }
+
+  if (options.authType && !isValidAuthType(options.authType)) {
+    console.error(`ERROR: auth type ${options.authType} is not valid`);
     process.exit(1);
   }
 

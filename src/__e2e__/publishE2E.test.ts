@@ -54,6 +54,7 @@ describe('publish command (e2e)', () => {
 
     await publish({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -121,6 +122,7 @@ describe('publish command (e2e)', () => {
 
     await publish({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -210,6 +212,7 @@ describe('publish command (e2e)', () => {
 
     await publish({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -302,6 +305,7 @@ describe('publish command (e2e)', () => {
 
     await publish({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -374,6 +378,7 @@ describe('publish command (e2e)', () => {
 
     await publish({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -451,6 +456,7 @@ describe('publish command (e2e)', () => {
 
     await publish({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -523,6 +529,7 @@ describe('publish command (e2e)', () => {
 
     await publish({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -602,6 +609,7 @@ describe('publish command (e2e)', () => {
 
     await publish({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',

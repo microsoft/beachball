@@ -1,4 +1,5 @@
 import execa from 'execa';
+import { AuthType } from '../types/Auth';
 
 export function npm(args: string[], options: execa.SyncOptions = {}) {
   try {
@@ -28,4 +29,15 @@ export async function npmAsync(args: string[], options: execa.Options = {}) {
       success: false,
     };
   }
+}
+
+export function getNpmAuthArgs(registry: string, token?: string, authType?: AuthType): string[] {
+  const authArgs: string[] = [];
+
+  if (token) {
+    const npmKeyword = authType === 'password' ? '_password' : '_authToken';
+    const shorthand = registry.substring(registry.indexOf('//'));
+    authArgs.push(`--${shorthand}:${npmKeyword}=${token}`);
+  }
+  return authArgs;
 }

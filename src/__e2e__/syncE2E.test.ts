@@ -73,6 +73,7 @@ describe('sync command (e2e)', () => {
 
     await sync({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'sync',
       message: '',
@@ -126,6 +127,7 @@ describe('sync command (e2e)', () => {
 
     await sync({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'sync',
       message: '',
@@ -188,6 +190,7 @@ describe('sync command (e2e)', () => {
 
     await sync({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'sync',
       message: '',

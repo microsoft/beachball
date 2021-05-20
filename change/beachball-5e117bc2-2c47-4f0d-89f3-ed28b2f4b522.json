@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add npm basic auth capability via new authType argument.",
+  "packageName": "beachball",
+  "email": "jagore@microsoft.com",
+  "dependentChangeType": "patch"
+}

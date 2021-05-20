@@ -8,6 +8,10 @@ category: doc
 
 This is a listing of all the options available. Not every option applies to all the commands.
 
+###### `--authType, -a`
+
+type of token argument, affecting how it is applied to npm commands. (default: authtoken)
+
 ###### `--registry, -r`
 
 registry, defaults to https://registry.npmjs.org
@@ -39,6 +43,10 @@ skip publishing to the npm registry
 ###### `--help, -?, -h`
 
 show help message
+
+###### `--token, -n`
+
+credential to use with npm commands. its type is specified with the authType argument
 
 ###### `--yes, -y`
 
