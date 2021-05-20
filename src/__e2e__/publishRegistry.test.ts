@@ -60,6 +60,7 @@ describe('publish command (registry)', () => {
 
     const publishPromise = publish({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -117,6 +118,7 @@ describe('publish command (registry)', () => {
 
     await publish({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -200,6 +202,7 @@ describe('publish command (registry)', () => {
 
     await publish({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -279,6 +282,7 @@ describe('publish command (registry)', () => {
 
     await publish({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',
@@ -363,6 +367,7 @@ describe('publish command (registry)', () => {
 
     await publish({
       all: false,
+      authType: 'authtoken',
       branch: 'origin/master',
       command: 'publish',
       message: 'apply package updates',

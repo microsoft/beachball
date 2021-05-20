@@ -3,6 +3,7 @@ import { BeachballOptions } from '../types/BeachballOptions';
 export function getDefaultOptions() {
   return {
     all: false,
+    authType: 'authtoken',
     branch: 'origin/master',
     command: 'change',
     message: '',

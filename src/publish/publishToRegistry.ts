@@ -12,7 +12,7 @@ import { validatePackageDependencies } from './validatePackageDependencies';
 import { performPublishConfigOverrides } from './performPublishConfigOverrides';
 
 export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions) {
-  const { registry, token, access, timeout } = options;
+  const { registry, token, access, timeout, authType } = options;
   const bumpInfo = _.cloneDeep(originalBumpInfo);
   const { modifiedPackages, newPackages, packageInfos } = bumpInfo;
 
@@ -72,7 +72,7 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
     let retries = 0;
 
     do {
-      result = packagePublish(packageInfo, registry, token, access, timeout);
+      result = packagePublish(packageInfo, registry, token, access, authType, timeout);
 
       if (result.success) {
         console.log('Published!');

@@ -1,12 +1,14 @@
 import { PackageInfo } from '../types/PackageInfo';
 import path from 'path';
-import { npm } from './npm';
+import { getNpmAuthArgs, npm } from './npm';
+import { AuthType } from '../types/Auth';
 
 export function packagePublish(
   packageInfo: PackageInfo,
   registry: string,
   token: string,
   access: string,
+  authType?: AuthType,
   timeout?: number | undefined
 ) {
   const packageOptions = packageInfo.combinedOptions;
@@ -19,11 +21,9 @@ export function packagePublish(
     packageOptions.tag || packageOptions.defaultNpmTag,
     '--loglevel',
     'warn',
+    ...getNpmAuthArgs(registry, token, authType),
   ];
-  if (token) {
-    const shorthand = registry.substring(registry.indexOf('//'));
-    args.push(`--${shorthand}:_authToken=${token}`);
-  }
+
   if (access && packageInfo.name.startsWith('@')) {
     args.push('--access');
     args.push(access);

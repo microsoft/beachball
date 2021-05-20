@@ -15,7 +15,8 @@ export async function sync(options: BeachballOptions) {
     [...infos.values()],
     options.registry,
     options.tag,
-    options.token
+    options.token,
+    options.authType
   );
 
   const modifiedPackages = new Set<string>();
