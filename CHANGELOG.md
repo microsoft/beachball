@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 07 May 2021 15:12:45 GMT and should not be manually modified.
+This log was last generated on Thu, 20 May 2021 22:47:45 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.4.0
+
+Thu, 20 May 2021 22:47:45 GMT
+
+### Minor changes
+
+- Add npm basic auth capability via new authType argument. (jagore@microsoft.com)
 
 ## 2.3.0
 
