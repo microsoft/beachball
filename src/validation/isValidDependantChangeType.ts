@@ -1,3 +1,11 @@
-export function isValidDependentChangeType(dependentChangeType: string) {
-  return ['patch', 'major', 'minor', 'prerelease', 'none'].includes(dependentChangeType);
+import { ChangeType } from '../types/ChangeInfo';
+
+export function isValidDependentChangeType(
+  dependentChangeType: ChangeType,
+  disallwedDependentChangeTypes: ChangeType[] | null
+) {
+  return (
+    ['patch', 'major', 'minor', 'prerelease', 'none'].includes(dependentChangeType) &&
+    !disallwedDependentChangeTypes?.includes(dependentChangeType)
+  );
 }
