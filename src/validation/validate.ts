@@ -96,7 +96,7 @@ export function validate(options: BeachballOptions, validateOptionsOverride?: Pa
       );
       process.exit(1);
     }
-    if (!change.dependentChangeType && !isValidDependentChangeType(change.dependentChangeType, disallowedChangeTypes)) {
+    if (!change.dependentChangeType || !isValidDependentChangeType(change.dependentChangeType, disallowedChangeTypes)) {
       console.error(
         `ERROR: there is an invalid dependentChangeType detected ${changeFile}: "${change.dependentChangeType}" is not a valid dependentChangeType`
       );

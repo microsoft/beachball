@@ -84,6 +84,7 @@ export function updateRelatedChangeType(
           email: depChangeInfo.email,
           commit: depChangeInfo.commit,
           comment: '', // comment will be populated at later stages when new versions are computed
+          dependentChangeType: depChangeInfo.type,
         };
 
         if (prevChangeInfo) {
