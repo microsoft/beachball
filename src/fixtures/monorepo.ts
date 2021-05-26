@@ -5,7 +5,7 @@ import { tmpdir } from './tmpdir';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { Repository, RepositoryFactory } from './repository';
 import { PackageJson } from '../types/PackageInfo';
-import { git } from 'workspace-tools';
+import { gitInitWithDefaultBranchName } from './gitDefaults';
 
 export const packageJsonFixtures: { [path: string]: PackageJson } = {
   'packages/foo': {
@@ -58,7 +58,7 @@ export class MonoRepoFactory extends RepositoryFactory {
 
     this.root = tmpdir({ prefix: 'beachball-monorepository-upstream-' });
     process.chdir(this.root);
-    git(['init', '--bare'], { cwd: this.root });
+    gitInitWithDefaultBranchName(this.root);
 
     const tmpRepo = new Repository();
     this.childRepos.push(tmpRepo);
