@@ -1,8 +1,20 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 27 May 2021 22:23:24 GMT and should not be manually modified.
+This log was last generated on Thu, 27 May 2021 22:24:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.5.0
+
+Thu, 27 May 2021 22:24:48 GMT
+
+### Minor changes
+
+- Add validation for the dependentChangeType field in changefiles (nickykalu@microsoft.com)
+
+### Patches
+
+- bump workspace-tools (kchau@microsoft.com)
 
 ## 2.4.1
 

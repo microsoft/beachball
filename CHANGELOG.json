@@ -2,6 +2,29 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 27 May 2021 22:24:48 GMT",
+      "tag": "beachball_v2.5.0",
+      "version": "2.5.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "bump workspace-tools",
+            "author": "kchau@microsoft.com",
+            "commit": "895323e59aa11cfebf2a6eee0edfaec18f932d51",
+            "package": "beachball"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add validation for the dependentChangeType field in changefiles",
+            "author": "nickykalu@microsoft.com",
+            "commit": "895323e59aa11cfebf2a6eee0edfaec18f932d51",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 27 May 2021 22:23:24 GMT",
       "tag": "beachball_v2.4.1",
       "version": "2.4.1",

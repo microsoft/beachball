@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add validation for the dependentChangeType field in changefiles",
-  "packageName": "beachball",
-  "email": "nickykalu@microsoft.com",
-  "dependentChangeType": "patch"
-}
