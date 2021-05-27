@@ -14,6 +14,7 @@ import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes
 import { areChangeFilesDeleted } from './areChangeFilesDeleted';
 import { validatePackageDependencies } from '../publish/validatePackageDependencies';
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
+import { isValidDependentChangeType } from './isValidDependantChangeType';
 
 type ValidationOptions = { allowMissingChangeFiles: boolean; allowFetching: boolean };
 type PartialValidateOptions = Partial<ValidationOptions>;
@@ -98,6 +99,12 @@ export function validate(options: BeachballOptions, validateOptionsOverride?: Pa
     if (!change.type || !isValidChangeType(change.type) || disallowedChangeTypes?.includes(change.type)) {
       console.error(
         `ERROR: there is an invalid change type detected ${changeFile}: "${change.type}" is not a valid change type`
+      );
+      process.exit(1);
+    }
+    if (!change.dependentChangeType || !isValidDependentChangeType(change.dependentChangeType, disallowedChangeTypes)) {
+      console.error(
+        `ERROR: there is an invalid dependentChangeType detected ${changeFile}: "${change.dependentChangeType}" is not a valid dependentChangeType`
       );
       process.exit(1);
     }

@@ -8,7 +8,7 @@ export interface ChangeFileInfo {
   comment: string;
   packageName: string;
   email: string;
-  dependentChangeType?: ChangeType;
+  dependentChangeType: ChangeType;
 }
 
 /**
