@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 27 May 2021 22:24:48 GMT and should not be manually modified.
+This log was last generated on Fri, 28 May 2021 02:09:13 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.5.1
+
+Fri, 28 May 2021 02:09:13 GMT
+
+### Patches
+
+- Improve tests to be robust angainst global setting for default branch (dannyvv@microsoft.com)
 
 ## 2.5.0
 

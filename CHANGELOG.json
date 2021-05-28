@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 28 May 2021 02:09:13 GMT",
+      "tag": "beachball_v2.5.1",
+      "version": "2.5.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Improve tests to be robust angainst global setting for default branch",
+            "author": "dannyvv@microsoft.com",
+            "commit": "dda50add15e70a0f700643e92732702a39eaaaf1",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 27 May 2021 22:24:48 GMT",
       "tag": "beachball_v2.5.0",
       "version": "2.5.0",

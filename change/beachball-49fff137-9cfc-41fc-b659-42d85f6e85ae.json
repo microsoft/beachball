@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Improve tests to be robust angainst global setting for default branch",
-  "packageName": "beachball",
-  "email": "dannyvv@microsoft.com",
-  "dependentChangeType": "patch"
-}
