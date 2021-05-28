@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Improve tests to be robust angainst global setting for default branch",
+  "comment": "Add support for default main branch names",
   "packageName": "beachball",
   "email": "dannyvv@microsoft.com",
   "dependentChangeType": "patch"
