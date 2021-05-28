@@ -3,6 +3,7 @@ import path from 'path';
 import * as fs from 'fs-extra';
 import { tmpdir } from './tmpdir';
 import { git } from 'workspace-tools';
+import { gitInitWithDefaultBranchName, setDefaultBranchName } from './gitDefaults';
 
 export const packageJsonFixture = {
   name: 'foo',
@@ -23,7 +24,7 @@ export class RepositoryFactory {
 
     this.root = tmpdir({ prefix: 'beachball-repository-upstream-' });
     process.chdir(this.root);
-    git(['init', '--bare'], { cwd: this.root });
+    gitInitWithDefaultBranchName(this.root);
 
     const tmpRepo = new Repository();
     this.childRepos.push(tmpRepo);
@@ -85,6 +86,8 @@ export class Repository {
     git(['clone', ...(originName ? ['-o', originName] : []), path, '.'], { cwd: this.root });
     git(['config', 'user.email', 'ci@example.com'], { cwd: this.root });
     git(['config', 'user.name', 'CIUSER'], { cwd: this.root });
+
+    setDefaultBranchName(this.root);
 
     this.origin = path;
   }
