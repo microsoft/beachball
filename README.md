@@ -36,7 +36,7 @@ bumps versions as well as generating changelogs
 
 ### publish
 
-bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into master
+bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into the default branch
 
 ### sync
 
@@ -59,7 +59,7 @@ registry, defaults to https://registry.npmjs.org
 
 ### --branch, -b
 
-target branch from origin (default: master)
+target branch from origin (default: as configured in 'git config init.defaultBranch')
 
 ### --message, -m
 
