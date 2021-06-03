@@ -8,7 +8,6 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { getChangePath } from '../paths';
 import path from 'path';
-import { getCurrentHash } from 'workspace-tools';
 
 function gatherPreBumpInfo(options: BeachballOptions): BumpInfo {
   const { path: cwd } = options;
@@ -16,11 +15,6 @@ function gatherPreBumpInfo(options: BeachballOptions): BumpInfo {
   const packageInfos = getPackageInfos(cwd);
   const changes = readChangeFiles(options);
   const changePath = getChangePath(cwd);
-  const currentHash = getCurrentHash(cwd);
-
-  if (!currentHash) {
-    throw new Error('bump: cannot determine current hash');
-  }
 
   const dependentChangeTypes: BumpInfo['dependentChangeTypes'] = {};
   const groupOptions = {};
@@ -38,8 +32,6 @@ function gatherPreBumpInfo(options: BeachballOptions): BumpInfo {
       );
       continue;
     }
-
-    change.commit = currentHash;
 
     filteredChanges.set(changeFile, change);
     dependentChangeTypes[change.packageName] = change.dependentChangeType || 'patch';

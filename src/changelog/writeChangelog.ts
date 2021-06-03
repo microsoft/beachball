@@ -21,7 +21,7 @@ export async function writeChangelog(
   const groupedChangelogPaths = await writeGroupedChangelog(options, calculatedChangeInfos, packageInfos);
   const groupedChangelogPathSet = new Set(groupedChangelogPaths);
 
-  const changelogs = getPackageChangelogs(calculatedChangeInfos, packageInfos);
+  const changelogs = getPackageChangelogs(calculatedChangeInfos, packageInfos, options.path);
   // Use a standard for loop here to prevent potentially firing off multiple network requests at once
   // (in case any custom renderers have network requests)
   for (const pkg of Object.keys(changelogs)) {
@@ -50,7 +50,7 @@ async function writeGroupedChangelog(
     return [];
   }
 
-  const changelogs = getPackageChangelogs(calculatedChangeInfo, packageInfos);
+  const changelogs = getPackageChangelogs(calculatedChangeInfo, packageInfos, options.path);
   const groupedChangelogs: {
     [path: string]: { changelogs: PackageChangelog[]; masterPackage: PackageInfo };
   } = {};

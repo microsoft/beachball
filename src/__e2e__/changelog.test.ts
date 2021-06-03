@@ -86,6 +86,8 @@ describe('changelog generation', () => {
     it('generates correct changelog', async () => {
       const repository = await repositoryFactory.cloneRepository();
       await repository.commitChange('foo');
+      writeChangeFiles({ foo: getChange({ comment: 'additional comment 2' }) }, repository.rootPath);
+      writeChangeFiles({ foo: getChange({ comment: 'additional comment 1' }) }, repository.rootPath);
       writeChangeFiles({ foo: getChange() }, repository.rootPath);
 
       await repository.commitChange('bar');
