@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 03 Jun 2021 19:08:26 GMT",
+      "tag": "beachball_v2.6.0",
+      "version": "2.6.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Beachball check is going to be much faster",
+            "author": "kchau@microsoft.com",
+            "commit": "29251e6707e922c64661e5659c92e16954c28281",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 28 May 2021 02:09:13 GMT",
       "tag": "beachball_v2.5.1",
       "version": "2.5.1",

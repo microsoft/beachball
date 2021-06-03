@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Beachball check is going to be much faster",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "dependentChangeType": "patch"
-}

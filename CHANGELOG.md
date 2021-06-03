@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 28 May 2021 02:09:13 GMT and should not be manually modified.
+This log was last generated on Thu, 03 Jun 2021 19:08:26 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.6.0
+
+Thu, 03 Jun 2021 19:08:26 GMT
+
+### Minor changes
+
+- Beachball check is going to be much faster (kchau@microsoft.com)
 
 ## 2.5.1
 
