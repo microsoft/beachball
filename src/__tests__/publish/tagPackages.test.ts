@@ -12,7 +12,7 @@ const createTagParameters = (tag: string, cwd: string) => {
 };
 
 const noTagBumpInfo = ({
-  packageChangeTypes: {
+  calculatedChangeInfos: {
     foo: 'minor',
     bar: 'major',
   },
@@ -37,7 +37,7 @@ const noTagBumpInfo = ({
 } as unknown) as BumpInfo;
 
 const oneTagBumpInfo = ({
-  packageChangeTypes: {
+  calculatedChangeInfos: {
     foo: 'minor',
     bar: 'major',
   },

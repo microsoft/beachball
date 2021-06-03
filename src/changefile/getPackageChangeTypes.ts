@@ -19,7 +19,7 @@ const ChangeTypeWeights: { [t in ChangeType]: number } = SortedChangeTypes.reduc
   return weights;
 }, {} as { [t in ChangeType]: number });
 
-export function getPackageChangeTypes(changeSet: ChangeSet) {
+export function initializePackageChangeInfo(changeSet: ChangeSet) {
   const changePerPackage: {
     [pkgName: string]: ChangeInfo;
   } = {};

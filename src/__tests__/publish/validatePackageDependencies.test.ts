@@ -6,7 +6,7 @@ describe('validatePackageDependencies', () => {
   const bumpInfoFixture = ({
     changes: new Map(),
     dependents: {},
-    packageChangeTypes: {},
+    calculatedChangeInfos: {},
     dependentChangeTypes: {
       foo: 'patch',
     },

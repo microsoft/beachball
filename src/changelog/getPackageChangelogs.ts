@@ -1,19 +1,23 @@
-import { ChangeInfo, ChangeSet } from '../types/ChangeInfo';
 import { PackageInfo } from '../types/PackageInfo';
 import { PackageChangelog } from '../types/ChangeLog';
 import { generateTag } from '../tag';
+import { BumpInfo } from '../types/BumpInfo';
+import { getCurrentHash } from 'workspace-tools';
 
 export function getPackageChangelogs(
-  changeSet: ChangeSet,
-  dependentChangeInfos: Array<ChangeInfo>,
+  calculatedChangeInfo: BumpInfo['calculatedChangeInfos'],
   packageInfos: {
     [pkg: string]: PackageInfo;
-  }
+  },
+  cwd: string
 ) {
-  const changeInfos = Array.from(changeSet.values()).concat(dependentChangeInfos);
+  const changeInfos = Object.values(calculatedChangeInfo);
   const changelogs: {
     [pkgName: string]: PackageChangelog;
   } = {};
+
+  const commit = getCurrentHash(cwd) || 'not available';
+
   for (let change of changeInfos) {
     const { packageName } = change;
     if (!changelogs[packageName]) {
@@ -32,7 +36,7 @@ export function getPackageChangelogs(
     changelogs[packageName].comments[change.type]!.push({
       comment: change.comment,
       author: change.email,
-      commit: change.commit,
+      commit,
       package: packageName,
     });
   }
