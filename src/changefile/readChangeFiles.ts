@@ -53,7 +53,7 @@ export function readChangeFiles(options: BeachballOptions): ChangeSet {
   filteredChangeFiles.forEach(changeFile => {
     try {
       const changeFilePath = path.join(changePath, changeFile);
-      const changeInfo: ChangeInfo = { ...fs.readJSONSync(changeFilePath), reason: 'changefile' };
+      const changeInfo: ChangeInfo = fs.readJSONSync(changeFilePath);
 
       const packageName = changeInfo.packageName;
       if (scopedPackages.includes(packageName)) {
