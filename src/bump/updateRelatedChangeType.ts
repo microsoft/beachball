@@ -20,6 +20,11 @@ export function updateRelatedChangeType(pkgName: string, bumpInfo: BumpInfo, bum
 
   const packageInfo = packageInfos[pkgName];
   const dependentChangeType = dependentChangeTypes[pkgName];
+
+  if (!packageInfo) {
+    return;
+  }
+
   const disallowedChangeTypes = packageInfo.combinedOptions?.disallowedChangeTypes ?? [];
   let baseChangeInfo = {
     ...changeFileChangeInfos.get(pkgName),
