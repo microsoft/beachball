@@ -1,13 +1,14 @@
-import { getPackageChangeTypes } from '../changefile/getPackageChangeTypes';
+import { initializePackageChangeInfo } from '../changefile/getPackageChangeTypes';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { ChangeInfo, ChangeSet } from '../types/ChangeInfo';
+import { ChangeSet } from '../types/ChangeInfo';
 import { BumpInfo } from '../types/BumpInfo';
 import { bumpInPlace } from './bumpInPlace';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { getChangePath } from '../paths';
 import path from 'path';
+import { getCurrentHash } from 'workspace-tools';
 
 function gatherPreBumpInfo(options: BeachballOptions): BumpInfo {
   const { path: cwd } = options;
@@ -15,6 +16,11 @@ function gatherPreBumpInfo(options: BeachballOptions): BumpInfo {
   const packageInfos = getPackageInfos(cwd);
   const changes = readChangeFiles(options);
   const changePath = getChangePath(cwd);
+  const currentHash = getCurrentHash(cwd);
+
+  if (!currentHash) {
+    throw new Error('bump: cannot determine current hash');
+  }
 
   const dependentChangeTypes: BumpInfo['dependentChangeTypes'] = {};
   const groupOptions = {};
@@ -33,30 +39,32 @@ function gatherPreBumpInfo(options: BeachballOptions): BumpInfo {
       continue;
     }
 
+    change.commit = currentHash;
+
     filteredChanges.set(changeFile, change);
     dependentChangeTypes[change.packageName] = change.dependentChangeType || 'patch';
   }
 
-  // Clear non-existent changeTypes
-  const packageChangeTypes = getPackageChangeTypes(filteredChanges);
-  Object.keys(packageChangeTypes).forEach(packageName => {
+  // Clear non-existent packages from changefiles infos
+  const calculatedChangeInfos = initializePackageChangeInfo(filteredChanges);
+  Object.keys(calculatedChangeInfos).forEach(packageName => {
     if (!packageInfos[packageName]) {
-      delete packageChangeTypes[packageName];
+      delete calculatedChangeInfos[packageName];
     }
   });
 
   return {
-    packageChangeTypes,
+    calculatedChangeInfos,
     packageInfos,
     packageGroups: {},
-    changes: filteredChanges,
+    changeFileChangeInfos: filteredChanges,
     modifiedPackages: new Set<string>(),
     newPackages: new Set<string>(),
     scopedPackages: new Set(getScopedPackages(options)),
     dependentChangeTypes,
     groupOptions,
     dependents: {},
-    dependentChangeInfos: new Array<ChangeInfo>(),
+    dependentChangeInfos: {},
   };
 }
 

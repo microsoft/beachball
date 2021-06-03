@@ -4,7 +4,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
-import { getFileAddedHash, getChangesBetweenRefs } from 'workspace-tools';
+import { getChangesBetweenRefs } from 'workspace-tools';
 
 export function readChangeFiles(options: BeachballOptions): ChangeSet {
   const { path: cwd } = options;
@@ -53,11 +53,7 @@ export function readChangeFiles(options: BeachballOptions): ChangeSet {
   filteredChangeFiles.forEach(changeFile => {
     try {
       const changeFilePath = path.join(changePath, changeFile);
-      const changeInfo: ChangeInfo = {
-        ...fs.readJSONSync(changeFilePath),
-        // Add the commit hash where the file was actually first introduced
-        commit: getFileAddedHash(changeFilePath, cwd) || '',
-      };
+      const changeInfo: ChangeInfo = { ...fs.readJSONSync(changeFilePath), reason: 'changefile' };
 
       const packageName = changeInfo.packageName;
       if (scopedPackages.includes(packageName)) {

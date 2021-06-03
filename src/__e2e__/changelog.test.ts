@@ -11,7 +11,7 @@ import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { SortedChangeTypes } from '../changefile/getPackageChangeTypes';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { ChangeFileInfo, ChangeInfo } from '../types/ChangeInfo';
+import { ChangeFileInfo, ChangeSet } from '../types/ChangeInfo';
 import { MonoRepoFactory } from '../fixtures/monorepo';
 import { ChangelogJson } from '../types/ChangeLog';
 
@@ -45,6 +45,14 @@ function cleanJsonForSnapshot(changelog: ChangelogJson) {
   return changelog;
 }
 
+function calculateChangeInfos(changes: ChangeSet) {
+  const calculated = {};
+  for (const [pkg, info] of changes.entries()) {
+    calculated[pkg] = info;
+  }
+  return calculated;
+}
+
 describe('changelog generation', () => {
   let repositoryFactory: RepositoryFactory;
   let monoRepoFactory: MonoRepoFactory;
@@ -62,36 +70,15 @@ describe('changelog generation', () => {
   });
 
   describe('readChangeFiles', () => {
-    it('adds actual commit hash', async () => {
+    it('does not add commit hash', async () => {
       const repository = await repositoryFactory.cloneRepository();
       await repository.commitChange('foo');
       writeChangeFiles({ foo: getChange() }, repository.rootPath);
 
-      const currentHash = await repository.getCurrentHash();
       const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions);
       const changes = [...changeSet.values()];
       expect(changes).toHaveLength(1);
-      expect(changes[0].commit).toBe(currentHash);
-    });
-
-    it('uses hash of original commit', async () => {
-      const repository = await repositoryFactory.cloneRepository();
-      const changeInfo: ChangeFileInfo = getChange();
-
-      await repository.commitChange('foo');
-      const changeFilePaths = writeChangeFiles({ foo: changeInfo }, repository.rootPath);
-      const changeFilePath = path.relative(repository.rootPath, changeFilePaths[0]);
-      const changeFileAddedHash = await repository.getCurrentHash();
-
-      // change the change file
-      await repository.commitChange(changeFilePath, JSON.stringify({ ...changeInfo, comment: 'comment 2' }, null, 2));
-      await repository.commitChange(changeFilePath, JSON.stringify({ ...changeInfo, comment: 'comment 3' }, null, 2));
-
-      // keeps original hash
-      const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions);
-      const changes = [...changeSet.values()];
-      expect(changes).toHaveLength(1);
-      expect(changes[0].commit).toBe(changeFileAddedHash);
+      expect(changes[0].commit).toBe(undefined);
     });
   });
 
@@ -109,12 +96,9 @@ describe('changelog generation', () => {
 
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(repository.rootPath);
+      const calculated = calculateChangeInfos(changes);
 
-      const dependentChangeInfos = new Array<ChangeInfo>();
-      dependentChangeInfos.push({ ...getChange({ comment: 'additional comment 1' }), commit: '' });
-      dependentChangeInfos.push({ ...getChange({ comment: 'additional comment 2' }), commit: '' });
-
-      await writeChangelog(beachballOptions, changes, dependentChangeInfos, packageInfos);
+      await writeChangelog(beachballOptions, calculated, packageInfos);
 
       const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
       const text = await fs.readFile(changelogFile, { encoding: 'utf-8' });
@@ -124,6 +108,8 @@ describe('changelog generation', () => {
       const jsonText = await fs.readFile(changelogJsonFile, { encoding: 'utf-8' });
       const changelogJson = JSON.parse(jsonText);
       expect(cleanJsonForSnapshot(changelogJson)).toMatchSnapshot();
+
+      expect(changelogJson.entries[0].comments.patch[0].commit).toBe(repository.getCurrentHash());
     });
 
     it('generates correct grouped changelog', async () => {
@@ -154,7 +140,7 @@ describe('changelog generation', () => {
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(monoRepo.rootPath);
 
-      await writeChangelog(beachballOptions, changes, new Array<ChangeInfo>(), packageInfos);
+      await writeChangelog(beachballOptions, calculateChangeInfos(changes), packageInfos);
 
       // Validate changelog for foo package
       const fooChangelogFile = path.join(monoRepo.rootPath, 'packages', 'foo', 'CHANGELOG.md');
@@ -198,7 +184,7 @@ describe('changelog generation', () => {
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(monoRepo.rootPath);
 
-      await writeChangelog(beachballOptions, changes, new Array<ChangeInfo>(), packageInfos);
+      await writeChangelog(beachballOptions, calculateChangeInfos(changes), packageInfos);
 
       // Validate changelog for bar package
       const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
