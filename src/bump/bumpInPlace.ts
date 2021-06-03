@@ -22,8 +22,8 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
 
   setGroupsInBumpInfo(bumpInfo, options);
 
-  for (const pkgName of changeFileChangeInfos.keys()) {
-    updateRelatedChangeType(pkgName, bumpInfo, bumpDeps);
+  for (const changeInfo of changeFileChangeInfos.values()) {
+    updateRelatedChangeType(changeInfo.packageName, bumpInfo, bumpDeps);
   }
   // pass 2: actually bump the packages in the bumpInfo in memory (no disk writes at this point)
   Object.keys(calculatedChangeInfos).forEach(pkgName => {
