@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "actually query for the default branch rather than assuming master",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "dependentChangeType": "patch"
+}
