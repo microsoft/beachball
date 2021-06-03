@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 03 Jun 2021 20:30:47 GMT",
+      "tag": "beachball_v2.6.1",
+      "version": "2.6.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "actually query for the default branch rather than assuming master",
+            "author": "kchau@microsoft.com",
+            "commit": "9bc6cefae1cc3894790427a7f88013ed960416c7",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 03 Jun 2021 19:08:26 GMT",
       "tag": "beachball_v2.6.0",
       "version": "2.6.0",
