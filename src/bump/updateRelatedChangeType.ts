@@ -30,10 +30,6 @@ import { ChangeInfo, ChangeType } from '../types/ChangeInfo';
  * @returns
  */
 export function updateRelatedChangeType(entryPointPackageName: string, bumpInfo: BumpInfo, bumpDeps: boolean) {
-  if (!bumpDeps) {
-    return;
-  }
-
   /** [^1]: all the information needed from `bumpInfo` */
   const {
     calculatedChangeInfos,
@@ -59,13 +55,13 @@ export function updateRelatedChangeType(entryPointPackageName: string, bumpInfo:
     ...calculatedChangeInfos[entryPointPackageName],
   };
 
-  const queue = [{ subjectPackage: entryPointPackageName, baseChangeInfo }];
+  const queue = [{ subjectPackage: entryPointPackageName, changeType: MinChangeType, baseChangeInfo }];
 
   // visited is a set of package names that already has been seen by this algorithm - this allows the algo to scale
   const visited = new Set<string>();
 
   while (queue.length > 0) {
-    let { subjectPackage, baseChangeInfo } = queue.shift()!;
+    let { subjectPackage, changeType, baseChangeInfo } = queue.shift()!;
 
     if (!visited.has(subjectPackage)) {
       visited.add(subjectPackage);
@@ -79,24 +75,19 @@ export function updateRelatedChangeType(entryPointPackageName: string, bumpInfo:
       const disallowedChangeTypes = packageInfo.combinedOptions?.disallowedChangeTypes ?? [];
 
       if (subjectPackage !== entryPointPackageName) {
-        baseChangeInfo = createOrUpdateChangeInfo(
-          subjectPackage,
-          dependentChangeType,
-          baseChangeInfo,
-          disallowedChangeTypes
-        );
+        baseChangeInfo = createOrUpdateChangeInfo(subjectPackage, changeType, baseChangeInfo, disallowedChangeTypes);
       }
 
       const dependentPackages = dependents[subjectPackage];
 
-      if (dependentPackages && dependentPackages.length > 0) {
+      if (bumpDeps && dependentPackages && dependentPackages.length > 0) {
         for (const dependentPackage of dependentPackages) {
-          queue.push({ subjectPackage: dependentPackage, baseChangeInfo });
+          queue.push({ subjectPackage: dependentPackage, changeType: dependentChangeType, baseChangeInfo });
         }
       }
 
       // handle the group dependent updates
-      const groupName = packageInfos[subjectPackage].group;
+      const groupName = packageInfo.group;
 
       if (groupName) {
         for (const packageNameInGroup of packageGroups[groupName].packageNames) {
@@ -104,7 +95,7 @@ export function updateRelatedChangeType(entryPointPackageName: string, bumpInfo:
             !groupOptions[groupName] ||
             !groupOptions[groupName]?.disallowedChangeTypes?.includes(dependentChangeType)
           ) {
-            queue.push({ subjectPackage: packageNameInGroup, baseChangeInfo });
+            queue.push({ subjectPackage: packageNameInGroup, changeType: baseChangeInfo.type, baseChangeInfo });
           }
         }
       }
@@ -113,7 +104,7 @@ export function updateRelatedChangeType(entryPointPackageName: string, bumpInfo:
 
   function createOrUpdateChangeInfo(
     pkg: string,
-    dependentChangeType: ChangeType,
+    changeType: ChangeType,
     changeInfo: ChangeInfo,
     disallowedChangeTypes: ChangeType[]
   ) {
@@ -131,7 +122,7 @@ export function updateRelatedChangeType(entryPointPackageName: string, bumpInfo:
       calculatedChangeInfos[pkg] = updateChangeInfoWithMaxType(
         newChangeInfo,
         newChangeInfo.dependentChangeType,
-        dependentChangeType,
+        changeType,
         disallowedChangeTypes
       );
     } else {
@@ -139,7 +130,7 @@ export function updateRelatedChangeType(entryPointPackageName: string, bumpInfo:
       calculatedChangeInfos[pkg] = updateChangeInfoWithMaxType(
         newChangeInfo,
         calculatedChangeInfos[pkg].type,
-        dependentChangeType,
+        changeType,
         disallowedChangeTypes
       );
     }
