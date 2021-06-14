@@ -42,5 +42,5 @@ export async function sync(options: BeachballOptions) {
   const dependentModifiedPackages = setDependentVersions(packageInfos, scopedPackages, options.replaceStars);
   dependentModifiedPackages.forEach(pkg => modifiedPackages.add(pkg));
 
-  writePackageJson(modifiedPackages, packageInfos);
+  writePackageJson(modifiedPackages, packageInfos, !options.replaceStars);
 }
