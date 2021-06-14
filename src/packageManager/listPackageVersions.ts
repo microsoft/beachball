@@ -1,7 +1,10 @@
+import fs from 'fs-extra';
+import path from 'path';
 import { getNpmAuthArgs, npmAsync } from './npm';
 import pLimit from 'p-limit';
 import { PackageInfo } from '../types/PackageInfo';
 import { AuthType } from '../types/Auth';
+import { ChangelogJson } from '../types/ChangeLog';
 
 const packageVersions: { [pkgName: string]: any } = {};
 
@@ -60,6 +63,31 @@ export async function listPackageVersions(packageList: string[], registry: strin
         const info = await getNpmPackageInfo(pkg, registry);
         versions[pkg] = info && info.versions ? info.versions : [];
       })
+    );
+  }
+
+  await Promise.all(all);
+
+  return versions;
+}
+
+export async function listPackageVersionsFromChangelog(packageInfos: PackageInfo[]) {
+  const all: Promise<void>[] = [];
+  const versions: { [pkg: string]: string } = {};
+  const getVersionFromChangelog = async (pkg: PackageInfo) => {
+    try {
+      const changelog: ChangelogJson = await fs.readJSON(path.join(path.dirname(pkg.packageJsonPath), 'CHANGELOG.json'));
+      if (changelog && changelog.entries && changelog.entries.length) {
+        versions[pkg.name] = changelog.entries[0].version;
+      }
+    } catch {
+      // IO exception or new package
+    }
+  };
+
+  for (const pkg of packageInfos) {
+    all.push(
+      getVersionFromChangelog(pkg)
     );
   }
 

@@ -7,11 +7,30 @@ import { Repository, RepositoryFactory } from '../fixtures/repository';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { infoFromPackageJson } from '../monorepo/infoFromPackageJson';
 import { packagePublish } from '../packageManager/packagePublish';
+import { ChangelogJson } from '../types/ChangeLog';
+import { PackageDeps } from '../types/PackageInfo';
 
-async function createRepoPackage(repo: Repository, name: string, version: string) {
+async function createChangelog(repo: Repository, name: string, version: string) {
+  const changelogJson: ChangelogJson = {
+    name: name,
+    entries: [
+      {
+        version,
+        comments: {},
+        tag: '',
+        date: new Date().toString()
+      }
+    ]
+  }
+
+  await repo.commitChange(`packages/${name}/CHANGELOG.json`, JSON.stringify(changelogJson));
+}
+
+async function createRepoPackage(repo: Repository, name: string, version: string, dependencies?: PackageDeps) {
   const packageJson = {
     name: name,
     version: version,
+    dependencies: dependencies,
   };
 
   await repo.commitChange(`packages/${name}/package.json`, JSON.stringify(packageJson));
@@ -223,5 +242,55 @@ describe('sync command (e2e)', () => {
     expect(packageInfosAfterSync['epkg'].version).toEqual('1.0.0-1');
     expect(packageInfosAfterSync['fpkg'].version).toEqual('2.2.0');
     expect(packageInfosAfterSync['gpkg'].version).toEqual('3.0.0');
+  });
+
+  it('can perform a successful sync from changelog and replace stars', async () => {
+    const repo = await repositoryFactory.cloneRepository();
+
+    await createRepoPackage(repo, 'foopkg', '0.0.1', { 'barpkg': '*', 'bazpkg': '*' });
+    await createChangelog(repo, 'foopkg', '1.2.0');
+    await createRepoPackage(repo, 'barpkg', '0.0.1');
+    await createChangelog(repo, 'barpkg', '2.2.0');
+    await createRepoPackage(repo, 'bazpkg', '0.0.1');
+    await createChangelog(repo, 'bazpkg', '3.0.0');
+
+    await sync({
+      all: false,
+      authType: 'authtoken',
+      branch: 'origin/master',
+      command: 'sync',
+      message: '',
+      path: repo.rootPath,
+      publish: false,
+      bumpDeps: false,
+      push: false,
+      registry: registry.getUrl(),
+      gitTags: false,
+      tag: '',
+      token: '',
+      yes: true,
+      new: false,
+      access: 'public',
+      package: '',
+      changehint: 'Run "beachball change" to create a change file',
+      type: null,
+      fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
+      retries: 3,
+      bump: false,
+      generateChangelog: false,
+      dependentChangeType: null,
+      replaceStars: true,
+      useChangelogVersions: true
+    });
+
+    const packageInfosAfterSync = getPackageInfos(repo.rootPath);
+
+    expect(packageInfosAfterSync['foopkg'].version).toEqual('1.2.0');
+    expect(packageInfosAfterSync['foopkg'].dependencies?.['barpkg']).toEqual('2.2.0');
+    expect(packageInfosAfterSync['foopkg'].dependencies?.['bazpkg']).toEqual('3.0.0');
+    expect(packageInfosAfterSync['barpkg'].version).toEqual('2.2.0');
+    expect(packageInfosAfterSync['bazpkg'].version).toEqual('3.0.0');
   });
 });

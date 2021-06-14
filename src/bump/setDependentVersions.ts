@@ -1,7 +1,7 @@
 import { PackageInfos, PackageDeps } from '../types/PackageInfo';
 import { bumpMinSemverRange } from './bumpMinSemverRange';
 
-export function setDependentVersions(packageInfos: PackageInfos, scopedPackages: Set<string>) {
+export function setDependentVersions(packageInfos: PackageInfos, scopedPackages: Set<string>, replaceStars: boolean = false) {
   const modifiedPackages = new Set<string>();
   Object.keys(packageInfos).forEach(pkgName => {
     if (!scopedPackages.has(pkgName)) {
@@ -16,7 +16,7 @@ export function setDependentVersions(packageInfos: PackageInfos, scopedPackages:
           const packageInfo = packageInfos[dep];
           if (packageInfo) {
             const existingVersionRange = deps[dep];
-            const bumpedVersionRange = bumpMinSemverRange(packageInfo.version, existingVersionRange);
+            const bumpedVersionRange = bumpMinSemverRange(packageInfo.version, replaceStars ? packageInfo.version : existingVersionRange);
             if (existingVersionRange !== bumpedVersionRange) {
               deps[dep] = bumpedVersionRange;
               modifiedPackages.add(pkgName);

@@ -42,6 +42,8 @@ export interface CliOptions {
   prereleasePrefix?: string | null;
   configPath?: string;
   commit?: boolean;
+  replaceStars?: boolean;
+  useChangelogVersions?: boolean;
 }
 
 export interface RepoOptions {
