@@ -42,7 +42,7 @@ export interface CliOptions {
   prereleasePrefix?: string | null;
   configPath?: string;
   commit?: boolean;
-  replaceStars?: boolean;
+  replaceStars?: 'exact' | 'caret' | 'tilde';
   useChangelogVersions?: boolean;
 }
 

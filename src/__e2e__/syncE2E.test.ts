@@ -281,15 +281,15 @@ describe('sync command (e2e)', () => {
       bump: false,
       generateChangelog: false,
       dependentChangeType: null,
-      replaceStars: true,
+      replaceStars: 'caret',
       useChangelogVersions: true
     });
 
     const packageInfosAfterSync = getPackageInfos(repo.rootPath);
 
     expect(packageInfosAfterSync['foopkg'].version).toEqual('1.2.0');
-    expect(packageInfosAfterSync['foopkg'].dependencies?.['barpkg']).toEqual('2.2.0');
-    expect(packageInfosAfterSync['foopkg'].dependencies?.['bazpkg']).toEqual('3.0.0');
+    expect(packageInfosAfterSync['foopkg'].dependencies?.['barpkg']).toEqual('^2.2.0');
+    expect(packageInfosAfterSync['foopkg'].dependencies?.['bazpkg']).toEqual('^3.0.0');
     expect(packageInfosAfterSync['barpkg'].version).toEqual('2.2.0');
     expect(packageInfosAfterSync['bazpkg'].version).toEqual('3.0.0');
   });
