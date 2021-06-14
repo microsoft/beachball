@@ -27,4 +27,6 @@ Sync package versions from changelogs (CHANGELOG.json) instead of registry.
 
 ##### `--replace-stars`
 
-For dependencies that have `*` as versions in package.json, replace them with actual versions. See [star](./star) command for a typical flow.
+For dependencies that have `*` as versions in package.json, replace them with actual versions. Valid values are `exact` (replaces `*` with `x.x.x`), `tilde` (replaces `*` with `~x.x.x`), and `caret` (replaces `*` with `^x.x.x`).
+
+See [star](./star) command for a typical flow.
