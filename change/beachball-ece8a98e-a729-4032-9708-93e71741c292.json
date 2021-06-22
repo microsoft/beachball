@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add star command and enable syncing from changelogs",
+  "packageName": "beachball",
+  "email": "zh3zh3@gmail.com",
+  "dependentChangeType": "patch"
+}

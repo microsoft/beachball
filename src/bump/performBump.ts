@@ -5,7 +5,7 @@ import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { PackageDeps, PackageInfos } from '../types/PackageInfo';
 
-export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos) {
+export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos, filterToModifiedPackages: boolean = true) {
   for (const pkgName of modifiedPackages) {
     const info = packageInfos[pkgName];
     const packageJson = fs.readJSONSync(info.packageJsonPath);
@@ -19,7 +19,13 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
         // to be cautious, only update internal && modifiedPackages, since some other dependency
         // changes could have occurred since the beginning of the build job and the next merge step
         // would overwrite those incorrectly!
-        const modifiedDeps = Object.keys(updatedDepsVersions).filter(dep => modifiedPackages.has(dep));
+        // however, when running sync --replace-stars, dependencies could have been modified even though
+        // their corresponding package were not modified, so use filterToModifiedPackages to indicate whether
+        // this filtering is needed
+        let modifiedDeps = Object.keys(updatedDepsVersions);
+        if (filterToModifiedPackages) {
+          modifiedDeps = modifiedDeps.filter(dep => modifiedPackages.has(dep));
+        }
 
         for (const dep of modifiedDeps) {
           if (packageJson[depKind] && packageJson[depKind][dep]) {

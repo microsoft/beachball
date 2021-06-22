@@ -30,7 +30,7 @@ module.exports = {
         title: 'Command Line Args', // required
         collapsable: false, // optional, defaults to true
         sidebarDepth: 1, // optional, defaults to 1
-        children: ['/cli/options', '/cli/bump', '/cli/change', '/cli/check', '/cli/publish', '/cli/sync'],
+        children: ['/cli/options', '/cli/bump', '/cli/change', '/cli/check', '/cli/publish', '/cli/sync', '/cli/star'],
       },
     ],
   },

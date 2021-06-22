@@ -20,3 +20,13 @@ Force the sync command to skip the version comparison and use the version in the
 ##### `--tag, -t`
 
 Sync with the version this `dist-tag` points to. Defaults to the tag from repo, group, or package level beachball configs if present.
+
+##### `--use-changelog-versions`
+
+Sync package versions from changelogs (CHANGELOG.json) instead of registry.
+
+##### `--replace-stars`
+
+For dependencies that have `*` as versions in package.json, replace them with actual versions. Valid values are `exact` (replaces `*` with `x.x.x`), `tilde` (replaces `*` with `~x.x.x`), and `caret` (replaces `*` with `^x.x.x`).
+
+See [star](./star) command for a typical flow.

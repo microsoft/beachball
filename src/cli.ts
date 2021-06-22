@@ -3,6 +3,7 @@ import { canary } from './commands/canary';
 import { change } from './commands/change';
 import { init } from './commands/init';
 import { publish } from './commands/publish';
+import { star } from './commands/star';
 import { sync } from './commands/sync';
 
 import { showVersion, showHelp } from './help';
@@ -53,6 +54,10 @@ import { validate } from './validation/validate';
 
     case 'sync':
       sync(options);
+      break;
+
+    case 'star':
+      star(options);
       break;
 
     default:
