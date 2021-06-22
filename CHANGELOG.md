@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 03 Jun 2021 20:30:47 GMT and should not be manually modified.
+This log was last generated on Tue, 22 Jun 2021 20:45:00 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.6.2
+
+Tue, 22 Jun 2021 20:45:00 GMT
+
+### Patches
+
+- Fixes a perf regression due to a change in getting remote default branch (kchau@microsoft.com)
 
 ## 2.6.1
 

@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 22 Jun 2021 20:45:00 GMT",
+      "tag": "beachball_v2.6.2",
+      "version": "2.6.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fixes a perf regression due to a change in getting remote default branch",
+            "author": "kchau@microsoft.com",
+            "commit": "ef2d50f07c12f4a812b7d3625874a95168c771e5",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 03 Jun 2021 20:30:47 GMT",
       "tag": "beachball_v2.6.1",
       "version": "2.6.1",
