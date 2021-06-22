@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 22 Jun 2021 21:13:07 GMT",
+      "tag": "beachball_v2.6.2",
+      "version": "2.6.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "release docs",
+            "author": "kchau@microsoft.com",
+            "commit": "7e8ac56675714f2ad918bc462bbad8ad5abc4f14",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 22 Jun 2021 20:45:00 GMT",
       "tag": "beachball_v2.6.2",
       "version": "2.6.2",
