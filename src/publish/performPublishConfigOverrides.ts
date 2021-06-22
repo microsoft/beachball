@@ -12,7 +12,7 @@ export function performPublishConfigOverrides(packagesToPublish: string[], packa
 
     if (packageJson.publishConfig) {
       for (const key of acceptedKeys) {
-        const value = packageJson.publishConfig[key];
+        const value = packageJson.publishConfig[key] || packageJson[key];
         packageJson[key] = value;
         delete packageJson.publishConfig[key];
       }
