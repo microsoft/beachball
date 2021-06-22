@@ -30,10 +30,11 @@ jobs:
       - run: |
           git config user.email "kchau@microsoft.com"
           git config user.name "Ken Chau"
-          git remote set-url origin https://kenotron:${{ secrets.GITHUB_TOKEN }}@github.com/microsoft/beachball.git
       - run: yarn release -y -n $NPM_AUTHTOKEN
         env:
           NPM_AUTHTOKEN: ${{ secrets.npm_authtoken }}
-      - run: yarn release:docs
+      - run: |
+          git remote set-url origin https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git
+          yarn release:docs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
