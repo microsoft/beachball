@@ -1,28 +1,27 @@
 import path from 'path';
 import fs from 'fs-extra';
 import _ from 'lodash';
-import { ChangeInfo, ChangeSet } from '../types/ChangeInfo';
 import { PackageInfo } from '../types/PackageInfo';
 import { getPackageChangelogs } from './getPackageChangelogs';
 import { renderChangelog } from './renderChangelog';
 import { renderJsonChangelog } from './renderJsonChangelog';
 import { BeachballOptions } from '../types/BeachballOptions';
+import { BumpInfo } from '../types/BumpInfo';
 import { isPathIncluded } from '../monorepo/utils';
 import { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
 import { mergeChangelogs } from './mergeChangelogs';
 
 export async function writeChangelog(
   options: BeachballOptions,
-  changeSet: ChangeSet,
-  dependentChangeInfos: Array<ChangeInfo>,
+  calculatedChangeInfos: BumpInfo['calculatedChangeInfos'],
   packageInfos: {
     [pkg: string]: PackageInfo;
   }
 ): Promise<void> {
-  const groupedChangelogPaths = await writeGroupedChangelog(options, changeSet, dependentChangeInfos, packageInfos);
+  const groupedChangelogPaths = await writeGroupedChangelog(options, calculatedChangeInfos, packageInfos);
   const groupedChangelogPathSet = new Set(groupedChangelogPaths);
 
-  const changelogs = getPackageChangelogs(changeSet, dependentChangeInfos, packageInfos);
+  const changelogs = getPackageChangelogs(calculatedChangeInfos, packageInfos, options.path);
   // Use a standard for loop here to prevent potentially firing off multiple network requests at once
   // (in case any custom renderers have network requests)
   for (const pkg of Object.keys(changelogs)) {
@@ -37,8 +36,7 @@ export async function writeChangelog(
 
 async function writeGroupedChangelog(
   options: BeachballOptions,
-  changeSet: ChangeSet,
-  dependentChangeInfos: Array<ChangeInfo>,
+  calculatedChangeInfo: BumpInfo['calculatedChangeInfos'],
   packageInfos: {
     [pkg: string]: PackageInfo;
   }
@@ -52,7 +50,7 @@ async function writeGroupedChangelog(
     return [];
   }
 
-  const changelogs = getPackageChangelogs(changeSet, dependentChangeInfos, packageInfos);
+  const changelogs = getPackageChangelogs(calculatedChangeInfo, packageInfos, options.path);
   const groupedChangelogs: {
     [path: string]: { changelogs: PackageChangelog[]; masterPackage: PackageInfo };
   } = {};

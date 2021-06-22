@@ -1,6 +1,6 @@
 {
   "name": "beachball",
-  "version": "2.5.1",
+  "version": "2.6.1",
   "description": "The Sunniest Semantic Version Bumper",
   "repository": {
     "type": "git",
@@ -45,7 +45,7 @@
     "semver": "^6.1.1",
     "toposort": "^2.0.2",
     "uuid": "^8.3.1",
-    "workspace-tools": "^0.16.1",
+    "workspace-tools": "^0.16.2",
     "yargs-parser": "^20.2.4"
   },
   "devDependencies": {

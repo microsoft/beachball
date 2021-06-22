@@ -1,7 +1,7 @@
-import { getPackageChangeTypes } from '../changefile/getPackageChangeTypes';
+import { initializePackageChangeInfo } from '../changefile/getPackageChangeTypes';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { ChangeInfo, ChangeSet } from '../types/ChangeInfo';
+import { ChangeSet } from '../types/ChangeInfo';
 import { BumpInfo } from '../types/BumpInfo';
 import { bumpInPlace } from './bumpInPlace';
 import { BeachballOptions } from '../types/BeachballOptions';
@@ -37,26 +37,26 @@ function gatherPreBumpInfo(options: BeachballOptions): BumpInfo {
     dependentChangeTypes[change.packageName] = change.dependentChangeType || 'patch';
   }
 
-  // Clear non-existent changeTypes
-  const packageChangeTypes = getPackageChangeTypes(filteredChanges);
-  Object.keys(packageChangeTypes).forEach(packageName => {
+  // Clear non-existent packages from changefiles infos
+  const calculatedChangeInfos = initializePackageChangeInfo(filteredChanges);
+  Object.keys(calculatedChangeInfos).forEach(packageName => {
     if (!packageInfos[packageName]) {
-      delete packageChangeTypes[packageName];
+      delete calculatedChangeInfos[packageName];
     }
   });
 
   return {
-    packageChangeTypes,
+    calculatedChangeInfos,
     packageInfos,
     packageGroups: {},
-    changes: filteredChanges,
+    changeFileChangeInfos: filteredChanges,
     modifiedPackages: new Set<string>(),
     newPackages: new Set<string>(),
     scopedPackages: new Set(getScopedPackages(options)),
     dependentChangeTypes,
     groupOptions,
     dependents: {},
-    dependentChangeInfos: new Array<ChangeInfo>(),
+    dependentChangeInfos: {},
   };
 }
 

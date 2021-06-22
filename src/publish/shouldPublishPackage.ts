@@ -8,7 +8,7 @@ export function shouldPublishPackage(
   reasonToSkip?: string;
 } {
   const packageInfo = bumpInfo.packageInfos[pkgName];
-  const changeType = bumpInfo.packageChangeTypes[pkgName]?.type;
+  const changeType = bumpInfo.calculatedChangeInfos[pkgName]?.type;
 
   if (changeType === 'none') {
     return {
