@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fixes a perf regression due to a change in getting remote default branch",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "dependentChangeType": "patch"
+}
