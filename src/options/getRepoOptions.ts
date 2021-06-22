@@ -31,11 +31,7 @@ export function getRepoOptions(cliOptions: CliOptions): RepoOptions {
       repoOptions.branch = getDefaultRemoteBranch(repoOptions.branch, repoRoot);
     } else if (!repoOptions.branch) {
       // Branch is not specified at all. Add in the default remote and branch.
-<<<<<<< HEAD
-      repoOptions.branch = getDefaultRemoteBranch('master', repoRoot);
-=======
       repoOptions.branch = getDefaultRemoteBranch(undefined, cliOptions.path);
->>>>>>> master
     }
   }
 
