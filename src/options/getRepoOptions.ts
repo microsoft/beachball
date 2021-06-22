@@ -2,12 +2,19 @@ import { cosmiconfigSync } from 'cosmiconfig';
 import { getDefaultRemoteBranch } from 'workspace-tools';
 import { RepoOptions, CliOptions } from '../types/BeachballOptions';
 
+let cachedRepoOptions = new Map<CliOptions, RepoOptions>();
+
 export function getRepoOptions(cliOptions: CliOptions): RepoOptions {
+  const { configPath, path: repoRoot, branch } = cliOptions;
+  if (cachedRepoOptions.has(cliOptions)) {
+    return cachedRepoOptions.get(cliOptions)!;
+  }
+
   let repoOptions: RepoOptions | null;
-  if (cliOptions.configPath) {
-    repoOptions = tryLoadConfig(cliOptions.configPath);
+  if (configPath) {
+    repoOptions = tryLoadConfig(configPath);
     if (!repoOptions) {
-      console.error(`Config file "${cliOptions.configPath}" could not be loaded`);
+      console.error(`Config file "${configPath}" could not be loaded`);
       process.exit(1);
     }
   } else {
@@ -18,15 +25,17 @@ export function getRepoOptions(cliOptions: CliOptions): RepoOptions {
   // in repoOptions. (We don't want to do the getDefaultRemoteBranch() lookup unconditionally to
   // avoid potential for log messages/errors which aren't relevant if the branch was specified on
   // the command line.)
-  if (!cliOptions.branch) {
+  if (!branch) {
     if (repoOptions.branch && !repoOptions.branch.includes('/')) {
       // Add a remote to the branch if it's not already included
-      repoOptions.branch = getDefaultRemoteBranch(repoOptions.branch, cliOptions.path);
+      repoOptions.branch = getDefaultRemoteBranch(repoOptions.branch, repoRoot);
     } else if (!repoOptions.branch) {
       // Branch is not specified at all. Add in the default remote and branch.
-      repoOptions.branch = getDefaultRemoteBranch('master', cliOptions.path);
+      repoOptions.branch = getDefaultRemoteBranch('master', repoRoot);
     }
   }
+
+  cachedRepoOptions.set(cliOptions, repoOptions);
 
   return repoOptions;
 }
