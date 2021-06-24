@@ -9,6 +9,7 @@ import { getPackageGroups } from '../monorepo/getPackageGroups';
 import { isValidChangeType } from '../validation/isValidChangeType';
 import { DefaultPrompt } from '../types/ChangeFilePrompt';
 import { getDisallowedChangeTypes } from './getDisallowedChangeTypes';
+import { parseConventionalCommit } from './conventionalCommits';
 
 /**
  * Uses `prompts` package to prompt for change type and description, fills in git user.email and scope
@@ -22,6 +23,15 @@ export async function promptForChange(options: BeachballOptions) {
 
   const packageInfos = getPackageInfos(cwd);
   const packageGroups = getPackageGroups(packageInfos, options.path, options.groups);
+
+  // Check recent commit messages for structured conventional
+  // commits. If present, and --useConventionalCommits is set, fetch
+  // change type and description from the first available commit
+  // message.
+  const fromConventionalCommits =
+    (options.useConventionalCommits &&
+      recentMessages.map(parseConventionalCommit).filter(<T>(obj: T | undefined): obj is T => !!obj)) ||
+    [];
 
   for (let pkg of changedPackages) {
     console.log('');
@@ -43,7 +53,7 @@ export async function promptForChange(options: BeachballOptions) {
           title: ' [1mNone[22m       - this change does not affect the published package in any way.',
         },
         { value: 'major', title: ' [1mMajor[22m      - major feature; breaking changes.' },
-      ].filter(choice => !disallowedChangeTypes?.includes(choice.value as ChangeType)),
+      ].filter((choice) => !disallowedChangeTypes?.includes(choice.value as ChangeType)),
     };
 
     if (changeTypePrompt.choices!.length === 0) {
@@ -60,16 +70,18 @@ export async function promptForChange(options: BeachballOptions) {
       type: 'autocomplete',
       name: 'comment',
       message: 'Describe changes (type or choose one)',
-      suggest: input => {
-        return Promise.resolve([...recentMessages.filter(msg => msg.startsWith(input)), input]);
+      suggest: (input) => {
+        return Promise.resolve([...recentMessages.filter((msg) => msg.startsWith(input)), input]);
       },
     };
 
-    const showChangeTypePrompt = !options.type && changeTypePrompt.choices!.length > 1;
+    // Only include structured commit messages that map to an allowed change type.
+    const allowedConventionalCommit = fromConventionalCommits.find((c) => !disallowedChangeTypes?.includes(c.type));
+    const showChangeTypePrompt = !options.type && !allowedConventionalCommit && changeTypePrompt.choices!.length > 1;
 
     const defaultPrompt: DefaultPrompt = {
       changeType: showChangeTypePrompt ? changeTypePrompt : undefined,
-      description: !options.message ? descriptionPrompt : undefined,
+      description: !options.message && !allowedConventionalCommit ? descriptionPrompt : undefined,
     };
 
     let questions = [defaultPrompt.changeType, defaultPrompt.description];
@@ -78,11 +90,11 @@ export async function promptForChange(options: BeachballOptions) {
       questions = packageInfo.combinedOptions.changeFilePrompt?.changePrompt(defaultPrompt);
     }
 
-    questions = questions.filter(q => !!q);
+    questions = questions.filter((q) => !!q);
 
     let response: { comment: string; type: ChangeType } = {
-      type: options.type || 'none',
-      comment: options.message || '',
+      type: options.type || allowedConventionalCommit?.type || 'none',
+      comment: options.message || allowedConventionalCommit?.message || '',
     };
 
     if (questions.length > 0) {

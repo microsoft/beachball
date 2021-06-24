@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Support generating change files from conventional commits",
+  "packageName": "beachball",
+  "email": "asgramme@microsoft.com",
+  "dependentChangeType": "patch"
+}

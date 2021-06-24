@@ -27,6 +27,7 @@ export interface CliOptions {
   changehint: string;
   retries: number;
   type?: ChangeType | null;
+  useConventionalCommits: boolean;
   help?: boolean;
   version?: boolean;
   scope?: string[] | null;
