@@ -91,6 +91,7 @@ export interface PackageOptions {
   tag: string | null;
   defaultNpmTag: string;
   changeFilePrompt?: ChangeFilePromptOptions;
+  shouldPublish?: boolean;
 }
 
 export interface VersionGroupOptions {

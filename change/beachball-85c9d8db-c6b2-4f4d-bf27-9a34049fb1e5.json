@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Perform change and bump on packages marked shouldPublish: false",
+  "packageName": "beachball",
+  "email": "mail@jamesburnside.com",
+  "dependentChangeType": "patch"
+}
