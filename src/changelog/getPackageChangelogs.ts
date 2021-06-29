@@ -33,12 +33,24 @@ export function getPackageChangelogs(
 
     changelogs[packageName].comments = changelogs[packageName].comments || {};
     changelogs[packageName].comments[change.type] = changelogs[packageName].comments[change.type] || [];
-    changelogs[packageName].comments[change.type]!.push({
+
+    const changeLog = {
       comment: change.comment,
       author: change.email,
       commit,
-      package: packageName,
-    });
+      package: packageName
+    }
+
+    const changeLogKeys = Object.keys(change);
+
+    // For handling custom schema of the changelog specified in the beachball config file
+    for(const key of changeLogKeys){
+      if(!changeLog[key] && key !== 'dependentChangeType'){
+        changeLog[key] = change[key];
+      }
+    }
+
+    changelogs[packageName].comments[change.type]!.push(changeLog);
   }
   return changelogs;
 }
