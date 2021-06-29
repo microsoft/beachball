@@ -75,7 +75,11 @@ export async function promptForChange(options: BeachballOptions) {
     let questions = [defaultPrompt.changeType, defaultPrompt.description];
 
     if (packageInfo.combinedOptions.changeFilePrompt?.changePrompt) {
-      questions = packageInfo.combinedOptions.changeFilePrompt?.changePrompt(defaultPrompt);
+      /**
+       * We are providing the package name also as the parameter so
+       * that the custom changelog can be specified at the package level
+       */
+      questions = packageInfo.combinedOptions.changeFilePrompt?.changePrompt(defaultPrompt, pkg);
     }
 
     questions = questions.filter(q => !!q);
