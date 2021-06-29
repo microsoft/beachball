@@ -134,7 +134,7 @@ async function writeChangelogFiles(
       previousContent,
       newVersionChangelog,
       isGrouped,
-      changelogOptions: options.changelog || {},
+      changelogOptions: options.changelog?.[`${newVersionChangelog?.name}`] || {},
     });
 
     fs.writeFileSync(changelogFile, newChangelog);
