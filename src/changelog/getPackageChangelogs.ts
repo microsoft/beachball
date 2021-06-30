@@ -43,9 +43,17 @@ export function getPackageChangelogs(
 
     const changeLogKeys = Object.keys(change);
 
+    // The list of keys of "change" which we do not want when updating CHANGELOG.json file
+    const predefinedKeys = [
+      'dependentChangeType',
+      'email',
+      'packageName',
+      'type'
+    ]
+
     // For handling custom schema of the changelog specified in the beachball config file
     for(const key of changeLogKeys){
-      if(!changeLog[key] && key !== 'dependentChangeType'){
+      if(!changeLog[key] && !predefinedKeys.includes(key)){
         changeLog[key] = change[key];
       }
     }
