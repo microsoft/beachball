@@ -33,12 +33,32 @@ export function getPackageChangelogs(
 
     changelogs[packageName].comments = changelogs[packageName].comments || {};
     changelogs[packageName].comments[change.type] = changelogs[packageName].comments[change.type] || [];
-    changelogs[packageName].comments[change.type]!.push({
+
+    const changeLog = {
       comment: change.comment,
       author: change.email,
       commit,
-      package: packageName,
-    });
+      package: packageName
+    }
+
+    const changeLogKeys = Object.keys(change);
+
+    // The list of keys of "change" which we do not want when updating CHANGELOG.json file
+    const predefinedKeys = [
+      'dependentChangeType',
+      'email',
+      'packageName',
+      'type'
+    ]
+
+    // For handling custom schema of the changelog specified in the beachball config file
+    for(const key of changeLogKeys){
+      if(!changeLog[key] && !predefinedKeys.includes(key)){
+        changeLog[key] = change[key];
+      }
+    }
+
+    changelogs[packageName].comments[change.type]!.push(changeLog);
   }
   return changelogs;
 }
