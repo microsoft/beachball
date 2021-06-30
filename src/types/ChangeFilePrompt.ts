@@ -9,5 +9,5 @@ export interface DefaultPrompt {
  * Options for customizing change file prompt.
  */
 export interface ChangeFilePromptOptions {
-  changePrompt?(defaultPrompt: DefaultPrompt): prompts.PromptObject[];
+  changePrompt?(defaultPrompt: DefaultPrompt, pkg: string): prompts.PromptObject[];
 }
