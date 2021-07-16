@@ -20,7 +20,7 @@ describe('getPackageChangelogs', () => {
       [
         'bar.json',
         {
-          comment: 'comment for foo',
+          comment: 'comment for bar',
           commit: 'deadbeef',
           dependentChangeType: 'patch',
           email: 'something@something.com',
@@ -55,8 +55,8 @@ describe('getPackageChangelogs', () => {
       },
       bar: {
         combinedOptions: {} as any,
-        name: 'foo',
-        packageJsonPath: 'packages/foo/package.json',
+        name: 'bar',
+        packageJsonPath: 'packages/bar/package.json',
         packageOptions: {},
         private: false,
         version: '1.0.0',
