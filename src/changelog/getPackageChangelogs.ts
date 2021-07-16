@@ -14,6 +14,7 @@ export function getPackageChangelogs(
   cwd: string
 ) {
   const changeInfos = Array.from(changeFileChangeInfos.values()).concat(Object.values(dependentChangeInfos));
+
   const changelogs: {
     [pkgName: string]: PackageChangelog;
   } = {};
