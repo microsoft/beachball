@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 16 Jul 2021 18:14:39 GMT",
+      "tag": "beachball_v2.6.3",
+      "version": "2.6.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fixes changelogs comment count to be overridden by dependent bumps",
+            "author": "kchau@microsoft.com",
+            "commit": "5b314c7292fad48e482bcc270f8dc9008230cc59",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 22 Jun 2021 21:13:07 GMT",
       "tag": "beachball_v2.6.2",
       "version": "2.6.2",

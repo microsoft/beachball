@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fixes changelogs comment count to be overridden by dependent bumps",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "dependentChangeType": "patch"
-}

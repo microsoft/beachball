@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 22 Jun 2021 20:45:00 GMT and should not be manually modified.
+This log was last generated on Fri, 16 Jul 2021 18:14:39 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.6.3
+
+Fri, 16 Jul 2021 18:14:39 GMT
+
+### Patches
+
+- Fixes changelogs comment count to be overridden by dependent bumps (kchau@microsoft.com)
 
 ## 2.6.2
 
