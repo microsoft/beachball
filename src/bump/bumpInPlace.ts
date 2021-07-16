@@ -13,7 +13,14 @@ import { setDependentVersions } from './setDependentVersions';
  */
 export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
   const { bumpDeps } = options;
-  const { packageInfos, scopedPackages, calculatedChangeInfos, changeFileChangeInfos, modifiedPackages } = bumpInfo;
+  const {
+    packageInfos,
+    scopedPackages,
+    calculatedChangeInfos,
+    dependentChangeInfos,
+    changeFileChangeInfos,
+    modifiedPackages,
+  } = bumpInfo;
 
   // pass 1: figure out all the change types for all the packages taking into account the bumpDeps option and version groups
   if (bumpDeps) {
@@ -22,18 +29,19 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
 
   setGroupsInBumpInfo(bumpInfo, options);
 
-  for (const changeInfo of changeFileChangeInfos.values()) {
-    updateRelatedChangeType(changeInfo.packageName, bumpInfo, bumpDeps);
+  for (const [changeFile, changeInfo] of changeFileChangeInfos.entries()) {
+    updateRelatedChangeType(changeFile, changeInfo.packageName, bumpInfo, bumpDeps);
   }
+
   // pass 2: actually bump the packages in the bumpInfo in memory (no disk writes at this point)
   Object.keys(calculatedChangeInfos).forEach(pkgName => {
     bumpPackageInfoVersion(pkgName, bumpInfo, options);
   });
 
   // pass 3: update the dependentChangeInfos with relevant comments
-  for (const changeInfo of Object.values(bumpInfo.dependentChangeInfos)) {
+  for (const changeInfo of Object.values(dependentChangeInfos)) {
     const pkg = changeInfo.packageName;
-    calculatedChangeInfos[pkg]!.comment = `Bump ${pkg} to v${packageInfos[pkg].version}`;
+    dependentChangeInfos[pkg]!.comment = `Bump ${pkg} to v${packageInfos[pkg].version}`;
   }
 
   // pass 4: Bump all the dependencies packages
