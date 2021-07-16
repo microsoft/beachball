@@ -337,7 +337,7 @@ describe('updateRelatedChangeType', () => {
         foo: 'patch',
       },
       calculatedChangeInfos: {},
-      changeFileChangeInfos: new Map([['foo', { ...changeInfoFixture, type: 'patch' }]]),
+      changeFileChangeInfos: new Map([['foo.json', { ...changeInfoFixture, type: 'patch' }]]),
       packageInfos: {
         foo: {
           group: 'grp',
