@@ -91,7 +91,12 @@ describe('changelog generation', () => {
       // Gather all package info from package.json
       const packageInfos = getPackageInfos(repository.rootPath);
 
-      await writeChangelog(beachballOptions, changes, {}, packageInfos);
+      await writeChangelog(
+        beachballOptions,
+        changes,
+        { foo: { ...getChange({ comment: 'bump foo to v1.0.1' }), commit: 'bogus' } },
+        packageInfos
+      );
 
       const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
       const text = await fs.readFile(changelogFile, { encoding: 'utf-8' });
