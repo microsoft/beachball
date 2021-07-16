@@ -3,15 +3,17 @@ import { PackageChangelog } from '../types/ChangeLog';
 import { generateTag } from '../tag';
 import { BumpInfo } from '../types/BumpInfo';
 import { getCurrentHash } from 'workspace-tools';
+import { ChangeSet } from '../types/ChangeInfo';
 
 export function getPackageChangelogs(
-  calculatedChangeInfo: BumpInfo['calculatedChangeInfos'],
+  changeFileChangeInfos: ChangeSet,
+  dependentChangeInfos: BumpInfo['dependentChangeInfos'],
   packageInfos: {
     [pkg: string]: PackageInfo;
   },
   cwd: string
 ) {
-  const changeInfos = Object.values(calculatedChangeInfo);
+  const changeInfos = Array.from(changeFileChangeInfos.values()).concat(Object.values(dependentChangeInfos));
   const changelogs: {
     [pkgName: string]: PackageChangelog;
   } = {};

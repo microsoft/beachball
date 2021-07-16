@@ -10,18 +10,25 @@ import { BumpInfo } from '../types/BumpInfo';
 import { isPathIncluded } from '../monorepo/utils';
 import { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
 import { mergeChangelogs } from './mergeChangelogs';
+import { ChangeSet } from '../types/ChangeInfo';
 
 export async function writeChangelog(
   options: BeachballOptions,
-  calculatedChangeInfos: BumpInfo['calculatedChangeInfos'],
+  changeFileChangeInfos: ChangeSet,
+  dependentChangeInfos: BumpInfo['dependentChangeInfos'],
   packageInfos: {
     [pkg: string]: PackageInfo;
   }
 ): Promise<void> {
-  const groupedChangelogPaths = await writeGroupedChangelog(options, calculatedChangeInfos, packageInfos);
+  const groupedChangelogPaths = await writeGroupedChangelog(
+    options,
+    changeFileChangeInfos,
+    dependentChangeInfos,
+    packageInfos
+  );
   const groupedChangelogPathSet = new Set(groupedChangelogPaths);
 
-  const changelogs = getPackageChangelogs(calculatedChangeInfos, packageInfos, options.path);
+  const changelogs = getPackageChangelogs(changeFileChangeInfos, dependentChangeInfos, packageInfos, options.path);
   // Use a standard for loop here to prevent potentially firing off multiple network requests at once
   // (in case any custom renderers have network requests)
   for (const pkg of Object.keys(changelogs)) {
@@ -36,7 +43,8 @@ export async function writeChangelog(
 
 async function writeGroupedChangelog(
   options: BeachballOptions,
-  calculatedChangeInfo: BumpInfo['calculatedChangeInfos'],
+  changeFileChangeInfos: ChangeSet,
+  dependentChangeInfos: BumpInfo['dependentChangeInfos'],
   packageInfos: {
     [pkg: string]: PackageInfo;
   }
@@ -50,7 +58,7 @@ async function writeGroupedChangelog(
     return [];
   }
 
-  const changelogs = getPackageChangelogs(calculatedChangeInfo, packageInfos, options.path);
+  const changelogs = getPackageChangelogs(changeFileChangeInfos, dependentChangeInfos, packageInfos, options.path);
   const groupedChangelogs: {
     [path: string]: { changelogs: PackageChangelog[]; masterPackage: PackageInfo };
   } = {};
