@@ -96,6 +96,14 @@ Fri, 02 Apr 2021 17:49:52 GMT
 
 - adds a feature of adding publish-config, bumps requirement to node 12 (kchau@microsoft.com)
 
+## 2.0.0
+
+Fri, 02 Apr 2021 17:34:25 GMT
+
+### Major changes
+
+- BREAKING: Adding a requirement of node engine 12+
+
 ## 1.53.2
 
 Tue, 23 Mar 2021 17:35:03 GMT
