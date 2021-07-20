@@ -3,7 +3,6 @@ import { getChangedPackages } from './getChangedPackages';
 import { getRecentCommitMessages, getUserEmail } from 'workspace-tools';
 import prompts from 'prompts';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { prerelease } from 'semver';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getPackageGroups } from '../monorepo/getPackageGroups';
 import { isValidChangeType } from '../validation/isValidChangeType';
@@ -29,13 +28,11 @@ export async function promptForChange(options: BeachballOptions) {
 
     const disallowedChangeTypes = getDisallowedChangeTypes(pkg, packageInfos, packageGroups);
     const packageInfo = packageInfos[pkg];
-    const showPrereleaseOption = prerelease(packageInfo.version);
     const changeTypePrompt: prompts.PromptObject<string> = {
       type: 'select',
       name: 'type',
       message: 'Change type',
       choices: [
-        ...(showPrereleaseOption ? [{ value: 'prerelease', title: ' [1mPrerelease[22m - bump prerelease version' }] : []),
         { value: 'patch', title: ' [1mPatch[22m      - bug fixes; no API changes.' },
         { value: 'minor', title: ' [1mMinor[22m      - small feature; backwards compatible API changes.' },
         {
@@ -43,6 +40,7 @@ export async function promptForChange(options: BeachballOptions) {
           title: ' [1mNone[22m       - this change does not affect the published package in any way.',
         },
         { value: 'major', title: ' [1mMajor[22m      - major feature; breaking changes.' },
+        { value: 'prerelease', title: ' [1mPrerelease[22m - bump prerelease version' },
       ].filter(choice => !disallowedChangeTypes?.includes(choice.value as ChangeType)),
     };
 
@@ -80,13 +78,16 @@ export async function promptForChange(options: BeachballOptions) {
 
     questions = questions.filter(q => !!q);
 
-    let response: { comment: string; type: ChangeType } = {
+    let response: { comment: string; type: ChangeType; tag?: string } = {
       type: options.type || 'none',
       comment: options.message || '',
     };
 
     if (questions.length > 0) {
-      response = (await prompts(questions as prompts.PromptObject[])) as { comment: string; type: ChangeType };
+      response = (await prompts(questions as prompts.PromptObject[])) as {
+        comment: string;
+        type: ChangeType;
+      };
 
       if (Object.keys(response).length === 0) {
         console.log('Cancelled, no change files are written');
@@ -116,6 +117,16 @@ export async function promptForChange(options: BeachballOptions) {
       if (!isValidChangeType(response.type)) {
         console.error('Prompt response contains invalid change type.');
         return;
+      }
+
+      if (response.type === 'prerelease') {
+        const prereleaseTagPrompt: prompts.PromptObject<string> = {
+          type: 'text',
+          name: 'tag',
+          message: 'Add prerelease tag (type or choose one)',
+        };
+
+        response.tag = (await prompts(prereleaseTagPrompt)).tag;
       }
     }
 
