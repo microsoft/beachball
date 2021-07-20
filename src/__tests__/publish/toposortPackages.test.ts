@@ -12,7 +12,7 @@ describe('toposortPackages', () => {
   });
 
   it('sort packages with dependencies', () => {
-    const packageInfos = ({
+    const packageInfos = {
       foo: {
         dependencies: {
           foo3: '1.0.0',
@@ -25,13 +25,13 @@ describe('toposortPackages', () => {
         },
       },
       foo2: {},
-    } as any) as PackageInfos;
+    } as any as PackageInfos;
 
     expect(toposortPackages(['foo', 'foo2', 'foo3'], packageInfos)).toEqual(['foo2', 'foo3', 'foo']);
   });
 
   it('sort packages with different kinds of dependencies', () => {
-    const packageInfos = ({
+    const packageInfos = {
       foo: {
         dependencies: {
           foo3: '1.0.0',
@@ -54,13 +54,13 @@ describe('toposortPackages', () => {
           foo2: '1.0.0',
         },
       },
-    } as any) as PackageInfos;
+    } as any as PackageInfos;
 
     expect(toposortPackages(['foo', 'foo2', 'foo3', 'foo4'], packageInfos)).toEqual(['foo2', 'foo3', 'foo4', 'foo']);
   });
 
   it('do not sort packages if it is not included', () => {
-    const packageInfos = ({
+    const packageInfos = {
       foo: {
         dependencies: {
           foo3: '1.0.0',
@@ -73,13 +73,13 @@ describe('toposortPackages', () => {
           foo2: '1.0.0',
         },
       },
-    } as any) as PackageInfos;
+    } as any as PackageInfos;
 
     expect(toposortPackages(['foo', 'foo3'], packageInfos)).toEqual(['foo3', 'foo']);
   });
 
   it('throws if contains circular dependencies', () => {
-    const packageInfos = ({
+    const packageInfos = {
       foo: {
         dependencies: {
           bar: '1.0.0',
@@ -91,7 +91,7 @@ describe('toposortPackages', () => {
           foo: '1.0.0',
         },
       },
-    } as any) as PackageInfos;
+    } as any as PackageInfos;
 
     expect(() => {
       toposortPackages(['foo', 'bar'], packageInfos);
@@ -99,7 +99,7 @@ describe('toposortPackages', () => {
   });
 
   it('throws if package info is missing', () => {
-    const packageInfos = ({} as any) as PackageInfos;
+    const packageInfos = {} as any as PackageInfos;
 
     expect(() => {
       toposortPackages(['foo'], packageInfos);

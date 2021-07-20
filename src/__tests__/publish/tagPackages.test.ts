@@ -11,7 +11,7 @@ const createTagParameters = (tag: string, cwd: string) => {
   return [['tag', '-a', '-f', tag, '-m', tag], { cwd }];
 };
 
-const noTagBumpInfo = ({
+const noTagBumpInfo = {
   calculatedChangeInfos: {
     foo: 'minor',
     bar: 'major',
@@ -34,9 +34,9 @@ const noTagBumpInfo = ({
   },
   modifiedPackages: new Set(['foo', 'bar']),
   newPackages: new Set(),
-} as unknown) as BumpInfo;
+} as unknown as BumpInfo;
 
-const oneTagBumpInfo = ({
+const oneTagBumpInfo = {
   calculatedChangeInfos: {
     foo: 'minor',
     bar: 'major',
@@ -59,7 +59,7 @@ const oneTagBumpInfo = ({
   },
   modifiedPackages: new Set(['foo', 'bar']),
   newPackages: new Set(),
-} as unknown) as BumpInfo;
+} as unknown as BumpInfo;
 
 beforeEach(() => {
   (gitFailFast as jest.Mock).mockReset();

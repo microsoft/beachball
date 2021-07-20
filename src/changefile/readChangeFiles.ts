@@ -41,7 +41,7 @@ export function readChangeFiles(options: BeachballOptions): ChangeSet {
 
   try {
     // sort the change files by modified time. Most recent modified file comes first.
-    filteredChangeFiles.sort(function(f1, f2) {
+    filteredChangeFiles.sort(function (f1, f2) {
       return (
         fs.statSync(path.join(changePath, f2)).mtime.getTime() - fs.statSync(path.join(changePath, f1)).mtime.getTime()
       );
