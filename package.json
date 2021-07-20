@@ -21,7 +21,7 @@
     "checkchange": "node ./lib/cli.js check",
     "docs": "vuepress dev docs --host localhost",
     "docs:build": "vuepress build docs",
-    "prettier": "prettier --write --config ../../.prettierrc --ignore-path ../../.prettierignore 'src/**/*'",
+    "format": "prettier --write '**/*'",
     "pub": "node ./lib/cli.js publish",
     "release": "node ./lib/cli.js publish -y",
     "release:docs": "yarn docs:build && yarn gh-pages -d docs/.vuepress/dist --dotfiles",

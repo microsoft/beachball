@@ -1,2 +1,10 @@
-CHANGELOG.md
 *.snap
+*.styl
+*.svg
+.*ignore
+.nojekyll
+CHANGELOG.*
+lib
+LICENSE
+node_modules
+yarn.lock

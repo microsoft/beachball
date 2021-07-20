@@ -19,7 +19,12 @@ describe('perform publishConfig overrides', () => {
 
     const packageInfos: PackageInfos = {
       foo: {
-        combinedOptions: { defaultNpmTag: 'latest', disallowedChangeTypes: [], gitTags: true, tag: 'latest' },
+        combinedOptions: {
+          defaultNpmTag: 'latest',
+          disallowedChangeTypes: [],
+          gitTags: true,
+          tag: 'latest',
+        },
         name: 'foo',
         packageJsonPath: path.join(tmpDir, 'package.json'),
         packageOptions: {},
