@@ -9,6 +9,7 @@ export interface ChangeFileInfo {
   packageName: string;
   email: string;
   dependentChangeType: ChangeType;
+  prereleasePrefix?: string;
 }
 
 /**

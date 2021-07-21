@@ -78,7 +78,7 @@ export async function promptForChange(options: BeachballOptions) {
 
     questions = questions.filter(q => !!q);
 
-    let response: { comment: string; type: ChangeType; tag?: string } = {
+    let response: { comment: string; type: ChangeType; prereleasePrefix?: string } = {
       type: options.type || 'none',
       comment: options.message || '',
     };
@@ -122,11 +122,11 @@ export async function promptForChange(options: BeachballOptions) {
       if (response.type === 'prerelease') {
         const prereleaseTagPrompt: prompts.PromptObject<string> = {
           type: 'text',
-          name: 'tag',
-          message: 'Add prerelease tag (type or choose one)',
+          name: 'prereleasePrefix',
+          message: 'Add prerelease prefix (type or choose one)',
         };
 
-        response.tag = (await prompts(prereleaseTagPrompt)).tag;
+        response.prereleasePrefix = (await prompts(prereleaseTagPrompt)).prereleasePrefix;
       }
     }
 
