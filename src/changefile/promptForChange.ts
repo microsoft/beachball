@@ -81,6 +81,7 @@ export async function promptForChange(options: BeachballOptions) {
     let response: { comment: string; type: ChangeType; prereleasePrefix?: string } = {
       type: options.type || 'none',
       comment: options.message || '',
+      prereleasePrefix: options.prereleasePrefix ?? undefined
     };
 
     if (questions.length > 0) {

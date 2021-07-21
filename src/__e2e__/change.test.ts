@@ -65,11 +65,12 @@ describe('change command', () => {
     );
 
     await change({
-      type: 'minor',
+      type: 'prerelease',
       dependentChangeType: 'patch',
       package: 'pkg-1',
       message: 'commit me please',
       path: repo.rootPath,
+      prereleasePrefix: 'beta',
     } as BeachballOptions);
 
     const output = git(['status', '-s'], { cwd: repo.rootPath });
