@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 22 Jul 2021 23:33:10 GMT",
+      "tag": "beachball_v2.8.0",
+      "version": "2.8.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "pravcha@microsoft.com",
+            "package": "beachball",
+            "comment": "Fix for handling of custom schema while updating the CHANGELOG.json file",
+            "commit": "61e6a01bf0e6782eae7d436b9ad6edd62f654509"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Jul 2021 22:56:40 GMT",
       "tag": "beachball_v2.7.0",
       "version": "2.7.0",
