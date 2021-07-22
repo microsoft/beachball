@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Fix for handling of custom schema while updating the CHANGELOG.json file",
+  "packageName": "beachball",
+  "email": "pravcha@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -9,6 +9,8 @@ export interface ChangeFileInfo {
   packageName: string;
   email: string;
   dependentChangeType: ChangeType;
+  /** Extra info added to the change file via custom prompts */
+  [extraInfo: string]: any;
 }
 
 /**
