@@ -3,7 +3,7 @@ import { BumpInfo } from '../../types/BumpInfo';
 import _ from 'lodash';
 
 describe('validatePackageDependencies', () => {
-  const bumpInfoFixture = ({
+  const bumpInfoFixture = {
     changes: new Map(),
     dependents: {},
     calculatedChangeInfos: {},
@@ -23,7 +23,7 @@ describe('validatePackageDependencies', () => {
     scopedPackages: new Set(['foo', 'bar']),
     packageGroups: {},
     groupOptions: {},
-  } as unknown) as BumpInfo;
+  } as unknown as BumpInfo;
 
   it('invalid when dependencies contains private package', () => {
     const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {

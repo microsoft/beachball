@@ -27,7 +27,7 @@ it('--config overrides configuration path', async () => {
   const repo = await repositoryFactory.cloneRepository();
   const config = await inDirectory(repo.root!, async () => {
     await writeConfig('module.exports = { branch: "origin/main" };');
-    await writeFileAsync('alternate.config.js', 'module.exports = { branch: "origin/foo" };')
+    await writeFileAsync('alternate.config.js', 'module.exports = { branch: "origin/foo" };');
     return getOptions([...baseArgv, '--config', 'alternate.config.js']);
   });
   expect(config.branch).toEqual('origin/foo');

@@ -75,7 +75,11 @@ export async function promptForChange(options: BeachballOptions) {
     let questions = [defaultPrompt.changeType, defaultPrompt.description];
 
     if (packageInfo.combinedOptions.changeFilePrompt?.changePrompt) {
-      questions = packageInfo.combinedOptions.changeFilePrompt?.changePrompt(defaultPrompt);
+      /**
+       * We are providing the package name also as the parameter so
+       * that the custom changelog can be specified at the package level
+       */
+      questions = packageInfo.combinedOptions.changeFilePrompt?.changePrompt(defaultPrompt, pkg);
     }
 
     questions = questions.filter(q => !!q);
@@ -86,7 +90,10 @@ export async function promptForChange(options: BeachballOptions) {
     };
 
     if (questions.length > 0) {
-      response = (await prompts(questions as prompts.PromptObject[])) as { comment: string; type: ChangeType };
+      response = (await prompts(questions as prompts.PromptObject[])) as {
+        comment: string;
+        type: ChangeType;
+      };
 
       if (Object.keys(response).length === 0) {
         console.log('Cancelled, no change files are written');

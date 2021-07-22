@@ -1,8 +1,24 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 22 Jun 2021 20:45:00 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Jul 2021 22:09:07 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.7.0
+
+Thu, 22 Jul 2021 22:09:07 GMT
+
+### Minor changes
+
+- Adding option to specify custom changelog at the package level (pravcha@microsoft.com)
+
+## 2.6.3
+
+Fri, 16 Jul 2021 18:14:39 GMT
+
+### Patches
+
+- Fixes changelogs comment count to be overridden by dependent bumps (kchau@microsoft.com)
 
 ## 2.6.2
 
@@ -87,6 +103,14 @@ Fri, 02 Apr 2021 17:49:52 GMT
 ### Minor changes
 
 - adds a feature of adding publish-config, bumps requirement to node 12 (kchau@microsoft.com)
+
+## 2.0.0
+
+Fri, 02 Apr 2021 17:34:25 GMT
+
+### Major changes
+
+- BREAKING: Adding a requirement of node engine 12+
 
 ## 1.53.2
 

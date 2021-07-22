@@ -29,7 +29,12 @@ import { ChangeInfo, ChangeType } from '../types/ChangeInfo';
  * @param bumpDeps
  * @returns
  */
-export function updateRelatedChangeType(entryPointPackageName: string, bumpInfo: BumpInfo, bumpDeps: boolean) {
+export function updateRelatedChangeType(
+  changeFile: string,
+  entryPointPackageName: string,
+  bumpInfo: BumpInfo,
+  bumpDeps: boolean
+) {
   /** [^1]: all the information needed from `bumpInfo` */
   const {
     calculatedChangeInfos,
@@ -50,7 +55,7 @@ export function updateRelatedChangeType(entryPointPackageName: string, bumpInfo:
   const dependentChangeType = dependentChangeTypes[entryPointPackageName];
 
   let baseChangeInfo = {
-    ...changeFileChangeInfos.get(entryPointPackageName),
+    ...changeFileChangeInfos.get(changeFile),
     ...dependentChangeInfos[entryPointPackageName],
     ...calculatedChangeInfos[entryPointPackageName],
   };
@@ -82,7 +87,11 @@ export function updateRelatedChangeType(entryPointPackageName: string, bumpInfo:
 
       if (bumpDeps && dependentPackages && dependentPackages.length > 0) {
         for (const dependentPackage of dependentPackages) {
-          queue.push({ subjectPackage: dependentPackage, changeType: dependentChangeType, baseChangeInfo });
+          queue.push({
+            subjectPackage: dependentPackage,
+            changeType: dependentChangeType,
+            baseChangeInfo,
+          });
         }
       }
 
@@ -95,7 +104,11 @@ export function updateRelatedChangeType(entryPointPackageName: string, bumpInfo:
             !groupOptions[groupName] ||
             !groupOptions[groupName]?.disallowedChangeTypes?.includes(dependentChangeType)
           ) {
-            queue.push({ subjectPackage: packageNameInGroup, changeType: baseChangeInfo.type, baseChangeInfo });
+            queue.push({
+              subjectPackage: packageNameInGroup,
+              changeType: baseChangeInfo.type,
+              baseChangeInfo,
+            });
           }
         }
       }
