@@ -22,7 +22,7 @@ export function getPackageChangelogs(
   const commit = getCurrentHash(cwd) || 'not available';
 
   for (let change of changeInfos) {
-    const { packageName } = change;
+    const { packageName, type: changeType, dependentChangeType, email, ...rest } = change;
     if (!changelogs[packageName]) {
       const version = packageInfos[packageName].version;
       changelogs[packageName] = {
@@ -35,33 +35,15 @@ export function getPackageChangelogs(
     }
 
     changelogs[packageName].comments = changelogs[packageName].comments || {};
-    changelogs[packageName].comments[change.type] = changelogs[packageName].comments[change.type] || [];
-
-    const changeLog = {
-      comment: change.comment,
+    changelogs[packageName].comments[changeType] = changelogs[packageName].comments[changeType] || [];
+    changelogs[packageName].comments[changeType]!.push({
       author: change.email,
+      package: packageName,
+      // This contains the comment and any extra properties added to the change file by
+      // RepoOptions.changeFilePrompt.changePrompt
+      ...rest,
       commit,
-      package: packageName
-    }
-
-    const changeLogKeys = Object.keys(change);
-
-    // The list of keys of "change" which we do not want when updating CHANGELOG.json file
-    const predefinedKeys = [
-      'dependentChangeType',
-      'email',
-      'packageName',
-      'type'
-    ]
-
-    // For handling custom schema of the changelog specified in the beachball config file
-    for(const key of changeLogKeys){
-      if(!changeLog[key] && !predefinedKeys.includes(key)){
-        changeLog[key] = change[key];
-      }
-    }
-
-    changelogs[packageName].comments[change.type]!.push(changeLog);
+    });
   }
   return changelogs;
 }
