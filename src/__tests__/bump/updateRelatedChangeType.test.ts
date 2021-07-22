@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { ChangeInfo } from '../../types/ChangeInfo';
 
 describe('updateRelatedChangeType', () => {
-  const bumpInfoFixture: BumpInfo = ({
+  const bumpInfoFixture: BumpInfo = {
     changeFileChangeInfos: new Map(),
     dependents: {},
     calculatedChangeInfos: {},
@@ -30,7 +30,7 @@ describe('updateRelatedChangeType', () => {
     newPackages: new Set(),
     packageGroups: {},
     groupOptions: {},
-  } as unknown) as BumpInfo;
+  } as unknown as BumpInfo;
 
   const changeInfoFixture: ChangeInfo = {
     dependentChangeType: 'none',

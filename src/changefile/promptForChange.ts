@@ -90,7 +90,10 @@ export async function promptForChange(options: BeachballOptions) {
     };
 
     if (questions.length > 0) {
-      response = (await prompts(questions as prompts.PromptObject[])) as { comment: string; type: ChangeType };
+      response = (await prompts(questions as prompts.PromptObject[])) as {
+        comment: string;
+        type: ChangeType;
+      };
 
       if (Object.keys(response).length === 0) {
         console.log('Cancelled, no change files are written');

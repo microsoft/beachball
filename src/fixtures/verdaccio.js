@@ -4,11 +4,11 @@
 const startServer = require('verdaccio').default;
 const store = require('verdaccio-memory').default;
 
-const arguments = {
+const args = {
   port: process.argv[2],
 };
 
-const port = arguments.port;
+const port = args.port;
 
 if (!port) {
   console.error('Please provide a port');
