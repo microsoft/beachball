@@ -3,6 +3,8 @@
 *.svg
 .*ignore
 .nojekyll
+docs/.vuepress/dist
+change
 CHANGELOG.*
 lib
 LICENSE
