@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 22 Jul 2021 22:56:40 GMT",
+      "tag": "beachball_v2.7.0",
+      "version": "2.7.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update prettier",
+            "author": "elcraig@microsoft.com",
+            "commit": "45d18e57ddee5651068418d46e940e3b00a452d2",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Jul 2021 22:09:07 GMT",
       "tag": "beachball_v2.7.0",
       "version": "2.7.0",
