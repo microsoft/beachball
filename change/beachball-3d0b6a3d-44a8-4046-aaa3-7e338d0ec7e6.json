@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Adding option to specify custom changelog at the package level",
-  "packageName": "beachball",
-  "email": "pravcha@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 22 Jul 2021 22:09:07 GMT",
+      "tag": "beachball_v2.7.0",
+      "version": "2.7.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Adding option to specify custom changelog at the package level",
+            "author": "pravcha@microsoft.com",
+            "commit": "5504b62f75adc607c560bbebe15d872e32cabe3f",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 16 Jul 2021 18:38:32 GMT",
       "tag": "beachball_v2.6.3",
       "version": "2.6.3",

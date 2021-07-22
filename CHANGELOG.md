@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 16 Jul 2021 18:14:39 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Jul 2021 22:09:07 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.7.0
+
+Thu, 22 Jul 2021 22:09:07 GMT
+
+### Minor changes
+
+- Adding option to specify custom changelog at the package level (pravcha@microsoft.com)
 
 ## 2.6.3
 
