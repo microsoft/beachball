@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Deduplicate locally installed deps",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}

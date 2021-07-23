@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 23 Jul 2021 01:18:00 GMT",
+      "tag": "beachball_v2.8.1",
+      "version": "2.8.1",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Deduplicate locally installed deps",
+            "commit": "642c51370af50c70d0cf39ca00b5e094c48d2a5e"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 23 Jul 2021 00:04:33 GMT",
       "tag": "beachball_v2.8.1",
       "version": "2.8.1",
