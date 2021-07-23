@@ -65,6 +65,31 @@ describe('perform publishConfig overrides', () => {
     cleanUp(tmpDir);
   });
 
+  it('uses values on packageJson root as fallback values when present', () => {
+    const { packageInfos, tmpDir } = createFixture({
+      main: 'lib/index.js',
+    });
+
+    const original = JSON.parse(fs.readFileSync(packageInfos['foo'].packageJsonPath, 'utf-8'));
+
+    expect(original.main).toBe('src/index.ts');
+    expect(original.bin).toStrictEqual({ 'foo-bin': 'src/foo-bin.js' });
+    expect(original.files).toBeUndefined();
+
+    performPublishConfigOverrides(['foo'], packageInfos);
+
+    const modified = JSON.parse(fs.readFileSync(packageInfos['foo'].packageJsonPath, 'utf-8'));
+
+    expect(modified.main).toBe('lib/index.js');
+    expect(modified.bin).toStrictEqual({ 'foo-bin': 'src/foo-bin.js' });
+    expect(modified.files).toBeUndefined();
+    expect(modified.publishConfig.main).toBeUndefined();
+    expect(modified.publishConfig.bin).toBeUndefined();
+    expect(modified.publishConfig.files).toBeUndefined();
+
+    cleanUp(tmpDir);
+  });
+
   it('should always at least accept types, main, and module', () => {
     expect(acceptedKeys).toContain('main');
     expect(acceptedKeys).toContain('module');
