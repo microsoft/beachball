@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 23 Jul 2021 00:04:33 GMT",
+      "tag": "beachball_v2.8.1",
+      "version": "2.8.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "scott.schmalz@gmail.com",
+            "package": "beachball",
+            "comment": "Add fallback logic for publishConfig values",
+            "commit": "b50f8ca98ef14451eba4c6c74283160140055d06"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Jul 2021 23:33:10 GMT",
       "tag": "beachball_v2.8.0",
       "version": "2.8.0",

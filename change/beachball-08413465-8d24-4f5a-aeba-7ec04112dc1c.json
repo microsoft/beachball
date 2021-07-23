@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add fallback logic for publishConfig values",
-  "packageName": "beachball",
-  "email": "scott.schmalz@gmail.com",
-  "dependentChangeType": "patch"
-}

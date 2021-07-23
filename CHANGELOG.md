@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 22 Jul 2021 23:33:10 GMT and should not be manually modified.
+This log was last generated on Fri, 23 Jul 2021 00:04:33 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.8.1
+
+Fri, 23 Jul 2021 00:04:33 GMT
+
+### Patches
+
+- Add fallback logic for publishConfig values (scott.schmalz@gmail.com)
 
 ## 2.8.0
 
