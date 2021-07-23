@@ -28,7 +28,7 @@ export async function canary(options: BeachballOptions) {
     let newVersion = oldPackageInfo[pkg].version;
 
     do {
-      newVersion = semver.inc(newVersion, 'prerelease', options.canaryName || 'canary');
+      newVersion = semver.inc(newVersion, 'prerelease', options.canaryName || 'canary')!;
     } while (packageVersions[pkg].includes(newVersion));
 
     bumpInfo.packageInfos[pkg].version = newVersion;
