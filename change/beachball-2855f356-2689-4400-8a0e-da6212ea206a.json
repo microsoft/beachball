@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Update typescript to 4.3",
+  "comment": "Update typescript to 3.9",
   "packageName": "beachball",
   "email": "elcraig@microsoft.com",
   "dependentChangeType": "patch"
