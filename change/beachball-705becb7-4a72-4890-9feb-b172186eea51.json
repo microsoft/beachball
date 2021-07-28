@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Stop publishing docs and configs in npm package",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
