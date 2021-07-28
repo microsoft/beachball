@@ -17,18 +17,36 @@ This command also checks for various types of misconfigurations that would resul
 
 #### As a step in the PR review gate
 
-For example, in Travis CI:
+Add a step `yarn checkchange` in your PR validation build, where `checkchange` is defined in `package.json` as `beachball check` (with any appropriate options).
+
+Note that in GitHub action workflows, you **must** specify `fetch-depth: 0` in the `checkout` option. You can see a full example in [beachball's own PR workflow](https://github.com/microsoft/beachball/blob/master/.github/workflows/pr.yml).
+
+```yaml
+jobs:
+  build:
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Use Node.js 12
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - yarn
+      - yarn checkchange
+      # build/test steps as appropriate
+```
+
+Another example, for Travis CI:
 
 ```yaml
 language: node_js
 node_js:
-  - '10'
+  - '12'
 script:
   - yarn
-  # where 'check' is defined in package.json as 'beachball check'
-  - yarn check
-  - yarn build
-  - yarn test
+  - yarn checkchange
+  # build/test steps as appropriate
 ```
 
 #### As git hook (optional)
