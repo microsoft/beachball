@@ -1,4 +1,5 @@
 module.exports = {
+  reporters: ['<rootDir>/jest.reporter.js', '@jest/reporters/build/SummaryReporter'],
   roots: ['<rootDir>/src'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
