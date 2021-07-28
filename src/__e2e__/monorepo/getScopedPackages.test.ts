@@ -7,16 +7,16 @@ describe('getScopedPackages', () => {
   let repoFactory: MonoRepoFactory;
   let repo: Repository;
 
-  beforeAll(async () => {
+  beforeAll(() => {
     repoFactory = new MonoRepoFactory();
-    await repoFactory.create();
-    repo = await repoFactory.cloneRepository();
+    repoFactory.create();
+    repo = repoFactory.cloneRepository();
   });
-  afterAll(async () => {
-    await repoFactory.cleanUp();
+  afterAll(() => {
+    repoFactory.cleanUp();
   });
 
-  it('can scope packages', async () => {
+  it('can scope packages', () => {
     const scopedPackages = getScopedPackages({
       path: repo.rootPath,
       scope: ['packages/grouped/*'],
@@ -29,7 +29,7 @@ describe('getScopedPackages', () => {
     expect(scopedPackages.includes('bar')).toBeFalsy();
   });
 
-  it('can scope with excluded packages', async () => {
+  it('can scope with excluded packages', () => {
     const scopedPackages = getScopedPackages({
       path: repo.rootPath,
       scope: ['!packages/grouped/*'],
@@ -42,7 +42,7 @@ describe('getScopedPackages', () => {
     expect(scopedPackages.includes('bar')).toBeTruthy();
   });
 
-  it('can mix and match with excluded packages', async () => {
+  it('can mix and match with excluded packages', () => {
     const scopedPackages = getScopedPackages({
       path: repo.rootPath,
       scope: ['packages/b*', '!packages/grouped/*'],

@@ -8,23 +8,23 @@ import fs from 'fs-extra';
 
 describe('validation', () => {
   let repositoryFactory: RepositoryFactory;
-  beforeAll(async () => {
+  beforeAll(() => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
+    repositoryFactory.create();
   });
 
-  afterAll(async () => {
-    await repositoryFactory.cleanUp();
+  afterAll(() => {
+    repositoryFactory.cleanUp();
   });
 
   describe('isChangeFileNeeded', () => {
     let repository: Repository;
 
-    beforeEach(async () => {
-      repository = await repositoryFactory.cloneRepository();
+    beforeEach(() => {
+      repository = repositoryFactory.cloneRepository();
     });
 
-    it('is false when no changes have been made', async () => {
+    it('is false when no changes have been made', () => {
       const result = isChangeFileNeeded({
         branch: 'origin/master',
         path: repository.rootPath,
@@ -33,9 +33,9 @@ describe('validation', () => {
       expect(result).toBeFalsy();
     });
 
-    it('is true when changes exist in a new branch', async () => {
-      await repository.branch('feature-0');
-      await repository.commitChange('myFilename');
+    it('is true when changes exist in a new branch', () => {
+      repository.branch('feature-0');
+      repository.commitChange('myFilename');
       const result = isChangeFileNeeded({
         branch: 'origin/master',
         path: repository.rootPath,
@@ -44,9 +44,9 @@ describe('validation', () => {
       expect(result).toBeTruthy();
     });
 
-    it('is false when changes are CHANGELOG files', async () => {
-      await repository.branch('feature-0');
-      await repository.commitChange('CHANGELOG.md');
+    it('is false when changes are CHANGELOG files', () => {
+      repository.branch('feature-0');
+      repository.commitChange('CHANGELOG.md');
       const result = isChangeFileNeeded({
         branch: 'origin/master',
         path: repository.rootPath,
@@ -55,10 +55,10 @@ describe('validation', () => {
       expect(result).toBeFalsy();
     });
 
-    it('throws if the remote is invalid', async () => {
-      await repository.setRemoteUrl('origin', 'file:///__nonexistent');
-      await repository.branch('feature-0');
-      await repository.commitChange('CHANGELOG.md');
+    it('throws if the remote is invalid', () => {
+      repository.setRemoteUrl('origin', 'file:///__nonexistent');
+      repository.branch('feature-0');
+      repository.commitChange('CHANGELOG.md');
 
       expect(() => {
         isChangeFileNeeded({
@@ -73,8 +73,8 @@ describe('validation', () => {
   describe('areChangeFilesDeleted', () => {
     let repository: Repository;
 
-    beforeEach(async () => {
-      repository = await repositoryFactory.cloneRepository();
+    beforeEach(() => {
+      repository = repositoryFactory.cloneRepository();
 
       writeChangeFiles(
         {
@@ -89,11 +89,11 @@ describe('validation', () => {
         repository.rootPath
       );
 
-      await repository.push('origin', 'master');
+      repository.push('origin', 'master');
     });
 
-    it('is false when no change files are deleted', async () => {
-      await repository.branch('feature-0');
+    it('is false when no change files are deleted', () => {
+      repository.branch('feature-0');
 
       const result = areChangeFilesDeleted({
         branch: 'origin/master',
@@ -102,13 +102,13 @@ describe('validation', () => {
       expect(result).toBeFalsy();
     });
 
-    it('is true when change files are deleted', async () => {
-      await repository.branch('feature-0');
+    it('is true when change files are deleted', () => {
+      repository.branch('feature-0');
 
       const changeDirPath = getChangePath(repository.rootPath) ?? fail('No change folder found');
       fs.removeSync(changeDirPath);
 
-      await repository.commitAll();
+      repository.commitAll();
 
       const result = areChangeFilesDeleted({
         branch: 'origin/master',

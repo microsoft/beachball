@@ -23,9 +23,9 @@ describe('publish command (registry)', () => {
     await registry.reset();
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     if (repositoryFactory) {
-      await repositoryFactory.cleanUp();
+      repositoryFactory.cleanUp();
       repositoryFactory = undefined;
     }
     if (spy) {
@@ -38,8 +38,8 @@ describe('publish command (registry)', () => {
     registry.stop();
 
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
     writeChangeFiles(
       {
@@ -98,8 +98,8 @@ describe('publish command (registry)', () => {
 
   it('can perform a successful npm publish', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
     writeChangeFiles(
       {
@@ -156,10 +156,10 @@ describe('publish command (registry)', () => {
 
   it('can perform a successful npm publish even with private packages', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/foopkg/package.json',
       JSON.stringify({
         name: 'foopkg',
@@ -168,7 +168,7 @@ describe('publish command (registry)', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/publicpkg/package.json',
       JSON.stringify({
         name: 'publicpkg',
@@ -176,7 +176,7 @@ describe('publish command (registry)', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'package.json',
       JSON.stringify({
         name: 'foo-repo',
@@ -236,10 +236,10 @@ describe('publish command (registry)', () => {
 
   it('can perform a successful npm publish when multiple packages changed at same time', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/foopkg/package.json',
       JSON.stringify({
         name: 'foopkg',
@@ -250,7 +250,7 @@ describe('publish command (registry)', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/barpkg/package.json',
       JSON.stringify({
         name: 'barpkg',
@@ -322,10 +322,10 @@ describe('publish command (registry)', () => {
 
   it('can perform a successful npm publish even with a non-existent package listed in the change file', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/foopkg/package.json',
       JSON.stringify({
         name: 'foopkg',
@@ -333,7 +333,7 @@ describe('publish command (registry)', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/publicpkg/package.json',
       JSON.stringify({
         name: 'publicpkg',
@@ -341,7 +341,7 @@ describe('publish command (registry)', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'package.json',
       JSON.stringify({
         name: 'foo-repo',
