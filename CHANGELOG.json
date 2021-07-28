@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 28 Jul 2021 21:59:24 GMT",
+      "tag": "beachball_v2.9.1",
+      "version": "2.9.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Stop publishing docs and configs in npm package",
+            "commit": "1eb553983be08d3481d55073a6e6edee76d6e151"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 28 Jul 2021 21:55:21 GMT",
       "tag": "beachball_v2.9.0",
       "version": "2.9.0",

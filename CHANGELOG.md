@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 28 Jul 2021 21:55:21 GMT and should not be manually modified.
+This log was last generated on Wed, 28 Jul 2021 21:59:24 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.9.1
+
+Wed, 28 Jul 2021 21:59:24 GMT
+
+### Patches
+
+- Stop publishing docs and configs in npm package (elcraig@microsoft.com)
 
 ## 2.9.0
 
