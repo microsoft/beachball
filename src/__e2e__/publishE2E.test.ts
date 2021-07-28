@@ -25,17 +25,17 @@ describe('publish command (e2e)', () => {
     await registry.reset();
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     if (repositoryFactory) {
-      await repositoryFactory.cleanUp();
+      repositoryFactory.cleanUp();
       repositoryFactory = undefined;
     }
   });
 
   it('can perform a successful npm publish', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
     writeChangeFiles(
       {
@@ -100,8 +100,8 @@ describe('publish command (e2e)', () => {
 
   it('can perform a successful npm publish in detached HEAD', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
     writeChangeFiles(
       {
@@ -358,8 +358,8 @@ describe('publish command (e2e)', () => {
 
   it('can perform a successful npm publish without bump', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
     writeChangeFiles(
       {
@@ -423,8 +423,8 @@ describe('publish command (e2e)', () => {
 
   it('should not perform npm publish on out-of-scope package', async () => {
     repositoryFactory = new MonoRepoFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
     writeChangeFiles(
       {
@@ -509,8 +509,8 @@ describe('publish command (e2e)', () => {
 
   it('should respect prepublish hooks', async () => {
     repositoryFactory = new MonoRepoFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
     writeChangeFiles(
       {
@@ -588,8 +588,8 @@ describe('publish command (e2e)', () => {
 
   it('should respect postpublish hooks', async () => {
     repositoryFactory = new MonoRepoFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
     let notified;
 
     writeChangeFiles(

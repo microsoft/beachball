@@ -13,14 +13,14 @@ import { MultiMonoRepoFactory } from '../fixtures/multiMonorepo';
 describe('changed files', () => {
   let repositoryFactory: RepositoryFactory | undefined;
 
-  afterEach(async () => {
+  afterEach(() => {
     if (repositoryFactory) {
       repositoryFactory.cleanUp();
       repositoryFactory = undefined;
     }
   });
 
-  it('detects changed files in workspace', async () => {
+  it('detects changed files in workspace', () => {
     repositoryFactory = new MultiMonoRepoFactory();
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
@@ -65,7 +65,7 @@ describe('version bumping', () => {
     return changeFiles;
   }
 
-  afterEach(async () => {
+  afterEach(() => {
     if (repositoryFactory) {
       repositoryFactory.cleanUp();
       repositoryFactory = undefined;

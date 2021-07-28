@@ -16,17 +16,17 @@ describe('publish command (git)', () => {
     jest.setTimeout(30000);
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
+    repositoryFactory.create();
   });
 
-  afterEach(async () => {
-    await repositoryFactory.cleanUp();
+  afterEach(() => {
+    repositoryFactory.cleanUp();
   });
 
   it('can perform a successful git push', async () => {
-    const repo = await repositoryFactory.cloneRepository();
+    const repo = repositoryFactory.cloneRepository();
 
     writeChangeFiles(
       {
@@ -72,7 +72,7 @@ describe('publish command (git)', () => {
       dependentChangeType: null,
     });
 
-    const newRepo = await repositoryFactory.cloneRepository();
+    const newRepo = repositoryFactory.cloneRepository();
 
     const packageJson = fs.readJSONSync(path.join(newRepo.rootPath, 'package.json'));
 
@@ -81,7 +81,7 @@ describe('publish command (git)', () => {
 
   it('can handle a merge when there are change files present', async () => {
     // 1. clone a new repo1, write a change file in repo1
-    const repo1 = await repositoryFactory.cloneRepository();
+    const repo1 = repositoryFactory.cloneRepository();
 
     writeChangeFiles(
       {
@@ -136,7 +136,7 @@ describe('publish command (git)', () => {
     const bumpInfo = gatherBumpInfo(options);
 
     // 3. Meanwhile, in repo2, also create a new change file
-    const repo2 = await repositoryFactory.cloneRepository();
+    const repo2 = repositoryFactory.cloneRepository();
 
     writeChangeFiles(
       {
@@ -157,7 +157,7 @@ describe('publish command (git)', () => {
     await bumpAndPush(bumpInfo, publishBranch, options);
 
     // 5. In a brand new cloned repo, make assertions
-    const newRepo = await repositoryFactory.cloneRepository();
+    const newRepo = repositoryFactory.cloneRepository();
     const newChangePath = path.join(newRepo.rootPath, 'change');
     expect(fs.existsSync(newChangePath)).toBeTruthy();
     const changeFiles = fs.readdirSync(newChangePath);
