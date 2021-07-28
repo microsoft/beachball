@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Remove unnecessary async/await in tests",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}

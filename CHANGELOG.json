@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 28 Jul 2021 22:17:37 GMT",
+      "tag": "beachball_v2.9.1",
+      "version": "2.9.1",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Remove unnecessary async/await in tests",
+            "commit": "86fcdd11979d82863da3f3837f072f66d4b58cbc"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 28 Jul 2021 21:59:24 GMT",
       "tag": "beachball_v2.9.1",
       "version": "2.9.1",
