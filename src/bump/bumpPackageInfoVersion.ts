@@ -22,7 +22,7 @@ export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo, opti
     return;
   }
   if (!info.private) {
-    info.version = semver.inc(info.version, changeType, options.prereleasePrefix) as string;
+    info.version = semver.inc(info.version, changeType, options.prereleasePrefix || undefined) as string;
     modifiedPackages.add(pkgName);
   }
 }
