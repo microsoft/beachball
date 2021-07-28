@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 28 Jul 2021 21:55:21 GMT",
+      "tag": "beachball_v2.9.0",
+      "version": "2.9.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Update typescript to 3.9",
+            "commit": "5e51cf6e0fc449788931724fe19d354b8203f03d"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 28 Jul 2021 21:52:19 GMT",
       "tag": "beachball_v2.8.1",
       "version": "2.8.1",

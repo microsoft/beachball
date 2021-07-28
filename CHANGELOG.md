@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 23 Jul 2021 00:04:33 GMT and should not be manually modified.
+This log was last generated on Wed, 28 Jul 2021 21:55:21 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.9.0
+
+Wed, 28 Jul 2021 21:55:21 GMT
+
+### Minor changes
+
+- Update typescript to 3.9 (elcraig@microsoft.com)
 
 ## 2.8.1
 
