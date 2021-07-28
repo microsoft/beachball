@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 28 Jul 2021 21:52:19 GMT",
+      "tag": "beachball_v2.8.1",
+      "version": "2.8.1",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Add note about setting up check in github actions",
+            "commit": "ffb98fbe58257f34d004179bed49478dd1058b05"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 23 Jul 2021 01:18:00 GMT",
       "tag": "beachball_v2.8.1",
       "version": "2.8.1",

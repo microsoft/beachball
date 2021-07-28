@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add note about setting up check in github actions",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}
