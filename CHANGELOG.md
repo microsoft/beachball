@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 30 Jul 2021 07:00:05 GMT and should not be manually modified.
+This log was last generated on Fri, 30 Jul 2021 07:14:51 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.10.1
+
+Fri, 30 Jul 2021 07:14:51 GMT
+
+### Patches
+
+- Another attempt at ignoring test files (elcraig@microsoft.com)
 
 ## 2.10.0
 
