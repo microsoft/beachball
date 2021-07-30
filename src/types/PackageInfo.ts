@@ -30,7 +30,6 @@ export interface PackageInfo {
 
   /** options that are SPECIFIC to the package from its configuration file (might be nothing) */
   packageOptions: Partial<PackageOptions>;
-  group?: string;
 }
 
 export interface PackageInfos {
