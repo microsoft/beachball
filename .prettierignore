@@ -4,9 +4,9 @@
 .*ignore
 .nojekyll
 docs/.vuepress/dist
-change
-CHANGELOG.*
-lib
+/change/
+/CHANGELOG.*
+/lib/
 LICENSE
 node_modules
 yarn.lock

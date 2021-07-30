@@ -2,35 +2,49 @@ import { updateRelatedChangeType } from '../../bump/updateRelatedChangeType';
 import { BumpInfo } from '../../types/BumpInfo';
 import _ from 'lodash';
 import { ChangeInfo } from '../../types/ChangeInfo';
+import { PackageInfo, PackageInfos } from '../../types/PackageInfo';
+
+type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U> ? Array<DeepPartial<U>> : DeepPartial<T[P]>;
+};
+type PartialBumpInfo = DeepPartial<Omit<BumpInfo, 'calculatedChangeInfos'>> & {
+  // can't get DeepPartial to handle the index signature properly
+  calculatedChangeInfos?: { [packageName: string]: Partial<ChangeInfo> };
+};
 
 describe('updateRelatedChangeType', () => {
-  const bumpInfoFixture: BumpInfo = {
-    changeFileChangeInfos: new Map(),
-    dependents: {},
-    calculatedChangeInfos: {},
-    dependentChangeTypes: {
-      foo: 'patch',
-    },
-    packageInfos: {
-      foo: {
-        name: 'foo',
-        combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
+  const getBumpInfo = (overrides: PartialBumpInfo): BumpInfo =>
+    _.merge<BumpInfo, PartialBumpInfo>(
+      {
+        changeFileChangeInfos: new Map(),
+        dependents: {},
+        calculatedChangeInfos: {},
+        dependentChangeTypes: {
+          foo: 'patch',
+        },
+        packageInfos: {
+          foo: {
+            name: 'foo',
+            combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
+          },
+          bar: {
+            name: 'bar',
+            combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
+          },
+          baz: {
+            name: 'baz',
+            combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
+          },
+        } as { [packageName: string]: DeepPartial<PackageInfo> } as PackageInfos,
+        dependentChangeInfos: {},
+        modifiedPackages: new Set(),
+        newPackages: new Set(),
+        packageGroups: {},
+        groupOptions: {},
+        scopedPackages: new Set(),
       },
-      bar: {
-        name: 'bar',
-        combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
-      },
-      baz: {
-        name: 'baz',
-        combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
-      },
-    },
-    dependentChangeInfos: {},
-    modifiedPackages: new Set(),
-    newPackages: new Set(),
-    packageGroups: {},
-    groupOptions: {},
-  } as unknown as BumpInfo;
+      overrides
+    );
 
   const changeInfoFixture: ChangeInfo = {
     dependentChangeType: 'none',
@@ -42,7 +56,7 @@ describe('updateRelatedChangeType', () => {
   };
 
   it('should bump dependent packages with "patch" change type by default', () => {
-    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+    const bumpInfo = getBumpInfo({
       dependents: {
         foo: ['bar'],
       },
@@ -83,7 +97,7 @@ describe('updateRelatedChangeType', () => {
   });
 
   it('should bump dependent packages according to the bumpInfo.dependentChangeTypes', () => {
-    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+    const bumpInfo = getBumpInfo({
       dependents: {
         foo: ['bar'],
       },
@@ -120,7 +134,7 @@ describe('updateRelatedChangeType', () => {
   });
 
   it("should bump dependent packages according to the bumpInfo.dependentChangeTypes and respect package's own change type", () => {
-    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+    const bumpInfo = getBumpInfo({
       dependents: {
         foo: ['bar'],
         bar: ['app'],
@@ -176,7 +190,7 @@ describe('updateRelatedChangeType', () => {
   });
 
   it('should bump dependent packages according to the bumpInfo.dependentChangeTypes and dependentChangeInfos must stay up to date', () => {
-    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+    const bumpInfo = getBumpInfo({
       dependents: {
         foo: ['bar'],
         baz: ['bar'],
@@ -241,7 +255,7 @@ describe('updateRelatedChangeType', () => {
   });
 
   it('should bump dependent packages according to the bumpInfo.dependentChangeTypes and roll-up multiple change infos', () => {
-    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+    const bumpInfo = getBumpInfo({
       dependents: {
         foo: ['bar'],
         bar: ['app'],
@@ -305,18 +319,14 @@ describe('updateRelatedChangeType', () => {
   });
 
   it('should bump all packages in a group together as minor', () => {
-    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+    const bumpInfo = getBumpInfo({
       dependentChangeTypes: {
         foo: 'minor',
       },
       calculatedChangeInfos: {},
       packageInfos: {
-        foo: {
-          group: 'grp',
-        },
-        bar: {
-          group: 'grp',
-        },
+        foo: {},
+        bar: {},
         unrelated: {},
       },
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
@@ -332,19 +342,15 @@ describe('updateRelatedChangeType', () => {
   });
 
   it('should bump all packages in a group together as patch', () => {
-    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+    const bumpInfo = getBumpInfo({
       dependentChangeTypes: {
         foo: 'patch',
       },
       calculatedChangeInfos: {},
       changeFileChangeInfos: new Map([['foo.json', { ...changeInfoFixture, type: 'patch' }]]),
       packageInfos: {
-        foo: {
-          group: 'grp',
-        },
-        bar: {
-          group: 'grp',
-        },
+        foo: {},
+        bar: {},
         unrelated: {},
       },
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
@@ -359,19 +365,15 @@ describe('updateRelatedChangeType', () => {
   });
 
   it('should bump all packages in a group together as none', () => {
-    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+    const bumpInfo = getBumpInfo({
       dependentChangeTypes: {
         foo: 'none',
       },
       calculatedChangeInfos: {},
       changeFileChangeInfos: new Map([['foo.json', { ...changeInfoFixture, type: 'none' }]]),
       packageInfos: {
-        foo: {
-          group: 'grp',
-        },
-        bar: {
-          group: 'grp',
-        },
+        foo: {},
+        bar: {},
         unrelated: {},
       },
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
@@ -386,7 +388,7 @@ describe('updateRelatedChangeType', () => {
   });
 
   it('should bump all packages in a group together as none with dependents', () => {
-    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+    const bumpInfo = getBumpInfo({
       dependents: {
         foo: ['bar'],
       },
@@ -394,12 +396,8 @@ describe('updateRelatedChangeType', () => {
         foo: 'none',
       },
       packageInfos: {
-        foo: {
-          group: 'grp',
-        },
-        bar: {
-          group: 'grp',
-        },
+        foo: {},
+        bar: {},
         unrelated: {},
       },
       changeFileChangeInfos: new Map([['foo.json', { ...changeInfoFixture, type: 'none' }]]),
@@ -415,7 +413,7 @@ describe('updateRelatedChangeType', () => {
   });
 
   it('should bump all grouped packages, if a dependency was bumped', () => {
-    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+    const bumpInfo = getBumpInfo({
       dependentChangeTypes: {
         dep: 'minor',
       },
@@ -423,11 +421,8 @@ describe('updateRelatedChangeType', () => {
         dep: ['bar'],
       },
       packageInfos: {
-        foo: {
-          group: 'grp',
-        },
+        foo: {},
         bar: {
-          group: 'grp',
           dependencies: {
             dep: '1.0.0',
           },
@@ -456,7 +451,7 @@ describe('updateRelatedChangeType', () => {
   });
 
   it('should bump dependent package, if a dependency was in a group', () => {
-    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+    const bumpInfo = getBumpInfo({
       dependentChangeTypes: {
         dep: 'minor',
       },
@@ -465,11 +460,8 @@ describe('updateRelatedChangeType', () => {
         foo: ['app'],
       },
       packageInfos: {
-        foo: {
-          group: 'grp',
-        },
+        foo: {},
         bar: {
-          group: 'grp',
           dependencies: {
             dep: '1.0.0',
           },
@@ -508,7 +500,7 @@ describe('updateRelatedChangeType', () => {
   });
 
   it('should propagate dependent change type across group', () => {
-    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+    const bumpInfo = getBumpInfo({
       dependentChangeTypes: {
         mergeStyles: 'minor',
         datetimeUtils: 'patch',
@@ -533,11 +525,8 @@ describe('updateRelatedChangeType', () => {
         mergeStyles: {
           name: 'mergeStyles',
         },
-        foo: {
-          group: 'grp',
-        },
+        foo: {},
         bar: {
-          group: 'grp',
           dependencies: {
             styling: '1.0.0',
             utils: '1.0.0',
@@ -574,7 +563,7 @@ describe('updateRelatedChangeType', () => {
   });
 
   it('should respect disallowed change type', () => {
-    const bumpInfo = _.merge(_.cloneDeep(bumpInfoFixture), {
+    const bumpInfo = getBumpInfo({
       changeFileChangeInfos: new Map([['foo.json', { ...changeInfoFixture, type: 'major' }]]),
       packageInfos: {
         foo: {

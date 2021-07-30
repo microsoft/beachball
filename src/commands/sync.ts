@@ -8,7 +8,7 @@ import { writePackageJson } from '../bump/performBump';
 
 export async function sync(options: BeachballOptions) {
   const packageInfos = getPackageInfos(options.path);
-  const scopedPackages = new Set(getScopedPackages(options));
+  const scopedPackages = new Set(getScopedPackages(options, packageInfos));
 
   const infos = new Map(Object.entries(packageInfos).filter(([pkg, info]) => !info.private && scopedPackages.has(pkg)));
   const publishedVersions = await listPackageVersionsByTag(

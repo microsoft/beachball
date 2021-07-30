@@ -17,7 +17,7 @@ describe('version bumping', () => {
     return changeFiles;
   }
 
-  afterEach(async () => {
+  afterEach(() => {
     if (repositoryFactory) {
       repositoryFactory.cleanUp();
       repositoryFactory = undefined;
@@ -26,10 +26,10 @@ describe('version bumping', () => {
 
   it('bumps only packages with change files', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-1/package.json',
       JSON.stringify({
         name: 'pkg-1',
@@ -37,7 +37,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-2/package.json',
       JSON.stringify({
         name: 'pkg-2',
@@ -48,7 +48,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-3/package.json',
       JSON.stringify({
         name: 'pkg-3',
@@ -59,7 +59,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-4/package.json',
       JSON.stringify({
         name: 'pkg-4',
@@ -70,7 +70,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'package.json',
       JSON.stringify({
         name: 'foo-repo',
@@ -112,10 +112,10 @@ describe('version bumping', () => {
 
   it('bumps only packages with change files committed between specified ref and head using `since` flag', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-1/package.json',
       JSON.stringify({
         name: 'pkg-1',
@@ -123,7 +123,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-2/package.json',
       JSON.stringify({
         name: 'pkg-2',
@@ -134,7 +134,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-3/package.json',
       JSON.stringify({
         name: 'pkg-3',
@@ -142,7 +142,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'package.json',
       JSON.stringify({
         name: 'foo-repo',
@@ -203,10 +203,10 @@ describe('version bumping', () => {
 
   it('bumps all dependent packages with `bumpDeps` flag', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-1/package.json',
       JSON.stringify({
         name: 'pkg-1',
@@ -214,7 +214,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-2/package.json',
       JSON.stringify({
         name: 'pkg-2',
@@ -225,7 +225,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-3/package.json',
       JSON.stringify({
         name: 'pkg-3',
@@ -236,7 +236,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-4/package.json',
       JSON.stringify({
         name: 'pkg-4',
@@ -247,7 +247,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'package.json',
       JSON.stringify({
         name: 'foo-repo',
@@ -289,10 +289,10 @@ describe('version bumping', () => {
 
   it('bumps all grouped packages', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-1/package.json',
       JSON.stringify({
         name: 'pkg-1',
@@ -300,7 +300,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-2/package.json',
       JSON.stringify({
         name: 'pkg-2',
@@ -308,7 +308,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-3/package.json',
       JSON.stringify({
         name: 'pkg-3',
@@ -316,7 +316,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'unrelated/pkg-4/package.json',
       JSON.stringify({
         name: 'pkg-4',
@@ -357,10 +357,10 @@ describe('version bumping', () => {
 
   it('bumps all grouped AND dependent packages', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/grp/1/package.json',
       JSON.stringify({
         name: 'pkg-1',
@@ -368,7 +368,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/grp/2/package.json',
       JSON.stringify({
         name: 'pkg-2',
@@ -376,7 +376,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/grp/3/package.json',
       JSON.stringify({
         name: 'pkg-3',
@@ -387,7 +387,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/commonlib/package.json',
       JSON.stringify({
         name: 'commonlib',
@@ -395,7 +395,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/app/package.json',
       JSON.stringify({
         name: 'app',
@@ -406,7 +406,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/unrelated/package.json',
       JSON.stringify({
         name: 'unrelated',
@@ -450,8 +450,8 @@ describe('version bumping', () => {
 
   it('should not bump out-of-scope package even if package has change', async () => {
     repositoryFactory = new MonoRepoFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
     writeChangeFiles(
       {
@@ -484,8 +484,8 @@ describe('version bumping', () => {
 
   it('should not bump out-of-scope package and its dependencies even if dependency of the package has change', async () => {
     repositoryFactory = new MonoRepoFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
     writeChangeFiles(
       {
@@ -519,10 +519,10 @@ describe('version bumping', () => {
 
   it('bumps all packages and keeps change files with `keep-change-files` flag', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-1/package.json',
       JSON.stringify({
         name: 'pkg-1',
@@ -530,7 +530,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-2/package.json',
       JSON.stringify({
         name: 'pkg-2',
@@ -541,7 +541,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-3/package.json',
       JSON.stringify({
         name: 'pkg-3',
@@ -552,7 +552,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-4/package.json',
       JSON.stringify({
         name: 'pkg-4',
@@ -563,7 +563,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'package.json',
       JSON.stringify({
         name: 'foo-repo',
@@ -605,10 +605,10 @@ describe('version bumping', () => {
 
   it('bumps all packages and uses prefix in the version', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-1/package.json',
       JSON.stringify({
         name: 'pkg-1',
@@ -616,7 +616,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-2/package.json',
       JSON.stringify({
         name: 'pkg-2',
@@ -627,7 +627,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-3/package.json',
       JSON.stringify({
         name: 'pkg-3',
@@ -638,7 +638,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-4/package.json',
       JSON.stringify({
         name: 'pkg-4',
@@ -649,7 +649,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'package.json',
       JSON.stringify({
         name: 'foo-repo',
@@ -696,10 +696,10 @@ describe('version bumping', () => {
 
   it('bumps all packages and uses prefixed versions in dependents', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-1/package.json',
       JSON.stringify({
         name: 'pkg-1',
@@ -707,7 +707,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-2/package.json',
       JSON.stringify({
         name: 'pkg-2',
@@ -718,7 +718,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-3/package.json',
       JSON.stringify({
         name: 'pkg-3',
@@ -729,7 +729,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-4/package.json',
       JSON.stringify({
         name: 'pkg-4',
@@ -740,7 +740,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'package.json',
       JSON.stringify({
         name: 'foo-repo',
@@ -787,10 +787,10 @@ describe('version bumping', () => {
 
   it('bumps all packages and increments prefixed versions in dependents', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-1/package.json',
       JSON.stringify({
         name: 'pkg-1',
@@ -798,7 +798,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-2/package.json',
       JSON.stringify({
         name: 'pkg-2',
@@ -809,7 +809,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-3/package.json',
       JSON.stringify({
         name: 'pkg-3',
@@ -820,7 +820,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-4/package.json',
       JSON.stringify({
         name: 'pkg-4',
@@ -831,7 +831,7 @@ describe('version bumping', () => {
       })
     );
 
-    await repo.commitChange(
+    repo.commitChange(
       'package.json',
       JSON.stringify({
         name: 'foo-repo',

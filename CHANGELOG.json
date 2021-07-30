@@ -2,6 +2,110 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 30 Jul 2021 07:14:51 GMT",
+      "tag": "beachball_v2.10.1",
+      "version": "2.10.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Another attempt at ignoring test files",
+            "commit": "8ec91182c38fc20d4baa65246952384b9f61a0ef"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 30 Jul 2021 07:00:05 GMT",
+      "tag": "beachball_v2.10.0",
+      "version": "2.10.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Stop publishing test and config files",
+            "commit": "f131accfc3bb83c816f9bdaef1b72383d846c277"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Reduce number of times `getPackageInfos` is called",
+            "commit": "f131accfc3bb83c816f9bdaef1b72383d846c277"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Remove `group` from `PackageInfo`, and calculate as needed instead of setting it as a side effect",
+            "commit": "f131accfc3bb83c816f9bdaef1b72383d846c277"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 28 Jul 2021 22:17:37 GMT",
+      "tag": "beachball_v2.9.1",
+      "version": "2.9.1",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Remove unnecessary async/await in tests",
+            "commit": "86fcdd11979d82863da3f3837f072f66d4b58cbc"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 28 Jul 2021 21:59:24 GMT",
+      "tag": "beachball_v2.9.1",
+      "version": "2.9.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Stop publishing docs and configs in npm package",
+            "commit": "1eb553983be08d3481d55073a6e6edee76d6e151"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 28 Jul 2021 21:55:21 GMT",
+      "tag": "beachball_v2.9.0",
+      "version": "2.9.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Update typescript to 3.9",
+            "commit": "5e51cf6e0fc449788931724fe19d354b8203f03d"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 28 Jul 2021 21:52:19 GMT",
+      "tag": "beachball_v2.8.1",
+      "version": "2.8.1",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Add note about setting up check in github actions",
+            "commit": "ffb98fbe58257f34d004179bed49478dd1058b05"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 23 Jul 2021 01:18:00 GMT",
       "tag": "beachball_v2.8.1",
       "version": "2.8.1",

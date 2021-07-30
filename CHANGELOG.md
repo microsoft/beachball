@@ -1,8 +1,45 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 23 Jul 2021 00:04:33 GMT and should not be manually modified.
+This log was last generated on Fri, 30 Jul 2021 07:14:51 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.10.1
+
+Fri, 30 Jul 2021 07:14:51 GMT
+
+### Patches
+
+- Another attempt at ignoring test files (elcraig@microsoft.com)
+
+## 2.10.0
+
+Fri, 30 Jul 2021 07:00:05 GMT
+
+### Minor changes
+
+- Remove `group` from `PackageInfo`, and calculate as needed instead of setting it as a side effect (elcraig@microsoft.com)
+
+### Patches
+
+- Stop publishing test and config files (elcraig@microsoft.com)
+- Reduce number of times `getPackageInfos` is called (elcraig@microsoft.com)
+
+## 2.9.1
+
+Wed, 28 Jul 2021 21:59:24 GMT
+
+### Patches
+
+- Stop publishing docs and configs in npm package (elcraig@microsoft.com)
+
+## 2.9.0
+
+Wed, 28 Jul 2021 21:55:21 GMT
+
+### Minor changes
+
+- Update typescript to 3.9 (elcraig@microsoft.com)
 
 ## 2.8.1
 
