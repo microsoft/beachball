@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "fixes canary not to use latest tag for npm",
+  "packageName": "beachball",
+  "email": "kchau@microsoft.com",
+  "dependentChangeType": "patch"
+}
