@@ -2,25 +2,32 @@ import { getScopedPackages } from '../../monorepo/getScopedPackages';
 import { BeachballOptions } from '../../types/BeachballOptions';
 import { MonoRepoFactory } from '../../fixtures/monorepo';
 import { Repository } from '../../fixtures/repository';
+import { PackageInfos } from '../../types/PackageInfo';
+import { getPackageInfos } from '../../monorepo/getPackageInfos';
 
 describe('getScopedPackages', () => {
   let repoFactory: MonoRepoFactory;
   let repo: Repository;
+  let packageInfos: PackageInfos;
 
   beforeAll(() => {
     repoFactory = new MonoRepoFactory();
     repoFactory.create();
     repo = repoFactory.cloneRepository();
+    packageInfos = getPackageInfos(repo.rootPath);
   });
   afterAll(() => {
     repoFactory.cleanUp();
   });
 
   it('can scope packages', () => {
-    const scopedPackages = getScopedPackages({
-      path: repo.rootPath,
-      scope: ['packages/grouped/*'],
-    } as BeachballOptions);
+    const scopedPackages = getScopedPackages(
+      {
+        path: repo.rootPath,
+        scope: ['packages/grouped/*'],
+      } as BeachballOptions,
+      packageInfos
+    );
 
     expect(scopedPackages.includes('a')).toBeTruthy();
     expect(scopedPackages.includes('b')).toBeTruthy();
@@ -30,10 +37,13 @@ describe('getScopedPackages', () => {
   });
 
   it('can scope with excluded packages', () => {
-    const scopedPackages = getScopedPackages({
-      path: repo.rootPath,
-      scope: ['!packages/grouped/*'],
-    } as BeachballOptions);
+    const scopedPackages = getScopedPackages(
+      {
+        path: repo.rootPath,
+        scope: ['!packages/grouped/*'],
+      } as BeachballOptions,
+      packageInfos
+    );
 
     expect(scopedPackages.includes('a')).toBeFalsy();
     expect(scopedPackages.includes('b')).toBeFalsy();
@@ -43,10 +53,13 @@ describe('getScopedPackages', () => {
   });
 
   it('can mix and match with excluded packages', () => {
-    const scopedPackages = getScopedPackages({
-      path: repo.rootPath,
-      scope: ['packages/b*', '!packages/grouped/*'],
-    } as BeachballOptions);
+    const scopedPackages = getScopedPackages(
+      {
+        path: repo.rootPath,
+        scope: ['packages/b*', '!packages/grouped/*'],
+      } as BeachballOptions,
+      packageInfos
+    );
 
     expect(scopedPackages.includes('a')).toBeFalsy();
     expect(scopedPackages.includes('b')).toBeFalsy();

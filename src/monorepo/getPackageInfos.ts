@@ -5,7 +5,11 @@ import { getWorkspaces, listAllTrackedFiles } from 'workspace-tools';
 import { PackageInfos } from '../types/PackageInfo';
 import { infoFromPackageJson } from './infoFromPackageJson';
 
-export function getPackageInfos(cwd: string) {
+/**
+ * Get a mapping from package name to package info for all packages in the workspace
+ * (reading from package.json files)
+ */
+export function getPackageInfos(cwd: string): PackageInfos {
   const projectRoot = findProjectRoot(cwd);
   const packageRoot = findPackageRoot(cwd);
 

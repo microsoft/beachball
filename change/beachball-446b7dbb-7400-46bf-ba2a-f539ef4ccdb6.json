@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Reduce number of times `getPackageInfos` is called",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

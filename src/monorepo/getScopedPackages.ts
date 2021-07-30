@@ -1,10 +1,9 @@
 import { BeachballOptions } from '../types/BeachballOptions';
-import { getPackageInfos } from './getPackageInfos';
+import { PackageInfos } from '../types/PackageInfo';
 import path from 'path';
 import { isPathIncluded } from './utils';
 
-export function getScopedPackages(options: BeachballOptions) {
-  const packageInfos = getPackageInfos(options.path);
+export function getScopedPackages(options: BeachballOptions, packageInfos: PackageInfos) {
   if (!options.scope) {
     return Object.keys(packageInfos);
   }

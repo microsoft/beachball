@@ -7,11 +7,13 @@ import { readChangeFiles } from '../changefile/readChangeFiles';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import { getNewPackages } from '../publish/getNewPackages';
+import { getPackageInfos } from '../monorepo/getPackageInfos';
 
 export async function publish(options: BeachballOptions) {
   const { path: cwd, branch, registry, tag } = options;
   // First, validate that we have changes to publish
-  const changes = readChangeFiles(options);
+  const oldPackageInfos = getPackageInfos(cwd);
+  const changes = readChangeFiles(options, oldPackageInfos);
   const packageChangeTypes = initializePackageChangeInfo(changes);
   if (Object.keys(packageChangeTypes).length === 0) {
     console.log('Nothing to bump, skipping publish!');
@@ -54,7 +56,7 @@ export async function publish(options: BeachballOptions) {
     console.log('Bumping version for npm publish');
   }
 
-  const bumpInfo = gatherBumpInfo(options);
+  const bumpInfo = gatherBumpInfo(options, oldPackageInfos);
 
   if (options.new) {
     bumpInfo.newPackages = new Set<string>(await getNewPackages(bumpInfo, options.registry));

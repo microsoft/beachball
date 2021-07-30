@@ -32,23 +32,32 @@ describe('changed files', () => {
     fs.writeFileSync(testFilePath, '');
     git(['add', testFilePath], { cwd: repoARoot });
 
-    const changedPackagesA = getChangedPackages({
-      fetch: false,
-      path: repoARoot,
-      branch: 'master',
-    } as BeachballOptions);
+    const changedPackagesA = getChangedPackages(
+      {
+        fetch: false,
+        path: repoARoot,
+        branch: 'master',
+      } as BeachballOptions,
+      getPackageInfos(repoARoot)
+    );
 
-    const changedPackagesB = getChangedPackages({
-      fetch: false,
-      path: repoBRoot,
-      branch: 'master',
-    } as BeachballOptions);
+    const changedPackagesB = getChangedPackages(
+      {
+        fetch: false,
+        path: repoBRoot,
+        branch: 'master',
+      } as BeachballOptions,
+      getPackageInfos(repoBRoot)
+    );
 
-    const changedPackagesRoot = getChangedPackages({
-      fetch: false,
-      path: repo.rootPath,
-      branch: 'master',
-    } as BeachballOptions);
+    const changedPackagesRoot = getChangedPackages(
+      {
+        fetch: false,
+        path: repo.rootPath,
+        branch: 'master',
+      } as BeachballOptions,
+      getPackageInfos(repo.rootPath)
+    );
 
     expect(changedPackagesA).toStrictEqual(['foo']);
     expect(changedPackagesB).toStrictEqual([]);

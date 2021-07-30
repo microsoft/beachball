@@ -1,5 +1,6 @@
 import { ChangeType } from '../types/ChangeInfo';
 import { PackageGroups, PackageInfos } from '../types/PackageInfo';
+
 export function getDisallowedChangeTypes(
   packageName: string,
   packageInfos: PackageInfos,
