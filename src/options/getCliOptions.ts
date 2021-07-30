@@ -62,5 +62,9 @@ function getCliOptionsUncached(argv: string[]): CliOptions {
     cliOptions.branch = args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd);
   }
 
+  if (cliOptions.command === 'canary') {
+    cliOptions.tag = cliOptions.canaryName || 'canary';
+  }
+
   return cliOptions;
 }
