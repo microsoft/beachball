@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use \"files\" property in package.json to prevent publishing unnecessary files",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

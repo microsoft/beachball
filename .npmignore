@@ -1,8 +1,0 @@
-docs/
-src/
-node_modules/
-.prettier*
-*.config.js
-/jest*
-tsconfig.json
-yarn.lock
