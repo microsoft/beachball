@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 30 Jul 2021 07:14:51 GMT and should not be manually modified.
+This log was last generated on Fri, 30 Jul 2021 21:04:39 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.10.2
+
+Fri, 30 Jul 2021 21:04:39 GMT
+
+### Patches
+
+- fixes canary not to use latest tag for npm (kchau@microsoft.com)
 
 ## 2.10.1
 
