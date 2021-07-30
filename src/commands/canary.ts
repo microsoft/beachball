@@ -14,7 +14,6 @@ export async function canary(options: BeachballOptions) {
 
   options.keepChangeFiles = true;
   options.generateChangelog = false;
-  options.tag = options.canaryName || 'canary';
 
   if (options.all) {
     for (const pkg of Object.keys(oldPackageInfo)) {

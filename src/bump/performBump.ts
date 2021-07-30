@@ -12,6 +12,10 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
 
     packageJson.version = info.version;
 
+    if (pkgName === '@ms/attribution-provider') {
+      console.log(packageJson);
+    }
+
     ['dependencies', 'devDependencies', 'peerDependencies'].forEach(depKind => {
       // updatedDeps contains all of the dependencies in the bump info since the beginning of a build job
       const updatedDepsVersions: PackageDeps | undefined = (info as any)[depKind];
@@ -22,6 +26,10 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
         const modifiedDeps = Object.keys(updatedDepsVersions).filter(dep => modifiedPackages.has(dep));
 
         for (const dep of modifiedDeps) {
+          if (dep === '@fluidx/office-fluid-types' && pkgName === '@ms/attribution-provider') {
+            console.log(packageJson[depKind] && packageJson[depKind][dep]);
+          }
+
           if (packageJson[depKind] && packageJson[depKind][dep]) {
             packageJson[depKind][dep] = updatedDepsVersions[dep];
           }
