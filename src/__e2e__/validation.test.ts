@@ -5,6 +5,7 @@ import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { areChangeFilesDeleted } from '../validation/areChangeFilesDeleted';
 import { getChangePath } from '../paths';
 import fs from 'fs-extra';
+import { getPackageInfos } from '../monorepo/getPackageInfos';
 
 describe('validation', () => {
   let repositoryFactory: RepositoryFactory;
@@ -25,33 +26,42 @@ describe('validation', () => {
     });
 
     it('is false when no changes have been made', () => {
-      const result = isChangeFileNeeded({
-        branch: 'origin/master',
-        path: repository.rootPath,
-        fetch: false,
-      } as BeachballOptions);
+      const result = isChangeFileNeeded(
+        {
+          branch: 'origin/master',
+          path: repository.rootPath,
+          fetch: false,
+        } as BeachballOptions,
+        getPackageInfos(repository.rootPath)
+      );
       expect(result).toBeFalsy();
     });
 
     it('is true when changes exist in a new branch', () => {
       repository.branch('feature-0');
       repository.commitChange('myFilename');
-      const result = isChangeFileNeeded({
-        branch: 'origin/master',
-        path: repository.rootPath,
-        fetch: false,
-      } as BeachballOptions);
+      const result = isChangeFileNeeded(
+        {
+          branch: 'origin/master',
+          path: repository.rootPath,
+          fetch: false,
+        } as BeachballOptions,
+        getPackageInfos(repository.rootPath)
+      );
       expect(result).toBeTruthy();
     });
 
     it('is false when changes are CHANGELOG files', () => {
       repository.branch('feature-0');
       repository.commitChange('CHANGELOG.md');
-      const result = isChangeFileNeeded({
-        branch: 'origin/master',
-        path: repository.rootPath,
-        fetch: false,
-      } as BeachballOptions);
+      const result = isChangeFileNeeded(
+        {
+          branch: 'origin/master',
+          path: repository.rootPath,
+          fetch: false,
+        } as BeachballOptions,
+        getPackageInfos(repository.rootPath)
+      );
       expect(result).toBeFalsy();
     });
 
@@ -61,11 +71,14 @@ describe('validation', () => {
       repository.commitChange('CHANGELOG.md');
 
       expect(() => {
-        isChangeFileNeeded({
-          branch: 'origin/master',
-          path: repository.rootPath,
-          fetch: true,
-        } as BeachballOptions);
+        isChangeFileNeeded(
+          {
+            branch: 'origin/master',
+            path: repository.rootPath,
+            fetch: true,
+          } as BeachballOptions,
+          getPackageInfos(repository.rootPath)
+        );
       }).toThrow();
     });
   });

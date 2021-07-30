@@ -67,7 +67,8 @@ describe('changelog generation', () => {
       repository.commitChange('foo');
       writeChangeFiles({ foo: getChange() }, repository.rootPath);
 
-      const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions);
+      const packageInfos = getPackageInfos(repository.rootPath);
+      const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions, packageInfos);
       const changes = [...changeSet.values()];
       expect(changes).toHaveLength(1);
       expect(changes[0].commit).toBe(undefined);
@@ -86,10 +87,8 @@ describe('changelog generation', () => {
       writeChangeFiles({ foo: getChange({ comment: 'comment 2' }) }, repository.rootPath);
 
       const beachballOptions = { path: repository.rootPath } as BeachballOptions;
-      const changes = readChangeFiles(beachballOptions);
-
-      // Gather all package info from package.json
       const packageInfos = getPackageInfos(repository.rootPath);
+      const changes = readChangeFiles(beachballOptions, packageInfos);
 
       await writeChangelog(
         beachballOptions,
@@ -133,10 +132,8 @@ describe('changelog generation', () => {
         },
       } as BeachballOptions;
 
-      const changes = readChangeFiles(beachballOptions);
-
-      // Gather all package info from package.json
       const packageInfos = getPackageInfos(monoRepo.rootPath);
+      const changes = readChangeFiles(beachballOptions, packageInfos);
 
       await writeChangelog(beachballOptions, changes, {}, packageInfos);
 
@@ -177,10 +174,8 @@ describe('changelog generation', () => {
         },
       } as BeachballOptions;
 
-      const changes = readChangeFiles(beachballOptions);
-
-      // Gather all package info from package.json
       const packageInfos = getPackageInfos(monoRepo.rootPath);
+      const changes = readChangeFiles(beachballOptions, packageInfos);
 
       await writeChangelog(beachballOptions, changes, {}, packageInfos);
 

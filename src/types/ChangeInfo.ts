@@ -20,4 +20,7 @@ export interface ChangeInfo extends ChangeFileInfo {
   commit: string;
 }
 
+/**
+ * Map from change file name to change info
+ */
 export type ChangeSet = Map<string, ChangeInfo>;

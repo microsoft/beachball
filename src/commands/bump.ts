@@ -1,7 +1,9 @@
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { performBump } from '../bump/performBump';
+import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
 
 export async function bump(options: BeachballOptions) {
-  return await performBump(gatherBumpInfo(options), options);
+  const bumpInfo = gatherBumpInfo(options, getPackageInfos(options.path));
+  return await performBump(bumpInfo, options);
 }

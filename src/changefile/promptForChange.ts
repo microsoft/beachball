@@ -16,11 +16,11 @@ import { getDisallowedChangeTypes } from './getDisallowedChangeTypes';
 export async function promptForChange(options: BeachballOptions) {
   const { branch, path: cwd, package: specificPackage } = options;
 
-  const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(options);
+  const packageInfos = getPackageInfos(cwd);
+  const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(options, packageInfos);
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
   const packageChangeInfo: { [pkgname: string]: ChangeFileInfo } = {};
 
-  const packageInfos = getPackageInfos(cwd);
   const packageGroups = getPackageGroups(packageInfos, options.path, options.groups);
 
   for (let pkg of changedPackages) {

@@ -10,7 +10,7 @@ import { BeachballOptions } from '../types/BeachballOptions';
 export async function canary(options: BeachballOptions) {
   const oldPackageInfo = getPackageInfos(options.path);
 
-  const bumpInfo = gatherBumpInfo(options);
+  const bumpInfo = gatherBumpInfo(options, oldPackageInfo);
 
   options.keepChangeFiles = true;
   options.generateChangelog = false;

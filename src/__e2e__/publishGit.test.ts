@@ -8,6 +8,7 @@ import { git, gitFailFast } from 'workspace-tools';
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { ChangeFileInfo } from '../types/ChangeInfo';
+import { getPackageInfos } from '../monorepo/getPackageInfos';
 
 describe('publish command (git)', () => {
   let repositoryFactory: RepositoryFactory;
@@ -133,7 +134,7 @@ describe('publish command (git)', () => {
       dependentChangeType: null,
     };
 
-    const bumpInfo = gatherBumpInfo(options);
+    const bumpInfo = gatherBumpInfo(options, getPackageInfos(repo1.rootPath));
 
     // 3. Meanwhile, in repo2, also create a new change file
     const repo2 = repositoryFactory.cloneRepository();

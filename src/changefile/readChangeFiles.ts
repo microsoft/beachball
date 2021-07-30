@@ -5,10 +5,11 @@ import path from 'path';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { getChangesBetweenRefs } from 'workspace-tools';
+import { PackageInfos } from '../types/PackageInfo';
 
-export function readChangeFiles(options: BeachballOptions): ChangeSet {
+export function readChangeFiles(options: BeachballOptions, packageInfos: PackageInfos): ChangeSet {
   const { path: cwd } = options;
-  const scopedPackages = getScopedPackages(options);
+  const scopedPackages = getScopedPackages(options, packageInfos);
   const changeSet: ChangeSet = new Map();
   const changePath = getChangePath(cwd);
   const fromRef = options.fromRef;
