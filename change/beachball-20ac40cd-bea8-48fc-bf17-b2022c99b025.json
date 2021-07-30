@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Use \"files\" property in package.json to prevent publishing unnecessary files",
+  "comment": "Stop publishing test and config files",
   "packageName": "beachball",
   "email": "elcraig@microsoft.com",
   "dependentChangeType": "patch"

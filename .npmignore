@@ -1,0 +1,13 @@
+.github/
+.vscode/
+docs/
+lib/__e2e__
+lib/__tests__
+lib/fixtures
+node_modules/
+src/
+.prettier*
+*.config.js
+jest*
+tsconfig.json
+yarn.lock
