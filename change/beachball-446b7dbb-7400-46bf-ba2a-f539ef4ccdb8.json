@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Remove `group` from `PackageInfo`, and calculate as needed instead of setting it as a side effect",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,8 +1,21 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 28 Jul 2021 21:59:24 GMT and should not be manually modified.
+This log was last generated on Fri, 30 Jul 2021 07:00:05 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.10.0
+
+Fri, 30 Jul 2021 07:00:05 GMT
+
+### Minor changes
+
+- Remove `group` from `PackageInfo`, and calculate as needed instead of setting it as a side effect (elcraig@microsoft.com)
+
+### Patches
+
+- Stop publishing test and config files (elcraig@microsoft.com)
+- Reduce number of times `getPackageInfos` is called (elcraig@microsoft.com)
 
 ## 2.9.1
 

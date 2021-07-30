@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Stop publishing test and config files",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

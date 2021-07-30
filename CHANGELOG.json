@@ -2,6 +2,35 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 30 Jul 2021 07:00:05 GMT",
+      "tag": "beachball_v2.10.0",
+      "version": "2.10.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Stop publishing test and config files",
+            "commit": "f131accfc3bb83c816f9bdaef1b72383d846c277"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Reduce number of times `getPackageInfos` is called",
+            "commit": "f131accfc3bb83c816f9bdaef1b72383d846c277"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Remove `group` from `PackageInfo`, and calculate as needed instead of setting it as a side effect",
+            "commit": "f131accfc3bb83c816f9bdaef1b72383d846c277"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 28 Jul 2021 22:17:37 GMT",
       "tag": "beachball_v2.9.1",
       "version": "2.9.1",
