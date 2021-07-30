@@ -96,7 +96,9 @@ export function updateRelatedChangeType(
       }
 
       // handle the group dependent updates
-      const groupName = packageInfo.group;
+      const groupName = Object.keys(packageGroups).find(group =>
+        packageGroups[group].packageNames.includes(packageInfo.name)
+      );
 
       if (groupName) {
         for (const packageNameInGroup of packageGroups[groupName].packageNames) {

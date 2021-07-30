@@ -25,6 +25,7 @@ export function validate(options: BeachballOptions, validateOptions?: Partial<Va
 
   if (!isGitAvailable(options.path)) {
     console.error('ERROR: Please make sure git is installed and initialize the repository with "git init".');
+    process.exit(1);
   }
 
   const untracked = getUntrackedChanges(options.path);
