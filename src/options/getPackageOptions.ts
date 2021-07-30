@@ -13,12 +13,6 @@ export function getCombinedPackageOptions(actualPackageOptions: Partial<PackageO
   const defaultOptions = getDefaultOptions();
   const cliOptions = getCliOptions(process.argv);
   const repoOptions = getRepoOptions(cliOptions);
-
-  console.log(defaultOptions.tag);
-  console.log(cliOptions.tag);
-  console.log(repoOptions.tag);
-  console.log(actualPackageOptions.tag);
-
   return {
     ...defaultOptions,
     ...repoOptions,
