@@ -588,7 +588,7 @@ describe('version bumping', () => {
     expect(changeFiles.length).toBe(1);
   });
 
-  it('bumps all packages and uses prefix in the version', async () => {
+  it('bumps all packages and uses prefix in the version. Prerelease prefix is declared in options', async () => {
     repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
@@ -679,7 +679,7 @@ describe('version bumping', () => {
     expect(changeFiles.length).toBe(0);
   });
 
-  it('bumps all packages and uses prefixed versions in dependents', async () => {
+  it('bumps all packages and uses prefixed versions in dependents. Prerelease prefix is declared in change file', async () => {
     repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
@@ -738,6 +738,7 @@ describe('version bumping', () => {
       {
         'pkg-1': {
           type: 'prerelease',
+          prereleasePrefix: 'beta',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-1',
@@ -753,7 +754,6 @@ describe('version bumping', () => {
       path: repo.rootPath,
       bumpDeps: true,
       keepChangeFiles: false,
-      prereleasePrefix: 'beta',
     } as BeachballOptions);
 
     const packageInfos = getPackageInfos(repo.rootPath);
@@ -770,7 +770,7 @@ describe('version bumping', () => {
     expect(changeFiles.length).toBe(0);
   });
 
-  it('bumps all packages and increments prefixed versions in dependents', async () => {
+  it('bumps all packages and increments prefixed versions in dependents. Prerelease prefix declared change file is preferred over one declared in options', async () => {
     repositoryFactory = new RepositoryFactory();
     await repositoryFactory.create();
     const repo = await repositoryFactory.cloneRepository();
@@ -829,6 +829,7 @@ describe('version bumping', () => {
       {
         'pkg-1': {
           type: 'prerelease',
+          prereleasePrefix: 'beta',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-1',
@@ -844,7 +845,7 @@ describe('version bumping', () => {
       path: repo.rootPath,
       bumpDeps: true,
       keepChangeFiles: false,
-      prereleasePrefix: 'beta',
+      prereleasePrefix: 'stable',
     } as BeachballOptions);
 
     const packageInfos = getPackageInfos(repo.rootPath);

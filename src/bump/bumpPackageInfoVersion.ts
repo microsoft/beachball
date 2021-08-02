@@ -9,6 +9,8 @@ export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo, opti
   const { calculatedChangeInfos, packageInfos, modifiedPackages } = bumpInfo;
   const info = packageInfos[pkgName];
   const changeType = calculatedChangeInfos[pkgName]?.type;
+  const prereleasePrefix = calculatedChangeInfos[pkgName]?.prereleasePrefix || options.prereleasePrefix;
+
   if (!info) {
     console.log(`Unknown package named "${pkgName}" detected from change files, skipping!`);
     return;
@@ -22,7 +24,7 @@ export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo, opti
     return;
   }
   if (!info.private) {
-    info.version = semver.inc(info.version, changeType, options.prereleasePrefix) as string;
+    info.version = semver.inc(info.version, changeType, prereleasePrefix) as string;
     modifiedPackages.add(pkgName);
   }
 }

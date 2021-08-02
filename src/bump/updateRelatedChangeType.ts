@@ -115,6 +115,7 @@ export function updateRelatedChangeType(
   ) {
     const newChangeInfo = {
       type: MinChangeType,
+      prereleasePrefix: changeInfo.prereleasePrefix,
       packageName: pkg,
       email: changeInfo.email,
       commit: changeInfo.commit,

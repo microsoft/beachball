@@ -7,7 +7,7 @@ import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { getChangesBetweenRefs } from 'workspace-tools';
 
 export function readChangeFiles(options: BeachballOptions): ChangeSet {
-  const { path: cwd } = options;
+  const { path: cwd, prereleasePrefix } = options;
   const scopedPackages = getScopedPackages(options);
   const changeSet: ChangeSet = new Map();
   const changePath = getChangePath(cwd);
@@ -55,7 +55,11 @@ export function readChangeFiles(options: BeachballOptions): ChangeSet {
       const changeFilePath = path.join(changePath, changeFile);
       const changeInfo: ChangeInfo = fs.readJSONSync(changeFilePath);
 
+      // TODO: Define preference order for setting prerelease prefix
+      changeInfo.prereleasePrefix = changeInfo.prereleasePrefix || prereleasePrefix || undefined;
+
       const packageName = changeInfo.packageName;
+
       if (scopedPackages.includes(packageName)) {
         changeSet.set(changeFile, changeInfo);
       }
