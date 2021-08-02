@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add caching of changed packages",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { RepositoryFactory } from '../fixtures/repository';
-import { getChangedPackages } from '../changefile/getChangedPackages';
+import { getChangedPackages, resetChangedPackagesCache } from '../changefile/getChangedPackages';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { git } from 'workspace-tools';
 import { bump } from '../commands/bump';
@@ -14,6 +14,7 @@ describe('changed files', () => {
   let repositoryFactory: RepositoryFactory | undefined;
 
   afterEach(() => {
+    resetChangedPackagesCache();
     if (repositoryFactory) {
       repositoryFactory.cleanUp();
       repositoryFactory = undefined;
