@@ -2,25 +2,32 @@ import { getScopedPackages } from '../../monorepo/getScopedPackages';
 import { BeachballOptions } from '../../types/BeachballOptions';
 import { MonoRepoFactory } from '../../fixtures/monorepo';
 import { Repository } from '../../fixtures/repository';
+import { PackageInfos } from '../../types/PackageInfo';
+import { getPackageInfos } from '../../monorepo/getPackageInfos';
 
 describe('getScopedPackages', () => {
   let repoFactory: MonoRepoFactory;
   let repo: Repository;
+  let packageInfos: PackageInfos;
 
-  beforeAll(async () => {
+  beforeAll(() => {
     repoFactory = new MonoRepoFactory();
-    await repoFactory.create();
-    repo = await repoFactory.cloneRepository();
+    repoFactory.create();
+    repo = repoFactory.cloneRepository();
+    packageInfos = getPackageInfos(repo.rootPath);
   });
-  afterAll(async () => {
-    await repoFactory.cleanUp();
+  afterAll(() => {
+    repoFactory.cleanUp();
   });
 
-  it('can scope packages', async () => {
-    const scopedPackages = getScopedPackages({
-      path: repo.rootPath,
-      scope: ['packages/grouped/*'],
-    } as BeachballOptions);
+  it('can scope packages', () => {
+    const scopedPackages = getScopedPackages(
+      {
+        path: repo.rootPath,
+        scope: ['packages/grouped/*'],
+      } as BeachballOptions,
+      packageInfos
+    );
 
     expect(scopedPackages.includes('a')).toBeTruthy();
     expect(scopedPackages.includes('b')).toBeTruthy();
@@ -29,11 +36,14 @@ describe('getScopedPackages', () => {
     expect(scopedPackages.includes('bar')).toBeFalsy();
   });
 
-  it('can scope with excluded packages', async () => {
-    const scopedPackages = getScopedPackages({
-      path: repo.rootPath,
-      scope: ['!packages/grouped/*'],
-    } as BeachballOptions);
+  it('can scope with excluded packages', () => {
+    const scopedPackages = getScopedPackages(
+      {
+        path: repo.rootPath,
+        scope: ['!packages/grouped/*'],
+      } as BeachballOptions,
+      packageInfos
+    );
 
     expect(scopedPackages.includes('a')).toBeFalsy();
     expect(scopedPackages.includes('b')).toBeFalsy();
@@ -42,11 +52,14 @@ describe('getScopedPackages', () => {
     expect(scopedPackages.includes('bar')).toBeTruthy();
   });
 
-  it('can mix and match with excluded packages', async () => {
-    const scopedPackages = getScopedPackages({
-      path: repo.rootPath,
-      scope: ['packages/b*', '!packages/grouped/*'],
-    } as BeachballOptions);
+  it('can mix and match with excluded packages', () => {
+    const scopedPackages = getScopedPackages(
+      {
+        path: repo.rootPath,
+        scope: ['packages/b*', '!packages/grouped/*'],
+      } as BeachballOptions,
+      packageInfos
+    );
 
     expect(scopedPackages.includes('a')).toBeFalsy();
     expect(scopedPackages.includes('b')).toBeFalsy();

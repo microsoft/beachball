@@ -1,8 +1,77 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 16 Jul 2021 18:14:39 GMT and should not be manually modified.
+This log was last generated on Fri, 30 Jul 2021 21:04:39 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.10.2
+
+Fri, 30 Jul 2021 21:04:39 GMT
+
+### Patches
+
+- fixes canary not to use latest tag for npm (kchau@microsoft.com)
+
+## 2.10.1
+
+Fri, 30 Jul 2021 07:14:51 GMT
+
+### Patches
+
+- Another attempt at ignoring test files (elcraig@microsoft.com)
+
+## 2.10.0
+
+Fri, 30 Jul 2021 07:00:05 GMT
+
+### Minor changes
+
+- Remove `group` from `PackageInfo`, and calculate as needed instead of setting it as a side effect (elcraig@microsoft.com)
+
+### Patches
+
+- Stop publishing test and config files (elcraig@microsoft.com)
+- Reduce number of times `getPackageInfos` is called (elcraig@microsoft.com)
+
+## 2.9.1
+
+Wed, 28 Jul 2021 21:59:24 GMT
+
+### Patches
+
+- Stop publishing docs and configs in npm package (elcraig@microsoft.com)
+
+## 2.9.0
+
+Wed, 28 Jul 2021 21:55:21 GMT
+
+### Minor changes
+
+- Update typescript to 3.9 (elcraig@microsoft.com)
+
+## 2.8.1
+
+Fri, 23 Jul 2021 00:04:33 GMT
+
+### Patches
+
+- Add fallback logic for publishConfig values (scott.schmalz@gmail.com)
+
+## 2.8.0
+
+Thu, 22 Jul 2021 23:33:10 GMT
+
+### Minor changes
+
+- Fix for handling of custom schema while updating the CHANGELOG.json file (pravcha@microsoft.com)
+
+## 2.7.0
+
+Thu, 22 Jul 2021 22:09:07 GMT
+
+### Minor changes
+
+- Adding option to specify custom changelog at the package level (pravcha@microsoft.com)
 
 ## 2.6.3
 
@@ -95,6 +164,14 @@ Fri, 02 Apr 2021 17:49:52 GMT
 ### Minor changes
 
 - adds a feature of adding publish-config, bumps requirement to node 12 (kchau@microsoft.com)
+
+## 2.0.0
+
+Fri, 02 Apr 2021 17:34:25 GMT
+
+### Major changes
+
+- BREAKING: Adding a requirement of node engine 12+
 
 ## 1.53.2
 

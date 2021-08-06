@@ -44,7 +44,10 @@ describe('mergeChangelogs', () => {
       },
     ];
 
-    const mergedChangelog = mergeChangelogs(changelogs, { name: 'master', version: '1.2.3' } as PackageInfo);
+    const mergedChangelog = mergeChangelogs(changelogs, {
+      name: 'master',
+      version: '1.2.3',
+    } as PackageInfo);
     expect(mergedChangelog).toBeDefined();
     expect(mergedChangelog!.name).toBe('master');
     expect(mergedChangelog!.version).toBe('1.2.3');
@@ -72,7 +75,10 @@ describe('mergeChangelogs', () => {
       },
     ];
 
-    const mergedChangelog = mergeChangelogs(changelogs, { name: 'master', version: '1.2.3' } as PackageInfo);
+    const mergedChangelog = mergeChangelogs(changelogs, {
+      name: 'master',
+      version: '1.2.3',
+    } as PackageInfo);
     expect(mergedChangelog).toBeDefined();
     expect(mergedChangelog!.name).toBe('master');
     expect(mergedChangelog!.version).toBe('1.2.3');

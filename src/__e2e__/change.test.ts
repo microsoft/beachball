@@ -14,7 +14,7 @@ describe('change command', () => {
     return changeFiles;
   }
 
-  afterEach(async () => {
+  afterEach(() => {
     if (repositoryFactory) {
       repositoryFactory.cleanUp();
       repositoryFactory = undefined;
@@ -23,10 +23,10 @@ describe('change command', () => {
 
   it('create change file but git stage only', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-1/package.json',
       JSON.stringify({
         name: 'pkg-1',
@@ -53,10 +53,10 @@ describe('change command', () => {
 
   it('create change file and commit', async () => {
     repositoryFactory = new RepositoryFactory();
-    await repositoryFactory.create();
-    const repo = await repositoryFactory.cloneRepository();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
 
-    await repo.commitChange(
+    repo.commitChange(
       'packages/pkg-1/package.json',
       JSON.stringify({
         name: 'pkg-1',

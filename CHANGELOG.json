@@ -2,6 +2,200 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 30 Jul 2021 21:04:39 GMT",
+      "tag": "beachball_v2.10.2",
+      "version": "2.10.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "kchau@microsoft.com",
+            "package": "beachball",
+            "comment": "fixes canary not to use latest tag for npm",
+            "commit": "490bc4a71d8f5435373ad92ed2f420216c76db01"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 30 Jul 2021 07:14:51 GMT",
+      "tag": "beachball_v2.10.1",
+      "version": "2.10.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Another attempt at ignoring test files",
+            "commit": "8ec91182c38fc20d4baa65246952384b9f61a0ef"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 30 Jul 2021 07:00:05 GMT",
+      "tag": "beachball_v2.10.0",
+      "version": "2.10.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Stop publishing test and config files",
+            "commit": "f131accfc3bb83c816f9bdaef1b72383d846c277"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Reduce number of times `getPackageInfos` is called",
+            "commit": "f131accfc3bb83c816f9bdaef1b72383d846c277"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Remove `group` from `PackageInfo`, and calculate as needed instead of setting it as a side effect",
+            "commit": "f131accfc3bb83c816f9bdaef1b72383d846c277"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 28 Jul 2021 22:17:37 GMT",
+      "tag": "beachball_v2.9.1",
+      "version": "2.9.1",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Remove unnecessary async/await in tests",
+            "commit": "86fcdd11979d82863da3f3837f072f66d4b58cbc"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 28 Jul 2021 21:59:24 GMT",
+      "tag": "beachball_v2.9.1",
+      "version": "2.9.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Stop publishing docs and configs in npm package",
+            "commit": "1eb553983be08d3481d55073a6e6edee76d6e151"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 28 Jul 2021 21:55:21 GMT",
+      "tag": "beachball_v2.9.0",
+      "version": "2.9.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Update typescript to 3.9",
+            "commit": "5e51cf6e0fc449788931724fe19d354b8203f03d"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 28 Jul 2021 21:52:19 GMT",
+      "tag": "beachball_v2.8.1",
+      "version": "2.8.1",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Add note about setting up check in github actions",
+            "commit": "ffb98fbe58257f34d004179bed49478dd1058b05"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 23 Jul 2021 01:18:00 GMT",
+      "tag": "beachball_v2.8.1",
+      "version": "2.8.1",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Deduplicate locally installed deps",
+            "commit": "642c51370af50c70d0cf39ca00b5e094c48d2a5e"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 23 Jul 2021 00:04:33 GMT",
+      "tag": "beachball_v2.8.1",
+      "version": "2.8.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "scott.schmalz@gmail.com",
+            "package": "beachball",
+            "comment": "Add fallback logic for publishConfig values",
+            "commit": "b50f8ca98ef14451eba4c6c74283160140055d06"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Jul 2021 23:33:10 GMT",
+      "tag": "beachball_v2.8.0",
+      "version": "2.8.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "pravcha@microsoft.com",
+            "package": "beachball",
+            "comment": "Fix for handling of custom schema while updating the CHANGELOG.json file",
+            "commit": "61e6a01bf0e6782eae7d436b9ad6edd62f654509"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Jul 2021 22:56:40 GMT",
+      "tag": "beachball_v2.7.0",
+      "version": "2.7.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update prettier",
+            "author": "elcraig@microsoft.com",
+            "commit": "45d18e57ddee5651068418d46e940e3b00a452d2",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Jul 2021 22:09:07 GMT",
+      "tag": "beachball_v2.7.0",
+      "version": "2.7.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Adding option to specify custom changelog at the package level",
+            "author": "pravcha@microsoft.com",
+            "commit": "5504b62f75adc607c560bbebe15d872e32cabe3f",
+            "package": "beachball"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 16 Jul 2021 18:38:32 GMT",
       "tag": "beachball_v2.6.3",
       "version": "2.6.3",

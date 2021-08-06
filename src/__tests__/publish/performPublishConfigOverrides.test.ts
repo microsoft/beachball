@@ -19,7 +19,12 @@ describe('perform publishConfig overrides', () => {
 
     const packageInfos: PackageInfos = {
       foo: {
-        combinedOptions: { defaultNpmTag: 'latest', disallowedChangeTypes: [], gitTags: true, tag: 'latest' },
+        combinedOptions: {
+          defaultNpmTag: 'latest',
+          disallowedChangeTypes: [],
+          gitTags: true,
+          tag: 'latest',
+        },
         name: 'foo',
         packageJsonPath: path.join(tmpDir, 'package.json'),
         packageOptions: {},
@@ -56,6 +61,31 @@ describe('perform publishConfig overrides', () => {
     expect(modified.types).toBe('lib/index.d.ts');
     expect(modified.publishConfig.main).toBeUndefined();
     expect(modified.publishConfig.types).toBeUndefined();
+
+    cleanUp(tmpDir);
+  });
+
+  it('uses values on packageJson root as fallback values when present', () => {
+    const { packageInfos, tmpDir } = createFixture({
+      main: 'lib/index.js',
+    });
+
+    const original = JSON.parse(fs.readFileSync(packageInfos['foo'].packageJsonPath, 'utf-8'));
+
+    expect(original.main).toBe('src/index.ts');
+    expect(original.bin).toStrictEqual({ 'foo-bin': 'src/foo-bin.js' });
+    expect(original.files).toBeUndefined();
+
+    performPublishConfigOverrides(['foo'], packageInfos);
+
+    const modified = JSON.parse(fs.readFileSync(packageInfos['foo'].packageJsonPath, 'utf-8'));
+
+    expect(modified.main).toBe('lib/index.js');
+    expect(modified.bin).toStrictEqual({ 'foo-bin': 'src/foo-bin.js' });
+    expect(modified.files).toBeUndefined();
+    expect(modified.publishConfig.main).toBeUndefined();
+    expect(modified.publishConfig.bin).toBeUndefined();
+    expect(modified.publishConfig.files).toBeUndefined();
 
     cleanUp(tmpDir);
   });

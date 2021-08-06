@@ -1,6 +1,5 @@
 import { isGitAvailable } from './isGitAvailable';
 import { getUntrackedChanges } from 'workspace-tools';
-import { isValidPackageName } from './isValidPackageName';
 import { isValidAuthType } from './isValidAuthType';
 import { isValidChangeType } from './isValidChangeType';
 import { isChangeFileNeeded } from './isChangeFileNeeded';
@@ -16,17 +15,14 @@ import { validatePackageDependencies } from '../publish/validatePackageDependenc
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { isValidDependentChangeType } from './isValidDependantChangeType';
 
-type ValidationOptions = { allowMissingChangeFiles: boolean; allowFetching: boolean };
-type PartialValidateOptions = Partial<ValidationOptions>;
-const defaultValidationOptions: ValidationOptions = {
-  allowMissingChangeFiles: false,
-  allowFetching: true,
+type ValidationOptions = {
+  allowMissingChangeFiles?: boolean;
+  allowFetching?: boolean;
 };
 
-export function validate(options: BeachballOptions, validateOptionsOverride?: PartialValidateOptions) {
-  const validateOptions: ValidationOptions = Object.assign({}, defaultValidationOptions, validateOptionsOverride || {});
+export function validate(options: BeachballOptions, validateOptions?: Partial<ValidationOptions>) {
+  const { allowMissingChangeFiles = false, allowFetching = true } = validateOptions || {};
 
-  // Validation Steps
   if (!isGitAvailable(options.path)) {
     console.error('ERROR: Please make sure git is installed and initialize the repository with "git init".');
     process.exit(1);
@@ -40,11 +36,12 @@ export function validate(options: BeachballOptions, validateOptionsOverride?: Pa
     console.warn('Changes in these files will not trigger a prompt for change descriptions');
   }
 
-  if (options.package && !isValidPackageName(options.package, options.path)) {
+  const packageInfos = getPackageInfos(options.path);
+
+  if (options.package && !packageInfos[options.package]) {
     console.error('ERROR: Specified package name is not valid');
     process.exit(1);
   }
-
   if (options.authType && !isValidAuthType(options.authType)) {
     console.error(`ERROR: auth type ${options.authType} is not valid`);
     process.exit(1);
@@ -62,10 +59,10 @@ export function validate(options: BeachballOptions, validateOptionsOverride?: Pa
 
   let isChangeNeeded = false;
 
-  if (validateOptions.allowFetching) {
-    isChangeNeeded = isChangeFileNeeded(options);
+  if (allowFetching) {
+    isChangeNeeded = isChangeFileNeeded(options, packageInfos);
 
-    if (isChangeNeeded && !validateOptions.allowMissingChangeFiles) {
+    if (isChangeNeeded && !allowMissingChangeFiles) {
       console.error('ERROR: Change files are needed!');
       console.log(options.changehint);
       process.exit(1);
@@ -89,8 +86,7 @@ export function validate(options: BeachballOptions, validateOptionsOverride?: Pa
     process.exit(1);
   }
 
-  const changeSet = readChangeFiles(options);
-  const packageInfos = getPackageInfos(options.path);
+  const changeSet = readChangeFiles(options, packageInfos);
   const packageGroups = getPackageGroups(packageInfos, options.path, options.groups);
 
   for (const [changeFile, change] of changeSet) {
@@ -111,12 +107,12 @@ export function validate(options: BeachballOptions, validateOptionsOverride?: Pa
   }
 
   if (!isChangeNeeded) {
-    const bumpInfo = gatherBumpInfo(options);
+    const bumpInfo = gatherBumpInfo(options, packageInfos);
     if (!validatePackageDependencies(bumpInfo)) {
       console.error(`ERROR: one or more published packages depend on an unpublished package!
 
 Consider one of the following solutions:
-- If the unpublished package should be published, remove "private": true from its package.json.
+- If the unpublished package should be published, remove \`"private": true\` from its package.json.
 - If it should NOT be published, verify that it is only listed under devDependencies of published packages.
 `);
       process.exit(1);

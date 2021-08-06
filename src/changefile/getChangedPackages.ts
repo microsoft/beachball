@@ -5,15 +5,16 @@ import fs from 'fs-extra';
 import path from 'path';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { BeachballOptions } from '../types/BeachballOptions';
+import { PackageInfos } from '../types/PackageInfo';
 
 /**
  * Gets all the changed packages, regardless of the change files
  */
-function getAllChangedPackages(options: BeachballOptions) {
+function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageInfos) {
   const { branch, path: cwd } = options;
 
   const changes = [...(getChanges(branch, cwd) || []), ...(getStagedChanges(cwd) || [])];
-  const scopedPackages = getScopedPackages(options);
+  const scopedPackages = getScopedPackages(options, packageInfos);
   const ignoredFiles = ['CHANGELOG.md', 'CHANGELOG.json'];
   const packageRoots: { [pathName: string]: string } = {};
   if (changes) {
@@ -47,7 +48,7 @@ function getAllChangedPackages(options: BeachballOptions) {
 /**
  * Gets all the changed packages, accounting for change files
  */
-export function getChangedPackages(options: BeachballOptions) {
+export function getChangedPackages(options: BeachballOptions, packageInfos: PackageInfos) {
   const { fetch, path: cwd, branch } = options;
 
   const changePath = getChangePath(cwd);
@@ -58,7 +59,7 @@ export function getChangedPackages(options: BeachballOptions) {
     fetchRemoteBranch(remote, remoteBranch, cwd);
   }
 
-  const changedPackages = getAllChangedPackages(options);
+  const changedPackages = getAllChangedPackages(options, packageInfos);
 
   const changeFilesResult = git(
     ['diff', '--name-only', '--relative', '--no-renames', '--diff-filter=A', `${branch}...`],

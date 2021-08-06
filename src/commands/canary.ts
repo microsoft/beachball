@@ -10,11 +10,10 @@ import { BeachballOptions } from '../types/BeachballOptions';
 export async function canary(options: BeachballOptions) {
   const oldPackageInfo = getPackageInfos(options.path);
 
-  const bumpInfo = gatherBumpInfo(options);
+  const bumpInfo = gatherBumpInfo(options, oldPackageInfo);
 
   options.keepChangeFiles = true;
   options.generateChangelog = false;
-  options.tag = options.canaryName || 'canary';
 
   if (options.all) {
     for (const pkg of Object.keys(oldPackageInfo)) {
@@ -28,7 +27,7 @@ export async function canary(options: BeachballOptions) {
     let newVersion = oldPackageInfo[pkg].version;
 
     do {
-      newVersion = semver.inc(newVersion, 'prerelease', options.canaryName || 'canary');
+      newVersion = semver.inc(newVersion, 'prerelease', options.canaryName || 'canary')!;
     } while (packageVersions[pkg].includes(newVersion));
 
     bumpInfo.packageInfos[pkg].version = newVersion;

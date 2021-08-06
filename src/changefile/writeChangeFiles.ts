@@ -46,7 +46,7 @@ export function writeChangeFiles(
     }
 
     console.log(
-      `git ${commitChangeFiles ? 'commited' : 'staged'} these change files: ${changeFiles
+      `git ${commitChangeFiles ? 'committed' : 'staged'} these change files: ${changeFiles
         .map(f => ` - ${f}`)
         .join('\n')}`
     );

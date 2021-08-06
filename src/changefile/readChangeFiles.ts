@@ -5,10 +5,11 @@ import path from 'path';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { getChangesBetweenRefs } from 'workspace-tools';
+import { PackageInfos } from '../types/PackageInfo';
 
-export function readChangeFiles(options: BeachballOptions): ChangeSet {
+export function readChangeFiles(options: BeachballOptions, packageInfos: PackageInfos): ChangeSet {
   const { path: cwd, prereleasePrefix } = options;
-  const scopedPackages = getScopedPackages(options);
+  const scopedPackages = getScopedPackages(options, packageInfos);
   const changeSet: ChangeSet = new Map();
   const changePath = getChangePath(cwd);
   const fromRef = options.fromRef;
@@ -41,7 +42,7 @@ export function readChangeFiles(options: BeachballOptions): ChangeSet {
 
   try {
     // sort the change files by modified time. Most recent modified file comes first.
-    filteredChangeFiles.sort(function(f1, f2) {
+    filteredChangeFiles.sort(function (f1, f2) {
       return (
         fs.statSync(path.join(changePath, f2)).mtime.getTime() - fs.statSync(path.join(changePath, f1)).mtime.getTime()
       );

@@ -15,11 +15,11 @@ import { getDisallowedChangeTypes } from './getDisallowedChangeTypes';
 export async function promptForChange(options: BeachballOptions) {
   const { branch, path: cwd, package: specificPackage } = options;
 
-  const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(options);
+  const packageInfos = getPackageInfos(cwd);
+  const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(options, packageInfos);
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
   const packageChangeInfo: { [pkgname: string]: ChangeFileInfo } = {};
 
-  const packageInfos = getPackageInfos(cwd);
   const packageGroups = getPackageGroups(packageInfos, options.path, options.groups);
 
   for (let pkg of changedPackages) {
@@ -73,7 +73,11 @@ export async function promptForChange(options: BeachballOptions) {
     let questions = [defaultPrompt.changeType, defaultPrompt.description];
 
     if (packageInfo.combinedOptions.changeFilePrompt?.changePrompt) {
-      questions = packageInfo.combinedOptions.changeFilePrompt?.changePrompt(defaultPrompt);
+      /**
+       * We are providing the package name also as the parameter so
+       * that the custom changelog can be specified at the package level
+       */
+      questions = packageInfo.combinedOptions.changeFilePrompt?.changePrompt(defaultPrompt, pkg);
     }
 
     questions = questions.filter(q => !!q);

@@ -8,57 +8,26 @@
       "type": "node",
       "request": "launch",
       "name": "Debug Unit Jest Tests",
+      "program": "${workspaceRoot}/node_modules/.bin/jest",
       "cwd": "${workspaceFolder}",
-      "args": [
-        "--inspect-brk",
-        "${workspaceRoot}/node_modules/.bin/jest",
-        "--runInBand",
-        "--watch",
-        "--config",
-        "${workspaceRoot}/packages/beachball/jest.config.js",
-        "${fileBasenameNoExtension}"
-      ],
-      "windows": {
-        "args": [
-          "--inspect-brk",
-          "${workspaceRoot}/node_modules/jest/bin/jest.js",
-          "--runInBand",
-          "--watch",
-          "--config",
-          "${workspaceRoot}/packages/beachball/jest.config.js",
-          "${fileBasenameNoExtension}"
-        ]
-      },
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
+      "runtimeArgs": ["--nolazy", "--inspect"],
+      "args": ["--runInBand", "--watch", "--config", "${workspaceRoot}/jest.config.js", "${fileBasenameNoExtension}"],
+      "sourceMaps": true,
+      "outputCapture": "std",
+      "console": "integratedTerminal"
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Debug E2E Jest Tests",
+      "program": "${workspaceRoot}/node_modules/.bin/jest",
       "cwd": "${workspaceFolder}",
-      "args": [
-        "--inspect-brk",
-        "${workspaceRoot}/node_modules/.bin/jest",
-        "--runInBand",
-        "--watch",
-        "--config",
-        "${workspaceRoot}/packages/beachball/jest.e2e.js",
-        "${fileBasenameNoExtension}"
-      ],
-      "windows": {
-        "args": [
-          "--inspect-brk",
-          "${workspaceRoot}/node_modules/jest/bin/jest.js",
-          "--runInBand",
-          "--watch",
-          "--config",
-          "${workspaceRoot}/packages/beachball/jest.e2e.js",
-          "${fileBasenameNoExtension}"
-        ]
-      },
+      "runtimeArgs": ["--nolazy", "--inspect"],
+      "args": ["--runInBand", "--watch", "--config", "${workspaceRoot}/jest.e2e.js", "${fileBasenameNoExtension}"],
+      "sourceMaps": true,
+      "outputCapture": "std",
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
+      "stopOnEntry": true
     },
     {
       "type": "node",

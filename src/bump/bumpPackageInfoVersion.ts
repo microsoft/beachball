@@ -9,7 +9,7 @@ export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo, opti
   const { calculatedChangeInfos, packageInfos, modifiedPackages } = bumpInfo;
   const info = packageInfos[pkgName];
   const changeType = calculatedChangeInfos[pkgName]?.type;
-  const prereleasePrefix = calculatedChangeInfos[pkgName]?.prereleasePrefix || options.prereleasePrefix;
+  const prereleasePrefix = calculatedChangeInfos[pkgName]?.prereleasePrefix || options.prereleasePrefix || undefined;
 
   if (!info) {
     console.log(`Unknown package named "${pkgName}" detected from change files, skipping!`);
