@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "always prompt for prerelease tags",
+  "packageName": "beachball",
+  "email": "jokonuko@microsoft.com",
+  "dependentChangeType": "patch"
+}
