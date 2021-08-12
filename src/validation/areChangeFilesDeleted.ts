@@ -37,7 +37,7 @@ export function areChangeFilesDeleted(options: BeachballOptions): boolean {
 
   if (changeFilesDeleted) {
     const changeFiles = changeFilesDeletedSinceRef.map(file => `- ${file}`);
-    const errorMessage = 'The following change files were deleted:';
+    const errorMessage = 'The following change files were deleted or renamed:';
 
     console.error(`${errorMessage}\n${changeFiles.join('\n')}\n`);
   }
