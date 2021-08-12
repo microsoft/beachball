@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "check for renamed change files",
+  "packageName": "beachball",
+  "email": "lkiniu@microsoft.com",
+  "dependentChangeType": "patch"
+}
