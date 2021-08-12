@@ -17,12 +17,12 @@ export function areChangeFilesDeleted(options: BeachballOptions): boolean {
     process.exit(1);
   }
 
-  console.log(`Checking for deleted change files against "${branch}"`);
+  console.log(`Checking for deleted and renamed change files against "${branch}"`);
   const changeFilesDeletedSinceRef = getChangesBetweenRefs(
     branch,
     'HEAD',
     [
-      '--diff-filter=D', // showing only deleted files from the diff.
+      '--diff-filter=DR', // showing only deleted and renamed change files from the diff.
     ],
     `${changePath}/*.json`,
     root
