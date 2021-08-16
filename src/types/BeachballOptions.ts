@@ -43,6 +43,7 @@ export interface CliOptions
   timeout?: number;
   token: string;
   type?: ChangeType | null;
+  verbose?: boolean;
   version?: boolean;
   yes: boolean;
 }

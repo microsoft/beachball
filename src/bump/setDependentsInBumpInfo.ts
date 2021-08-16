@@ -1,5 +1,4 @@
-import { BumpInfo } from '../types/BumpInfo';
-import { PackageDeps } from '../types/PackageInfo';
+import type { BumpInfo } from '../types/BumpInfo';
 
 /**
  * Gets dependents for all packages
@@ -17,9 +16,9 @@ export function setDependentsInBumpInfo(bumpInfo: BumpInfo): void {
     }
 
     const info = packageInfos[pkgName];
-    const depTypes = ['dependencies', 'devDependencies', 'peerDependencies'];
+    const depTypes = ['dependencies', 'devDependencies', 'peerDependencies'] as const;
     depTypes.forEach(depType => {
-      const deps: PackageDeps | undefined = (info as any)[depType];
+      const deps = info[depType];
       if (deps) {
         for (let dep of Object.keys(deps)) {
           if (packages.includes(dep)) {

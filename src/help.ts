@@ -46,6 +46,7 @@ Options:
   --dependent-change-type         - for the change command: override the default dependent-change-type that will end-up in the change file.
   --disallow-deleted-change-files - for the check command: verifies that no change files were deleted between head and target branch.
   --prerelease-prefix             - for the bump and publish commands: specify a prerelease prefix for packages that will receive a prerelease bump.
+  --verbose                       - prints additional information to the console
 
 Examples:
 
