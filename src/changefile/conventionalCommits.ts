@@ -6,7 +6,7 @@ import { ChangeType } from '../types/ChangeInfo';
  * 3. breaking
  * 4. message
  */
-const COMMIT_RE = /([a-z]+)(?:\(([a-z]+)\))?(!)?: (.+)/;
+const COMMIT_RE = /([a-z]+)(?:\(([a-z\-]+)\))?(!)?: (.+)/;
 
 interface ConventionalCommit {
   type: string;
@@ -34,8 +34,9 @@ function map(d: ConventionalCommit): Change | undefined {
   }
 
   switch (d.type) {
-    case 'fix':
     case 'chore':
+      return { type: 'none', message: d.message };
+    case 'fix':
       return { type: 'patch', message: d.message };
     case 'feat':
       return { type: 'minor', message: d.message };
