@@ -38,7 +38,7 @@ export function validate(options: BeachballOptions, validateOptions?: Partial<Va
 
   const packageInfos = getPackageInfos(options.path);
 
-  if (options.package && !packageInfos[options.package]) {
+  if (options.package && !Array.isArray(options.package) && !packageInfos[options.package]) {
     console.error('ERROR: Specified package name is not valid');
     process.exit(1);
   }

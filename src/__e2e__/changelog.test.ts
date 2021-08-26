@@ -11,7 +11,7 @@ import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { SortedChangeTypes } from '../changefile/getPackageChangeTypes';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { ChangeFileInfo } from '../types/ChangeInfo';
+import { ChangeFileInfo, ChangeInfo } from '../types/ChangeInfo';
 import { MonoRepoFactory } from '../fixtures/monorepo';
 import { ChangelogJson } from '../types/ChangeLog';
 
@@ -73,6 +73,18 @@ describe('changelog generation', () => {
       expect(changes).toHaveLength(1);
       expect(changes[0].commit).toBe(undefined);
     });
+
+    it('does not add commit hash', () => {
+      const repository = repositoryFactory.cloneRepository();
+      repository.commitChange('foo');
+      writeChangeFiles({ foo: getChange(), bar: getChange() }, repository.rootPath);
+
+      const packageInfos = getPackageInfos(repository.rootPath);
+      const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions, packageInfos);
+      const changes = [...changeSet.values()];
+      expect(changes).toHaveLength(2);
+      expect(changes[0].commit).toBe(undefined);
+    });
   });
 
   describe('writeChangelog', () => {
@@ -91,6 +103,40 @@ describe('changelog generation', () => {
       const changes = readChangeFiles(beachballOptions, packageInfos);
 
       await writeChangelog(beachballOptions, changes, { foo: 'patch' }, { foo: new Set(['foo']) }, packageInfos);
+
+      const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
+      const text = fs.readFileSync(changelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(text)).toMatchSnapshot();
+
+      const changelogJsonFile = path.join(repository.rootPath, 'CHANGELOG.json');
+      const jsonText = fs.readFileSync(changelogJsonFile, { encoding: 'utf-8' });
+      const changelogJson = JSON.parse(jsonText);
+      expect(cleanJsonForSnapshot(changelogJson)).toMatchSnapshot();
+
+      expect(changelogJson.entries[0].comments.patch[0].commit).toBe(repository.getCurrentHash());
+    });
+
+    it('generates correct changelog with multiple changes changefile', async () => {
+      const repository = repositoryFactory.cloneRepository();
+      repository.commitChange('foo');
+      writeChangeFiles(
+        {
+          foo: getChange({ comment: 'additional comment 2' }),
+          bar: getChange({ comment: 'comment from bar change ' }),
+        },
+        repository.rootPath
+      );
+      writeChangeFiles({ foo: getChange({ comment: 'additional comment 1' }) }, repository.rootPath);
+      writeChangeFiles({ foo: getChange() }, repository.rootPath);
+
+      repository.commitChange('bar');
+      writeChangeFiles({ foo: getChange({ comment: 'comment 2' }) }, repository.rootPath);
+
+      const beachballOptions = { path: repository.rootPath } as BeachballOptions;
+      const packageInfos = getPackageInfos(repository.rootPath);
+      const changes = readChangeFiles(beachballOptions, packageInfos);
+
+      await writeChangelog(beachballOptions, changes, { foo: 'patch', bar: 'patch' }, {}, packageInfos);
 
       const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
       const text = fs.readFileSync(changelogFile, { encoding: 'utf-8' });
@@ -288,7 +334,7 @@ describe('changelog generation', () => {
       const beachballOptions = {
         path: monoRepo.rootPath,
         transform: {
-          changeFiles: (changeFile, changeFilePath) => {
+          changeFiles: (changeFile: ChangeInfo, changeFilePath) => {
             // For test, we will be changing the comment based on the package name
             if (changeFile.packageName === 'foo') {
               changeFile.comment = editedComment;

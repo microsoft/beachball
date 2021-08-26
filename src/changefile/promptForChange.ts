@@ -14,10 +14,14 @@ import { getDisallowedChangeTypes } from './getDisallowedChangeTypes';
  * Uses `prompts` package to prompt for change type and description, fills in git user.email and scope
  */
 export async function promptForChange(options: BeachballOptions) {
-  const { branch, path: cwd, package: specificPackage } = options;
+  const { branch, path: cwd } = options;
+  let { package: specificPackage } = options;
 
+  if (specificPackage && !Array.isArray(specificPackage)) {
+    specificPackage = [specificPackage];
+  }
   const packageInfos = getPackageInfos(cwd);
-  const changedPackages = specificPackage ? [specificPackage] : getChangedPackages(options, packageInfos);
+  const changedPackages = specificPackage || getChangedPackages(options, packageInfos);
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
   const packageChangeInfo: { [pkgname: string]: ChangeFileInfo } = {};
 

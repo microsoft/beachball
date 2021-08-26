@@ -1,4 +1,4 @@
-import { ChangeFileInfo } from '../types/ChangeInfo';
+import { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import { findPackageRoot, getChangePath } from '../paths';
 import { getChanges, getStagedChanges, git, fetchRemoteBranch, parseRemoteBranch } from 'workspace-tools';
 import fs from 'fs-extra';
@@ -79,8 +79,15 @@ export function getChangedPackages(options: BeachballOptions, packageInfos: Pack
   // Loop through the change files, building up a set of packages that we can skip
   changeFiles.forEach(file => {
     try {
-      const changeInfo: ChangeFileInfo = fs.readJSONSync(path.join(cwd, file));
-      changeFilePackageSet.add(changeInfo.packageName);
+      const changeInfo: ChangeFileInfo | ChangeInfoMultiple = fs.readJSONSync(file);
+
+      if ('changes' in changeInfo) {
+        for (const change of (changeInfo as ChangeInfoMultiple).changes) {
+          changeFilePackageSet.add(change.packageName);
+        }
+      } else {
+        changeFilePackageSet.add((changeInfo as ChangeFileInfo).packageName);
+      }
     } catch (e) {
       console.warn(`Error reading or parsing change file ${file}: ${e}`);
     }
