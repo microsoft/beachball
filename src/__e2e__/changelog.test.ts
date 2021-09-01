@@ -189,5 +189,48 @@ describe('changelog generation', () => {
       const groupedChangelogText = fs.readFileSync(groupedChangelogFile, { encoding: 'utf-8' });
       expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot();
     });
+
+    it('Verify that the changeFile transform functions are run, if provided', async () => {
+      const monoRepo = monoRepoFactory.cloneRepository();
+      monoRepo.commitChange('foo');
+      writeChangeFiles({ foo: getChange() }, monoRepo.rootPath);
+
+      monoRepo.commitChange('bar');
+      writeChangeFiles({ bar: getChange({ packageName: 'bar', comment: 'comment 2' }) }, monoRepo.rootPath);
+
+      const beachballOptions = {
+        path: monoRepo.rootPath,
+        transform: {
+          changeFiles: (changeFile, path) => {
+            changeFile.testParam = 'testParam';
+            return changeFile;
+          }
+        },
+        changelog: {
+          groups: [
+            {
+              masterPackageName: 'foo',
+              changelogPath: path.join(monoRepo.rootPath, 'packages', 'foo'),
+              include: ['packages/foo', 'packages/bar'],
+            },
+          ],
+        },
+      } as BeachballOptions;
+
+      const packageInfos = getPackageInfos(monoRepo.rootPath);
+      const changes = readChangeFiles(beachballOptions, packageInfos);
+
+      await writeChangelog(beachballOptions, changes, {}, packageInfos);
+
+      // Validate changelog for bar package
+      const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
+      const barChangelogText = fs.readFileSync(barChangelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(barChangelogText)).toMatchSnapshot();
+
+      // Validate grouped changelog for foo and bar packages
+      const groupedChangelogFile = path.join(monoRepo.rootPath, 'packages', 'foo', 'CHANGELOG.md');
+      const groupedChangelogText = fs.readFileSync(groupedChangelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot();
+    });
   });
 });

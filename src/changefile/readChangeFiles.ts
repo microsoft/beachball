@@ -54,7 +54,14 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
   filteredChangeFiles.forEach(changeFile => {
     try {
       const changeFilePath = path.join(changePath, changeFile);
-      const changeInfo: ChangeInfo = fs.readJSONSync(changeFilePath);
+      let changeInfo: ChangeInfo = fs.readJSONSync(changeFilePath);
+
+      /**
+       * Transform the change files, if the option is provided
+       */
+      if(options.transform?.changeFiles){
+       changeInfo = options.transform?.changeFiles(changeInfo, path.join(changePath, changeFile))
+      }
 
       const packageName = changeInfo.packageName;
       if (scopedPackages.includes(packageName)) {
