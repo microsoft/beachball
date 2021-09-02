@@ -202,7 +202,7 @@ describe('changelog generation', () => {
         path: monoRepo.rootPath,
         transform: {
           changeFiles: (changeFile, path) => {
-            changeFile.testParam = 'testParam';
+            changeFile.comment = 'Edited comment for testing';
             return changeFile;
           }
         },
