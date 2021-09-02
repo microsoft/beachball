@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Added custom transform option for the changeFiles",
+  "packageName": "beachball",
+  "email": "pravcha@microsoft.com",
+  "dependentChangeType": "patch"
+}
