@@ -85,6 +85,12 @@ export interface RepoOptions {
   };
 
   transform?: {
+    /**
+     * Runs for each of the filtered change files.
+     *
+     * This allows for adding or editing information to the change files
+     * without having to modify anything on the disk.
+     */
     changeFiles?: (changeInfo: ChangeInfo, changeFilePath: string) => ChangeInfo;
   }
 }
