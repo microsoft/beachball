@@ -191,6 +191,7 @@ describe('changelog generation', () => {
     });
 
     it('Verify that the changeFile transform functions are run, if provided', async () => {
+      const editedComment: string = 'Edited comment for testing';
       const monoRepo = monoRepoFactory.cloneRepository();
       monoRepo.commitChange('foo');
       writeChangeFiles({ foo: getChange() }, monoRepo.rootPath);
@@ -201,8 +202,11 @@ describe('changelog generation', () => {
       const beachballOptions = {
         path: monoRepo.rootPath,
         transform: {
-          changeFiles: (changeFile, path) => {
-            changeFile.comment = 'Edited comment for testing';
+          changeFiles: (changeFile, changeFilePath) => {
+            // For test, we will be changing the comment based on the package name
+            if(changeFile.packageName === 'foo'){
+              changeFile.comment = editedComment;
+            }
             return changeFile;
           }
         },
@@ -220,17 +224,14 @@ describe('changelog generation', () => {
       const packageInfos = getPackageInfos(monoRepo.rootPath);
       const changes = readChangeFiles(beachballOptions, packageInfos);
 
-      await writeChangelog(beachballOptions, changes, {}, packageInfos);
-
-      // Validate changelog for bar package
-      const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
-      const barChangelogText = fs.readFileSync(barChangelogFile, { encoding: 'utf-8' });
-      expect(cleanMarkdownForSnapshot(barChangelogText)).toMatchSnapshot();
-
-      // Validate grouped changelog for foo and bar packages
-      const groupedChangelogFile = path.join(monoRepo.rootPath, 'packages', 'foo', 'CHANGELOG.md');
-      const groupedChangelogText = fs.readFileSync(groupedChangelogFile, { encoding: 'utf-8' });
-      expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot();
+      // Verify that the comment of only the intended change file is changed
+      for(const [changeFileName, changeInfo] of changes){
+        if(changeFileName.substr(0, 3) === 'foo'){
+          expect(changeInfo.comment).toBe(editedComment);
+        }else{
+          expect(changeInfo.comment).toBe('comment 2');
+        }
+      }
     });
   });
 });
