@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix the broken links to change-files",
+  "packageName": "beachball",
+  "email": "Rauno56@gmail.com",
+  "dependentChangeType": "patch"
+}
