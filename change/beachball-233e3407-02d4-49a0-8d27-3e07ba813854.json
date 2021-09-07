@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix some typos and language in the documentation",
+  "packageName": "beachball",
+  "email": "Rauno56@gmail.com",
+  "dependentChangeType": "patch"
+}
