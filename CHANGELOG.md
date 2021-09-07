@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 30 Jul 2021 21:04:39 GMT and should not be manually modified.
+This log was last generated on Tue, 07 Sep 2021 16:43:18 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.11.0
+
+Tue, 07 Sep 2021 16:43:18 GMT
+
+### Minor changes
+
+- Added custom transform option for the changeFiles (pravcha@microsoft.com)
 
 ## 2.10.2
 
