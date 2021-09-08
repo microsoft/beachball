@@ -26,6 +26,14 @@ export const packageJsonFixtures: { [path: string]: PackageJson } = {
   'packages/bar': {
     name: 'bar',
     version: '1.3.4',
+    dependencies: {
+      baz: '^1.3.4',
+    },
+  },
+
+  'packages/baz': {
+    name: 'baz',
+    version: '1.3.4',
   },
 
   'packages/grouped/a': {

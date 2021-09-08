@@ -3,9 +3,9 @@
  * Changes made to interfaces here can affect custom changelog rendering done by end-user.
  */
 
-import { ChangeType } from './ChangeInfo';
+import { ChangeType, ChangeInfo } from './ChangeInfo';
 
-export interface ChangelogEntry {
+export interface ChangelogEntry extends Pick<ChangeInfo, 'dependentChange'> {
   /** Change comment */
   comment: string;
   /** Author email */
@@ -14,6 +14,7 @@ export interface ChangelogEntry {
   commit: string;
   /** Package name the change was in */
   package: string;
+
 }
 
 /**

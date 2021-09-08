@@ -11,6 +11,7 @@ import { isPathIncluded } from '../monorepo/utils';
 import { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
 import { mergeChangelogs } from './mergeChangelogs';
 import { ChangeSet } from '../types/ChangeInfo';
+import { ChangelogGroupOptions } from '../types/ChangelogOptions';
 
 export async function writeChangelog(
   options: BeachballOptions,
@@ -60,7 +61,9 @@ async function writeGroupedChangelog(
 
   const changelogs = getPackageChangelogs(changeFileChangeInfos, dependentChangeInfos, packageInfos, options.path);
   const groupedChangelogs: {
-    [path: string]: { changelogs: PackageChangelog[]; masterPackage: PackageInfo };
+    [path: string]: { changelogs: PackageChangelog[];
+    masterPackage: PackageInfo ;
+    ignoreDependentChanges: ChangelogGroupOptions['ignoreDependentChanges']};
   } = {};
 
   for (const pkg in changelogs) {
@@ -82,6 +85,7 @@ async function writeGroupedChangelog(
       if (isInGroup) {
         if (!groupedChangelogs[changelogPath]) {
           groupedChangelogs[changelogPath] = {
+            ignoreDependentChanges: group.ignoreDependentChanges,
             changelogs: [],
             masterPackage,
           };
@@ -94,8 +98,8 @@ async function writeGroupedChangelog(
 
   const changelogAbsolutePaths: string[] = [];
   for (const changelogPath in groupedChangelogs) {
-    const { masterPackage, changelogs } = groupedChangelogs[changelogPath];
-    const groupedChangelog = mergeChangelogs(changelogs, masterPackage);
+    const { masterPackage, changelogs, ignoreDependentChanges } = groupedChangelogs[changelogPath];
+    const groupedChangelog = mergeChangelogs(changelogs, masterPackage, ignoreDependentChanges);
     if (groupedChangelog) {
       await writeChangelogFiles(options, groupedChangelog, changelogPath, true);
       changelogAbsolutePaths.push(path.resolve(changelogPath));

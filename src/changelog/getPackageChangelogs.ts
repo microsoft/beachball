@@ -22,7 +22,7 @@ export function getPackageChangelogs(
   const commit = getCurrentHash(cwd) || 'not available';
 
   for (let change of changeInfos) {
-    const { packageName, type: changeType, dependentChangeType, email, ...rest } = change;
+    const { packageName, type: changeType, dependentChangeType, dependentChange, email, ...rest } = change;
     if (!changelogs[packageName]) {
       const version = packageInfos[packageName].version;
       changelogs[packageName] = {
@@ -37,6 +37,7 @@ export function getPackageChangelogs(
     changelogs[packageName].comments = changelogs[packageName].comments || {};
     changelogs[packageName].comments[changeType] = changelogs[packageName].comments[changeType] || [];
     changelogs[packageName].comments[changeType]!.push({
+      dependentChange,
       author: change.email,
       package: packageName,
       // This contains the comment and any extra properties added to the change file by

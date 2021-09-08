@@ -10,7 +10,8 @@ import { ChangeType } from '../types/ChangeInfo';
  */
 export function mergeChangelogs(
   changelogs: PackageChangelog[],
-  masterPackage: PackageInfo
+  masterPackage: PackageInfo,
+  ignoreDependentChanges?: boolean,
 ): PackageChangelog | undefined {
   if (changelogs.length < 1 || !masterPackage) {
     return undefined;
@@ -26,8 +27,15 @@ export function mergeChangelogs(
 
   changelogs.forEach(changelog => {
     (Object.keys(changelog.comments) as ChangeType[]).forEach(changeType => {
+
+
       if (changelog.comments[changeType]) {
-        result.comments[changeType] = (result.comments[changeType] || []).concat(changelog.comments[changeType]!);
+        let comments = changelog.comments[changeType]!;
+        if (ignoreDependentChanges) {
+          comments = comments.filter(changeLogEntry => !changeLogEntry.dependentChange);
+        }
+
+        result.comments[changeType] = (result.comments[changeType] || []).concat(comments);
       }
     });
   });

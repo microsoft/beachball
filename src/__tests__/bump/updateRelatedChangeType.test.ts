@@ -83,6 +83,9 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.calculatedChangeInfos['foo'].type).toBe('minor');
     expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('patch');
     expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(1);
+    Object.values(bumpInfo.dependentChangeInfos).forEach(dependentChangeInfo => {
+      expect(dependentChangeInfo.dependentChange).toBe(true);
+    })
 
     const fooChangeInfo = bumpInfo.dependentChangeInfos['foo'];
     expect(fooChangeInfo).toBeUndefined();
@@ -123,6 +126,9 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.calculatedChangeInfos['foo'].type).toBe('patch');
     expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('minor');
     expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(1);
+    Object.values(bumpInfo.dependentChangeInfos).forEach(dependentChangeInfo => {
+      expect(dependentChangeInfo.dependentChange).toBe(true);
+    })
 
     const barDependentChangeInfo = bumpInfo.dependentChangeInfos['bar'];
     expect(barDependentChangeInfo).toBeDefined();
@@ -173,6 +179,9 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('major');
     expect(bumpInfo.calculatedChangeInfos['app'].type).toBe('minor');
     expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(2);
+    Object.values(bumpInfo.dependentChangeInfos).forEach(dependentChangeInfo => {
+      expect(dependentChangeInfo.dependentChange).toBe(true);
+    })
 
     const barDependentChangeInfo = bumpInfo.dependentChangeInfos['bar'];
     expect(barDependentChangeInfo).toBeDefined();
@@ -230,6 +239,9 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('patch');
     expect(bumpInfo.calculatedChangeInfos['app'].type).toBe('patch');
     expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(2);
+    Object.values(bumpInfo.dependentChangeInfos).forEach(dependentChangeInfo => {
+      expect(dependentChangeInfo.dependentChange).toBe(true);
+    })
 
     const fooDependentChangeInfos = bumpInfo.dependentChangeInfos['foo'];
     expect(fooDependentChangeInfos).toBeUndefined();
@@ -299,6 +311,9 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.calculatedChangeInfos['app'].type).toBe('major');
 
     expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(2);
+    Object.values(bumpInfo.dependentChangeInfos).forEach(dependentChangeInfo => {
+      expect(dependentChangeInfo.dependentChange).toBe(true);
+    })
 
     const fooDependentChangeInfos = bumpInfo.dependentChangeInfos['foo'];
     expect(fooDependentChangeInfos).toBeUndefined();
@@ -448,6 +463,9 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.calculatedChangeInfos['unrelated']).toBeUndefined();
 
     expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(2);
+    Object.values(bumpInfo.dependentChangeInfos).forEach(dependentChangeInfo => {
+      expect(dependentChangeInfo.dependentChange).toBe(true);
+    })
   });
 
   it('should bump dependent package, if a dependency was in a group', () => {
@@ -490,6 +508,9 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.calculatedChangeInfos['app'].type).toBe('minor');
 
     expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(3);
+    Object.values(bumpInfo.dependentChangeInfos).forEach(dependentChangeInfo => {
+      expect(dependentChangeInfo.dependentChange).toBe(true);
+    })
 
     const fooChangeInfo = bumpInfo.dependentChangeInfos['app'];
     expect(fooChangeInfo?.type).toBe('minor');
@@ -555,6 +576,9 @@ describe('updateRelatedChangeType', () => {
     updateRelatedChangeType('datetimeUtils.json', 'datetimeUtils', bumpInfo, true);
 
     expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(4);
+    Object.values(bumpInfo.dependentChangeInfos).forEach(dependentChangeInfo => {
+      expect(dependentChangeInfo.dependentChange).toBe(true);
+    })
 
     expect(bumpInfo.calculatedChangeInfos['foo'].type).toBe('minor');
     expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('minor');
