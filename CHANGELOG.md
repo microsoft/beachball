@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 07 Sep 2021 16:43:18 GMT and should not be manually modified.
+This log was last generated on Wed, 08 Sep 2021 18:31:30 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.11.1
+
+Wed, 08 Sep 2021 18:31:30 GMT
+
+### Patches
+
+- Fix the broken links to change-files (Rauno56@gmail.com)
 
 ## 2.11.0
 

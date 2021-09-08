@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 08 Sep 2021 18:31:30 GMT",
+      "tag": "beachball_v2.11.1",
+      "version": "2.11.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "Rauno56@gmail.com",
+            "package": "beachball",
+            "comment": "Fix the broken links to change-files",
+            "commit": "c4c2941360707505f3febc832b2565a8a2d6d98e"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 07 Sep 2021 16:43:18 GMT",
       "tag": "beachball_v2.11.0",
       "version": "2.11.0",
