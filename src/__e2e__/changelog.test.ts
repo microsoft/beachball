@@ -11,19 +11,18 @@ import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { SortedChangeTypes } from '../changefile/getPackageChangeTypes';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { ChangeInfo } from '../types/ChangeInfo';
+import { ChangeFileInfo } from '../types/ChangeInfo';
 import { MonoRepoFactory } from '../fixtures/monorepo';
 import { ChangelogJson } from '../types/ChangeLog';
 import { BumpInfo } from '../types/BumpInfo';
 
-function getChange(partialChange: Partial<ChangeInfo> = {}): ChangeInfo{
+function getChange(partialChange: Partial<ChangeFileInfo> = {}): ChangeFileInfo{
   return {
     comment: 'comment 1',
     email: 'test@testtestme.com',
     packageName: 'foo',
     type: 'patch',
     dependentChangeType: 'patch',
-    commit: '0xdeadbeef',
     ...partialChange,
   };
 }
@@ -178,7 +177,10 @@ describe('changelog generation', () => {
       const changes = readChangeFiles(beachballOptions, packageInfos);
       // Simulates a dependent change from updateRelatedChangeType
       const dependentChanges: BumpInfo['dependentChangeInfos'] = {
-        bar: {...getChange({ packageName: 'bar', dependentChange: true, comment: 'Bump baz to v1.3.5' })},
+        bar: {
+          commit: '0xdeadbeef',
+          ...getChange({ packageName: 'bar', dependentChange: true, comment: 'Bump baz to v1.3.5'}),
+        },
       }
       await writeChangelog(beachballOptions, changes, dependentChanges, packageInfos);
 
