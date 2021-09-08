@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 07 Sep 2021 16:43:18 GMT",
+      "tag": "beachball_v2.11.0",
+      "version": "2.11.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "pravcha@microsoft.com",
+            "package": "beachball",
+            "comment": "Added custom transform option for the changeFiles",
+            "commit": "b5ceceb8f0f7f54fa53303385c1e97a226acdce0"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 30 Jul 2021 21:04:39 GMT",
       "tag": "beachball_v2.10.2",
       "version": "2.10.2",

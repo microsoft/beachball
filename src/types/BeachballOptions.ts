@@ -1,5 +1,5 @@
 import { AuthType } from './Auth';
-import { ChangeType } from './ChangeInfo';
+import { ChangeInfo, ChangeType } from './ChangeInfo';
 import { ChangeFilePromptOptions } from './ChangeFilePrompt';
 import { ChangelogOptions } from './ChangelogOptions';
 
@@ -83,6 +83,16 @@ export interface RepoOptions {
      */
     postpublish?: (packagePath: string, name: string, version: string) => void | Promise<void>;
   };
+
+  transform?: {
+    /**
+     * Runs for each of the filtered change files.
+     *
+     * This allows for adding or editing information to the change files
+     * without having to modify anything on the disk.
+     */
+    changeFiles?: (changeInfo: ChangeInfo, changeFilePath: string) => ChangeInfo;
+  }
 }
 
 export interface PackageOptions {

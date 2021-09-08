@@ -234,5 +234,49 @@ describe('changelog generation', () => {
       const groupedChangelogText = fs.readFileSync(groupedChangelogFile, { encoding: 'utf-8' });
       expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot();
     });
+
+    it('Verify that the changeFile transform functions are run, if provided', async () => {
+      const editedComment: string = 'Edited comment for testing';
+      const monoRepo = monoRepoFactory.cloneRepository();
+      monoRepo.commitChange('foo');
+      writeChangeFiles({ foo: getChange() }, monoRepo.rootPath);
+
+      monoRepo.commitChange('bar');
+      writeChangeFiles({ bar: getChange({ packageName: 'bar', comment: 'comment 2' }) }, monoRepo.rootPath);
+
+      const beachballOptions = {
+        path: monoRepo.rootPath,
+        transform: {
+          changeFiles: (changeFile, changeFilePath) => {
+            // For test, we will be changing the comment based on the package name
+            if(changeFile.packageName === 'foo'){
+              changeFile.comment = editedComment;
+            }
+            return changeFile;
+          }
+        },
+        changelog: {
+          groups: [
+            {
+              masterPackageName: 'foo',
+              changelogPath: path.join(monoRepo.rootPath, 'packages', 'foo'),
+              include: ['packages/foo', 'packages/bar'],
+            },
+          ],
+        },
+      } as BeachballOptions;
+
+      const packageInfos = getPackageInfos(monoRepo.rootPath);
+      const changes = readChangeFiles(beachballOptions, packageInfos);
+
+      // Verify that the comment of only the intended change file is changed
+      for(const [changeFileName, changeInfo] of changes){
+        if(changeFileName.substr(0, 3) === 'foo'){
+          expect(changeInfo.comment).toBe(editedComment);
+        }else{
+          expect(changeInfo.comment).toBe('comment 2');
+        }
+      }
+    });
   });
 });
