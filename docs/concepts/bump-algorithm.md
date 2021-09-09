@@ -7,7 +7,7 @@ category: doc
 
 Bumping a single package is a simple task of just looking up a change file for its change type and using semver to bump the version according to what that change type is.
 
-Things get a bit more complicated when we introduce the concepts of version groups and dependent package bumping. For sake of description of this algorithm, we'll can take look at the following graph:
+Things get a bit more complicated when we introduce the concepts of version groups and dependent package bumping. For the sake of describing this algorithm, we can take look at the following graph:
 
 ```mermaid
 graph TD
@@ -74,4 +74,4 @@ graph TD
   dateUtils -. minor .->dateUtilsNext
 ```
 
-> NOTE: the group get bumped together even if it is part of a dependent package bump. In other words, package bumps propagate its changes via dependent package bump as well as group package bumps
+> NOTE: the group get bumped together even if it is part of a dependent package bump. In other words, package bumps propagate their changes via dependent package bump as well as group package bumps
