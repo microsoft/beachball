@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Allow prerelease changes to have dependentChangeType: patch",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
