@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 09 Sep 2021 19:45:50 GMT",
+      "tag": "beachball_v2.12.0",
+      "version": "2.12.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Add ignorePatterns option",
+            "commit": "245ac20af492134054406b80808bfadebf391759"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 09 Sep 2021 17:29:48 GMT",
       "tag": "beachball_v2.11.2",
       "version": "2.11.2",
