@@ -2,20 +2,15 @@ import { findProjectRoot, getChangePath } from '../paths';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getChangesBetweenRefs } from 'workspace-tools';
 
+/**
+ * Determines whether change files have been deleted.
+ * Assumes `options.path` has already been validated.
+ */
 export function areChangeFilesDeleted(options: BeachballOptions): boolean {
   const { branch, path: cwd } = options;
 
-  const root = findProjectRoot(cwd);
-  if (!root) {
-    console.error('Failed to find the project root');
-    process.exit(1);
-  }
-
+  const root = findProjectRoot(cwd)!;
   const changePath = getChangePath(cwd);
-  if (!changePath) {
-    console.error('Failed to find a folder with change files');
-    process.exit(1);
-  }
 
   console.log(`Checking for deleted change files against "${branch}"`);
   const changeFilesDeletedSinceRef = getChangesBetweenRefs(
@@ -36,10 +31,9 @@ export function areChangeFilesDeleted(options: BeachballOptions): boolean {
   const changeFilesDeleted = changeFilesDeletedSinceRef.length > 0;
 
   if (changeFilesDeleted) {
-    const changeFiles = changeFilesDeletedSinceRef.map(file => `- ${file}`);
-    const errorMessage = 'The following change files were deleted:';
-
-    console.error(`${errorMessage}\n${changeFiles.join('\n')}\n`);
+    const changeFiles = changeFilesDeletedSinceRef.map(file => `- ${file}`).join('\n');
+    const log = options.disallowDeletedChangeFiles ? console.error : console.log;
+    log(`The following change files were deleted:\n${changeFiles}\n`);
   }
 
   return changeFilesDeleted;

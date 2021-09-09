@@ -6,12 +6,36 @@ import { areChangeFilesDeleted } from '../validation/areChangeFilesDeleted';
 import { getChangePath } from '../paths';
 import fs from 'fs-extra';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
+import { mockLogs } from '../fixtures/mockLogs';
 
+/*
+to test
+
+- unit
+  -
+- e2e
+  - options.package is missing from packageInfos
+  - there are untracked changes
+  - hasNeededChangeFiles
+    - isChangeFileNeeded
+      - getChangedPackages
+*/
 describe('validation', () => {
   let repositoryFactory: RepositoryFactory;
+
+  let exitMock: jest.SpyInstance;
+  let logs: ReturnType<typeof mockLogs>;
+
   beforeAll(() => {
     repositoryFactory = new RepositoryFactory();
     repositoryFactory.create();
+  });
+
+  beforeEach(() => {
+    logs = mockLogs();
+    exitMock = jest.spyOn(process, 'exit').mockImplementation(code => {
+      throw new Error(`exit ${code}`);
+    });
   });
 
   afterAll(() => {

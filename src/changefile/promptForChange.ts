@@ -22,6 +22,9 @@ export async function promptForChange(options: BeachballOptions) {
   const packageChangeInfo: { [pkgname: string]: ChangeFileInfo } = {};
 
   const packageGroups = getPackageGroups(packageInfos, options.path, options.groups);
+  if (!packageGroups) {
+    process.exit(1); // there was an error in some group's config
+  }
 
   for (let pkg of changedPackages) {
     console.log('');
