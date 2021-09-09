@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 09 Sep 2021 19:45:50 GMT and should not be manually modified.
+This log was last generated on Thu, 09 Sep 2021 21:15:31 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.12.1
+
+Thu, 09 Sep 2021 21:15:31 GMT
+
+### Patches
+
+- Allow prerelease changes to have dependentChangeType: patch (elcraig@microsoft.com)
 
 ## 2.12.0
 

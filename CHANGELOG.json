@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 09 Sep 2021 21:15:31 GMT",
+      "tag": "beachball_v2.12.1",
+      "version": "2.12.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Allow prerelease changes to have dependentChangeType: patch",
+            "commit": "3018eaba8d802175d1f0c77756ed59d78158b413"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 09 Sep 2021 19:45:50 GMT",
       "tag": "beachball_v2.12.0",
       "version": "2.12.0",
