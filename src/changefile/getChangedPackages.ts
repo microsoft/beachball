@@ -77,10 +77,10 @@ export function getChangedPackages(options: BeachballOptions, packageInfos: Pack
   // Loop through the change files, building up a set of packages that we can skip
   changeFiles.forEach(file => {
     try {
-      const changeInfo: ChangeFileInfo = fs.readJSONSync(file);
+      const changeInfo: ChangeFileInfo = fs.readJSONSync(path.join(cwd, file));
       changeFilePackageSet.add(changeInfo.packageName);
     } catch (e) {
-      console.warn(`Invalid change file encountered: ${file}`);
+      console.warn(`Error reading or parsing change file ${file}: ${e}`);
     }
   });
 
