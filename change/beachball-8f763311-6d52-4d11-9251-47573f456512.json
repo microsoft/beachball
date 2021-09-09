@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Improve invalid change file error messages",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
