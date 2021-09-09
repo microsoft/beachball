@@ -13,7 +13,7 @@ import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes
 import { areChangeFilesDeleted } from './areChangeFilesDeleted';
 import { validatePackageDependencies } from '../publish/validatePackageDependencies';
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
-import { isValidDependentChangeType } from './isValidDependantChangeType';
+import { isValidDependentChangeType } from './isValidDependentChangeType';
 
 type ValidationOptions = {
   allowMissingChangeFiles?: boolean;
