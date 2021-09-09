@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 09 Sep 2021 17:29:48 GMT",
+      "tag": "beachball_v2.11.2",
+      "version": "2.11.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Improve invalid change file error messages",
+            "commit": "0acb38a6496bc354d06947f7435d40ffd7618d40"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 08 Sep 2021 18:31:30 GMT",
       "tag": "beachball_v2.11.1",
       "version": "2.11.1",

@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 08 Sep 2021 18:31:30 GMT and should not be manually modified.
+This log was last generated on Thu, 09 Sep 2021 17:29:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.11.2
+
+Thu, 09 Sep 2021 17:29:48 GMT
+
+### Patches
+
+- Improve invalid change file error messages (elcraig@microsoft.com)
 
 ## 2.11.1
 
