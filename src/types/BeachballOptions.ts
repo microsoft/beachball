@@ -92,7 +92,7 @@ export interface RepoOptions {
      * without having to modify anything on the disk.
      */
     changeFiles?: (changeInfo: ChangeInfo, changeFilePath: string) => ChangeInfo;
-  }
+  };
 }
 
 export interface PackageOptions {

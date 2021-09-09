@@ -204,11 +204,11 @@ describe('changelog generation', () => {
         transform: {
           changeFiles: (changeFile, changeFilePath) => {
             // For test, we will be changing the comment based on the package name
-            if(changeFile.packageName === 'foo'){
+            if (changeFile.packageName === 'foo') {
               changeFile.comment = editedComment;
             }
             return changeFile;
-          }
+          },
         },
         changelog: {
           groups: [
@@ -225,10 +225,10 @@ describe('changelog generation', () => {
       const changes = readChangeFiles(beachballOptions, packageInfos);
 
       // Verify that the comment of only the intended change file is changed
-      for(const [changeFileName, changeInfo] of changes){
-        if(changeFileName.substr(0, 3) === 'foo'){
+      for (const [changeFileName, changeInfo] of changes) {
+        if (changeFileName.substr(0, 3) === 'foo') {
           expect(changeInfo.comment).toBe(editedComment);
-        }else{
+        } else {
           expect(changeInfo.comment).toBe('comment 2');
         }
       }

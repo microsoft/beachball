@@ -4,5 +4,5 @@ module.exports = {
     '^.+\\.tsx?$': 'ts-jest',
   },
   testRegex: '/__tests__/.*\\.(test|spec)\\.[jt]sx?$',
-  testTimeout: 60000
+  testTimeout: 60000,
 };
