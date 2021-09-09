@@ -66,6 +66,8 @@ export interface RepoOptions {
   groups?: VersionGroupOptions[];
   changelog?: ChangelogOptions;
   changeFilePrompt?: ChangeFilePromptOptions;
+  /** Ignore changes in these files (minimatch patterns; negations not supported) */
+  ignorePatterns?: string[];
 
   hooks?: {
     /**

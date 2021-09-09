@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { RepositoryFactory } from '../fixtures/repository';
-import { getChangedPackages } from '../changefile/getChangedPackages';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { git } from 'workspace-tools';
 import { bump } from '../commands/bump';
@@ -9,61 +8,6 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getChangePath } from '../paths';
 import { MultiMonoRepoFactory } from '../fixtures/multiMonorepo';
-
-describe('changed files', () => {
-  let repositoryFactory: RepositoryFactory | undefined;
-
-  afterEach(() => {
-    if (repositoryFactory) {
-      repositoryFactory.cleanUp();
-      repositoryFactory = undefined;
-    }
-  });
-
-  it('detects changed files in workspace', () => {
-    repositoryFactory = new MultiMonoRepoFactory();
-    repositoryFactory.create();
-    const repo = repositoryFactory.cloneRepository();
-
-    const repoARoot = path.join(repo.rootPath, 'repo-a');
-    const repoBRoot = path.join(repo.rootPath, 'repo-b');
-
-    const testFilePath = path.join(repoARoot, 'packages/foo/test.js');
-    fs.writeFileSync(testFilePath, '');
-    git(['add', testFilePath], { cwd: repoARoot });
-
-    const changedPackagesA = getChangedPackages(
-      {
-        fetch: false,
-        path: repoARoot,
-        branch: 'master',
-      } as BeachballOptions,
-      getPackageInfos(repoARoot)
-    );
-
-    const changedPackagesB = getChangedPackages(
-      {
-        fetch: false,
-        path: repoBRoot,
-        branch: 'master',
-      } as BeachballOptions,
-      getPackageInfos(repoBRoot)
-    );
-
-    const changedPackagesRoot = getChangedPackages(
-      {
-        fetch: false,
-        path: repo.rootPath,
-        branch: 'master',
-      } as BeachballOptions,
-      getPackageInfos(repo.rootPath)
-    );
-
-    expect(changedPackagesA).toStrictEqual(['foo']);
-    expect(changedPackagesB).toStrictEqual([]);
-    expect(changedPackagesRoot).toStrictEqual(['foo']);
-  });
-});
 
 describe('version bumping', () => {
   let repositoryFactory: RepositoryFactory | undefined;
