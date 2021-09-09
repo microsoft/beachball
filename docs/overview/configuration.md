@@ -52,25 +52,35 @@ beachball.config.js
 
 ## Options
 
-| Option                | Type                                      | Alias | Default                     | Option Type          | Description                                                                                     |
-| --------------------- | ----------------------------------------- | ----- | --------------------------- | -------------------- | ----------------------------------------------------------------------------------------------- |
-| branch                | string                                    |       | origin/master               |                      | The target branch (with remote)                                                                 |
-| path                  | string                                    |       | (cwd)                       |                      | The directory to run beachball                                                                  |
-| registry              | string                                    | r     | https://registry.npmjs.org/ |                      | Target NPM registry to publish                                                                  |
-| tag                   | string                                    |       | latest                      |                      | tag for git and dist-tag for npm when published                                                 |
-| token                 | string                                    | n     |                             |                      | auth token for publishing to private NPM registry                                               |
-| push                  | bool                                      |       | true                        |                      | whether to push to the remote git branch (no-push to skip)                                      |
-| publish               | bool                                      |       | true                        |                      | whether to publish to npm registyr (no-publish to skip)                                         |
-| bumpDeps              | bool                                      |       | true                        |                      | bump dependent packages during publish (bump A if A depends on B)                               |
-| fetch                 | bool                                      |       | true                        |                      | fetch from remote before doing diff comparisons                                                 |
-| yes                   | bool                                      | y     | true                        |                      | non-interactively confirm publish command                                                       |
-| defaultNpmTag         | string                                    |       |                             | package              | the default dist-tag used for NPM publish                                                       |
-| disallowedChangeTypes | string[]                                  |       |                             | repo, group, package | what change types are disallowed                                                                |
-| shouldPublish         | bool                                      |       |                             | package              | to manually handle whether or not a package should be published with beachball                  |
-| access                | 'public' \| 'restricted'                  |       |                             | repo                 | publishes private packages access level                                                         |
-| package               | string                                    |       |                             | repo                 | specifies which package the command relates to (overrides change detection based on `git diff`) |
-| changehint            | string                                    |       |                             | repo                 | customizable hint message for when change files are not detected but required                   |
-| groups                | `VersionGroupOptions[]` [(see groups)][1] |       |                             | repo                 | specifies groups of packages that need to be version bumped at the same time                    |
-| gitTags               | boolean                                   |       | true                        | repo                 | whether to create git tags for published packages (eg: foo_v1.0.1)                              |
+For the latest full list of supported options, see `RepoOptions` [in this file](https://github.com/microsoft/beachball/blob/master/src/types/BeachballOptions.ts).
 
-[1]: (../concepts/groups)
+| Option                  | Type                           | Default                         | Option Type          | Description                                                                                     |
+| ----------------------- | ------------------------------ | ------------------------------- | -------------------- | ----------------------------------------------------------------------------------------------- |
+| `access`                | `'public' \| 'restricted'`     | `'restricted'`                  | repo                 | publishes private packages access level                                                         |
+| `branch`                | string                         | `'origin/master'`               | repo                 | the target branch (with remote)                                                                 |
+| `bumpDeps`              | bool                           | `true`                          | repo                 | bump dependent packages during publish (bump A if A depends on B)                               |
+| `changeFilePrompt`      | [`ChangeFilePromptOptions`][1] |                                 | repo                 | customize the prompt for change files (can be used to add custom fields)                        |
+| `changehint`            | string                         |                                 | repo                 | hint message for when change files are not detected but required                                |
+| `changelog`             | [`ChangelogOptions`][2]        |                                 | repo                 | changelog rendering and grouping options                                                        |
+| `defaultNpmTag`         | string                         | `'latest'`                      | package              | the default dist-tag used for NPM publish                                                       |
+| `disallowedChangeTypes` | string[]                       |                                 | repo, group, package | what change types are disallowed                                                                |
+| `fetch`                 | bool                           | `true`                          | repo                 | fetch from remote before doing diff comparisons                                                 |
+| `generateChangelog`     | bool                           | `true`                          | repo                 | whether to generate changelog files                                                             |
+| `gitTags`               | bool                           | `true`                          | repo, package        | whether to create git tags for published packages (eg: foo_v1.0.1)                              |
+| `groups`                | [`VersionGroupOptions[]`][3]   |                                 | repo                 | specifies groups of packages that need to be version bumped at the same time                    |
+| `hooks`                 | [`HooksOptions`][4]            |                                 | repo                 | hooks for custom pre/post publish actions                                                       |
+| `ignorePatterns`        | string[]                       |                                 | repo                 | ignore changes in these files (minimatch patterns; negations not supported)                     |
+| `package`               | string                         |                                 | repo                 | specifies which package the command relates to (overrides change detection based on `git diff`) |
+| `prereleasePrefix`      | string                         |                                 | repo                 | prerelease prefix for packages that are specified to receive a prerelease bump                  |
+| `publish`               | bool                           | `true`                          | repo                 | whether to publish to npm registry                                                              |
+| `push`                  | bool                           | `true`                          | repo                 | whether to push to the remote git branch                                                        |
+| `registry`              | string                         | `'https://registry.npmjs.org/'` | repo                 | target NPM registry to publish                                                                  |
+| `retries`               | number                         | `3`                             | repo                 | number of retries for a package publish before failing                                          |
+| `shouldPublish`         | bool                           | `true`                          | package              | to manually handle whether or not a package should be published with beachball                  |
+| `tag`                   | string                         | `'latest'`                      | repo, package        | dist-tag for npm when published                                                                 |
+| `transform`             | [`TransformOptions`][4]        |                                 | repo                 | transformations for change files                                                                |
+
+[1]: (https://github.com/microsoft/beachball/blob/master/src/types/ChangeFilePrompt.ts)
+[2]: (https://github.com/microsoft/beachball/blob/master/src/types/ChangelogOptions.ts)
+[3]: (../concepts/groups)
+[4]: (https://github.com/microsoft/beachball/blob/master/src/types/BeachballOptions.ts)

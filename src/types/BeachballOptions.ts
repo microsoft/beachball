@@ -45,20 +45,34 @@ export interface CliOptions {
 }
 
 export interface RepoOptions {
+  /** The target branch */
   branch: string;
   message: string;
+  /** The directory to run beachball in (default `process.cwd()`) */
   path: string;
+  /** Target npm registry for publishing */
   registry: string;
+  /** Whether to create git tags for published packages (default true) */
   gitTags: boolean;
+  /** npm dist-tag when publishing (default 'latest') */
   tag: string;
+  /** Whether to push to the remote git branch when publishing (default true) */
   push: boolean;
+  /** Whether to publish to the npm registry (default true) */
   publish: boolean;
+  /** Bump dependent packages during publish (bump A if A depends on B) */
   bumpDeps: boolean;
+  /** Fetch from remote before doing diff comparisons (default true) */
   fetch: boolean;
+  /** access level for npm publish */
   access: 'public' | 'restricted';
+  /** Hint message for when change files are not detected but required */
   changehint: string;
+  /** What change types are disallowed */
   disallowedChangeTypes: ChangeType[] | null;
+  /** The default dist-tag used for npm publish */
   defaultNpmTag: string;
+  /** Whether to generate changelog files */
   generateChangelog: boolean;
 
   /** number of retries for a package publish before failing */
@@ -66,33 +80,14 @@ export interface RepoOptions {
   groups?: VersionGroupOptions[];
   changelog?: ChangelogOptions;
   changeFilePrompt?: ChangeFilePromptOptions;
-
-  hooks?: {
-    /**
-     * Runs for each package after version bumps have been processed and committed to git, but before the actual
-     * publish command.
-     *
-     * This allows for file modifications which will be reflected in the published package but not be reflected in the
-     * repository.
-     */
-    prepublish?: (packagePath: string, name: string, version: string) => void | Promise<void>;
-
-    /**
-     * Runs for each package after the publish command.
-     * Any file changes made in this step will **not** be committed automatically.
-     */
-    postpublish?: (packagePath: string, name: string, version: string) => void | Promise<void>;
-  };
-
-  transform?: {
-    /**
-     * Runs for each of the filtered change files.
-     *
-     * This allows for adding or editing information to the change files
-     * without having to modify anything on the disk.
-     */
-    changeFiles?: (changeInfo: ChangeInfo, changeFilePath: string) => ChangeInfo;
-  };
+  /** Prerelease prefix for packages that are specified to receive a prerelease bump */
+  prereleasePrefix?: string | null;
+  /** Ignore changes in these files (minimatch patterns; negations not supported) */
+  ignorePatterns?: string[];
+  /** Custom pre/post publish actions */
+  hooks?: HooksOptions;
+  /** Transformations for change files */
+  transform?: TransformOptions;
 }
 
 export interface PackageOptions {
@@ -114,4 +109,31 @@ export interface VersionGroupOptions {
 
   /** name of the version group */
   name: string;
+}
+
+export interface HooksOptions {
+  /**
+   * Runs for each package after version bumps have been processed and committed to git, but before the actual
+   * publish command.
+   *
+   * This allows for file modifications which will be reflected in the published package but not be reflected in the
+   * repository.
+   */
+  prepublish?: (packagePath: string, name: string, version: string) => void | Promise<void>;
+
+  /**
+   * Runs for each package after the publish command.
+   * Any file changes made in this step will **not** be committed automatically.
+   */
+  postpublish?: (packagePath: string, name: string, version: string) => void | Promise<void>;
+}
+
+export interface TransformOptions {
+  /**
+   * Runs for each of the filtered change files.
+   *
+   * This allows for adding or editing information to the change files
+   * without having to modify anything on the disk.
+   */
+  changeFiles?: (changeInfo: ChangeInfo, changeFilePath: string) => ChangeInfo;
 }
