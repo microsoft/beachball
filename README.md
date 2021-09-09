@@ -2,7 +2,7 @@
 If making changes, don't forget to update the version under packages/beachball/README.md too!
 -->
 
-# beachball
+# [beachball](https://microsoft.github.io/beachball/)
 
 the sunniest version bumping tool
 
@@ -43,6 +43,8 @@ bumps, publishes to npm registry (optionally does dist-tags), and pushes changel
 synchronizes published versions of packages from a registry, makes local package.json changes to match what is published
 
 ## Options
+
+Some of the most common options are summarized below. A full list can be found at https://microsoft.github.io/beachball/.
 
 ### --config, -c
 

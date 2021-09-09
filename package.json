@@ -6,6 +6,7 @@
     "type": "git",
     "url": "https://github.com/microsoft/beachball"
   },
+  "homepage": "https://microsoft.github.io/beachball/",
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
