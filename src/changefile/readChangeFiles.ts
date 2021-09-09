@@ -52,23 +52,27 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
   }
 
   filteredChangeFiles.forEach(changeFile => {
+    const changeFilePath = path.join(changePath, changeFile);
+    let changeInfo: ChangeInfo;
     try {
-      const changeFilePath = path.join(changePath, changeFile);
-      let changeInfo: ChangeInfo = fs.readJSONSync(changeFilePath);
-
-      /**
-       * Transform the change files, if the option is provided
-       */
-      if(options.transform?.changeFiles){
-       changeInfo = options.transform?.changeFiles(changeInfo, path.join(changePath, changeFile))
-      }
-
-      const packageName = changeInfo.packageName;
-      if (scopedPackages.includes(packageName)) {
-        changeSet.set(changeFile, changeInfo);
-      }
+      changeInfo = fs.readJSONSync(changeFilePath);
     } catch (e) {
-      console.warn(`Invalid change file detected: ${changeFile}`);
+      console.warn(`Error reading or parsing change file ${changeFilePath}: ${e}`);
+      return;
+    }
+
+    // Transform the change files, if the option is provided
+    if (options.transform?.changeFiles) {
+      try {
+        changeInfo = options.transform?.changeFiles(changeInfo, changeFilePath);
+      } catch (e) {
+        console.warn(`Error transforming ${changeFilePath}: ${e}`);
+        return;
+      }
+    }
+
+    if (scopedPackages.includes(changeInfo.packageName)) {
+      changeSet.set(changeFile, changeInfo);
     }
   });
   return changeSet;
