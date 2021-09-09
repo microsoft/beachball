@@ -18,11 +18,11 @@ beachball [command] [options]
 
 ## Commands
 
-### change (default)
+### [change](https://microsoft.github.io/beachball/cli/change.html) (default)
 
 a tool to help create change files in the change/ folder
 
-### check
+### [check](https://microsoft.github.io/beachball/cli/check.html)
 
 checks whether a change file is needed for this branch
 
@@ -30,21 +30,21 @@ checks whether a change file is needed for this branch
 
 based on change files, create changelogs and then unlinks the change files
 
-### bump
+### [bump](https://microsoft.github.io/beachball/cli/bump.html)
 
 bumps versions as well as generating changelogs
 
-### publish
+### [publish](https://microsoft.github.io/beachball/cli/publish.html)
 
 bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into master
 
-### sync
+### [sync](https://microsoft.github.io/beachball/cli/sync.html)
 
 synchronizes published versions of packages from a registry, makes local package.json changes to match what is published
 
 ## Options
 
-Some of the most common options are summarized below. A full list can be found at https://microsoft.github.io/beachball/.
+Some of the most common options are summarized below. For details, see the pages for [CLI options](https://microsoft.github.io/beachball/cli/options.html) and [config file options](https://microsoft.github.io/beachball/overview/configuration.html).
 
 ### --config, -c
 
