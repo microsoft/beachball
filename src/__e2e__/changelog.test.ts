@@ -164,7 +164,6 @@ describe('changelog generation', () => {
         changelog: {
           groups: [
             {
-              ignoreDependentChanges: true,
               masterPackageName: 'foo',
               changelogPath: monoRepo.rootPath,
               include: ['packages/foo', 'packages/bar', 'packages/baz'],
@@ -211,7 +210,6 @@ describe('changelog generation', () => {
         changelog: {
           groups: [
             {
-              ignoreDependentChanges: true,
               masterPackageName: 'foo',
               changelogPath: monoRepo.rootPath,
               include: ['packages/foo', 'packages/bar', 'packages/baz'],

@@ -154,7 +154,6 @@ describe('mergeChangelogs', () => {
         name: 'master',
         version: '1.2.3',
       } as PackageInfo,
-      true
     );
     expect(mergedChangelog).toBeDefined();
     expect(mergedChangelog!.name).toBe('master');

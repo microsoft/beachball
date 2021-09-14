@@ -43,11 +43,6 @@ export interface ChangelogGroupOptions {
   exclude?: string | string[];
 
   changelogPath: string;
-
-  /**
-   * Flag that ignores changelog entries for bumping dependency versions
-   */
-  ignoreDependentChanges?: boolean;
 }
 
 /**

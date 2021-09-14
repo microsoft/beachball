@@ -11,7 +11,6 @@ import { ChangeType } from '../types/ChangeInfo';
 export function mergeChangelogs(
   changelogs: PackageChangelog[],
   masterPackage: PackageInfo,
-  ignoreDependentChanges?: boolean,
 ): PackageChangelog | undefined {
   if (changelogs.length < 1 || !masterPackage) {
     return undefined;
@@ -30,11 +29,7 @@ export function mergeChangelogs(
 
 
       if (changelog.comments[changeType]) {
-        let comments = changelog.comments[changeType]!;
-        if (ignoreDependentChanges) {
-          comments = comments.filter(changeLogEntry => !changeLogEntry.dependentChange);
-        }
-
+        const comments = changelog.comments[changeType]!;
         result.comments[changeType] = (result.comments[changeType] || []).concat(comments);
       }
     });
