@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "feat(mergeChangelogs): Add option to ignore depenent change entries",
-  "packageName": "beachball",
-  "email": "lingfangao@hotmail.com",
-  "dependentChangeType": "patch"
-}

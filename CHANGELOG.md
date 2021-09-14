@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 09 Sep 2021 21:15:31 GMT and should not be manually modified.
+This log was last generated on Tue, 14 Sep 2021 16:52:55 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.13.0
+
+Tue, 14 Sep 2021 16:52:55 GMT
+
+### Minor changes
+
+- feat(mergeChangelogs): Add option to ignore depenent change entries (lingfangao@hotmail.com)
 
 ## 2.12.1
 

@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 14 Sep 2021 16:52:55 GMT",
+      "tag": "beachball_v2.13.0",
+      "version": "2.13.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "lingfangao@hotmail.com",
+            "package": "beachball",
+            "comment": "feat(mergeChangelogs): Add option to ignore depenent change entries",
+            "commit": "ede6bf0d6ea1a9a48ed8ad66ee1d4f2a668733f0"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 09 Sep 2021 21:15:31 GMT",
       "tag": "beachball_v2.12.1",
       "version": "2.12.1",
