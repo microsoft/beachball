@@ -23,7 +23,6 @@ export async function writeChangelog(
   const groupedChangelogPaths = await writeGroupedChangelog(
     options,
     changeFileChangeInfos,
-    dependentChangeInfos,
     packageInfos
   );
   const groupedChangelogPathSet = new Set(groupedChangelogPaths);
@@ -44,7 +43,6 @@ export async function writeChangelog(
 async function writeGroupedChangelog(
   options: BeachballOptions,
   changeFileChangeInfos: ChangeSet,
-  dependentChangeInfos: BumpInfo['dependentChangeInfos'],
   packageInfos: {
     [pkg: string]: PackageInfo;
   }
@@ -58,9 +56,13 @@ async function writeGroupedChangelog(
     return [];
   }
 
-  const changelogs = getPackageChangelogs(changeFileChangeInfos, dependentChangeInfos, packageInfos, options.path);
+  // Grouped changelogs should not contain dependency bump entries
+  const changelogs = getPackageChangelogs(changeFileChangeInfos, {}, packageInfos, options.path);
   const groupedChangelogs: {
-    [path: string]: { changelogs: PackageChangelog[]; masterPackage: PackageInfo };
+    [path: string]: {
+      changelogs: PackageChangelog[];
+      masterPackage: PackageInfo ;
+    }
   } = {};
 
   for (const pkg in changelogs) {

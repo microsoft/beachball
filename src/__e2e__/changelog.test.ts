@@ -14,8 +14,9 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { ChangeFileInfo } from '../types/ChangeInfo';
 import { MonoRepoFactory } from '../fixtures/monorepo';
 import { ChangelogJson } from '../types/ChangeLog';
+import { BumpInfo } from '../types/BumpInfo';
 
-function getChange(partialChange: Partial<ChangeFileInfo> = {}): ChangeFileInfo {
+function getChange(partialChange: Partial<ChangeFileInfo> = {}): ChangeFileInfo{
   return {
     comment: 'comment 1',
     email: 'test@testtestme.com',
@@ -148,6 +149,97 @@ describe('changelog generation', () => {
       expect(cleanMarkdownForSnapshot(barChangelogText)).toMatchSnapshot();
 
       // Validate grouped changelog for foo and bar packages
+      const groupedChangelogFile = path.join(monoRepo.rootPath, 'CHANGELOG.md');
+      const groupedChangelogText = fs.readFileSync(groupedChangelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot();
+    });
+
+    it('generates grouped changelog without dependent change entries', async () => {
+      const monoRepo = monoRepoFactory.cloneRepository();
+      monoRepo.commitChange('baz');
+      writeChangeFiles({ baz: getChange({ packageName: 'baz' }) }, monoRepo.rootPath);
+
+      const beachballOptions = {
+        path: monoRepo.rootPath,
+        changelog: {
+          groups: [
+            {
+              masterPackageName: 'foo',
+              changelogPath: monoRepo.rootPath,
+              include: ['packages/foo', 'packages/bar', 'packages/baz'],
+            },
+          ],
+        },
+      } as BeachballOptions;
+
+      const packageInfos = getPackageInfos(monoRepo.rootPath);
+      const changes = readChangeFiles(beachballOptions, packageInfos);
+      // Simulates a dependent change from updateRelatedChangeType
+      const dependentChanges: BumpInfo['dependentChangeInfos'] = {
+        bar: {
+          commit: '0xdeadbeef',
+          ...getChange({ packageName: 'bar', comment: 'Bump baz to v1.3.5'}),
+        },
+      }
+      await writeChangelog(beachballOptions, changes, dependentChanges, packageInfos);
+
+      // Validate changelog for bar package
+      const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
+      const barChangelogText = fs.readFileSync(barChangelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(barChangelogText)).toMatchSnapshot();
+
+      // Validate changelog for baz package
+      const bazChangelogFile = path.join(monoRepo.rootPath, 'packages', 'baz', 'CHANGELOG.md');
+      const bazChangelogText = fs.readFileSync(bazChangelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(bazChangelogText)).toMatchSnapshot();
+
+      // Validate grouped changelog for foo master package
+      const groupedChangelogFile = path.join(monoRepo.rootPath, 'CHANGELOG.md');
+      const groupedChangelogText = fs.readFileSync(groupedChangelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot();
+    });
+
+    it('generates grouped changelog without dependent change entries where packages have normal changes and dependenc changes', async () => {
+      const monoRepo = monoRepoFactory.cloneRepository();
+      monoRepo.commitChange('baz');
+      writeChangeFiles({ baz: getChange({ packageName: 'baz' }) }, monoRepo.rootPath);
+      writeChangeFiles({ bar : getChange({ packageName: 'bar' }) }, monoRepo.rootPath);
+
+      const beachballOptions = {
+        path: monoRepo.rootPath,
+        changelog: {
+          groups: [
+            {
+              masterPackageName: 'foo',
+              changelogPath: monoRepo.rootPath,
+              include: ['packages/foo', 'packages/bar', 'packages/baz'],
+            },
+          ],
+        },
+      } as BeachballOptions;
+
+      const packageInfos = getPackageInfos(monoRepo.rootPath);
+      const changes = readChangeFiles(beachballOptions, packageInfos);
+      // Simulates a dependent change from updateRelatedChangeType
+      const dependentChanges: BumpInfo['dependentChangeInfos'] = {
+        bar: {
+          commit: '0xdeadbeef',
+          ...getChange({ packageName: 'bar', comment: 'Bump baz to v1.3.5'}),
+        },
+      }
+      await writeChangelog(beachballOptions, changes, dependentChanges, packageInfos);
+
+      // Validate changelog for bar package
+      const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
+      const barChangelogText = fs.readFileSync(barChangelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(barChangelogText)).toMatchSnapshot();
+
+      // Validate changelog for baz package
+      const bazChangelogFile = path.join(monoRepo.rootPath, 'packages', 'baz', 'CHANGELOG.md');
+      const bazChangelogText = fs.readFileSync(bazChangelogFile, { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(bazChangelogText)).toMatchSnapshot();
+
+      // Validate grouped changelog for foo master package
       const groupedChangelogFile = path.join(monoRepo.rootPath, 'CHANGELOG.md');
       const groupedChangelogText = fs.readFileSync(groupedChangelogFile, { encoding: 'utf-8' });
       expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot();
