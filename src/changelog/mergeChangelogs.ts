@@ -10,7 +10,7 @@ import { ChangeType } from '../types/ChangeInfo';
  */
 export function mergeChangelogs(
   changelogs: PackageChangelog[],
-  masterPackage: PackageInfo,
+  masterPackage: PackageInfo
 ): PackageChangelog | undefined {
   if (changelogs.length < 1 || !masterPackage) {
     return undefined;
@@ -26,11 +26,8 @@ export function mergeChangelogs(
 
   changelogs.forEach(changelog => {
     (Object.keys(changelog.comments) as ChangeType[]).forEach(changeType => {
-
-
       if (changelog.comments[changeType]) {
-        const comments = changelog.comments[changeType]!;
-        result.comments[changeType] = (result.comments[changeType] || []).concat(comments);
+        result.comments[changeType] = (result.comments[changeType] || []).concat(changelog.comments[changeType]!);
       }
     });
   });
