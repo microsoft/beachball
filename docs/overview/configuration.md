@@ -80,7 +80,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `tag`                   | string                                   | `'latest'`        | repo, package        | dist-tag for npm when published                                                                 |
 | `transform`             | `TransformOptions` ([details][4])        |                   | repo                 | transformations for change files                                                                |
 
-[1]: (https://github.com/microsoft/beachball/blob/master/src/types/ChangeFilePrompt.ts)
-[2]: (https://github.com/microsoft/beachball/blob/master/src/types/ChangelogOptions.ts)
-[3]: (../concepts/groups)
-[4]: (https://github.com/microsoft/beachball/blob/master/src/types/BeachballOptions.ts)
+[1]: https://github.com/microsoft/beachball/blob/master/src/types/ChangeFilePrompt.ts
+[2]: https://github.com/microsoft/beachball/blob/master/src/types/ChangelogOptions.ts
+[3]: ../concepts/groups
+[4]: https://github.com/microsoft/beachball/blob/master/src/types/BeachballOptions.ts
