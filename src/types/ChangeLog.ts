@@ -14,7 +14,6 @@ export interface ChangelogEntry {
   commit: string;
   /** Package name the change was in */
   package: string;
-
 }
 
 /**
