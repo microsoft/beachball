@@ -41,6 +41,8 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
 export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions) {
   const { modifiedPackages, packageInfos, changeFileChangeInfos, dependentChangeInfos } = bumpInfo;
 
+  console.log(dependentChangeInfos);
+
   writePackageJson(modifiedPackages, packageInfos);
 
   if (options.generateChangelog) {
