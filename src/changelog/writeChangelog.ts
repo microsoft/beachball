@@ -97,7 +97,7 @@ async function writeGroupedChangelog(
   const changelogAbsolutePaths: string[] = [];
   for (const changelogPath in groupedChangelogs) {
     const { masterPackage, changelogs } = groupedChangelogs[changelogPath];
-    const groupedChangelog = mergeChangelogs(changelogs, masterPackage );
+    const groupedChangelog = mergeChangelogs(changelogs, masterPackage);
     if (groupedChangelog) {
       await writeChangelogFiles(options, groupedChangelog, changelogPath, true);
       changelogAbsolutePaths.push(path.resolve(changelogPath));
