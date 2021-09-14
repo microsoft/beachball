@@ -17,10 +17,6 @@ export interface ChangeFileInfo {
  * Info saved in each change file, plus the commit hash.
  */
 export interface ChangeInfo extends ChangeFileInfo {
-  /**
-   * Flag that identifies the change resulting from a dependency bump
-   */
-  dependentChange?: boolean;
   commit: string;
 }
 

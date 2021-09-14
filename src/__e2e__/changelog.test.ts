@@ -178,7 +178,7 @@ describe('changelog generation', () => {
       const dependentChanges: BumpInfo['dependentChangeInfos'] = {
         bar: {
           commit: '0xdeadbeef',
-          ...getChange({ packageName: 'bar', dependentChange: true, comment: 'Bump baz to v1.3.5'}),
+          ...getChange({ packageName: 'bar', comment: 'Bump baz to v1.3.5'}),
         },
       }
       await writeChangelog(beachballOptions, changes, dependentChanges, packageInfos);
@@ -224,7 +224,7 @@ describe('changelog generation', () => {
       const dependentChanges: BumpInfo['dependentChangeInfos'] = {
         bar: {
           commit: '0xdeadbeef',
-          ...getChange({ packageName: 'bar', dependentChange: true, comment: 'Bump baz to v1.3.5'}),
+          ...getChange({ packageName: 'bar', comment: 'Bump baz to v1.3.5'}),
         },
       }
       await writeChangelog(beachballOptions, changes, dependentChanges, packageInfos);

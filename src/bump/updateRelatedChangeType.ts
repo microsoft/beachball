@@ -151,7 +151,6 @@ export function updateRelatedChangeType(
     }
 
     dependentChangeInfos[pkg] = calculatedChangeInfos[pkg];
-    dependentChangeInfos[pkg].dependentChange = true;
     return calculatedChangeInfos[pkg];
   }
 }
