@@ -21,15 +21,17 @@ const ChangeTypeWeights: { [t in ChangeType]: number } = SortedChangeTypes.reduc
 
 export function initializePackageChangeInfo(changeSet: ChangeSet) {
   const changePerPackage: {
-    [pkgName: string]: ChangeInfo;
+    [pkgName: string]: ChangeType;
   } = {};
 
   for (let change of changeSet.values()) {
     const { packageName } = change;
-    if (!changePerPackage[packageName] || isChangeTypeGreater(change.type, changePerPackage[packageName].type)) {
-      changePerPackage[packageName] = change;
+
+    if (!changePerPackage[packageName] || isChangeTypeGreater(change.type, changePerPackage[packageName])) {
+      changePerPackage[packageName] = change.type;
     }
   }
+
   return changePerPackage;
 }
 

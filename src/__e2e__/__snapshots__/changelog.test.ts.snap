@@ -17,7 +17,7 @@ This log was last generated on (date) and should not be manually modified.
 - comment 1 (test@testtestme.com)
 - additional comment 1 (test@testtestme.com)
 - additional comment 2 (test@testtestme.com)
-- bump foo to v1.0.1 (test@testtestme.com)
+- bump foo to v1.0.0 (beachball)
 "
 `;
 
@@ -52,8 +52,8 @@ Object {
             "package": "foo",
           },
           Object {
-            "author": "test@testtestme.com",
-            "comment": "bump foo to v1.0.1",
+            "author": "beachball",
+            "comment": "bump foo to v1.0.0",
             "commit": "(sha1)",
             "package": "foo",
           },
@@ -174,7 +174,7 @@ This log was last generated on (date) and should not be manually modified.
 
 ### Patches
 
-- Bump baz to v1.3.5 (test@testtestme.com)
+- bump baz to v1.3.4 (beachball)
 "
 `;
 
@@ -210,6 +210,8 @@ This log was last generated on (date) and should not be manually modified.
 
 - \`baz\`
   - comment 1 (test@testtestme.com)
+- \`bar\`
+  - bump baz to v1.3.4 (beachball)
 "
 `;
 
@@ -227,7 +229,7 @@ This log was last generated on (date) and should not be manually modified.
 ### Patches
 
 - comment 1 (test@testtestme.com)
-- Bump baz to v1.3.5 (test@testtestme.com)
+- bump baz to v1.3.4 (beachball)
 "
 `;
 
@@ -263,6 +265,7 @@ This log was last generated on (date) and should not be manually modified.
 
 - \`bar\`
   - comment 1 (test@testtestme.com)
+  - bump baz to v1.3.4 (beachball)
 - \`baz\`
   - comment 1 (test@testtestme.com)
 "

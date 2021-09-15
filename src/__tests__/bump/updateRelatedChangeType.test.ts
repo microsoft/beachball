@@ -1,15 +1,15 @@
 import { updateRelatedChangeType } from '../../bump/updateRelatedChangeType';
 import { BumpInfo } from '../../types/BumpInfo';
 import _ from 'lodash';
-import { ChangeInfo } from '../../types/ChangeInfo';
+import { ChangeInfo, ChangeType } from '../../types/ChangeInfo';
 import { PackageInfo, PackageInfos } from '../../types/PackageInfo';
 
 type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends Array<infer U> ? Array<DeepPartial<U>> : DeepPartial<T[P]>;
 };
-type PartialBumpInfo = DeepPartial<Omit<BumpInfo, 'calculatedChangeInfos'>> & {
+type PartialBumpInfo = DeepPartial<Omit<BumpInfo, 'calculatedChangeTypes'>> & {
   // can't get DeepPartial to handle the index signature properly
-  calculatedChangeInfos?: { [packageName: string]: Partial<ChangeInfo> };
+  calculatedChangeTypes?: { [packageName: string]: ChangeType };
 };
 
 describe('updateRelatedChangeType', () => {
@@ -18,10 +18,7 @@ describe('updateRelatedChangeType', () => {
       {
         changeFileChangeInfos: new Map(),
         dependents: {},
-        calculatedChangeInfos: {},
-        dependentChangeTypes: {
-          foo: 'patch',
-        },
+        calculatedChangeTypes: {},
         packageInfos: {
           foo: {
             name: 'foo',
@@ -36,12 +33,12 @@ describe('updateRelatedChangeType', () => {
             combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
           },
         } as { [packageName: string]: DeepPartial<PackageInfo> } as PackageInfos,
-        dependentChangeInfos: {},
         modifiedPackages: new Set(),
         newPackages: new Set(),
         packageGroups: {},
         groupOptions: {},
         scopedPackages: new Set(),
+        dependentChangedBy: {},
       },
       overrides
     );
@@ -63,49 +60,7 @@ describe('updateRelatedChangeType', () => {
       changeFileChangeInfos: new Map([
         ['foo.json', { ...changeInfoFixture, type: 'minor', dependentChangeType: 'patch' }],
       ]),
-      calculatedChangeInfos: {
-        foo: {
-          type: 'minor',
-        },
-      },
-      packageInfos: {
-        bar: {
-          dependencies: {
-            foo: '1.0.0',
-          },
-        },
-      },
-      dependentChangeInfos: {},
-    });
-
-    updateRelatedChangeType('foo.json', 'foo', bumpInfo, true);
-
-    expect(bumpInfo.calculatedChangeInfos['foo'].type).toBe('minor');
-    expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('patch');
-    expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(1);
-
-    const fooChangeInfo = bumpInfo.dependentChangeInfos['foo'];
-    expect(fooChangeInfo).toBeUndefined();
-
-    const barChangeInfo = bumpInfo.dependentChangeInfos['bar'];
-    expect(barChangeInfo).toBeDefined();
-    expect(barChangeInfo?.type).toBe('patch');
-    expect(barChangeInfo?.packageName).toBe('bar');
-    expect(barChangeInfo?.commit).toBe('0xdeadbeef');
-    expect(barChangeInfo?.email).toBe('test@dev.com');
-    expect(barChangeInfo?.comment).toBe('');
-  });
-
-  it('should bump dependent packages according to the bumpInfo.dependentChangeTypes', () => {
-    const bumpInfo = getBumpInfo({
-      dependents: {
-        foo: ['bar'],
-      },
-      changeFileChangeInfos: new Map([['foo.json', { ...changeInfoFixture, type: 'patch' }]]),
-      calculatedChangeInfos: {
-        foo: { type: 'patch' },
-      },
-      dependentChangeTypes: {
+      calculatedChangeTypes: {
         foo: 'minor',
       },
       packageInfos: {
@@ -115,22 +70,38 @@ describe('updateRelatedChangeType', () => {
           },
         },
       },
-      dependentChangeInfos: {},
     });
 
-    updateRelatedChangeType('foo.json', 'foo', bumpInfo, true);
+    updateRelatedChangeType('foo.json', bumpInfo, true);
 
-    expect(bumpInfo.calculatedChangeInfos['foo'].type).toBe('patch');
-    expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('minor');
-    expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(1);
+    expect(bumpInfo.calculatedChangeTypes['foo']).toBe('minor');
+    expect(bumpInfo.calculatedChangeTypes['bar']).toBe('patch');
+  });
 
-    const barDependentChangeInfo = bumpInfo.dependentChangeInfos['bar'];
-    expect(barDependentChangeInfo).toBeDefined();
-    expect(barDependentChangeInfo?.type).toBe('minor');
-    expect(barDependentChangeInfo?.packageName).toBe('bar');
-    expect(barDependentChangeInfo?.commit).toBe('0xdeadbeef');
-    expect(barDependentChangeInfo?.email).toBe('test@dev.com');
-    expect(barDependentChangeInfo?.comment).toBe('');
+  it('should bump dependent packages according to the dependentChangeTypes', () => {
+    const bumpInfo = getBumpInfo({
+      dependents: {
+        foo: ['bar'],
+      },
+      changeFileChangeInfos: new Map([
+        ['foo.json', { ...changeInfoFixture, type: 'patch', dependentChangeType: 'minor' }],
+      ]),
+      calculatedChangeTypes: {
+        foo: 'patch',
+      },
+      packageInfos: {
+        bar: {
+          dependencies: {
+            foo: '1.0.0',
+          },
+        },
+      },
+    });
+
+    updateRelatedChangeType('foo.json', bumpInfo, true);
+
+    expect(bumpInfo.calculatedChangeTypes['foo']).toBe('patch');
+    expect(bumpInfo.calculatedChangeTypes['bar']).toBe('minor');
   });
 
   it("should bump dependent packages according to the bumpInfo.dependentChangeTypes and respect package's own change type", () => {
@@ -140,16 +111,12 @@ describe('updateRelatedChangeType', () => {
         bar: ['app'],
       },
       changeFileChangeInfos: new Map([
-        ['foo.json', { ...changeInfoFixture, type: 'patch', packageName: 'foo' }],
-        ['bar.json', { ...changeInfoFixture, type: 'patch', packageName: 'bar' }],
+        ['foo.json', { ...changeInfoFixture, type: 'patch', packageName: 'foo', dependentChangeType: 'patch' }],
+        ['bar.json', { ...changeInfoFixture, type: 'patch', packageName: 'bar', dependentChangeType: 'minor' }],
       ]),
-      calculatedChangeInfos: {
-        foo: { type: 'patch' },
-        bar: { type: 'major' },
-      },
-      dependentChangeTypes: {
+      calculatedChangeTypes: {
         foo: 'patch',
-        bar: 'minor',
+        bar: 'major',
       },
       packageInfos: {
         app: {
@@ -163,30 +130,14 @@ describe('updateRelatedChangeType', () => {
           },
         },
       },
-      dependentChangeInfos: {},
     });
 
-    updateRelatedChangeType('foo.json', 'foo', bumpInfo, true);
-    updateRelatedChangeType('bar.json', 'bar', bumpInfo, true);
+    updateRelatedChangeType('foo.json', bumpInfo, true);
+    updateRelatedChangeType('bar.json', bumpInfo, true);
 
-    expect(bumpInfo.calculatedChangeInfos['foo'].type).toBe('patch');
-    expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('major');
-    expect(bumpInfo.calculatedChangeInfos['app'].type).toBe('minor');
-    expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(2);
-
-    const barDependentChangeInfo = bumpInfo.dependentChangeInfos['bar'];
-    expect(barDependentChangeInfo).toBeDefined();
-    expect(barDependentChangeInfo?.type).toBe('major');
-    expect(barDependentChangeInfo?.commit).toBe('0xdeadbeef');
-    expect(barDependentChangeInfo?.email).toBe('test@dev.com');
-    expect(barDependentChangeInfo?.comment).toBe('');
-
-    const appChangeInfoForBar = bumpInfo.dependentChangeInfos['app'];
-    expect(appChangeInfoForBar?.type).toBe('minor');
-    expect(appChangeInfoForBar?.packageName).toBe('app');
-    expect(appChangeInfoForBar?.commit).toBe('0xdeadbeef');
-    expect(appChangeInfoForBar?.email).toBe('test@dev.com');
-    expect(appChangeInfoForBar?.comment).toBe('');
+    expect(bumpInfo.calculatedChangeTypes['foo']).toBe('patch');
+    expect(bumpInfo.calculatedChangeTypes['bar']).toBe('major');
+    expect(bumpInfo.calculatedChangeTypes['app']).toBe('minor');
   });
 
   it('should bump dependent packages according to the bumpInfo.dependentChangeTypes and dependentChangeInfos must stay up to date', () => {
@@ -197,14 +148,19 @@ describe('updateRelatedChangeType', () => {
         bar: ['app'],
       },
       changeFileChangeInfos: new Map([
-        ['foo.json', { ...changeInfoFixture, type: 'patch', packageName: 'foo' }],
-        ['baz.json', { ...changeInfoFixture, type: 'patch', email: 'dev@test.com', commit: '0xfeef' }],
+        ['foo.json', { ...changeInfoFixture, type: 'patch', packageName: 'foo', dependentChangeType: 'patch' }],
+        [
+          'baz.json',
+          {
+            ...changeInfoFixture,
+            type: 'patch',
+            email: 'dev@test.com',
+            commit: '0xfeef',
+            dependentChangeType: 'minor',
+          },
+        ],
       ]),
-      calculatedChangeInfos: {
-        foo: { type: 'patch' },
-        baz: { type: 'minor' },
-      },
-      dependentChangeTypes: {
+      calculatedChangeTypes: {
         foo: 'patch',
         baz: 'minor',
       },
@@ -223,35 +179,16 @@ describe('updateRelatedChangeType', () => {
       },
     });
 
-    updateRelatedChangeType('foo.json', 'foo', bumpInfo, true);
+    updateRelatedChangeType('foo.json', bumpInfo, true);
 
-    expect(bumpInfo.calculatedChangeInfos['foo'].type).toBe('patch');
-    expect(bumpInfo.calculatedChangeInfos['baz'].type).toBe('minor');
-    expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('patch');
-    expect(bumpInfo.calculatedChangeInfos['app'].type).toBe('patch');
-    expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(2);
+    expect(bumpInfo.calculatedChangeTypes['foo']).toBe('patch');
+    expect(bumpInfo.calculatedChangeTypes['baz']).toBe('minor');
+    expect(bumpInfo.calculatedChangeTypes['bar']).toBe('patch');
+    expect(bumpInfo.calculatedChangeTypes['app']).toBe('patch');
 
-    const fooDependentChangeInfos = bumpInfo.dependentChangeInfos['foo'];
-    expect(fooDependentChangeInfos).toBeUndefined();
+    updateRelatedChangeType('baz.json', bumpInfo, true);
 
-    const barChangeInfoForFoo = bumpInfo.dependentChangeInfos['bar'];
-    expect(barChangeInfoForFoo?.type).toBe('patch');
-    expect(barChangeInfoForFoo?.packageName).toBe('bar');
-    expect(barChangeInfoForFoo?.commit).toBe('0xdeadbeef');
-    expect(barChangeInfoForFoo?.email).toBe('test@dev.com');
-    expect(barChangeInfoForFoo?.comment).toBe('');
-
-    const appChangeInfoForBar = bumpInfo.dependentChangeInfos['app'];
-    expect(appChangeInfoForBar?.type).toBe('patch');
-    expect(appChangeInfoForBar?.packageName).toBe('app');
-    expect(appChangeInfoForBar?.commit).toBe('0xdeadbeef');
-    expect(appChangeInfoForBar?.email).toBe('test@dev.com');
-    expect(appChangeInfoForBar?.comment).toBe('');
-
-    updateRelatedChangeType('baz.json', 'baz', bumpInfo, true);
-
-    expect(bumpInfo.dependentChangeInfos['baz']).toBeUndefined();
-    expect(bumpInfo.dependentChangeInfos['bar'].commit).toBe('0xfeef');
+    expect(bumpInfo.calculatedChangeTypes['bar']).toBe('minor');
   });
 
   it('should bump dependent packages according to the bumpInfo.dependentChangeTypes and roll-up multiple change infos', () => {
@@ -262,18 +199,13 @@ describe('updateRelatedChangeType', () => {
         baz: ['bar', 'app'],
       },
       changeFileChangeInfos: new Map([
-        ['foo.json', { ...changeInfoFixture, type: 'patch' }],
-        ['baz.json', { ...changeInfoFixture, type: 'patch' }],
+        ['foo.json', { ...changeInfoFixture, type: 'patch', dependentChangeType: 'major' }],
+        ['baz.json', { ...changeInfoFixture, type: 'patch', dependentChangeType: 'minor' }],
       ]),
-      calculatedChangeInfos: {
-        foo: { type: 'patch' },
-        baz: { type: 'patch' },
+      calculatedChangeTypes: {
+        foo: 'patch',
+        baz: 'patch',
       },
-      dependentChangeTypes: {
-        foo: 'major',
-        baz: 'minor',
-      },
-      dependentChangeInfos: {},
       packageInfos: {
         app: {
           dependencies: {
@@ -290,101 +222,73 @@ describe('updateRelatedChangeType', () => {
       },
     });
 
-    updateRelatedChangeType('foo.json', 'foo', bumpInfo, true);
-    updateRelatedChangeType('baz.json', 'baz', bumpInfo, true);
+    updateRelatedChangeType('foo.json', bumpInfo, true);
+    updateRelatedChangeType('baz.json', bumpInfo, true);
 
-    expect(bumpInfo.calculatedChangeInfos['foo'].type).toBe('patch');
-    expect(bumpInfo.calculatedChangeInfos['baz'].type).toBe('patch');
-    expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('major');
-    expect(bumpInfo.calculatedChangeInfos['app'].type).toBe('major');
-
-    expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(2);
-
-    const fooDependentChangeInfos = bumpInfo.dependentChangeInfos['foo'];
-    expect(fooDependentChangeInfos).toBeUndefined();
-
-    const barChangeInfoForFoo = bumpInfo.dependentChangeInfos['bar'];
-    expect(barChangeInfoForFoo?.type).toBe('major');
-    expect(barChangeInfoForFoo?.packageName).toBe('bar');
-    expect(barChangeInfoForFoo?.commit).toBe('0xdeadbeef');
-    expect(barChangeInfoForFoo?.email).toBe('test@dev.com');
-    expect(barChangeInfoForFoo?.comment).toBe('');
-
-    const appChangeInfoForBar = bumpInfo.dependentChangeInfos['app'];
-    expect(appChangeInfoForBar?.type).toBe('major');
-    expect(appChangeInfoForBar?.packageName).toBe('app');
-    expect(appChangeInfoForBar?.commit).toBe('0xdeadbeef');
-    expect(appChangeInfoForBar?.email).toBe('test@dev.com');
-    expect(appChangeInfoForBar?.comment).toBe('');
+    expect(bumpInfo.calculatedChangeTypes['foo']).toBe('patch');
+    expect(bumpInfo.calculatedChangeTypes['baz']).toBe('patch');
+    expect(bumpInfo.calculatedChangeTypes['bar']).toBe('major');
+    expect(bumpInfo.calculatedChangeTypes['app']).toBe('major');
   });
 
   it('should bump all packages in a group together as minor', () => {
     const bumpInfo = getBumpInfo({
-      dependentChangeTypes: {
-        foo: 'minor',
-      },
-      calculatedChangeInfos: {},
+      calculatedChangeTypes: {},
       packageInfos: {
         foo: {},
         bar: {},
         unrelated: {},
       },
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
-      changeFileChangeInfos: new Map([['foo.json', { ...changeInfoFixture, type: 'minor' }]]),
-      dependentChangeInfos: {},
+      changeFileChangeInfos: new Map([
+        ['foo.json', { ...changeInfoFixture, type: 'minor', dependentChangeType: 'minor' }],
+      ]),
     });
 
-    updateRelatedChangeType('foo.json', 'foo', bumpInfo, true);
+    updateRelatedChangeType('foo.json', bumpInfo, true);
 
-    expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(1);
-    expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('minor');
-    expect(bumpInfo.calculatedChangeInfos['unrelated']).toBeUndefined();
+    expect(bumpInfo.calculatedChangeTypes['bar']).toBe('minor');
+    expect(bumpInfo.calculatedChangeTypes['unrelated']).toBeUndefined();
   });
 
   it('should bump all packages in a group together as patch', () => {
     const bumpInfo = getBumpInfo({
-      dependentChangeTypes: {
-        foo: 'patch',
-      },
-      calculatedChangeInfos: {},
-      changeFileChangeInfos: new Map([['foo.json', { ...changeInfoFixture, type: 'patch' }]]),
+      calculatedChangeTypes: {},
+      changeFileChangeInfos: new Map([
+        ['foo.json', { ...changeInfoFixture, type: 'patch', dependentChangeType: 'patch' }],
+      ]),
       packageInfos: {
         foo: {},
         bar: {},
         unrelated: {},
       },
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
-      dependentChangeInfos: {},
     });
 
-    updateRelatedChangeType('foo.json', 'foo', bumpInfo, true);
+    updateRelatedChangeType('foo.json', bumpInfo, true);
 
-    expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(1);
-    expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('patch');
-    expect(bumpInfo.calculatedChangeInfos['unrelated']).toBeUndefined();
+    expect(bumpInfo.calculatedChangeTypes['bar']).toBe('patch');
+    expect(bumpInfo.calculatedChangeTypes['unrelated']).toBeUndefined();
   });
 
   it('should bump all packages in a group together as none', () => {
     const bumpInfo = getBumpInfo({
-      dependentChangeTypes: {
-        foo: 'none',
-      },
-      calculatedChangeInfos: {},
-      changeFileChangeInfos: new Map([['foo.json', { ...changeInfoFixture, type: 'none' }]]),
+      calculatedChangeTypes: {},
+      changeFileChangeInfos: new Map([
+        ['foo.json', { ...changeInfoFixture, type: 'none', dependentChangeType: 'none' }],
+      ]),
       packageInfos: {
         foo: {},
         bar: {},
         unrelated: {},
       },
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
-      dependentChangeInfos: {},
     });
 
-    updateRelatedChangeType('foo.json', 'foo', bumpInfo, true);
+    updateRelatedChangeType('foo.json', bumpInfo, true);
 
-    expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(1);
-    expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('none');
-    expect(bumpInfo.calculatedChangeInfos['unrelated']).toBeUndefined();
+    expect(bumpInfo.calculatedChangeTypes['bar']).toBe('none');
+    expect(bumpInfo.calculatedChangeTypes['unrelated']).toBeUndefined();
   });
 
   it('should bump all packages in a group together as none with dependents', () => {
@@ -392,31 +296,25 @@ describe('updateRelatedChangeType', () => {
       dependents: {
         foo: ['bar'],
       },
-      dependentChangeTypes: {
-        foo: 'none',
-      },
       packageInfos: {
         foo: {},
         bar: {},
         unrelated: {},
       },
-      changeFileChangeInfos: new Map([['foo.json', { ...changeInfoFixture, type: 'none' }]]),
+      changeFileChangeInfos: new Map([
+        ['foo.json', { ...changeInfoFixture, type: 'none', dependentChangeType: 'none' }],
+      ]),
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
-      dependentChangeInfos: {},
     });
 
-    updateRelatedChangeType('foo.json', 'foo', bumpInfo, true);
+    updateRelatedChangeType('foo.json', bumpInfo, true);
 
-    expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(1);
-    expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('none');
-    expect(bumpInfo.calculatedChangeInfos['unrelated']).toBeUndefined();
+    expect(bumpInfo.calculatedChangeTypes['bar']).toBe('none');
+    expect(bumpInfo.calculatedChangeTypes['unrelated']).toBeUndefined();
   });
 
   it('should bump all grouped packages, if a dependency was bumped', () => {
     const bumpInfo = getBumpInfo({
-      dependentChangeTypes: {
-        dep: 'minor',
-      },
       dependents: {
         dep: ['bar'],
       },
@@ -436,25 +334,21 @@ describe('updateRelatedChangeType', () => {
           combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
         },
       },
-      changeFileChangeInfos: new Map([['dep.json', { ...changeInfoFixture, type: 'patch' }]]),
+      changeFileChangeInfos: new Map([
+        ['dep.json', { ...changeInfoFixture, packageName: 'dep', type: 'patch', dependentChangeType: 'minor' }],
+      ]),
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
-      dependentChangeInfos: {},
     });
 
-    updateRelatedChangeType('dep.json', 'dep', bumpInfo, true);
+    updateRelatedChangeType('dep.json', bumpInfo, true);
 
-    expect(bumpInfo.calculatedChangeInfos['foo'].type).toBe('minor');
-    expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('minor');
-    expect(bumpInfo.calculatedChangeInfos['unrelated']).toBeUndefined();
-
-    expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(2);
+    expect(bumpInfo.calculatedChangeTypes['foo']).toBe('minor');
+    expect(bumpInfo.calculatedChangeTypes['bar']).toBe('minor');
+    expect(bumpInfo.calculatedChangeTypes['unrelated']).toBeUndefined();
   });
 
   it('should bump dependent package, if a dependency was in a group', () => {
     const bumpInfo = getBumpInfo({
-      dependentChangeTypes: {
-        dep: 'minor',
-      },
       dependents: {
         dep: ['bar'],
         foo: ['app'],
@@ -479,32 +373,21 @@ describe('updateRelatedChangeType', () => {
         },
       },
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
-      dependentChangeInfos: {},
-      changeFileChangeInfos: new Map([['dep.json', { ...changeInfoFixture, type: 'patch' }]]),
+
+      changeFileChangeInfos: new Map([
+        ['dep.json', { ...changeInfoFixture, packageName: 'dep', type: 'patch', dependentChangeType: 'minor' }],
+      ]),
     });
 
-    updateRelatedChangeType('dep.json', 'dep', bumpInfo, true);
+    updateRelatedChangeType('dep.json', bumpInfo, true);
 
-    expect(bumpInfo.calculatedChangeInfos['foo'].type).toBe('minor');
-    expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('minor');
-    expect(bumpInfo.calculatedChangeInfos['app'].type).toBe('minor');
-
-    expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(3);
-
-    const fooChangeInfo = bumpInfo.dependentChangeInfos['app'];
-    expect(fooChangeInfo?.type).toBe('minor');
-    expect(fooChangeInfo?.packageName).toBe('app');
-    expect(fooChangeInfo?.commit).toBe('0xdeadbeef');
-    expect(fooChangeInfo?.email).toBe('test@dev.com');
-    expect(fooChangeInfo?.comment).toBe('');
+    expect(bumpInfo.calculatedChangeTypes['foo']).toBe('minor');
+    expect(bumpInfo.calculatedChangeTypes['bar']).toBe('minor');
+    expect(bumpInfo.calculatedChangeTypes['app']).toBe('minor');
   });
 
   it('should propagate dependent change type across group', () => {
     const bumpInfo = getBumpInfo({
-      dependentChangeTypes: {
-        mergeStyles: 'minor',
-        datetimeUtils: 'patch',
-      },
       dependents: {
         mergeStyles: ['styling'],
         styling: ['bar'],
@@ -545,26 +428,31 @@ describe('updateRelatedChangeType', () => {
       },
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
       changeFileChangeInfos: new Map([
-        ['mergeStyles.json', { ...changeInfoFixture, type: 'patch' }],
-        ['datetimeUtils.json', { ...changeInfoFixture, type: 'patch' }],
+        [
+          'mergeStyles.json',
+          { ...changeInfoFixture, packageName: 'mergeStyles', type: 'patch', dependentChangeType: 'minor' },
+        ],
+        [
+          'datetimeUtils.json',
+          { ...changeInfoFixture, packageName: 'datetimeUtils', type: 'patch', dependentChangeType: 'patch' },
+        ],
       ]),
-      dependentChangeInfos: {},
     });
 
-    updateRelatedChangeType('mergeStyles.json', 'mergeStyles', bumpInfo, true);
-    updateRelatedChangeType('datetimeUtils.json', 'datetimeUtils', bumpInfo, true);
+    updateRelatedChangeType('mergeStyles.json', bumpInfo, true);
+    updateRelatedChangeType('datetimeUtils.json', bumpInfo, true);
 
-    expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(4);
-
-    expect(bumpInfo.calculatedChangeInfos['foo'].type).toBe('minor');
-    expect(bumpInfo.calculatedChangeInfos['bar'].type).toBe('minor');
-    expect(bumpInfo.calculatedChangeInfos['datetime'].type).toBe('minor');
-    expect(bumpInfo.calculatedChangeInfos['styling'].type).toBe('minor');
+    expect(bumpInfo.calculatedChangeTypes['foo']).toBe('minor');
+    expect(bumpInfo.calculatedChangeTypes['bar']).toBe('minor');
+    expect(bumpInfo.calculatedChangeTypes['datetime']).toBe('minor');
+    expect(bumpInfo.calculatedChangeTypes['styling']).toBe('minor');
   });
 
   it('should respect disallowed change type', () => {
     const bumpInfo = getBumpInfo({
-      changeFileChangeInfos: new Map([['foo.json', { ...changeInfoFixture, type: 'major' }]]),
+      changeFileChangeInfos: new Map([
+        ['foo.json', { ...changeInfoFixture, type: 'major', dependentChangeType: 'patch' }],
+      ]),
       packageInfos: {
         foo: {
           combinedOptions: { disallowedChangeTypes: ['minor', 'major'], defaultNpmTag: 'latest' },
@@ -572,9 +460,8 @@ describe('updateRelatedChangeType', () => {
       },
     });
 
-    updateRelatedChangeType('foo.json', 'foo', bumpInfo, true);
+    updateRelatedChangeType('foo.json', bumpInfo, true);
 
-    expect(Object.keys(bumpInfo.dependentChangeInfos).length).toBe(0);
-    expect(bumpInfo.calculatedChangeInfos['foo']).toBeUndefined();
+    expect(bumpInfo.calculatedChangeTypes['foo']).toBeUndefined();
   });
 });

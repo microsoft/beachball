@@ -7,13 +7,14 @@ import { ChangeSet } from '../types/ChangeInfo';
 
 export function getPackageChangelogs(
   changeFileChangeInfos: ChangeSet,
-  dependentChangeInfos: BumpInfo['dependentChangeInfos'],
+  calculatedChangeTypes: BumpInfo['calculatedChangeTypes'],
+  dependentChangedBy: BumpInfo['dependentChangedBy'],
   packageInfos: {
     [pkg: string]: PackageInfo;
   },
   cwd: string
 ) {
-  const changeInfos = Array.from(changeFileChangeInfos.values()).concat(Object.values(dependentChangeInfos));
+  const changeInfos = changeFileChangeInfos.values();
 
   const changelogs: {
     [pkgName: string]: PackageChangelog;
@@ -24,14 +25,7 @@ export function getPackageChangelogs(
   for (let change of changeInfos) {
     const { packageName, type: changeType, dependentChangeType, email, ...rest } = change;
     if (!changelogs[packageName]) {
-      const version = packageInfos[packageName].version;
-      changelogs[packageName] = {
-        name: packageName,
-        version,
-        tag: generateTag(packageName, version),
-        date: new Date(),
-        comments: {},
-      };
+      changelogs[packageName] = createChangeLog(packageInfos[packageName]);
     }
 
     changelogs[packageName].comments = changelogs[packageName].comments || {};
@@ -45,5 +39,38 @@ export function getPackageChangelogs(
       commit,
     });
   }
+
+  for (let [dependent, changedBy] of Object.entries(dependentChangedBy)) {
+    if (!changelogs[dependent]) {
+      changelogs[dependent] = createChangeLog(packageInfos[dependent]);
+    }
+
+    const changeType = calculatedChangeTypes[dependent];
+
+    changelogs[dependent].comments = changelogs[dependent].comments || {};
+    changelogs[dependent].comments[changeType] = changelogs[dependent].comments[changeType] || [];
+
+    for (const dep of changedBy) {
+      changelogs[dependent].comments[changeType]!.push({
+        author: 'beachball',
+        package: dependent,
+        comment: `bump ${dep} to v${packageInfos[dep].version}`,
+        commit,
+      });
+    }
+  }
+
   return changelogs;
+}
+
+function createChangeLog(packageInfo: PackageInfo) {
+  const name = packageInfo.name;
+  const version = packageInfo.version;
+  return {
+    name,
+    version,
+    tag: generateTag(name, version),
+    date: new Date(),
+    comments: {},
+  };
 }

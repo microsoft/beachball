@@ -1,6 +1,6 @@
-import { MinChangeType, updateChangeInfoWithMaxType } from '../changefile/getPackageChangeTypes';
+import { getMaxChangeType, MinChangeType } from '../changefile/getPackageChangeTypes';
 import { BumpInfo } from '../types/BumpInfo';
-import { ChangeInfo, ChangeType } from '../types/ChangeInfo';
+import { ChangeType } from '../types/ChangeInfo';
 
 /**
  * This is the core of the bumpInfo dependency bumping logic
@@ -15,11 +15,11 @@ import { ChangeInfo, ChangeType } from '../types/ChangeInfo';
  *   all packages within a group to be visited by the loop
  *
  * What is mutates:
- * - bumpInfo.calculatedChangeInfos: adds packages changeInfo modifed by this function
+ * - bumpInfo.calculatedChangeTypes: adds packages changeInfo modifed by this function
  * - bumpInfo.dependentChangeInfos: copy of what has been added in `calculatedChangeInfos`
  *
  * What it does not do:
- * - bumpInfo.calculatedChangeInfos: will not mutate the entryPoint `pkgName` ChangeInfo
+ * - bumpInfo.calculatedChangeTypes: will not mutate the entryPoint `pkgName` ChangeInfo
  * - bumpInfo.dependentChangeInfos: will not contain the ChangeInfo for `pkgName` at all
  *
  * Inputs from bumpInfo are listed in the [^1] below in the function body
@@ -29,48 +29,33 @@ import { ChangeInfo, ChangeType } from '../types/ChangeInfo';
  * @param bumpDeps
  * @returns
  */
-export function updateRelatedChangeType(
-  changeFile: string,
-  entryPointPackageName: string,
-  bumpInfo: BumpInfo,
-  bumpDeps: boolean
-) {
+export function updateRelatedChangeType(changeFile: string, bumpInfo: BumpInfo, bumpDeps: boolean) {
   /** [^1]: all the information needed from `bumpInfo` */
-  const {
-    calculatedChangeInfos,
-    changeFileChangeInfos,
-    packageGroups,
-    dependents,
-    packageInfos,
-    dependentChangeInfos,
-    dependentChangeTypes,
-    groupOptions,
-  } = bumpInfo;
+  const { calculatedChangeTypes, packageGroups, dependents, packageInfos, groupOptions } = bumpInfo;
+
+  const changeFileChangeInfo = bumpInfo.changeFileChangeInfos.get(changeFile)!;
+  const entryPointPackageName = changeFileChangeInfo.packageName;
+  const dependentChangeType = changeFileChangeInfo.dependentChangeType;
 
   // Do not do anything if packageInfo is not present: it means this was an invalid changefile that somehow got checked in
   if (!packageInfos[entryPointPackageName]) {
     return;
   }
 
-  const dependentChangeType = dependentChangeTypes[entryPointPackageName];
+  let updatedChangeType = getMaxChangeType(dependentChangeType, MinChangeType, []);
 
-  let baseChangeInfo = {
-    ...changeFileChangeInfos.get(changeFile),
-    ...dependentChangeInfos[entryPointPackageName],
-    ...calculatedChangeInfos[entryPointPackageName],
-  };
-
-  const queue = [{ subjectPackage: entryPointPackageName, changeType: MinChangeType, baseChangeInfo }];
+  const queue = [{ subjectPackage: entryPointPackageName, changeType: MinChangeType }];
 
   // visited is a set of package names that already has been seen by this algorithm - this allows the algo to scale
   const visited = new Set<string>();
 
   while (queue.length > 0) {
-    let { subjectPackage, changeType, baseChangeInfo } = queue.shift()!;
+    let { subjectPackage, changeType } = queue.shift()!;
 
     if (!visited.has(subjectPackage)) {
       visited.add(subjectPackage);
 
+      // Step 1. Update change type of the subjectPackage according to the dependent change type propagation
       const packageInfo = packageInfos[subjectPackage];
 
       if (!packageInfo) {
@@ -80,22 +65,22 @@ export function updateRelatedChangeType(
       const disallowedChangeTypes = packageInfo.combinedOptions?.disallowedChangeTypes ?? [];
 
       if (subjectPackage !== entryPointPackageName) {
-        baseChangeInfo = createOrUpdateChangeInfo(subjectPackage, changeType, baseChangeInfo, disallowedChangeTypes);
+        updateChangeType(subjectPackage, changeType, disallowedChangeTypes);
       }
 
+      // Step 2. For all dependent packages of the current subjectPackage, place in queue to be updated at least to the "updatedChangeType"
       const dependentPackages = dependents[subjectPackage];
 
       if (bumpDeps && dependentPackages && dependentPackages.length > 0) {
         for (const dependentPackage of dependentPackages) {
           queue.push({
             subjectPackage: dependentPackage,
-            changeType: dependentChangeType,
-            baseChangeInfo,
+            changeType: updatedChangeType,
           });
         }
       }
 
-      // handle the group dependent updates
+      // Step 3. For group-linked packages, update the change type to the max(change file info's change type, propagated update change type)
       const groupName = Object.keys(packageGroups).find(group =>
         packageGroups[group].packageNames.includes(packageInfo.name)
       );
@@ -104,12 +89,11 @@ export function updateRelatedChangeType(
         for (const packageNameInGroup of packageGroups[groupName].packageNames) {
           if (
             !groupOptions[groupName] ||
-            !groupOptions[groupName]?.disallowedChangeTypes?.includes(dependentChangeType)
+            !groupOptions[groupName]?.disallowedChangeTypes?.includes(updatedChangeType)
           ) {
             queue.push({
               subjectPackage: packageNameInGroup,
-              changeType: baseChangeInfo.type,
-              baseChangeInfo,
+              changeType: updatedChangeType,
             });
           }
         }
@@ -117,40 +101,10 @@ export function updateRelatedChangeType(
     }
   }
 
-  function createOrUpdateChangeInfo(
-    pkg: string,
-    changeType: ChangeType,
-    changeInfo: ChangeInfo,
-    disallowedChangeTypes: ChangeType[]
-  ) {
-    const newChangeInfo = {
-      type: MinChangeType,
-      packageName: pkg,
-      email: changeInfo.email,
-      commit: changeInfo.commit,
-      comment: '', // comment will be populated at later stages when new versions are computed
-      dependentChangeType: MinChangeType,
-    };
+  function updateChangeType(pkg: string, changeType: ChangeType, disallowedChangeTypes: ChangeType[]) {
+    const newChangeType = getMaxChangeType(calculatedChangeTypes[pkg], changeType, disallowedChangeTypes);
+    calculatedChangeTypes[pkg] = newChangeType;
 
-    if (!calculatedChangeInfos[pkg]) {
-      // for packages previously unseen, initialize with the dependentChangeType unless it is disallowed
-      calculatedChangeInfos[pkg] = updateChangeInfoWithMaxType(
-        newChangeInfo,
-        newChangeInfo.dependentChangeType,
-        changeType,
-        disallowedChangeTypes
-      );
-    } else {
-      // for packages already in calculatedChangeInfos, do max type calculation between existing type with dependentChangeType
-      calculatedChangeInfos[pkg] = updateChangeInfoWithMaxType(
-        newChangeInfo,
-        calculatedChangeInfos[pkg].type,
-        changeType,
-        disallowedChangeTypes
-      );
-    }
-
-    dependentChangeInfos[pkg] = calculatedChangeInfos[pkg];
-    return calculatedChangeInfos[pkg];
+    return newChangeType;
   }
 }

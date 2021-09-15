@@ -2,7 +2,8 @@ import { PackageInfos, PackageDeps } from '../types/PackageInfo';
 import { bumpMinSemverRange } from './bumpMinSemverRange';
 
 export function setDependentVersions(packageInfos: PackageInfos, scopedPackages: Set<string>) {
-  const modifiedPackages = new Set<string>();
+  const dependentChangedBy: {[dependent: string]: Set<string>} = {};
+
   Object.keys(packageInfos).forEach(pkgName => {
     if (!scopedPackages.has(pkgName)) {
       return;
@@ -19,7 +20,9 @@ export function setDependentVersions(packageInfos: PackageInfos, scopedPackages:
             const bumpedVersionRange = bumpMinSemverRange(packageInfo.version, existingVersionRange);
             if (existingVersionRange !== bumpedVersionRange) {
               deps[dep] = bumpedVersionRange;
-              modifiedPackages.add(pkgName);
+
+              dependentChangedBy[pkgName] = dependentChangedBy[pkgName] || new Set<string>();
+              dependentChangedBy[pkgName].add(dep);
             }
           }
         });
@@ -27,5 +30,5 @@ export function setDependentVersions(packageInfos: PackageInfos, scopedPackages:
     });
   });
 
-  return modifiedPackages;
+  return dependentChangedBy;
 }

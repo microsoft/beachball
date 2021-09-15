@@ -15,7 +15,8 @@ import { ChangeSet } from '../types/ChangeInfo';
 export async function writeChangelog(
   options: BeachballOptions,
   changeFileChangeInfos: ChangeSet,
-  dependentChangeInfos: BumpInfo['dependentChangeInfos'],
+  calculatedChangeTypes: BumpInfo['calculatedChangeTypes'],
+  dependentChangedBy: BumpInfo['dependentChangedBy'],
   packageInfos: {
     [pkg: string]: PackageInfo;
   }
@@ -23,11 +24,13 @@ export async function writeChangelog(
   const groupedChangelogPaths = await writeGroupedChangelog(
     options,
     changeFileChangeInfos,
+    calculatedChangeTypes,
+    dependentChangedBy,
     packageInfos
   );
   const groupedChangelogPathSet = new Set(groupedChangelogPaths);
 
-  const changelogs = getPackageChangelogs(changeFileChangeInfos, dependentChangeInfos, packageInfos, options.path);
+  const changelogs = getPackageChangelogs(changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy, packageInfos, options.path);
   // Use a standard for loop here to prevent potentially firing off multiple network requests at once
   // (in case any custom renderers have network requests)
   for (const pkg of Object.keys(changelogs)) {
@@ -43,6 +46,8 @@ export async function writeChangelog(
 async function writeGroupedChangelog(
   options: BeachballOptions,
   changeFileChangeInfos: ChangeSet,
+  calculatedChangeTypes: BumpInfo['calculatedChangeTypes'],
+  dependentChangedBy: BumpInfo['dependentChangedBy'],
   packageInfos: {
     [pkg: string]: PackageInfo;
   }
@@ -57,7 +62,7 @@ async function writeGroupedChangelog(
   }
 
   // Grouped changelogs should not contain dependency bump entries
-  const changelogs = getPackageChangelogs(changeFileChangeInfos, {}, packageInfos, options.path);
+  const changelogs = getPackageChangelogs(changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy, packageInfos, options.path);
   const groupedChangelogs: {
     [path: string]: {
       changelogs: PackageChangelog[];

@@ -1,4 +1,4 @@
-import { initializePackageChangeInfo } from '../changefile/getPackageChangeTypes';
+import { initializePackageChangeInfo as initializePackageChangeTypes } from '../changefile/getPackageChangeTypes';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { ChangeSet } from '../types/ChangeInfo';
 import { BumpInfo } from '../types/BumpInfo';
@@ -15,7 +15,7 @@ function gatherPreBumpInfo(options: BeachballOptions, packageInfos: PackageInfos
   const changes = readChangeFiles(options, packageInfos);
   const changePath = getChangePath(cwd);
 
-  const dependentChangeTypes: BumpInfo['dependentChangeTypes'] = {};
+  // const dependentChangeTypes: BumpInfo['dependentChangeTypes'] = {};
   const groupOptions = {};
 
   // Clear changes for non-existent and accidental private packages
@@ -33,34 +33,33 @@ function gatherPreBumpInfo(options: BeachballOptions, packageInfos: PackageInfos
     }
 
     filteredChanges.set(changeFile, change);
-    dependentChangeTypes[change.packageName] = change.dependentChangeType || 'patch';
   }
 
   // Clear non-existent packages from changefiles infos
-  const calculatedChangeInfos = initializePackageChangeInfo(filteredChanges);
-  Object.keys(calculatedChangeInfos).forEach(packageName => {
+  const calculatedChangeTypes = initializePackageChangeTypes(filteredChanges);
+  Object.keys(calculatedChangeTypes).forEach(packageName => {
     if (!packageInfos[packageName]) {
-      delete calculatedChangeInfos[packageName];
+      delete calculatedChangeTypes[packageName];
     }
   });
 
   return {
-    calculatedChangeInfos,
+    calculatedChangeTypes,
     packageInfos,
     packageGroups: {},
     changeFileChangeInfos: filteredChanges,
     modifiedPackages: new Set<string>(),
     newPackages: new Set<string>(),
     scopedPackages: new Set(getScopedPackages(options, packageInfos)),
-    dependentChangeTypes,
+    dependentChangedBy: {},
     groupOptions,
     dependents: {},
-    dependentChangeInfos: {},
   };
 }
 
 export function gatherBumpInfo(options: BeachballOptions, packageInfos: PackageInfos): BumpInfo {
   const bumpInfo = gatherPreBumpInfo(options, packageInfos);
+
   bumpInPlace(bumpInfo, options);
   return bumpInfo;
 }
