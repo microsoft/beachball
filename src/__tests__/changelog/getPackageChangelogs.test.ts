@@ -56,7 +56,13 @@ describe('getPackageChangelogs', () => {
       },
     };
 
-    const changelogs = getPackageChangelogs(changeFileChangeInfos, {}, dependentChangedBy, packageInfos, '.');
+    const changelogs = getPackageChangelogs(
+      changeFileChangeInfos,
+      { foo: 'patch', bar: 'patch' },
+      dependentChangedBy,
+      packageInfos,
+      '.'
+    );
 
     expect(Object.keys(changelogs.bar.comments.patch!).length).toBe(2);
     expect(Object.keys(changelogs.foo.comments.patch!).length).toBe(1);
