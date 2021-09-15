@@ -949,7 +949,7 @@ describe('version bumping', () => {
     const changelogJson = JSON.parse(jsonText);
 
     expect(changelogJson.entries[0].comments.patch[0].comment).toBe(
-      'Bump @beachball-comments-repro/package1 to v0.0.2'
+      'bump @beachball-comments-repro/package1 to v0.0.2'
     );
   });
 });
