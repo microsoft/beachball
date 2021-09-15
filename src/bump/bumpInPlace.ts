@@ -22,6 +22,11 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
 
   setGroupsInBumpInfo(bumpInfo, options);
 
+  // TODO: when we do "locked", or "lock step" versioning, we could simply skip setting grouped change types
+  //       - set the version for all packages in the group in (bumpPackageInfoVersion())
+  //       - the main concern is how to capture the bump reason in grouped changelog
+
+  // pass 2: initialize grouped calculatedChangeTypes together
   for (const changeInfo of changeFileChangeInfos.values()) {
     const groupName = Object.keys(bumpInfo.packageGroups).find(group =>
       bumpInfo.packageGroups[group].packageNames.includes(changeInfo.packageName)
@@ -38,12 +43,12 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
     updateRelatedChangeType(changeFile, bumpInfo, bumpDeps);
   }
 
-  // pass 2: actually bump the packages in the bumpInfo in memory (no disk writes at this point)
+  // pass 3: actually bump the packages in the bumpInfo in memory (no disk writes at this point)
   Object.keys(calculatedChangeTypes).forEach(pkgName => {
     bumpPackageInfoVersion(pkgName, bumpInfo, options);
   });
 
-  // pass 4: Bump all the dependencies packages
+  // step 4: Bump all the dependencies packages
   bumpInfo.dependentChangedBy = setDependentVersions(packageInfos, scopedPackages);
   Object.keys(bumpInfo.dependentChangedBy).forEach(pkg => modifiedPackages.add(pkg));
 

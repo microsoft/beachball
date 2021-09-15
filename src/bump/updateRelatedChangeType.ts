@@ -3,24 +3,22 @@ import { BumpInfo } from '../types/BumpInfo';
 import { ChangeType } from '../types/ChangeInfo';
 
 /**
- * This is the core of the bumpInfo dependency bumping logic
+ * This is the core of the bumpInfo dependency bumping logic - done once per change file
  *
  * The algorithm is an iterative graph traversal algorithm (breadth first)
- * - it searches up the parent `dependents` and creates ChangeInfo entries inside `dependentChangeInfos`
- * - one single root entry from `pkgName`
+ * - it searches up the parent `dependents` and modifies the "calculatedChangeTypes" entries inside `BumpInfo`
+ * - one single root entry from `pkgName` as given by a change file
  * - for all dependents
- *   - apply the `dependentChangeType` as change type in the ChangeInfo
- *   - copy the `commit`, `email` from child (dependency) to parent (dependent)
- * - this function is the primary way for package groups to get the same change type by queueing up
+ *   - apply the `dependentChangeType` as change type
+ * - this function is the primary way for package groups to get the same dependent change type by queueing up
  *   all packages within a group to be visited by the loop
  *
  * What is mutates:
- * - bumpInfo.calculatedChangeTypes: adds packages changeInfo modifed by this function
- * - bumpInfo.dependentChangeInfos: copy of what has been added in `calculatedChangeInfos`
+ * - bumpInfo.calculatedChangeTypes: updates packages change type modifed by this function
+ * - all dependents change types as part of a group update
  *
  * What it does not do:
- * - bumpInfo.calculatedChangeTypes: will not mutate the entryPoint `pkgName` ChangeInfo
- * - bumpInfo.dependentChangeInfos: will not contain the ChangeInfo for `pkgName` at all
+ * - bumpInfo.calculatedChangeTypes: will not mutate the entryPoint `pkgName` change type
  *
  * Inputs from bumpInfo are listed in the [^1] below in the function body
  *
@@ -79,6 +77,10 @@ export function updateRelatedChangeType(changeFile: string, bumpInfo: BumpInfo, 
           });
         }
       }
+
+      // TODO: when we do "locked", or "lock step" versioning, we could simply skip this grouped traversal,
+      //       - set the version for all packages in the group in (bumpPackageInfoVersion())
+      //       - the main concern is how to capture the bump reason in grouped changelog
 
       // Step 3. For group-linked packages, update the change type to the max(change file info's change type, propagated update change type)
       const groupName = Object.keys(packageGroups).find(group =>
