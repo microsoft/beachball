@@ -52,4 +52,6 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
     // Unlink changelogs
     unlinkChangeFiles(changeFileChangeInfos, packageInfos, options.path);
   }
+
+  return bumpInfo;
 }
