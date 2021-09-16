@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 14 Sep 2021 16:52:55 GMT and should not be manually modified.
+This log was last generated on Thu, 16 Sep 2021 16:08:04 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.14.0
+
+Thu, 16 Sep 2021 16:08:04 GMT
+
+### Minor changes
+
+- Some refactoring; fixing the dependent change bump message generation so it is back in line with what we had (kchau@microsoft.com)
 
 ## 2.13.0
 

@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 16 Sep 2021 16:08:04 GMT",
+      "tag": "beachball_v2.14.0",
+      "version": "2.14.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kchau@microsoft.com",
+            "package": "beachball",
+            "comment": "Some refactoring; fixing the dependent change bump message generation so it is back in line with what we had",
+            "commit": "aefbc1ac37ee85961cc787133c827f1fd3925550"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 14 Sep 2021 16:52:55 GMT",
       "tag": "beachball_v2.13.0",
       "version": "2.13.0",

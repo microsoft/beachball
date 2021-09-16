@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Some refactoring; fixing the dependent change bump message generation so it is back in line with what we had",
-  "packageName": "beachball",
-  "email": "kchau@microsoft.com",
-  "dependentChangeType": "patch"
-}
