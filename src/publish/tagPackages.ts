@@ -11,7 +11,7 @@ export function tagPackages(bumpInfo: BumpInfo, cwd: string) {
 
   [...modifiedPackages, ...newPackages].forEach(pkg => {
     const packageInfo = bumpInfo.packageInfos[pkg];
-    const changeType = bumpInfo.calculatedChangeInfos[pkg]?.type;
+    const changeType = bumpInfo.calculatedChangeTypes[pkg];
     // Do not tag change type of "none", private packages, or packages opting out of tagging
     if (changeType === 'none' || packageInfo.private || !packageInfo.combinedOptions.gitTags) {
       return;

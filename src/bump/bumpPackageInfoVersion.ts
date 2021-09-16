@@ -6,9 +6,9 @@ import { BeachballOptions } from '../types/BeachballOptions';
  * Bumps an individual package version based on the change type
  */
 export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo, options: BeachballOptions) {
-  const { calculatedChangeInfos, packageInfos, modifiedPackages } = bumpInfo;
+  const { calculatedChangeTypes, packageInfos, modifiedPackages } = bumpInfo;
   const info = packageInfos[pkgName];
-  const changeType = calculatedChangeInfos[pkgName]?.type;
+  const changeType = calculatedChangeTypes[pkgName];
   if (!info) {
     console.log(`Unknown package named "${pkgName}" detected from change files, skipping!`);
     return;

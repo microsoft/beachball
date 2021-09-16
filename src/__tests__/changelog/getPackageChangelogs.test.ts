@@ -30,15 +30,8 @@ describe('getPackageChangelogs', () => {
       ],
     ]);
 
-    const dependentChangeInfos: BumpInfo['dependentChangeInfos'] = {
-      bar: {
-        comment: 'bumped due to foo',
-        commit: 'deadbeef',
-        dependentChangeType: 'patch',
-        email: 'something@something.com',
-        packageName: 'bar',
-        type: 'patch',
-      },
+    const dependentChangedBy: BumpInfo['dependentChangedBy'] = {
+      bar: new Set(['foo']),
     };
 
     const packageInfos: PackageInfos = {
@@ -63,7 +56,13 @@ describe('getPackageChangelogs', () => {
       },
     };
 
-    const changelogs = getPackageChangelogs(changeFileChangeInfos, dependentChangeInfos, packageInfos, '.');
+    const changelogs = getPackageChangelogs(
+      changeFileChangeInfos,
+      { foo: 'patch', bar: 'patch' },
+      dependentChangedBy,
+      packageInfos,
+      '.'
+    );
 
     expect(Object.keys(changelogs.bar.comments.patch!).length).toBe(2);
     expect(Object.keys(changelogs.foo.comments.patch!).length).toBe(1);

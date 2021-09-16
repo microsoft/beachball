@@ -13,14 +13,7 @@ import { setDependentVersions } from './setDependentVersions';
  */
 export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
   const { bumpDeps } = options;
-  const {
-    packageInfos,
-    scopedPackages,
-    calculatedChangeInfos,
-    dependentChangeInfos,
-    changeFileChangeInfos,
-    modifiedPackages,
-  } = bumpInfo;
+  const { packageInfos, scopedPackages, calculatedChangeTypes, changeFileChangeInfos, modifiedPackages } = bumpInfo;
 
   // pass 1: figure out all the change types for all the packages taking into account the bumpDeps option and version groups
   if (bumpDeps) {
@@ -29,24 +22,35 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
 
   setGroupsInBumpInfo(bumpInfo, options);
 
-  for (const [changeFile, changeInfo] of changeFileChangeInfos.entries()) {
-    updateRelatedChangeType(changeFile, changeInfo.packageName, bumpInfo, bumpDeps);
+  // TODO: when we do "locked", or "lock step" versioning, we could simply skip setting grouped change types
+  //       - set the version for all packages in the group in (bumpPackageInfoVersion())
+  //       - the main concern is how to capture the bump reason in grouped changelog
+
+  // pass 2: initialize grouped calculatedChangeTypes together
+  for (const changeInfo of changeFileChangeInfos.values()) {
+    const groupName = Object.keys(bumpInfo.packageGroups).find(group =>
+      bumpInfo.packageGroups[group].packageNames.includes(changeInfo.packageName)
+    );
+
+    if (groupName) {
+      for (const packageNameInGroup of bumpInfo.packageGroups[groupName].packageNames) {
+        calculatedChangeTypes[packageNameInGroup] = changeInfo.type;
+      }
+    }
   }
 
-  // pass 2: actually bump the packages in the bumpInfo in memory (no disk writes at this point)
-  Object.keys(calculatedChangeInfos).forEach(pkgName => {
+  for (const changeFile of changeFileChangeInfos.keys()) {
+    updateRelatedChangeType(changeFile, bumpInfo, bumpDeps);
+  }
+
+  // pass 3: actually bump the packages in the bumpInfo in memory (no disk writes at this point)
+  Object.keys(calculatedChangeTypes).forEach(pkgName => {
     bumpPackageInfoVersion(pkgName, bumpInfo, options);
   });
 
-  // pass 3: update the dependentChangeInfos with relevant comments
-  for (const changeInfo of Object.values(dependentChangeInfos)) {
-    const pkg = changeInfo.packageName;
-    dependentChangeInfos[pkg]!.comment = `Bump ${pkg} to v${packageInfos[pkg].version}`;
-  }
-
-  // pass 4: Bump all the dependencies packages
-  const dependentModifiedPackages = setDependentVersions(packageInfos, scopedPackages);
-  dependentModifiedPackages.forEach(pkg => modifiedPackages.add(pkg));
+  // step 4: Bump all the dependencies packages
+  bumpInfo.dependentChangedBy = setDependentVersions(packageInfos, scopedPackages);
+  Object.keys(bumpInfo.dependentChangedBy).forEach(pkg => modifiedPackages.add(pkg));
 
   return bumpInfo;
 }

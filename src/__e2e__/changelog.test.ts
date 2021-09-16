@@ -14,9 +14,8 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { ChangeFileInfo } from '../types/ChangeInfo';
 import { MonoRepoFactory } from '../fixtures/monorepo';
 import { ChangelogJson } from '../types/ChangeLog';
-import { BumpInfo } from '../types/BumpInfo';
 
-function getChange(partialChange: Partial<ChangeFileInfo> = {}): ChangeFileInfo{
+function getChange(partialChange: Partial<ChangeFileInfo> = {}): ChangeFileInfo {
   return {
     comment: 'comment 1',
     email: 'test@testtestme.com',
@@ -91,12 +90,7 @@ describe('changelog generation', () => {
       const packageInfos = getPackageInfos(repository.rootPath);
       const changes = readChangeFiles(beachballOptions, packageInfos);
 
-      await writeChangelog(
-        beachballOptions,
-        changes,
-        { foo: { ...getChange({ comment: 'bump foo to v1.0.1' }), commit: 'bogus' } },
-        packageInfos
-      );
+      await writeChangelog(beachballOptions, changes, { foo: 'patch' }, { foo: new Set(['foo']) }, packageInfos);
 
       const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
       const text = fs.readFileSync(changelogFile, { encoding: 'utf-8' });
@@ -136,7 +130,7 @@ describe('changelog generation', () => {
       const packageInfos = getPackageInfos(monoRepo.rootPath);
       const changes = readChangeFiles(beachballOptions, packageInfos);
 
-      await writeChangelog(beachballOptions, changes, {}, packageInfos);
+      await writeChangelog(beachballOptions, changes, {}, {}, packageInfos);
 
       // Validate changelog for foo package
       const fooChangelogFile = path.join(monoRepo.rootPath, 'packages', 'foo', 'CHANGELOG.md');
@@ -174,14 +168,14 @@ describe('changelog generation', () => {
 
       const packageInfos = getPackageInfos(monoRepo.rootPath);
       const changes = readChangeFiles(beachballOptions, packageInfos);
-      // Simulates a dependent change from updateRelatedChangeType
-      const dependentChanges: BumpInfo['dependentChangeInfos'] = {
-        bar: {
-          commit: '0xdeadbeef',
-          ...getChange({ packageName: 'bar', comment: 'Bump baz to v1.3.5'}),
-        },
-      }
-      await writeChangelog(beachballOptions, changes, dependentChanges, packageInfos);
+
+      await writeChangelog(
+        beachballOptions,
+        changes,
+        { bar: 'patch', baz: 'patch' },
+        { bar: new Set(['baz']) },
+        packageInfos
+      );
 
       // Validate changelog for bar package
       const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
@@ -203,7 +197,7 @@ describe('changelog generation', () => {
       const monoRepo = monoRepoFactory.cloneRepository();
       monoRepo.commitChange('baz');
       writeChangeFiles({ baz: getChange({ packageName: 'baz' }) }, monoRepo.rootPath);
-      writeChangeFiles({ bar : getChange({ packageName: 'bar' }) }, monoRepo.rootPath);
+      writeChangeFiles({ bar: getChange({ packageName: 'bar' }) }, monoRepo.rootPath);
 
       const beachballOptions = {
         path: monoRepo.rootPath,
@@ -220,14 +214,14 @@ describe('changelog generation', () => {
 
       const packageInfos = getPackageInfos(monoRepo.rootPath);
       const changes = readChangeFiles(beachballOptions, packageInfos);
-      // Simulates a dependent change from updateRelatedChangeType
-      const dependentChanges: BumpInfo['dependentChangeInfos'] = {
-        bar: {
-          commit: '0xdeadbeef',
-          ...getChange({ packageName: 'bar', comment: 'Bump baz to v1.3.5'}),
-        },
-      }
-      await writeChangelog(beachballOptions, changes, dependentChanges, packageInfos);
+
+      await writeChangelog(
+        beachballOptions,
+        changes,
+        { bar: 'patch', baz: 'patch' },
+        { bar: new Set(['baz']) },
+        packageInfos
+      );
 
       // Validate changelog for bar package
       const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
@@ -269,7 +263,7 @@ describe('changelog generation', () => {
       const packageInfos = getPackageInfos(monoRepo.rootPath);
       const changes = readChangeFiles(beachballOptions, packageInfos);
 
-      await writeChangelog(beachballOptions, changes, {}, packageInfos);
+      await writeChangelog(beachballOptions, changes, {}, {}, packageInfos);
 
       // Validate changelog for bar package
       const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');

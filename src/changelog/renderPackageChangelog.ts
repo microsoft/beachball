@@ -91,5 +91,9 @@ async function _renderEntriesBasic(
 }
 
 async function _renderEntry(entry: ChangelogEntry, renderInfo: PackageChangelogRenderInfo): Promise<string> {
+  if (entry.author === 'beachball') {
+    return `- ${entry.comment}`;
+  }
+
   return `- ${entry.comment} (${entry.author})`;
 }
