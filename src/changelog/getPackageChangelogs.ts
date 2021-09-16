@@ -54,7 +54,7 @@ export function getPackageChangelogs(
       changelogs[dependent].comments[changeType]!.push({
         author: 'beachball',
         package: dependent,
-        comment: `bump ${dep} to v${packageInfos[dep].version}`,
+        comment: `Bump ${dep} to v${packageInfos[dep].version}`,
         commit,
       });
     }
