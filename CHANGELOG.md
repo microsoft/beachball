@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 16 Sep 2021 16:08:04 GMT and should not be manually modified.
+This log was last generated on Mon, 20 Sep 2021 21:58:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.15.0
+
+Mon, 20 Sep 2021 21:58:32 GMT
+
+### Minor changes
+
+- chore(BeachballOptions): Move `scope` to `RepoOptions` type (lingfangao@hotmail.com)
 
 ## 2.14.0
 

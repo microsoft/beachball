@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 20 Sep 2021 21:58:32 GMT",
+      "tag": "beachball_v2.15.0",
+      "version": "2.15.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "lingfangao@hotmail.com",
+            "package": "beachball",
+            "comment": "chore(BeachballOptions): Move `scope` to `RepoOptions` type",
+            "commit": "d8b8297c4b38ffa1cb5eb67ef8c7d0d08a243dd9"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 16 Sep 2021 16:08:04 GMT",
       "tag": "beachball_v2.14.0",
       "version": "2.14.0",

@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "chore(BeachballOptions): Move `scope` to `RepoOptions` type",
-  "packageName": "beachball",
-  "email": "lingfangao@hotmail.com",
-  "dependentChangeType": "patch"
-}
