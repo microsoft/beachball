@@ -5,87 +5,91 @@ import { ChangelogOptions } from './ChangelogOptions';
 
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
-export interface CliOptions {
+export interface CliOptions
+  extends Pick<
+    RepoOptions,
+    | 'access'
+    | 'branch'
+    | 'bumpDeps'
+    | 'changehint'
+    | 'disallowedChangeTypes'
+    | 'fetch'
+    | 'gitTags'
+    | 'message'
+    | 'path'
+    | 'prereleasePrefix'
+    | 'publish'
+    | 'push'
+    | 'registry'
+    | 'retries'
+    | 'scope'
+    | 'tag'
+  > {
   all: boolean;
   authType: AuthType;
-  branch: string;
-  command: string;
-  message: string;
-  path: string;
-  registry: string;
-  gitTags: boolean;
-  tag: string;
-  token: string;
-  push: boolean;
-  publish: boolean;
-  bumpDeps: boolean;
-  fetch: boolean;
-  yes: boolean;
-  new: boolean;
-  access: 'public' | 'restricted';
-  package: string;
-  changehint: string;
-  retries: number;
-  type?: ChangeType | null;
-  help?: boolean;
-  version?: boolean;
-  scope?: string[] | null;
-  timeout?: number;
-  fromRef?: string;
-  keepChangeFiles?: boolean;
   bump: boolean;
   canaryName?: string | undefined;
-  forceVersions?: boolean;
-  disallowedChangeTypes: ChangeType[] | null;
+  command: string;
+  commit?: boolean;
+  configPath?: string;
   dependentChangeType: ChangeType | null;
   disallowDeletedChangeFiles?: boolean;
-  prereleasePrefix?: string | null;
-  configPath?: string;
-  commit?: boolean;
+  forceVersions?: boolean;
+  fromRef?: string;
+  help?: boolean;
+  keepChangeFiles?: boolean;
+  new: boolean;
+  package: string;
+  timeout?: number;
+  token: string;
+  type?: ChangeType | null;
+  version?: boolean;
+  yes: boolean;
 }
 
 export interface RepoOptions {
+  /** access level for npm publish */
+  access: 'public' | 'restricted';
   /** The target branch */
   branch: string;
+  /** Bump dependent packages during publish (bump A if A depends on B) */
+  bumpDeps: boolean;
+  changeFilePrompt?: ChangeFilePromptOptions;
+  /** Prerelease prefix for packages that are specified to receive a prerelease bump */
+  /** Hint message for when change files are not detected but required */
+  changehint: string;
+  changelog?: ChangelogOptions;
+  /** The default dist-tag used for npm publish */
+  defaultNpmTag: string;
+  /** What change types are disallowed */
+  disallowedChangeTypes: ChangeType[] | null;
+  /** Fetch from remote before doing diff comparisons (default true) */
+  fetch: boolean;
+  /** Whether to generate changelog files */
+  generateChangelog: boolean;
+  groups?: VersionGroupOptions[];
+  /** Whether to create git tags for published packages (default true) */
+  gitTags: boolean;
+  /** Custom pre/post publish actions */
+  hooks?: HooksOptions;
+  ignorePatterns?: string[];
   message: string;
   /** The directory to run beachball in (default `process.cwd()`) */
   path: string;
-  /** Target npm registry for publishing */
-  registry: string;
-  /** Whether to create git tags for published packages (default true) */
-  gitTags: boolean;
-  /** npm dist-tag when publishing (default 'latest') */
-  tag: string;
-  /** Whether to push to the remote git branch when publishing (default true) */
-  push: boolean;
-  /** Whether to publish to the npm registry (default true) */
-  publish: boolean;
-  /** Bump dependent packages during publish (bump A if A depends on B) */
-  bumpDeps: boolean;
-  /** Fetch from remote before doing diff comparisons (default true) */
-  fetch: boolean;
-  /** access level for npm publish */
-  access: 'public' | 'restricted';
-  /** Hint message for when change files are not detected but required */
-  changehint: string;
-  /** What change types are disallowed */
-  disallowedChangeTypes: ChangeType[] | null;
-  /** The default dist-tag used for npm publish */
-  defaultNpmTag: string;
-  /** Whether to generate changelog files */
-  generateChangelog: boolean;
-
-  /** number of retries for a package publish before failing */
-  retries: number;
-  groups?: VersionGroupOptions[];
-  changelog?: ChangelogOptions;
-  changeFilePrompt?: ChangeFilePromptOptions;
-  /** Prerelease prefix for packages that are specified to receive a prerelease bump */
   prereleasePrefix?: string | null;
   /** Ignore changes in these files (minimatch patterns; negations not supported) */
-  ignorePatterns?: string[];
-  /** Custom pre/post publish actions */
-  hooks?: HooksOptions;
+  /** Whether to publish to the npm registry (default true) */
+  publish: boolean;
+  /** Whether to push to the remote git branch when publishing (default true) */
+  push: boolean;
+  /** Target npm registry for publishing */
+  registry: string;
+  /** number of retries for a package publish before failing */
+  retries: number;
+  /** Filters paths that beachball uses to find packages */
+  scope?: string[] | null;
+  /** npm dist-tag when publishing (default 'latest') */
+  tag: string;
   /** Transformations for change files */
   transform?: TransformOptions;
 }
