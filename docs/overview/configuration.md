@@ -68,6 +68,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `generateChangelog`     | bool                                     | `true`            | repo                 | whether to generate changelog files                                                             |
 | `gitTags`               | bool                                     | `true`            | repo, package        | whether to create git tags for published packages (eg: foo_v1.0.1)                              |
 | `groups`                | `VersionGroupOptions[]` ([details][3])   |                   | repo                 | specifies groups of packages that need to be version bumped at the same time                    |
+| `groupChanges`          | bool                                     | `false`           | repo                 | will write multiple changes to a single changefile                                              |
 | `hooks`                 | `HooksOptions` ([details][4])            |                   | repo                 | hooks for custom pre/post publish actions                                                       |
 | `ignorePatterns`        | string[]                                 |                   | repo                 | ignore changes in these files (minimatch patterns; negations not supported)                     |
 | `package`               | string                                   |                   | repo                 | specifies which package the command relates to (overrides change detection based on `git diff`) |
