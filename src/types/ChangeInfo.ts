@@ -20,6 +20,11 @@ export interface ChangeInfo extends ChangeFileInfo {
   commit: string;
 }
 
+export interface ChangeInfoMultiple {
+  summary: string;
+  changes: ChangeInfo[];
+}
+
 /**
  * Map from change file name to change info
  */

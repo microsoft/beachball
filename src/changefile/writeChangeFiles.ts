@@ -14,7 +14,8 @@ export function writeChangeFiles(
     [pkgname: string]: ChangeFileInfo;
   },
   cwd: string,
-  commitChangeFiles = true
+  commitChangeFiles = true,
+  groupChanges = false
 ): string[] {
   if (Object.keys(changes).length === 0) {
     return [];
@@ -24,6 +25,34 @@ export function writeChangeFiles(
   const branchName = getBranchName(cwd);
   if (changePath && !fs.existsSync(changePath)) {
     fs.mkdirpSync(changePath);
+  }
+
+  const prefix = 'change';
+  if (groupChanges) {
+    if (changes && branchName && changePath) {
+      const changeArray = Object.keys(changes).map(change => {
+        return changes[change];
+      });
+      const fileName = `${prefix}-${uuidv4()}.json`;
+      let changeFile = path.join(changePath, fileName);
+      const changeFiles = [changeFile];
+
+      fs.writeFileSync(changeFile, JSON.stringify({ changes: changeArray }, null, 2));
+
+      stage([changeFile], cwd);
+      if (commitChangeFiles) {
+        // only commit change files, ignore other staged files/changes
+        const commitOptions = ['--only', path.join(changePath, '*.json')];
+        commit('Change files', cwd, commitOptions);
+      }
+
+      console.log(
+        `git ${commitChangeFiles ? 'committed' : 'staged'} these change files: ${changeFiles
+          .map(f => ` - ${f}`)
+          .join('\n')}`
+      );
+      return [changeFile];
+    }
   }
 
   if (changes && branchName && changePath) {

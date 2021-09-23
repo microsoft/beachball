@@ -1,4 +1,4 @@
-import { ChangeSet, ChangeInfo } from '../types/ChangeInfo';
+import { ChangeSet, ChangeInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
 import fs from 'fs-extra';
 import path from 'path';
@@ -53,7 +53,8 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
 
   filteredChangeFiles.forEach(changeFile => {
     const changeFilePath = path.join(changePath, changeFile);
-    let changeInfo: ChangeInfo;
+
+    let changeInfo: ChangeInfo | ChangeInfoMultiple;
     try {
       changeInfo = fs.readJSONSync(changeFilePath);
     } catch (e) {
@@ -70,10 +71,16 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
         return;
       }
     }
+    const changes: ChangeInfo[] = changeInfo.changes || [changeInfo as ChangeInfo];
 
-    if (scopedPackages.includes(changeInfo.packageName)) {
-      changeSet.set(changeFile, changeInfo);
+    for (const change of changes) {
+      const packageName = (change as ChangeInfo).packageName;
+
+      if (scopedPackages.includes(packageName)) {
+        changeSet.set(changeFile, change as ChangeInfo);
+      }
     }
   });
+
   return changeSet;
 }

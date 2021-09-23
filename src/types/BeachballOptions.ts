@@ -1,5 +1,5 @@
 import { AuthType } from './Auth';
-import { ChangeInfo, ChangeType } from './ChangeInfo';
+import { ChangeInfo, ChangeInfoMultiple, ChangeType } from './ChangeInfo';
 import { ChangeFilePromptOptions } from './ChangeFilePrompt';
 import { ChangelogOptions } from './ChangelogOptions';
 
@@ -39,7 +39,7 @@ export interface CliOptions
   help?: boolean;
   keepChangeFiles?: boolean;
   new: boolean;
-  package: string;
+  package: string | string[];
   timeout?: number;
   token: string;
   type?: ChangeType | null;
@@ -92,6 +92,8 @@ export interface RepoOptions {
   tag: string;
   /** Transformations for change files */
   transform?: TransformOptions;
+  /** Put multiple changes in a single changefile */
+  groupChanges?: boolean;
 }
 
 export interface PackageOptions {
@@ -139,5 +141,5 @@ export interface TransformOptions {
    * This allows for adding or editing information to the change files
    * without having to modify anything on the disk.
    */
-  changeFiles?: (changeInfo: ChangeInfo, changeFilePath: string) => ChangeInfo;
+  changeFiles?: (changeInfo: ChangeInfo | ChangeInfoMultiple, changeFilePath: string) => ChangeInfo;
 }
