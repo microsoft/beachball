@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 23 Sep 2021 22:00:18 GMT",
+      "tag": "beachball_v2.16.0",
+      "version": "2.16.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "jcreamer@microsoft.com",
+            "package": "beachball",
+            "comment": "support multiple changes per changefile",
+            "commit": "08e8c027c6abc57f162e3f82af8d0dcc7273aea7"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 20 Sep 2021 21:58:32 GMT",
       "tag": "beachball_v2.15.0",
       "version": "2.15.0",

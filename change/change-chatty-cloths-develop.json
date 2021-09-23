@@ -1,9 +1,0 @@
-{
-"changes": [{
-  "packageName": "beachball",
-  "type": "minor",
-  "dependentChangeType": "patch",
-  "email": "jcreamer@microsoft.com",
-  "comment": "support multiple changes per changefile"
-  }]
-}
