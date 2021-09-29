@@ -22,6 +22,7 @@ export function areChangeFilesDeleted(options: BeachballOptions): boolean {
     branch,
     'HEAD',
     [
+      '-M100%',
       '--diff-filter=D', // showing only deleted files from the diff.
     ],
     `${changePath}/*.json`,
