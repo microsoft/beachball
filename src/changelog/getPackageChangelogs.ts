@@ -14,15 +14,13 @@ export function getPackageChangelogs(
   },
   cwd: string
 ) {
-  const changeInfos = changeFileChangeInfos.values();
-
   const changelogs: {
     [pkgName: string]: PackageChangelog;
   } = {};
 
   const commit = getCurrentHash(cwd) || 'not available';
 
-  for (let change of changeInfos) {
+  for (let { change } of changeFileChangeInfos) {
     const { packageName, type: changeType, dependentChangeType, email, ...rest } = change;
     if (!changelogs[packageName]) {
       changelogs[packageName] = createChangeLog(packageInfos[packageName]);
