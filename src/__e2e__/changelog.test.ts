@@ -119,7 +119,7 @@ describe('changelog generation', () => {
       expect(changelogJson.entries[0].comments.patch[0].commit).toBe(repository.getCurrentHash());
     });
 
-    it.only('generates correct changelog with groupChanges', async () => {
+    it('generates correct changelog with groupChanges', async () => {
       const repository = repositoryFactory.cloneRepository();
       repository.commitChange('foo');
       writeChangeFiles(
