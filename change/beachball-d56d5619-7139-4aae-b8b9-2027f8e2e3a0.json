@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Prevent grouped change infos from overwriting each other",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

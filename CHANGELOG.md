@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 23 Sep 2021 22:00:18 GMT and should not be manually modified.
+This log was last generated on Tue, 19 Oct 2021 18:16:38 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.17.0
+
+Tue, 19 Oct 2021 18:16:38 GMT
+
+### Minor changes
+
+- Prevent grouped change infos from overwriting each other (elcraig@microsoft.com)
 
 ## 2.16.0
 
