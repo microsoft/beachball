@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Scope down to .md and .json files only while merging publish branch",
+  "packageName": "beachball",
+  "email": "visre@microsoft.com",
+  "dependentChangeType": "patch"
+}
