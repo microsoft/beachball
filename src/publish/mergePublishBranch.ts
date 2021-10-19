@@ -3,7 +3,7 @@ import { git } from 'workspace-tools';
 export function mergePublishBranch(publishBranch: string, branch: string, message: string, cwd: string) {
   let result: ReturnType<typeof git>;
   let mergeSteps = [
-    ['add', '*.md *.json'],
+    ['add', '*.md', '*.json'],
     ['commit', '-m', message],
     ['checkout', branch],
     ['merge', '-X', 'ours', publishBranch],
