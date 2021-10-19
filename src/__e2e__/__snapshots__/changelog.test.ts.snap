@@ -68,7 +68,7 @@ Object {
 }
 `;
 
-exports[`changelog generation writeChangelog generates correct changelog with multiple changes changefile 1`] = `
+exports[`changelog generation writeChangelog generates correct changelog with groupChanges 1`] = `
 "# Change Log - foo
 
 This log was last generated on (date) and should not be manually modified.
@@ -84,12 +84,12 @@ This log was last generated on (date) and should not be manually modified.
 - comment 2 (test@testtestme.com)
 - comment 1 (test@testtestme.com)
 - additional comment 1 (test@testtestme.com)
-- comment from bar change  (test@testtestme.com)
 - additional comment 2 (test@testtestme.com)
+- comment from bar change  (test@testtestme.com)
 "
 `;
 
-exports[`changelog generation writeChangelog generates correct changelog with multiple changes changefile 2`] = `
+exports[`changelog generation writeChangelog generates correct changelog with groupChanges 2`] = `
 Object {
   "entries": Array [
     Object {
@@ -115,13 +115,13 @@ Object {
           },
           Object {
             "author": "test@testtestme.com",
-            "comment": "comment from bar change ",
+            "comment": "additional comment 2",
             "commit": "(sha1)",
             "package": "foo",
           },
           Object {
             "author": "test@testtestme.com",
-            "comment": "additional comment 2",
+            "comment": "comment from bar change ",
             "commit": "(sha1)",
             "package": "foo",
           },

@@ -89,7 +89,7 @@ export function validate(options: BeachballOptions, validateOptions?: Partial<Va
   const changeSet = readChangeFiles(options, packageInfos);
   const packageGroups = getPackageGroups(packageInfos, options.path, options.groups);
 
-  for (const [changeFile, change] of changeSet) {
+  for (const { changeFile, change } of changeSet) {
     const disallowedChangeTypes = getDisallowedChangeTypes(change.packageName, packageInfos, packageGroups);
 
     if (!change.type || !isValidChangeType(change.type) || disallowedChangeTypes?.includes(change.type)) {

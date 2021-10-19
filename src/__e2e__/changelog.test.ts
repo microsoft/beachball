@@ -69,21 +69,24 @@ describe('changelog generation', () => {
 
       const packageInfos = getPackageInfos(repository.rootPath);
       const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions, packageInfos);
-      const changes = [...changeSet.values()];
-      expect(changes).toHaveLength(1);
-      expect(changes[0].commit).toBe(undefined);
+      expect(changeSet).toHaveLength(1);
+      expect(changeSet[0].change.commit).toBe(undefined);
     });
 
-    it('does not add commit hash', () => {
+    it('does not add commit hash with groupChanges', () => {
       const repository = repositoryFactory.cloneRepository();
       repository.commitChange('foo');
-      writeChangeFiles({ foo: getChange(), bar: getChange() }, repository.rootPath);
+      writeChangeFiles(
+        { foo: getChange(), bar: getChange() },
+        repository.rootPath,
+        true, // commit
+        true // groupChanges
+      );
 
       const packageInfos = getPackageInfos(repository.rootPath);
       const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions, packageInfos);
-      const changes = [...changeSet.values()];
-      expect(changes).toHaveLength(2);
-      expect(changes[0].commit).toBe(undefined);
+      expect(changeSet).toHaveLength(2);
+      expect(changeSet[0].change.commit).toBe(undefined);
     });
   });
 
@@ -116,7 +119,7 @@ describe('changelog generation', () => {
       expect(changelogJson.entries[0].comments.patch[0].commit).toBe(repository.getCurrentHash());
     });
 
-    it('generates correct changelog with multiple changes changefile', async () => {
+    it('generates correct changelog with groupChanges', async () => {
       const repository = repositoryFactory.cloneRepository();
       repository.commitChange('foo');
       writeChangeFiles(
@@ -124,15 +127,17 @@ describe('changelog generation', () => {
           foo: getChange({ comment: 'additional comment 2' }),
           bar: getChange({ comment: 'comment from bar change ' }),
         },
-        repository.rootPath
+        repository.rootPath,
+        true,
+        true
       );
-      writeChangeFiles({ foo: getChange({ comment: 'additional comment 1' }) }, repository.rootPath);
-      writeChangeFiles({ foo: getChange() }, repository.rootPath);
+      writeChangeFiles({ foo: getChange({ comment: 'additional comment 1' }) }, repository.rootPath, true, true);
+      writeChangeFiles({ foo: getChange() }, repository.rootPath, true, true);
 
       repository.commitChange('bar');
-      writeChangeFiles({ foo: getChange({ comment: 'comment 2' }) }, repository.rootPath);
+      writeChangeFiles({ foo: getChange({ comment: 'comment 2' }) }, repository.rootPath, true, true);
 
-      const beachballOptions = { path: repository.rootPath } as BeachballOptions;
+      const beachballOptions = { path: repository.rootPath, groupChanges: true } as BeachballOptions;
       const packageInfos = getPackageInfos(repository.rootPath);
       const changes = readChangeFiles(beachballOptions, packageInfos);
 
@@ -357,11 +362,11 @@ describe('changelog generation', () => {
       const changes = readChangeFiles(beachballOptions, packageInfos);
 
       // Verify that the comment of only the intended change file is changed
-      for (const [changeFileName, changeInfo] of changes) {
-        if (changeFileName.substr(0, 3) === 'foo') {
-          expect(changeInfo.comment).toBe(editedComment);
+      for (const { change, changeFile } of changes) {
+        if (changeFile.substr(0, 3) === 'foo') {
+          expect(change.comment).toBe(editedComment);
         } else {
-          expect(changeInfo.comment).toBe('comment 2');
+          expect(change.comment).toBe('comment 2');
         }
       }
     });

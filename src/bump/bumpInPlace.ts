@@ -27,7 +27,7 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
   //       - the main concern is how to capture the bump reason in grouped changelog
 
   // pass 2: initialize grouped calculatedChangeTypes together
-  for (const changeInfo of changeFileChangeInfos.values()) {
+  for (const { change: changeInfo } of changeFileChangeInfos) {
     const groupName = Object.keys(bumpInfo.packageGroups).find(group =>
       bumpInfo.packageGroups[group].packageNames.includes(changeInfo.packageName)
     );
@@ -39,7 +39,7 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
     }
   }
 
-  for (const changeFile of changeFileChangeInfos.keys()) {
+  for (const { changeFile } of changeFileChangeInfos) {
     updateRelatedChangeType(changeFile, bumpInfo, bumpDeps);
   }
 

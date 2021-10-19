@@ -5,10 +5,10 @@ import { PackageInfos } from '../../types/PackageInfo';
 
 describe('getPackageChangelogs', () => {
   it('should have multiple comment entries when a package has a changefile AND was part of a dependent bump', () => {
-    const changeFileChangeInfos: ChangeSet = new Map([
-      [
-        'foo.json',
-        {
+    const changeFileChangeInfos: ChangeSet = [
+      {
+        changeFile: 'foo.json',
+        change: {
           comment: 'comment for foo',
           commit: 'deadbeef',
           dependentChangeType: 'patch',
@@ -16,10 +16,10 @@ describe('getPackageChangelogs', () => {
           packageName: 'foo',
           type: 'patch',
         },
-      ],
-      [
-        'bar.json',
-        {
+      },
+      {
+        changeFile: 'bar.json',
+        change: {
           comment: 'comment for bar',
           commit: 'deadbeef',
           dependentChangeType: 'patch',
@@ -27,8 +27,8 @@ describe('getPackageChangelogs', () => {
           packageName: 'bar',
           type: 'patch',
         },
-      ],
-    ]);
+      },
+    ];
 
     const dependentChangedBy: BumpInfo['dependentChangedBy'] = {
       bar: new Set(['foo']),
