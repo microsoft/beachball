@@ -31,12 +31,19 @@ function cleanMarkdownForSnapshot(text: string) {
 
 function cleanJsonForSnapshot(changelog: ChangelogJson) {
   changelog = _.cloneDeep(changelog);
+  // for a better snapshot, make the fake commit match if the real commit did
+  const fakeCommits: { [commit: string]: string } = {};
+  let fakeHashNum = 0;
+
   for (const entry of changelog.entries) {
     entry.date = '(date)';
     for (const changeType of SortedChangeTypes) {
       if (entry.comments[changeType]) {
         for (const comment of entry.comments[changeType]!) {
-          comment.commit = '(sha1)';
+          if (!fakeCommits[comment.commit]) {
+            fakeCommits[comment.commit] = `(sha1-${fakeHashNum++})`;
+          }
+          comment.commit = fakeCommits[comment.commit];
         }
       }
     }
@@ -95,10 +102,16 @@ describe('changelog generation', () => {
       expect(cleanMarkdownForSnapshot(text)).toMatchSnapshot();
 
       const changelogJsonFile = path.join(repository.rootPath, 'CHANGELOG.json');
-      const changelogJson = fs.readJSONSync(changelogJsonFile);
+      const changelogJson: ChangelogJson = fs.readJSONSync(changelogJsonFile);
       expect(cleanJsonForSnapshot(changelogJson)).toMatchSnapshot();
 
-      expect(changelogJson.entries[0].comments.patch[0].commit).toBe(repository.getCurrentHash());
+      // Every entry should have a different commit hash
+      const patchComments = changelogJson.entries[0].comments.patch!;
+      const commits = patchComments.map(entry => entry.commit);
+      expect(new Set(commits).size).toEqual(patchComments.length);
+
+      // The first entry should be the newest
+      expect(patchComments[0].commit).toBe(repository.getCurrentHash());
     });
 
     it('generates correct changelog in monorepo with groupChanges (grouped change FILES)', async () => {
@@ -130,12 +143,18 @@ describe('changelog generation', () => {
       const barText = fs.readFileSync(path.join(monoRepo.rootPath, 'packages/bar/CHANGELOG.md'), { encoding: 'utf-8' });
       expect(cleanMarkdownForSnapshot(barText)).toMatchSnapshot();
 
-      const fooJson = fs.readJSONSync(path.join(monoRepo.rootPath, 'packages/foo/CHANGELOG.json'));
+      const fooJson: ChangelogJson = fs.readJSONSync(path.join(monoRepo.rootPath, 'packages/foo/CHANGELOG.json'));
       expect(cleanJsonForSnapshot(fooJson)).toMatchSnapshot();
-      const barJson = fs.readJSONSync(path.join(monoRepo.rootPath, 'packages/bar/CHANGELOG.json'));
+      const barJson: ChangelogJson = fs.readJSONSync(path.join(monoRepo.rootPath, 'packages/bar/CHANGELOG.json'));
       expect(cleanJsonForSnapshot(barJson)).toMatchSnapshot();
 
-      expect(fooJson.entries[0].comments.patch[0].commit).toBe(monoRepo.getCurrentHash());
+      // Every entry should have a different commit hash
+      const patchComments = fooJson.entries[0].comments.patch!;
+      const commits = patchComments.map(entry => entry.commit);
+      expect(new Set(commits).size).toEqual(patchComments.length);
+
+      // The first entry should be the newest
+      expect(patchComments[0].commit).toBe(monoRepo.getCurrentHash());
     });
 
     it('generates correct grouped changelog', async () => {
@@ -214,6 +233,7 @@ describe('changelog generation', () => {
       // Validate changelog for bar package
       const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
       const barChangelogText = fs.readFileSync(barChangelogFile, { encoding: 'utf-8' });
+      expect(barChangelogText).toContain('- Bump baz');
       expect(cleanMarkdownForSnapshot(barChangelogText)).toMatchSnapshot();
 
       // Validate changelog for baz package
@@ -224,6 +244,8 @@ describe('changelog generation', () => {
       // Validate grouped changelog for foo master package
       const groupedChangelogFile = path.join(monoRepo.rootPath, 'CHANGELOG.md');
       const groupedChangelogText = fs.readFileSync(groupedChangelogFile, { encoding: 'utf-8' });
+      expect(groupedChangelogText).toContain('- comment 1');
+      expect(groupedChangelogText).not.toContain('- Bump baz');
       expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot();
     });
 

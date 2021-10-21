@@ -22,65 +22,45 @@ export function writeChangeFiles({
   /** group all changes into one change file (default false) */
   groupChanges?: boolean;
 }): string[] {
-  if (Object.keys(changes).length === 0) {
+  const changePath = getChangePath(cwd);
+  const branchName = getBranchName(cwd);
+
+  if (!(Object.keys(changes).length && branchName && changePath)) {
     return [];
   }
 
-  const changePath = getChangePath(cwd);
-  const branchName = getBranchName(cwd);
-  if (changePath && !fs.existsSync(changePath)) {
+  if (!fs.existsSync(changePath)) {
     fs.mkdirpSync(changePath);
   }
 
-  const prefix = 'change';
+  const getChangeFile = (prefix: string) => path.join(changePath, `${prefix}-${uuidv4()}.json`);
+  let changeFiles: string[];
+
   if (groupChanges) {
-    if (changes && branchName && changePath) {
-      const fileName = `${prefix}-${uuidv4()}.json`;
-      let changeFile = path.join(changePath, fileName);
-      const changeFiles = [changeFile];
+    const changeFile = getChangeFile('change');
+    changeFiles = [changeFile];
 
-      fs.writeFileSync(changeFile, JSON.stringify({ changes }, null, 2));
-
-      stage([changeFile], cwd);
-      if (commitChangeFiles) {
-        // only commit change files, ignore other staged files/changes
-        const commitOptions = ['--only', path.join(changePath, '*.json')];
-        commit('Change files', cwd, commitOptions);
-      }
-
-      console.log(
-        `git ${commitChangeFiles ? 'committed' : 'staged'} these change files: ${changeFiles
-          .map(f => ` - ${f}`)
-          .join('\n')}`
-      );
-      return [changeFile];
-    }
-  }
-
-  if (changes && branchName && changePath) {
-    const changeFiles = changes.map(change => {
-      const prefix = change.packageName.replace(/[^a-zA-Z0-9@]/g, '-');
-      const fileName = `${prefix}-${uuidv4()}.json`;
-      let changeFile = path.join(changePath, fileName);
-
+    fs.writeFileSync(changeFile, JSON.stringify({ changes }, null, 2));
+  } else {
+    changeFiles = changes.map(change => {
+      const changeFile = getChangeFile(change.packageName.replace(/[^a-zA-Z0-9@]/g, '-'));
       fs.writeJSONSync(changeFile, change, { spaces: 2 });
       return changeFile;
     });
-
-    stage(changeFiles, cwd);
-    if (commitChangeFiles) {
-      // only commit change files, ignore other staged files/changes
-      const commitOptions = ['--only', path.join(changePath, '*.json')];
-      commit('Change files', cwd, commitOptions);
-    }
-
-    console.log(
-      `git ${commitChangeFiles ? 'committed' : 'staged'} these change files: ${changeFiles
-        .map(f => ` - ${f}`)
-        .join('\n')}`
-    );
-    return changeFiles;
   }
 
-  return [];
+  stage(changeFiles, cwd);
+  if (commitChangeFiles) {
+    // only commit change files, ignore other staged files/changes
+    const commitOptions = ['--only', path.join(changePath, '*.json')];
+    commit('Change files', cwd, commitOptions);
+  }
+
+  console.log(
+    `git ${commitChangeFiles ? 'committed' : 'staged'} these change files: ${changeFiles
+      .map(f => ` - ${f}`)
+      .join('\n')}`
+  );
+
+  return changeFiles;
 }

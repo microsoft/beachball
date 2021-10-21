@@ -27,4 +27,9 @@ export interface ChangeInfoMultiple {
 /**
  * List of change file infos
  */
-export type ChangeSet = { changeFile: string; change: ChangeInfo }[];
+export type ChangeSet = { changeFile: string; change: ChangeFileInfo }[];
+
+/**
+ * List of change file infos including commit info
+ */
+export type ChangeSetWithCommit = { changeFile: string; change: ChangeInfo }[];
