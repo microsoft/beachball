@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Fix changelog entries to use the proper commit",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
