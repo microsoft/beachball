@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update writeChangeFiles signature",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

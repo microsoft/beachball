@@ -33,31 +33,31 @@ describe('version bumping', () => {
     const repoARoot = path.join(repo.rootPath, 'repo-a');
     const repoBRoot = path.join(repo.rootPath, 'repo-b');
 
-    writeChangeFiles(
-      {
-        foo: {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'foo',
           dependentChangeType: 'patch',
         },
-      },
-      repoARoot
-    );
+      ],
+      cwd: repoARoot,
+    });
 
-    writeChangeFiles(
-      {
-        foo: {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'major',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'foo',
           dependentChangeType: 'patch',
         },
-      },
-      repoBRoot
-    );
+      ],
+      cwd: repoBRoot,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
