@@ -1,8 +1,10 @@
+import path from 'path';
 import { PackageInfo } from '../types/PackageInfo';
 import { PackageChangelog } from '../types/ChangeLog';
 import { generateTag } from '../tag';
 import { BumpInfo } from '../types/BumpInfo';
-import { getCurrentHash } from 'workspace-tools';
+import { getChangePath } from '../paths';
+import { getCurrentHash, getFileAddedHash } from 'workspace-tools';
 import { ChangeSet } from '../types/ChangeInfo';
 
 export function getPackageChangelogs(
@@ -18,12 +20,17 @@ export function getPackageChangelogs(
     [pkgName: string]: PackageChangelog;
   } = {};
 
-  const commit = getCurrentHash(cwd) || 'not available';
+  const changeFileCommits: { [changeFile: string]: string } = {};
+  const changePath = getChangePath(cwd)!;
 
-  for (let { change } of changeFileChangeInfos) {
+  for (let { change, changeFile } of changeFileChangeInfos) {
     const { packageName, type: changeType, dependentChangeType, email, ...rest } = change;
     if (!changelogs[packageName]) {
       changelogs[packageName] = createChangeLog(packageInfos[packageName]);
+    }
+
+    if (!changeFileCommits[changeFile]) {
+      changeFileCommits[changeFile] = getFileAddedHash(path.join(changePath, changeFile), cwd) || 'not available';
     }
 
     changelogs[packageName].comments = changelogs[packageName].comments || {};
@@ -31,12 +38,14 @@ export function getPackageChangelogs(
     changelogs[packageName].comments[changeType]!.push({
       author: change.email,
       package: packageName,
+      commit: changeFileCommits[changeFile],
       // This contains the comment and any extra properties added to the change file by
       // RepoOptions.changeFilePrompt.changePrompt
       ...rest,
-      commit,
     });
   }
+
+  const commit = getCurrentHash(cwd) || 'not available';
 
   for (let [dependent, changedBy] of Object.entries(dependentChangedBy)) {
     if (!changelogs[dependent]) {
@@ -49,12 +58,14 @@ export function getPackageChangelogs(
     changelogs[dependent].comments[changeType] = changelogs[dependent].comments[changeType] || [];
 
     for (const dep of changedBy) {
-      changelogs[dependent].comments[changeType]!.push({
-        author: 'beachball',
-        package: dependent,
-        comment: `Bump ${dep} to v${packageInfos[dep].version}`,
-        commit,
-      });
+      if (dep !== dependent) {
+        changelogs[dependent].comments[changeType]!.push({
+          author: 'beachball',
+          package: dependent,
+          comment: `Bump ${dep} to v${packageInfos[dep].version}`,
+          commit,
+        });
+      }
     }
   }
 
