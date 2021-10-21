@@ -13,7 +13,7 @@ import { getDisallowedChangeTypes } from './getDisallowedChangeTypes';
 /**
  * Uses `prompts` package to prompt for change type and description, fills in git user.email and scope
  */
-export async function promptForChange(options: BeachballOptions) {
+export async function promptForChange(options: BeachballOptions): Promise<ChangeFileInfo[] | undefined> {
   const { branch, path: cwd } = options;
   let { package: specificPackage } = options;
 
@@ -23,7 +23,7 @@ export async function promptForChange(options: BeachballOptions) {
   const packageInfos = getPackageInfos(cwd);
   const changedPackages = specificPackage || getChangedPackages(options, packageInfos);
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
-  const packageChangeInfo: { [pkgname: string]: ChangeFileInfo } = {};
+  const packageChangeInfo: ChangeFileInfo[] = [];
 
   const packageGroups = getPackageGroups(packageInfos, options.path, options.groups);
 
@@ -130,12 +130,12 @@ export async function promptForChange(options: BeachballOptions) {
       }
     }
 
-    packageChangeInfo[pkg] = {
+    packageChangeInfo.push({
       ...response,
       packageName: pkg,
       email: getUserEmail(cwd) || 'email not defined',
       dependentChangeType: options.dependentChangeType || (response.type === 'none' ? 'none' : 'patch'),
-    };
+    });
   }
 
   return packageChangeInfo;

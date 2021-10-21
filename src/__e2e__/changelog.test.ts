@@ -15,14 +15,13 @@ import { ChangeFileInfo, ChangeInfo } from '../types/ChangeInfo';
 import { MonoRepoFactory } from '../fixtures/monorepo';
 import { ChangelogJson } from '../types/ChangeLog';
 
-function getChange(partialChange: Partial<ChangeFileInfo> = {}): ChangeFileInfo {
+function getChange(packageName: string, comment: string): ChangeFileInfo {
   return {
-    comment: 'comment 1',
+    comment,
     email: 'test@testtestme.com',
-    packageName: 'foo',
+    packageName,
     type: 'patch',
     dependentChangeType: 'patch',
-    ...partialChange,
   };
 }
 
@@ -65,27 +64,11 @@ describe('changelog generation', () => {
     it('does not add commit hash', () => {
       const repository = repositoryFactory.cloneRepository();
       repository.commitChange('foo');
-      writeChangeFiles({ foo: getChange() }, repository.rootPath);
+      writeChangeFiles({ changes: [getChange('foo', 'comment 1')], cwd: repository.rootPath });
 
       const packageInfos = getPackageInfos(repository.rootPath);
       const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions, packageInfos);
       expect(changeSet).toHaveLength(1);
-      expect(changeSet[0].change.commit).toBe(undefined);
-    });
-
-    it('does not add commit hash with groupChanges', () => {
-      const repository = repositoryFactory.cloneRepository();
-      repository.commitChange('foo');
-      writeChangeFiles(
-        { foo: getChange(), bar: getChange() },
-        repository.rootPath,
-        true, // commit
-        true // groupChanges
-      );
-
-      const packageInfos = getPackageInfos(repository.rootPath);
-      const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions, packageInfos);
-      expect(changeSet).toHaveLength(2);
       expect(changeSet[0].change.commit).toBe(undefined);
     });
   });
@@ -94,12 +77,12 @@ describe('changelog generation', () => {
     it('generates correct changelog', async () => {
       const repository = repositoryFactory.cloneRepository();
       repository.commitChange('foo');
-      writeChangeFiles({ foo: getChange({ comment: 'additional comment 2' }) }, repository.rootPath);
-      writeChangeFiles({ foo: getChange({ comment: 'additional comment 1' }) }, repository.rootPath);
-      writeChangeFiles({ foo: getChange() }, repository.rootPath);
+      writeChangeFiles({ changes: [getChange('foo', 'additional comment 2')], cwd: repository.rootPath });
+      writeChangeFiles({ changes: [getChange('foo', 'additional comment 1')], cwd: repository.rootPath });
+      writeChangeFiles({ changes: [getChange('foo', 'comment 1')], cwd: repository.rootPath });
 
       repository.commitChange('bar');
-      writeChangeFiles({ foo: getChange({ comment: 'comment 2' }) }, repository.rootPath);
+      writeChangeFiles({ changes: [getChange('foo', 'comment 2')], cwd: repository.rootPath });
 
       const beachballOptions = { path: repository.rootPath } as BeachballOptions;
       const packageInfos = getPackageInfos(repository.rootPath);
@@ -112,58 +95,58 @@ describe('changelog generation', () => {
       expect(cleanMarkdownForSnapshot(text)).toMatchSnapshot();
 
       const changelogJsonFile = path.join(repository.rootPath, 'CHANGELOG.json');
-      const jsonText = fs.readFileSync(changelogJsonFile, { encoding: 'utf-8' });
-      const changelogJson = JSON.parse(jsonText);
+      const changelogJson = fs.readJSONSync(changelogJsonFile);
       expect(cleanJsonForSnapshot(changelogJson)).toMatchSnapshot();
 
       expect(changelogJson.entries[0].comments.patch[0].commit).toBe(repository.getCurrentHash());
     });
 
-    it('generates correct changelog with groupChanges', async () => {
-      const repository = repositoryFactory.cloneRepository();
-      repository.commitChange('foo');
-      writeChangeFiles(
-        {
-          foo: getChange({ comment: 'additional comment 2' }),
-          bar: getChange({ comment: 'comment from bar change ' }),
-        },
-        repository.rootPath,
-        true,
-        true
-      );
-      writeChangeFiles({ foo: getChange({ comment: 'additional comment 1' }) }, repository.rootPath, true, true);
-      writeChangeFiles({ foo: getChange() }, repository.rootPath, true, true);
+    it('generates correct changelog in monorepo with groupChanges (grouped change FILES)', async () => {
+      const monoRepo = monoRepoFactory.cloneRepository();
+      monoRepo.commitChange('foo');
+      const options: Omit<Parameters<typeof writeChangeFiles>[0], 'changes'> = {
+        cwd: monoRepo.rootPath,
+        groupChanges: true,
+      };
+      writeChangeFiles({
+        changes: [getChange('foo', 'additional comment 2'), getChange('bar', 'comment from bar change ')],
+        ...options,
+      });
+      writeChangeFiles({ changes: [getChange('foo', 'additional comment 1')], ...options });
+      writeChangeFiles({ changes: [getChange('foo', 'comment 1')], ...options });
 
-      repository.commitChange('bar');
-      writeChangeFiles({ foo: getChange({ comment: 'comment 2' }) }, repository.rootPath, true, true);
+      monoRepo.commitChange('bar');
+      writeChangeFiles({ changes: [getChange('foo', 'comment 2')], ...options });
 
-      const beachballOptions = { path: repository.rootPath, groupChanges: true } as BeachballOptions;
-      const packageInfos = getPackageInfos(repository.rootPath);
+      const beachballOptions = { path: monoRepo.rootPath, groupChanges: true } as BeachballOptions;
+      const packageInfos = getPackageInfos(monoRepo.rootPath);
       const changes = readChangeFiles(beachballOptions, packageInfos);
 
       await writeChangelog(beachballOptions, changes, { foo: 'patch', bar: 'patch' }, {}, packageInfos);
 
-      const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
-      const text = fs.readFileSync(changelogFile, { encoding: 'utf-8' });
-      expect(cleanMarkdownForSnapshot(text)).toMatchSnapshot();
+      // check changelogs for both foo and bar
+      const fooText = fs.readFileSync(path.join(monoRepo.rootPath, 'packages/foo/CHANGELOG.md'), { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(fooText)).toMatchSnapshot();
+      const barText = fs.readFileSync(path.join(monoRepo.rootPath, 'packages/bar/CHANGELOG.md'), { encoding: 'utf-8' });
+      expect(cleanMarkdownForSnapshot(barText)).toMatchSnapshot();
 
-      const changelogJsonFile = path.join(repository.rootPath, 'CHANGELOG.json');
-      const jsonText = fs.readFileSync(changelogJsonFile, { encoding: 'utf-8' });
-      const changelogJson = JSON.parse(jsonText);
-      expect(cleanJsonForSnapshot(changelogJson)).toMatchSnapshot();
+      const fooJson = fs.readJSONSync(path.join(monoRepo.rootPath, 'packages/foo/CHANGELOG.json'));
+      expect(cleanJsonForSnapshot(fooJson)).toMatchSnapshot();
+      const barJson = fs.readJSONSync(path.join(monoRepo.rootPath, 'packages/bar/CHANGELOG.json'));
+      expect(cleanJsonForSnapshot(barJson)).toMatchSnapshot();
 
-      expect(changelogJson.entries[0].comments.patch[0].commit).toBe(repository.getCurrentHash());
+      expect(fooJson.entries[0].comments.patch[0].commit).toBe(monoRepo.getCurrentHash());
     });
 
     it('generates correct grouped changelog', async () => {
       const monoRepo = monoRepoFactory.cloneRepository();
       monoRepo.commitChange('foo');
-      writeChangeFiles({ foo: getChange() }, monoRepo.rootPath);
+      writeChangeFiles({ changes: [getChange('foo', 'comment 1')], cwd: monoRepo.rootPath });
 
       monoRepo.commitChange('bar');
-      writeChangeFiles({ bar: getChange({ packageName: 'bar', comment: 'comment 2' }) }, monoRepo.rootPath);
+      writeChangeFiles({ changes: [getChange('bar', 'comment 2')], cwd: monoRepo.rootPath });
 
-      writeChangeFiles({ bar: getChange({ packageName: 'bar', comment: 'comment 3' }) }, monoRepo.rootPath);
+      writeChangeFiles({ changes: [getChange('bar', 'comment 3')], cwd: monoRepo.rootPath });
 
       const beachballOptions = {
         path: monoRepo.rootPath,
@@ -202,7 +185,7 @@ describe('changelog generation', () => {
     it('generates grouped changelog without dependent change entries', async () => {
       const monoRepo = monoRepoFactory.cloneRepository();
       monoRepo.commitChange('baz');
-      writeChangeFiles({ baz: getChange({ packageName: 'baz' }) }, monoRepo.rootPath);
+      writeChangeFiles({ changes: [getChange('baz', 'comment 1')], cwd: monoRepo.rootPath });
 
       const beachballOptions = {
         path: monoRepo.rootPath,
@@ -247,8 +230,8 @@ describe('changelog generation', () => {
     it('generates grouped changelog without dependent change entries where packages have normal changes and dependenc changes', async () => {
       const monoRepo = monoRepoFactory.cloneRepository();
       monoRepo.commitChange('baz');
-      writeChangeFiles({ baz: getChange({ packageName: 'baz' }) }, monoRepo.rootPath);
-      writeChangeFiles({ bar: getChange({ packageName: 'bar' }) }, monoRepo.rootPath);
+      writeChangeFiles({ changes: [getChange('baz', 'comment 1')], cwd: monoRepo.rootPath });
+      writeChangeFiles({ changes: [getChange('bar', 'comment 1')], cwd: monoRepo.rootPath });
 
       const beachballOptions = {
         path: monoRepo.rootPath,
@@ -293,10 +276,10 @@ describe('changelog generation', () => {
     it('generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog', async () => {
       const monoRepo = monoRepoFactory.cloneRepository();
       monoRepo.commitChange('foo');
-      writeChangeFiles({ foo: getChange() }, monoRepo.rootPath);
+      writeChangeFiles({ changes: [getChange('foo', 'comment 1')], cwd: monoRepo.rootPath });
 
       monoRepo.commitChange('bar');
-      writeChangeFiles({ bar: getChange({ packageName: 'bar', comment: 'comment 2' }) }, monoRepo.rootPath);
+      writeChangeFiles({ changes: [getChange('bar', 'comment 2')], cwd: monoRepo.rootPath });
 
       const beachballOptions = {
         path: monoRepo.rootPath,
@@ -331,10 +314,10 @@ describe('changelog generation', () => {
       const editedComment: string = 'Edited comment for testing';
       const monoRepo = monoRepoFactory.cloneRepository();
       monoRepo.commitChange('foo');
-      writeChangeFiles({ foo: getChange() }, monoRepo.rootPath);
+      writeChangeFiles({ changes: [getChange('foo', 'comment 1')], cwd: monoRepo.rootPath });
 
       monoRepo.commitChange('bar');
-      writeChangeFiles({ bar: getChange({ packageName: 'bar', comment: 'comment 2' }) }, monoRepo.rootPath);
+      writeChangeFiles({ changes: [getChange('bar', 'comment 2')], cwd: monoRepo.rootPath });
 
       const beachballOptions = {
         path: monoRepo.rootPath,

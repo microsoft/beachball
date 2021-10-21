@@ -29,18 +29,18 @@ describe('publish command (git)', () => {
   it('can perform a successful git push', async () => {
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles(
-      {
-        foo: {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'foo',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -84,18 +84,18 @@ describe('publish command (git)', () => {
     // 1. clone a new repo1, write a change file in repo1
     const repo1 = repositoryFactory.cloneRepository();
 
-    writeChangeFiles(
-      {
-        foo: {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'foo',
           dependentChangeType: 'patch',
         },
-      },
-      repo1.rootPath
-    );
+      ],
+      cwd: repo1.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo1.rootPath });
 
@@ -139,18 +139,18 @@ describe('publish command (git)', () => {
     // 3. Meanwhile, in repo2, also create a new change file
     const repo2 = repositoryFactory.cloneRepository();
 
-    writeChangeFiles(
-      {
-        foo2: {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'foo2',
           dependentChangeType: 'patch',
         },
-      },
-      repo2.rootPath
-    );
+      ],
+      cwd: repo2.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo2.rootPath });
 

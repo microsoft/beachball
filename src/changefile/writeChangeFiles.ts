@@ -9,14 +9,19 @@ import { v4 as uuidv4 } from 'uuid';
  * Loops through the `changes` and writes out a list of change files
  * @returns List of changefile paths, mainly for testing purposes.
  */
-export function writeChangeFiles(
-  changes: {
-    [pkgname: string]: ChangeFileInfo;
-  },
-  cwd: string,
+export function writeChangeFiles({
+  changes,
+  cwd,
   commitChangeFiles = true,
-  groupChanges = false
-): string[] {
+  groupChanges = false,
+}: {
+  changes: ChangeFileInfo[];
+  cwd: string;
+  /** default true */
+  commitChangeFiles?: boolean;
+  /** group all changes into one change file (default false) */
+  groupChanges?: boolean;
+}): string[] {
   if (Object.keys(changes).length === 0) {
     return [];
   }
@@ -30,14 +35,11 @@ export function writeChangeFiles(
   const prefix = 'change';
   if (groupChanges) {
     if (changes && branchName && changePath) {
-      const changeArray = Object.keys(changes).map(change => {
-        return changes[change];
-      });
       const fileName = `${prefix}-${uuidv4()}.json`;
       let changeFile = path.join(changePath, fileName);
       const changeFiles = [changeFile];
 
-      fs.writeFileSync(changeFile, JSON.stringify({ changes: changeArray }, null, 2));
+      fs.writeFileSync(changeFile, JSON.stringify({ changes }, null, 2));
 
       stage([changeFile], cwd);
       if (commitChangeFiles) {
@@ -56,10 +58,8 @@ export function writeChangeFiles(
   }
 
   if (changes && branchName && changePath) {
-    const changeFiles = Object.keys(changes).map(pkgName => {
-      const change = changes[pkgName];
-
-      const prefix = pkgName.replace(/[^a-zA-Z0-9@]/g, '-');
+    const changeFiles = changes.map(change => {
+      const prefix = change.packageName.replace(/[^a-zA-Z0-9@]/g, '-');
       const fileName = `${prefix}-${uuidv4()}.json`;
       let changeFile = path.join(changePath, fileName);
 

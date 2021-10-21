@@ -41,18 +41,18 @@ describe('publish command (registry)', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles(
-      {
-        foo: {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'foo',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -101,18 +101,18 @@ describe('publish command (registry)', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles(
-      {
-        foo: {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'foo',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -185,18 +185,18 @@ describe('publish command (registry)', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        foopkg: {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'foopkg',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -258,25 +258,25 @@ describe('publish command (registry)', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        foopkg: {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'foopkg',
           dependentChangeType: 'patch',
         },
-        barpkg: {
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'barpkg',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -350,18 +350,18 @@ describe('publish command (registry)', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        badname: {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'badname',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
