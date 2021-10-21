@@ -35,7 +35,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     await performBump(bumpInfo, options);
 
     // checkin
-    const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
+    const mergePublishBranchResult = mergePublishBranch(publishBranch, Array.from(bumpInfo.modifiedFiles), branch, message, cwd);
     if (!mergePublishBranchResult.success) {
       console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: merging to target has failed!`);
       continue;

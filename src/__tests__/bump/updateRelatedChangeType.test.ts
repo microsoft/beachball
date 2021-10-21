@@ -35,6 +35,7 @@ describe('updateRelatedChangeType', () => {
           },
         } as { [packageName: string]: DeepPartial<PackageInfo> } as PackageInfos,
         modifiedPackages: new Set(),
+        modifiedFiles: new Set(),
         newPackages: new Set(),
         packageGroups: {},
         groupOptions: {},

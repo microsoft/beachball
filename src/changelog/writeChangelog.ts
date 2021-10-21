@@ -20,13 +20,14 @@ export async function writeChangelog(
   packageInfos: {
     [pkg: string]: PackageInfo;
   }
-): Promise<void> {
+): Promise<string[]> {
   const groupedChangelogPaths = await writeGroupedChangelog(
     options,
     changeFileChangeInfos,
     calculatedChangeTypes,
     packageInfos
   );
+  const modifiedFiles: string[] = groupedChangelogPaths;
   const groupedChangelogPathSet = new Set(groupedChangelogPaths);
 
   const changelogs = getPackageChangelogs(
@@ -43,9 +44,12 @@ export async function writeChangelog(
     if (groupedChangelogPathSet?.has(packagePath)) {
       console.log(`Changelog for ${pkg} has been written as a group here: ${packagePath}`);
     } else {
-      await writeChangelogFiles(options, changelogs[pkg], packagePath, false);
+      const changelogFiles = await writeChangelogFiles(options, changelogs[pkg], packagePath, false);
+      modifiedFiles.push(...changelogFiles);
     }
   }
+
+  return modifiedFiles;
 }
 
 async function writeGroupedChangelog(
@@ -121,8 +125,9 @@ async function writeChangelogFiles(
   newVersionChangelog: PackageChangelog,
   changelogPath: string,
   isGrouped: boolean
-): Promise<void> {
+): Promise<string[]> {
   let previousJson: ChangelogJson | undefined;
+  const modifiedChangelogFies: string[] = [];
 
   // Update CHANGELOG.json
   const changelogJsonFile = path.join(changelogPath, 'CHANGELOG.json');
@@ -134,6 +139,7 @@ async function writeChangelogFiles(
   try {
     const nextJson = renderJsonChangelog(newVersionChangelog, previousJson);
     fs.writeJSONSync(changelogJsonFile, nextJson, { spaces: 2 });
+    modifiedChangelogFies.push(changelogJsonFile);
   } catch (e) {
     console.warn('Problem writing to CHANGELOG.json:', e);
   }
@@ -157,5 +163,8 @@ async function writeChangelogFiles(
     });
 
     fs.writeFileSync(changelogFile, newChangelog);
+    modifiedChangelogFies.push(changelogFile);
   }
+
+  return modifiedChangelogFies;
 }

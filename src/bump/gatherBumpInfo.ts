@@ -23,8 +23,8 @@ function gatherPreBumpInfo(options: BeachballOptions, packageInfos: PackageInfos
     const errorType = !packageInfos[change.packageName]
       ? 'nonexistent'
       : packageInfos[change.packageName].private
-      ? 'private'
-      : undefined;
+        ? 'private'
+        : undefined;
     if (errorType) {
       const resolution = options.groupChanges ? 'remove the entry from this file' : 'delete this file';
       console.warn(
@@ -52,6 +52,7 @@ function gatherPreBumpInfo(options: BeachballOptions, packageInfos: PackageInfos
     packageGroups: {},
     changeFileChangeInfos: filteredChanges,
     modifiedPackages: new Set<string>(),
+    modifiedFiles: new Set<string>(),
     newPackages: new Set<string>(),
     scopedPackages: new Set(getScopedPackages(options, packageInfos)),
     dependentChangedBy: {},

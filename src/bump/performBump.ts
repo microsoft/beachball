@@ -43,14 +43,23 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
 
   writePackageJson(modifiedPackages, packageInfos);
 
+  // Update bump info with the package.json files that were edited for the modified packages
+  modifiedPackages.forEach(modifiedPackage => bumpInfo.modifiedFiles.add(packageInfos[modifiedPackage].packageJsonPath));
+
   if (options.generateChangelog) {
     // Generate changelog
-    await writeChangelog(options, changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy, packageInfos);
+    const modifiedChangelogFiles = await writeChangelog(options, changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy, packageInfos);
+
+    // Update bump info with the changelog files that were generated
+    modifiedChangelogFiles.forEach(modifiedChangelogFile => bumpInfo.modifiedFiles.add(modifiedChangelogFile));
   }
 
   if (!options.keepChangeFiles) {
     // Unlink changelogs
-    unlinkChangeFiles(changeFileChangeInfos, packageInfos, options.path);
+    const unlinkedFilesAndChangedDirs = unlinkChangeFiles(changeFileChangeInfos, packageInfos, options.path);
+
+    // Update bump info with the change files that were unlinked/removed. Also add the /change dir if there are no change files left in the dir
+    unlinkedFilesAndChangedDirs.forEach(unlinkedChangeFile => bumpInfo.modifiedFiles.add(unlinkedChangeFile));
   }
 
   return bumpInfo;

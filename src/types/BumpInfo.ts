@@ -24,6 +24,9 @@ export type BumpInfo = {
   /** Set of packages that had been modified */
   modifiedPackages: Set<string>;
 
+  /** Set of absolute paths for files that have been modified */
+  modifiedFiles: Set<string>;
+
   /** Set of new packages detected in this info */
   newPackages: Set<string>;
 
