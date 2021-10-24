@@ -1038,18 +1038,18 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        'pkg-1': {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -1087,18 +1087,18 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        'pkg-1': {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -1136,18 +1136,18 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        'pkg-1': {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -1185,18 +1185,18 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        'pkg-1': {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
