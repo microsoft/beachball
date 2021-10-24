@@ -25,7 +25,6 @@ export async function writeChangelog(
     options,
     changeFileChangeInfos,
     calculatedChangeTypes,
-    dependentChangedBy,
     packageInfos
   );
   const groupedChangelogPathSet = new Set(groupedChangelogPaths);
@@ -53,7 +52,6 @@ async function writeGroupedChangelog(
   options: BeachballOptions,
   changeFileChangeInfos: ChangeSet,
   calculatedChangeTypes: BumpInfo['calculatedChangeTypes'],
-  dependentChangedBy: BumpInfo['dependentChangedBy'],
   packageInfos: {
     [pkg: string]: PackageInfo;
   }

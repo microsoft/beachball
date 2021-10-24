@@ -1,6 +1,5 @@
 import { initializePackageChangeInfo as initializePackageChangeTypes } from '../changefile/getPackageChangeTypes';
 import { readChangeFiles } from '../changefile/readChangeFiles';
-import { ChangeSet } from '../types/ChangeInfo';
 import { BumpInfo } from '../types/BumpInfo';
 import { bumpInPlace } from './bumpInPlace';
 import { BeachballOptions } from '../types/BeachballOptions';
@@ -20,20 +19,24 @@ function gatherPreBumpInfo(options: BeachballOptions, packageInfos: PackageInfos
 
   // Clear changes for non-existent and accidental private packages
   // NOTE: likely these are from the same PR that deleted or modified the private flag
-  const filteredChanges: ChangeSet = new Map();
-  for (let [changeFile, change] of changes) {
-    if (!packageInfos[change.packageName] || packageInfos[change.packageName].private) {
+  const filteredChanges = changes.filter(({ changeFile, change }) => {
+    const errorType = !packageInfos[change.packageName]
+      ? 'nonexistent'
+      : packageInfos[change.packageName].private
+      ? 'private'
+      : undefined;
+    if (errorType) {
+      const resolution = options.groupChanges ? 'remove the entry from this file' : 'delete this file';
       console.warn(
-        `Invalid change file detected (non-existent package or private package); delete this file "${path.resolve(
+        `Change detected for ${errorType} package ${change.packageName}; ${resolution}: "${path.resolve(
           changePath!,
           changeFile
         )}"`
       );
-      continue;
+      return false;
     }
-
-    filteredChanges.set(changeFile, change);
-  }
+    return true;
+  });
 
   // Clear non-existent packages from changefiles infos
   const calculatedChangeTypes = initializePackageChangeTypes(filteredChanges);

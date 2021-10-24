@@ -1,14 +1,15 @@
 import { updateRelatedChangeType } from '../../bump/updateRelatedChangeType';
 import { BumpInfo } from '../../types/BumpInfo';
 import _ from 'lodash';
-import { ChangeInfo, ChangeType } from '../../types/ChangeInfo';
+import { ChangeInfo, ChangeSet, ChangeType } from '../../types/ChangeInfo';
 import { PackageInfo, PackageInfos } from '../../types/PackageInfo';
 
 type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends Array<infer U> ? Array<DeepPartial<U>> : DeepPartial<T[P]>;
 };
-type PartialBumpInfo = DeepPartial<Omit<BumpInfo, 'calculatedChangeTypes'>> & {
-  // can't get DeepPartial to handle the index signature properly
+type PartialBumpInfo = DeepPartial<Omit<BumpInfo, 'calculatedChangeTypes' | 'changeFileChangeInfos'>> & {
+  // can't get DeepPartial to handle the index signature or union types properly
+  changeFileChangeInfos?: ChangeSet;
   calculatedChangeTypes?: { [packageName: string]: ChangeType };
 };
 
@@ -16,7 +17,7 @@ describe('updateRelatedChangeType', () => {
   const getBumpInfo = (overrides: PartialBumpInfo): BumpInfo =>
     _.merge<BumpInfo, PartialBumpInfo>(
       {
-        changeFileChangeInfos: new Map(),
+        changeFileChangeInfos: [],
         dependents: {},
         calculatedChangeTypes: {},
         packageInfos: {
@@ -57,9 +58,9 @@ describe('updateRelatedChangeType', () => {
       dependents: {
         foo: ['bar'],
       },
-      changeFileChangeInfos: new Map([
-        ['foo.json', { ...changeInfoFixture, type: 'minor', dependentChangeType: 'patch' }],
-      ]),
+      changeFileChangeInfos: [
+        { changeFile: 'foo.json', change: { ...changeInfoFixture, type: 'minor', dependentChangeType: 'patch' } },
+      ],
       calculatedChangeTypes: {
         foo: 'minor',
       },
@@ -83,9 +84,9 @@ describe('updateRelatedChangeType', () => {
       dependents: {
         foo: ['bar'],
       },
-      changeFileChangeInfos: new Map([
-        ['foo.json', { ...changeInfoFixture, type: 'patch', dependentChangeType: 'minor' }],
-      ]),
+      changeFileChangeInfos: [
+        { changeFile: 'foo.json', change: { ...changeInfoFixture, type: 'patch', dependentChangeType: 'minor' } },
+      ],
       calculatedChangeTypes: {
         foo: 'patch',
       },
@@ -110,10 +111,16 @@ describe('updateRelatedChangeType', () => {
         foo: ['bar'],
         bar: ['app'],
       },
-      changeFileChangeInfos: new Map([
-        ['foo.json', { ...changeInfoFixture, type: 'patch', packageName: 'foo', dependentChangeType: 'patch' }],
-        ['bar.json', { ...changeInfoFixture, type: 'patch', packageName: 'bar', dependentChangeType: 'minor' }],
-      ]),
+      changeFileChangeInfos: [
+        {
+          changeFile: 'foo.json',
+          change: { ...changeInfoFixture, type: 'patch', packageName: 'foo', dependentChangeType: 'patch' },
+        },
+        {
+          changeFile: 'bar.json',
+          change: { ...changeInfoFixture, type: 'patch', packageName: 'bar', dependentChangeType: 'minor' },
+        },
+      ],
       calculatedChangeTypes: {
         foo: 'patch',
         bar: 'major',
@@ -147,19 +154,22 @@ describe('updateRelatedChangeType', () => {
         baz: ['bar'],
         bar: ['app'],
       },
-      changeFileChangeInfos: new Map([
-        ['foo.json', { ...changeInfoFixture, type: 'patch', packageName: 'foo', dependentChangeType: 'patch' }],
-        [
-          'baz.json',
-          {
+      changeFileChangeInfos: [
+        {
+          changeFile: 'foo.json',
+          change: { ...changeInfoFixture, type: 'patch', packageName: 'foo', dependentChangeType: 'patch' },
+        },
+        {
+          changeFile: 'baz.json',
+          change: {
             ...changeInfoFixture,
             type: 'patch',
             email: 'dev@test.com',
             commit: '0xfeef',
             dependentChangeType: 'minor',
           },
-        ],
-      ]),
+        },
+      ],
       calculatedChangeTypes: {
         foo: 'patch',
         baz: 'minor',
@@ -198,10 +208,10 @@ describe('updateRelatedChangeType', () => {
         bar: ['app'],
         baz: ['bar', 'app'],
       },
-      changeFileChangeInfos: new Map([
-        ['foo.json', { ...changeInfoFixture, type: 'patch', dependentChangeType: 'major' }],
-        ['baz.json', { ...changeInfoFixture, type: 'patch', dependentChangeType: 'minor' }],
-      ]),
+      changeFileChangeInfos: [
+        { changeFile: 'foo.json', change: { ...changeInfoFixture, type: 'patch', dependentChangeType: 'major' } },
+        { changeFile: 'baz.json', change: { ...changeInfoFixture, type: 'patch', dependentChangeType: 'minor' } },
+      ],
       calculatedChangeTypes: {
         foo: 'patch',
         baz: 'patch',
@@ -240,9 +250,9 @@ describe('updateRelatedChangeType', () => {
         unrelated: {},
       },
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
-      changeFileChangeInfos: new Map([
-        ['foo.json', { ...changeInfoFixture, type: 'minor', dependentChangeType: 'minor' }],
-      ]),
+      changeFileChangeInfos: [
+        { changeFile: 'foo.json', change: { ...changeInfoFixture, type: 'minor', dependentChangeType: 'minor' } },
+      ],
     });
 
     updateRelatedChangeType('foo.json', bumpInfo, true);
@@ -254,9 +264,9 @@ describe('updateRelatedChangeType', () => {
   it('should bump all packages in a group together as patch', () => {
     const bumpInfo = getBumpInfo({
       calculatedChangeTypes: {},
-      changeFileChangeInfos: new Map([
-        ['foo.json', { ...changeInfoFixture, type: 'patch', dependentChangeType: 'patch' }],
-      ]),
+      changeFileChangeInfos: [
+        { changeFile: 'foo.json', change: { ...changeInfoFixture, type: 'patch', dependentChangeType: 'patch' } },
+      ],
       packageInfos: {
         foo: {},
         bar: {},
@@ -274,9 +284,9 @@ describe('updateRelatedChangeType', () => {
   it('should bump all packages in a group together as none', () => {
     const bumpInfo = getBumpInfo({
       calculatedChangeTypes: {},
-      changeFileChangeInfos: new Map([
-        ['foo.json', { ...changeInfoFixture, type: 'none', dependentChangeType: 'none' }],
-      ]),
+      changeFileChangeInfos: [
+        { changeFile: 'foo.json', change: { ...changeInfoFixture, type: 'none', dependentChangeType: 'none' } },
+      ],
       packageInfos: {
         foo: {},
         bar: {},
@@ -301,9 +311,9 @@ describe('updateRelatedChangeType', () => {
         bar: {},
         unrelated: {},
       },
-      changeFileChangeInfos: new Map([
-        ['foo.json', { ...changeInfoFixture, type: 'none', dependentChangeType: 'none' }],
-      ]),
+      changeFileChangeInfos: [
+        { changeFile: 'foo.json', change: { ...changeInfoFixture, type: 'none', dependentChangeType: 'none' } },
+      ],
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
@@ -334,9 +344,12 @@ describe('updateRelatedChangeType', () => {
           combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
         },
       },
-      changeFileChangeInfos: new Map([
-        ['dep.json', { ...changeInfoFixture, packageName: 'dep', type: 'patch', dependentChangeType: 'minor' }],
-      ]),
+      changeFileChangeInfos: [
+        {
+          changeFile: 'dep.json',
+          change: { ...changeInfoFixture, packageName: 'dep', type: 'patch', dependentChangeType: 'minor' },
+        },
+      ],
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
@@ -374,9 +387,12 @@ describe('updateRelatedChangeType', () => {
       },
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
 
-      changeFileChangeInfos: new Map([
-        ['dep.json', { ...changeInfoFixture, packageName: 'dep', type: 'patch', dependentChangeType: 'minor' }],
-      ]),
+      changeFileChangeInfos: [
+        {
+          changeFile: 'dep.json',
+          change: { ...changeInfoFixture, packageName: 'dep', type: 'patch', dependentChangeType: 'minor' },
+        },
+      ],
     });
 
     updateRelatedChangeType('dep.json', bumpInfo, true);
@@ -427,16 +443,16 @@ describe('updateRelatedChangeType', () => {
         },
       },
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
-      changeFileChangeInfos: new Map([
-        [
-          'mergeStyles.json',
-          { ...changeInfoFixture, packageName: 'mergeStyles', type: 'patch', dependentChangeType: 'minor' },
-        ],
-        [
-          'datetimeUtils.json',
-          { ...changeInfoFixture, packageName: 'datetimeUtils', type: 'patch', dependentChangeType: 'patch' },
-        ],
-      ]),
+      changeFileChangeInfos: [
+        {
+          changeFile: 'mergeStyles.json',
+          change: { ...changeInfoFixture, packageName: 'mergeStyles', type: 'patch', dependentChangeType: 'minor' },
+        },
+        {
+          changeFile: 'datetimeUtils.json',
+          change: { ...changeInfoFixture, packageName: 'datetimeUtils', type: 'patch', dependentChangeType: 'patch' },
+        },
+      ],
     });
 
     updateRelatedChangeType('mergeStyles.json', bumpInfo, true);
@@ -450,9 +466,9 @@ describe('updateRelatedChangeType', () => {
 
   it('should respect disallowed change type', () => {
     const bumpInfo = getBumpInfo({
-      changeFileChangeInfos: new Map([
-        ['foo.json', { ...changeInfoFixture, type: 'major', dependentChangeType: 'patch' }],
-      ]),
+      changeFileChangeInfos: [
+        { changeFile: 'foo.json', change: { ...changeInfoFixture, type: 'major', dependentChangeType: 'patch' } },
+      ],
       packageInfos: {
         foo: {
           combinedOptions: { disallowedChangeTypes: ['minor', 'major'], defaultNpmTag: 'latest' },

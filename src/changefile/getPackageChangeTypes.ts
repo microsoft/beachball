@@ -24,7 +24,7 @@ export function initializePackageChangeInfo(changeSet: ChangeSet) {
     [pkgName: string]: ChangeType;
   } = {};
 
-  for (let change of changeSet.values()) {
+  for (let { change } of changeSet) {
     const { packageName } = change;
 
     if (!changePerPackage[packageName] || isChangeTypeGreater(change.type, changePerPackage[packageName])) {

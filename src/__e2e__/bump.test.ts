@@ -80,18 +80,18 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        'pkg-1': {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -152,36 +152,36 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        'pkg-1': {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     const revParseOutput = git(['rev-parse', 'HEAD'], { cwd: repo.rootPath });
     if (!revParseOutput.success) {
       fail('failed to retrieve the HEAD SHA');
     }
 
-    writeChangeFiles(
-      {
-        'pkg-3': {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-3',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -257,18 +257,18 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        'pkg-1': {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -325,18 +325,18 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        'pkg-1': {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -415,18 +415,18 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        commonlib: {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'commonlib',
           dependentChangeType: 'minor',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -454,18 +454,18 @@ describe('version bumping', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles(
-      {
-        foo: {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'foo',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -488,18 +488,18 @@ describe('version bumping', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles(
-      {
-        bar: {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'patch',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'bar',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -573,18 +573,18 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        'pkg-1': {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -659,18 +659,18 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        'pkg-1': {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'prerelease',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'patch',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -750,18 +750,18 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        'pkg-1': {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'prerelease',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'prerelease',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -841,18 +841,18 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles(
-      {
-        'pkg-1': {
+    writeChangeFiles({
+      changes: [
+        {
           type: 'prerelease',
           comment: 'test',
           email: 'test@test.com',
           packageName: 'pkg-1',
           dependentChangeType: 'prerelease',
         },
-      },
-      repo.rootPath
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
