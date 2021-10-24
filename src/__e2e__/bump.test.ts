@@ -1024,4 +1024,200 @@ describe('version bumping', () => {
     expect(modified).toContain('@beachball-comments-repro/package1');
     expect(modified).toContain('@beachball-comments-repro/package2');
   });
+
+  it('calls sync prebump hook before packages are bumped', async () => {
+    repositoryFactory = new RepositoryFactory();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
+
+    repo.commitChange(
+      'packages/pkg-1/package.json',
+      JSON.stringify({
+        name: 'pkg-1',
+        version: '1.0.0',
+      })
+    );
+
+    writeChangeFiles(
+      {
+        'pkg-1': {
+          type: 'minor',
+          comment: 'test',
+          email: 'test@test.com',
+          packageName: 'pkg-1',
+          dependentChangeType: 'patch',
+        },
+      },
+      repo.rootPath
+    );
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    let prebumpCalled = false;
+
+    await bump({
+      path: repo.rootPath,
+      bumpDeps: false,
+      hooks: {
+        prebump: (packagePath, name, version) => {
+          prebumpCalled = true;
+          expect(packagePath).toBe('packages/pkg-1');
+          expect(name).toBe('pkg-1');
+          expect(version).toBe('1.1.0');
+
+          const jsonPath = path.join(packagePath, 'package.json');
+          expect(fs.readJSONSync(jsonPath).version).toBe('1.0.0');
+        },
+      },
+    } as BeachballOptions);
+
+    expect(prebumpCalled).toBe(true);
+  });
+
+  it('calls async prebump hook before packages are bumped', async () => {
+    repositoryFactory = new RepositoryFactory();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
+
+    repo.commitChange(
+      'packages/pkg-1/package.json',
+      JSON.stringify({
+        name: 'pkg-1',
+        version: '1.0.0',
+      })
+    );
+
+    writeChangeFiles(
+      {
+        'pkg-1': {
+          type: 'minor',
+          comment: 'test',
+          email: 'test@test.com',
+          packageName: 'pkg-1',
+          dependentChangeType: 'patch',
+        },
+      },
+      repo.rootPath
+    );
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    let prebumpCalled = false;
+
+    await bump({
+      path: repo.rootPath,
+      bumpDeps: false,
+      hooks: {
+        prebump: async (packagePath, name, version) => {
+          prebumpCalled = true;
+          expect(packagePath).toBe('packages/pkg-1');
+          expect(name).toBe('pkg-1');
+          expect(version).toBe('1.1.0');
+
+          const jsonPath = path.join(packagePath, 'package.json');
+          expect((await fs.readJSON(jsonPath)).version).toBe('1.0.0');
+        },
+      },
+    } as BeachballOptions);
+
+    expect(prebumpCalled).toBe(true);
+  });
+
+  it('calls sync postbump hook before packages are bumped', async () => {
+    repositoryFactory = new RepositoryFactory();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
+
+    repo.commitChange(
+      'packages/pkg-1/package.json',
+      JSON.stringify({
+        name: 'pkg-1',
+        version: '1.0.0',
+      })
+    );
+
+    writeChangeFiles(
+      {
+        'pkg-1': {
+          type: 'minor',
+          comment: 'test',
+          email: 'test@test.com',
+          packageName: 'pkg-1',
+          dependentChangeType: 'patch',
+        },
+      },
+      repo.rootPath
+    );
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    let prebumpCalled = false;
+
+    await bump({
+      path: repo.rootPath,
+      bumpDeps: false,
+      hooks: {
+        postbump: (packagePath, name, version) => {
+          prebumpCalled = true;
+          expect(packagePath).toBe('packages/pkg-1');
+          expect(name).toBe('pkg-1');
+          expect(version).toBe('1.1.0');
+
+          const jsonPath = path.join(packagePath, 'package.json');
+          expect(fs.readJSONSync(jsonPath).version).toBe('1.1.0');
+        },
+      },
+    } as BeachballOptions);
+
+    expect(prebumpCalled).toBe(true);
+  });
+
+  it('calls async postbump hook before packages are bumped', async () => {
+    repositoryFactory = new RepositoryFactory();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
+
+    repo.commitChange(
+      'packages/pkg-1/package.json',
+      JSON.stringify({
+        name: 'pkg-1',
+        version: '1.0.0',
+      })
+    );
+
+    writeChangeFiles(
+      {
+        'pkg-1': {
+          type: 'minor',
+          comment: 'test',
+          email: 'test@test.com',
+          packageName: 'pkg-1',
+          dependentChangeType: 'patch',
+        },
+      },
+      repo.rootPath
+    );
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    let prebumpCalled = false;
+
+    await bump({
+      path: repo.rootPath,
+      bumpDeps: false,
+      hooks: {
+        postbump: async (packagePath, name, version) => {
+          prebumpCalled = true;
+          expect(packagePath).toBe('packages/pkg-1');
+          expect(name).toBe('pkg-1');
+          expect(version).toBe('1.1.0');
+
+          const jsonPath = path.join(packagePath, 'package.json');
+          expect((await fs.readJSON(jsonPath)).version).toBe('1.1.0');
+        },
+      },
+    } as BeachballOptions);
+
+    expect(prebumpCalled).toBe(true);
+  });
 });
