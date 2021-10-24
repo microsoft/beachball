@@ -21,11 +21,10 @@ export interface ChangeInfo extends ChangeFileInfo {
 }
 
 export interface ChangeInfoMultiple {
-  summary: string;
   changes: ChangeInfo[];
 }
 
 /**
- * Map from change file name to change info
+ * List of change file infos
  */
-export type ChangeSet = Map<string, ChangeInfo>;
+export type ChangeSet = { changeFile: string; change: ChangeFileInfo }[];

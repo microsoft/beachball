@@ -2,6 +2,44 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 21 Oct 2021 20:15:03 GMT",
+      "tag": "beachball_v2.18.0",
+      "version": "2.18.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "f05223cdf1008b554b610b731db3e66665c98a8d",
+            "comment": "Fix changelog entries to use the proper commit"
+          }
+        ],
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "f05223cdf1008b554b610b731db3e66665c98a8d",
+            "comment": "Update writeChangeFiles signature"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 19 Oct 2021 18:16:38 GMT",
+      "tag": "beachball_v2.17.0",
+      "version": "2.17.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "comment": "Prevent grouped change infos from overwriting each other",
+            "commit": "e538fc9600bff296680cab23a9980dee347f7227"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 23 Sep 2021 22:00:18 GMT",
       "tag": "beachball_v2.16.0",
       "version": "2.16.0",

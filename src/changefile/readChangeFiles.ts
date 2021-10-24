@@ -10,7 +10,7 @@ import { PackageInfos } from '../types/PackageInfo';
 export function readChangeFiles(options: BeachballOptions, packageInfos: PackageInfos): ChangeSet {
   const { path: cwd } = options;
   const scopedPackages = getScopedPackages(options, packageInfos);
-  const changeSet: ChangeSet = new Map();
+  const changeSet: ChangeSet = [];
   const changePath = getChangePath(cwd);
   const fromRef = options.fromRef;
 
@@ -71,13 +71,12 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
         return;
       }
     }
+
     const changes: ChangeInfo[] = changeInfo.changes || [changeInfo as ChangeInfo];
 
     for (const change of changes) {
-      const packageName = (change as ChangeInfo).packageName;
-
-      if (scopedPackages.includes(packageName)) {
-        changeSet.set(changeFile, change as ChangeInfo);
+      if (scopedPackages.includes(change.packageName)) {
+        changeSet.push({ changeFile, change });
       }
     }
   });

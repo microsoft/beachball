@@ -89,18 +89,18 @@ describe('validation', () => {
     beforeEach(() => {
       repository = repositoryFactory.cloneRepository();
 
-      writeChangeFiles(
-        {
-          'pkg-1': {
+      writeChangeFiles({
+        changes: [
+          {
             type: 'minor',
             comment: 'test',
             email: 'test@test.com',
             packageName: 'pkg-1',
             dependentChangeType: 'patch',
           },
-        },
-        repository.rootPath
-      );
+        ],
+        cwd: repository.rootPath,
+      });
 
       repository.push('origin', 'master');
     });
