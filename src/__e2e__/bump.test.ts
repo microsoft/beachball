@@ -1061,7 +1061,7 @@ describe('version bumping', () => {
       hooks: {
         prebump: (packagePath, name, version) => {
           prebumpCalled = true;
-          expect(packagePath).toBe('packages/pkg-1');
+          expect(packagePath.endsWith(path.sep + path.join('packages', 'pkg-1')));
           expect(name).toBe('pkg-1');
           expect(version).toBe('1.1.0');
 
@@ -1110,7 +1110,7 @@ describe('version bumping', () => {
       hooks: {
         prebump: async (packagePath, name, version) => {
           prebumpCalled = true;
-          expect(packagePath).toBe('packages/pkg-1');
+          expect(packagePath.endsWith(path.sep + path.join('packages', 'pkg-1')));
           expect(name).toBe('pkg-1');
           expect(version).toBe('1.1.0');
 
@@ -1151,15 +1151,15 @@ describe('version bumping', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    let prebumpCalled = false;
+    let postBumpCalled = false;
 
     await bump({
       path: repo.rootPath,
       bumpDeps: false,
       hooks: {
         postbump: (packagePath, name, version) => {
-          prebumpCalled = true;
-          expect(packagePath).toBe('packages/pkg-1');
+          postBumpCalled = true;
+          expect(packagePath.endsWith(path.sep + path.join('packages', 'pkg-1')));
           expect(name).toBe('pkg-1');
           expect(version).toBe('1.1.0');
 
@@ -1169,7 +1169,7 @@ describe('version bumping', () => {
       },
     } as BeachballOptions);
 
-    expect(prebumpCalled).toBe(true);
+    expect(postBumpCalled).toBe(true);
   });
 
   it('calls async postbump hook before packages are bumped', async () => {
@@ -1200,15 +1200,15 @@ describe('version bumping', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    let prebumpCalled = false;
+    let postbumpCalled = false;
 
     await bump({
       path: repo.rootPath,
       bumpDeps: false,
       hooks: {
         postbump: async (packagePath, name, version) => {
-          prebumpCalled = true;
-          expect(packagePath).toBe('packages/pkg-1');
+          postbumpCalled = true;
+          expect(packagePath.endsWith(path.sep + path.join('packages', 'pkg-1')));
           expect(name).toBe('pkg-1');
           expect(version).toBe('1.1.0');
 
@@ -1218,6 +1218,6 @@ describe('version bumping', () => {
       },
     } as BeachballOptions);
 
-    expect(prebumpCalled).toBe(true);
+    expect(postbumpCalled).toBe(true);
   });
 });
