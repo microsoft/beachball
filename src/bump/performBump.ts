@@ -1,6 +1,7 @@
 import { unlinkChangeFiles } from '../changefile/unlinkChangeFiles';
 import { writeChangelog } from '../changelog/writeChangelog';
 import fs from 'fs-extra';
+import path from 'path';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions, HooksOptions } from '../types/BeachballOptions';
 import { PackageDeps, PackageInfos } from '../types/PackageInfo';
