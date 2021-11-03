@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "add `--verbose` flag to make it easier to debug why some packages are being bumped",
+  "packageName": "beachball",
+  "email": "4123478+tido64@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}

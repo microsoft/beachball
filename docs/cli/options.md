@@ -42,4 +42,5 @@ These options are applicable for the `publish` command, as well as `bump` and/or
 | `--retries`                   |       | `3`                            | number of retries for a package publish before failing                                                                                     |
 | `--tag`                       | `-t`  | `'latest'`                     | dist-tag for npm publishes                                                                                                                 |
 | `--token`                     | `-n`  |                                | credential to use with npm commands. its type is specified with the `--authType` argument                                                  |
+| `--verbose`                   |       | `false`                        | prints additional information to the console                                                                                               |
 | `--yes`                       | `-y`  |                                | skips the prompts for publish                                                                                                              |
