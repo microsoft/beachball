@@ -1123,6 +1123,47 @@ describe('version bumping', () => {
     expect(prebumpCalled).toBe(true);
   });
 
+  it('propagates prebump hook exceptions', async () => {
+    repositoryFactory = new RepositoryFactory();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
+
+    repo.commitChange(
+      'packages/pkg-1/package.json',
+      JSON.stringify({
+        name: 'pkg-1',
+        version: '1.0.0',
+      })
+    );
+
+    writeChangeFiles({
+      changes: [
+        {
+          type: 'minor',
+          comment: 'test',
+          email: 'test@test.com',
+          packageName: 'pkg-1',
+          dependentChangeType: 'patch',
+        },
+      ],
+      cwd: repo.rootPath,
+    });
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    const bumpResult = bump({
+      path: repo.rootPath,
+      bumpDeps: false,
+      hooks: {
+        prebump: async (_packagePath, _name, _version): Promise<void> => {
+          throw new Error('Foo');
+        },
+      },
+    } as BeachballOptions);
+
+    expect(bumpResult).rejects.toThrow();
+  });
+
   it('calls sync postbump hook before packages are bumped', async () => {
     repositoryFactory = new RepositoryFactory();
     repositoryFactory.create();
@@ -1219,5 +1260,46 @@ describe('version bumping', () => {
     } as BeachballOptions);
 
     expect(postbumpCalled).toBe(true);
+  });
+
+  it('propagates postbump hook exceptions', async () => {
+    repositoryFactory = new RepositoryFactory();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
+
+    repo.commitChange(
+      'packages/pkg-1/package.json',
+      JSON.stringify({
+        name: 'pkg-1',
+        version: '1.0.0',
+      })
+    );
+
+    writeChangeFiles({
+      changes: [
+        {
+          type: 'minor',
+          comment: 'test',
+          email: 'test@test.com',
+          packageName: 'pkg-1',
+          dependentChangeType: 'patch',
+        },
+      ],
+      cwd: repo.rootPath,
+    });
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    const bumpResult = bump({
+      path: repo.rootPath,
+      bumpDeps: false,
+      hooks: {
+        postbump: async (_packagePath, _name, _version): Promise<void> => {
+          throw new Error('Foo');
+        },
+      },
+    } as BeachballOptions);
+
+    expect(bumpResult).rejects.toThrow();
   });
 });
