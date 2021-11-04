@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 03 Nov 2021 16:56:06 GMT and should not be manually modified.
+This log was last generated on Thu, 04 Nov 2021 20:44:16 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.20.0
+
+Thu, 04 Nov 2021 20:44:16 GMT
+
+### Minor changes
+
+- Add Bump Hooks (ngerlem@microsoft.com)
 
 ## 2.19.0
 

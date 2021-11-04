@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 04 Nov 2021 20:44:16 GMT",
+      "tag": "beachball_v2.20.0",
+      "version": "2.20.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "ngerlem@microsoft.com",
+            "package": "beachball",
+            "commit": "c93d0e3e72dcfe87956dbe86f3e41adf07b07e26",
+            "comment": "Add Bump Hooks"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 03 Nov 2021 16:56:06 GMT",
       "tag": "beachball_v2.19.0",
       "version": "2.19.0",
