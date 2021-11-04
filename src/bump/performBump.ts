@@ -1,8 +1,9 @@
 import { unlinkChangeFiles } from '../changefile/unlinkChangeFiles';
 import { writeChangelog } from '../changelog/writeChangelog';
 import fs from 'fs-extra';
+import path from 'path';
 import { BumpInfo } from '../types/BumpInfo';
-import { BeachballOptions } from '../types/BeachballOptions';
+import { BeachballOptions, HooksOptions } from '../types/BeachballOptions';
 import { PackageDeps, PackageInfos } from '../types/PackageInfo';
 
 export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos) {
@@ -41,6 +42,8 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
 export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions) {
   const { modifiedPackages, packageInfos, changeFileChangeInfos, dependentChangedBy, calculatedChangeTypes } = bumpInfo;
 
+  await callHook('prebump', bumpInfo, options);
+
   writePackageJson(modifiedPackages, packageInfos);
 
   if (options.generateChangelog) {
@@ -53,5 +56,26 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
     unlinkChangeFiles(changeFileChangeInfos, packageInfos, options.path);
   }
 
+  await callHook('postbump', bumpInfo, options);
+
   return bumpInfo;
+}
+
+/**
+ * Calls a specified hook for each package being bumped
+ */
+async function callHook(hookName: keyof HooksOptions, bumpInfo: BumpInfo, options: BeachballOptions) {
+  const hook = options.hooks?.[hookName];
+  if (!hook) {
+    return;
+  }
+
+  for (const packageName of bumpInfo.modifiedPackages) {
+    const packageInfo = bumpInfo.packageInfos[packageName];
+
+    const hookRet = hook(path.dirname(packageInfo.packageJsonPath), packageName, packageInfo.version);
+    if (hookRet instanceof Promise) {
+      await hookRet;
+    }
+  }
 }
