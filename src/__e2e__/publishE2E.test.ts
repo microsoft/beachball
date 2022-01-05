@@ -650,4 +650,76 @@ describe('publish command (e2e)', () => {
     expect(notified).toBeDefined();
     expect(notified).toBe(fooPackageJson.afterPublish.notify);
   });
+
+  it('can perform a successful npm publish without fetch', async () => {
+    repositoryFactory = new RepositoryFactory();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
+
+    writeChangeFiles({
+      changes: [
+        {
+          type: 'minor',
+          comment: 'test',
+          email: 'test@test.com',
+          packageName: 'foo',
+          dependentChangeType: 'patch',
+        },
+      ],
+      cwd: repo.rootPath,
+    });
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    // Adds a step that injects a race condition
+    let fetchCount = 0;
+
+    addGitObserver((args, output) => {
+      if (args[0] === 'fetch') {
+        fetchCount++;
+      }
+    });
+
+    await publish({
+      all: false,
+      authType: 'authtoken',
+      branch: 'origin/master',
+      command: 'publish',
+      message: 'apply package updates',
+      path: repo.rootPath,
+      publish: true,
+      bumpDeps: true,
+      push: true,
+      registry: registry.getUrl(),
+      gitTags: true,
+      tag: 'latest',
+      token: '',
+      yes: true,
+      new: false,
+      access: 'public',
+      package: '',
+      changehint: 'Run "beachball change" to create a change file',
+      type: null,
+      fetch: false,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
+      retries: 3,
+      bump: true,
+      generateChangelog: true,
+      dependentChangeType: null,
+    });
+
+    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
+
+    expect(showResult.success).toBeTruthy();
+
+    const show = JSON.parse(showResult.stdout);
+    expect(show.name).toEqual('foo');
+    expect(show.versions.length).toEqual(1);
+    expect(show['dist-tags'].latest).toEqual('1.1.0');
+
+    // no fetch when flag set to false
+    expect(fetchCount).toBe(0);
+  });
+
 });
