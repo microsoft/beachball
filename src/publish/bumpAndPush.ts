@@ -26,7 +26,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     if(options.fetch !== false){
       if(options.depth){
         gitFailFast(['fetch', remote, remoteBranch, `--depth=${options.depth}`], { cwd });
-      }else{
+      } else {
         gitFailFast(['fetch', remote, remoteBranch], { cwd });
       }
     }
