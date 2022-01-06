@@ -23,7 +23,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
 
     // pull in latest from origin branch
     console.log('Fetching from remote');
-    if(options.fetch !== false){
+    if (options.fetch !== false) {
       if(options.depth){
         gitFailFast(['fetch', remote, remoteBranch, `--depth=${options.depth}`], { cwd });
       } else {
