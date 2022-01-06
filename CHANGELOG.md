@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 04 Nov 2021 20:44:16 GMT and should not be manually modified.
+This log was last generated on Thu, 06 Jan 2022 18:35:57 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.21.0
+
+Thu, 06 Jan 2022 18:35:57 GMT
+
+### Minor changes
+
+- Added fetch in cli options and check if fetch required for bump and push (viditganpi10@gmail.com)
 
 ## 2.20.0
 

@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Added fetch in cli options and check if fetch required for bump and push",
-  "packageName": "beachball",
-  "email": "viditganpi10@gmail.com",
-  "dependentChangeType": "patch"
-}

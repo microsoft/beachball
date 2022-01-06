@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 06 Jan 2022 18:35:57 GMT",
+      "tag": "beachball_v2.21.0",
+      "version": "2.21.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "viditganpi10@gmail.com",
+            "package": "beachball",
+            "commit": "f1e12127e9a04f0bb388f7e2fe93cda7cef82df2",
+            "comment": "Added fetch in cli options and check if fetch required for bump and push"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 04 Nov 2021 20:44:16 GMT",
       "tag": "beachball_v2.20.0",
       "version": "2.20.0",
