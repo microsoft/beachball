@@ -722,4 +722,76 @@ describe('publish command (e2e)', () => {
     expect(fetchCount).toBe(0);
   });
 
+  it('should specify fetch depth when depth param is defined', async () => {
+    repositoryFactory = new RepositoryFactory();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
+
+    writeChangeFiles({
+      changes: [
+        {
+          type: 'minor',
+          comment: 'test',
+          email: 'test@test.com',
+          packageName: 'foo',
+          dependentChangeType: 'patch',
+        },
+      ],
+      cwd: repo.rootPath,
+    });
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    // Adds a step that injects a race condition
+    let depthString: string = '';
+
+    addGitObserver((args, output) => {
+      if (args[0] === 'fetch') {
+        depthString = args[3];
+      }
+    });
+
+    await publish({
+      all: false,
+      authType: 'authtoken',
+      branch: 'origin/master',
+      command: 'publish',
+      message: 'apply package updates',
+      path: repo.rootPath,
+      publish: true,
+      bumpDeps: true,
+      push: true,
+      registry: registry.getUrl(),
+      gitTags: true,
+      tag: 'latest',
+      token: '',
+      yes: true,
+      new: false,
+      access: 'public',
+      package: '',
+      changehint: 'Run "beachball change" to create a change file',
+      type: null,
+      fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
+      retries: 3,
+      bump: true,
+      generateChangelog: true,
+      dependentChangeType: null,
+      depth: 10
+    });
+
+    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
+
+    expect(showResult.success).toBeTruthy();
+
+    const show = JSON.parse(showResult.stdout);
+    expect(show.name).toEqual('foo');
+    expect(show.versions.length).toEqual(1);
+    expect(show['dist-tags'].latest).toEqual('1.1.0');
+
+    // no fetch when flag set to false
+    expect(depthString).toEqual('--depth=10');
+  });
+
 });
