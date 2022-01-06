@@ -29,5 +29,6 @@ export function getDefaultOptions() {
     bump: true,
     canaryName: undefined,
     generateChangelog: true,
+    depth: undefined,
   } as BeachballOptions;
 }

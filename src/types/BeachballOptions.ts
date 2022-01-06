@@ -24,6 +24,7 @@ export interface CliOptions
     | 'retries'
     | 'scope'
     | 'tag'
+    | 'depth'
   > {
   all: boolean;
   authType: AuthType;
@@ -95,6 +96,8 @@ export interface RepoOptions {
   transform?: TransformOptions;
   /** Put multiple changes in a single changefile */
   groupChanges?: boolean;
+  /** Depth of git history to consider when doing fetch */
+  depth?: number;
 }
 
 export interface PackageOptions {

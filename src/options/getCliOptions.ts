@@ -25,6 +25,7 @@ function getCliOptionsUncached(argv: string[]): CliOptions {
     string: ['branch', 'tag', 'message', 'package', 'since', 'dependent-change-type', 'config'],
     array: ['scope', 'disallowed-change-types'],
     boolean: ['git-tags', 'keep-change-files', 'force', 'disallow-deleted-change-files', 'no-commit', 'fetch'],
+    number: ['depth'],
     alias: {
       authType: ['a'],
       branch: ['b'],
