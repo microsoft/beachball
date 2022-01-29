@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update the api call for prerelease to semver",
+  "packageName": "beachball",
+  "email": "jiangnanhello@live.com",
+  "dependentChangeType": "patch"
+}
