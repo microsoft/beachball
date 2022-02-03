@@ -1,5 +1,6 @@
 ---
-tags: cli
+tags:
+  - cli
 category: doc
 ---
 

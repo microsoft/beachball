@@ -1,6 +1,7 @@
 ---
 title: 'Common Options'
-tags: cli
+tags:
+  - cli
 category: doc
 ---
 
