@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 27 Apr 2022 23:30:47 GMT",
+      "tag": "beachball_v2.21.1",
+      "version": "2.21.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "dlannoye@microsoft.com",
+            "package": "beachball",
+            "commit": "0162c709538afacc6143d46cfb610a5373afd6b6",
+            "comment": "Prevent generation of changelog files for private packages"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 06 Jan 2022 18:35:57 GMT",
       "tag": "beachball_v2.21.0",
       "version": "2.21.0",

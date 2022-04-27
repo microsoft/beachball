@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Prevent generation of changelog files for private packages",
-  "packageName": "beachball",
-  "email": "dlannoye@microsoft.com",
-  "dependentChangeType": "patch"
-}
