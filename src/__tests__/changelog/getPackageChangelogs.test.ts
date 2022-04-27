@@ -116,7 +116,7 @@ describe('getPackageChangelogs', () => {
       packageInfos,
       '.'
     );
-    console.log(changelogs);
+
     expect(changelogs['private-pkg']).toBeUndefined();
   });
 });
