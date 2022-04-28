@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add support for \"workspace:\" versions",
-  "packageName": "beachball",
-  "email": "dlannoye@microsoft.com",
-  "dependentChangeType": "patch"
-}

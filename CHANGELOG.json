@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 28 Apr 2022 20:28:37 GMT",
+      "tag": "beachball_v2.22.0",
+      "version": "2.22.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "dlannoye@microsoft.com",
+            "package": "beachball",
+            "commit": "12e8625052ded947b881e4ff2cdf81f098279c42",
+            "comment": "Add support for \"workspace:\" versions"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 27 Apr 2022 23:30:47 GMT",
       "tag": "beachball_v2.21.1",
       "version": "2.21.1",
