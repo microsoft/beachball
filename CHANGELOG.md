@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 04 May 2022 03:07:37 GMT and should not be manually modified.
+This log was last generated on Wed, 04 May 2022 03:40:52 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.22.2
+
+Wed, 04 May 2022 03:40:52 GMT
+
+### Patches
+
+- Remove docs for nonexistent changelog command (elcraig@microsoft.com)
 
 ## 2.22.1
 
