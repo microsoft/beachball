@@ -26,10 +26,6 @@ a tool to help create change files in the change/ folder
 
 checks whether a change file is needed for this branch
 
-### changelog
-
-based on change files, create changelogs and then unlinks the change files
-
 ### [bump](https://microsoft.github.io/beachball/cli/bump.html)
 
 bumps versions as well as generating changelogs
