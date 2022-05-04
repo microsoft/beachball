@@ -67,4 +67,56 @@ describe('getPackageChangelogs', () => {
     expect(Object.keys(changelogs.bar.comments.patch!).length).toBe(2);
     expect(Object.keys(changelogs.foo.comments.patch!).length).toBe(1);
   });
+
+  it('should not generate change logs for dependent bumps of private packages', () => {
+    const changeFileChangeInfos: ChangeSet = [
+      {
+        changeFile: 'bar.json',
+        change: {
+          comment: 'comment for bar',
+          commit: 'deadbeef',
+          dependentChangeType: 'patch',
+          email: 'something@something.com',
+          packageName: 'bar',
+          type: 'patch',
+        },
+      },
+    ];
+
+    const dependentChangedBy: BumpInfo['dependentChangedBy'] = {
+      'private-pkg': new Set(['bar']),
+    };
+
+    const packageInfos: PackageInfos = {
+      'private-pkg': {
+        combinedOptions: {} as any,
+        name: 'private-pkg',
+        packageJsonPath: 'packages/private-pkg/package.json',
+        packageOptions: {},
+        private: true,
+        version: '1.0.0',
+        dependencies: {
+          bar: '^1.0.0',
+        },
+      },
+      bar: {
+        combinedOptions: {} as any,
+        name: 'bar',
+        packageJsonPath: 'packages/bar/package.json',
+        packageOptions: {},
+        private: false,
+        version: '1.0.0',
+      },
+    };
+
+    const changelogs = getPackageChangelogs(
+      changeFileChangeInfos,
+      { bar: 'patch', 'private-pkg': 'patch' },
+      dependentChangedBy,
+      packageInfos,
+      '.'
+    );
+
+    expect(changelogs['private-pkg']).toBeUndefined();
+  });
 });

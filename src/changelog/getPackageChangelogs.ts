@@ -48,6 +48,12 @@ export function getPackageChangelogs(
   const commit = getCurrentHash(cwd) || 'not available';
 
   for (let [dependent, changedBy] of Object.entries(dependentChangedBy)) {
+    if (packageInfos[dependent].private === true) {
+      // Avoid creation of change log files for private packages since the version is
+      // not managed by beachball and the log would only contain bumps to dependencies.
+      continue;
+    }
+
     if (!changelogs[dependent]) {
       changelogs[dependent] = createChangeLog(packageInfos[dependent]);
     }
