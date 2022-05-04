@@ -36,7 +36,7 @@ bumps versions as well as generating changelogs
 
 ### [publish](https://microsoft.github.io/beachball/cli/publish.html)
 
-bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into master
+bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into the default branch
 
 ### [sync](https://microsoft.github.io/beachball/cli/sync.html)
 
@@ -61,7 +61,7 @@ registry, defaults to https://registry.npmjs.org
 
 ### --branch, -b
 
-target branch from origin (default: master)
+target branch from origin (default: as configured in 'git config init.defaultBranch')
 
 ### --message, -m
 

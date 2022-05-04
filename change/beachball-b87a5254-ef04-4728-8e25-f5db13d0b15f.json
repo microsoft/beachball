@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update help and readme to not refer to 'master' branch",
+  "packageName": "beachball",
+  "email": "dannyvv@microsoft.com",
+  "dependentChangeType": "patch"
+}

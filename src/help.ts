@@ -20,7 +20,7 @@ Commands:
   check               - checks whether a change file is needed for this branch
   changelog           - based on change files, create changelogs and then unlinks the change files
   bump                - bumps versions as well as generating changelogs
-  publish             - bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into master
+  publish             - bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into the default branch
   sync                - synchronizes published versions of packages from a registry, makes local package.json changes to match what is published
 
 Options:
@@ -28,7 +28,7 @@ Options:
   --registry, -r                  - registry, defaults to https://registry.npmjs.org
   --tag, -t                       - for the publish command: dist-tag for npm publishes
                                   - for the sync command: will use specified tag to set the version
-  --branch, -b                    - target branch from origin (default: master)
+  --branch, -b                    - target branch from origin (default: as configured in 'git config init.defaultBranch')
   --message, -m                   - for the publish command: custom publish message for the checkin (default: applying package updates);
                                     for the change command: description of the change
   --no-push                       - skip pushing changes back to git remote origin
