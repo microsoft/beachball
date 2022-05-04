@@ -23,7 +23,7 @@ These commands will give the git user a name and email. Also, the last command w
 
 ### NPM Authentication
 
-To publish to a npm registry, you'll need to have access to the write-enabled access token. npm registry has [documentation](https://docs.npmjs.com/creating-and-viewing-authentication-tokens) on how to create write tokens. Pass this token into the command line:
+To publish to a npm registry, you'll need to have access to the write-enabled access token. npm registry has [documentation](https://docs.npmjs.com/creating-and-viewing-authentication-tokens) on how to create automation tokens. Pass this token into the command line:
 
 ```
 beachball publish -n SOME_AUTH_TOKEN
