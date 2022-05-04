@@ -18,7 +18,6 @@ Commands:
 
   change (default)    - a tool to help create change files in the change/ folder
   check               - checks whether a change file is needed for this branch
-  changelog           - based on change files, create changelogs and then unlinks the change files
   bump                - bumps versions as well as generating changelogs
   publish             - bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into master
   sync                - synchronizes published versions of packages from a registry, makes local package.json changes to match what is published

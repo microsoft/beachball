@@ -1,0 +1,7 @@
+{
+  "comment": "Remove docs for nonexistent changelog command",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
