@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 04 May 2022 03:07:37 GMT",
+      "tag": "beachball_v2.22.1",
+      "version": "2.22.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "dannyvv@microsoft.com",
+            "package": "beachball",
+            "commit": "bf86ecb4ac13021ac255d365b33079f1bbcde15f",
+            "comment": "Update help and readme to not refer to 'master' branch"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 28 Apr 2022 20:28:37 GMT",
       "tag": "beachball_v2.22.0",
       "version": "2.22.0",
