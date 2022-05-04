@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "**Breaking change to `VersionGroupOptions.exclude`**: Fix behavior so that `exclude` patterns will work as is likely expected (if a package path matches any exclude pattern, it's excluded), rather than requiring negation. This is not marked as a major version because the previous behavior was counterintuitive enough that it's less likely anyone relied on it.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

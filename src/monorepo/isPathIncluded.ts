@@ -5,17 +5,11 @@ import minimatch from 'minimatch';
  */
 export function isPathIncluded(relativePath: string, include: string | string[], exclude?: string | string[]) {
   const includePatterns = typeof include === 'string' ? [include] : include;
-  let shouldInclude = includePatterns.reduce(
-    (included, pattern) => included || minimatch(relativePath, pattern),
-    false
-  );
+  let shouldInclude = includePatterns.some(pattern => minimatch(relativePath, pattern));
 
-  if (exclude) {
+  if (exclude && shouldInclude) {
     const excludePatterns = typeof exclude === 'string' ? [exclude] : exclude;
-    shouldInclude = excludePatterns.reduce(
-      (excluded: boolean, pattern: string) => excluded && minimatch(relativePath, pattern),
-      shouldInclude
-    );
+    shouldInclude = !excludePatterns.some(pattern => minimatch(relativePath, pattern));
   }
 
   return shouldInclude;
