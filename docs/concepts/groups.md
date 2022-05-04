@@ -1,5 +1,7 @@
 ---
-tags: groups, lock step
+tags:
+  - groups
+  - lock step
 category: doc
 ---
 

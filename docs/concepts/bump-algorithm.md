@@ -1,5 +1,6 @@
 ---
-tags: bump
+tags:
+  - bump
 category: doc
 ---
 
