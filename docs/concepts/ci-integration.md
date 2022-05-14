@@ -57,7 +57,7 @@ Then inside the CI script, simply call `yarn publish:beachball` or `npm run publ
 
 ### With Azure DevOps
 
-**1 Npm authentication**. Azure DevOps has `npmAuthenticate@0` available to create a temporary npm auth token for publishing.
+**1 Npm authentication**. Azure DevOps has a pre-built task `npmAuthenticate@0` to create a temporary npm auth token for publishing.
 
 ```yml
   - task: npmAuthenticate@0
@@ -77,40 +77,17 @@ Add 4 env vars:
 
 Give your pipeline permissins to access these variables in _Pipeline permissions_.
 
-**2.1 Configure Git.** You can set up your Azure DevOps pipeline to add git credentials with Git CLI or you can extrapolate it in a Node script like this:
-
-```js
-const shell = require('shelljs');
-const { logger } = require('just-scripts');
-
-shell.set('-e');
-
-module.exports = function gitAuth() {
-  logger.info('Authenticating Git');
-  shell.exec(`git config user.email "${process.env.GIT_EMAIL}"`);
-  shell.exec(`git config user.name "${process.env.GIT_NAME}"`);
-  shell.exec(
-    `git remote set-url origin https://${process.env.GIT_USER}:${process.env.GIT_PAT}@github.com/someuser/someproject.git`,
-  );
-};
-```
-
-**2.2 Add Npm script.** Add your script to `package.json`, e.g. `"git-auth": "node ./scripts/git-auth.js"`.
-
-**2.3 Add task.** Add a task to configure Git.
+**2.2 Configure Git.**
 
 ```yml
   - script: |
-      npm run git-auth
+      git config user.email $(git.email)
+      git config user.name $(git.name)
+      git remote set-url origin https://$(git.user):$(git.pat)@github.com/someuser/someproject.git
     displayName: 'Configure git'
-    env:
-      GIT_PAT: $(git.pat)
-      GIT_USER: $(git.user)
-      GIT_NAME: $(git.name)
-      GIT_EMAIL: $(git.email)
 ```
 
-**3 Add publish script** Final step is adding a publish script to `package.json` like e.g. `"beachball:publish": "beachball publish --yes"`. Note, that `npmAuthenticate@0` task is taking care of publishing access, so you do not need to pass an Npm token here.
+**3 Add publish script.** Final step is adding a publish script to `package.json` like e.g. `"beachball:publish": "beachball publish --yes"`. Note, that `npmAuthenticate@0` task is taking care of publishing access, so you do not need to pass an Npm token here.
 
 Add a task to run the script in the pipeline.
 
@@ -120,20 +97,17 @@ Add a task to run the script in the pipeline.
     displayName: 'Publishing'
 ```
 
-**4 Final configuration**
+**4 Final configuration.**
 
 ```yml
   - task: npmAuthenticate@0
     inputs:
       workingFile: .npmrc
   - script: |
-      npm run git-auth
+      git config user.email $(git.email)
+      git config user.name $(git.name)
+      git remote set-url origin https://$(git.user):$(git.pat)@github.com/someuser/someproject.git
     displayName: 'Configure git'
-    env:
-      GIT_PAT: $(git.pat)
-      GIT_USER: $(git.user)
-      GIT_NAME: $(git.name)
-      GIT_EMAIL: $(git.email)
   - script: |
       npm run beachball:publish
     displayName: 'Publishing'
