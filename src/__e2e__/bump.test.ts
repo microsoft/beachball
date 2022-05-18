@@ -684,12 +684,12 @@ describe('version bumping', () => {
     const packageInfos = getPackageInfos(repo.rootPath);
 
     expect(packageInfos['pkg-1'].version).toBe('1.0.1-beta.0');
-    expect(packageInfos['pkg-2'].version).toBe('1.0.1');
-    expect(packageInfos['pkg-3'].version).toBe('1.0.1');
+    expect(packageInfos['pkg-2'].version).toBe('1.0.1-beta.0');
+    expect(packageInfos['pkg-3'].version).toBe('1.0.1-beta.0');
 
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe('1.0.1-beta.0');
-    expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe('1.0.1');
-    expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe('1.0.1');
+    expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe('1.0.1-beta.0');
+    expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe('1.0.1-beta.0');
 
     const changeFiles = getChangeFiles(repo.rootPath);
     expect(changeFiles.length).toBe(0);
