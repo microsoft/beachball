@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update the api call for prerelease to semver",
-  "packageName": "beachball",
-  "email": "863023+radium-v@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}

@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 04 May 2022 03:40:52 GMT and should not be manually modified.
+This log was last generated on Wed, 18 May 2022 18:21:01 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.22.3
+
+Wed, 18 May 2022 18:21:01 GMT
+
+### Patches
+
+- Update the api call for prerelease to semver (863023+radium-v@users.noreply.github.com)
 
 ## 2.22.2
 

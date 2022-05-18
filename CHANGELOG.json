@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 18 May 2022 18:21:01 GMT",
+      "tag": "beachball_v2.22.3",
+      "version": "2.22.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "863023+radium-v@users.noreply.github.com",
+            "package": "beachball",
+            "commit": "e00354e7701109d9fe1c8cf0f75381e96d4b20f2",
+            "comment": "Update the api call for prerelease to semver"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 04 May 2022 03:40:52 GMT",
       "tag": "beachball_v2.22.2",
       "version": "2.22.2",
