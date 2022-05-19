@@ -642,7 +642,7 @@ describe('publish command (e2e)', () => {
       bump: true,
       generateChangelog: true,
       hooks: {
-        postpublish: (packagePath) => {
+        postpublish: packagePath => {
           const packageJsonPath = path.join(packagePath, 'package.json');
           const packageJson = fs.readJSONSync(packageJsonPath);
           if (packageJson.afterPublish) {
@@ -708,6 +708,7 @@ describe('publish command (e2e)', () => {
       package: '',
       changehint: 'Run "beachball change" to create a change file',
       type: null,
+      useConventionalCommits: false,
       fetch: false,
       disallowedChangeTypes: null,
       defaultNpmTag: 'latest',
@@ -779,6 +780,7 @@ describe('publish command (e2e)', () => {
       package: '',
       changehint: 'Run "beachball change" to create a change file',
       type: null,
+      useConventionalCommits: false,
       fetch: true,
       disallowedChangeTypes: null,
       defaultNpmTag: 'latest',
@@ -786,7 +788,7 @@ describe('publish command (e2e)', () => {
       bump: true,
       generateChangelog: true,
       dependentChangeType: null,
-      depth: 10
+      depth: 10,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -801,5 +803,4 @@ describe('publish command (e2e)', () => {
     // no fetch when flag set to false
     expect(depthString).toEqual('--depth=10');
   });
-
 });

@@ -6,7 +6,7 @@ import { ChangeType } from '../types/ChangeInfo';
  * 3. breaking
  * 4. message
  */
-const COMMIT_RE = /([a-z]+)(?:\(([a-z\-]+)\))?(!)?: (.+)/;
+const COMMIT_RE = /([a-z]+)(?:\(([a-z\-]+)\))?(!)?: (.+)/i;
 
 interface ConventionalCommit {
   type: string;
