@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 18 May 2022 18:21:01 GMT and should not be manually modified.
+This log was last generated on Wed, 01 Jun 2022 19:11:29 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.22.4
+
+Wed, 01 Jun 2022 19:11:29 GMT
+
+### Patches
+
+- Updating workspace-tools to v0.19.0. (dzearing@microsoft.com)
 
 ## 2.22.3
 
