@@ -1,12 +1,15 @@
+import { spawnSync } from 'child_process';
+import fs from 'fs-extra';
+import os from 'os';
+import path from 'path';
 import { unlinkChangeFiles } from '../changefile/unlinkChangeFiles';
 import { writeChangelog } from '../changelog/writeChangelog';
-import fs from 'fs-extra';
-import path from 'path';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions, HooksOptions } from '../types/BeachballOptions';
 import { PackageDeps, PackageInfos } from '../types/PackageInfo';
+import { findProjectRoot } from '../paths';
 
-export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos) {
+export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos, cwd: string) {
   for (const pkgName of modifiedPackages) {
     const info = packageInfos[pkgName];
     const packageJson = fs.readJSONSync(info.packageJsonPath);
@@ -32,6 +35,16 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
 
     fs.writeJSONSync(info.packageJsonPath, packageJson, { spaces: 2 });
   }
+
+  const root = findProjectRoot(cwd);
+  if (root && fs.existsSync(path.join(root, 'package-lock.json'))) {
+    console.log('Updating package-lock.json after bumping packages');
+    const npm = os.platform() === 'win32' ? 'npm.cmd' : 'npm';
+    const res = spawnSync(npm, ['install', '--package-lock-only'], { stdio: 'inherit' });
+    if (res.status !== 0) {
+      console.warn('Updating package-lock.json failed. Continuing...');
+    }
+  }
 }
 
 /**
@@ -44,7 +57,7 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
 
   await callHook('prebump', bumpInfo, options);
 
-  writePackageJson(modifiedPackages, packageInfos);
+  writePackageJson(modifiedPackages, packageInfos, options.path);
 
   if (options.generateChangelog) {
     // Generate changelog
