@@ -4,7 +4,7 @@ export function mergePublishBranch(publishBranch: string, branch: string, messag
   let result: ReturnType<typeof git>;
   let mergeSteps = [
     ['add', '.'],
-    ['commit', '-m', message],
+    ['commit', '-m', message, '--no-verify'],
     ['checkout', branch],
     ['merge', '-X', 'ours', publishBranch],
   ];
