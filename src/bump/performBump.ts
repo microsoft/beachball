@@ -1,10 +1,13 @@
+import { spawnSync } from 'child_process';
+import fs from 'fs-extra';
+import os from 'os';
+import path from 'path';
 import { unlinkChangeFiles } from '../changefile/unlinkChangeFiles';
 import { writeChangelog } from '../changelog/writeChangelog';
-import fs from 'fs-extra';
-import path from 'path';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions, HooksOptions } from '../types/BeachballOptions';
 import { PackageDeps, PackageInfos } from '../types/PackageInfo';
+import { findProjectRoot } from '../paths';
 
 export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos) {
   for (const pkgName of modifiedPackages) {
@@ -35,6 +38,21 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
 }
 
 /**
+ * If `package-lock.json` exists, runs `npm install --package-lock-only` to update it.
+ */
+export function updatePackageLock(cwd: string) {
+  const root = findProjectRoot(cwd);
+  if (root && fs.existsSync(path.join(root, 'package-lock.json'))) {
+    console.log('Updating package-lock.json after bumping packages');
+    const npm = os.platform() === 'win32' ? 'npm.cmd' : 'npm';
+    const res = spawnSync(npm, ['install', '--package-lock-only'], { stdio: 'inherit' });
+    if (res.status !== 0) {
+      console.warn('Updating package-lock.json failed. Continuing...');
+    }
+  }
+}
+
+/**
  * Performs the bump, writes to the file system
  *
  * deletes change files, update package.json, and changelogs
@@ -45,6 +63,7 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
   await callHook('prebump', bumpInfo, options);
 
   writePackageJson(modifiedPackages, packageInfos);
+  updatePackageLock(options.path);
 
   if (options.generateChangelog) {
     // Generate changelog
