@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 01 Jun 2022 19:11:29 GMT and should not be manually modified.
+This log was last generated on Tue, 14 Jun 2022 22:58:59 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.23.0
+
+Tue, 14 Jun 2022 22:58:59 GMT
+
+### Minor changes
+
+- Update package-lock.json after bumping packages (elcraig@microsoft.com)
 
 ## 2.22.4
 

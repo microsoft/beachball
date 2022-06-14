@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 14 Jun 2022 22:58:59 GMT",
+      "tag": "beachball_v2.23.0",
+      "version": "2.23.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "4f3cd1330acf199f628bb72271b606071f33e063",
+            "comment": "Update package-lock.json after bumping packages"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 01 Jun 2022 19:11:29 GMT",
       "tag": "beachball_v2.22.4",
       "version": "2.22.4",

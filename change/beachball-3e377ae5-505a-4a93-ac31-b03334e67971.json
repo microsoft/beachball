@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Update package-lock.json after bumping packages",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
