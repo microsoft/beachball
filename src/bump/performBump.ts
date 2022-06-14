@@ -9,7 +9,7 @@ import { BeachballOptions, HooksOptions } from '../types/BeachballOptions';
 import { PackageDeps, PackageInfos } from '../types/PackageInfo';
 import { findProjectRoot } from '../paths';
 
-export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos, cwd: string) {
+export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos) {
   for (const pkgName of modifiedPackages) {
     const info = packageInfos[pkgName];
     const packageJson = fs.readJSONSync(info.packageJsonPath);
@@ -35,7 +35,12 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
 
     fs.writeJSONSync(info.packageJsonPath, packageJson, { spaces: 2 });
   }
+}
 
+/**
+ * If `package-lock.json` exists, runs `npm install --package-lock-only` to update it.
+ */
+export function updatePackageLock(cwd: string) {
   const root = findProjectRoot(cwd);
   if (root && fs.existsSync(path.join(root, 'package-lock.json'))) {
     console.log('Updating package-lock.json after bumping packages');
@@ -57,7 +62,8 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
 
   await callHook('prebump', bumpInfo, options);
 
-  writePackageJson(modifiedPackages, packageInfos, options.path);
+  writePackageJson(modifiedPackages, packageInfos);
+  updatePackageLock(options.path);
 
   if (options.generateChangelog) {
     // Generate changelog
