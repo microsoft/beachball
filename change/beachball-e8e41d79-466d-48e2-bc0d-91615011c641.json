@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Use path utilities from workspace-tools",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

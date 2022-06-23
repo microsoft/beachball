@@ -1,6 +1,6 @@
-import { findProjectRoot, getChangePath } from '../paths';
+import { getChangePath } from '../paths';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { getChangesBetweenRefs } from 'workspace-tools';
+import { getChangesBetweenRefs, findProjectRoot } from 'workspace-tools';
 
 export function areChangeFilesDeleted(options: BeachballOptions): boolean {
   const { branch, path: cwd } = options;

@@ -7,7 +7,7 @@ import { writeChangelog } from '../changelog/writeChangelog';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions, HooksOptions } from '../types/BeachballOptions';
 import { PackageDeps, PackageInfos } from '../types/PackageInfo';
-import { findProjectRoot } from '../paths';
+import { findProjectRoot } from 'workspace-tools';
 
 export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos) {
   for (const pkgName of modifiedPackages) {
