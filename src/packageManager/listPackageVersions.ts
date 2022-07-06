@@ -12,7 +12,7 @@ export async function getNpmPackageInfo(packageName: string, registry: string, t
     const args = ['show', '--registry', registry, '--json', packageName, ...getNpmAuthArgs(registry, token, authType)];
 
     const showResult = await npmAsync(args);
-    if (showResult.success) {
+    if (showResult.success && showResult.stdout !== '') {
       const packageInfo = JSON.parse(showResult.stdout);
       packageVersions[packageName] = packageInfo;
     } else {

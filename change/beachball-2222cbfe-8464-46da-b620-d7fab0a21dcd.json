@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "fixes JSON parse failure when npm show output is an empty string and 0 exit code",
+  "packageName": "beachball",
+  "email": "dab5879@gmail.com",
+  "dependentChangeType": "patch"
+}
