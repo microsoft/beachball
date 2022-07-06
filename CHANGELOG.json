@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 06 Jul 2022 21:40:35 GMT",
+      "tag": "beachball_v2.23.1",
+      "version": "2.23.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "dab5879@gmail.com",
+            "package": "beachball",
+            "commit": "3106bf8f003ef07340d65c9727c01c6d281c822a",
+            "comment": "fixes JSON parse failure when npm show output is an empty string and 0 exit code"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 14 Jun 2022 22:58:59 GMT",
       "tag": "beachball_v2.23.0",
       "version": "2.23.0",

@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 14 Jun 2022 22:58:59 GMT and should not be manually modified.
+This log was last generated on Wed, 06 Jul 2022 21:40:35 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.23.1
+
+Wed, 06 Jul 2022 21:40:35 GMT
+
+### Patches
+
+- fixes JSON parse failure when npm show output is an empty string and 0 exit code (dab5879@gmail.com)
 
 ## 2.23.0
 
