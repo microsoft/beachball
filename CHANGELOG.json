@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 07 Jul 2022 04:38:07 GMT",
+      "tag": "beachball_v2.24.0",
+      "version": "2.24.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "c35db0c42c5b755066e0bf2434e55c15d7b0dbf1",
+            "comment": "Use path utilities from workspace-tools and remove beachball's redundant implementations"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 06 Jul 2022 21:40:35 GMT",
       "tag": "beachball_v2.23.1",
       "version": "2.23.1",

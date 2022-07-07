@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 06 Jul 2022 21:40:35 GMT and should not be manually modified.
+This log was last generated on Thu, 07 Jul 2022 04:38:07 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.24.0
+
+Thu, 07 Jul 2022 04:38:07 GMT
+
+### Minor changes
+
+- Use path utilities from workspace-tools and remove beachball's redundant implementations (elcraig@microsoft.com)
 
 ## 2.23.1
 
