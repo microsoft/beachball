@@ -1,5 +1,4 @@
-import { findGitRoot } from '../paths';
-import { git } from 'workspace-tools';
+import { git, findGitRoot } from 'workspace-tools';
 
 export function isGitAvailable(cwd: string) {
   const result = git(['--version']);

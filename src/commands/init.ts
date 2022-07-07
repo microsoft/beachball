@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { spawnSync } from 'child_process';
 import * as os from 'os';
-import { findProjectRoot } from '../paths';
+import { findProjectRoot } from 'workspace-tools';
 
 export async function init(options: BeachballOptions) {
   const root = findProjectRoot(options.path);
