@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Use path utilities from workspace-tools",
+  "comment": "Use path utilities from workspace-tools and remove beachball's redundant implementations",
   "packageName": "beachball",
   "email": "elcraig@microsoft.com",
   "dependentChangeType": "patch"
