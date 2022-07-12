@@ -37,7 +37,7 @@
     "cosmiconfig": "^6.0.0",
     "execa": "^4.0.3",
     "fs-extra": "^8.0.1",
-    "git-url-parse": "^11.1.2",
+    "git-url-parse": "^12.0.0",
     "glob": "^7.1.4",
     "human-id": "^2.0.1",
     "lodash": "^4.17.15",
