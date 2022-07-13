@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Bump git-url-parse to 12.0.0",
+  "packageName": "beachball",
+  "email": "adam.gleitman@gmail.com",
+  "dependentChangeType": "patch"
+}
