@@ -2,6 +2,29 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 13 Jul 2022 21:17:51 GMT",
+      "tag": "beachball_v2.25.0",
+      "version": "2.25.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "bddbce4525f76d209fc91a07ac4128348dcb269d",
+            "comment": "Update `workspace-tools` to pick up new `git-url-parse` (may include [breaking changes](https://github.com/IonicaBizau/git-url-parse/releases/tag/12.0.0))"
+          }
+        ],
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "bddbce4525f76d209fc91a07ac4128348dcb269d",
+            "comment": "Remove unused direct dependencies on `git-url-parse` and `glob` (the code moved to `workspace-tools` awhile back)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 13 Jul 2022 20:33:51 GMT",
       "tag": "beachball_v2.24.1",
       "version": "2.24.1",

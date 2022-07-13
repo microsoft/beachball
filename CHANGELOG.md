@@ -1,8 +1,20 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 13 Jul 2022 20:33:51 GMT and should not be manually modified.
+This log was last generated on Wed, 13 Jul 2022 21:17:51 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.25.0
+
+Wed, 13 Jul 2022 21:17:51 GMT
+
+### Minor changes
+
+- Update `workspace-tools` to pick up new `git-url-parse` (may include [breaking changes](https://github.com/IonicaBizau/git-url-parse/releases/tag/12.0.0)) (elcraig@microsoft.com)
+
+### Patches
+
+- Remove unused direct dependencies on `git-url-parse` and `glob` (the code moved to `workspace-tools` awhile back) (elcraig@microsoft.com)
 
 ## 2.24.1
 

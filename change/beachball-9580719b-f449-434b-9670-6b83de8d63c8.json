@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Update `workspace-tools` to pick up new `git-url-parse` (may include [breaking changes](https://github.com/IonicaBizau/git-url-parse/releases/tag/12.0.0))",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Remove unused direct dependencies on `git-url-parse` and `glob` (the code moved to `workspace-tools` awhile back)",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
