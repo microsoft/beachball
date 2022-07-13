@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 13 Jul 2022 20:33:51 GMT",
+      "tag": "beachball_v2.24.1",
+      "version": "2.24.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "adam.gleitman@gmail.com",
+            "package": "beachball",
+            "commit": "511dc118032faf4326d7bd071e5ccea80332cea8",
+            "comment": "Bump git-url-parse to 12.0.0"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 07 Jul 2022 04:38:07 GMT",
       "tag": "beachball_v2.24.0",
       "version": "2.24.0",

@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 07 Jul 2022 04:38:07 GMT and should not be manually modified.
+This log was last generated on Wed, 13 Jul 2022 20:33:51 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.24.1
+
+Wed, 13 Jul 2022 20:33:51 GMT
+
+### Patches
+
+- Bump git-url-parse to 12.0.0 (adam.gleitman@gmail.com)
 
 ## 2.24.0
 
