@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 14 Jul 2022 21:17:09 GMT",
+      "tag": "beachball_v2.25.1",
+      "version": "2.25.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "viditganpi10@gmail.com",
+            "package": "beachball",
+            "commit": "c1490d51e33daf38ff7d0d14c79a8bcfc1708f61",
+            "comment": "Added error handling for git fetch"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 13 Jul 2022 21:17:51 GMT",
       "tag": "beachball_v2.25.0",
       "version": "2.25.0",

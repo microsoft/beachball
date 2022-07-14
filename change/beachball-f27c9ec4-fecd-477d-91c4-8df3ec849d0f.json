@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Added error handling for git fetch",
-  "packageName": "beachball",
-  "email": "viditganpi10@gmail.com",
-  "dependentChangeType": "patch"
-}

@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 13 Jul 2022 21:17:51 GMT and should not be manually modified.
+This log was last generated on Thu, 14 Jul 2022 21:17:09 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.25.1
+
+Thu, 14 Jul 2022 21:17:09 GMT
+
+### Patches
+
+- Added error handling for git fetch (viditganpi10@gmail.com)
 
 ## 2.25.0
 
