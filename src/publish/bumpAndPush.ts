@@ -24,10 +24,15 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     // pull in latest from origin branch
     console.log('Fetching from remote');
     if (options.fetch !== false) {
-      if (options.depth) {
-        gitFailFast(['fetch', remote, remoteBranch, `--depth=${options.depth}`], { cwd });
-      } else {
-        gitFailFast(['fetch', remote, remoteBranch], { cwd });
+      try {
+        if (options.depth) {
+          gitFailFast(['fetch', remote, remoteBranch, `--depth=${options.depth}`], { cwd });
+        } else {
+          gitFailFast(['fetch', remote, remoteBranch], { cwd });
+        }
+      } catch (err) {
+        console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: fetch from ${branch} has failed!\n${err}`);
+        continue;
       }
     }
     const mergeResult = git(['merge', '-X', 'theirs', `${branch}`], { cwd });
