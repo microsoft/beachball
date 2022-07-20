@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Update workspace-tools to fix remote detection",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
