@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 14 Jul 2022 21:17:09 GMT and should not be manually modified.
+This log was last generated on Thu, 21 Jul 2022 00:41:14 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.26.0
+
+Thu, 21 Jul 2022 00:41:14 GMT
+
+### Minor changes
+
+- Update workspace-tools to fix remote detection (elcraig@microsoft.com)
 
 ## 2.25.1
 

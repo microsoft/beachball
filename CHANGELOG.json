@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 21 Jul 2022 00:41:14 GMT",
+      "tag": "beachball_v2.26.0",
+      "version": "2.26.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "1e95735b4897363a2100c797129b30db495d0bb6",
+            "comment": "Update workspace-tools to fix remote detection"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 14 Jul 2022 21:17:09 GMT",
       "tag": "beachball_v2.25.1",
       "version": "2.25.1",
