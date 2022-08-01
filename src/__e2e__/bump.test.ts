@@ -449,6 +449,71 @@ describe('version bumping', () => {
     expect(changeFiles.length).toBe(0);
   });
 
+  it('bumps all grouped packages to the greatest change type in the group, regardless of change file order', async () => {
+    repositoryFactory = new RepositoryFactory();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
+
+    repo.commitChange(
+      'packages/commonlib/package.json',
+      JSON.stringify({
+        // We'll use the prefix z- here to make sure commonlib's change file is loaded AFTER
+        // its dependents.
+        // This makes sure we set the group's version bumps based on ChangeType order and not in
+        // the sort order the filesystem gives us.
+        name: 'z-commonlib',
+        version: '1.0.0',
+      })
+    );
+
+    repo.commitChange(
+      'packages/pkg-1/package.json',
+      JSON.stringify({
+        name: 'pkg-1',
+        version: '1.0.0',
+        dependencies: {
+          'z-commonlib': '1.0.0',
+        },
+      })
+    );
+
+    writeChangeFiles({
+      changes: [
+        {
+          type: 'none',
+          comment: 'just refactor stuff',
+          email: 'test@test.com',
+          packageName: 'z-commonlib',
+          dependentChangeType: 'none',
+        },
+        {
+          type: 'minor',
+          comment: 'test',
+          email: 'test@test.com',
+          packageName: 'pkg-1',
+          dependentChangeType: 'minor',
+        },
+      ],
+      cwd: repo.rootPath,
+    });
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    await bump({
+      path: repo.rootPath,
+      groups: [{ include: 'packages/*', name: 'grp' }],
+      bumpDeps: true,
+    } as BeachballOptions);
+
+    const packageInfos = getPackageInfos(repo.rootPath);
+
+    expect(packageInfos['pkg-1'].version).toBe('1.1.0');
+    expect(packageInfos['z-commonlib'].version).toBe('1.1.0');
+
+    const changeFiles = getChangeFiles(repo.rootPath);
+    expect(changeFiles.length).toBe(0);
+  });
+
   it('should not bump out-of-scope package even if package has change', async () => {
     repositoryFactory = new MonoRepoFactory();
     repositoryFactory.create();

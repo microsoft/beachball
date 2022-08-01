@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "grouped packages propagate the change type based on ChangeType order, not change file load order.",
+  "packageName": "beachball",
+  "email": "tanner.m.lyons@gmail.com",
+  "dependentChangeType": "patch"
+}

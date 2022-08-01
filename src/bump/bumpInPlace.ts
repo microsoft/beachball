@@ -5,6 +5,7 @@ import { bumpPackageInfoVersion } from './bumpPackageInfoVersion';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { setGroupsInBumpInfo } from './setGroupsInBumpInfo';
 import { setDependentVersions } from './setDependentVersions';
+import { getMaxChangeType, MinChangeType } from '../changefile/getPackageChangeTypes';
 
 /**
  * Updates BumpInfo according to change types, bump deps, and version groups
@@ -33,8 +34,11 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
     );
 
     if (groupName) {
+      const maxChangeTypeInGroup = bumpInfo.packageGroups[groupName].packageNames
+        .map(packageNameInGroup => calculatedChangeTypes[packageNameInGroup])
+        .reduce((prev, next) => getMaxChangeType(prev, next, null), MinChangeType);
       for (const packageNameInGroup of bumpInfo.packageGroups[groupName].packageNames) {
-        calculatedChangeTypes[packageNameInGroup] = changeInfo.type;
+        calculatedChangeTypes[packageNameInGroup] = maxChangeTypeInGroup;
       }
     }
   }
