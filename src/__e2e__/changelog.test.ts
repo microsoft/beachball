@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import _ from 'lodash';
 
-import { RepositoryFactory } from '../fixtures/repository';
+import { RepositoryFactory } from '../__fixtures__/repository';
 import { writeChangelog } from '../changelog/writeChangelog';
 
 import { getPackageInfos } from '../monorepo/getPackageInfos';
@@ -12,7 +12,7 @@ import { readChangeFiles } from '../changefile/readChangeFiles';
 import { SortedChangeTypes } from '../changefile/getPackageChangeTypes';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { ChangeFileInfo, ChangeInfo } from '../types/ChangeInfo';
-import { MonoRepoFactory } from '../fixtures/monorepo';
+import { MonoRepoFactory } from '../__fixtures__/monorepo';
 import { ChangelogJson } from '../types/ChangeLog';
 
 function getChange(packageName: string, comment: string): ChangeFileInfo {

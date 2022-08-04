@@ -1,12 +1,12 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { RepositoryFactory } from '../fixtures/repository';
+import { RepositoryFactory } from '../__fixtures__/repository';
 import { git } from 'workspace-tools';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { MultiMonoRepoFactory } from '../fixtures/multiMonorepo';
+import { MultiMonoRepoFactory } from '../__fixtures__/multiMonorepo';
 import { getChangedPackages } from '../changefile/getChangedPackages';
-import { MonoRepoFactory } from '../fixtures/monorepo';
+import { MonoRepoFactory } from '../__fixtures__/monorepo';
 
 describe('getChangedPackages', () => {
   let repositoryFactory: RepositoryFactory | undefined;

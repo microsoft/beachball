@@ -1,5 +1,5 @@
 import fs from 'fs-extra';
-import { RepositoryFactory } from '../fixtures/repository';
+import { RepositoryFactory } from '../__fixtures__/repository';
 import { git } from 'workspace-tools';
 import { change } from '../commands/change';
 import { BeachballOptions } from '../types/BeachballOptions';

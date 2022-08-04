@@ -1,5 +1,5 @@
-import { Registry } from '../fixtures/registry';
-import { testPackageInfo, testTag } from '../fixtures/package';
+import { Registry } from '../__fixtures__/registry';
+import { testPackageInfo, testTag } from '../__fixtures__/package';
 import { packagePublish } from '../packageManager/packagePublish';
 import { npm } from '../packageManager/npm';
 

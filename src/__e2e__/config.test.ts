@@ -1,5 +1,5 @@
 import fs from 'fs-extra';
-import { RepositoryFactory } from '../fixtures/repository';
+import { RepositoryFactory } from '../__fixtures__/repository';
 import { getOptions } from '../options/getOptions';
 
 const baseArgv = ['node.exe', 'bin.js'];
