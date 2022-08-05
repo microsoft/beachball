@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 05 Aug 2022 22:30:35 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b243be7c2944ab90bd613b5a1fac1bc7c366f607",
+            "comment": "Specify `files` in package.json to ensure only intended files are published"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 21 Jul 2022 00:41:14 GMT",
       "tag": "beachball_v2.26.0",
       "version": "2.26.0",

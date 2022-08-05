@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 21 Jul 2022 00:41:14 GMT and should not be manually modified.
+This log was last generated on Fri, 05 Aug 2022 22:30:35 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.26.1
+
+Fri, 05 Aug 2022 22:30:35 GMT
+
+### Patches
+
+- Specify `files` in package.json to ensure only intended files are published (elcraig@microsoft.com)
 
 ## 2.26.0
 

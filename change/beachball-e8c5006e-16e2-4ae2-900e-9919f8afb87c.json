@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Specify `files` in package.json to ensure only intended files are published",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
