@@ -106,6 +106,11 @@ export interface PackageOptions {
   tag: string | null;
   defaultNpmTag: string;
   changeFilePrompt?: ChangeFilePromptOptions;
+  /**
+   * Disable publishing a particular package.
+   * (Does NOT work to enable publishing a package that wouldn't otherwise be published.)
+   */
+  shouldPublish?: false | undefined;
 }
 
 export interface VersionGroupOptions {
@@ -141,7 +146,7 @@ export interface HooksOptions {
    * Runs for each package, before writing changelog and package.json updates
    * to the filesystem. May be called multiple times during publish.
    */
-   prebump?: (packagePath: string, name: string, version: string) => void | Promise<void>;
+  prebump?: (packagePath: string, name: string, version: string) => void | Promise<void>;
 
   /**
    * Runs for each package, after writing changelog and package.json updates

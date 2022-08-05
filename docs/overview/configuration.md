@@ -78,7 +78,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `push`                  | bool                                     | `true`            | repo                 | whether to push to the remote git branch                                                        |
 | `registry`              | string                                   |                   | repo                 | target NPM registry to publish                                                                  |
 | `retries`               | number                                   | `3`               | repo                 | number of retries for a package publish before failing                                          |
-| `shouldPublish`         | bool                                     | `true`            | package              | to manually handle whether or not a package should be published with beachball                  |
+| `shouldPublish`         | false \| undefined                       |                   | package              | manually disable publishing of a package by beachball (does not work to force publishing)       |
 | `tag`                   | string                                   | `'latest'`        | repo, package        | dist-tag for npm when published                                                                 |
 | `transform`             | `TransformOptions` ([details][4])        |                   | repo                 | transformations for change files                                                                |
 

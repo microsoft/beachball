@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add verbose logs about determining changed packages",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

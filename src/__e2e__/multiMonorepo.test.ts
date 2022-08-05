@@ -39,7 +39,7 @@ describe('version bumping', () => {
           type: 'minor',
           comment: 'test',
           email: 'test@test.com',
-          packageName: 'foo',
+          packageName: '@repo-a/foo',
           dependentChangeType: 'patch',
         },
       ],
@@ -52,7 +52,7 @@ describe('version bumping', () => {
           type: 'major',
           comment: 'test',
           email: 'test@test.com',
-          packageName: 'foo',
+          packageName: '@repo-b/foo',
           dependentChangeType: 'patch',
         },
       ],
@@ -65,8 +65,8 @@ describe('version bumping', () => {
 
     const packageInfosA = getPackageInfos(repoARoot);
     const packageInfosB = getPackageInfos(repoBRoot);
-    expect(packageInfosA['foo'].version).toBe('1.1.0');
-    expect(packageInfosB['foo'].version).toBe('1.0.0');
+    expect(packageInfosA['@repo-a/foo'].version).toBe('1.1.0');
+    expect(packageInfosB['@repo-b/foo'].version).toBe('1.0.0');
 
     const changeFilesA = getChangeFiles(repoARoot);
     const changeFilesB = getChangeFiles(repoBRoot);
