@@ -1,4 +1,4 @@
-import { RepositoryFactory } from '../fixtures/repository';
+import { RepositoryFactory } from '../__fixtures__/repository';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publish } from '../commands/publish';
 import path from 'path';

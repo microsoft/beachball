@@ -1,4 +1,4 @@
-import { RepositoryFactory, Repository } from '../fixtures/repository';
+import { RepositoryFactory, Repository } from '../__fixtures__/repository';
 import { isChangeFileNeeded } from '../validation/isChangeFileNeeded';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';

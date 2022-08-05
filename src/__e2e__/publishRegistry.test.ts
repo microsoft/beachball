@@ -1,9 +1,9 @@
-import { Registry } from '../fixtures/registry';
+import { Registry } from '../__fixtures__/registry';
 import { npm } from '../packageManager/npm';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { git } from 'workspace-tools';
 import { publish } from '../commands/publish';
-import { RepositoryFactory } from '../fixtures/repository';
+import { RepositoryFactory } from '../__fixtures__/repository';
 
 describe('publish command (registry)', () => {
   let registry: Registry;

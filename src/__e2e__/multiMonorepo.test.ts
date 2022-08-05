@@ -1,13 +1,13 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { RepositoryFactory } from '../fixtures/repository';
+import { RepositoryFactory } from '../__fixtures__/repository';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { git } from 'workspace-tools';
 import { bump } from '../commands/bump';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getChangePath } from '../paths';
-import { MultiMonoRepoFactory } from '../fixtures/multiMonorepo';
+import { MultiMonoRepoFactory } from '../__fixtures__/multiMonorepo';
 
 describe('version bumping', () => {
   let repositoryFactory: RepositoryFactory | undefined;

@@ -1,10 +1,10 @@
-import { Registry } from '../fixtures/registry';
+import { Registry } from '../__fixtures__/registry';
 import { npm } from '../packageManager/npm';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { git, addGitObserver } from 'workspace-tools';
 import { publish } from '../commands/publish';
-import { RepositoryFactory } from '../fixtures/repository';
-import { MonoRepoFactory } from '../fixtures/monorepo';
+import { RepositoryFactory } from '../__fixtures__/repository';
+import { MonoRepoFactory } from '../__fixtures__/monorepo';
 import fs from 'fs-extra';
 import path from 'path';
 
@@ -778,7 +778,7 @@ describe('publish command (e2e)', () => {
       bump: true,
       generateChangelog: true,
       dependentChangeType: null,
-      depth: 10
+      depth: 10,
     });
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -793,5 +793,4 @@ describe('publish command (e2e)', () => {
     // no fetch when flag set to false
     expect(depthString).toEqual('--depth=10');
   });
-
 });

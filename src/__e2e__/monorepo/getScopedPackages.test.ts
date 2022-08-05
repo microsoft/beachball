@@ -1,7 +1,7 @@
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
 import { BeachballOptions } from '../../types/BeachballOptions';
-import { MonoRepoFactory } from '../../fixtures/monorepo';
-import { Repository } from '../../fixtures/repository';
+import { MonoRepoFactory } from '../../__fixtures__/monorepo';
+import { Repository } from '../../__fixtures__/repository';
 import { PackageInfos } from '../../types/PackageInfo';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 
