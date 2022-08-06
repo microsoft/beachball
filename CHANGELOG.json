@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 06 Aug 2022 03:01:26 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "not available",
+            "comment": "Update devDependency tmp to v0.2.1"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 06 Aug 2022 03:01:09 GMT",
       "tag": "beachball_v2.26.1",
       "version": "2.26.1",
