@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 06 Aug 2022 02:28:13 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "8d4adefa9496f24d2e2b2c03b8d0f6b5d76baac8",
+            "comment": "Update devDependency @types/uuid to v8.3.4"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 06 Aug 2022 02:14:58 GMT",
       "tag": "beachball_v2.26.1",
       "version": "2.26.1",
