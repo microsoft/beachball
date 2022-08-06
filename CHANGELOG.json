@@ -2,6 +2,33 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 06 Aug 2022 03:00:27 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "not available",
+            "comment": "Update devDependency @types/minimatch to v3.0.5"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "not available",
+            "comment": "Update devDependency tmp to v0.2.1"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "not available",
+            "comment": "Update devDependency @types/fs-extra to v8.1.2"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 06 Aug 2022 02:59:21 GMT",
       "tag": "beachball_v2.26.1",
       "version": "2.26.1",
