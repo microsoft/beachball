@@ -57,7 +57,7 @@
     "@types/execa": "2.0.0",
     "@types/fs-extra": "8.1.2",
     "@types/jest": "26.0.24",
-    "@types/lodash": "4.14.159",
+    "@types/lodash": "4.14.182",
     "@types/minimatch": "3.0.5",
     "@types/node": "12.20.7",
     "@types/p-limit": "2.2.0",
