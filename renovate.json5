@@ -3,7 +3,7 @@
   "extends": [
     "github>ecraig12345/renovate-config:beachballLibraryRecommended",
     "github>ecraig12345/renovate-config:autoUpdateTypes",
-    "github>ecraig12345/renovate-config:groupJest",
+    "github>ecraig12345/renovate-config:groupMore",
     "github>ecraig12345/renovate-config:keepFresh"
   ],
   "labels": ["renovate"],
