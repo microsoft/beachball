@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 06 Aug 2022 02:58:49 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "7781a267e4e0bf87bb336842f9d7fb6e294c224d",
+            "comment": "Update devDependency @types/fs-extra to v8.1.2"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 06 Aug 2022 02:29:10 GMT",
       "tag": "beachball_v2.26.1",
       "version": "2.26.1",
