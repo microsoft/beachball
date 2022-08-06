@@ -5,10 +5,11 @@ module.exports = {
   ignorePatterns: [
     '.*ignore',
     '.github/**',
-    '.prettierrc',
+    '.prettierrc.json5',
     '.vscode/**',
     'docs/**',
     'jest.*.js',
+    'renovate.json5',
     'src/__e2e__/**',
     'src/__tests__/**',
     'src/fixtures/**',
