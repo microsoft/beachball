@@ -2,8 +2,16 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "github>ecraig12345/renovate-config:beachballLibraryRecommended",
+    "github>ecraig12345/renovate-config:autoUpdateTypes",
     "github>ecraig12345/renovate-config:groupJest",
     "github>ecraig12345/renovate-config:keepFresh"
   ],
-  "labels": ["renovate"]
+  "labels": ["renovate"],
+  "packageGroups": [
+    // Limit upgrades of packages that were converted to ESM in newer versions
+    // (the repo and in particular jest isn't set up for ESM yet)
+    // { "matchPackageNames": ["find-up"], "allowedVersions": "<6.0.0" },
+    // For @types/node we're intentionally staying on 12 (should really be 14)
+    { "matchPackageNames": ["@types/node"], "allowedVersions": "<13.0.0" }
+  ]
 }
