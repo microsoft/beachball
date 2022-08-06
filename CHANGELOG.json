@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 06 Aug 2022 01:33:25 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "ad533bfb667b9792648fdf0fa9a9f0d08cf008d6",
+            "comment": "Configure Renovate"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 05 Aug 2022 22:30:35 GMT",
       "tag": "beachball_v2.26.1",
       "version": "2.26.1",
