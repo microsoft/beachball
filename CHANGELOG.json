@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 06 Aug 2022 02:14:04 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "5fee178f7f31bf7e80ecad085198e2fc80c40eea",
+            "comment": "Pin devDependencies"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 06 Aug 2022 01:33:25 GMT",
       "tag": "beachball_v2.26.1",
       "version": "2.26.1",
