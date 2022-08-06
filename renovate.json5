@@ -7,7 +7,7 @@
     "github>ecraig12345/renovate-config:keepFresh"
   ],
   "labels": ["renovate"],
-  "packageGroups": [
+  "packageRules": [
     // Limit upgrades of packages that were converted to ESM in newer versions
     // (the repo and in particular jest isn't set up for ESM yet)
     // { "matchPackageNames": ["find-up"], "allowedVersions": "<6.0.0" },
