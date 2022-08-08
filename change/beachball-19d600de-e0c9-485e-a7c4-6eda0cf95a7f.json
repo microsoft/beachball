@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update dependency prompts to ~2.4.0",
+  "packageName": "beachball",
+  "email": "email not defined",
+  "dependentChangeType": "patch"
+}
