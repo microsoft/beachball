@@ -84,17 +84,21 @@ export async function publish(options: BeachballOptions) {
   const revParseSuccessful = currentBranch || currentHash;
   const inBranch = currentBranch && currentBranch !== 'HEAD';
   const hasHash = currentHash !== null;
-  if (inBranch) {
-    console.log(`git checkout ${currentBranch}`);
-    gitFailFast(['checkout', currentBranch!], { cwd });
-  } else if (hasHash) {
-    console.log(`Looks like the repo was detached from a branch`);
-    console.log(`git checkout ${currentHash}`);
-    gitFailFast(['checkout', currentHash!], { cwd });
-  }
+  try{
+    if (inBranch) {
+      console.log(`git checkout ${currentBranch}`);
+      gitFailFast(['checkout', currentBranch!], { cwd });
+    } else if (hasHash) {
+      console.log(`Looks like the repo was detached from a branch`);
+      console.log(`git checkout ${currentHash}`);
+      gitFailFast(['checkout', currentHash!], { cwd });
+    }
 
-  if (revParseSuccessful) {
-    console.log(`deleting temporary publish branch ${publishBranch}`);
-    gitFailFast(['branch', '-D', publishBranch], { cwd });
+    if (revParseSuccessful) {
+      console.log(`deleting temporary publish branch ${publishBranch}`);
+      gitFailFast(['branch', '-D', publishBranch], { cwd });
+    }
+  }catch(err){
+    console.warn(`[WARN]: git cleanup failed with error ${err}`);
   }
 }
