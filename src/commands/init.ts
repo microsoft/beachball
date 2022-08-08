@@ -17,7 +17,7 @@ export async function init(options: BeachballOptions) {
   const npmCmd = path.join(path.dirname(process.execPath), os.platform() === 'win32' ? 'npm.cmd' : 'npm');
 
   if (fs.existsSync(packageJsonFilePath)) {
-    const beachballInfo = JSON.parse(spawnSync(npmCmd, ['info', 'beachball', '--json']).stdout);
+    const beachballInfo = JSON.parse(spawnSync(npmCmd, ['info', 'beachball', '--json']).stdout.toString());
     const beachballVersion = beachballInfo['dist-tags'].latest;
 
     const packageJson = JSON.parse(fs.readFileSync(packageJsonFilePath, 'utf-8'));
