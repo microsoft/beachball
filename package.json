@@ -72,7 +72,7 @@
     "jest": "27.5.1",
     "prettier": "2.3.2",
     "tmp": "0.2.1",
-    "ts-jest": "27.0.4",
+    "ts-jest": "27.1.5",
     "typescript": "3.9.10",
     "verdaccio": "4.4.2",
     "verdaccio-memory": "8.0.0",
