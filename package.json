@@ -45,7 +45,7 @@
     "lodash": "^4.17.15",
     "minimatch": "^3.0.4",
     "p-limit": "^3.0.2",
-    "prompts": "~2.4.0",
+    "prompts": "^2.1.0",
     "semver": "^6.1.1",
     "toposort": "^2.0.2",
     "uuid": "^8.3.1",
