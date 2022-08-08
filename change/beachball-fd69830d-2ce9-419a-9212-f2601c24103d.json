@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Remove unused human-id dependency",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
