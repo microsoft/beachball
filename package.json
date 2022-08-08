@@ -76,7 +76,7 @@
     "typescript": "3.9.10",
     "verdaccio": "4.13.2",
     "verdaccio-memory": "8.5.2",
-    "vuepress": "1.5.3",
+    "vuepress": "1.9.7",
     "vuepress-plugin-mermaidjs": "1.9.1"
   }
 }
