@@ -68,7 +68,7 @@
     "@types/uuid": "8.3.4",
     "@types/yargs-parser": "15.0.0",
     "find-free-port": "2.0.0",
-    "gh-pages": "3.1.0",
+    "gh-pages": "3.2.3",
     "jest": "27.5.1",
     "prettier": "2.7.1",
     "tmp": "0.2.1",
