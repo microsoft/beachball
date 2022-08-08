@@ -116,8 +116,8 @@ describe('perform workspace version overrides', () => {
       },
     };
 
-    fs.writeFileSync(path.join(tmpDir,'foo', 'package.json'), JSON.stringify(fooPackageJson));
-    fs.writeFileSync(path.join(tmpDir,'bar', 'package.json'), JSON.stringify(barPackageJson));
+    fs.writeFileSync(path.join(tmpDir, 'foo', 'package.json'), JSON.stringify(fooPackageJson));
+    fs.writeFileSync(path.join(tmpDir, 'bar', 'package.json'), JSON.stringify(barPackageJson));
 
     const packageInfos: PackageInfos = {
       foo: {
@@ -155,7 +155,6 @@ describe('perform workspace version overrides', () => {
   function cleanUp(tmpDir: string) {
     fs.rmdirSync(tmpDir, { recursive: true });
   }
-
 
   it.each([
     ['workspace:*', '1.0.0'],
