@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update dependency human-id to v4",
+  "packageName": "beachball",
+  "email": "renovate@whitesourcesoftware.com",
+  "dependentChangeType": "patch"
+}
