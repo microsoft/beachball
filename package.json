@@ -77,6 +77,6 @@
     "verdaccio": "4.13.2",
     "verdaccio-memory": "8.5.2",
     "vuepress": "1.5.3",
-    "vuepress-plugin-mermaidjs": "1.7.1"
+    "vuepress-plugin-mermaidjs": "1.9.1"
   }
 }
