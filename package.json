@@ -40,7 +40,7 @@
   "dependencies": {
     "cosmiconfig": "^6.0.0",
     "execa": "^4.0.3",
-    "fs-extra": "^8.0.1",
+    "fs-extra": "^10.0.0",
     "lodash": "^4.17.15",
     "minimatch": "^3.0.4",
     "p-limit": "^3.0.2",
@@ -54,7 +54,7 @@
   "devDependencies": {
     "@types/cosmiconfig": "6.0.0",
     "@types/execa": "2.0.0",
-    "@types/fs-extra": "8.1.2",
+    "@types/fs-extra": "9.0.13",
     "@types/jest": "26.0.24",
     "@types/lodash": "4.14.182",
     "@types/minimatch": "3.0.5",
