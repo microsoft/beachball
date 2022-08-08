@@ -84,7 +84,7 @@ export async function publish(options: BeachballOptions) {
   const revParseSuccessful = currentBranch || currentHash;
   const inBranch = currentBranch && currentBranch !== 'HEAD';
   const hasHash = currentHash !== null;
-  try{
+  try {
     if (inBranch) {
       console.log(`git checkout ${currentBranch}`);
       gitFailFast(['checkout', currentBranch!], { cwd });
@@ -98,7 +98,7 @@ export async function publish(options: BeachballOptions) {
       console.log(`deleting temporary publish branch ${publishBranch}`);
       gitFailFast(['branch', '-D', publishBranch], { cwd });
     }
-  }catch(err){
+  } catch (err) {
     console.warn(`[WARN]: git cleanup failed with error ${err}`);
   }
 }
