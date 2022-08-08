@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Prettier correction",
+  "packageName": "beachball",
+  "email": "viditganpi10@gmail.com",
+  "dependentChangeType": "patch"
+}
