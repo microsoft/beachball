@@ -44,6 +44,7 @@ export interface CliOptions
   timeout?: number;
   token: string;
   type?: ChangeType | null;
+  useConventionalCommits: boolean;
   verbose?: boolean;
   version?: boolean;
   yes: boolean;
