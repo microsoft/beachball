@@ -2,6 +2,73 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 08 Aug 2022 21:56:43 GMT",
+      "tag": "beachball_v2.27.0",
+      "version": "2.27.0",
+      "comments": {
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update devDependency jest to v27.5.1"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update devDependency @types/node to v12.20.55"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update devDependency verdaccio-memory to v8.5.2"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update devDependency verdaccio to v4.13.2"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update devDependency gh-pages to v3.2.3"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update devDependency prettier to v2.7.1"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update devDependency ts-jest to v27.1.5"
+          }
+        ],
+        "minor": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update dependency semver to v7"
+          }
+        ],
+        "patch": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update dependency prompts to ^2.1.0 (widen allowed range)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 06 Aug 2022 03:04:18 GMT",
       "tag": "beachball_v2.26.1",
       "version": "2.26.1",

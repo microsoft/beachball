@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Update dependency semver to v7",
-  "packageName": "beachball",
-  "email": "renovate@whitesourcesoftware.com",
-  "dependentChangeType": "patch"
-}

@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update devDependency jest to v27.5.1",
-  "packageName": "beachball",
-  "email": "renovate@whitesourcesoftware.com",
-  "dependentChangeType": "none"
-}

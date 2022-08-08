@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update devDependency verdaccio to v4.13.2",
-  "packageName": "beachball",
-  "email": "renovate@whitesourcesoftware.com",
-  "dependentChangeType": "none"
-}

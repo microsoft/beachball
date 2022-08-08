@@ -1,8 +1,20 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 05 Aug 2022 22:30:35 GMT and should not be manually modified.
+This log was last generated on Mon, 08 Aug 2022 21:56:43 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.27.0
+
+Mon, 08 Aug 2022 21:56:43 GMT
+
+### Minor changes
+
+- Update dependency semver to v7 (renovate@whitesourcesoftware.com)
+
+### Patches
+
+- Update dependency prompts to ^2.1.0 (widen allowed range) (email not defined)
 
 ## 2.26.1
 
