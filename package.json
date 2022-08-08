@@ -59,7 +59,7 @@
     "@types/jest": "26.0.24",
     "@types/lodash": "4.14.182",
     "@types/minimatch": "3.0.5",
-    "@types/node": "12.20.7",
+    "@types/node": "12.20.55",
     "@types/p-limit": "2.2.0",
     "@types/prompts": "2.0.1",
     "@types/semver": "6.2.3",
