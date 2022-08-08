@@ -31,7 +31,7 @@ describe('bumpMinSemverRange', () => {
     expect(result).toBe('1.3.0 - 2.0.0');
   });
 
-  it.each(['workspace:*', 'workspace:~', 'workspace:^'])('will preserve %s', (workspaceVersion) => {
+  it.each(['workspace:*', 'workspace:~', 'workspace:^'])('will preserve %s', workspaceVersion => {
     const result = bumpMinSemverRange('1.3.0', workspaceVersion);
     expect(result).toBe(workspaceVersion);
   });

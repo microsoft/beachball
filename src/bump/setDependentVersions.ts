@@ -7,7 +7,7 @@ export function setDependentVersions(
   scopedPackages: Set<string>,
   { verbose }: BeachballOptions
 ) {
-  const dependentChangedBy: {[dependent: string]: Set<string>} = {};
+  const dependentChangedBy: { [dependent: string]: Set<string> } = {};
 
   Object.keys(packageInfos).forEach(pkgName => {
     if (!scopedPackages.has(pkgName)) {
