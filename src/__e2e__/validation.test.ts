@@ -118,7 +118,7 @@ describe('validation', () => {
     it('is true when change files are deleted', () => {
       repository.branch('feature-0');
 
-      const changeDirPath = getChangePath(repository.rootPath) ?? fail('No change folder found');
+      const changeDirPath = getChangePath(repository.rootPath);
       fs.removeSync(changeDirPath);
 
       repository.commitAll();

@@ -6,10 +6,5 @@ import { findProjectRoot } from 'workspace-tools';
  */
 export function getChangePath(cwd: string) {
   const root = findProjectRoot(cwd);
-
-  if (root) {
-    return path.join(root, 'change');
-  }
-
-  return null;
+  return path.join(root, 'change');
 }

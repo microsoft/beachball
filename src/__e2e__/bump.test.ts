@@ -14,7 +14,7 @@ describe('version bumping', () => {
 
   function getChangeFiles(cwd: string): string[] {
     const changePath = getChangePath(cwd);
-    const changeFiles = changePath && fs.existsSync(changePath) ? fs.readdirSync(changePath) : [];
+    const changeFiles = fs.existsSync(changePath) ? fs.readdirSync(changePath) : [];
     return changeFiles;
   }
 
