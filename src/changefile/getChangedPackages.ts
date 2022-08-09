@@ -75,7 +75,7 @@ export function getChangedPackages(options: BeachballOptions, packageInfos: Pack
     { cwd }
   );
 
-  if (!changePath || !fs.existsSync(changePath) || !changeFilesResult.success) {
+  if (!fs.existsSync(changePath) || !changeFilesResult.success) {
     return changedPackages;
   }
 

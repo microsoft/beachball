@@ -25,7 +25,7 @@ export function writeChangeFiles({
   const changePath = getChangePath(cwd);
   const branchName = getBranchName(cwd);
 
-  if (!(Object.keys(changes).length && branchName && changePath)) {
+  if (!(Object.keys(changes).length && branchName)) {
     return [];
   }
 

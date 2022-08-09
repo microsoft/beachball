@@ -6,9 +6,10 @@ import * as os from 'os';
 import { findProjectRoot } from 'workspace-tools';
 
 export async function init(options: BeachballOptions) {
-  const root = findProjectRoot(options.path);
-
-  if (!root) {
+  let root: string;
+  try {
+    root = findProjectRoot(options.path);
+  } catch (err) {
     console.log('Please run this command on an existing repository root.');
     return;
   }

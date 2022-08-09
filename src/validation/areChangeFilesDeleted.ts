@@ -12,10 +12,6 @@ export function areChangeFilesDeleted(options: BeachballOptions): boolean {
   }
 
   const changePath = getChangePath(cwd);
-  if (!changePath) {
-    console.error('Failed to find a folder with change files');
-    process.exit(1);
-  }
 
   console.log(`Checking for deleted change files against "${branch}"`);
   const changeFilesDeletedSinceRef = getChangesBetweenRefs(

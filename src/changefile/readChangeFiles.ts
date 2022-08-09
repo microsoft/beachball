@@ -14,7 +14,7 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
   const changePath = getChangePath(cwd);
   const fromRef = options.fromRef;
 
-  if (!changePath || !fs.existsSync(changePath)) {
+  if (!fs.existsSync(changePath)) {
     return changeSet;
   }
 

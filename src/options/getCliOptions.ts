@@ -41,7 +41,12 @@ function getCliOptionsUncached(argv: string[]): CliOptions {
   });
 
   const { _, ...restArgs } = args;
-  const cwd = findProjectRoot(process.cwd()) || process.cwd();
+  let cwd: string;
+  try {
+    cwd = findProjectRoot(process.cwd());
+  } catch (err) {
+    cwd = process.cwd();
+  }
   const cliOptions = {
     ...(_.length > 0 && { command: _[0] }),
     ...(restArgs as any),

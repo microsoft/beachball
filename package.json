@@ -48,7 +48,7 @@
     "semver": "^7.0.0",
     "toposort": "^2.0.2",
     "uuid": "^8.3.1",
-    "workspace-tools": "^0.24.0",
+    "workspace-tools": "^0.26.0",
     "yargs-parser": "^21.0.0"
   },
   "devDependencies": {

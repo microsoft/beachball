@@ -29,7 +29,7 @@ function gatherPreBumpInfo(options: BeachballOptions, packageInfos: PackageInfos
       const resolution = options.groupChanges ? 'remove the entry from this file' : 'delete this file';
       console.warn(
         `Change detected for ${errorType} package ${change.packageName}; ${resolution}: "${path.resolve(
-          changePath!,
+          changePath,
           changeFile
         )}"`
       );
