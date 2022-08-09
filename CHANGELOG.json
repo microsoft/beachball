@@ -2,6 +2,65 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 09 Aug 2022 01:24:22 GMT",
+      "tag": "beachball_v2.27.1",
+      "version": "2.27.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Update dependency execa to v5"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Update dependency cosmiconfig to v7 (now supports .cjs config files)"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Update dependency fs-extra to v10"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Update dependency yargs-parser to v21"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Remove unused human-id dependency"
+          }
+        ],
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Update devDependency gh-pages to v4"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Update devDependency vuepress-plugin-mermaidjs to v1.9.1"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Update devDependency vuepress to v1.9.7"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 08 Aug 2022 21:56:43 GMT",
       "tag": "beachball_v2.27.0",
       "version": "2.27.0",

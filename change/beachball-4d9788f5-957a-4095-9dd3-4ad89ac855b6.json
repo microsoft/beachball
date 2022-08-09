@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update devDependency vuepress-plugin-mermaidjs to v1.9.1",
-  "packageName": "beachball",
-  "email": "renovate@whitesourcesoftware.com",
-  "dependentChangeType": "none"
-}

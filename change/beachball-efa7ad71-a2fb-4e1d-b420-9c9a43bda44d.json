@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update dependency yargs-parser to v21",
-  "packageName": "beachball",
-  "email": "email not defined",
-  "dependentChangeType": "patch"
-}

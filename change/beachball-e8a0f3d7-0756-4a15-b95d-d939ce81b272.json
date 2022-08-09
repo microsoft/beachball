@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update dependency fs-extra to v10",
-  "packageName": "beachball",
-  "email": "email not defined",
-  "dependentChangeType": "patch"
-}

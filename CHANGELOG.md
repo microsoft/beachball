@@ -1,8 +1,20 @@
 # Change Log - beachball
 
-This log was last generated on Mon, 08 Aug 2022 21:56:43 GMT and should not be manually modified.
+This log was last generated on Tue, 09 Aug 2022 01:24:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.27.1
+
+Tue, 09 Aug 2022 01:24:22 GMT
+
+### Patches
+
+- Update dependency execa to v5 (email not defined)
+- Update dependency cosmiconfig to v7 (now supports .cjs config files) (renovate@whitesourcesoftware.com)
+- Update dependency fs-extra to v10 (email not defined)
+- Update dependency yargs-parser to v21 (email not defined)
+- Remove unused human-id dependency (elcraig@microsoft.com)
 
 ## 2.27.0
 
