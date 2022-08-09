@@ -1,14 +1,17 @@
+import fs from 'fs-extra';
+import { initMockLogs } from '../__fixtures__/mockLogs';
 import { RepositoryFactory, Repository } from '../__fixtures__/repository';
 import { isChangeFileNeeded } from '../validation/isChangeFileNeeded';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { areChangeFilesDeleted } from '../validation/areChangeFilesDeleted';
 import { getChangePath } from '../paths';
-import fs from 'fs-extra';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 
 describe('validation', () => {
   let repositoryFactory: RepositoryFactory;
+  initMockLogs();
+
   beforeAll(() => {
     repositoryFactory = new RepositoryFactory();
     repositoryFactory.create();

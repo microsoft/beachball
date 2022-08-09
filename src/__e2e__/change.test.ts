@@ -1,13 +1,16 @@
 import fs from 'fs-extra';
-import { RepositoryFactory } from '../__fixtures__/repository';
+import path from 'path';
 import { git } from 'workspace-tools';
+import { initMockLogs } from '../__fixtures__/mockLogs';
+import { RepositoryFactory } from '../__fixtures__/repository';
 import { change } from '../commands/change';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getChangePath } from '../paths';
-import path from 'path';
 
 describe('change command', () => {
   let repositoryFactory: RepositoryFactory | undefined;
+
+  initMockLogs();
 
   function getChangeFiles(cwd: string): string[] {
     const changePath = getChangePath(cwd);

@@ -29,7 +29,7 @@ export function validatePackageDependencies(bumpInfo: BumpInfo): boolean {
     }
   }
 
-  process.stdout.write(`Validating no private package among package dependencies`);
+  console.log(`Validating no private package among package dependencies`);
   for (const [dep, usedBy] of Object.entries(allDeps)) {
     if (packageInfos[dep] && packageInfos[dep].private === true) {
       console.error(
@@ -40,7 +40,7 @@ export function validatePackageDependencies(bumpInfo: BumpInfo): boolean {
   }
 
   if (!hasErrors) {
-    process.stdout.write(' OK!\n');
+    console.log(' OK!\n');
   }
   return !hasErrors;
 }

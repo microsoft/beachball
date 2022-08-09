@@ -1,10 +1,11 @@
+import fs from 'fs-extra';
+import path from 'path';
+import { git, gitFailFast } from 'workspace-tools';
+import { initMockLogs } from '../__fixtures__/mockLogs';
 import { RepositoryFactory } from '../__fixtures__/repository';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publish } from '../commands/publish';
-import path from 'path';
-import fs from 'fs-extra';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { git, gitFailFast } from 'workspace-tools';
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { ChangeFileInfo } from '../types/ChangeInfo';
@@ -12,6 +13,8 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 
 describe('publish command (git)', () => {
   let repositoryFactory: RepositoryFactory;
+
+  initMockLogs();
 
   beforeAll(() => {
     jest.setTimeout(30000);

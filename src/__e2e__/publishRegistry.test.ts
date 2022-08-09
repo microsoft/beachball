@@ -1,14 +1,17 @@
+import { git } from 'workspace-tools';
+import { initMockLogs } from '../__fixtures__/mockLogs';
 import { Registry } from '../__fixtures__/registry';
+import { RepositoryFactory } from '../__fixtures__/repository';
 import { npm } from '../packageManager/npm';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { git } from 'workspace-tools';
 import { publish } from '../commands/publish';
-import { RepositoryFactory } from '../__fixtures__/repository';
 
 describe('publish command (registry)', () => {
   let registry: Registry;
   let repositoryFactory: RepositoryFactory | undefined;
   let spy: jest.SpyInstance | undefined;
+
+  initMockLogs();
 
   beforeAll(() => {
     registry = new Registry();

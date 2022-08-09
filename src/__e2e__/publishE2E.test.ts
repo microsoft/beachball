@@ -1,16 +1,19 @@
-import { Registry } from '../__fixtures__/registry';
-import { npm } from '../packageManager/npm';
-import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { git, addGitObserver } from 'workspace-tools';
-import { publish } from '../commands/publish';
-import { RepositoryFactory } from '../__fixtures__/repository';
-import { MonoRepoFactory } from '../__fixtures__/monorepo';
 import fs from 'fs-extra';
 import path from 'path';
+import { git, addGitObserver } from 'workspace-tools';
+import { initMockLogs } from '../__fixtures__/mockLogs';
+import { MonoRepoFactory } from '../__fixtures__/monorepo';
+import { Registry } from '../__fixtures__/registry';
+import { RepositoryFactory } from '../__fixtures__/repository';
+import { npm } from '../packageManager/npm';
+import { writeChangeFiles } from '../changefile/writeChangeFiles';
+import { publish } from '../commands/publish';
 
 describe('publish command (e2e)', () => {
   let registry: Registry;
   let repositoryFactory: RepositoryFactory | undefined;
+
+  initMockLogs();
 
   beforeAll(() => {
     registry = new Registry();

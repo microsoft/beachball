@@ -1,7 +1,8 @@
+import { gitFailFast } from 'workspace-tools';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { tagPackages, tagDistTag } from '../../publish/tagPackages';
 import { generateTag } from '../../tag';
 import { BumpInfo } from '../../types/BumpInfo';
-import { gitFailFast } from 'workspace-tools';
 
 jest.mock('workspace-tools', () => ({
   gitFailFast: jest.fn(),
@@ -61,11 +62,13 @@ const oneTagBumpInfo = {
   newPackages: new Set(),
 } as unknown as BumpInfo;
 
-beforeEach(() => {
-  (gitFailFast as jest.Mock).mockReset();
-});
-
 describe('tagPackages', () => {
+  initMockLogs();
+
+  beforeEach(() => {
+    (gitFailFast as jest.Mock).mockReset();
+  });
+
   it('createTag is not called for packages without gitTags', () => {
     tagPackages(noTagBumpInfo, /* cwd*/ '');
     expect(gitFailFast).not.toHaveBeenCalled();
@@ -82,6 +85,12 @@ describe('tagPackages', () => {
 });
 
 describe('tagDistTag', () => {
+  initMockLogs();
+
+  beforeEach(() => {
+    (gitFailFast as jest.Mock).mockReset();
+  });
+
   it('createTag is not called for an empty dist tag', () => {
     tagDistTag(/* tag */ '', /* cwd*/ '');
     expect(gitFailFast).not.toHaveBeenCalled();
