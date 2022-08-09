@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 09 Aug 2022 01:24:22 GMT and should not be manually modified.
+This log was last generated on Tue, 09 Aug 2022 06:34:24 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.28.0
+
+Tue, 09 Aug 2022 06:34:24 GMT
+
+### Minor changes
+
+- Update dependency workspace-tools to ^0.26.0 (email not defined)
 
 ## 2.27.1
 
