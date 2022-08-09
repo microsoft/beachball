@@ -38,7 +38,7 @@
     "update-snapshots": "jest --config jest.config.js --updateSnapshot"
   },
   "dependencies": {
-    "cosmiconfig": "^6.0.0",
+    "cosmiconfig": "^7.0.0",
     "execa": "^5.0.0",
     "fs-extra": "^10.0.0",
     "lodash": "^4.17.15",
