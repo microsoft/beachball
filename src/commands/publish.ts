@@ -1,6 +1,6 @@
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { gitFailFast, getBranchName, getCurrentHash } from 'workspace-tools';
+import { gitFailFast, getBranchName, getCurrentHash, git } from 'workspace-tools';
 import prompts from 'prompts';
 import { initializePackageChangeInfo } from '../changefile/getPackageChangeTypes';
 import { readChangeFiles } from '../changefile/readChangeFiles';
@@ -84,21 +84,20 @@ export async function publish(options: BeachballOptions) {
   const revParseSuccessful = currentBranch || currentHash;
   const inBranch = currentBranch && currentBranch !== 'HEAD';
   const hasHash = currentHash !== null;
-  try {
-    if (inBranch) {
-      console.log(`git checkout ${currentBranch}`);
-      gitFailFast(['checkout', currentBranch!], { cwd });
-    } else if (hasHash) {
-      console.log(`Looks like the repo was detached from a branch`);
-      console.log(`git checkout ${currentHash}`);
-      gitFailFast(['checkout', currentHash!], { cwd });
-    }
+  if (inBranch) {
+    console.log(`git checkout ${currentBranch}`);
+    gitFailFast(['checkout', currentBranch!], { cwd });
+  } else if (hasHash) {
+    console.log(`Looks like the repo was detached from a branch`);
+    console.log(`git checkout ${currentHash}`);
+    gitFailFast(['checkout', currentHash!], { cwd });
+  }
 
-    if (revParseSuccessful) {
-      console.log(`deleting temporary publish branch ${publishBranch}`);
-      gitFailFast(['branch', '-D', publishBranch], { cwd });
+  if (revParseSuccessful) {
+    console.log(`deleting temporary publish branch ${publishBranch}`);
+    const deletionResult = git(['branch', '-D', publishBranch], { cwd });
+    if (!deletionResult.success) {
+      console.warn(`[WARN]: deletion of publish branch ${publishBranch} has failed!\n${deletionResult.stderr}`);
     }
-  } catch (err) {
-    console.warn(`[WARN]: git cleanup failed with error ${err}`);
   }
 }
