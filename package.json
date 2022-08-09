@@ -49,7 +49,7 @@
     "toposort": "^2.0.2",
     "uuid": "^8.3.1",
     "workspace-tools": "^0.24.0",
-    "yargs-parser": "^20.2.4"
+    "yargs-parser": "^21.0.0"
   },
   "devDependencies": {
     "@types/cosmiconfig": "6.0.0",
@@ -65,7 +65,7 @@
     "@types/tmp": "0.2.3",
     "@types/toposort": "2.0.3",
     "@types/uuid": "8.3.4",
-    "@types/yargs-parser": "15.0.0",
+    "@types/yargs-parser": "21.0.0",
     "find-free-port": "2.0.0",
     "gh-pages": "4.0.0",
     "jest": "27.5.1",
