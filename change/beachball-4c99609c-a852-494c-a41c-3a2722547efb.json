@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Update dependency cosmiconfig to v7",
+  "comment": "Update dependency cosmiconfig to v7 (now supports .cjs config files)",
   "packageName": "beachball",
   "email": "renovate@whitesourcesoftware.com",
   "dependentChangeType": "patch"
