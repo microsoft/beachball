@@ -1,9 +1,10 @@
 import fs from 'fs-extra';
 import path from 'path';
 import * as tmp from 'tmp';
-import { sync } from '../commands/sync';
+import { initMockLogs } from '../__fixtures__/mockLogs';
 import { Registry } from '../__fixtures__/registry';
 import { Repository, RepositoryFactory } from '../__fixtures__/repository';
+import { sync } from '../commands/sync';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { infoFromPackageJson } from '../monorepo/infoFromPackageJson';
 import { packagePublish } from '../packageManager/packagePublish';
@@ -17,23 +18,28 @@ function createRepoPackage(repo: Repository, name: string, version: string) {
   repo.commitChange(`packages/${name}/package.json`, JSON.stringify(packageJson));
 }
 
-function createTempPackage(name: string, version: string, tag: string = 'latest') {
-  const packageJsonFile = path.join(tmp.dirSync().name, 'package.json');
-  const packageJson: any = {
-    name: name,
-    version: version,
-    beachball: {
-      tag,
-    },
-  };
-
-  fs.writeJSONSync(packageJsonFile, packageJson, { spaces: 2 });
-  return infoFromPackageJson(packageJson, packageJsonFile);
-}
-
 describe('sync command (e2e)', () => {
   const repositoryFactory = new RepositoryFactory();
   let registry: Registry;
+  const tempDirs: tmp.DirResult[] = [];
+
+  initMockLogs();
+
+  function createTempPackage(name: string, version: string, tag: string = 'latest') {
+    const dir = tmp.dirSync({ unsafeCleanup: true });
+    tempDirs.push(dir);
+    const packageJsonFile = path.join(dir.name, 'package.json');
+    const packageJson: any = {
+      name: name,
+      version: version,
+      beachball: {
+        tag,
+      },
+    };
+
+    fs.writeJSONSync(packageJsonFile, packageJson, { spaces: 2 });
+    return infoFromPackageJson(packageJson, packageJsonFile);
+  }
 
   beforeAll(() => {
     registry = new Registry();
@@ -51,6 +57,8 @@ describe('sync command (e2e)', () => {
 
   afterEach(() => {
     repositoryFactory.cleanUp();
+    tempDirs.forEach(dir => dir.removeCallback());
+    tempDirs.splice(0, tempDirs.length);
   });
 
   it('can perform a successful sync', async () => {

@@ -1,3 +1,4 @@
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { MarkdownChangelogRenderOptions, renderChangelog, markerComment } from '../../changelog/renderChangelog';
 
 const previousHeader = `# Change Log - foo
@@ -10,6 +11,8 @@ const previousVersion = `## 1.2.0
 `;
 
 describe('renderChangelog', () => {
+  initMockLogs();
+
   function getOptions(): MarkdownChangelogRenderOptions {
     return {
       isGrouped: false,

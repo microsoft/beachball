@@ -1,8 +1,8 @@
-import { acceptedKeys, performPublishOverrides } from '../../publish/performPublishOverrides';
-import { PackageInfos } from '../../types/PackageInfo';
+import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
-import * as fs from 'fs';
+import { acceptedKeys, performPublishOverrides } from '../../publish/performPublishOverrides';
+import { PackageInfos } from '../../types/PackageInfo';
 
 describe('perform publishConfig overrides', () => {
   function createFixture(publishConfig: any = {}) {
@@ -38,10 +38,6 @@ describe('perform publishConfig overrides', () => {
     return { packageInfos, tmpDir };
   }
 
-  function cleanUp(tmpDir: string) {
-    fs.rmdirSync(tmpDir, { recursive: true });
-  }
-
   it('overrides accepted keys', () => {
     const { packageInfos, tmpDir } = createFixture({
       main: 'lib/index.js',
@@ -62,7 +58,7 @@ describe('perform publishConfig overrides', () => {
     expect(modified.publishConfig.main).toBeUndefined();
     expect(modified.publishConfig.types).toBeUndefined();
 
-    cleanUp(tmpDir);
+    fs.removeSync(tmpDir);
   });
 
   it('uses values on packageJson root as fallback values when present', () => {
@@ -87,7 +83,7 @@ describe('perform publishConfig overrides', () => {
     expect(modified.publishConfig.bin).toBeUndefined();
     expect(modified.publishConfig.files).toBeUndefined();
 
-    cleanUp(tmpDir);
+    fs.removeSync(tmpDir);
   });
 
   it('should always at least accept types, main, and module', () => {
@@ -152,10 +148,6 @@ describe('perform workspace version overrides', () => {
     return { packageInfos, tmpDir };
   }
 
-  function cleanUp(tmpDir: string) {
-    fs.rmdirSync(tmpDir, { recursive: true });
-  }
-
   it.each([
     ['workspace:*', '1.0.0'],
     ['workspace:~', '~1.0.0'],
@@ -173,6 +165,6 @@ describe('perform workspace version overrides', () => {
     const modified = JSON.parse(fs.readFileSync(packageInfos['bar'].packageJsonPath, 'utf-8'));
     expect(modified.dependencies.foo).toBe(expectedPublishVersion);
 
-    cleanUp(tmpDir);
+    fs.removeSync(tmpDir);
   });
 });

@@ -1,10 +1,13 @@
-import { Registry } from '../__fixtures__/registry';
+import { initMockLogs } from '../__fixtures__/mockLogs';
 import { testPackageInfo, testTag } from '../__fixtures__/package';
+import { Registry } from '../__fixtures__/registry';
 import { packagePublish } from '../packageManager/packagePublish';
 import { npm } from '../packageManager/npm';
 
 describe('packageManager', () => {
   let registry: Registry;
+
+  initMockLogs();
 
   beforeAll(() => {
     registry = new Registry();
