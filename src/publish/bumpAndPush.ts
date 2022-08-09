@@ -1,7 +1,7 @@
 import { performBump } from '../bump/performBump';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { git, gitFailFast, revertLocalChanges, parseRemoteBranch } from 'workspace-tools';
+import { git, revertLocalChanges, parseRemoteBranch } from 'workspace-tools';
 import { tagDistTag, tagPackages } from './tagPackages';
 import { mergePublishBranch } from './mergePublishBranch';
 import { displayManualRecovery } from './displayManualRecovery';
