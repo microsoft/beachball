@@ -85,6 +85,12 @@ describe('tagPackages', () => {
 });
 
 describe('tagDistTag', () => {
+  initMockLogs();
+
+  beforeEach(() => {
+    (gitFailFast as jest.Mock).mockReset();
+  });
+
   it('createTag is not called for an empty dist tag', () => {
     tagDistTag(/* tag */ '', /* cwd*/ '');
     expect(gitFailFast).not.toHaveBeenCalled();
