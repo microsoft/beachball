@@ -1586,14 +1586,6 @@
     http-errors "1.8.0"
     http-status-codes "1.4.0"
 
-"@verdaccio/commons-api@^8.5.0":
-  version "8.5.0"
-  resolved "https://registry.yarnpkg.com/@verdaccio/commons-api/-/commons-api-8.5.0.tgz#4e774c4982caee20f4f2fd0d38b863502ad30db2"
-  integrity sha512-1+82Jph7UHSii3+uQc936IHLytyCIOfF3lbQSh/cGBCFJTWi6/1bJ7d/BB0O/zzPaHRQkfGr+JH2MOSMs4UiGQ==
-  dependencies:
-    http-errors "1.7.3"
-    http-status-codes "1.4.0"
-
 "@verdaccio/file-locking@^9.7.2":
   version "9.7.2"
   resolved "https://registry.yarnpkg.com/@verdaccio/file-locking/-/file-locking-9.7.2.tgz#953367a42554ef7019fb4206c6e3af5e2dc217db"
@@ -1623,15 +1615,15 @@
     jsdom "15.2.1"
     marked "^2.0.1"
 
+"@verdaccio/streams@10.2.0":
+  version "10.2.0"
+  resolved "https://registry.yarnpkg.com/@verdaccio/streams/-/streams-10.2.0.tgz#e01d2bfdcfe8aa2389f31bc6b72a602628bd025b"
+  integrity sha512-FaIzCnDg0x0Js5kSQn1Le3YzDHl7XxrJ0QdIw5LrDUmLsH3VXNi4/NMlSHnw5RiTTMs4UbEf98V3RJRB8exqJA==
+
 "@verdaccio/streams@9.7.2", "@verdaccio/streams@^9.7.2":
   version "9.7.2"
   resolved "https://registry.yarnpkg.com/@verdaccio/streams/-/streams-9.7.2.tgz#cd5448470d725e221629adb84c74af7dfd8c9678"
   integrity sha512-SoCG1btVFPxOcrs8w9wLJCfe8nfE6EaEXCXyRwGbh+Sr3NLEG0R8JOugGJbuSE+zIRuUs5JaUKjzSec+JKLvZw==
-
-"@verdaccio/streams@^8.5.2":
-  version "8.5.2"
-  resolved "https://registry.yarnpkg.com/@verdaccio/streams/-/streams-8.5.2.tgz#d6f366f94b905bb945bcdfa1572fde8e09f53d7a"
-  integrity sha512-Rbw+vm/KHgy5OQB+jSxxIXYvVFmG/fuFmBeH7F4fp2r5h7w1TP/mlQZI7PVlPPhLZtM6Xdrzf6H+NRCwRncwIg==
 
 "@verdaccio/ui-theme@1.15.1":
   version "1.15.1"
@@ -6002,17 +5994,6 @@ http-errors@1.7.2:
     statuses ">= 1.5.0 < 2"
     toidentifier "1.0.0"
 
-http-errors@1.7.3, http-errors@~1.7.2:
-  version "1.7.3"
-  resolved "https://registry.yarnpkg.com/http-errors/-/http-errors-1.7.3.tgz#6c619e4f9c60308c38519498c14fbb10aacebb06"
-  integrity sha512-ZTTX0MWrsQ2ZAhA1cejAwDLycFsd7I7nVtnkT3Ol0aqodaKW+0CTZDQ1uBv5whptCnc8e8HeRRJxRs0kmm/Qfw==
-  dependencies:
-    depd "~1.1.2"
-    inherits "2.0.4"
-    setprototypeof "1.1.1"
-    statuses ">= 1.5.0 < 2"
-    toidentifier "1.0.0"
-
 http-errors@1.8.0:
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/http-errors/-/http-errors-1.8.0.tgz#75d1bbe497e1044f51e4ee9e704a62f28d336507"
@@ -6044,6 +6025,17 @@ http-errors@~1.6.2:
     inherits "2.0.3"
     setprototypeof "1.1.0"
     statuses ">= 1.4.0 < 2"
+
+http-errors@~1.7.2:
+  version "1.7.3"
+  resolved "https://registry.yarnpkg.com/http-errors/-/http-errors-1.7.3.tgz#6c619e4f9c60308c38519498c14fbb10aacebb06"
+  integrity sha512-ZTTX0MWrsQ2ZAhA1cejAwDLycFsd7I7nVtnkT3Ol0aqodaKW+0CTZDQ1uBv5whptCnc8e8HeRRJxRs0kmm/Qfw==
+  dependencies:
+    depd "~1.1.2"
+    inherits "2.0.4"
+    setprototypeof "1.1.1"
+    statuses ">= 1.5.0 < 2"
+    toidentifier "1.0.0"
 
 "http-parser-js@>=0.4.0 <0.4.11":
   version "0.4.10"
@@ -11274,14 +11266,13 @@ verdaccio-htpasswd@9.7.2:
     http-errors "1.8.0"
     unix-crypt-td-js "1.1.4"
 
-verdaccio-memory@8.5.2:
-  version "8.5.2"
-  resolved "https://registry.yarnpkg.com/verdaccio-memory/-/verdaccio-memory-8.5.2.tgz#ea8ff1aac236667fe406a7d28c3d252bcb4b09cb"
-  integrity sha512-PZXOFq2t4IxpnJLnAvQ8NMBt/uSt7PrbujOiAjS4DvdCATbzdry2NAy0hD8ciQl3zmvC9u3VGNb3kwCrAP6ViQ==
+verdaccio-memory@10.3.0:
+  version "10.3.0"
+  resolved "https://registry.yarnpkg.com/verdaccio-memory/-/verdaccio-memory-10.3.0.tgz#51535e81350788b2ec5cfc65b7d5550ae53de896"
+  integrity sha512-ZCUQQrCyu8vrM6n9tr6UH5chXqKofJr+mufgwK5e+5r8fQwxmH1VxNYQgsEOKeX424uUE/aQIku9kLRwzOrtvA==
   dependencies:
-    "@verdaccio/commons-api" "^8.5.0"
-    "@verdaccio/streams" "^8.5.2"
-    http-errors "1.7.3"
+    "@verdaccio/commons-api" "10.2.0"
+    "@verdaccio/streams" "10.2.0"
     memory-fs "0.5.0"
 
 verdaccio@4.13.2:
