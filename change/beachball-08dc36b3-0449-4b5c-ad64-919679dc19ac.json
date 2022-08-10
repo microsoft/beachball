@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update publishing tests to work with npm 8",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}
