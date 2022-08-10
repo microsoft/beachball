@@ -2,6 +2,35 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 10 Aug 2022 08:03:11 GMT",
+      "tag": "beachball_v2.29.0",
+      "version": "2.29.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "cdf7e775cf403111c645776b7bb6b8822ebc8d18",
+            "comment": "Update typescript to 4.3"
+          }
+        ],
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "cdf7e775cf403111c645776b7bb6b8822ebc8d18",
+            "comment": "Always use console.log not process.stdout for logging"
+          },
+          {
+            "author": "viditganpi10@gmail.com",
+            "package": "beachball",
+            "commit": "cdf7e775cf403111c645776b7bb6b8822ebc8d18",
+            "comment": "Moving non essential and retried commands to git from gitFailFast"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 09 Aug 2022 06:34:24 GMT",
       "tag": "beachball_v2.28.0",
       "version": "2.28.0",

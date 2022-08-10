@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Moving non essential and retried commands to git from gitFailFast",
-  "packageName": "beachball",
-  "email": "viditganpi10@gmail.com",
-  "dependentChangeType": "patch"
-}

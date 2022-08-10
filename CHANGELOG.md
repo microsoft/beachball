@@ -1,8 +1,21 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 09 Aug 2022 06:34:24 GMT and should not be manually modified.
+This log was last generated on Wed, 10 Aug 2022 08:03:11 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.29.0
+
+Wed, 10 Aug 2022 08:03:11 GMT
+
+### Minor changes
+
+- Update typescript to 4.3 (elcraig@microsoft.com)
+
+### Patches
+
+- Always use console.log not process.stdout for logging (elcraig@microsoft.com)
+- Moving non essential and retried commands to git from gitFailFast (viditganpi10@gmail.com)
 
 ## 2.28.0
 

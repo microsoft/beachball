@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Always use console.log not process.stdout for logging",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
