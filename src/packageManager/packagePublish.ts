@@ -1,6 +1,6 @@
 import { PackageInfo } from '../types/PackageInfo';
 import path from 'path';
-import { getNpmAuthArgs, npm } from './npm';
+import { getNpmAuthArgs, npmAsync } from './npm';
 import { AuthType } from '../types/Auth';
 
 export function packagePublish(
@@ -29,5 +29,5 @@ export function packagePublish(
     args.push(access);
   }
   console.log(`publish command: ${args.join(' ')}`);
-  return npm(args, { cwd: packagePath, timeout });
+  return npmAsync(args, { cwd: packagePath, timeout, all: true });
 }
