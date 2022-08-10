@@ -7,26 +7,40 @@ on:
   pull_request:
     branches: [master]
 
+env:
+  npmVersion: 8
+  oldNpmVersion: 6
+  nodeVersion: 12
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [12.x]
-
     steps:
-      - uses: actions/checkout@v3
-        with:
-          # needed to ensure checkchange works
-          fetch-depth: 0
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js ${{ env.nodeVersion }}
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
-      - run: npm i -g npm@6
+          node-version: ${{ env.nodeVersion }}
+
+      # Guarantee a predictable version of npm for the first round of tests
+      - name: Install package managers
+        run: npm install --global npm@${{ env.npmVersion }} yarn@1
+
       - run: yarn
       - run: yarn build
       - run: yarn docs:build
       - run: yarn checkchange
-      - run: yarn test
+
+      # npm 6 and 8 have slightly different behavior with verdaccio in publishing tests.
+      # It's unclear if this translates to meaningful differences in behavior in actual scenarios,
+      # but test against both versions to be safe.
+      - name: yarn test (npm ${{ env.npmVersion }})
+        run: yarn test
+
+      - name: yarn test (npm ${{ env.oldNpmVersion }})
+        run: |
+          npm i -g npm@${{ env.oldNpmVersion }}
+          yarn test

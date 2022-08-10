@@ -1,6 +1,7 @@
-import { ChildProcess, spawn } from 'child_process';
+import execa from 'execa';
 // @ts-ignore
 import fp from 'find-free-port';
+import verdaccioUser from './verdaccioUser';
 
 const verdaccioApi = require.resolve('./verdaccio.js');
 
@@ -16,7 +17,7 @@ export class Registry {
   // This class will attempt to find a free port, and once it does, continue using it, even through stops
   // and restarts. There's a theoretical chance of something grabbing the port between stops and restarts,
   // but probably not a practical concern.
-  private server?: ChildProcess = undefined;
+  private server?: execa.ExecaChildProcess = undefined;
   private port?: number = undefined;
 
   async start() {
@@ -29,28 +30,54 @@ export class Registry {
       return this.startWithPort(this.port);
     }
 
-    let tryPort = defaultPort;
+    // find-free-port will throw an error if none are free.
+    // If this is consistently having problems, probably it's best to increase maxPort.
+    const maxPort = defaultPort + 1000;
+    console.log(`Looking for free ports in range ${defaultPort} to ${maxPort}`);
+    const tryPort = await fp(defaultPort, maxPort);
 
-    while (!this.port) {
-      // find-free-port will throw an error for us if none are free. No need to explicitly check.
-      tryPort = await fp(tryPort, defaultPort + 10);
+    // Try to start the server. If it fails, it's likely a config error or something where a retry
+    // won't be helpful, so just let it throw.
+    await this.startWithPort(tryPort);
+    this.port = tryPort;
 
-      try {
-        await this.startWithPort(tryPort);
-        this.port = tryPort;
-      } catch {
-        tryPort++;
-        console.log(`Could not start server, trying again on port ${tryPort}`);
-      }
+    // Something about npm 8 makes publishing fail with anonymous access, so log in with a fake user
+    try {
+      const registry = this.getUrl();
+      console.log(`logging in to ${registry}`);
+      const npm = execa('npm', ['adduser', '--registry', registry]);
+      // for some reason there's no way to supply the username, password, and email besides stdin
+      npm.stdout!.on('data', chunk => {
+        chunk = String(chunk);
+        if (chunk.includes('Username:')) {
+          npm.stdin!.write(verdaccioUser.username + '\r\n');
+        } else if (chunk.includes('Password:')) {
+          npm.stdin!.write(verdaccioUser.password + '\r\n');
+        } else if (chunk.includes('Email:')) {
+          npm.stdin!.write('fake@example.com\r\n');
+        }
+      });
+      await npm;
+      console.log('logged in');
+    } catch (err) {
+      throw new Error(
+        `Error logging in to registry: ${(err as Error).stack || err}\n${(err as execa.ExecaError).stderr}`
+      );
     }
   }
 
   private async startWithPort(port: number) {
     return new Promise((resolve, reject) => {
-      this.server = spawn(process.execPath, [verdaccioApi, port.toString()]);
+      try {
+        // set VERDACCIO_LOG env to write a log file
+        const logPath = process.env.VERDACCIO_LOG ? `verdaccio-${Date.now()}.log` : '';
+        this.server = execa(process.execPath, [verdaccioApi, port.toString(), logPath]);
+      } catch (err) {
+        return reject(err);
+      }
 
       if (!this.server || !this.server.stdout || !this.server.stderr) {
-        return reject();
+        return reject('server not initialized correctly');
       }
 
       this.server.stdout.on('data', data => {
@@ -60,11 +87,11 @@ export class Registry {
       });
 
       this.server.stderr.on('data', data => {
-        reject();
+        reject(data?.toString());
       });
 
       this.server.on('error', data => {
-        reject();
+        reject(data);
       });
     });
   }
