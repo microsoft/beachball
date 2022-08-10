@@ -11,6 +11,8 @@
     "noUnusedLocals": true,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
+    "allowJs": true,
+    "checkJs": true,
     "skipLibCheck": true
   },
   "include": ["src/**/*"]
