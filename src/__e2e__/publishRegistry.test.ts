@@ -341,6 +341,9 @@ describe('publish command (registry)', () => {
   it('will perform retries', async () => {
     registry.stop();
 
+    // hide the errors for this test--it's supposed to have errors, and showing them is misleading
+    logs.init();
+
     repositoryFactory = new RepositoryFactory();
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
@@ -391,7 +394,9 @@ describe('publish command (registry)', () => {
     });
 
     await expect(publishPromise).rejects.toThrow();
-    expect(logs.mocks.log).toHaveBeenCalledWith('\nRetrying... (3/3)');
+    expect(
+      logs.mocks.log.mock.calls.some(([arg0]) => typeof arg0 === 'string' && arg0.includes('Retrying... (3/3)'))
+    ).toBeTruthy();
 
     await registry.start();
   });
