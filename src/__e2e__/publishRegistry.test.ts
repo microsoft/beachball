@@ -394,9 +394,7 @@ describe('publish command (registry)', () => {
     });
 
     await expect(publishPromise).rejects.toThrow();
-    expect(
-      logs.mocks.log.mock.calls.some(([arg0]) => typeof arg0 === 'string' && arg0.includes('Retrying... (3/3)'))
-    ).toBeTruthy();
+    expect(logs.mocks.log).toHaveBeenCalledWith(expect.stringMatching('Retrying... (3/3)'));
 
     await registry.start();
   });
