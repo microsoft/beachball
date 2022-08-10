@@ -11,32 +11,43 @@ on:
   # or on manual trigger
   workflow_dispatch:
 
+env:
+  npmVersion: 8
+  nodeVersion: 12
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [12.x]
-
     steps:
-      - uses: actions/checkout@v3
+      - name: Check out code
+        uses: actions/checkout@v3
         with:
           token: ${{ secrets.repo_pat }}
-      - name: Use Node.js ${{ matrix.node-version }}
+
+      - name: Set up Node.js ${{ env.nodeVersion }}
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ env.nodeVersion }}
+
+      # Guarantee a predictable version of npm (the PR build tests against both 6 and 8)
+      - name: Install package managers
+        run: npm install --global npm@${{ env.npmVersion }} yarn@1
+
       - run: yarn
       - run: yarn build
-      - run: yarn test
-      - run: |
+      - run: yarn test (npm ${{ env.npmVersion}})
+
+      - name: Publish package
+        run: |
           git config user.email "kchau@microsoft.com"
           git config user.name "Ken Chau"
-      - run: yarn release -y -n $NPM_AUTHTOKEN
+          yarn release -y -n $NPM_AUTHTOKEN
         env:
           NPM_AUTHTOKEN: ${{ secrets.npm_authtoken }}
-      - run: |
+
+      - name: Update docs
+        run: |
           git remote set-url origin https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git
           yarn release:docs
         env:
