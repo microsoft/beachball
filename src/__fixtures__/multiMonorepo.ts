@@ -20,7 +20,7 @@ export const packageJsonFixtures: { [path: string]: PackageJson } = ['repo-a', '
     } as PackageJson,
 
     [`${repo}/packages/foo`]: {
-      name: 'foo',
+      name: `@${repo}/foo`,
       version: '1.0.0',
       dependencies: {
         bar: '^1.3.4',
@@ -32,17 +32,17 @@ export const packageJsonFixtures: { [path: string]: PackageJson } = ['repo-a', '
     } as PackageJson,
 
     [`${repo}/packages/bar`]: {
-      name: 'bar',
+      name: `@${repo}/bar`,
       version: '1.3.4',
     },
 
     [`${repo}/packages/grouped/a`]: {
-      name: 'a',
+      name: `@${repo}/a`,
       version: '3.1.2',
     },
 
     [`${repo}/packages/grouped/b`]: {
-      name: 'b',
+      name: `@${repo}/b`,
       version: '3.1.2',
       dependencies: ['bar'] as any,
     },

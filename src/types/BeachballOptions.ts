@@ -106,6 +106,11 @@ export interface PackageOptions {
   tag: string | null;
   defaultNpmTag: string;
   changeFilePrompt?: ChangeFilePromptOptions;
+  /**
+   * Disable publishing a particular package.
+   * (Does NOT work to enable publishing a package that wouldn't otherwise be published.)
+   */
+  shouldPublish?: false | undefined;
 }
 
 export interface VersionGroupOptions {

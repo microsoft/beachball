@@ -87,8 +87,8 @@ describe('getChangedPackages', () => {
     const changedPackagesB = getChangedPackages({ ...rootOptions, path: repoBRoot }, getPackageInfos(repoBRoot));
     const changedPackagesRoot = getChangedPackages(rootOptions, rootPackageInfos);
 
-    expect(changedPackagesA).toStrictEqual(['foo']);
+    expect(changedPackagesA).toStrictEqual(['@repo-a/foo']);
     expect(changedPackagesB).toStrictEqual([]);
-    expect(changedPackagesRoot).toStrictEqual(['foo']);
+    expect(changedPackagesRoot).toStrictEqual(['@repo-a/foo']);
   });
 });
