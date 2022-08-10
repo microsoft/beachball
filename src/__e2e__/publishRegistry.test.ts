@@ -35,7 +35,7 @@ describe('publish command (registry)', () => {
     }
   });
 
-  it.only('can perform a successful npm publish', async () => {
+  it('can perform a successful npm publish', async () => {
     repositoryFactory = new RepositoryFactory();
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
