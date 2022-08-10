@@ -23,8 +23,8 @@ describe('packageManager', () => {
       await registry.reset();
     });
 
-    it('can publish', () => {
-      const publishResult = packagePublish(testPackageInfo, registry.getUrl(), '', '');
+    it('can publish', async () => {
+      const publishResult = await packagePublish(testPackageInfo, registry.getUrl(), '', '');
       expect(publishResult.success).toBeTruthy();
 
       const showResult = npm(['--registry', registry.getUrl(), 'show', testPackageInfo.name, '--json']);
@@ -37,16 +37,16 @@ describe('packageManager', () => {
       expect(show.versions[0]).toEqual(testPackageInfo.version);
     });
 
-    it('errors on republish', () => {
-      let publishResult = packagePublish(testPackageInfo, registry.getUrl(), '', '');
+    it('errors on republish', async () => {
+      let publishResult = await packagePublish(testPackageInfo, registry.getUrl(), '', '');
       expect(publishResult.success).toBeTruthy();
 
-      publishResult = packagePublish(testPackageInfo, registry.getUrl(), '', '');
+      publishResult = await packagePublish(testPackageInfo, registry.getUrl(), '', '');
       expect(publishResult.success).toBeFalsy();
     });
 
-    it('publish with no tag publishes latest', () => {
-      const publishResult = packagePublish(testPackageInfo, registry.getUrl(), '', '');
+    it('publish with no tag publishes latest', async () => {
+      const publishResult = await packagePublish(testPackageInfo, registry.getUrl(), '', '');
       expect(publishResult.success).toBeTruthy();
 
       const showResult = npm(['--registry', registry.getUrl(), 'show', testPackageInfo.name, '--json']);
@@ -59,7 +59,7 @@ describe('packageManager', () => {
       expect(show.versions[0]).toEqual(testPackageInfo.version);
     });
 
-    it('publish package with defaultNpmTag publishes as defaultNpmTag', () => {
+    it('publish package with defaultNpmTag publishes as defaultNpmTag', async () => {
       const testPackageInfoWithDefaultNpmTag = {
         ...testPackageInfo,
         combinedOptions: {
@@ -69,7 +69,7 @@ describe('packageManager', () => {
           disallowedChangeTypes: null,
         },
       };
-      const publishResult = packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', '');
+      const publishResult = await packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', '');
       expect(publishResult.success).toBeTruthy();
 
       const showResult = npm([
@@ -88,7 +88,7 @@ describe('packageManager', () => {
       expect(show.versions[0]).toEqual(testPackageInfoWithDefaultNpmTag.version);
     });
 
-    it('publish with specified tag overrides defaultNpmTag', () => {
+    it('publish with specified tag overrides defaultNpmTag', async () => {
       const testPackageInfoWithDefaultNpmTag = {
         ...testPackageInfo,
         combinedOptions: {
@@ -98,7 +98,7 @@ describe('packageManager', () => {
           disallowedChangeTypes: null,
         },
       };
-      const publishResult = packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', '');
+      const publishResult = await packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', '');
       expect(publishResult.success).toBeTruthy();
 
       const showResult = npm([

@@ -9,11 +9,13 @@ import { publish } from '../commands/publish';
 describe('publish command (registry)', () => {
   let registry: Registry;
   let repositoryFactory: RepositoryFactory | undefined;
-  let spy: jest.SpyInstance | undefined;
 
-  initMockLogs();
+  const logs = initMockLogs();
 
   beforeAll(() => {
+    // don't mock console.error in these tests
+    logs.mocks.error.mockRestore();
+
     registry = new Registry();
     jest.setTimeout(30000);
   });
@@ -31,75 +33,9 @@ describe('publish command (registry)', () => {
       repositoryFactory.cleanUp();
       repositoryFactory = undefined;
     }
-    if (spy) {
-      spy.mockRestore();
-      spy = undefined;
-    }
   });
 
-  it('will perform retries', async () => {
-    registry.stop();
-
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
-    const repo = repositoryFactory.cloneRepository();
-
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
-
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
-
-    spy = jest.spyOn(console, 'log').mockImplementation();
-
-    const publishPromise = publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: false,
-      push: false,
-      registry: 'httppppp://somethingwrong',
-      gitTags: false,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: 'foo',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      timeout: 100,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
-
-    await expect(publishPromise).rejects.toThrow();
-    expect(spy).toHaveBeenCalledWith('\nRetrying... (3/3)');
-
-    spy.mockRestore();
-
-    await registry.start();
-  });
-
-  it('can perform a successful npm publish', async () => {
+  it.only('can perform a successful npm publish', async () => {
     repositoryFactory = new RepositoryFactory();
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
@@ -400,5 +336,63 @@ describe('publish command (registry)', () => {
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'badname', '--json']);
 
     expect(showResult.success).toBeFalsy();
+  });
+
+  it('will perform retries', async () => {
+    registry.stop();
+
+    repositoryFactory = new RepositoryFactory();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
+
+    writeChangeFiles({
+      changes: [
+        {
+          type: 'minor',
+          comment: 'test',
+          email: 'test@test.com',
+          packageName: 'foo',
+          dependentChangeType: 'patch',
+        },
+      ],
+      cwd: repo.rootPath,
+    });
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    const publishPromise = publish({
+      all: false,
+      authType: 'authtoken',
+      branch: 'origin/master',
+      command: 'publish',
+      message: 'apply package updates',
+      path: repo.rootPath,
+      publish: true,
+      bumpDeps: false,
+      push: false,
+      registry: 'httppppp://somethingwrong',
+      gitTags: false,
+      tag: 'latest',
+      token: '',
+      yes: true,
+      new: false,
+      access: 'public',
+      package: 'foo',
+      changehint: 'Run "beachball change" to create a change file',
+      type: null,
+      fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
+      retries: 3,
+      timeout: 100,
+      bump: true,
+      generateChangelog: true,
+      dependentChangeType: null,
+    });
+
+    await expect(publishPromise).rejects.toThrow();
+    expect(logs.mocks.log).toHaveBeenCalledWith('\nRetrying... (3/3)');
+
+    await registry.start();
   });
 });

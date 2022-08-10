@@ -1,9 +1,8 @@
 import { BeachballOptions } from '../types/BeachballOptions';
 import * as fs from 'fs';
 import * as path from 'path';
-import { spawnSync } from 'child_process';
-import * as os from 'os';
 import { findProjectRoot } from 'workspace-tools';
+import { npm } from '../packageManager/npm';
 
 export async function init(options: BeachballOptions) {
   let root: string;
@@ -15,10 +14,9 @@ export async function init(options: BeachballOptions) {
   }
 
   const packageJsonFilePath = path.join(root, 'package.json');
-  const npmCmd = path.join(path.dirname(process.execPath), os.platform() === 'win32' ? 'npm.cmd' : 'npm');
 
   if (fs.existsSync(packageJsonFilePath)) {
-    const beachballInfo = JSON.parse(spawnSync(npmCmd, ['info', 'beachball', '--json']).stdout.toString());
+    const beachballInfo = JSON.parse(npm(['info', 'beachball', '--json']).stdout.toString());
     const beachballVersion = beachballInfo['dist-tags'].latest;
 
     const packageJson = JSON.parse(fs.readFileSync(packageJsonFilePath, 'utf-8'));
