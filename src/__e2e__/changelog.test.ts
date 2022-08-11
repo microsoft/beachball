@@ -251,7 +251,7 @@ describe('changelog generation', () => {
       expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot();
     });
 
-    it('generates grouped changelog without dependent change entries where packages have normal changes and dependenc changes', async () => {
+    it('generates grouped changelog without dependent change entries where packages have normal changes and dependency changes', async () => {
       const monoRepo = monoRepoFactory.cloneRepository();
       monoRepo.commitChange('baz');
       writeChangeFiles({ changes: [getChange('baz', 'comment 1')], cwd: monoRepo.rootPath });

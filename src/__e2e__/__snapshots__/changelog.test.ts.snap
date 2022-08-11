@@ -307,7 +307,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependenc changes 1`] = `
+exports[`changelog generation writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependency changes 1`] = `
 "# Change Log - bar
 
 This log was last generated on (date) and should not be manually modified.
@@ -325,7 +325,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependenc changes 2`] = `
+exports[`changelog generation writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependency changes 2`] = `
 "# Change Log - baz
 
 This log was last generated on (date) and should not be manually modified.
@@ -342,7 +342,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependenc changes 3`] = `
+exports[`changelog generation writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependency changes 3`] = `
 "# Change Log - foo
 
 This log was last generated on (date) and should not be manually modified.
