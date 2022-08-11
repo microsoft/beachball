@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update jest monorepo to v28",
-  "packageName": "beachball",
-  "email": "renovate@whitesourcesoftware.com",
-  "dependentChangeType": "none"
-}

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Improve auth error handling and other logs during publishing, and use the npm helper everywhere",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

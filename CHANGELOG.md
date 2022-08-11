@@ -1,8 +1,19 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 10 Aug 2022 08:03:11 GMT and should not be manually modified.
+This log was last generated on Thu, 11 Aug 2022 21:09:34 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.29.1
+
+Thu, 11 Aug 2022 21:09:34 GMT
+
+### Patches
+
+- Improve auth error handling and other logs during publishing, and use the npm helper everywhere (elcraig@microsoft.com)
+- Rename file `monorepo/utils.ts` to `monorepo/isPathIncluded.ts` (no API change) (elcraig@microsoft.com)
+- Add verbose logs about determining changed packages (elcraig@microsoft.com)
+- Fix calculation of changed packages on Windows (elcraig@microsoft.com)
 
 ## 2.29.0
 
