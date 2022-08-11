@@ -7,11 +7,12 @@ import fs from 'fs-extra';
 // Clean up created directories when the program exits (even on uncaught exception)
 tmp.setGracefulCleanup();
 
-export function tmpdir(options: tmp.DirOptions): string {
+export function tmpdir(options?: tmp.DirOptions): string {
   // Get the real path because on Mac, tmp will return /var/... which is actually a symlink to /private/var/...
   // (and mixing the symlink path and the real path causes issues in functions that use relative paths)
   return fs.realpathSync(
     tmp.dirSync({
+      prefix: 'beachball-',
       ...options,
       // "Unsafe" means delete on exit even if it still contains files...which actually is safe.
       unsafeCleanup: true,
