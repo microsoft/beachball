@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import * as tmp from 'tmp';
+import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { Registry } from '../__fixtures__/registry';
 import { Repository, RepositoryFactory } from '../__fixtures__/repository';
@@ -8,6 +9,8 @@ import { sync } from '../commands/sync';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { infoFromPackageJson } from '../monorepo/infoFromPackageJson';
 import { packagePublish } from '../packageManager/packagePublish';
+import { getDefaultOptions } from '../options/getDefaultOptions';
+import { BeachballOptions } from '../types/BeachballOptions';
 
 function createRepoPackage(repo: Repository, name: string, version: string) {
   const packageJson = {
@@ -24,6 +27,26 @@ describe('sync command (e2e)', () => {
   const tempDirs: tmp.DirResult[] = [];
 
   initMockLogs();
+
+  function getOptions(repo: Repository, overrides?: Partial<BeachballOptions>): BeachballOptions {
+    return {
+      ...getDefaultOptions(),
+      branch: defaultRemoteBranchName,
+      path: repo.rootPath,
+      registry: registry.getUrl(),
+      command: 'sync',
+      publish: false,
+      bumpDeps: false,
+      push: false,
+      gitTags: false,
+      yes: true,
+      access: 'public',
+      bump: false,
+      generateChangelog: false,
+      dependentChangeType: null,
+      ...overrides,
+    };
+  }
 
   function createTempPackage(name: string, version: string, tag: string = 'latest') {
     const dir = tmp.dirSync({ unsafeCleanup: true });
@@ -79,34 +102,7 @@ describe('sync command (e2e)', () => {
     expect((await packagePublish(newFooInfo, registry.getUrl(), '', '')).success).toBeTruthy();
     expect((await packagePublish(newBarInfo, registry.getUrl(), '', '')).success).toBeTruthy();
 
-    await sync({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'sync',
-      message: '',
-      path: repo.rootPath,
-      publish: false,
-      bumpDeps: false,
-      push: false,
-      registry: registry.getUrl(),
-      gitTags: false,
-      tag: '',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: false,
-      generateChangelog: false,
-      dependentChangeType: null,
-    });
+    await sync(getOptions(repo, { tag: '' }));
 
     const packageInfosAfterSync = getPackageInfos(repo.rootPath);
 
@@ -133,34 +129,7 @@ describe('sync command (e2e)', () => {
     expect((await packagePublish(newFooInfo, registry.getUrl(), '', '')).success).toBeTruthy();
     expect((await packagePublish(newBarInfo, registry.getUrl(), '', '')).success).toBeTruthy();
 
-    await sync({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'sync',
-      message: '',
-      path: repo.rootPath,
-      publish: false,
-      bumpDeps: false,
-      push: false,
-      registry: registry.getUrl(),
-      gitTags: false,
-      tag: 'beta',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: false,
-      generateChangelog: false,
-      dependentChangeType: null,
-    });
+    await sync(getOptions(repo, { tag: 'beta' }));
 
     const packageInfosAfterSync = getPackageInfos(repo.rootPath);
 
@@ -196,35 +165,7 @@ describe('sync command (e2e)', () => {
     expect((await packagePublish(newFooInfo, registry.getUrl(), '', '')).success).toBeTruthy();
     expect((await packagePublish(newBarInfo, registry.getUrl(), '', '')).success).toBeTruthy();
 
-    await sync({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'sync',
-      message: '',
-      path: repo.rootPath,
-      publish: false,
-      bumpDeps: false,
-      push: false,
-      registry: registry.getUrl(),
-      gitTags: false,
-      tag: 'prerelease',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: false,
-      generateChangelog: false,
-      forceVersions: true,
-      dependentChangeType: null,
-    });
+    await sync(getOptions(repo, { tag: 'prerelease', forceVersions: true }));
 
     const packageInfosAfterSync = getPackageInfos(repo.rootPath);
 

@@ -4,10 +4,13 @@ import { git, addGitObserver } from 'workspace-tools';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { MonoRepoFactory } from '../__fixtures__/monorepo';
 import { Registry } from '../__fixtures__/registry';
-import { RepositoryFactory } from '../__fixtures__/repository';
+import { Repository, RepositoryFactory } from '../__fixtures__/repository';
 import { npm } from '../packageManager/npm';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { publish } from '../commands/publish';
+import { getDefaultOptions } from '../options/getDefaultOptions';
+import { BeachballOptions } from '../types/BeachballOptions';
+import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 
 describe('publish command (e2e)', () => {
   let registry: Registry;
@@ -15,6 +18,21 @@ describe('publish command (e2e)', () => {
 
   // show error logs for these tests
   initMockLogs(['error']);
+
+  function getOptions(repo: Repository, overrides?: Partial<BeachballOptions>): BeachballOptions {
+    return {
+      ...getDefaultOptions(),
+      branch: defaultRemoteBranchName,
+      registry: registry.getUrl(),
+      path: repo.rootPath,
+      command: 'publish',
+      message: 'apply package updates',
+      tag: 'latest',
+      yes: true,
+      access: 'public',
+      ...overrides,
+    };
+  }
 
   beforeAll(() => {
     registry = new Registry();
@@ -56,34 +74,7 @@ describe('publish command (e2e)', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
+    await publish(getOptions(repo));
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
 
@@ -124,34 +115,7 @@ describe('publish command (e2e)', () => {
 
     git(['checkout', '--detach'], { cwd: repo.rootPath });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: false,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
+    await publish(getOptions(repo, { push: false }));
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
 
@@ -214,34 +178,7 @@ describe('publish command (e2e)', () => {
       }
     });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
+    await publish(getOptions(repo));
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
 
@@ -307,34 +244,7 @@ describe('publish command (e2e)', () => {
       }
     });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
+    await publish(getOptions(repo));
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
 
@@ -380,34 +290,7 @@ describe('publish command (e2e)', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: false,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
+    await publish(getOptions(repo, { bump: false }));
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
 
@@ -458,35 +341,7 @@ describe('publish command (e2e)', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      scope: ['!packages/foo'],
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
+    await publish(getOptions(repo, { scope: ['!packages/foo'] }));
 
     const fooNpmResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
     expect(fooNpmResult.success).toBeFalsy();
@@ -531,45 +386,22 @@ describe('publish command (e2e)', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      hooks: {
-        prepublish: (packagePath: string) => {
-          const packageJsonPath = path.join(packagePath, 'package.json');
-          const packageJson = fs.readJSONSync(packageJsonPath);
-          if (packageJson.onPublish) {
-            Object.assign(packageJson, packageJson.onPublish);
-            delete packageJson.onPublish;
-            fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
-          }
+    await publish(
+      getOptions(repo, {
+        path: repo.rootPath,
+        hooks: {
+          prepublish: (packagePath: string) => {
+            const packageJsonPath = path.join(packagePath, 'package.json');
+            const packageJson = fs.readJSONSync(packageJsonPath);
+            if (packageJson.onPublish) {
+              Object.assign(packageJson, packageJson.onPublish);
+              delete packageJson.onPublish;
+              fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+            }
+          },
         },
-      },
-      dependentChangeType: null,
-    });
+      })
+    );
 
     // Query the information from package.json from the registry to see if it was successfully patched
     const fooNpmResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
@@ -611,43 +443,20 @@ describe('publish command (e2e)', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      hooks: {
-        postpublish: packagePath => {
-          const packageJsonPath = path.join(packagePath, 'package.json');
-          const packageJson = fs.readJSONSync(packageJsonPath);
-          if (packageJson.afterPublish) {
-            notified = packageJson.afterPublish.notify;
-          }
+    await publish(
+      getOptions(repo, {
+        path: repo.rootPath,
+        hooks: {
+          postpublish: packagePath => {
+            const packageJsonPath = path.join(packagePath, 'package.json');
+            const packageJson = fs.readJSONSync(packageJsonPath);
+            if (packageJson.afterPublish) {
+              notified = packageJson.afterPublish.notify;
+            }
+          },
         },
-      },
-      dependentChangeType: null,
-    });
+      })
+    );
 
     const fooPackageJson = fs.readJSONSync(path.join(repo.rootPath, 'packages/foo/package.json'));
     expect(fooPackageJson.main).toBe('src/index.ts');
@@ -684,34 +493,7 @@ describe('publish command (e2e)', () => {
       }
     });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: false,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
+    await publish(getOptions(repo, { fetch: false }));
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
 
@@ -755,35 +537,7 @@ describe('publish command (e2e)', () => {
       }
     });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-      depth: 10,
-    });
+    await publish(getOptions(repo, { depth: 10 }));
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
 

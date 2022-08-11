@@ -1,11 +1,14 @@
 import { git } from 'workspace-tools';
+import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { MonoRepoFactory, packageJsonFixtures } from '../__fixtures__/monorepo';
 import { Registry } from '../__fixtures__/registry';
-import { RepositoryFactory } from '../__fixtures__/repository';
+import { Repository, RepositoryFactory } from '../__fixtures__/repository';
 import { npm } from '../packageManager/npm';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { publish } from '../commands/publish';
+import { getDefaultOptions } from '../options/getDefaultOptions';
+import { BeachballOptions } from '../types/BeachballOptions';
 
 describe('publish command (registry)', () => {
   let registry: Registry;
@@ -13,6 +16,24 @@ describe('publish command (registry)', () => {
 
   // show error logs for these tests
   const logs = initMockLogs(['error']);
+
+  function getOptions(repo: Repository, overrides: Partial<BeachballOptions>): BeachballOptions {
+    return {
+      ...getDefaultOptions(),
+      branch: defaultRemoteBranchName,
+      path: repo.rootPath,
+      registry: registry.getUrl(),
+      command: 'publish',
+      message: 'apply package updates',
+      bumpDeps: false,
+      push: false,
+      gitTags: false,
+      tag: 'latest',
+      yes: true,
+      access: 'public',
+      ...overrides,
+    };
+  }
 
   beforeAll(() => {
     registry = new Registry();
@@ -54,34 +75,7 @@ describe('publish command (registry)', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: false,
-      push: false,
-      registry: registry.getUrl(),
-      gitTags: false,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: 'foo',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
+    await publish(getOptions(repo, { package: 'foo' }));
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
 
@@ -138,34 +132,7 @@ describe('publish command (registry)', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: false,
-      push: false,
-      registry: registry.getUrl(),
-      gitTags: false,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: 'foopkg',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
+    await publish(getOptions(repo, { package: 'foopkg' }));
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'foopkg', '--json']);
 
@@ -218,34 +185,7 @@ describe('publish command (registry)', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: false,
-      push: false,
-      registry: registry.getUrl(),
-      gitTags: false,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: 'foopkg',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
+    await publish(getOptions(repo, { package: 'foopkg' }));
 
     const showResultFoo = npm(['--registry', registry.getUrl(), 'show', 'foopkg', '--json']);
     expect(showResultFoo.success).toBeTruthy();
@@ -303,34 +243,7 @@ describe('publish command (registry)', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: false,
-      push: false,
-      registry: registry.getUrl(),
-      gitTags: false,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: 'foopkg',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
+    await publish(getOptions(repo, { package: 'foopkg' }));
 
     const showResult = npm(['--registry', registry.getUrl(), 'show', 'badname', '--json']);
 
@@ -371,34 +284,7 @@ describe('publish command (registry)', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
+    await publish(getOptions(repo, { package: 'foopkg' }));
 
     expect(logs.mocks.log).toHaveBeenCalledWith('Nothing to bump, skipping publish!');
     expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));
@@ -435,35 +321,13 @@ describe('publish command (registry)', () => {
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
-    const publishPromise = publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: false,
-      push: false,
-      registry: 'httppppp://somethingwrong',
-      gitTags: false,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: 'foo',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      timeout: 100,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
+    const publishPromise = publish(
+      getOptions(repo, {
+        registry: 'httppppp://somethingwrong',
+        package: 'foo',
+        timeout: 100,
+      })
+    );
 
     await expect(publishPromise).rejects.toThrow();
     expect(
