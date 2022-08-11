@@ -13,7 +13,8 @@ describe('publish command (e2e)', () => {
   let registry: Registry;
   let repositoryFactory: RepositoryFactory | undefined;
 
-  initMockLogs();
+  // show error logs for these tests
+  initMockLogs(['error']);
 
   beforeAll(() => {
     registry = new Registry();
