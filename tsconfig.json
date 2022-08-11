@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "outDir": "./lib",
-    "target": "ES2016",
+    // compatible with node 12 https://kangax.github.io/compat-table/es2016plus/#node12_11
+    "target": "ES2019",
     "module": "commonjs",
     "moduleResolution": "node",
     "declaration": true,
