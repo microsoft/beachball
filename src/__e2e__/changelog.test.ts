@@ -218,7 +218,7 @@ describe('changelog generation', () => {
 
       writeChangeFiles({ changes: [getChange('bar', 'comment 3')], cwd: monoRepo.rootPath });
 
-      const beachballOptions = {
+      const beachballOptions: Partial<BeachballOptions> = {
         path: monoRepo.rootPath,
         changelog: {
           groups: [
@@ -229,12 +229,12 @@ describe('changelog generation', () => {
             },
           ],
         },
-      } as BeachballOptions;
+      };
 
       const packageInfos = getPackageInfos(monoRepo.rootPath);
-      const changes = readChangeFiles(beachballOptions, packageInfos);
+      const changes = readChangeFiles(beachballOptions as BeachballOptions, packageInfos);
 
-      await writeChangelog(beachballOptions, changes, {}, {}, packageInfos);
+      await writeChangelog(beachballOptions as BeachballOptions, changes, {}, {}, packageInfos);
 
       // Validate changelog for foo and bar packages
       expect(readChangelogMd([monoRepo.rootPath, 'packages/foo'])).toMatchSnapshot('foo CHANGELOG.md');
@@ -249,7 +249,7 @@ describe('changelog generation', () => {
       monoRepo.commitChange('baz');
       writeChangeFiles({ changes: [getChange('baz', 'comment 1')], cwd: monoRepo.rootPath });
 
-      const beachballOptions = {
+      const beachballOptions: Partial<BeachballOptions> = {
         path: monoRepo.rootPath,
         changelog: {
           groups: [
@@ -260,13 +260,13 @@ describe('changelog generation', () => {
             },
           ],
         },
-      } as BeachballOptions;
+      };
 
       const packageInfos = getPackageInfos(monoRepo.rootPath);
-      const changes = readChangeFiles(beachballOptions, packageInfos);
+      const changes = readChangeFiles(beachballOptions as BeachballOptions, packageInfos);
 
       await writeChangelog(
-        beachballOptions,
+        beachballOptions as BeachballOptions,
         changes,
         { bar: 'patch', baz: 'patch' },
         { bar: new Set(['baz']) },
@@ -294,7 +294,7 @@ describe('changelog generation', () => {
       writeChangeFiles({ changes: [getChange('baz', 'comment 1')], cwd: monoRepo.rootPath });
       writeChangeFiles({ changes: [getChange('bar', 'comment 1')], cwd: monoRepo.rootPath });
 
-      const beachballOptions = {
+      const beachballOptions: Partial<BeachballOptions> = {
         path: monoRepo.rootPath,
         changelog: {
           groups: [
@@ -305,13 +305,13 @@ describe('changelog generation', () => {
             },
           ],
         },
-      } as BeachballOptions;
+      };
 
       const packageInfos = getPackageInfos(monoRepo.rootPath);
-      const changes = readChangeFiles(beachballOptions, packageInfos);
+      const changes = readChangeFiles(beachballOptions as BeachballOptions, packageInfos);
 
       await writeChangelog(
-        beachballOptions,
+        beachballOptions as BeachballOptions,
         changes,
         { bar: 'patch', baz: 'patch' },
         { bar: new Set(['baz']) },
@@ -334,7 +334,7 @@ describe('changelog generation', () => {
       monoRepo.commitChange('bar');
       writeChangeFiles({ changes: [getChange('bar', 'comment 2')], cwd: monoRepo.rootPath });
 
-      const beachballOptions = {
+      const beachballOptions: Partial<BeachballOptions> = {
         path: monoRepo.rootPath,
         changelog: {
           groups: [
@@ -345,12 +345,12 @@ describe('changelog generation', () => {
             },
           ],
         },
-      } as BeachballOptions;
+      };
 
       const packageInfos = getPackageInfos(monoRepo.rootPath);
-      const changes = readChangeFiles(beachballOptions, packageInfos);
+      const changes = readChangeFiles(beachballOptions as BeachballOptions, packageInfos);
 
-      await writeChangelog(beachballOptions, changes, {}, {}, packageInfos);
+      await writeChangelog(beachballOptions as BeachballOptions, changes, {}, {}, packageInfos);
 
       // Validate changelog for bar package
       expect(readChangelogMd([monoRepo.rootPath, 'packages/bar'])).toMatchSnapshot();
@@ -368,15 +368,15 @@ describe('changelog generation', () => {
       monoRepo.commitChange('bar');
       writeChangeFiles({ changes: [getChange('bar', 'comment 2')], cwd: monoRepo.rootPath });
 
-      const beachballOptions = {
+      const beachballOptions: Partial<BeachballOptions> = {
         path: monoRepo.rootPath,
         transform: {
-          changeFiles: (changeFile: ChangeInfo, changeFilePath) => {
+          changeFiles: (changeFile, changeFilePath) => {
             // For test, we will be changing the comment based on the package name
-            if (changeFile.packageName === 'foo') {
-              changeFile.comment = editedComment;
+            if ((changeFile as ChangeInfo).packageName === 'foo') {
+              (changeFile as ChangeInfo).comment = editedComment;
             }
-            return changeFile;
+            return changeFile as ChangeInfo;
           },
         },
         changelog: {
@@ -388,14 +388,14 @@ describe('changelog generation', () => {
             },
           ],
         },
-      } as BeachballOptions;
+      };
 
       const packageInfos = getPackageInfos(monoRepo.rootPath);
-      const changes = readChangeFiles(beachballOptions, packageInfos);
+      const changes = readChangeFiles(beachballOptions as BeachballOptions, packageInfos);
 
       // Verify that the comment of only the intended change file is changed
       for (const { change, changeFile } of changes) {
-        if (changeFile.substr(0, 3) === 'foo') {
+        if (changeFile.startsWith('foo')) {
           expect(change.comment).toBe(editedComment);
         } else {
           expect(change.comment).toBe('comment 2');
