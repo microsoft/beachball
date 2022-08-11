@@ -13,8 +13,16 @@ function gatherPreBumpInfo(options: BeachballOptions, packageInfos: PackageInfos
   // const dependentChangeTypes: BumpInfo['dependentChangeTypes'] = {};
   const groupOptions = {};
 
+  // Clear non-existent packages from changefiles infos
+  const calculatedChangeTypes = initializePackageChangeTypes(changes);
+  Object.keys(calculatedChangeTypes).forEach(packageName => {
+    if (!packageInfos[packageName]) {
+      delete calculatedChangeTypes[packageName];
+    }
+  });
+
   return {
-    calculatedChangeTypes: initializePackageChangeTypes(changes),
+    calculatedChangeTypes,
     packageInfos,
     packageGroups: {},
     changeFileChangeInfos: changes,
