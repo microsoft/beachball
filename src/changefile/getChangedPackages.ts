@@ -11,14 +11,16 @@ import { PackageInfos, PackageInfo } from '../types/PackageInfo';
 function getMatchingPackageInfo(
   file: string,
   cwd: string,
-  packageInfosByPath: { [packageAbsPosixPath: string]: PackageInfo }
+  packageInfosByPath: { [packageAbsNormalizedPath: string]: PackageInfo }
 ) {
-  cwd = path.posix.normalize(cwd);
-  const absFile = path.posix.normalize(path.join(cwd, file));
+  // Normalize all the paths before comparing (the packageInfosByPath entries should also be normalized)
+  // to ensure ensure that this doesn't break on Windows if any input paths have forward slashes
+  cwd = path.normalize(cwd);
+  const absFile = path.normalize(path.join(cwd, file));
   let absDir = '';
 
   do {
-    absDir = path.posix.dirname(absDir || absFile);
+    absDir = path.dirname(absDir || absFile);
     if (packageInfosByPath[absDir]) {
       return packageInfosByPath[absDir];
     }
@@ -62,9 +64,9 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
   const includedPackages = new Set<string>();
   let fileCount = 0;
   const scopedPackages = getScopedPackages(options, packageInfos);
-  const packageInfosByPath: { [packageAbsPosixPath: string]: PackageInfo } = {};
+  const packageInfosByPath: { [packageAbsNormalizedPath: string]: PackageInfo } = {};
   for (const info of Object.values(packageInfos)) {
-    packageInfosByPath[path.posix.normalize(path.dirname(info.packageJsonPath))] = info;
+    packageInfosByPath[path.normalize(path.dirname(info.packageJsonPath))] = info;
   }
   for (const moddedFile of nonIgnoredChanges) {
     const packageInfo = getMatchingPackageInfo(moddedFile, cwd, packageInfosByPath);
