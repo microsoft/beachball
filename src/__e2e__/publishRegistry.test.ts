@@ -1,5 +1,6 @@
 import { git } from 'workspace-tools';
 import { initMockLogs } from '../__fixtures__/mockLogs';
+import { MonoRepoFactory, packageJsonFixtures } from '../__fixtures__/monorepo';
 import { Registry } from '../__fixtures__/registry';
 import { RepositoryFactory } from '../__fixtures__/repository';
 import { npm } from '../packageManager/npm';
@@ -8,14 +9,12 @@ import { publish } from '../commands/publish';
 
 describe('publish command (registry)', () => {
   let registry: Registry;
-  let repositoryFactory: RepositoryFactory | undefined;
+  let repositoryFactory: RepositoryFactory | MonoRepoFactory | undefined;
 
-  const logs = initMockLogs();
+  // show error logs for these tests
+  const logs = initMockLogs(['error']);
 
   beforeAll(() => {
-    // don't mock console.error in these tests
-    logs.mocks.error.mockRestore();
-
     registry = new Registry();
     jest.setTimeout(30000);
   });
@@ -338,11 +337,84 @@ describe('publish command (registry)', () => {
     expect(showResult.success).toBeFalsy();
   });
 
+  it('should exit publishing early if only invalid change files exist', async () => {
+    repositoryFactory = new MonoRepoFactory();
+    repositoryFactory.create();
+    const repo = repositoryFactory.cloneRepository();
+
+    repo.commitChange(
+      'packages/bar/package.json',
+      JSON.stringify({ ...packageJsonFixtures['packages/bar'], private: true })
+    );
+
+    writeChangeFiles({
+      changes: [
+        {
+          // package is private
+          packageName: 'bar',
+          type: 'minor',
+          comment: 'test',
+          email: 'test@test.com',
+          dependentChangeType: 'patch',
+        },
+        {
+          // package doesn't exist
+          packageName: 'fake',
+          type: 'minor',
+          comment: 'test',
+          email: 'test@test.com',
+          dependentChangeType: 'patch',
+        },
+      ],
+      cwd: repo.rootPath,
+    });
+
+    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+
+    await publish({
+      all: false,
+      authType: 'authtoken',
+      branch: 'origin/master',
+      command: 'publish',
+      message: 'apply package updates',
+      path: repo.rootPath,
+      publish: true,
+      bumpDeps: true,
+      push: true,
+      registry: registry.getUrl(),
+      gitTags: true,
+      tag: 'latest',
+      token: '',
+      yes: true,
+      new: false,
+      access: 'public',
+      package: '',
+      changehint: 'Run "beachball change" to create a change file',
+      type: null,
+      fetch: true,
+      disallowedChangeTypes: null,
+      defaultNpmTag: 'latest',
+      retries: 3,
+      bump: true,
+      generateChangelog: true,
+      dependentChangeType: null,
+    });
+
+    expect(logs.mocks.log).toHaveBeenCalledWith('Nothing to bump, skipping publish!');
+    expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));
+    expect(logs.mocks.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Change detected for nonexistent package fake')
+    );
+
+    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
+    expect(showResult.success).toBeFalsy();
+  });
+
   it('will perform retries', async () => {
     registry.stop();
 
     // hide the errors for this test--it's supposed to have errors, and showing them is misleading
-    logs.init();
+    logs.init(false);
 
     repositoryFactory = new RepositoryFactory();
     repositoryFactory.create();

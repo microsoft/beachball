@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { git, addGitObserver } from 'workspace-tools';
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import { MonoRepoFactory, packageJsonFixtures } from '../__fixtures__/monorepo';
+import { MonoRepoFactory } from '../__fixtures__/monorepo';
 import { Registry } from '../__fixtures__/registry';
 import { RepositoryFactory } from '../__fixtures__/repository';
 import { npm } from '../packageManager/npm';
@@ -13,7 +13,8 @@ describe('publish command (e2e)', () => {
   let registry: Registry;
   let repositoryFactory: RepositoryFactory | undefined;
 
-  initMockLogs();
+  // show error logs for these tests
+  initMockLogs(['error']);
 
   beforeAll(() => {
     registry = new Registry();
@@ -508,86 +509,6 @@ describe('publish command (e2e)', () => {
 
     expect(barGitResults.success).toBeTruthy();
     expect(barGitResults.stdout).toBe('bar_v1.4.0');
-  });
-
-  it('should exit publishing early if only invalid change files exist', async () => {
-    repositoryFactory = new MonoRepoFactory();
-    repositoryFactory.create();
-    const repo = repositoryFactory.cloneRepository();
-
-    repo.commitChange(
-      'packages/bar/package.json',
-      JSON.stringify({ ...packageJsonFixtures['packages/bar'], private: true })
-    );
-
-    writeChangeFiles({
-      changes: [
-        {
-          // package is private
-          packageName: 'bar',
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          dependentChangeType: 'patch',
-        },
-        {
-          // package doesn't exist
-          packageName: 'fake',
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
-
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
-
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
-
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.1.0');
-
-    git(['checkout', 'master'], { cwd: repo.rootPath });
-    git(['pull'], { cwd: repo.rootPath });
-    const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
-
-    expect(gitResults.success).toBeTruthy();
-    expect(gitResults.stdout).toBe('foo_v1.1.0');
   });
 
   it('should respect prepublish hooks', async () => {
