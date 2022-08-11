@@ -1,12 +1,21 @@
 import * as fs from 'fs-extra';
-import * as os from 'os';
 import * as path from 'path';
+import { tmpdir } from '../../__fixtures__/tmpdir';
 import { acceptedKeys, performPublishOverrides } from '../../publish/performPublishOverrides';
 import { PackageInfos } from '../../types/PackageInfo';
 
 describe('perform publishConfig overrides', () => {
+  let tmpDir: string | undefined;
+
+  afterEach(() => {
+    if (tmpDir) {
+      fs.removeSync(tmpDir);
+      tmpDir = undefined;
+    }
+  });
+
   function createFixture(publishConfig: any = {}) {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'beachball-publishConfig'));
+    tmpDir = tmpdir({ prefix: 'beachball-publishConfig-' });
     const fixturePackageJson = {
       name: 'foo',
       version: '1.0.0',
@@ -35,11 +44,11 @@ describe('perform publishConfig overrides', () => {
 
     fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify(fixturePackageJson));
 
-    return { packageInfos, tmpDir };
+    return packageInfos;
   }
 
   it('overrides accepted keys', () => {
-    const { packageInfos, tmpDir } = createFixture({
+    const packageInfos = createFixture({
       main: 'lib/index.js',
       types: 'lib/index.d.ts',
     });
@@ -57,12 +66,10 @@ describe('perform publishConfig overrides', () => {
     expect(modified.types).toBe('lib/index.d.ts');
     expect(modified.publishConfig.main).toBeUndefined();
     expect(modified.publishConfig.types).toBeUndefined();
-
-    fs.removeSync(tmpDir);
   });
 
   it('uses values on packageJson root as fallback values when present', () => {
-    const { packageInfos, tmpDir } = createFixture({
+    const packageInfos = createFixture({
       main: 'lib/index.js',
     });
 
@@ -82,8 +89,6 @@ describe('perform publishConfig overrides', () => {
     expect(modified.publishConfig.main).toBeUndefined();
     expect(modified.publishConfig.bin).toBeUndefined();
     expect(modified.publishConfig.files).toBeUndefined();
-
-    fs.removeSync(tmpDir);
   });
 
   it('should always at least accept types, main, and module', () => {
@@ -94,8 +99,17 @@ describe('perform publishConfig overrides', () => {
 });
 
 describe('perform workspace version overrides', () => {
+  let tmpDir: string | undefined;
+
+  afterEach(() => {
+    if (tmpDir) {
+      fs.removeSync(tmpDir);
+      tmpDir = undefined;
+    }
+  });
+
   function createFixture(dependencyVersion: string) {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'beachball-publishConfig'));
+    tmpDir = tmpdir({ prefix: 'beachball-publishConfig-' });
     fs.mkdirSync(path.join(tmpDir, 'foo'));
     fs.mkdirSync(path.join(tmpDir, 'bar'));
 
@@ -145,7 +159,7 @@ describe('perform workspace version overrides', () => {
       },
     };
 
-    return { packageInfos, tmpDir };
+    return packageInfos;
   }
 
   it.each([
@@ -155,7 +169,7 @@ describe('perform workspace version overrides', () => {
     ['workspace:~1.0.0', '~1.0.0'],
     ['workspace:^1.0.0', '^1.0.0'],
   ])('overrides %s dependency versions during publishing', (dependencyVersion, expectedPublishVersion) => {
-    const { packageInfos, tmpDir } = createFixture(dependencyVersion);
+    const packageInfos = createFixture(dependencyVersion);
 
     const original = JSON.parse(fs.readFileSync(packageInfos['bar'].packageJsonPath, 'utf-8'));
     expect(original.dependencies.foo).toBe(dependencyVersion);
@@ -164,7 +178,5 @@ describe('perform workspace version overrides', () => {
 
     const modified = JSON.parse(fs.readFileSync(packageInfos['bar'].packageJsonPath, 'utf-8'));
     expect(modified.dependencies.foo).toBe(expectedPublishVersion);
-
-    fs.removeSync(tmpDir);
   });
 });
