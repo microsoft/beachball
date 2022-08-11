@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Exit publishing early if only invalid change files are present",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

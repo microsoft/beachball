@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import _ from 'lodash';
 
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import { MonoRepoFactory } from '../__fixtures__/monorepo';
+import { MonoRepoFactory, packageJsonFixtures } from '../__fixtures__/monorepo';
 import { RepositoryFactory } from '../__fixtures__/repository';
 
 import { writeChangelog } from '../changelog/writeChangelog';
@@ -55,7 +55,7 @@ describe('changelog generation', () => {
   let repositoryFactory: RepositoryFactory;
   let monoRepoFactory: MonoRepoFactory;
 
-  initMockLogs();
+  const logs = initMockLogs();
 
   beforeAll(() => {
     repositoryFactory = new RepositoryFactory();
@@ -79,6 +79,87 @@ describe('changelog generation', () => {
       const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions, packageInfos);
       expect(changeSet).toHaveLength(1);
       expect(changeSet[0].change.commit).toBe(undefined);
+    });
+
+    it('excludes invalid change files', () => {
+      const monoRepo = monoRepoFactory.cloneRepository();
+      monoRepo.commitChange(
+        'packages/bar/package.json',
+        JSON.stringify({ ...packageJsonFixtures['packages/bar'], private: true })
+      );
+      // fake doesn't exist, bar is private, foo is okay
+      writeChangeFiles({
+        changes: [getChange('fake', 'comment 1'), getChange('bar', 'comment 2'), getChange('foo', 'comment 3')],
+        cwd: monoRepo.rootPath,
+      });
+
+      const packageInfos = getPackageInfos(monoRepo.rootPath);
+      const changeSet = readChangeFiles({ path: monoRepo.rootPath } as BeachballOptions, packageInfos);
+      expect(changeSet).toHaveLength(1);
+
+      expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));
+      expect(logs.mocks.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Change detected for nonexistent package fake')
+      );
+    });
+
+    it('excludes invalid changes from grouped change file', () => {
+      const monoRepo = monoRepoFactory.cloneRepository();
+      monoRepo.commitChange(
+        'packages/bar/package.json',
+        JSON.stringify({ ...packageJsonFixtures['packages/bar'], private: true })
+      );
+      // fake doesn't exist, bar is private, foo is okay
+      writeChangeFiles({
+        changes: [getChange('fake', 'comment 1'), getChange('bar', 'comment 2'), getChange('foo', 'comment 3')],
+        cwd: monoRepo.rootPath,
+        groupChanges: true,
+      });
+
+      const packageInfos = getPackageInfos(monoRepo.rootPath);
+      const changeSet = readChangeFiles(
+        { path: monoRepo.rootPath, groupChanges: true } as BeachballOptions,
+        packageInfos
+      );
+      expect(changeSet).toHaveLength(1);
+
+      expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));
+      expect(logs.mocks.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Change detected for nonexistent package fake')
+      );
+    });
+
+    it('excludes out of scope change files', () => {
+      const monoRepo = monoRepoFactory.cloneRepository();
+      writeChangeFiles({
+        changes: [getChange('bar', 'comment 2'), getChange('foo', 'comment 3')],
+        cwd: monoRepo.rootPath,
+      });
+
+      const packageInfos = getPackageInfos(monoRepo.rootPath);
+      const changeSet = readChangeFiles(
+        { path: monoRepo.rootPath, scope: ['packages/foo'] } as BeachballOptions,
+        packageInfos
+      );
+      expect(changeSet).toHaveLength(1);
+      expect(logs.mocks.warn).not.toHaveBeenCalled();
+    });
+
+    it('excludes out of scope changes from grouped change file', () => {
+      const monoRepo = monoRepoFactory.cloneRepository();
+      writeChangeFiles({
+        changes: [getChange('bar', 'comment 2'), getChange('foo', 'comment 3')],
+        cwd: monoRepo.rootPath,
+        groupChanges: true,
+      });
+
+      const packageInfos = getPackageInfos(monoRepo.rootPath);
+      const changeSet = readChangeFiles(
+        { path: monoRepo.rootPath, scope: ['packages/foo'], groupChanges: true } as BeachballOptions,
+        packageInfos
+      );
+      expect(changeSet).toHaveLength(1);
+      expect(logs.mocks.warn).not.toHaveBeenCalled();
     });
   });
 
