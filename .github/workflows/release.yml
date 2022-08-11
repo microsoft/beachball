@@ -34,10 +34,14 @@ jobs:
       - name: Install package managers
         run: npm install --global npm@${{ env.npmVersion }} yarn@1
 
-      - run: yarn
+      - run: yarn --frozen-lockfile
+
       - run: yarn build
-      - name: yarn test (npm ${{ env.npmVersion}})
-        run: yarn test
+
+      - run: yarn test:unit
+
+      - name: yarn test:e2e (npm ${{ env.npmVersion }})
+        run: yarn test:e2e
 
       - name: Publish package
         run: |
