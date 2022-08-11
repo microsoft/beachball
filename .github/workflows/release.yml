@@ -36,7 +36,8 @@ jobs:
 
       - run: yarn
       - run: yarn build
-      - run: yarn test (npm ${{ env.npmVersion}})
+      - name: yarn test (npm ${{ env.npmVersion}})
+        run: yarn test
 
       - name: Publish package
         run: |
