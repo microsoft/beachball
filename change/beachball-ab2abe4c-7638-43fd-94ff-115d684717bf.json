@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix calculation of changed packages on Windows",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
