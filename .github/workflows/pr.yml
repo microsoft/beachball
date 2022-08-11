@@ -8,13 +8,21 @@ on:
     branches: [master]
 
 env:
-  npmVersion: 8
-  oldNpmVersion: 6
   nodeVersion: 12
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        # npm 6 and 8 have slightly different behavior with verdaccio in publishing tests.
+        # It's unclear if this translates to meaningful differences in behavior in actual scenarios,
+        # but test against both versions to be safe.
+        npm: [6, 8]
+
+    name: ${{ matrix.os }}, npm ${{ matrix.npm }}
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Check out code
@@ -27,20 +35,16 @@ jobs:
 
       # Guarantee a predictable version of npm for the first round of tests
       - name: Install package managers
-        run: npm install --global npm@${{ env.npmVersion }} yarn@1
+        run: npm install --global npm@${{ matrix.npm }} yarn@1
 
-      - run: yarn
+      - run: yarn --frozen-lockfile
+
       - run: yarn build
+
       - run: yarn docs:build
+
       - run: yarn checkchange
 
-      # npm 6 and 8 have slightly different behavior with verdaccio in publishing tests.
-      # It's unclear if this translates to meaningful differences in behavior in actual scenarios,
-      # but test against both versions to be safe.
-      - name: yarn test (npm ${{ env.npmVersion }})
-        run: yarn test
+      - run: yarn test:unit
 
-      - name: yarn test (npm ${{ env.oldNpmVersion }})
-        run: |
-          npm i -g npm@${{ env.oldNpmVersion }}
-          yarn test
+      - run: yarn test:e2e
