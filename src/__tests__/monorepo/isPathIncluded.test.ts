@@ -1,4 +1,4 @@
-import { isPathIncluded } from '../../monorepo/utils';
+import { isPathIncluded } from '../../monorepo/isPathIncluded';
 
 describe('isPathIncluded', () => {
   it('should return true if path is included with single include path', () => {

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Rename file `monorepo/utils.ts` to `monorepo/isPathIncluded.ts` (no API change)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

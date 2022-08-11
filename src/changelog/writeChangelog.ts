@@ -7,7 +7,7 @@ import { renderChangelog } from './renderChangelog';
 import { renderJsonChangelog } from './renderJsonChangelog';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { BumpInfo } from '../types/BumpInfo';
-import { isPathIncluded } from '../monorepo/utils';
+import { isPathIncluded } from '../monorepo/isPathIncluded';
 import { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
 import { mergeChangelogs } from './mergeChangelogs';
 import { ChangeSet } from '../types/ChangeInfo';
