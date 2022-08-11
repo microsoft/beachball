@@ -1,8 +1,20 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 11 Aug 2022 21:09:34 GMT and should not be manually modified.
+This log was last generated on Thu, 11 Aug 2022 21:13:57 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.30.0
+
+Thu, 11 Aug 2022 21:13:57 GMT
+
+### Minor changes
+
+- Use ES2019 output (compatible with Node 12+) (elcraig@microsoft.com)
+
+### Patches
+
+- Exit publishing early if only invalid change files are present (elcraig@microsoft.com)
 
 ## 2.29.1
 

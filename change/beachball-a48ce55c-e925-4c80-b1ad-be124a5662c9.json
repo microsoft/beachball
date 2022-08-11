@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Use ES2019 output (compatible with Node 12+)",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

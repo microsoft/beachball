@@ -2,6 +2,29 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 11 Aug 2022 21:13:57 GMT",
+      "tag": "beachball_v2.30.0",
+      "version": "2.30.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b98d92a4cdc9ddb4b53d6fdd6907a1938e9c23f3",
+            "comment": "Exit publishing early if only invalid change files are present"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b98d92a4cdc9ddb4b53d6fdd6907a1938e9c23f3",
+            "comment": "Use ES2019 output (compatible with Node 12+)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 11 Aug 2022 21:09:34 GMT",
       "tag": "beachball_v2.29.1",
       "version": "2.29.1",
