@@ -1,8 +1,4 @@
 module.exports = {
-  roots: ['<rootDir>/src'],
-  transform: {
-    '^.+\\.tsx?$': 'ts-jest',
-  },
-  testRegex: '/__e2e__/.*\\.(test|spec)\\.[jt]sx?$',
-  testTimeout: 60000,
+  ...require('./jest.config'),
+  testRegex: '/__e2e__/.*\\.(test|spec)\\.ts$',
 };
