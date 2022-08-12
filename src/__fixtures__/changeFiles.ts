@@ -1,0 +1,35 @@
+import fs from 'fs';
+import path from 'path';
+import { writeChangeFiles } from '../changefile/writeChangeFiles';
+import { getChangePath } from '../paths';
+import { ChangeFileInfo } from '../types/ChangeInfo';
+
+/** Change file with `packageName` required and other props optional */
+export type PartialChangeFile = { packageName: string } & Partial<ChangeFileInfo>;
+
+/**
+ * Generates and writes change files for the given packages.
+ * @param changes Array of package names or partial change files (which must include `packageName`).
+ * Default values are `type: 'minor'`, `dependentChangeType: 'patch'`, and placeholders for other fields.
+ * @param cwd Working directory
+ * @param groupChanges Whether to group all changes into one change file.
+ */
+export function generateChangeFiles(changes: (string | PartialChangeFile)[], cwd: string, groupChanges?: boolean) {
+  writeChangeFiles({
+    changes: changes.map(c => ({
+      comment: 'test',
+      email: 'test@test.com',
+      type: 'minor',
+      dependentChangeType: 'patch',
+      ...(typeof c === 'string' ? { packageName: c } : c),
+    })),
+    groupChanges,
+    cwd,
+  });
+}
+
+/** Get full paths to existing change files under `cwd` */
+export function getChangeFiles(cwd: string): string[] {
+  const changePath = getChangePath(cwd);
+  return changePath && fs.existsSync(changePath) ? fs.readdirSync(changePath).map(p => path.join(changePath, p)) : [];
+}

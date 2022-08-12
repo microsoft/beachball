@@ -1,22 +1,15 @@
 import fs from 'fs-extra';
-import path from 'path';
 import { git } from 'workspace-tools';
+import { getChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { RepositoryFactory } from '../__fixtures__/repository';
 import { change } from '../commands/change';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { getChangePath } from '../paths';
 
 describe('change command', () => {
   let repositoryFactory: RepositoryFactory | undefined;
 
   initMockLogs();
-
-  function getChangeFiles(cwd: string): string[] {
-    const changePath = getChangePath(cwd);
-    const changeFiles = fs.existsSync(changePath) ? fs.readdirSync(changePath) : [];
-    return changeFiles;
-  }
 
   afterEach(() => {
     if (repositoryFactory) {
@@ -52,7 +45,7 @@ describe('change command', () => {
     expect(output.stdout.startsWith('A')).toBeTruthy();
 
     const changeFiles = getChangeFiles(repo.rootPath);
-    expect(changeFiles.length).toBe(1);
+    expect(changeFiles).toHaveLength(1);
   });
 
   it('create change file but git stage only multiple changes', async () => {
@@ -91,11 +84,11 @@ describe('change command', () => {
 
     const changeFiles = getChangeFiles(repo.rootPath);
     for (const file of changeFiles) {
-      const contents = await fs.readJSON(path.join(repo.rootPath, 'change', file));
+      const contents = await fs.readJSON(file);
       expect(contents.changes.length).toBe(2);
     }
 
-    expect(changeFiles.length).toBe(1);
+    expect(changeFiles).toHaveLength(1);
   });
 
   it('create change file and commit', async () => {
@@ -124,6 +117,6 @@ describe('change command', () => {
     expect(output.stdout.length).toBe(0);
 
     const changeFiles = getChangeFiles(repo.rootPath);
-    expect(changeFiles.length).toBe(1);
+    expect(changeFiles).toHaveLength(1);
   });
 });
