@@ -1,10 +1,10 @@
 import fs from 'fs-extra';
 import path from 'path';
-import * as tmp from 'tmp';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { Registry } from '../__fixtures__/registry';
 import { Repository, RepositoryFactory } from '../__fixtures__/repository';
+import { tmpdir } from '../__fixtures__/tmpdir';
 import { sync } from '../commands/sync';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { infoFromPackageJson } from '../monorepo/infoFromPackageJson';
@@ -24,7 +24,7 @@ function createRepoPackage(repo: Repository, name: string, version: string) {
 describe('sync command (e2e)', () => {
   const repositoryFactory = new RepositoryFactory();
   let registry: Registry;
-  const tempDirs: tmp.DirResult[] = [];
+  const tempDirs: string[] = [];
 
   initMockLogs();
 
@@ -49,9 +49,9 @@ describe('sync command (e2e)', () => {
   }
 
   function createTempPackage(name: string, version: string, tag: string = 'latest') {
-    const dir = tmp.dirSync({ unsafeCleanup: true });
+    const dir = tmpdir();
     tempDirs.push(dir);
-    const packageJsonFile = path.join(dir.name, 'package.json');
+    const packageJsonFile = path.join(dir, 'package.json');
     const packageJson: any = {
       name: name,
       version: version,
@@ -80,7 +80,7 @@ describe('sync command (e2e)', () => {
 
   afterEach(() => {
     repositoryFactory.cleanUp();
-    tempDirs.forEach(dir => dir.removeCallback());
+    tempDirs.forEach(dir => fs.removeSync(dir));
     tempDirs.splice(0, tempDirs.length);
   });
 
