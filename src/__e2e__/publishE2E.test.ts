@@ -4,9 +4,9 @@ import { git, addGitObserver, clearGitObservers } from 'workspace-tools';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { MonoRepoFactory } from '../__fixtures__/monorepo';
+import { npmShow, NpmShowResult } from '../__fixtures__/npmShow';
 import { Registry } from '../__fixtures__/registry';
 import { Repository, RepositoryFactory } from '../__fixtures__/repository';
-import { npm } from '../packageManager/npm';
 import { publish } from '../commands/publish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
@@ -67,14 +67,11 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo));
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.1.0');
+    expect(npmShow(registry, 'foo')).toMatchObject<NpmShowResult>({
+      name: 'foo',
+      versions: ['1.1.0'],
+      'dist-tags': { latest: '1.1.0' },
+    });
 
     git(['checkout', 'master'], { cwd: repo.rootPath });
     git(['pull'], { cwd: repo.rootPath });
@@ -97,14 +94,11 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { push: false }));
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.1.0');
+    expect(npmShow(registry, 'foo')).toMatchObject<NpmShowResult>({
+      name: 'foo',
+      versions: ['1.1.0'],
+      'dist-tags': { latest: '1.1.0' },
+    });
   });
 
   it('can perform a successful npm publish from a race condition', async () => {
@@ -149,14 +143,11 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo));
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.1.0');
+    expect(npmShow(registry, 'foo')).toMatchObject<NpmShowResult>({
+      name: 'foo',
+      versions: ['1.1.0'],
+      'dist-tags': { latest: '1.1.0' },
+    });
 
     git(['checkout', 'master'], { cwd: repo.rootPath });
     git(['pull'], { cwd: repo.rootPath });
@@ -204,14 +195,11 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo));
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.1.0');
+    expect(npmShow(registry, 'foo')).toMatchObject<NpmShowResult>({
+      name: 'foo',
+      versions: ['1.1.0'],
+      'dist-tags': { latest: '1.1.0' },
+    });
 
     git(['checkout', 'master'], { cwd: repo.rootPath });
     git(['pull'], { cwd: repo.rootPath });
@@ -239,14 +227,11 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { bump: false }));
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.0.0');
+    expect(npmShow(registry, 'foo')).toMatchObject<NpmShowResult>({
+      name: 'foo',
+      versions: ['1.0.0'],
+      'dist-tags': { latest: '1.0.0' },
+    });
 
     git(['checkout', 'master'], { cwd: repo.rootPath });
     git(['pull'], { cwd: repo.rootPath });
@@ -267,20 +252,16 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { scope: ['!packages/foo'] }));
 
-    const fooNpmResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-    expect(fooNpmResult.success).toBeFalsy();
+    npmShow(registry, 'foo', true /*shouldFail*/);
 
     const fooGitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
     expect(fooGitResults.success).toBeFalsy();
 
-    const barNpmResult = npm(['--registry', registry.getUrl(), 'show', 'bar', '--json']);
-
-    expect(barNpmResult.success).toBeTruthy();
-
-    const show = JSON.parse(barNpmResult.stdout);
-    expect(show.name).toEqual('bar');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.4.0');
+    expect(npmShow(registry, 'bar')).toMatchObject<NpmShowResult>({
+      name: 'bar',
+      versions: ['1.4.0'],
+      'dist-tags': { latest: '1.4.0' },
+    });
 
     git(['checkout', 'master'], { cwd: repo.rootPath });
     git(['pull'], { cwd: repo.rootPath });
@@ -317,9 +298,7 @@ describe('publish command (e2e)', () => {
     );
 
     // Query the information from package.json from the registry to see if it was successfully patched
-    const fooNpmResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-    expect(fooNpmResult.success).toBeTruthy();
-    const show = JSON.parse(fooNpmResult.stdout);
+    const show = npmShow(registry, 'foo')!;
     expect(show.name).toEqual('foo');
     expect(show.main).toEqual('lib/index.js');
     expect(show.hasOwnProperty('onPublish')).toBeFalsy();
@@ -385,14 +364,11 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { fetch: false }));
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.1.0');
+    expect(npmShow(registry, 'foo')).toMatchObject<NpmShowResult>({
+      name: 'foo',
+      versions: ['1.1.0'],
+      'dist-tags': { latest: '1.1.0' },
+    });
 
     // no fetch when flag set to false
     expect(fetchCount).toBe(0);
@@ -418,14 +394,11 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { depth: 10 }));
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.1.0');
+    expect(npmShow(registry, 'foo')).toMatchObject<NpmShowResult>({
+      name: 'foo',
+      versions: ['1.1.0'],
+      'dist-tags': { latest: '1.1.0' },
+    });
 
     // no fetch when flag set to false
     expect(depthString).toEqual('--depth=10');
