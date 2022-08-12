@@ -3,86 +3,54 @@ import { mergeChangelogs } from '../../changelog/mergeChangelogs';
 import { PackageInfo } from '../../types/PackageInfo';
 
 describe('mergeChangelogs', () => {
-  const mockDate = new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)');
-  const mockDate2 = new Date('Thu Aug 22 2020 14:20:40 GMT-0700 (Pacific Daylight Time)');
+  const primaryPackageInfo = {
+    name: 'primary',
+    version: '1.2.3',
+  } as PackageInfo;
 
-  it('merge changelogs when master package has change', () => {
-    const masterChangelog: PackageChangelog = {
-      name: 'master',
-      date: mockDate,
+  const primaryDate = new Date('Thu Aug 22 2019 14:20:40 GMT-0700 (Pacific Daylight Time)');
+  const fooDate = new Date('Thu Aug 22 2020 14:20:40 GMT-0700 (Pacific Daylight Time)');
+
+  function getChangelog(packageName: 'primary' | 'foo'): PackageChangelog {
+    return {
+      name: packageName,
+      date: packageName === 'primary' ? primaryDate : fooDate,
       version: '1.0.0',
-      tag: 'master_v1.0.0',
+      tag: packageName + '_v1.0.0',
       comments: {
         patch: [
           {
-            comment: 'comment_master',
-            author: 'author_master',
-            commit: 'commit_master',
-            package: 'master',
+            comment: packageName + ' comment',
+            author: packageName + ' author',
+            commit: packageName + ' commit',
+            package: packageName,
           },
         ],
       },
     };
+  }
 
-    const changelogs: PackageChangelog[] = [
-      masterChangelog,
-      {
-        name: 'foo',
-        date: mockDate2,
-        version: '1.0.0',
-        tag: 'foo_v1.0.0',
-        comments: {
-          patch: [
-            {
-              comment: 'comment_foo',
-              author: 'author_foo',
-              commit: 'commit_foo',
-              package: 'foo',
-            },
-          ],
-        },
-      },
-    ];
+  it('merge changelogs when primary package has change', () => {
+    const primaryChangelog = getChangelog('primary');
 
-    const mergedChangelog = mergeChangelogs(changelogs, {
-      name: 'master',
-      version: '1.2.3',
-    } as PackageInfo);
-    expect(mergedChangelog).toBeDefined();
-    expect(mergedChangelog!.name).toBe('master');
-    expect(mergedChangelog!.version).toBe('1.2.3');
-    expect(mergedChangelog!.date).toBeDefined();
+    const changelogs = [primaryChangelog, getChangelog('foo')];
+
+    const mergedChangelog = mergeChangelogs(changelogs, primaryPackageInfo);
+    expect(mergedChangelog).toBeTruthy();
+    expect(mergedChangelog!.name).toBe(primaryPackageInfo.name);
+    expect(mergedChangelog!.version).toBe(primaryPackageInfo.version);
+    expect(mergedChangelog!.date).toBeTruthy();
     expect(mergedChangelog!.comments.patch).toHaveLength(2);
   });
 
-  it('merge changelogs when master package has no change', () => {
-    const changelogs: PackageChangelog[] = [
-      {
-        name: 'foo',
-        date: mockDate2,
-        version: '1.0.0',
-        tag: 'foo_v1.0.0',
-        comments: {
-          patch: [
-            {
-              comment: 'comment_foo',
-              author: 'author_foo',
-              commit: 'commit_foo',
-              package: 'foo',
-            },
-          ],
-        },
-      },
-    ];
+  it('merge changelogs when primary package has no change', () => {
+    const changelogs = [getChangelog('foo')];
 
-    const mergedChangelog = mergeChangelogs(changelogs, {
-      name: 'master',
-      version: '1.2.3',
-    } as PackageInfo);
-    expect(mergedChangelog).toBeDefined();
-    expect(mergedChangelog!.name).toBe('master');
-    expect(mergedChangelog!.version).toBe('1.2.3');
-    expect(mergedChangelog!.date).toBeDefined();
+    const mergedChangelog = mergeChangelogs(changelogs, primaryPackageInfo);
+    expect(mergedChangelog).toBeTruthy();
+    expect(mergedChangelog!.name).toBe(primaryPackageInfo.name);
+    expect(mergedChangelog!.version).toBe(primaryPackageInfo.version);
+    expect(mergedChangelog!.date).toBeTruthy();
     expect(mergedChangelog!.comments.patch).toEqual(changelogs[0].comments.patch);
   });
 });
