@@ -2,11 +2,11 @@ import fs from 'fs-extra';
 import path from 'path';
 import { git, gitFailFast } from 'workspace-tools';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
+import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { Repository, RepositoryFactory } from '../__fixtures__/repository';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publish } from '../commands/publish';
-import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { ChangeFileInfo } from '../types/ChangeInfo';
@@ -52,18 +52,7 @@ describe('publish command (git)', () => {
   it('can perform a successful git push', async () => {
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -79,20 +68,7 @@ describe('publish command (git)', () => {
   it('can handle a merge when there are change files present', async () => {
     // 1. clone a new repo1, write a change file in repo1
     const repo1 = repositoryFactory.cloneRepository();
-
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo1.rootPath,
-    });
-
+    generateChangeFiles(['foo'], repo1.rootPath);
     git(['push', 'origin', 'master'], { cwd: repo1.rootPath });
 
     // 2. simulate the start of a publish from repo1
@@ -105,20 +81,7 @@ describe('publish command (git)', () => {
 
     // 3. Meanwhile, in repo2, also create a new change file
     const repo2 = repositoryFactory.cloneRepository();
-
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo2',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo2.rootPath,
-    });
-
+    generateChangeFiles(['foo2'], repo2.rootPath);
     git(['push', 'origin', 'master'], { cwd: repo2.rootPath });
 
     // 4. Pretend to continue on with repo1's publish
@@ -126,11 +89,9 @@ describe('publish command (git)', () => {
 
     // 5. In a brand new cloned repo, make assertions
     const newRepo = repositoryFactory.cloneRepository();
-    const newChangePath = path.join(newRepo.rootPath, 'change');
-    expect(fs.existsSync(newChangePath)).toBeTruthy();
-    const changeFiles = fs.readdirSync(newChangePath);
-    expect(changeFiles.length).toBe(1);
-    const changeFileContent: ChangeFileInfo = fs.readJSONSync(path.join(newChangePath, changeFiles[0]));
+    const changeFiles = getChangeFiles(newRepo.rootPath);
+    expect(changeFiles).toHaveLength(1);
+    const changeFileContent: ChangeFileInfo = fs.readJSONSync(changeFiles[0]);
     expect(changeFileContent.packageName).toBe('foo2');
   });
 });
