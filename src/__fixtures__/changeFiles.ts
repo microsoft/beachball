@@ -16,13 +16,16 @@ export type PartialChangeFile = { packageName: string } & Partial<ChangeFileInfo
  */
 export function generateChangeFiles(changes: (string | PartialChangeFile)[], cwd: string, groupChanges?: boolean) {
   writeChangeFiles({
-    changes: changes.map(c => ({
-      comment: 'test',
-      email: 'test@test.com',
-      type: 'minor',
-      dependentChangeType: 'patch',
-      ...(typeof c === 'string' ? { packageName: c } : c),
-    })),
+    changes: changes.map(change => {
+      change = typeof change === 'string' ? { packageName: change } : change;
+      return {
+        comment: `${change.packageName} test comment`,
+        email: 'test@test.com',
+        type: 'minor',
+        dependentChangeType: 'patch',
+        ...change,
+      };
+    }),
     groupChanges,
     cwd,
   });
