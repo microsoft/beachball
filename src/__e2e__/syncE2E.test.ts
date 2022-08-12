@@ -22,7 +22,7 @@ function createRepoPackage(repo: Repository, name: string, version: string) {
 }
 
 describe('sync command (e2e)', () => {
-  const repositoryFactory = new RepositoryFactory();
+  let repositoryFactory: RepositoryFactory;
   let registry: Registry;
   const tempDirs: string[] = [];
 
@@ -74,8 +74,8 @@ describe('sync command (e2e)', () => {
   });
 
   beforeEach(async () => {
+    repositoryFactory = new RepositoryFactory();
     await registry.reset();
-    repositoryFactory.create();
   });
 
   afterEach(() => {

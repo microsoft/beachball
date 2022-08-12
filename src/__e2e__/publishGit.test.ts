@@ -42,7 +42,6 @@ describe('publish command (git)', () => {
 
   beforeEach(() => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
   });
 
   afterEach(() => {

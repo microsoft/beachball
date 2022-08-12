@@ -10,7 +10,7 @@ import { MonoRepoFactory } from '../__fixtures__/monorepo';
 import { defaultBranchName } from '../__fixtures__/gitDefaults';
 
 describe('getChangedPackages', () => {
-  let repositoryFactory: RepositoryFactory | undefined;
+  let repositoryFactory: RepositoryFactory | MonoRepoFactory | MultiMonoRepoFactory | undefined;
 
   function writeAndAdd(repoRoot: string, filePath: string) {
     const testFilePath = path.join(repoRoot, filePath);
@@ -28,7 +28,6 @@ describe('getChangedPackages', () => {
 
   it('detects changed files in single repo', () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
     const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
@@ -41,7 +40,6 @@ describe('getChangedPackages', () => {
 
   it('respects ignorePatterns option', () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
     const options = {
       fetch: false,
@@ -60,7 +58,6 @@ describe('getChangedPackages', () => {
 
   it('detects changed files in monorepo', () => {
     repositoryFactory = new MonoRepoFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
     const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
@@ -73,7 +70,6 @@ describe('getChangedPackages', () => {
 
   it('detects changed files in multi-monorepo (multi-workspace) repo', () => {
     repositoryFactory = new MultiMonoRepoFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
     const rootOptions = { fetch: false, branch: defaultBranchName, path: repo.rootPath } as BeachballOptions;
     const repoARoot = path.join(repo.rootPath, 'repo-a');
