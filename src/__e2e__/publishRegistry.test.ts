@@ -1,11 +1,11 @@
 import { git } from 'workspace-tools';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
+import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { MonoRepoFactory, packageJsonFixtures } from '../__fixtures__/monorepo';
 import { Registry } from '../__fixtures__/registry';
 import { Repository, RepositoryFactory } from '../__fixtures__/repository';
 import { npm } from '../packageManager/npm';
-import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { publish } from '../commands/publish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
@@ -60,18 +60,7 @@ describe('publish command (registry)', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -117,18 +106,7 @@ describe('publish command (registry)', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foopkg',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foopkg'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -163,25 +141,7 @@ describe('publish command (registry)', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foopkg',
-          dependentChangeType: 'patch',
-        },
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'barpkg',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foopkg', 'barpkg'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -228,18 +188,7 @@ describe('publish command (registry)', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'badname',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['badname'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -260,27 +209,7 @@ describe('publish command (registry)', () => {
       JSON.stringify({ ...packageJsonFixtures['packages/bar'], private: true })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          // package is private
-          packageName: 'bar',
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          dependentChangeType: 'patch',
-        },
-        {
-          // package doesn't exist
-          packageName: 'fake',
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['bar', 'fake'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -306,18 +235,7 @@ describe('publish command (registry)', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 

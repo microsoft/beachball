@@ -1,12 +1,12 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { git, addGitObserver, clearGitObservers } from 'workspace-tools';
+import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { MonoRepoFactory } from '../__fixtures__/monorepo';
 import { Registry } from '../__fixtures__/registry';
 import { Repository, RepositoryFactory } from '../__fixtures__/repository';
 import { npm } from '../packageManager/npm';
-import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { publish } from '../commands/publish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
@@ -61,18 +61,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -100,18 +89,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -134,18 +112,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -207,18 +174,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -277,18 +233,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -315,31 +260,8 @@ describe('publish command (e2e)', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
-
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'bar',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['bar'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -373,18 +295,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -430,18 +341,7 @@ describe('publish command (e2e)', () => {
     const repo = repositoryFactory.cloneRepository();
     let notified;
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -471,18 +371,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -515,18 +404,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 

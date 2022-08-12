@@ -1,9 +1,9 @@
 import fs from 'fs-extra';
+import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { RepositoryFactory, Repository } from '../__fixtures__/repository';
 import { isChangeFileNeeded } from '../validation/isChangeFileNeeded';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { areChangeFilesDeleted } from '../validation/areChangeFilesDeleted';
 import { getChangePath } from '../paths';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
@@ -91,20 +91,7 @@ describe('validation', () => {
 
     beforeEach(() => {
       repository = repositoryFactory.cloneRepository();
-
-      writeChangeFiles({
-        changes: [
-          {
-            type: 'minor',
-            comment: 'test',
-            email: 'test@test.com',
-            packageName: 'pkg-1',
-            dependentChangeType: 'patch',
-          },
-        ],
-        cwd: repository.rootPath,
-      });
-
+      generateChangeFiles(['pkg-1'], repository.rootPath);
       repository.push('origin', 'master');
     });
 

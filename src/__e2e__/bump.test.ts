@@ -1,26 +1,19 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { git } from 'workspace-tools';
+import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { readChangelogJson } from '../__fixtures__/changelog';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { MonoRepoFactory } from '../__fixtures__/monorepo';
 import { RepositoryFactory } from '../__fixtures__/repository';
-import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { bump } from '../commands/bump';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { getChangePath } from '../paths';
 
 describe('version bumping', () => {
   let repositoryFactory: RepositoryFactory | undefined;
 
   initMockLogs();
-
-  function getChangeFiles(cwd: string): string[] {
-    const changePath = getChangePath(cwd);
-    const changeFiles = fs.existsSync(changePath) ? fs.readdirSync(changePath) : [];
-    return changeFiles;
-  }
 
   afterEach(() => {
     if (repositoryFactory) {
@@ -84,18 +77,7 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-1',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['pkg-1'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -112,7 +94,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe('1.0.0');
 
     const changeFiles = getChangeFiles(repo.rootPath);
-    expect(changeFiles.length).toBe(0);
+    expect(changeFiles).toHaveLength(0);
   });
 
   it('bumps only packages with change files committed between specified ref and head using `since` flag', async () => {
@@ -156,36 +138,14 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-1',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['pkg-1'], repo.rootPath);
 
     const revParseOutput = git(['rev-parse', 'HEAD'], { cwd: repo.rootPath });
     if (!revParseOutput.success) {
       fail('failed to retrieve the HEAD SHA');
     }
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-3',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['pkg-3'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -203,7 +163,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe('1.0.0');
 
     const changeFiles = getChangeFiles(repo.rootPath);
-    expect(changeFiles.length).toBe(1);
+    expect(changeFiles).toHaveLength(1);
   });
 
   it('bumps all dependent packages with `bumpDeps` flag', async () => {
@@ -261,18 +221,7 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-1',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['pkg-1'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -289,7 +238,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe('1.0.1');
 
     const changeFiles = getChangeFiles(repo.rootPath);
-    expect(changeFiles.length).toBe(0);
+    expect(changeFiles).toHaveLength(0);
   });
 
   it('bumps all grouped packages', async () => {
@@ -329,18 +278,7 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-1',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['pkg-1'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -357,7 +295,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].version).toBe('1.0.0');
 
     const changeFiles = getChangeFiles(repo.rootPath);
-    expect(changeFiles.length).toBe(0);
+    expect(changeFiles).toHaveLength(0);
   });
 
   it('bumps all grouped AND dependent packages', async () => {
@@ -419,18 +357,7 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'commonlib',
-          dependentChangeType: 'minor',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles([{ packageName: 'commonlib', dependentChangeType: 'minor' }], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -450,7 +377,7 @@ describe('version bumping', () => {
     expect(packageInfos['unrelated'].version).toBe('1.0.0');
 
     const changeFiles = getChangeFiles(repo.rootPath);
-    expect(changeFiles.length).toBe(0);
+    expect(changeFiles).toHaveLength(0);
   });
 
   it('should not bump out-of-scope package even if package has change', async () => {
@@ -458,18 +385,7 @@ describe('version bumping', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -484,7 +400,7 @@ describe('version bumping', () => {
     expect(packageInfos['bar'].version).toBe('1.3.4');
 
     const changeFiles = getChangeFiles(repo.rootPath);
-    expect(changeFiles.length).toBe(1);
+    expect(changeFiles).toHaveLength(1);
   });
 
   it('should not bump out-of-scope package and its dependencies even if dependency of the package has change', async () => {
@@ -492,18 +408,7 @@ describe('version bumping', () => {
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'patch',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'bar',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles([{ packageName: 'bar', type: 'patch' }], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -519,7 +424,7 @@ describe('version bumping', () => {
     expect(packageInfos['foo'].dependencies?.bar).toBe('^1.3.4');
 
     const changeFiles = getChangeFiles(repo.rootPath);
-    expect(changeFiles.length).toBe(0);
+    expect(changeFiles).toHaveLength(0);
   });
 
   it('bumps all packages and keeps change files with `keep-change-files` flag', async () => {
@@ -577,18 +482,7 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-1',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['pkg-1'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -605,7 +499,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe('1.0.0');
 
     const changeFiles = getChangeFiles(repo.rootPath);
-    expect(changeFiles.length).toBe(1);
+    expect(changeFiles).toHaveLength(1);
   });
 
   it('bumps all packages and uses prefix in the version', async () => {
@@ -663,18 +557,7 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'prerelease',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-1',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -696,7 +579,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe('1.0.1-beta.0');
 
     const changeFiles = getChangeFiles(repo.rootPath);
-    expect(changeFiles.length).toBe(0);
+    expect(changeFiles).toHaveLength(0);
   });
 
   it('bumps all packages and uses prefixed versions in dependents', async () => {
@@ -754,18 +637,10 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'prerelease',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-1',
-          dependentChangeType: 'prerelease',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(
+      [{ packageName: 'pkg-1', type: 'prerelease', dependentChangeType: 'prerelease' }],
+      repo.rootPath
+    );
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -787,7 +662,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe('1.0.1-beta.0');
 
     const changeFiles = getChangeFiles(repo.rootPath);
-    expect(changeFiles.length).toBe(0);
+    expect(changeFiles).toHaveLength(0);
   });
 
   it('bumps all packages and increments prefixed versions in dependents', async () => {
@@ -845,18 +720,10 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'prerelease',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-1',
-          dependentChangeType: 'prerelease',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(
+      [{ packageName: 'pkg-1', type: 'prerelease', dependentChangeType: 'prerelease' }],
+      repo.rootPath
+    );
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -878,7 +745,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe('1.0.1-beta.0');
 
     const changeFiles = getChangeFiles(repo.rootPath);
-    expect(changeFiles.length).toBe(0);
+    expect(changeFiles).toHaveLength(0);
   });
 
   it('generates correct changelogs and modified packages when bumpDeps is true', async () => {
@@ -916,20 +783,16 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
+    generateChangeFiles(
+      [
         {
           type: 'patch',
           comment: 'This package1 test comment should be absorbed into the changelog.',
           packageName: 'package1',
-          email: 'test@test.com',
-          dependentChangeType: 'patch',
         },
       ],
-      cwd: repo.rootPath,
-    });
-
-    repo.commitChange('change/package1.json', JSON.stringify({}));
+      repo.rootPath
+    );
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -961,18 +824,7 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-1',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['pkg-1'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -1010,18 +862,7 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-1',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['pkg-1'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -1059,18 +900,7 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-1',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['pkg-1'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -1100,18 +930,7 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-1',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['pkg-1'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -1149,18 +968,7 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-1',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['pkg-1'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -1198,18 +1006,7 @@ describe('version bumping', () => {
       })
     );
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'pkg-1',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['pkg-1'], repo.rootPath);
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
