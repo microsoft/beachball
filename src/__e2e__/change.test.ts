@@ -85,7 +85,7 @@ describe('change command', () => {
     const changeFiles = getChangeFiles(repo.rootPath);
     for (const file of changeFiles) {
       const contents = await fs.readJSON(file);
-      expect(contents.changes.length).toBe(2);
+      expect(contents.changes).toHaveLength(2);
     }
 
     expect(changeFiles).toHaveLength(1);
@@ -114,7 +114,7 @@ describe('change command', () => {
 
     const output = git(['status', '-s'], { cwd: repo.rootPath });
     expect(output.success).toBeTruthy();
-    expect(output.stdout.length).toBe(0);
+    expect(output.stdout).toHaveLength(0);
 
     const changeFiles = getChangeFiles(repo.rootPath);
     expect(changeFiles).toHaveLength(1);

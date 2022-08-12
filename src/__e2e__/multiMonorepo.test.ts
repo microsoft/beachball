@@ -42,7 +42,7 @@ describe('version bumping', () => {
 
     const changeFilesA = getChangeFiles(repoARoot);
     const changeFilesB = getChangeFiles(repoBRoot);
-    expect(changeFilesA.length).toBe(0);
-    expect(changeFilesB.length).toBe(1);
+    expect(changeFilesA).toHaveLength(0);
+    expect(changeFilesB).toHaveLength(1);
   });
 });

@@ -360,7 +360,6 @@ describe('publish command (e2e)', () => {
 
     const fooPackageJson = fs.readJSONSync(path.join(repo.rootPath, 'packages/foo/package.json'));
     expect(fooPackageJson.main).toBe('src/index.ts');
-    expect(notified).toBeDefined();
     expect(notified).toBe(fooPackageJson.afterPublish.notify);
   });
 

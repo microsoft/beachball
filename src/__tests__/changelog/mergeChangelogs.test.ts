@@ -52,7 +52,7 @@ describe('mergeChangelogs', () => {
     expect(mergedChangelog!.name).toBe('master');
     expect(mergedChangelog!.version).toBe('1.2.3');
     expect(mergedChangelog!.date).toBeDefined();
-    expect(mergedChangelog!.comments.patch?.length).toBe(2);
+    expect(mergedChangelog!.comments.patch).toHaveLength(2);
   });
 
   it('merge changelogs when master package has no change', () => {

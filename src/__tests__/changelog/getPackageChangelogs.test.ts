@@ -64,8 +64,8 @@ describe('getPackageChangelogs', () => {
       '.'
     );
 
-    expect(Object.keys(changelogs.bar.comments.patch!).length).toBe(2);
-    expect(Object.keys(changelogs.foo.comments.patch!).length).toBe(1);
+    expect(Object.keys(changelogs.bar.comments.patch!)).toHaveLength(2);
+    expect(Object.keys(changelogs.foo.comments.patch!)).toHaveLength(1);
   });
 
   it('should not generate change logs for dependent bumps of private packages', () => {
