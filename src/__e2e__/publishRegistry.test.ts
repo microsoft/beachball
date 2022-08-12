@@ -3,9 +3,9 @@ import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { MonoRepoFactory, packageJsonFixtures } from '../__fixtures__/monorepo';
+import { npmShow } from '../__fixtures__/npmShow';
 import { Registry } from '../__fixtures__/registry';
 import { Repository, RepositoryFactory } from '../__fixtures__/repository';
-import { npm } from '../packageManager/npm';
 import { publish } from '../commands/publish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
@@ -66,13 +66,9 @@ describe('publish command (registry)', () => {
 
     await publish(getOptions(repo, { package: 'foo' }));
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
+    const show = npmShow(registry, 'foo')!;
     expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
+    expect(show.versions).toHaveLength(1);
   });
 
   it('can perform a successful npm publish even with private packages', async () => {
@@ -112,9 +108,7 @@ describe('publish command (registry)', () => {
 
     await publish(getOptions(repo, { package: 'foopkg' }));
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foopkg', '--json']);
-
-    expect(showResult.success).toBeFalsy();
+    npmShow(registry, 'foopkg', true /*shouldFail*/);
   });
 
   it('can perform a successful npm publish when multiple packages changed at same time', async () => {
@@ -147,14 +141,10 @@ describe('publish command (registry)', () => {
 
     await publish(getOptions(repo, { package: 'foopkg' }));
 
-    const showResultFoo = npm(['--registry', registry.getUrl(), 'show', 'foopkg', '--json']);
-    expect(showResultFoo.success).toBeTruthy();
-    const showFoo = JSON.parse(showResultFoo.stdout);
+    const showFoo = npmShow(registry, 'foopkg')!;
     expect(showFoo['dist-tags'].latest).toEqual('1.1.0');
 
-    const showResultBar = npm(['--registry', registry.getUrl(), 'show', 'barpkg', '--json']);
-    expect(showResultBar.success).toBeTruthy();
-    const showBar = JSON.parse(showResultFoo.stdout);
+    const showBar = npmShow(registry, 'barpkg')!;
     expect(showBar['dist-tags'].latest).toEqual('1.1.0');
   });
 
@@ -194,9 +184,7 @@ describe('publish command (registry)', () => {
 
     await publish(getOptions(repo, { package: 'foopkg' }));
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'badname', '--json']);
-
-    expect(showResult.success).toBeFalsy();
+    npmShow(registry, 'badname', true /*shouldFail*/);
   });
 
   it('should exit publishing early if only invalid change files exist', async () => {
@@ -221,8 +209,7 @@ describe('publish command (registry)', () => {
       expect.stringContaining('Change detected for nonexistent package fake')
     );
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-    expect(showResult.success).toBeFalsy();
+    npmShow(registry, 'fake', true /*shouldFail*/);
   });
 
   it('will perform retries', async () => {
@@ -251,7 +238,5 @@ describe('publish command (registry)', () => {
     expect(
       logs.mocks.log.mock.calls.some(([arg0]) => typeof arg0 === 'string' && arg0.includes('Retrying... (3/3)'))
     ).toBeTruthy();
-
-    await registry.start();
   });
 });

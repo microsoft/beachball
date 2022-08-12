@@ -1,10 +1,10 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { initMockLogs } from '../__fixtures__/mockLogs';
+import { npmShow, NpmShowResult } from '../__fixtures__/npmShow';
 import { Registry } from '../__fixtures__/registry';
 import { tmpdir } from '../__fixtures__/tmpdir';
 import { packagePublish } from '../packageManager/packagePublish';
-import { npm } from '../packageManager/npm';
 import { PackageInfo } from '../types/PackageInfo';
 
 const testTag = 'testbeachballtag';
@@ -61,22 +61,22 @@ describe('packagePublish', () => {
   it('can publish', async () => {
     const testPackageInfo = getTestPackageInfo(testTag);
     const publishResult = await packagePublish(testPackageInfo, registry.getUrl(), '', '');
-    expect(publishResult.success).toBeTruthy();
+    // Check the result like this so any output will show up in the logs if there are errors
+    // (hard to debug otherwise)
+    expect(publishResult).toEqual(expect.objectContaining({ success: true }));
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', testPackageInfo.name, '--json']);
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual(testPackageInfo.name);
-    expect(show['dist-tags'][testTag]).toEqual(testPackageInfo.version);
-    expect(show.versions.length).toEqual(1);
-    expect(show.versions[0]).toEqual(testPackageInfo.version);
+    expect(npmShow(registry, testName)).toMatchObject<NpmShowResult>({
+      name: testName,
+      versions: [testVersion],
+      // This will publish the test tag as well as "latest" because it's a new package
+      'dist-tags': { [testTag]: testVersion, latest: testVersion },
+    });
   });
 
   it('errors on republish', async () => {
     const testPackageInfo = getTestPackageInfo(testTag);
     let publishResult = await packagePublish(testPackageInfo, registry.getUrl(), '', '');
-    expect(publishResult.success).toBeTruthy();
+    expect(publishResult).toEqual(expect.objectContaining({ success: true })); // see comment on first test
 
     publishResult = await packagePublish(testPackageInfo, registry.getUrl(), '', '');
     expect(publishResult.success).toBeFalsy();
@@ -85,45 +85,36 @@ describe('packagePublish', () => {
   it('publish with no tag publishes latest', async () => {
     const testPackageInfo = getTestPackageInfo(null);
     const publishResult = await packagePublish(testPackageInfo, registry.getUrl(), '', '');
-    expect(publishResult.success).toBeTruthy();
+    expect(publishResult).toEqual(expect.objectContaining({ success: true })); // see comment on first test
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', testPackageInfo.name, '--json']);
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual(testPackageInfo.name);
-    expect(show['dist-tags']['latest']).toEqual(testPackageInfo.version);
-    expect(show.versions.length).toEqual(1);
-    expect(show.versions[0]).toEqual(testPackageInfo.version);
+    expect(npmShow(registry, testName)).toMatchObject<NpmShowResult>({
+      name: testName,
+      versions: [testVersion],
+      'dist-tags': { latest: testVersion },
+    });
   });
 
   it('publish package with defaultNpmTag publishes as defaultNpmTag', async () => {
     const testPackageInfoWithDefaultNpmTag = getTestPackageInfo(null, testTag);
     const publishResult = await packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', '');
-    expect(publishResult.success).toBeTruthy();
+    expect(publishResult).toEqual(expect.objectContaining({ success: true })); // see comment on first test
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', testPackageInfoWithDefaultNpmTag.name, '--json']);
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual(testPackageInfoWithDefaultNpmTag.name);
-    expect(show['dist-tags'][testTag]).toEqual(testPackageInfoWithDefaultNpmTag.version);
-    expect(show.versions.length).toEqual(1);
-    expect(show.versions[0]).toEqual(testPackageInfoWithDefaultNpmTag.version);
+    expect(npmShow(registry, testName)).toMatchObject<NpmShowResult>({
+      name: testName,
+      versions: [testVersion],
+      'dist-tags': { [testTag]: testVersion, latest: testVersion },
+    });
   });
 
   it('publish with specified tag overrides defaultNpmTag', async () => {
     const testPackageInfoWithDefaultNpmTag = getTestPackageInfo(testTag, 'thisShouldNotBeUsed');
     const publishResult = await packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', '');
-    expect(publishResult.success).toBeTruthy();
+    expect(publishResult).toEqual(expect.objectContaining({ success: true })); // see comment on first test
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', testPackageInfoWithDefaultNpmTag.name, '--json']);
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual(testPackageInfoWithDefaultNpmTag.name);
-    expect(show['dist-tags'][testTag]).toEqual(testPackageInfoWithDefaultNpmTag.version);
-    expect(show.versions.length).toEqual(1);
-    expect(show.versions[0]).toEqual(testPackageInfoWithDefaultNpmTag.version);
+    expect(npmShow(registry, testName)).toMatchObject<NpmShowResult>({
+      name: testName,
+      versions: [testVersion],
+      'dist-tags': { [testTag]: testVersion, latest: testVersion },
+    });
   });
 });
