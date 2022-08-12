@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { git } from 'workspace-tools';
+import { readChangelogJson } from '../__fixtures__/changelog';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { MonoRepoFactory } from '../__fixtures__/monorepo';
 import { RepositoryFactory } from '../__fixtures__/repository';
@@ -943,11 +944,8 @@ describe('version bumping', () => {
     expect(modified).toContain('package1');
     expect(modified).toContain('package2');
 
-    const changelogJsonFile = path.join(repo.rootPath, 'packages', 'package2', 'CHANGELOG.json');
-    const jsonText = fs.readFileSync(changelogJsonFile, { encoding: 'utf-8' });
-    const changelogJson = JSON.parse(jsonText);
-
-    expect(changelogJson.entries[0].comments.patch[0].comment).toBe('Bump package1 to v0.0.2');
+    const changelogJson = readChangelogJson([repo.rootPath, 'packages/package2']);
+    expect(changelogJson.entries[0].comments.patch![0].comment).toBe('Bump package1 to v0.0.2');
   });
 
   it('calls sync prebump hook before packages are bumped', async () => {

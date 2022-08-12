@@ -102,26 +102,6 @@ This log was last generated on (date) and should not be manually modified.
 `;
 
 exports[`changelog generation writeChangelog generates correct changelog: changelog json 1`] = `
-"# Change Log - foo
-
-This log was last generated on (date) and should not be manually modified.
-
-<!-- Start content -->
-
-## 1.0.0
-
-(date)
-
-### Patches
-
-- comment 2 (test@testtestme.com)
-- comment 1 (test@testtestme.com)
-- additional comment 1 (test@testtestme.com)
-- additional comment 2 (test@testtestme.com)
-"
-`;
-
-exports[`changelog generation writeChangelog generates correct changelog: changelog md 1`] = `
 Object {
   "entries": Array [
     Object {
@@ -160,6 +140,26 @@ Object {
   ],
   "name": "foo",
 }
+`;
+
+exports[`changelog generation writeChangelog generates correct changelog: changelog md 1`] = `
+"# Change Log - foo
+
+This log was last generated on (date) and should not be manually modified.
+
+<!-- Start content -->
+
+## 1.0.0
+
+(date)
+
+### Patches
+
+- comment 2 (test@testtestme.com)
+- comment 1 (test@testtestme.com)
+- additional comment 1 (test@testtestme.com)
+- additional comment 2 (test@testtestme.com)
+"
 `;
 
 exports[`changelog generation writeChangelog generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog 1`] = `
