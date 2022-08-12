@@ -880,7 +880,7 @@ describe('version bumping', () => {
     expect(changeFiles.length).toBe(0);
   });
 
-  it('will generate correct dependent changelogs (bumps by dependent change), in monorepo', async () => {
+  it('generates correct changelogs and modified packages when bumpDeps is true', async () => {
     repositoryFactory = new RepositoryFactory();
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
@@ -890,129 +890,45 @@ describe('version bumping', () => {
       JSON.stringify({
         name: 'beachball-comments-repro',
         version: '1.0.0',
-        license: 'UNLICENSED',
         workspaces: {
           packages: ['packages/*'],
         },
         private: true,
-        repository: {
-          type: 'git',
-        },
       })
     );
 
     repo.commitChange(
       'packages/package1/package.json',
       JSON.stringify({
-        name: '@beachball-comments-repro/package1',
+        name: 'package1',
         version: '0.0.1',
-        description: 'A simple repro.',
-        beachball: {
-          disallowedChangeTypes: ['major'],
-        },
       })
     );
     repo.commitChange(
       'packages/package2/package.json',
       JSON.stringify({
-        name: '@beachball-comments-repro/package2',
+        name: 'package2',
         version: '0.0.1',
-        description: 'A simple repro.',
-        beachball: {
-          disallowedChangeTypes: ['major'],
-        },
         dependencies: {
-          '@beachball-comments-repro/package1': '^0.0.1',
+          package1: '^0.0.1',
         },
       })
     );
 
-    repo.commitChange(
-      'change/@beachball-comments-repro-package1.json',
-      JSON.stringify({
-        type: 'patch',
-        comment: 'This package1 test comment should be absorbed into the changelog.',
-        packageName: '@beachball-comments-repro/package1',
-        email: 'jagore@microsoft.com',
-        dependentChangeType: 'patch',
-      })
-    );
-
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
-
-    await bump({
-      path: repo.rootPath,
-      bumpDeps: true,
-      keepChangeFiles: false,
-      generateChangelog: true,
-    } as BeachballOptions);
-
-    const changelogJsonFile = path.join(repo.rootPath, 'packages', 'package2', 'CHANGELOG.json');
-    const jsonText = fs.readFileSync(changelogJsonFile, { encoding: 'utf-8' });
-    const changelogJson = JSON.parse(jsonText);
-
-    expect(changelogJson.entries[0].comments.patch[0].comment).toBe(
-      'Bump @beachball-comments-repro/package1 to v0.0.2'
-    );
-  });
-
-  it('will generate correct bumpInfo.modifiedPackages with dep bumps', async () => {
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
-    const repo = repositoryFactory.cloneRepository();
-
-    repo.commitChange(
-      'package.json',
-      JSON.stringify({
-        name: 'beachball-comments-repro',
-        version: '1.0.0',
-        license: 'UNLICENSED',
-        workspaces: {
-          packages: ['packages/*'],
+    writeChangeFiles({
+      changes: [
+        {
+          type: 'patch',
+          comment: 'This package1 test comment should be absorbed into the changelog.',
+          packageName: 'package1',
+          email: 'test@test.com',
+          dependentChangeType: 'patch',
         },
-        private: true,
-        repository: {
-          type: 'git',
-        },
-      })
-    );
+      ],
+      cwd: repo.rootPath,
+    });
 
-    repo.commitChange(
-      'packages/package1/package.json',
-      JSON.stringify({
-        name: '@beachball-comments-repro/package1',
-        version: '0.0.1',
-        description: 'A simple repro.',
-        beachball: {
-          disallowedChangeTypes: ['major'],
-        },
-      })
-    );
-    repo.commitChange(
-      'packages/package2/package.json',
-      JSON.stringify({
-        name: '@beachball-comments-repro/package2',
-        version: '0.0.1',
-        description: 'A simple repro.',
-        beachball: {
-          disallowedChangeTypes: ['major'],
-        },
-        dependencies: {
-          '@beachball-comments-repro/package1': '^0.0.1',
-        },
-      })
-    );
-
-    repo.commitChange(
-      'change/@beachball-comments-repro-package1.json',
-      JSON.stringify({
-        type: 'patch',
-        comment: 'This package1 test comment should be absorbed into the changelog.',
-        packageName: '@beachball-comments-repro/package1',
-        email: 'jagore@microsoft.com',
-        dependentChangeType: 'patch',
-      })
-    );
+    repo.commitChange('change/package1.json', JSON.stringify({}));
 
     git(['push', 'origin', 'master'], { cwd: repo.rootPath });
 
@@ -1024,8 +940,14 @@ describe('version bumping', () => {
     } as BeachballOptions);
 
     const modified = [...bumpInfo.modifiedPackages];
-    expect(modified).toContain('@beachball-comments-repro/package1');
-    expect(modified).toContain('@beachball-comments-repro/package2');
+    expect(modified).toContain('package1');
+    expect(modified).toContain('package2');
+
+    const changelogJsonFile = path.join(repo.rootPath, 'packages', 'package2', 'CHANGELOG.json');
+    const jsonText = fs.readFileSync(changelogJsonFile, { encoding: 'utf-8' });
+    const changelogJson = JSON.parse(jsonText);
+
+    expect(changelogJson.entries[0].comments.patch[0].comment).toBe('Bump package1 to v0.0.2');
   });
 
   it('calls sync prebump hook before packages are bumped', async () => {
