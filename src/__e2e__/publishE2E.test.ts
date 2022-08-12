@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { git, addGitObserver } from 'workspace-tools';
+import { git, addGitObserver, clearGitObservers } from 'workspace-tools';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { MonoRepoFactory } from '../__fixtures__/monorepo';
 import { Registry } from '../__fixtures__/registry';
@@ -48,6 +48,8 @@ describe('publish command (e2e)', () => {
   });
 
   afterEach(() => {
+    clearGitObservers();
+
     if (repositoryFactory) {
       repositoryFactory.cleanUp();
       repositoryFactory = undefined;

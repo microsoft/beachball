@@ -11841,9 +11841,9 @@ worker-farm@^1.7.0:
     errno "~0.1.7"
 
 workspace-tools@^0.26.0:
-  version "0.26.1"
-  resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.26.1.tgz#7967fc2fd9dcb7c590a386370c0e755f20a06c6d"
-  integrity sha512-wNr6nQqmxEyZDSMc0E9eLDiax0aYxkkF7qjqOME13nnYptL5c9pVzv0sdiSChYwz+cxBZh/O51qiyQAYaIXQAw==
+  version "0.26.2"
+  resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.26.2.tgz#72762e9bceebb48c99aa8a393800381ccbbdecb7"
+  integrity sha512-r80J8nebQ0XfbvFFgZhwk61AVPGKbYLgnER1LbW3IrOvmBi985QFQVwaNxdA7TekMDnZ75m+C4ctAF884nwFYw==
   dependencies:
     "@yarnpkg/lockfile" "^1.1.0"
     find-up "^5.0.0"
