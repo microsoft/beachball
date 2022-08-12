@@ -1,10 +1,11 @@
-import { git } from 'workspace-tools';
+import { gitFailFast } from 'workspace-tools';
 
 export const defaultBranchName = 'master';
-export const defaultRemoteBranchName = 'origin/' + defaultBranchName;
+export const defaultRemoteName = 'origin';
+export const defaultRemoteBranchName = 'origin/master';
 
 export function gitInitWithDefaultBranchName(cwd: string) {
-  git(['init', '--bare'], { cwd });
+  gitFailFast(['init', '--bare'], { cwd });
 
   setDefaultBranchName(cwd);
 }
@@ -14,6 +15,6 @@ export function gitInitWithDefaultBranchName(cwd: string) {
  * users have configured a different default branch name.
  */
 export function setDefaultBranchName(cwd: string) {
-  git(['symbolic-ref', 'HEAD', 'refs/heads/' + defaultBranchName], { cwd });
-  git(['config', 'init.defaultBranch', defaultBranchName], { cwd });
+  gitFailFast(['symbolic-ref', 'HEAD', 'refs/heads/' + defaultBranchName], { cwd });
+  gitFailFast(['config', 'init.defaultBranch', defaultBranchName], { cwd });
 }
