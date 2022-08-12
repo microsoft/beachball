@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update local version of workspace-tools to 0.26.2",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}

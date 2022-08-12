@@ -2,6 +2,27 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 12 Aug 2022 08:03:19 GMT",
+      "tag": "beachball_v2.30.0",
+      "version": "2.30.0",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "23c02738028eefb0add70a35cee7c0db6863642c",
+            "comment": "Update devDependency @types/semver to v7.3.12"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "23c02738028eefb0add70a35cee7c0db6863642c",
+            "comment": "Update local version of workspace-tools to 0.26.2"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 11 Aug 2022 21:13:57 GMT",
       "tag": "beachball_v2.30.0",
       "version": "2.30.0",
