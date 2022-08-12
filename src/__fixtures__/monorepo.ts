@@ -5,7 +5,7 @@ import { tmpdir } from './tmpdir';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { Repository, RepositoryFactory } from './repository';
 import { PackageJson } from '../types/PackageInfo';
-import { gitInitWithDefaultBranchName } from './gitDefaults';
+import { defaultBranchName, defaultRemoteName, gitInitWithDefaultBranchName } from './gitDefaults';
 
 export const packageJsonFixtures: { [path: string]: PackageJson } = {
   'packages/foo': {
@@ -90,7 +90,7 @@ export class MonoRepoFactory extends RepositoryFactory {
 
     tmpRepo.commitChange('beachball.config.js', 'module.exports = ' + JSON.stringify(beachballConfigFixture, null, 2));
 
-    tmpRepo.push('origin', 'HEAD:master');
+    tmpRepo.push(defaultRemoteName, `HEAD:${defaultBranchName}`);
 
     process.chdir(originalDirectory);
   }

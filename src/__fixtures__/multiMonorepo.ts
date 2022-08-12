@@ -5,7 +5,7 @@ import { tmpdir } from './tmpdir';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { Repository, RepositoryFactory } from './repository';
 import { PackageJson } from '../types/PackageInfo';
-import { gitInitWithDefaultBranchName } from './gitDefaults';
+import { defaultBranchName, defaultRemoteName, gitInitWithDefaultBranchName } from './gitDefaults';
 
 export const packageJsonFixtures: { [path: string]: PackageJson } = ['repo-a', 'repo-b'].reduce(
   (fixtures, repo) => ({
@@ -100,7 +100,7 @@ export class MultiMonoRepoFactory extends RepositoryFactory {
       'module.exports = ' + JSON.stringify(beachballConfigFixture, null, 2)
     );
 
-    tmpRepo.push('origin', 'HEAD:master');
+    tmpRepo.push(defaultRemoteName, `HEAD:${defaultBranchName}`);
 
     process.chdir(originalDirectory);
   }

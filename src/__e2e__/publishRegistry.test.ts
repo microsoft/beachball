@@ -1,4 +1,3 @@
-import { git } from 'workspace-tools';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
@@ -62,7 +61,7 @@ describe('publish command (registry)', () => {
 
     generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await publish(getOptions(repo, { package: 'foo' }));
 
@@ -104,7 +103,7 @@ describe('publish command (registry)', () => {
 
     generateChangeFiles(['foopkg'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await publish(getOptions(repo, { package: 'foopkg' }));
 
@@ -137,7 +136,7 @@ describe('publish command (registry)', () => {
 
     generateChangeFiles(['foopkg', 'barpkg'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await publish(getOptions(repo, { package: 'foopkg' }));
 
@@ -180,7 +179,7 @@ describe('publish command (registry)', () => {
 
     generateChangeFiles(['badname'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await publish(getOptions(repo, { package: 'foopkg' }));
 
@@ -199,7 +198,7 @@ describe('publish command (registry)', () => {
 
     generateChangeFiles(['bar', 'fake'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await publish(getOptions(repo, { package: 'foopkg' }));
 
@@ -224,7 +223,7 @@ describe('publish command (registry)', () => {
 
     generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     const publishPromise = publish(
       getOptions(repo, {

@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
+import { defaultRemoteBranchName, defaultRemoteName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { RepositoryFactory, Repository } from '../__fixtures__/repository';
 import { isChangeFileNeeded } from '../validation/isChangeFileNeeded';
@@ -31,7 +32,7 @@ describe('validation', () => {
     it('is false when no changes have been made', () => {
       const result = isChangeFileNeeded(
         {
-          branch: 'origin/master',
+          branch: defaultRemoteBranchName,
           path: repository.rootPath,
           fetch: false,
         } as BeachballOptions,
@@ -45,7 +46,7 @@ describe('validation', () => {
       repository.commitChange('myFilename');
       const result = isChangeFileNeeded(
         {
-          branch: 'origin/master',
+          branch: defaultRemoteBranchName,
           path: repository.rootPath,
           fetch: false,
         } as BeachballOptions,
@@ -59,7 +60,7 @@ describe('validation', () => {
       repository.commitChange('CHANGELOG.md');
       const result = isChangeFileNeeded(
         {
-          branch: 'origin/master',
+          branch: defaultRemoteBranchName,
           path: repository.rootPath,
           fetch: false,
         } as BeachballOptions,
@@ -69,14 +70,14 @@ describe('validation', () => {
     });
 
     it('throws if the remote is invalid', () => {
-      repository.setRemoteUrl('origin', 'file:///__nonexistent');
+      repository.setRemoteUrl(defaultRemoteName, 'file:///__nonexistent');
       repository.branch('feature-0');
       repository.commitChange('CHANGELOG.md');
 
       expect(() => {
         isChangeFileNeeded(
           {
-            branch: 'origin/master',
+            branch: defaultRemoteBranchName,
             path: repository.rootPath,
             fetch: true,
           } as BeachballOptions,
@@ -92,14 +93,14 @@ describe('validation', () => {
     beforeEach(() => {
       repository = repositoryFactory.cloneRepository();
       generateChangeFiles(['pkg-1'], repository.rootPath);
-      repository.push('origin', 'master');
+      repository.push();
     });
 
     it('is false when no change files are deleted', () => {
       repository.branch('feature-0');
 
       const result = areChangeFilesDeleted({
-        branch: 'origin/master',
+        branch: defaultRemoteBranchName,
         path: repository.rootPath,
       } as BeachballOptions);
       expect(result).toBeFalsy();
@@ -114,7 +115,7 @@ describe('validation', () => {
       repository.commitAll();
 
       const result = areChangeFilesDeleted({
-        branch: 'origin/master',
+        branch: defaultRemoteBranchName,
         path: repository.rootPath,
       } as BeachballOptions);
       expect(result).toBeTruthy();

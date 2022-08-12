@@ -1,5 +1,4 @@
 import path from 'path';
-import { git } from 'workspace-tools';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { MultiMonoRepoFactory } from '../__fixtures__/multiMonorepo';
@@ -31,7 +30,7 @@ describe('version bumping', () => {
     generateChangeFiles([{ packageName: '@repo-a/foo' }], repoARoot);
     generateChangeFiles([{ packageName: '@repo-a/foo', type: 'major' }], repoBRoot);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await bump({ path: repoARoot, bumpDeps: true } as BeachballOptions);
 

@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { git, gitFailFast } from 'workspace-tools';
+import { gitFailFast } from 'workspace-tools';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
@@ -54,7 +54,7 @@ describe('publish command (git)', () => {
 
     generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await publish(getOptions(repo));
 
@@ -69,7 +69,7 @@ describe('publish command (git)', () => {
     // 1. clone a new repo1, write a change file in repo1
     const repo1 = repositoryFactory.cloneRepository();
     generateChangeFiles(['foo'], repo1.rootPath);
-    git(['push', 'origin', 'master'], { cwd: repo1.rootPath });
+    repo1.push();
 
     // 2. simulate the start of a publish from repo1
     const publishBranch = 'publish_test';
@@ -82,7 +82,7 @@ describe('publish command (git)', () => {
     // 3. Meanwhile, in repo2, also create a new change file
     const repo2 = repositoryFactory.cloneRepository();
     generateChangeFiles(['foo2'], repo2.rootPath);
-    git(['push', 'origin', 'master'], { cwd: repo2.rootPath });
+    repo2.push();
 
     // 4. Pretend to continue on with repo1's publish
     await bumpAndPush(bumpInfo, publishBranch, options);

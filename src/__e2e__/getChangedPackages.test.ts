@@ -7,6 +7,7 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { MultiMonoRepoFactory } from '../__fixtures__/multiMonorepo';
 import { getChangedPackages } from '../changefile/getChangedPackages';
 import { MonoRepoFactory } from '../__fixtures__/monorepo';
+import { defaultBranchName } from '../__fixtures__/gitDefaults';
 
 describe('getChangedPackages', () => {
   let repositoryFactory: RepositoryFactory | undefined;
@@ -29,7 +30,7 @@ describe('getChangedPackages', () => {
     repositoryFactory = new RepositoryFactory();
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
-    const options = { fetch: false, path: repo.rootPath, branch: 'master' } as BeachballOptions;
+    const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
@@ -45,7 +46,7 @@ describe('getChangedPackages', () => {
     const options = {
       fetch: false,
       path: repo.rootPath,
-      branch: 'master',
+      branch: defaultBranchName,
       ignorePatterns: ['*.test.js', 'tests/**', 'yarn.lock'],
     } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
@@ -61,7 +62,7 @@ describe('getChangedPackages', () => {
     repositoryFactory = new MonoRepoFactory();
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
-    const options = { fetch: false, path: repo.rootPath, branch: 'master' } as BeachballOptions;
+    const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
@@ -70,11 +71,11 @@ describe('getChangedPackages', () => {
     expect(getChangedPackages(options, packageInfos)).toStrictEqual(['foo']);
   });
 
-  it('detects changed files in multi-monorepo workspace', () => {
+  it('detects changed files in multi-monorepo (multi-workspace) repo', () => {
     repositoryFactory = new MultiMonoRepoFactory();
     repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
-    const rootOptions = { fetch: false, branch: 'master', path: repo.rootPath } as BeachballOptions;
+    const rootOptions = { fetch: false, branch: defaultBranchName, path: repo.rootPath } as BeachballOptions;
     const repoARoot = path.join(repo.rootPath, 'repo-a');
     const repoBRoot = path.join(repo.rootPath, 'repo-b');
     const rootPackageInfos = getPackageInfos(repo.rootPath);

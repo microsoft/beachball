@@ -3,7 +3,12 @@ import path from 'path';
 import * as fs from 'fs-extra';
 import { tmpdir } from './tmpdir';
 import { git } from 'workspace-tools';
-import { gitInitWithDefaultBranchName, setDefaultBranchName } from './gitDefaults';
+import {
+  defaultBranchName,
+  defaultRemoteName,
+  gitInitWithDefaultBranchName,
+  setDefaultBranchName,
+} from './gitDefaults';
 
 export const packageJsonFixture = {
   name: 'foo',
@@ -36,7 +41,7 @@ export class RepositoryFactory {
       spaces: 2,
     });
     tmpRepo.commitChange('package.json');
-    tmpRepo.push('origin', 'HEAD:master');
+    tmpRepo.push(defaultRemoteName, 'HEAD:' + defaultBranchName);
 
     process.chdir(originalDirectory);
   }
@@ -135,12 +140,18 @@ export class Repository {
     git(['checkout', '-b', branchName], { cwd: this.root });
   }
 
-  push(remote: string, branch: string) {
+  push(remote?: string, branch?: string) {
     if (!this.root) {
       throw new Error('Must initialize before push');
     }
 
-    git(['push', remote, branch], { cwd: this.root });
+    git(['push', remote ?? defaultRemoteName, branch ?? `HEAD:${defaultBranchName}`], { cwd: this.root });
+  }
+
+  /** Check out the default branch and pull */
+  updateDefaultBranch() {
+    git(['checkout', defaultBranchName], { cwd: this.root });
+    git(['pull'], { cwd: this.root });
   }
 
   cleanUp() {

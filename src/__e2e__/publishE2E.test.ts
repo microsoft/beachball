@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { git, addGitObserver, clearGitObservers } from 'workspace-tools';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
+import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { MonoRepoFactory } from '../__fixtures__/monorepo';
 import { npmShow, NpmShowResult } from '../__fixtures__/npmShow';
@@ -10,7 +11,6 @@ import { Repository, RepositoryFactory } from '../__fixtures__/repository';
 import { publish } from '../commands/publish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 
 describe('publish command (e2e)', () => {
   let registry: Registry;
@@ -63,7 +63,7 @@ describe('publish command (e2e)', () => {
 
     generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await publish(getOptions(repo));
 
@@ -73,8 +73,7 @@ describe('publish command (e2e)', () => {
       'dist-tags': { latest: '1.1.0' },
     });
 
-    git(['checkout', 'master'], { cwd: repo.rootPath });
-    git(['pull'], { cwd: repo.rootPath });
+    repo.updateDefaultBranch();
     const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
 
     expect(gitResults.success).toBeTruthy();
@@ -88,7 +87,7 @@ describe('publish command (e2e)', () => {
 
     generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     git(['checkout', '--detach'], { cwd: repo.rootPath });
 
@@ -108,7 +107,7 @@ describe('publish command (e2e)', () => {
 
     generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     // Adds a step that injects a race condition
     let fetchCount = 0;
@@ -134,7 +133,7 @@ describe('publish command (e2e)', () => {
 
           git(['add', packageJsonFile], { cwd: anotherRepo.rootPath });
           git(['commit', '-m', 'test'], { cwd: anotherRepo.rootPath });
-          git(['push', 'origin', 'HEAD:master'], { cwd: anotherRepo.rootPath });
+          anotherRepo.push();
         }
 
         fetchCount++;
@@ -149,8 +148,7 @@ describe('publish command (e2e)', () => {
       'dist-tags': { latest: '1.1.0' },
     });
 
-    git(['checkout', 'master'], { cwd: repo.rootPath });
-    git(['pull'], { cwd: repo.rootPath });
+    repo.updateDefaultBranch();
     const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
 
     expect(gitResults.success).toBeTruthy();
@@ -167,7 +165,7 @@ describe('publish command (e2e)', () => {
 
     generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     // Adds a step that injects a race condition
     let fetchCount = 0;
@@ -186,7 +184,7 @@ describe('publish command (e2e)', () => {
 
           git(['add', packageJsonFile], { cwd: anotherRepo.rootPath });
           git(['commit', '-m', 'test'], { cwd: anotherRepo.rootPath });
-          git(['push', 'origin', 'HEAD:master'], { cwd: anotherRepo.rootPath });
+          anotherRepo.push();
         }
 
         fetchCount++;
@@ -201,8 +199,7 @@ describe('publish command (e2e)', () => {
       'dist-tags': { latest: '1.1.0' },
     });
 
-    git(['checkout', 'master'], { cwd: repo.rootPath });
-    git(['pull'], { cwd: repo.rootPath });
+    repo.updateDefaultBranch();
     const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
 
     expect(gitResults.success).toBeTruthy();
@@ -223,7 +220,7 @@ describe('publish command (e2e)', () => {
 
     generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await publish(getOptions(repo, { bump: false }));
 
@@ -233,8 +230,7 @@ describe('publish command (e2e)', () => {
       'dist-tags': { latest: '1.0.0' },
     });
 
-    git(['checkout', 'master'], { cwd: repo.rootPath });
-    git(['pull'], { cwd: repo.rootPath });
+    repo.updateDefaultBranch();
 
     const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
     expect(gitResults.success).toBeFalsy();
@@ -248,7 +244,7 @@ describe('publish command (e2e)', () => {
     generateChangeFiles(['foo'], repo.rootPath);
     generateChangeFiles(['bar'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await publish(getOptions(repo, { scope: ['!packages/foo'] }));
 
@@ -263,8 +259,7 @@ describe('publish command (e2e)', () => {
       'dist-tags': { latest: '1.4.0' },
     });
 
-    git(['checkout', 'master'], { cwd: repo.rootPath });
-    git(['pull'], { cwd: repo.rootPath });
+    repo.updateDefaultBranch();
     const barGitResults = git(['describe', '--abbrev=0', 'bar_v1.4.0'], { cwd: repo.rootPath });
 
     expect(barGitResults.success).toBeTruthy();
@@ -278,7 +273,7 @@ describe('publish command (e2e)', () => {
 
     generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await publish(
       getOptions(repo, {
@@ -303,8 +298,7 @@ describe('publish command (e2e)', () => {
     expect(show.main).toEqual('lib/index.js');
     expect(show.hasOwnProperty('onPublish')).toBeFalsy();
 
-    git(['checkout', 'master'], { cwd: repo.rootPath });
-    git(['pull'], { cwd: repo.rootPath });
+    repo.updateDefaultBranch();
 
     // All git results should still have previous information
     const fooGitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
@@ -322,7 +316,7 @@ describe('publish command (e2e)', () => {
 
     generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await publish(
       getOptions(repo, {
@@ -351,7 +345,7 @@ describe('publish command (e2e)', () => {
 
     generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     // Adds a step that injects a race condition
     let fetchCount = 0;
@@ -381,7 +375,7 @@ describe('publish command (e2e)', () => {
 
     generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     // Adds a step that injects a race condition
     let depthString: string = '';

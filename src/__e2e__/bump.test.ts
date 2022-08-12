@@ -79,7 +79,7 @@ describe('version bumping', () => {
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await bump({ path: repo.rootPath, bumpDeps: false } as BeachballOptions);
 
@@ -147,7 +147,7 @@ describe('version bumping', () => {
 
     generateChangeFiles(['pkg-3'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await bump({
       path: repo.rootPath,
@@ -223,7 +223,7 @@ describe('version bumping', () => {
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await bump({ path: repo.rootPath, bumpDeps: true } as BeachballOptions);
 
@@ -280,7 +280,7 @@ describe('version bumping', () => {
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await bump({
       path: repo.rootPath,
@@ -359,7 +359,7 @@ describe('version bumping', () => {
 
     generateChangeFiles([{ packageName: 'commonlib', dependentChangeType: 'minor' }], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await bump({
       path: repo.rootPath,
@@ -387,7 +387,7 @@ describe('version bumping', () => {
 
     generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await bump({
       path: repo.rootPath,
@@ -410,7 +410,7 @@ describe('version bumping', () => {
 
     generateChangeFiles([{ packageName: 'bar', type: 'patch' }], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await bump({
       path: repo.rootPath,
@@ -484,7 +484,7 @@ describe('version bumping', () => {
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await bump({ path: repo.rootPath, bumpDeps: false, keepChangeFiles: true } as BeachballOptions);
 
@@ -559,7 +559,7 @@ describe('version bumping', () => {
 
     generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await bump({
       path: repo.rootPath,
@@ -642,7 +642,7 @@ describe('version bumping', () => {
       repo.rootPath
     );
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await bump({
       path: repo.rootPath,
@@ -725,7 +725,7 @@ describe('version bumping', () => {
       repo.rootPath
     );
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     await bump({
       path: repo.rootPath,
@@ -794,7 +794,7 @@ describe('version bumping', () => {
       repo.rootPath
     );
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     const bumpInfo = await bump({
       path: repo.rootPath,
@@ -826,7 +826,7 @@ describe('version bumping', () => {
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     let prebumpCalled = false;
 
@@ -864,7 +864,7 @@ describe('version bumping', () => {
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     let prebumpCalled = false;
 
@@ -902,7 +902,7 @@ describe('version bumping', () => {
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     const bumpResult = bump({
       path: repo.rootPath,
@@ -932,7 +932,7 @@ describe('version bumping', () => {
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     let postBumpCalled = false;
 
@@ -970,7 +970,7 @@ describe('version bumping', () => {
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     let postbumpCalled = false;
 
@@ -1008,7 +1008,7 @@ describe('version bumping', () => {
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     const bumpResult = bump({
       path: repo.rootPath,
