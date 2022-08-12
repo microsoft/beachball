@@ -72,7 +72,8 @@ describe('publish command (e2e)', () => {
       'dist-tags': { latest: '1.1.0' },
     });
 
-    repo.updateDefaultBranch();
+    repo.checkoutDefaultBranch();
+    repo.pull();
     const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
 
     expect(gitResults.success).toBeTruthy();
@@ -145,7 +146,8 @@ describe('publish command (e2e)', () => {
       'dist-tags': { latest: '1.1.0' },
     });
 
-    repo.updateDefaultBranch();
+    repo.checkoutDefaultBranch();
+    repo.pull();
     const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
 
     expect(gitResults.success).toBeTruthy();
@@ -195,7 +197,8 @@ describe('publish command (e2e)', () => {
       'dist-tags': { latest: '1.1.0' },
     });
 
-    repo.updateDefaultBranch();
+    repo.checkoutDefaultBranch();
+    repo.pull();
     const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
 
     expect(gitResults.success).toBeTruthy();
@@ -225,7 +228,8 @@ describe('publish command (e2e)', () => {
       'dist-tags': { latest: '1.0.0' },
     });
 
-    repo.updateDefaultBranch();
+    repo.checkoutDefaultBranch();
+    repo.pull();
 
     const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
     expect(gitResults.success).toBeFalsy();
@@ -253,7 +257,8 @@ describe('publish command (e2e)', () => {
       'dist-tags': { latest: '1.4.0' },
     });
 
-    repo.updateDefaultBranch();
+    repo.checkoutDefaultBranch();
+    repo.pull();
     const barGitResults = git(['describe', '--abbrev=0', 'bar_v1.4.0'], { cwd: repo.rootPath });
 
     expect(barGitResults.success).toBeTruthy();
@@ -291,7 +296,8 @@ describe('publish command (e2e)', () => {
     expect(show.main).toEqual('lib/index.js');
     expect(show.hasOwnProperty('onPublish')).toBeFalsy();
 
-    repo.updateDefaultBranch();
+    repo.checkoutDefaultBranch();
+    repo.pull();
 
     // All git results should still have previous information
     const fooGitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });

@@ -136,26 +136,28 @@ ${gitResult.stderr.toString()}`);
     return result.stdout.trim();
   }
 
-  branch(branchName: string) {
+  checkoutNewBranch(branchName: string) {
     this.git(['checkout', '-b', branchName]);
+  }
+
+  checkoutDefaultBranch() {
+    this.git(['checkout', defaultBranchName]);
+  }
+
+  pull(remote?: string, branch?: string) {
+    this.git(['pull', remote ?? defaultRemoteName, branch ?? `HEAD:${defaultBranchName}`]);
   }
 
   push(remote?: string, branch?: string) {
     this.git(['push', remote ?? defaultRemoteName, branch ?? `HEAD:${defaultBranchName}`]);
   }
 
-  /** Check out the default branch and pull */
-  updateDefaultBranch() {
-    this.git(['checkout', defaultBranchName]);
-    this.git(['pull']);
+  setRemoteUrl(remote: string, remoteUrl: string) {
+    this.git(['remote', 'set-url', remote, remoteUrl]);
   }
 
   cleanUp() {
     this.root && fs.removeSync(this.root);
     this.root = undefined;
-  }
-
-  setRemoteUrl(remote: string, remoteUrl: string) {
-    this.git(['remote', 'set-url', remote, remoteUrl]);
   }
 }

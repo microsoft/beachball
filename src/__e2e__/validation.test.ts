@@ -41,7 +41,7 @@ describe('validation', () => {
     });
 
     it('is true when changes exist in a new branch', () => {
-      repository.branch('feature-0');
+      repository.checkoutNewBranch('feature-0');
       repository.commitChange('myFilename');
       const result = isChangeFileNeeded(
         {
@@ -55,7 +55,7 @@ describe('validation', () => {
     });
 
     it('is false when changes are CHANGELOG files', () => {
-      repository.branch('feature-0');
+      repository.checkoutNewBranch('feature-0');
       repository.commitChange('CHANGELOG.md');
       const result = isChangeFileNeeded(
         {
@@ -70,7 +70,7 @@ describe('validation', () => {
 
     it('throws if the remote is invalid', () => {
       repository.setRemoteUrl(defaultRemoteName, 'file:///__nonexistent');
-      repository.branch('feature-0');
+      repository.checkoutNewBranch('feature-0');
       repository.commitChange('CHANGELOG.md');
 
       expect(() => {
@@ -96,7 +96,7 @@ describe('validation', () => {
     });
 
     it('is false when no change files are deleted', () => {
-      repository.branch('feature-0');
+      repository.checkoutNewBranch('feature-0');
 
       const result = areChangeFilesDeleted({
         branch: defaultRemoteBranchName,
@@ -106,7 +106,7 @@ describe('validation', () => {
     });
 
     it('is true when change files are deleted', () => {
-      repository.branch('feature-0');
+      repository.checkoutNewBranch('feature-0');
 
       const changeDirPath = getChangePath(repository.rootPath);
       fs.removeSync(changeDirPath);
