@@ -37,6 +37,8 @@ export abstract class BaseRepositoryFactory {
     tmpRepo.cloneFrom(this.root);
 
     tmpRepo.commitChange('README');
+
+    // factory-specific initialization
     this.initFixture(tmpRepo);
 
     tmpRepo.push(defaultRemoteName, 'HEAD:' + defaultBranchName);
@@ -79,6 +81,7 @@ export class RepositoryFactory extends BaseRepositoryFactory {
 }
 
 export class Repository {
+  /** Root temp directory for the repo */
   private root?: string;
 
   constructor() {
@@ -93,6 +96,28 @@ export class Repository {
     return this.root;
   }
 
+  /**
+   * Get the path to a file in the repo. The path segments MUST be relative to the repo root,
+   * and MUST NOT start with `..`.
+   *
+   * These restrictions are primarily to reduce issues with path comparison and help detect
+   * possible issues with operating systems representing the same path different ways, which can
+   * cause flaky tests. (e.g. Mac temp files are under `/private/var` which is symlinked as `/var`,
+   * and Windows can use either standard paths or short DOS paths.)
+   */
+  pathTo(...segments: string[]) {
+    const filename = path.join(...segments);
+    if (path.isAbsolute(filename)) {
+      throw new Error('Path must be relative: ' + filename);
+    }
+    if (filename.startsWith('..')) {
+      throw new Error(
+        'Path must not start with .. (this may indicate an OS-specific path handling error): ' + filename
+      );
+    }
+    return path.join(this.rootPath, filename);
+  }
+
   /** Git helper that throws on error */
   git(args: string[]) {
     const gitResult = git(args, { cwd: this.rootPath });
@@ -104,17 +129,21 @@ ${gitResult.stderr.toString()}`);
     return gitResult;
   }
 
-  cloneFrom(path: string) {
-    this.git(['clone', path, '.']);
+  cloneFrom(remotePath: string) {
+    this.git(['clone', remotePath, '.']);
     this.git(['config', 'user.email', 'ci@example.com']);
     this.git(['config', 'user.name', 'CIUSER']);
 
     setDefaultBranchName(this.rootPath);
   }
 
-  /** Commits a change, automatically uses root path, do not pass absolute paths here */
-  commitChange(newFilename: string, content?: string) {
-    const filePath = path.join(this.rootPath, newFilename);
+  /**
+   * Creates or updates and stages a file, creating the intermediate directories if necessary.
+   * Automatically uses root path; do not pass absolute paths here.
+   */
+  stageChange(newFilename: string, content?: string) {
+    const filePath = this.pathTo(newFilename);
+    fs.ensureDirSync(path.dirname(filePath));
     fs.ensureFileSync(filePath);
 
     if (content) {
@@ -122,13 +151,38 @@ ${gitResult.stderr.toString()}`);
     }
 
     this.git(['add', newFilename]);
+  }
+
+  /**
+   * Commits a change, creating the intermediate directories if necessary.
+   * Automatically uses root path; do not pass absolute paths here.
+   */
+  commitChange(newFilename: string, content?: string) {
+    this.stageChange(newFilename, content);
     this.git(['commit', '-m', `"${newFilename}"`]);
   }
 
-  /** Commits a change, automatically uses root path, do not pass absolute paths here */
+  /** Commits a change. Automatically uses root path; do not pass absolute paths here. */
   commitAll() {
     this.git(['add', '-A']);
     this.git(['commit', '-m', 'Committing everything']);
+  }
+
+  /**
+   * Updates the content of a JSON file that already exists in the repo.
+   * The updates will be merged with the original.
+   */
+  updateJsonFile(filename: string, updates: {}) {
+    if (!filename.endsWith('.json')) {
+      throw new Error('This method only works with json files');
+    }
+
+    const fullPath = this.pathTo(filename);
+    const oldContent = fs.readJSONSync(fullPath);
+    fs.writeJSONSync(fullPath, { ...oldContent, ...updates });
+
+    this.git(['add', filename]);
+    this.git(['commit', '-m', `"${filename}"`]);
   }
 
   getCurrentHash() {
@@ -136,12 +190,29 @@ ${gitResult.stderr.toString()}`);
     return result.stdout.trim();
   }
 
+  /** Get tags pointing to the current HEAD commit */
+  getCurrentTags() {
+    const tagsResult = this.git(['tag', '--points-at', 'HEAD']);
+    const trimmedResult = tagsResult.stdout.trim();
+    return trimmedResult ? trimmedResult.split('\n') : [];
+  }
+
+  /** Get status with --porcelain */
+  status() {
+    return this.git(['status', '--porcelain']).stdout.trim();
+  }
+
+  /** Check out a branch. Args can be the name and/or any options. */
+  checkout(...args: string[]) {
+    this.git(['checkout', ...args]);
+  }
+
   checkoutNewBranch(branchName: string) {
-    this.git(['checkout', '-b', branchName]);
+    this.checkout('-b', branchName);
   }
 
   checkoutDefaultBranch() {
-    this.git(['checkout', defaultBranchName]);
+    this.checkout(defaultBranchName);
   }
 
   pull(remote?: string, branch?: string) {

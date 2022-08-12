@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { git } from 'workspace-tools';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { readChangelogJson } from '../__fixtures__/changelog';
 import { initMockLogs } from '../__fixtures__/mockLogs';
@@ -138,10 +137,7 @@ describe('version bumping', () => {
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
-    const revParseOutput = git(['rev-parse', 'HEAD'], { cwd: repo.rootPath });
-    if (!revParseOutput.success) {
-      fail('failed to retrieve the HEAD SHA');
-    }
+    const oldCommit = repo.getCurrentHash();
 
     generateChangeFiles(['pkg-3'], repo.rootPath);
 
@@ -150,7 +146,7 @@ describe('version bumping', () => {
     await bump({
       path: repo.rootPath,
       bumpDeps: false,
-      fromRef: revParseOutput.stdout,
+      fromRef: oldCommit,
     } as BeachballOptions);
 
     const packageInfos = getPackageInfos(repo.rootPath);
@@ -478,7 +474,11 @@ describe('version bumping', () => {
 
     repo.push();
 
-    await bump({ path: repo.rootPath, bumpDeps: false, keepChangeFiles: true } as BeachballOptions);
+    await bump({
+      path: repo.rootPath,
+      bumpDeps: false,
+      keepChangeFiles: true,
+    } as BeachballOptions);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -795,7 +795,7 @@ describe('version bumping', () => {
     expect(modified).toContain('package1');
     expect(modified).toContain('package2');
 
-    const changelogJson = readChangelogJson([repo.rootPath, 'packages/package2']);
+    const changelogJson = readChangelogJson(repo.pathTo('packages/package2'));
     expect(changelogJson.entries[0].comments.patch![0].comment).toBe('Bump package1 to v0.0.2');
   });
 
@@ -823,7 +823,7 @@ describe('version bumping', () => {
       hooks: {
         prebump: (packagePath, name, version) => {
           prebumpCalled = true;
-          expect(packagePath.endsWith(path.sep + path.join('packages', 'pkg-1')));
+          expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
           expect(name).toBe('pkg-1');
           expect(version).toBe('1.1.0');
 
@@ -860,7 +860,7 @@ describe('version bumping', () => {
       hooks: {
         prebump: async (packagePath, name, version) => {
           prebumpCalled = true;
-          expect(packagePath.endsWith(path.sep + path.join('packages', 'pkg-1')));
+          expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
           expect(name).toBe('pkg-1');
           expect(version).toBe('1.1.0');
 
@@ -926,7 +926,7 @@ describe('version bumping', () => {
       hooks: {
         postbump: (packagePath, name, version) => {
           postBumpCalled = true;
-          expect(packagePath.endsWith(path.sep + path.join('packages', 'pkg-1')));
+          expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
           expect(name).toBe('pkg-1');
           expect(version).toBe('1.1.0');
 
@@ -963,7 +963,7 @@ describe('version bumping', () => {
       hooks: {
         postbump: async (packagePath, name, version) => {
           postbumpCalled = true;
-          expect(packagePath.endsWith(path.sep + path.join('packages', 'pkg-1')));
+          expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
           expect(name).toBe('pkg-1');
           expect(version).toBe('1.1.0');
 

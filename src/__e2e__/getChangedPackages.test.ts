@@ -1,23 +1,14 @@
-import fs from 'fs-extra';
 import path from 'path';
+import { defaultBranchName } from '../__fixtures__/gitDefaults';
+import { MonoRepoFactory } from '../__fixtures__/monorepo';
+import { MultiMonoRepoFactory } from '../__fixtures__/multiMonorepo';
 import { RepositoryFactory } from '../__fixtures__/repository';
-import { git } from 'workspace-tools';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { MultiMonoRepoFactory } from '../__fixtures__/multiMonorepo';
 import { getChangedPackages } from '../changefile/getChangedPackages';
-import { MonoRepoFactory } from '../__fixtures__/monorepo';
-import { defaultBranchName } from '../__fixtures__/gitDefaults';
 
 describe('getChangedPackages', () => {
   let repositoryFactory: RepositoryFactory | MonoRepoFactory | MultiMonoRepoFactory | undefined;
-
-  function writeAndAdd(repoRoot: string, filePath: string) {
-    const testFilePath = path.join(repoRoot, filePath);
-    fs.ensureDirSync(path.dirname(testFilePath));
-    fs.writeFileSync(testFilePath, '');
-    git(['add', testFilePath], { cwd: repoRoot });
-  }
 
   afterEach(() => {
     if (repositoryFactory) {
@@ -34,7 +25,7 @@ describe('getChangedPackages', () => {
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
 
-    writeAndAdd(repo.rootPath, 'foo.js');
+    repo.stageChange('foo.js');
     expect(getChangedPackages(options, packageInfos)).toStrictEqual(['foo']);
   });
 
@@ -49,9 +40,9 @@ describe('getChangedPackages', () => {
     } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
 
-    writeAndAdd(repo.rootPath, 'src/foo.test.js');
-    writeAndAdd(repo.rootPath, 'tests/stuff.js');
-    writeAndAdd(repo.rootPath, 'yarn.lock');
+    repo.stageChange('src/foo.test.js');
+    repo.stageChange('tests/stuff.js');
+    repo.stageChange('yarn.lock');
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
   });
@@ -64,7 +55,7 @@ describe('getChangedPackages', () => {
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
 
-    writeAndAdd(repo.rootPath, 'packages/foo/test.js');
+    repo.stageChange('packages/foo/test.js');
     expect(getChangedPackages(options, packageInfos)).toStrictEqual(['foo']);
   });
 
@@ -78,7 +69,7 @@ describe('getChangedPackages', () => {
 
     expect(getChangedPackages(rootOptions, rootPackageInfos)).toStrictEqual([]);
 
-    writeAndAdd(repoARoot, 'packages/foo/test.js');
+    repo.stageChange('repo-a/packages/foo/test.js');
 
     const changedPackagesA = getChangedPackages({ ...rootOptions, path: repoARoot }, getPackageInfos(repoARoot));
     const changedPackagesB = getChangedPackages({ ...rootOptions, path: repoBRoot }, getPackageInfos(repoBRoot));

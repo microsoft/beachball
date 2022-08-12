@@ -5,15 +5,15 @@ import { SortedChangeTypes } from '../changefile/getPackageChangeTypes';
 import { ChangelogJson } from '../types/ChangeLog';
 
 /** Read the CHANGELOG.md under the given package path, sanitizing any dates for snapshots */
-export function readChangelogMd(packagePathParts: string[]): string {
-  const changelogFile = path.join(...packagePathParts, 'CHANGELOG.md');
+export function readChangelogMd(packagePath: string): string {
+  const changelogFile = path.join(packagePath, 'CHANGELOG.md');
   const text = fs.readFileSync(changelogFile, { encoding: 'utf-8' });
   return text.replace(/\w\w\w, \d\d \w\w\w [\d :]+?GMT/gm, '(date)');
 }
 
 /** Read the CHANGELOG.json under the given package path */
-export function readChangelogJson(packagePathParts: string[], cleanForSnapshot: boolean = false): ChangelogJson {
-  const changelogJsonFile = path.join(...packagePathParts, 'CHANGELOG.json');
+export function readChangelogJson(packagePath: string, cleanForSnapshot: boolean = false): ChangelogJson {
+  const changelogJsonFile = path.join(packagePath, 'CHANGELOG.json');
   const json = fs.readJSONSync(changelogJsonFile, { encoding: 'utf-8' });
   return cleanForSnapshot ? cleanChangelogJson(json) : json;
 }

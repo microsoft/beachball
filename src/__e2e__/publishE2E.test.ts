@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { git, addGitObserver, clearGitObservers } from 'workspace-tools';
+import { addGitObserver, clearGitObservers } from 'workspace-tools';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
@@ -74,10 +74,7 @@ describe('publish command (e2e)', () => {
 
     repo.checkoutDefaultBranch();
     repo.pull();
-    const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
-
-    expect(gitResults.success).toBeTruthy();
-    expect(gitResults.stdout).toBe('foo_v1.1.0');
+    expect(repo.getCurrentTags()).toStrictEqual(['foo_v1.1.0']);
   });
 
   it('can perform a successful npm publish in detached HEAD', async () => {
@@ -88,7 +85,7 @@ describe('publish command (e2e)', () => {
 
     repo.push();
 
-    git(['checkout', '--detach'], { cwd: repo.rootPath });
+    repo.checkout('--detach');
 
     await publish(getOptions(repo, { push: false }));
 
@@ -115,22 +112,7 @@ describe('publish command (e2e)', () => {
         if (fetchCount === 0) {
           const anotherRepo = repositoryFactory!.cloneRepository();
           // inject a checkin
-          const packageJsonFile = path.join(anotherRepo.rootPath, 'package.json');
-          const contents = JSON.parse(fs.readFileSync(packageJsonFile, 'utf-8'));
-          fs.writeFileSync(
-            packageJsonFile,
-            JSON.stringify(
-              {
-                ...contents,
-                version: '1.0.2',
-              },
-              null,
-              2
-            )
-          );
-
-          git(['add', packageJsonFile], { cwd: anotherRepo.rootPath });
-          git(['commit', '-m', 'test'], { cwd: anotherRepo.rootPath });
+          anotherRepo.updateJsonFile('package.json', { version: '1.0.2' });
           anotherRepo.push();
         }
 
@@ -148,10 +130,7 @@ describe('publish command (e2e)', () => {
 
     repo.checkoutDefaultBranch();
     repo.pull();
-    const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
-
-    expect(gitResults.success).toBeTruthy();
-    expect(gitResults.stdout).toBe('foo_v1.1.0');
+    expect(repo.getCurrentTags()).toStrictEqual(['foo_v1.1.0']);
 
     // this indicates 2 tries
     expect(fetchCount).toBe(2);
@@ -173,15 +152,10 @@ describe('publish command (e2e)', () => {
         if (fetchCount === 0) {
           const anotherRepo = repositoryFactory!.cloneRepository();
           // inject a checkin
-          const packageJsonFile = path.join(anotherRepo.rootPath, 'package.json');
-          const contents = JSON.parse(fs.readFileSync(packageJsonFile, 'utf-8'));
-
+          const packageJsonFile = anotherRepo.pathTo('package.json');
+          const contents = fs.readJSONSync(packageJsonFile, 'utf-8');
           delete contents.dependencies.baz;
-
-          fs.writeFileSync(packageJsonFile, JSON.stringify(contents, null, 2));
-
-          git(['add', packageJsonFile], { cwd: anotherRepo.rootPath });
-          git(['commit', '-m', 'test'], { cwd: anotherRepo.rootPath });
+          anotherRepo.commitChange('package.json', JSON.stringify(contents, null, 2));
           anotherRepo.push();
         }
 
@@ -199,15 +173,12 @@ describe('publish command (e2e)', () => {
 
     repo.checkoutDefaultBranch();
     repo.pull();
-    const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
-
-    expect(gitResults.success).toBeTruthy();
-    expect(gitResults.stdout).toBe('foo_v1.1.0');
+    expect(repo.getCurrentTags()).toStrictEqual(['foo_v1.1.0']);
 
     // this indicates 2 tries
     expect(fetchCount).toBe(2);
 
-    const packageJsonFile = path.join(repo.rootPath, 'package.json');
+    const packageJsonFile = repo.pathTo('package.json');
     const contents = JSON.parse(fs.readFileSync(packageJsonFile, 'utf-8'));
     expect(contents.dependencies.baz).toBeUndefined();
   });
@@ -230,9 +201,7 @@ describe('publish command (e2e)', () => {
 
     repo.checkoutDefaultBranch();
     repo.pull();
-
-    const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
-    expect(gitResults.success).toBeFalsy();
+    expect(repo.getCurrentTags()).toEqual([]);
   });
 
   it('should not perform npm publish on out-of-scope package', async () => {
@@ -248,8 +217,7 @@ describe('publish command (e2e)', () => {
 
     npmShow(registry, 'foo', true /*shouldFail*/);
 
-    const fooGitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
-    expect(fooGitResults.success).toBeFalsy();
+    expect(repo.getCurrentTags()).toEqual([]);
 
     expect(npmShow(registry, 'bar')).toMatchObject<NpmShowResult>({
       name: 'bar',
@@ -259,10 +227,7 @@ describe('publish command (e2e)', () => {
 
     repo.checkoutDefaultBranch();
     repo.pull();
-    const barGitResults = git(['describe', '--abbrev=0', 'bar_v1.4.0'], { cwd: repo.rootPath });
-
-    expect(barGitResults.success).toBeTruthy();
-    expect(barGitResults.stdout).toBe('bar_v1.4.0');
+    expect(repo.getCurrentTags()).toEqual(['bar_v1.4.0']);
   });
 
   it('should respect prepublish hooks', async () => {
@@ -300,9 +265,8 @@ describe('publish command (e2e)', () => {
     repo.pull();
 
     // All git results should still have previous information
-    const fooGitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
-    expect(fooGitResults.success).toBeTruthy();
-    const fooPackageJson = fs.readJSONSync(path.join(repo.rootPath, 'packages/foo/package.json'));
+    expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
+    const fooPackageJson = fs.readJSONSync(repo.pathTo('packages/foo/package.json'));
     expect(fooPackageJson.main).toBe('src/index.ts');
     expect(fooPackageJson.onPublish.main).toBe('lib/index.js');
   });
@@ -331,7 +295,7 @@ describe('publish command (e2e)', () => {
       })
     );
 
-    const fooPackageJson = fs.readJSONSync(path.join(repo.rootPath, 'packages/foo/package.json'));
+    const fooPackageJson = fs.readJSONSync(repo.pathTo('packages/foo/package.json'));
     expect(fooPackageJson.main).toBe('src/index.ts');
     expect(notified).toBe(fooPackageJson.afterPublish.notify);
   });

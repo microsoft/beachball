@@ -1,5 +1,4 @@
 import path from 'path';
-import * as fs from 'fs-extra';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { BaseRepositoryFactory, Repository } from './repository';
 import { PackageJson } from '../types/PackageInfo';
@@ -63,16 +62,8 @@ export class MultiMonoRepoFactory extends BaseRepositoryFactory {
   }
 
   protected initFixture(tmpRepo: Repository) {
-    for (const pkg of Object.keys(packageJsonFixtures)) {
-      const packageJsonFixture = packageJsonFixtures[pkg];
-      const packageJsonFile = path.join(pkg, 'package.json');
-
-      fs.mkdirpSync(path.join(tmpRepo.rootPath, pkg));
-
-      fs.writeJSONSync(path.join(tmpRepo.rootPath, packageJsonFile), packageJsonFixture, {
-        spaces: 2,
-      });
-      tmpRepo.commitChange(packageJsonFile);
+    for (const [pkgName, pkgFixture] of Object.entries(packageJsonFixtures)) {
+      tmpRepo.commitChange(path.join(pkgName, 'package.json'), JSON.stringify(pkgFixture, null, 2));
     }
 
     tmpRepo.commitChange('repo-a/yarn.lock', '');
