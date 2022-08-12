@@ -1,5 +1,4 @@
 import fs from 'fs-extra';
-import { git } from 'workspace-tools';
 import { getChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { RepositoryFactory } from '../__fixtures__/repository';
@@ -39,9 +38,7 @@ describe('change command', () => {
       commit: false,
     } as BeachballOptions);
 
-    const output = git(['status', '-s'], { cwd: repo.rootPath });
-    expect(output.success).toBeTruthy();
-    expect(output.stdout.startsWith('A')).toBeTruthy();
+    expect(repo.status()).toMatch(/^A  change/);
 
     const changeFiles = getChangeFiles(repo.rootPath);
     expect(changeFiles).toHaveLength(1);
@@ -76,9 +73,7 @@ describe('change command', () => {
       groupChanges: true,
     } as BeachballOptions);
 
-    const output = git(['status', '-s'], { cwd: repo.rootPath });
-    expect(output.success).toBeTruthy();
-    expect(output.stdout.startsWith('A')).toBeTruthy();
+    expect(repo.status()).toMatch(/^A  change/);
 
     const changeFiles = getChangeFiles(repo.rootPath);
     for (const file of changeFiles) {
@@ -109,9 +104,7 @@ describe('change command', () => {
       path: repo.rootPath,
     } as BeachballOptions);
 
-    const output = git(['status', '-s'], { cwd: repo.rootPath });
-    expect(output.success).toBeTruthy();
-    expect(output.stdout).toHaveLength(0);
+    expect(repo.status()).toBe('');
 
     const changeFiles = getChangeFiles(repo.rootPath);
     expect(changeFiles).toHaveLength(1);

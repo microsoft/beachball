@@ -1,4 +1,3 @@
-import path from 'path';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { MultiMonoRepoFactory } from '../__fixtures__/multiMonorepo';
@@ -22,8 +21,8 @@ describe('version bumping', () => {
     repositoryFactory = new MultiMonoRepoFactory();
     const repo = repositoryFactory.cloneRepository();
 
-    const repoARoot = path.join(repo.rootPath, 'repo-a');
-    const repoBRoot = path.join(repo.rootPath, 'repo-b');
+    const repoARoot = repo.pathTo('repo-a');
+    const repoBRoot = repo.pathTo('repo-b');
 
     generateChangeFiles([{ packageName: '@repo-a/foo' }], repoARoot);
     generateChangeFiles([{ packageName: '@repo-a/foo', type: 'major' }], repoBRoot);
