@@ -6,6 +6,8 @@ name: PR
 on:
   pull_request:
     branches: [master]
+  push:
+    branches: [master]
 
 env:
   nodeVersion: 12
