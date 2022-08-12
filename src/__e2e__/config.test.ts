@@ -7,9 +7,8 @@ const baseArgv = ['node.exe', 'bin.js'];
 describe('config', () => {
   it('uses the branch name defined in beachball.config.js', () => {
     const repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
-    const config = inDirectory(repo.root!, () => {
+    const config = inDirectory(repo.rootPath, () => {
       writeConfig('module.exports = { branch: "origin/main" };');
       return getOptions(baseArgv);
     });
@@ -19,9 +18,8 @@ describe('config', () => {
 
 it('--config overrides configuration path', () => {
   const repositoryFactory = new RepositoryFactory();
-  repositoryFactory.create();
   const repo = repositoryFactory.cloneRepository();
-  const config = inDirectory(repo.root!, () => {
+  const config = inDirectory(repo.rootPath, () => {
     writeConfig('module.exports = { branch: "origin/main" };');
     fs.writeFileSync('alternate.config.js', 'module.exports = { branch: "origin/foo" };');
     return getOptions([...baseArgv, '--config', 'alternate.config.js']);

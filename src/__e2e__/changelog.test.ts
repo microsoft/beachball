@@ -31,9 +31,7 @@ describe('changelog generation', () => {
 
   beforeAll(() => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     monoRepoFactory = new MonoRepoFactory();
-    monoRepoFactory.create();
   });
 
   afterAll(() => {

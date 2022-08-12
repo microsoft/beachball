@@ -12,7 +12,6 @@ describe('getScopedPackages', () => {
 
   beforeAll(() => {
     repoFactory = new MonoRepoFactory();
-    repoFactory.create();
     repo = repoFactory.cloneRepository();
     packageInfos = getPackageInfos(repo.rootPath);
   });

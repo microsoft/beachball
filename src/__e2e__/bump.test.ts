@@ -11,7 +11,7 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
 
 describe('version bumping', () => {
-  let repositoryFactory: RepositoryFactory | undefined;
+  let repositoryFactory: RepositoryFactory | MonoRepoFactory | undefined;
 
   initMockLogs();
 
@@ -24,7 +24,6 @@ describe('version bumping', () => {
 
   it('bumps only packages with change files', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -99,7 +98,6 @@ describe('version bumping', () => {
 
   it('bumps only packages with change files committed between specified ref and head using `since` flag', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -168,7 +166,6 @@ describe('version bumping', () => {
 
   it('bumps all dependent packages with `bumpDeps` flag', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -243,7 +240,6 @@ describe('version bumping', () => {
 
   it('bumps all grouped packages', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -300,7 +296,6 @@ describe('version bumping', () => {
 
   it('bumps all grouped AND dependent packages', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -382,7 +377,6 @@ describe('version bumping', () => {
 
   it('should not bump out-of-scope package even if package has change', async () => {
     repositoryFactory = new MonoRepoFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     generateChangeFiles(['foo'], repo.rootPath);
@@ -405,7 +399,6 @@ describe('version bumping', () => {
 
   it('should not bump out-of-scope package and its dependencies even if dependency of the package has change', async () => {
     repositoryFactory = new MonoRepoFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     generateChangeFiles([{ packageName: 'bar', type: 'patch' }], repo.rootPath);
@@ -429,7 +422,6 @@ describe('version bumping', () => {
 
   it('bumps all packages and keeps change files with `keep-change-files` flag', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -504,7 +496,6 @@ describe('version bumping', () => {
 
   it('bumps all packages and uses prefix in the version', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -584,7 +575,6 @@ describe('version bumping', () => {
 
   it('bumps all packages and uses prefixed versions in dependents', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -667,7 +657,6 @@ describe('version bumping', () => {
 
   it('bumps all packages and increments prefixed versions in dependents', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -750,7 +739,6 @@ describe('version bumping', () => {
 
   it('generates correct changelogs and modified packages when bumpDeps is true', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -813,7 +801,6 @@ describe('version bumping', () => {
 
   it('calls sync prebump hook before packages are bumped', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -851,7 +838,6 @@ describe('version bumping', () => {
 
   it('calls async prebump hook before packages are bumped', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -889,7 +875,6 @@ describe('version bumping', () => {
 
   it('propagates prebump hook exceptions', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -919,7 +904,6 @@ describe('version bumping', () => {
 
   it('calls sync postbump hook before packages are bumped', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -957,7 +941,6 @@ describe('version bumping', () => {
 
   it('calls async postbump hook before packages are bumped', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -995,7 +978,6 @@ describe('version bumping', () => {
 
   it('propagates postbump hook exceptions', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(

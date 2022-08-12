@@ -56,7 +56,6 @@ describe('publish command (registry)', () => {
 
   it('can perform a successful npm publish', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     generateChangeFiles(['foo'], repo.rootPath);
@@ -72,7 +71,6 @@ describe('publish command (registry)', () => {
 
   it('can perform a successful npm publish even with private packages', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -112,7 +110,6 @@ describe('publish command (registry)', () => {
 
   it('can perform a successful npm publish when multiple packages changed at same time', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -149,7 +146,6 @@ describe('publish command (registry)', () => {
 
   it('can perform a successful npm publish even with a non-existent package listed in the change file', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -188,7 +184,6 @@ describe('publish command (registry)', () => {
 
   it('should exit publishing early if only invalid change files exist', async () => {
     repositoryFactory = new MonoRepoFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -218,7 +213,6 @@ describe('publish command (registry)', () => {
     logs.init(false);
 
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     generateChangeFiles(['foo'], repo.rootPath);

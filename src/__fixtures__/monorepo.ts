@@ -1,11 +1,8 @@
-import * as process from 'process';
 import path from 'path';
 import * as fs from 'fs-extra';
-import { tmpdir } from './tmpdir';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { Repository, RepositoryFactory } from './repository';
+import { BaseRepositoryFactory, Repository } from './repository';
 import { PackageJson } from '../types/PackageInfo';
-import { defaultBranchName, defaultRemoteName, gitInitWithDefaultBranchName } from './gitDefaults';
 
 export const packageJsonFixtures: { [path: string]: PackageJson } = {
   'packages/foo': {
@@ -58,22 +55,12 @@ const beachballConfigFixture = {
   ],
 } as BeachballOptions;
 
-export class MonoRepoFactory extends RepositoryFactory {
-  root?: string;
+export class MonoRepoFactory extends BaseRepositoryFactory {
+  constructor() {
+    super('beachball-monorepo-upstream-');
+  }
 
-  create() {
-    const originalDirectory = process.cwd();
-
-    this.root = tmpdir({ prefix: 'beachball-monorepository-upstream-' });
-    process.chdir(this.root);
-    gitInitWithDefaultBranchName(this.root);
-
-    const tmpRepo = new Repository();
-    this.childRepos.push(tmpRepo);
-    tmpRepo.initialize();
-    tmpRepo.cloneFrom(this.root);
-    tmpRepo.commitChange('README');
-
+  protected initFixture(tmpRepo: Repository) {
     for (const pkg of Object.keys(packageJsonFixtures)) {
       const packageJsonFixture = packageJsonFixtures[pkg];
       const packageJsonFile = path.join(pkg, 'package.json');
@@ -89,9 +76,5 @@ export class MonoRepoFactory extends RepositoryFactory {
     tmpRepo.commitChange('package.json', JSON.stringify({ name: 'monorepo-fixture', version: '1.0.0' }, null, 2));
 
     tmpRepo.commitChange('beachball.config.js', 'module.exports = ' + JSON.stringify(beachballConfigFixture, null, 2));
-
-    tmpRepo.push(defaultRemoteName, `HEAD:${defaultBranchName}`);
-
-    process.chdir(originalDirectory);
   }
 }

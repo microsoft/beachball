@@ -20,7 +20,6 @@ describe('change command', () => {
 
   it('create change file but git stage only', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -50,7 +49,6 @@ describe('change command', () => {
 
   it('create change file but git stage only multiple changes', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(
@@ -93,7 +91,6 @@ describe('change command', () => {
 
   it('create change file and commit', async () => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
     const repo = repositoryFactory.cloneRepository();
 
     repo.commitChange(

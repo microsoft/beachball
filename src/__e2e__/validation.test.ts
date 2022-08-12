@@ -15,7 +15,6 @@ describe('validation', () => {
 
   beforeAll(() => {
     repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
   });
 
   afterAll(() => {
