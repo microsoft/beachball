@@ -182,11 +182,11 @@ describe('changelog generation', () => {
 
       const changelogFile = path.join(repository.rootPath, 'CHANGELOG.md');
       const text = fs.readFileSync(changelogFile, { encoding: 'utf-8' });
-      expect(cleanMarkdownForSnapshot(text)).toMatchSnapshot();
+      expect(cleanMarkdownForSnapshot(text)).toMatchSnapshot('changelog json');
 
       const changelogJsonFile = path.join(repository.rootPath, 'CHANGELOG.json');
       const changelogJson: ChangelogJson = fs.readJSONSync(changelogJsonFile);
-      expect(cleanJsonForSnapshot(changelogJson)).toMatchSnapshot();
+      expect(cleanJsonForSnapshot(changelogJson)).toMatchSnapshot('changelog md');
 
       // Every entry should have a different commit hash
       const patchComments = changelogJson.entries[0].comments.patch!;
@@ -222,14 +222,14 @@ describe('changelog generation', () => {
 
       // check changelogs for both foo and bar
       const fooText = fs.readFileSync(path.join(monoRepo.rootPath, 'packages/foo/CHANGELOG.md'), { encoding: 'utf-8' });
-      expect(cleanMarkdownForSnapshot(fooText)).toMatchSnapshot();
+      expect(cleanMarkdownForSnapshot(fooText)).toMatchSnapshot('foo CHANGELOG.md');
       const barText = fs.readFileSync(path.join(monoRepo.rootPath, 'packages/bar/CHANGELOG.md'), { encoding: 'utf-8' });
-      expect(cleanMarkdownForSnapshot(barText)).toMatchSnapshot();
+      expect(cleanMarkdownForSnapshot(barText)).toMatchSnapshot('bar CHANGELOG.md');
 
       const fooJson: ChangelogJson = fs.readJSONSync(path.join(monoRepo.rootPath, 'packages/foo/CHANGELOG.json'));
-      expect(cleanJsonForSnapshot(fooJson)).toMatchSnapshot();
+      expect(cleanJsonForSnapshot(fooJson)).toMatchSnapshot('foo CHANGELOG.json');
       const barJson: ChangelogJson = fs.readJSONSync(path.join(monoRepo.rootPath, 'packages/bar/CHANGELOG.json'));
-      expect(cleanJsonForSnapshot(barJson)).toMatchSnapshot();
+      expect(cleanJsonForSnapshot(barJson)).toMatchSnapshot('bar CHANGELOG.json');
 
       // Every entry should have a different commit hash
       const patchComments = fooJson.entries[0].comments.patch!;
@@ -271,17 +271,17 @@ describe('changelog generation', () => {
       // Validate changelog for foo package
       const fooChangelogFile = path.join(monoRepo.rootPath, 'packages', 'foo', 'CHANGELOG.md');
       const fooChangelogText = fs.readFileSync(fooChangelogFile, { encoding: 'utf-8' });
-      expect(cleanMarkdownForSnapshot(fooChangelogText)).toMatchSnapshot();
+      expect(cleanMarkdownForSnapshot(fooChangelogText)).toMatchSnapshot('foo CHANGELOG.md');
 
       // Validate changelog for bar package
       const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
       const barChangelogText = fs.readFileSync(barChangelogFile, { encoding: 'utf-8' });
-      expect(cleanMarkdownForSnapshot(barChangelogText)).toMatchSnapshot();
+      expect(cleanMarkdownForSnapshot(barChangelogText)).toMatchSnapshot('bar CHANGELOG.md');
 
       // Validate grouped changelog for foo and bar packages
       const groupedChangelogFile = path.join(monoRepo.rootPath, 'CHANGELOG.md');
       const groupedChangelogText = fs.readFileSync(groupedChangelogFile, { encoding: 'utf-8' });
-      expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot();
+      expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot('grouped CHANGELOG.md');
     });
 
     it('generates grouped changelog without dependent change entries', async () => {
@@ -317,19 +317,19 @@ describe('changelog generation', () => {
       const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
       const barChangelogText = fs.readFileSync(barChangelogFile, { encoding: 'utf-8' });
       expect(barChangelogText).toContain('- Bump baz');
-      expect(cleanMarkdownForSnapshot(barChangelogText)).toMatchSnapshot();
+      expect(cleanMarkdownForSnapshot(barChangelogText)).toMatchSnapshot('bar CHANGELOG.md');
 
       // Validate changelog for baz package
       const bazChangelogFile = path.join(monoRepo.rootPath, 'packages', 'baz', 'CHANGELOG.md');
       const bazChangelogText = fs.readFileSync(bazChangelogFile, { encoding: 'utf-8' });
-      expect(cleanMarkdownForSnapshot(bazChangelogText)).toMatchSnapshot();
+      expect(cleanMarkdownForSnapshot(bazChangelogText)).toMatchSnapshot('baz CHANGELOG.md');
 
       // Validate grouped changelog for foo master package
       const groupedChangelogFile = path.join(monoRepo.rootPath, 'CHANGELOG.md');
       const groupedChangelogText = fs.readFileSync(groupedChangelogFile, { encoding: 'utf-8' });
       expect(groupedChangelogText).toContain('- comment 1');
       expect(groupedChangelogText).not.toContain('- Bump baz');
-      expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot();
+      expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot('grouped CHANGELOG.md');
     });
 
     it('generates grouped changelog without dependent change entries where packages have normal changes and dependency changes', async () => {
@@ -365,17 +365,17 @@ describe('changelog generation', () => {
       // Validate changelog for bar package
       const barChangelogFile = path.join(monoRepo.rootPath, 'packages', 'bar', 'CHANGELOG.md');
       const barChangelogText = fs.readFileSync(barChangelogFile, { encoding: 'utf-8' });
-      expect(cleanMarkdownForSnapshot(barChangelogText)).toMatchSnapshot();
+      expect(cleanMarkdownForSnapshot(barChangelogText)).toMatchSnapshot('bar CHANGELOG.md');
 
       // Validate changelog for baz package
       const bazChangelogFile = path.join(monoRepo.rootPath, 'packages', 'baz', 'CHANGELOG.md');
       const bazChangelogText = fs.readFileSync(bazChangelogFile, { encoding: 'utf-8' });
-      expect(cleanMarkdownForSnapshot(bazChangelogText)).toMatchSnapshot();
+      expect(cleanMarkdownForSnapshot(bazChangelogText)).toMatchSnapshot('baz CHANGELOG.md');
 
       // Validate grouped changelog for foo master package
       const groupedChangelogFile = path.join(monoRepo.rootPath, 'CHANGELOG.md');
       const groupedChangelogText = fs.readFileSync(groupedChangelogFile, { encoding: 'utf-8' });
-      expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot();
+      expect(cleanMarkdownForSnapshot(groupedChangelogText)).toMatchSnapshot('grouped CHANGELOG.md');
     });
 
     it('generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog', async () => {
