@@ -2,7 +2,8 @@ import fs from 'fs-extra';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import { Repository, RepositoryFactory } from '../__fixtures__/repository';
+import { Repository } from '../__fixtures__/repository';
+import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publish } from '../commands/publish';
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
@@ -39,7 +40,7 @@ describe('publish command (git)', () => {
   });
 
   beforeEach(() => {
-    repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory('single');
   });
 
   afterEach(() => {
@@ -70,7 +71,7 @@ describe('publish command (git)', () => {
 
     // 2. simulate the start of a publish from repo1
     const publishBranch = 'publish_test';
-    repo1.checkout(publishBranch);
+    repo1.checkoutNewBranch(publishBranch);
 
     const options: BeachballOptions = getOptions(repo1);
 

@@ -2,7 +2,8 @@ import fs from 'fs-extra';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { defaultRemoteBranchName, defaultRemoteName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import { RepositoryFactory, Repository } from '../__fixtures__/repository';
+import { Repository } from '../__fixtures__/repository';
+import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { isChangeFileNeeded } from '../validation/isChangeFileNeeded';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { areChangeFilesDeleted } from '../validation/areChangeFilesDeleted';
@@ -14,7 +15,7 @@ describe('validation', () => {
   initMockLogs();
 
   beforeAll(() => {
-    repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory('single');
   });
 
   afterAll(() => {
@@ -69,18 +70,20 @@ describe('validation', () => {
     });
 
     it('throws if the remote is invalid', () => {
-      repository.setRemoteUrl(defaultRemoteName, 'file:///__nonexistent');
-      repository.checkoutNewBranch('feature-0');
-      repository.commitChange('CHANGELOG.md');
+      // make a separate clone due to messing with the remote
+      const repo = repositoryFactory.cloneRepository();
+      repo.setRemoteUrl(defaultRemoteName, 'file:///__nonexistent');
+      repo.checkoutNewBranch('feature-0');
+      repo.commitChange('CHANGELOG.md');
 
       expect(() => {
         isChangeFileNeeded(
           {
             branch: defaultRemoteBranchName,
-            path: repository.rootPath,
+            path: repo.rootPath,
             fetch: true,
           } as BeachballOptions,
-          getPackageInfos(repository.rootPath)
+          getPackageInfos(repo.rootPath)
         );
       }).toThrow();
     });

@@ -4,12 +4,6 @@ export const defaultBranchName = 'master';
 export const defaultRemoteName = 'origin';
 export const defaultRemoteBranchName = 'origin/master';
 
-export function gitInitWithDefaultBranchName(cwd: string) {
-  gitFailFast(['init', '--bare'], { cwd });
-
-  setDefaultBranchName(cwd);
-}
-
 /**
  * Configure the legacy default branch name to handle cases where
  * users have configured a different default branch name.

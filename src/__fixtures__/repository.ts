@@ -1,91 +1,30 @@
-import * as process from 'process';
 import path from 'path';
 import * as fs from 'fs-extra';
 import { tmpdir } from './tmpdir';
 import { git } from 'workspace-tools';
-import {
-  defaultBranchName,
-  defaultRemoteName,
-  gitInitWithDefaultBranchName,
-  setDefaultBranchName,
-} from './gitDefaults';
+import { defaultBranchName, defaultRemoteName, setDefaultBranchName } from './gitDefaults';
 
-export const packageJsonFixture = {
-  name: 'foo',
-  version: '1.0.0',
-  dependencies: {
-    bar: '1.0.0',
-    baz: '1.0.0',
-  },
-};
-
-/** Provides common setup, cloning, and teardown for repository factories */
-export abstract class BaseRepositoryFactory {
-  private root?: string;
-  /** Cloned child repos, tracked so we can clean them up */
-  private childRepos: Repository[] = [];
-
-  constructor(prefix: string) {
-    const originalDirectory = process.cwd();
-
-    this.root = tmpdir({ prefix });
-    process.chdir(this.root);
-    gitInitWithDefaultBranchName(this.root);
-
-    const tmpRepo = new Repository();
-    this.childRepos.push(tmpRepo);
-    tmpRepo.cloneFrom(this.root);
-
-    tmpRepo.commitChange('README');
-
-    // factory-specific initialization
-    this.initFixture(tmpRepo);
-
-    tmpRepo.push(defaultRemoteName, 'HEAD:' + defaultBranchName);
-
-    process.chdir(originalDirectory);
-  }
-
-  protected abstract initFixture(tmpRepo: Repository): void;
-
-  cloneRepository(): Repository {
-    if (!this.root) {
-      throw new Error('Factory was already cleaned up');
-    }
-    const newRepo = new Repository();
-    newRepo.cloneFrom(this.root);
-    return newRepo;
-  }
-
-  cleanUp() {
-    if (!this.root) {
-      return; // already cleaned up
-    }
-    fs.removeSync(this.root);
-    this.root = undefined;
-    for (const repo of this.childRepos) {
-      repo.cleanUp();
-    }
-  }
-}
-
-export class RepositoryFactory extends BaseRepositoryFactory {
-  constructor() {
-    super('beachball-repository-upstream-');
-  }
-
-  /** Create and commit the fixture-specific files */
-  protected initFixture(tmpRepo: Repository) {
-    tmpRepo.commitChange('package.json', JSON.stringify(packageJsonFixture, null, 2));
-  }
-}
-
+/**
+ * Represents a git repository.
+ *
+ * If the repository was created by a RepositoryFactory, cleanup will be handled automatically
+ * as long as you call `repositoryFactory.cleanUp()`.
+ */
 export class Repository {
   /** Root temp directory for the repo */
   private root?: string;
 
-  constructor() {
-    this.root = tmpdir({ prefix: 'beachball-repository-cloned-' });
+  /**
+   * Clone a repo and initialize settings that will be needed for commits and testing.
+   */
+  constructor(clonePath: string, tempDescription: string = 'repository') {
+    this.root = tmpdir({ prefix: `beachball-${tempDescription}-cloned-` });
+
+    this.git(['clone', clonePath, '.']);
+
+    this.git(['config', 'user.email', 'ci@example.com']);
+    this.git(['config', 'user.name', 'CIUSER']);
+    setDefaultBranchName(this.rootPath);
   }
 
   /** Root temp directory for the repo (throws if not initialized) */
@@ -129,14 +68,6 @@ ${gitResult.stderr.toString()}`);
     return gitResult;
   }
 
-  cloneFrom(remotePath: string) {
-    this.git(['clone', remotePath, '.']);
-    this.git(['config', 'user.email', 'ci@example.com']);
-    this.git(['config', 'user.name', 'CIUSER']);
-
-    setDefaultBranchName(this.rootPath);
-  }
-
   /**
    * Creates or updates and stages a file, creating the intermediate directories if necessary.
    * Automatically uses root path; do not pass absolute paths here.
@@ -162,10 +93,10 @@ ${gitResult.stderr.toString()}`);
     this.git(['commit', '-m', `"${newFilename}"`]);
   }
 
-  /** Commits a change. Automatically uses root path; do not pass absolute paths here. */
-  commitAll() {
+  /** Commits all changed and untracked files. */
+  commitAll(message: string = 'Committing everything') {
     this.git(['add', '-A']);
-    this.git(['commit', '-m', 'Committing everything']);
+    this.git(['commit', '-m', message]);
   }
 
   /**

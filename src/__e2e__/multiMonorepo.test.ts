@@ -1,12 +1,12 @@
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import { MultiMonoRepoFactory } from '../__fixtures__/multiMonorepo';
+import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { bump } from '../commands/bump';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
 
 describe('version bumping', () => {
-  let repositoryFactory: MultiMonoRepoFactory | undefined;
+  let repositoryFactory: RepositoryFactory | undefined;
 
   initMockLogs();
 
@@ -18,8 +18,9 @@ describe('version bumping', () => {
   });
 
   it('only bumps workspace package', async () => {
-    repositoryFactory = new MultiMonoRepoFactory();
+    repositoryFactory = new RepositoryFactory('multi-monorepo');
     const repo = repositoryFactory.cloneRepository();
+    expect(Object.keys(repositoryFactory.fixtures)).toEqual(['repo-a', 'repo-b']);
 
     const repoARoot = repo.pathTo('repo-a');
     const repoBRoot = repo.pathTo('repo-b');
