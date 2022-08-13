@@ -3,7 +3,8 @@ import path from 'path';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { Registry } from '../__fixtures__/registry';
-import { Repository, RepositoryFactory } from '../__fixtures__/repository';
+import { Repository } from '../__fixtures__/repository';
+import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { tmpdir } from '../__fixtures__/tmpdir';
 import { sync } from '../commands/sync';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
@@ -12,17 +13,8 @@ import { packagePublish } from '../packageManager/packagePublish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
 
-function createRepoPackage(repo: Repository, name: string, version: string) {
-  const packageJson = {
-    name: name,
-    version: version,
-  };
-
-  repo.commitChange(`packages/${name}/package.json`, JSON.stringify(packageJson));
-}
-
 describe('sync command (e2e)', () => {
-  let repositoryFactory: RepositoryFactory;
+  let repositoryFactory: RepositoryFactory | undefined;
   let registry: Registry;
   const tempDirs: string[] = [];
 
@@ -74,22 +66,29 @@ describe('sync command (e2e)', () => {
   });
 
   beforeEach(async () => {
-    repositoryFactory = new RepositoryFactory();
     await registry.reset();
   });
 
   afterEach(() => {
-    repositoryFactory.cleanUp();
+    if (repositoryFactory) {
+      repositoryFactory.cleanUp();
+      repositoryFactory = undefined;
+    }
     tempDirs.forEach(dir => fs.removeSync(dir));
     tempDirs.splice(0, tempDirs.length);
   });
 
   it('can perform a successful sync', async () => {
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: {
+          foopkg: { version: '1.0.0' },
+          barpkg: { version: '2.2.0' },
+          bazpkg: { version: '3.0.0' },
+        },
+      },
+    });
     const repo = repositoryFactory.cloneRepository();
-
-    createRepoPackage(repo, 'foopkg', '1.0.0');
-    createRepoPackage(repo, 'barpkg', '2.2.0');
-    createRepoPackage(repo, 'bazpkg', '3.0.0');
 
     const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
 
@@ -112,11 +111,16 @@ describe('sync command (e2e)', () => {
   });
 
   it('can perform a successful sync using dist tag', async () => {
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: {
+          apkg: { version: '1.0.0' },
+          bpkg: { version: '2.2.0' },
+          cpkg: { version: '3.0.0' },
+        },
+      },
+    });
     const repo = repositoryFactory.cloneRepository();
-
-    createRepoPackage(repo, 'apkg', '1.0.0');
-    createRepoPackage(repo, 'bpkg', '2.2.0');
-    createRepoPackage(repo, 'cpkg', '3.0.0');
 
     const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
 
@@ -139,11 +143,16 @@ describe('sync command (e2e)', () => {
   });
 
   it('can perform a successful sync by forcing dist tag version', async () => {
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: {
+          epkg: { version: '1.0.0' },
+          fpkg: { version: '2.2.0' },
+          gpkg: { version: '3.0.0' },
+        },
+      },
+    });
     const repo = repositoryFactory.cloneRepository();
-
-    createRepoPackage(repo, 'epkg', '1.0.0');
-    createRepoPackage(repo, 'fpkg', '2.2.0');
-    createRepoPackage(repo, 'gpkg', '3.0.0');
 
     const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
 
