@@ -1,17 +1,17 @@
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
 import { BeachballOptions } from '../../types/BeachballOptions';
-import { MonoRepoFactory } from '../../__fixtures__/monorepo';
+import { MonorepoFactory } from '../../__fixtures__/monorepo';
 import { Repository } from '../../__fixtures__/repository';
 import { PackageInfos } from '../../types/PackageInfo';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 
 describe('getScopedPackages', () => {
-  let repoFactory: MonoRepoFactory;
+  let repoFactory: MonorepoFactory;
   let repo: Repository;
   let packageInfos: PackageInfos;
 
   beforeAll(() => {
-    repoFactory = new MonoRepoFactory();
+    repoFactory = new MonorepoFactory();
     repo = repoFactory.cloneRepository();
     packageInfos = getPackageInfos(repo.rootPath);
   });

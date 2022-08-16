@@ -1,6 +1,6 @@
 import path from 'path';
 import { defaultBranchName } from '../__fixtures__/gitDefaults';
-import { MonoRepoFactory } from '../__fixtures__/monorepo';
+import { MonorepoFactory } from '../__fixtures__/monorepo';
 import { MultiWorkspaceRepoFactory } from '../__fixtures__/multiWorkspace';
 import { RepositoryFactory } from '../__fixtures__/repository';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
@@ -8,7 +8,7 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { getChangedPackages } from '../changefile/getChangedPackages';
 
 describe('getChangedPackages', () => {
-  let repositoryFactory: RepositoryFactory | MonoRepoFactory | MultiWorkspaceRepoFactory | undefined;
+  let repositoryFactory: RepositoryFactory | MonorepoFactory | MultiWorkspaceRepoFactory | undefined;
 
   afterEach(() => {
     if (repositoryFactory) {
@@ -48,7 +48,7 @@ describe('getChangedPackages', () => {
   });
 
   it('detects changed files in monorepo', () => {
-    repositoryFactory = new MonoRepoFactory();
+    repositoryFactory = new MonorepoFactory();
     const repo = repositoryFactory.cloneRepository();
     const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);

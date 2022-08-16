@@ -1,7 +1,7 @@
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import { MonoRepoFactory } from '../__fixtures__/monorepo';
+import { MonorepoFactory } from '../__fixtures__/monorepo';
 import { npmShow } from '../__fixtures__/npmShow';
 import { Registry } from '../__fixtures__/registry';
 import { Repository, RepositoryFactory } from '../__fixtures__/repository';
@@ -11,7 +11,7 @@ import { BeachballOptions } from '../types/BeachballOptions';
 
 describe('publish command (registry)', () => {
   let registry: Registry;
-  let repositoryFactory: RepositoryFactory | MonoRepoFactory | undefined;
+  let repositoryFactory: RepositoryFactory | MonorepoFactory | undefined;
 
   // show error logs for these tests
   const logs = initMockLogs(['error']);
@@ -183,7 +183,7 @@ describe('publish command (registry)', () => {
   });
 
   it('should exit publishing early if only invalid change files exist', async () => {
-    repositoryFactory = new MonoRepoFactory();
+    repositoryFactory = new MonorepoFactory();
     const repo = repositoryFactory.cloneRepository();
 
     repo.updateJsonFile('packages/bar/package.json', { private: true });

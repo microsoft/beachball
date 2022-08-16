@@ -3,7 +3,7 @@ import path from 'path';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { readChangelogJson } from '../__fixtures__/changelog';
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import { MonoRepoFactory } from '../__fixtures__/monorepo';
+import { MonorepoFactory } from '../__fixtures__/monorepo';
 import { MultiWorkspaceRepoFactory } from '../__fixtures__/multiWorkspace';
 import { RepositoryFactory } from '../__fixtures__/repository';
 import { bump } from '../commands/bump';
@@ -11,7 +11,7 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
 
 describe('version bumping', () => {
-  let repositoryFactory: RepositoryFactory | MonoRepoFactory | MultiWorkspaceRepoFactory | undefined;
+  let repositoryFactory: RepositoryFactory | MonorepoFactory | MultiWorkspaceRepoFactory | undefined;
 
   initMockLogs();
 
@@ -398,7 +398,7 @@ describe('version bumping', () => {
   });
 
   it('should not bump out-of-scope package even if package has change', async () => {
-    repositoryFactory = new MonoRepoFactory();
+    repositoryFactory = new MonorepoFactory();
     const repo = repositoryFactory.cloneRepository();
 
     generateChangeFiles(['foo'], repo.rootPath);
@@ -420,7 +420,7 @@ describe('version bumping', () => {
   });
 
   it('should not bump out-of-scope package and its dependencies even if dependency of the package has change', async () => {
-    repositoryFactory = new MonoRepoFactory();
+    repositoryFactory = new MonorepoFactory();
     const repo = repositoryFactory.cloneRepository();
 
     generateChangeFiles([{ packageName: 'bar', type: 'patch' }], repo.rootPath);

@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { cleanChangelogJson, readChangelogJson, readChangelogMd } from '../__fixtures__/changelog';
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import { MonoRepoFactory } from '../__fixtures__/monorepo';
+import { MonorepoFactory } from '../__fixtures__/monorepo';
 import { RepositoryFactory } from '../__fixtures__/repository';
 
 import { writeChangelog } from '../changelog/writeChangelog';
@@ -24,7 +24,7 @@ function getChange(packageName: string, comment: string): ChangeFileInfo {
 
 describe('changelog generation', () => {
   let repositoryFactory: RepositoryFactory;
-  let monoRepoFactory: MonoRepoFactory;
+  let monoRepoFactory: MonorepoFactory;
 
   const logs = initMockLogs();
 
@@ -32,7 +32,7 @@ describe('changelog generation', () => {
     // These tests can share the same repo factories because they don't push to origin
     // (the actual tests run against a clone)
     repositoryFactory = new RepositoryFactory();
-    monoRepoFactory = new MonoRepoFactory();
+    monoRepoFactory = new MonorepoFactory();
   });
 
   afterAll(() => {
