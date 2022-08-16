@@ -156,11 +156,18 @@ ${gitResult.stderr.toString()}`);
     this.git(['push', defaultRemoteName, `HEAD:${defaultBranchName}`]);
   }
 
-  /** Delete the temp files for this repository. */
+  /**
+   * Clean up the repo IF this is a local build.
+   *
+   * Doing this in CI is unnecessary because all the fixtures use unique temp directories (no collisions)
+   * and the agents are wiped after each job, so manually deleting the files just slows things down.
+   */
   cleanUp() {
     try {
       // This occasionally throws on Windows with "resource busy"
-      this.root && fs.removeSync(this.root);
+      if (this.root && !process.env.CI) {
+        fs.removeSync(this.root);
+      }
     } catch (err) {
       // This is non-fatal since the temp dir will eventually be cleaned up automatically
       console.warn('Could not clean up repository: ' + err);
