@@ -60,22 +60,28 @@ describe('getChangedPackages', () => {
     repositoryFactory = new RepositoryFactory('multi-workspace');
     const repo = repositoryFactory.cloneRepository();
     const rootOptions = { fetch: false, branch: defaultBranchName, path: repo.rootPath } as BeachballOptions;
-    expect(Object.keys(repositoryFactory.fixtures)).toEqual(['repo-a', 'repo-b']);
+    expect(Object.keys(repositoryFactory.fixtures)).toEqual(['workspace-a', 'workspace-b']);
 
-    const repoARoot = repo.pathTo('repo-a');
-    const repoBRoot = repo.pathTo('repo-b');
+    const workspaceARoot = repo.pathTo('workspace-a');
+    const workspaceBRoot = repo.pathTo('workspace-b');
     const rootPackageInfos = getPackageInfos(repo.rootPath);
 
     expect(getChangedPackages(rootOptions, rootPackageInfos)).toStrictEqual([]);
 
-    repo.stageChange('repo-a/packages/foo/test.js');
+    repo.stageChange('workspace-a/packages/foo/test.js');
 
-    const changedPackagesA = getChangedPackages({ ...rootOptions, path: repoARoot }, getPackageInfos(repoARoot));
-    const changedPackagesB = getChangedPackages({ ...rootOptions, path: repoBRoot }, getPackageInfos(repoBRoot));
+    const changedPackagesA = getChangedPackages(
+      { ...rootOptions, path: workspaceARoot },
+      getPackageInfos(workspaceARoot)
+    );
+    const changedPackagesB = getChangedPackages(
+      { ...rootOptions, path: workspaceBRoot },
+      getPackageInfos(workspaceBRoot)
+    );
     const changedPackagesRoot = getChangedPackages(rootOptions, rootPackageInfos);
 
-    expect(changedPackagesA).toStrictEqual(['@repo-a/foo']);
+    expect(changedPackagesA).toStrictEqual(['@workspace-a/foo']);
     expect(changedPackagesB).toStrictEqual([]);
-    expect(changedPackagesRoot).toStrictEqual(['@repo-a/foo']);
+    expect(changedPackagesRoot).toStrictEqual(['@workspace-a/foo']);
   });
 });

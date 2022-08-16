@@ -111,13 +111,13 @@ function getMonorepoFixture(parentFolder?: string): RepoFixture {
 
 /**
  * Get a fixture for a repo containing multiple workspaces ("monorepos").
- * The two workspaces are under subfolders `repo-a` and `repo-b`, and the packages in each
- * workspace use scoped names `@repo-a/*` and `@repo-b/*`.
+ * The two workspaces are under subfolders `workspace-a` and `workspace-b`, and the packages in each
+ * workspace use scoped names `@workspace-a/*` and `@workspace-b/*`.
  */
-function getMultiWorkspaceFixture(): { 'repo-a': RepoFixture; 'repo-b': RepoFixture } {
+function getMultiWorkspaceFixture(): { 'workspace-a': RepoFixture; 'workspace-b': RepoFixture } {
   return {
-    'repo-a': getMonorepoFixture('repo-a'),
-    'repo-b': getMonorepoFixture('repo-b'),
+    'workspace-a': getMonorepoFixture('workspace-a'),
+    'workspace-b': getMonorepoFixture('workspace-b'),
   };
 }
 
@@ -155,7 +155,7 @@ export class RepositoryFactory {
     this.fixtures = {};
     if (fixture === 'multi-workspace') {
       this.fixtures = getMultiWorkspaceFixture();
-      this.fixture = this.fixtures['repo-a'];
+      this.fixture = this.fixtures['workspace-a'];
     } else {
       this.fixture =
         fixture === 'single' ? getSinglePackageFixture() : fixture === 'monorepo' ? getMonorepoFixture() : fixture;

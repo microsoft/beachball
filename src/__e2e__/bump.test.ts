@@ -55,26 +55,26 @@ describe('version bumping', () => {
 
   it('for multi-workspace (multi-monorepo), only bumps packages in the current workspace', async () => {
     repositoryFactory = new RepositoryFactory('multi-workspace');
-    expect(Object.keys(repositoryFactory.fixtures)).toEqual(['repo-a', 'repo-b']);
+    expect(Object.keys(repositoryFactory.fixtures)).toEqual(['workspace-a', 'workspace-b']);
     const repo = repositoryFactory.cloneRepository();
 
-    const repoARoot = repo.pathTo('repo-a');
-    const repoBRoot = repo.pathTo('repo-b');
+    const workspaceARoot = repo.pathTo('workspace-a');
+    const workspaceBRoot = repo.pathTo('workspace-b');
 
-    generateChangeFiles([{ packageName: '@repo-a/foo' }], repoARoot);
-    generateChangeFiles([{ packageName: '@repo-a/foo', type: 'major' }], repoBRoot);
+    generateChangeFiles([{ packageName: '@workspace-a/foo' }], workspaceARoot);
+    generateChangeFiles([{ packageName: '@workspace-a/foo', type: 'major' }], workspaceBRoot);
 
     repo.push();
 
-    await bump({ path: repoARoot, bumpDeps: true } as BeachballOptions);
+    await bump({ path: workspaceARoot, bumpDeps: true } as BeachballOptions);
 
-    const packageInfosA = getPackageInfos(repoARoot);
-    const packageInfosB = getPackageInfos(repoBRoot);
-    expect(packageInfosA['@repo-a/foo'].version).toBe('1.1.0');
-    expect(packageInfosB['@repo-b/foo'].version).toBe('1.0.0');
+    const packageInfosA = getPackageInfos(workspaceARoot);
+    const packageInfosB = getPackageInfos(workspaceBRoot);
+    expect(packageInfosA['@workspace-a/foo'].version).toBe('1.1.0');
+    expect(packageInfosB['@workspace-b/foo'].version).toBe('1.0.0');
 
-    const changeFilesA = getChangeFiles(repoARoot);
-    const changeFilesB = getChangeFiles(repoBRoot);
+    const changeFilesA = getChangeFiles(workspaceARoot);
+    const changeFilesB = getChangeFiles(workspaceBRoot);
     expect(changeFilesA).toHaveLength(0);
     expect(changeFilesB).toHaveLength(1);
   });
