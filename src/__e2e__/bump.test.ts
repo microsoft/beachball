@@ -4,13 +4,14 @@ import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles
 import { readChangelogJson } from '../__fixtures__/changelog';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { MonoRepoFactory } from '../__fixtures__/monorepo';
+import { MultiWorkspaceRepoFactory } from '../__fixtures__/multiWorkspace';
 import { RepositoryFactory } from '../__fixtures__/repository';
 import { bump } from '../commands/bump';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
 
 describe('version bumping', () => {
-  let repositoryFactory: RepositoryFactory | MonoRepoFactory | undefined;
+  let repositoryFactory: RepositoryFactory | MonoRepoFactory | MultiWorkspaceRepoFactory | undefined;
 
   initMockLogs();
 
@@ -93,6 +94,31 @@ describe('version bumping', () => {
 
     const changeFiles = getChangeFiles(repo.rootPath);
     expect(changeFiles).toHaveLength(0);
+  });
+
+  it('for multi-workspace (multi-monorepo), only bumps packages in the current workspace', async () => {
+    repositoryFactory = new MultiWorkspaceRepoFactory();
+    const repo = repositoryFactory.cloneRepository();
+
+    const repoARoot = repo.pathTo('repo-a');
+    const repoBRoot = repo.pathTo('repo-b');
+
+    generateChangeFiles([{ packageName: '@repo-a/foo' }], repoARoot);
+    generateChangeFiles([{ packageName: '@repo-a/foo', type: 'major' }], repoBRoot);
+
+    repo.push();
+
+    await bump({ path: repoARoot, bumpDeps: true } as BeachballOptions);
+
+    const packageInfosA = getPackageInfos(repoARoot);
+    const packageInfosB = getPackageInfos(repoBRoot);
+    expect(packageInfosA['@repo-a/foo'].version).toBe('1.1.0');
+    expect(packageInfosB['@repo-b/foo'].version).toBe('1.0.0');
+
+    const changeFilesA = getChangeFiles(repoARoot);
+    const changeFilesB = getChangeFiles(repoBRoot);
+    expect(changeFilesA).toHaveLength(0);
+    expect(changeFilesB).toHaveLength(1);
   });
 
   it('bumps only packages with change files committed between specified ref and head using `since` flag', async () => {

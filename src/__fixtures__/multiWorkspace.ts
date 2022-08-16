@@ -57,9 +57,9 @@ const beachballConfigFixture = {
   ],
 } as BeachballOptions;
 
-export class MultiMonoRepoFactory extends BaseRepositoryFactory {
+export class MultiWorkspaceRepoFactory extends BaseRepositoryFactory {
   constructor() {
-    super('beachball-multi-monorepo-upstream-');
+    super('beachball-multi-workspace-upstream-');
   }
 
   protected initFixture(tmpRepo: Repository) {

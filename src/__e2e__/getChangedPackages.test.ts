@@ -1,14 +1,14 @@
 import path from 'path';
 import { defaultBranchName } from '../__fixtures__/gitDefaults';
 import { MonoRepoFactory } from '../__fixtures__/monorepo';
-import { MultiMonoRepoFactory } from '../__fixtures__/multiMonorepo';
+import { MultiWorkspaceRepoFactory } from '../__fixtures__/multiWorkspace';
 import { RepositoryFactory } from '../__fixtures__/repository';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getChangedPackages } from '../changefile/getChangedPackages';
 
 describe('getChangedPackages', () => {
-  let repositoryFactory: RepositoryFactory | MonoRepoFactory | MultiMonoRepoFactory | undefined;
+  let repositoryFactory: RepositoryFactory | MonoRepoFactory | MultiWorkspaceRepoFactory | undefined;
 
   afterEach(() => {
     if (repositoryFactory) {
@@ -59,8 +59,8 @@ describe('getChangedPackages', () => {
     expect(getChangedPackages(options, packageInfos)).toStrictEqual(['foo']);
   });
 
-  it('detects changed files in multi-monorepo (multi-workspace) repo', () => {
-    repositoryFactory = new MultiMonoRepoFactory();
+  it('detects changed files in multi-workspace repo (multi-monorepo)', () => {
+    repositoryFactory = new MultiWorkspaceRepoFactory();
     const repo = repositoryFactory.cloneRepository();
     const rootOptions = { fetch: false, branch: defaultBranchName, path: repo.rootPath } as BeachballOptions;
     const repoARoot = path.join(repo.rootPath, 'repo-a');
