@@ -1,17 +1,17 @@
+import { Repository } from '../../__fixtures__/repository';
+import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
 import { BeachballOptions } from '../../types/BeachballOptions';
-import { MonorepoFactory } from '../../__fixtures__/monorepo';
-import { Repository } from '../../__fixtures__/repository';
 import { PackageInfos } from '../../types/PackageInfo';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 
 describe('getScopedPackages', () => {
-  let repoFactory: MonorepoFactory;
+  let repoFactory: RepositoryFactory;
   let repo: Repository;
   let packageInfos: PackageInfos;
 
   beforeAll(() => {
-    repoFactory = new MonorepoFactory();
+    repoFactory = new RepositoryFactory('monorepo');
     repo = repoFactory.cloneRepository();
     packageInfos = getPackageInfos(repo.rootPath);
   });
@@ -28,11 +28,7 @@ describe('getScopedPackages', () => {
       packageInfos
     );
 
-    expect(scopedPackages.includes('a')).toBeTruthy();
-    expect(scopedPackages.includes('b')).toBeTruthy();
-
-    expect(scopedPackages.includes('foo')).toBeFalsy();
-    expect(scopedPackages.includes('bar')).toBeFalsy();
+    expect(scopedPackages).toEqual(['a', 'b']);
   });
 
   it('can scope with excluded packages', () => {
@@ -44,11 +40,7 @@ describe('getScopedPackages', () => {
       packageInfos
     );
 
-    expect(scopedPackages.includes('a')).toBeFalsy();
-    expect(scopedPackages.includes('b')).toBeFalsy();
-
-    expect(scopedPackages.includes('foo')).toBeTruthy();
-    expect(scopedPackages.includes('bar')).toBeTruthy();
+    expect(scopedPackages).toEqual(['bar', 'baz', 'foo']);
   });
 
   it('can mix and match with excluded packages', () => {
@@ -60,10 +52,6 @@ describe('getScopedPackages', () => {
       packageInfos
     );
 
-    expect(scopedPackages.includes('a')).toBeFalsy();
-    expect(scopedPackages.includes('b')).toBeFalsy();
-
-    expect(scopedPackages.includes('foo')).toBeFalsy();
-    expect(scopedPackages.includes('bar')).toBeTruthy();
+    expect(scopedPackages).toEqual(['bar', 'baz']);
   });
 });

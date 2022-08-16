@@ -1,17 +1,17 @@
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import { MonorepoFactory } from '../__fixtures__/monorepo';
 import { npmShow } from '../__fixtures__/npmShow';
 import { Registry } from '../__fixtures__/registry';
-import { Repository, RepositoryFactory } from '../__fixtures__/repository';
+import { Repository } from '../__fixtures__/repository';
+import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { publish } from '../commands/publish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
 
 describe('publish command (registry)', () => {
   let registry: Registry;
-  let repositoryFactory: RepositoryFactory | MonorepoFactory | undefined;
+  let repositoryFactory: RepositoryFactory | undefined;
 
   // show error logs for these tests
   const logs = initMockLogs(['error']);
@@ -55,7 +55,7 @@ describe('publish command (registry)', () => {
   });
 
   it('can perform a successful npm publish', async () => {
-    repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
     generateChangeFiles(['foo'], repo.rootPath);
@@ -70,34 +70,15 @@ describe('publish command (registry)', () => {
   });
 
   it('can perform a successful npm publish even with private packages', async () => {
-    repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: {
+          foopkg: { version: '1.0.0', private: true },
+          publicpkg: { version: '1.0.0' },
+        },
+      },
+    });
     const repo = repositoryFactory.cloneRepository();
-
-    repo.commitChange(
-      'packages/foopkg/package.json',
-      JSON.stringify({
-        name: 'foopkg',
-        version: '1.0.0',
-        private: true,
-      })
-    );
-
-    repo.commitChange(
-      'packages/publicpkg/package.json',
-      JSON.stringify({
-        name: 'publicpkg',
-        version: '1.0.0',
-      })
-    );
-
-    repo.commitChange(
-      'package.json',
-      JSON.stringify({
-        name: 'foo-repo',
-        version: '1.0.0',
-        private: true,
-      })
-    );
 
     generateChangeFiles(['foopkg'], repo.rootPath);
 
@@ -109,27 +90,15 @@ describe('publish command (registry)', () => {
   });
 
   it('can perform a successful npm publish when multiple packages changed at same time', async () => {
-    repositoryFactory = new RepositoryFactory();
-    const repo = repositoryFactory.cloneRepository();
-
-    repo.commitChange(
-      'packages/foopkg/package.json',
-      JSON.stringify({
-        name: 'foopkg',
-        version: '1.0.0',
-        dependencies: {
-          barpkg: '^1.0.0',
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: {
+          foopkg: { version: '1.0.0', dependencies: { barpkg: '^1.0.0' } },
+          barpkg: { version: '1.0.0' },
         },
-      })
-    );
-
-    repo.commitChange(
-      'packages/barpkg/package.json',
-      JSON.stringify({
-        name: 'barpkg',
-        version: '1.0.0',
-      })
-    );
+      },
+    });
+    const repo = repositoryFactory.cloneRepository();
 
     generateChangeFiles(['foopkg', 'barpkg'], repo.rootPath);
 
@@ -145,33 +114,15 @@ describe('publish command (registry)', () => {
   });
 
   it('can perform a successful npm publish even with a non-existent package listed in the change file', async () => {
-    repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: {
+          foopkg: { version: '1.0.0' },
+          barpkg: { version: '1.0.0' },
+        },
+      },
+    });
     const repo = repositoryFactory.cloneRepository();
-
-    repo.commitChange(
-      'packages/foopkg/package.json',
-      JSON.stringify({
-        name: 'foopkg',
-        version: '1.0.0',
-      })
-    );
-
-    repo.commitChange(
-      'packages/publicpkg/package.json',
-      JSON.stringify({
-        name: 'publicpkg',
-        version: '1.0.0',
-      })
-    );
-
-    repo.commitChange(
-      'package.json',
-      JSON.stringify({
-        name: 'foo-repo',
-        version: '1.0.0',
-        private: true,
-      })
-    );
 
     generateChangeFiles(['badname'], repo.rootPath);
 
@@ -183,7 +134,7 @@ describe('publish command (registry)', () => {
   });
 
   it('should exit publishing early if only invalid change files exist', async () => {
-    repositoryFactory = new MonorepoFactory();
+    repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
 
     repo.updateJsonFile('packages/bar/package.json', { private: true });
@@ -209,7 +160,7 @@ describe('publish command (registry)', () => {
     // hide the errors for this test--it's supposed to have errors, and showing them is misleading
     logs.init(false);
 
-    repositoryFactory = new RepositoryFactory();
+    repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
     generateChangeFiles(['foo'], repo.rootPath);
