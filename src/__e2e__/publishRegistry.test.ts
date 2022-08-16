@@ -35,7 +35,7 @@ describe('publish command (registry)', () => {
   }
 
   beforeAll(() => {
-    registry = new Registry();
+    registry = new Registry(__filename);
     jest.setTimeout(30000);
   });
 

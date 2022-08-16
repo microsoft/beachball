@@ -1,24 +1,36 @@
 import execa from 'execa';
+import path from 'path';
 // @ts-ignore
 import fp from 'find-free-port';
 import verdaccioUser from './verdaccioUser';
 
 const verdaccioApi = require.resolve('./verdaccio.js');
 
-const defaultPort = 4873;
+/** Range of ports tried (increase this if the tests are failing due to ports unavailable) */
+const portRange = 1000;
+/**
+ * Lists of tests known to use `Registry`. This is used to make each test try a different
+ * port range to avoid collisions caused by race conditions with grabbing free ports.
+ */
+const knownTests = ['packagePublish', 'publishE2E', 'publishRegistry', 'syncE2E'];
 
 // NOTE: If you are getting timeouts and port collisions, set jest.setTimeout to a higher value.
 //       The default value of 5 seconds may not be enough in situations with port collisions.
 //       A value scaled with the number of test modules using Registry should work, starting with 20 seconds or so.
 
 export class Registry {
-  // The biggest issue here is with tests launching in parallel creating registries, finding free ports,
-  // and racing to grab ports they see as free. This means some tests will always fail on grabbing ports.
-  // This class will attempt to find a free port, and once it does, continue using it, even through stops
-  // and restarts. There's a theoretical chance of something grabbing the port between stops and restarts,
-  // but probably not a practical concern.
   private server?: execa.ExecaChildProcess = undefined;
   private port?: number = undefined;
+  private startPort: number;
+  private testName: string;
+
+  constructor(filename: string) {
+    this.testName = path.basename(filename, '.test.ts');
+    if (!knownTests.includes(this.testName)) {
+      throw new Error(`Please add ${this.testName} to knownTests in registry.ts`);
+    }
+    this.startPort = 4873 + knownTests.indexOf(this.testName) * portRange;
+  }
 
   async start() {
     if (this.server) {
@@ -26,15 +38,15 @@ export class Registry {
     }
 
     if (this.port) {
-      // We've already successfully used this port, so we assume it will work again. (see comments above)
+      // We've already successfully used this port, so it will most likely work again.
       return this.startWithPort(this.port);
     }
 
     // find-free-port will throw an error if none are free.
-    // If this is consistently having problems, probably it's best to increase maxPort.
-    const maxPort = defaultPort + 1000;
-    console.log(`Looking for free ports in range ${defaultPort} to ${maxPort}`);
-    const tryPort = await fp(defaultPort, maxPort);
+    // If this is consistently having problems, probably it's best to increase portRange.
+    const maxPort = this.startPort + portRange;
+    console.log(`Looking for free ports in range ${this.startPort} to ${maxPort}`);
+    const tryPort = await fp(this.startPort, maxPort);
 
     // Try to start the server. If it fails, it's likely a config error or something where a retry
     // won't be helpful, so just let it throw.
@@ -82,6 +94,7 @@ export class Registry {
 
       this.server.stdout.on('data', data => {
         if (data.includes('verdaccio running')) {
+          console.log(`Started registry for ${this.testName} on port ${port}`);
           resolve(port);
         }
       });

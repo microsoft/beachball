@@ -32,10 +32,10 @@
     "release:docs": "yarn docs:build && yarn gh-pages -d docs/.vuepress/dist --dotfiles",
     "start": "tsc -w --preserveWatchOutput",
     "test": "yarn test:unit && yarn test:e2e",
-    "test:e2e": "jest --runInBand --config jest.e2e.js",
+    "test:e2e": "jest --config jest.e2e.js",
     "test:unit": "jest --config jest.config.js",
     "test:watch": "jest --watch",
-    "update-snapshots": "jest --config jest.config.js --updateSnapshot"
+    "update-snapshots": "yarn test:unit -u && yarn test:e2e -u"
   },
   "dependencies": {
     "cosmiconfig": "^7.0.0",

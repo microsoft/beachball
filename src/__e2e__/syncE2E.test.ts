@@ -57,7 +57,7 @@ describe('sync command (e2e)', () => {
   }
 
   beforeAll(() => {
-    registry = new Registry();
+    registry = new Registry(__filename);
     jest.setTimeout(30000);
   });
 
