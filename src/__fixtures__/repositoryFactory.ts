@@ -78,7 +78,7 @@ function getMonorepoFixture(parentFolder?: string): RepoFixture {
   const scope = parentFolder ? `@${parentFolder}/` : '';
 
   const beachballOptions: Partial<BeachballOptions> = {
-    groups: [{ disallowedChangeTypes: null, name: 'grouped', include: `${scope}grouped*` }],
+    groups: [{ disallowedChangeTypes: null, name: 'grouped', include: 'group*' }],
   };
 
   return {
