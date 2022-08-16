@@ -1,6 +1,4 @@
 import fs from 'fs-extra';
-import path from 'path';
-import { gitFailFast } from 'workspace-tools';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
@@ -59,7 +57,7 @@ describe('publish command (git)', () => {
 
     const newRepo = repositoryFactory.cloneRepository();
 
-    const packageJson = fs.readJSONSync(path.join(newRepo.rootPath, 'package.json'));
+    const packageJson = fs.readJSONSync(newRepo.pathTo('package.json'));
 
     expect(packageJson.version).toBe('1.1.0');
   });
@@ -72,7 +70,7 @@ describe('publish command (git)', () => {
 
     // 2. simulate the start of a publish from repo1
     const publishBranch = 'publish_test';
-    gitFailFast(['checkout', '-b', publishBranch], { cwd: repo1.rootPath });
+    repo1.checkout('-b', publishBranch);
 
     const options: BeachballOptions = getOptions(repo1);
 

@@ -1,7 +1,7 @@
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import { MonoRepoFactory, packageJsonFixtures } from '../__fixtures__/monorepo';
+import { MonoRepoFactory } from '../__fixtures__/monorepo';
 import { npmShow } from '../__fixtures__/npmShow';
 import { Registry } from '../__fixtures__/registry';
 import { Repository, RepositoryFactory } from '../__fixtures__/repository';
@@ -186,10 +186,7 @@ describe('publish command (registry)', () => {
     repositoryFactory = new MonoRepoFactory();
     const repo = repositoryFactory.cloneRepository();
 
-    repo.commitChange(
-      'packages/bar/package.json',
-      JSON.stringify({ ...packageJsonFixtures['packages/bar'], private: true })
-    );
+    repo.updateJsonFile('packages/bar/package.json', { private: true });
 
     generateChangeFiles(['bar', 'fake'], repo.rootPath);
 
