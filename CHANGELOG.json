@@ -2,6 +2,27 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 16 Aug 2022 08:02:58 GMT",
+      "tag": "beachball_v2.30.0",
+      "version": "2.30.0",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "af775b92895b648dd1b9aae1424d7057ac12a267",
+            "comment": "Update devDependency @types/jest to v28.1.7"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "af775b92895b648dd1b9aae1424d7057ac12a267",
+            "comment": "Update devDependency ts-jest to v28.0.8"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 12 Aug 2022 08:03:19 GMT",
       "tag": "beachball_v2.30.0",
       "version": "2.30.0",
