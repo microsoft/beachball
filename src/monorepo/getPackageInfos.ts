@@ -33,6 +33,13 @@ function getPackageInfosFromWorkspace(projectRoot: string) {
         const packageJsonPath = path.join(packagePath, 'package.json');
 
         try {
+          if (packageInfos[packageJson.name]) {
+            throw new Error(
+              `Two packages in different workspaces have the same name. Please rename one of these packages:\n- ${
+                packageInfos[packageJson.name].packageJsonPath
+              }\n- ${packageJsonPath}`
+            );
+          }
           packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonPath);
         } catch (e) {
           // Pass, the package.json is invalid
