@@ -10,9 +10,7 @@ module.exports = {
     'docs/**',
     'jest.*.js',
     'renovate.json5',
-    'src/__e2e__/**',
-    'src/__fixtures__/**',
-    'src/__tests__/**',
+    'src/__*/**',
     // This one is especially important (otherwise dependabot would be blocked by change file requirements)
     'yarn.lock',
   ],

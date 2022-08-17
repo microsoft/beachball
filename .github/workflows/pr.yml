@@ -52,4 +52,6 @@ jobs:
 
       - run: yarn test:unit
 
+      - run: yarn test:func
+
       - run: yarn test:e2e

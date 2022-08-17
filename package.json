@@ -31,11 +31,12 @@
     "release": "node ./lib/cli.js publish -y",
     "release:docs": "yarn docs:build && yarn gh-pages -d docs/.vuepress/dist --dotfiles",
     "start": "tsc -w --preserveWatchOutput",
-    "test": "yarn test:unit && yarn test:e2e",
+    "test": "yarn test:unit && yarn test:func && yarn test:e2e",
     "test:e2e": "jest --config jest.e2e.js",
-    "test:unit": "jest --config jest.config.js",
+    "test:func": "jest --config jest.func.js",
+    "test:unit": "jest",
     "test:watch": "jest --watch",
-    "update-snapshots": "yarn test:unit -u && yarn test:e2e -u"
+    "update-snapshots": "yarn test:unit -u && yarn test:func -u && yarn test:e2e -u"
   },
   "dependencies": {
     "cosmiconfig": "^7.0.0",
