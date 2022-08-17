@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 11 Aug 2022 21:13:57 GMT and should not be manually modified.
+This log was last generated on Wed, 17 Aug 2022 08:02:47 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.30.1
+
+Wed, 17 Aug 2022 08:02:47 GMT
+
+### Patches
+
+- Error on duplicate package names in different workspaces (for a monorepo with multiple workspaces) (elcraig@microsoft.com)
 
 ## 2.30.0
 

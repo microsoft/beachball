@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Error on duplicate package names in different workspaces (for a monorepo with multiple workspaces)",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
