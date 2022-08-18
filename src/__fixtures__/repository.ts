@@ -158,7 +158,13 @@ ${gitResult.stderr.toString()}`);
 
   /** Delete the temp files for this repository. */
   cleanUp() {
-    this.root && fs.removeSync(this.root);
+    try {
+      // This occasionally throws on Windows with "resource busy"
+      this.root && fs.removeSync(this.root);
+    } catch (err) {
+      // This is non-fatal since the temp dir will eventually be cleaned up automatically
+      console.warn('Could not clean up repository: ' + err);
+    }
     this.root = undefined;
   }
 }

@@ -16,13 +16,16 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        # npm 6 and 8 have slightly different behavior with verdaccio in publishing tests.
-        # It's unclear if this translates to meaningful differences in behavior in actual scenarios,
-        # but test against both versions to be safe.
-        npm: [6, 8]
+        os: [ubuntu-latest, windows-latest]
+        npm: [8]
+        include:
+          - os: ubuntu-latest
+            # npm 6 and 8 have slightly different behavior with verdaccio in publishing tests.
+            # It's unclear if this translates to meaningful differences in behavior in actual scenarios,
+            # but test against both versions to be safe. (Only do this on the ubuntu build for speed.)
+            npm: 6
 
-    name: ${{ matrix.os }}, npm ${{ matrix.npm }}
+    name: build (${{ matrix.os }}, npm ${{ matrix.npm }})
 
     runs-on: ${{ matrix.os }}
 
