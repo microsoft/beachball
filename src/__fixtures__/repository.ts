@@ -159,6 +159,7 @@ ${gitResult.stderr.toString()}`);
   /** Delete the temp files for this repository. */
   cleanUp() {
     try {
+      // This occasionally throws on Windows with "resource busy"
       this.root && fs.removeSync(this.root);
     } catch (err) {
       // This is non-fatal since the temp dir will eventually be cleaned up automatically

@@ -229,6 +229,7 @@ export class RepositoryFactory {
     if (!this.root) return;
 
     try {
+      // This occasionally throws on Windows with "resource busy"
       this.root && fs.removeSync(this.root);
     } catch (err) {
       // This is non-fatal since the temp dir will eventually be cleaned up automatically
