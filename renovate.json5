@@ -1,10 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>ecraig12345/renovate-config:beachballLibraryRecommended",
-    "github>ecraig12345/renovate-config:autoUpdateTypes",
-    "github>ecraig12345/renovate-config:groupMore",
-    "github>ecraig12345/renovate-config:keepFresh"
+    "github>microsoft/m365-renovate-config:beachballLibraryRecommended",
+    "github>microsoft/m365-renovate-config:autoUpdateTypes",
+    "github>microsoft/m365-renovate-config:groupMore",
+    "github>microsoft/m365-renovate-config:keepFresh"
   ],
 
   "labels": ["renovate"],
