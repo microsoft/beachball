@@ -228,7 +228,12 @@ export class RepositoryFactory {
   cleanUp() {
     if (!this.root) return;
 
-    fs.removeSync(this.root);
+    try {
+      this.root && fs.removeSync(this.root);
+    } catch (err) {
+      // This is non-fatal since the temp dir will eventually be cleaned up automatically
+      console.warn('Could not clean up factory: ' + err);
+    }
     this.root = undefined;
     for (const repo of this.childRepos) {
       repo.cleanUp();
