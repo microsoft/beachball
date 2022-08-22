@@ -31,10 +31,11 @@
     "release": "node ./lib/cli.js publish -y",
     "release:docs": "yarn docs:build && yarn gh-pages -d docs/.vuepress/dist --dotfiles",
     "start": "tsc -w --preserveWatchOutput",
-    "test": "yarn test:unit && yarn test:func && yarn test:e2e",
+    "test": "jest",
+    "test:all": "yarn test:unit && yarn test:func && yarn test:e2e",
     "test:e2e": "jest --config jest.e2e.js",
     "test:func": "jest --config jest.func.js",
-    "test:unit": "jest",
+    "test:unit": "jest --config jest.unit.js",
     "test:watch": "jest --watch",
     "update-snapshots": "yarn test:unit -u && yarn test:func -u && yarn test:e2e -u"
   },

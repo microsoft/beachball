@@ -1,13 +1,15 @@
 import fs from 'fs-extra';
+import _ from 'lodash';
+import { gitFailFast } from 'workspace-tools';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { tmpdir } from '../../__fixtures__/tmpdir';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { PackageInfos } from '../../types/PackageInfo';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
 import { getCliOptions } from '../../options/getCliOptions';
-import { gitFailFast } from 'workspace-tools';
 
 const defaultOptions = getDefaultOptions();
+const repoOptions = require('../../../beachball.config');
 const cliOptions = getCliOptions(process.argv);
 
 /** Strip the root path from the file path and normalize slashes */
@@ -31,10 +33,11 @@ function cleanPackageInfos(root: string, packageInfos: PackageInfos) {
     // Also remove jest CLI or config options which get mixed in...
     for (const [key, value] of Object.entries(pkgInfo.combinedOptions)) {
       if (
-        (defaultOptions as any)[key] === value ||
+        _.isEqual(value, (defaultOptions as any)[key]) ||
+        _.isEqual(value, repoOptions[key]) ||
         (cliOptions as any)[key] ||
         key.startsWith('test') ||
-        ['roots', 'transform'].includes(key)
+        ['roots', 'transform', 'reporters'].includes(key)
       ) {
         delete (pkgInfo.combinedOptions as any)[key];
       }

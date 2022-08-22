@@ -40,6 +40,8 @@ jobs:
 
       - run: yarn test:unit
 
+      - run: yarn test:func
+
       - name: yarn test:e2e (npm ${{ env.npmVersion }})
         run: yarn test:e2e
 
