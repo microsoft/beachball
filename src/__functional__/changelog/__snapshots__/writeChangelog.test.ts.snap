@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`changelog generation writeChangelog generates correct changelog in monorepo with groupChanges (grouped change FILES): bar CHANGELOG.json 1`] = `
+exports[`writeChangelog generates correct changelog in monorepo with groupChanges (grouped change FILES): bar CHANGELOG.json 1`] = `
 Object {
   "entries": Array [
     Object {
@@ -23,7 +23,7 @@ Object {
 }
 `;
 
-exports[`changelog generation writeChangelog generates correct changelog in monorepo with groupChanges (grouped change FILES): bar CHANGELOG.md 1`] = `
+exports[`writeChangelog generates correct changelog in monorepo with groupChanges (grouped change FILES): bar CHANGELOG.md 1`] = `
 "# Change Log - bar
 
 This log was last generated on (date) and should not be manually modified.
@@ -40,7 +40,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates correct changelog in monorepo with groupChanges (grouped change FILES): foo CHANGELOG.json 1`] = `
+exports[`writeChangelog generates correct changelog in monorepo with groupChanges (grouped change FILES): foo CHANGELOG.json 1`] = `
 Object {
   "entries": Array [
     Object {
@@ -81,7 +81,7 @@ Object {
 }
 `;
 
-exports[`changelog generation writeChangelog generates correct changelog in monorepo with groupChanges (grouped change FILES): foo CHANGELOG.md 1`] = `
+exports[`writeChangelog generates correct changelog in monorepo with groupChanges (grouped change FILES): foo CHANGELOG.md 1`] = `
 "# Change Log - foo
 
 This log was last generated on (date) and should not be manually modified.
@@ -101,7 +101,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates correct changelog: changelog json 1`] = `
+exports[`writeChangelog generates correct changelog: changelog json 1`] = `
 Object {
   "entries": Array [
     Object {
@@ -142,7 +142,7 @@ Object {
 }
 `;
 
-exports[`changelog generation writeChangelog generates correct changelog: changelog md 1`] = `
+exports[`writeChangelog generates correct changelog: changelog md 1`] = `
 "# Change Log - foo
 
 This log was last generated on (date) and should not be manually modified.
@@ -162,7 +162,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog 1`] = `
+exports[`writeChangelog generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog 1`] = `
 "# Change Log - bar
 
 This log was last generated on (date) and should not be manually modified.
@@ -179,7 +179,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog 2`] = `
+exports[`writeChangelog generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog 2`] = `
 "# Change Log - foo
 
 This log was last generated on (date) and should not be manually modified.
@@ -199,7 +199,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates correct grouped changelog: bar CHANGELOG.md 1`] = `
+exports[`writeChangelog generates correct grouped changelog: bar CHANGELOG.md 1`] = `
 "# Change Log - bar
 
 This log was last generated on (date) and should not be manually modified.
@@ -217,7 +217,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates correct grouped changelog: foo CHANGELOG.md 1`] = `
+exports[`writeChangelog generates correct grouped changelog: foo CHANGELOG.md 1`] = `
 "# Change Log - foo
 
 This log was last generated on (date) and should not be manually modified.
@@ -234,7 +234,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates correct grouped changelog: grouped CHANGELOG.md 1`] = `
+exports[`writeChangelog generates correct grouped changelog: grouped CHANGELOG.md 1`] = `
 "# Change Log - foo
 
 This log was last generated on (date) and should not be manually modified.
@@ -255,7 +255,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependency changes: bar CHANGELOG.md 1`] = `
+exports[`writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependency changes: bar CHANGELOG.md 1`] = `
 "# Change Log - bar
 
 This log was last generated on (date) and should not be manually modified.
@@ -273,7 +273,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependency changes: baz CHANGELOG.md 1`] = `
+exports[`writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependency changes: baz CHANGELOG.md 1`] = `
 "# Change Log - baz
 
 This log was last generated on (date) and should not be manually modified.
@@ -290,7 +290,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependency changes: grouped CHANGELOG.md 1`] = `
+exports[`writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependency changes: grouped CHANGELOG.md 1`] = `
 "# Change Log - foo
 
 This log was last generated on (date) and should not be manually modified.
@@ -310,7 +310,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates grouped changelog without dependent change entries: bar CHANGELOG.md 1`] = `
+exports[`writeChangelog generates grouped changelog without dependent change entries: bar CHANGELOG.md 1`] = `
 "# Change Log - bar
 
 This log was last generated on (date) and should not be manually modified.
@@ -327,7 +327,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates grouped changelog without dependent change entries: baz CHANGELOG.md 1`] = `
+exports[`writeChangelog generates grouped changelog without dependent change entries: baz CHANGELOG.md 1`] = `
 "# Change Log - baz
 
 This log was last generated on (date) and should not be manually modified.
@@ -344,7 +344,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`changelog generation writeChangelog generates grouped changelog without dependent change entries: grouped CHANGELOG.md 1`] = `
+exports[`writeChangelog generates grouped changelog without dependent change entries: grouped CHANGELOG.md 1`] = `
 "# Change Log - foo
 
 This log was last generated on (date) and should not be manually modified.

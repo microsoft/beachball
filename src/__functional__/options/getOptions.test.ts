@@ -1,11 +1,11 @@
 import fs from 'fs-extra';
-import { Repository } from '../__fixtures__/repository';
-import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
-import { getOptions } from '../options/getOptions';
+import { Repository } from '../../__fixtures__/repository';
+import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
+import { getOptions } from '../../options/getOptions';
 
 const baseArgv = ['node.exe', 'bin.js'];
 
-describe('config', () => {
+describe('getOptions', () => {
   let repositoryFactory: RepositoryFactory;
   let repo: Repository;
 
@@ -24,10 +24,10 @@ describe('config', () => {
 
   it('uses the branch name defined in beachball.config.js', () => {
     const config = inDirectory(repo.rootPath, () => {
-      fs.writeFileSync('beachball.config.js', 'module.exports = { branch: "origin/main" };');
+      fs.writeFileSync('beachball.config.js', 'module.exports = { branch: "origin/foo" };');
       return getOptions(baseArgv);
     });
-    expect(config.branch).toEqual('origin/main');
+    expect(config.branch).toEqual('origin/foo');
   });
 
   it('--config overrides configuration path', () => {

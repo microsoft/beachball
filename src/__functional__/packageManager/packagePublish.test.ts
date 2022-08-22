@@ -1,11 +1,11 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { initMockLogs } from '../__fixtures__/mockLogs';
-import { npmShow, NpmShowResult } from '../__fixtures__/npmShow';
-import { Registry } from '../__fixtures__/registry';
-import { tmpdir } from '../__fixtures__/tmpdir';
-import { packagePublish } from '../packageManager/packagePublish';
-import { PackageInfo } from '../types/PackageInfo';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { npmShow, NpmShowResult } from '../../__fixtures__/npmShow';
+import { Registry } from '../../__fixtures__/registry';
+import { tmpdir } from '../../__fixtures__/tmpdir';
+import { packagePublish } from '../../packageManager/packagePublish';
+import { PackageInfo } from '../../types/PackageInfo';
 
 const testTag = 'testbeachballtag';
 const testName = 'testbeachballpackage';
