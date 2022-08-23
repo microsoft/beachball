@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 23 Aug 2022 08:03:51 GMT",
+      "tag": "beachball_v2.30.1",
+      "version": "2.30.1",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "f1e376e1b9e194b560ec9881ec77de3dd4d03022",
+            "comment": "Update devDependency @types/lodash to v4.14.184"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 17 Aug 2022 08:02:47 GMT",
       "tag": "beachball_v2.30.1",
       "version": "2.30.1",
