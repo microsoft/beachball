@@ -1,3 +1,4 @@
+import { describe, expect, it } from '@jest/globals';
 import { getPackageChangelogs } from '../../changelog/getPackageChangelogs';
 import { BumpInfo } from '../../types/BumpInfo';
 import { ChangeSet } from '../../types/ChangeInfo';

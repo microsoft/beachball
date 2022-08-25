@@ -1,3 +1,4 @@
+import { describe, expect, it } from '@jest/globals';
 import { PackageChangelog } from '../../types/ChangeLog';
 import { mergeChangelogs } from '../../changelog/mergeChangelogs';
 import { PackageInfo } from '../../types/PackageInfo';

@@ -1,10 +1,11 @@
+import { describe, expect, it } from '@jest/globals';
 import { getNpmAuthArgs } from '../../packageManager/npm';
 import { AuthType } from '../../types/Auth';
 
 type NpmAuthTestTuple = [string, string, AuthType | undefined, string];
 
 describe('getNpmAuthArgs', () => {
-  test.each<NpmAuthTestTuple>([
+  it.each<NpmAuthTestTuple>([
     ['https://testRegistry', 'someToken', undefined, '--//testRegistry:_authToken=someToken'],
     ['https://testRegistry', 'someToken', 'invalidvalue' as AuthType, '--//testRegistry:_authToken=someToken'],
     ['https://testRegistry', 'someToken', 'authtoken', '--//testRegistry:_authToken=someToken'],

@@ -1,3 +1,4 @@
+import { expect } from '@jest/globals';
 import { npm } from '../packageManager/npm';
 import { Registry } from './registry';
 

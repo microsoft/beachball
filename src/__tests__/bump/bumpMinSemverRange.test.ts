@@ -1,3 +1,4 @@
+import { describe, expect, it } from '@jest/globals';
 import { bumpMinSemverRange } from '../../bump/bumpMinSemverRange';
 
 describe('bumpMinSemverRange', () => {
