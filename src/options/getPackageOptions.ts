@@ -11,8 +11,9 @@ import path from 'path';
  */
 export function getCombinedPackageOptions(actualPackageOptions: Partial<PackageOptions>): PackageOptions {
   const defaultOptions = getDefaultOptions();
-  const cliOptions = getCliOptions(process.argv);
-  const repoOptions = getRepoOptions(cliOptions);
+  // Don't use options from process.argv or the beachball repo in tests
+  const cliOptions = process.env.NODE_ENV !== 'test' && getCliOptions(process.argv);
+  const repoOptions = cliOptions && getRepoOptions(cliOptions);
   return {
     ...defaultOptions,
     ...repoOptions,
