@@ -1,6 +1,6 @@
 // @ts-check
 /** @type {import('@jest/types').Config.InitialProjectOptions} */
-const comonOptions = {
+const commonOptions = {
   roots: ['<rootDir>/src'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
@@ -16,17 +16,17 @@ module.exports = {
     {
       displayName: 'unit',
       testMatch: ['**/__tests__/**/*.test.ts'],
-      ...comonOptions,
+      ...commonOptions,
     },
     {
       displayName: 'functional',
       testMatch: ['**/__functional__/**/*.test.ts'],
-      ...comonOptions,
+      ...commonOptions,
     },
     {
       displayName: 'e2e',
       testMatch: ['**/__e2e__/**/*.test.ts'],
-      ...comonOptions,
+      ...commonOptions,
     },
   ],
 };
