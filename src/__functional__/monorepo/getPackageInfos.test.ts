@@ -1,14 +1,12 @@
 import fs from 'fs-extra';
+import { gitFailFast } from 'workspace-tools';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { tmpdir } from '../../__fixtures__/tmpdir';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { PackageInfos } from '../../types/PackageInfo';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
-import { getCliOptions } from '../../options/getCliOptions';
-import { gitFailFast } from 'workspace-tools';
 
 const defaultOptions = getDefaultOptions();
-const cliOptions = getCliOptions(process.argv);
 
 /** Strip the root path from the file path and normalize slashes */
 function cleanPath(root: string, filePath: string) {
@@ -25,17 +23,10 @@ function cleanPackageInfos(root: string, packageInfos: PackageInfos) {
 
     // Remove absolute paths
     pkgInfo.packageJsonPath = cleanPath(root, pkgInfo.packageJsonPath);
-    (pkgInfo.combinedOptions as any).path = cleanPath(root, (pkgInfo.combinedOptions as any).path);
 
-    // Remove beachball options which are defaulted or not useful.
-    // Also remove jest CLI or config options which get mixed in...
+    // Remove beachball options which are defaulted
     for (const [key, value] of Object.entries(pkgInfo.combinedOptions)) {
-      if (
-        (defaultOptions as any)[key] === value ||
-        (cliOptions as any)[key] ||
-        key.startsWith('test') ||
-        ['roots', 'transform'].includes(key)
-      ) {
+      if (value === (defaultOptions as any)[key]) {
         delete (pkgInfo.combinedOptions as any)[key];
       }
     }
