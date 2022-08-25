@@ -33,9 +33,9 @@
     "start": "tsc -w --preserveWatchOutput",
     "test": "jest",
     "test:all": "yarn test:unit && yarn test:func && yarn test:e2e",
-    "test:e2e": "jest --config jest.e2e.js",
-    "test:func": "jest --config jest.func.js",
-    "test:unit": "jest --config jest.unit.js",
+    "test:e2e": "jest --selectProjects e2e",
+    "test:func": "jest --selectProjects functional",
+    "test:unit": "jest --selectProjects unit",
     "test:watch": "jest --watch",
     "update-snapshots": "yarn test:unit -u && yarn test:func -u && yarn test:e2e -u"
   },

@@ -1,4 +1,6 @@
-module.exports = {
+// @ts-check
+/** @type {import('@jest/types').Config.InitialOptions} */
+const comonOptions = {
   roots: ['<rootDir>/src'],
   reporters: ['default', 'github-actions'],
   transform: {
@@ -6,5 +8,25 @@ module.exports = {
   },
   testEnvironment: 'node',
   testTimeout: 60000,
-  testMatch: ['**/{__tests__,__functional__,__e2e__}/**/*.test.ts'],
+};
+
+/** @type {import('@jest/types').Config.InitialOptions} */
+module.exports = {
+  projects: [
+    {
+      displayName: 'unit',
+      testMatch: ['**/__tests__/**/*.test.ts'],
+      ...comonOptions,
+    },
+    {
+      displayName: 'functional',
+      testMatch: ['**/__functional__/**/*.test.ts'],
+      ...comonOptions,
+    },
+    {
+      displayName: 'e2e',
+      testMatch: ['**/__e2e__/**/*.test.ts'],
+      ...comonOptions,
+    },
+  ],
 };
