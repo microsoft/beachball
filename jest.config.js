@@ -1,17 +1,17 @@
 // @ts-check
-/** @type {import('@jest/types').Config.InitialOptions} */
+/** @type {import('@jest/types').Config.InitialProjectOptions} */
 const comonOptions = {
   roots: ['<rootDir>/src'],
-  reporters: ['default', 'github-actions'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },
   testEnvironment: 'node',
-  testTimeout: 60000,
 };
 
 /** @type {import('@jest/types').Config.InitialOptions} */
 module.exports = {
+  reporters: ['default', 'github-actions'],
+  testTimeout: 60000,
   projects: [
     {
       displayName: 'unit',
