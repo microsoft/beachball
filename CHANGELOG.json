@@ -2,6 +2,27 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 26 Aug 2022 08:03:37 GMT",
+      "tag": "beachball_v2.30.1",
+      "version": "2.30.1",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "4f7e87a8285534e365d1ca22993a6cbaaf9ae53f",
+            "comment": "Update devDependency @types/jest to v28.1.8"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "4f7e87a8285534e365d1ca22993a6cbaaf9ae53f",
+            "comment": "Add github actions jest reporter and update how to run tests"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 23 Aug 2022 08:03:51 GMT",
       "tag": "beachball_v2.30.1",
       "version": "2.30.1",

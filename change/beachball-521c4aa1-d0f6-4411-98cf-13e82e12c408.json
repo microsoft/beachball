@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add github actions jest reporter and update how to run tests",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}
