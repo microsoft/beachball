@@ -1,3 +1,4 @@
+import { describe, expect, it, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
 import fs from 'fs-extra';
 import path from 'path';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
@@ -65,12 +66,13 @@ describe('packagePublish', () => {
     // (hard to debug otherwise)
     expect(publishResult).toEqual(expect.objectContaining({ success: true }));
 
-    expect(npmShow(registry, testName)).toMatchObject<NpmShowResult>({
+    const expectedNpmResult: NpmShowResult = {
       name: testName,
       versions: [testVersion],
       // This will publish the test tag as well as "latest" because it's a new package
       'dist-tags': { [testTag]: testVersion, latest: testVersion },
-    });
+    };
+    expect(npmShow(registry, testName)).toMatchObject(expectedNpmResult);
   });
 
   it('errors on republish', async () => {
@@ -87,11 +89,12 @@ describe('packagePublish', () => {
     const publishResult = await packagePublish(testPackageInfo, registry.getUrl(), '', '');
     expect(publishResult).toEqual(expect.objectContaining({ success: true })); // see comment on first test
 
-    expect(npmShow(registry, testName)).toMatchObject<NpmShowResult>({
+    const expectedNpmResult: NpmShowResult = {
       name: testName,
       versions: [testVersion],
       'dist-tags': { latest: testVersion },
-    });
+    };
+    expect(npmShow(registry, testName)).toMatchObject(expectedNpmResult);
   });
 
   it('publish package with defaultNpmTag publishes as defaultNpmTag', async () => {
@@ -99,11 +102,12 @@ describe('packagePublish', () => {
     const publishResult = await packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', '');
     expect(publishResult).toEqual(expect.objectContaining({ success: true })); // see comment on first test
 
-    expect(npmShow(registry, testName)).toMatchObject<NpmShowResult>({
+    const expectedNpmResult: NpmShowResult = {
       name: testName,
       versions: [testVersion],
       'dist-tags': { [testTag]: testVersion, latest: testVersion },
-    });
+    };
+    expect(npmShow(registry, testName)).toMatchObject(expectedNpmResult);
   });
 
   it('publish with specified tag overrides defaultNpmTag', async () => {
@@ -111,10 +115,11 @@ describe('packagePublish', () => {
     const publishResult = await packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', '');
     expect(publishResult).toEqual(expect.objectContaining({ success: true })); // see comment on first test
 
-    expect(npmShow(registry, testName)).toMatchObject<NpmShowResult>({
+    const expectedNpmResult: NpmShowResult = {
       name: testName,
       versions: [testVersion],
       'dist-tags': { [testTag]: testVersion, latest: testVersion },
-    });
+    };
+    expect(npmShow(registry, testName)).toMatchObject(expectedNpmResult);
   });
 });

@@ -1,3 +1,4 @@
+import { describe, expect, it } from '@jest/globals';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { MarkdownChangelogRenderOptions, renderChangelog, markerComment } from '../../changelog/renderChangelog';
 

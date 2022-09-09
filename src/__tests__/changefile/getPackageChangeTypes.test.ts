@@ -1,3 +1,4 @@
+import { describe, expect, it } from '@jest/globals';
 import { getAllowedChangeType } from '../../changefile/getPackageChangeTypes';
 
 describe('getAllowedChangeTypes', () => {

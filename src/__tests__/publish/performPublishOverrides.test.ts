@@ -1,3 +1,4 @@
+import { describe, expect, it, afterEach } from '@jest/globals';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { tmpdir } from '../../__fixtures__/tmpdir';

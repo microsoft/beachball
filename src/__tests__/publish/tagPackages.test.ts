@@ -1,3 +1,5 @@
+import { describe, expect, it, jest, beforeEach } from '@jest/globals';
+import type { Mock } from 'jest-mock';
 import { gitFailFast } from 'workspace-tools';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { tagPackages, tagDistTag } from '../../publish/tagPackages';
@@ -66,7 +68,7 @@ describe('tagPackages', () => {
   initMockLogs();
 
   beforeEach(() => {
-    (gitFailFast as jest.Mock).mockReset();
+    (gitFailFast as Mock).mockReset();
   });
 
   it('createTag is not called for packages without gitTags', () => {
@@ -88,7 +90,7 @@ describe('tagDistTag', () => {
   initMockLogs();
 
   beforeEach(() => {
-    (gitFailFast as jest.Mock).mockReset();
+    (gitFailFast as Mock).mockReset();
   });
 
   it('createTag is not called for an empty dist tag', () => {

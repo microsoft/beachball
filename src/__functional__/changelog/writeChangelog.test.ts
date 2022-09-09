@@ -1,3 +1,4 @@
+import { describe, expect, it, beforeAll, afterAll } from '@jest/globals';
 import { generateChangeFiles } from '../../__fixtures__/changeFiles';
 import { cleanChangelogJson, readChangelogJson, readChangelogMd } from '../../__fixtures__/changelog';
 import { initMockLogs } from '../../__fixtures__/mockLogs';

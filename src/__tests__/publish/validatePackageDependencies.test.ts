@@ -1,3 +1,4 @@
+import { describe, expect, it } from '@jest/globals';
 import _ from 'lodash';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { validatePackageDependencies } from '../../publish/validatePackageDependencies';

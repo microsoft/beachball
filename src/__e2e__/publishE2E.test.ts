@@ -1,3 +1,4 @@
+import { describe, expect, it, beforeAll, beforeEach, afterAll, afterEach, jest } from '@jest/globals';
 import fs from 'fs-extra';
 import path from 'path';
 import { addGitObserver, clearGitObservers } from 'workspace-tools';
@@ -66,11 +67,12 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo));
 
-    expect(npmShow(registry, 'foo')).toMatchObject<NpmShowResult>({
+    const expectedNpmResult: NpmShowResult = {
       name: 'foo',
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },
-    });
+    };
+    expect(npmShow(registry, 'foo')).toMatchObject(expectedNpmResult);
 
     repo.checkout(defaultBranchName);
     repo.pull();
@@ -89,11 +91,12 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { push: false }));
 
-    expect(npmShow(registry, 'foo')).toMatchObject<NpmShowResult>({
+    const expectedNpmResult: NpmShowResult = {
       name: 'foo',
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },
-    });
+    };
+    expect(npmShow(registry, 'foo')).toMatchObject(expectedNpmResult);
   });
 
   it('can perform a successful npm publish from a race condition', async () => {
@@ -122,11 +125,12 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo));
 
-    expect(npmShow(registry, 'foo')).toMatchObject<NpmShowResult>({
+    const expectedNpmResult: NpmShowResult = {
       name: 'foo',
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },
-    });
+    };
+    expect(npmShow(registry, 'foo')).toMatchObject(expectedNpmResult);
 
     repo.checkout(defaultBranchName);
     repo.pull();
@@ -165,11 +169,12 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo));
 
-    expect(npmShow(registry, 'foo')).toMatchObject<NpmShowResult>({
+    const expectedNpmResult: NpmShowResult = {
       name: 'foo',
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },
-    });
+    };
+    expect(npmShow(registry, 'foo')).toMatchObject(expectedNpmResult);
 
     repo.checkout(defaultBranchName);
     repo.pull();
@@ -193,11 +198,12 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { bump: false }));
 
-    expect(npmShow(registry, 'foo')).toMatchObject<NpmShowResult>({
+    const expectedNpmResult: NpmShowResult = {
       name: 'foo',
       versions: ['1.0.0'],
       'dist-tags': { latest: '1.0.0' },
-    });
+    };
+    expect(npmShow(registry, 'foo')).toMatchObject(expectedNpmResult);
 
     repo.checkout(defaultBranchName);
     repo.pull();
@@ -219,11 +225,12 @@ describe('publish command (e2e)', () => {
 
     expect(repo.getCurrentTags()).toEqual([]);
 
-    expect(npmShow(registry, 'bar')).toMatchObject<NpmShowResult>({
+    const expectedNpmResult: NpmShowResult = {
       name: 'bar',
       versions: ['1.4.0'],
       'dist-tags': { latest: '1.4.0' },
-    });
+    };
+    expect(npmShow(registry, 'bar')).toMatchObject(expectedNpmResult);
 
     repo.checkout(defaultBranchName);
     repo.pull();
@@ -319,11 +326,12 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { fetch: false }));
 
-    expect(npmShow(registry, 'foo')).toMatchObject<NpmShowResult>({
+    const expectedNpmResult: NpmShowResult = {
       name: 'foo',
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },
-    });
+    };
+    expect(npmShow(registry, 'foo')).toMatchObject(expectedNpmResult);
 
     // no fetch when flag set to false
     expect(fetchCount).toBe(0);
@@ -348,11 +356,12 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { depth: 10 }));
 
-    expect(npmShow(registry, 'foo')).toMatchObject<NpmShowResult>({
+    const expectedNpmResult: NpmShowResult = {
       name: 'foo',
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },
-    });
+    };
+    expect(npmShow(registry, 'foo')).toMatchObject(expectedNpmResult);
 
     // no fetch when flag set to false
     expect(depthString).toEqual('--depth=10');

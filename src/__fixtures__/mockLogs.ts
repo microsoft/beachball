@@ -1,10 +1,13 @@
+import { jest, beforeEach, afterEach } from '@jest/globals';
+import type { SpyInstance } from 'jest-mock';
+
 /** Methods that will be mocked. More could be added later if needed. */
 export type MockLogMethod = 'log' | 'warn' | 'error';
 const mockedMethods: MockLogMethod[] = ['log', 'warn', 'error'];
 
 export type MockLogs = {
   /** Mocked methods (to access calls etc) */
-  mocks: { [k in MockLogMethod]: jest.SpyInstance<void, Parameters<typeof console.log>> };
+  mocks: { [k in MockLogMethod]: SpyInstance<typeof console.log> };
   /** Actual console methods */
   realConsole: typeof console;
   /** Re-init the mocks for the current test (to use different options for this test) */

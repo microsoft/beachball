@@ -1,3 +1,4 @@
+import { describe, expect, it } from '@jest/globals';
 import { updateRelatedChangeType } from '../../bump/updateRelatedChangeType';
 import { BumpInfo } from '../../types/BumpInfo';
 import _ from 'lodash';
