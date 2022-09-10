@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update Jest to version 29",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}
