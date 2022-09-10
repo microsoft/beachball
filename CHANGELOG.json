@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 10 Sep 2022 08:02:44 GMT",
+      "tag": "beachball_v2.30.1",
+      "version": "2.30.1",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "2a9753ed3ac27ffc2aa1d3f145a64761596820c4",
+            "comment": "Switch from @types/jest to @jest/globals"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 26 Aug 2022 08:03:37 GMT",
       "tag": "beachball_v2.30.1",
       "version": "2.30.1",
