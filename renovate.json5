@@ -2,21 +2,15 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "github>microsoft/m365-renovate-config:beachballLibraryRecommended",
+    "github>microsoft/m365-renovate-config:disableEsmVersions",
     "github>microsoft/m365-renovate-config:groupMore",
-    "github>microsoft/m365-renovate-config:keepFresh"
+    "github>microsoft/m365-renovate-config:groupTypes",
+    "github>microsoft/m365-renovate-config:keepFresh",
+    "github>microsoft/m365-renovate-config:restrictNode(14)"
   ],
 
   "labels": ["renovate"],
 
   "reviewers": ["ecraig12345", "kenotron"],
-  "reviewersSampleSize": 1,
-
-  "packageRules": [
-    // Limit upgrades of packages that were converted to ESM in newer versions
-    // (the repo and in particular jest isn't set up for ESM yet)
-    { "matchPackageNames": ["execa"], "allowedVersions": "<6.0.0" },
-    { "matchPackageNames": ["p-limit"], "allowedVersions": "<4.0.0" },
-    // For @types/node we're intentionally staying on 12 (should really be 14)
-    { "matchPackageNames": ["@types/node"], "allowedVersions": "<13.0.0" }
-  ]
+  "reviewersSampleSize": 1
 }
