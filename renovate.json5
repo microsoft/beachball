@@ -1,3 +1,12 @@
+// Available options:
+// https://docs.renovatebot.com/configuration-options/
+
+// M365 presets:
+// https://github.com/microsoft/m365-renovate-config
+
+// NOTE: Renovate only allows comments in .json5 files, but this isn't well-supported by
+// Prettier + VS Code. Workaround is to configure tools to treat the file as JSONC
+// (in .prettierrc and .vscode/settings.json).
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
