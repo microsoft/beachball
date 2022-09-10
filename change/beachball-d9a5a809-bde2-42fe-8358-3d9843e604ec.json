@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Respect ignorePatterns in getPackageInfos",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
