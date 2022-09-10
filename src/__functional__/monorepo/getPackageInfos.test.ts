@@ -76,18 +76,18 @@ describe('getPackageInfos', () => {
 
   it('throws if run outside a git repo', () => {
     tempDir = tmpdir();
-    expect(() => getPackageInfos(tempDir!)).toThrow(/not in a git repository/);
+    expect(() => getPackageInfos({ path: tempDir! })).toThrow(/not in a git repository/);
   });
 
   it('returns empty object if no packages are found', () => {
     tempDir = tmpdir();
     gitFailFast(['init'], { cwd: tempDir });
-    expect(getPackageInfos(tempDir)).toEqual({});
+    expect(getPackageInfos({ path: tempDir })).toEqual({});
   });
 
   it('works in single-package repo', () => {
     const repo = singleFactory.cloneRepository();
-    let packageInfos = getPackageInfos(repo.rootPath);
+    let packageInfos = getPackageInfos({ path: repo.rootPath });
     packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
     expect(packageInfos).toMatchInlineSnapshot(`
       Object {
@@ -108,7 +108,7 @@ describe('getPackageInfos', () => {
   // both yarn and npm define "workspaces" in package.json
   it('works in yarn/npm monorepo', () => {
     const repo = monorepoFactory.cloneRepository();
-    let packageInfos = getPackageInfos(repo.rootPath);
+    let packageInfos = getPackageInfos({ path: repo.rootPath });
     packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
     expect(packageInfos).toMatchInlineSnapshot(`
       Object {
@@ -158,7 +158,7 @@ describe('getPackageInfos', () => {
     fs.writeFileSync(repo.pathTo('pnpm-lock.yaml'), '');
     fs.writeFileSync(repo.pathTo('pnpm-workspace.yaml'), 'packages: ["packages/*", "packages/grouped/*"]');
 
-    const rootPackageInfos = getPackageInfos(repo.rootPath);
+    const rootPackageInfos = getPackageInfos({ path: repo.rootPath });
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toMatchInlineSnapshot(`
       Object {
         "a": "packages/grouped/a/package.json",
@@ -178,7 +178,7 @@ describe('getPackageInfos', () => {
       projects: [{ projectFolder: 'packages' }, { projectFolder: 'packages/grouped' }],
     });
 
-    const rootPackageInfos = getPackageInfos(repo.rootPath);
+    const rootPackageInfos = getPackageInfos({ path: repo.rootPath });
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toMatchInlineSnapshot(`
       Object {
         "a": "packages/grouped/a/package.json",
@@ -196,7 +196,7 @@ describe('getPackageInfos', () => {
     fs.writeJSONSync(repo.pathTo('package.json'), { name: 'lerna-monorepo', version: '1.0.0', private: true });
     fs.writeJSONSync(repo.pathTo('lerna.json'), { packages: ['packages/*', 'packages/grouped/*'] });
 
-    const rootPackageInfos = getPackageInfos(repo.rootPath);
+    const rootPackageInfos = getPackageInfos({ path: repo.rootPath });
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toMatchInlineSnapshot(`
       Object {
         "a": "packages/grouped/a/package.json",
@@ -212,7 +212,7 @@ describe('getPackageInfos', () => {
     const repo = multiWorkspaceFactory.cloneRepository();
 
     // For this test, only snapshot the package names and paths
-    const rootPackageInfos = getPackageInfos(repo.rootPath);
+    const rootPackageInfos = getPackageInfos({ path: repo.rootPath });
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toMatchInlineSnapshot(`
       Object {
         "@workspace-a/a": "workspace-a/packages/grouped/a/package.json",
@@ -231,7 +231,7 @@ describe('getPackageInfos', () => {
     `);
 
     const workspaceARoot = repo.pathTo('workspace-a');
-    const packageInfosA = getPackageInfos(workspaceARoot);
+    const packageInfosA = getPackageInfos({ path: workspaceARoot });
     expect(getPackageNamesAndPaths(workspaceARoot, packageInfosA)).toMatchInlineSnapshot(`
       Object {
         "@workspace-a/a": "packages/grouped/a/package.json",
@@ -243,7 +243,7 @@ describe('getPackageInfos', () => {
     `);
 
     const workspaceBRoot = repo.pathTo('workspace-b');
-    const packageInfosB = getPackageInfos(workspaceBRoot);
+    const packageInfosB = getPackageInfos({ path: workspaceBRoot });
     expect(getPackageNamesAndPaths(workspaceBRoot, packageInfosB)).toMatchInlineSnapshot(`
       Object {
         "@workspace-b/a": "packages/grouped/a/package.json",
@@ -262,6 +262,32 @@ describe('getPackageInfos', () => {
     const repo = multiWorkspaceFactory.cloneRepository();
     repo.updateJsonFile('workspace-a/packages/foo/package.json', { name: 'foo' });
     repo.updateJsonFile('workspace-b/packages/foo/package.json', { name: 'foo' });
-    expect(() => getPackageInfos(repo.rootPath)).toThrow();
+    expect(() => getPackageInfos({ path: repo.rootPath })).toThrow();
+  });
+
+  it('does not throw if ignored fixture packages have the same name', () => {
+    // This setup mimics workspace-tools
+    const repo = singleFactory.cloneRepository();
+    for (const fixture of ['monorepo-1', 'monorepo-2']) {
+      const fixturePath = `src/__fixtures__/${fixture}`;
+      repo.writeChange(
+        `${fixturePath}/package.json`,
+        JSON.stringify({ name: fixture, workspaces: { packages: ['packages/*'] } })
+      );
+      repo.writeChange(`${fixturePath}/yarn.lock`);
+      repo.writeChange(`${fixturePath}/packages/package-a/package.json`, JSON.stringify({ name: 'package-a' }));
+      repo.writeChange(`${fixturePath}/packages/package-b/package.json`, JSON.stringify({ name: 'package-b' }));
+    }
+    repo.commitAll();
+
+    // First verify that it DOES throw with no ignores (otherwise the test is invalid)
+    expect(() => getPackageInfos({ path: repo.rootPath })).toThrow();
+    // Then verify it ignores as requested
+    expect(() =>
+      getPackageInfos({
+        path: repo.rootPath,
+        ignorePatterns: ['src/__fixtures__/**'],
+      })
+    ).not.toThrow();
   });
 });

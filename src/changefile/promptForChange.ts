@@ -20,7 +20,7 @@ export async function promptForChange(options: BeachballOptions): Promise<Change
   if (specificPackage && !Array.isArray(specificPackage)) {
     specificPackage = [specificPackage];
   }
-  const packageInfos = getPackageInfos(cwd);
+  const packageInfos = getPackageInfos(options);
   const changedPackages = specificPackage || getChangedPackages(options, packageInfos);
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
   const packageChangeInfo: ChangeFileInfo[] = [];

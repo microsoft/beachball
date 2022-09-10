@@ -7,7 +7,7 @@ import { setDependentVersions } from '../bump/setDependentVersions';
 import { writePackageJson, updatePackageLock } from '../bump/performBump';
 
 export async function sync(options: BeachballOptions) {
-  const packageInfos = getPackageInfos(options.path);
+  const packageInfos = getPackageInfos(options);
   const scopedPackages = new Set(getScopedPackages(options, packageInfos));
 
   const infos = new Map(Object.entries(packageInfos).filter(([pkg, info]) => !info.private && scopedPackages.has(pkg)));

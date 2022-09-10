@@ -1,26 +1,33 @@
 import fs from 'fs-extra';
+import minimatch from 'minimatch';
 import path from 'path';
 import { getWorkspaces, listAllTrackedFiles, findPackageRoot, findProjectRoot } from 'workspace-tools';
-import { PackageInfos } from '../types/PackageInfo';
+import { BeachballOptions } from '../types/BeachballOptions';
+import { PackageInfo, PackageInfos } from '../types/PackageInfo';
 import { infoFromPackageJson } from './infoFromPackageJson';
 
 /**
- * Get a mapping from package name to package info for all packages in the workspace
- * (reading from package.json files)
+ * Get a mapping from package name to package info for all packages that are in scope in the workspace
+ * (reading from package.json files).
  */
-export function getPackageInfos(cwd: string): PackageInfos {
+export function getPackageInfos(options: Pick<BeachballOptions, 'path' | 'ignorePatterns'>): PackageInfos {
+  const { path: cwd, ignorePatterns } = options;
   const projectRoot = findProjectRoot(cwd);
   const packageRoot = findPackageRoot(cwd);
 
+  const ignoreRegex = ignorePatterns?.map(pattern => minimatch.makeRe(pattern, { matchBase: true }));
+  const isPackageIgnored = (info: PackageInfo) =>
+    !!ignoreRegex && ignoreRegex.some(regex => regex.test(path.relative(cwd, info.packageJsonPath)));
+
   return (
-    (projectRoot && getPackageInfosFromWorkspace(projectRoot)) ||
-    (projectRoot && getPackageInfosFromNonWorkspaceMonorepo(projectRoot)) ||
+    (projectRoot && getPackageInfosFromWorkspace(projectRoot, isPackageIgnored)) ||
+    (projectRoot && getPackageInfosFromNonWorkspaceMonorepo(projectRoot, isPackageIgnored)) ||
     (packageRoot && getPackageInfosFromSingleRepo(packageRoot)) ||
     {}
   );
 }
 
-function getPackageInfosFromWorkspace(projectRoot: string) {
+function getPackageInfosFromWorkspace(projectRoot: string, isPackageIgnored: (pkg: PackageInfo) => boolean) {
   try {
     const packageInfos: PackageInfos = {};
 
@@ -33,7 +40,10 @@ function getPackageInfosFromWorkspace(projectRoot: string) {
         const packageJsonPath = path.join(packagePath, 'package.json');
 
         try {
-          packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonPath);
+          const packageInfo = infoFromPackageJson(packageJson, packageJsonPath);
+          if (!isPackageIgnored(packageInfo)) {
+            packageInfos[packageJson.name] = packageInfo;
+          }
         } catch (e) {
           // Pass, the package.json is invalid
           console.warn(`Invalid package.json file detected ${packageJsonPath}: `, e);
@@ -47,7 +57,7 @@ function getPackageInfosFromWorkspace(projectRoot: string) {
   }
 }
 
-function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string) {
+function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string, isPackageIgnored: (pkg: PackageInfo) => boolean) {
   const packageJsonFiles = listAllTrackedFiles(['**/package.json', 'package.json'], projectRoot);
 
   const packageInfos: PackageInfos = {};
@@ -58,15 +68,18 @@ function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string) {
       try {
         const packageJsonFullPath = path.join(projectRoot, packageJsonPath);
         const packageJson = fs.readJSONSync(packageJsonFullPath);
-        if (packageInfos[packageJson.name]) {
-          hasDuplicatePackage = true;
-          throw new Error(
-            `Two packages in different workspaces have the same name. Please rename one of these packages:\n- ${
-              packageInfos[packageJson.name].packageJsonPath
-            }\n- ${packageJsonPath}`
-          );
+        const packageInfo = infoFromPackageJson(packageJson, packageJsonFullPath);
+        if (!isPackageIgnored(packageInfo)) {
+          if (packageInfos[packageJson.name]) {
+            hasDuplicatePackage = true;
+            throw new Error(
+              `Two packages in different workspaces have the same name. Please rename one of these packages:\n- ${
+                packageInfos[packageJson.name].packageJsonPath
+              }\n- ${packageJsonPath}`
+            );
+          }
+          packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonFullPath);
         }
-        packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonFullPath);
       } catch (e) {
         if (hasDuplicatePackage) {
           throw e; // duplicate package error should propagate

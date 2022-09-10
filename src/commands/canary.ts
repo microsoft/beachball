@@ -8,7 +8,7 @@ import { publishToRegistry } from '../publish/publishToRegistry';
 import { BeachballOptions } from '../types/BeachballOptions';
 
 export async function canary(options: BeachballOptions) {
-  const oldPackageInfo = getPackageInfos(options.path);
+  const oldPackageInfo = getPackageInfos(options);
 
   const bumpInfo = gatherBumpInfo(options, oldPackageInfo);
 
