@@ -15,9 +15,12 @@ export function getPackageInfos(options: Pick<BeachballOptions, 'path' | 'ignore
   const projectRoot = findProjectRoot(cwd);
   const packageRoot = findPackageRoot(cwd);
 
-  const ignoreRegex = ignorePatterns?.map(pattern => minimatch.makeRe(pattern, { matchBase: true }));
-  const isPackageIgnored = (info: PackageInfo) =>
-    !!ignoreRegex && ignoreRegex.some(regex => regex.test(path.relative(cwd, info.packageJsonPath)));
+  const ignoreRegex = ignorePatterns?.map(pattern => new minimatch.Minimatch(pattern, { matchBase: true }));
+  const isPackageIgnored = (info: PackageInfo) => {
+    if (!ignoreRegex) return false;
+    const comparePath = path.relative(cwd, info.packageJsonPath);
+    return ignoreRegex.some(pattern => pattern.match(comparePath));
+  };
 
   return (
     (projectRoot && getPackageInfosFromWorkspace(projectRoot, isPackageIgnored)) ||

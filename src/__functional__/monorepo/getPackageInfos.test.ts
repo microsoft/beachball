@@ -265,7 +265,7 @@ describe('getPackageInfos', () => {
     expect(() => getPackageInfos({ path: repo.rootPath })).toThrow();
   });
 
-  it('does not throw if ignored fixture packages have the same name', () => {
+  it.only('does not throw if ignored fixture packages have the same name', () => {
     // This setup mimics workspace-tools
     const repo = singleFactory.cloneRepository();
     for (const fixture of ['monorepo-1', 'monorepo-2']) {
