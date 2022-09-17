@@ -21,5 +21,13 @@
   "labels": ["renovate"],
 
   "reviewers": ["ecraig12345", "kenotron"],
-  "reviewersSampleSize": 1
+  "reviewersSampleSize": 1,
+
+  "packageRules": [
+    {
+      "matchPackageNames": ["workspace-tools"],
+      "matchUpdateTypes": ["major", "minor"],
+      "depencencyDashboardApproval": false
+    }
+  ]
 }
