@@ -5385,14 +5385,6 @@ find-up@^4.0.0, find-up@^4.1.0:
     locate-path "^5.0.0"
     path-exists "^4.0.0"
 
-find-up@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/find-up/-/find-up-5.0.0.tgz#4c92819ecb7083561e4f4a240a86be5198f536fc"
-  integrity sha512-78/PXT1wlLLDgTzDs7sjq9hzz0vXD+zn+7wypEe4fXQxCmdmqfGsEPQxmiCSQI3ajFV91bVSsvNtrJRiW6nGng==
-  dependencies:
-    locate-path "^6.0.0"
-    path-exists "^4.0.0"
-
 flush-write-stream@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/flush-write-stream/-/flush-write-stream-1.1.1.tgz#8dd7d873a1babc207d94ead0c2e0e44276ebf2e8"
@@ -5606,20 +5598,20 @@ gh-pages@4.0.0:
     fs-extra "^8.1.0"
     globby "^6.1.0"
 
-git-up@^6.0.0:
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/git-up/-/git-up-6.0.0.tgz#dbd6e4eee270338be847a0601e6d0763c90b74db"
-  integrity sha512-6RUFSNd1c/D0xtGnyWN2sxza2bZtZ/EmI9448n6rCZruFwV/ezeEn2fJP7XnUQGwf0RAtd/mmUCbtH6JPYA2SA==
+git-up@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/git-up/-/git-up-7.0.0.tgz#bace30786e36f56ea341b6f69adfd83286337467"
+  integrity sha512-ONdIrbBCFusq1Oy0sC71F5azx8bVkvtZtMJAsv+a6lz5YAmbNnLD6HAB4gptHZVLPR8S2/kVN6Gab7lryq5+lQ==
   dependencies:
     is-ssh "^1.4.0"
-    parse-url "^7.0.2"
+    parse-url "^8.1.0"
 
-git-url-parse@^12.0.0:
-  version "12.0.0"
-  resolved "https://registry.yarnpkg.com/git-url-parse/-/git-url-parse-12.0.0.tgz#4ba70bc1e99138321c57e3765aaf7428e5abb793"
-  integrity sha512-I6LMWsxV87vysX1WfsoglXsXg6GjQRKq7+Dgiseo+h0skmp5Hp2rzmcEIRQot9CPA+uzU7x1x7jZdqvTFGnB+Q==
+git-url-parse@^13.0.0:
+  version "13.1.0"
+  resolved "https://registry.yarnpkg.com/git-url-parse/-/git-url-parse-13.1.0.tgz#07e136b5baa08d59fabdf0e33170de425adf07b4"
+  integrity sha512-5FvPJP/70WkIprlUZ33bm4UAaFdjcLkJLpWft1BeZKqwR0uhhNGoKwlUaPtVb4LxCSQ++erHapRak9kWGj+FCA==
   dependencies:
-    git-up "^6.0.0"
+    git-up "^7.0.0"
 
 glob-parent@^3.1.0:
   version "3.1.0"
@@ -7130,7 +7122,7 @@ js-yaml@3.14.1, js-yaml@^3.13.1:
     argparse "^1.0.7"
     esprima "^4.0.0"
 
-js-yaml@^4.0.0:
+js-yaml@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz#c1fb65f8f5017901cdd2c951864ba18458a10602"
   integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
@@ -7529,13 +7521,6 @@ locate-path@^5.0.0:
   integrity sha512-t7hw9pI+WvuwNJXwk5zVHpyhIqzg2qTlklJOf0mVxGSbe3Fp2VieZcduNYjaLDoy6p9uGpQEGWG87WpMKlNq8g==
   dependencies:
     p-locate "^4.1.0"
-
-locate-path@^6.0.0:
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/locate-path/-/locate-path-6.0.0.tgz#55321eb309febbc59c4801d931a72452a681d286"
-  integrity sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==
-  dependencies:
-    p-locate "^5.0.0"
 
 lockfile@1.0.4:
   version "1.0.4"
@@ -8238,11 +8223,6 @@ normalize-url@^4.1.0:
   resolved "https://registry.yarnpkg.com/normalize-url/-/normalize-url-4.5.1.tgz#0dd90cf1288ee1d1313b87081c9a5932ee48518a"
   integrity sha512-9UZCFRHQdNrfTpGg8+1INIg93B6zE0aXMVFkw1WFwvO4SlZywU6aLg5Of0Ap/PgcbSw4LNxvMWXMeugwMCX0AA==
 
-normalize-url@^6.1.0:
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/normalize-url/-/normalize-url-6.1.0.tgz#40d0885b535deffe3f3147bec877d05fe4c5668a"
-  integrity sha512-DlL+XwOy3NxAQ8xuC0okPgK46iuVNAK01YN7RueYBqqFeGsBjV9XmCAzAdgt+667bCl5kPh9EqKKDwnaPG1I7A==
-
 npm-run-path@^2.0.0:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/npm-run-path/-/npm-run-path-2.0.2.tgz#35a9232dfa35d7067b4cb2ddf2357b1871536c5f"
@@ -8472,13 +8452,6 @@ p-locate@^4.1.0:
   dependencies:
     p-limit "^2.2.0"
 
-p-locate@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/p-locate/-/p-locate-5.0.0.tgz#83c8315c6785005e3bd021839411c9e110e6d834"
-  integrity sha512-LaNjtRWUBY++zB5nE/NwcaoMylSPk+S+ZHNB1TzdbMJMny6dynpAGt7X/tl/QYq3TIeE6nxHppbo2LGymrG5Pw==
-  dependencies:
-    p-limit "^3.0.2"
-
 p-map@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/p-map/-/p-map-2.1.0.tgz#310928feef9c9ecc65b68b17693018a665cea175"
@@ -8563,22 +8536,19 @@ parse-json@^5.0.0, parse-json@^5.2.0:
     json-parse-even-better-errors "^2.3.0"
     lines-and-columns "^1.1.6"
 
-parse-path@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/parse-path/-/parse-path-5.0.0.tgz#f933152f3c6d34f4cf36cfc3d07b138ac113649d"
-  integrity sha512-qOpH55/+ZJ4jUu/oLO+ifUKjFPNZGfnPJtzvGzKN/4oLMil5m9OH4VpOj6++9/ytJcfks4kzH2hhi87GL/OU9A==
+parse-path@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/parse-path/-/parse-path-7.0.0.tgz#605a2d58d0a749c8594405d8cc3a2bf76d16099b"
+  integrity sha512-Euf9GG8WT9CdqwuWJGdf3RkUcTBArppHABkO7Lm8IzRQp0e2r/kkFnmhu4TSK30Wcu5rVAZLmfPKSBBi9tWFog==
   dependencies:
     protocols "^2.0.0"
 
-parse-url@^7.0.2:
-  version "7.0.2"
-  resolved "https://registry.yarnpkg.com/parse-url/-/parse-url-7.0.2.tgz#d21232417199b8d371c6aec0cedf1406fd6393f0"
-  integrity sha512-PqO4Z0eCiQ08Wj6QQmrmp5YTTxpYfONdOEamrtvK63AmzXpcavIVQubGHxOEwiIoDZFb8uDOoQFS0NCcjqIYQg==
+parse-url@^8.1.0:
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/parse-url/-/parse-url-8.1.0.tgz#972e0827ed4b57fc85f0ea6b0d839f0d8a57a57d"
+  integrity sha512-xDvOoLU5XRrcOZvnI6b8zA6n9O9ejNk/GExuz1yBuWUGn9KA97GI6HTs6u02wKara1CeVmZhH+0TZFdWScR89w==
   dependencies:
-    is-ssh "^1.4.0"
-    normalize-url "^6.1.0"
-    parse-path "^5.0.0"
-    protocols "^2.0.1"
+    parse-path "^7.0.0"
 
 parse5@5.1.0:
   version "5.1.0"
@@ -9346,14 +9316,6 @@ react-is@^18.0.0:
   version "18.2.0"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-18.2.0.tgz#199431eeaaa2e09f86427efbb4f1473edb47609b"
   integrity sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==
-
-read-yaml-file@^2.0.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/read-yaml-file/-/read-yaml-file-2.1.0.tgz#c5866712db9ef5343b4d02c2413bada53c41c4a9"
-  integrity sha512-UkRNRIwnhG+y7hpqnycCL/xbTk7+ia9VuVTC0S+zVbwd65DI9eUpRMfsWIGrCWxTU/mi+JW8cHQCrv+zfCbEPQ==
-  dependencies:
-    js-yaml "^4.0.0"
-    strip-bom "^4.0.0"
 
 "readable-stream@1 || 2", readable-stream@^2.0.0, readable-stream@^2.0.1, readable-stream@^2.0.2, readable-stream@^2.1.5, readable-stream@^2.2.2, readable-stream@^2.3.3, readable-stream@^2.3.6, readable-stream@~2.3.6:
   version "2.3.7"
@@ -11526,18 +11488,17 @@ worker-farm@^1.7.0:
   dependencies:
     errno "~0.1.7"
 
-workspace-tools@^0.26.0:
-  version "0.26.3"
-  resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.26.3.tgz#521ff930e889873eab5d223289d7136d1e9a1b42"
-  integrity sha512-aNnxt0rBh8CwQ6DfYn/CU1xNTKu+dwoNjZ9oddEAOogvIOMQGJ57OQ3XI7+iRZu1XfO+HK2xsQLMbZGjmAJ8UA==
+workspace-tools@^0.27.0:
+  version "0.27.0"
+  resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.27.0.tgz#11e8f1ec2cb4c80d1cefcf92da2d0154dc001aa8"
+  integrity sha512-5mtE5Vy0Se4brAUJXKfXNtaS9jcUcH+IGF4LNU1xJr4bW1o5bK2gV0pykodB+n6V84nRtaD/4I/9w98aujm7LA==
   dependencies:
     "@yarnpkg/lockfile" "^1.1.0"
-    find-up "^5.0.0"
-    git-url-parse "^12.0.0"
+    git-url-parse "^13.0.0"
     globby "^11.0.0"
     jju "^1.4.0"
+    js-yaml "^4.1.0"
     micromatch "^4.0.0"
-    read-yaml-file "^2.0.0"
 
 wrap-ansi@^5.1.0:
   version "5.1.0"
