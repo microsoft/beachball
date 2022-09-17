@@ -27,7 +27,7 @@
     {
       "matchPackageNames": ["workspace-tools"],
       "matchUpdateTypes": ["major", "minor"],
-      "depencencyDashboardApproval": false
+      "dependencyDashboardApproval": false
     }
   ]
 }
