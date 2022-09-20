@@ -8,6 +8,8 @@ export async function mergePublishBranch(
   cwd: string,
   options: BeachballOptions
 ) {
+  await precommitHook(options);
+
   let result: GitProcessOutput;
   let mergeSteps = [
     ['add', '.'],
@@ -15,8 +17,6 @@ export async function mergePublishBranch(
     ['checkout', branch],
     ['merge', '-X', 'ours', publishBranch],
   ];
-
-  await precommitHook(options);
 
   for (let index = 0; index < mergeSteps.length; index++) {
     const step = mergeSteps[index];
@@ -40,8 +40,5 @@ async function precommitHook(options: BeachballOptions) {
     return;
   }
 
-  const hookRet = hook(options.path);
-  if (hookRet instanceof Promise) {
-    await hookRet;
-  }
+  await hook(options.path);
 }
