@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 20 Sep 2022 21:13:11 GMT",
+      "tag": "beachball_v2.31.0",
+      "version": "2.31.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "a83b5bb72f2f556e2f88a313a1ffd72dd0c6eacd",
+            "comment": "Add precommit hook"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 17 Sep 2022 01:48:49 GMT",
       "tag": "beachball_v2.30.2",
       "version": "2.30.2",

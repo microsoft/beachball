@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Sat, 17 Sep 2022 01:48:49 GMT and should not be manually modified.
+This log was last generated on Tue, 20 Sep 2022 21:13:11 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.31.0
+
+Tue, 20 Sep 2022 21:13:11 GMT
+
+### Minor changes
+
+- Add precommit hook (elcraig@microsoft.com)
 
 ## 2.30.2
 
