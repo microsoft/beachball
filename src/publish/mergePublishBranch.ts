@@ -31,9 +31,7 @@ export async function mergePublishBranch(
   return result!;
 }
 
-/**
- * Calls a specified hook for each package being bumped
- */
+/** Calls the `precommit` hook specified in `options` */
 async function precommitHook(options: BeachballOptions) {
   const hook = options.hooks?.precommit;
   if (!hook) {
