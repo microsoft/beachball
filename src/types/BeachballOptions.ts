@@ -155,7 +155,7 @@ export interface HooksOptions {
   postbump?: (packagePath: string, name: string, version: string) => void | Promise<void>;
 
   /**
-   * Runs once after all bumps to all packages before commiting changes
+   * Runs once after all bumps to all packages before committing changes
    */
   precommit?: (cwd: string) => void | Promise<void>;
 }
