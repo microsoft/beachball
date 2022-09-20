@@ -153,6 +153,11 @@ export interface HooksOptions {
    * to the filesystem. May be called multiple times during publish.
    */
   postbump?: (packagePath: string, name: string, version: string) => void | Promise<void>;
+
+  /**
+   * Runs once after all bumps to all packages before committing changes
+   */
+  precommit?: (cwd: string) => void | Promise<void>;
 }
 
 export interface TransformOptions {
