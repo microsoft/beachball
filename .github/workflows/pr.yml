@@ -48,7 +48,7 @@ jobs:
 
       - run: yarn docs:build
 
-      - run: yarn checkchange
+      - run: yarn checkchange --verbose
 
       - run: yarn test:unit
 

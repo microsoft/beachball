@@ -8,6 +8,84 @@ import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { PackageInfos, PackageInfo } from '../types/PackageInfo';
 
+/**
+ * Ensure that adequate history is available to check for changes between HEAD and `options.branch`.
+ * Otherwise attempting to get changes will fail with an error "no merge base".
+ */
+function ensureHistory(options: BeachballOptions) {
+  const { fetch, path: cwd, branch } = options;
+  const { remote, remoteBranch } = parseRemoteBranch(branch);
+
+  const fetchMitigationSteps = `- Omit the "--no-fetch" / "--fetch=false" option from the command line
+- Remove "fetch: false" from the beachball config
+- If this is a CI build, ensure that adequate history is being fetched
+  - For GitHub Actions (actions/checkout), add the option "fetch-depth: 0" in the checkout step`;
+
+  if (fetch) {
+    // Fetch the latest from the remote branch for comparison
+    console.log(`fetching latest from remotes "${remote}/${remoteBranch}"`);
+    fetchRemoteBranch(remote, remoteBranch, cwd);
+  } else {
+    // If fetching is disabled, ensure that the target branch is available for comparison locally
+    const hasTargetBranch = git(['rev-parse', '--verify', branch], { cwd }).success;
+    if (!hasTargetBranch) {
+      // This is most likely to happen in a CI build which does a shallow checkout (github actions/checkout
+      // does this by default) and for some reason also disables beachball fetching.
+      const mainError = `Target branch "${branch}" does not exist locally, and fetching is disabled.`;
+      console.error(`
+
+${mainError} Some possible fixes:
+- Fetch the branch manually: git fetch ${remote} ${remoteBranch}
+${fetchMitigationSteps}
+
+`);
+      throw new Error(mainError);
+    }
+  }
+
+  // Verify that HEAD and the target branch share history
+  const hasCommonCommit = git(['merge-base', branch, 'HEAD'], { cwd }).success;
+  if (!hasCommonCommit) {
+    // This might be a shallow repo, and it's necessary to unshallow the head branch for comparison
+    const isShallow = git(['rev-parse', '--is-shallow-repository'], { cwd }).stdout.trim() === 'true';
+    if (isShallow) {
+      if (fetch) {
+        // Fetch more history (if needed, this could be optimized later to only deepen by e.g. 100 commits at a time)
+        // TODO switch to this after workspace-tools update
+        // try {
+        //   console.log('This is a shallow clone. Unshallowing to check for changes...');
+        //   git(['fetch', '--unshallow'], { cwd, throwOnError: true });
+        // } catch (err) {
+        //   throw new GitError(`Failed to fetch more history for branch "${branch}"`, err);
+        // }
+        console.log('This is a shallow clone. Unshallowing to check for changes...');
+        const result = git(['fetch', '--unshallow'], { cwd });
+        if (!result.success) {
+          throw new Error(`Failed to fetch more history for branch "${branch}":\n${result.stderr}`);
+        }
+      } else {
+        console.error(`
+
+This repo is a shallow clone, fetching is disabled, and not enough history is available to connect HEAD to "${branch}".
+Some possible fixes:
+
+- Verify that you're using the correct target branch
+- Unshallow or deepen the clone manually
+${fetchMitigationSteps}
+
+`);
+
+        throw new Error(`Inadequate history available for HEAD to connect it to target branch "${branch}".`);
+      }
+    } else {
+      // Not a shallow repo, so it's probably using the wrong target branch
+      throw new Error(
+        `HEAD does not appear to share history with "${branch}" -- are you using the correct target branch?`
+      );
+    }
+  }
+}
+
 function getMatchingPackageInfo(
   file: string,
   cwd: string,
@@ -99,15 +177,11 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
  * Gets all the changed packages, accounting for change files
  */
 export function getChangedPackages(options: BeachballOptions, packageInfos: PackageInfos) {
-  const { fetch, path: cwd, branch } = options;
+  const { path: cwd, branch } = options;
 
   const changePath = getChangePath(cwd);
 
-  if (fetch) {
-    const { remote, remoteBranch } = parseRemoteBranch(branch);
-    console.log(`fetching latest from remotes "${remote}/${remoteBranch}"`);
-    fetchRemoteBranch(remote, remoteBranch, cwd);
-  }
+  ensureHistory(options);
 
   const changedPackages = getAllChangedPackages(options, packageInfos);
 
