@@ -26,7 +26,7 @@ export async function promptForChange(options: BeachballOptions): Promise<Change
     return;
   }
 
-  const recentMessages = getRecentCommitMessages(branch, cwd) || [];
+  const recentMessageChoices: prompts.Choice[] = getRecentCommitMessages(branch, cwd).map(msg => ({ title: msg }));
   const packageChangeInfo: ChangeFileInfo[] = [];
 
   const packageGroups = getPackageGroups(packageInfos, options.path, options.groups);
@@ -68,8 +68,25 @@ export async function promptForChange(options: BeachballOptions): Promise<Change
       type: 'autocomplete',
       name: 'comment',
       message: 'Describe changes (type or choose one)',
-      suggest: input => {
-        return Promise.resolve([...recentMessages.filter(msg => msg.startsWith(input)), input]);
+      choices: recentMessageChoices,
+      suggest: (input: string) =>
+        Promise.resolve(
+          input
+            ? // do case-insensitive filtering
+              recentMessageChoices.filter(({ title }) => title.toLowerCase().startsWith(input.toLowerCase()))
+            : recentMessageChoices
+        ),
+      // prompts doesn't have proper support for "freeform" input (value not in the list), and the
+      // previously implemented hack of adding the input to the returned list from `suggest`
+      // no longer works. So this new hack adds the current input as the fallback.
+      // https://github.com/terkelg/prompts/issues/131
+      onState: function (this: any) {
+        this.fallback = { title: this.input };
+
+        // Check to make sure there are no suggestions so we do not override a suggestion
+        if (this.suggestions?.length === 0) {
+          this.value = this.input;
+        }
       },
     };
 
