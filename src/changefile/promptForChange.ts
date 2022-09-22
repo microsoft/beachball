@@ -75,18 +75,11 @@ export async function promptForChange(options: BeachballOptions): Promise<Change
       changeType: showChangeTypePrompt ? changeTypePrompt : undefined,
       description: !options.message ? descriptionPrompt : undefined,
     };
+    const defaultPrompts = [defaultPrompt.changeType, defaultPrompt.description];
 
-    let questions = [defaultPrompt.changeType, defaultPrompt.description];
-
-    if (packageInfo.combinedOptions.changeFilePrompt?.changePrompt) {
-      /**
-       * We are providing the package name also as the parameter so
-       * that the custom changelog can be specified at the package level
-       */
-      questions = packageInfo.combinedOptions.changeFilePrompt?.changePrompt(defaultPrompt, pkg);
-    }
-
-    questions = questions.filter(q => !!q);
+    const questions = (
+      packageInfo.combinedOptions.changeFilePrompt?.changePrompt?.(defaultPrompt, pkg) || defaultPrompts
+    ).filter((q): q is prompts.PromptObject => !!q);
 
     let response: { comment: string; type: ChangeType } = {
       type: options.type || 'none',
@@ -94,12 +87,14 @@ export async function promptForChange(options: BeachballOptions): Promise<Change
     };
 
     if (questions.length > 0) {
-      response = (await prompts(questions as prompts.PromptObject[])) as {
-        comment: string;
-        type: ChangeType;
-      };
+      let isCancelled = false;
+      response = (await prompts(questions, {
+        onCancel: () => {
+          isCancelled = true;
+        },
+      })) as typeof response;
 
-      if (Object.keys(response).length === 0) {
+      if (isCancelled) {
         console.log('Cancelled, no change files are written');
         return;
       }
