@@ -22,6 +22,10 @@ export async function promptForChange(options: BeachballOptions): Promise<Change
   }
   const packageInfos = getPackageInfos(cwd);
   const changedPackages = specificPackage || getChangedPackages(options, packageInfos);
+  if (!changedPackages.length) {
+    return;
+  }
+
   const recentMessages = getRecentCommitMessages(branch, cwd) || [];
   const packageChangeInfo: ChangeFileInfo[] = [];
 
