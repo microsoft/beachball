@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix handling of shallow clones when checking for change files",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

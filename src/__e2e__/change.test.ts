@@ -5,6 +5,7 @@ import { initMockLogs } from '../__fixtures__/mockLogs';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { change } from '../commands/change';
 import { BeachballOptions } from '../types/BeachballOptions';
+import { defaultBranchName } from '../__fixtures__/gitDefaults';
 
 describe('change command', () => {
   let repositoryFactory: RepositoryFactory | undefined;
@@ -28,6 +29,7 @@ describe('change command', () => {
       package: repositoryFactory.fixture.rootPackage!.name,
       message: 'stage me please',
       path: repo.rootPath,
+      branch: defaultBranchName,
       commit: false,
     } as BeachballOptions);
 
@@ -54,6 +56,7 @@ describe('change command', () => {
       package: ['pkg-1', 'pkg-2'],
       message: 'stage me please',
       path: repo.rootPath,
+      branch: defaultBranchName,
       commit: false,
       groupChanges: true,
     } as BeachballOptions);
@@ -79,6 +82,7 @@ describe('change command', () => {
       package: repositoryFactory.fixture.rootPackage!.name,
       message: 'commit me please',
       path: repo.rootPath,
+      branch: defaultBranchName,
     } as BeachballOptions);
 
     expect(repo.status()).toBe('');
