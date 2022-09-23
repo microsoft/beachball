@@ -1,8 +1,17 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 20 Sep 2022 21:13:11 GMT and should not be manually modified.
+This log was last generated on Fri, 23 Sep 2022 08:03:37 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.31.1
+
+Fri, 23 Sep 2022 08:03:37 GMT
+
+### Patches
+
+- Don't write change files if prompt is cancelled (elcraig@microsoft.com)
+- Fix handling of shallow clones when checking for change files (elcraig@microsoft.com)
 
 ## 2.31.0
 

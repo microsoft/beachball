@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Don't write change files if prompt is cancelled",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

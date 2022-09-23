@@ -2,6 +2,27 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 23 Sep 2022 08:03:37 GMT",
+      "tag": "beachball_v2.31.1",
+      "version": "2.31.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b03eb7238a37d7cf0b0ca4dacc72787635b2a7af",
+            "comment": "Don't write change files if prompt is cancelled"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b03eb7238a37d7cf0b0ca4dacc72787635b2a7af",
+            "comment": "Fix handling of shallow clones when checking for change files"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 20 Sep 2022 21:13:11 GMT",
       "tag": "beachball_v2.31.0",
       "version": "2.31.0",
