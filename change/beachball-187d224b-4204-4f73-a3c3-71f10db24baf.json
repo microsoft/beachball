@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix commit message suggestions in change command",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
