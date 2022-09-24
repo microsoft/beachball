@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 23 Sep 2022 08:03:37 GMT and should not be manually modified.
+This log was last generated on Sat, 24 Sep 2022 08:03:07 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.31.2
+
+Sat, 24 Sep 2022 08:03:07 GMT
+
+### Patches
+
+- Fix commit message suggestions in change command (elcraig@microsoft.com)
 
 ## 2.31.1
 

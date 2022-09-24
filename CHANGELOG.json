@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 24 Sep 2022 08:03:07 GMT",
+      "tag": "beachball_v2.31.2",
+      "version": "2.31.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "13329f64ac6cdbf7146b8b5653396a0e54c6b56c",
+            "comment": "Fix commit message suggestions in change command"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 23 Sep 2022 08:03:37 GMT",
       "tag": "beachball_v2.31.1",
       "version": "2.31.1",
