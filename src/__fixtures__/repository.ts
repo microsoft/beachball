@@ -73,10 +73,10 @@ ${gitResult.stderr.toString()}`);
   }
 
   /**
-   * Create (or update) and stage a file, creating the intermediate directories if necessary.
+   * Create or update a file, creating the intermediate directories if necessary.
    * Automatically uses root path; do not pass absolute paths here.
    */
-  stageChange(newFilename: string, content?: string) {
+  writeChange(newFilename: string, content?: string) {
     const filePath = this.pathTo(newFilename);
     fs.ensureDirSync(path.dirname(filePath));
     fs.ensureFileSync(filePath);
@@ -84,7 +84,14 @@ ${gitResult.stderr.toString()}`);
     if (content) {
       fs.writeFileSync(filePath, content);
     }
+  }
 
+  /**
+   * Create (or update) and stage a file, creating the intermediate directories if necessary.
+   * Automatically uses root path; do not pass absolute paths here.
+   */
+  stageChange(newFilename: string, content?: string) {
+    this.writeChange(newFilename, content);
     this.git(['add', newFilename]);
   }
 

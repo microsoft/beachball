@@ -1,8 +1,9 @@
-import { VersionGroupOptions } from '../types/BeachballOptions';
+import { BeachballOptions } from '../types/BeachballOptions';
 import { getPackageGroups } from '../monorepo/getPackageGroups';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 
-export function isValidGroupOptions(root: string, groups: VersionGroupOptions[]) {
+export function isValidGroupOptions(options: BeachballOptions) {
+  const { path: root, groups } = options;
   if (!Array.isArray(groups)) {
     return false;
   }
@@ -13,7 +14,7 @@ export function isValidGroupOptions(root: string, groups: VersionGroupOptions[])
     }
   }
 
-  const packageInfos = getPackageInfos(root);
+  const packageInfos = getPackageInfos(options);
   const packageGroups = getPackageGroups(packageInfos, root, groups);
   // make sure no disallowed changetype options exist inside an individual package
 

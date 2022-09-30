@@ -32,8 +32,8 @@ describe('readChangeFiles', () => {
     repository.commitChange('foo');
     generateChangeFiles(['foo'], repository.rootPath);
 
-    const packageInfos = getPackageInfos(repository.rootPath);
-    const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions, packageInfos);
+    const options = { path: repository.rootPath } as BeachballOptions;
+    const changeSet = readChangeFiles(options, getPackageInfos(options));
     expect(changeSet).toHaveLength(1);
     expect(changeSet[0].change.commit).toBe(undefined);
   });
@@ -44,8 +44,8 @@ describe('readChangeFiles', () => {
     // fake doesn't exist, bar is private, foo is okay
     generateChangeFiles(['fake', 'bar', 'foo'], monoRepo.rootPath);
 
-    const packageInfos = getPackageInfos(monoRepo.rootPath);
-    const changeSet = readChangeFiles({ path: monoRepo.rootPath } as BeachballOptions, packageInfos);
+    const options = { path: monoRepo.rootPath } as BeachballOptions;
+    const changeSet = readChangeFiles(options, getPackageInfos(options));
     expect(changeSet).toHaveLength(1);
 
     expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));
@@ -60,11 +60,8 @@ describe('readChangeFiles', () => {
     // fake doesn't exist, bar is private, foo is okay
     generateChangeFiles(['fake', 'bar', 'foo'], monoRepo.rootPath, true /*groupChanges*/);
 
-    const packageInfos = getPackageInfos(monoRepo.rootPath);
-    const changeSet = readChangeFiles(
-      { path: monoRepo.rootPath, groupChanges: true } as BeachballOptions,
-      packageInfos
-    );
+    const options = { path: monoRepo.rootPath, groupChanges: true } as BeachballOptions;
+    const changeSet = readChangeFiles(options, getPackageInfos(options));
     expect(changeSet).toHaveLength(1);
 
     expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));
@@ -77,11 +74,8 @@ describe('readChangeFiles', () => {
     const monoRepo = monoRepoFactory.cloneRepository();
     generateChangeFiles(['bar', 'foo'], monoRepo.rootPath);
 
-    const packageInfos = getPackageInfos(monoRepo.rootPath);
-    const changeSet = readChangeFiles(
-      { path: monoRepo.rootPath, scope: ['packages/foo'] } as BeachballOptions,
-      packageInfos
-    );
+    const options = { path: monoRepo.rootPath, scope: ['packages/foo'] } as BeachballOptions;
+    const changeSet = readChangeFiles(options, getPackageInfos(options));
     expect(changeSet).toHaveLength(1);
     expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
@@ -90,11 +84,8 @@ describe('readChangeFiles', () => {
     const monoRepo = monoRepoFactory.cloneRepository();
     generateChangeFiles(['bar', 'foo'], monoRepo.rootPath, true /*groupChanges*/);
 
-    const packageInfos = getPackageInfos(monoRepo.rootPath);
-    const changeSet = readChangeFiles(
-      { path: monoRepo.rootPath, scope: ['packages/foo'], groupChanges: true } as BeachballOptions,
-      packageInfos
-    );
+    const options = { path: monoRepo.rootPath, scope: ['packages/foo'], groupChanges: true } as BeachballOptions;
+    const changeSet = readChangeFiles(options, getPackageInfos(options));
     expect(changeSet).toHaveLength(1);
     expect(logs.mocks.warn).not.toHaveBeenCalled();
   });

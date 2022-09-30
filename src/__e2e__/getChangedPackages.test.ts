@@ -19,7 +19,7 @@ describe('getChangedPackages', () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
     const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
-    const packageInfos = getPackageInfos(repo.rootPath);
+    const packageInfos = getPackageInfos(options);
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
 
@@ -36,7 +36,7 @@ describe('getChangedPackages', () => {
       branch: defaultBranchName,
       ignorePatterns: ['*.test.js', 'tests/**', 'yarn.lock'],
     } as BeachballOptions;
-    const packageInfos = getPackageInfos(repo.rootPath);
+    const packageInfos = getPackageInfos(options);
 
     repo.stageChange('src/foo.test.js');
     repo.stageChange('tests/stuff.js');
@@ -49,7 +49,7 @@ describe('getChangedPackages', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
     const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
-    const packageInfos = getPackageInfos(repo.rootPath);
+    const packageInfos = getPackageInfos(options);
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
 
@@ -65,7 +65,7 @@ describe('getChangedPackages', () => {
 
     const workspaceARoot = repo.pathTo('workspace-a');
     const workspaceBRoot = repo.pathTo('workspace-b');
-    const rootPackageInfos = getPackageInfos(repo.rootPath);
+    const rootPackageInfos = getPackageInfos(rootOptions);
 
     expect(getChangedPackages(rootOptions, rootPackageInfos)).toStrictEqual([]);
 
@@ -73,11 +73,11 @@ describe('getChangedPackages', () => {
 
     const changedPackagesA = getChangedPackages(
       { ...rootOptions, path: workspaceARoot },
-      getPackageInfos(workspaceARoot)
+      getPackageInfos({ path: workspaceARoot })
     );
     const changedPackagesB = getChangedPackages(
       { ...rootOptions, path: workspaceBRoot },
-      getPackageInfos(workspaceBRoot)
+      getPackageInfos({ path: workspaceBRoot })
     );
     const changedPackagesRoot = getChangedPackages(rootOptions, rootPackageInfos);
 

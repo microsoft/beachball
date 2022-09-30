@@ -49,7 +49,7 @@ describe('writeChangelog', () => {
     generateChangeFiles([getChange('foo', 'comment 2')], repository.rootPath);
 
     const beachballOptions = { path: repository.rootPath } as BeachballOptions;
-    const packageInfos = getPackageInfos(repository.rootPath);
+    const packageInfos = getPackageInfos(beachballOptions);
     const changes = readChangeFiles(beachballOptions, packageInfos);
 
     await writeChangelog(beachballOptions, changes, { foo: 'patch' }, { foo: new Set(['foo']) }, packageInfos);
@@ -83,7 +83,7 @@ describe('writeChangelog', () => {
     generateChangeFiles([getChange('foo', 'comment 2')], ...params);
 
     const beachballOptions = { path: monoRepo.rootPath, groupChanges: true } as BeachballOptions;
-    const packageInfos = getPackageInfos(monoRepo.rootPath);
+    const packageInfos = getPackageInfos(beachballOptions);
     const changes = readChangeFiles(beachballOptions, packageInfos);
 
     await writeChangelog(beachballOptions, changes, { foo: 'patch', bar: 'patch' }, {}, packageInfos);
@@ -127,7 +127,7 @@ describe('writeChangelog', () => {
       },
     };
 
-    const packageInfos = getPackageInfos(monoRepo.rootPath);
+    const packageInfos = getPackageInfos(beachballOptions as { path: string });
     const changes = readChangeFiles(beachballOptions as BeachballOptions, packageInfos);
 
     await writeChangelog(beachballOptions as BeachballOptions, changes, {}, {}, packageInfos);
@@ -158,7 +158,7 @@ describe('writeChangelog', () => {
       },
     };
 
-    const packageInfos = getPackageInfos(monoRepo.rootPath);
+    const packageInfos = getPackageInfos(beachballOptions as { path: string });
     const changes = readChangeFiles(beachballOptions as BeachballOptions, packageInfos);
 
     await writeChangelog(
@@ -203,7 +203,7 @@ describe('writeChangelog', () => {
       },
     };
 
-    const packageInfos = getPackageInfos(monoRepo.rootPath);
+    const packageInfos = getPackageInfos(beachballOptions as { path: string });
     const changes = readChangeFiles(beachballOptions as BeachballOptions, packageInfos);
 
     await writeChangelog(
@@ -243,7 +243,7 @@ describe('writeChangelog', () => {
       },
     };
 
-    const packageInfos = getPackageInfos(monoRepo.rootPath);
+    const packageInfos = getPackageInfos(beachballOptions as { path: string });
     const changes = readChangeFiles(beachballOptions as BeachballOptions, packageInfos);
 
     await writeChangelog(beachballOptions as BeachballOptions, changes, {}, {}, packageInfos);
@@ -286,7 +286,7 @@ describe('writeChangelog', () => {
       },
     };
 
-    const packageInfos = getPackageInfos(monoRepo.rootPath);
+    const packageInfos = getPackageInfos(beachballOptions as { path: string });
     const changes = readChangeFiles(beachballOptions as BeachballOptions, packageInfos);
 
     // Verify that the comment of only the intended change file is changed

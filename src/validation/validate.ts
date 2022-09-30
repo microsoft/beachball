@@ -36,7 +36,7 @@ export function validate(options: BeachballOptions, validateOptions?: Partial<Va
     console.warn('Changes in these files will not trigger a prompt for change descriptions');
   }
 
-  const packageInfos = getPackageInfos(options.path);
+  const packageInfos = getPackageInfos(options);
 
   if (options.package && !Array.isArray(options.package) && !packageInfos[options.package]) {
     console.error('ERROR: Specified package name is not valid');
@@ -74,7 +74,7 @@ export function validate(options: BeachballOptions, validateOptions?: Partial<Va
     }
   }
 
-  if (options.groups && !isValidGroupOptions(options.path, options.groups)) {
+  if (options.groups && !isValidGroupOptions(options)) {
     console.error('ERROR: Groups defined inside the configuration is invalid');
     console.log(options.groups);
     process.exit(1);

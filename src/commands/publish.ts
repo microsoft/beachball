@@ -12,7 +12,7 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 export async function publish(options: BeachballOptions) {
   const { path: cwd, branch, registry, tag } = options;
   // First, validate that we have changes to publish
-  const oldPackageInfos = getPackageInfos(cwd);
+  const oldPackageInfos = getPackageInfos(options);
   const changes = readChangeFiles(options, oldPackageInfos);
   const packageChangeTypes = initializePackageChangeInfo(changes);
   if (Object.keys(packageChangeTypes).length === 0) {

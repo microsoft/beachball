@@ -76,7 +76,7 @@ describe('publish command (git)', () => {
 
     const options: BeachballOptions = getOptions(repo1);
 
-    const bumpInfo = gatherBumpInfo(options, getPackageInfos(repo1.rootPath));
+    const bumpInfo = gatherBumpInfo(options, getPackageInfos(options));
 
     // 3. Meanwhile, in repo2, also create a new change file
     const repo2 = repositoryFactory.cloneRepository();

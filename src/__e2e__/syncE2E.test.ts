@@ -91,7 +91,7 @@ describe('sync command (e2e)', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
+    const packageInfosBeforeSync = getPackageInfos({ path: repo.rootPath });
 
     expect((await packagePublish(packageInfosBeforeSync['foopkg'], registry.getUrl(), '', '')).success).toBeTruthy();
     expect((await packagePublish(packageInfosBeforeSync['barpkg'], registry.getUrl(), '', '')).success).toBeTruthy();
@@ -104,7 +104,7 @@ describe('sync command (e2e)', () => {
 
     await sync(getOptions(repo, { tag: '' }));
 
-    const packageInfosAfterSync = getPackageInfos(repo.rootPath);
+    const packageInfosAfterSync = getPackageInfos({ path: repo.rootPath });
 
     expect(packageInfosAfterSync['foopkg'].version).toEqual('1.2.0');
     expect(packageInfosAfterSync['barpkg'].version).toEqual('3.0.0');
@@ -123,7 +123,7 @@ describe('sync command (e2e)', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
+    const packageInfosBeforeSync = getPackageInfos({ path: repo.rootPath });
 
     expect((await packagePublish(packageInfosBeforeSync['apkg'], registry.getUrl(), '', '')).success).toBeTruthy();
     expect((await packagePublish(packageInfosBeforeSync['bpkg'], registry.getUrl(), '', '')).success).toBeTruthy();
@@ -136,7 +136,7 @@ describe('sync command (e2e)', () => {
 
     await sync(getOptions(repo, { tag: 'beta' }));
 
-    const packageInfosAfterSync = getPackageInfos(repo.rootPath);
+    const packageInfosAfterSync = getPackageInfos({ path: repo.rootPath });
 
     expect(packageInfosAfterSync['apkg'].version).toEqual('2.0.0');
     expect(packageInfosAfterSync['bpkg'].version).toEqual('2.2.0');
@@ -155,7 +155,7 @@ describe('sync command (e2e)', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
+    const packageInfosBeforeSync = getPackageInfos({ path: repo.rootPath });
 
     const epkg = packageInfosBeforeSync['epkg'];
     const fpkg = packageInfosBeforeSync['fpkg'];
@@ -177,7 +177,7 @@ describe('sync command (e2e)', () => {
 
     await sync(getOptions(repo, { tag: 'prerelease', forceVersions: true }));
 
-    const packageInfosAfterSync = getPackageInfos(repo.rootPath);
+    const packageInfosAfterSync = getPackageInfos({ path: repo.rootPath });
 
     expect(packageInfosAfterSync['epkg'].version).toEqual('1.0.0-1');
     expect(packageInfosAfterSync['fpkg'].version).toEqual('2.2.0');
