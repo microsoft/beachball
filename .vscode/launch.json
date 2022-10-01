@@ -11,7 +11,7 @@
       "runtimeExecutable": "npm",
       "cwd": "${workspaceFolder}",
       "runtimeArgs": ["run-script", "test"],
-      "args": ["--", "--runInBand", "--watch", "${fileBasenameNoExtension}"],
+      "args": ["--", "--runInBand", "--watch", "--testTimeout=1000000", "${fileBasenameNoExtension}"],
       "sourceMaps": true,
       "outputCapture": "std",
       "console": "integratedTerminal"
