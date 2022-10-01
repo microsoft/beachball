@@ -38,10 +38,15 @@ export function validate(options: BeachballOptions, validateOptions?: Partial<Va
 
   const packageInfos = getPackageInfos(options.path);
 
-  if (options.package && !Array.isArray(options.package) && !packageInfos[options.package]) {
+  if (typeof options.package === 'string' && !packageInfos[options.package]) {
     console.error('ERROR: Specified package name is not valid');
     process.exit(1);
   }
+  if (Array.isArray(options.package) && options.package.some(pkg => !packageInfos[pkg])) {
+    console.error('ERROR: Specified package names are not valid');
+    process.exit(1);
+  }
+
   if (options.authType && !isValidAuthType(options.authType)) {
     console.error(`ERROR: auth type ${options.authType} is not valid`);
     process.exit(1);
