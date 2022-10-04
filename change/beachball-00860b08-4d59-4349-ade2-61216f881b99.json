@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Refactor change command and promptForChange helper for better testability",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

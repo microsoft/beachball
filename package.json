@@ -73,6 +73,7 @@
     "jest": "28.1.3",
     "jest-mock": "28.1.3",
     "prettier": "2.7.1",
+    "strip-ansi": "6.0.1",
     "tmp": "0.2.1",
     "ts-jest": "28.0.8",
     "typescript": "4.3.5",
