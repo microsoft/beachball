@@ -5,6 +5,7 @@ import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { tagPackages, tagDistTag } from '../../publish/tagPackages';
 import { generateTag } from '../../tag';
 import { BumpInfo } from '../../types/BumpInfo';
+import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 jest.mock('workspace-tools', () => ({
   gitFailFast: jest.fn(),
@@ -19,22 +20,16 @@ const noTagBumpInfo = {
     foo: 'minor',
     bar: 'major',
   },
-  packageInfos: {
+  packageInfos: makePackageInfos({
     foo: {
-      name: 'foo',
       version: '1.0.0',
-      combinedOptions: {
-        gitTags: false,
-      },
+      combinedOptions: { gitTags: false },
     },
     bar: {
-      name: 'bar',
       version: '1.0.1',
-      combinedOptions: {
-        gitTags: false,
-      },
+      combinedOptions: { gitTags: false },
     },
-  },
+  }),
   modifiedPackages: new Set(['foo', 'bar']),
   newPackages: new Set(),
 } as unknown as BumpInfo;
@@ -44,22 +39,16 @@ const oneTagBumpInfo = {
     foo: 'minor',
     bar: 'major',
   },
-  packageInfos: {
+  packageInfos: makePackageInfos({
     foo: {
-      name: 'foo',
       version: '1.0.0',
-      combinedOptions: {
-        gitTags: true,
-      },
+      combinedOptions: { gitTags: true },
     },
     bar: {
-      name: 'bar',
       version: '1.0.1',
-      combinedOptions: {
-        gitTags: false,
-      },
+      combinedOptions: { gitTags: false },
     },
-  },
+  }),
   modifiedPackages: new Set(['foo', 'bar']),
   newPackages: new Set(),
 } as unknown as BumpInfo;
