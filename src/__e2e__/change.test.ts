@@ -61,7 +61,7 @@ describe('change command', () => {
 
   beforeEach(() => {
     stdin = new MockStdin();
-    stdout = new MockStdout();
+    stdout = new MockStdout({ replace: 'prompts' });
   });
 
   afterEach(() => {
@@ -96,8 +96,8 @@ describe('change command', () => {
     await stdin.sendByChar('\n');
     // Also verify that the options shown are correct
     expect(stdout.lastOutput()).toMatchInlineSnapshot(`
-      "? Describe changes (type or choose one) ›
-      ❯   \\"file.js\\""
+      "? Describe changes (type or choose one) »
+      >   \\"file.js\\""
     `);
     await stdin.sendByChar('stage me please\n');
     await changePromise;
@@ -176,8 +176,8 @@ describe('change command', () => {
     await stdin.sendByChar('\n');
     // also verify that the options shown are correct
     expect(stdout.lastOutput()).toMatchInlineSnapshot(`
-      "? Describe changes (type or choose one) ›
-      ❯   commit 2
+      "? Describe changes (type or choose one) »
+      >   commit 2
           commit 1"
     `);
     await stdin.sendByChar('custom\n');
