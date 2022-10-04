@@ -16,7 +16,6 @@ export function getDefaultOptions() {
     tag: '',
     yes: false,
     access: 'restricted',
-    package: '',
     changehint: 'Run "beachball change" to create a change file',
     type: null,
     fetch: true,

@@ -40,7 +40,7 @@ export interface CliOptions
   help?: boolean;
   keepChangeFiles?: boolean;
   new: boolean;
-  package: string | string[];
+  package?: string | string[];
   timeout?: number;
   token: string;
   type?: ChangeType | null;
