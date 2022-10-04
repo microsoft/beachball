@@ -1,8 +1,18 @@
 # Change Log - beachball
 
-This log was last generated on Sat, 24 Sep 2022 08:03:07 GMT and should not be manually modified.
+This log was last generated on Tue, 04 Oct 2022 08:03:21 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.31.3
+
+Tue, 04 Oct 2022 08:03:21 GMT
+
+### Patches
+
+- add validation for multiple specified packages (elcraig@microsoft.com)
+- Simplify getDisallowedChangeTypes implementation (elcraig@microsoft.com)
+- Update dependency workspace-tools to ^0.28.0 (elcraig@microsoft.com)
 
 ## 2.31.2
 

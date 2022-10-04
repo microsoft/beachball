@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "add validation for multiple specified packages",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

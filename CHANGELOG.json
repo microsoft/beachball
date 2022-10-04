@@ -2,6 +2,33 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 04 Oct 2022 08:03:21 GMT",
+      "tag": "beachball_v2.31.3",
+      "version": "2.31.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "756ae0518343e6a2c937b6abb702740d5a514a0c",
+            "comment": "add validation for multiple specified packages"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "756ae0518343e6a2c937b6abb702740d5a514a0c",
+            "comment": "Simplify getDisallowedChangeTypes implementation"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "756ae0518343e6a2c937b6abb702740d5a514a0c",
+            "comment": "Update dependency workspace-tools to ^0.28.0"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 24 Sep 2022 08:03:07 GMT",
       "tag": "beachball_v2.31.2",
       "version": "2.31.2",
