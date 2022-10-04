@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Simplify getDisallowedChangeTypes implementation",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
