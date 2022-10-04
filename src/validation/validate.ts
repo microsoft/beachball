@@ -39,26 +39,29 @@ export function validate(options: BeachballOptions, validateOptions?: Partial<Va
   const packageInfos = getPackageInfos(options.path);
 
   if (typeof options.package === 'string' && !packageInfos[options.package]) {
-    console.error('ERROR: Specified package name is not valid');
+    console.error(`ERROR: package "${options.package}" was not found`);
     process.exit(1);
   }
-  if (Array.isArray(options.package) && options.package.some(pkg => !packageInfos[pkg])) {
-    console.error('ERROR: Specified package names are not valid');
+  const invalidPackages = Array.isArray(options.package)
+    ? options.package.filter(pkg => !packageInfos[pkg])
+    : undefined;
+  if (invalidPackages?.length) {
+    console.error(`ERROR: package(s) ${invalidPackages.map(pkg => `"${pkg}"`).join(', ')} were not found`);
     process.exit(1);
   }
 
   if (options.authType && !isValidAuthType(options.authType)) {
-    console.error(`ERROR: auth type ${options.authType} is not valid`);
+    console.error(`ERROR: auth type "${options.authType}" is not valid`);
     process.exit(1);
   }
 
   if (options.dependentChangeType && !isValidChangeType(options.dependentChangeType)) {
-    console.error(`ERROR: dependent change type ${options.dependentChangeType} is not valid`);
+    console.error(`ERROR: dependent change type "${options.dependentChangeType}" is not valid`);
     process.exit(1);
   }
 
   if (options.type && !isValidChangeType(options.type)) {
-    console.error(`ERROR: change type ${options.type} is not valid`);
+    console.error(`ERROR: change type "${options.type}" is not valid`);
     process.exit(1);
   }
 
