@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 12 Oct 2022 08:03:33 GMT",
+      "tag": "beachball_v2.31.4",
+      "version": "2.31.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "35b8175bf9679a7cc3ce09cdf1e0a84c4a350d54",
+            "comment": "Refactor change command and promptForChange helper for better testability"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 04 Oct 2022 08:03:21 GMT",
       "tag": "beachball_v2.31.3",
       "version": "2.31.3",

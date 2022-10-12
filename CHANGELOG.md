@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 04 Oct 2022 08:03:21 GMT and should not be manually modified.
+This log was last generated on Wed, 12 Oct 2022 08:03:33 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.31.4
+
+Wed, 12 Oct 2022 08:03:33 GMT
+
+### Patches
+
+- Refactor change command and promptForChange helper for better testability (elcraig@microsoft.com)
 
 ## 2.31.3
 
