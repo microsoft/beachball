@@ -57,6 +57,8 @@ export interface RepoOptions {
   /** Bump dependent packages during publish (bump A if A depends on B) */
   bumpDeps: boolean;
   changeFilePrompt?: ChangeFilePromptOptions;
+  /** Customize change files commit message */
+  changeFilesCommitMessage?: string;
   /** Prerelease prefix for packages that are specified to receive a prerelease bump */
   /** Hint message for when change files are not detected but required */
   changehint: string;

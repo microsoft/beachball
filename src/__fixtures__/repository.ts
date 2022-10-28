@@ -136,6 +136,12 @@ ${gitResult.stderr.toString()}`);
     return trimmedResult ? trimmedResult.split('\n') : [];
   }
 
+  /** Get last git commit comment */
+  getLastCommitComment() {
+    const messageResult = this.git(['log', '-1', '--pretty=format:%B', 'HEAD']);
+    return messageResult.stdout.trim() || '';
+  }
+
   /** Get status with `--porcelain` */
   status() {
     return this.git(['status', '--porcelain']).stdout.trim();

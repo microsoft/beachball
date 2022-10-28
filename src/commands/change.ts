@@ -40,6 +40,7 @@ export async function change(options: BeachballOptions) {
       changes,
       cwd: options.path,
       commitChangeFiles: options.commit,
+      commitMessage: options.changeFilesCommitMessage,
       groupChanges: options.groupChanges,
     });
   }

@@ -109,4 +109,18 @@ describe('writeChangeFiles', () => {
       changes: [{ packageName: 'foo' }, { packageName: 'bar' }],
     });
   });
+
+  it('respects customize commit', () => {
+    const MESSAGE = 'chore: change files';
+    const repo = monorepoFactory.cloneRepository();
+
+    writeChangeFiles({
+      changes: [{ packageName: 'foo' }, { packageName: 'bar' }] as ChangeFileInfo[],
+      cwd: repo.rootPath,
+      commitMessage: MESSAGE,
+    });
+    const commitMessage = repo.getLastCommitComment();
+
+    expect(commitMessage).toMatch(MESSAGE);
+  });
 });

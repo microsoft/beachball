@@ -13,12 +13,14 @@ export function writeChangeFiles({
   changes,
   cwd,
   commitChangeFiles = true,
+  commitMessage = 'Change files',
   groupChanges = false,
 }: {
   changes: ChangeFileInfo[];
   cwd: string;
   /** default true */
   commitChangeFiles?: boolean;
+  commitMessage?: string;
   /** group all changes into one change file (default false) */
   groupChanges?: boolean;
 }): string[] {
@@ -53,7 +55,7 @@ export function writeChangeFiles({
   if (commitChangeFiles) {
     // only commit change files, ignore other staged files/changes
     const commitOptions = ['--only', path.join(changePath, '*.json')];
-    commit('Change files', cwd, commitOptions);
+    commit(commitMessage, cwd, commitOptions);
   }
 
   console.log(
