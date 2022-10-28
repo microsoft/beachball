@@ -63,15 +63,19 @@ export interface RepoOptions {
   changelog?: ChangelogOptions;
   /** The default dist-tag used for npm publish */
   defaultNpmTag: string;
+  /** Depth of git history to consider when doing fetch */
+  depth?: number;
   /** What change types are disallowed */
   disallowedChangeTypes: ChangeType[] | null;
   /** Fetch from remote before doing diff comparisons (default true) */
   fetch: boolean;
   /** Whether to generate changelog files */
   generateChangelog: boolean;
-  groups?: VersionGroupOptions[];
   /** Whether to create git tags for published packages (default true) */
   gitTags: boolean;
+  groups?: VersionGroupOptions[];
+  /** Put multiple changes in a single changefile */
+  groupChanges?: boolean;
   /** Custom pre/post publish actions */
   hooks?: HooksOptions;
   ignorePatterns?: string[];
@@ -92,12 +96,10 @@ export interface RepoOptions {
   scope?: string[] | null;
   /** npm dist-tag when publishing (default 'latest') */
   tag: string;
+  /** Connector between package name and package version (default '_', eg: foo_v1.0.1) */
+  changeTagHyphen: string;
   /** Transformations for change files */
   transform?: TransformOptions;
-  /** Put multiple changes in a single changefile */
-  groupChanges?: boolean;
-  /** Depth of git history to consider when doing fetch */
-  depth?: number;
 }
 
 export interface PackageOptions {

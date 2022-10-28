@@ -1,3 +1,6 @@
+import { getOptions } from './options/getOptions';
+
 export function generateTag(name: string, version: string) {
-  return `${name}_v${version}`;
+  const changeTagHyphen = getOptions(process.argv).changeTagHyphen;
+  return `${name}${changeTagHyphen}v${version}`;
 }

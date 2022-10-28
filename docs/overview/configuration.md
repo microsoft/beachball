@@ -80,6 +80,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `retries`               | number                                   | `3`               | repo                 | number of retries for a package publish before failing                                          |
 | `shouldPublish`         | false \| undefined                       |                   | package              | manually disable publishing of a package by beachball (does not work to force publishing)       |
 | `tag`                   | string                                   | `'latest'`        | repo, package        | dist-tag for npm when published                                                                 |
+| `changeTagHyphen`       | string                                   | `'_'`             | repo                 | connector between package name and package version (default '\_', eg: foo_v1.0.1)               |
 | `transform`             | `TransformOptions` ([details][4])        |                   | repo                 | transformations for change files                                                                |
 
 [1]: https://github.com/microsoft/beachball/blob/master/src/types/ChangeFilePrompt.ts
