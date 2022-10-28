@@ -58,7 +58,7 @@ export interface RepoOptions {
   bumpDeps: boolean;
   changeFilePrompt?: ChangeFilePromptOptions;
   /** Customize change files commit message */
-  changeFilesCommitMessage?: string;
+  changeFilesCommitMessage: string;
   /** Prerelease prefix for packages that are specified to receive a prerelease bump */
   /** Hint message for when change files are not detected but required */
   changehint: string;

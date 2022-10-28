@@ -43,6 +43,7 @@ describe('writeChangeFiles', () => {
     writeChangeFiles({
       changes: [{ packageName: 'foo' }, { packageName: 'bar' }] as ChangeFileInfo[],
       cwd: repo.rootPath,
+      commitMessage: 'Change files',
     });
 
     const expectedFiles = [`change/bar-${uuidGeneric}.json`, `change/foo-${uuidGeneric}.json`];
@@ -71,6 +72,7 @@ describe('writeChangeFiles', () => {
       changes: [{ packageName: 'foo' }, { packageName: 'bar' }] as ChangeFileInfo[],
       cwd: repo.rootPath,
       commitChangeFiles: false,
+      commitMessage: 'Change files',
     });
 
     const expectedFiles = [`change/bar-${uuidGeneric}.json`, `change/foo-${uuidGeneric}.json`];
@@ -94,6 +96,7 @@ describe('writeChangeFiles', () => {
       changes: [{ packageName: 'foo' }, { packageName: 'bar' }] as ChangeFileInfo[],
       cwd: repo.rootPath,
       groupChanges: true,
+      commitMessage: 'Change files',
     });
 
     const expectedFile = [`change/change-${uuidGeneric}.json`];

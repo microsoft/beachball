@@ -13,14 +13,14 @@ export function writeChangeFiles({
   changes,
   cwd,
   commitChangeFiles = true,
-  commitMessage = 'Change files',
+  commitMessage,
   groupChanges = false,
 }: {
   changes: ChangeFileInfo[];
   cwd: string;
   /** default true */
   commitChangeFiles?: boolean;
-  commitMessage?: string;
+  commitMessage: string;
   /** group all changes into one change file (default false) */
   groupChanges?: boolean;
 }): string[] {

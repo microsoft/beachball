@@ -13,8 +13,14 @@ export type PartialChangeFile = { packageName: string } & Partial<ChangeFileInfo
  * Default values are `type: 'minor'`, `dependentChangeType: 'patch'`, and placeholders for other fields.
  * @param cwd Working directory
  * @param groupChanges Whether to group all changes into one change file.
+ * @param commitMessage Customize change files commit message.
  */
-export function generateChangeFiles(changes: (string | PartialChangeFile)[], cwd: string, groupChanges?: boolean) {
+export function generateChangeFiles(
+  changes: (string | PartialChangeFile)[],
+  cwd: string,
+  groupChanges?: boolean,
+  commitMessage = 'Change files'
+) {
   writeChangeFiles({
     changes: changes.map(change => {
       change = typeof change === 'string' ? { packageName: change } : change;
@@ -28,6 +34,7 @@ export function generateChangeFiles(changes: (string | PartialChangeFile)[], cwd
     }),
     groupChanges,
     cwd,
+    commitMessage,
   });
 }
 
