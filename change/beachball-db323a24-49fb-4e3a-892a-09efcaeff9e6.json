@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "feat: skips the prompts for publish on CI",
+  "packageName": "beachball",
+  "email": "38807139+liby@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}
