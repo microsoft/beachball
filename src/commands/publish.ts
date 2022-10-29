@@ -1,13 +1,14 @@
-import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { gitFailFast, getBranchName, getCurrentHash, git } from 'workspace-tools';
-import prompts from 'prompts';
-import { initializePackageChangeInfo } from '../changefile/getPackageChangeTypes';
-import { readChangeFiles } from '../changefile/readChangeFiles';
 import { bumpAndPush } from '../publish/bumpAndPush';
-import { publishToRegistry } from '../publish/publishToRegistry';
+import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { getNewPackages } from '../publish/getNewPackages';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
+import { gitFailFast, getBranchName, getCurrentHash, git } from 'workspace-tools';
+import { initializePackageChangeInfo } from '../changefile/getPackageChangeTypes';
+import { publishToRegistry } from '../publish/publishToRegistry';
+import { readChangeFiles } from '../changefile/readChangeFiles';
+import isCI from 'is-ci';
+import prompts from 'prompts';
 
 export async function publish(options: BeachballOptions) {
   const { path: cwd, branch, registry, tag } = options;
@@ -36,7 +37,7 @@ export async function publish(options: BeachballOptions) {
   pushes to remote git repo: ${options.bump && options.push && options.branch ? 'yes' : 'no'}
 
 `);
-  if (!options.yes) {
+  if (!isCI || !options.yes) {
     const response = await prompts({
       type: 'confirm',
       name: 'yes',
