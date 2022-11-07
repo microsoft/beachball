@@ -69,6 +69,58 @@ describe('getPackageChangelogs', () => {
     expect(Object.keys(changelogs.foo.comments.patch!)).toHaveLength(1);
   });
 
+    it('should have new entries when a package was part of a dependent bump', () => {
+      const changeFileChangeInfos: ChangeSet = [
+        {
+          changeFile: 'bar.json',
+          change: {
+            comment: 'comment for bar',
+            commit: 'deadbeef',
+            dependentChangeType: 'patch',
+            email: 'something@something.com',
+            packageName: 'bar',
+            type: 'minor',
+          },
+        },
+      ];
+
+      const dependentChangedBy: BumpInfo['dependentChangedBy'] = {
+        foo: new Set(['bar']),
+      };
+
+      const packageInfos: PackageInfos = {
+        foo: {
+          combinedOptions: {} as any,
+          name: 'foo',
+          packageJsonPath: 'packages/foo/package.json',
+          packageOptions: {},
+          private: false,
+          version: '1.0.0',
+          dependencies: {
+            bar: '*',
+          },
+        },
+        bar: {
+          combinedOptions: {} as any,
+          name: 'bar',
+          packageJsonPath: 'packages/bar/package.json',
+          packageOptions: {},
+          private: false,
+          version: '1.0.0',
+        },
+      };
+
+      const changelogs = getPackageChangelogs(
+        changeFileChangeInfos,
+        {  bar: 'minor', foo: 'patch' },
+        dependentChangedBy,
+        packageInfos,
+        '.'
+      );
+
+      expect(Object.keys(changelogs.foo)).toBeTruthy();
+    });
+
   it('should not generate change logs for dependent bumps of private packages', () => {
     const changeFileChangeInfos: ChangeSet = [
       {
