@@ -24,7 +24,7 @@ export function setDependentVersions(
           if (packageInfo) {
             const existingVersionRange = deps[dep];
             const bumpedVersionRange = bumpMinSemverRange(packageInfo.version, existingVersionRange);
-            if (existingVersionRange !== bumpedVersionRange) {
+            if (bumpedVersionRange === "*" || existingVersionRange !== bumpedVersionRange) {
               deps[dep] = bumpedVersionRange;
 
               dependentChangedBy[pkgName] = dependentChangedBy[pkgName] || new Set<string>();
