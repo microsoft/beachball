@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Support for custom tag separator",
+  "packageName": "beachball",
+  "email": "38807139+liby@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}

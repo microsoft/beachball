@@ -73,6 +73,8 @@ export interface RepoOptions {
   generateChangelog: boolean;
   /** Whether to create git tags for published packages (default true) */
   gitTags: boolean;
+  /** Separator between package name and package version (default '_', eg: foo_v1.0.1) */
+  gitTagSeparator: string;
   groups?: VersionGroupOptions[];
   /** Put multiple changes in a single changefile */
   groupChanges?: boolean;
@@ -96,8 +98,6 @@ export interface RepoOptions {
   scope?: string[] | null;
   /** npm dist-tag when publishing (default 'latest') */
   tag: string;
-  /** Connector between package name and package version (default '_', eg: foo_v1.0.1) */
-  changeTagHyphen: string;
   /** Transformations for change files */
   transform?: TransformOptions;
 }

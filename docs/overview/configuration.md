@@ -68,6 +68,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `fetch`                 | bool                                     | `true`            | repo                 | fetch from remote before doing diff comparisons                                                 |
 | `generateChangelog`     | bool                                     | `true`            | repo                 | whether to generate changelog files                                                             |
 | `gitTags`               | bool                                     | `true`            | repo, package        | whether to create git tags for published packages (eg: foo_v1.0.1)                              |
+| `gitTagSeparator`       | string                                   | `'_'`             | repo                 | separator between package name and package version (default '\_', eg: foo_v1.0.1)               |
 | `groups`                | `VersionGroupOptions[]` ([details][3])   |                   | repo                 | specifies groups of packages that need to be version bumped at the same time                    |
 | `groupChanges`          | bool                                     | `false`           | repo                 | will write multiple changes to a single changefile                                              |
 | `hooks`                 | `HooksOptions` ([details][4])            |                   | repo                 | hooks for custom pre/post publish actions                                                       |
@@ -80,7 +81,6 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `retries`               | number                                   | `3`               | repo                 | number of retries for a package publish before failing                                          |
 | `shouldPublish`         | false \| undefined                       |                   | package              | manually disable publishing of a package by beachball (does not work to force publishing)       |
 | `tag`                   | string                                   | `'latest'`        | repo, package        | dist-tag for npm when published                                                                 |
-| `changeTagHyphen`       | string                                   | `'_'`             | repo                 | connector between package name and package version (default '\_', eg: foo_v1.0.1)               |
 | `transform`             | `TransformOptions` ([details][4])        |                   | repo                 | transformations for change files                                                                |
 
 [1]: https://github.com/microsoft/beachball/blob/master/src/types/ChangeFilePrompt.ts
