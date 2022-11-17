@@ -23,6 +23,9 @@
   "reviewers": ["ecraig12345", "kenotron"],
   "reviewersSampleSize": 1,
 
+  // For some reason Renovate is detecting that the repo uses semantic commits
+  "semanticCommits": "disabled",
+
   // The post-upgrade tasks must be repeated since in this repo we need to use beachball@latest
   // to ensure it's pulled from the registry rather than trying to use the local version,
   // which isn't built yet in the context of running Renovate.
