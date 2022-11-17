@@ -23,11 +23,62 @@
   "reviewers": ["ecraig12345", "kenotron"],
   "reviewersSampleSize": 1,
 
+  // The post-upgrade tasks must be repeated since in this repo we need to use beachball@latest
+  // to ensure it's pulled from the registry rather than trying to use the local version,
+  // which isn't built yet in the context of running Renovate.
+  "postUpgradeTasks": {
+    "commands": [
+      "git add --all",
+      "npx beachball@latest change --no-fetch --no-commit --type patch --message '{{{commitMessage}}}'",
+      "git reset"
+    ],
+    "fileFilters": ["**/*"],
+    "executionMode": "branch"
+  },
+
+  "pin": {
+    "group": {
+      "postUpgradeTasks": {
+        "commands": [
+          "git add --all",
+          "npx beachball@latest change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
+          "git reset"
+        ],
+        "fileFilters": ["**/*"],
+        "executionMode": "branch"
+      }
+    }
+  },
+
+  "lockFileMaintenance": {
+    "postUpgradeTasks": {
+      "commands": [
+        "git add --all",
+        "npx beachball@latest change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
+        "git reset"
+      ],
+      "fileFilters": ["**/*"],
+      "executionMode": "branch"
+    }
+  },
+
   "packageRules": [
     {
       "matchPackageNames": ["workspace-tools"],
       "matchUpdateTypes": ["major", "minor"],
       "dependencyDashboardApproval": false
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "postUpgradeTasks": {
+        "commands": [
+          "git add --all",
+          "npx beachball@latest change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
+          "git reset"
+        ],
+        "fileFilters": ["**/*"],
+        "executionMode": "branch"
+      }
     }
   ]
 }
