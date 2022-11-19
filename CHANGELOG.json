@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 19 Nov 2022 08:02:58 GMT",
+      "tag": "beachball_v2.31.5",
+      "version": "2.31.5",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "4c576d89e29b2648be0b746c1de260971a47f260",
+            "comment": "Update @types devDependencies"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 17 Nov 2022 08:03:27 GMT",
       "tag": "beachball_v2.31.5",
       "version": "2.31.5",
