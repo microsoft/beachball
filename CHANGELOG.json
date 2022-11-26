@@ -2,6 +2,27 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 26 Nov 2022 08:03:28 GMT",
+      "tag": "beachball_v2.31.5",
+      "version": "2.31.5",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "426b903a900f32ed2a05acdeda308a647acab7cb",
+            "comment": "Update devDependency prettier to v2.8.0"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "426b903a900f32ed2a05acdeda308a647acab7cb",
+            "comment": "Update devDependency @types/lodash to v4.14.190"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 19 Nov 2022 08:02:58 GMT",
       "tag": "beachball_v2.31.5",
       "version": "2.31.5",
