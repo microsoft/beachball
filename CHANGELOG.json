@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 07 Dec 2022 08:03:07 GMT",
+      "tag": "beachball_v2.31.5",
+      "version": "2.31.5",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "334753784ec4e06dcb15244cbe396b7693aa0e36",
+            "comment": "Update devDependency @types/prompts to v2.4.2"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 02 Dec 2022 08:03:44 GMT",
       "tag": "beachball_v2.31.5",
       "version": "2.31.5",
