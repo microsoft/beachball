@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 16 Dec 2022 08:02:45 GMT",
+      "tag": "beachball_v2.31.5",
+      "version": "2.31.5",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "1aad99f399cb318b581f220d4f56d835535492d9",
+            "comment": "Update devDependency prettier to v2.8.1"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 07 Dec 2022 08:03:07 GMT",
       "tag": "beachball_v2.31.5",
       "version": "2.31.5",
