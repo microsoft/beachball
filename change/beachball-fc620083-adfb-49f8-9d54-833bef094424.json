@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Ignore scripts when bumping packages",
+  "comment": "Ignore postinstall scripts when running npm install after bumping packages",
   "packageName": "beachball",
   "email": "brandth@microsoft.com",
   "dependentChangeType": "patch"
