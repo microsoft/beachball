@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use `--ignore-scripts` when running `npm install` after bumping packages (for repos using npm only)",
+  "packageName": "beachball",
+  "email": "brandth@microsoft.com",
+  "dependentChangeType": "patch"
+}
