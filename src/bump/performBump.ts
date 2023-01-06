@@ -43,7 +43,7 @@ export function updatePackageLock(cwd: string) {
   const root = findProjectRoot(cwd);
   if (root && fs.existsSync(path.join(root, 'package-lock.json'))) {
     console.log('Updating package-lock.json after bumping packages');
-    const res = npm(['install', '--package-lock-only'], { stdio: 'inherit' });
+    const res = npm(['install', '--package-lock-only', '--ignore-scripts'], { stdio: 'inherit' });
     if (!res.success) {
       console.warn('Updating package-lock.json failed. Continuing...');
     }

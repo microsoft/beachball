@@ -13,7 +13,7 @@ export async function mergePublishBranch(
   let result: GitProcessOutput;
   let mergeSteps = [
     ['add', '.'],
-    ['commit', '-m', message, '--no-verify'],
+    ['commit', '-m', message],
     ['checkout', branch],
     ['merge', '-X', 'ours', publishBranch],
   ];
