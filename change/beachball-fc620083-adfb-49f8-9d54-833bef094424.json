@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Ignore scripts when bumping packages",
+  "packageName": "beachball",
+  "email": "brandth@microsoft.com",
+  "dependentChangeType": "patch"
+}
