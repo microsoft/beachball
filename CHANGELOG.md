@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 17 Nov 2022 08:03:27 GMT and should not be manually modified.
+This log was last generated on Fri, 06 Jan 2023 22:46:24 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.31.6
+
+Fri, 06 Jan 2023 22:46:24 GMT
+
+### Patches
+
+- Use `--ignore-scripts` when running `npm install` after bumping packages (for repos using npm only) (brandth@microsoft.com)
 
 ## 2.31.5
 
