@@ -1,23 +1,22 @@
 import { BeachballOptions } from '../types/BeachballOptions';
 import * as fs from 'fs';
 import * as path from 'path';
-import { spawnSync } from 'child_process';
-import * as os from 'os';
-import { findProjectRoot } from '../paths';
+import { findProjectRoot } from 'workspace-tools';
+import { npm } from '../packageManager/npm';
 
 export async function init(options: BeachballOptions) {
-  const root = findProjectRoot(options.path);
-
-  if (!root) {
+  let root: string;
+  try {
+    root = findProjectRoot(options.path);
+  } catch (err) {
     console.log('Please run this command on an existing repository root.');
     return;
   }
 
   const packageJsonFilePath = path.join(root, 'package.json');
-  const npmCmd = path.join(path.dirname(process.execPath), os.platform() === 'win32' ? 'npm.cmd' : 'npm');
 
   if (fs.existsSync(packageJsonFilePath)) {
-    const beachballInfo = JSON.parse(spawnSync(npmCmd, ['info', 'beachball', '--json']).stdout);
+    const beachballInfo = JSON.parse(npm(['info', 'beachball', '--json']).stdout.toString());
     const beachballVersion = beachballInfo['dist-tags'].latest;
 
     const packageJson = JSON.parse(fs.readFileSync(packageJsonFilePath, 'utf-8'));

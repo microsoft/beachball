@@ -7,27 +7,14 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug Unit Jest Tests",
-      "program": "${workspaceRoot}/node_modules/.bin/jest",
+      "name": "Debug current open test",
+      "runtimeExecutable": "npm",
       "cwd": "${workspaceFolder}",
-      "runtimeArgs": ["--nolazy", "--inspect"],
-      "args": ["--runInBand", "--watch", "--config", "${workspaceRoot}/jest.config.js", "${fileBasenameNoExtension}"],
+      "runtimeArgs": ["run-script", "test"],
+      "args": ["--", "--runInBand", "--watch", "--testTimeout=1000000", "${fileBasenameNoExtension}"],
       "sourceMaps": true,
       "outputCapture": "std",
       "console": "integratedTerminal"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug E2E Jest Tests",
-      "program": "${workspaceRoot}/node_modules/.bin/jest",
-      "cwd": "${workspaceFolder}",
-      "runtimeArgs": ["--nolazy", "--inspect"],
-      "args": ["--runInBand", "--watch", "--config", "${workspaceRoot}/jest.e2e.js", "${fileBasenameNoExtension}"],
-      "sourceMaps": true,
-      "outputCapture": "std",
-      "console": "integratedTerminal",
-      "stopOnEntry": true
     },
     {
       "type": "node",

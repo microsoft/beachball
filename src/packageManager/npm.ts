@@ -1,7 +1,10 @@
 import execa from 'execa';
 import { AuthType } from '../types/Auth';
 
-export function npm(args: string[], options: execa.SyncOptions = {}) {
+export function npm(
+  args: string[],
+  options: execa.SyncOptions = {}
+): execa.ExecaSyncReturnValue & { success: boolean } {
   try {
     const result = execa.sync('npm', args, { ...options });
     return {
@@ -10,13 +13,16 @@ export function npm(args: string[], options: execa.SyncOptions = {}) {
     };
   } catch (e) {
     return {
-      ...e,
+      ...(e as execa.ExecaSyncError),
       success: false,
     };
   }
 }
 
-export async function npmAsync(args: string[], options: execa.Options = {}) {
+export async function npmAsync(
+  args: string[],
+  options: execa.Options = {}
+): Promise<execa.ExecaReturnValue & { success: boolean }> {
   try {
     const result = await execa('npm', args, { ...options });
     return {
@@ -25,7 +31,7 @@ export async function npmAsync(args: string[], options: execa.Options = {}) {
     };
   } catch (e) {
     return {
-      ...e,
+      ...(e as execa.ExecaError),
       success: false,
     };
   }

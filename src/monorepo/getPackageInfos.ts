@@ -1,7 +1,6 @@
-import { findPackageRoot, findProjectRoot } from '../paths';
 import fs from 'fs-extra';
 import path from 'path';
-import { getWorkspaces, listAllTrackedFiles } from 'workspace-tools';
+import { getWorkspaces, listAllTrackedFiles, findPackageRoot, findProjectRoot } from 'workspace-tools';
 import { PackageInfos } from '../types/PackageInfo';
 import { infoFromPackageJson } from './infoFromPackageJson';
 
@@ -55,11 +54,23 @@ function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string) {
 
   if (packageJsonFiles && packageJsonFiles.length > 0) {
     packageJsonFiles.forEach(packageJsonPath => {
+      let hasDuplicatePackage = false;
       try {
         const packageJsonFullPath = path.join(projectRoot, packageJsonPath);
         const packageJson = fs.readJSONSync(packageJsonFullPath);
+        if (packageInfos[packageJson.name]) {
+          hasDuplicatePackage = true;
+          throw new Error(
+            `Two packages in different workspaces have the same name. Please rename one of these packages:\n- ${
+              packageInfos[packageJson.name].packageJsonPath
+            }\n- ${packageJsonPath}`
+          );
+        }
         packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonFullPath);
       } catch (e) {
+        if (hasDuplicatePackage) {
+          throw e; // duplicate package error should propagate
+        }
         // Pass, the package.json is invalid
         console.warn(`Invalid package.json file detected ${packageJsonPath}: `, e);
       }

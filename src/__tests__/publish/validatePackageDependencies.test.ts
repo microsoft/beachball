@@ -1,8 +1,12 @@
+import { describe, expect, it } from '@jest/globals';
+import _ from 'lodash';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { validatePackageDependencies } from '../../publish/validatePackageDependencies';
 import { BumpInfo } from '../../types/BumpInfo';
-import _ from 'lodash';
 
 describe('validatePackageDependencies', () => {
+  initMockLogs();
+
   const bumpInfoFixture = {
     changes: new Map(),
     dependents: {},

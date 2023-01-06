@@ -1,6 +1,6 @@
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { gitFailFast, getBranchName, getCurrentHash } from 'workspace-tools';
+import { gitFailFast, getBranchName, getCurrentHash, git } from 'workspace-tools';
 import prompts from 'prompts';
 import { initializePackageChangeInfo } from '../changefile/getPackageChangeTypes';
 import { readChangeFiles } from '../changefile/readChangeFiles';
@@ -95,6 +95,9 @@ export async function publish(options: BeachballOptions) {
 
   if (revParseSuccessful) {
     console.log(`deleting temporary publish branch ${publishBranch}`);
-    gitFailFast(['branch', '-D', publishBranch], { cwd });
+    const deletionResult = git(['branch', '-D', publishBranch], { cwd });
+    if (!deletionResult.success) {
+      console.warn(`[WARN]: deletion of publish branch ${publishBranch} has failed!\n${deletionResult.stderr}`);
+    }
   }
 }

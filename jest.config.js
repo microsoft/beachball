@@ -1,8 +1,32 @@
-module.exports = {
+// @ts-check
+/** @type {import('@jest/types').Config.InitialProjectOptions} */
+const commonOptions = {
   roots: ['<rootDir>/src'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },
-  testRegex: '/__tests__/.*\\.(test|spec)\\.[jt]sx?$',
+  testEnvironment: 'node',
+};
+
+/** @type {import('@jest/types').Config.InitialOptions} */
+module.exports = {
+  reporters: ['default', 'github-actions'],
   testTimeout: 60000,
+  projects: [
+    {
+      displayName: 'unit',
+      testMatch: ['**/__tests__/**/*.test.ts'],
+      ...commonOptions,
+    },
+    {
+      displayName: 'functional',
+      testMatch: ['**/__functional__/**/*.test.ts'],
+      ...commonOptions,
+    },
+    {
+      displayName: 'e2e',
+      testMatch: ['**/__e2e__/**/*.test.ts'],
+      ...commonOptions,
+    },
+  ],
 };

@@ -1,7 +1,7 @@
 import { performBump } from '../bump/performBump';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { git, gitFailFast, revertLocalChanges, parseRemoteBranch } from 'workspace-tools';
+import { git, revertLocalChanges, parseRemoteBranch } from 'workspace-tools';
 import { tagDistTag, tagPackages } from './tagPackages';
 import { mergePublishBranch } from './mergePublishBranch';
 import { displayManualRecovery } from './displayManualRecovery';
@@ -24,12 +24,20 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     // pull in latest from origin branch
     console.log('Fetching from remote');
     if (options.fetch !== false) {
+      let fetchResult;
       if (options.depth) {
-        gitFailFast(['fetch', remote, remoteBranch, `--depth=${options.depth}`], { cwd });
+        fetchResult = git(['fetch', remote, remoteBranch, `--depth=${options.depth}`], { cwd });
       } else {
-        gitFailFast(['fetch', remote, remoteBranch], { cwd });
+        fetchResult = git(['fetch', remote, remoteBranch], { cwd });
+      }
+      if (!fetchResult.success) {
+        console.warn(
+          `[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: fetch from ${branch} has failed!\n${fetchResult.stderr}`
+        );
+        continue;
       }
     }
+
     const mergeResult = git(['merge', '-X', 'theirs', `${branch}`], { cwd });
     if (!mergeResult.success) {
       console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: pull from ${branch} has failed!\n${mergeResult.stderr}`);
@@ -41,7 +49,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     await performBump(bumpInfo, options);
 
     // checkin
-    const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
+    const mergePublishBranchResult = await mergePublishBranch(publishBranch, branch, message, cwd, options);
     if (!mergePublishBranchResult.success) {
       console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: merging to target has failed!`);
       continue;

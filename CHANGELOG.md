@@ -1,8 +1,211 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 01 Jun 2022 19:11:29 GMT and should not be manually modified.
+This log was last generated on Thu, 17 Nov 2022 08:03:27 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.31.5
+
+Thu, 17 Nov 2022 08:03:27 GMT
+
+### Patches
+
+- update dependency workspace-tools to ^0.29.0 (email not defined)
+
+## 2.31.4
+
+Wed, 12 Oct 2022 08:03:33 GMT
+
+### Patches
+
+- Refactor change command and promptForChange helper for better testability (elcraig@microsoft.com)
+
+## 2.31.3
+
+Tue, 04 Oct 2022 08:03:21 GMT
+
+### Patches
+
+- add validation for multiple specified packages (elcraig@microsoft.com)
+- Simplify getDisallowedChangeTypes implementation (elcraig@microsoft.com)
+- Update dependency workspace-tools to ^0.28.0 (elcraig@microsoft.com)
+
+## 2.31.2
+
+Sat, 24 Sep 2022 08:03:07 GMT
+
+### Patches
+
+- Fix commit message suggestions in change command (elcraig@microsoft.com)
+
+## 2.31.1
+
+Fri, 23 Sep 2022 08:03:37 GMT
+
+### Patches
+
+- Don't write change files if prompt is cancelled (elcraig@microsoft.com)
+- Fix handling of shallow clones when checking for change files (elcraig@microsoft.com)
+
+## 2.31.0
+
+Tue, 20 Sep 2022 21:13:11 GMT
+
+### Minor changes
+
+- Add precommit hook (elcraig@microsoft.com)
+
+## 2.30.2
+
+Sat, 17 Sep 2022 01:48:49 GMT
+
+### Patches
+
+- Update workspace-tools to ^0.27.0 (elcraig@microsoft.com)
+
+## 2.30.1
+
+Wed, 17 Aug 2022 08:02:47 GMT
+
+### Patches
+
+- Error on duplicate package names in different workspaces (for a monorepo with multiple workspaces) (elcraig@microsoft.com)
+
+## 2.30.0
+
+Thu, 11 Aug 2022 21:13:57 GMT
+
+### Minor changes
+
+- Use ES2019 output (compatible with Node 12+) (elcraig@microsoft.com)
+
+### Patches
+
+- Exit publishing early if only invalid change files are present (elcraig@microsoft.com)
+
+## 2.29.1
+
+Thu, 11 Aug 2022 21:09:34 GMT
+
+### Patches
+
+- Improve auth error handling and other logs during publishing, and use the npm helper everywhere (elcraig@microsoft.com)
+- Rename file `monorepo/utils.ts` to `monorepo/isPathIncluded.ts` (no API change) (elcraig@microsoft.com)
+- Add verbose logs about determining changed packages (elcraig@microsoft.com)
+- Fix calculation of changed packages on Windows (elcraig@microsoft.com)
+
+## 2.29.0
+
+Wed, 10 Aug 2022 08:03:11 GMT
+
+### Minor changes
+
+- Update typescript to 4.3 (elcraig@microsoft.com)
+
+### Patches
+
+- Always use console.log not process.stdout for logging (elcraig@microsoft.com)
+- Moving non essential and retried commands to git from gitFailFast (viditganpi10@gmail.com)
+
+## 2.28.0
+
+Tue, 09 Aug 2022 06:34:24 GMT
+
+### Minor changes
+
+- Update dependency workspace-tools to ^0.26.0 (email not defined)
+
+## 2.27.1
+
+Tue, 09 Aug 2022 01:24:22 GMT
+
+### Patches
+
+- Update dependency execa to v5 (email not defined)
+- Update dependency cosmiconfig to v7 (now supports .cjs config files) (renovate@whitesourcesoftware.com)
+- Update dependency fs-extra to v10 (email not defined)
+- Update dependency yargs-parser to v21 (email not defined)
+- Remove unused human-id dependency (elcraig@microsoft.com)
+
+## 2.27.0
+
+Mon, 08 Aug 2022 21:56:43 GMT
+
+### Minor changes
+
+- Update dependency semver to v7 (renovate@whitesourcesoftware.com)
+
+### Patches
+
+- Update dependency prompts to ^2.1.0 (widen allowed range) (email not defined)
+
+## 2.26.1
+
+Fri, 05 Aug 2022 22:30:35 GMT
+
+### Patches
+
+- Specify `files` in package.json to ensure only intended files are published (elcraig@microsoft.com)
+
+## 2.26.0
+
+Thu, 21 Jul 2022 00:41:14 GMT
+
+### Minor changes
+
+- Update workspace-tools to fix remote detection (elcraig@microsoft.com)
+
+## 2.25.1
+
+Thu, 14 Jul 2022 21:17:09 GMT
+
+### Patches
+
+- Added error handling for git fetch (viditganpi10@gmail.com)
+
+## 2.25.0
+
+Wed, 13 Jul 2022 21:17:51 GMT
+
+### Minor changes
+
+- Update `workspace-tools` to pick up new `git-url-parse` (may include [breaking changes](https://github.com/IonicaBizau/git-url-parse/releases/tag/12.0.0)) (elcraig@microsoft.com)
+
+### Patches
+
+- Remove unused direct dependencies on `git-url-parse` and `glob` (the code moved to `workspace-tools` awhile back) (elcraig@microsoft.com)
+
+## 2.24.1
+
+Wed, 13 Jul 2022 20:33:51 GMT
+
+### Patches
+
+- Bump git-url-parse to 12.0.0 (adam.gleitman@gmail.com)
+
+## 2.24.0
+
+Thu, 07 Jul 2022 04:38:07 GMT
+
+### Minor changes
+
+- Use path utilities from workspace-tools and remove beachball's redundant implementations (elcraig@microsoft.com)
+
+## 2.23.1
+
+Wed, 06 Jul 2022 21:40:35 GMT
+
+### Patches
+
+- fixes JSON parse failure when npm show output is an empty string and 0 exit code (dab5879@gmail.com)
+
+## 2.23.0
+
+Tue, 14 Jun 2022 22:58:59 GMT
+
+### Minor changes
+
+- Update package-lock.json after bumping packages (elcraig@microsoft.com)
 
 ## 2.22.4
 

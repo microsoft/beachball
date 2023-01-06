@@ -1,22 +1,12 @@
-import fs from 'fs-extra';
-import path from 'path';
-import { RepositoryFactory } from '../fixtures/repository';
-import { git } from 'workspace-tools';
+import { describe, expect, it, afterEach } from '@jest/globals';
+import { defaultBranchName } from '../__fixtures__/gitDefaults';
+import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { MultiMonoRepoFactory } from '../fixtures/multiMonorepo';
 import { getChangedPackages } from '../changefile/getChangedPackages';
-import { MonoRepoFactory } from '../fixtures/monorepo';
 
 describe('getChangedPackages', () => {
   let repositoryFactory: RepositoryFactory | undefined;
-
-  function writeAndAdd(repoRoot: string, filePath: string) {
-    const testFilePath = path.join(repoRoot, filePath);
-    fs.ensureDirSync(path.dirname(testFilePath));
-    fs.writeFileSync(testFilePath, '');
-    git(['add', testFilePath], { cwd: repoRoot });
-  }
 
   afterEach(() => {
     if (repositoryFactory) {
@@ -26,69 +16,73 @@ describe('getChangedPackages', () => {
   });
 
   it('detects changed files in single repo', () => {
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
+    repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
-    const options = { fetch: false, path: repo.rootPath, branch: 'master' } as BeachballOptions;
+    const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
 
-    writeAndAdd(repo.rootPath, 'foo.js');
+    repo.stageChange('foo.js');
     expect(getChangedPackages(options, packageInfos)).toStrictEqual(['foo']);
   });
 
   it('respects ignorePatterns option', () => {
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
+    repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
     const options = {
       fetch: false,
       path: repo.rootPath,
-      branch: 'master',
+      branch: defaultBranchName,
       ignorePatterns: ['*.test.js', 'tests/**', 'yarn.lock'],
     } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
 
-    writeAndAdd(repo.rootPath, 'src/foo.test.js');
-    writeAndAdd(repo.rootPath, 'tests/stuff.js');
-    writeAndAdd(repo.rootPath, 'yarn.lock');
+    repo.stageChange('src/foo.test.js');
+    repo.stageChange('tests/stuff.js');
+    repo.stageChange('yarn.lock');
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
   });
 
   it('detects changed files in monorepo', () => {
-    repositoryFactory = new MonoRepoFactory();
-    repositoryFactory.create();
+    repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
-    const options = { fetch: false, path: repo.rootPath, branch: 'master' } as BeachballOptions;
+    const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
 
-    writeAndAdd(repo.rootPath, 'packages/foo/test.js');
+    repo.stageChange('packages/foo/test.js');
     expect(getChangedPackages(options, packageInfos)).toStrictEqual(['foo']);
   });
 
-  it('detects changed files in multi-monorepo workspace', () => {
-    repositoryFactory = new MultiMonoRepoFactory();
-    repositoryFactory.create();
+  it('detects changed files in multi-monorepo (multi-workspace) repo', () => {
+    repositoryFactory = new RepositoryFactory('multi-workspace');
     const repo = repositoryFactory.cloneRepository();
-    const rootOptions = { fetch: false, branch: 'master', path: repo.rootPath } as BeachballOptions;
-    const repoARoot = path.join(repo.rootPath, 'repo-a');
-    const repoBRoot = path.join(repo.rootPath, 'repo-b');
+    const rootOptions = { fetch: false, branch: defaultBranchName, path: repo.rootPath } as BeachballOptions;
+    expect(Object.keys(repositoryFactory.fixtures)).toEqual(['workspace-a', 'workspace-b']);
+
+    const workspaceARoot = repo.pathTo('workspace-a');
+    const workspaceBRoot = repo.pathTo('workspace-b');
     const rootPackageInfos = getPackageInfos(repo.rootPath);
 
     expect(getChangedPackages(rootOptions, rootPackageInfos)).toStrictEqual([]);
 
-    writeAndAdd(repoARoot, 'packages/foo/test.js');
+    repo.stageChange('workspace-a/packages/foo/test.js');
 
-    const changedPackagesA = getChangedPackages({ ...rootOptions, path: repoARoot }, getPackageInfos(repoARoot));
-    const changedPackagesB = getChangedPackages({ ...rootOptions, path: repoBRoot }, getPackageInfos(repoBRoot));
+    const changedPackagesA = getChangedPackages(
+      { ...rootOptions, path: workspaceARoot },
+      getPackageInfos(workspaceARoot)
+    );
+    const changedPackagesB = getChangedPackages(
+      { ...rootOptions, path: workspaceBRoot },
+      getPackageInfos(workspaceBRoot)
+    );
     const changedPackagesRoot = getChangedPackages(rootOptions, rootPackageInfos);
 
-    expect(changedPackagesA).toStrictEqual(['foo']);
+    expect(changedPackagesA).toStrictEqual(['@workspace-a/foo']);
     expect(changedPackagesB).toStrictEqual([]);
-    expect(changedPackagesRoot).toStrictEqual(['foo']);
+    expect(changedPackagesRoot).toStrictEqual(['@workspace-a/foo']);
   });
 });

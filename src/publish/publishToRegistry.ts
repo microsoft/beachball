@@ -11,6 +11,8 @@ import { shouldPublishPackage } from './shouldPublishPackage';
 import { validatePackageDependencies } from './validatePackageDependencies';
 import { performPublishOverrides } from './performPublishOverrides';
 
+type Unpromisify<T> = T extends Promise<infer U> ? U : never;
+
 export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions) {
   const { registry, token, access, timeout, authType } = options;
   const bumpInfo = _.cloneDeep(originalBumpInfo);
@@ -64,36 +66,46 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   }
 
   // finally pass through doing the actual npm publish command
+  let hasAuthError = false;
   for (const pkg of packagesToPublish) {
+    if (hasAuthError) {
+      console.log(`Skipping attempt to publish ${pkg} due to previous auth error`);
+      continue;
+    }
+
     const packageInfo = bumpInfo.packageInfos[pkg];
     console.log(`Publishing - ${packageInfo.name}@${packageInfo.version} with tag ${packageInfo.combinedOptions.tag}.`);
 
-    let result;
+    let result: Unpromisify<ReturnType<typeof packagePublish>>;
     let retries = 0;
 
     do {
-      result = packagePublish(packageInfo, registry, token, access, authType, timeout);
+      result = await packagePublish(packageInfo, registry, token, access, authType, timeout);
 
       if (result.success) {
         console.log('Published!');
         succeededPackages.add(pkg);
-        break;
       } else {
         retries++;
 
-        console.log('Publish failed:');
-        console.log(result.stderr);
+        hasAuthError = result.all!.includes('ENEEDAUTH');
+        const failedMessage = `Publishing "${pkg}" failed${hasAuthError ? ' due to auth error' : ''}:\n\n` + result.all;
 
-        if (retries <= options.retries) {
-          console.log(`\nRetrying... (${retries}/${options.retries})`);
+        if (hasAuthError) {
+          console.error(failedMessage);
+        } else if (retries <= options.retries) {
+          // has retries left (not a fatal error)
+          console.log(failedMessage + `\n\nRetrying... (${retries}/${options.retries})`);
+        } else {
+          // out of retries
+          console.error(failedMessage);
         }
       }
-    } while (retries <= options.retries);
+    } while (!result.success && retries <= options.retries && !hasAuthError);
 
     if (!result.success) {
       displayManualRecovery(bumpInfo, succeededPackages);
-      console.error(result.stderr);
-      throw new Error('Error publishing, refer to the previous error messages for recovery instructions');
+      throw new Error('Error publishing! Refer to the previous logs for recovery instructions.');
     }
   }
 

@@ -7,7 +7,7 @@ import { renderChangelog } from './renderChangelog';
 import { renderJsonChangelog } from './renderJsonChangelog';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { BumpInfo } from '../types/BumpInfo';
-import { isPathIncluded } from '../monorepo/utils';
+import { isPathIncluded } from '../monorepo/isPathIncluded';
 import { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
 import { mergeChangelogs } from './mergeChangelogs';
 import { ChangeSet } from '../types/ChangeInfo';
@@ -61,7 +61,7 @@ async function writeGroupedChangelog(
   }
 
   const { groups: changelogGroups } = options.changelog;
-  if (!changelogGroups || changelogGroups.length < 1) {
+  if (!changelogGroups?.length) {
     return [];
   }
 
@@ -74,7 +74,7 @@ async function writeGroupedChangelog(
     };
   } = {};
 
-  for (const pkg in changelogs) {
+  for (const pkg of Object.keys(changelogs)) {
     const packagePath = path.dirname(packageInfos[pkg].packageJsonPath);
     const relativePath = path.relative(options.path, packagePath);
     for (const group of changelogGroups) {

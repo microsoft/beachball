@@ -1,7 +1,7 @@
 import { BeachballOptions } from '../types/BeachballOptions';
 import { PackageInfos } from '../types/PackageInfo';
 import path from 'path';
-import { isPathIncluded } from './utils';
+import { isPathIncluded } from './isPathIncluded';
 
 export function getScopedPackages(options: BeachballOptions, packageInfos: PackageInfos) {
   if (!options.scope) {

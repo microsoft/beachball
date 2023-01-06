@@ -21,7 +21,7 @@ export function getPackageChangelogs(
   } = {};
 
   const changeFileCommits: { [changeFile: string]: string } = {};
-  const changePath = getChangePath(cwd)!;
+  const changePath = getChangePath(cwd);
 
   for (let { change, changeFile } of changeFileChangeInfos) {
     const { packageName, type: changeType, dependentChangeType, email, ...rest } = change;

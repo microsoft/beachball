@@ -1,8 +1,9 @@
+import { describe, expect, it } from '@jest/globals';
 import { updateRelatedChangeType } from '../../bump/updateRelatedChangeType';
 import { BumpInfo } from '../../types/BumpInfo';
 import _ from 'lodash';
 import { ChangeInfo, ChangeSet, ChangeType } from '../../types/ChangeInfo';
-import { PackageInfo, PackageInfos } from '../../types/PackageInfo';
+import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends Array<infer U> ? Array<DeepPartial<U>> : DeepPartial<T[P]>;
@@ -20,20 +21,11 @@ describe('updateRelatedChangeType', () => {
         changeFileChangeInfos: [],
         dependents: {},
         calculatedChangeTypes: {},
-        packageInfos: {
-          foo: {
-            name: 'foo',
-            combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
-          },
-          bar: {
-            name: 'bar',
-            combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
-          },
-          baz: {
-            name: 'baz',
-            combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
-          },
-        } as { [packageName: string]: DeepPartial<PackageInfo> } as PackageInfos,
+        packageInfos: makePackageInfos({
+          foo: { combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' } },
+          bar: { combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' } },
+          baz: { combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' } },
+        }),
         modifiedPackages: new Set(),
         newPackages: new Set(),
         packageGroups: {},
@@ -65,11 +57,7 @@ describe('updateRelatedChangeType', () => {
         foo: 'minor',
       },
       packageInfos: {
-        bar: {
-          dependencies: {
-            foo: '1.0.0',
-          },
-        },
+        bar: { dependencies: { foo: '1.0.0' } },
       },
     });
 
@@ -91,11 +79,7 @@ describe('updateRelatedChangeType', () => {
         foo: 'patch',
       },
       packageInfos: {
-        bar: {
-          dependencies: {
-            foo: '1.0.0',
-          },
-        },
+        bar: { dependencies: { foo: '1.0.0' } },
       },
     });
 
@@ -126,16 +110,8 @@ describe('updateRelatedChangeType', () => {
         bar: 'major',
       },
       packageInfos: {
-        app: {
-          dependencies: {
-            bar: '1.0.0',
-          },
-        },
-        bar: {
-          dependencies: {
-            foo: '1.0.0',
-          },
-        },
+        app: { dependencies: { bar: '1.0.0' } },
+        bar: { dependencies: { foo: '1.0.0' } },
       },
     });
 
@@ -175,17 +151,8 @@ describe('updateRelatedChangeType', () => {
         baz: 'minor',
       },
       packageInfos: {
-        app: {
-          dependencies: {
-            bar: '1.0.0',
-          },
-        },
-        bar: {
-          dependencies: {
-            foo: '1.0.0',
-            baz: '2.0.0',
-          },
-        },
+        app: { dependencies: { bar: '1.0.0' } },
+        bar: { dependencies: { foo: '1.0.0', baz: '2.0.0' } },
       },
     });
 
@@ -217,18 +184,8 @@ describe('updateRelatedChangeType', () => {
         baz: 'patch',
       },
       packageInfos: {
-        app: {
-          dependencies: {
-            bar: '1.0.0',
-            baz: '2.0.0',
-          },
-        },
-        bar: {
-          dependencies: {
-            foo: '1.0.0',
-            baz: '2.0.0',
-          },
-        },
+        app: { dependencies: { bar: '1.0.0', baz: '2.0.0' } },
+        bar: { dependencies: { foo: '1.0.0', baz: '2.0.0' } },
       },
     });
 
@@ -328,22 +285,12 @@ describe('updateRelatedChangeType', () => {
       dependents: {
         dep: ['bar'],
       },
-      packageInfos: {
+      packageInfos: makePackageInfos({
         foo: {},
-        bar: {
-          dependencies: {
-            dep: '1.0.0',
-          },
-        },
-        dep: {
-          name: 'dep',
-          combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
-        },
-        unrelated: {
-          name: 'unrelated',
-          combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
-        },
-      },
+        bar: { dependencies: { dep: '1.0.0' } },
+        dep: { combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' } },
+        unrelated: { combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' } },
+      }),
       changeFileChangeInfos: [
         {
           changeFile: 'dep.json',
@@ -366,27 +313,16 @@ describe('updateRelatedChangeType', () => {
         dep: ['bar'],
         foo: ['app'],
       },
-      packageInfos: {
+      packageInfos: makePackageInfos({
         foo: {},
-        bar: {
-          dependencies: {
-            dep: '1.0.0',
-          },
-        },
-        dep: {
-          name: 'dep',
-          combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
-        },
+        bar: { dependencies: { dep: '1.0.0' } },
+        dep: { combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' } },
         app: {
-          name: 'app',
-          dependencies: {
-            foo: '1.0.0',
-          },
+          dependencies: { foo: '1.0.0' },
           combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' },
         },
-      },
+      }),
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
-
       changeFileChangeInfos: [
         {
           changeFile: 'dep.json',
@@ -411,37 +347,15 @@ describe('updateRelatedChangeType', () => {
         bar: ['datetime'],
         datetimeUtils: ['datetime'],
       },
-      packageInfos: {
-        styling: {
-          name: 'styling',
-          dependencies: {
-            mergeStyles: '1.0.0',
-          },
-        },
-        utils: {
-          name: 'utils',
-        },
-        mergeStyles: {
-          name: 'mergeStyles',
-        },
+      packageInfos: makePackageInfos({
+        styling: { dependencies: { mergeStyles: '1.0.0' } },
+        utils: {},
+        mergeStyles: {},
         foo: {},
-        bar: {
-          dependencies: {
-            styling: '1.0.0',
-            utils: '1.0.0',
-          },
-        },
-        datetime: {
-          name: 'datetime',
-          dependencies: {
-            bar: '1.0.0',
-            datetimeUtils: '1.0.0',
-          },
-        },
-        datetimeUtils: {
-          name: 'datetimeUtils',
-        },
-      },
+        bar: { dependencies: { styling: '1.0.0', utils: '1.0.0' } },
+        datetime: { dependencies: { bar: '1.0.0', datetimeUtils: '1.0.0' } },
+        datetimeUtils: {},
+      }),
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
       changeFileChangeInfos: [
         {

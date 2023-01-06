@@ -1,7 +1,6 @@
 import parser from 'yargs-parser';
 import { CliOptions } from '../types/BeachballOptions';
-import { findProjectRoot } from '../paths';
-import { getDefaultRemoteBranch } from 'workspace-tools';
+import { getDefaultRemoteBranch, findProjectRoot } from 'workspace-tools';
 
 let cachedCliOptions: CliOptions;
 
@@ -42,7 +41,12 @@ function getCliOptionsUncached(argv: string[]): CliOptions {
   });
 
   const { _, ...restArgs } = args;
-  const cwd = findProjectRoot(process.cwd()) || process.cwd();
+  let cwd: string;
+  try {
+    cwd = findProjectRoot(process.cwd());
+  } catch (err) {
+    cwd = process.cwd();
+  }
   const cliOptions = {
     ...(_.length > 0 && { command: _[0] }),
     ...(restArgs as any),
@@ -60,7 +64,10 @@ function getCliOptionsUncached(argv: string[]): CliOptions {
   }
 
   if (args.branch) {
-    cliOptions.branch = args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd);
+    cliOptions.branch =
+      args.branch.indexOf('/') > -1
+        ? args.branch
+        : getDefaultRemoteBranch({ branch: args.branch, verbose: args.verbose, cwd });
   }
 
   if (cliOptions.command === 'canary') {

@@ -9,4 +9,5 @@ docs/.vuepress/dist
 /lib/
 LICENSE
 node_modules
+SECURITY.md
 yarn.lock

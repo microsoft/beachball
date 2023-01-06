@@ -53,7 +53,7 @@ function performWorkspaceVersionOverrides(packageJson: any, packageInfos: Packag
  * https://yarnpkg.com/features/workspaces#publishing-workspaces
  */
 function resolveWorkspaceVersionForPublish(workspaceDependency: string, packageInfoVersion: string): string {
-  const versionStartIndex = "workspace:".length;
+  const versionStartIndex = 'workspace:'.length;
   if (workspaceDependency === 'workspace:*') {
     return packageInfoVersion;
   } else if (new Set(['workspace:~', 'workspace:^']).has(workspaceDependency)) {

@@ -52,7 +52,7 @@ import { validate } from './validation/validate';
       break;
 
     case 'sync':
-      sync(options);
+      await sync(options);
       break;
 
     default:
@@ -63,14 +63,14 @@ import { validate } from './validation/validate';
         return;
       }
 
-      change(options);
+      await change(options);
 
       break;
   }
 })().catch(e => {
   showVersion();
   console.error('An error has been detected while running beachball!');
-  console.error(e);
+  console.error(e?.stack || e);
 
   process.exit(1);
 });
