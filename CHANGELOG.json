@@ -2,6 +2,27 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 11 Jan 2023 08:03:20 GMT",
+      "tag": "beachball_v2.31.6",
+      "version": "2.31.6",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "664d4eb12376a6097d19f209b6596939832eeb61",
+            "comment": "Update devDependency vuepress to v1.9.8"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "664d4eb12376a6097d19f209b6596939832eeb61",
+            "comment": "Update devDependency prettier to v2.8.2"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 06 Jan 2023 22:46:24 GMT",
       "tag": "beachball_v2.31.6",
       "version": "2.31.6",
