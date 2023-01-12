@@ -1,0 +1,7 @@
+{
+  "comment": "Remove non-meaningful or outdated default options",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
