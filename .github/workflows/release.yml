@@ -11,6 +11,9 @@ on:
   # or on manual trigger
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 env:
   npmVersion: 8
   nodeVersion: 12
