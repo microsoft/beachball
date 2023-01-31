@@ -9,7 +9,7 @@ import { displayManualRecovery } from './displayManualRecovery';
 const BUMP_PUSH_RETRIES = 5;
 
 export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: BeachballOptions) {
-  const { path: cwd, branch, tag, message } = options;
+  const { path: cwd, branch, tag, message, timeout } = options;
   const { remote, remoteBranch } = parseRemoteBranch(branch);
 
   let completed = false;
@@ -65,7 +65,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     const pushArgs = ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`];
     console.log('git ' + pushArgs.join(' '));
 
-    const pushResult = git(pushArgs, { cwd });
+    const pushResult = git(pushArgs, { cwd, timeout });
 
     if (!pushResult.success) {
       console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: push to ${branch} has failed!\n${pushResult.stderr}`);
