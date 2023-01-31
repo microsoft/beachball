@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Adding timeout for git push operation",
+  "packageName": "beachball",
+  "email": "viditmathur@microsoft.com",
+  "dependentChangeType": "patch"
+}
