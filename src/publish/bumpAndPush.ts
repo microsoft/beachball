@@ -65,15 +65,20 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     const pushArgs = ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`];
     console.log('git ' + pushArgs.join(' '));
 
-    const pushResult = git(pushArgs, { cwd, timeout });
+    try {
+      const pushResult = git(pushArgs, { cwd, timeout });
 
-    if (!pushResult.success) {
-      console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: push to ${branch} has failed!\n${pushResult.stderr}`);
+      if (!pushResult.success) {
+        console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: push to ${branch} has failed!\n${pushResult.stderr}`);
+        continue;
+      } else {
+        console.log(pushResult.stdout.toString());
+        console.log(pushResult.stderr.toString());
+        completed = true;
+      }
+    } catch (e) {
+      console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: push to ${branch} has failed!\n${e}`);
       continue;
-    } else {
-      console.log(pushResult.stdout.toString());
-      console.log(pushResult.stderr.toString());
-      completed = true;
     }
   }
 
