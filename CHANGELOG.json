@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 01 Feb 2023 08:03:58 GMT",
+      "tag": "beachball_v2.31.7",
+      "version": "2.31.7",
+      "comments": {
+        "patch": [
+          {
+            "author": "viditmathur@microsoft.com",
+            "package": "beachball",
+            "commit": "8340c663477042105a5a6bf0ea02d7d857814656",
+            "comment": "Adding timeout for git push operation"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 11 Jan 2023 08:03:20 GMT",
       "tag": "beachball_v2.31.6",
       "version": "2.31.6",

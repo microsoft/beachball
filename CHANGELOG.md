@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 06 Jan 2023 22:46:24 GMT and should not be manually modified.
+This log was last generated on Wed, 01 Feb 2023 08:03:58 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.31.7
+
+Wed, 01 Feb 2023 08:03:58 GMT
+
+### Patches
+
+- Adding timeout for git push operation (viditmathur@microsoft.com)
 
 ## 2.31.6
 
