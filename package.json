@@ -1,6 +1,6 @@
 {
   "name": "beachball",
-  "version": "2.31.6",
+  "version": "2.31.7",
   "description": "The Sunniest Semantic Version Bumper",
   "repository": {
     "type": "git",
@@ -69,6 +69,7 @@
     "gh-pages": "4.0.0",
     "jest": "28.1.3",
     "jest-mock": "28.1.3",
+    "normalized-tmpdir": "1.0.1",
     "prettier": "2.8.3",
     "strip-ansi": "6.0.1",
     "tmp": "0.2.1",
