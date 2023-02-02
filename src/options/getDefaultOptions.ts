@@ -25,6 +25,7 @@ export function getDefaultOptions() {
     scope: null,
     retries: 3,
     timeout: undefined,
+    pushTimeout: undefined,
     bump: true,
     canaryName: undefined,
     generateChangelog: true,

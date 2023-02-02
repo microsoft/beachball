@@ -9,7 +9,8 @@ export function packagePublish(
   token: string,
   access: string,
   authType?: AuthType,
-  timeout?: number | undefined
+  timeout?: number | undefined,
+  pushTimeout?: number | undefined
 ) {
   const packageOptions = packageInfo.combinedOptions;
   const packagePath = path.dirname(packageInfo.packageJsonPath);
