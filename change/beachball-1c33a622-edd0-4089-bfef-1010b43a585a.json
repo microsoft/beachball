@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Use normalized-tmpdir in tests",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}

@@ -2,6 +2,27 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 02 Feb 2023 08:02:50 GMT",
+      "tag": "beachball_v2.31.7",
+      "version": "2.31.7",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "6097c5c55c7cefe3ca5e1868ceb7fca4a2d4df2f",
+            "comment": "Use normalized-tmpdir in tests"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "6097c5c55c7cefe3ca5e1868ceb7fca4a2d4df2f",
+            "comment": "Update devDependency prettier to v2.8.3"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 01 Feb 2023 08:03:58 GMT",
       "tag": "beachball_v2.31.7",
       "version": "2.31.7",
