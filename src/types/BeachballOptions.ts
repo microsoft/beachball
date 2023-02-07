@@ -42,6 +42,7 @@ export interface CliOptions
   new: boolean;
   package?: string | string[];
   timeout?: number;
+  gitTimeout?: number;
   token: string;
   type?: ChangeType | null;
   verbose?: boolean;
