@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "New flag for git push timeout",
-  "packageName": "beachball",
-  "email": "viditmathur@microsoft.com",
-  "dependentChangeType": "patch"
-}
