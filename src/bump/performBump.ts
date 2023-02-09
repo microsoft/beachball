@@ -11,28 +11,33 @@ import { npm } from '../packageManager/npm';
 export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos) {
   for (const pkgName of modifiedPackages) {
     const info = packageInfos[pkgName];
-    const packageJson = fs.readJSONSync(info.packageJsonPath);
+    try {
+      const packageJson = fs.readJSONSync(info.packageJsonPath);
 
-    packageJson.version = info.version;
+      packageJson.version = info.version;
 
-    ['dependencies', 'devDependencies', 'peerDependencies'].forEach(depKind => {
-      // updatedDeps contains all of the dependencies in the bump info since the beginning of a build job
-      const updatedDepsVersions: PackageDeps | undefined = (info as any)[depKind];
-      if (updatedDepsVersions) {
-        // to be cautious, only update internal && modifiedPackages, since some other dependency
-        // changes could have occurred since the beginning of the build job and the next merge step
-        // would overwrite those incorrectly!
-        const modifiedDeps = Object.keys(updatedDepsVersions).filter(dep => modifiedPackages.has(dep));
+      ['dependencies', 'devDependencies', 'peerDependencies'].forEach(depKind => {
+        // updatedDeps contains all of the dependencies in the bump info since the beginning of a build job
+        const updatedDepsVersions: PackageDeps | undefined = (info as any)[depKind];
+        if (updatedDepsVersions) {
+          // to be cautious, only update internal && modifiedPackages, since some other dependency
+          // changes could have occurred since the beginning of the build job and the next merge step
+          // would overwrite those incorrectly!
+          const modifiedDeps = Object.keys(updatedDepsVersions).filter(dep => modifiedPackages.has(dep));
 
-        for (const dep of modifiedDeps) {
-          if (packageJson[depKind] && packageJson[depKind][dep]) {
-            packageJson[depKind][dep] = updatedDepsVersions[dep];
+          for (const dep of modifiedDeps) {
+            if (packageJson[depKind] && packageJson[depKind][dep]) {
+              packageJson[depKind][dep] = updatedDepsVersions[dep];
+            }
           }
         }
-      }
-    });
+      });
 
-    fs.writeJSONSync(info.packageJsonPath, packageJson, { spaces: 2 });
+      fs.writeJSONSync(info.packageJsonPath, packageJson, { spaces: 2 });
+    } catch (err) {
+      console.error('Error writing package.json for ' + pkgName + ' to ' + info.packageJsonPath + ': ' + err);
+      console.log('Continuing with next package.json...');
+    }
   }
 }
 
