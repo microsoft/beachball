@@ -11,6 +11,10 @@ import { npm } from '../packageManager/npm';
 export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos) {
   for (const pkgName of modifiedPackages) {
     const info = packageInfos[pkgName];
+    if (!fs.existsSync(info.packageJsonPath)) {
+      console.warn(`Skipping ${pkgName} since package.json does not exist`);
+      continue;
+    }
     const packageJson = fs.readJSONSync(info.packageJsonPath);
 
     packageJson.version = info.version;
