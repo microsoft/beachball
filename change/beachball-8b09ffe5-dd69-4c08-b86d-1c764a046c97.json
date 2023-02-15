@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Handle file not found issue",
-  "packageName": "beachball",
-  "email": "viditmathur@microsoft.com",
-  "dependentChangeType": "patch"
-}

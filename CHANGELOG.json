@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 15 Feb 2023 08:02:51 GMT",
+      "tag": "beachball_v2.31.9",
+      "version": "2.31.9",
+      "comments": {
+        "patch": [
+          {
+            "author": "viditmathur@microsoft.com",
+            "package": "beachball",
+            "commit": "3556b242582091221f88290c7a984142cb91027e",
+            "comment": "Handle file not found issue"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 10 Feb 2023 08:02:57 GMT",
       "tag": "beachball_v2.31.8",
       "version": "2.31.8",

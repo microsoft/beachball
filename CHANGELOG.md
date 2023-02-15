@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 08 Feb 2023 08:03:19 GMT and should not be manually modified.
+This log was last generated on Wed, 15 Feb 2023 08:02:51 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.31.9
+
+Wed, 15 Feb 2023 08:02:51 GMT
+
+### Patches
+
+- Handle file not found issue (viditmathur@microsoft.com)
 
 ## 2.31.8
 
