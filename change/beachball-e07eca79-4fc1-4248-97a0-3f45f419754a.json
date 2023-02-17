@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Minor fixes for publish logging and checks",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
