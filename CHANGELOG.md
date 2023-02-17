@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 15 Feb 2023 08:02:51 GMT and should not be manually modified.
+This log was last generated on Fri, 17 Feb 2023 03:09:06 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.31.10
+
+Fri, 17 Feb 2023 03:09:06 GMT
+
+### Patches
+
+- Update dependency workspace-tools to ^0.30.0 (email not defined)
 
 ## 2.31.9
 

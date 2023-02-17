@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 17 Feb 2023 03:09:06 GMT",
+      "tag": "beachball_v2.31.10",
+      "version": "2.31.10",
+      "comments": {
+        "patch": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "4f808db7a5c1d0dc0ece31a4948b068aef200e86",
+            "comment": "Update dependency workspace-tools to ^0.30.0"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 15 Feb 2023 08:02:51 GMT",
       "tag": "beachball_v2.31.9",
       "version": "2.31.9",
