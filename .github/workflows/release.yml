@@ -28,6 +28,17 @@ jobs:
           # Don't save creds in the git config (so it's easier to override later)
           persist-credentials: false
 
+      - name: Test commit
+        run: |
+          set -x
+          trap "git remote set-url origin '$(git remote get-url origin)'" EXIT
+          git remote set-url origin "https://ecraig12345:$REPO_PAT@github.com/$GITHUB_REPOSITORY.git"
+          branch="test_$(date +%s)"
+          git checkout -b "$branch"
+          git push origin "$branch"
+        env:
+          REPO_PAT: ${{ secrets.REPO_PAT }}
+
       - name: Set up Node.js ${{ env.nodeVersion }}
         uses: actions/setup-node@v3
         with:
@@ -41,29 +52,29 @@ jobs:
 
       - run: yarn build
 
-      - run: yarn test:unit
+      # - run: yarn test:unit
 
-      - run: yarn test:func
+      # - run: yarn test:func
 
-      - name: yarn test:e2e (npm ${{ env.npmVersion }})
-        run: yarn test:e2e
+      # - name: yarn test:e2e (npm ${{ env.npmVersion }})
+      #   run: yarn test:e2e
 
-      - name: Publish package
-        run: |
-          git config user.email "kchau@microsoft.com"
-          git config user.name "Ken Chau"
+      # - name: Publish package
+      #   run: |
+      #     git config user.email "kchau@microsoft.com"
+      #     git config user.name "Ken Chau"
 
-          # Get the existing remote URL without creds, and use a trap (like try/finally)
-          # to restore it after this step finishes
-          trap "git remote set-url origin '$(git remote get-url origin)'" EXIT
+      #     # Get the existing remote URL without creds, and use a trap (like try/finally)
+      #     # to restore it after this step finishes
+      #     trap "git remote set-url origin '$(git remote get-url origin)'" EXIT
 
-          # Add a token to the remote URL for auth during release
-          git remote set-url origin "https://ecraig12345:$REPO_PAT@github.com/$GITHUB_REPOSITORY.git"
+      #     # Add a token to the remote URL for auth during release
+      #     git remote set-url origin "https://ecraig12345:$REPO_PAT@github.com/$GITHUB_REPOSITORY.git"
 
-          yarn release -y -n $NPM_AUTHTOKEN
-        env:
-          NPM_AUTHTOKEN: ${{ secrets.npm_authtoken }}
-          REPO_PAT: ${{ secrets.REPO_PAT }}
+      #     yarn release -y -n $NPM_AUTHTOKEN
+      #   env:
+      #     NPM_AUTHTOKEN: ${{ secrets.npm_authtoken }}
+      #     REPO_PAT: ${{ secrets.REPO_PAT }}
 
       - name: Update docs
         run: |
