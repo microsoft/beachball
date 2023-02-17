@@ -18,7 +18,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: release
 
     # This environment contains secrets needed for publishing
     environment: release
