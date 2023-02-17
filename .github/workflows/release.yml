@@ -11,9 +11,6 @@ on:
   # or on manual trigger
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 env:
   npmVersion: 8
   nodeVersion: 12
@@ -22,11 +19,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # This environment contains secrets needed for publishing
+    environment: release
+
     steps:
       - name: Check out code
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.repo_pat }}
+          # Fetch all history (required for publishing which looks at history)
+          fetch-depth: 0
+          # Don't save creds in the git config (so it's easier to override later)
+          persist-credentials: false
 
       - name: Set up Node.js ${{ env.nodeVersion }}
         uses: actions/setup-node@v3
@@ -52,13 +55,25 @@ jobs:
         run: |
           git config user.email "kchau@microsoft.com"
           git config user.name "Ken Chau"
+
+          # Get the existing remote URL without creds, and use a trap (like try/finally)
+          # to restore it after this step finishes
+          trap "git remote set-url origin '$(git remote get-url origin)'" EXIT
+
+          # Add a token to the remote URL for auth during release
+          git remote set-url origin "https://$REPO_PAT@github.com/$GITHUB_REPOSITORY.git"
+
           yarn release -y -n $NPM_AUTHTOKEN
         env:
           NPM_AUTHTOKEN: ${{ secrets.npm_authtoken }}
+          REPO_PAT: ${{ secrets.REPO_PAT }}
 
       - name: Update docs
         run: |
-          git remote set-url origin https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git
+          # See previous step for explanation
+          trap "git remote set-url origin '$(git remote get-url origin)'" EXIT
+          git remote set-url origin "https://$REPO_PAT@github.com/$GITHUB_REPOSITORY.git"
+
           yarn release:docs
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_PAT: ${{ secrets.REPO_PAT }}
