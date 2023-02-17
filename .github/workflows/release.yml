@@ -58,7 +58,7 @@ jobs:
           trap "git remote set-url origin '$(git remote get-url origin)'" EXIT
 
           # Add a token to the remote URL for auth during release
-          git remote set-url origin "https://$GITHUB_ACTOR:$REPO_PAT@github.com/$GITHUB_REPOSITORY.git"
+          git remote set-url origin "https://ecraig12345:$REPO_PAT@github.com/$GITHUB_REPOSITORY.git"
 
           yarn release -y -n $NPM_AUTHTOKEN
         env:
@@ -69,7 +69,7 @@ jobs:
         run: |
           # See previous step for explanation
           trap "git remote set-url origin '$(git remote get-url origin)'" EXIT
-          git remote set-url origin "https://$GITHUB_ACTOR:$REPO_PAT@github.com/$GITHUB_REPOSITORY.git"
+          git remote set-url origin "https://ecraig12345:$REPO_PAT@github.com/$GITHUB_REPOSITORY.git"
 
           yarn release:docs
         env:
