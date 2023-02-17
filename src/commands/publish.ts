@@ -82,15 +82,13 @@ export async function publish(options: BeachballOptions) {
   // Clean up: switch back to current branch, delete publish branch
 
   const revParseSuccessful = currentBranch || currentHash;
-  const inBranch = currentBranch && currentBranch !== 'HEAD';
-  const hasHash = currentHash !== null;
-  if (inBranch) {
+  if (currentBranch && currentBranch !== 'HEAD') {
     console.log(`git checkout ${currentBranch}`);
     gitFailFast(['checkout', currentBranch!], { cwd });
-  } else if (hasHash) {
+  } else if (currentHash) {
     console.log(`Looks like the repo was detached from a branch`);
     console.log(`git checkout ${currentHash}`);
-    gitFailFast(['checkout', currentHash!], { cwd });
+    gitFailFast(['checkout', currentHash], { cwd });
   }
 
   if (revParseSuccessful) {

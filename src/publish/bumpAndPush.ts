@@ -22,8 +22,8 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     revertLocalChanges(cwd);
 
     // pull in latest from origin branch
-    console.log('Fetching from remote');
     if (options.fetch !== false) {
+      console.log('Fetching from remote');
       let fetchResult;
       if (options.depth) {
         fetchResult = git(['fetch', remote, remoteBranch, `--depth=${options.depth}`], { cwd });
