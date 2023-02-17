@@ -21,6 +21,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: release
 
     steps:
       - name: Check out code
