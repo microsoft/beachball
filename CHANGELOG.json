@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 17 Feb 2023 22:51:00 GMT",
+      "tag": "beachball_v2.31.11",
+      "version": "2.31.11",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "294df128638314b05c7d3af23c89bfae68370596",
+            "comment": "Minor fixes for publish logging and checks"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 17 Feb 2023 03:09:06 GMT",
       "tag": "beachball_v2.31.10",
       "version": "2.31.10",

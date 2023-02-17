@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 17 Feb 2023 03:09:06 GMT and should not be manually modified.
+This log was last generated on Fri, 17 Feb 2023 22:51:00 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.31.11
+
+Fri, 17 Feb 2023 22:51:00 GMT
+
+### Patches
+
+- Minor fixes for publish logging and checks (elcraig@microsoft.com)
 
 ## 2.31.10
 
