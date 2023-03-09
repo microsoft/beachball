@@ -14,7 +14,7 @@ export function getDefaultOptions() {
     token: '',
     gitTags: true,
     tag: '',
-    yes: false,
+    yes: !!(process.env.CI || process.env.TF_BUILD),
     access: 'restricted',
     changehint: 'Run "beachball change" to create a change file',
     type: null,
