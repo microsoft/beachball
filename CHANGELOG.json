@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 10 Mar 2023 08:04:24 GMT",
+      "tag": "beachball_v2.31.12",
+      "version": "2.31.12",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "4cd3fe308fc7a13c32288074afd591de9b03bc46",
+            "comment": "Default --yes to true in CI"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 17 Feb 2023 22:51:00 GMT",
       "tag": "beachball_v2.31.11",
       "version": "2.31.11",

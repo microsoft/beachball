@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Default --yes to true in CI",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
