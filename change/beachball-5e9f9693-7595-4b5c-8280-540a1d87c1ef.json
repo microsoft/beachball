@@ -1,0 +1,7 @@
+{
+  "comment": "--verbose now enables \"notice\" level logging for npm publish to show the list of files, and pipes output to the console",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

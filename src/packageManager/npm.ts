@@ -21,10 +21,16 @@ export function npm(
 
 export async function npmAsync(
   args: string[],
-  options: execa.Options = {}
+  options: execa.Options & { pipe?: boolean } = {}
 ): Promise<execa.ExecaReturnValue & { success: boolean }> {
+  const { pipe, ...execaOptions } = options;
   try {
-    const result = await execa('npm', args, { ...options });
+    const npmProcess = execa('npm', args, { ...execaOptions });
+    if (pipe) {
+      npmProcess.stdout?.pipe(process.stdout);
+      npmProcess.stderr?.pipe(process.stderr);
+    }
+    const result = await npmProcess;
     return {
       ...result,
       success: !result.failed,

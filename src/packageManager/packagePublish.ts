@@ -10,7 +10,7 @@ export function packagePublish(
   access: string,
   authType?: AuthType,
   timeout?: number | undefined,
-  gitTimeout?: number | undefined
+  verbose?: boolean
 ) {
   const packageOptions = packageInfo.combinedOptions;
   const packagePath = path.dirname(packageInfo.packageJsonPath);
@@ -21,7 +21,9 @@ export function packagePublish(
     '--tag',
     packageOptions.tag || packageOptions.defaultNpmTag,
     '--loglevel',
-    'warn',
+    // With the verbose option, restore default level of logs (including list of files published).
+    // A more specific npm log level option could be added in the future if needed.
+    verbose ? 'notice' : 'warn',
     ...getNpmAuthArgs(registry, token, authType),
   ];
 
@@ -30,5 +32,5 @@ export function packagePublish(
     args.push(access);
   }
   console.log(`publish command: ${args.join(' ')}`);
-  return npmAsync(args, { cwd: packagePath, timeout, all: true });
+  return npmAsync(args, { cwd: packagePath, timeout, all: true, pipe: verbose });
 }

@@ -14,7 +14,7 @@ import { performPublishOverrides } from './performPublishOverrides';
 type Unpromisify<T> = T extends Promise<infer U> ? U : never;
 
 export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions) {
-  const { registry, token, access, timeout, authType } = options;
+  const { registry, token, access, timeout, authType, verbose } = options;
   const bumpInfo = _.cloneDeep(originalBumpInfo);
   const { modifiedPackages, newPackages, packageInfos } = bumpInfo;
 
@@ -80,7 +80,7 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
     let retries = 0;
 
     do {
-      result = await packagePublish(packageInfo, registry, token, access, authType, timeout);
+      result = await packagePublish(packageInfo, registry, token, access, authType, timeout, verbose);
 
       if (result.success) {
         console.log('Published!');
@@ -89,7 +89,10 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
         retries++;
 
         hasAuthError = result.all!.includes('ENEEDAUTH');
-        const failedMessage = `Publishing "${pkg}" failed${hasAuthError ? ' due to auth error' : ''}:\n\n` + result.all;
+        const failedMessage =
+          `Publishing "${pkg}" failed${hasAuthError ? ' due to auth error' : ''}` +
+          // With verbose logs, the output should have already been piped to the console
+          (verbose ? '' : ':\n\n' + result.all);
 
         if (hasAuthError) {
           console.error(failedMessage);
