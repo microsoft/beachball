@@ -76,7 +76,7 @@
     "ts-jest": "28.0.8",
     "typescript": "4.3.5",
     "verdaccio": "4.13.2",
-    "verdaccio-auth-memory": "10.2.0",
+    "verdaccio-auth-memory": "10.2.2",
     "verdaccio-memory": "10.3.0",
     "vuepress": "1.9.8",
     "vuepress-plugin-mermaidjs": "1.9.1"

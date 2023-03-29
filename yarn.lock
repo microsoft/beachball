@@ -11084,10 +11084,10 @@ verdaccio-audit@9.7.3:
     express "4.17.1"
     request "2.88.2"
 
-verdaccio-auth-memory@10.2.0:
-  version "10.2.0"
-  resolved "https://registry.yarnpkg.com/verdaccio-auth-memory/-/verdaccio-auth-memory-10.2.0.tgz#97eaa22fe9f4d0536469a9a16ba33817ba65df3d"
-  integrity sha512-HP8LHdNpHVFO4isL7VR8pNPoRzBlJUKQlNqma5xBPtSRKvKEc9Co3D6Sg2y9NofD8Yr1Q3dMBDDRtx8dxs9xZQ==
+verdaccio-auth-memory@10.2.2:
+  version "10.2.2"
+  resolved "https://registry.yarnpkg.com/verdaccio-auth-memory/-/verdaccio-auth-memory-10.2.2.tgz#19946d40be2b32ff4ad2b3b24a646120fc818640"
+  integrity sha512-JCAnSqwq2l1UPt0hQcPn1B3X9mYpJ5zMsDvuDdmnlWLkrIDx2Wev5fluW0HC9hcFMITFl/DJj/DyzYOOqwhFSQ==
   dependencies:
     "@verdaccio/commons-api" "10.2.0"
 
