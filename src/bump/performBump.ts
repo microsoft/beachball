@@ -17,7 +17,9 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
     }
     const packageJson = fs.readJSONSync(info.packageJsonPath);
 
-    packageJson.version = info.version;
+    if(!info.private){
+      packageJson.version = info.version;
+    }
 
     ['dependencies', 'devDependencies', 'peerDependencies'].forEach(depKind => {
       // updatedDeps contains all of the dependencies in the bump info since the beginning of a build job
