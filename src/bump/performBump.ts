@@ -17,7 +17,7 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
     }
     const packageJson = fs.readJSONSync(info.packageJsonPath);
 
-    if(!info.private){
+    if (!info.private) {
       packageJson.version = info.version;
     }
 
