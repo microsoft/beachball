@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Handling package version update for private package",
+  "packageName": "beachball",
+  "email": "viditmathur@microsoft.com",
+  "dependentChangeType": "patch"
+}
