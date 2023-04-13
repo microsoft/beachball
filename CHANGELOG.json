@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 13 Apr 2023 08:03:46 GMT",
+      "tag": "beachball_v2.31.13",
+      "version": "2.31.13",
+      "comments": {
+        "patch": [
+          {
+            "author": "viditmathur@microsoft.com",
+            "package": "beachball",
+            "commit": "a4fef4b9bef05bc5bafd887734a3e142a7015622",
+            "comment": "When bumping, don't modify the version of private packages"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 10 Mar 2023 08:04:24 GMT",
       "tag": "beachball_v2.31.12",
       "version": "2.31.12",
