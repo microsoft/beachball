@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "When bumping, don't modify the version of private packages",
+  "packageName": "beachball",
+  "email": "viditmathur@microsoft.com",
+  "dependentChangeType": "patch"
+}
