@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "**BREAKING CHANGE**: Require Node 14. This is released as a minor change because Node 12 has been past end of life for a year now.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

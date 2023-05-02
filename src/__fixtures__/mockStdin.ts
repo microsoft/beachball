@@ -42,7 +42,7 @@ export class MockStdin extends stream.Readable {
    * Send text in a way that's presumably intended to simulate real `process.stdin` input
    * (this approach is copied from `mock-stdin`).
    */
-  send(text: string[] | Buffer | string | null, encoding?: string) {
+  send(text: string[] | Buffer | string | null, encoding?: BufferEncoding) {
     if (Array.isArray(text)) {
       if (encoding) {
         throw new TypeError('Cannot invoke MockStdin#send(): `encoding` specified while text specified as an array.');
@@ -153,7 +153,7 @@ class MockData {
   pos = 0;
   done = false;
 
-  constructor(private data: Buffer | string | null, public encoding?: string) {}
+  constructor(private data: Buffer | string | null, public encoding?: BufferEncoding) {}
 
   get length() {
     if (Buffer.isBuffer(this.data)) {
