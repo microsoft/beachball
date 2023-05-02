@@ -10,7 +10,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>microsoft/m365-renovate-config:libraryRecommended",
+    "github>microsoft/m365-renovate-config",
     "github>microsoft/m365-renovate-config:disableEsmVersions",
     "github>microsoft/m365-renovate-config:groupMore",
     "github>microsoft/m365-renovate-config:groupTypes",
@@ -39,20 +39,6 @@
     ],
     "fileFilters": ["**/*"],
     "executionMode": "branch"
-  },
-
-  "pin": {
-    "group": {
-      "postUpgradeTasks": {
-        "commands": [
-          "git add --all",
-          "npx beachball@latest change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
-          "git reset"
-        ],
-        "fileFilters": ["**/*"],
-        "executionMode": "branch"
-      }
-    }
   },
 
   "lockFileMaintenance": {

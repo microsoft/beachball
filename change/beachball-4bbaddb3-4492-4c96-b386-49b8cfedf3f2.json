@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Unpin devDependencies",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}
