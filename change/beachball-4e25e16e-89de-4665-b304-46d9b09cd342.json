@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update dependency minimatch to ^3.1.2",
+  "packageName": "beachball",
+  "email": "email not defined",
+  "dependentChangeType": "patch"
+}
