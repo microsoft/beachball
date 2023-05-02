@@ -366,4 +366,34 @@ describe('publish command (e2e)', () => {
     // no fetch when flag set to false
     expect(depthString).toEqual('--depth=10');
   });
+
+  it('calls precommit hook before committing changes', async () => {
+    repositoryFactory = new RepositoryFactory('monorepo');
+    const repo = repositoryFactory.cloneRepository();
+
+    generateChangeFiles(['foo'], repo.rootPath);
+
+    repo.push();
+
+    await publish(
+      getOptions(repo, {
+        path: repo.rootPath,
+        hooks: {
+          precommit: async cwd => {
+            await new Promise(resolve => {
+              fs.writeFile(path.resolve(cwd, 'foo.txt'), 'foo', resolve);
+            });
+          },
+        },
+      })
+    );
+
+    repo.checkout(defaultBranchName);
+    repo.pull();
+
+    // All git results should still have previous information
+    expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
+    const manifestJson = fs.readFileSync(repo.pathTo('foo.txt'));
+    expect(manifestJson.toString()).toMatchInlineSnapshot(`"foo"`);
+  });
 });

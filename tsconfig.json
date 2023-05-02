@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "outDir": "./lib",
-    // compatible with node 12 https://kangax.github.io/compat-table/es2016plus/#node12_11
-    "target": "ES2019",
+    // compatible with node 14
+    "target": "ES2020",
     "module": "commonjs",
     "moduleResolution": "node",
     "declaration": true,
@@ -15,6 +15,7 @@
     "allowJs": true,
     "checkJs": true,
     "skipLibCheck": true,
+    "lib": ["ES2020"],
     "types": ["node"]
   },
   "include": ["src/**/*"]

@@ -1,7 +1,0 @@
-{
-  "comment": "Switch from @types/jest to @jest/globals",
-  "type": "none",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}

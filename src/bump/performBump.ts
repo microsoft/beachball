@@ -11,9 +11,15 @@ import { npm } from '../packageManager/npm';
 export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos) {
   for (const pkgName of modifiedPackages) {
     const info = packageInfos[pkgName];
+    if (!fs.existsSync(info.packageJsonPath)) {
+      console.warn(`Skipping ${pkgName} since package.json does not exist`);
+      continue;
+    }
     const packageJson = fs.readJSONSync(info.packageJsonPath);
 
-    packageJson.version = info.version;
+    if (!info.private) {
+      packageJson.version = info.version;
+    }
 
     ['dependencies', 'devDependencies', 'peerDependencies'].forEach(depKind => {
       // updatedDeps contains all of the dependencies in the bump info since the beginning of a build job
@@ -43,7 +49,7 @@ export function updatePackageLock(cwd: string) {
   const root = findProjectRoot(cwd);
   if (root && fs.existsSync(path.join(root, 'package-lock.json'))) {
     console.log('Updating package-lock.json after bumping packages');
-    const res = npm(['install', '--package-lock-only'], { stdio: 'inherit' });
+    const res = npm(['install', '--package-lock-only', '--ignore-scripts'], { stdio: 'inherit' });
     if (!res.success) {
       console.warn('Updating package-lock.json failed. Continuing...');
     }

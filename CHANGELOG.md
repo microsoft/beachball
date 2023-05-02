@@ -1,8 +1,139 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 17 Aug 2022 08:02:47 GMT and should not be manually modified.
+This log was last generated on Tue, 02 May 2023 08:05:06 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.32.0
+
+Tue, 02 May 2023 08:05:06 GMT
+
+### Minor changes
+
+- **BREAKING CHANGE**: Require Node 14. This is released as a minor change because Node 12 has been past end of life for a year now. (elcraig@microsoft.com)
+
+## 2.31.13
+
+Thu, 13 Apr 2023 08:03:46 GMT
+
+### Patches
+
+- When bumping, don't modify the version of private packages (viditmathur@microsoft.com)
+
+## 2.31.12
+
+Fri, 10 Mar 2023 08:04:24 GMT
+
+### Patches
+
+- Default --yes to true in CI (elcraig@microsoft.com)
+
+## 2.31.11
+
+Fri, 17 Feb 2023 22:51:00 GMT
+
+### Patches
+
+- Minor fixes for publish logging and checks (elcraig@microsoft.com)
+
+## 2.31.10
+
+Fri, 17 Feb 2023 03:09:06 GMT
+
+### Patches
+
+- Update dependency workspace-tools to ^0.30.0 (email not defined)
+
+## 2.31.9
+
+Wed, 15 Feb 2023 08:02:51 GMT
+
+### Patches
+
+- Handle file not found issue (viditmathur@microsoft.com)
+
+## 2.31.8
+
+Wed, 08 Feb 2023 08:03:19 GMT
+
+### Patches
+
+- New flag for git push timeout (viditmathur@microsoft.com)
+
+## 2.31.7
+
+Wed, 01 Feb 2023 08:03:58 GMT
+
+### Patches
+
+- Adding timeout for git push operation (viditmathur@microsoft.com)
+
+## 2.31.6
+
+Fri, 06 Jan 2023 22:46:24 GMT
+
+### Patches
+
+- Use `--ignore-scripts` when running `npm install` after bumping packages (for repos using npm only) (brandth@microsoft.com)
+
+## 2.31.5
+
+Thu, 17 Nov 2022 08:03:27 GMT
+
+### Patches
+
+- update dependency workspace-tools to ^0.29.0 (email not defined)
+
+## 2.31.4
+
+Wed, 12 Oct 2022 08:03:33 GMT
+
+### Patches
+
+- Refactor change command and promptForChange helper for better testability (elcraig@microsoft.com)
+
+## 2.31.3
+
+Tue, 04 Oct 2022 08:03:21 GMT
+
+### Patches
+
+- add validation for multiple specified packages (elcraig@microsoft.com)
+- Simplify getDisallowedChangeTypes implementation (elcraig@microsoft.com)
+- Update dependency workspace-tools to ^0.28.0 (elcraig@microsoft.com)
+
+## 2.31.2
+
+Sat, 24 Sep 2022 08:03:07 GMT
+
+### Patches
+
+- Fix commit message suggestions in change command (elcraig@microsoft.com)
+
+## 2.31.1
+
+Fri, 23 Sep 2022 08:03:37 GMT
+
+### Patches
+
+- Don't write change files if prompt is cancelled (elcraig@microsoft.com)
+- Fix handling of shallow clones when checking for change files (elcraig@microsoft.com)
+
+## 2.31.0
+
+Tue, 20 Sep 2022 21:13:11 GMT
+
+### Minor changes
+
+- Add precommit hook (elcraig@microsoft.com)
+
+## 2.30.2
+
+Sat, 17 Sep 2022 01:48:49 GMT
+
+### Patches
+
+- Update workspace-tools to ^0.27.0 (elcraig@microsoft.com)
 
 ## 2.30.1
 

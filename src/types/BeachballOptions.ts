@@ -40,8 +40,9 @@ export interface CliOptions
   help?: boolean;
   keepChangeFiles?: boolean;
   new: boolean;
-  package: string | string[];
+  package?: string | string[];
   timeout?: number;
+  gitTimeout?: number;
   token: string;
   type?: ChangeType | null;
   verbose?: boolean;
@@ -153,6 +154,11 @@ export interface HooksOptions {
    * to the filesystem. May be called multiple times during publish.
    */
   postbump?: (packagePath: string, name: string, version: string) => void | Promise<void>;
+
+  /**
+   * Runs once after all bumps to all packages before committing changes
+   */
+  precommit?: (cwd: string) => void | Promise<void>;
 }
 
 export interface TransformOptions {

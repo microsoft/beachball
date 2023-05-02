@@ -9,7 +9,7 @@ import { displayManualRecovery } from './displayManualRecovery';
 const BUMP_PUSH_RETRIES = 5;
 
 export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: BeachballOptions) {
-  const { path: cwd, branch, tag, message } = options;
+  const { path: cwd, branch, tag, message, gitTimeout } = options;
   const { remote, remoteBranch } = parseRemoteBranch(branch);
 
   let completed = false;
@@ -22,8 +22,8 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     revertLocalChanges(cwd);
 
     // pull in latest from origin branch
-    console.log('Fetching from remote');
     if (options.fetch !== false) {
+      console.log('Fetching from remote');
       let fetchResult;
       if (options.depth) {
         fetchResult = git(['fetch', remote, remoteBranch, `--depth=${options.depth}`], { cwd });
@@ -49,7 +49,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     await performBump(bumpInfo, options);
 
     // checkin
-    const mergePublishBranchResult = mergePublishBranch(publishBranch, branch, message, cwd);
+    const mergePublishBranchResult = await mergePublishBranch(publishBranch, branch, message, cwd, options);
     if (!mergePublishBranchResult.success) {
       console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: merging to target has failed!`);
       continue;
@@ -65,15 +65,20 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     const pushArgs = ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`];
     console.log('git ' + pushArgs.join(' '));
 
-    const pushResult = git(pushArgs, { cwd });
+    try {
+      const pushResult = git(pushArgs, { cwd, timeout: gitTimeout });
 
-    if (!pushResult.success) {
-      console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: push to ${branch} has failed!\n${pushResult.stderr}`);
+      if (!pushResult.success) {
+        console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: push to ${branch} has failed!\n${pushResult.stderr}`);
+        continue;
+      } else {
+        console.log(pushResult.stdout.toString());
+        console.log(pushResult.stderr.toString());
+        completed = true;
+      }
+    } catch (e) {
+      console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: push to ${branch} has failed!\n${e}`);
       continue;
-    } else {
-      console.log(pushResult.stdout.toString());
-      console.log(pushResult.stderr.toString());
-      completed = true;
     }
   }
 
