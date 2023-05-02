@@ -2,6 +2,29 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 02 May 2023 08:05:06 GMT",
+      "tag": "beachball_v2.32.0",
+      "version": "2.32.0",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "18b92bfe6c7e2ad46c489254f682a37465138917",
+            "comment": "Unpin devDependencies"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "57c3fae84a7f465627e8757223fbfaadb75d195b",
+            "comment": "**BREAKING CHANGE**: Require Node 14. This is released as a minor change because Node 12 has been past end of life for a year now."
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 13 Apr 2023 08:03:46 GMT",
       "tag": "beachball_v2.31.13",
       "version": "2.31.13",

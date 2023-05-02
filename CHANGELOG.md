@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 13 Apr 2023 08:03:46 GMT and should not be manually modified.
+This log was last generated on Tue, 02 May 2023 08:05:06 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.32.0
+
+Tue, 02 May 2023 08:05:06 GMT
+
+### Minor changes
+
+- **BREAKING CHANGE**: Require Node 14. This is released as a minor change because Node 12 has been past end of life for a year now. (elcraig@microsoft.com)
 
 ## 2.31.13
 
