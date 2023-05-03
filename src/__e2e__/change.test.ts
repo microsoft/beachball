@@ -97,7 +97,7 @@ describe('change command', () => {
     // Also verify that the options shown are correct
     expect(stdout.lastOutput()).toMatchInlineSnapshot(`
       "? Describe changes (type or choose one) »
-      >   \\"file.js\\""
+      >   "file.js""
     `);
     await stdin.sendByChar('stage me please\n');
     await changePromise;
