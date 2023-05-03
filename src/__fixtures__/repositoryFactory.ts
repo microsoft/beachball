@@ -65,11 +65,6 @@ function getSinglePackageFixture(): RepoFixture {
   };
 }
 
-/** Get a basic fixture for a monorepo root package.json (workspaces will be automatically added later) */
-function getMonorepoRootPackage(name = 'monorepo-fixture'): RootPackageJsonFixture {
-  return { name, version: '1.0.0', private: true };
-}
-
 /**
  * Get a monorepo fixture
  * @param parentFolder If provided, this folder name is also used as the scope in package names
@@ -84,7 +79,9 @@ function getMonorepoFixture(parentFolder?: string): RepoFixture {
   return {
     tempDescription: parentFolder ? 'multimonorepo' : 'monorepo',
     rootPackage: {
-      ...getMonorepoRootPackage(`${scope}monorepo-fixture`),
+      name: `${scope}monorepo-fixture`,
+      version: '1.0.0',
+      private: true,
       beachball: beachballOptions as BeachballOptions,
       // workspaces will be added automatically later
     },
@@ -114,11 +111,11 @@ function getMonorepoFixture(parentFolder?: string): RepoFixture {
  * The two workspaces are under subfolders `workspace-a` and `workspace-b`, and the packages in each
  * workspace use scoped names `@workspace-a/*` and `@workspace-b/*`.
  */
-function getMultiWorkspaceFixture(): { 'workspace-a': RepoFixture; 'workspace-b': RepoFixture } {
+function getMultiWorkspaceFixture() {
   return {
     'workspace-a': getMonorepoFixture('workspace-a'),
     'workspace-b': getMonorepoFixture('workspace-b'),
-  };
+  } as const;
 }
 
 /** Provides setup, cloning, and teardown for repository factories */
@@ -190,11 +187,16 @@ export class RepositoryFactory {
       fs.ensureDirSync(tmpRepo.pathTo(parentFolder));
 
       // create the root package.json
-      const finalRootPackage: RootPackageJsonFixture = {
-        ...(rootPackage || getMonorepoRootPackage()),
+      let finalRootPackage = rootPackage;
+      if (!finalRootPackage) {
+        // if we got here, `folders` must be defined, so this is a monorepo
+        finalRootPackage = { name: 'monorepo-fixture', version: '1.0.0', private: true };
+      }
+      // add workspaces if needed
+      if (folders && !finalRootPackage.workspaces) {
         // these paths are relative to THIS workspace and should not include the parent folder
-        ...(folders && { workspaces: Object.keys(folders).map(folder => `${folder}/*`) }),
-      };
+        finalRootPackage.workspaces = Object.keys(folders).map(folder => `${folder}/*`);
+      }
       fs.writeJSONSync(tmpRepo.pathTo(parentFolder, 'package.json'), finalRootPackage, jsonOptions);
 
       // create the lock file
