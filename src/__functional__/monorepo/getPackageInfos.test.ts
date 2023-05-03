@@ -90,9 +90,9 @@ describe('getPackageInfos', () => {
     let packageInfos = getPackageInfos(repo.rootPath);
     packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
     expect(packageInfos).toMatchInlineSnapshot(`
-      Object {
-        "foo": Object {
-          "dependencies": Object {
+      {
+        "foo": {
+          "dependencies": {
             "bar": "1.0.0",
             "baz": "1.0.0",
           },
@@ -111,21 +111,21 @@ describe('getPackageInfos', () => {
     let packageInfos = getPackageInfos(repo.rootPath);
     packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
     expect(packageInfos).toMatchInlineSnapshot(`
-      Object {
-        "a": Object {
+      {
+        "a": {
           "name": "a",
           "packageJsonPath": "packages/grouped/a/package.json",
           "private": false,
           "version": "3.1.2",
         },
-        "b": Object {
+        "b": {
           "name": "b",
           "packageJsonPath": "packages/grouped/b/package.json",
           "private": false,
           "version": "3.1.2",
         },
-        "bar": Object {
-          "dependencies": Object {
+        "bar": {
+          "dependencies": {
             "baz": "^1.3.4",
           },
           "name": "bar",
@@ -133,14 +133,14 @@ describe('getPackageInfos', () => {
           "private": false,
           "version": "1.3.4",
         },
-        "baz": Object {
+        "baz": {
           "name": "baz",
           "packageJsonPath": "packages/baz/package.json",
           "private": false,
           "version": "1.3.4",
         },
-        "foo": Object {
-          "dependencies": Object {
+        "foo": {
+          "dependencies": {
             "bar": "^1.3.4",
           },
           "name": "foo",
@@ -160,7 +160,7 @@ describe('getPackageInfos', () => {
 
     const rootPackageInfos = getPackageInfos(repo.rootPath);
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toMatchInlineSnapshot(`
-      Object {
+      {
         "a": "packages/grouped/a/package.json",
         "b": "packages/grouped/b/package.json",
         "bar": "packages/bar/package.json",
@@ -180,7 +180,7 @@ describe('getPackageInfos', () => {
 
     const rootPackageInfos = getPackageInfos(repo.rootPath);
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toMatchInlineSnapshot(`
-      Object {
+      {
         "a": "packages/grouped/a/package.json",
         "b": "packages/grouped/b/package.json",
         "bar": "packages/bar/package.json",
@@ -198,7 +198,7 @@ describe('getPackageInfos', () => {
 
     const rootPackageInfos = getPackageInfos(repo.rootPath);
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toMatchInlineSnapshot(`
-      Object {
+      {
         "a": "packages/grouped/a/package.json",
         "b": "packages/grouped/b/package.json",
         "bar": "packages/bar/package.json",
@@ -214,7 +214,7 @@ describe('getPackageInfos', () => {
     // For this test, only snapshot the package names and paths
     const rootPackageInfos = getPackageInfos(repo.rootPath);
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toMatchInlineSnapshot(`
-      Object {
+      {
         "@workspace-a/a": "workspace-a/packages/grouped/a/package.json",
         "@workspace-a/b": "workspace-a/packages/grouped/b/package.json",
         "@workspace-a/bar": "workspace-a/packages/bar/package.json",
@@ -233,7 +233,7 @@ describe('getPackageInfos', () => {
     const workspaceARoot = repo.pathTo('workspace-a');
     const packageInfosA = getPackageInfos(workspaceARoot);
     expect(getPackageNamesAndPaths(workspaceARoot, packageInfosA)).toMatchInlineSnapshot(`
-      Object {
+      {
         "@workspace-a/a": "packages/grouped/a/package.json",
         "@workspace-a/b": "packages/grouped/b/package.json",
         "@workspace-a/bar": "packages/bar/package.json",
@@ -245,7 +245,7 @@ describe('getPackageInfos', () => {
     const workspaceBRoot = repo.pathTo('workspace-b');
     const packageInfosB = getPackageInfos(workspaceBRoot);
     expect(getPackageNamesAndPaths(workspaceBRoot, packageInfosB)).toMatchInlineSnapshot(`
-      Object {
+      {
         "@workspace-b/a": "packages/grouped/a/package.json",
         "@workspace-b/b": "packages/grouped/b/package.json",
         "@workspace-b/bar": "packages/bar/package.json",
