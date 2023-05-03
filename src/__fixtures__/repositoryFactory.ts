@@ -137,12 +137,12 @@ export class RepositoryFactory {
   public readonly fixtures: { [parentFolder: string]: RepoFixture };
 
   /** Root directory hosting the origin repository */
-  private root?: string;
+  #root?: string;
 
   /** Description to use in temp directory names */
-  private tempDescription: string;
+  #tempDescription: string;
   /** Cloned child repos, tracked so we can clean them up */
-  private childRepos: Repository[] = [];
+  #childRepos: Repository[] = [];
 
   /**
    * Create the "origin" repo and create+commit fixture files.
@@ -162,15 +162,15 @@ export class RepositoryFactory {
       this.fixtures['.'] = this.fixture;
     }
 
-    this.tempDescription = typeof fixture === 'string' ? fixture : fixture.tempDescription || 'custom';
+    this.#tempDescription = typeof fixture === 'string' ? fixture : fixture.tempDescription || 'custom';
 
     // Init the "origin" repo. This repo must be "bare" (has .git but no working directory) because
     // we'll be pushing to and pulling from it, which would cause the working directory and the
     // index to get out of sync. This article explains it well:
     // https://www.atlassian.com/git/tutorials/setting-up-a-repository/git-init
-    this.root = tmpdir({ prefix: `beachball-${this.tempDescription}-origin-` });
-    gitFailFast(['init', '--bare'], { cwd: this.root });
-    setDefaultBranchName(this.root);
+    this.#root = tmpdir({ prefix: `beachball-${this.#tempDescription}-origin-` });
+    gitFailFast(['init', '--bare'], { cwd: this.#root });
+    setDefaultBranchName(this.#root);
 
     // Initialize the repo contents by cloning the "origin" repo, committing the fixture files,
     // and pushing changes back.
@@ -218,10 +218,10 @@ export class RepositoryFactory {
   }
 
   cloneRepository(): Repository {
-    if (!this.root) throw new Error('Factory was already cleaned up');
+    if (!this.#root) throw new Error('Factory was already cleaned up');
 
-    const newRepo = new Repository(this.root, this.tempDescription);
-    this.childRepos.push(newRepo);
+    const newRepo = new Repository(this.#root, this.#tempDescription);
+    this.#childRepos.push(newRepo);
     return newRepo;
   }
 
@@ -232,20 +232,19 @@ export class RepositoryFactory {
    * and the agents are wiped after each job, so manually deleting the files just slows things down.
    */
   cleanUp() {
-    if (!this.root) return;
+    if (!this.#root) return;
 
     try {
       // This occasionally throws on Windows with "resource busy"
-      if (this.root && !process.env.CI) {
-        fs.removeSync(this.root);
-      }
+      !process.env.CI && fs.removeSync(this.#root);
     } catch (err) {
       // This is non-fatal since the temp dir will eventually be cleaned up automatically
       console.warn('Could not clean up factory: ' + err);
     }
-    this.root = undefined;
-    for (const repo of this.childRepos) {
+    this.#root = undefined;
+    for (const repo of this.#childRepos) {
       repo.cleanUp();
     }
+    this.#childRepos = [];
   }
 }

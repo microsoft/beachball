@@ -15,14 +15,14 @@ import { defaultBranchName, defaultRemoteName, setDefaultBranchName } from './gi
  */
 export class Repository {
   /** Root temp directory for the repo */
-  private root?: string;
+  #root?: string;
 
   /**
    * Clone the given remote repo into a temp directory and configure settings that are needed
    * by certain tests (user name+email and default branch).
    */
   constructor(clonePath: string, tempDescription: string = 'repository') {
-    this.root = tmpdir({ prefix: `beachball-${tempDescription}-cloned-` });
+    this.#root = tmpdir({ prefix: `beachball-${tempDescription}-cloned-` });
 
     this.git(['clone', clonePath, '.']);
 
@@ -33,10 +33,10 @@ export class Repository {
 
   /** Root temp directory for the repo (throws if already cleaned up) */
   get rootPath(): string {
-    if (!this.root) {
+    if (!this.#root) {
       throw new Error('Repo has been cleaned up');
     }
-    return this.root;
+    return this.#root;
   }
 
   /**
@@ -163,15 +163,15 @@ ${gitResult.stderr.toString()}`);
    * and the agents are wiped after each job, so manually deleting the files just slows things down.
    */
   cleanUp() {
+    if (!this.#root) return;
+
     try {
       // This occasionally throws on Windows with "resource busy"
-      if (this.root && !process.env.CI) {
-        fs.removeSync(this.root);
-      }
+      !process.env.CI && fs.removeSync(this.#root);
     } catch (err) {
       // This is non-fatal since the temp dir will eventually be cleaned up automatically
       console.warn('Could not clean up repository: ' + err);
     }
-    this.root = undefined;
+    this.#root = undefined;
   }
 }
