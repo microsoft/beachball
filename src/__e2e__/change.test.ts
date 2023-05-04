@@ -169,6 +169,7 @@ describe('change command', () => {
     makeMonorepoChanges(repo);
 
     const changePromise = change({ path: repo.rootPath, branch: defaultBranchName } as BeachballOptions);
+    await waitForPrompt();
 
     // use custom values for first package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
@@ -212,6 +213,7 @@ describe('change command', () => {
       branch: defaultBranchName,
       groupChanges: true,
     } as BeachballOptions);
+    await waitForPrompt();
 
     // use custom values for first package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
@@ -242,6 +244,7 @@ describe('change command', () => {
     const repo = repositoryFactory.cloneRepository();
     makeMonorepoChanges(repo);
 
+    // custom prompt for different packages (only truly doable here because elsewhere it uses combinedOptions)
     mockBeachballOptions = {
       changeFilePrompt: {
         changePrompt: (defaultPrompt, pkg) => {
@@ -284,6 +287,4 @@ describe('change command', () => {
       expect.objectContaining({ packageName: 'pkg-2', type: 'patch', comment: 'commit 2', custom: 'stuff' }),
     ]);
   });
-
-  // custom prompt for different packages (only truly doable here because elsewhere it uses combinedOptions)
 });

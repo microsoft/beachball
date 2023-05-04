@@ -1,8 +1,8 @@
 import path from 'path';
 import * as fs from 'fs-extra';
-import { tmpdir } from './tmpdir';
 import { git } from 'workspace-tools';
 import { defaultBranchName, defaultRemoteName, setDefaultBranchName } from './gitDefaults';
+import { tmpdir } from './tmpdir';
 
 /**
  * Represents a git repository.
@@ -70,6 +70,13 @@ ${gitResult.stdout.toString()}
 ${gitResult.stderr.toString()}`);
     }
     return gitResult;
+  }
+
+  /** Log the results of a git command to non-wrapped console.log (for debugging) */
+  async gitConsoleLog(args: string[]) {
+    realConsole.log(`$ git ${args.join(' ')}`);
+    const res = await execa('git', args, { cwd: this.rootPath, all: true, reject: false });
+    realConsole.log(res.all);
   }
 
   /**

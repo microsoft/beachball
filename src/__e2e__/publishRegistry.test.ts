@@ -15,7 +15,7 @@ describe('publish command (registry)', () => {
   let repositoryFactory: RepositoryFactory | undefined;
 
   // show error logs for these tests
-  const logs = initMockLogs(['error']);
+  const logs = initMockLogs({ alsoLog: ['error'] });
 
   function getOptions(repo: Repository, overrides: Partial<BeachballOptions>): BeachballOptions {
     return {
@@ -177,8 +177,6 @@ describe('publish command (registry)', () => {
     );
 
     await expect(publishPromise).rejects.toThrow();
-    expect(
-      logs.mocks.log.mock.calls.some(([arg0]) => typeof arg0 === 'string' && arg0.includes('Retrying... (3/3)'))
-    ).toBeTruthy();
+    expect(logs.getMockLines('log')).toMatch('Retrying... (3/3)');
   });
 });
