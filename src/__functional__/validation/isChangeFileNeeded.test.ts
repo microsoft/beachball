@@ -1,30 +1,29 @@
 import { describe, expect, it, beforeAll, beforeEach, afterAll } from '@jest/globals';
 import { defaultRemoteBranchName, defaultRemoteName } from '../../__fixtures__/gitDefaults';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { Repository } from '../../__fixtures__/repository';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { isChangeFileNeeded } from '../../validation/isChangeFileNeeded';
 import { BeachballOptions } from '../../types/BeachballOptions';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 
 describe('isChangeFileNeeded', () => {
-  let repositoryFactory: RepositoryFactory;
-  let repository: Repository;
+  const factory = new RepositoryFactory('single');
   initMockLogs();
 
   beforeAll(() => {
-    repositoryFactory = new RepositoryFactory('single');
+    factory.init();
   });
 
   beforeEach(() => {
-    repository = repositoryFactory.cloneRepository();
+    factory.reset();
   });
 
   afterAll(() => {
-    repositoryFactory.cleanUp();
+    factory.cleanUp();
   });
 
   it('is false when no changes have been made', () => {
+    const repository = factory.defaultRepo;
     const result = isChangeFileNeeded(
       {
         branch: defaultRemoteBranchName,
@@ -37,6 +36,7 @@ describe('isChangeFileNeeded', () => {
   });
 
   it('is true when changes exist in a new branch', () => {
+    const repository = factory.defaultRepo;
     repository.checkout('-b', 'feature-0');
     repository.commitChange('myFilename');
     const result = isChangeFileNeeded(
@@ -51,6 +51,7 @@ describe('isChangeFileNeeded', () => {
   });
 
   it('is false when changes are CHANGELOG files', () => {
+    const repository = factory.defaultRepo;
     repository.checkout('-b', 'feature-0');
     repository.commitChange('CHANGELOG.md');
     const result = isChangeFileNeeded(
@@ -66,7 +67,7 @@ describe('isChangeFileNeeded', () => {
 
   it('throws if the remote is invalid', () => {
     // make a separate clone due to messing with the remote
-    const repo = repositoryFactory.cloneRepository();
+    const repo = factory.cloneRepository();
     repo.git(['remote', 'set-url', defaultRemoteName, 'file:///__nonexistent']);
     repo.checkout('-b', 'feature-0');
     repo.commitChange('CHANGELOG.md');

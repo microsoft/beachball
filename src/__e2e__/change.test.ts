@@ -1,16 +1,15 @@
-import { describe, expect, it, afterEach, jest, beforeEach } from '@jest/globals';
+import { describe, expect, it, afterEach, jest, beforeEach, beforeAll, afterAll } from '@jest/globals';
 import fs from 'fs-extra';
 import type prompts from 'prompts';
 import { getChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import { RepoFixture, RepositoryFactory } from '../__fixtures__/repositoryFactory';
+import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { change } from '../commands/change';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { defaultBranchName } from '../__fixtures__/gitDefaults';
 import { MockStdout } from '../__fixtures__/mockStdout';
 import { MockStdin } from '../__fixtures__/mockStdin';
 import { ChangeFileInfo } from '../types/ChangeInfo';
-import { Repository } from '../__fixtures__/repository';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
 // so instead we inject a custom mock stdout stream, as well as stdin for entering answers
@@ -42,22 +41,30 @@ jest.mock('../options/getDefaultOptions', () => ({
 /** Wait for the prompt to finish rendering (simulates real user input) */
 const waitForPrompt = () => new Promise(resolve => process.nextTick(resolve));
 
-const monorepo: RepoFixture['folders'] = {
-  packages: { 'pkg-1': { version: '1.0.0' }, 'pkg-2': { version: '1.0.0' }, 'pkg-3': { version: '1.0.0' } },
-};
-
-function makeMonorepoChanges(repo: Repository) {
-  repo.checkout('-b', 'test');
-  repo.stageChange('packages/pkg-1/file.js');
-  repo.commitAll('commit 1');
-  repo.stageChange('packages/pkg-2/file.js');
-  repo.commitAll('commit 2');
-}
-
 describe('change command', () => {
-  let repositoryFactory: RepositoryFactory | undefined;
-
+  /** Factories used in multiple tests.  */
+  const factories = {
+    singlePackage: new RepositoryFactory('single'),
+    monorepo: new RepositoryFactory({
+      folders: {
+        packages: { 'pkg-1': { version: '1.0.0' }, 'pkg-2': { version: '1.0.0' }, 'pkg-3': { version: '1.0.0' } },
+      },
+    }),
+  };
+  let factory: RepositoryFactory | undefined;
   const logs = initMockLogs();
+
+  function makeMonorepoChanges() {
+    factories.monorepo.defaultRepo.checkout('-b', 'test');
+    factories.monorepo.defaultRepo.stageChange('packages/pkg-1/file.js');
+    factories.monorepo.defaultRepo.commitAll('commit 1');
+    factories.monorepo.defaultRepo.stageChange('packages/pkg-2/file.js');
+    factories.monorepo.defaultRepo.commitAll('commit 2');
+  }
+
+  beforeAll(() => {
+    RepositoryFactory.initAll(factories);
+  });
 
   beforeEach(() => {
     stdin = new MockStdin();
@@ -67,14 +74,18 @@ describe('change command', () => {
   afterEach(() => {
     stdin.destroy();
     stdout.destroy();
-    repositoryFactory?.cleanUp();
-    repositoryFactory = undefined;
+    RepositoryFactory.resetOrCleanUp(factory, factories);
+    factory = undefined;
     mockBeachballOptions = undefined;
   });
 
+  afterAll(() => {
+    RepositoryFactory.cleanUpAll(factories);
+  });
+
   it('does not create change files when there are no changes', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.singlePackage;
+    const repo = factory.defaultRepo;
 
     await change({ path: repo.rootPath, branch: defaultBranchName } as BeachballOptions);
 
@@ -82,8 +93,8 @@ describe('change command', () => {
   });
 
   it('creates and stages a change file', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.singlePackage;
+    const repo = factory.defaultRepo;
 
     repo.checkout('-b', 'test');
     repo.commitChange('file.js');
@@ -115,8 +126,8 @@ describe('change command', () => {
   });
 
   it('creates and commits a change file', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.singlePackage;
+    const repo = factory.defaultRepo;
 
     repo.checkout('-b', 'test');
     repo.commitChange('file.js');
@@ -141,11 +152,11 @@ describe('change command', () => {
   });
 
   it('creates a change file when there are no changes but package name is provided', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.singlePackage;
+    const repo = factory.defaultRepo;
 
     const changePromise = change({
-      package: repositoryFactory.fixture.rootPackage!.name,
+      package: factory.fixture.rootPackage!.name,
       path: repo.rootPath,
       branch: defaultBranchName,
       commit: false,
@@ -164,9 +175,9 @@ describe('change command', () => {
   });
 
   it('creates and commits change files for multiple packages', async () => {
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
-    makeMonorepoChanges(repo);
+    factory = factories.monorepo;
+    makeMonorepoChanges();
+    const repo = factory.defaultRepo;
 
     const changePromise = change({ path: repo.rootPath, branch: defaultBranchName } as BeachballOptions);
     await waitForPrompt();
@@ -204,9 +215,9 @@ describe('change command', () => {
   });
 
   it('creates and commits grouped change file for multiple packages', async () => {
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
-    makeMonorepoChanges(repo);
+    factory = factories.monorepo;
+    makeMonorepoChanges();
+    const repo = factory.defaultRepo;
 
     const changePromise = change({
       path: repo.rootPath,
@@ -240,9 +251,9 @@ describe('change command', () => {
   });
 
   it('uses custom per-package prompt', async () => {
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
-    makeMonorepoChanges(repo);
+    factory = factories.monorepo;
+    makeMonorepoChanges();
+    const repo = factory.defaultRepo;
 
     // custom prompt for different packages (only truly doable here because elsewhere it uses combinedOptions)
     mockBeachballOptions = {

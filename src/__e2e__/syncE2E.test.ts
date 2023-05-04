@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeAll, afterAll, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, expect, it, beforeAll, afterAll, afterEach, jest, beforeEach } from '@jest/globals';
 import fs from 'fs-extra';
 import path from 'path';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
@@ -15,7 +15,15 @@ import { getDefaultOptions } from '../options/getDefaultOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
 
 describe('sync command (e2e)', () => {
-  let repositoryFactory: RepositoryFactory | undefined;
+  const factory = new RepositoryFactory({
+    folders: {
+      packages: {
+        foopkg: { version: '1.0.0' },
+        barpkg: { version: '2.2.0' },
+        bazpkg: { version: '3.0.0' },
+      },
+    },
+  });
   let registry: Registry;
   const tempDirs: string[] = [];
 
@@ -60,36 +68,26 @@ describe('sync command (e2e)', () => {
   beforeAll(() => {
     registry = new Registry(__filename);
     jest.setTimeout(30000);
+    factory.init();
   });
 
   afterAll(() => {
     registry.stop();
+    factory.cleanUp();
   });
 
   beforeEach(async () => {
     await registry.reset();
   });
 
-  afterEach(() => {
-    if (repositoryFactory) {
-      repositoryFactory.cleanUp();
-      repositoryFactory = undefined;
-    }
+  afterEach(async () => {
+    factory.reset();
     tempDirs.forEach(dir => fs.removeSync(dir));
     tempDirs.splice(0, tempDirs.length);
   });
 
   it('can perform a successful sync', async () => {
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: {
-          foopkg: { version: '1.0.0' },
-          barpkg: { version: '2.2.0' },
-          bazpkg: { version: '3.0.0' },
-        },
-      },
-    });
-    const repo = repositoryFactory.cloneRepository();
+    const repo = factory.defaultRepo;
 
     const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
 
@@ -116,28 +114,19 @@ describe('sync command (e2e)', () => {
   });
 
   it('can perform a successful sync using dist tag', async () => {
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: {
-          apkg: { version: '1.0.0' },
-          bpkg: { version: '2.2.0' },
-          cpkg: { version: '3.0.0' },
-        },
-      },
-    });
-    const repo = repositoryFactory.cloneRepository();
+    const repo = factory.defaultRepo;
 
     const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
 
     expect(
-      (await packagePublish(packageInfosBeforeSync['apkg'], { registry: registry.getUrl() })).success
+      (await packagePublish(packageInfosBeforeSync['foopkg'], { registry: registry.getUrl() })).success
     ).toBeTruthy();
     expect(
-      (await packagePublish(packageInfosBeforeSync['bpkg'], { registry: registry.getUrl() })).success
+      (await packagePublish(packageInfosBeforeSync['barpkg'], { registry: registry.getUrl() })).success
     ).toBeTruthy();
 
-    const newFooInfo = createTempPackage('apkg', '2.0.0', 'beta');
-    const newBarInfo = createTempPackage('bpkg', '3.0.0', 'latest');
+    const newFooInfo = createTempPackage('foopkg', '2.0.0', 'beta');
+    const newBarInfo = createTempPackage('barpkg', '3.0.0', 'latest');
 
     expect((await packagePublish(newFooInfo, { registry: registry.getUrl() })).success).toBeTruthy();
     expect((await packagePublish(newBarInfo, { registry: registry.getUrl() })).success).toBeTruthy();
@@ -146,36 +135,27 @@ describe('sync command (e2e)', () => {
 
     const packageInfosAfterSync = getPackageInfos(repo.rootPath);
 
-    expect(packageInfosAfterSync['apkg'].version).toEqual('2.0.0');
-    expect(packageInfosAfterSync['bpkg'].version).toEqual('2.2.0');
-    expect(packageInfosAfterSync['cpkg'].version).toEqual('3.0.0');
+    expect(packageInfosAfterSync['foopkg'].version).toEqual('2.0.0');
+    expect(packageInfosAfterSync['barpkg'].version).toEqual('2.2.0');
+    expect(packageInfosAfterSync['bazpkg'].version).toEqual('3.0.0');
   });
 
   it('can perform a successful sync by forcing dist tag version', async () => {
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: {
-          epkg: { version: '1.0.0' },
-          fpkg: { version: '2.2.0' },
-          gpkg: { version: '3.0.0' },
-        },
-      },
-    });
-    const repo = repositoryFactory.cloneRepository();
+    const repo = factory.defaultRepo;
 
     const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
 
-    const epkg = packageInfosBeforeSync['epkg'];
-    const fpkg = packageInfosBeforeSync['fpkg'];
+    const foopkg = packageInfosBeforeSync['foopkg'];
+    const barpkg = packageInfosBeforeSync['barpkg'];
 
-    epkg.combinedOptions.tag = 'latest';
-    fpkg.combinedOptions.tag = 'latest';
+    foopkg.combinedOptions.tag = 'latest';
+    barpkg.combinedOptions.tag = 'latest';
 
-    expect((await packagePublish(epkg, { registry: registry.getUrl() })).success).toBeTruthy();
-    expect((await packagePublish(fpkg, { registry: registry.getUrl() })).success).toBeTruthy();
+    expect((await packagePublish(foopkg, { registry: registry.getUrl() })).success).toBeTruthy();
+    expect((await packagePublish(barpkg, { registry: registry.getUrl() })).success).toBeTruthy();
 
-    const newFooInfo = createTempPackage('epkg', '1.0.0-1');
-    const newBarInfo = createTempPackage('fpkg', '3.0.0');
+    const newFooInfo = createTempPackage('foopkg', '1.0.0-1');
+    const newBarInfo = createTempPackage('barpkg', '3.0.0');
 
     newFooInfo.combinedOptions.tag = 'prerelease';
     newBarInfo.combinedOptions.tag = 'latest';
@@ -187,8 +167,8 @@ describe('sync command (e2e)', () => {
 
     const packageInfosAfterSync = getPackageInfos(repo.rootPath);
 
-    expect(packageInfosAfterSync['epkg'].version).toEqual('1.0.0-1');
-    expect(packageInfosAfterSync['fpkg'].version).toEqual('2.2.0');
-    expect(packageInfosAfterSync['gpkg'].version).toEqual('3.0.0');
+    expect(packageInfosAfterSync['foopkg'].version).toEqual('1.0.0-1');
+    expect(packageInfosAfterSync['barpkg'].version).toEqual('2.2.0');
+    expect(packageInfosAfterSync['bazpkg'].version).toEqual('3.0.0');
   });
 });

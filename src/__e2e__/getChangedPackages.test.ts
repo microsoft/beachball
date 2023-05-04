@@ -6,18 +6,19 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { getChangedPackages } from '../changefile/getChangedPackages';
 
 describe('getChangedPackages', () => {
-  let repositoryFactory: RepositoryFactory | undefined;
+  let factory: RepositoryFactory | undefined;
 
   afterEach(() => {
-    if (repositoryFactory) {
-      repositoryFactory.cleanUp();
-      repositoryFactory = undefined;
+    if (factory) {
+      factory.cleanUp();
+      factory = undefined;
     }
   });
 
   it('detects changed files in single repo', () => {
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory('single');
+    factory.init();
+    const repo = factory.defaultRepo;
     const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -28,8 +29,9 @@ describe('getChangedPackages', () => {
   });
 
   it('respects ignorePatterns option', () => {
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory('single');
+    factory.init();
+    const repo = factory.defaultRepo;
     const options = {
       fetch: false,
       path: repo.rootPath,
@@ -46,8 +48,9 @@ describe('getChangedPackages', () => {
   });
 
   it('detects changed files in monorepo', () => {
-    repositoryFactory = new RepositoryFactory('monorepo');
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory('monorepo');
+    factory.init();
+    const repo = factory.defaultRepo;
     const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -58,10 +61,11 @@ describe('getChangedPackages', () => {
   });
 
   it('detects changed files in multi-monorepo (multi-workspace) repo', () => {
-    repositoryFactory = new RepositoryFactory('multi-workspace');
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory('multi-workspace');
+    factory.init();
+    const repo = factory.defaultRepo;
     const rootOptions = { fetch: false, branch: defaultBranchName, path: repo.rootPath } as BeachballOptions;
-    expect(Object.keys(repositoryFactory.fixtures)).toEqual(['workspace-a', 'workspace-b']);
+    expect(Object.keys(factory.fixtures)).toEqual(['workspace-a', 'workspace-b']);
 
     const workspaceARoot = repo.pathTo('workspace-a');
     const workspaceBRoot = repo.pathTo('workspace-b');

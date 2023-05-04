@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeAll, afterAll } from '@jest/globals';
+import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
 import fs from 'fs-extra';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
@@ -19,25 +19,24 @@ function cleanChangeFilePaths(root: string, changeFiles: string[]) {
 }
 
 describe('writeChangeFiles', () => {
-  let repositoryFactory: RepositoryFactory;
-  let monorepoFactory: RepositoryFactory;
+  const factory = new RepositoryFactory('monorepo');
 
   initMockLogs();
 
   beforeAll(() => {
-    // These tests can share the same repo factories because they don't push to origin
-    // (the actual tests run against a clone)
-    repositoryFactory = new RepositoryFactory('single');
-    monorepoFactory = new RepositoryFactory('monorepo');
+    factory.init();
+  });
+
+  afterEach(() => {
+    factory.reset();
   });
 
   afterAll(() => {
-    repositoryFactory.cleanUp();
-    monorepoFactory.cleanUp();
+    factory.cleanUp();
   });
 
   it('writes individual change files', () => {
-    const repo = monorepoFactory.cloneRepository();
+    const repo = factory.defaultRepo;
     const previousHead = repo.getCurrentHash();
 
     writeChangeFiles({
@@ -64,7 +63,7 @@ describe('writeChangeFiles', () => {
   });
 
   it('respects commitChangeFiles=false', () => {
-    const repo = monorepoFactory.cloneRepository();
+    const repo = factory.defaultRepo;
     const previousHead = repo.getCurrentHash();
 
     writeChangeFiles({
@@ -88,7 +87,7 @@ describe('writeChangeFiles', () => {
   });
 
   it('writes grouped change files', () => {
-    const repo = monorepoFactory.cloneRepository();
+    const repo = factory.defaultRepo;
 
     writeChangeFiles({
       changes: [{ packageName: 'foo' }, { packageName: 'bar' }] as ChangeFileInfo[],

@@ -1,3 +1,5 @@
+import realConsole from 'console';
+import execa from 'execa';
 import path from 'path';
 import * as fs from 'fs-extra';
 import { git } from 'workspace-tools';
@@ -16,12 +18,15 @@ import { tmpdir } from './tmpdir';
 export class Repository {
   /** Root temp directory for the repo */
   #root?: string;
+  /** Cleanup function passed in to the repo */
+  #onCleanUp?: () => void;
 
   /**
    * Clone the given remote repo into a temp directory and configure settings that are needed
    * by certain tests (user name+email and default branch).
    */
-  constructor(clonePath: string, tempDescription: string = 'repository') {
+  constructor(clonePath: string, tempDescription: string = 'repository', onCleanUp?: () => void) {
+    this.#onCleanUp = onCleanUp;
     this.#root = tmpdir({ prefix: `beachball-${tempDescription}-cloned-` });
 
     this.git(['clone', clonePath, '.']);
@@ -158,9 +163,34 @@ ${gitResult.stderr.toString()}`);
     this.git(['pull', defaultRemoteName, `HEAD:${defaultBranchName}`]);
   }
 
-  /** Push to the default remote and branch. */
-  push() {
-    this.git(['push', defaultRemoteName, `HEAD:${defaultBranchName}`]);
+  /** Push to either the specified or default branch to the default remote. */
+  push(branch?: string, force?: boolean) {
+    const forceArg = force ? ['-f'] : [];
+    this.git(['push', ...forceArg, defaultRemoteName, branch ?? `HEAD:${defaultBranchName}`]);
+  }
+
+  /** Call `git clean -fdx` */
+  clean() {
+    this.git(['clean', '-fdx']);
+  }
+
+  /**
+   * Remove any local changes (`git clean -fdx`), check out the given or default branch if needed
+   * (and delete the previous branch), and reset its state to match the remote branch.
+   */
+  resetFromOrigin(branch: string = defaultBranchName) {
+    this.clean();
+    const currentBranch = this.git(['rev-parse', '--abbrev-ref', 'HEAD']).stdout.trim();
+    if (currentBranch === 'HEAD') {
+      // detached head
+      this.checkout(defaultBranchName);
+    } else if (currentBranch !== branch) {
+      // non-default branch
+      this.checkout(branch);
+      this.git(['branch', '-D', currentBranch]);
+    }
+    this.git(['fetch', defaultRemoteName]);
+    this.git(['reset', '--hard', `${defaultRemoteName}/${branch}`]);
   }
 
   /**
@@ -179,6 +209,7 @@ ${gitResult.stderr.toString()}`);
       // This is non-fatal since the temp dir will eventually be cleaned up automatically
       console.warn('Could not clean up repository: ' + err);
     }
+    this.#onCleanUp?.();
     this.#root = undefined;
   }
 }

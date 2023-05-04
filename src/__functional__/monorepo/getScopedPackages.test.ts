@@ -1,5 +1,4 @@
 import { describe, expect, it, beforeAll, afterAll } from '@jest/globals';
-import { Repository } from '../../__fixtures__/repository';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
 import { BeachballOptions } from '../../types/BeachballOptions';
@@ -7,23 +6,22 @@ import { PackageInfos } from '../../types/PackageInfo';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 
 describe('getScopedPackages', () => {
-  let repoFactory: RepositoryFactory;
-  let repo: Repository;
+  // These tests don't make local changes, so cleaning up after each test is unnecessary.
+  const factory = new RepositoryFactory('monorepo');
   let packageInfos: PackageInfos;
 
   beforeAll(() => {
-    repoFactory = new RepositoryFactory('monorepo');
-    repo = repoFactory.cloneRepository();
-    packageInfos = getPackageInfos(repo.rootPath);
+    factory.init();
+    packageInfos = getPackageInfos(factory.defaultRepo.rootPath);
   });
   afterAll(() => {
-    repoFactory.cleanUp();
+    factory.cleanUp();
   });
 
   it('can scope packages', () => {
     const scopedPackages = getScopedPackages(
       {
-        path: repo.rootPath,
+        path: factory.defaultRepo.rootPath,
         scope: ['packages/grouped/*'],
       } as BeachballOptions,
       packageInfos
@@ -35,7 +33,7 @@ describe('getScopedPackages', () => {
   it('can scope with excluded packages', () => {
     const scopedPackages = getScopedPackages(
       {
-        path: repo.rootPath,
+        path: factory.defaultRepo.rootPath,
         scope: ['!packages/grouped/*'],
       } as BeachballOptions,
       packageInfos
@@ -47,7 +45,7 @@ describe('getScopedPackages', () => {
   it('can mix and match with excluded packages', () => {
     const scopedPackages = getScopedPackages(
       {
-        path: repo.rootPath,
+        path: factory.defaultRepo.rootPath,
         scope: ['packages/b*', '!packages/grouped/*'],
       } as BeachballOptions,
       packageInfos

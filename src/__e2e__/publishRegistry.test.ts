@@ -12,7 +12,7 @@ import { BeachballOptions } from '../types/BeachballOptions';
 
 describe('publish command (registry)', () => {
   let registry: Registry;
-  let repositoryFactory: RepositoryFactory | undefined;
+  let factory: RepositoryFactory | undefined;
 
   // show error logs for these tests
   const logs = initMockLogs({ alsoLog: ['error'] });
@@ -49,15 +49,14 @@ describe('publish command (registry)', () => {
   });
 
   afterEach(() => {
-    if (repositoryFactory) {
-      repositoryFactory.cleanUp();
-      repositoryFactory = undefined;
-    }
+    factory?.cleanUp();
+    factory = undefined;
   });
 
   it('can perform a successful npm publish', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory('single');
+    factory.init();
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foo'], repo.rootPath);
 
@@ -71,7 +70,7 @@ describe('publish command (registry)', () => {
   });
 
   it('can perform a successful npm publish even with private packages', async () => {
-    repositoryFactory = new RepositoryFactory({
+    factory = new RepositoryFactory({
       folders: {
         packages: {
           foopkg: { version: '1.0.0', private: true },
@@ -79,7 +78,8 @@ describe('publish command (registry)', () => {
         },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    factory.init();
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foopkg'], repo.rootPath);
 
@@ -91,7 +91,7 @@ describe('publish command (registry)', () => {
   });
 
   it('can perform a successful npm publish when multiple packages changed at same time', async () => {
-    repositoryFactory = new RepositoryFactory({
+    factory = new RepositoryFactory({
       folders: {
         packages: {
           foopkg: { version: '1.0.0', dependencies: { barpkg: '^1.0.0' } },
@@ -99,7 +99,8 @@ describe('publish command (registry)', () => {
         },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    factory.init();
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foopkg', 'barpkg'], repo.rootPath);
 
@@ -115,7 +116,7 @@ describe('publish command (registry)', () => {
   });
 
   it('can perform a successful npm publish even with a non-existent package listed in the change file', async () => {
-    repositoryFactory = new RepositoryFactory({
+    factory = new RepositoryFactory({
       folders: {
         packages: {
           foopkg: { version: '1.0.0' },
@@ -123,7 +124,8 @@ describe('publish command (registry)', () => {
         },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    factory.init();
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['badname'], repo.rootPath);
 
@@ -135,8 +137,9 @@ describe('publish command (registry)', () => {
   });
 
   it('should exit publishing early if only invalid change files exist', async () => {
-    repositoryFactory = new RepositoryFactory('monorepo');
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory('monorepo');
+    factory.init();
+    const repo = factory.defaultRepo;
 
     repo.updateJsonFile('packages/bar/package.json', { private: true });
 
@@ -161,8 +164,9 @@ describe('publish command (registry)', () => {
     // hide the errors for this test--it's supposed to have errors, and showing them is misleading
     logs.init(false);
 
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory('single');
+    factory.init();
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foo'], repo.rootPath);
 

@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeAll, afterAll } from '@jest/globals';
+import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
 import _ from 'lodash';
 
 import { generateChangeFiles } from '../../__fixtures__/changeFiles';
@@ -10,25 +10,31 @@ import { readChangeFiles } from '../../changefile/readChangeFiles';
 import { BeachballOptions } from '../../types/BeachballOptions';
 
 describe('readChangeFiles', () => {
-  let repositoryFactory: RepositoryFactory;
-  let monoRepoFactory: RepositoryFactory;
+  /** Factories used in multiple tests.  */
+  const factories = {
+    singlePackage: new RepositoryFactory('single'),
+    monorepo: new RepositoryFactory('monorepo'),
+  };
+  let factory: RepositoryFactory | undefined;
 
   const logs = initMockLogs();
 
   beforeAll(() => {
-    // These tests can share the same repo factories because they don't push to origin
-    // (the actual tests run against a clone)
-    repositoryFactory = new RepositoryFactory('single');
-    monoRepoFactory = new RepositoryFactory('monorepo');
+    RepositoryFactory.initAll(factories);
+  });
+
+  afterEach(() => {
+    RepositoryFactory.resetOrCleanUp(factory, factories);
+    factory = undefined;
   });
 
   afterAll(() => {
-    repositoryFactory.cleanUp();
-    monoRepoFactory.cleanUp();
+    RepositoryFactory.cleanUpAll(factories);
   });
 
   it('does not add commit hash', () => {
-    const repository = repositoryFactory.cloneRepository();
+    factory = factories.singlePackage;
+    const repository = factory.defaultRepo;
     repository.commitChange('foo');
     generateChangeFiles(['foo'], repository.rootPath);
 
@@ -39,7 +45,8 @@ describe('readChangeFiles', () => {
   });
 
   it('excludes invalid change files', () => {
-    const monoRepo = monoRepoFactory.cloneRepository();
+    factory = factories.monorepo;
+    const monoRepo = factory.defaultRepo;
     monoRepo.updateJsonFile('packages/bar/package.json', { private: true });
     // fake doesn't exist, bar is private, foo is okay
     generateChangeFiles(['fake', 'bar', 'foo'], monoRepo.rootPath);
@@ -55,7 +62,8 @@ describe('readChangeFiles', () => {
   });
 
   it('excludes invalid changes from grouped change file', () => {
-    const monoRepo = monoRepoFactory.cloneRepository();
+    factory = factories.monorepo;
+    const monoRepo = factory.defaultRepo;
     monoRepo.updateJsonFile('packages/bar/package.json', { private: true });
     // fake doesn't exist, bar is private, foo is okay
     generateChangeFiles(['fake', 'bar', 'foo'], monoRepo.rootPath, true /*groupChanges*/);
@@ -74,7 +82,8 @@ describe('readChangeFiles', () => {
   });
 
   it('excludes out of scope change files', () => {
-    const monoRepo = monoRepoFactory.cloneRepository();
+    factory = factories.monorepo;
+    const monoRepo = factory.defaultRepo;
     generateChangeFiles(['bar', 'foo'], monoRepo.rootPath);
 
     const packageInfos = getPackageInfos(monoRepo.rootPath);
@@ -87,7 +96,8 @@ describe('readChangeFiles', () => {
   });
 
   it('excludes out of scope changes from grouped change file', () => {
-    const monoRepo = monoRepoFactory.cloneRepository();
+    factory = factories.monorepo;
+    const monoRepo = factory.defaultRepo;
     generateChangeFiles(['bar', 'foo'], monoRepo.rootPath, true /*groupChanges*/);
 
     const packageInfos = getPackageInfos(monoRepo.rootPath);

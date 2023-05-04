@@ -15,10 +15,15 @@ import { BeachballOptions } from '../types/BeachballOptions';
 
 describe('publish command (e2e)', () => {
   let registry: Registry;
-  let repositoryFactory: RepositoryFactory | undefined;
+  /** Factories used in multiple tests.  */
+  const factories = {
+    singlePackage: new RepositoryFactory('single'),
+    monorepo: new RepositoryFactory('monorepo'),
+  };
+  let factory: RepositoryFactory | undefined;
 
   // show error logs for these tests
-  initMockLogs(['error']);
+  initMockLogs({ alsoLog: ['error'] });
 
   function getOptions(repo: Repository, overrides?: Partial<BeachballOptions>): BeachballOptions {
     return {
@@ -38,10 +43,12 @@ describe('publish command (e2e)', () => {
   beforeAll(() => {
     registry = new Registry(__filename);
     jest.setTimeout(30000);
+    RepositoryFactory.initAll(factories);
   });
 
   afterAll(() => {
     registry.stop();
+    RepositoryFactory.cleanUpAll(factories);
   });
 
   beforeEach(async () => {
@@ -51,15 +58,13 @@ describe('publish command (e2e)', () => {
   afterEach(() => {
     clearGitObservers();
 
-    if (repositoryFactory) {
-      repositoryFactory.cleanUp();
-      repositoryFactory = undefined;
-    }
+    RepositoryFactory.resetOrCleanUp(factory, factories);
+    factory = undefined;
   });
 
   it('can perform a successful npm publish', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.singlePackage;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foo'], repo.rootPath);
 
@@ -80,8 +85,8 @@ describe('publish command (e2e)', () => {
   });
 
   it('can perform a successful npm publish in detached HEAD', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.singlePackage;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foo'], repo.rootPath);
 
@@ -100,8 +105,8 @@ describe('publish command (e2e)', () => {
   });
 
   it('can perform a successful npm publish from a race condition', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.singlePackage;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foo'], repo.rootPath);
 
@@ -113,7 +118,7 @@ describe('publish command (e2e)', () => {
     addGitObserver((args, output) => {
       if (args[0] === 'fetch') {
         if (fetchCount === 0) {
-          const anotherRepo = repositoryFactory!.cloneRepository();
+          const anotherRepo = factory!.cloneRepository();
           // inject a checkin
           anotherRepo.updateJsonFile('package.json', { version: '1.0.2' });
           anotherRepo.push();
@@ -141,8 +146,8 @@ describe('publish command (e2e)', () => {
   });
 
   it('can perform a successful npm publish from a race condition in the dependencies', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.singlePackage;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foo'], repo.rootPath);
 
@@ -154,7 +159,7 @@ describe('publish command (e2e)', () => {
     addGitObserver((args, output) => {
       if (args[0] === 'fetch') {
         if (fetchCount === 0) {
-          const anotherRepo = repositoryFactory!.cloneRepository();
+          const anotherRepo = factory!.cloneRepository();
           // inject a checkin
           const packageJsonFile = anotherRepo.pathTo('package.json');
           const contents = fs.readJSONSync(packageJsonFile, 'utf-8');
@@ -189,8 +194,8 @@ describe('publish command (e2e)', () => {
   });
 
   it('can perform a successful npm publish without bump', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.singlePackage;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foo'], repo.rootPath);
 
@@ -211,8 +216,9 @@ describe('publish command (e2e)', () => {
   });
 
   it('should not perform npm publish on out-of-scope package', async () => {
-    repositoryFactory = new RepositoryFactory('monorepo');
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory('monorepo');
+    factory.init();
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foo'], repo.rootPath);
     generateChangeFiles(['bar'], repo.rootPath);
@@ -238,8 +244,9 @@ describe('publish command (e2e)', () => {
   });
 
   it('should respect prepublish hooks', async () => {
-    repositoryFactory = new RepositoryFactory('monorepo');
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory('monorepo');
+    factory.init();
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foo'], repo.rootPath);
 
@@ -279,8 +286,9 @@ describe('publish command (e2e)', () => {
   });
 
   it('should respect postpublish hooks', async () => {
-    repositoryFactory = new RepositoryFactory('monorepo');
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory('monorepo');
+    factory.init();
+    const repo = factory.defaultRepo;
     let notified;
 
     generateChangeFiles(['foo'], repo.rootPath);
@@ -308,8 +316,8 @@ describe('publish command (e2e)', () => {
   });
 
   it('can perform a successful npm publish without fetch', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.singlePackage;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foo'], repo.rootPath);
 
@@ -338,8 +346,8 @@ describe('publish command (e2e)', () => {
   });
 
   it('should specify fetch depth when depth param is defined', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.singlePackage;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foo'], repo.rootPath);
 
@@ -368,8 +376,8 @@ describe('publish command (e2e)', () => {
   });
 
   it('calls precommit hook before committing changes', async () => {
-    repositoryFactory = new RepositoryFactory('monorepo');
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.monorepo;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foo'], repo.rootPath);
 

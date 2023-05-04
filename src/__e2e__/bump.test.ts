@@ -1,4 +1,4 @@
-import { describe, expect, it, afterEach } from '@jest/globals';
+import { describe, expect, it, afterEach, beforeAll, afterAll } from '@jest/globals';
 import fs from 'fs-extra';
 import path from 'path';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
@@ -10,28 +10,48 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
 
 describe('version bumping', () => {
-  let repositoryFactory: RepositoryFactory | undefined;
+  /** Factories used in multiple tests */
+  const factories = {
+    singlePackage: new RepositoryFactory('single'),
+    monorepo: new RepositoryFactory('monorepo'),
+    multiWorkspace: new RepositoryFactory('multi-workspace'),
+    monorepoSinglePackage: new RepositoryFactory({
+      folders: {
+        packages: { 'pkg-1': { version: '1.0.0' } },
+      },
+    }),
+    monorepoMultiDepTypes: new RepositoryFactory({
+      folders: {
+        packages: {
+          'pkg-1': { version: '1.0.0' },
+          'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
+          'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
+          'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
+        },
+      },
+    }),
+  };
+  let factory: RepositoryFactory | undefined;
 
   initMockLogs();
 
+  beforeAll(() => {
+    RepositoryFactory.initAll(factories);
+  });
+
   afterEach(() => {
-    if (repositoryFactory) {
-      repositoryFactory.cleanUp();
-      repositoryFactory = undefined;
-    }
+    RepositoryFactory.resetOrCleanUp(factory, factories);
+    factory = undefined;
+  });
+
+  afterAll(() => {
+    RepositoryFactory.cleanUpAll(factories);
   });
 
   it('bumps only packages with change files', async () => {
-    const monorepo: RepoFixture['folders'] = {
-      packages: {
-        'pkg-1': { version: '1.0.0' },
-        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
-        'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
-        'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
-      },
-    };
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.monorepoMultiDepTypes;
+    const monorepo = factory.fixture.folders!;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
@@ -55,9 +75,9 @@ describe('version bumping', () => {
   });
 
   it('for multi-workspace (multi-monorepo), only bumps packages in the current workspace', async () => {
-    repositoryFactory = new RepositoryFactory('multi-workspace');
-    expect(Object.keys(repositoryFactory.fixtures)).toEqual(['workspace-a', 'workspace-b']);
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.multiWorkspace;
+    expect(Object.keys(factory.fixtures)).toEqual(['workspace-a', 'workspace-b']);
+    const repo = factory.defaultRepo;
 
     const workspaceARoot = repo.pathTo('workspace-a');
     const workspaceBRoot = repo.pathTo('workspace-b');
@@ -88,8 +108,9 @@ describe('version bumping', () => {
         'pkg-3': { version: '1.0.0' },
       },
     };
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory({ folders: monorepo });
+    factory.init();
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
@@ -117,16 +138,8 @@ describe('version bumping', () => {
   });
 
   it('bumps all dependent packages with `bumpDeps` flag', async () => {
-    const monorepo: RepoFixture['folders'] = {
-      packages: {
-        'pkg-1': { version: '1.0.0' },
-        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
-        'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
-        'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
-      },
-    };
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.monorepoMultiDepTypes;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
@@ -161,8 +174,9 @@ describe('version bumping', () => {
         'pkg-4': { version: '1.0.0' },
       },
     };
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory({ folders: monorepo });
+    factory.init();
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
@@ -199,8 +213,9 @@ describe('version bumping', () => {
         unrelated: { version: '1.0.0' },
       },
     };
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory({ folders: monorepo });
+    factory.init();
+    const repo = factory.defaultRepo;
 
     generateChangeFiles([{ packageName: 'commonlib', dependentChangeType: 'minor' }], repo.rootPath);
 
@@ -227,9 +242,9 @@ describe('version bumping', () => {
   });
 
   it('should not bump out-of-scope package even if package has change', async () => {
-    repositoryFactory = new RepositoryFactory('monorepo');
-    const monorepo = repositoryFactory.fixture.folders!;
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.monorepo;
+    const monorepo = factory.fixture.folders!;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foo'], repo.rootPath);
 
@@ -250,9 +265,9 @@ describe('version bumping', () => {
   });
 
   it('should not bump out-of-scope package and its dependencies even if dependency of the package has change', async () => {
-    repositoryFactory = new RepositoryFactory('monorepo');
-    const monorepo = repositoryFactory.fixture.folders!;
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.monorepo;
+    const monorepo = factory.fixture.folders!;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles([{ packageName: 'bar', type: 'patch' }], repo.rootPath);
 
@@ -274,16 +289,9 @@ describe('version bumping', () => {
   });
 
   it('bumps all packages and keeps change files with `keep-change-files` flag', async () => {
-    const monorepo: RepoFixture['folders'] = {
-      packages: {
-        'pkg-1': { version: '1.0.0' },
-        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
-        'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
-        'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
-      },
-    };
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.monorepoMultiDepTypes;
+    const monorepo = factory.fixture.folders!;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
@@ -311,16 +319,8 @@ describe('version bumping', () => {
   });
 
   it('bumps all packages and uses prefix in the version', async () => {
-    const monorepo: RepoFixture['folders'] = {
-      packages: {
-        'pkg-1': { version: '1.0.0' },
-        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
-        'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
-        'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
-      },
-    };
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.monorepoMultiDepTypes;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], repo.rootPath);
 
@@ -349,16 +349,8 @@ describe('version bumping', () => {
   });
 
   it('bumps all packages and uses prefixed versions in dependents', async () => {
-    const monorepo: RepoFixture['folders'] = {
-      packages: {
-        'pkg-1': { version: '1.0.0' },
-        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
-        'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
-        'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
-      },
-    };
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.monorepoMultiDepTypes;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(
       [{ packageName: 'pkg-1', type: 'prerelease', dependentChangeType: 'prerelease' }],
@@ -398,8 +390,9 @@ describe('version bumping', () => {
         'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
       },
     };
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory({ folders: monorepo });
+    factory.init();
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(
       [{ packageName: 'pkg-1', type: 'prerelease', dependentChangeType: 'prerelease' }],
@@ -438,8 +431,9 @@ describe('version bumping', () => {
         package2: { version: '0.0.1', dependencies: { package1: '^0.0.1' } },
       },
     };
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    factory = new RepositoryFactory({ folders: monorepo });
+    factory.init();
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(
       [
@@ -470,12 +464,8 @@ describe('version bumping', () => {
   });
 
   it('calls sync prebump hook before packages are bumped', async () => {
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: { 'pkg-1': { version: '1.0.0' } },
-      },
-    });
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.monorepoSinglePackage;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
@@ -503,12 +493,8 @@ describe('version bumping', () => {
   });
 
   it('calls async prebump hook before packages are bumped', async () => {
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: { 'pkg-1': { version: '1.0.0' } },
-      },
-    });
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.monorepoSinglePackage;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
@@ -536,12 +522,8 @@ describe('version bumping', () => {
   });
 
   it('propagates prebump hook exceptions', async () => {
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: { 'pkg-1': { version: '1.0.0' } },
-      },
-    });
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.monorepoSinglePackage;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
@@ -561,12 +543,8 @@ describe('version bumping', () => {
   });
 
   it('calls sync postbump hook before packages are bumped', async () => {
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: { 'pkg-1': { version: '1.0.0' } },
-      },
-    });
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.monorepoSinglePackage;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
@@ -594,12 +572,8 @@ describe('version bumping', () => {
   });
 
   it('calls async postbump hook before packages are bumped', async () => {
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: { 'pkg-1': { version: '1.0.0' } },
-      },
-    });
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.monorepoSinglePackage;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
@@ -627,12 +601,8 @@ describe('version bumping', () => {
   });
 
   it('propagates postbump hook exceptions', async () => {
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: { 'pkg-1': { version: '1.0.0' } },
-      },
-    });
-    const repo = repositoryFactory.cloneRepository();
+    factory = factories.monorepoSinglePackage;
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['pkg-1'], repo.rootPath);
 
