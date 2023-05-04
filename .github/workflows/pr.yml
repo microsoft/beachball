@@ -37,11 +37,12 @@ jobs:
       - name: Install Node.js from .nvmrc
         uses: actions/setup-node@v3
         with:
+          cache: yarn
           node-version-file: .nvmrc
 
       # Guarantee a predictable version of npm for the first round of tests
-      - name: Install package managers
-        run: npm install --global npm@${{ matrix.npm }} yarn@1
+      - name: Install npm@${{ matrix.npm }}
+        run: npm install --global npm@${{ matrix.npm }}
 
       - run: yarn --frozen-lockfile
 
