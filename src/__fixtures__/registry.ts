@@ -2,7 +2,7 @@ import execa from 'execa';
 import path from 'path';
 // @ts-ignore
 import fp from 'find-free-port';
-import verdaccioUser from './verdaccioUser';
+import { fakeUser, runningMsg } from './verdaccioConstants';
 
 const verdaccioApi = require.resolve('./verdaccio.js');
 
@@ -22,14 +22,14 @@ export class Registry {
   private server?: execa.ExecaChildProcess = undefined;
   private port?: number = undefined;
   private startPort: number;
-  private testName: string;
+  private testFilename: string;
 
   constructor(filename: string) {
-    this.testName = path.basename(filename, '.test.ts');
-    if (!knownTests.includes(this.testName)) {
-      throw new Error(`Please add ${this.testName} to knownTests in registry.ts`);
+    this.testFilename = path.basename(filename, '.test.ts');
+    if (!knownTests.includes(this.testFilename)) {
+      throw new Error(`Please add ${this.testFilename} to knownTests in registry.ts`);
     }
-    this.startPort = 4873 + knownTests.indexOf(this.testName) * portRange;
+    this.startPort = 4873 + knownTests.indexOf(this.testFilename) * portRange;
   }
 
   async start() {
@@ -62,9 +62,9 @@ export class Registry {
       npm.stdout!.on('data', chunk => {
         chunk = String(chunk);
         if (chunk.includes('Username:')) {
-          npm.stdin!.write(verdaccioUser.username + '\r\n');
+          npm.stdin!.write(fakeUser.username + '\r\n');
         } else if (chunk.includes('Password:')) {
-          npm.stdin!.write(verdaccioUser.password + '\r\n');
+          npm.stdin!.write(fakeUser.password + '\r\n');
         } else if (chunk.includes('Email:')) {
           npm.stdin!.write('fake@example.com\r\n');
         }
@@ -93,14 +93,17 @@ export class Registry {
       }
 
       this.server.stdout.on('data', data => {
-        if (data.includes('verdaccio running')) {
-          console.log(`Started registry for ${this.testName} on port ${port}`);
+        if (data.includes(runningMsg)) {
+          console.log(`Started registry for ${this.testFilename} on port ${port}`);
           resolve(port);
         }
       });
 
       this.server.stderr.on('data', data => {
-        reject(data?.toString());
+        data = String(data || '');
+        if (!data.includes('Debugger attached')) {
+          reject(data);
+        }
       });
 
       this.server.on('error', data => {
