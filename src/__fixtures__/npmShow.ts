@@ -1,4 +1,5 @@
 import { expect } from '@jest/globals';
+import os from 'os';
 import { npm } from '../packageManager/npm';
 import { Registry } from './registry';
 
@@ -20,7 +21,12 @@ export function npmShow(
   packageName: string,
   shouldFail: boolean = false
 ): NpmShowResult | undefined {
-  const showResult = npm(['--registry', registry.getUrl(), 'show', packageName, '--json'], { timeout: 1000 });
+  const timeout = process.env.CI && os.platform() === 'win32' ? 3000 : 1000;
+  const start = Date.now();
+  const showResult = npm(['--registry', registry.getUrl(), 'show', packageName, '--json'], { timeout });
+  if (Date.now() - start > timeout) {
+    throw new Error(`npm show ${packageName} took more than ${timeout}ms`);
+  }
   expect(showResult.failed).toBe(shouldFail);
   return shouldFail ? undefined : JSON.parse(showResult.stdout);
 }
