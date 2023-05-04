@@ -11599,9 +11599,9 @@ worker-farm@^1.7.0:
     errno "~0.1.7"
 
 workspace-tools@^0.34.0:
-  version "0.34.0"
-  resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.34.0.tgz#cfe096d8d55c8c3ec7c7977b84bbe2bbdfb05e17"
-  integrity sha512-grYUZvWs7SXJzXCPx0jdIkErFkGKVt74jZKYC2GxIEX2IZgEYYjwLmWDIPnZAtXpQ2jNuZiXxh9Kglyb5LUpnQ==
+  version "0.34.1"
+  resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.34.1.tgz#a4682c17161712eb2bc0361c848f06d454b27704"
+  integrity sha512-Dhaonm9PJ00P6O+R7+wHcQh0U6+85xwk8QDVEXl9dFNbiQa9pbyhe9JUM1aSy68vND8JrHimnDBpIDr7NOhcFQ==
   dependencies:
     "@yarnpkg/lockfile" "^1.1.0"
     git-url-parse "^13.0.0"

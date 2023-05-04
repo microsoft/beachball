@@ -2,6 +2,7 @@
 /** @type {import('@jest/types').Config.InitialProjectOptions} */
 const commonOptions = {
   roots: ['<rootDir>/src'],
+  setupFilesAfterEnv: ['<rootDir>/scripts/jestSetup.js'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },
