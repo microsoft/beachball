@@ -40,10 +40,12 @@ jobs:
           node-version-file: .nvmrc
 
       # Guarantee a predictable version of npm for the first round of tests
-      - name: Install package managers
-        run: npm install --global npm@${{ matrix.npm }} yarn@1
+      - name: Install npm@${{ matrix.npm }}
+        run: npm install --global npm@${{ matrix.npm }}
 
-      - run: yarn --frozen-lockfile
+      # Use midgard-yarn in CI because it's faster (especially on slow Windows CI machines)
+      - name: yarn
+        run: npx midgard-yarn install --frozen-lockfile
 
       - run: yarn build
 
