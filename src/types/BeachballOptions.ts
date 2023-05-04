@@ -41,7 +41,9 @@ export interface CliOptions
   keepChangeFiles?: boolean;
   new: boolean;
   package?: string | string[];
+  /** Timeout for npm operations (other than install, which is expected to take longer) */
   timeout?: number;
+  /** Timeout for `git push` operations */
   gitTimeout?: number;
   token: string;
   type?: ChangeType | null;

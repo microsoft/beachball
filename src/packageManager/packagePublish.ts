@@ -1,17 +1,10 @@
 import { PackageInfo } from '../types/PackageInfo';
 import path from 'path';
 import { getNpmAuthArgs, npmAsync } from './npm';
-import { AuthType } from '../types/Auth';
+import { NpmOptions } from '../types/NpmOptions';
 
-export function packagePublish(
-  packageInfo: PackageInfo,
-  registry: string,
-  token: string,
-  access: string,
-  authType?: AuthType,
-  timeout?: number | undefined,
-  gitTimeout?: number | undefined
-) {
+export function packagePublish(packageInfo: PackageInfo, options: NpmOptions) {
+  const { registry, token, authType, access, timeout } = options;
   const packageOptions = packageInfo.combinedOptions;
   const packagePath = path.dirname(packageInfo.packageJsonPath);
   const args = [

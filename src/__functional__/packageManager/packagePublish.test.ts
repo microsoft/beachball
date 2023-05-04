@@ -61,7 +61,7 @@ describe('packagePublish', () => {
 
   it('can publish', async () => {
     const testPackageInfo = getTestPackageInfo(testTag);
-    const publishResult = await packagePublish(testPackageInfo, registry.getUrl(), '', '');
+    const publishResult = await packagePublish(testPackageInfo, { registry: registry.getUrl() });
     // Check the result like this so any output will show up in the logs if there are errors
     // (hard to debug otherwise)
     expect(publishResult).toEqual(expect.objectContaining({ success: true }));
@@ -77,16 +77,16 @@ describe('packagePublish', () => {
 
   it('errors on republish', async () => {
     const testPackageInfo = getTestPackageInfo(testTag);
-    let publishResult = await packagePublish(testPackageInfo, registry.getUrl(), '', '');
+    let publishResult = await packagePublish(testPackageInfo, { registry: registry.getUrl() });
     expect(publishResult).toEqual(expect.objectContaining({ success: true })); // see comment on first test
 
-    publishResult = await packagePublish(testPackageInfo, registry.getUrl(), '', '');
+    publishResult = await packagePublish(testPackageInfo, { registry: registry.getUrl() });
     expect(publishResult.success).toBeFalsy();
   });
 
   it('publish with no tag publishes latest', async () => {
     const testPackageInfo = getTestPackageInfo(null);
-    const publishResult = await packagePublish(testPackageInfo, registry.getUrl(), '', '');
+    const publishResult = await packagePublish(testPackageInfo, { registry: registry.getUrl() });
     expect(publishResult).toEqual(expect.objectContaining({ success: true })); // see comment on first test
 
     const expectedNpmResult: NpmShowResult = {
@@ -99,7 +99,7 @@ describe('packagePublish', () => {
 
   it('publish package with defaultNpmTag publishes as defaultNpmTag', async () => {
     const testPackageInfoWithDefaultNpmTag = getTestPackageInfo(null, testTag);
-    const publishResult = await packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', '');
+    const publishResult = await packagePublish(testPackageInfoWithDefaultNpmTag, { registry: registry.getUrl() });
     expect(publishResult).toEqual(expect.objectContaining({ success: true })); // see comment on first test
 
     const expectedNpmResult: NpmShowResult = {
@@ -112,7 +112,7 @@ describe('packagePublish', () => {
 
   it('publish with specified tag overrides defaultNpmTag', async () => {
     const testPackageInfoWithDefaultNpmTag = getTestPackageInfo(testTag, 'thisShouldNotBeUsed');
-    const publishResult = await packagePublish(testPackageInfoWithDefaultNpmTag, registry.getUrl(), '', '');
+    const publishResult = await packagePublish(testPackageInfoWithDefaultNpmTag, { registry: registry.getUrl() });
     expect(publishResult).toEqual(expect.objectContaining({ success: true })); // see comment on first test
 
     const expectedNpmResult: NpmShowResult = {

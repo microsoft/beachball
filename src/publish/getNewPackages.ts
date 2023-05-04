@@ -1,12 +1,13 @@
 import { BumpInfo } from '../types/BumpInfo';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
+import { NpmOptions } from '../types/NpmOptions';
 
-export async function getNewPackages(bumpInfo: BumpInfo, registry: string) {
+export async function getNewPackages(bumpInfo: BumpInfo, options: NpmOptions) {
   const { modifiedPackages, packageInfos } = bumpInfo;
 
   const newPackages = Object.keys(packageInfos).filter(pkg => !modifiedPackages.has(pkg));
 
-  const publishedVersions = await listPackageVersions(newPackages, registry);
+  const publishedVersions = await listPackageVersions(newPackages, options);
 
   return newPackages.filter(pkg => {
     const packageInfo = packageInfos[pkg];

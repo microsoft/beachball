@@ -6,7 +6,7 @@ let cachedRepoOptions = new Map<CliOptions, RepoOptions>();
 
 export function getRepoOptions(cliOptions: CliOptions): RepoOptions {
   const { configPath, path: cwd, branch } = cliOptions;
-  if (cachedRepoOptions.has(cliOptions)) {
+  if (!process.env.BEACHBALL_DISABLE_CACHE && cachedRepoOptions.has(cliOptions)) {
     return cachedRepoOptions.get(cliOptions)!;
   }
 

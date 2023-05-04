@@ -93,14 +93,18 @@ describe('sync command (e2e)', () => {
 
     const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
 
-    expect((await packagePublish(packageInfosBeforeSync['foopkg'], registry.getUrl(), '', '')).success).toBeTruthy();
-    expect((await packagePublish(packageInfosBeforeSync['barpkg'], registry.getUrl(), '', '')).success).toBeTruthy();
+    expect(
+      (await packagePublish(packageInfosBeforeSync['foopkg'], { registry: registry.getUrl() })).success
+    ).toBeTruthy();
+    expect(
+      (await packagePublish(packageInfosBeforeSync['barpkg'], { registry: registry.getUrl() })).success
+    ).toBeTruthy();
 
     const newFooInfo = createTempPackage('foopkg', '1.2.0');
     const newBarInfo = createTempPackage('barpkg', '3.0.0');
 
-    expect((await packagePublish(newFooInfo, registry.getUrl(), '', '')).success).toBeTruthy();
-    expect((await packagePublish(newBarInfo, registry.getUrl(), '', '')).success).toBeTruthy();
+    expect((await packagePublish(newFooInfo, { registry: registry.getUrl() })).success).toBeTruthy();
+    expect((await packagePublish(newBarInfo, { registry: registry.getUrl() })).success).toBeTruthy();
 
     await sync(getOptions(repo, { tag: '' }));
 
@@ -125,14 +129,18 @@ describe('sync command (e2e)', () => {
 
     const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
 
-    expect((await packagePublish(packageInfosBeforeSync['apkg'], registry.getUrl(), '', '')).success).toBeTruthy();
-    expect((await packagePublish(packageInfosBeforeSync['bpkg'], registry.getUrl(), '', '')).success).toBeTruthy();
+    expect(
+      (await packagePublish(packageInfosBeforeSync['apkg'], { registry: registry.getUrl() })).success
+    ).toBeTruthy();
+    expect(
+      (await packagePublish(packageInfosBeforeSync['bpkg'], { registry: registry.getUrl() })).success
+    ).toBeTruthy();
 
     const newFooInfo = createTempPackage('apkg', '2.0.0', 'beta');
     const newBarInfo = createTempPackage('bpkg', '3.0.0', 'latest');
 
-    expect((await packagePublish(newFooInfo, registry.getUrl(), '', '')).success).toBeTruthy();
-    expect((await packagePublish(newBarInfo, registry.getUrl(), '', '')).success).toBeTruthy();
+    expect((await packagePublish(newFooInfo, { registry: registry.getUrl() })).success).toBeTruthy();
+    expect((await packagePublish(newBarInfo, { registry: registry.getUrl() })).success).toBeTruthy();
 
     await sync(getOptions(repo, { tag: 'beta' }));
 
@@ -163,8 +171,8 @@ describe('sync command (e2e)', () => {
     epkg.combinedOptions.tag = 'latest';
     fpkg.combinedOptions.tag = 'latest';
 
-    expect((await packagePublish(epkg, registry.getUrl(), '', '')).success).toBeTruthy();
-    expect((await packagePublish(fpkg, registry.getUrl(), '', '')).success).toBeTruthy();
+    expect((await packagePublish(epkg, { registry: registry.getUrl() })).success).toBeTruthy();
+    expect((await packagePublish(fpkg, { registry: registry.getUrl() })).success).toBeTruthy();
 
     const newFooInfo = createTempPackage('epkg', '1.0.0-1');
     const newBarInfo = createTempPackage('fpkg', '3.0.0');
@@ -172,8 +180,8 @@ describe('sync command (e2e)', () => {
     newFooInfo.combinedOptions.tag = 'prerelease';
     newBarInfo.combinedOptions.tag = 'latest';
 
-    expect((await packagePublish(newFooInfo, registry.getUrl(), '', '')).success).toBeTruthy();
-    expect((await packagePublish(newBarInfo, registry.getUrl(), '', '')).success).toBeTruthy();
+    expect((await packagePublish(newFooInfo, { registry: registry.getUrl() })).success).toBeTruthy();
+    expect((await packagePublish(newBarInfo, { registry: registry.getUrl() })).success).toBeTruthy();
 
     await sync(getOptions(repo, { tag: 'prerelease', forceVersions: true }));
 
