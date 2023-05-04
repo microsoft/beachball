@@ -2,6 +2,39 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 04 May 2023 08:04:29 GMT",
+      "tag": "beachball_v2.32.1",
+      "version": "2.32.1",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "7fe0c5d119279f22910aee2a7842540764a30e8e",
+            "comment": "Update devDependency @types/uuid to v9"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "df543fe7e0bb7ae5f90021e8d3a90c3a4340986a",
+            "comment": "Update devDependency gh-pages to v5"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "ef5182a559c19209e271325e8524145ee7876631",
+            "comment": "Update Jest packages to v29"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "9ed25c018e255e007293f05d28b015cc53e82148",
+            "comment": "Update devDependency @types/minimatch to v5"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 03 May 2023 08:03:35 GMT",
       "tag": "beachball_v2.32.1",
       "version": "2.32.1",

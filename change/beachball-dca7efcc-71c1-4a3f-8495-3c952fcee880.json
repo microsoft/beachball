@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update devDependency @types/minimatch to v5",
-  "packageName": "beachball",
-  "email": "renovate@whitesourcesoftware.com",
-  "dependentChangeType": "none"
-}
