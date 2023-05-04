@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "sync: fix precedence of tag options",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

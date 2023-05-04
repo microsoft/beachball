@@ -23,10 +23,12 @@ export async function getNpmPackageInfo(packageName: string, registry: string, t
   return packageVersions[packageName];
 }
 
+/**
+ * List versions matching the appropriate tag for each package (based on combined CLI, package, and repo options)
+ */
 export async function listPackageVersionsByTag(
   packageInfos: PackageInfo[],
   registry: string,
-  tag: string,
   token?: string,
   authType?: AuthType
 ) {
@@ -38,7 +40,7 @@ export async function listPackageVersionsByTag(
     all.push(
       limit(async () => {
         const info = await getNpmPackageInfo(pkg.name, registry, token, authType);
-        const npmTag = tag || pkg.combinedOptions.tag || pkg.combinedOptions.defaultNpmTag;
+        const npmTag = pkg.combinedOptions.tag || pkg.combinedOptions.defaultNpmTag;
         versions[pkg.name] = info['dist-tags'] && info['dist-tags'][npmTag] ? info['dist-tags'][npmTag] : undefined;
       })
     );
