@@ -20,7 +20,7 @@ export function npmShow(
   packageName: string,
   shouldFail: boolean = false
 ): NpmShowResult | undefined {
-  const showResult = npm(['--registry', registry.getUrl(), 'show', packageName, '--json']);
+  const showResult = npm(['--registry', registry.getUrl(), 'show', packageName, '--json'], { timeout: 1000 });
   expect(showResult.failed).toBe(shouldFail);
   return shouldFail ? undefined : JSON.parse(showResult.stdout);
 }

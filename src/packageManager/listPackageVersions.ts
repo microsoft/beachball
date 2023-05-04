@@ -1,69 +1,64 @@
 import { getNpmAuthArgs, npmAsync } from './npm';
 import pLimit from 'p-limit';
 import { PackageInfo } from '../types/PackageInfo';
-import { AuthType } from '../types/Auth';
+import { NpmOptions } from '../types/NpmOptions';
 
-const packageVersions: { [pkgName: string]: any } = {};
+const packageVersionsCache: { [pkgName: string]: any } = {};
 
 const NPM_CONCURRENCY = 5;
 
-export async function getNpmPackageInfo(packageName: string, registry: string, token?: string, authType?: AuthType) {
-  if (!packageVersions[packageName]) {
+async function getNpmPackageInfo(packageName: string, options: NpmOptions) {
+  const { registry, token, authType, timeout } = options;
+
+  if (process.env.BEACHBALL_DISABLE_CACHE || !packageVersionsCache[packageName]) {
     const args = ['show', '--registry', registry, '--json', packageName, ...getNpmAuthArgs(registry, token, authType)];
 
-    const showResult = await npmAsync(args);
+    const showResult = await npmAsync(args, { timeout });
+
     if (showResult.success && showResult.stdout !== '') {
       const packageInfo = JSON.parse(showResult.stdout);
-      packageVersions[packageName] = packageInfo;
+      packageVersionsCache[packageName] = packageInfo;
     } else {
-      packageVersions[packageName] = {};
+      packageVersionsCache[packageName] = {};
     }
   }
 
-  return packageVersions[packageName];
+  return packageVersionsCache[packageName];
 }
 
 export async function listPackageVersionsByTag(
   packageInfos: PackageInfo[],
-  registry: string,
-  tag: string,
-  token?: string,
-  authType?: AuthType
+  tag: string | undefined,
+  options: NpmOptions
 ) {
   const limit = pLimit(NPM_CONCURRENCY);
-  const all: Promise<void>[] = [];
   const versions: { [pkg: string]: string } = {};
 
-  for (const pkg of packageInfos) {
-    all.push(
+  await Promise.all(
+    packageInfos.map(pkg =>
       limit(async () => {
-        const info = await getNpmPackageInfo(pkg.name, registry, token, authType);
+        const info = await getNpmPackageInfo(pkg.name, options);
         const npmTag = tag || pkg.combinedOptions.tag || pkg.combinedOptions.defaultNpmTag;
         versions[pkg.name] = info['dist-tags'] && info['dist-tags'][npmTag] ? info['dist-tags'][npmTag] : undefined;
       })
-    );
-  }
-
-  await Promise.all(all);
+    )
+  );
 
   return versions;
 }
 
-export async function listPackageVersions(packageList: string[], registry: string) {
+export async function listPackageVersions(packageList: string[], options: NpmOptions) {
   const limit = pLimit(NPM_CONCURRENCY);
-  const all: Promise<void>[] = [];
   const versions: { [pkg: string]: string[] } = {};
 
-  for (const pkg of packageList) {
-    all.push(
+  await Promise.all(
+    packageList.map(pkg =>
       limit(async () => {
-        const info = await getNpmPackageInfo(pkg, registry);
+        const info = await getNpmPackageInfo(pkg, options);
         versions[pkg] = info && info.versions ? info.versions : [];
       })
-    );
-  }
-
-  await Promise.all(all);
+    )
+  );
 
   return versions;
 }

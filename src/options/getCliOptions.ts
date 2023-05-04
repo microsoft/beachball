@@ -7,7 +7,7 @@ let cachedCliOptions: CliOptions;
 export function getCliOptions(argv: string[]): CliOptions {
   // Special case caching to process.argv which should be immutable
   if (argv === process.argv) {
-    if (!cachedCliOptions) {
+    if (process.env.BEACHBALL_DISABLE_CACHE || !cachedCliOptions) {
       cachedCliOptions = getCliOptionsUncached(process.argv);
     }
     return cachedCliOptions;

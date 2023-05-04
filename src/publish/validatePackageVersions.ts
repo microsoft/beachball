@@ -1,11 +1,12 @@
 import { BumpInfo } from '../types/BumpInfo';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
 import { shouldPublishPackage } from './shouldPublishPackage';
+import { NpmOptions } from '../types/NpmOptions';
 
 /**
  * Validate a package being published is not already published.
  */
-export async function validatePackageVersions(bumpInfo: BumpInfo, registry: string): Promise<boolean> {
+export async function validatePackageVersions(bumpInfo: BumpInfo, options: NpmOptions): Promise<boolean> {
   let hasErrors: boolean = false;
 
   const packages = [...bumpInfo.modifiedPackages].filter(pkg => {
@@ -18,7 +19,7 @@ export async function validatePackageVersions(bumpInfo: BumpInfo, registry: stri
     return true;
   });
 
-  const publishedVersions = await listPackageVersions(packages, registry);
+  const publishedVersions = await listPackageVersions(packages, options);
 
   for (const pkg of packages) {
     const packageInfo = bumpInfo.packageInfos[pkg];

@@ -14,7 +14,6 @@ import { performPublishOverrides } from './performPublishOverrides';
 type Unpromisify<T> = T extends Promise<infer U> ? U : never;
 
 export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions) {
-  const { registry, token, access, timeout, authType } = options;
   const bumpInfo = _.cloneDeep(originalBumpInfo);
   const { modifiedPackages, newPackages, packageInfos } = bumpInfo;
 
@@ -25,7 +24,7 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   const succeededPackages = new Set<string>();
 
   let invalid = false;
-  if (!(await validatePackageVersions(bumpInfo, registry))) {
+  if (!(await validatePackageVersions(bumpInfo, options))) {
     displayManualRecovery(bumpInfo, succeededPackages);
     invalid = true;
   } else if (!validatePackageDependencies(bumpInfo)) {
@@ -80,7 +79,7 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
     let retries = 0;
 
     do {
-      result = await packagePublish(packageInfo, registry, token, access, authType, timeout);
+      result = await packagePublish(packageInfo, options);
 
       if (result.success) {
         console.log('Published!');
