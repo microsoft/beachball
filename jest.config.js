@@ -2,6 +2,7 @@
 /** @type {import('@jest/types').Config.InitialProjectOptions} */
 const commonOptions = {
   roots: ['<rootDir>/src'],
+  setupFilesAfterEnv: ['<rootDir>/scripts/jestSetup.js'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },
@@ -9,7 +10,7 @@ const commonOptions = {
 };
 
 /** @type {import('@jest/types').Config.InitialOptions} */
-module.exports = {
+const config = {
   reporters: ['default', 'github-actions'],
   testTimeout: 60000,
   projects: [
@@ -30,3 +31,4 @@ module.exports = {
     },
   ],
 };
+module.exports = config;

@@ -4,6 +4,7 @@
 // @ts-ignore
 const startServer = require('verdaccio').default;
 const store = require('verdaccio-memory').default;
+const { fakeUser, runningMsg } = require('./verdaccioConstants');
 
 const [port, logFile] = process.argv.slice(2);
 if (!port) {
@@ -18,7 +19,7 @@ const config = {
   auth: {
     'auth-memory': {
       users: {
-        fake: require('./verdaccioUser'),
+        fake: fakeUser,
       },
     },
   },
@@ -56,7 +57,7 @@ const addr = {
 startServer(config, port, store, '1.0.0', 'verdaccio', (webServer, addrs) => {
   webServer.listen(addr.port || addr.path, addr.host, () => {
     // This is logged to tell whoever spawns us that we're ready.
-    console.log('verdaccio running');
+    console.log(runningMsg);
     console.dir({ addrs });
   });
 });

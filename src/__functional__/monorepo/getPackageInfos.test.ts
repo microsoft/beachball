@@ -51,27 +51,28 @@ function getPackageNamesAndPaths(root: string, packageInfos: PackageInfos) {
 }
 
 describe('getPackageInfos', () => {
-  // factories can be reused between these tests because none of them push changes
-  let singleFactory: RepositoryFactory;
-  let monorepoFactory: RepositoryFactory;
-  let multiWorkspaceFactory: RepositoryFactory;
+  /** Factories used in multiple tests */
+  const factories = {
+    singlePackage: new RepositoryFactory('single'),
+    monorepo: new RepositoryFactory('monorepo'),
+    multiWorkspace: new RepositoryFactory('multi-workspace'),
+  };
+  let factory: RepositoryFactory | undefined;
   let tempDir: string | undefined;
 
   beforeAll(() => {
-    singleFactory = new RepositoryFactory('single');
-    monorepoFactory = new RepositoryFactory('monorepo');
-    multiWorkspaceFactory = new RepositoryFactory('multi-workspace');
+    RepositoryFactory.initAll(factories);
   });
 
   afterEach(() => {
     tempDir && fs.removeSync(tempDir);
     tempDir = undefined;
+    RepositoryFactory.resetOrCleanUp(factory, factories);
+    factory = undefined;
   });
 
   afterAll(() => {
-    singleFactory.cleanUp();
-    monorepoFactory.cleanUp();
-    multiWorkspaceFactory.cleanUp();
+    RepositoryFactory.cleanUpAll(factories);
   });
 
   it('throws if run outside a git repo', () => {
@@ -86,7 +87,8 @@ describe('getPackageInfos', () => {
   });
 
   it('works in single-package repo', () => {
-    const repo = singleFactory.cloneRepository();
+    factory = factories.singlePackage;
+    const repo = factory.defaultRepo;
     let packageInfos = getPackageInfos(repo.rootPath);
     packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
     expect(packageInfos).toMatchInlineSnapshot(`
@@ -107,7 +109,8 @@ describe('getPackageInfos', () => {
 
   // both yarn and npm define "workspaces" in package.json
   it('works in yarn/npm monorepo', () => {
-    const repo = monorepoFactory.cloneRepository();
+    factory = factories.monorepo;
+    const repo = factory.defaultRepo;
     let packageInfos = getPackageInfos(repo.rootPath);
     packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
     expect(packageInfos).toMatchInlineSnapshot(`
@@ -153,7 +156,8 @@ describe('getPackageInfos', () => {
   });
 
   it('works in pnpm monorepo', () => {
-    const repo = monorepoFactory.cloneRepository();
+    factory = factories.monorepo;
+    const repo = factory.defaultRepo;
     fs.writeJSONSync(repo.pathTo('package.json'), { name: 'pnpm-monorepo', version: '1.0.0', private: true });
     fs.writeFileSync(repo.pathTo('pnpm-lock.yaml'), '');
     fs.writeFileSync(repo.pathTo('pnpm-workspace.yaml'), 'packages: ["packages/*", "packages/grouped/*"]');
@@ -172,7 +176,8 @@ describe('getPackageInfos', () => {
   });
 
   it('works in rush monorepo', () => {
-    const repo = monorepoFactory.cloneRepository();
+    factory = factories.monorepo;
+    const repo = factory.defaultRepo;
     fs.writeJSONSync(repo.pathTo('package.json'), { name: 'rush-monorepo', version: '1.0.0', private: true });
     fs.writeJSONSync(repo.pathTo('rush.json'), {
       projects: [{ projectFolder: 'packages' }, { projectFolder: 'packages/grouped' }],
@@ -192,7 +197,10 @@ describe('getPackageInfos', () => {
   });
 
   it('works in lerna monorepo', () => {
-    const repo = monorepoFactory.cloneRepository();
+    // factory = new RepositoryFactory('monorepo');
+    // factory.init();
+    factory = factories.monorepo;
+    const repo = factory.defaultRepo;
     fs.writeJSONSync(repo.pathTo('package.json'), { name: 'lerna-monorepo', version: '1.0.0', private: true });
     fs.writeJSONSync(repo.pathTo('lerna.json'), { packages: ['packages/*', 'packages/grouped/*'] });
 
@@ -209,7 +217,8 @@ describe('getPackageInfos', () => {
   });
 
   it('works multi-workspace monorepo', () => {
-    const repo = multiWorkspaceFactory.cloneRepository();
+    factory = factories.multiWorkspace;
+    const repo = factory.defaultRepo;
 
     // For this test, only snapshot the package names and paths
     const rootPackageInfos = getPackageInfos(repo.rootPath);
@@ -259,7 +268,8 @@ describe('getPackageInfos', () => {
     // If there are multiple workspaces in a monorepo, it's possible that two packages in different
     // workspaces could share the same name, which causes problems for beachball.
     // (This is only known to have been an issue with the test fixture, but is worth testing.)
-    const repo = multiWorkspaceFactory.cloneRepository();
+    factory = factories.multiWorkspace;
+    const repo = factory.defaultRepo;
     repo.updateJsonFile('workspace-a/packages/foo/package.json', { name: 'foo' });
     repo.updateJsonFile('workspace-b/packages/foo/package.json', { name: 'foo' });
     expect(() => getPackageInfos(repo.rootPath)).toThrow();

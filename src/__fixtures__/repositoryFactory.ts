@@ -5,7 +5,7 @@ import { Repository } from './repository';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { tmpdir } from './tmpdir';
 import { gitFailFast } from 'workspace-tools';
-import { setDefaultBranchName } from './gitDefaults';
+import { defaultBranchName, defaultRemoteName, setDefaultBranchName } from './gitDefaults';
 
 /**
  * Standard fixture options. See {@link getSinglePackageFixture}, {@link getMonorepoFixture} and
@@ -65,11 +65,6 @@ function getSinglePackageFixture(): RepoFixture {
   };
 }
 
-/** Get a basic fixture for a monorepo root package.json (workspaces will be automatically added later) */
-function getMonorepoRootPackage(name = 'monorepo-fixture'): RootPackageJsonFixture {
-  return { name, version: '1.0.0', private: true };
-}
-
 /**
  * Get a monorepo fixture
  * @param parentFolder If provided, this folder name is also used as the scope in package names
@@ -84,7 +79,9 @@ function getMonorepoFixture(parentFolder?: string): RepoFixture {
   return {
     tempDescription: parentFolder ? 'multimonorepo' : 'monorepo',
     rootPackage: {
-      ...getMonorepoRootPackage(`${scope}monorepo-fixture`),
+      name: `${scope}monorepo-fixture`,
+      version: '1.0.0',
+      private: true,
       beachball: beachballOptions as BeachballOptions,
       // workspaces will be added automatically later
     },
@@ -114,15 +111,39 @@ function getMonorepoFixture(parentFolder?: string): RepoFixture {
  * The two workspaces are under subfolders `workspace-a` and `workspace-b`, and the packages in each
  * workspace use scoped names `@workspace-a/*` and `@workspace-b/*`.
  */
-function getMultiWorkspaceFixture(): { 'workspace-a': RepoFixture; 'workspace-b': RepoFixture } {
+function getMultiWorkspaceFixture() {
   return {
     'workspace-a': getMonorepoFixture('workspace-a'),
     'workspace-b': getMonorepoFixture('workspace-b'),
-  };
+  } as const;
 }
 
 /** Provides setup, cloning, and teardown for repository factories */
 export class RepositoryFactory {
+  /** Call `init()` on all the factories. */
+  public static initAll(reusableFactories: Record<string, RepositoryFactory>) {
+    Object.values(reusableFactories).forEach(factory => factory.init());
+  }
+
+  /** If `factory` is in `reusableFactories`, reset it. Otherwise clean it up. */
+  public static resetOrCleanUp(
+    factory: RepositoryFactory | undefined,
+    reusableFactories: Record<string, RepositoryFactory>
+  ) {
+    if (factory) {
+      if (Object.values(reusableFactories).includes(factory)) {
+        factory.reset();
+      } else {
+        factory.cleanUp();
+      }
+    }
+  }
+
+  /** Call `cleanUp()` on all the factories. */
+  public static cleanUpAll(reusableFactories: Record<string, RepositoryFactory>) {
+    Object.values(reusableFactories).forEach(factory => factory.cleanUp());
+  }
+
   /**
    * Primary fixture for the test *(do not use for multi-workspace)*.
    * This is public to potentially reduce hardcoded values (such as versions) in tests.
@@ -136,20 +157,36 @@ export class RepositoryFactory {
    */
   public readonly fixtures: { [parentFolder: string]: RepoFixture };
 
+  /**
+   * Default clone for this repository factory. Tests can use this for most operations that don't
+   * involve changing the remote URL, provided that they call `repositoryFactory.reset()` after
+   * each test.
+   */
+  public get defaultRepo(): Repository {
+    if (!this.#defaultRepo) {
+      throw new Error('RepositoryFactory not initialized or already cleaned up');
+    }
+    return this.#defaultRepo;
+  }
+
   /** Root directory hosting the origin repository */
-  private root?: string;
+  #root?: string;
+  /** Default clone of the repository */
+  #defaultRepo?: Repository;
 
   /** Description to use in temp directory names */
-  private tempDescription: string;
+  #tempDescription: string;
   /** Cloned child repos, tracked so we can clean them up */
-  private childRepos: Repository[] = [];
+  #childRepos: Repository[] = [];
+  #initialCommit: string = '';
 
   /**
-   * Create the "origin" repo and create+commit fixture files.
+   * Create a repository factory. **You must call `factory.init()` before using the factory.**
+   * (This allows factories to be created as consts in the test file and initialized during `beforeAll`.)
+   *
    * If `fixture` is a string, the corresponding default fixture is used.
    *
-   * (Note that there's currently no way to create a custom multi-workspace fixture,
-   * because that hasn't been needed so far.)
+   * (There's currently no way to create a custom multi-workspace fixture, since that hasn't been needed.)
    */
   constructor(fixture: FixtureType | RepoFixture) {
     this.fixtures = {};
@@ -162,20 +199,25 @@ export class RepositoryFactory {
       this.fixtures['.'] = this.fixture;
     }
 
-    this.tempDescription = typeof fixture === 'string' ? fixture : fixture.tempDescription || 'custom';
+    this.#tempDescription = typeof fixture === 'string' ? fixture : fixture.tempDescription || 'custom';
+  }
+
+  /** Create the "origin" repo and create+commit fixture files. */
+  init() {
+    if (this.#root) throw new Error('RepositoryFactory was already initialized');
 
     // Init the "origin" repo. This repo must be "bare" (has .git but no working directory) because
     // we'll be pushing to and pulling from it, which would cause the working directory and the
     // index to get out of sync. This article explains it well:
     // https://www.atlassian.com/git/tutorials/setting-up-a-repository/git-init
-    this.root = tmpdir({ prefix: `beachball-${this.tempDescription}-origin-` });
-    gitFailFast(['init', '--bare'], { cwd: this.root });
-    setDefaultBranchName(this.root);
+    this.#root = tmpdir({ prefix: `beachball-${this.#tempDescription}-origin-` });
+    gitFailFast(['init', '--bare'], { cwd: this.#root });
+    setDefaultBranchName(this.#root);
 
     // Initialize the repo contents by cloning the "origin" repo, committing the fixture files,
     // and pushing changes back.
-    const tmpRepo = new Repository(this.root);
-    tmpRepo.commitChange('README');
+    this.#defaultRepo = this.cloneRepository();
+    this.#defaultRepo.commitChange('README');
 
     // Create the fixture files.
     // The files are committed all together at the end to speed things up.
@@ -187,42 +229,72 @@ export class RepositoryFactory {
         throw new Error('`fixtures` must define `rootPackage` and/or `folders`');
       }
 
-      fs.ensureDirSync(tmpRepo.pathTo(parentFolder));
+      fs.ensureDirSync(this.#defaultRepo.pathTo(parentFolder));
 
       // create the root package.json
-      const finalRootPackage: RootPackageJsonFixture = {
-        ...(rootPackage || getMonorepoRootPackage()),
+      let finalRootPackage = rootPackage;
+      if (!finalRootPackage) {
+        // if we got here, `folders` must be defined, so this is a monorepo
+        finalRootPackage = { name: 'monorepo-fixture', version: '1.0.0', private: true };
+      }
+      // add workspaces if needed
+      if (folders && !finalRootPackage.workspaces) {
         // these paths are relative to THIS workspace and should not include the parent folder
-        ...(folders && { workspaces: Object.keys(folders).map(folder => `${folder}/*`) }),
-      };
-      fs.writeJSONSync(tmpRepo.pathTo(parentFolder, 'package.json'), finalRootPackage, jsonOptions);
+        finalRootPackage.workspaces = Object.keys(folders).map(folder => `${folder}/*`);
+      }
+      fs.writeJSONSync(this.#defaultRepo.pathTo(parentFolder, 'package.json'), finalRootPackage, jsonOptions);
 
       // create the lock file
       // (an option could be added to disable or customize this in the future if needed)
-      fs.writeFileSync(tmpRepo.pathTo(parentFolder, 'yarn.lock'), '');
+      fs.writeFileSync(this.#defaultRepo.pathTo(parentFolder, 'yarn.lock'), '');
 
       // create the packages
       for (const [folder, contents] of Object.entries(folders || {})) {
         for (const [name, packageJson] of Object.entries(contents)) {
-          const pkgFolder = tmpRepo.pathTo(parentFolder, folder, name);
+          const pkgFolder = this.#defaultRepo.pathTo(parentFolder, folder, name);
           fs.ensureDirSync(pkgFolder);
           fs.writeJSONSync(path.join(pkgFolder, 'package.json'), { name, ...packageJson }, jsonOptions);
         }
       }
 
-      tmpRepo.commitAll(`committing fixture ${parentFolder}`);
+      this.#defaultRepo.commitAll(`committing fixture ${parentFolder}`);
     }
 
-    tmpRepo.push();
-    tmpRepo.cleanUp();
+    this.#initialCommit = this.#defaultRepo.getCurrentHash();
+    this.#defaultRepo.push();
   }
 
   cloneRepository(): Repository {
-    if (!this.root) throw new Error('Factory was already cleaned up');
+    if (!this.#root) throw new Error('RepositoryFactory not initialized or already cleaned up');
 
-    const newRepo = new Repository(this.root, this.tempDescription);
-    this.childRepos.push(newRepo);
+    const newRepo = new Repository(this.#root, this.#tempDescription, () => {
+      const repoIndex = this.#childRepos.indexOf(newRepo);
+      if (repoIndex !== -1) this.#childRepos.splice(repoIndex, 1);
+    });
+    this.#childRepos.push(newRepo);
     return newRepo;
+  }
+
+  /**
+   * Resets the default branch of the origin repo to the initial commit after fixture files were
+   * created, then updates the default branch in the default clone (`this.defaultRepo`) to match.
+   * If the default clone is on a non-default branch, that branch will be deleted.
+   *
+   * Does NOT clean up child repos, tags, or other branches (could be added in the future if needed).
+   */
+  reset() {
+    if (!this.#root) throw new Error('RepositoryFactory not initialized or already cleaned up');
+
+    const repoOrigin = this.defaultRepo.git(['remote', 'get-url', defaultRemoteName]).stdout.toString().trim();
+    if (repoOrigin === this.#root) {
+      this.defaultRepo.push(`${this.#initialCommit}:${defaultBranchName}`, true /*force*/);
+      this.defaultRepo.resetFromOrigin(defaultBranchName);
+    } else {
+      throw new Error(
+        'A test has changed the remote URL for the defaultRepo. ' +
+          'Tests making major config changes should use repositoryFactory.cloneRepository() instead.'
+      );
+    }
   }
 
   /**
@@ -232,20 +304,20 @@ export class RepositoryFactory {
    * and the agents are wiped after each job, so manually deleting the files just slows things down.
    */
   cleanUp() {
-    if (!this.root) return;
+    if (!this.#root) return;
 
     try {
       // This occasionally throws on Windows with "resource busy"
-      if (this.root && !process.env.CI) {
-        fs.removeSync(this.root);
-      }
+      !process.env.CI && fs.removeSync(this.#root);
     } catch (err) {
       // This is non-fatal since the temp dir will eventually be cleaned up automatically
       console.warn('Could not clean up factory: ' + err);
     }
-    this.root = undefined;
-    for (const repo of this.childRepos) {
+    this.#root = undefined;
+    for (const repo of this.#childRepos) {
       repo.cleanUp();
     }
+    this.#childRepos = [];
+    this.#defaultRepo = undefined;
   }
 }

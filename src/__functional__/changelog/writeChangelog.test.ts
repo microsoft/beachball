@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeAll, afterAll } from '@jest/globals';
+import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
 import { generateChangeFiles } from '../../__fixtures__/changeFiles';
 import { cleanChangelogJson, readChangelogJson, readChangelogMd } from '../../__fixtures__/changelog';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
@@ -21,25 +21,30 @@ function getChange(packageName: string, comment: string): ChangeFileInfo {
 }
 
 describe('writeChangelog', () => {
-  let repositoryFactory: RepositoryFactory;
-  let monoRepoFactory: RepositoryFactory;
+  const factories = {
+    singlePackage: new RepositoryFactory('single'),
+    monorepo: new RepositoryFactory('monorepo'),
+  };
+  let factory: RepositoryFactory | undefined;
 
   initMockLogs();
 
   beforeAll(() => {
-    // These tests can share the same repo factories because they don't push to origin
-    // (the actual tests run against a clone)
-    repositoryFactory = new RepositoryFactory('single');
-    monoRepoFactory = new RepositoryFactory('monorepo');
+    RepositoryFactory.initAll(factories);
+  });
+
+  afterEach(() => {
+    factory?.reset();
+    factory = undefined;
   });
 
   afterAll(() => {
-    repositoryFactory.cleanUp();
-    monoRepoFactory.cleanUp();
+    RepositoryFactory.cleanUpAll(factories);
   });
 
   it('generates correct changelog', async () => {
-    const repository = repositoryFactory.cloneRepository();
+    factory = factories.singlePackage;
+    const repository = factory.defaultRepo;
     repository.commitChange('foo');
     generateChangeFiles([getChange('foo', 'additional comment 2')], repository.rootPath);
     generateChangeFiles([getChange('foo', 'additional comment 1')], repository.rootPath);
@@ -69,7 +74,8 @@ describe('writeChangelog', () => {
   });
 
   it('generates correct changelog in monorepo with groupChanges (grouped change FILES)', async () => {
-    const monoRepo = monoRepoFactory.cloneRepository();
+    factory = factories.monorepo;
+    const monoRepo = factory.defaultRepo;
     monoRepo.commitChange('foo');
     const params = [monoRepo.rootPath, true /*groupChanges*/] as const;
     generateChangeFiles(
@@ -106,7 +112,8 @@ describe('writeChangelog', () => {
   });
 
   it('generates correct grouped changelog', async () => {
-    const monoRepo = monoRepoFactory.cloneRepository();
+    factory = factories.monorepo;
+    const monoRepo = factory.defaultRepo;
     monoRepo.commitChange('foo');
     generateChangeFiles([getChange('foo', 'comment 1')], monoRepo.rootPath);
 
@@ -141,7 +148,8 @@ describe('writeChangelog', () => {
   });
 
   it('generates grouped changelog without dependent change entries', async () => {
-    const monoRepo = monoRepoFactory.cloneRepository();
+    factory = factories.monorepo;
+    const monoRepo = factory.defaultRepo;
     monoRepo.commitChange('baz');
     generateChangeFiles([getChange('baz', 'comment 1')], monoRepo.rootPath);
 
@@ -185,7 +193,8 @@ describe('writeChangelog', () => {
   });
 
   it('generates grouped changelog without dependent change entries where packages have normal changes and dependency changes', async () => {
-    const monoRepo = monoRepoFactory.cloneRepository();
+    factory = factories.monorepo;
+    const monoRepo = factory.defaultRepo;
     monoRepo.commitChange('baz');
     generateChangeFiles([getChange('baz', 'comment 1')], monoRepo.rootPath);
     generateChangeFiles([getChange('bar', 'comment 1')], monoRepo.rootPath);
@@ -223,7 +232,8 @@ describe('writeChangelog', () => {
   });
 
   it('generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog', async () => {
-    const monoRepo = monoRepoFactory.cloneRepository();
+    factory = factories.monorepo;
+    const monoRepo = factory.defaultRepo;
     monoRepo.commitChange('foo');
     generateChangeFiles([getChange('foo', 'comment 1')], monoRepo.rootPath);
 
@@ -257,7 +267,8 @@ describe('writeChangelog', () => {
 
   it('Verify that the changeFile transform functions are run, if provided', async () => {
     const editedComment: string = 'Edited comment for testing';
-    const monoRepo = monoRepoFactory.cloneRepository();
+    factory = factories.monorepo;
+    const monoRepo = factory.defaultRepo;
     monoRepo.commitChange('foo');
     generateChangeFiles([getChange('foo', 'comment 1')], monoRepo.rootPath);
 

@@ -1,34 +1,33 @@
-import { describe, expect, it, beforeAll, beforeEach, afterAll } from '@jest/globals';
+import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
 import fs from 'fs-extra';
 import { generateChangeFiles } from '../../__fixtures__/changeFiles';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { Repository } from '../../__fixtures__/repository';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { BeachballOptions } from '../../types/BeachballOptions';
 import { areChangeFilesDeleted } from '../../validation/areChangeFilesDeleted';
 import { getChangePath } from '../../paths';
 
 describe('areChangeFilesDeleted', () => {
-  let repositoryFactory: RepositoryFactory;
-  let repository: Repository;
+  const factory = new RepositoryFactory('single');
   initMockLogs();
 
   beforeAll(() => {
-    repositoryFactory = new RepositoryFactory('single');
+    factory.init();
+    generateChangeFiles(['pkg-1'], factory.defaultRepo.rootPath);
+    factory.defaultRepo.push();
   });
 
-  beforeEach(() => {
-    repository = repositoryFactory.cloneRepository();
-    generateChangeFiles(['pkg-1'], repository.rootPath);
-    repository.push();
+  afterEach(() => {
+    factory.defaultRepo.resetFromOrigin();
   });
 
   afterAll(() => {
-    repositoryFactory.cleanUp();
+    factory.cleanUp();
   });
 
   it('is false when no change files are deleted', () => {
+    const repository = factory.defaultRepo;
     repository.checkout('-b', 'feature-0');
 
     const result = areChangeFilesDeleted({
@@ -39,6 +38,7 @@ describe('areChangeFilesDeleted', () => {
   });
 
   it('is true when change files are deleted', () => {
+    const repository = factory.defaultRepo;
     repository.checkout('-b', 'feature-0');
 
     const changeDirPath = getChangePath(repository.rootPath);

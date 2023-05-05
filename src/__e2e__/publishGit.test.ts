@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeAll, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, expect, it, beforeAll, afterEach, jest, afterAll } from '@jest/globals';
 import fs from 'fs-extra';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
@@ -32,7 +32,7 @@ function getOptions(repo: Repository, overrides?: Partial<BeachballOptions>): Be
 }
 
 describe('publish command (git)', () => {
-  let repositoryFactory: RepositoryFactory;
+  const factory = new RepositoryFactory('single');
 
   initMockLogs();
 
@@ -40,16 +40,20 @@ describe('publish command (git)', () => {
     jest.setTimeout(30000);
   });
 
-  beforeEach(() => {
-    repositoryFactory = new RepositoryFactory('single');
+  beforeAll(() => {
+    factory.init();
   });
 
   afterEach(() => {
-    repositoryFactory.cleanUp();
+    factory.reset();
+  });
+
+  afterAll(() => {
+    factory.cleanUp();
   });
 
   it('can perform a successful git push', async () => {
-    const repo = repositoryFactory.cloneRepository();
+    const repo = factory.defaultRepo;
 
     generateChangeFiles(['foo'], repo.rootPath);
 
@@ -57,7 +61,7 @@ describe('publish command (git)', () => {
 
     await publish(getOptions(repo));
 
-    const newRepo = repositoryFactory.cloneRepository();
+    const newRepo = factory.cloneRepository();
 
     const packageJson = fs.readJSONSync(newRepo.pathTo('package.json'));
 
@@ -65,8 +69,8 @@ describe('publish command (git)', () => {
   });
 
   it('can handle a merge when there are change files present', async () => {
-    // 1. clone a new repo1, write a change file in repo1
-    const repo1 = repositoryFactory.cloneRepository();
+    // 1. in the default repo, create a change file and push it
+    const repo1 = factory.defaultRepo;
     generateChangeFiles(['foo'], repo1.rootPath);
     repo1.push();
 
@@ -79,7 +83,7 @@ describe('publish command (git)', () => {
     const bumpInfo = gatherBumpInfo(options, getPackageInfos(repo1.rootPath));
 
     // 3. Meanwhile, in repo2, also create a new change file
-    const repo2 = repositoryFactory.cloneRepository();
+    const repo2 = factory.cloneRepository();
     generateChangeFiles(['foo2'], repo2.rootPath);
     repo2.push();
 
@@ -87,7 +91,7 @@ describe('publish command (git)', () => {
     await bumpAndPush(bumpInfo, publishBranch, options);
 
     // 5. In a brand new cloned repo, make assertions
-    const newRepo = repositoryFactory.cloneRepository();
+    const newRepo = factory.cloneRepository();
     const changeFiles = getChangeFiles(newRepo.rootPath);
     expect(changeFiles).toHaveLength(1);
     const changeFileContent: ChangeFileInfo = fs.readJSONSync(changeFiles[0]);

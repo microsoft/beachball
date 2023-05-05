@@ -1,8 +1,10 @@
+import realConsole from 'console';
+import execa from 'execa';
 import path from 'path';
 import * as fs from 'fs-extra';
-import { tmpdir } from './tmpdir';
 import { git } from 'workspace-tools';
 import { defaultBranchName, defaultRemoteName, setDefaultBranchName } from './gitDefaults';
+import { tmpdir } from './tmpdir';
 
 /**
  * Represents a git repository.
@@ -15,14 +17,17 @@ import { defaultBranchName, defaultRemoteName, setDefaultBranchName } from './gi
  */
 export class Repository {
   /** Root temp directory for the repo */
-  private root?: string;
+  #root?: string;
+  /** Cleanup function passed in to the repo */
+  #onCleanUp?: () => void;
 
   /**
    * Clone the given remote repo into a temp directory and configure settings that are needed
    * by certain tests (user name+email and default branch).
    */
-  constructor(clonePath: string, tempDescription: string = 'repository') {
-    this.root = tmpdir({ prefix: `beachball-${tempDescription}-cloned-` });
+  constructor(clonePath: string, tempDescription: string = 'repository', onCleanUp?: () => void) {
+    this.#onCleanUp = onCleanUp;
+    this.#root = tmpdir({ prefix: `beachball-${tempDescription}-cloned-` });
 
     this.git(['clone', clonePath, '.']);
 
@@ -33,10 +38,10 @@ export class Repository {
 
   /** Root temp directory for the repo (throws if already cleaned up) */
   get rootPath(): string {
-    if (!this.root) {
+    if (!this.#root) {
       throw new Error('Repo has been cleaned up');
     }
-    return this.root;
+    return this.#root;
   }
 
   /**
@@ -70,6 +75,13 @@ ${gitResult.stdout.toString()}
 ${gitResult.stderr.toString()}`);
     }
     return gitResult;
+  }
+
+  /** Log the results of a git command to non-wrapped console.log (for debugging) */
+  async gitConsoleLog(args: string[]) {
+    realConsole.log(`$ git ${args.join(' ')}`);
+    const res = await execa('git', args, { cwd: this.rootPath, all: true, reject: false });
+    realConsole.log(res.all);
   }
 
   /**
@@ -151,9 +163,34 @@ ${gitResult.stderr.toString()}`);
     this.git(['pull', defaultRemoteName, `HEAD:${defaultBranchName}`]);
   }
 
-  /** Push to the default remote and branch. */
-  push() {
-    this.git(['push', defaultRemoteName, `HEAD:${defaultBranchName}`]);
+  /** Push to either the specified or default branch to the default remote. */
+  push(branch?: string, force?: boolean) {
+    const forceArg = force ? ['-f'] : [];
+    this.git(['push', ...forceArg, defaultRemoteName, branch ?? `HEAD:${defaultBranchName}`]);
+  }
+
+  /** Call `git clean -fdx` */
+  clean() {
+    this.git(['clean', '-fdx']);
+  }
+
+  /**
+   * Remove any local changes (`git clean -fdx`), check out the given or default branch if needed
+   * (and delete the previous branch), and reset its state to match the remote branch.
+   */
+  resetFromOrigin(branch: string = defaultBranchName) {
+    this.clean();
+    const currentBranch = this.git(['rev-parse', '--abbrev-ref', 'HEAD']).stdout.trim();
+    if (currentBranch === 'HEAD') {
+      // detached head
+      this.checkout(defaultBranchName);
+    } else if (currentBranch !== branch) {
+      // non-default branch
+      this.checkout(branch);
+      this.git(['branch', '-D', currentBranch]);
+    }
+    this.git(['fetch', defaultRemoteName]);
+    this.git(['reset', '--hard', `${defaultRemoteName}/${branch}`]);
   }
 
   /**
@@ -163,15 +200,16 @@ ${gitResult.stderr.toString()}`);
    * and the agents are wiped after each job, so manually deleting the files just slows things down.
    */
   cleanUp() {
+    if (!this.#root) return;
+
     try {
       // This occasionally throws on Windows with "resource busy"
-      if (this.root && !process.env.CI) {
-        fs.removeSync(this.root);
-      }
+      !process.env.CI && fs.removeSync(this.#root);
     } catch (err) {
       // This is non-fatal since the temp dir will eventually be cleaned up automatically
       console.warn('Could not clean up repository: ' + err);
     }
-    this.root = undefined;
+    this.#onCleanUp?.();
+    this.#root = undefined;
   }
 }

@@ -44,7 +44,7 @@ export function initMockLogs(opts?: MockLogsOptions | boolean | MockLogMethod[])
 
   const logs: MockLogs = {
     mocks: {} as MockLogs['mocks'],
-    realConsole: { ...console },
+    realConsole: { ...require('console') },
     init: (shouldLog = alsoLog) => {
       logs.restore(); // clear any previous mocks
       mockedMethods.forEach(method => {
