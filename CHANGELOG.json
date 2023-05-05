@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 05 May 2023 08:03:45 GMT",
+      "tag": "beachball_v2.32.2",
+      "version": "2.32.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "f34f794c6999a0dc1eb81ba11fd45d66367874a8",
+            "comment": "Use proper options and timeout on all npm operations"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 04 May 2023 08:04:29 GMT",
       "tag": "beachball_v2.32.1",
       "version": "2.32.1",

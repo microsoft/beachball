@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 03 May 2023 08:03:35 GMT and should not be manually modified.
+This log was last generated on Fri, 05 May 2023 08:03:45 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.32.2
+
+Fri, 05 May 2023 08:03:45 GMT
+
+### Patches
+
+- Use proper options and timeout on all npm operations (elcraig@microsoft.com)
 
 ## 2.32.1
 

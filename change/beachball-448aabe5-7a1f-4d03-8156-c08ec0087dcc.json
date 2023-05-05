@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Use proper options and timeout on all npm operations",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
