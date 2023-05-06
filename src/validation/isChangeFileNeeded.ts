@@ -1,8 +1,10 @@
 import { getChangedPackages } from '../changefile/getChangedPackages';
-import { BeachballOptions } from '../types/BeachballOptions';
 import { PackageInfos } from '../types/PackageInfo';
 
-export function isChangeFileNeeded(options: BeachballOptions, packageInfos: PackageInfos): boolean {
+export function isChangeFileNeeded(
+  options: Parameters<typeof getChangedPackages>[0],
+  packageInfos: PackageInfos
+): boolean {
   const { branch } = options;
 
   console.log(`Checking for changes against "${branch}"`);

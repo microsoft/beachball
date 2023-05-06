@@ -57,7 +57,11 @@ function isPackageIncluded(
  * Gets all the changed package names, regardless of the change files.
  * If `options.all` is set, returns all the packages in scope, regardless of whether they've changed.
  */
-function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
+function getAllChangedPackages(
+  options: Pick<BeachballOptions, 'all' | 'branch' | 'changeDir' | 'ignorePatterns' | 'verbose'> &
+    Parameters<typeof getScopedPackages>[0],
+  packageInfos: PackageInfos
+): string[] {
   const { branch, path: cwd, verbose, all, changeDir } = options;
 
   const verboseLog = (msg: string) => verbose && console.log(msg);
@@ -130,7 +134,10 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
 /**
  * Gets all the changed packages which do not already have a change file
  */
-export function getChangedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
+export function getChangedPackages(
+  options: Parameters<typeof getAllChangedPackages>[0] & Parameters<typeof ensureSharedHistory>[0],
+  packageInfos: PackageInfos
+) {
   const { path: cwd, branch, changeDir } = options;
 
   const changePath = getChangePath(options);
