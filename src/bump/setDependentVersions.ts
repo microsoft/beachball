@@ -1,6 +1,6 @@
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { BumpInfo } from '../types/BumpInfo';
-import { consideredDependencies, type PackageInfos } from '../types/PackageInfo';
+import { consideredDependencies } from '../types/PackageInfo';
 import { bumpMinSemverRange } from './bumpMinSemverRange';
 
 /**
@@ -9,10 +9,10 @@ import { bumpMinSemverRange } from './bumpMinSemverRange';
  * **This mutates dep versions in `packageInfos`** as well as returning `dependentChangedBy`.
  */
 export function setDependentVersions(
-  packageInfos: PackageInfos,
-  scopedPackages: ReadonlySet<string>,
+  bumpInfo: Pick<BumpInfo, 'packageInfos' | 'scopedPackages'>,
   options: Pick<BeachballOptions, 'verbose'>
 ): BumpInfo['dependentChangedBy'] {
+  const { packageInfos, scopedPackages } = bumpInfo;
   const { verbose } = options;
   const dependentChangedBy: BumpInfo['dependentChangedBy'] = {};
 

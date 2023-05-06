@@ -33,7 +33,7 @@ export async function canary(options: BeachballOptions): Promise<void> {
     bumpInfo.packageInfos[pkg].version = newVersion;
   }
 
-  setDependentVersions(bumpInfo.packageInfos, bumpInfo.scopedPackages, options);
+  setDependentVersions(bumpInfo, options);
 
   await performBump(bumpInfo, options);
 

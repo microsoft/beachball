@@ -12,7 +12,7 @@ import { setDependentVersions } from './setDependentVersions';
  */
 export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions): void {
   const { bumpDeps } = options;
-  const { packageInfos, scopedPackages, calculatedChangeTypes, changeFileChangeInfos, modifiedPackages } = bumpInfo;
+  const { calculatedChangeTypes, changeFileChangeInfos, modifiedPackages } = bumpInfo;
 
   // pass 1: figure out all the change types for all the packages taking into account the bumpDeps option and version groups
   const dependents = bumpDeps ? getDependentsForPackages(bumpInfo) : {};
@@ -45,6 +45,6 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions): void
   });
 
   // step 4: Bump all the dependencies packages
-  bumpInfo.dependentChangedBy = setDependentVersions(packageInfos, scopedPackages, options);
+  bumpInfo.dependentChangedBy = setDependentVersions(bumpInfo, options);
   Object.keys(bumpInfo.dependentChangedBy).forEach(pkg => modifiedPackages.add(pkg));
 }
