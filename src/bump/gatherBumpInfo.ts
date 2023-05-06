@@ -10,7 +10,10 @@ import { getPackageGroups } from '../monorepo/getPackageGroups';
 /**
  * Gather bump info and bump versions in memory.
  */
-export function gatherBumpInfo(options: BeachballOptions, packageInfos: PackageInfos): BumpInfo {
+export function gatherBumpInfo(
+  options: Pick<BeachballOptions, 'groups'> & Parameters<typeof readChangeFiles>[0] & Parameters<typeof bumpInPlace>[1],
+  packageInfos: PackageInfos
+): BumpInfo {
   // Collate the changes per package
   const changes = readChangeFiles(options, packageInfos);
 
