@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import _ from 'lodash';
-import { PackageInfo, PackageInfos } from '../types/PackageInfo';
+import { PackageInfo } from '../types/PackageInfo';
 import { getPackageChangelogs } from './getPackageChangelogs';
 import { renderChangelog } from './renderChangelog';
 import { renderJsonChangelog } from './renderJsonChangelog';
@@ -10,21 +10,14 @@ import { BumpInfo } from '../types/BumpInfo';
 import { isPathIncluded } from '../monorepo/isPathIncluded';
 import { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
 import { mergeChangelogs } from './mergeChangelogs';
-import { ChangeSet } from '../types/ChangeInfo';
-import { DeepReadonly } from '../types/DeepReadonly';
 
 export async function writeChangelog(
   bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'dependentChangedBy' | 'packageInfos'>,
-  options: BeachballOptions
+  options: Pick<BeachballOptions, 'changeDir' | 'changelog' | 'generateChangelog' | 'path'>
 ): Promise<void> {
   const { changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy, packageInfos } = bumpInfo;
 
-  const groupedChangelogDirs = await writeGroupedChangelog(
-    options,
-    changeFileChangeInfos,
-    calculatedChangeTypes,
-    packageInfos
-  );
+  const groupedChangelogDirs = await writeGroupedChangelog(bumpInfo, options);
 
   const changelogs = getPackageChangelogs({
     changeFileChangeInfos,
@@ -40,7 +33,12 @@ export async function writeChangelog(
   for (const pkg of Object.keys(changelogs)) {
     const packagePath = path.dirname(packageInfos[pkg].packageJsonPath);
     if (!groupedChangelogDirs.includes(packagePath)) {
-      await writeChangelogFiles(options, changelogs[pkg], packagePath, false);
+      await writeChangelogFiles({
+        options,
+        newVersionChangelog: changelogs[pkg],
+        changelogPath: packagePath,
+        isGrouped: false,
+      });
     }
   }
 }
@@ -50,11 +48,11 @@ export async function writeChangelog(
  * @returns The list of directories where grouped changelogs were written.
  */
 async function writeGroupedChangelog(
-  options: BeachballOptions,
-  changeFileChangeInfos: DeepReadonly<ChangeSet>,
-  calculatedChangeTypes: BumpInfo['calculatedChangeTypes'],
-  packageInfos: PackageInfos
+  bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'packageInfos'>,
+  options: Pick<BeachballOptions, 'changeDir' | 'changelog' | 'generateChangelog' | 'path'>
 ): Promise<string[]> {
+  const { changeFileChangeInfos, calculatedChangeTypes, packageInfos } = bumpInfo;
+
   // Get the changelog groups with absolute paths.
   const changelogGroups = options.changelog?.groups?.map(({ changelogPath, ...rest }) => ({
     ...rest,
@@ -107,7 +105,12 @@ async function writeGroupedChangelog(
   for (const [changelogAbsDir, { masterPackage, changelogs }] of Object.entries(groupedChangelogs)) {
     const groupedChangelog = mergeChangelogs(changelogs, masterPackage);
     if (groupedChangelog) {
-      await writeChangelogFiles(options, groupedChangelog, changelogAbsDir, true);
+      await writeChangelogFiles({
+        options,
+        newVersionChangelog: groupedChangelog,
+        changelogPath: changelogAbsDir,
+        isGrouped: true,
+      });
     }
   }
 
@@ -119,12 +122,13 @@ async function writeGroupedChangelog(
   return Object.keys(groupedChangelogs);
 }
 
-async function writeChangelogFiles(
-  options: BeachballOptions,
-  newVersionChangelog: PackageChangelog,
-  changelogPath: string,
-  isGrouped: boolean
-): Promise<void> {
+async function writeChangelogFiles(params: {
+  options: Pick<BeachballOptions, 'generateChangelog' | 'changelog'>;
+  newVersionChangelog: PackageChangelog;
+  changelogPath: string;
+  isGrouped: boolean;
+}): Promise<void> {
+  const { options, newVersionChangelog, changelogPath, isGrouped } = params;
   let previousJson: ChangelogJson | undefined;
 
   // Update CHANGELOG.json

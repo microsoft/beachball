@@ -18,7 +18,13 @@ import { PackageInfos } from '../types/PackageInfo';
  * Changes from grouped change files will be flattened into individual entries in the returned array
  * (so it's possible that multiple entries will have the same filename).
  */
-export function readChangeFiles(options: BeachballOptions, packageInfos: PackageInfos): ChangeSet {
+export function readChangeFiles(
+  options: Pick<
+    BeachballOptions,
+    'changeDir' | 'command' | 'fromRef' | 'groupChanges' | 'path' | 'scope' | 'transform'
+  >,
+  packageInfos: PackageInfos
+): ChangeSet {
   const { fromRef, command } = options;
   const scopedPackages = getScopedPackages(options, packageInfos);
   const changePath = getChangePath(options);
