@@ -15,7 +15,7 @@ describe('publish command (registry)', () => {
   let repositoryFactory: RepositoryFactory | undefined;
 
   // show error logs for these tests
-  const logs = initMockLogs(['error']);
+  const logs = initMockLogs({ alsoLog: ['error'] });
 
   function getOptions(repo: Repository, overrides: Partial<BeachballOptions>): BeachballOptions {
     return {
@@ -159,7 +159,7 @@ describe('publish command (registry)', () => {
     registry.stop();
 
     // hide the errors for this test--it's supposed to have errors, and showing them is misleading
-    logs.init(false);
+    logs.setOverrideOptions({ alsoLog: false });
 
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();

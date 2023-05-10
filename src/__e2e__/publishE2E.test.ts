@@ -18,7 +18,7 @@ describe('publish command (e2e)', () => {
   let repositoryFactory: RepositoryFactory | undefined;
 
   // show error logs for these tests
-  initMockLogs(['error']);
+  initMockLogs({ alsoLog: ['error'] });
 
   function getOptions(repo: Repository, overrides?: Partial<BeachballOptions>): BeachballOptions {
     return {
