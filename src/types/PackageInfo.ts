@@ -9,11 +9,24 @@ export interface PackageJson {
   name: string;
   version: string;
   main?: string;
+  module?: string;
+  types?: string;
+  typings?: string;
+  exports?: any;
+  repository?: any;
+  bin?: any;
+  browser?: any;
+  files?: string[];
   dependencies?: PackageDeps;
   devDependencies?: PackageDeps;
   peerDependencies?: PackageDeps;
   private?: boolean;
   beachball?: BeachballOptions;
+  /** Overrides applied during publishing */
+  publishConfig?: Pick<
+    PackageJson,
+    'types' | 'typings' | 'main' | 'module' | 'exports' | 'repository' | 'bin' | 'browser' | 'files'
+  >;
 }
 
 export interface PackageInfo {
