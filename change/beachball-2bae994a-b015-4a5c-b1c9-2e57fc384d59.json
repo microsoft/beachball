@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Improve publish bump/push logging and correctly detect git timeouts",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix line breaks in writeChangeFiles logging",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -58,8 +58,8 @@ export function writeChangeFiles({
 
   console.log(
     `git ${commitChangeFiles ? 'committed' : 'staged'} these change files: ${changeFiles
-      .map(f => ` - ${f}`)
-      .join('\n')}`
+      .map(f => `\n - ${f}`)
+      .join('')}`
   );
 
   return changeFiles;

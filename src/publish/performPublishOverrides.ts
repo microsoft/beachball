@@ -1,7 +1,18 @@
-import { PackageInfos } from '../types/PackageInfo';
+import { PackageInfos, PackageJson } from '../types/PackageInfo';
 import * as fs from 'fs-extra';
 
-export const acceptedKeys = ['types', 'typings', 'main', 'module', 'exports', 'repository', 'bin', 'browser', 'files'];
+const acceptedKeys = [
+  'types',
+  'typings',
+  'main',
+  'module',
+  'exports',
+  'repository',
+  'bin',
+  'browser',
+  'files',
+] as const;
+const workspacePrefix = 'workspace:';
 
 export function performPublishOverrides(packagesToPublish: string[], packageInfos: PackageInfos) {
   for (const pkgName of packagesToPublish) {
@@ -15,13 +26,15 @@ export function performPublishOverrides(packagesToPublish: string[], packageInfo
   }
 }
 
-function performPublishConfigOverrides(packageJson: any) {
+function performPublishConfigOverrides(packageJson: PackageJson) {
   // Everything in publishConfig in accepted keys here will get overridden & removed from the publishConfig section
   if (packageJson.publishConfig) {
-    for (const key of acceptedKeys) {
-      const value = packageJson.publishConfig[key] || packageJson[key];
-      packageJson[key] = value;
-      delete packageJson.publishConfig[key];
+    for (const [k, value] of Object.entries(packageJson.publishConfig)) {
+      const key = k as keyof Required<PackageJson>['publishConfig'];
+      if (acceptedKeys.includes(key)) {
+        packageJson[key] = value;
+        delete packageJson.publishConfig[key];
+      }
     }
   }
 }
@@ -32,19 +45,18 @@ function performPublishConfigOverrides(packageJson: any) {
  * handle this replacement for us, but as of this time publishing only happens via npm, which can't do this
  * replacement.
  */
-function performWorkspaceVersionOverrides(packageJson: any, packageInfos: PackageInfos) {
-  const depTypes = ['dependencies', 'devDependencies', 'peerDependencies'] as const;
-  depTypes.forEach(depKind => {
-    const deps = packageJson[depKind];
-    if (deps) {
-      Object.keys(deps).forEach(dep => {
-        const packageInfo = packageInfos[dep];
-        if (packageInfo && deps[dep].startsWith('workspace:')) {
-          deps[dep] = resolveWorkspaceVersionForPublish(deps[dep], packageInfo.version);
-        }
-      });
+function performWorkspaceVersionOverrides(packageJson: PackageJson, packageInfos: PackageInfos) {
+  const { dependencies, devDependencies, peerDependencies } = packageJson;
+  for (const deps of [dependencies, devDependencies, peerDependencies]) {
+    if (!deps) continue;
+
+    for (const [depName, depVersion] of Object.entries(deps)) {
+      const packageInfo = packageInfos[depName];
+      if (packageInfo && depVersion.startsWith(workspacePrefix)) {
+        deps[depName] = resolveWorkspaceVersionForPublish(depVersion, packageInfo.version);
+      }
     }
-  });
+  }
 }
 
 /**
@@ -53,12 +65,12 @@ function performWorkspaceVersionOverrides(packageJson: any, packageInfos: Packag
  * https://yarnpkg.com/features/workspaces#publishing-workspaces
  */
 function resolveWorkspaceVersionForPublish(workspaceDependency: string, packageInfoVersion: string): string {
-  const versionStartIndex = 'workspace:'.length;
-  if (workspaceDependency === 'workspace:*') {
+  const workspaceVersion = workspaceDependency.substring(workspacePrefix.length);
+  if (workspaceVersion === '*') {
     return packageInfoVersion;
-  } else if (new Set(['workspace:~', 'workspace:^']).has(workspaceDependency)) {
-    return `${workspaceDependency[versionStartIndex]}${packageInfoVersion}`;
-  } else {
-    return workspaceDependency.substring(versionStartIndex);
   }
+  if (workspaceVersion === '^' || workspaceVersion === '~') {
+    return `${workspaceVersion}${packageInfoVersion}`;
+  }
+  return workspaceVersion;
 }
