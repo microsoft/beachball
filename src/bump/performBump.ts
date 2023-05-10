@@ -4,7 +4,7 @@ import { unlinkChangeFiles } from '../changefile/unlinkChangeFiles';
 import { writeChangelog } from '../changelog/writeChangelog';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions, HooksOptions } from '../types/BeachballOptions';
-import { PackageDeps, PackageInfos } from '../types/PackageInfo';
+import { PackageInfos, PackageJson } from '../types/PackageInfo';
 import { findProjectRoot } from 'workspace-tools';
 import { npm } from '../packageManager/npm';
 
@@ -15,28 +15,26 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
       console.warn(`Skipping ${pkgName} since package.json does not exist`);
       continue;
     }
-    const packageJson = fs.readJSONSync(info.packageJsonPath);
+    const packageJson: PackageJson = fs.readJSONSync(info.packageJsonPath);
 
     if (!info.private) {
       packageJson.version = info.version;
     }
 
-    ['dependencies', 'devDependencies', 'peerDependencies'].forEach(depKind => {
+    for (const depKind of ['dependencies', 'devDependencies', 'peerDependencies'] as const) {
       // updatedDeps contains all of the dependencies in the bump info since the beginning of a build job
-      const updatedDepsVersions: PackageDeps | undefined = (info as any)[depKind];
+      const updatedDepsVersions = info[depKind];
       if (updatedDepsVersions) {
         // to be cautious, only update internal && modifiedPackages, since some other dependency
         // changes could have occurred since the beginning of the build job and the next merge step
         // would overwrite those incorrectly!
-        const modifiedDeps = Object.keys(updatedDepsVersions).filter(dep => modifiedPackages.has(dep));
-
-        for (const dep of modifiedDeps) {
-          if (packageJson[depKind] && packageJson[depKind][dep]) {
-            packageJson[depKind][dep] = updatedDepsVersions[dep];
+        for (const [dep, updatedVersion] of Object.entries(updatedDepsVersions)) {
+          if (modifiedPackages.has(dep) && packageJson[depKind]?.[dep]) {
+            packageJson[depKind]![dep] = updatedVersion;
           }
         }
       }
-    });
+    }
 
     fs.writeJSONSync(info.packageJsonPath, packageJson, { spaces: 2 });
   }

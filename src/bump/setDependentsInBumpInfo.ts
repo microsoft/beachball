@@ -7,30 +7,24 @@ import type { BumpInfo } from '../types/BumpInfo';
  */
 export function setDependentsInBumpInfo(bumpInfo: BumpInfo): void {
   const { packageInfos, scopedPackages } = bumpInfo;
-  const packages = Object.keys(packageInfos);
   const dependents: BumpInfo['dependents'] = {};
 
-  packages.forEach(pkgName => {
+  for (const [pkgName, info] of Object.entries(packageInfos)) {
     if (!scopedPackages.has(pkgName)) {
-      return;
+      continue;
     }
 
-    const info = packageInfos[pkgName];
-    const depTypes = ['dependencies', 'devDependencies', 'peerDependencies'] as const;
-    depTypes.forEach(depType => {
-      const deps = info[depType];
-      if (deps) {
-        for (let dep of Object.keys(deps)) {
-          if (packages.includes(dep)) {
-            dependents[dep] = dependents[dep] || [];
-            if (!dependents[dep].includes(pkgName)) {
-              dependents[dep].push(pkgName);
-            }
+    for (const deps of [info.dependencies, info.devDependencies, info.peerDependencies]) {
+      for (const dep of Object.keys(deps || {})) {
+        if (packageInfos[dep]) {
+          dependents[dep] ??= [];
+          if (!dependents[dep].includes(pkgName)) {
+            dependents[dep].push(pkgName);
           }
         }
       }
-    });
-  });
+    }
+  }
 
   bumpInfo.dependents = dependents;
 }
