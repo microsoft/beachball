@@ -262,6 +262,8 @@ describe('getPackageInfos', () => {
     const repo = multiWorkspaceFactory.cloneRepository();
     repo.updateJsonFile('workspace-a/packages/foo/package.json', { name: 'foo' });
     repo.updateJsonFile('workspace-b/packages/foo/package.json', { name: 'foo' });
-    expect(() => getPackageInfos(repo.rootPath)).toThrow();
+    expect(() => getPackageInfos(repo.rootPath)).toThrow(
+      /Two packages in different workspaces have the same name. Please rename one of these packages:/
+    );
   });
 });

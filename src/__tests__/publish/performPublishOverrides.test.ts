@@ -2,7 +2,7 @@ import { describe, expect, it, afterEach } from '@jest/globals';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { tmpdir } from '../../__fixtures__/tmpdir';
-import { acceptedKeys, performPublishOverrides } from '../../publish/performPublishOverrides';
+import { performPublishOverrides } from '../../publish/performPublishOverrides';
 import { PackageInfos } from '../../types/PackageInfo';
 
 describe('perform publishConfig overrides', () => {
@@ -90,12 +90,6 @@ describe('perform publishConfig overrides', () => {
     expect(modified.publishConfig.main).toBeUndefined();
     expect(modified.publishConfig.bin).toBeUndefined();
     expect(modified.publishConfig.files).toBeUndefined();
-  });
-
-  it('should always at least accept types, main, and module', () => {
-    expect(acceptedKeys).toContain('main');
-    expect(acceptedKeys).toContain('module');
-    expect(acceptedKeys).toContain('types');
   });
 });
 

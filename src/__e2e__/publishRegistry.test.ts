@@ -15,7 +15,7 @@ describe('publish command (registry)', () => {
   let repositoryFactory: RepositoryFactory | undefined;
 
   // show error logs for these tests
-  const logs = initMockLogs(['error']);
+  const logs = initMockLogs({ alsoLog: ['error'] });
 
   function getOptions(repo: Repository, overrides: Partial<BeachballOptions>): BeachballOptions {
     return {
@@ -159,7 +159,7 @@ describe('publish command (registry)', () => {
     registry.stop();
 
     // hide the errors for this test--it's supposed to have errors, and showing them is misleading
-    logs.init(false);
+    logs.setOverrideOptions({ alsoLog: false });
 
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
@@ -176,7 +176,9 @@ describe('publish command (registry)', () => {
       })
     );
 
-    await expect(publishPromise).rejects.toThrow();
+    await expect(publishPromise).rejects.toThrow(
+      'Error publishing! Refer to the previous logs for recovery instructions.'
+    );
     expect(
       logs.mocks.log.mock.calls.some(([arg0]) => typeof arg0 === 'string' && arg0.includes('Retrying... (3/3)'))
     ).toBeTruthy();

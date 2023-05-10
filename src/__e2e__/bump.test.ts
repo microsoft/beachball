@@ -557,7 +557,7 @@ describe('version bumping', () => {
       },
     } as BeachballOptions);
 
-    expect(bumpResult).rejects.toThrow();
+    await expect(bumpResult).rejects.toThrow('Foo');
   });
 
   it('calls sync postbump hook before packages are bumped', async () => {
@@ -648,6 +648,6 @@ describe('version bumping', () => {
       },
     } as BeachballOptions);
 
-    expect(bumpResult).rejects.toThrow();
+    await expect(bumpResult).rejects.toThrow('Foo');
   });
 });

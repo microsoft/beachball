@@ -18,7 +18,7 @@ describe('publish command (e2e)', () => {
   let repositoryFactory: RepositoryFactory | undefined;
 
   // show error logs for these tests
-  initMockLogs(['error']);
+  initMockLogs({ alsoLog: ['error'] });
 
   function getOptions(repo: Repository, overrides?: Partial<BeachballOptions>): BeachballOptions {
     return {
@@ -345,12 +345,11 @@ describe('publish command (e2e)', () => {
 
     repo.push();
 
-    // Adds a step that injects a race condition
-    let depthString: string = '';
+    let fetchCommand: string = '';
 
     addGitObserver((args, output) => {
       if (args[0] === 'fetch') {
-        depthString = args[3];
+        fetchCommand = args.join(' ');
       }
     });
 
@@ -363,8 +362,7 @@ describe('publish command (e2e)', () => {
     };
     expect(npmShow(registry, 'foo')).toMatchObject(expectedNpmResult);
 
-    // no fetch when flag set to false
-    expect(depthString).toEqual('--depth=10');
+    expect(fetchCommand).toMatch('--depth=10');
   });
 
   it('calls precommit hook before committing changes', async () => {

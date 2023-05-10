@@ -69,7 +69,7 @@ describe('isChangeFileNeeded', () => {
     const repo = repositoryFactory.cloneRepository();
     repo.git(['remote', 'set-url', defaultRemoteName, 'file:///__nonexistent']);
     repo.checkout('-b', 'feature-0');
-    repo.commitChange('CHANGELOG.md');
+    repo.commitChange('fake.js');
 
     expect(() => {
       isChangeFileNeeded(
@@ -80,6 +80,6 @@ describe('isChangeFileNeeded', () => {
         } as BeachballOptions,
         getPackageInfos(repo.rootPath)
       );
-    }).toThrow();
+    }).toThrow('Cannot fetch branch "master" from remote "origin"');
   });
 });

@@ -22,11 +22,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
     recentMessages: ['message'],
   };
 
-  /**
-   * Mock console logs. NOTE: Initialization is only done in before/after all (not cleared every test
-   * since only a few tests use logs), so tests should use `toHaveBeenLastCalledWith`.
-   */
-  const sharedLogs = initMockLogs({ onlyInitOnce: true });
+  const logs = initMockLogs();
 
   it('works in basic case', () => {
     const questions = _getQuestionsForPackage(defaultQuestionsParams);
@@ -61,7 +57,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
       options: { type: 'major' } as BeachballOptions,
     });
     expect(questions).toBeUndefined();
-    expect(sharedLogs.mocks.error).toHaveBeenLastCalledWith('Change type "major" is not allowed for package "foo"');
+    expect(logs.mocks.error).toHaveBeenCalledWith('Change type "major" is not allowed for package "foo"');
   });
 
   it('errors if there are no valid change types for package', () => {
@@ -72,7 +68,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
       }),
     });
     expect(questions).toBeUndefined();
-    expect(sharedLogs.mocks.error).toHaveBeenLastCalledWith('No valid change types available for package "foo"');
+    expect(logs.mocks.error).toHaveBeenCalledWith('No valid change types available for package "foo"');
   });
 
   it('respects disallowedChangeTypes', () => {
