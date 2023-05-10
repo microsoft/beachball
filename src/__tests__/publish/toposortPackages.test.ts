@@ -51,7 +51,7 @@ describe('toposortPackages', () => {
 
     expect(() => {
       toposortPackages(['foo', 'bar'], packageInfos);
-    }).toThrow();
+    }).toThrow(/Cyclic dependency.*?foo/);
   });
 
   it('throws if package info is missing', () => {
@@ -59,6 +59,6 @@ describe('toposortPackages', () => {
 
     expect(() => {
       toposortPackages(['foo'], packageInfos);
-    }).toThrow();
+    }).toThrow('Package info is missing for foo.');
   });
 });

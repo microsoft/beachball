@@ -176,7 +176,9 @@ describe('publish command (registry)', () => {
       })
     );
 
-    await expect(publishPromise).rejects.toThrow();
+    await expect(publishPromise).rejects.toThrow(
+      'Error publishing! Refer to the previous logs for recovery instructions.'
+    );
     expect(
       logs.mocks.log.mock.calls.some(([arg0]) => typeof arg0 === 'string' && arg0.includes('Retrying... (3/3)'))
     ).toBeTruthy();
