@@ -25,7 +25,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     // pull in latest from origin branch
     if (options.fetch !== false) {
       console.log('Fetching from remote');
-      const fetchResult = git(['fetch', remote, remoteBranch, ...(depth ? [`--depth=${depth}`] : [])]);
+      const fetchResult = git(['fetch', remote, remoteBranch, ...(depth ? [`--depth=${depth}`] : [])], { cwd });
       if (!fetchResult.success) {
         console.warn(`${warnPrefix} fetch from ${branch} has failed!\n${fetchResult.stderr}`);
         continue;

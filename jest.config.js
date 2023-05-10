@@ -1,7 +1,9 @@
 // @ts-check
 /** @type {import('@jest/types').Config.InitialProjectOptions} */
 const commonOptions = {
+  injectGlobals: false,
   roots: ['<rootDir>/src'],
+  setupFilesAfterEnv: ['<rootDir>/scripts/jestSetup.js'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },
@@ -9,7 +11,7 @@ const commonOptions = {
 };
 
 /** @type {import('@jest/types').Config.InitialOptions} */
-module.exports = {
+const config = {
   reporters: ['default', 'github-actions'],
   testTimeout: 60000,
   projects: [
@@ -30,3 +32,4 @@ module.exports = {
     },
   ],
 };
+module.exports = config;
