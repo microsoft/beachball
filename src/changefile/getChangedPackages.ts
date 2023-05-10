@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import minimatch from 'minimatch';
 import { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
-import { getChangePath } from '../paths';
+import { changeFolder, getChangePath } from '../paths';
 import { getChanges, getStagedChanges, git, fetchRemoteBranch, parseRemoteBranch } from 'workspace-tools';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { BeachballOptions } from '../types/BeachballOptions';
@@ -195,7 +195,7 @@ export function getChangedPackages(options: BeachballOptions, packageInfos: Pack
   }
 
   const changes = changeFilesResult.stdout.split(/\n/);
-  const changeFiles = changes.filter(name => path.dirname(name) === 'change');
+  const changeFiles = changes.filter(name => path.dirname(name) === changeFolder);
   const changeFilePackageSet = new Set<string>();
 
   // Loop through the change files, building up a set of packages that we can skip
