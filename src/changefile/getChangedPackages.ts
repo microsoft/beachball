@@ -199,21 +199,18 @@ export function getChangedPackages(options: BeachballOptions, packageInfos: Pack
   const changeFilePackageSet = new Set<string>();
 
   // Loop through the change files, building up a set of packages that we can skip
-  changeFiles.forEach(file => {
+  for (const file of changeFiles) {
     try {
-      const changeInfo: ChangeFileInfo | ChangeInfoMultiple = fs.readJSONSync(file);
+      const changeInfo: ChangeFileInfo | ChangeInfoMultiple = fs.readJSONSync(path.join(cwd, file));
+      const changes = (changeInfo as ChangeInfoMultiple).changes || [changeInfo];
 
-      if ('changes' in changeInfo) {
-        for (const change of (changeInfo as ChangeInfoMultiple).changes) {
-          changeFilePackageSet.add(change.packageName);
-        }
-      } else {
-        changeFilePackageSet.add((changeInfo as ChangeFileInfo).packageName);
+      for (const change of changes) {
+        changeFilePackageSet.add(change.packageName);
       }
     } catch (e) {
       console.warn(`Error reading or parsing change file ${file}: ${e}`);
     }
-  });
+  }
 
   if (changeFilePackageSet.size > 0) {
     console.log(
