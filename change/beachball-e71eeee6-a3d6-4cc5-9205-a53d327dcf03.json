@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Simplify some logic in bump and publish",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

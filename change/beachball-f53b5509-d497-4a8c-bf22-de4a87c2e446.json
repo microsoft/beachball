@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Minor cleanup for publish overrides, getChangedPackages, etc",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

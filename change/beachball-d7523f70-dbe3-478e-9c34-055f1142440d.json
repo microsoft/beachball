@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "When determining changed packages, exclude change files as part of ignorePatterns",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

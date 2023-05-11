@@ -1,8 +1,20 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 05 May 2023 08:03:45 GMT and should not be manually modified.
+This log was last generated on Thu, 11 May 2023 08:03:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.32.3
+
+Thu, 11 May 2023 08:03:48 GMT
+
+### Patches
+
+- Improve publish bump/push logging and correctly detect git timeouts (elcraig@microsoft.com)
+- Fix line breaks in writeChangeFiles logging (elcraig@microsoft.com)
+- When determining changed packages, exclude change files as part of ignorePatterns (elcraig@microsoft.com)
+- Simplify some logic in bump and publish (elcraig@microsoft.com)
+- Minor cleanup for publish overrides, getChangedPackages, etc (elcraig@microsoft.com)
 
 ## 2.32.2
 
