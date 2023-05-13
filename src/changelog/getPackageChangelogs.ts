@@ -1,7 +1,7 @@
 import path from 'path';
 import { PackageInfo } from '../types/PackageInfo';
 import { PackageChangelog } from '../types/ChangeLog';
-import { generateTag } from '../tag';
+import { generateTag } from '../git/generateTag';
 import { BumpInfo } from '../types/BumpInfo';
 import { getChangePath } from '../paths';
 import { getCurrentHash, getFileAddedHash } from 'workspace-tools';
