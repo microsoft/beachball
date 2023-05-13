@@ -1,4 +1,4 @@
-import { generateTag } from '../tag';
+import { generateTag } from '../git/generateTag';
 import { PackageChangelog, ChangelogJson, ChangelogJsonEntry } from '../types/ChangeLog';
 
 export function renderJsonChangelog(changelog: PackageChangelog, previousChangelog: ChangelogJson | undefined) {

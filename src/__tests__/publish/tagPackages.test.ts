@@ -1,9 +1,9 @@
-import { describe, expect, it, jest, beforeEach } from '@jest/globals';
+import { describe, expect, it, jest, beforeEach, afterAll } from '@jest/globals';
 import type { Mock } from 'jest-mock';
 import { gitFailFast } from 'workspace-tools';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { tagPackages, tagDistTag } from '../../publish/tagPackages';
-import { generateTag } from '../../tag';
+import { tagPackages } from '../../publish/tagPackages';
+import { generateTag } from '../../git/generateTag';
 import { BumpInfo } from '../../types/BumpInfo';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
@@ -15,7 +15,7 @@ const createTagParameters = (tag: string, cwd: string) => {
   return [['tag', '-a', '-f', tag, '-m', tag], { cwd }];
 };
 
-const noTagBumpInfo = {
+const noTagBumpInfo: Partial<BumpInfo> = {
   calculatedChangeTypes: {
     foo: 'minor',
     bar: 'major',
@@ -32,9 +32,9 @@ const noTagBumpInfo = {
   }),
   modifiedPackages: new Set(['foo', 'bar']),
   newPackages: new Set(),
-} as unknown as BumpInfo;
+};
 
-const oneTagBumpInfo = {
+const oneTagBumpInfo: Partial<BumpInfo> = {
   calculatedChangeTypes: {
     foo: 'minor',
     bar: 'major',
@@ -51,7 +51,14 @@ const oneTagBumpInfo = {
   }),
   modifiedPackages: new Set(['foo', 'bar']),
   newPackages: new Set(),
-} as unknown as BumpInfo;
+};
+
+const emptyBumpInfo: Partial<BumpInfo> = {
+  calculatedChangeTypes: {},
+  packageInfos: {},
+  modifiedPackages: new Set(),
+  newPackages: new Set(),
+};
 
 describe('tagPackages', () => {
   initMockLogs();
@@ -60,35 +67,37 @@ describe('tagPackages', () => {
     (gitFailFast as Mock).mockReset();
   });
 
-  it('createTag is not called for packages without gitTags', () => {
-    tagPackages(noTagBumpInfo, /* cwd*/ '');
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('does not create tag for packages with gitTags=false', () => {
+    // Also verifies that if `gitTags` is false overall, it doesn't create a git tag for the dist tag (`tag`)
+    tagPackages(noTagBumpInfo as BumpInfo, { path: '', gitTags: false, tag: '' });
     expect(gitFailFast).not.toHaveBeenCalled();
   });
 
-  it('createTag is called for packages with gitTags', () => {
-    tagPackages(oneTagBumpInfo, /* cwd*/ '');
+  it('creates tag for packages with gitTags=true', () => {
+    tagPackages(oneTagBumpInfo as BumpInfo, { path: '', gitTags: false, tag: '' });
     expect(gitFailFast).toHaveBeenCalledTimes(1);
 
     // verify git is being called to create new auto tag for foo and bar
-    const newFooTag = generateTag('foo', oneTagBumpInfo.packageInfos['foo'].version);
+    const newFooTag = generateTag('foo', oneTagBumpInfo.packageInfos!['foo'].version);
     expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters(newFooTag, ''));
   });
-});
 
-describe('tagDistTag', () => {
-  initMockLogs();
-
-  beforeEach(() => {
-    (gitFailFast as Mock).mockReset();
-  });
-
-  it('createTag is not called for an empty dist tag', () => {
-    tagDistTag(/* tag */ '', /* cwd*/ '');
+  it('does not create git tag for empty dist tag', () => {
+    tagPackages(emptyBumpInfo as BumpInfo, { path: '', gitTags: true, tag: '' });
     expect(gitFailFast).not.toHaveBeenCalled();
   });
 
-  it('createTag is called for unique dist tags', () => {
-    tagDistTag(/* tag */ 'abc', /* cwd*/ '');
+  it('does not create git tag for "latest" dist tag', () => {
+    tagPackages(emptyBumpInfo as BumpInfo, { path: '', gitTags: true, tag: 'latest' });
+    expect(gitFailFast).not.toHaveBeenCalled();
+  });
+
+  it('creates git tag for non-"latest" dist tag', () => {
+    tagPackages(emptyBumpInfo as BumpInfo, { path: '', gitTags: true, tag: 'abc' });
     expect(gitFailFast).toBeCalledTimes(1);
     expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters('abc', ''));
   });

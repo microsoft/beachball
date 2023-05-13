@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { PackageChangelog } from '../types/ChangeLog';
 import { PackageInfo } from '../types/PackageInfo';
-import { generateTag } from '../tag';
+import { generateTag } from '../git/generateTag';
 import { ChangeType } from '../types/ChangeInfo';
 
 /**

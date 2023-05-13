@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Combine and add comments for git tag methods, and move tag helper",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
