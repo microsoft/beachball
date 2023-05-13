@@ -2,6 +2,27 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 13 May 2023 08:05:18 GMT",
+      "tag": "beachball_v2.32.4",
+      "version": "2.32.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "0d78408778397a63a8e38aab2953d22b8e22ac1b",
+            "comment": "Improve getChangedPackages logging"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "1b3e91c706369739e0cc66af366c48a909b8db9f",
+            "comment": "Combine and add comments for git tag methods, and move tag helper"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 11 May 2023 08:03:48 GMT",
       "tag": "beachball_v2.32.3",
       "version": "2.32.3",

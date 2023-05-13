@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Improve getChangedPackages logging",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

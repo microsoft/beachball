@@ -1,8 +1,17 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 11 May 2023 08:03:48 GMT and should not be manually modified.
+This log was last generated on Sat, 13 May 2023 08:05:18 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.32.4
+
+Sat, 13 May 2023 08:05:18 GMT
+
+### Patches
+
+- Improve getChangedPackages logging (elcraig@microsoft.com)
+- Combine and add comments for git tag methods, and move tag helper (elcraig@microsoft.com)
 
 ## 2.32.3
 
