@@ -8,6 +8,8 @@ import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { PackageInfos, PackageInfo } from '../types/PackageInfo';
 
+const count = (count: number, str: string) => `${count} ${str}${count === 1 ? '' : 's'}`;
+
 /**
  * Ensure that adequate history is available to check for changes between HEAD and `options.branch`.
  * Otherwise attempting to get changes will fail with an error "no merge base".
@@ -118,7 +120,7 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
   const logIncluded = (file: string) => verboseLog(`  - ${file}`);
 
   const changes = [...(getChanges(branch, cwd) || []), ...(getStagedChanges(cwd) || [])];
-  verboseLog(`Found ${changes.length} changed files in branch "${branch}" (before filtering)`);
+  verboseLog(`Found ${count(changes.length, 'changed file')} in branch "${branch}" (before filtering)`);
 
   if (!changes.length) {
     return [];
@@ -168,7 +170,9 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
     }
   }
 
-  verboseLog(`Found ${fileCount} files in ${includedPackages.size} packages that should be published`);
+  verboseLog(
+    `Found ${count(fileCount, 'file')} in ${count(includedPackages.size, 'package')} that should be published`
+  );
 
   return [...includedPackages];
 }

@@ -4,15 +4,16 @@ import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getChangedPackages } from '../changefile/getChangedPackages';
+import { initMockLogs } from '../__fixtures__/mockLogs';
+import { generateChangeFiles } from '../__fixtures__/changeFiles';
 
 describe('getChangedPackages', () => {
   let repositoryFactory: RepositoryFactory | undefined;
+  const logs = initMockLogs();
 
   afterEach(() => {
-    if (repositoryFactory) {
-      repositoryFactory.cleanUp();
-      repositoryFactory = undefined;
-    }
+    repositoryFactory?.cleanUp();
+    repositoryFactory = undefined;
   });
 
   it('detects changed files in single repo', () => {
@@ -35,6 +36,7 @@ describe('getChangedPackages', () => {
       path: repo.rootPath,
       branch: defaultBranchName,
       ignorePatterns: ['*.test.js', 'tests/**', 'yarn.lock'],
+      verbose: true,
     } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -43,6 +45,14 @@ describe('getChangedPackages', () => {
     repo.stageChange('yarn.lock');
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
+    const logLines = logs.getMockLines('all');
+    expect(logLines).toMatch('ignored by pattern');
+    expect(logLines).toMatchInlineSnapshot(`
+      "[log] Found 2 changed files in branch "master" (before filtering)
+      [log]   - ~~src/foo.test.js~~ (ignored by pattern "*.test.js")
+      [log]   - ~~tests/stuff.js~~ (ignored by pattern "tests/**")
+      [log] All files were ignored"
+    `);
   });
 
   it('detects changed files in monorepo', () => {
@@ -55,6 +65,103 @@ describe('getChangedPackages', () => {
 
     repo.stageChange('packages/foo/test.js');
     expect(getChangedPackages(options, packageInfos)).toStrictEqual(['foo']);
+  });
+
+  it('excludes packages that already have change files', () => {
+    repositoryFactory = new RepositoryFactory('monorepo');
+    const repo = repositoryFactory.cloneRepository();
+
+    // setup: create branch, change foo, create a change file, commit
+    repo.checkout('-b', 'test');
+    repo.commitChange('packages/foo/test.js');
+    generateChangeFiles(['foo'], repo.rootPath);
+    logs.clear();
+
+    const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName, verbose: true } as BeachballOptions;
+    const packageInfos = getPackageInfos(repo.rootPath);
+
+    // foo is not included in changed packages
+    let changedPackages = getChangedPackages(options, packageInfos);
+    const logLines = logs.getMockLines('all', true);
+    expect(logLines).toMatch(/Your local repository already has change files for these packages:\s+foo/);
+    expect(logLines).toMatchInlineSnapshot(`
+      "[log] Found 2 changed files in branch "master" (before filtering)
+      [log]   - ~~change/foo-<guid>.json~~ (ignored by pattern "change/*.json")
+      [log]   - packages/foo/test.js
+      [log] Found 1 file in 1 package that should be published
+      [log] Your local repository already has change files for these packages:
+        foo"
+    `);
+    expect(changedPackages).toStrictEqual([]);
+    logs.clear();
+
+    // change bar => bar is the only changed package returned
+    repo.stageChange('packages/bar/test.js');
+    changedPackages = getChangedPackages(options, packageInfos);
+    expect(logs.getMockLines('all', true)).toMatchInlineSnapshot(`
+      "[log] Found 3 changed files in branch "master" (before filtering)
+      [log]   - ~~change/foo-<guid>.json~~ (ignored by pattern "change/*.json")
+      [log]   - packages/foo/test.js
+      [log]   - packages/bar/test.js
+      [log] Found 2 files in 2 packages that should be published
+      [log] Your local repository already has change files for these packages:
+        foo"
+    `);
+    expect(changedPackages).toStrictEqual(['bar']);
+  });
+
+  it('ignores package changes as appropriate', () => {
+    // Due to cost of fixtures, test various ignore scenarios together
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: {
+          'private-pkg': { version: '1.0.0', private: true },
+          'no-publish': { version: '1.0.0', beachball: { shouldPublish: false } as BeachballOptions },
+          'out-of-scope': { version: '1.0.0' },
+          'ignore-pkg': { version: '1.0.0' },
+          'publish-me': { version: '1.0.0' },
+        },
+      },
+    });
+    const repo = repositoryFactory.cloneRepository();
+    repo.stageChange('packages/private-pkg/test.js');
+    repo.stageChange('packages/no-publish/test.js');
+    repo.stageChange('packages/out-of-scope/test.js');
+    repo.stageChange('packages/ignore-pkg/jest.config.js');
+    repo.stageChange('packages/ignore-pkg/CHANGELOG.md');
+    repo.stageChange('packages/publish-me/test.js');
+
+    const options = {
+      fetch: false,
+      path: repo.rootPath,
+      branch: defaultBranchName,
+      scope: ['!packages/out-of-scope'],
+      ignorePatterns: ['**/jest.config.js'],
+      verbose: true,
+    } as BeachballOptions;
+    const packageInfos = getPackageInfos(repo.rootPath);
+
+    const changedPackages = getChangedPackages(options, packageInfos);
+    const logLines = logs.getMockLines('all');
+    // check individual cases
+    expect(logLines).toMatch('private-pkg is private');
+    expect(logLines).toMatch('no-publish has beachball.shouldPublish=false');
+    expect(logLines).toMatch('out-of-scope is out of scope');
+    expect(logLines).toMatch('ignored by pattern "**/jest.config.js"');
+    expect(logLines).toMatch('ignored by pattern "CHANGELOG.{md,json}"');
+    // and overall output
+    expect(logLines).toMatchInlineSnapshot(`
+      "[log] Found 6 changed files in branch "master" (before filtering)
+      [log]   - ~~packages/ignore-pkg/CHANGELOG.md~~ (ignored by pattern "CHANGELOG.{md,json}")
+      [log]   - ~~packages/ignore-pkg/jest.config.js~~ (ignored by pattern "**/jest.config.js")
+      [log]   - ~~packages/no-publish/test.js~~ (no-publish has beachball.shouldPublish=false)
+      [log]   - ~~packages/out-of-scope/test.js~~ (out-of-scope is out of scope)
+      [log]   - ~~packages/private-pkg/test.js~~ (private-pkg is private)
+      [log]   - packages/publish-me/test.js
+      [log] Found 1 file in 1 package that should be published"
+    `);
+    // and return value
+    expect(changedPackages).toStrictEqual(['publish-me']);
   });
 
   it('detects changed files in multi-monorepo (multi-workspace) repo', () => {
