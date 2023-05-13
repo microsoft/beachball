@@ -24,8 +24,11 @@ export type MockLogs = {
   /** Set override options for one test only */
   setOverrideOptions: (options: MockLogsOptions) => void;
 
-  /** Get the lines logged to a particular method) */
-  getMockLines: (method: MockLogMethod) => string;
+  /** Call `mockClear` on all mocks to reset calls */
+  clear: () => void;
+
+  /** Get the lines logged to a particular method (or all methods) */
+  getMockLines: (method: MockLogMethod | 'all', sanitizeGuids?: boolean) => string;
 };
 
 /**
@@ -34,6 +37,7 @@ export type MockLogs = {
  */
 export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
   const { alsoLog } = options;
+  let allLines: unknown[][] = [];
   let overrideOptions: MockLogsOptions | undefined;
 
   const logs: MockLogs = {
@@ -42,11 +46,28 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
     setOverrideOptions: options => {
       overrideOptions = options;
     },
-    getMockLines: method =>
-      logs.mocks[method].mock.calls
-        .map(args => args.join(' '))
+    clear: () => {
+      allLines = [];
+      overrideOptions = undefined;
+      Object.values(logs.mocks).forEach(mock => mock.mockClear());
+    },
+    getMockLines: (method, sanitizeGuids) => {
+      const lines = (method === 'all' ? allLines : logs.mocks[method].mock.calls)
+        .map(args =>
+          args
+            .join(' ')
+            .split('\n')
+            .map(l => l.trimEnd()) // prevent trailing whitespace in snapshots
+            .join('\n')
+        )
         .join('\n')
-        .trim(),
+        .trim();
+
+      return sanitizeGuids
+        ? // replace change file name GUIDs
+          lines.replace(/[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}/g, '<guid>')
+        : lines;
+    },
   };
 
   beforeAll(() => {
@@ -56,6 +77,7 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
       logs.mocks[method] = jest.spyOn(console, method).mockImplementation((...args) => {
         const currentShouldLog =
           overrideOptions === undefined ? mainShouldLog : shouldLog(method, overrideOptions.alsoLog);
+        allLines.push([`[${method}]`, ...args]);
         if (process.env.VERBOSE || currentShouldLog) {
           logs.realConsole[method](...args);
         }
@@ -64,8 +86,7 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
   });
 
   afterEach(() => {
-    overrideOptions = undefined;
-    Object.values(logs.mocks).forEach(mock => mock.mockClear());
+    logs.clear();
   });
 
   afterAll(() => {

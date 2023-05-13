@@ -315,7 +315,6 @@ describe('publish command (e2e)', () => {
 
     repo.push();
 
-    // Adds a step that injects a race condition
     let fetchCount = 0;
 
     addGitObserver((args, output) => {

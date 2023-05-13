@@ -89,7 +89,7 @@ export class Registry {
       }
 
       if (!this.server || !this.server.stdout || !this.server.stderr) {
-        return reject('server not initialized correctly');
+        return reject(new Error('server not initialized correctly'));
       }
 
       this.server.stdout.on('data', data => {
@@ -100,11 +100,14 @@ export class Registry {
       });
 
       this.server.stderr.on('data', data => {
-        reject(data?.toString());
+        const dataStr = String(data);
+        if (!dataStr.includes('Debugger attached')) {
+          reject(new Error(dataStr));
+        }
       });
 
       this.server.on('error', data => {
-        reject(data);
+        reject(new Error(String(data)));
       });
     });
   }

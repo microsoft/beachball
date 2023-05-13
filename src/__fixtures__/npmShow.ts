@@ -21,7 +21,7 @@ export function npmShow(
   packageName: string,
   shouldFail: boolean = false
 ): NpmShowResult | undefined {
-  const timeout = process.env.CI && os.platform() === 'win32' ? 3000 : 1000;
+  const timeout = process.env.CI && os.platform() === 'win32' ? 4500 : 1500;
   const start = Date.now();
   const showResult = npm(['--registry', registry.getUrl(), 'show', packageName, '--json'], { timeout });
   if (Date.now() - start > timeout) {
