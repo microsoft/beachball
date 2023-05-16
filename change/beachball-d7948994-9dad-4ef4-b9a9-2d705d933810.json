@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Report all package/group validation errors instead of short circuiting",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

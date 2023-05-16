@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Simplify change type functions and remove unused ones",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

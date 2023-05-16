@@ -2,6 +2,47 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 16 May 2023 08:03:41 GMT",
+      "tag": "beachball_v2.33.0",
+      "version": "2.33.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "9efbdbb7f6ae44ee100b63afefd7e07ad434213c",
+            "comment": "Respect fetch depth from options when unshallowing clones to check for changes"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "9efbdbb7f6ae44ee100b63afefd7e07ad434213c",
+            "comment": "Fix bugs with getting adequate history to check for changes and determining if branches are connected"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "9efbdbb7f6ae44ee100b63afefd7e07ad434213c",
+            "comment": "Pipe logs to console for git operations during publish"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "117ab0c530e488f6d0fe7a7a4bbf4de1974a0f00",
+            "comment": "Report all package/group validation errors instead of short circuiting"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b6605e19dc596e85d4ee54ecc00653620c2bb7b1",
+            "comment": "Simplify change type functions and remove unused ones"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 13 May 2023 08:05:18 GMT",
       "tag": "beachball_v2.32.4",
       "version": "2.32.4",

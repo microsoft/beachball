@@ -1,8 +1,23 @@
 # Change Log - beachball
 
-This log was last generated on Sat, 13 May 2023 08:05:18 GMT and should not be manually modified.
+This log was last generated on Tue, 16 May 2023 08:03:41 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.33.0
+
+Tue, 16 May 2023 08:03:41 GMT
+
+### Minor changes
+
+- Simplify change type functions and remove unused ones (elcraig@microsoft.com)
+
+### Patches
+
+- Respect fetch depth from options when unshallowing clones to check for changes (elcraig@microsoft.com)
+- Fix bugs with getting adequate history to check for changes and determining if branches are connected (elcraig@microsoft.com)
+- Pipe logs to console for git operations during publish (elcraig@microsoft.com)
+- Report all package/group validation errors instead of short circuiting (elcraig@microsoft.com)
 
 ## 2.32.4
 

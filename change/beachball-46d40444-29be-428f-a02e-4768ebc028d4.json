@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Respect fetch depth from options when unshallowing clones to check for changes",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
