@@ -6,6 +6,7 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { tmpdir } from './tmpdir';
 import { gitFailFast } from 'workspace-tools';
 import { setDefaultBranchName } from './gitDefaults';
+import { env } from '../env';
 
 /**
  * Standard fixture options. See {@link getSinglePackageFixture}, {@link getMonorepoFixture} and
@@ -236,7 +237,7 @@ export class RepositoryFactory {
 
     try {
       // This occasionally throws on Windows with "resource busy"
-      if (this.root && !process.env.CI) {
+      if (this.root && !env.isCI) {
         fs.removeSync(this.root);
       }
     } catch (err) {

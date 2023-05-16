@@ -4,6 +4,7 @@ import { getCliOptions } from './getCliOptions';
 import { getRepoOptions } from './getRepoOptions';
 import { getDefaultOptions } from './getDefaultOptions';
 import path from 'path';
+import { env } from '../env';
 
 /**
  * Gets all package level options (default + root options + package options + cli options)
@@ -12,7 +13,7 @@ import path from 'path';
 export function getCombinedPackageOptions(actualPackageOptions: Partial<PackageOptions>): PackageOptions {
   const defaultOptions = getDefaultOptions();
   // Don't use options from process.argv or the beachball repo in tests
-  const cliOptions = process.env.NODE_ENV !== 'test' && getCliOptions(process.argv);
+  const cliOptions = !env.isJest && getCliOptions(process.argv);
   const repoOptions = cliOptions && getRepoOptions(cliOptions);
   return {
     ...defaultOptions,

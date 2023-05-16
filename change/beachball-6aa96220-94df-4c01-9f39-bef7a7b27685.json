@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Centralize handling of environment variables",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -1,12 +1,13 @@
 import { cosmiconfigSync } from 'cosmiconfig';
 import { getDefaultRemoteBranch } from 'workspace-tools';
+import { env } from '../env';
 import { RepoOptions, CliOptions, BeachballOptions } from '../types/BeachballOptions';
 
 let cachedRepoOptions = new Map<CliOptions, RepoOptions>();
 
 export function getRepoOptions(cliOptions: CliOptions): RepoOptions {
   const { configPath, path: cwd, branch } = cliOptions;
-  if (!process.env.BEACHBALL_DISABLE_CACHE && cachedRepoOptions.has(cliOptions)) {
+  if (!env.beachballDisableCache && cachedRepoOptions.has(cliOptions)) {
     return cachedRepoOptions.get(cliOptions)!;
   }
 

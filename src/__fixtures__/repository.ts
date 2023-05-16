@@ -3,6 +3,7 @@ import * as fs from 'fs-extra';
 import { tmpdir } from './tmpdir';
 import { git } from 'workspace-tools';
 import { defaultBranchName, defaultRemoteName, optsWithLang, setDefaultBranchName } from './gitDefaults';
+import { env } from '../env';
 
 /**
  * Clone options. See the docs for details on behavior and interaction of these options.
@@ -212,7 +213,7 @@ ${gitResult.stderr.toString()}`);
   cleanUp() {
     try {
       // This occasionally throws on Windows with "resource busy"
-      if (this.root && !process.env.CI) {
+      if (this.root && !env.isCI) {
         fs.removeSync(this.root);
       }
     } catch (err) {
