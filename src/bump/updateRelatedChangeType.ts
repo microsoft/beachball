@@ -1,4 +1,4 @@
-import { getMaxChangeType, MinChangeType } from '../changefile/getPackageChangeTypes';
+import { getMaxChangeType, MinChangeType } from '../changefile/changeTypes';
 import { BumpInfo } from '../types/BumpInfo';
 import { ChangeType } from '../types/ChangeInfo';
 

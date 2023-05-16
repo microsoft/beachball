@@ -2,7 +2,6 @@ import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { gitFailFast, getBranchName, getCurrentHash, git } from 'workspace-tools';
 import prompts from 'prompts';
-import { initializePackageChangeInfo } from '../changefile/getPackageChangeTypes';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publishToRegistry } from '../publish/publishToRegistry';
@@ -14,8 +13,8 @@ export async function publish(options: BeachballOptions) {
   // First, validate that we have changes to publish
   const oldPackageInfos = getPackageInfos(cwd);
   const changes = readChangeFiles(options, oldPackageInfos);
-  const packageChangeTypes = initializePackageChangeInfo(changes);
-  if (Object.keys(packageChangeTypes).length === 0) {
+
+  if (!changes.length) {
     console.log('Nothing to bump, skipping publish!');
     return;
   }

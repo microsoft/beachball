@@ -113,14 +113,7 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   if (postpublishHook) {
     for (const pkg of packagesToPublish) {
       const packageInfo = bumpInfo.packageInfos[pkg];
-      const maybeAwait = postpublishHook(
-        path.dirname(packageInfo.packageJsonPath),
-        packageInfo.name,
-        packageInfo.version
-      );
-      if (maybeAwait instanceof Promise) {
-        await maybeAwait;
-      }
+      await postpublishHook(path.dirname(packageInfo.packageJsonPath), packageInfo.name, packageInfo.version);
     }
   }
 }

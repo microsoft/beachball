@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import _ from 'lodash';
-import { SortedChangeTypes } from '../changefile/getPackageChangeTypes';
+import { SortedChangeTypes } from '../changefile/changeTypes';
 import { ChangelogJson } from '../types/ChangeLog';
 
 /** Read the CHANGELOG.md under the given package path, sanitizing any dates for snapshots */
