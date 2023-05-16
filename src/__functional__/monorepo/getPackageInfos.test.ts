@@ -6,6 +6,7 @@ import { tmpdir } from '../../__fixtures__/tmpdir';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { PackageInfos } from '../../types/PackageInfo';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 const defaultOptions = getDefaultOptions();
 
@@ -56,6 +57,7 @@ describe('getPackageInfos', () => {
   let monorepoFactory: RepositoryFactory;
   let multiWorkspaceFactory: RepositoryFactory;
   let tempDir: string | undefined;
+  const logs = initMockLogs();
 
   beforeAll(() => {
     singleFactory = new RepositoryFactory('single');
@@ -262,8 +264,14 @@ describe('getPackageInfos', () => {
     const repo = multiWorkspaceFactory.cloneRepository();
     repo.updateJsonFile('workspace-a/packages/foo/package.json', { name: 'foo' });
     repo.updateJsonFile('workspace-b/packages/foo/package.json', { name: 'foo' });
-    expect(() => getPackageInfos(repo.rootPath)).toThrow(
-      /Two packages in different workspaces have the same name. Please rename one of these packages:/
-    );
+
+    expect(() => getPackageInfos(repo.rootPath)).toThrow('Duplicate package names found (see above for details)');
+
+    const allLogs = logs.getMockLines('all').replace(/\\/g, '/');
+    expect(allLogs).toMatchInlineSnapshot(`
+      "[error] ERROR: Two packages have the same name "foo". Please rename one of these packages:
+      - workspace-a/packages/foo/package.json
+      - workspace-b/packages/foo/package.json"
+    `);
   });
 });
