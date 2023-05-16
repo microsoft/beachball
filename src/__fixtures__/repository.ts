@@ -2,7 +2,30 @@ import path from 'path';
 import * as fs from 'fs-extra';
 import { tmpdir } from './tmpdir';
 import { git } from 'workspace-tools';
-import { defaultBranchName, defaultRemoteName, setDefaultBranchName } from './gitDefaults';
+import { defaultBranchName, defaultRemoteName, optsWithLang, setDefaultBranchName } from './gitDefaults';
+
+/**
+ * Clone options. See the docs for details on behavior and interaction of these options.
+ * https://www.git-scm.com/docs/git-clone#Documentation/git-clone.txt
+ */
+export type RepositoryCloneOptions = {
+  /**
+   * Create a shallow clone with this depth (`--depth=X`).
+   * Implies `--single-branch` unless `singleBranch: false` (`--no-single-branch`) is set.
+   */
+  depth?: number;
+  /**
+   * Check out this branch (`--branch=X`).
+   * With `singleBranch: true`, this chooses which single branch to clone.
+   */
+  branch?: string;
+  /**
+   * - If true, only clone one branch (`--single-branch`): the default or as specified with `branch`.
+   * - If false, explicitly set `--no-single-branch` (required to clone all branches when `depth` is set).
+   * - If undefined, don't set either option.
+   */
+  singleBranch?: boolean;
+};
 
 /**
  * Represents a git repository.
@@ -21,10 +44,34 @@ export class Repository {
    * Clone the given remote repo into a temp directory and configure settings that are needed
    * by certain tests (user name+email and default branch).
    */
-  constructor(clonePath: string, tempDescription: string = 'repository') {
+  constructor(clonePath: string, tempDescription: string = 'repository', options: RepositoryCloneOptions = {}) {
+    const { depth, branch, singleBranch } = options;
+
     this.root = tmpdir({ prefix: `beachball-${tempDescription}-cloned-` });
 
-    this.git(['clone', clonePath, '.']);
+    const cloneResult = this.git(
+      [
+        'clone',
+        // --no-local is necessary for --depth to be respected in local clones
+        // https://www.git-scm.com/docs/git-clone#Documentation/git-clone.txt---local
+        ...(depth ? [`--depth=${depth}`, '--no-local'] : []),
+        ...(singleBranch ? ['--single-branch'] : singleBranch === false ? ['--no-single-branch'] : []),
+        ...(branch ? [`--branch=${branch}`] : []),
+        clonePath,
+        '.',
+      ],
+      // Git logs are localized, so attempt to force this operation to use English so that the
+      // warning check below works consistently. (It's not a big issue if it doesn't work, because
+      // the warning check is just intended to make local test development easier in uncommon cases.)
+      optsWithLang()
+    );
+
+    // If git clone gives any warnings besides "you appear to have cloned an empty repository"
+    // this likely indicates an issue with the arguments, so throw an error
+    // (this could otherwise cause some extremely hard-to-debug issues with tests).
+    if (/^warning:(?!.*?empty repository)/m.test(cloneResult.stderr)) {
+      throw new Error(`Unexpected warning from git clone (likely due to incorrect arguments):\n${cloneResult.stderr}`);
+    }
 
     this.git(['config', 'user.email', 'ci@example.com']);
     this.git(['config', 'user.name', 'CIUSER']);
@@ -62,8 +109,8 @@ export class Repository {
   }
 
   /** Git helper that throws on error */
-  git(args: string[]) {
-    const gitResult = git(args, { cwd: this.rootPath });
+  git(args: string[], options?: Partial<Parameters<typeof git>[1]>) {
+    const gitResult = git(args, { cwd: this.rootPath, ...options });
     if (!gitResult.success) {
       throw new Error(`git command failed: git ${args.join(' ')}
 ${gitResult.stdout.toString()}
@@ -76,13 +123,13 @@ ${gitResult.stderr.toString()}`);
    * Create (or update) and stage a file, creating the intermediate directories if necessary.
    * Automatically uses root path; do not pass absolute paths here.
    */
-  stageChange(newFilename: string, content?: string) {
+  stageChange(newFilename: string, content?: string | object) {
     const filePath = this.pathTo(newFilename);
     fs.ensureDirSync(path.dirname(filePath));
     fs.ensureFileSync(filePath);
 
     if (content) {
-      fs.writeFileSync(filePath, content);
+      fs.writeFileSync(filePath, typeof content === 'string' ? content : JSON.stringify(content));
     }
 
     this.git(['add', newFilename]);
@@ -92,7 +139,7 @@ ${gitResult.stderr.toString()}`);
    * Commit a change, creating the intermediate directories if necessary.
    * Automatically uses root path; do not pass absolute paths here.
    */
-  commitChange(newFilename: string, content?: string) {
+  commitChange(newFilename: string, content?: string | object) {
     this.stageChange(newFilename, content);
     this.git(['commit', '-m', `"${newFilename}"`]);
   }
@@ -151,9 +198,9 @@ ${gitResult.stderr.toString()}`);
     this.git(['pull', defaultRemoteName, `HEAD:${defaultBranchName}`]);
   }
 
-  /** Push to the default remote and branch. */
-  push() {
-    this.git(['push', defaultRemoteName, `HEAD:${defaultBranchName}`]);
+  /** Push to the default remote. */
+  push(branchName: string = defaultBranchName) {
+    this.git(['push', defaultRemoteName, `HEAD:${branchName}`]);
   }
 
   /**

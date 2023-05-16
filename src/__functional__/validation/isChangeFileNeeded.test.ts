@@ -80,6 +80,6 @@ describe('isChangeFileNeeded', () => {
         } as BeachballOptions,
         getPackageInfos(repo.rootPath)
       );
-    }).toThrow('Cannot fetch branch "master" from remote "origin"');
+    }).toThrow('Fetching branch "master" from remote "origin" failed');
   });
 });

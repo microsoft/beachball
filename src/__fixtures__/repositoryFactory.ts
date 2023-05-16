@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { PackageJson } from '../types/PackageInfo';
-import { Repository } from './repository';
+import { Repository, RepositoryCloneOptions } from './repository';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { tmpdir } from './tmpdir';
 import { gitFailFast } from 'workspace-tools';
@@ -170,7 +170,7 @@ export class RepositoryFactory {
     // https://www.atlassian.com/git/tutorials/setting-up-a-repository/git-init
     this.root = tmpdir({ prefix: `beachball-${this.tempDescription}-origin-` });
     gitFailFast(['init', '--bare'], { cwd: this.root });
-    setDefaultBranchName(this.root);
+    setDefaultBranchName(this.root, true);
 
     // Initialize the repo contents by cloning the "origin" repo, committing the fixture files,
     // and pushing changes back.
@@ -217,10 +217,10 @@ export class RepositoryFactory {
     tmpRepo.cleanUp();
   }
 
-  cloneRepository(): Repository {
+  cloneRepository(options?: RepositoryCloneOptions): Repository {
     if (!this.root) throw new Error('Factory was already cleaned up');
 
-    const newRepo = new Repository(this.root, this.tempDescription);
+    const newRepo = new Repository(this.root, this.tempDescription, options);
     this.childRepos.push(newRepo);
     return newRepo;
   }

@@ -1,80 +1,78 @@
 import { performBump } from '../bump/performBump';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { git, revertLocalChanges, parseRemoteBranch } from 'workspace-tools';
+import { revertLocalChanges, parseRemoteBranch } from 'workspace-tools';
 import { tagPackages } from './tagPackages';
-import { mergePublishBranch } from './mergePublishBranch';
 import { displayManualRecovery } from './displayManualRecovery';
+import { gitFetch } from '../git/fetch';
+import { gitAsync } from '../git/gitAsync';
 
 const BUMP_PUSH_RETRIES = 5;
+/** Use verbose logging for these steps to make it easier to debug if something goes wrong */
+const verbose = true;
 
 export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: BeachballOptions) {
-  const { path: cwd, branch, depth, message, gitTimeout } = options;
+  const { path: cwd, branch, depth, gitTimeout } = options;
   const { remote, remoteBranch } = parseRemoteBranch(branch);
 
   let completed = false;
   let tryNumber = 0;
 
+  /** Log a warning which includes the attempt number */
+  const logRetryWarning = (text: string, details: string = '(see above for details)') =>
+    console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: ${text} ${details}`);
+
   while (tryNumber < BUMP_PUSH_RETRIES && !completed) {
     tryNumber++;
+    console.log('-'.repeat(80));
     console.log(`Trying to push to git. Attempt ${tryNumber}/${BUMP_PUSH_RETRIES}`);
     console.log('Reverting');
     revertLocalChanges(cwd);
-    const warnPrefix = `[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]:`;
 
     // pull in latest from origin branch
     if (options.fetch !== false) {
-      console.log('Fetching from remote');
-      const fetchResult = git(['fetch', remote, remoteBranch, ...(depth ? [`--depth=${depth}`] : [])], { cwd });
+      console.log();
+      const fetchResult = gitFetch({ remote, branch: remoteBranch, depth, cwd, verbose });
       if (!fetchResult.success) {
-        console.warn(`${warnPrefix} fetch from ${branch} has failed!\n${fetchResult.stderr}`);
+        logRetryWarning(`Fetching from ${branch} has failed!`);
         continue;
       }
     }
 
-    const mergeResult = git(['merge', '-X', 'theirs', `${branch}`], { cwd });
+    console.log(`\nMerging with ${branch}...`);
+    const mergeResult = await gitAsync(['merge', '-X', 'theirs', branch], { cwd, verbose });
     if (!mergeResult.success) {
-      console.warn(`${warnPrefix} pull from ${branch} has failed!\n${mergeResult.stderr}`);
+      logRetryWarning(`Merging with latest ${branch} has failed!`);
       continue;
     }
 
     // bump the version
-    console.log('Bumping the versions for git push');
+    console.log('\nBumping the versions for git push');
     await performBump(bumpInfo, options);
 
     // checkin
-    const mergePublishBranchResult = await mergePublishBranch(publishBranch, branch, message, cwd, options);
-    if (!mergePublishBranchResult.success) {
-      console.warn(`${warnPrefix} merging to target has failed!`);
+    if (!(await mergePublishBranch(publishBranch, options))) {
+      logRetryWarning('Merging to target has failed!');
       continue;
     }
 
-    // Tag & Push to remote
+    // create git tags
+    console.log('\nCreating git tags for new versions...');
     tagPackages(bumpInfo, options);
 
-    console.log(`pushing to ${branch}, running the following command for git push:`);
-    const pushArgs = ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`];
-    console.log('git ' + pushArgs.join(' '));
+    // push
+    console.log(`\nPushing to ${branch}...`);
 
-    try {
-      const pushResult = git(pushArgs, { cwd, timeout: gitTimeout });
-
-      if (!pushResult.success) {
-        // If it timed out, the return value contains an "error" object with ETIMEDOUT code
-        // (it doesn't throw the error)
-        if ((pushResult.error as any)?.code === 'ETIMEDOUT') {
-          console.warn(`${warnPrefix} push to ${branch} has timed out!`);
-        } else {
-          console.warn(`${warnPrefix} push to ${branch} has failed!\n${pushResult.stderr}`);
-        }
-      } else {
-        console.log(pushResult.stdout.toString());
-        console.log(pushResult.stderr.toString());
-        completed = true;
-      }
-    } catch (e) {
-      // This is likely not reachable (see comment above), but leaving it just in case for this critical operation
-      console.warn(`${warnPrefix} push to ${branch} has failed!\n${e}`);
+    const pushResult = await gitAsync(
+      ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`],
+      { cwd, verbose, timeout: gitTimeout }
+    );
+    if (pushResult.success) {
+      completed = true;
+    } else if (pushResult.timedOut) {
+      logRetryWarning(`Pushing to ${branch} has timed out!`);
+    } else {
+      logRetryWarning(`Pushing to ${branch} has failed!`);
     }
   }
 
@@ -82,4 +80,26 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     displayManualRecovery(bumpInfo);
     process.exit(1);
   }
+}
+
+async function mergePublishBranch(
+  publishBranch: string,
+  options: Pick<BeachballOptions, 'branch' | 'hooks' | 'message' | 'path'>
+) {
+  await options.hooks?.precommit?.(options.path);
+
+  console.log(`\nMerging ${publishBranch} into ${options.branch}...`);
+  const mergeSteps = [
+    ['add', '.'],
+    ['commit', '-m', options.message],
+    ['checkout', options.branch],
+    ['merge', '-X', 'ours', publishBranch],
+  ];
+  for (const step of mergeSteps) {
+    const result = await gitAsync(step, { cwd: options.path, verbose });
+    if (!result.success) {
+      return false;
+    }
+  }
+  return true;
 }
