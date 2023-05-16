@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix bugs with getting adequate history to check for changes and determining if branches are connected",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -93,10 +93,6 @@ async function callHook(hookName: keyof HooksOptions, bumpInfo: BumpInfo, option
 
   for (const packageName of bumpInfo.modifiedPackages) {
     const packageInfo = bumpInfo.packageInfos[packageName];
-
-    const hookRet = hook(path.dirname(packageInfo.packageJsonPath), packageName, packageInfo.version);
-    if (hookRet instanceof Promise) {
-      await hookRet;
-    }
+    await hook(path.dirname(packageInfo.packageJsonPath), packageName, packageInfo.version);
   }
 }

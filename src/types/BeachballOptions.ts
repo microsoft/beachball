@@ -55,7 +55,13 @@ export interface CliOptions
 export interface RepoOptions {
   /** access level for npm publish */
   access: 'public' | 'restricted';
-  /** The target branch */
+  /**
+   * The target branch. In the repo or CLI config, this can be specified without a remote name
+   * as long as `repository` is set in `package.json` to allow inferring the correct remote.
+   *
+   * (In the resolved config used internally, the remote name should *usually* be included,
+   * unless neither a remote name nor `package.json` `repository` was specified.)
+   */
   branch: string;
   /** Bump dependent packages during publish (bump A if A depends on B) */
   bumpDeps: boolean;
@@ -99,7 +105,7 @@ export interface RepoOptions {
   transform?: TransformOptions;
   /** Put multiple changes in a single changefile */
   groupChanges?: boolean;
-  /** Depth of git history to consider when doing fetch */
+  /** For shallow clones only: Depth of git history to consider when doing fetch */
   depth?: number;
 }
 

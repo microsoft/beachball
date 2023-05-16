@@ -29,6 +29,7 @@ export function tagPackages(bumpInfo: BumpInfo, options: Pick<BeachballOptions, 
   }
 
   if (gitTags && distTag && distTag !== 'latest') {
+    console.log(`Tagging - ${distTag}`);
     createTag(distTag, cwd);
   }
 }

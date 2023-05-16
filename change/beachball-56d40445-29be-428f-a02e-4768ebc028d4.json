@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Pipe logs to console for git operations during publish",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
