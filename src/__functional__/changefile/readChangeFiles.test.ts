@@ -1,5 +1,4 @@
 import { describe, expect, it, beforeAll, afterAll } from '@jest/globals';
-import _ from 'lodash';
 
 import { generateChangeFiles } from '../../__fixtures__/changeFiles';
 import { initMockLogs } from '../../__fixtures__/mockLogs';

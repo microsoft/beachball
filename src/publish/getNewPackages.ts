@@ -10,15 +10,10 @@ export async function getNewPackages(bumpInfo: BumpInfo, options: NpmOptions) {
   const publishedVersions = await listPackageVersions(newPackages, options);
 
   return newPackages.filter(pkg => {
-    const packageInfo = packageInfos[pkg];
-    // Ignore private packages or change type "none" packages
-    if (packageInfo.private) {
-      return false;
-    }
-
-    if (!publishedVersions[pkg] || publishedVersions[pkg].length === 0) {
+    if (!packageInfos[pkg].private && !publishedVersions[pkg]?.length) {
       console.log(`New package detected: ${pkg}`);
       return true;
     }
+    return false;
   });
 }
