@@ -13,20 +13,20 @@ export function shouldPublishPackage(
   if (changeType === 'none') {
     return {
       publish: false,
-      reasonToSkip: `package ${pkgName} has change type as none`,
+      reasonToSkip: `${pkgName} has change type none`,
     };
   }
 
   if (packageInfo.private) {
     return {
       publish: false,
-      reasonToSkip: `package ${pkgName} is private`,
+      reasonToSkip: `${pkgName} is private`,
     };
   }
   if (!bumpInfo.scopedPackages.has(pkgName)) {
     return {
       publish: false,
-      reasonToSkip: `package ${pkgName} is out-of-scope`,
+      reasonToSkip: `${pkgName} is out-of-scope`,
     };
   }
 

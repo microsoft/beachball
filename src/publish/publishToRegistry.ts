@@ -10,6 +10,7 @@ import { toposortPackages } from './toposortPackages';
 import { shouldPublishPackage } from './shouldPublishPackage';
 import { validatePackageDependencies } from './validatePackageDependencies';
 import { performPublishOverrides } from './performPublishOverrides';
+import { formatList } from '../logging/format';
 
 type Unpromisify<T> = T extends Promise<infer U> ? U : never;
 
@@ -21,29 +22,36 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
     await performBump(bumpInfo, options);
   }
 
-  const succeededPackages = new Set<string>();
-
   let invalid = false;
   if (!(await validatePackageVersions(bumpInfo, options))) {
-    displayManualRecovery(bumpInfo, succeededPackages);
+    displayManualRecovery(bumpInfo);
     invalid = true;
   } else if (!validatePackageDependencies(bumpInfo)) {
     invalid = true;
   }
 
   if (invalid) {
-    console.error('No packages have been published');
+    console.error('No packages were published due to validation errors (see above for details).');
     process.exit(1);
   }
 
   // get the packages to publish, reducing the set by packages that don't need publishing
-  const packagesToPublish = toposortPackages([...modifiedPackages, ...newPackages], packageInfos).filter(pkg => {
+  const sortedPackages = toposortPackages([...modifiedPackages, ...newPackages], packageInfos);
+  const packagesToPublish: string[] = [];
+  const skippedPackages: string[] = [];
+
+  for (const pkg of sortedPackages) {
     const { publish, reasonToSkip } = shouldPublishPackage(bumpInfo, pkg);
-    if (!publish) {
-      console.log(`Skipping publish - ${reasonToSkip}`);
+    if (publish) {
+      packagesToPublish.push(pkg);
+    } else {
+      skippedPackages.push(reasonToSkip!); // this includes the package name
     }
-    return publish;
-  });
+  }
+
+  if (skippedPackages.length) {
+    console.log(`\nSkipping publishing the following packages:\n${formatList(skippedPackages)}`);
+  }
 
   // performing publishConfig and workspace version overrides requires this procedure to ONLY be run right before npm publish, but NOT in the git push
   performPublishOverrides(packagesToPublish, bumpInfo.packageInfos);
@@ -53,29 +61,19 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   if (prepublishHook) {
     for (const pkg of packagesToPublish) {
       const packageInfo = bumpInfo.packageInfos[pkg];
-      const maybeAwait = prepublishHook(
-        path.dirname(packageInfo.packageJsonPath),
-        packageInfo.name,
-        packageInfo.version
-      );
-      if (maybeAwait instanceof Promise) {
-        await maybeAwait;
-      }
+      await prepublishHook(path.dirname(packageInfo.packageJsonPath), packageInfo.name, packageInfo.version);
     }
   }
 
   // finally pass through doing the actual npm publish command
-  let hasAuthError = false;
-  for (const pkg of packagesToPublish) {
-    if (hasAuthError) {
-      console.log(`Skipping attempt to publish ${pkg} due to previous auth error`);
-      continue;
-    }
+  const succeededPackages = new Set<string>();
 
+  for (const pkg of packagesToPublish) {
     const packageInfo = bumpInfo.packageInfos[pkg];
-    console.log(`Publishing - ${packageInfo.name}@${packageInfo.version} with tag ${packageInfo.combinedOptions.tag}.`);
+    console.log(`\nPublishing - ${pkg}@${packageInfo.version} with tag ${packageInfo.combinedOptions.tag}.`);
 
     let result: Unpromisify<ReturnType<typeof packagePublish>>;
+    let hasAuthError = false;
     let retries = 0;
 
     do {
