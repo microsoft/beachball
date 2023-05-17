@@ -1,23 +1,12 @@
-import { BumpInfo } from '../types/BumpInfo';
-import { shouldPublishPackage } from './shouldPublishPackage';
+import { PackageInfos } from '../types/PackageInfo';
 
 /**
  * Validate no private package is listed as package dependency for packages which will be published.
  */
-export function validatePackageDependencies(bumpInfo: BumpInfo): boolean {
-  const { modifiedPackages, newPackages, packageInfos } = bumpInfo;
-
-  const packagesToValidate = [...modifiedPackages, ...newPackages];
-
+export function validatePackageDependencies(packagesToValidate: string[], packageInfos: PackageInfos): boolean {
   /** Mapping from dep to all validated packages that depend on it */
   const allDeps: { [dep: string]: string[] } = {};
   for (const pkg of packagesToValidate) {
-    const { publish, reasonToSkip } = shouldPublishPackage(bumpInfo, pkg);
-    if (!publish) {
-      console.log(`Skipping package dep validation - ${reasonToSkip}`);
-      continue;
-    }
-
     for (const dep of Object.keys(packageInfos[pkg].dependencies || {})) {
       allDeps[dep] ??= [];
       allDeps[dep].push(pkg);

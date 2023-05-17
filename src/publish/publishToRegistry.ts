@@ -22,19 +22,6 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
     await performBump(bumpInfo, options);
   }
 
-  let invalid = false;
-  if (!(await validatePackageVersions(bumpInfo, options))) {
-    displayManualRecovery(bumpInfo);
-    invalid = true;
-  } else if (!validatePackageDependencies(bumpInfo)) {
-    invalid = true;
-  }
-
-  if (invalid) {
-    console.error('No packages were published due to validation errors (see above for details).');
-    process.exit(1);
-  }
-
   // get the packages to publish, reducing the set by packages that don't need publishing
   const sortedPackages = toposortPackages([...modifiedPackages, ...newPackages], packageInfos);
   const packagesToPublish: string[] = [];
@@ -51,6 +38,19 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
 
   if (skippedPackages.length) {
     console.log(`\nSkipping publishing the following packages:\n${formatList(skippedPackages)}`);
+  }
+
+  let invalid = false;
+  if (!(await validatePackageVersions(packagesToPublish, bumpInfo.packageInfos, options))) {
+    displayManualRecovery(bumpInfo);
+    invalid = true;
+  } else if (!validatePackageDependencies(packagesToPublish, bumpInfo.packageInfos)) {
+    invalid = true;
+  }
+
+  if (invalid) {
+    console.error('No packages were published due to validation errors (see above for details).');
+    process.exit(1);
   }
 
   // performing publishConfig and workspace version overrides requires this procedure to ONLY be run right before npm publish, but NOT in the git push
