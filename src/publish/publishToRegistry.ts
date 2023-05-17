@@ -6,38 +6,20 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { packagePublish } from '../packageManager/packagePublish';
 import { validatePackageVersions } from './validatePackageVersions';
 import { displayManualRecovery } from './displayManualRecovery';
-import { toposortPackages } from './toposortPackages';
-import { shouldPublishPackage } from './shouldPublishPackage';
 import { validatePackageDependencies } from './validatePackageDependencies';
 import { performPublishOverrides } from './performPublishOverrides';
-import { formatList } from '../logging/format';
 import { PackageInfo } from '../types/PackageInfo';
+import { getPackagesToPublish } from './getPackagesToPublish';
 
 export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions) {
   const bumpInfo = _.cloneDeep(originalBumpInfo);
-  const { modifiedPackages, newPackages, packageInfos } = bumpInfo;
 
   if (options.bump) {
     await performBump(bumpInfo, options);
   }
 
   // get the packages to publish, reducing the set by packages that don't need publishing
-  const sortedPackages = toposortPackages([...modifiedPackages, ...newPackages], packageInfos);
-  const packagesToPublish: string[] = [];
-  const skippedPackages: string[] = [];
-
-  for (const pkg of sortedPackages) {
-    const { publish, reasonToSkip } = shouldPublishPackage(bumpInfo, pkg);
-    if (publish) {
-      packagesToPublish.push(pkg);
-    } else {
-      skippedPackages.push(reasonToSkip!); // this includes the package name
-    }
-  }
-
-  if (skippedPackages.length) {
-    console.log(`\nSkipping publishing the following packages:\n${formatList(skippedPackages)}`);
-  }
+  const packagesToPublish = getPackagesToPublish(bumpInfo);
 
   let invalid = false;
   if (!(await validatePackageVersions(packagesToPublish, bumpInfo.packageInfos, options))) {
