@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Improve validation logging and performance",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

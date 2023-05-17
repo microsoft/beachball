@@ -43,7 +43,7 @@ export function getPackagesToPublish(bumpInfo: BumpInfo, validationMode?: boolea
 
   // this log is not helpful when called from `validate`
   if (skippedPackageReasons.length && !validationMode) {
-    console.log(`\nSkipping publishing the following packages:\n${formatList(skippedPackageReasons)}`);
+    console.log(`\nSkipping publishing the following packages:\n${formatList(skippedPackageReasons.sort())}`);
   }
 
   return packagesToPublish;

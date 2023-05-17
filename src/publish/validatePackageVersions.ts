@@ -29,12 +29,13 @@ export async function validatePackageVersions(
   }
 
   if (okVersions.length) {
+    // keep the original order here to show what order they'll be published in
     console.log(`\nPackage versions are OK to publish:\n${formatList(okVersions)}`);
   }
   if (errorVersions.length) {
     console.error(
       `\nERROR: Attempting to publish package versions that already exist in the registry:\n` +
-        formatList(errorVersions)
+        formatList(errorVersions.sort())
     );
     return false;
   }

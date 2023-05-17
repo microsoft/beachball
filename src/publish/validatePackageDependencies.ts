@@ -18,7 +18,10 @@ export function validatePackageDependencies(packagesToValidate: string[], packag
   if (errorDeps.length) {
     console.error(
       `ERROR: Found private packages among published package dependencies:\n` +
-        errorDeps.map(dep => `- ${dep}: used by ${allDeps[dep].join(', ')}`).join('\n')
+        errorDeps
+          .map(dep => `- ${dep}: used by ${allDeps[dep].join(', ')}`)
+          .sort()
+          .join('\n')
     );
     return false;
   }
