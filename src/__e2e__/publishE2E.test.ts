@@ -210,6 +210,91 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual([]);
   });
 
+  it('publishes only changed packages in a monorepo', async () => {
+    repositoryFactory = new RepositoryFactory('monorepo');
+    const repo = repositoryFactory.cloneRepository();
+
+    generateChangeFiles(['foo'], repo.rootPath);
+
+    repo.push();
+
+    await publish(getOptions(repo));
+
+    npmShow(registry, 'bar', true /*shouldFail*/);
+
+    const expectedNpmResult: NpmShowResult = {
+      name: 'foo',
+      versions: ['1.1.0'],
+      'dist-tags': { latest: '1.1.0' },
+    };
+    expect(npmShow(registry, 'foo')).toMatchObject(expectedNpmResult);
+
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
+  });
+
+  it('publishes dependent packages in a monorepo', async () => {
+    repositoryFactory = new RepositoryFactory('monorepo');
+    const repo = repositoryFactory.cloneRepository();
+
+    // bump baz => dependent bump bar => dependent bump foo
+    generateChangeFiles(['baz'], repo.rootPath);
+    expect(repositoryFactory.fixture.folders!.packages.foo.dependencies!.bar).toBeTruthy();
+    expect(repositoryFactory.fixture.folders!.packages.bar.dependencies!.baz).toBeTruthy();
+
+    repo.push();
+
+    await publish(getOptions(repo));
+
+    const bazResult: NpmShowResult = { name: 'baz', versions: ['1.4.0'], 'dist-tags': { latest: '1.4.0' } };
+    expect(npmShow(registry, 'baz')).toMatchObject(bazResult);
+
+    const barResult: NpmShowResult = {
+      name: 'bar',
+      versions: ['1.3.5'],
+      'dist-tags': { latest: '1.3.5' },
+      dependencies: { baz: '^1.4.0' },
+    };
+    expect(npmShow(registry, 'bar')).toMatchObject(barResult);
+
+    const fooResult: NpmShowResult = {
+      name: 'foo',
+      versions: ['1.0.1'],
+      'dist-tags': { latest: '1.0.1' },
+      dependencies: { bar: '^1.3.5' },
+    };
+    expect(npmShow(registry, 'foo')).toMatchObject(fooResult);
+
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    expect(repo.getCurrentTags()).toEqual(['bar_v1.3.5', 'baz_v1.4.0', 'foo_v1.0.1']);
+  });
+
+  it('publishes new monorepo packages if requested', async () => {
+    // use a slightly smaller fixture to only publish one extra package
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: { foo: { version: '1.0.0' }, bar: { version: '1.3.4' } },
+      },
+    });
+    const repo = repositoryFactory.cloneRepository();
+
+    generateChangeFiles(['foo'], repo.rootPath);
+    // generateChangeFiles(['bar'], repo.rootPath);
+
+    repo.push();
+
+    await publish(getOptions(repo, { new: true }));
+
+    expect(npmShow(registry, 'foo')).toMatchObject({ name: 'foo', versions: ['1.1.0'] });
+    expect(npmShow(registry, 'bar')).toMatchObject({ name: 'bar', versions: ['1.3.4'] });
+
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    expect(repo.getCurrentTags()).toEqual(['bar_v1.3.4', 'foo_v1.1.0']);
+  });
+
   it('should not perform npm publish on out-of-scope package', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();

@@ -39,6 +39,11 @@ export interface CliOptions
   fromRef?: string;
   help?: boolean;
   keepChangeFiles?: boolean;
+  /**
+   * For publish: If true, publish all newly added packages in addition to modified packages.
+   * (This likely has limited use with the current implementation since new packages also
+   * require change files if `beachball check` is run before check-in.)
+   */
   new: boolean;
   package?: string | string[];
   /** Timeout for npm operations (other than install, which is expected to take longer) */
