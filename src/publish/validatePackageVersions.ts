@@ -2,14 +2,15 @@ import { BumpInfo } from '../types/BumpInfo';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
 import { shouldPublishPackage } from './shouldPublishPackage';
 import { NpmOptions } from '../types/NpmOptions';
+import { formatList } from '../logging/format';
 
 /**
- * Validate a package being published is not already published.
+ * Validate each package version being published doesn't already exist in the registry.
  */
 export async function validatePackageVersions(bumpInfo: BumpInfo, options: NpmOptions): Promise<boolean> {
-  let hasErrors: boolean = false;
+  console.log('\nValidating new package versions...');
 
-  const packages = [...bumpInfo.modifiedPackages].filter(pkg => {
+  const packagesToValidate = [...bumpInfo.modifiedPackages].filter(pkg => {
     const { publish, reasonToSkip } = shouldPublishPackage(bumpInfo, pkg);
     if (!publish) {
       console.log(`Skipping package version validation - ${reasonToSkip}`);
@@ -19,20 +20,31 @@ export async function validatePackageVersions(bumpInfo: BumpInfo, options: NpmOp
     return true;
   });
 
-  const publishedVersions = await listPackageVersions(packages, options);
+  const publishedVersions = await listPackageVersions(packagesToValidate, options);
 
-  for (const pkg of packages) {
+  const okVersions: string[] = [];
+  const errorVersions: string[] = [];
+
+  for (const pkg of packagesToValidate) {
     const packageInfo = bumpInfo.packageInfos[pkg];
-    console.log(`Validating package version - ${packageInfo.name}@${packageInfo.version}`);
+    const versionSpec = `${packageInfo.name}@${packageInfo.version}`;
     if (publishedVersions[pkg].includes(packageInfo.version)) {
-      console.error(
-        `\nERROR: Attempting to bump to a version that already exists in the registry: ${packageInfo.name}@${packageInfo.version}`
-      );
-      hasErrors = true;
+      errorVersions.push(versionSpec);
     } else {
-      console.log(' OK!\n');
+      okVersions.push(versionSpec);
     }
   }
 
-  return !hasErrors;
+  if (okVersions.length) {
+    console.log(`\nPackage versions are OK to publish:\n${formatList(okVersions)}`);
+  }
+  if (errorVersions.length) {
+    console.error(
+      `\nERROR: Attempting to publish package versions that already exist in the registry:\n` +
+        formatList(errorVersions)
+    );
+    return false;
+  }
+
+  return true;
 }
