@@ -1,4 +1,5 @@
 import execa from 'execa';
+import { env } from '../env';
 
 // cwd is required here
 // stdio behavior is overridden
@@ -80,12 +81,8 @@ export function getGitEnv(verbose: boolean | undefined): {
   /** Max buffer for git operations, copied from workspace-tools implementation */
   maxBuffer: number;
 } {
-  verbose = verbose || !!process.env.GIT_DEBUG;
-  const isJest = !!process.env.JEST_WORKER_ID;
-  const maxBuffer = process.env.GIT_MAX_BUFFER && parseInt(process.env.GIT_MAX_BUFFER, 10);
   return {
-    shouldLog: verbose ? (isJest ? 'end' : 'live') : false,
-    // isVerbose: verbose || !!process.env.GIT_DEBUG,
-    maxBuffer: maxBuffer || 500 * 1024 * 1024,
+    shouldLog: verbose || env.workspaceToolsGitDebug ? (env.isJest ? 'end' : 'live') : false,
+    maxBuffer: env.workspaceToolsGitMaxBuffer || 500 * 1024 * 1024,
   };
 }

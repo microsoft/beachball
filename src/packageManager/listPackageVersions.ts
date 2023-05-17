@@ -2,6 +2,7 @@ import { getNpmAuthArgs, npmAsync } from './npm';
 import pLimit from 'p-limit';
 import { PackageInfo } from '../types/PackageInfo';
 import { NpmOptions } from '../types/NpmOptions';
+import { env } from '../env';
 
 const packageVersionsCache: { [pkgName: string]: any } = {};
 
@@ -10,7 +11,7 @@ const NPM_CONCURRENCY = 5;
 async function getNpmPackageInfo(packageName: string, options: NpmOptions) {
   const { registry, token, authType, timeout } = options;
 
-  if (process.env.BEACHBALL_DISABLE_CACHE || !packageVersionsCache[packageName]) {
+  if (env.beachballDisableCache || !packageVersionsCache[packageName]) {
     const args = ['show', '--registry', registry, '--json', packageName, ...getNpmAuthArgs(registry, token, authType)];
 
     const showResult = await npmAsync(args, { timeout });

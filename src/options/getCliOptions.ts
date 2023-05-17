@@ -1,13 +1,14 @@
 import parser from 'yargs-parser';
 import { CliOptions } from '../types/BeachballOptions';
 import { getDefaultRemoteBranch, findProjectRoot } from 'workspace-tools';
+import { env } from '../env';
 
 let cachedCliOptions: CliOptions;
 
 export function getCliOptions(argv: string[]): CliOptions {
   // Special case caching to process.argv which should be immutable
   if (argv === process.argv) {
-    if (process.env.BEACHBALL_DISABLE_CACHE || !cachedCliOptions) {
+    if (env.beachballDisableCache || !cachedCliOptions) {
       cachedCliOptions = getCliOptionsUncached(process.argv);
     }
     return cachedCliOptions;

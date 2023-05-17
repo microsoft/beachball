@@ -1,3 +1,4 @@
+import { env } from '../env';
 import { BeachballOptions } from '../types/BeachballOptions';
 
 export function getDefaultOptions() {
@@ -14,7 +15,7 @@ export function getDefaultOptions() {
     token: '',
     gitTags: true,
     tag: '',
-    yes: !!(process.env.CI || process.env.TF_BUILD),
+    yes: env.isCI,
     access: 'restricted',
     changehint: 'Run "beachball change" to create a change file',
     type: null,
