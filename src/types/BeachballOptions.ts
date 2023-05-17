@@ -39,6 +39,14 @@ export interface CliOptions
   fromRef?: string;
   help?: boolean;
   keepChangeFiles?: boolean;
+  /**
+   * For publish: If true, publish all newly added packages in addition to modified packages.
+   * New packages *with change files* will always be published regardless of this option.
+   *
+   * (This has limited use unless you pushed new packages directly to the main branch, or
+   * your PR build doesn't run `beachball check`. Otherwise, `beachball check` will require
+   * change files to be created for the missing packages.)
+   */
   new: boolean;
   package?: string | string[];
   /** Timeout for npm operations (other than install, which is expected to take longer) */

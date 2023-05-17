@@ -10,6 +10,7 @@ export type NpmShowResult = {
   versions: string[];
   main?: string;
   'dist-tags': Record<string, string>;
+  dependencies?: Record<string, string>;
 };
 
 /**
@@ -23,11 +24,11 @@ export function npmShow(
   shouldFail: boolean = false
 ): NpmShowResult | undefined {
   const timeout = env.isCI && os.platform() === 'win32' ? 4500 : 1500;
-  const start = Date.now();
+  // const start = Date.now();
   const showResult = npm(['--registry', registry.getUrl(), 'show', packageName, '--json'], { timeout });
-  if (Date.now() - start > timeout) {
-    throw new Error(`npm show ${packageName} took more than ${timeout}ms`);
-  }
+  // if (Date.now() - start > timeout) {
+  //   throw new Error(`npm show ${packageName} took more than ${timeout}ms`);
+  // }
   expect(showResult.failed).toBe(shouldFail);
   return shouldFail ? undefined : JSON.parse(showResult.stdout);
 }

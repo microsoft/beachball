@@ -4,9 +4,18 @@ import { PackageInfo } from '../types/PackageInfo';
 import { NpmOptions } from '../types/NpmOptions';
 import { env } from '../env';
 
-const packageVersionsCache: { [pkgName: string]: any } = {};
+let packageVersionsCache: {
+  [pkgName: string]: {
+    versions?: string[];
+    'dist-tags'?: Record<string, string>;
+  };
+} = {};
 
-const NPM_CONCURRENCY = 5;
+const NPM_CONCURRENCY = env.isJest ? 2 : 5;
+
+export async function _clearPackageVersionsCache() {
+  packageVersionsCache = {};
+}
 
 async function getNpmPackageInfo(packageName: string, options: NpmOptions) {
   const { registry, token, authType, timeout } = options;
@@ -33,14 +42,14 @@ export async function listPackageVersionsByTag(
   options: NpmOptions
 ) {
   const limit = pLimit(NPM_CONCURRENCY);
-  const versions: { [pkg: string]: string } = {};
+  const versions: { [pkg: string]: string | undefined } = {};
 
   await Promise.all(
     packageInfos.map(pkg =>
       limit(async () => {
         const info = await getNpmPackageInfo(pkg.name, options);
         const npmTag = tag || pkg.combinedOptions.tag || pkg.combinedOptions.defaultNpmTag;
-        versions[pkg.name] = info['dist-tags'] && info['dist-tags'][npmTag] ? info['dist-tags'][npmTag] : undefined;
+        versions[pkg.name] = (npmTag && info['dist-tags']?.[npmTag]) || undefined;
       })
     )
   );
@@ -56,7 +65,7 @@ export async function listPackageVersions(packageList: string[], options: NpmOpt
     packageList.map(pkg =>
       limit(async () => {
         const info = await getNpmPackageInfo(pkg, options);
-        versions[pkg] = info && info.versions ? info.versions : [];
+        versions[pkg] = info?.versions || [];
       })
     )
   );
