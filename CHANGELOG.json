@@ -2,6 +2,33 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 17 May 2023 08:04:02 GMT",
+      "tag": "beachball_v2.33.1",
+      "version": "2.33.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "2b871f367d757a950e9ba28d8235a9354e58e51b",
+            "comment": "Minor cleanup of listPackageVersions and getNewPackages"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "1b5f59a9480b574c54bef5c46af999fae6f2ed01",
+            "comment": "Centralize handling of environment variables"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "ace7c6f66d2be0b0fad629b5f4bb83926e652bfe",
+            "comment": "Improve logging during publishing"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 16 May 2023 08:03:41 GMT",
       "tag": "beachball_v2.33.0",
       "version": "2.33.0",

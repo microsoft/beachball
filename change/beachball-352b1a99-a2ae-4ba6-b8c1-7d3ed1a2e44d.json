@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Minor cleanup of listPackageVersions and getNewPackages",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

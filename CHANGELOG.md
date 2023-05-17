@@ -1,8 +1,18 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 16 May 2023 08:03:41 GMT and should not be manually modified.
+This log was last generated on Wed, 17 May 2023 08:04:02 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.33.1
+
+Wed, 17 May 2023 08:04:02 GMT
+
+### Patches
+
+- Minor cleanup of listPackageVersions and getNewPackages (elcraig@microsoft.com)
+- Centralize handling of environment variables (elcraig@microsoft.com)
+- Improve logging during publishing (elcraig@microsoft.com)
 
 ## 2.33.0
 
