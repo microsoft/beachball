@@ -14,6 +14,7 @@ import { areChangeFilesDeleted } from './areChangeFilesDeleted';
 import { validatePackageDependencies } from '../publish/validatePackageDependencies';
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { isValidDependentChangeType } from './isValidDependentChangeType';
+import { getPackagesToPublish } from '../publish/getPackagesToPublish';
 
 type ValidationOptions = {
   allowMissingChangeFiles?: boolean;
@@ -115,8 +116,12 @@ export function validate(options: BeachballOptions, validateOptions?: Partial<Va
   }
 
   if (!isChangeNeeded) {
+    // TODO: It would be preferable if this could be done without getting the full bump info,
+    // or at least if the bump info could be passed back out to other methods which currently
+    // duplicate the calculation (it can be expensive, especially in large repos).
     const bumpInfo = gatherBumpInfo(options, packageInfos);
-    if (!validatePackageDependencies(bumpInfo)) {
+    const packagesToPublish = getPackagesToPublish(bumpInfo, true /*validationMode*/);
+    if (!validatePackageDependencies(packagesToPublish, bumpInfo.packageInfos)) {
       console.error(`ERROR: one or more published packages depend on an unpublished package!
 
 Consider one of the following solutions:
