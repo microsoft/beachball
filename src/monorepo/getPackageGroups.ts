@@ -12,7 +12,7 @@ export function getPackageGroups(packageInfos: PackageInfos, root: string, group
 
   const packageNameToGroup: { [packageName: string]: string } = {};
 
-  let hasError = false;
+  const errorPackages: Record<string, VersionGroupOptions[]> = {};
 
   // Check every package to see which group it belongs to
   for (const [pkgName, info] of Object.entries(packageInfos)) {
@@ -22,10 +22,7 @@ export function getPackageGroups(packageInfos: PackageInfos, root: string, group
     const groupsForPkg = groups.filter(group => isPathIncluded(relativePath, group.include, group.exclude));
     if (groupsForPkg.length > 1) {
       // Keep going after this error to ensure we report all errors
-      console.error(
-        `ERROR: "${pkgName}" cannot belong to multiple groups: [${groupsForPkg.map(g => g.name).join(', ')}]`
-      );
-      hasError = true;
+      errorPackages[pkgName] = groupsForPkg;
     } else if (groupsForPkg.length === 1) {
       const group = groupsForPkg[0];
       packageNameToGroup[pkgName] = group.name;
@@ -38,7 +35,14 @@ export function getPackageGroups(packageInfos: PackageInfos, root: string, group
     }
   }
 
-  if (hasError) {
+  if (errorPackages.length) {
+    console.error(
+      `ERROR: Found package(s) belonging to multiple groups:\n` +
+        Object.entries(errorPackages)
+          .map(([pkgName, groups]) => `- ${pkgName}: [${groups.map(g => g.name).join(', ')}]`)
+          .sort()
+          .join('\n')
+    );
     // TODO: probably more appropriate to throw here and let the caller handle it?
     process.exit(1);
   }

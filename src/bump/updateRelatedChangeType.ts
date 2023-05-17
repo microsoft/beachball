@@ -21,11 +21,6 @@ import { ChangeType } from '../types/ChangeInfo';
  * - bumpInfo.calculatedChangeTypes: will not mutate the entryPoint `pkgName` change type
  *
  * Inputs from bumpInfo are listed in the [^1] below in the function body
- *
- * @param entryPointPackageName
- * @param bumpInfo
- * @param bumpDeps
- * @returns
  */
 export function updateRelatedChangeType(changeFile: string, bumpInfo: BumpInfo, bumpDeps: boolean) {
   /** [^1]: all the information needed from `bumpInfo` */

@@ -14,6 +14,7 @@ export function isChangeFileNeeded(options: BeachballOptions, packageInfos: Pack
         .map(pkg => `\n  ${pkg}`)
         .join('')}`
     );
+    return true;
   }
-  return changedPackages.length > 0;
+  return false;
 }

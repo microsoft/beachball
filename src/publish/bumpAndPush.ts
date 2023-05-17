@@ -11,6 +11,9 @@ const BUMP_PUSH_RETRIES = 5;
 /** Use verbose logging for these steps to make it easier to debug if something goes wrong */
 const verbose = true;
 
+/**
+ * Bump versions locally, commit, optionally tag, and push to git.
+ */
 export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: BeachballOptions) {
   const { path: cwd, branch, depth, gitTimeout } = options;
   const { remote, remoteBranch } = parseRemoteBranch(branch);
@@ -25,7 +28,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
   while (tryNumber < BUMP_PUSH_RETRIES && !completed) {
     tryNumber++;
     console.log('-'.repeat(80));
-    console.log(`Trying to push to git. Attempt ${tryNumber}/${BUMP_PUSH_RETRIES}`);
+    console.log(`Bumping versions and pushing to git (attempt ${tryNumber}/${BUMP_PUSH_RETRIES})`);
     console.log('Reverting');
     revertLocalChanges(cwd);
 
@@ -47,7 +50,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     }
 
     // bump the version
-    console.log('\nBumping the versions for git push');
+    console.log('\nBumping versions locally (and writing changelogs if requested)');
     await performBump(bumpInfo, options);
 
     // checkin
