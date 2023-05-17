@@ -41,8 +41,11 @@ export interface CliOptions
   keepChangeFiles?: boolean;
   /**
    * For publish: If true, publish all newly added packages in addition to modified packages.
-   * (This likely has limited use with the current implementation since new packages also
-   * require change files if `beachball check` is run before check-in.)
+   * New packages *with change files* will always be published regardless of this option.
+   *
+   * (This has limited use unless you pushed new packages directly to the main branch, or
+   * your PR build doesn't run `beachball check`. Otherwise, `beachball check` will require
+   * change files to be created for the missing packages.)
    */
   new: boolean;
   package?: string | string[];

@@ -58,6 +58,8 @@ export async function publish(options: BeachballOptions) {
   const bumpInfo = gatherBumpInfo(options, oldPackageInfos);
 
   if (options.new) {
+    // Publish newly created packages even if they don't have change files
+    // (this is unlikely unless the packages were pushed without a PR that runs "beachball check")
     bumpInfo.newPackages = new Set<string>(await getNewPackages(bumpInfo, options));
   }
 
