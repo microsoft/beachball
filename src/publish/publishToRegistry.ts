@@ -11,8 +11,7 @@ import { shouldPublishPackage } from './shouldPublishPackage';
 import { validatePackageDependencies } from './validatePackageDependencies';
 import { performPublishOverrides } from './performPublishOverrides';
 import { formatList } from '../logging/format';
-
-type Unpromisify<T> = T extends Promise<infer U> ? U : never;
+import { PackageInfo } from '../types/PackageInfo';
 
 export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions) {
   const bumpInfo = _.cloneDeep(originalBumpInfo);
@@ -69,38 +68,10 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   const succeededPackages = new Set<string>();
 
   for (const pkg of packagesToPublish) {
-    const packageInfo = bumpInfo.packageInfos[pkg];
-    console.log(`\nPublishing - ${pkg}@${packageInfo.version} with tag ${packageInfo.combinedOptions.tag}.`);
-
-    let result: Unpromisify<ReturnType<typeof packagePublish>>;
-    let hasAuthError = false;
-    let retries = 0;
-
-    do {
-      result = await packagePublish(packageInfo, options);
-
-      if (result.success) {
-        console.log('Published!');
-        succeededPackages.add(pkg);
-      } else {
-        retries++;
-
-        hasAuthError = result.all!.includes('ENEEDAUTH');
-        const failedMessage = `Publishing "${pkg}" failed${hasAuthError ? ' due to auth error' : ''}:\n\n` + result.all;
-
-        if (hasAuthError) {
-          console.error(failedMessage);
-        } else if (retries <= options.retries) {
-          // has retries left (not a fatal error)
-          console.log(failedMessage + `\n\nRetrying... (${retries}/${options.retries})`);
-        } else {
-          // out of retries
-          console.error(failedMessage);
-        }
-      }
-    } while (!result.success && retries <= options.retries && !hasAuthError);
-
-    if (!result.success) {
+    const success = await tryPublishPackage(bumpInfo.packageInfos[pkg], options);
+    if (success) {
+      succeededPackages.add(pkg);
+    } else {
       displayManualRecovery(bumpInfo, succeededPackages);
       throw new Error('Error publishing! Refer to the previous logs for recovery instructions.');
     }
@@ -114,4 +85,43 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
       await postpublishHook(path.dirname(packageInfo.packageJsonPath), packageInfo.name, packageInfo.version);
     }
   }
+}
+
+async function tryPublishPackage(packageInfo: PackageInfo, options: BeachballOptions) {
+  const pkg = packageInfo.name;
+  console.log(`\nPublishing - ${pkg}@${packageInfo.version} with tag ${packageInfo.combinedOptions.tag}.`);
+
+  // Unclear whether `options.retries` should be interpreted as "X attempts" or "initial attempt + X retries"...
+  // It was previously implemented as the latter, so keep that for now.
+  let retries = 0;
+
+  do {
+    const result = await packagePublish(packageInfo, options);
+
+    if (result.success) {
+      console.log('Published!');
+      return true;
+    }
+
+    retries++;
+
+    const hasAuthError = result.all!.includes('ENEEDAUTH');
+    const failedMessage = `Publishing "${pkg}" failed${hasAuthError ? ' due to auth error' : ''}:\n\n` + result.all;
+
+    if (hasAuthError) {
+      console.error(failedMessage);
+      // If there's an auth error, future tries are also unlikely to succeed
+      return false;
+    }
+
+    if (retries <= options.retries) {
+      // has retries left (not a fatal error)
+      console.log(failedMessage + `\n\nRetrying... (${retries}/${options.retries})`);
+    } else {
+      // out of retries
+      console.error(failedMessage);
+    }
+  } while (retries <= options.retries);
+
+  return false;
 }
