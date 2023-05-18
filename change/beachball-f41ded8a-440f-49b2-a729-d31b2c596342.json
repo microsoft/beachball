@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add comments on BeachballOptions and sort default options",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

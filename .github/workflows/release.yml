@@ -59,9 +59,9 @@ jobs:
           # Add a token to the remote URL for auth during release
           git remote set-url origin "https://$REPO_PAT@github.com/$GITHUB_REPOSITORY"
 
-          yarn release -y -n $NPM_AUTHTOKEN
+          yarn release -y -n "$NPM_AUTHTOKEN"
         env:
-          NPM_AUTHTOKEN: ${{ secrets.npm_authtoken }}
+          NPM_AUTHTOKEN: ${{ secrets.NPM_AUTHTOKEN }}
           REPO_PAT: ${{ secrets.REPO_PAT }}
 
       - name: Update docs
