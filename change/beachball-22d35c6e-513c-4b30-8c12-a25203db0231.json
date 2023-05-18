@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Make init more robust",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

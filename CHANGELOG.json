@@ -2,6 +2,39 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 18 May 2023 08:06:52 GMT",
+      "tag": "beachball_v2.33.2",
+      "version": "2.33.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "bf0cf61ec528f5faeb6d35bc47c133cc02fd6bd5",
+            "comment": "Make init more robust"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "8eb91797c1b01359d94281f910cee7e6b11d973d",
+            "comment": "Improve validation logging and performance"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "bd352a4732c3bbc853b9fefb7fa3e5f9953a947d",
+            "comment": "Reduce redundant logging during publishing"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "bf0cf61ec528f5faeb6d35bc47c133cc02fd6bd5",
+            "comment": "Add comments on BeachballOptions and sort default options"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 17 May 2023 08:04:02 GMT",
       "tag": "beachball_v2.33.1",
       "version": "2.33.1",

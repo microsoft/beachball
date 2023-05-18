@@ -1,8 +1,19 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 17 May 2023 08:04:02 GMT and should not be manually modified.
+This log was last generated on Thu, 18 May 2023 08:06:52 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.33.2
+
+Thu, 18 May 2023 08:06:52 GMT
+
+### Patches
+
+- Make init more robust (elcraig@microsoft.com)
+- Improve validation logging and performance (elcraig@microsoft.com)
+- Reduce redundant logging during publishing (elcraig@microsoft.com)
+- Add comments on BeachballOptions and sort default options (elcraig@microsoft.com)
 
 ## 2.33.1
 
