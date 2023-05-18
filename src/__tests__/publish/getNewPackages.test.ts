@@ -7,11 +7,7 @@ import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { initNpmAsyncMock } from '../../__fixtures__/mockNpm';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
-// unfortunately it appears this has to be done in the test file, not by mockNpm
-jest.mock('../../packageManager/npm', () => {
-  const npm = jest.requireActual<typeof import('../../packageManager/npm')>('../../packageManager/npm');
-  return { ...npm, npm: jest.fn(), npmAsync: jest.fn() };
-});
+jest.mock('../../packageManager/npm');
 
 describe('getNewPackages', () => {
   const logs = initMockLogs();

@@ -9,11 +9,7 @@ import { NpmOptions } from '../../types/NpmOptions';
 import { initNpmAsyncMock } from '../../__fixtures__/mockNpm';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
-// unfortunately it appears this has to be done in the test file, not by mockNpm
-jest.mock('../../packageManager/npm', () => {
-  const npm = jest.requireActual<typeof import('../../packageManager/npm')>('../../packageManager/npm');
-  return { ...npm, npm: jest.fn(), npmAsync: jest.fn() };
-});
+jest.mock('../../packageManager/npm');
 
 describe('list npm versions', () => {
   /** Mock the `npm show` command for `npmAsync` calls. This also handles cleanup after each test. */

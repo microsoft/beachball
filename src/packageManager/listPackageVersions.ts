@@ -1,8 +1,9 @@
-import { getNpmAuthArgs, npmAsync } from './npm';
 import pLimit from 'p-limit';
 import { PackageInfo } from '../types/PackageInfo';
 import { NpmOptions } from '../types/NpmOptions';
 import { env } from '../env';
+import { npmAsync } from './npm';
+import { getNpmAuthArgs } from './npmArgs';
 
 // More properties can be added as needed
 type NpmRegistryPackage = {

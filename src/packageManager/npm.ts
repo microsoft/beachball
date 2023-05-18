@@ -1,6 +1,8 @@
 import execa from 'execa';
-import { AuthType } from '../types/Auth';
 
+/**
+ * Run an npm command. Returns the error result instead of throwing on failure.
+ */
 export function npm(
   args: string[],
   options: execa.SyncOptions = {}
@@ -19,6 +21,9 @@ export function npm(
   }
 }
 
+/**
+ * Run an npm command. Returns the error result instead of throwing on failure.
+ */
 export async function npmAsync(
   args: string[],
   options: execa.Options = {}
@@ -35,15 +40,4 @@ export async function npmAsync(
       success: false,
     };
   }
-}
-
-export function getNpmAuthArgs(registry: string, token?: string, authType?: AuthType): string[] {
-  const authArgs: string[] = [];
-
-  if (token) {
-    const npmKeyword = authType === 'password' ? '_password' : '_authToken';
-    const shorthand = registry.substring(registry.indexOf('//'));
-    authArgs.push(`--${shorthand}:${npmKeyword}=${token}`);
-  }
-  return authArgs;
 }
