@@ -1,5 +1,4 @@
 import _ from 'lodash';
-import path from 'path';
 import { performBump } from '../bump/performBump';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
@@ -10,7 +9,11 @@ import { validatePackageDependencies } from './validatePackageDependencies';
 import { performPublishOverrides } from './performPublishOverrides';
 import { PackageInfo } from '../types/PackageInfo';
 import { getPackagesToPublish } from './getPackagesToPublish';
+import { callHook } from '../bump/callHook';
 
+/**
+ * Publish all the bumped packages to the registry.
+ */
 export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions): Promise<void> {
   const bumpInfo = _.cloneDeep(originalBumpInfo);
 
@@ -38,13 +41,7 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   performPublishOverrides(packagesToPublish, bumpInfo.packageInfos);
 
   // if there is a prepublish hook perform a prepublish pass, calling the routine on each package
-  const prepublishHook = options.hooks?.prepublish;
-  if (prepublishHook) {
-    for (const pkg of packagesToPublish) {
-      const packageInfo = bumpInfo.packageInfos[pkg];
-      await prepublishHook(path.dirname(packageInfo.packageJsonPath), packageInfo.name, packageInfo.version);
-    }
-  }
+  await callHook(options.hooks?.prepublish, packagesToPublish, bumpInfo.packageInfos);
 
   // finally pass through doing the actual npm publish command
   const succeededPackages = new Set<string>();
@@ -60,13 +57,7 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   }
 
   // if there is a postpublish hook perform a postpublish pass, calling the routine on each package
-  const postpublishHook = options.hooks?.postpublish;
-  if (postpublishHook) {
-    for (const pkg of packagesToPublish) {
-      const packageInfo = bumpInfo.packageInfos[pkg];
-      await postpublishHook(path.dirname(packageInfo.packageJsonPath), packageInfo.name, packageInfo.version);
-    }
-  }
+  await callHook(options.hooks?.postpublish, packagesToPublish, bumpInfo.packageInfos);
 }
 
 async function tryPublishPackage(packageInfo: PackageInfo, options: BeachballOptions): Promise<boolean> {
