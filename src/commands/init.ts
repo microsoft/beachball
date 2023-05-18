@@ -1,8 +1,17 @@
 import { BeachballOptions } from '../types/BeachballOptions';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import { findProjectRoot } from 'workspace-tools';
 import { npm } from '../packageManager/npm';
+import { PackageJson } from '../types/PackageInfo';
+
+function errorExit(message: string) {
+  console.error(message);
+  console.log(
+    'You can still set up beachball manually by following the instructions here: https://microsoft.github.io/beachball/overview/getting-started.html'
+  );
+  process.exit(1);
+}
 
 export async function init(options: BeachballOptions) {
   let root: string;
@@ -15,22 +24,45 @@ export async function init(options: BeachballOptions) {
 
   const packageJsonFilePath = path.join(root, 'package.json');
 
-  if (fs.existsSync(packageJsonFilePath)) {
-    const beachballInfo = JSON.parse(npm(['info', 'beachball', '--json']).stdout.toString());
-    const beachballVersion = beachballInfo['dist-tags'].latest;
+  if (!fs.existsSync(packageJsonFilePath)) {
+    errorExit(`Cannot find package.json at ${packageJsonFilePath}`);
+  }
 
-    const packageJson = JSON.parse(fs.readFileSync(packageJsonFilePath, 'utf-8'));
-    packageJson.devDependencies = packageJson.devDependencies ?? {};
-    packageJson.devDependencies.beachball = beachballVersion;
-    packageJson.scripts = packageJson.scripts ?? {};
-    packageJson.scripts.checkchange = 'beachball check';
-    packageJson.scripts.change = 'beachball change';
-    packageJson.scripts.release = 'beachball publish';
+  const npmResult = npm(['info', 'beachball', '--json']);
+  if (!npmResult.success) {
+    errorExit('Failed to retrieve beachball version from npm');
+  }
 
-    fs.writeFileSync(packageJsonFilePath, JSON.stringify(packageJson, null, 2));
+  let beachballVersion = '';
+  try {
+    const beachballInfo = JSON.parse(npmResult.stdout.toString());
+    beachballVersion = beachballInfo['dist-tags'].latest;
+  } catch (err) {
+    errorExit("Couldn't parse beachball version from npm");
+  }
 
-    console.log(
-      'beachball has been initialized, please run `yarn` or `npm install` to install beachball into your repo'
+  let packageJson = {} as PackageJson;
+  try {
+    packageJson = fs.readJSONSync(packageJsonFilePath, 'utf-8');
+  } catch (err) {
+    errorExit(`Failed to read package.json at ${packageJsonFilePath}`);
+  }
+
+  packageJson.devDependencies ??= {};
+  packageJson.devDependencies.beachball = beachballVersion;
+  packageJson.scripts ??= {};
+  packageJson.scripts.checkchange = 'beachball check';
+  packageJson.scripts.change = 'beachball change';
+  packageJson.scripts.release = 'beachball publish';
+
+  fs.writeFileSync(packageJsonFilePath, JSON.stringify(packageJson, null, 2));
+
+  if (!packageJson.repository) {
+    console.warn(
+      'Please add a "repository" field to your repo root package.json so beachball always ' +
+        'knows which remote to use when checking for changes.'
     );
   }
+
+  console.log('beachball has been initialized! Please run `yarn` or `npm install` to install beachball in your repo.');
 }

@@ -61,7 +61,10 @@ export interface CliOptions
 }
 
 export interface RepoOptions {
-  /** access level for npm publish */
+  /**
+   * Access level for npm publish
+   * @default 'restricted'
+   */
   access: 'public' | 'restricted';
   /**
    * The target branch. In the repo or CLI config, this can be specified without a remote name
@@ -69,45 +72,86 @@ export interface RepoOptions {
    *
    * (In the resolved config used internally, the remote name should *usually* be included,
    * unless neither a remote name nor `package.json` `repository` was specified.)
+   * @default 'origin/master'
    */
   branch: string;
-  /** Bump dependent packages during publish (bump A if A depends on B) */
+  /**
+   * Bump dependent packages during publish (bump A if A depends on B)
+   * @default true
+   */
   bumpDeps: boolean;
+  /** Options for customizing change file prompt. */
   changeFilePrompt?: ChangeFilePromptOptions;
-  /** Prerelease prefix for packages that are specified to receive a prerelease bump */
-  /** Hint message for when change files are not detected but required */
+  /**
+   * Hint message for when change files are not detected but required
+   * @default 'Run "beachball change" to create a change file'
+   */
   changehint: string;
+  /** Options for customizing changelog rendering */
   changelog?: ChangelogOptions;
-  /** The default dist-tag used for npm publish */
+  /**
+   * The default dist-tag used for npm publish
+   * @default 'latest'
+   */
   defaultNpmTag: string;
   /** What change types are disallowed */
   disallowedChangeTypes: ChangeType[] | null;
-  /** Fetch from remote before doing diff comparisons (default true) */
+  /**
+   * Fetch from remote before doing diff comparisons
+   * @default true
+   */
   fetch: boolean;
-  /** Whether to generate changelog files */
+  /**
+   * Whether to generate changelog files
+   * @default true
+   */
   generateChangelog: boolean;
+  /** Options for bumping package versions together */
   groups?: VersionGroupOptions[];
-  /** Whether to create git tags for published packages (default true) */
+  /**
+   * Whether to create git tags for published packages
+   * @default true
+   */
   gitTags: boolean;
   /** Custom pre/post publish actions */
   hooks?: HooksOptions;
-  ignorePatterns?: string[];
-  message: string;
-  /** The directory to run beachball in (default `process.cwd()`) */
-  path: string;
-  prereleasePrefix?: string | null;
   /** Ignore changes in these files (minimatch patterns; negations not supported) */
-  /** Whether to publish to the npm registry (default true) */
+  ignorePatterns?: string[];
+  /** For the `change` command, change message. For the `publish` command, commit message. */
+  message: string;
+  /**
+   * The directory to run beachball in
+   * @default process.cwd()
+   */
+  path: string;
+  /** Prerelease prefix for packages that are specified to receive a prerelease bump */
+  prereleasePrefix?: string | null;
+  /**
+   * Whether to publish to the npm registry
+   * @default true
+   */
   publish: boolean;
-  /** Whether to push to the remote git branch when publishing (default true) */
+  /**
+   * Whether to push to the remote git branch when publishing
+   * @default true
+   */
   push: boolean;
-  /** Target npm registry for publishing */
+  /**
+   * Target npm registry for publishing
+   * @default 'https://registry.npmjs.org/'
+   */
   registry: string;
-  /** number of retries for a package publish before failing */
+  /**
+   * Number of retries for a package publish before failing
+   * @default 3
+   */
   retries: number;
   /** Filters paths that beachball uses to find packages */
   scope?: string[] | null;
-  /** npm dist-tag when publishing (default 'latest') */
+  /**
+   * npm dist-tag when publishing
+   * @default 'latest'
+   */
   tag: string;
   /** Transformations for change files */
   transform?: TransformOptions;
@@ -130,6 +174,9 @@ export interface PackageOptions {
   shouldPublish?: false | undefined;
 }
 
+/**
+ * Options for bumping package versions together.
+ */
 export interface VersionGroupOptions {
   /** minimatch pattern (or array of minimatch) to detect which packages should be included in this group */
   include: string | string[];
