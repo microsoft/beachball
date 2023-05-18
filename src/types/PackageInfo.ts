@@ -21,6 +21,7 @@ export interface PackageJson {
   devDependencies?: PackageDeps;
   peerDependencies?: PackageDeps;
   private?: boolean;
+  scripts?: Record<string, string>;
   beachball?: BeachballOptions;
   /** Overrides applied during publishing */
   publishConfig?: Pick<

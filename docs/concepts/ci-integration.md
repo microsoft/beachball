@@ -62,7 +62,7 @@ For example, the following script could be used for publishing public scoped pac
 ```json
 {
   "scripts": {
-    "publish:beachball": "beachball publish --access public"
+    "release": "beachball publish --access public"
   }
 }
 ```
@@ -99,7 +99,7 @@ This sample assumes the following:
 - An environment called `release` (set up [as described above](#secrets-github-actions)) with the following secrets:
   - `REPO_PAT`: A GitHub classic personal access token with admin access ([as described above](#generating-a-github-token))
   - `NPM_TOKEN`: An npm token with write access to the package(s) and/or scope(s), such as a [fine-grained token for public npm](#generating-an-npm-token)
-- A repo root `package.json` script `publish:beachball` which runs `beachball publish`
+- A repo root `package.json` script `release` which runs `beachball publish`
 - The build is running on a Linux/Mac agent. (This could be easily adapted to a Windows agent with different syntax in the commands.)
 
 Note that in GitHub Actions, it's easiest to set up authentication if you set `persist-credentials: false` when checking out code.
@@ -141,7 +141,7 @@ steps:
 
   # Pass the token on the command line for publishing
   - name: Publish
-    run: npm run publish:beachball -- --token "$NPM_TOKEN"
+    run: npm run release -- --token "$NPM_TOKEN"
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
@@ -155,7 +155,7 @@ This sample assumes the following:
 - A variable group called `Beachball secrets` (set up [as described above](#secrets-azure-pipelines)) with the following secrets:
   - `GITHUB_PAT`: A GitHub classic personal access token with admin access ([as described above](#generating-a-github-token))
   - `NPM_TOKEN`: An npm token with write access to the package(s) and/or scope(s), such as a [fine-grained token for public npm](#generating-an-npm-token)
-- A repo root `package.json` script `publish:beachball` which runs `beachball publish`
+- A repo root `package.json` script `release` which runs `beachball publish`
 - The build is running on a Linux/Mac agent. (This could be easily adapted to a Windows agent with different syntax in the commands.)
 
 ```yml
@@ -190,7 +190,7 @@ steps:
     name: Set git credentials
 
   # Pass the token on the command line for publishing
-  - script: npm run publish:beachball -- --token "$(NPM_TOKEN)"
+  - script: npm run release -- --token "$(NPM_TOKEN)"
     name: Publish
 ```
 

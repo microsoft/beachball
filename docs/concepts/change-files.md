@@ -60,20 +60,20 @@ $ yarn change --type minor --message "Upgrading React to 16.8.x to use hooks"
 
 Your PR build should include a step that calls `beachball check` to validate that change files are included.
 
-Assuming you've defined the `check` wrapper script suggested on the [installation page](../overview/installation), add a step to your PR build as follows.
+Assuming you've defined the `checkchange` wrapper script suggested on the [installation page](../overview/installation), add a step to your PR build as follows.
 
 ```yml
 # For GitHub Actions:
 ### With npm:
-- run: npm run check
+- run: npm run checkchange
 ### With yarn:
-- run: yarn check
+- run: yarn checkchange
 
 # For Azure Pipelines:
 ### With npm:
-- script: npm run check
+- script: npm run checkchange
 ### With yarn:
-- script: yarn check
+- script: yarn checkchange
 ```
 
 An alternative if desired is to define a separate required workflow/pipeline which skips the main install step and only runs `npx beachball check`. This has the advantage of providing faster validation and not blocking the main PR build (and hiding any later build/test/lint errors) simply for missing change files.

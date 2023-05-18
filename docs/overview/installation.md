@@ -12,6 +12,12 @@ The primary way to use `beachball` is by installing it as a `devDependency` and 
 
 > Note: In a monorepo, `beachball` should be installed at and run from the repo root only.
 
+### Automatic setup
+
+Run `npx beachball init` to automatically run the steps outlined below.
+
+### Manual setup
+
 To get started, install `beachball` as a `devDependency`:
 
 ```bash
@@ -30,8 +36,8 @@ After that, add some scripts to call `beachball` commands:
 {
   "scripts": {
     "change": "beachball change",
-    "check": "beachball check",
-    "publish:beachball": "beachball publish"
+    "checkchange": "beachball check",
+    "release": "beachball publish"
   }
 }
 ```
