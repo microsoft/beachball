@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "return true for valid group options",
+  "packageName": "beachball",
+  "email": "aeun@microsoft.com",
+  "dependentChangeType": "patch"
+}
