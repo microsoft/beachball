@@ -19,6 +19,8 @@ export function isValidGroupOptions(groups: VersionGroupOptions[]) {
     );
     return false;
   }
+
+  return true;
 }
 
 /** Validate per-package beachball options are valid for packages in groups */
