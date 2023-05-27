@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 18 May 2023 08:06:52 GMT and should not be manually modified.
+This log was last generated on Sat, 27 May 2023 08:02:27 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.33.3
+
+Sat, 27 May 2023 08:02:27 GMT
+
+### Patches
+
+- Fix validation bug that caused beachball to always exit with an error (and add return types to all functions) (elcraig@microsoft.com)
 
 ## 2.33.2
 

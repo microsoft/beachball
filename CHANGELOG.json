@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 27 May 2023 08:02:27 GMT",
+      "tag": "beachball_v2.33.3",
+      "version": "2.33.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "8d587c9f4afe57d4e203f0d5111790df2f494cff",
+            "comment": "Fix validation bug that caused beachball to always exit with an error (and add return types to all functions)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 18 May 2023 08:06:52 GMT",
       "tag": "beachball_v2.33.2",
       "version": "2.33.2",

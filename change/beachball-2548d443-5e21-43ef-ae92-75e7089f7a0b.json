@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix validation bug that caused beachball to always exit with an error (and add return types to all functions)",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
