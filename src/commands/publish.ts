@@ -8,7 +8,7 @@ import { publishToRegistry } from '../publish/publishToRegistry';
 import { getNewPackages } from '../publish/getNewPackages';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 
-export async function publish(options: BeachballOptions) {
+export async function publish(options: BeachballOptions): Promise<void> {
   console.log('\nPreparing to publish');
 
   const { path: cwd, branch, registry, tag } = options;

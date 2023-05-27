@@ -8,7 +8,7 @@ import { PackageInfos, PackageJson } from '../types/PackageInfo';
 import { findProjectRoot } from 'workspace-tools';
 import { npm } from '../packageManager/npm';
 
-export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos) {
+export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos): void {
   for (const pkgName of modifiedPackages) {
     const info = packageInfos[pkgName];
     if (!fs.existsSync(info.packageJsonPath)) {
@@ -43,7 +43,7 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
 /**
  * If `package-lock.json` exists, runs `npm install --package-lock-only` to update it.
  */
-export function updatePackageLock(cwd: string) {
+export function updatePackageLock(cwd: string): void {
   const root = findProjectRoot(cwd);
   if (root && fs.existsSync(path.join(root, 'package-lock.json'))) {
     console.log('Updating package-lock.json after bumping packages');
@@ -59,7 +59,7 @@ export function updatePackageLock(cwd: string) {
  *
  * deletes change files, update package.json, and changelogs
  */
-export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions) {
+export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions): Promise<BumpInfo> {
   const { modifiedPackages, packageInfos, changeFileChangeInfos, dependentChangedBy, calculatedChangeTypes } = bumpInfo;
 
   await callHook('prebump', bumpInfo, options);
@@ -79,13 +79,14 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
 
   await callHook('postbump', bumpInfo, options);
 
+  // This is returned from bump() for testing
   return bumpInfo;
 }
 
 /**
  * Calls a specified hook for each package being bumped
  */
-async function callHook(hookName: keyof HooksOptions, bumpInfo: BumpInfo, options: BeachballOptions) {
+async function callHook(hookName: keyof HooksOptions, bumpInfo: BumpInfo, options: BeachballOptions): Promise<void> {
   const hook = options.hooks?.[hookName];
   if (!hook) {
     return;

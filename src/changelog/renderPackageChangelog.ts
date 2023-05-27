@@ -49,10 +49,7 @@ async function _renderChangeTypeSection(
     : '';
 }
 
-async function _renderChangeTypeHeader(
-  changeType: ChangeType,
-  renderInfo: PackageChangelogRenderInfo
-): Promise<string> {
+async function _renderChangeTypeHeader(changeType: ChangeType): Promise<string> {
   return `### ${groupNames[changeType]}`;
 }
 

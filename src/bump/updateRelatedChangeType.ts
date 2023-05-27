@@ -22,7 +22,7 @@ import { ChangeType } from '../types/ChangeInfo';
  *
  * Inputs from bumpInfo are listed in the [^1] below in the function body
  */
-export function updateRelatedChangeType(changeFile: string, bumpInfo: BumpInfo, bumpDeps: boolean) {
+export function updateRelatedChangeType(changeFile: string, bumpInfo: BumpInfo, bumpDeps: boolean): void {
   /** [^1]: all the information needed from `bumpInfo` */
   const { calculatedChangeTypes, packageGroups, dependents, packageInfos, groupOptions } = bumpInfo;
 
@@ -100,7 +100,7 @@ export function updateRelatedChangeType(changeFile: string, bumpInfo: BumpInfo, 
     }
   }
 
-  function updateChangeType(pkg: string, changeType: ChangeType, disallowedChangeTypes: ChangeType[]) {
+  function updateChangeType(pkg: string, changeType: ChangeType, disallowedChangeTypes: ChangeType[]): ChangeType {
     const newChangeType = getMaxChangeType(calculatedChangeTypes[pkg], changeType, disallowedChangeTypes);
     calculatedChangeTypes[pkg] = newChangeType;
 

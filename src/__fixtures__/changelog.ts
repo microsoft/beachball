@@ -18,8 +18,11 @@ export function readChangelogJson(packagePath: string, cleanForSnapshot: boolean
   return cleanForSnapshot ? cleanChangelogJson(json) : json;
 }
 
-/** Clean changelog json for a snapshot: replace dates and SHAs with placeholders */
-export function cleanChangelogJson(changelog: ChangelogJson) {
+/**
+ * Clean changelog json for a snapshot: replace dates and SHAs with placeholders.
+ * Note: this clones the changelog object rather than modifying the original.
+ */
+export function cleanChangelogJson(changelog: ChangelogJson): ChangelogJson {
   changelog = _.cloneDeep(changelog);
   // for a better snapshot, make the fake commit match if the real commit did
   const fakeCommits: { [commit: string]: string } = {};

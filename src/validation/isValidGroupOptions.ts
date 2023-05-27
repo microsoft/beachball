@@ -2,7 +2,7 @@ import { formatList, singleLineStringify } from '../logging/format';
 import { VersionGroupOptions } from '../types/BeachballOptions';
 import { PackageGroups, PackageInfos } from '../types/PackageInfo';
 
-export function isValidGroupOptions(groups: VersionGroupOptions[]) {
+export function isValidGroupOptions(groups: VersionGroupOptions[]): boolean {
   // Values that violate types could happen in a user-provided object
   if (!Array.isArray(groups)) {
     console.error(
@@ -19,10 +19,12 @@ export function isValidGroupOptions(groups: VersionGroupOptions[]) {
     );
     return false;
   }
+
+  return true;
 }
 
 /** Validate per-package beachball options are valid for packages in groups */
-export function isValidGroupedPackageOptions(packageInfos: PackageInfos, packageGroups: PackageGroups) {
+export function isValidGroupedPackageOptions(packageInfos: PackageInfos, packageGroups: PackageGroups): boolean {
   const errorPackages: string[] = [];
 
   // make sure no disallowed change type options exist inside an individual package

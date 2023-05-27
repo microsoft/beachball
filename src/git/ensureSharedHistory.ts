@@ -11,7 +11,7 @@ import { gitFetch } from './fetch';
  */
 export function ensureSharedHistory(
   options: Pick<BeachballOptions, 'fetch' | 'path' | 'branch' | 'depth' | 'verbose'>
-) {
+): void {
   const { fetch, path: cwd, branch, depth, verbose } = options;
   // `branch` should *usually* include a remote, but it's not guaranteed (see doc comment).
   // `remote` is the remote name (e.g. "origin") or "" if `branch` was missing a remote.
@@ -101,7 +101,7 @@ function deepenHistory(params: {
   depth: number | undefined;
   cwd: string;
   verbose?: boolean;
-}) {
+}): boolean {
   const { remote, remoteBranch, branch, cwd, verbose } = params;
   const depth = params.depth || 100;
 
@@ -135,7 +135,12 @@ function deepenHistory(params: {
   return hasCommonCommit(branch, cwd);
 }
 
-function logError(error: 'missing-branch' | 'shallow-clone', branch: string, remote: string, remoteBranch: string) {
+function logError(
+  error: 'missing-branch' | 'shallow-clone',
+  branch: string,
+  remote: string,
+  remoteBranch: string
+): void {
   let mainError: string;
   let mitigationSteps: string;
 
@@ -170,15 +175,15 @@ ${mitigationSteps}
 `);
 }
 
-function hasBranchRef(branch: string, cwd: string) {
+function hasBranchRef(branch: string, cwd: string): boolean {
   return git(['rev-parse', '--verify', branch], { cwd }).success;
 }
 
-function isShallowRepository(cwd: string) {
+function isShallowRepository(cwd: string): boolean {
   return git(['rev-parse', '--is-shallow-repository'], { cwd }).stdout.trim() === 'true';
 }
 
 /** Returns whether `branch` and HEAD have a common commit anywhere in their history */
-function hasCommonCommit(branch: string, cwd: string) {
+function hasCommonCommit(branch: string, cwd: string): boolean {
   return git(['merge-base', branch, 'HEAD'], { cwd }).success;
 }

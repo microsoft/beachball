@@ -1,9 +1,9 @@
-export function showVersion() {
+export function showVersion(): void {
   const packageJson = require('../package.json');
   console.log(`beachball v${packageJson.version} - the sunniest version bumping tool`);
 }
 
-export function showHelp() {
+export function showHelp(): void {
   showVersion();
 
   console.log(`Prerequisites:

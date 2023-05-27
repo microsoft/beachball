@@ -15,10 +15,8 @@ export function getPackageChangelogs(
     [pkg: string]: PackageInfo;
   },
   cwd: string
-) {
-  const changelogs: {
-    [pkgName: string]: PackageChangelog;
-  } = {};
+): { [pkgName: string]: PackageChangelog } {
+  const changelogs: { [pkgName: string]: PackageChangelog } = {};
 
   const changeFileCommits: { [changeFile: string]: string } = {};
   const changePath = getChangePath(cwd);
@@ -33,8 +31,8 @@ export function getPackageChangelogs(
       changeFileCommits[changeFile] = getFileAddedHash(path.join(changePath, changeFile), cwd) || 'not available';
     }
 
-    changelogs[packageName].comments = changelogs[packageName].comments || {};
-    changelogs[packageName].comments[changeType] = changelogs[packageName].comments[changeType] || [];
+    changelogs[packageName].comments ??= {};
+    changelogs[packageName].comments[changeType] ??= [];
     changelogs[packageName].comments[changeType]!.push({
       author: change.email,
       package: packageName,
@@ -60,8 +58,8 @@ export function getPackageChangelogs(
 
     const changeType = calculatedChangeTypes[dependent];
 
-    changelogs[dependent].comments = changelogs[dependent].comments || {};
-    changelogs[dependent].comments[changeType] = changelogs[dependent].comments[changeType] || [];
+    changelogs[dependent].comments ??= {};
+    changelogs[dependent].comments[changeType] ??= [];
 
     for (const dep of changedBy) {
       if (dep !== dependent) {
@@ -78,7 +76,7 @@ export function getPackageChangelogs(
   return changelogs;
 }
 
-function createChangeLog(packageInfo: PackageInfo) {
+function createChangeLog(packageInfo: PackageInfo): PackageChangelog {
   const name = packageInfo.name;
   const version = packageInfo.version;
   return {

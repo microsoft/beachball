@@ -14,7 +14,7 @@ const verbose = true;
 /**
  * Bump versions locally, commit, optionally tag, and push to git.
  */
-export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: BeachballOptions) {
+export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: BeachballOptions): Promise<void> {
   const { path: cwd, branch, depth, gitTimeout } = options;
   const { remote, remoteBranch } = parseRemoteBranch(branch);
 
@@ -88,7 +88,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
 async function mergePublishBranch(
   publishBranch: string,
   options: Pick<BeachballOptions, 'branch' | 'hooks' | 'message' | 'path'>
-) {
+): Promise<boolean> {
   await options.hooks?.precommit?.(options.path);
 
   console.log(`\nMerging ${publishBranch} into ${options.branch}...`);

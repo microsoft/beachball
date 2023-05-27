@@ -14,7 +14,7 @@ const acceptedKeys = [
 ] as const;
 const workspacePrefix = 'workspace:';
 
-export function performPublishOverrides(packagesToPublish: string[], packageInfos: PackageInfos) {
+export function performPublishOverrides(packagesToPublish: string[], packageInfos: PackageInfos): void {
   for (const pkgName of packagesToPublish) {
     const info = packageInfos[pkgName];
     const packageJson = fs.readJSONSync(info.packageJsonPath);
@@ -26,7 +26,7 @@ export function performPublishOverrides(packagesToPublish: string[], packageInfo
   }
 }
 
-function performPublishConfigOverrides(packageJson: PackageJson) {
+function performPublishConfigOverrides(packageJson: PackageJson): void {
   // Everything in publishConfig in accepted keys here will get overridden & removed from the publishConfig section
   if (packageJson.publishConfig) {
     for (const [k, value] of Object.entries(packageJson.publishConfig)) {
@@ -45,7 +45,7 @@ function performPublishConfigOverrides(packageJson: PackageJson) {
  * handle this replacement for us, but as of this time publishing only happens via npm, which can't do this
  * replacement.
  */
-function performWorkspaceVersionOverrides(packageJson: PackageJson, packageInfos: PackageInfos) {
+function performWorkspaceVersionOverrides(packageJson: PackageJson, packageInfos: PackageInfos): void {
   const { dependencies, devDependencies, peerDependencies } = packageJson;
   for (const deps of [dependencies, devDependencies, peerDependencies]) {
     if (!deps) continue;

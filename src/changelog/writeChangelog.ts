@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import _ from 'lodash';
-import { PackageInfo } from '../types/PackageInfo';
+import { PackageInfo, PackageInfos } from '../types/PackageInfo';
 import { getPackageChangelogs } from './getPackageChangelogs';
 import { renderChangelog } from './renderChangelog';
 import { renderJsonChangelog } from './renderJsonChangelog';
@@ -17,9 +17,7 @@ export async function writeChangelog(
   changeFileChangeInfos: ChangeSet,
   calculatedChangeTypes: BumpInfo['calculatedChangeTypes'],
   dependentChangedBy: BumpInfo['dependentChangedBy'],
-  packageInfos: {
-    [pkg: string]: PackageInfo;
-  }
+  packageInfos: PackageInfos
 ): Promise<void> {
   const groupedChangelogPaths = await writeGroupedChangelog(
     options,
@@ -52,9 +50,7 @@ async function writeGroupedChangelog(
   options: BeachballOptions,
   changeFileChangeInfos: ChangeSet,
   calculatedChangeTypes: BumpInfo['calculatedChangeTypes'],
-  packageInfos: {
-    [pkg: string]: PackageInfo;
-  }
+  packageInfos: PackageInfos
 ): Promise<string[]> {
   if (!options.changelog) {
     return [];
@@ -91,13 +87,10 @@ async function writeGroupedChangelog(
 
       const isInGroup = isPathIncluded(relativePath, group.include, group.exclude);
       if (isInGroup) {
-        if (!groupedChangelogs[changelogPath]) {
-          groupedChangelogs[changelogPath] = {
-            changelogs: [],
-            masterPackage,
-          };
-        }
-
+        groupedChangelogs[changelogPath] ??= {
+          changelogs: [],
+          masterPackage,
+        };
         groupedChangelogs[changelogPath].changelogs.push(changelogs[pkg]);
       }
     }

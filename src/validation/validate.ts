@@ -29,7 +29,10 @@ type ValidationOptions = {
   allowMissingChangeFiles?: boolean;
 };
 
-export function validate(options: BeachballOptions, validateOptions?: Partial<ValidationOptions>) {
+export function validate(
+  options: BeachballOptions,
+  validateOptions?: Partial<ValidationOptions>
+): { isChangeNeeded: boolean } {
   const { allowMissingChangeFiles = false, allowFetching = true } = validateOptions || {};
 
   console.log('\nValidating options and change files...');

@@ -10,7 +10,7 @@ import { toposortPackages } from './toposortPackages';
  * based on the dependency graph to ensure they're published in the correct order, and any
  * new/modified packages that will be skipped (and why) are logged to the console.
  */
-export function getPackagesToPublish(bumpInfo: BumpInfo, validationMode?: boolean) {
+export function getPackagesToPublish(bumpInfo: BumpInfo, validationMode?: boolean): string[] {
   const { modifiedPackages, newPackages, packageInfos } = bumpInfo;
 
   let packages = [...modifiedPackages, ...newPackages];
