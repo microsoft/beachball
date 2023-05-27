@@ -3,7 +3,7 @@ import path from 'path';
 import { getNpmAuthArgs, npmAsync } from './npm';
 import { NpmOptions } from '../types/NpmOptions';
 
-export function packagePublish(packageInfo: PackageInfo, options: NpmOptions) {
+export function packagePublish(packageInfo: PackageInfo, options: NpmOptions): ReturnType<typeof npmAsync> {
   const { registry, token, authType, access, timeout } = options;
   const packageOptions = packageInfo.combinedOptions;
   const packagePath = path.dirname(packageInfo.packageJsonPath);

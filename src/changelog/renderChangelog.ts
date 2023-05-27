@@ -1,4 +1,3 @@
-import { PackageChangelog } from '../types/ChangeLog';
 import { renderPackageChangelog, defaultRenderers } from './renderPackageChangelog';
 import { ChangelogOptions, PackageChangelogRenderInfo } from '../types/ChangelogOptions';
 
@@ -46,7 +45,8 @@ export async function renderChangelog(renderOptions: MarkdownChangelogRenderOpti
 
     return (
       [
-        renderChangelogHeader(newVersionChangelog),
+        `# Change Log - ${newVersionChangelog.name}`,
+        `This log was last generated on ${newVersionChangelog.date.toUTCString()} and should not be manually modified.`,
         markerComment,
         await (customRenderPackageChangelog || renderPackageChangelog)(renderInfo),
         previousLogEntries,
@@ -58,11 +58,4 @@ export async function renderChangelog(renderOptions: MarkdownChangelogRenderOpti
     console.log('Error occurred rendering package version changelog:', err);
     return '';
   }
-}
-
-function renderChangelogHeader(changelog: PackageChangelog): string {
-  return (
-    `# Change Log - ${changelog.name}\n\n` +
-    `This log was last generated on ${changelog.date.toUTCString()} and should not be manually modified.`
-  );
 }

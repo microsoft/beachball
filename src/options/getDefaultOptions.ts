@@ -1,7 +1,11 @@
 import { env } from '../env';
 import { BeachballOptions } from '../types/BeachballOptions';
 
-export function getDefaultOptions() {
+/**
+ * Default options.
+ * Note that as of writing, this does not actually set values for all "required" BeachballOptions.
+ */
+export function getDefaultOptions(): BeachballOptions {
   return {
     access: 'restricted',
     all: false,

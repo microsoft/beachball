@@ -4,20 +4,21 @@ import { PackageInfo } from '../types/PackageInfo';
 import { NpmOptions } from '../types/NpmOptions';
 import { env } from '../env';
 
-let packageVersionsCache: {
-  [pkgName: string]: {
-    versions?: string[];
-    'dist-tags'?: Record<string, string>;
-  };
-} = {};
+// More properties can be added as needed
+type NpmRegistryPackage = {
+  versions?: string[];
+  'dist-tags'?: Record<string, string>;
+};
+
+let packageVersionsCache: { [pkgName: string]: NpmRegistryPackage } = {};
 
 const NPM_CONCURRENCY = env.isJest ? 2 : 5;
 
-export async function _clearPackageVersionsCache() {
+export function _clearPackageVersionsCache(): void {
   packageVersionsCache = {};
 }
 
-async function getNpmPackageInfo(packageName: string, options: NpmOptions) {
+async function getNpmPackageInfo(packageName: string, options: NpmOptions): Promise<NpmRegistryPackage> {
   const { registry, token, authType, timeout } = options;
 
   if (env.beachballDisableCache || !packageVersionsCache[packageName]) {
@@ -40,7 +41,7 @@ export async function listPackageVersionsByTag(
   packageInfos: PackageInfo[],
   tag: string | undefined,
   options: NpmOptions
-) {
+): Promise<{ [pkg: string]: string | undefined }> {
   const limit = pLimit(NPM_CONCURRENCY);
   const versions: { [pkg: string]: string | undefined } = {};
 
@@ -57,7 +58,10 @@ export async function listPackageVersionsByTag(
   return versions;
 }
 
-export async function listPackageVersions(packageList: string[], options: NpmOptions) {
+export async function listPackageVersions(
+  packageList: string[],
+  options: NpmOptions
+): Promise<{ [pkg: string]: string[] }> {
   const limit = pLimit(NPM_CONCURRENCY);
   const versions: { [pkg: string]: string[] } = {};
 

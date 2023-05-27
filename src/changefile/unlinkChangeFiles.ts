@@ -15,7 +15,7 @@ export function unlinkChangeFiles(
     [pkg: string]: PackageInfo;
   },
   cwd: string
-) {
+): void {
   const changePath = getChangePath(cwd);
   if (!changeSet || !changeSet.length) {
     return;

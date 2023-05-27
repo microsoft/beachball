@@ -14,7 +14,11 @@ export type PartialChangeFile = { packageName: string } & Partial<ChangeFileInfo
  * @param cwd Working directory
  * @param groupChanges Whether to group all changes into one change file.
  */
-export function generateChangeFiles(changes: (string | PartialChangeFile)[], cwd: string, groupChanges?: boolean) {
+export function generateChangeFiles(
+  changes: (string | PartialChangeFile)[],
+  cwd: string,
+  groupChanges?: boolean
+): void {
   writeChangeFiles({
     changes: changes.map(change => {
       change = typeof change === 'string' ? { packageName: change } : change;

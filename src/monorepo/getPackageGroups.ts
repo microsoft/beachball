@@ -3,7 +3,11 @@ import path from 'path';
 import { PackageInfos, PackageGroups } from '../types/PackageInfo';
 import { isPathIncluded } from './isPathIncluded';
 
-export function getPackageGroups(packageInfos: PackageInfos, root: string, groups: VersionGroupOptions[] | undefined) {
+export function getPackageGroups(
+  packageInfos: PackageInfos,
+  root: string,
+  groups: VersionGroupOptions[] | undefined
+): PackageGroups {
   if (!groups?.length) {
     return {};
   }

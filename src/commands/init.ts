@@ -5,7 +5,7 @@ import { findProjectRoot } from 'workspace-tools';
 import { npm } from '../packageManager/npm';
 import { PackageJson } from '../types/PackageInfo';
 
-function errorExit(message: string) {
+function errorExit(message: string): void {
   console.error(message);
   console.log(
     'You can still set up beachball manually by following the instructions here: https://microsoft.github.io/beachball/overview/getting-started.html'
@@ -13,7 +13,7 @@ function errorExit(message: string) {
   process.exit(1);
 }
 
-export async function init(options: BeachballOptions) {
+export async function init(options: BeachballOptions): Promise<void> {
   let root: string;
   try {
     root = findProjectRoot(options.path);

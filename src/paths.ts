@@ -7,7 +7,7 @@ export const changeFolder = 'change';
 /**
  * Get the absolute path to the folder containing beachball change files.
  */
-export function getChangePath(cwd: string) {
+export function getChangePath(cwd: string): string {
   const root = findProjectRoot(cwd);
   return path.join(root, changeFolder);
 }

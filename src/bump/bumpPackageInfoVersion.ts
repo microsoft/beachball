@@ -5,7 +5,7 @@ import { BeachballOptions } from '../types/BeachballOptions';
 /**
  * Bumps an individual package version based on the change type
  */
-export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo, options: BeachballOptions) {
+export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo, options: BeachballOptions): void {
   const { calculatedChangeTypes, packageInfos, modifiedPackages } = bumpInfo;
   const info = packageInfos[pkgName];
   const changeType = calculatedChangeTypes[pkgName];

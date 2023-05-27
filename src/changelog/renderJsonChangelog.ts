@@ -1,7 +1,10 @@
 import { generateTag } from '../git/generateTag';
 import { PackageChangelog, ChangelogJson, ChangelogJsonEntry } from '../types/ChangeLog';
 
-export function renderJsonChangelog(changelog: PackageChangelog, previousChangelog: ChangelogJson | undefined) {
+export function renderJsonChangelog(
+  changelog: PackageChangelog,
+  previousChangelog: ChangelogJson | undefined
+): ChangelogJson {
   const result: ChangelogJson = {
     name: changelog.name,
     entries: previousChangelog?.entries ? [...previousChangelog.entries] : [],

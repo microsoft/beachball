@@ -11,7 +11,7 @@ import { setDependentVersions } from './setDependentVersions';
  *
  * NOTE: THIS FUNCTION MUTATES STATE!
  */
-export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
+export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions): void {
   const { bumpDeps } = options;
   const { packageInfos, scopedPackages, calculatedChangeTypes, changeFileChangeInfos, modifiedPackages } = bumpInfo;
 
@@ -51,6 +51,4 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions) {
   // step 4: Bump all the dependencies packages
   bumpInfo.dependentChangedBy = setDependentVersions(packageInfos, scopedPackages, options);
   Object.keys(bumpInfo.dependentChangedBy).forEach(pkg => modifiedPackages.add(pkg));
-
-  return bumpInfo;
 }

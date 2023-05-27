@@ -9,12 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
  * Loops through the `changes` and writes out a list of change files
  * @returns List of changefile paths, mainly for testing purposes.
  */
-export function writeChangeFiles({
-  changes,
-  cwd,
-  commitChangeFiles = true,
-  groupChanges = false,
-}: {
+export function writeChangeFiles(params: {
   changes: ChangeFileInfo[];
   cwd: string;
   /** default true */
@@ -22,6 +17,7 @@ export function writeChangeFiles({
   /** group all changes into one change file (default false) */
   groupChanges?: boolean;
 }): string[] {
+  const { changes, cwd, commitChangeFiles = true, groupChanges = false } = params;
   const changePath = getChangePath(cwd);
   const branchName = getBranchName(cwd);
 

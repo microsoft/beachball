@@ -11,7 +11,7 @@ import { performPublishOverrides } from './performPublishOverrides';
 import { PackageInfo } from '../types/PackageInfo';
 import { getPackagesToPublish } from './getPackagesToPublish';
 
-export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions) {
+export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions): Promise<void> {
   const bumpInfo = _.cloneDeep(originalBumpInfo);
 
   if (options.bump) {
@@ -69,7 +69,7 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   }
 }
 
-async function tryPublishPackage(packageInfo: PackageInfo, options: BeachballOptions) {
+async function tryPublishPackage(packageInfo: PackageInfo, options: BeachballOptions): Promise<boolean> {
   const pkg = packageInfo.name;
   console.log(`\nPublishing - ${pkg}@${packageInfo.version} with tag ${packageInfo.combinedOptions.tag}.`);
 

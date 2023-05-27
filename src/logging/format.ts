@@ -1,5 +1,5 @@
 /** Format strings as a bulleted list with line breaks */
-export function formatList(items: string[]) {
+export function formatList(items: string[]): string {
   return items.map(item => `- ${item}`).join('\n');
 }
 
@@ -7,6 +7,6 @@ export function formatList(items: string[]) {
  * Format an object on a single line with spaces between the properties and brackets
  * (similar to `JSON.stringify(obj, null, 2)` but without the line breaks).
  */
-export function singleLineStringify(obj: any) {
+export function singleLineStringify(obj: any): string {
   return JSON.stringify(obj, null, 2).replace(/\n\s*/g, ' ');
 }

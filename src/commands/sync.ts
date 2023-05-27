@@ -6,7 +6,7 @@ import semver from 'semver';
 import { setDependentVersions } from '../bump/setDependentVersions';
 import { writePackageJson, updatePackageLock } from '../bump/performBump';
 
-export async function sync(options: BeachballOptions) {
+export async function sync(options: BeachballOptions): Promise<void> {
   const packageInfos = getPackageInfos(options.path);
   const scopedPackages = new Set(getScopedPackages(options, packageInfos));
 

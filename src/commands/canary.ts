@@ -7,7 +7,7 @@ import { listPackageVersions } from '../packageManager/listPackageVersions';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import { BeachballOptions } from '../types/BeachballOptions';
 
-export async function canary(options: BeachballOptions) {
+export async function canary(options: BeachballOptions): Promise<void> {
   const oldPackageInfo = getPackageInfos(options.path);
 
   const bumpInfo = gatherBumpInfo(options, oldPackageInfo);

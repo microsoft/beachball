@@ -26,7 +26,7 @@ export function getPackageInfos(cwd: string): PackageInfos {
   );
 }
 
-function getPackageInfosFromWorkspace(projectRoot: string) {
+function getPackageInfosFromWorkspace(projectRoot: string): PackageInfos | undefined {
   let workspacePackages: WorkspaceInfo | undefined;
   try {
     // first try using the workspace provided packages (if available)
@@ -55,7 +55,7 @@ function getPackageInfosFromWorkspace(projectRoot: string) {
   return packageInfos;
 }
 
-function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string) {
+function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string): PackageInfos | undefined {
   const packageJsonFiles = listAllTrackedFiles(['**/package.json', 'package.json'], projectRoot);
   if (!packageJsonFiles.length) {
     return;
@@ -93,7 +93,7 @@ function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string) {
   return packageInfos;
 }
 
-function getPackageInfosFromSingleRepo(packageRoot: string) {
+function getPackageInfosFromSingleRepo(packageRoot: string): PackageInfos {
   const packageInfos: PackageInfos = {};
   const packageJsonFullPath = path.resolve(packageRoot, 'package.json');
   const packageJson = fs.readJSONSync(packageJsonFullPath);

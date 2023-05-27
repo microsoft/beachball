@@ -1,6 +1,6 @@
 import semver from 'semver';
 
-export function bumpMinSemverRange(minVersion: string, semverRange: string) {
+export function bumpMinSemverRange(minVersion: string, semverRange: string): string {
   if (semverRange === '*') {
     return semverRange;
   }

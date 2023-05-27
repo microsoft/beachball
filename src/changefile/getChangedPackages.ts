@@ -15,7 +15,7 @@ function getMatchingPackageInfo(
   file: string,
   cwd: string,
   packageInfosByPath: { [packageAbsNormalizedPath: string]: PackageInfo }
-) {
+): PackageInfo | undefined {
   // Normalize all the paths before comparing (the packageInfosByPath entries should also be normalized)
   // to ensure ensure that this doesn't break on Windows if any input paths have forward slashes
   cwd = path.normalize(cwd);
@@ -103,7 +103,7 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
 /**
  * Gets all the changed packages, accounting for change files
  */
-export function getChangedPackages(options: BeachballOptions, packageInfos: PackageInfos) {
+export function getChangedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
   const { path: cwd, branch } = options;
 
   const changePath = getChangePath(cwd);

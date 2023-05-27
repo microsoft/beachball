@@ -5,7 +5,7 @@ import { NpmOptions } from '../types/NpmOptions';
 export async function getNewPackages(
   bumpInfo: Pick<BumpInfo, 'modifiedPackages' | 'packageInfos'>,
   options: NpmOptions
-) {
+): Promise<string[]> {
   const { modifiedPackages, packageInfos } = bumpInfo;
 
   const newPackages = Object.keys(packageInfos).filter(pkg => !modifiedPackages.has(pkg) && !packageInfos[pkg].private);

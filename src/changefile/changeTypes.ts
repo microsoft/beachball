@@ -20,7 +20,7 @@ const ChangeTypeWeights = Object.fromEntries(SortedChangeTypes.map((t, i) => [t,
  * Get initial package change types based on the greatest change type set for each package in any
  * change file, accounting for any disallowed change types or nonexistent packages.
  */
-export function initializePackageChangeTypes(changeSet: ChangeSet) {
+export function initializePackageChangeTypes(changeSet: ChangeSet): { [pkgName: string]: ChangeType } {
   const pkgChangeTypes: { [pkgName: string]: ChangeType } = {};
 
   for (const { change } of changeSet) {
@@ -49,7 +49,7 @@ function getAllowedChangeType(changeType: ChangeType, disallowedChangeTypes: Cha
  * e.g. if `a` is "major" and `b` is "patch", and "major" is disallowed, the result will be "minor"
  * (the greatest allowed change type).
  */
-export function getMaxChangeType(a: ChangeType, b: ChangeType, disallowedChangeTypes: ChangeType[] | null) {
+export function getMaxChangeType(a: ChangeType, b: ChangeType, disallowedChangeTypes: ChangeType[] | null): ChangeType {
   if (disallowedChangeTypes) {
     a = getAllowedChangeType(a, disallowedChangeTypes);
     b = getAllowedChangeType(b, disallowedChangeTypes);
