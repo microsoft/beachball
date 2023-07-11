@@ -41,16 +41,19 @@ export async function listPackageVersionsByTag(
   packageInfos: PackageInfo[],
   tag: string | undefined,
   options: NpmOptions
-): Promise<{ [pkg: string]: string | undefined }> {
+): Promise<{ [pkg: string]: string }> {
   const limit = pLimit(NPM_CONCURRENCY);
-  const versions: { [pkg: string]: string | undefined } = {};
+  const versions: { [pkg: string]: string } = {};
 
   await Promise.all(
     packageInfos.map(pkg =>
       limit(async () => {
         const info = await getNpmPackageInfo(pkg.name, options);
         const npmTag = tag || pkg.combinedOptions.tag || pkg.combinedOptions.defaultNpmTag;
-        versions[pkg.name] = (npmTag && info['dist-tags']?.[npmTag]) || undefined;
+        const version = npmTag && info['dist-tags']?.[npmTag];
+        if (version) {
+          versions[pkg.name] = version;
+        }
       })
     )
   );

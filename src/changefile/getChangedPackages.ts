@@ -32,15 +32,48 @@ function getMatchingPackageInfo(
   return undefined;
 }
 
+/** Determines whether the package is publishable based on private flags and scopedPackages */
+function isPackagePublishable(
+  packageInfo: PackageInfo | undefined,
+  scopedPackages: string[]
+): { result: boolean; reason: string } {
+  const reason = !packageInfo
+    ? 'no corresponding package found'
+    : packageInfo.private
+    ? `${packageInfo.name} is private`
+    : packageInfo.combinedOptions.shouldPublish === false
+    ? `${packageInfo.name} has beachball.shouldPublish=false`
+    : !scopedPackages.includes(packageInfo.name)
+    ? `${packageInfo.name} is out of scope`
+    : ''; // not ignored
+
+  return { result: !reason, reason };
+}
+
 /**
- * Gets all the changed package names, regardless of the change files
+ * Gets all the changed package names, regardless of the change files.
+ * If `options.all` is set, returns all the packages in scope, regardless of whether they've changed.
  */
 function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
-  const { branch, path: cwd, verbose } = options;
+  const { branch, path: cwd, verbose, all } = options;
 
   const verboseLog = (msg: string) => verbose && console.log(msg);
   const logIgnored = (file: string, reason: string) => verboseLog(`  - ~~${file}~~ (${reason})`);
   const logIncluded = (file: string) => verboseLog(`  - ${file}`);
+
+  const scopedPackages = getScopedPackages(options, packageInfos);
+
+  // If --all is set, return all the packages in scope rather than looking at which files changed
+  if (all) {
+    verboseLog('--all option was provided, so including all packages that are in scope (regardless of changes)');
+    return Object.values(packageInfos)
+      .filter(pkg => {
+        const { result, reason } = isPackagePublishable(pkg, scopedPackages);
+        verboseLog(result ? `  - ${pkg.name}` : `  - ~~${pkg.name}~~ (${reason.replace(`${pkg.name} `, '')})`);
+        return result;
+      })
+      .map(pkg => pkg.name);
+  }
 
   const changes = [...(getChanges(branch, cwd) || []), ...(getStagedChanges(cwd) || [])];
   verboseLog(`Found ${count(changes.length, 'changed file')} in branch "${branch}" (before filtering)`);
@@ -66,7 +99,6 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
   // and whether that package is in scope and not private
   const includedPackages = new Set<string>();
   let fileCount = 0;
-  const scopedPackages = getScopedPackages(options, packageInfos);
   const packageInfosByPath: { [packageAbsNormalizedPath: string]: PackageInfo } = {};
   for (const info of Object.values(packageInfos)) {
     packageInfosByPath[path.normalize(path.dirname(info.packageJsonPath))] = info;
@@ -74,18 +106,10 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
   for (const moddedFile of nonIgnoredChanges) {
     const packageInfo = getMatchingPackageInfo(moddedFile, cwd, packageInfosByPath);
 
-    const omitReason = !packageInfo
-      ? 'no corresponding package found'
-      : packageInfo.private
-      ? `${packageInfo.name} is private`
-      : packageInfo.combinedOptions.shouldPublish === false
-      ? `${packageInfo.name} has beachball.shouldPublish=false`
-      : !scopedPackages.includes(packageInfo.name)
-      ? `${packageInfo.name} is out of scope`
-      : ''; // not ignored
+    const { result, reason } = isPackagePublishable(packageInfo, scopedPackages);
 
-    if (omitReason) {
-      logIgnored(moddedFile, omitReason);
+    if (!result) {
+      logIgnored(moddedFile, reason);
     } else {
       includedPackages.add(packageInfo!.name);
       fileCount++;
@@ -101,7 +125,7 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
 }
 
 /**
- * Gets all the changed packages, accounting for change files
+ * Gets all the changed packages which do not already have a change file
  */
 export function getChangedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
   const { path: cwd, branch } = options;
