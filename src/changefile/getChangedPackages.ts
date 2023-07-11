@@ -32,11 +32,14 @@ function getMatchingPackageInfo(
   return undefined;
 }
 
-/** Determines whether the package is publishable based on private flags and scopedPackages */
-function isPackagePublishable(
+/**
+ * Determines whether the package is included in the list of potentially-changed published packages,
+ * based on private flags and scopedPackages.
+ */
+function isPackageIncluded(
   packageInfo: PackageInfo | undefined,
   scopedPackages: string[]
-): { result: boolean; reason: string } {
+): { isIncluded: boolean; reason: string } {
   const reason = !packageInfo
     ? 'no corresponding package found'
     : packageInfo.private
@@ -47,7 +50,7 @@ function isPackagePublishable(
     ? `${packageInfo.name} is out of scope`
     : ''; // not ignored
 
-  return { result: !reason, reason };
+  return { isIncluded: !reason, reason };
 }
 
 /**
@@ -68,9 +71,9 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
     verboseLog('--all option was provided, so including all packages that are in scope (regardless of changes)');
     return Object.values(packageInfos)
       .filter(pkg => {
-        const { result, reason } = isPackagePublishable(pkg, scopedPackages);
-        verboseLog(result ? `  - ${pkg.name}` : `  - ~~${pkg.name}~~ (${reason.replace(`${pkg.name} `, '')})`);
-        return result;
+        const { isIncluded, reason } = isPackageIncluded(pkg, scopedPackages);
+        verboseLog(isIncluded ? `  - ${pkg.name}` : `  - ~~${pkg.name}~~ (${reason.replace(`${pkg.name} `, '')})`);
+        return isIncluded;
       })
       .map(pkg => pkg.name);
   }
@@ -106,9 +109,9 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
   for (const moddedFile of nonIgnoredChanges) {
     const packageInfo = getMatchingPackageInfo(moddedFile, cwd, packageInfosByPath);
 
-    const { result, reason } = isPackagePublishable(packageInfo, scopedPackages);
+    const { isIncluded, reason } = isPackageIncluded(packageInfo, scopedPackages);
 
-    if (!result) {
+    if (!isIncluded) {
       logIgnored(moddedFile, reason);
     } else {
       includedPackages.add(packageInfo!.name);
