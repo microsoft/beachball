@@ -16,7 +16,15 @@ $ beachball change
 
 ### Options
 
-See the [options page](./options).
+Some [general options](./options) including `--branch` also apply for this command.
+
+| Option        | Alias | Default              | Description                                                                       |
+| ------------- | ----- | -------------------- | --------------------------------------------------------------------------------- |
+| `--all`       |       | false                | Generate change files for all packages                                            |
+| `--message`   | `-m`  | (interactive prompt) | Description for all change files                                                  |
+| `--no-commit` |       | false                | Stage the change file rather than committing                                      |
+| `--package`   |       | (changed packages)   | Generate change files for these packages (option can be specified multiple times) |
+| `--type`      |       | (interactive prompt) | Type for all the change files (must be valid for each package)                    |
 
 ### Walkthrough
 
@@ -31,28 +39,34 @@ There are uncommitted changes in your repository. Please commit these files firs
 
 Make sure to commit _all_ changes before proceeding with the `change` command.
 
-Now we'll commit the changes we made and run `beachball change` again:
+After committing, run `beachball change`:
 
 ```
 $ beachball change
-Defaults to "origin/master"
-Checking for changes against "origin/master"
 
-Please describe the changes for: single
-? Describe changes (type or choose one) ›
-adding a new file
+Validating options and change files...
+Checking for changes against "origin/main"
+Found changes in the following packages:
+  some-pkg
 ```
 
-First, it will ask for a **description** of the change. You can enter any text, but `beachball` will also provide a list of recent commit messages to choose from.
+For each package, the prompt will start by asking for a **change type**. If this change has no impact on the published package (e.g. fixing a typo in a comment or updating a test), choose "none."
+
+```
+Please describe the changes for: some-pkg
+? Change type › - Use arrow-keys. Return to submit.
+❯ Patch - bug fixes; no backwards incompatible changes.
+  Minor - small feature; backwards compatible changes.
+  None - this change does not affect the published package in any way.
+  Major - major feature; breaking changes.
+```
+
+Next, it asks for a **description** of the change. You can type any text or choose from a list of recent commit messages.
 
 > Tip: These descriptions will be collated into a changelog when the change is published by `beachball publish`, so think about how to describe your change in a way that's helpful and relevant for consumers of the package.
 
-Next, the form will ask for a change **type**. This should be chosen based on [semantic versioning rules](https://semver.org/) because it determines how to update the package version. If the change doesn't affect the published package at all (e.g. you just updated some comments), choose `none`.
-
-```bash
-? Change type › - Use arrow-keys. Return to submit.
-❯  Patch - bug fixes; no backwards incompatible changes.
-   Minor - small feature; backwards compatible changes.
-   None - this change does not affect the published package in any way.
-   Major - major feature; breaking changes.
+```
+Please describe the changes for: some-pkg
+? Describe changes (type or choose one) ›
+adding a new file
 ```

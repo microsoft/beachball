@@ -13,19 +13,14 @@ For the latest full list of supported options, see `CliOptions` [in this file](h
 
 These apply to most CLI commands.
 
-| Option     | Alias      | Default           | Description               |
-| ---------- | ---------- | ----------------- | ------------------------- |
-| `--branch` | `-b`       | `'origin/master'` | target branch from origin |
-| `--help`   | `-?`, `-h` |                   | show help message         |
+| Option       | Alias | Default                                                                      | Description               |
+| ------------ | ----- | ---------------------------------------------------------------------------- | ------------------------- |
+| `--branch`   | `-b`  | Detected default branch in default remote, falling back to `'origin/master'` | target branch from origin |
+| `--no-fetch` |       |                                                                              | Disable fetching          |
 
-## Change options
+## `change` options
 
-These options are applicable to the `change` command.
-
-| Option      | Alias | Default              | Description                                                    |
-| ----------- | ----- | -------------------- | -------------------------------------------------------------- |
-| `--message` | `-m`  | (interactive prompt) | Description for all change files                               |
-| `--type`    |       | (interactive prompt) | Type for all the change files (must be valid for each package) |
+See the [`change` page](./change).
 
 ## Bumping and publishing options
 
