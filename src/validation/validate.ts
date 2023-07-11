@@ -60,7 +60,9 @@ export function validate(
 
   const packageInfos = getPackageInfos(options.path);
 
-  if (typeof options.package === 'string' && !packageInfos[options.package]) {
+  if (options.all && options.package) {
+    logValidationError('Cannot specify both "all" and "package" options');
+  } else if (typeof options.package === 'string' && !packageInfos[options.package]) {
     logValidationError(`package "${options.package}" was not found`);
   } else {
     const invalidPackages = Array.isArray(options.package)
