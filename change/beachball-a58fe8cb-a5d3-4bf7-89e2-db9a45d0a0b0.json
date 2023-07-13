@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Slightly refactor internal npm args logic",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
