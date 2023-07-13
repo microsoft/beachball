@@ -1,8 +1,22 @@
 # Change Log - beachball
 
-This log was last generated on Sat, 27 May 2023 08:02:27 GMT and should not be manually modified.
+This log was last generated on Thu, 13 Jul 2023 08:04:00 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.34.0
+
+Thu, 13 Jul 2023 08:04:00 GMT
+
+### Minor changes
+
+- Add --all option for `change` command (elcraig@microsoft.com)
+
+### Patches
+
+- Update to typescript 4.5 (elcraig@microsoft.com)
+- Run all npm commands async (elcraig@microsoft.com)
+- Slightly refactor internal npm args logic (elcraig@microsoft.com)
 
 ## 2.33.3
 

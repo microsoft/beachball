@@ -2,6 +2,41 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 13 Jul 2023 08:04:00 GMT",
+      "tag": "beachball_v2.34.0",
+      "version": "2.34.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "8dd65ddd8fab8ba6d3c8a37e994571e91b49bbba",
+            "comment": "Update to typescript 4.5"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "1f5136d127acb70e3b2f763dbda5bc3321bfe791",
+            "comment": "Run all npm commands async"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "bc5908c82f55843e7b0f76957ab83650480dab6c",
+            "comment": "Slightly refactor internal npm args logic"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "73d3558a8e540988d8ea34e30122fea706145da5",
+            "comment": "Add --all option for `change` command"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 27 May 2023 08:02:27 GMT",
       "tag": "beachball_v2.33.3",
       "version": "2.33.3",

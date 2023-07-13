@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Run all npm commands async",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
