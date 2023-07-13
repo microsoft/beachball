@@ -192,4 +192,13 @@ describe('getChangedPackages', () => {
     expect(changedPackagesB).toStrictEqual([]);
     expect(changedPackagesRoot).toStrictEqual(['@workspace-a/foo']);
   });
+
+  it('returns all packages with --all option', () => {
+    repositoryFactory = new RepositoryFactory('monorepo');
+    const repo = repositoryFactory.cloneRepository();
+    const options = { all: true, fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
+    const packageInfos = getPackageInfos(repo.rootPath);
+
+    expect(getChangedPackages(options, packageInfos).sort()).toStrictEqual(['a', 'b', 'bar', 'baz', 'foo']);
+  });
 });

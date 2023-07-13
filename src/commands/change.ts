@@ -7,8 +7,7 @@ import { getChangedPackages } from '../changefile/getChangedPackages';
 import { getPackageGroups } from '../monorepo/getPackageGroups';
 
 export async function change(options: BeachballOptions): Promise<void> {
-  const { branch, path: cwd } = options;
-  const { package: specificPackage } = options;
+  const { branch, path: cwd, package: specificPackage } = options;
 
   const packageInfos = getPackageInfos(cwd);
   const packageGroups = getPackageGroups(packageInfos, cwd, options.groups);
