@@ -34,6 +34,6 @@ export function toposortPackages(packages: string[], packageInfos: PackageInfos)
   try {
     return toposort(dependencyGraph).filter((pkg): pkg is string => !!pkg);
   } catch (err) {
-    throw new Error(`Failed to topologically sort packages: ${err?.message}`);
+    throw new Error(`Failed to topologically sort packages: ${(err as Error)?.message}`);
   }
 }
