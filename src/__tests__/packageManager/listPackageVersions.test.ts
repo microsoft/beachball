@@ -6,14 +6,14 @@ import {
   _clearPackageVersionsCache,
 } from '../../packageManager/listPackageVersions';
 import { NpmOptions } from '../../types/NpmOptions';
-import { initNpmAsyncMock } from '../../__fixtures__/mockNpm';
+import { initNpmMock } from '../../__fixtures__/mockNpm';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 jest.mock('../../packageManager/npm');
 
 describe('list npm versions', () => {
   /** Mock the `npm show` command for `npmAsync` calls. This also handles cleanup after each test. */
-  const npmMock = initNpmAsyncMock();
+  const npmMock = initNpmMock();
   const npmOptions: NpmOptions = { registry: 'https://fake' };
 
   afterEach(() => {

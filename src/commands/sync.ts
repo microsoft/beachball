@@ -34,5 +34,5 @@ export async function sync(options: BeachballOptions): Promise<void> {
   Object.keys(dependentModifiedPackages).forEach(pkg => modifiedPackages.add(pkg));
 
   writePackageJson(modifiedPackages, packageInfos);
-  updatePackageLock(options.path);
+  await updatePackageLock(options.path);
 }

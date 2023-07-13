@@ -1,22 +1,23 @@
 import { afterAll, afterEach, beforeAll, jest } from '@jest/globals';
-import { npmAsync } from '../packageManager/npm';
-
-type NpmShowResult = {
-  versions?: string[];
-  'dist-tags'?: Record<string, string>;
-};
+import { NpmShowResult } from '../packageManager/listPackageVersions';
+import { npm, NpmResult } from '../packageManager/npm';
 
 /** Mapping from package name to value to return from npm show */
-type NpmShowMockData = Record<string, NpmShowResult>;
+type NpmShowMockData = Record<string, Partial<NpmShowResult>>;
 
 /**
- * Mock the `npm show` command for `npmAsync` calls.
+ * Mock the `npm show` command for `npm` calls.
  * Other commands could potentially be mocked in the future.
+ *
+ * This should be called at the top level of tests because it handles its own setup/teardown
+ * (and resetting between tests) using lifecycle functions.
  */
-export function initNpmAsyncMock() {
-  const npmSpy = npmAsync as jest.MockedFunction<typeof npmAsync>;
+export function initNpmMock() {
+  const npmSpy = npm as jest.MockedFunction<typeof npm>;
   if (!npmSpy.mock) {
-    throw new Error('npmAsync() is not currently mocked');
+    throw new Error(
+      'npm() is not currently mocked (you must call jest.mock() for <pathTo>/packageManager/npm in your test)'
+    );
   }
 
   let showData: NpmShowMockData | undefined;
@@ -30,7 +31,7 @@ export function initNpmAsyncMock() {
       const data = showData[packageName];
       const stdout = data ? JSON.stringify(data) : '';
 
-      return Promise.resolve({ stdout, success: !!data }) as ReturnType<typeof npmAsync>;
+      return Promise.resolve({ stdout, success: !!data } as NpmResult);
     });
   });
 

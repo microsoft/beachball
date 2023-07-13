@@ -3,15 +3,15 @@ import { _clearPackageVersionsCache } from '../../packageManager/listPackageVers
 import { validatePackageVersions } from '../../publish/validatePackageVersions';
 import { NpmOptions } from '../../types/NpmOptions';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { initNpmAsyncMock } from '../../__fixtures__/mockNpm';
+import { initNpmMock } from '../../__fixtures__/mockNpm';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 jest.mock('../../packageManager/npm');
 
 describe('validatePackageVersions', () => {
   const logs = initMockLogs();
-  /** Mock the `npm show` command for `npmAsync` calls. This also handles cleanup after each test. */
-  const npmMock = initNpmAsyncMock();
+  /** Mock the `npm show` command. This also handles cleanup after each test. */
+  const npmMock = initNpmMock();
   const npmOptions = {} as NpmOptions;
 
   afterEach(() => {

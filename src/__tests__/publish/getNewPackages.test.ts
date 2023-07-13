@@ -4,7 +4,7 @@ import { _clearPackageVersionsCache } from '../../packageManager/listPackageVers
 import { getNewPackages } from '../../publish/getNewPackages';
 import { NpmOptions } from '../../types/NpmOptions';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { initNpmAsyncMock } from '../../__fixtures__/mockNpm';
+import { initNpmMock } from '../../__fixtures__/mockNpm';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 jest.mock('../../packageManager/npm');
@@ -12,7 +12,7 @@ jest.mock('../../packageManager/npm');
 describe('getNewPackages', () => {
   const logs = initMockLogs();
   /** Mock the `npm show` command for `npmAsync` calls. This also handles cleanup after each test. */
-  const npmMock = initNpmAsyncMock();
+  const npmMock = initNpmMock();
   const npmOptions = {} as NpmOptions;
 
   afterEach(() => {
