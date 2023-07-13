@@ -43,11 +43,11 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
 /**
  * If `package-lock.json` exists, runs `npm install --package-lock-only` to update it.
  */
-export function updatePackageLock(cwd: string): void {
+export async function updatePackageLock(cwd: string): Promise<void> {
   const root = findProjectRoot(cwd);
   if (root && fs.existsSync(path.join(root, 'package-lock.json'))) {
     console.log('Updating package-lock.json after bumping packages');
-    const res = npm(['install', '--package-lock-only', '--ignore-scripts'], { stdio: 'inherit' });
+    const res = await npm(['install', '--package-lock-only', '--ignore-scripts'], { stdio: 'inherit' });
     if (!res.success) {
       console.warn('Updating package-lock.json failed. Continuing...');
     }
@@ -65,7 +65,7 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
   await callHook('prebump', bumpInfo, options);
 
   writePackageJson(modifiedPackages, packageInfos);
-  updatePackageLock(options.path);
+  await updatePackageLock(options.path);
 
   if (options.generateChangelog) {
     // Generate changelog

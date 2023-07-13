@@ -65,9 +65,9 @@ describe('publish command (registry)', () => {
 
     await publish(getOptions(repo, { package: 'foo' }));
 
-    const show = npmShow(registry, 'foo')!;
-    expect(show.name).toEqual('foo');
-    expect(show.versions).toHaveLength(1);
+    const publishedPackage = (await npmShow('foo', { registry }))!;
+    expect(publishedPackage.name).toEqual('foo');
+    expect(publishedPackage.versions).toHaveLength(1);
   });
 
   it('can perform a successful npm publish even with private packages', async () => {
@@ -87,7 +87,7 @@ describe('publish command (registry)', () => {
 
     await publish(getOptions(repo, { package: 'foopkg' }));
 
-    npmShow(registry, 'foopkg', true /*shouldFail*/);
+    await npmShow('foopkg', { registry, shouldFail: true });
   });
 
   it('can perform a successful npm publish when multiple packages changed at same time', async () => {
@@ -107,10 +107,10 @@ describe('publish command (registry)', () => {
 
     await publish(getOptions(repo, { package: 'foopkg' }));
 
-    const showFoo = npmShow(registry, 'foopkg')!;
+    const showFoo = (await npmShow('foopkg', { registry }))!;
     expect(showFoo['dist-tags'].latest).toEqual('1.1.0');
 
-    const showBar = npmShow(registry, 'barpkg')!;
+    const showBar = (await npmShow('barpkg', { registry }))!;
     expect(showBar['dist-tags'].latest).toEqual('1.1.0');
   });
 
@@ -131,7 +131,7 @@ describe('publish command (registry)', () => {
 
     await publish(getOptions(repo, { package: 'foopkg' }));
 
-    npmShow(registry, 'badname', true /*shouldFail*/);
+    await npmShow('badname', { registry, shouldFail: true });
   });
 
   it('should exit publishing early if only invalid change files exist', async () => {
@@ -152,7 +152,7 @@ describe('publish command (registry)', () => {
       expect.stringContaining('Change detected for nonexistent package fake')
     );
 
-    npmShow(registry, 'fake', true /*shouldFail*/);
+    await npmShow('fake', { registry, shouldFail: true });
   });
 
   it('will perform retries', async () => {

@@ -1,17 +1,22 @@
 import pLimit from 'p-limit';
-import { PackageInfo } from '../types/PackageInfo';
+import { PackageInfo, PackageJson } from '../types/PackageInfo';
 import { NpmOptions } from '../types/NpmOptions';
 import { env } from '../env';
-import { npmAsync } from './npm';
+import { npm } from './npm';
 import { getNpmAuthArgs } from './npmArgs';
 
-// More properties can be added as needed
-type NpmRegistryPackage = {
-  versions?: string[];
-  'dist-tags'?: Record<string, string>;
+/**
+ * Result returned by `npm show --json <package>`.
+ * (More properties can be added as needed.)
+ */
+export type NpmShowResult = PackageJson & {
+  /** All versions of a package */
+  versions: string[];
+  /** Mapping from package dist-tag to version */
+  'dist-tags': Record<string, string>;
 };
 
-let packageVersionsCache: { [pkgName: string]: NpmRegistryPackage } = {};
+let packageVersionsCache: { [pkgName: string]: NpmShowResult | false } = {};
 
 const NPM_CONCURRENCY = env.isJest ? 2 : 5;
 
@@ -19,19 +24,19 @@ export function _clearPackageVersionsCache(): void {
   packageVersionsCache = {};
 }
 
-async function getNpmPackageInfo(packageName: string, options: NpmOptions): Promise<NpmRegistryPackage> {
+async function getNpmPackageInfo(packageName: string, options: NpmOptions): Promise<NpmShowResult | false> {
   const { registry, token, authType, timeout } = options;
 
   if (env.beachballDisableCache || !packageVersionsCache[packageName]) {
     const args = ['show', '--registry', registry, '--json', packageName, ...getNpmAuthArgs(registry, token, authType)];
 
-    const showResult = await npmAsync(args, { timeout });
+    const showResult = await npm(args, { timeout });
 
     if (showResult.success && showResult.stdout !== '') {
       const packageInfo = JSON.parse(showResult.stdout);
       packageVersionsCache[packageName] = packageInfo;
     } else {
-      packageVersionsCache[packageName] = {};
+      packageVersionsCache[packageName] = false;
     }
   }
 
@@ -50,10 +55,12 @@ export async function listPackageVersionsByTag(
     packageInfos.map(pkg =>
       limit(async () => {
         const info = await getNpmPackageInfo(pkg.name, options);
-        const npmTag = tag || pkg.combinedOptions.tag || pkg.combinedOptions.defaultNpmTag;
-        const version = npmTag && info['dist-tags']?.[npmTag];
-        if (version) {
-          versions[pkg.name] = version;
+        if (info) {
+          const npmTag = tag || pkg.combinedOptions.tag || pkg.combinedOptions.defaultNpmTag;
+          const version = npmTag && info['dist-tags']?.[npmTag];
+          if (version) {
+            versions[pkg.name] = version;
+          }
         }
       })
     )
@@ -73,7 +80,7 @@ export async function listPackageVersions(
     packageList.map(pkg =>
       limit(async () => {
         const info = await getNpmPackageInfo(pkg, options);
-        versions[pkg] = info?.versions || [];
+        versions[pkg] = (info && info.versions) || [];
       })
     )
   );
