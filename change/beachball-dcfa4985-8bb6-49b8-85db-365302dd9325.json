@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Move workspace publish overrides after prepublish hook execution",
+  "packageName": "beachball",
+  "email": "tronguye@microsoft.com",
+  "dependentChangeType": "patch"
+}
