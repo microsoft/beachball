@@ -34,9 +34,6 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
     process.exit(1);
   }
 
-  // performing publishConfig and workspace version overrides requires this procedure to ONLY be run right before npm publish, but NOT in the git push
-  performPublishOverrides(packagesToPublish, bumpInfo.packageInfos);
-
   // if there is a prepublish hook perform a prepublish pass, calling the routine on each package
   const prepublishHook = options.hooks?.prepublish;
   if (prepublishHook) {
@@ -45,6 +42,9 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
       await prepublishHook(path.dirname(packageInfo.packageJsonPath), packageInfo.name, packageInfo.version);
     }
   }
+
+  // performing publishConfig and workspace version overrides requires this procedure to ONLY be run right before npm publish, but NOT in the git push
+  performPublishOverrides(packagesToPublish, bumpInfo.packageInfos);
 
   // finally pass through doing the actual npm publish command
   const succeededPackages = new Set<string>();
