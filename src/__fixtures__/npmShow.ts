@@ -12,7 +12,7 @@ import { Registry } from './registry';
  */
 export async function npmShow(
   packageName: string,
-  options: { registry: Registry; shouldFail?: boolean }
+  options: { registry?: Registry; shouldFail?: boolean } = {}
 ): Promise<NpmShowResult | undefined> {
   const { registry, shouldFail } = options;
 

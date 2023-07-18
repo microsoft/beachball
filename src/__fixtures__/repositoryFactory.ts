@@ -7,6 +7,7 @@ import { tmpdir } from './tmpdir';
 import { gitFailFast } from 'workspace-tools';
 import { setDefaultBranchName } from './gitDefaults';
 import { env } from '../env';
+import _ from 'lodash';
 
 /**
  * Standard fixture options. See {@link getSinglePackageFixture}, {@link getMonorepoFixture} and
@@ -50,6 +51,18 @@ export type RepoFixture = {
 
   /** Description to include in the temp folder name */
   tempDescription?: string;
+};
+
+/** Repo fixture with all required props filled out */
+type FullRepoFixture = Required<Pick<RepoFixture, 'rootPackage'>> & {
+  /**
+   * Mapping from package parent folder to package folder names inside it.
+   * Will be an empty object for a single package repo fixture.
+   */
+  folders: {
+    // These packages have names filled out
+    [folder: string]: { [packageName: string]: PackageJson };
+  };
 };
 
 function getSinglePackageFixture(): RepoFixture {
@@ -128,14 +141,14 @@ export class RepositoryFactory {
    * Primary fixture for the test *(do not use for multi-workspace)*.
    * This is public to potentially reduce hardcoded values (such as versions) in tests.
    */
-  public readonly fixture: RepoFixture;
+  public readonly fixture: FullRepoFixture;
 
   /**
    * Mapping from parent folder to fixture repo (only relevant for multi-workspace).
    * Paths within each fixture will be relative to `parentFolder`.
    * For a single-repo or single monorepo fixture, its `parentFolder` will be `'.'`.
    */
-  public readonly fixtures: { [parentFolder: string]: RepoFixture };
+  public readonly fixtures: { [parentFolder: string]: FullRepoFixture };
 
   /** Root directory hosting the origin repository */
   private root?: string;
@@ -152,18 +165,23 @@ export class RepositoryFactory {
    * (Note that there's currently no way to create a custom multi-workspace fixture,
    * because that hasn't been needed so far.)
    */
-  constructor(fixture: FixtureType | RepoFixture) {
-    this.fixtures = {};
-    if (fixture === 'multi-workspace') {
-      this.fixtures = getMultiWorkspaceFixture();
-      this.fixture = this.fixtures['workspace-a'];
+  constructor(fixtureParam: FixtureType | RepoFixture) {
+    let initialFixtures: { [parentFolder: string]: RepoFixture };
+    if (fixtureParam === 'multi-workspace') {
+      initialFixtures = getMultiWorkspaceFixture();
     } else {
-      this.fixture =
-        fixture === 'single' ? getSinglePackageFixture() : fixture === 'monorepo' ? getMonorepoFixture() : fixture;
-      this.fixtures['.'] = this.fixture;
+      initialFixtures = {
+        '.':
+          fixtureParam === 'single'
+            ? getSinglePackageFixture()
+            : fixtureParam === 'monorepo'
+            ? getMonorepoFixture()
+            : // Clone the user-provided fixture so it's safe to modify
+              _.cloneDeep(fixtureParam),
+      };
     }
 
-    this.tempDescription = typeof fixture === 'string' ? fixture : fixture.tempDescription || 'custom';
+    this.tempDescription = typeof fixtureParam === 'string' ? fixtureParam : fixtureParam.tempDescription || 'custom';
 
     // Init the "origin" repo. This repo must be "bare" (has .git but no working directory) because
     // we'll be pushing to and pulling from it, which would cause the working directory and the
@@ -178,41 +196,50 @@ export class RepositoryFactory {
     const tmpRepo = new Repository(this.root);
     tmpRepo.commitChange('README');
 
-    // Create the fixture files.
+    // Create the fixture files and save the full fixture objects.
     // The files are committed all together at the end to speed things up.
-    for (const [parentFolder, fixture] of Object.entries(this.fixtures)) {
-      const { rootPackage, folders } = fixture;
-      const jsonOptions = { spaces: 2 };
-
-      if (!folders && !rootPackage) {
+    this.fixtures = {};
+    for (let [parentFolder, fixture] of Object.entries(initialFixtures)) {
+      if (!fixture.folders && !fixture.rootPackage) {
         throw new Error('`fixtures` must define `rootPackage` and/or `folders`');
       }
 
       fs.ensureDirSync(tmpRepo.pathTo(parentFolder));
 
-      // create the root package.json
-      const finalRootPackage: RootPackageJsonFixture = {
-        ...(rootPackage || getMonorepoRootPackage()),
+      // fill out the root package and an empty folders object if not provided
+      const rootPackage = fixture.rootPackage || getMonorepoRootPackage();
+      const folders = fixture.folders || {};
+      // cast is because any missing package names will be filled out later
+      this.fixtures[parentFolder] = { rootPackage, folders: folders as FullRepoFixture['folders'] };
+
+      // fill in workspaces if there are sub-folders
+      const folderNames = Object.keys(folders);
+      if (folderNames.length) {
         // these paths are relative to THIS workspace and should not include the parent folder
-        ...(folders && { workspaces: Object.keys(folders).map(folder => `${folder}/*`) }),
-      };
-      fs.writeJSONSync(tmpRepo.pathTo(parentFolder, 'package.json'), finalRootPackage, jsonOptions);
+        rootPackage.workspaces = folderNames.map(folder => `${folder}/*`);
+      }
+      // create the root package.json
+      fs.writeJSONSync(tmpRepo.pathTo(parentFolder, 'package.json'), rootPackage, { spaces: 2 });
 
       // create the lock file
       // (an option could be added to disable or customize this in the future if needed)
       fs.writeFileSync(tmpRepo.pathTo(parentFolder, 'yarn.lock'), '');
 
       // create the packages
-      for (const [folder, contents] of Object.entries(folders || {})) {
+      for (const [folder, contents] of Object.entries(folders)) {
         for (const [name, packageJson] of Object.entries(contents)) {
+          // save the name if not already set
+          packageJson.name ??= name;
           const pkgFolder = tmpRepo.pathTo(parentFolder, folder, name);
           fs.ensureDirSync(pkgFolder);
-          fs.writeJSONSync(path.join(pkgFolder, 'package.json'), { name, ...packageJson }, jsonOptions);
+          fs.writeJSONSync(path.join(pkgFolder, 'package.json'), packageJson, { spaces: 2 });
         }
       }
 
       tmpRepo.commitAll(`committing fixture ${parentFolder}`);
     }
+
+    this.fixture = this.fixtures['.'] || Object.values(this.fixtures)[0];
 
     tmpRepo.push();
     tmpRepo.cleanUp();

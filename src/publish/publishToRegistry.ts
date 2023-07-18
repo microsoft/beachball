@@ -7,7 +7,6 @@ import { validatePackageVersions } from './validatePackageVersions';
 import { displayManualRecovery } from './displayManualRecovery';
 import { validatePackageDependencies } from './validatePackageDependencies';
 import { performPublishOverrides } from './performPublishOverrides';
-import { PackageInfo } from '../types/PackageInfo';
 import { getPackagesToPublish } from './getPackagesToPublish';
 import { callHook } from '../bump/callHook';
 
@@ -47,8 +46,8 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   const succeededPackages = new Set<string>();
 
   for (const pkg of packagesToPublish) {
-    const success = await tryPublishPackage(bumpInfo.packageInfos[pkg], options);
-    if (success) {
+    const result = await packagePublish(bumpInfo.packageInfos[pkg], options);
+    if (result.success) {
       succeededPackages.add(pkg);
     } else {
       displayManualRecovery(bumpInfo, succeededPackages);
@@ -58,43 +57,4 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
 
   // if there is a postpublish hook perform a postpublish pass, calling the routine on each package
   await callHook(options.hooks?.postpublish, packagesToPublish, bumpInfo.packageInfos);
-}
-
-async function tryPublishPackage(packageInfo: PackageInfo, options: BeachballOptions): Promise<boolean> {
-  const pkg = packageInfo.name;
-  console.log(`\nPublishing - ${pkg}@${packageInfo.version} with tag ${packageInfo.combinedOptions.tag}.`);
-
-  // Unclear whether `options.retries` should be interpreted as "X attempts" or "initial attempt + X retries"...
-  // It was previously implemented as the latter, so keep that for now.
-  let retries = 0;
-
-  do {
-    const result = await packagePublish(packageInfo, options);
-
-    if (result.success) {
-      console.log('Published!');
-      return true;
-    }
-
-    retries++;
-
-    const hasAuthError = result.all!.includes('ENEEDAUTH');
-    const failedMessage = `Publishing "${pkg}" failed${hasAuthError ? ' due to auth error' : ''}:\n\n` + result.all;
-
-    if (hasAuthError) {
-      console.error(failedMessage);
-      // If there's an auth error, future tries are also unlikely to succeed
-      return false;
-    }
-
-    if (retries <= options.retries) {
-      // has retries left (not a fatal error)
-      console.log(failedMessage + `\n\nRetrying... (${retries}/${options.retries})`);
-    } else {
-      // out of retries
-      console.error(failedMessage);
-    }
-  } while (retries <= options.retries);
-
-  return false;
 }

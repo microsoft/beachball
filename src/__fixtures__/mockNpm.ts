@@ -27,13 +27,22 @@ type PartialRegistryData = Record<string, Partial<NpmPackageVersionsData>>;
  * @param args Command line args, *excluding* the command name
  * @param opts Command line options, notably `cwd` for publish
  */
-type MockNpmCommand = (registryData: MockNpmRegistry, args: string[], opts: Parameters<typeof npm>[1]) => NpmResult;
+type MockNpmCommand = (
+  registryData: MockNpmRegistry,
+  args: string[],
+  opts: Parameters<typeof npm>[1]
+) => Pick<NpmResult, 'stdout' | 'stderr' | 'all' | 'success' | 'failed'>;
 
 export type NpmMock = {
   /**
    * Mocked `npm()` function.
    */
   mock: jest.MockedFunction<typeof npm>;
+  /**
+   * Publish this package version to the mock registry (without needing to read from the filesystem
+   * or properly structure the data for `setRegistryData`). This will throw on error.
+   */
+  publishPackage: (packageJson: PackageJson, tag?: string) => void;
   /**
    * Set a temporary override for a specific mock npm command.
    * This will be reset after each test.
@@ -42,9 +51,8 @@ export type NpmMock = {
   /**
    * Set registry data as a mapping from package name to package data.
    *
-   * This should be used for tests covering only the `show` command.
-   * For tests also covering `publish`, it's better to call the mocked npm publish command
-   * to add package versions to ensure all relevant data is included.
+   * This is mainly intended for tests covering the `show` command or simple publishing scenarios.
+   * For more complex scenarios, it's better to use `publishPackage` to add package versions.
    */
   setRegistryData: (registryData: PartialRegistryData) => void;
 };
@@ -80,7 +88,7 @@ export function initNpmMock(): NpmMock {
       if (!func) {
         throw new Error(`Command not supported by mock npm: ${command}`);
       }
-      return func(registryData, args, opts);
+      return func(registryData, args, opts) as NpmResult;
     });
   });
 
@@ -96,6 +104,9 @@ export function initNpmMock(): NpmMock {
 
   return {
     mock: npmMock,
+    publishPackage: (packageJson, tag = 'latest') => {
+      mockPublishPackage(registryData, packageJson, tag);
+    },
     setCommandOverride: (command, override) => {
       overrideMocks[command] = override;
     },
@@ -184,29 +195,31 @@ export const _mockNpmPublish: MockNpmCommand = (registryData, args: string[], op
   // Read package.json from cwd to find the published package name and version.
   // (If this fails, let the exception propagate for easier debugging.)
   const packageJson = fs.readJsonSync(path.join(opts.cwd, 'package.json')) as PackageJson;
+
+  const tag = args.includes('--tag') ? args[args.indexOf('--tag') + 1] : 'latest';
+
+  try {
+    const stdout = mockPublishPackage(registryData, packageJson, tag);
+    return { stdout, stderr: '', all: stdout, success: true, failed: false };
+  } catch (err) {
+    const stderr = (err as Error).message;
+    return { stdout: '', stderr, all: stderr, success: false, failed: true };
+  }
+};
+
+/** Publish a new package version to the mock registry */
+function mockPublishPackage(registryData: MockNpmRegistry, packageJson: PackageJson, tag: string) {
   const { name, version } = packageJson;
 
   if (registryData[name]?.versions?.includes(version)) {
     // note that EPUBLISHCONFLICT matches the actual npm output, but the rest of the message is different
-    const stderr = `[fake] EPUBLISHCONFLICT ${name}@${version} already exists in registry`;
-    return { stdout: '', stderr, all: stderr, success: false, failed: true } as NpmResult;
+    throw new Error(`[fake] EPUBLISHCONFLICT ${name}@${version} already exists in registry`);
   }
-
-  let tag = '';
-  for (let i = 0; !tag && i < args.length; i++) {
-    if (args[i] === '--tag' && i < args.length - 1) {
-      tag = args[i + 1];
-    } else if (args[i].startsWith('--tag=')) {
-      tag = args[i].replace(/^--tag=/, '');
-    }
-  }
-  tag ||= 'latest';
 
   registryData[name] ??= { versions: [], 'dist-tags': {}, versionData: {} };
   registryData[name].versions.push(version);
   registryData[name]['dist-tags'][tag] = version;
   registryData[name].versionData[version] = packageJson;
 
-  const stdout = `[fake] published ${name}@${version} with tag ${tag}`;
-  return { stdout, stderr: '', all: stdout, success: true, failed: false } as NpmResult;
-};
+  return `[fake] published ${name}@${version} with tag ${tag}`;
+}
