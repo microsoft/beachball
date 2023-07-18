@@ -17,7 +17,7 @@ const config = {
   projects: [
     {
       displayName: 'unit',
-      testMatch: ['**/__tests__/**/*.test.ts'],
+      testMatch: ['**/__(tests|fixtures)__/**/*.test.ts'],
       ...commonOptions,
     },
     {
