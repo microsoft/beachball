@@ -77,6 +77,19 @@ export function validate(
     logValidationError(`authType "${options.authType}" is not valid`);
   }
 
+  if (options.command === 'publish' && options.token !== undefined) {
+    if (options.token === '') {
+      logValidationError(
+        'token should not be an empty string. This usually indicates an incorrect variable name ' +
+          'or forgetting to pass a secret into a workflow step.'
+      );
+    } else if (options.token.startsWith('$') && options.authType !== 'password') {
+      logValidationError(
+        `token appears to be a variable reference: "${options.token}" -- please check your workflow configuration.`
+      );
+    }
+  }
+
   if (options.dependentChangeType && !isValidChangeType(options.dependentChangeType)) {
     logValidationError(`dependentChangeType "${options.dependentChangeType}" is not valid`);
   }

@@ -3,10 +3,11 @@ import path from 'path';
 import { unlinkChangeFiles } from '../changefile/unlinkChangeFiles';
 import { writeChangelog } from '../changelog/writeChangelog';
 import { BumpInfo } from '../types/BumpInfo';
-import { BeachballOptions, HooksOptions } from '../types/BeachballOptions';
+import { BeachballOptions } from '../types/BeachballOptions';
 import { PackageInfos, PackageJson } from '../types/PackageInfo';
 import { findProjectRoot } from 'workspace-tools';
 import { npm } from '../packageManager/npm';
+import { callHook } from './callHook';
 
 export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos): void {
   for (const pkgName of modifiedPackages) {
@@ -62,7 +63,7 @@ export async function updatePackageLock(cwd: string): Promise<void> {
 export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions): Promise<BumpInfo> {
   const { modifiedPackages, packageInfos, changeFileChangeInfos, dependentChangedBy, calculatedChangeTypes } = bumpInfo;
 
-  await callHook('prebump', bumpInfo, options);
+  await callHook(options.hooks?.prebump, modifiedPackages, bumpInfo.packageInfos);
 
   writePackageJson(modifiedPackages, packageInfos);
   await updatePackageLock(options.path);
@@ -77,23 +78,8 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
     unlinkChangeFiles(changeFileChangeInfos, packageInfos, options.path);
   }
 
-  await callHook('postbump', bumpInfo, options);
+  await callHook(options.hooks?.postbump, modifiedPackages, bumpInfo.packageInfos);
 
   // This is returned from bump() for testing
   return bumpInfo;
-}
-
-/**
- * Calls a specified hook for each package being bumped
- */
-async function callHook(hookName: keyof HooksOptions, bumpInfo: BumpInfo, options: BeachballOptions): Promise<void> {
-  const hook = options.hooks?.[hookName];
-  if (!hook) {
-    return;
-  }
-
-  for (const packageName of bumpInfo.modifiedPackages) {
-    const packageInfo = bumpInfo.packageInfos[packageName];
-    await hook(path.dirname(packageInfo.packageJsonPath), packageName, packageInfo.version);
-  }
 }

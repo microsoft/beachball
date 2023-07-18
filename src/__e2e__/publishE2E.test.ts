@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeAll, beforeEach, afterAll, afterEach, jest } from '@jest/globals';
+import { describe, expect, it, afterEach, jest } from '@jest/globals';
 import fs from 'fs-extra';
 import path from 'path';
 import { addGitObserver, clearGitObservers } from 'workspace-tools';
@@ -6,15 +6,23 @@ import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { npmShow } from '../__fixtures__/npmShow';
-import { Registry } from '../__fixtures__/registry';
 import { Repository } from '../__fixtures__/repository';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { publish } from '../commands/publish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
+import { initNpmMock } from '../__fixtures__/mockNpm';
+
+// Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
+// this test (packagePublish covers the more complete npm registry scenario).
+//
+// If an issue is found in the future that could only be caught by this test using real npm,
+// a new test file with a real registry should be created to cover that specific scenario.
+jest.mock('../packageManager/npm');
 
 describe('publish command (e2e)', () => {
-  let registry: Registry;
+  initNpmMock();
+
   let repositoryFactory: RepositoryFactory | undefined;
 
   // show error logs for these tests
@@ -24,7 +32,7 @@ describe('publish command (e2e)', () => {
     return {
       ...getDefaultOptions(),
       branch: defaultRemoteBranchName,
-      registry: registry.getUrl(),
+      registry: 'fake',
       path: repo.rootPath,
       command: 'publish',
       message: 'apply package updates',
@@ -34,19 +42,6 @@ describe('publish command (e2e)', () => {
       ...overrides,
     };
   }
-
-  beforeAll(() => {
-    registry = new Registry(__filename);
-    jest.setTimeout(30000);
-  });
-
-  afterAll(() => {
-    registry.stop();
-  });
-
-  beforeEach(async () => {
-    await registry.reset();
-  });
 
   afterEach(() => {
     clearGitObservers();
@@ -67,7 +62,7 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo));
 
-    expect(await npmShow('foo', { registry })).toMatchObject({
+    expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },
@@ -90,7 +85,7 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { push: false }));
 
-    expect(await npmShow('foo', { registry })).toMatchObject({
+    expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },
@@ -123,7 +118,7 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo));
 
-    expect(await npmShow('foo', { registry })).toMatchObject({
+    expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },
@@ -166,7 +161,7 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo));
 
-    expect(await npmShow('foo', { registry })).toMatchObject({
+    expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },
@@ -194,7 +189,7 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { bump: false }));
 
-    expect(await npmShow('foo', { registry })).toMatchObject({
+    expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
       versions: ['1.0.0'],
       'dist-tags': { latest: '1.0.0' },
@@ -215,9 +210,9 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo));
 
-    await npmShow('bar', { registry, shouldFail: true });
+    await npmShow('bar', { shouldFail: true });
 
-    expect(await npmShow('foo', { registry })).toMatchObject({
+    expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },
@@ -241,20 +236,20 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo));
 
-    expect(await npmShow('baz', { registry })).toMatchObject({
+    expect(await npmShow('baz')).toMatchObject({
       name: 'baz',
       versions: ['1.4.0'],
       'dist-tags': { latest: '1.4.0' },
     });
 
-    expect(await npmShow('bar', { registry })).toMatchObject({
+    expect(await npmShow('bar')).toMatchObject({
       name: 'bar',
       versions: ['1.3.5'],
       'dist-tags': { latest: '1.3.5' },
       dependencies: { baz: '^1.4.0' },
     });
 
-    expect(await npmShow('foo', { registry })).toMatchObject({
+    expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
       versions: ['1.0.1'],
       'dist-tags': { latest: '1.0.1' },
@@ -282,8 +277,8 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { new: true }));
 
-    expect(await npmShow('foo', { registry })).toMatchObject({ name: 'foo', versions: ['1.1.0'] });
-    expect(await npmShow('bar', { registry })).toMatchObject({ name: 'bar', versions: ['1.3.4'] });
+    expect(await npmShow('foo')).toMatchObject({ name: 'foo', versions: ['1.1.0'] });
+    expect(await npmShow('bar')).toMatchObject({ name: 'bar', versions: ['1.3.4'] });
 
     repo.checkout(defaultBranchName);
     repo.pull();
@@ -301,11 +296,11 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { scope: ['!packages/foo'] }));
 
-    await npmShow('foo', { registry, shouldFail: true });
+    await npmShow('foo', { shouldFail: true });
 
     expect(repo.getCurrentTags()).toEqual([]);
 
-    expect(await npmShow('bar', { registry })).toMatchObject({
+    expect(await npmShow('bar')).toMatchObject({
       name: 'bar',
       versions: ['1.4.0'],
       'dist-tags': { latest: '1.4.0' },
@@ -342,7 +337,7 @@ describe('publish command (e2e)', () => {
     );
 
     // Query the information from package.json from the registry to see if it was successfully patched
-    const show = (await npmShow('foo', { registry }))!;
+    const show = (await npmShow('foo'))!;
     expect(show.name).toEqual('foo');
     expect(show.main).toEqual('lib/index.js');
     expect(show.hasOwnProperty('onPublish')).toBeFalsy();
@@ -404,7 +399,7 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { fetch: false }));
 
-    expect(await npmShow('foo', { registry })).toMatchObject({
+    expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },
@@ -432,7 +427,7 @@ describe('publish command (e2e)', () => {
 
     await publish(getOptions(repo, { depth: 10 }));
 
-    expect(await npmShow('foo', { registry })).toMatchObject({
+    expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },

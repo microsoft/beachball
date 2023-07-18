@@ -1,22 +1,28 @@
-import { describe, expect, it, beforeAll, afterAll, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, expect, it, afterEach, jest } from '@jest/globals';
 import fs from 'fs-extra';
-import path from 'path';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import { Registry } from '../__fixtures__/registry';
 import { Repository } from '../__fixtures__/repository';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
-import { tmpdir } from '../__fixtures__/tmpdir';
 import { sync } from '../commands/sync';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { infoFromPackageJson } from '../monorepo/infoFromPackageJson';
 import { packagePublish } from '../packageManager/packagePublish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
+import { initNpmMock } from '../__fixtures__/mockNpm';
+
+// Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
+// this test (packagePublish covers the more complete npm registry scenario).
+//
+// If an issue is found in the future that could only be caught by this test using real npm,
+// a new test file with a real registry should be created to cover that specific scenario.
+jest.mock('../packageManager/npm');
 
 describe('sync command (e2e)', () => {
+  const mockNpm = initNpmMock();
+
   let repositoryFactory: RepositoryFactory | undefined;
-  let registry: Registry;
+  const publishOptions: Parameters<typeof packagePublish>[1] = { registry: 'fake', retries: 3 };
   const tempDirs: string[] = [];
 
   initMockLogs();
@@ -24,9 +30,9 @@ describe('sync command (e2e)', () => {
   function getOptions(repo: Repository, overrides?: Partial<BeachballOptions>): BeachballOptions {
     return {
       ...getDefaultOptions(),
+      ...publishOptions,
       branch: defaultRemoteBranchName,
       path: repo.rootPath,
-      registry: registry.getUrl(),
       command: 'sync',
       publish: false,
       bumpDeps: false,
@@ -40,35 +46,6 @@ describe('sync command (e2e)', () => {
       ...overrides,
     };
   }
-
-  function createTempPackage(name: string, version: string, tag: string = 'latest') {
-    const dir = tmpdir();
-    tempDirs.push(dir);
-    const packageJsonFile = path.join(dir, 'package.json');
-    const packageJson: any = {
-      name: name,
-      version: version,
-      beachball: {
-        tag,
-      },
-    };
-
-    fs.writeJSONSync(packageJsonFile, packageJson, { spaces: 2 });
-    return infoFromPackageJson(packageJson, packageJsonFile);
-  }
-
-  beforeAll(() => {
-    registry = new Registry(__filename);
-    jest.setTimeout(30000);
-  });
-
-  afterAll(() => {
-    registry.stop();
-  });
-
-  beforeEach(async () => {
-    await registry.reset();
-  });
 
   afterEach(() => {
     if (repositoryFactory) {
@@ -91,21 +68,15 @@ describe('sync command (e2e)', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
+    // publish initial package versions from the repo
+    mockNpm.publishPackage(repositoryFactory.fixture.folders.packages.foopkg);
+    mockNpm.publishPackage(repositoryFactory.fixture.folders.packages.barpkg);
 
-    expect(
-      (await packagePublish(packageInfosBeforeSync['foopkg'], { registry: registry.getUrl() })).success
-    ).toBeTruthy();
-    expect(
-      (await packagePublish(packageInfosBeforeSync['barpkg'], { registry: registry.getUrl() })).success
-    ).toBeTruthy();
+    // publish newer out-of-sync package versions
+    mockNpm.publishPackage({ name: 'foopkg', version: '1.2.0' });
+    mockNpm.publishPackage({ name: 'barpkg', version: '3.0.0' });
 
-    const newFooInfo = createTempPackage('foopkg', '1.2.0');
-    const newBarInfo = createTempPackage('barpkg', '3.0.0');
-
-    expect((await packagePublish(newFooInfo, { registry: registry.getUrl() })).success).toBeTruthy();
-    expect((await packagePublish(newBarInfo, { registry: registry.getUrl() })).success).toBeTruthy();
-
+    // sync repo to published versions
     await sync(getOptions(repo, { tag: '' }));
 
     const packageInfosAfterSync = getPackageInfos(repo.rootPath);
@@ -127,25 +98,19 @@ describe('sync command (e2e)', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
+    // publish initial package versions from the repo
+    mockNpm.publishPackage(repositoryFactory.fixture.folders.packages.apkg);
+    mockNpm.publishPackage(repositoryFactory.fixture.folders.packages.bpkg);
 
-    expect(
-      (await packagePublish(packageInfosBeforeSync['apkg'], { registry: registry.getUrl() })).success
-    ).toBeTruthy();
-    expect(
-      (await packagePublish(packageInfosBeforeSync['bpkg'], { registry: registry.getUrl() })).success
-    ).toBeTruthy();
-
-    const newFooInfo = createTempPackage('apkg', '2.0.0', 'beta');
-    const newBarInfo = createTempPackage('bpkg', '3.0.0', 'latest');
-
-    expect((await packagePublish(newFooInfo, { registry: registry.getUrl() })).success).toBeTruthy();
-    expect((await packagePublish(newBarInfo, { registry: registry.getUrl() })).success).toBeTruthy();
+    // publish newer out-of-sync package versions, one with a different tag
+    mockNpm.publishPackage({ name: 'apkg', version: '2.0.0' }, 'beta');
+    mockNpm.publishPackage({ name: 'bpkg', version: '3.0.0' });
 
     await sync(getOptions(repo, { tag: 'beta' }));
 
     const packageInfosAfterSync = getPackageInfos(repo.rootPath);
 
+    // apkg should be updated to the new beta tag; others should not be updated
     expect(packageInfosAfterSync['apkg'].version).toEqual('2.0.0');
     expect(packageInfosAfterSync['bpkg'].version).toEqual('2.2.0');
     expect(packageInfosAfterSync['cpkg'].version).toEqual('3.0.0');
@@ -163,25 +128,13 @@ describe('sync command (e2e)', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    const packageInfosBeforeSync = getPackageInfos(repo.rootPath);
+    // publish initial package versions from the repo
+    mockNpm.publishPackage(repositoryFactory.fixture.folders.packages.epkg);
+    mockNpm.publishPackage(repositoryFactory.fixture.folders.packages.fpkg);
 
-    const epkg = packageInfosBeforeSync['epkg'];
-    const fpkg = packageInfosBeforeSync['fpkg'];
-
-    epkg.combinedOptions.tag = 'latest';
-    fpkg.combinedOptions.tag = 'latest';
-
-    expect((await packagePublish(epkg, { registry: registry.getUrl() })).success).toBeTruthy();
-    expect((await packagePublish(fpkg, { registry: registry.getUrl() })).success).toBeTruthy();
-
-    const newFooInfo = createTempPackage('epkg', '1.0.0-1');
-    const newBarInfo = createTempPackage('fpkg', '3.0.0');
-
-    newFooInfo.combinedOptions.tag = 'prerelease';
-    newBarInfo.combinedOptions.tag = 'latest';
-
-    expect((await packagePublish(newFooInfo, { registry: registry.getUrl() })).success).toBeTruthy();
-    expect((await packagePublish(newBarInfo, { registry: registry.getUrl() })).success).toBeTruthy();
+    // publish newer out-of-sync package versions, one with a different tag
+    mockNpm.publishPackage({ name: 'epkg', version: '1.0.0-1' }, 'prerelease');
+    mockNpm.publishPackage({ name: 'fpkg', version: '3.0.0' });
 
     await sync(getOptions(repo, { tag: 'prerelease', forceVersions: true }));
 

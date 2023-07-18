@@ -311,6 +311,15 @@ describe('mockNpm', () => {
     });
   });
 
+  it('can "publish" a package to registry with helper', async () => {
+    npmMock.publishPackage({ name: 'foo', version: '1.0.0' });
+    const result = await npm(['show', 'foo']);
+    expect(result).toMatchObject({
+      success: true,
+      stdout: expect.stringContaining('"name":"foo"'),
+    });
+  });
+
   it('mocks npm publish', async () => {
     packageJson = { name: 'foo', version: '1.0.0' };
     const result = await npm(['publish'], { cwd: 'fake' });

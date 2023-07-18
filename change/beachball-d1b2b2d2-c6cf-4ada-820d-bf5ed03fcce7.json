@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Prevent retrying publishing and display a specific helpful error message in case of certain common errors (version exists; auth issue)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
