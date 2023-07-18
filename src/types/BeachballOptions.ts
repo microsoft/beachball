@@ -53,7 +53,7 @@ export interface CliOptions
   timeout?: number;
   /** Timeout for `git push` operations */
   gitTimeout?: number;
-  token: string;
+  token?: string;
   type?: ChangeType | null;
   verbose?: boolean;
   version?: boolean;

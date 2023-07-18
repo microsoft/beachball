@@ -45,18 +45,22 @@ export async function packagePublish(
     const output = `Output:\n\n${result.all}\n`;
 
     // First check for specific cases where retries are unlikely to help
-    if (result.all!.includes('ENEEDAUTH')) {
-      console.error(`Publishing ${pkg} failed due to an auth error. ${output}`);
-      break;
-    }
     if (result.all!.includes('EPUBLISHCONFLICT')) {
       console.error(`${pkg}@${packageInfo.version} already exists in the registry. ${output}`);
       break;
     }
+    if (result.all!.includes('ENEEDAUTH')) {
+      // ENEEDAUTH only happens if no auth was attempted (no token/password provided).
+      console.error(`Publishing ${pkg} failed due to an auth error. ${output}`);
+      break;
+    }
     if (result.all!.includes('code E404')) {
+      // All types of invalid credentials appear to cause E404.
+      // validate() already checks for the most common ways invalid variable names might show up,
+      // so log a slightly more generic message instead of details about the token.
       console.error(
         `Publishing ${pkg} returned E404. Contrary to the output, this usually indicates an issue ` +
-          'with an auth token (expired or improper scopes).'
+          'with an auth token (expired, improper scopes, or incorrect variable name).'
       );
       // demote the output on this one due to the misleading message
       console.log(output);
