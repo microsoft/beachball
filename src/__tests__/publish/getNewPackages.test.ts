@@ -22,7 +22,7 @@ describe('getNewPackages', () => {
   it('returns empty if no packages exist', async () => {
     const newPackages = await getNewPackages({ modifiedPackages: new Set(), packageInfos: {} }, npmOptions);
     expect(newPackages).toEqual([]);
-    expect(npmMock.spy).not.toHaveBeenCalled();
+    expect(npmMock.mock).not.toHaveBeenCalled();
     expect(logs.mocks.log).not.toHaveBeenCalled();
   });
 
@@ -32,43 +32,43 @@ describe('getNewPackages', () => {
 
     const newPackages = await getNewPackages({ modifiedPackages, packageInfos }, npmOptions);
     expect(newPackages).toEqual([]);
-    expect(npmMock.spy).not.toHaveBeenCalled();
+    expect(npmMock.mock).not.toHaveBeenCalled();
     expect(logs.mocks.log).not.toHaveBeenCalled();
   });
 
   it('returns empty if no packages are new', async () => {
     // foo and bar aren't modified locally but already exist in the registry
-    npmMock.setShowData({ foo: { versions: ['1.0.0'] }, bar: { versions: ['1.0.0'] } });
+    npmMock.setRegistryData({ foo: { versions: ['1.0.0'] }, bar: { versions: ['1.0.0'] } });
     const modifiedPackages = new Set<string>();
     const packageInfos = makePackageInfos({ foo: {}, bar: {} });
 
     const newPackages = await getNewPackages({ modifiedPackages, packageInfos }, npmOptions);
     expect(newPackages).toEqual([]);
-    expect(npmMock.spy).toHaveBeenCalledTimes(2);
+    expect(npmMock.mock).toHaveBeenCalledTimes(2);
     expect(logs.mocks.log).not.toHaveBeenCalled();
   });
 
   it('returns new packages with no modified packagess', async () => {
-    npmMock.setShowData({});
+    npmMock.setRegistryData({});
     const modifiedPackages = new Set<string>();
     const packageInfos = makePackageInfos({ foo: {}, bar: {} });
 
     const newPackages = await getNewPackages({ modifiedPackages, packageInfos }, npmOptions);
     expect(newPackages).toEqual(['foo', 'bar']);
-    expect(npmMock.spy).toHaveBeenCalledTimes(2);
+    expect(npmMock.mock).toHaveBeenCalledTimes(2);
     expect(logs.mocks.log).toHaveBeenCalledTimes(2);
     expect(logs.mocks.log).toHaveBeenCalledWith('New package detected: foo');
     expect(logs.mocks.log).toHaveBeenCalledWith('New package detected: bar');
   });
 
   it('returns only new package with mix of new, old, and modified', async () => {
-    npmMock.setShowData({ foo: { versions: ['1.0.0'] } });
+    npmMock.setRegistryData({ foo: { versions: ['1.0.0'] } });
     const modifiedPackages = new Set<string>(['bar']);
     const packageInfos = makePackageInfos({ foo: {}, bar: {}, baz: {} });
 
     const newPackages = await getNewPackages({ modifiedPackages, packageInfos }, npmOptions);
     expect(newPackages).toEqual(['baz']);
-    expect(npmMock.spy).toHaveBeenCalledTimes(2);
+    expect(npmMock.mock).toHaveBeenCalledTimes(2);
     expect(logs.mocks.log).toHaveBeenCalledTimes(1);
     expect(logs.mocks.log).toHaveBeenCalledWith('New package detected: baz');
   });

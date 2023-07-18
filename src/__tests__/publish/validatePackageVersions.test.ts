@@ -23,11 +23,11 @@ describe('validatePackageVersions', () => {
   });
 
   it('succeeds with a valid new version', async () => {
-    npmMock.setShowData({ foo: { versions: ['0.1.0', '1.0.0', '2.0.0'] } });
+    npmMock.setRegistryData({ foo: { versions: ['0.1.0', '1.0.0', '2.0.0'] } });
     const packageInfos = makePackageInfos({ foo: { version: '1.0.1' } });
 
     expect(await validatePackageVersions(['foo'], packageInfos, npmOptions)).toBe(true);
-    expect(npmMock.spy).toHaveBeenCalledTimes(1);
+    expect(npmMock.mock).toHaveBeenCalledTimes(1);
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[log]
       Validating new package versions...
@@ -38,11 +38,11 @@ describe('validatePackageVersions', () => {
   });
 
   it('succeeds if package has no versions in the registry', async () => {
-    npmMock.setShowData({});
+    npmMock.setRegistryData({});
     const packageInfos = makePackageInfos({ foo: { version: '1.0.0' } });
 
     expect(await validatePackageVersions(['foo'], packageInfos, npmOptions)).toBe(true);
-    expect(npmMock.spy).toHaveBeenCalledTimes(1);
+    expect(npmMock.mock).toHaveBeenCalledTimes(1);
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[log]
       Validating new package versions...
@@ -53,11 +53,11 @@ describe('validatePackageVersions', () => {
   });
 
   it('fails with a duplicate version', async () => {
-    npmMock.setShowData({ foo: { versions: ['0.1.0', '1.0.0'] } });
+    npmMock.setRegistryData({ foo: { versions: ['0.1.0', '1.0.0'] } });
     const packageInfos = makePackageInfos({ foo: { version: '1.0.0' } });
 
     expect(await validatePackageVersions(['foo'], packageInfos, npmOptions)).toBe(false);
-    expect(npmMock.spy).toHaveBeenCalledTimes(1);
+    expect(npmMock.mock).toHaveBeenCalledTimes(1);
     expect(logs.getMockLines('error')).toMatchInlineSnapshot(`
       "ERROR: Attempting to publish package versions that already exist in the registry:
       - foo@1.0.0"
@@ -65,11 +65,11 @@ describe('validatePackageVersions', () => {
   });
 
   it('fails with useful output if both valid and invalid versions are present', async () => {
-    npmMock.setShowData({ foo: { versions: ['1.0.0'] }, bar: { versions: ['1.0.0'] } });
+    npmMock.setRegistryData({ foo: { versions: ['1.0.0'] }, bar: { versions: ['1.0.0'] } });
     const packageInfos = makePackageInfos({ foo: { version: '1.0.0' }, bar: { version: '1.0.1' } });
 
     expect(await validatePackageVersions(['foo', 'bar'], packageInfos, npmOptions)).toBe(false);
-    expect(npmMock.spy).toHaveBeenCalledTimes(2);
+    expect(npmMock.mock).toHaveBeenCalledTimes(2);
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[log]
       Validating new package versions...
