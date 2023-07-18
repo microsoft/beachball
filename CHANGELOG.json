@@ -2,6 +2,27 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 18 Jul 2023 08:03:27 GMT",
+      "tag": "beachball_v2.34.1",
+      "version": "2.34.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "cc78b36280bb94cb9c5f5b15ba507ef2d847f0d8",
+            "comment": "Update dependency workspace-tools to ^0.35.0"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "62ce25a3378342109fbb187b7c555a0e40ee28e0",
+            "comment": "Prevent retrying publishing and display a specific helpful error message in case of certain common errors (version exists; auth issue)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 13 Jul 2023 08:04:00 GMT",
       "tag": "beachball_v2.34.0",
       "version": "2.34.0",

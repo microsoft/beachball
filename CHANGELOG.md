@@ -1,8 +1,17 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 13 Jul 2023 08:04:00 GMT and should not be manually modified.
+This log was last generated on Tue, 18 Jul 2023 08:03:27 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.34.1
+
+Tue, 18 Jul 2023 08:03:27 GMT
+
+### Patches
+
+- Update dependency workspace-tools to ^0.35.0 (elcraig@microsoft.com)
+- Prevent retrying publishing and display a specific helpful error message in case of certain common errors (version exists; auth issue) (elcraig@microsoft.com)
 
 ## 2.34.0
 
