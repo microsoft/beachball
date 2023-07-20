@@ -190,6 +190,8 @@ export interface VersionGroupOptions {
   name: string;
 }
 
+type BackCompatHooksType = (packagePath: string, name: string, version: string) => void | Promise<void>;
+
 export interface HooksOptions {
   /**
    * Runs for each package after version bumps have been processed and committed to git, but before the actual
@@ -198,13 +200,13 @@ export interface HooksOptions {
    * This allows for file modifications which will be reflected in the published package but not be reflected in the
    * repository.
    */
-  prepublish?: (packagePath: string, name: string, version: string, bumpVersions: Record<string, string>) => void | Promise<void>;
+  prepublish?: ((packagePath: string, name: string, version: string, bumpVersions: Record<string, string>) => void | Promise<void>) | BackCompatHooksType;
 
   /**
    * Runs for each package after the publish command.
    * Any file changes made in this step will **not** be committed automatically.
    */
-  postpublish?: (packagePath: string, name: string, version: string, bumpVersions: Record<string, string>) => void | Promise<void>;
+  postpublish?: ((packagePath: string, name: string, version: string, bumpVersions: Record<string, string>) => void | Promise<void>) | BackCompatHooksType;
 
   /**
    * Runs for each package, before writing changelog and package.json updates
@@ -216,7 +218,7 @@ export interface HooksOptions {
    * Runs for each package, after writing changelog and package.json updates
    * to the filesystem. May be called multiple times during publish.
    */
-  postbump?: (packagePath: string, name: string, version: string, bumpVersions: Record<string, string>) => void | Promise<void>;
+  postbump?: ((packagePath: string, name: string, version: string, bumpVersions: Record<string, string>) => void | Promise<void>) | BackCompatHooksType;
 
   /**
    * Runs once after all bumps to all packages before committing changes
