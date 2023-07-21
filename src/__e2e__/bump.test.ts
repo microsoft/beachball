@@ -574,20 +574,22 @@ describe('version bumping', () => {
 
     let postBumpCalled = false;
 
+    const hooks: BeachballOptions['hooks'] = {
+      postbump: (packagePath, name, version) => {
+        postBumpCalled = true;
+        expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
+        expect(name).toBe('pkg-1');
+        expect(version).toBe('1.1.0');
+
+        const jsonPath = path.join(packagePath, 'package.json');
+        expect(fs.readJSONSync(jsonPath).version).toBe('1.1.0');
+      },
+    }
+
     await bump({
       path: repo.rootPath,
       bumpDeps: false,
-      hooks: {
-        postbump: (packagePath, name, version) => {
-          postBumpCalled = true;
-          expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
-          expect(name).toBe('pkg-1');
-          expect(version).toBe('1.1.0');
-
-          const jsonPath = path.join(packagePath, 'package.json');
-          expect(fs.readJSONSync(jsonPath).version).toBe('1.1.0');
-        },
-      },
+      hooks
     } as BeachballOptions);
 
     expect(postBumpCalled).toBe(true);
@@ -607,10 +609,7 @@ describe('version bumping', () => {
 
     let postbumpCalled = false;
 
-    await bump({
-      path: repo.rootPath,
-      bumpDeps: false,
-      hooks: {
+    const hooks: BeachballOptions['hooks'] = {
         postbump: async (packagePath, name, version) => {
           postbumpCalled = true;
           expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
@@ -620,7 +619,12 @@ describe('version bumping', () => {
           const jsonPath = path.join(packagePath, 'package.json');
           expect((await fs.readJSON(jsonPath)).version).toBe('1.1.0');
         },
-      },
+      }
+
+    await bump({
+      path: repo.rootPath,
+      bumpDeps: false,
+      hooks,
     } as BeachballOptions);
 
     expect(postbumpCalled).toBe(true);
@@ -638,14 +642,17 @@ describe('version bumping', () => {
 
     repo.push();
 
-    const bumpResult = bump({
-      path: repo.rootPath,
-      bumpDeps: false,
-      hooks: {
+
+    const hooks: BeachballOptions['hooks'] = {
         postbump: async (_packagePath, _name, _version): Promise<void> => {
           throw new Error('Foo');
         },
-      },
+    }
+
+    const bumpResult = bump({
+      path: repo.rootPath,
+      bumpDeps: false,
+      hooks
     } as BeachballOptions);
 
     await expect(bumpResult).rejects.toThrow('Foo');

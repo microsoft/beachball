@@ -2,6 +2,7 @@ import { AuthType } from './Auth';
 import { ChangeInfo, ChangeInfoMultiple, ChangeType } from './ChangeInfo';
 import { ChangeFilePromptOptions } from './ChangeFilePrompt';
 import { ChangelogOptions } from './ChangelogOptions';
+import { PackageInfos } from './PackageInfo';
 
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
@@ -197,26 +198,45 @@ export interface HooksOptions {
    *
    * This allows for file modifications which will be reflected in the published package but not be reflected in the
    * repository.
+   *
+   * @param packagePath The path to the package directory
+   * @param name The name of the package as defined in package.json
+   * @param version The post-bump version of the package to be published
+   * @param packageInfos Metadata about other packages processed by Beachball. Computed post-bump. Readonly.
    */
-  prepublish?: (packagePath: string, name: string, version: string) => void | Promise<void>;
+  prepublish?: (packagePath: string, name: string, version: string, packageInfos: Readonly<PackageInfos>) => void | Promise<void>;
 
   /**
    * Runs for each package after the publish command.
    * Any file changes made in this step will **not** be committed automatically.
+   *
+   * @param packagePath The path to the package directory
+   * @param name The name of the package as defined in package.json
+   * @param version The post-bump version of the package to be published
+   * @param packageInfos Metadata about other packages processed by Beachball. Computed post-bump. Readonly.
    */
-  postpublish?: (packagePath: string, name: string, version: string) => void | Promise<void>;
+  postpublish?: (packagePath: string, name: string, version: string, packageInfos: Readonly<PackageInfos>) => void | Promise<void>;
 
   /**
    * Runs for each package, before writing changelog and package.json updates
    * to the filesystem. May be called multiple times during publish.
+   *
+   * @param packagePath The path to the package directory
+   * @param name The name of the package as defined in package.json
+   * @param version The pre-bump version of the package to be published
    */
   prebump?: (packagePath: string, name: string, version: string) => void | Promise<void>;
 
   /**
    * Runs for each package, after writing changelog and package.json updates
    * to the filesystem. May be called multiple times during publish.
+   *
+   * @param packagePath The path to the package directory
+   * @param name The name of the package as defined in package.json
+   * @param version The post-bump version of the package to be published
+   * @param packageInfos Metadata about other packages processed by Beachball. Computed post-bump. Readonly.
    */
-  postbump?: (packagePath: string, name: string, version: string) => void | Promise<void>;
+  postbump?: (packagePath: string, name: string, version: string, packageInfos: Readonly<PackageInfos>) => void | Promise<void>;
 
   /**
    * Runs once after all bumps to all packages before committing changes

@@ -16,6 +16,8 @@ export async function callHook(
 
   for (const pkg of affectedPackages) {
     const packageInfo = packageInfos[pkg];
-    await hook(path.dirname(packageInfo.packageJsonPath), packageInfo.name, packageInfo.version);
+    const packagePath = path.dirname(packageInfo.packageJsonPath);
+
+    await hook(packagePath, packageInfo.name, packageInfo.version, packageInfos);
   }
 }
