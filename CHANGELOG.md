@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 18 Jul 2023 08:03:27 GMT and should not be manually modified.
+This log was last generated on Fri, 21 Jul 2023 20:53:47 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.35.0
+
+Fri, 21 Jul 2023 20:53:47 GMT
+
+### Minor changes
+
+- Beachball passes packageInfos as 4th param of prepublish, postpublish, and postbump hooks (tronguye@microsoft.com)
 
 ## 2.34.1
 

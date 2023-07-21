@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 21 Jul 2023 20:53:47 GMT",
+      "tag": "beachball_v2.35.0",
+      "version": "2.35.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "tronguye@microsoft.com",
+            "package": "beachball",
+            "commit": "16253f8fffb923d5b1293f9f29bbd83a83f989c3",
+            "comment": "Beachball passes packageInfos as 4th param of prepublish, postpublish, and postbump hooks"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 18 Jul 2023 08:03:27 GMT",
       "tag": "beachball_v2.34.1",
       "version": "2.34.1",
