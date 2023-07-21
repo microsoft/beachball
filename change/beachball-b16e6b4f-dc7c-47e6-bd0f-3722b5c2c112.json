@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Beachball passes bumpVersions as 4th param of prepublish, postpublish, and postbump hooks",
+  "comment": "Beachball passes packageInfos as 4th param of prepublish, postpublish, and postbump hooks",
   "packageName": "beachball",
   "email": "tronguye@microsoft.com",
   "dependentChangeType": "patch"
