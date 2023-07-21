@@ -2,6 +2,7 @@ import { AuthType } from './Auth';
 import { ChangeInfo, ChangeInfoMultiple, ChangeType } from './ChangeInfo';
 import { ChangeFilePromptOptions } from './ChangeFilePrompt';
 import { ChangelogOptions } from './ChangelogOptions';
+import { PackageInfos } from './PackageInfo';
 
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
@@ -198,13 +199,13 @@ export interface HooksOptions {
    * This allows for file modifications which will be reflected in the published package but not be reflected in the
    * repository.
    */
-  prepublish?: (packagePath: string, name: string, version: string, bumpVersions: Record<string, string>) => void | Promise<void>;
+  prepublish?: (packagePath: string, name: string, version: string, bumpVersions: PackageInfos) => void | Promise<void>;
 
   /**
    * Runs for each package after the publish command.
    * Any file changes made in this step will **not** be committed automatically.
    */
-  postpublish?: (packagePath: string, name: string, version: string, bumpVersions: Record<string, string>) => void | Promise<void>;
+  postpublish?: (packagePath: string, name: string, version: string, bumpVersions: PackageInfos) => void | Promise<void>;
 
   /**
    * Runs for each package, before writing changelog and package.json updates
@@ -216,7 +217,7 @@ export interface HooksOptions {
    * Runs for each package, after writing changelog and package.json updates
    * to the filesystem. May be called multiple times during publish.
    */
-  postbump?: (packagePath: string, name: string, version: string, bumpVersions: Record<string, string>) => void | Promise<void>;
+  postbump?: (packagePath: string, name: string, version: string, bumpVersions: PackageInfos) => void | Promise<void>;
 
   /**
    * Runs once after all bumps to all packages before committing changes

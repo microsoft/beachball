@@ -14,15 +14,10 @@ export async function callHook(
     return;
   }
 
-  const bumpVersions = Object.keys(packageInfos).reduce((accumulator, pkgName) => {
-    accumulator[pkgName] = packageInfos[pkgName].version;
-    return accumulator;
-  }, {} as Record<string, string>);
-
   for (const pkg of affectedPackages) {
     const packageInfo = packageInfos[pkg];
     const packagePath = path.dirname(packageInfo.packageJsonPath);
 
-    await hook(packagePath, packageInfo.name, packageInfo.version, bumpVersions);
+    await hook(packagePath, packageInfo.name, packageInfo.version, packageInfos);
   }
 }
