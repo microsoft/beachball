@@ -255,7 +255,7 @@ describe('writeChangelog', () => {
     expect(readChangelogMd(monoRepo.pathTo('packages/foo'))).toMatchSnapshot();
   });
 
-  it('Verify that the changeFile transform functions are run, if provided', async () => {
+  it('runs transform.changeFiles functions if provided', async () => {
     const editedComment: string = 'Edited comment for testing';
     const monoRepo = monoRepoFactory.cloneRepository();
     monoRepo.commitChange('foo');

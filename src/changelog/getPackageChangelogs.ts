@@ -21,15 +21,11 @@ export function getPackageChangelogs(
   const changeFileCommits: { [changeFile: string]: string } = {};
   const changePath = getChangePath(cwd);
 
-  for (let { change, changeFile } of changeFileChangeInfos) {
+  for (const { change, changeFile } of changeFileChangeInfos) {
     const { packageName, type: changeType, dependentChangeType, email, ...rest } = change;
-    if (!changelogs[packageName]) {
-      changelogs[packageName] = createChangeLog(packageInfos[packageName]);
-    }
+    changelogs[packageName] ??= createChangeLog(packageInfos[packageName]);
 
-    if (!changeFileCommits[changeFile]) {
-      changeFileCommits[changeFile] = getFileAddedHash(path.join(changePath, changeFile), cwd) || 'not available';
-    }
+    changeFileCommits[changeFile] ??= getFileAddedHash(path.join(changePath, changeFile), cwd) || 'not available';
 
     changelogs[packageName].comments ??= {};
     changelogs[packageName].comments[changeType] ??= [];
@@ -52,9 +48,7 @@ export function getPackageChangelogs(
       continue;
     }
 
-    if (!changelogs[dependent]) {
-      changelogs[dependent] = createChangeLog(packageInfos[dependent]);
-    }
+    changelogs[dependent] ??= createChangeLog(packageInfos[dependent]);
 
     const changeType = calculatedChangeTypes[dependent];
 
