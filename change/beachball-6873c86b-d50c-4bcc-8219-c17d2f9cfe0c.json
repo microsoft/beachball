@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add an index signature to ChangelogEntry",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
