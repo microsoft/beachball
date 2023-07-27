@@ -2,6 +2,35 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 27 Jul 2023 08:03:27 GMT",
+      "version": "2.36.0",
+      "tag": "beachball_v2.36.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "749812afdc17ba6ef4a836637bdeab69bcec5089",
+            "comment": "Add an index signature to ChangelogEntry"
+          }
+        ],
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "749812afdc17ba6ef4a836637bdeab69bcec5089",
+            "comment": "Stop recording incorrect bump commits in CHANGELOG.json"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "6a450f70ea85d2e85b9d7f67aa71652659d12ea1",
+            "comment": "Add type for PublishConfig"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 21 Jul 2023 20:53:47 GMT",
       "tag": "beachball_v2.35.0",
       "version": "2.35.0",

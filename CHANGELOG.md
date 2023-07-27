@@ -1,8 +1,21 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 21 Jul 2023 20:53:47 GMT and should not be manually modified.
+This log was last generated on Thu, 27 Jul 2023 08:03:27 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.36.0
+
+Thu, 27 Jul 2023 08:03:27 GMT
+
+### Minor changes
+
+- Add an index signature to ChangelogEntry (elcraig@microsoft.com)
+
+### Patches
+
+- Stop recording incorrect bump commits in CHANGELOG.json (elcraig@microsoft.com)
+- Add type for PublishConfig (elcraig@microsoft.com)
 
 ## 2.35.0
 

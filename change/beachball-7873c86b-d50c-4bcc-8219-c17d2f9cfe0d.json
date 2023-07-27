@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Stop recording incorrect bump commits in CHANGELOG.json",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
