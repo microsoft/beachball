@@ -5,6 +5,15 @@ export interface PackageDeps {
   [dep: string]: string;
 }
 
+/**
+ * The `publishConfig` field in package.json.
+ * (If modifying this, be sure to update `acceptedKeys` in src/publish/performPublishOverrides.ts.)
+ */
+export type PublishConfig = Pick<
+  PackageJson,
+  'types' | 'typings' | 'main' | 'module' | 'exports' | 'repository' | 'bin' | 'browser' | 'files'
+>;
+
 export interface PackageJson {
   name: string;
   version: string;
@@ -24,10 +33,7 @@ export interface PackageJson {
   scripts?: Record<string, string>;
   beachball?: BeachballOptions;
   /** Overrides applied during publishing */
-  publishConfig?: Pick<
-    PackageJson,
-    'types' | 'typings' | 'main' | 'module' | 'exports' | 'repository' | 'bin' | 'browser' | 'files'
-  >;
+  publishConfig?: PublishConfig;
 }
 
 export interface PackageInfo {

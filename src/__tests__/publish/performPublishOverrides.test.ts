@@ -1,161 +1,130 @@
-import { describe, expect, it, afterEach } from '@jest/globals';
+import { describe, expect, it, afterEach, jest } from '@jest/globals';
 import * as fs from 'fs-extra';
-import * as path from 'path';
-import { tmpdir } from '../../__fixtures__/tmpdir';
+import _ from 'lodash';
 import { performPublishOverrides } from '../../publish/performPublishOverrides';
-import { PackageInfos } from '../../types/PackageInfo';
+import { PackageInfos, PackageJson, PublishConfig } from '../../types/PackageInfo';
+import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
-describe('perform publishConfig overrides', () => {
-  let tmpDir: string | undefined;
+jest.mock('fs-extra', () => ({
+  readJSONSync: jest.fn(),
+  writeJSONSync: jest.fn(),
+}));
+
+describe('performPublishOverrides', () => {
+  const readJSONSync = fs.readJSONSync as jest.MockedFunction<typeof fs.readJSONSync>;
+  const writeJSONSync = fs.writeJSONSync as jest.MockedFunction<typeof fs.writeJSONSync>;
 
   afterEach(() => {
-    if (tmpDir) {
-      fs.removeSync(tmpDir);
-      tmpDir = undefined;
-    }
+    jest.restoreAllMocks();
   });
 
-  function createFixture(publishConfig: any = {}) {
-    tmpDir = tmpdir({ prefix: 'beachball-publishConfig-' });
-    const fixturePackageJson = {
-      name: 'foo',
-      version: '1.0.0',
+  function createFixture(partialPackageJsons: Record<string, Partial<PackageJson>>): {
+    packageInfos: PackageInfos;
+    packageJsons: Record<string, PackageJson>;
+  } {
+    const packageInfos = makePackageInfos(
+      _.mapValues(partialPackageJsons, (json, name) => ({
+        packageJsonPath: `packages/${name}/package.json`,
+        version: json.version || '1.0.0',
+        dependencies: json.dependencies || {},
+      }))
+    );
+    const packageJsons: Record<string, PackageJson> = _.mapValues(partialPackageJsons, (json, name) => ({
+      name,
+      version: packageInfos[name].version,
+      // these values can potentially be overridden by publishConfig
       main: 'src/index.ts',
-      bin: {
-        'foo-bin': 'src/foo-bin.js',
-      },
-      publishConfig,
-    };
+      bin: 'src/foo-bin.ts',
+      ...json,
+    }));
 
-    const packageInfos: PackageInfos = {
-      foo: {
-        combinedOptions: {
-          defaultNpmTag: 'latest',
-          disallowedChangeTypes: [],
-          gitTags: true,
-          tag: 'latest',
-        },
-        name: 'foo',
-        packageJsonPath: path.join(tmpDir, 'package.json'),
-        packageOptions: {},
-        private: false,
-        version: '1.0.0',
-      },
-    };
+    readJSONSync.mockImplementation((path: string) => {
+      for (const pkg of Object.values(packageInfos)) {
+        if (path === pkg.packageJsonPath) {
+          // performPublishConfigOverrides mutates the packageJson, so we need to clone it to
+          // simulate reading the file from the disk and avoid mutating original fixtures.
+          // This is also just safer in general for tests that use this method for before/after comparisons.
+          return _.cloneDeep(packageJsons[pkg.name]);
+        }
+      }
+      throw new Error('not found: ' + path);
+    });
 
-    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify(fixturePackageJson));
-
-    return packageInfos;
+    return { packageInfos, packageJsons };
   }
 
-  it('overrides accepted keys', () => {
-    const packageInfos = createFixture({
+  it('overrides accepted publishConfig keys and preserves values not specified', () => {
+    const publishConfig: PublishConfig = {
+      main: 'lib/index.js',
+      types: 'lib/index.d.ts',
+    };
+    const { packageInfos, packageJsons } = createFixture({ foo: { publishConfig } });
+    expect(packageJsons.foo).not.toMatchObject(publishConfig);
+
+    performPublishOverrides(['foo'], packageInfos);
+
+    expect(writeJSONSync).toHaveBeenCalledTimes(1);
+    expect(publishConfig).toEqual({
       main: 'lib/index.js',
       types: 'lib/index.d.ts',
     });
+    expect(writeJSONSync).toHaveBeenCalledWith(
+      packageInfos.foo.packageJsonPath,
+      // package.json data with publishConfig values promoted to root,
+      // and any original values not specified in publishConfig preserved
+      {
+        ...packageJsons.foo,
+        ...publishConfig,
+        publishConfig: {},
+      },
+      // JSON stringify options
+      expect.anything()
+    );
+  });
 
-    const original = JSON.parse(fs.readFileSync(packageInfos['foo'].packageJsonPath, 'utf-8'));
-
-    expect(original.main).toBe('src/index.ts');
-    expect(original.types).toBeUndefined();
+  it('does not override non-accepted publishConfig keys', () => {
+    const publishConfig = { version: '1.2.3', extra: 'nope' } as unknown as PublishConfig;
+    const { packageInfos, packageJsons } = createFixture({ foo: { publishConfig } });
+    expect(packageJsons.foo).not.toMatchObject(publishConfig);
 
     performPublishOverrides(['foo'], packageInfos);
 
-    const modified = JSON.parse(fs.readFileSync(packageInfos['foo'].packageJsonPath, 'utf-8'));
-
-    expect(modified.main).toBe('lib/index.js');
-    expect(modified.types).toBe('lib/index.d.ts');
-    expect(modified.publishConfig.main).toBeUndefined();
-    expect(modified.publishConfig.types).toBeUndefined();
+    expect(writeJSONSync).toHaveBeenCalledTimes(1);
+    expect(writeJSONSync).toHaveBeenCalledWith(packageInfos.foo.packageJsonPath, packageJsons.foo, expect.anything());
   });
 
-  it('uses values on packageJson root as fallback values when present', () => {
-    const packageInfos = createFixture({
-      main: 'lib/index.js',
+  it('performs publish overrides for multiple packages', () => {
+    const { packageInfos, packageJsons } = createFixture({
+      foo: { publishConfig: { main: 'lib/index.js' } },
+      bar: { publishConfig: { types: 'lib/index.d.ts' } },
     });
+    const originalFoo = packageJsons.foo;
+    const originalBar = packageJsons.bar;
+    expect(originalFoo).not.toMatchObject(originalFoo.publishConfig!);
+    expect(originalBar).not.toMatchObject(originalBar.publishConfig!);
 
-    const original = JSON.parse(fs.readFileSync(packageInfos['foo'].packageJsonPath, 'utf-8'));
+    performPublishOverrides(['foo', 'bar'], packageInfos);
 
-    expect(original.main).toBe('src/index.ts');
-    expect(original.bin).toStrictEqual({ 'foo-bin': 'src/foo-bin.js' });
-    expect(original.files).toBeUndefined();
-
-    performPublishOverrides(['foo'], packageInfos);
-
-    const modified = JSON.parse(fs.readFileSync(packageInfos['foo'].packageJsonPath, 'utf-8'));
-
-    expect(modified.main).toBe('lib/index.js');
-    expect(modified.bin).toStrictEqual({ 'foo-bin': 'src/foo-bin.js' });
-    expect(modified.files).toBeUndefined();
-    expect(modified.publishConfig.main).toBeUndefined();
-    expect(modified.publishConfig.bin).toBeUndefined();
-    expect(modified.publishConfig.files).toBeUndefined();
+    expect(writeJSONSync).toHaveBeenCalledTimes(2);
+    expect(writeJSONSync).toHaveBeenCalledWith(
+      packageInfos.foo.packageJsonPath,
+      {
+        ...originalFoo,
+        ...originalFoo.publishConfig,
+        publishConfig: {},
+      },
+      expect.anything()
+    );
+    expect(writeJSONSync).toHaveBeenCalledWith(
+      packageInfos.bar.packageJsonPath,
+      {
+        ...originalBar,
+        ...originalBar.publishConfig,
+        publishConfig: {},
+      },
+      expect.anything()
+    );
   });
-});
-
-describe('perform workspace version overrides', () => {
-  let tmpDir: string | undefined;
-
-  afterEach(() => {
-    if (tmpDir) {
-      fs.removeSync(tmpDir);
-      tmpDir = undefined;
-    }
-  });
-
-  function createFixture(dependencyVersion: string) {
-    tmpDir = tmpdir({ prefix: 'beachball-publishConfig-' });
-    fs.mkdirSync(path.join(tmpDir, 'foo'));
-    fs.mkdirSync(path.join(tmpDir, 'bar'));
-
-    const fooPackageJson = {
-      name: 'foo',
-      version: '1.0.0',
-    };
-
-    const barPackageJson = {
-      name: 'bar',
-      version: '2.0.0',
-      dependencies: {
-        foo: dependencyVersion,
-      },
-    };
-
-    fs.writeFileSync(path.join(tmpDir, 'foo', 'package.json'), JSON.stringify(fooPackageJson));
-    fs.writeFileSync(path.join(tmpDir, 'bar', 'package.json'), JSON.stringify(barPackageJson));
-
-    const packageInfos: PackageInfos = {
-      foo: {
-        combinedOptions: {
-          defaultNpmTag: 'latest',
-          disallowedChangeTypes: [],
-          gitTags: true,
-          tag: 'latest',
-        },
-        name: 'foo',
-        packageJsonPath: path.join(tmpDir, 'foo', 'package.json'),
-        packageOptions: {},
-        private: false,
-        version: '1.0.0',
-      },
-      bar: {
-        combinedOptions: {
-          defaultNpmTag: 'latest',
-          disallowedChangeTypes: [],
-          gitTags: true,
-          tag: 'latest',
-        },
-        name: 'bar',
-        packageJsonPath: path.join(tmpDir, 'bar', 'package.json'),
-        packageOptions: {},
-        private: false,
-        dependencies: { foo: dependencyVersion },
-        version: '2.0.0',
-      },
-    };
-
-    return packageInfos;
-  }
 
   it.each([
     ['workspace:*', '1.0.0'],
@@ -163,15 +132,22 @@ describe('perform workspace version overrides', () => {
     ['workspace:^', '^1.0.0'],
     ['workspace:~1.0.0', '~1.0.0'],
     ['workspace:^1.0.0', '^1.0.0'],
-  ])('overrides %s dependency versions during publishing', (dependencyVersion, expectedPublishVersion) => {
-    const packageInfos = createFixture(dependencyVersion);
-
-    const original = JSON.parse(fs.readFileSync(packageInfos['bar'].packageJsonPath, 'utf-8'));
-    expect(original.dependencies.foo).toBe(dependencyVersion);
+  ])('overrides %s dependency versions', (dependencyVersion, expectedPublishVersion) => {
+    const { packageInfos, packageJsons } = createFixture({
+      foo: { version: '1.0.0' },
+      bar: { version: '2.0.0', dependencies: { foo: dependencyVersion } },
+    });
+    expect(packageJsons.bar.dependencies!.foo).toBe(dependencyVersion);
 
     performPublishOverrides(['bar'], packageInfos);
 
-    const modified = JSON.parse(fs.readFileSync(packageInfos['bar'].packageJsonPath, 'utf-8'));
-    expect(modified.dependencies.foo).toBe(expectedPublishVersion);
+    expect(writeJSONSync).toHaveBeenCalledTimes(1);
+    expect(writeJSONSync).toHaveBeenCalledWith(
+      packageInfos.bar.packageJsonPath,
+      expect.objectContaining({
+        dependencies: { foo: expectedPublishVersion },
+      }),
+      expect.anything()
+    );
   });
 });

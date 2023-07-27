@@ -1,7 +1,7 @@
-import { PackageInfos, PackageJson } from '../types/PackageInfo';
+import { PackageInfos, PackageJson, PublishConfig } from '../types/PackageInfo';
 import * as fs from 'fs-extra';
 
-const acceptedKeys = [
+const acceptedKeys: (keyof PublishConfig)[] = [
   'types',
   'typings',
   'main',
@@ -11,7 +11,7 @@ const acceptedKeys = [
   'bin',
   'browser',
   'files',
-] as const;
+];
 const workspacePrefix = 'workspace:';
 
 export function performPublishOverrides(packagesToPublish: string[], packageInfos: PackageInfos): void {
