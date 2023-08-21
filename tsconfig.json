@@ -18,5 +18,5 @@
     "lib": ["ES2020"],
     "types": ["node"]
   },
-  "include": ["src/**/*", "benchmark.ts"]
+  "include": ["src/**/*", "benchmark.ts", "benchmarkLarge.ts"]
 }

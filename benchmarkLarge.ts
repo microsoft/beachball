@@ -23,6 +23,17 @@ const Benchmark = require('benchmark');
     'src/f',
   ];
 
+  const numberOfRandomFiles = 10000;
+
+  // Generate additional random files
+  for (let i = 0; i < numberOfRandomFiles; i++) {
+    const randomIndex = Math.floor(Math.random() * filesToCheck.length);
+    const randomFileName = filesToCheck[randomIndex];
+    const randomVariant = Math.floor(Math.random() * 1000); // Generate a random number for variation
+
+    filesToCheck.push(`${randomFileName}_${randomVariant}`);
+  }
+
   suite
     .add('micromatch', function () {
       for (const file of filesToCheck) {
