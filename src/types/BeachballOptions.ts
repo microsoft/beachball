@@ -116,7 +116,7 @@ export interface RepoOptions {
   gitTags: boolean;
   /** Custom pre/post publish actions */
   hooks?: HooksOptions;
-  /** Ignore changes in these files (minimatch patterns; negations not supported) */
+  /** Ignore changes in these files (micromatch patterns; negations not supported) */
   ignorePatterns?: string[];
   /** For the `change` command, change message. For the `publish` command, commit message. */
   message: string;
@@ -179,10 +179,10 @@ export interface PackageOptions {
  * Options for bumping package versions together.
  */
 export interface VersionGroupOptions {
-  /** minimatch pattern (or array of minimatch) to detect which packages should be included in this group */
+  /** micromatch pattern (or array of micromatch) to detect which packages should be included in this group */
   include: string | string[];
 
-  /** minimatch pattern (or array of minimatch) to detect which packages should be excluded in this group */
+  /** micromatch pattern (or array of micromatch) to detect which packages should be excluded in this group */
   exclude?: string | string[];
 
   disallowedChangeTypes: ChangeType[] | null;
@@ -204,7 +204,12 @@ export interface HooksOptions {
    * @param version The post-bump version of the package to be published
    * @param packageInfos Metadata about other packages processed by Beachball. Computed post-bump. Readonly.
    */
-  prepublish?: (packagePath: string, name: string, version: string, packageInfos: Readonly<PackageInfos>) => void | Promise<void>;
+  prepublish?: (
+    packagePath: string,
+    name: string,
+    version: string,
+    packageInfos: Readonly<PackageInfos>
+  ) => void | Promise<void>;
 
   /**
    * Runs for each package after the publish command.
@@ -215,7 +220,12 @@ export interface HooksOptions {
    * @param version The post-bump version of the package to be published
    * @param packageInfos Metadata about other packages processed by Beachball. Computed post-bump. Readonly.
    */
-  postpublish?: (packagePath: string, name: string, version: string, packageInfos: Readonly<PackageInfos>) => void | Promise<void>;
+  postpublish?: (
+    packagePath: string,
+    name: string,
+    version: string,
+    packageInfos: Readonly<PackageInfos>
+  ) => void | Promise<void>;
 
   /**
    * Runs for each package, before writing changelog and package.json updates
@@ -236,7 +246,12 @@ export interface HooksOptions {
    * @param version The post-bump version of the package to be published
    * @param packageInfos Metadata about other packages processed by Beachball. Computed post-bump. Readonly.
    */
-  postbump?: (packagePath: string, name: string, version: string, packageInfos: Readonly<PackageInfos>) => void | Promise<void>;
+  postbump?: (
+    packagePath: string,
+    name: string,
+    version: string,
+    packageInfos: Readonly<PackageInfos>
+  ) => void | Promise<void>;
 
   /**
    * Runs once after all bumps to all packages before committing changes
