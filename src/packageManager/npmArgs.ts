@@ -12,7 +12,7 @@ export function getNpmPublishArgs(packageInfo: PackageInfo, options: NpmOptions)
     '--tag',
     pkgCombinedOptions.tag || pkgCombinedOptions.defaultNpmTag || 'latest',
     '--loglevel',
-    'warn',
+    options.verbose ? 'notice' : 'warn',
     ...getNpmAuthArgs(registry, token, authType),
   ];
 
