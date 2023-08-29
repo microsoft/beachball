@@ -15,7 +15,8 @@ describe('performPublishOverrides', () => {
   const writeJSONSync = fs.writeJSONSync as jest.MockedFunction<typeof fs.writeJSONSync>;
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    // clear the implementations and calls for read/writeJSONSync
+    jest.resetAllMocks();
   });
 
   function createFixture(partialPackageJsons: Record<string, Partial<PackageJson>>): {
