@@ -13,12 +13,13 @@ import { npm, NpmResult } from '../../packageManager/npm';
 const testTag = 'testbeachballtag';
 const testName = 'testbeachballpackage';
 const testVersion = '0.6.0';
+const testSpec = `${testName}@${testVersion}`;
 const testPackage = { name: testName, version: testVersion };
 
-// Some of these tests use an actual local npm registry, so they're slower to run.
-// The rest mock npm calls for efficiency.
 //
-// (If there's ever a bug that could have been caught by testing against a real registry/npm,
+// Some of these tests use an actual local npm registry, so they're slower to run.
+// The rest mock npm calls for efficiency (but could potentially be updated to use real npm if
+// a bug is found that would have been caught that way).
 //
 describe('packagePublish', () => {
   let npmSpy: jest.SpiedFunction<typeof npm>;
@@ -86,7 +87,7 @@ describe('packagePublish', () => {
     expect(npmSpy).toHaveBeenCalledTimes(1);
 
     const allLogs = logs.getMockLines('all');
-    expect(allLogs).toMatch(`Publishing - ${testName}@${testVersion} with tag ${testTag}`);
+    expect(allLogs).toMatch(`Publishing - ${testSpec} with tag ${testTag}`);
     expect(allLogs).toMatch('publish command:');
     expect(allLogs).toMatch(`[log] Published!`);
 
@@ -113,7 +114,7 @@ describe('packagePublish', () => {
     expect(npmSpy).toHaveBeenCalledTimes(2);
 
     const logs2ndTry = logs.getMockLines('all');
-    expect(logs2ndTry).toMatch(`${testName}@${testVersion} already exists in the registry`);
+    expect(logs2ndTry).toMatch(`${testSpec} already exists in the registry`);
   });
 
   it('performs retries', async () => {
@@ -134,9 +135,9 @@ describe('packagePublish', () => {
     expect(npmSpy).toHaveBeenCalledTimes(3);
 
     const allLogs = logs.getMockLines('all');
-    expect(allLogs).toMatch(`[warn] Publishing ${testName} failed. Output:\n\nsome errors`);
+    expect(allLogs).toMatch(`[warn] Publishing ${testSpec} failed. Output:\n\nsome errors`);
     expect(allLogs).toMatch('Retrying... (1/3)');
-    expect(allLogs).toMatch(`[warn] Publishing ${testName} failed (timed out). Output:\n\nsloooow`);
+    expect(allLogs).toMatch(`[warn] Publishing ${testSpec} failed (timed out). Output:\n\nsloooow`);
     expect(allLogs).toMatch('Retrying... (2/3)');
     expect(allLogs).toMatch(`[log] Published!`);
   });
@@ -153,7 +154,7 @@ describe('packagePublish', () => {
     expect(allLogs).toMatch('Retrying... (1/3)');
     expect(allLogs).toMatch('Retrying... (2/3)');
     expect(allLogs).toMatch('Retrying... (3/3)');
-    expect(allLogs).toMatch(`[error] Publishing ${testName} failed. Output:\n\nsome errors`);
+    expect(allLogs).toMatch(`[error] Publishing ${testSpec} failed. Output:\n\nsome errors`);
   });
 
   it('does not retry on auth error', async () => {
@@ -166,7 +167,7 @@ describe('packagePublish', () => {
     expect(npmSpy).toHaveBeenCalledTimes(1);
 
     expect(logs.getMockLines('error')).toMatch(
-      `Publishing ${testName} failed due to an auth error. Output:\n\nERR! code ENEEDAUTH`
+      `Publishing ${testSpec} failed due to an auth error. Output:\n\nERR! code ENEEDAUTH`
     );
   });
 
@@ -180,6 +181,17 @@ describe('packagePublish', () => {
     expect(publishResult).toEqual(failedResult);
     expect(npmSpy).toHaveBeenCalledTimes(1);
 
-    expect(logs.getMockLines('error')).toMatch(`Publishing ${testName} returned E404`);
+    expect(logs.getMockLines('error')).toMatch(`Publishing ${testSpec} failed with E404`);
+  });
+
+  it('does not retry on E403', async () => {
+    const testPackageInfo = getTestPackageInfo();
+    npmSpy.mockImplementation(() => Promise.resolve({ success: false, all: 'ERR! code E403' } as NpmResult));
+
+    const publishResult = await packagePublish(testPackageInfo, { registry: 'fake', retries: 3 });
+    expect(publishResult).toEqual(failedResult);
+    expect(npmSpy).toHaveBeenCalledTimes(1);
+
+    expect(logs.getMockLines('error')).toMatch(`Publishing ${testSpec} failed due to a 403 error`);
   });
 });
