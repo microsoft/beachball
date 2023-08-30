@@ -1,8 +1,11 @@
+*.log
 *.snap
 *.styl
 *.svg
 .*ignore
+.DS_Store
 .nojekyll
+.nvmrc
 docs/.vuepress/dist
 /change/
 /CHANGELOG.*
