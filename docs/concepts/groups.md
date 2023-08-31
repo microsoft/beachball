@@ -40,6 +40,6 @@ module.exports = {
 }
 ```
 
-`beachball` uses `minimatch` to match which packages belong to which group via this configuration. In the above configuration, packages located inside `packages/groupfoo` would be bumped together.
+`beachball` uses `micromatch` to match which packages belong to which group via this configuration. In the above configuration, packages located inside `packages/groupfoo` would be bumped together.
 
 > NOTE: Beachball does not guarantee currently that these packages have the same version number, but that it will be bumped at the same rate. This is an area of active development, so please consider submitting feature request issues to change its behavior with justifications

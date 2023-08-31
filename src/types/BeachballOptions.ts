@@ -116,7 +116,7 @@ export interface RepoOptions {
   gitTags: boolean;
   /** Custom pre/post publish actions */
   hooks?: HooksOptions;
-  /** Ignore changes in these files (minimatch patterns; negations not supported) */
+  /** Ignore changes in these files (micromatch patterns; negations not supported) */
   ignorePatterns?: string[];
   /** For the `change` command, change message. For the `publish` command, commit message. */
   message: string;
@@ -179,10 +179,10 @@ export interface PackageOptions {
  * Options for bumping package versions together.
  */
 export interface VersionGroupOptions {
-  /** minimatch pattern (or array of minimatch) to detect which packages should be included in this group */
+  /** micromatch pattern (or array of micromatch) to detect which packages should be included in this group */
   include: string | string[];
 
-  /** minimatch pattern (or array of minimatch) to detect which packages should be excluded in this group */
+  /** micromatch pattern (or array of micromatch) to detect which packages should be excluded in this group */
   exclude?: string | string[];
 
   disallowedChangeTypes: ChangeType[] | null;
