@@ -13,6 +13,7 @@ export interface CliOptions
     | 'branch'
     | 'bumpDeps'
     | 'changehint'
+    | 'depth'
     | 'disallowedChangeTypes'
     | 'fetch'
     | 'gitTags'
@@ -25,7 +26,6 @@ export interface CliOptions
     | 'retries'
     | 'scope'
     | 'tag'
-    | 'depth'
   > {
   all: boolean;
   authType: AuthType;
