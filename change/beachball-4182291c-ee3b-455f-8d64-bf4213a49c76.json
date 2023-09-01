@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Minor improvements to path include/exclude logic",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
