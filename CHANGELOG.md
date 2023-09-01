@@ -1,8 +1,20 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 31 Aug 2023 08:03:29 GMT and should not be manually modified.
+This log was last generated on Fri, 01 Sep 2023 08:03:30 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.37.0
+
+Fri, 01 Sep 2023 08:03:30 GMT
+
+### Minor changes
+
+- Minor improvements to path include/exclude logic (elcraig@microsoft.com)
+
+### Patches
+
+- Ensure getCliOptions properly handles all boolean and numeric options (elcraig@microsoft.com)
 
 ## 2.36.1
 

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Ensure getCliOptions properly handles all boolean and numeric options",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

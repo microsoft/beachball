@@ -2,6 +2,29 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 01 Sep 2023 08:03:30 GMT",
+      "version": "2.37.0",
+      "tag": "beachball_v2.37.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "6223ecb4e6d4dda23e5d6d0c40dd300107a79cf2",
+            "comment": "Ensure getCliOptions properly handles all boolean and numeric options"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "527bf1a662fd2e27072c48a59901e466864d3ced",
+            "comment": "Minor improvements to path include/exclude logic"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 31 Aug 2023 08:03:29 GMT",
       "version": "2.36.1",
       "tag": "beachball_v2.36.1",
