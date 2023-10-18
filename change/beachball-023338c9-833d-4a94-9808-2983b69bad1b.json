@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update workspace-tools to fix issue with empty list of recent commit messages",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
