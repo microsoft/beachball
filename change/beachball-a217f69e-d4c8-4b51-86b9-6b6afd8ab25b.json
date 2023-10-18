@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Update typescript to v5.2. This should not cause any breaking emit changes.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
