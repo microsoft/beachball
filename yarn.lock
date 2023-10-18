@@ -5307,7 +5307,7 @@ fast-glob@^2.2.6:
     merge2 "^1.2.3"
     micromatch "^3.1.10"
 
-fast-glob@^3.2.9:
+fast-glob@^3.2.9, fast-glob@^3.3.1:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/fast-glob/-/fast-glob-3.3.1.tgz#784b4e897340f3dbbef17413b3f11acf03c874c4"
   integrity sha512-kNFPyjhh5cKjrUltxs+wFx+ZkbRaxxmZ+X0ZU31SOsxCEtP9VPgtq2teZw1DebupL5GmDaNQ6yKMMVcM41iqDg==
@@ -11685,12 +11685,13 @@ worker-farm@^1.7.0:
   dependencies:
     errno "~0.1.7"
 
-workspace-tools@^0.35.0:
-  version "0.35.0"
-  resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.35.0.tgz#405d7546162b701d5a8ee24d33d6981212095ecb"
-  integrity sha512-Xy6fu6gk4/6jf59H4XE20d8aHCEI4pmfy1xMdmGhTHMf4wDbPbYrd0qywONu88jSu7habVbCB5ygI3v/nttZYg==
+workspace-tools@^0.35.3:
+  version "0.35.3"
+  resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.35.3.tgz#a1ba3c68a997e7f1556485076d89fa95bc26e533"
+  integrity sha512-klwv7VAsrxW+d/CMBIG4B5GbpYBnJiPFy6QTiv8VBEFAM8EBUaVh2MjtHmB8nY5SnW1JzEMnSqjS4i+fVQAcXQ==
   dependencies:
     "@yarnpkg/lockfile" "^1.1.0"
+    fast-glob "^3.3.1"
     git-url-parse "^13.0.0"
     globby "^11.0.0"
     jju "^1.4.0"
