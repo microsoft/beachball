@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update dependency fs-extra to v11",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

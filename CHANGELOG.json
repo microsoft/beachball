@@ -2,6 +2,41 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 18 Oct 2023 08:03:44 GMT",
+      "version": "2.38.0",
+      "tag": "beachball_v2.38.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "26faa29393f3108d65c721fed870afee68d9ba2e",
+            "comment": "Update workspace-tools to fix issue with empty list of recent commit messages"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b6a956000e246565d32080d090bbdf60200262a8",
+            "comment": "Update dependency cosmiconfig to v8"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "0d8966f7ff1605285bcbc425ab2b02fc11c40eaf",
+            "comment": "Update dependency fs-extra to v11"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "1da02494c422a223c911a23bb27ac596cfd275c4",
+            "comment": "Update typescript to v5.2. This should not cause any breaking emit changes."
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 01 Sep 2023 08:03:30 GMT",
       "version": "2.37.0",
       "tag": "beachball_v2.37.0",

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update dependency cosmiconfig to v8",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

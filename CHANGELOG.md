@@ -1,8 +1,22 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 01 Sep 2023 08:03:30 GMT and should not be manually modified.
+This log was last generated on Wed, 18 Oct 2023 08:03:44 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.38.0
+
+Wed, 18 Oct 2023 08:03:44 GMT
+
+### Minor changes
+
+- Update typescript to v5.2. This should not cause any breaking emit changes. (elcraig@microsoft.com)
+
+### Patches
+
+- Update workspace-tools to fix issue with empty list of recent commit messages (elcraig@microsoft.com)
+- Update dependency cosmiconfig to v8 (elcraig@microsoft.com)
+- Update dependency fs-extra to v11 (elcraig@microsoft.com)
 
 ## 2.37.0
 
