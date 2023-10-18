@@ -1,4 +1,6 @@
-module.exports = {
+// @ts-check
+/** @type {import('@vuepress/types').Config} */
+const config = {
   title: 'beachball',
   description: 'The Sunniest Semantic Version Bumper',
   base: '/beachball/',
@@ -11,14 +13,12 @@ module.exports = {
     sidebar: [
       {
         title: 'Overview',
-        collapsable: false, // optional, defaults to true
-        sidebarDepth: 1, // optional, defaults to 1
+        collapsable: false,
         children: ['/overview/installation', '/overview/getting-started', '/overview/configuration'],
       },
       {
-        title: 'Concepts', // required
-        collapsable: false, // optional, defaults to true
-        sidebarDepth: 1, // optional, defaults to 1
+        title: 'Concepts',
+        collapsable: false,
         children: [
           '/concepts/bump-algorithm',
           '/concepts/change-files',
@@ -27,23 +27,21 @@ module.exports = {
         ],
       },
       {
-        title: 'Command Line Args', // required
-        collapsable: false, // optional, defaults to true
-        sidebarDepth: 1, // optional, defaults to 1
+        title: 'Command Line Args',
+        collapsable: false,
         children: ['/cli/options', '/cli/bump', '/cli/change', '/cli/check', '/cli/publish', '/cli/sync'],
       },
     ],
   },
-  plugins: [
-    [
-      'mermaidjs',
-      {
-        gantt: {
-          barHeight: 20,
-          fontSize: 12,
-          useWidth: 960,
-        },
+  plugins: {
+    mermaidjs: {
+      gantt: {
+        barHeight: 20,
+        fontSize: 12,
+        useWidth: 960,
       },
-    ],
-  ],
+    },
+  },
 };
+
+module.exports = config;

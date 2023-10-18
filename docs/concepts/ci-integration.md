@@ -37,7 +37,7 @@ An alternative approach is creating a classic PAT with a "machine user" account.
 
 ### Storing tokens
 
-<h4 id="secrets-github-actions">GitHub Actions</h3>
+<h4 id="secrets-github-actions">GitHub Actions</h4>
 
 To restrict secret access to appropriate branches, use an **[environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment)**. (The docs for environments focus on cloud deployments or resources, but environments can also be used only for secret storage.)
 
@@ -46,7 +46,7 @@ To restrict secret access to appropriate branches, use an **[environment](https:
 3. [Add secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-an-environment) for the npm and GitHub tokens.
 4. To [use the environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#using-an-environment), add a key `environment: your-env-name` in your release workflow job. (Full example below.)
 
-<h4 id="secrets-azure-pipelines">Azure Pipelines</h3>
+<h4 id="secrets-azure-pipelines">Azure Pipelines</h4>
 
 There are a couple of options here:
 
