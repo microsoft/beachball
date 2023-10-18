@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Update dependency workspace-tools to ^0.36.3",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
