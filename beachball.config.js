@@ -8,6 +8,7 @@ module.exports = {
     '.prettierrc.json5',
     '.vscode/**',
     'docs/**',
+    'docs/.vuepress/**',
     'jest.*.js',
     'renovate.json5',
     'scripts/**',
