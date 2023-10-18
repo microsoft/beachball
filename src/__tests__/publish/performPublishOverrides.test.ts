@@ -39,7 +39,7 @@ describe('performPublishOverrides', () => {
       ...json,
     }));
 
-    readJSONSync.mockImplementation((path: string) => {
+    readJSONSync.mockImplementation(path => {
       for (const pkg of Object.values(packageInfos)) {
         if (path === pkg.packageJsonPath) {
           // performPublishConfigOverrides mutates the packageJson, so we need to clone it to
