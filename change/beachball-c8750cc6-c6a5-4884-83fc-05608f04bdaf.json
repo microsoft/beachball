@@ -1,0 +1,7 @@
+{
+  "comment": "Update devDependency strip-ansi to v7",
+  "type": "none",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}
