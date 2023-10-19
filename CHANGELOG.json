@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 19 Oct 2023 08:03:28 GMT",
+      "version": "2.39.0",
+      "tag": "beachball_v2.39.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e3e8d29297f3ff13a9117c48126bf4aeb9caa738",
+            "comment": "Update dependency workspace-tools to ^0.36.3"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 18 Oct 2023 08:03:44 GMT",
       "version": "2.38.0",
       "tag": "beachball_v2.38.0",
