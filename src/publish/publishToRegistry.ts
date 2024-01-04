@@ -1,4 +1,6 @@
 import _ from 'lodash';
+import fs from 'fs-extra';
+import path from 'path';
 import { performBump } from '../bump/performBump';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
@@ -9,11 +11,15 @@ import { validatePackageDependencies } from './validatePackageDependencies';
 import { performPublishOverrides } from './performPublishOverrides';
 import { getPackagesToPublish } from './getPackagesToPublish';
 import { callHook } from '../bump/callHook';
+import { packPackage } from '../packageManager/packPackage';
 
 /**
- * Publish all the bumped packages to the registry.
+ * Publish all the bumped packages to the registry, OR if `packToPath` is specified,
+ * pack the packages instead of publishing.
  */
 export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions): Promise<void> {
+  const verb = options.packToPath ? 'pack' : 'publish';
+
   const bumpInfo = _.cloneDeep(originalBumpInfo);
 
   if (options.bump) {
@@ -32,7 +38,7 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   }
 
   if (invalid) {
-    console.error('No packages were published due to validation errors (see above for details).');
+    console.error(`No packages were ${verb}ed due to validation errors (see above for details).`);
     process.exit(1);
   }
 
@@ -44,15 +50,35 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
 
   // finally pass through doing the actual npm publish command
   const succeededPackages = new Set<string>();
+  const packFiles: string[] = [];
 
+  // publish or pack each package
   for (const pkg of packagesToPublish) {
-    const result = await packagePublish(bumpInfo.packageInfos[pkg], options);
-    if (result.success) {
+    let success: boolean;
+    if (options.packToPath) {
+      const result = await packPackage(bumpInfo.packageInfos[pkg], options);
+      if (result.success) {
+        packFiles.push(result.packFile);
+      }
+      success = result.success;
+    } else {
+      success = (await packagePublish(bumpInfo.packageInfos[pkg], options)).success;
+    }
+
+    if (success) {
       succeededPackages.add(pkg);
     } else {
       displayManualRecovery(bumpInfo, succeededPackages);
-      throw new Error('Error publishing! Refer to the previous logs for recovery instructions.');
+      throw new Error(`Error ${verb}ing! Refer to the previous logs for recovery instructions.`);
     }
+  }
+
+  if (options.packToPath && packFiles.length) {
+    // Write a file with the proper topological order for publishing the pack files
+    const orderJsonPath = path.join(options.packToPath, 'order.json');
+    console.log(`Writing package publishing order to ${orderJsonPath}`);
+    fs.ensureDirSync(options.packToPath);
+    fs.writeJSONSync(orderJsonPath, packFiles, { spaces: 2 });
   }
 
   // if there is a postpublish hook perform a postpublish pass, calling the routine on each package

@@ -66,8 +66,10 @@ export async function publish(options: BeachballOptions): Promise<void> {
 
   // Step 1. Bump + npm publish
   // npm / yarn publish
-  if (options.publish) {
-    console.log('\nBumping versions and publishing to npm');
+  if (options.publish || options.packToPath) {
+    console.log(
+      `\nBumping versions and ${options.packToPath ? `packing packages to ${options.packToPath}` : 'publishing to npm'}`
+    );
     await publishToRegistry(bumpInfo, options);
     console.log();
   } else {
