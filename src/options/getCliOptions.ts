@@ -7,6 +7,7 @@ import { env } from '../env';
 const arrayOptions = ['disallowedChangeTypes', 'package', 'scope'] as const;
 const booleanOptions = [
   'all',
+  'includePrivatePackages',
   'bump',
   'bumpDeps',
   'commit',

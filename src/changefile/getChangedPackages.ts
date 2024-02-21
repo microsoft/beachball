@@ -38,11 +38,12 @@ function getMatchingPackageInfo(
  */
 function isPackageIncluded(
   packageInfo: PackageInfo | undefined,
-  scopedPackages: string[]
+  scopedPackages: string[],
+  includePrivatePackages = false,
 ): { isIncluded: boolean; reason: string } {
   const reason = !packageInfo
     ? 'no corresponding package found'
-    : packageInfo.private
+    : (packageInfo.private && !includePrivatePackages)
     ? `${packageInfo.name} is private`
     : packageInfo.combinedOptions.shouldPublish === false
     ? `${packageInfo.name} has beachball.shouldPublish=false`
@@ -58,7 +59,7 @@ function isPackageIncluded(
  * If `options.all` is set, returns all the packages in scope, regardless of whether they've changed.
  */
 function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
-  const { branch, path: cwd, verbose, all } = options;
+  const { branch, path: cwd, verbose, all, includePrivatePackages } = options;
 
   const verboseLog = (msg: string) => verbose && console.log(msg);
   const logIgnored = (file: string, reason: string) => verboseLog(`  - ~~${file}~~ (${reason})`);
@@ -71,7 +72,7 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
     verboseLog('--all option was provided, so including all packages that are in scope (regardless of changes)');
     return Object.values(packageInfos)
       .filter(pkg => {
-        const { isIncluded, reason } = isPackageIncluded(pkg, scopedPackages);
+        const { isIncluded, reason } = isPackageIncluded(pkg, scopedPackages, includePrivatePackages);
         verboseLog(isIncluded ? `  - ${pkg.name}` : `  - ~~${pkg.name}~~ (${reason.replace(`${pkg.name} `, '')})`);
         return isIncluded;
       })
@@ -109,7 +110,7 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
   for (const moddedFile of nonIgnoredChanges) {
     const packageInfo = getMatchingPackageInfo(moddedFile, cwd, packageInfosByPath);
 
-    const { isIncluded, reason } = isPackageIncluded(packageInfo, scopedPackages);
+    const { isIncluded, reason } = isPackageIncluded(packageInfo, scopedPackages, includePrivatePackages);
 
     if (!isIncluded) {
       logIgnored(moddedFile, reason);

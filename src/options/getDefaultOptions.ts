@@ -9,6 +9,7 @@ export function getDefaultOptions(): BeachballOptions {
   return {
     access: 'restricted',
     all: false,
+    includePrivatePackages: false,
     authType: 'authtoken',
     branch: 'origin/master',
     bump: true,

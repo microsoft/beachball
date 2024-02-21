@@ -19,7 +19,7 @@ import { PackageInfos } from '../types/PackageInfo';
  * (so it's possible that multiple entries will have the same filename).
  */
 export function readChangeFiles(options: BeachballOptions, packageInfos: PackageInfos): ChangeSet {
-  const { path: cwd, fromRef } = options;
+  const { path: cwd, fromRef, includePrivatePackages } = options;
   const scopedPackages = getScopedPackages(options, packageInfos);
   const changePath = getChangePath(cwd);
 
@@ -87,9 +87,10 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
       // (This may happen if a package is renamed or its private flag is changed.)
       const warningType = !packageInfos[change.packageName]
         ? 'nonexistent'
-        : packageInfos[change.packageName].private
+        : (packageInfos[change.packageName].private && !includePrivatePackages)
         ? 'private'
         : undefined;
+
       if (warningType) {
         const resolution = options.groupChanges ? 'remove the entry from this file' : 'delete this file';
         console.warn(
