@@ -273,5 +273,12 @@ export interface TransformOptions {
    * This allows for adding or editing information to the change files
    * without having to modify anything on the disk.
    */
-  changeFiles?: (changeInfo: ChangeInfo | ChangeInfoMultiple, changeFilePath: string) => ChangeInfo;
+  changeFiles?: (
+    changeInfo: ChangeInfo | ChangeInfoMultiple,
+    changeFilePath: string,
+    context: {
+      /** The beachball command that is being run when this transform is invoked. Can be used to selectively run the transform on a specific beachball command like "beachball change" */
+      command: string;
+    }
+  ) => ChangeInfo;
 }
