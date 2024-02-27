@@ -1,7 +1,0 @@
-{
-  "comment": "Support updating lockfiles for pnpm and yarn (#769)",
-  "type": "patch",
-  "packageName": "beachball",
-  "email": "im@pyonpyon.today",
-  "dependentChangeType": "patch"
-}

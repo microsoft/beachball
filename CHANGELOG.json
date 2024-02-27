@@ -2,6 +2,29 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 27 Feb 2024 08:02:43 GMT",
+      "version": "2.40.0",
+      "tag": "beachball_v2.40.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "im@pyonpyon.today",
+            "package": "beachball",
+            "commit": "45c62516bc69c008f3eb94aeeff6fe44e4fc2d14",
+            "comment": "Support updating lockfiles for pnpm and yarn (#769)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "1581488+christiango@users.noreply.github.com",
+            "package": "beachball",
+            "commit": "5d8da45132c0c58220a152c9356bcd2a1b4a4631",
+            "comment": "Add context on the current running command for changeFiles transform"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 19 Oct 2023 08:03:28 GMT",
       "version": "2.39.0",
       "tag": "beachball_v2.39.0",
