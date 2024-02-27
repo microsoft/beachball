@@ -3,7 +3,6 @@ import { ChangeInfo, ChangeInfoMultiple, ChangeType } from './ChangeInfo';
 import { ChangeFilePromptOptions } from './ChangeFilePrompt';
 import { ChangelogOptions } from './ChangelogOptions';
 import { PackageInfos } from './PackageInfo';
-import type { inc } from 'semver';
 
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
@@ -132,7 +131,7 @@ export interface RepoOptions {
    *  Set it to false to omit the prerelease number.
    *  @default "0"
    */
-  identifierBase?: inc.IdentifierBase | false;
+  identifierBase?: '0' | '1' | false;
   /**
    * Whether to publish to the npm registry
    * @default true
