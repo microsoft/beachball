@@ -266,11 +266,13 @@ describe('writeChangelog', () => {
 
     const beachballOptions: Partial<BeachballOptions> = {
       path: monoRepo.rootPath,
+      command: 'change',
       transform: {
-        changeFiles: (changeFile, changeFilePath) => {
+        changeFiles: (changeFile, changeFilePath, { command }) => {
           // For test, we will be changing the comment based on the package name
           if ((changeFile as ChangeInfo).packageName === 'foo') {
             (changeFile as ChangeInfo).comment = editedComment;
+            (changeFile as ChangeInfo).command = command;
           }
           return changeFile as ChangeInfo;
         },
@@ -293,6 +295,7 @@ describe('writeChangelog', () => {
     for (const { change, changeFile } of changes) {
       if (changeFile.startsWith('foo')) {
         expect(change.comment).toBe(editedComment);
+        expect(change.command).toEqual('change');
       } else {
         expect(change.comment).toBe('comment 2');
       }

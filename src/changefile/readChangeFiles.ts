@@ -19,7 +19,7 @@ import { PackageInfos } from '../types/PackageInfo';
  * (so it's possible that multiple entries will have the same filename).
  */
 export function readChangeFiles(options: BeachballOptions, packageInfos: PackageInfos): ChangeSet {
-  const { path: cwd, fromRef } = options;
+  const { path: cwd, fromRef, command } = options;
   const scopedPackages = getScopedPackages(options, packageInfos);
   const changePath = getChangePath(cwd);
 
@@ -72,7 +72,9 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
     // Transform the change files, if the option is provided
     if (options.transform?.changeFiles) {
       try {
-        changeInfo = options.transform?.changeFiles(changeInfo, changeFilePath);
+        changeInfo = options.transform?.changeFiles(changeInfo, changeFilePath, {
+          command,
+        });
       } catch (e) {
         console.warn(`Error transforming ${changeFilePath}: ${e}`);
         continue;

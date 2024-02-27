@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add context on the current running command for changeFiles transform",
+  "packageName": "beachball",
+  "email": "1581488+christiango@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}
