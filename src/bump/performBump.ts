@@ -68,16 +68,13 @@ export async function updatePackageLock(cwd: string): Promise<void> {
       return;
     }
 
-    const yarnArgs = ['install'];
-
     if (version.stdout.startsWith('1.')) {
-      yarnArgs.push('--ignore-scripts');
-    } else {
-      // yarn v3 or later
-      yarnArgs.push('--mode', 'update-lockfile');
+      console.log('Yarn v1 detected, skipping update lockfile since it is not needed');
+      return;
     }
 
-    const res = await yarn(yarnArgs, { stdio: 'inherit' });
+    // for yarn v2+
+    const res = await yarn(['install', '--mode', 'update-lockfile'], { stdio: 'inherit' });
     if (!res.success) {
       console.warn('Updating yarn.lock failed. Continuing...');
     }
