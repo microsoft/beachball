@@ -5,8 +5,11 @@ import { ChangeType } from '../types/ChangeInfo';
 
 const groupNames: { [k in ChangeType]: string } = {
   major: 'Major changes',
+  premajor: 'Major changes (pre-release)',
   minor: 'Minor changes',
+  preminor: 'Minor changes (pre-release)',
   patch: 'Patches',
+  prepatch: 'Patches (pre-release)',
   prerelease: 'Changes',
   none: '', // not used
 };
