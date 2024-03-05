@@ -78,15 +78,12 @@ export function _getQuestionsForPackage(params: {
   const showPrereleaseOption = !!prerelease(packageInfo.version);
   const changeTypeChoices: prompts.Choice[] = [
     ...(showPrereleaseOption ? [{ value: 'prerelease', title: ' [1mPrerelease[22m - bump prerelease version' }] : []),
-    { value: 'prepatch', title: ' [1mPrepatch[22m      - bug fixes; no API changes. Prerelease' },
     { value: 'patch', title: ' [1mPatch[22m      - bug fixes; no API changes.' },
-    { value: 'preminor', title: ' [1mPreminor[22m      - small feature; backwards compatible API changes. Prerelease' },
     { value: 'minor', title: ' [1mMinor[22m      - small feature; backwards compatible API changes.' },
     {
       value: 'none',
       title: ' [1mNone[22m       - this change does not affect the published package in any way.',
     },
-    { value: 'premajor', title: ' [1mPremajor[22m      - major feature; breaking changes. Prerelease' },
     { value: 'major', title: ' [1mMajor[22m      - major feature; breaking changes.' },
   ].filter(choice => !disallowedChangeTypes?.includes(choice.value as ChangeType));
 
