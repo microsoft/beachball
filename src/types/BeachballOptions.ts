@@ -127,6 +127,11 @@ export interface RepoOptions {
   path: string;
   /** Prerelease prefix for packages that are specified to receive a prerelease bump */
   prereleasePrefix?: string | null;
+  /** This is for prerelease. Set it to "0" for zero-based or "1" for one-based.
+   *  Set it to false to omit the prerelease number.
+   *  @default "0"
+   */
+  identifierBase?: '0' | '1' | false;
   /**
    * Whether to publish to the npm registry
    * @default true

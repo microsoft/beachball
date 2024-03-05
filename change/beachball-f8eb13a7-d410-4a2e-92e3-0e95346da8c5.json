@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Adding support for identifier base when bumping with a pre-release prefix",
+  "packageName": "beachball",
+  "email": "jdesalliers@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -21,7 +21,8 @@ export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo, opti
     info.version = semver.inc(
       info.version,
       options.prereleasePrefix ? 'prerelease' : changeType,
-      options.prereleasePrefix || undefined
+      options.prereleasePrefix || undefined,
+      options.identifierBase
     ) as string;
     modifiedPackages.add(pkgName);
   }

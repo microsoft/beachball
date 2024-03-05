@@ -310,7 +310,7 @@ describe('version bumping', () => {
     expect(changeFiles).toHaveLength(1);
   });
 
-  it('bumps all packages and uses prefix in the version', async () => {
+  it('bumps all packages and uses prefix in the version with default identifier base', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
         'pkg-1': { version: '1.0.0' },
@@ -336,6 +336,84 @@ describe('version bumping', () => {
     const packageInfos = getPackageInfos(repo.rootPath);
 
     const newVersion = '1.0.1-beta.0';
+    expect(packageInfos['pkg-1'].version).toBe(newVersion);
+    expect(packageInfos['pkg-2'].version).toBe(newVersion);
+    expect(packageInfos['pkg-3'].version).toBe(newVersion);
+
+    expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(newVersion);
+    expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(newVersion);
+    expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(newVersion);
+
+    const changeFiles = getChangeFiles(repo.rootPath);
+    expect(changeFiles).toHaveLength(0);
+  });
+
+  it('bumps all packages and uses prefix in the version with the right identifier base', async () => {
+    const monorepo: RepoFixture['folders'] = {
+      packages: {
+        'pkg-1': { version: '1.0.0' },
+        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
+        'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
+        'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
+      },
+    };
+    repositoryFactory = new RepositoryFactory({ folders: monorepo });
+    const repo = repositoryFactory.cloneRepository();
+
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], repo.rootPath);
+
+    repo.push();
+
+    await bump({
+      path: repo.rootPath,
+      bumpDeps: true,
+      keepChangeFiles: false,
+      prereleasePrefix: 'beta',
+      identifierBase: "1"
+    } as BeachballOptions);
+
+    const packageInfos = getPackageInfos(repo.rootPath);
+
+    const newVersion = '1.0.1-beta.1';
+    expect(packageInfos['pkg-1'].version).toBe(newVersion);
+    expect(packageInfos['pkg-2'].version).toBe(newVersion);
+    expect(packageInfos['pkg-3'].version).toBe(newVersion);
+
+    expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(newVersion);
+    expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(newVersion);
+    expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(newVersion);
+
+    const changeFiles = getChangeFiles(repo.rootPath);
+    expect(changeFiles).toHaveLength(0);
+  });
+
+  it('bumps all packages and uses prefix in the version with no identifier base', async () => {
+    const monorepo: RepoFixture['folders'] = {
+      packages: {
+        'pkg-1': { version: '1.0.0' },
+        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
+        'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
+        'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
+      },
+    };
+    repositoryFactory = new RepositoryFactory({ folders: monorepo });
+    const repo = repositoryFactory.cloneRepository();
+
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], repo.rootPath);
+
+    repo.push();
+
+    await bump({
+      path: repo.rootPath,
+      bumpDeps: true,
+      keepChangeFiles: false,
+      prereleasePrefix: 'beta',
+      identifierBase: false
+    } as BeachballOptions);
+
+    const packageInfos = getPackageInfos(repo.rootPath);
+
+    const newVersion = '1.0.1-beta';
     expect(packageInfos['pkg-1'].version).toBe(newVersion);
     expect(packageInfos['pkg-2'].version).toBe(newVersion);
     expect(packageInfos['pkg-3'].version).toBe(newVersion);
