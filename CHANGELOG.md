@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Tue, 27 Feb 2024 08:02:43 GMT and should not be manually modified.
+This log was last generated on Wed, 06 Mar 2024 08:03:35 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.41.0
+
+Wed, 06 Mar 2024 08:03:35 GMT
+
+### Minor changes
+
+- Adding support for identifier base when bumping with a pre-release prefix (jdesalliers@microsoft.com)
 
 ## 2.40.0
 

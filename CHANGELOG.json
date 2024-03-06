@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 06 Mar 2024 08:03:35 GMT",
+      "version": "2.41.0",
+      "tag": "beachball_v2.41.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "jdesalliers@microsoft.com",
+            "package": "beachball",
+            "commit": "ed7fb95de96740d9da71e13716460fa7dfab2106",
+            "comment": "Adding support for identifier base when bumping with a pre-release prefix"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 27 Feb 2024 08:02:43 GMT",
       "version": "2.40.0",
       "tag": "beachball_v2.40.0",
