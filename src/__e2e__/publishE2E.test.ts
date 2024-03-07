@@ -12,6 +12,7 @@ import { publish } from '../commands/publish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { initNpmMock } from '../__fixtures__/mockNpm';
+import { getPackageInfos } from '../monorepo/getPackageInfos';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -52,7 +53,7 @@ describe('publish command (e2e)', () => {
     }
   });
 
-  it('can perform a successful npm publish', async () => {
+  it('publishes a single package', async () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
@@ -73,7 +74,7 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
   });
 
-  it('can perform a successful npm publish in detached HEAD', async () => {
+  it('publishes from detached HEAD', async () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
@@ -92,7 +93,7 @@ describe('publish command (e2e)', () => {
     });
   });
 
-  it('can perform a successful npm publish from a race condition', async () => {
+  it('publishes from a race condition', async () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
@@ -132,7 +133,7 @@ describe('publish command (e2e)', () => {
     expect(fetchCount).toBe(2);
   });
 
-  it('can perform a successful npm publish from a race condition in the dependencies', async () => {
+  it('publishes from a race condition in the dependencies', async () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
@@ -179,7 +180,7 @@ describe('publish command (e2e)', () => {
     expect(contents.dependencies.baz).toBeUndefined();
   });
 
-  it('can perform a successful npm publish without bump', async () => {
+  it('publishes without bump', async () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
@@ -285,7 +286,7 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual(['bar_v1.3.4', 'foo_v1.1.0']);
   });
 
-  it('should not perform npm publish on out-of-scope package', async () => {
+  it("doesn't publish an out-of-scope package", async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
 
@@ -311,7 +312,7 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual(['bar_v1.4.0']);
   });
 
-  it('should respect prepublish hooks', async () => {
+  it('respects prepublish hooks', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
 
@@ -352,7 +353,7 @@ describe('publish command (e2e)', () => {
     expect(fooPackageJson.onPublish.main).toBe('lib/index.js');
   });
 
-  it('should respect postpublish hooks', async () => {
+  it('respects postpublish hooks', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
     let notified;
@@ -409,7 +410,7 @@ describe('publish command (e2e)', () => {
     expect(fetchCount).toBe(0);
   });
 
-  it('should specify fetch depth when depth param is defined', async () => {
+  it('specifies fetch depth when depth param is defined', async () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
@@ -464,5 +465,40 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
     const manifestJson = fs.readFileSync(repo.pathTo('foo.txt'));
     expect(manifestJson.toString()).toMatchInlineSnapshot(`"foo"`);
+  });
+
+  it.only('does a dry run if requested', async () => {
+    repositoryFactory = new RepositoryFactory('monorepo');
+    const repo = repositoryFactory.cloneRepository();
+
+    // bump baz => dependent bump bar => dependent bump foo
+    generateChangeFiles(['baz'], repo.rootPath);
+    expect(repositoryFactory.fixture.folders!.packages.foo.dependencies!.bar).toBeTruthy();
+    expect(repositoryFactory.fixture.folders!.packages.bar.dependencies!.baz).toBeTruthy();
+
+    repo.push();
+
+    await publish({ ...getOptions(repo), dryRun: true });
+
+    // not published to registry
+    await npmShow('baz', { shouldFail: true });
+    await npmShow('bar', { shouldFail: true });
+    await npmShow('foo', { shouldFail: true });
+
+    // versions are bumped locally
+    let packageInfos = getPackageInfos(repo.rootPath);
+    expect(packageInfos.foo.version).toEqual('1.0.1');
+    expect(packageInfos.bar.version).toEqual('1.3.5');
+    expect(packageInfos.baz.version).toEqual('1.4.0');
+
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    // no tags created
+    expect(repo.getCurrentTags()).toEqual([]);
+    // versions haven't been updated in remote
+    packageInfos = getPackageInfos(repo.rootPath);
+    expect(packageInfos.foo.version).toEqual('1.0.0');
+    expect(packageInfos.bar.version).toEqual('1.3.4');
+    expect(packageInfos.baz.version).toEqual('1.3.4');
   });
 });

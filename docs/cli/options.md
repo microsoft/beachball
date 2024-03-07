@@ -26,18 +26,19 @@ See the [`change` page](./change).
 
 These options are applicable for the `publish` command, as well as `bump` and/or `canary` in some cases.
 
-| Option                        | Alias | Default                        | Description                                                                                                                                |
-| ----------------------------- | ----- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--authType`                  | `-a`  | `'authtoken'`                  | type of token argument, affecting how it is applied to npm commands.                                                                       |
-| `--message`                   | `-m`  | `'applying package updates'`   | custom message for the checkin                                                                                                             |
-| `--git-tags`, `--no-git-tags` |       | `true` (`--git-tags`)          | whether to create git tags for published packages                                                                                          |
-| `--publish`, `--no-publish`   |       | `true` (`--publish`)           | whether to publish to the npm registry                                                                                                     |
-| `--push`, `--no-push`         |       | `true` (`--push`)              | whether to push changes back to git remote origin                                                                                          |
-| `--prerelease-prefix`         |       |                                | prerelease prefix for packages that are specified to receive a prerelease bump (`--prerelease-prefix beta` makes the `x.y.z-beta` version) |
-| `--registry`                  | `-r`  | `'https://registry.npmjs.org'` | npm registry for publishing                                                                                                                |
-| `--retries`                   |       | `3`                            | number of retries for a package publish before failing                                                                                     |
-| `--tag`                       | `-t`  | `'latest'`                     | dist-tag for npm publishes                                                                                                                 |
-| `--token`                     | `-n`  |                                | credential to use with npm commands. its type is specified with the `--authType` argument                                                  |
-| `--verbose`                   |       | `false`                        | prints additional information to the console                                                                                               |
-| `--yes`                       | `-y`  | if CI detected, `true`         | skips the prompts for publish                                                                                                              |
-| `--new`                       |       | `false`                        | publishes new packages if not in registry                                                                                                  |
+| Option                        | Alias | Default                        | Description                                                                                                                      |
+| ----------------------------- | ----- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `--authType`                  | `-a`  | `'authtoken'`                  | type of token argument, affecting how it is applied to npm commands.                                                             |
+| `--message`                   | `-m`  | `'applying package updates'`   | custom message for the checkin                                                                                                   |
+| `--git-tags`, `--no-git-tags` |       | `true` (`--git-tags`)          | whether to create git tags for published packages                                                                                |
+| `--publish`, `--no-publish`   |       | `true` (`--publish`)           | whether to publish to the npm registry                                                                                           |
+| `--push`, `--no-push`         |       | `true` (`--push`)              | whether to push changes back to git remote origin                                                                                |
+| `--dry-run`                   |       |                                | do a dry run of publishing: locally make all changes, run `npm publish --dry-run`, and commit (no tags), but don't push          |
+| `--prerelease-prefix`         |       |                                | prerelease prefix for packages that should receive a prerelease bump (`--prerelease-prefix beta` makes the `x.y.z-beta` version) |
+| `--registry`                  | `-r`  | `'https://registry.npmjs.org'` | npm registry for publishing                                                                                                      |
+| `--retries`                   |       | `3`                            | number of retries for a package publish before failing                                                                           |
+| `--tag`                       | `-t`  | `'latest'`                     | dist-tag for npm publishes                                                                                                       |
+| `--token`                     | `-n`  |                                | credential to use with npm commands. its type is specified with the `--authType` argument                                        |
+| `--verbose`                   |       | `false`                        | prints additional information to the console                                                                                     |
+| `--yes`                       | `-y`  | if CI detected, `true`         | skips the prompts for publish                                                                                                    |
+| `--new`                       |       | `false`                        | publishes new packages if not in registry                                                                                        |

@@ -39,6 +39,7 @@ export interface CliOptions
   forceVersions?: boolean;
   fromRef?: string;
   help?: boolean;
+  dryRun?: boolean;
   keepChangeFiles?: boolean;
   /**
    * For publish: If true, publish all newly added packages in addition to modified packages.

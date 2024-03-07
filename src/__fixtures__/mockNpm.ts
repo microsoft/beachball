@@ -105,7 +105,7 @@ export function initNpmMock(): NpmMock {
   return {
     mock: npmMock,
     publishPackage: (packageJson, tag = 'latest') => {
-      mockPublishPackage(registryData, packageJson, tag);
+      mockPublishPackage({ registryData, packageJson, tag });
     },
     setCommandOverride: (command, override) => {
       overrideMocks[command] = override;
@@ -186,10 +186,23 @@ export const _mockNpmShow: MockNpmCommand = (registryData, args) => {
   return { stdout, stderr: '', all: stdout, success: true, failed: false } as NpmResult;
 };
 
+const supportedOptions = ['--registry', '--dry-run', '--tag', '--loglevel', '--access'];
+
 /** (exported for testing) Mock npm publish to the registry data */
 export const _mockNpmPublish: MockNpmCommand = (registryData, args: string[], opts: Parameters<typeof npm>[1]) => {
   if (!opts?.cwd) {
     throw new Error('cwd is required for mock npm publish');
+  }
+
+  // Verify we're not using the mock on unexpected new args, which might require new behavior
+  // (ignore the --//some.registry arg)
+  const unsupportedOptions = args.filter(arg => /^--[^/]/.test(arg) && !supportedOptions.includes(arg));
+  if (unsupportedOptions.length) {
+    // If this happens, add handling for the new option if needed, and add it to supportedOptions
+    throw new Error(
+      'mock npm publish was called with unexpected options (which may require new handling): ' +
+        unsupportedOptions.join(', ')
+    );
   }
 
   // Read package.json from cwd to find the published package name and version.
@@ -197,9 +210,10 @@ export const _mockNpmPublish: MockNpmCommand = (registryData, args: string[], op
   const packageJson = fs.readJsonSync(path.join(opts.cwd, 'package.json')) as PackageJson;
 
   const tag = args.includes('--tag') ? args[args.indexOf('--tag') + 1] : 'latest';
+  const dryRun = args.includes('--dry-run');
 
   try {
-    const stdout = mockPublishPackage(registryData, packageJson, tag);
+    const stdout = mockPublishPackage({ registryData, packageJson, tag, dryRun });
     return { stdout, stderr: '', all: stdout, success: true, failed: false };
   } catch (err) {
     const stderr = (err as Error).message;
@@ -208,7 +222,13 @@ export const _mockNpmPublish: MockNpmCommand = (registryData, args: string[], op
 };
 
 /** Publish a new package version to the mock registry */
-function mockPublishPackage(registryData: MockNpmRegistry, packageJson: PackageJson, tag: string) {
+function mockPublishPackage(params: {
+  registryData: MockNpmRegistry;
+  packageJson: PackageJson;
+  tag: string;
+  dryRun?: boolean;
+}) {
+  const { registryData, packageJson, tag, dryRun } = params;
   const { name, version } = packageJson;
 
   if (registryData[name]?.versions?.includes(version)) {
@@ -216,10 +236,12 @@ function mockPublishPackage(registryData: MockNpmRegistry, packageJson: PackageJ
     throw new Error(`[fake] EPUBLISHCONFLICT ${name}@${version} already exists in registry`);
   }
 
-  registryData[name] ??= { versions: [], 'dist-tags': {}, versionData: {} };
-  registryData[name].versions.push(version);
-  registryData[name]['dist-tags'][tag] = version;
-  registryData[name].versionData[version] = packageJson;
+  if (!dryRun) {
+    registryData[name] ??= { versions: [], 'dist-tags': {}, versionData: {} };
+    registryData[name].versions.push(version);
+    registryData[name]['dist-tags'][tag] = version;
+    registryData[name].versionData[version] = packageJson;
+  }
 
   return `[fake] published ${name}@${version} with tag ${tag}`;
 }
