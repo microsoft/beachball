@@ -10,6 +10,7 @@ const booleanOptions = [
   'bump',
   'bumpDeps',
   'commit',
+  'dryRun',
   'disallowDeletedChangeFiles',
   'fetch',
   'forceVersions',

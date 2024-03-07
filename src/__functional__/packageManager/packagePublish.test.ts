@@ -99,6 +99,28 @@ describe('packagePublish', () => {
     });
   });
 
+  it('does not publish if dryRun is specified', async () => {
+    // This might be redundant to test, but we want to be very sure we're passing the right option
+    // to npm here to avoid accidental publishing.
+    await registry.reset();
+    const testPackageInfo = getTestPackageInfo();
+    const publishResult = await packagePublish(testPackageInfo, {
+      dryRun: true,
+      registry: registry.getUrl(),
+      retries: 2,
+    });
+    expect(publishResult).toEqual(successResult);
+    expect(npmSpy).toHaveBeenCalledTimes(1);
+
+    const allLogs = logs.getMockLines('all');
+    expect(allLogs).toMatch(`Publishing - ${testSpec} with tag ${testTag}`);
+    expect(allLogs).toMatch('publish command:');
+    expect(allLogs).toMatch(`[log] Published!`);
+
+    // version shouldn't exist
+    await npmShow(testName, { registry, shouldFail: true });
+  });
+
   it('errors and does not retry on republish', async () => {
     // Use real npm for this because the republish detection relies on the real error message
     await registry.reset();

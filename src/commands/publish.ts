@@ -21,21 +21,27 @@ export async function publish(options: BeachballOptions): Promise<void> {
     return;
   }
   // Collate the changes per package
-  const currentBranch = getBranchName(cwd);
-  const currentHash = getCurrentHash(cwd);
+  const startingBranch = getBranchName(cwd);
+  const startingHash = getCurrentHash(cwd);
 
-  console.log(`\nPublishing with the following configuration:
+  console.log(`\nPublishing ${options.dryRun ? 'dry run ' : ''}with the following configuration:
 
   registry: ${registry}
 
-  current branch: ${currentBranch}
-  current hash: ${currentHash}
+  current branch: ${startingBranch}
+  current hash: ${startingHash}
   target branch: ${branch}
   tag: ${tag}
 
   bumps versions: ${options.bump ? 'yes' : 'no'}
-  publishes to npm registry: ${options.publish ? 'yes' : 'no'}
-  pushes to remote git repo: ${options.bump && options.push && options.branch ? 'yes' : 'no'}
+  publishes to npm registry: ${options.dryRun ? 'dry run' : options.publish ? 'yes' : 'no'}
+  pushes to remote git repo: ${
+    options.bump && options.push && options.branch
+      ? options.dryRun
+        ? "commits changes but doesn't push"
+        : 'yes'
+      : 'no'
+  }
 
 `);
 
@@ -83,21 +89,25 @@ export async function publish(options: BeachballOptions): Promise<void> {
     console.log('Skipping git push and tagging');
   }
 
+  if (options.dryRun) {
+    console.log('\nDry run complete (skipping cleanup so you can inspect the results)\n');
+    return;
+  }
+
   // Step 3.
   // Clean up: switch back to current branch, delete publish branch
   console.log('\nCleaning up');
 
-  const revParseSuccessful = currentBranch || currentHash;
-  if (currentBranch && currentBranch !== 'HEAD') {
-    console.log(`git checkout ${currentBranch}`);
-    gitFailFast(['checkout', currentBranch], { cwd });
-  } else if (currentHash) {
+  if (startingBranch && startingBranch !== 'HEAD') {
+    console.log(`git checkout ${startingBranch}`);
+    gitFailFast(['checkout', startingBranch], { cwd });
+  } else if (startingHash) {
     console.log(`Looks like the repo was detached from a branch`);
-    console.log(`git checkout ${currentHash}`);
-    gitFailFast(['checkout', currentHash], { cwd });
+    console.log(`git checkout ${startingHash}`);
+    gitFailFast(['checkout', startingHash], { cwd });
   }
 
-  if (revParseSuccessful) {
+  if (startingBranch || startingHash) {
     console.log(`deleting temporary publish branch ${publishBranch}`);
     const deletionResult = git(['branch', '-D', publishBranch], { cwd });
     if (!deletionResult.success) {

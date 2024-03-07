@@ -77,4 +77,9 @@ describe('getNpmPublishArgs', () => {
     const args = getNpmPublishArgs(packageInfos.basic, { ...options, token: 'testToken' }).join(' ');
     expect(args).toMatch('--//testRegistry:_authToken=testToken');
   });
+
+  it('does dry run if specified', () => {
+    const args = getNpmPublishArgs(packageInfos.basic, { ...options, dryRun: true }).join(' ');
+    expect(args).toMatch('--dry-run');
+  });
 });

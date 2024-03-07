@@ -3,10 +3,11 @@ import { NpmOptions } from '../types/NpmOptions';
 import { PackageInfo } from '../types/PackageInfo';
 
 export function getNpmPublishArgs(packageInfo: PackageInfo, options: NpmOptions): string[] {
-  const { registry, token, authType, access } = options;
+  const { registry, token, authType, access, dryRun } = options;
   const pkgCombinedOptions = packageInfo.combinedOptions;
   const args = [
     'publish',
+    ...(dryRun ? ['--dry-run'] : []),
     '--registry',
     registry,
     '--tag',

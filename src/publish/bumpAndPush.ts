@@ -63,13 +63,19 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     console.log('\nCreating git tags for new versions...');
     tagPackages(bumpInfo, options);
 
+    // prepare to push (skip for dry run)
+    const pushArgs = ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`];
+    if (options.dryRun) {
+      console.log(`Skipping pushing to ${branch} for dry run`);
+      console.log(`Would have run: git ${pushArgs.join(' ')}`);
+      completed = true;
+      continue;
+    }
+
     // push
     console.log(`\nPushing to ${branch}...`);
 
-    const pushResult = await gitAsync(
-      ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`],
-      { cwd, verbose, timeout: gitTimeout }
-    );
+    const pushResult = await gitAsync(pushArgs, { cwd, verbose, timeout: gitTimeout });
     if (pushResult.success) {
       completed = true;
     } else if (pushResult.timedOut) {

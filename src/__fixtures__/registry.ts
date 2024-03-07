@@ -101,7 +101,7 @@ export class Registry {
 
       this.server.stderr.on('data', data => {
         const dataStr = String(data);
-        if (!dataStr.includes('Debugger attached')) {
+        if (!dataStr.toLowerCase().includes('debugger')) {
           reject(new Error(dataStr));
         }
       });

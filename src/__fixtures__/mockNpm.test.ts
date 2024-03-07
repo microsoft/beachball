@@ -1,6 +1,8 @@
+//
 // The npm test fixture got complicated enough to need tests...
 // But this added complexity greatly speeds up the other npm-related tests by removing the
 // dependency on actual npm CLI calls and a fake registry (which are very slow).
+//
 
 import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs-extra';
@@ -270,6 +272,17 @@ describe('_mockNpmPublish', () => {
         '2.0.0': packageJson,
       },
     });
+  });
+
+  it('does a dry run', () => {
+    const data = _makeRegistryData({});
+    packageJson = { name: 'foo', version: '1.0.0', main: 'index.js' };
+
+    const result = _mockNpmPublish(data, ['--dry-run'], { cwd: 'fake' });
+    // logs like it published
+    expect(result).toEqual(getPublishResult({ tag: 'latest' }));
+    // doesn't actually publish
+    expect(data).toEqual({});
   });
 });
 
