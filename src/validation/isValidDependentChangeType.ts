@@ -8,7 +8,7 @@ export function isValidDependentChangeType(
   const disallowedDependentChangeTypes = (disallowedChangeTypes || []).filter(t => t !== 'patch');
 
   return (
-    ['patch', 'major', 'minor', 'prerelease', 'none'].includes(dependentChangeType) &&
+    ['patch', 'major', 'minor', 'prerelease', 'prepatch', 'praminor', 'premajor', 'none'].includes(dependentChangeType) &&
     !disallowedDependentChangeTypes.includes(dependentChangeType)
   );
 }

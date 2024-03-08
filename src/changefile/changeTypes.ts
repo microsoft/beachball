@@ -3,7 +3,7 @@ import { ChangeSet, ChangeType } from '../types/ChangeInfo';
 /**
  * List of all change types from least to most significant.
  */
-export const SortedChangeTypes: ChangeType[] = ['none', 'prerelease', 'patch', 'minor', 'major'];
+export const SortedChangeTypes: ChangeType[] = ['none', 'prerelease', 'prepatch', 'patch', 'preminor', 'minor', 'premajor', 'major'];
 
 /**
  * Change type with the smallest weight.
