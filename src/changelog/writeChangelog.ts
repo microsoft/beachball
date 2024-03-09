@@ -41,7 +41,7 @@ export async function writeChangelog(
     if (groupedChangelogPathSet?.has(packagePath)) {
       console.log(`Changelog for ${pkg} has been written as a group here: ${packagePath}`);
     } else {
-      await writeChangelogFiles(options, changelogs[pkg], packagePath, false);
+      await writeChangelogFiles(options, changelogs[pkg], packagePath, false, options.indentation);
     }
   }
 }
@@ -106,7 +106,7 @@ async function writeGroupedChangelog(
     const { masterPackage, changelogs } = groupedChangelogs[changelogPath];
     const groupedChangelog = mergeChangelogs(changelogs, masterPackage);
     if (groupedChangelog) {
-      await writeChangelogFiles(options, groupedChangelog, changelogPath, true);
+      await writeChangelogFiles(options, groupedChangelog, changelogPath, true, options.indentation);
       changelogAbsolutePaths.push(path.resolve(changelogPath));
     }
   }
@@ -118,7 +118,8 @@ async function writeChangelogFiles(
   options: BeachballOptions,
   newVersionChangelog: PackageChangelog,
   changelogPath: string,
-  isGrouped: boolean
+  isGrouped: boolean,
+  indentation: number,
 ): Promise<void> {
   let previousJson: ChangelogJson | undefined;
 
@@ -131,7 +132,7 @@ async function writeChangelogFiles(
   }
   try {
     const nextJson = renderJsonChangelog(newVersionChangelog, previousJson);
-    fs.writeJSONSync(changelogJsonFile, nextJson, { spaces: 2 });
+    fs.writeJSONSync(changelogJsonFile, nextJson, { spaces: indentation });
   } catch (e) {
     console.warn(`Problem writing to ${changelogJsonFile}: ${e}`);
   }

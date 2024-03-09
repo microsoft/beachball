@@ -16,8 +16,9 @@ export function writeChangeFiles(params: {
   commitChangeFiles?: boolean;
   /** group all changes into one change file (default false) */
   groupChanges?: boolean;
+  indentation: number;
 }): string[] {
-  const { changes, cwd, commitChangeFiles = true, groupChanges = false } = params;
+  const { changes, cwd, commitChangeFiles = true, groupChanges = false, indentation } = params;
   const changePath = getChangePath(cwd);
   const branchName = getBranchName(cwd);
 
@@ -40,7 +41,7 @@ export function writeChangeFiles(params: {
   } else {
     changeFiles = changes.map(change => {
       const changeFile = getChangeFile(change.packageName.replace(/[^a-zA-Z0-9@]/g, '-'));
-      fs.writeJSONSync(changeFile, change, { spaces: 2 });
+      fs.writeJSONSync(changeFile, change, { spaces: indentation });
       return changeFile;
     });
   }

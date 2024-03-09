@@ -41,12 +41,12 @@ describe('writeChangelog', () => {
   it('generates correct changelog', async () => {
     const repository = repositoryFactory.cloneRepository();
     repository.commitChange('foo');
-    generateChangeFiles([getChange('foo', 'additional comment 2')], repository.rootPath);
-    generateChangeFiles([getChange('foo', 'additional comment 1')], repository.rootPath);
-    generateChangeFiles([getChange('foo', 'comment 1')], repository.rootPath);
+    generateChangeFiles([getChange('foo', 'additional comment 2')], repository.rootPath, 2);
+    generateChangeFiles([getChange('foo', 'additional comment 1')], repository.rootPath, 2);
+    generateChangeFiles([getChange('foo', 'comment 1')], repository.rootPath, 2);
 
     repository.commitChange('bar');
-    generateChangeFiles([getChange('foo', 'comment 2')], repository.rootPath);
+    generateChangeFiles([getChange('foo', 'comment 2')], repository.rootPath, 2);
 
     const beachballOptions = { path: repository.rootPath } as BeachballOptions;
     const packageInfos = getPackageInfos(repository.rootPath);
@@ -71,7 +71,7 @@ describe('writeChangelog', () => {
   it('generates correct changelog in monorepo with groupChanges (grouped change FILES)', async () => {
     const monoRepo = monoRepoFactory.cloneRepository();
     monoRepo.commitChange('foo');
-    const params = [monoRepo.rootPath, true /*groupChanges*/] as const;
+    const params = [monoRepo.rootPath, 2, true /*groupChanges*/] as const;
     generateChangeFiles(
       [getChange('foo', 'additional comment 2'), getChange('bar', 'comment from bar change ')],
       ...params
@@ -108,11 +108,11 @@ describe('writeChangelog', () => {
   it('generates correct grouped changelog', async () => {
     const monoRepo = monoRepoFactory.cloneRepository();
     monoRepo.commitChange('foo');
-    generateChangeFiles([getChange('foo', 'comment 1')], monoRepo.rootPath);
+    generateChangeFiles([getChange('foo', 'comment 1')], monoRepo.rootPath, 2);
 
     monoRepo.commitChange('bar');
-    generateChangeFiles([getChange('bar', 'comment 2')], monoRepo.rootPath);
-    generateChangeFiles([getChange('bar', 'comment 3')], monoRepo.rootPath);
+    generateChangeFiles([getChange('bar', 'comment 2')], monoRepo.rootPath, 2);
+    generateChangeFiles([getChange('bar', 'comment 3')], monoRepo.rootPath, 2);
 
     const beachballOptions: Partial<BeachballOptions> = {
       path: monoRepo.rootPath,
@@ -143,7 +143,7 @@ describe('writeChangelog', () => {
   it('generates grouped changelog without dependent change entries', async () => {
     const monoRepo = monoRepoFactory.cloneRepository();
     monoRepo.commitChange('baz');
-    generateChangeFiles([getChange('baz', 'comment 1')], monoRepo.rootPath);
+    generateChangeFiles([getChange('baz', 'comment 1')], monoRepo.rootPath, 2);
 
     const beachballOptions: Partial<BeachballOptions> = {
       path: monoRepo.rootPath,
@@ -187,8 +187,8 @@ describe('writeChangelog', () => {
   it('generates grouped changelog without dependent change entries where packages have normal changes and dependency changes', async () => {
     const monoRepo = monoRepoFactory.cloneRepository();
     monoRepo.commitChange('baz');
-    generateChangeFiles([getChange('baz', 'comment 1')], monoRepo.rootPath);
-    generateChangeFiles([getChange('bar', 'comment 1')], monoRepo.rootPath);
+    generateChangeFiles([getChange('baz', 'comment 1')], monoRepo.rootPath, 2);
+    generateChangeFiles([getChange('bar', 'comment 1')], monoRepo.rootPath, 2);
 
     const beachballOptions: Partial<BeachballOptions> = {
       path: monoRepo.rootPath,
@@ -225,10 +225,10 @@ describe('writeChangelog', () => {
   it('generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog', async () => {
     const monoRepo = monoRepoFactory.cloneRepository();
     monoRepo.commitChange('foo');
-    generateChangeFiles([getChange('foo', 'comment 1')], monoRepo.rootPath);
+    generateChangeFiles([getChange('foo', 'comment 1')], monoRepo.rootPath, 2);
 
     monoRepo.commitChange('bar');
-    generateChangeFiles([getChange('bar', 'comment 2')], monoRepo.rootPath);
+    generateChangeFiles([getChange('bar', 'comment 2')], monoRepo.rootPath, 2);
 
     const beachballOptions: Partial<BeachballOptions> = {
       path: monoRepo.rootPath,
@@ -259,10 +259,10 @@ describe('writeChangelog', () => {
     const editedComment: string = 'Edited comment for testing';
     const monoRepo = monoRepoFactory.cloneRepository();
     monoRepo.commitChange('foo');
-    generateChangeFiles([getChange('foo', 'comment 1')], monoRepo.rootPath);
+    generateChangeFiles([getChange('foo', 'comment 1')], monoRepo.rootPath, 2);
 
     monoRepo.commitChange('bar');
-    generateChangeFiles([getChange('bar', 'comment 2')], monoRepo.rootPath);
+    generateChangeFiles([getChange('bar', 'comment 2')], monoRepo.rootPath, 2);
 
     const beachballOptions: Partial<BeachballOptions> = {
       path: monoRepo.rootPath,

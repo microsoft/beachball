@@ -33,7 +33,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    generateChangeFiles(['pkg-1'], repo.rootPath, 2);
 
     repo.push();
 
@@ -62,8 +62,8 @@ describe('version bumping', () => {
     const workspaceARoot = repo.pathTo('workspace-a');
     const workspaceBRoot = repo.pathTo('workspace-b');
 
-    generateChangeFiles([{ packageName: '@workspace-a/foo' }], workspaceARoot);
-    generateChangeFiles([{ packageName: '@workspace-a/foo', type: 'major' }], workspaceBRoot);
+    generateChangeFiles([{ packageName: '@workspace-a/foo' }], workspaceARoot, 2);
+    generateChangeFiles([{ packageName: '@workspace-a/foo', type: 'major' }], workspaceBRoot, 2);
 
     repo.push();
 
@@ -91,11 +91,11 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    generateChangeFiles(['pkg-1'], repo.rootPath, 2);
 
     const oldCommit = repo.getCurrentHash();
 
-    generateChangeFiles(['pkg-3'], repo.rootPath);
+    generateChangeFiles(['pkg-3'], repo.rootPath, 2);
 
     repo.push();
 
@@ -128,7 +128,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    generateChangeFiles(['pkg-1'], repo.rootPath, 2);
 
     repo.push();
 
@@ -164,7 +164,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    generateChangeFiles(['pkg-1'], repo.rootPath, 2);
 
     repo.push();
 
@@ -202,7 +202,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles([{ packageName: 'commonlib', dependentChangeType: 'minor' }], repo.rootPath);
+    generateChangeFiles([{ packageName: 'commonlib', dependentChangeType: 'minor' }], repo.rootPath, 2);
 
     repo.push();
 
@@ -231,7 +231,7 @@ describe('version bumping', () => {
     const monorepo = repositoryFactory.fixture.folders!;
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
 
     repo.push();
 
@@ -254,7 +254,7 @@ describe('version bumping', () => {
     const monorepo = repositoryFactory.fixture.folders!;
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles([{ packageName: 'bar', type: 'patch' }], repo.rootPath);
+    generateChangeFiles([{ packageName: 'bar', type: 'patch' }], repo.rootPath, 2);
 
     repo.push();
 
@@ -285,7 +285,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    generateChangeFiles(['pkg-1'], repo.rootPath, 2);
 
     repo.push();
 
@@ -322,7 +322,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], repo.rootPath);
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], repo.rootPath, 2);
 
     repo.push();
 
@@ -360,7 +360,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], repo.rootPath);
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], repo.rootPath, 2);
 
     repo.push();
 
@@ -399,7 +399,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], repo.rootPath);
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], repo.rootPath, 2);
 
     repo.push();
 
@@ -440,7 +440,8 @@ describe('version bumping', () => {
 
     generateChangeFiles(
       [{ packageName: 'pkg-1', type: 'prerelease', dependentChangeType: 'prerelease' }],
-      repo.rootPath
+      repo.rootPath,
+      2
     );
 
     repo.push();
@@ -481,7 +482,8 @@ describe('version bumping', () => {
 
     generateChangeFiles(
       [{ packageName: 'pkg-1', type: 'prerelease', dependentChangeType: 'prerelease' }],
-      repo.rootPath
+      repo.rootPath,
+      2
     );
 
     repo.push();
@@ -527,7 +529,8 @@ describe('version bumping', () => {
           packageName: 'package1',
         },
       ],
-      repo.rootPath
+      repo.rootPath,
+      2,
     );
 
     repo.push();
@@ -555,7 +558,7 @@ describe('version bumping', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    generateChangeFiles(['pkg-1'], repo.rootPath, 2);
 
     repo.push();
 
@@ -588,7 +591,7 @@ describe('version bumping', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    generateChangeFiles(['pkg-1'], repo.rootPath, 2);
 
     repo.push();
 
@@ -621,7 +624,7 @@ describe('version bumping', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    generateChangeFiles(['pkg-1'], repo.rootPath, 2);
 
     repo.push();
 
@@ -646,7 +649,7 @@ describe('version bumping', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    generateChangeFiles(['pkg-1'], repo.rootPath, 2);
 
     repo.push();
 
@@ -681,7 +684,7 @@ describe('version bumping', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    generateChangeFiles(['pkg-1'], repo.rootPath, 2);
 
     repo.push();
 
@@ -716,7 +719,7 @@ describe('version bumping', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    generateChangeFiles(['pkg-1'], repo.rootPath, 2);
 
     repo.push();
 
