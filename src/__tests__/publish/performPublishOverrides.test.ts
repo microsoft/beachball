@@ -62,7 +62,7 @@ describe('performPublishOverrides', () => {
     const { packageInfos, packageJsons } = createFixture({ foo: { publishConfig } });
     expect(packageJsons.foo).not.toMatchObject(publishConfig);
 
-    performPublishOverrides(['foo'], packageInfos);
+    performPublishOverrides(['foo'], packageInfos, 2);
 
     expect(writeJSONSync).toHaveBeenCalledTimes(1);
     expect(publishConfig).toEqual({
@@ -88,7 +88,7 @@ describe('performPublishOverrides', () => {
     const { packageInfos, packageJsons } = createFixture({ foo: { publishConfig } });
     expect(packageJsons.foo).not.toMatchObject(publishConfig);
 
-    performPublishOverrides(['foo'], packageInfos);
+    performPublishOverrides(['foo'], packageInfos, 2);
 
     expect(writeJSONSync).toHaveBeenCalledTimes(1);
     expect(writeJSONSync).toHaveBeenCalledWith(packageInfos.foo.packageJsonPath, packageJsons.foo, expect.anything());
@@ -104,7 +104,7 @@ describe('performPublishOverrides', () => {
     expect(originalFoo).not.toMatchObject(originalFoo.publishConfig!);
     expect(originalBar).not.toMatchObject(originalBar.publishConfig!);
 
-    performPublishOverrides(['foo', 'bar'], packageInfos);
+    performPublishOverrides(['foo', 'bar'], packageInfos, 2);
 
     expect(writeJSONSync).toHaveBeenCalledTimes(2);
     expect(writeJSONSync).toHaveBeenCalledWith(
@@ -140,7 +140,7 @@ describe('performPublishOverrides', () => {
     });
     expect(packageJsons.bar.dependencies!.foo).toBe(dependencyVersion);
 
-    performPublishOverrides(['bar'], packageInfos);
+    performPublishOverrides(['bar'], packageInfos, 2);
 
     expect(writeJSONSync).toHaveBeenCalledTimes(1);
     expect(writeJSONSync).toHaveBeenCalledWith(

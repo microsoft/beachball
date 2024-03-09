@@ -20,7 +20,7 @@ describe('areChangeFilesDeleted', () => {
 
   beforeEach(() => {
     repository = repositoryFactory.cloneRepository();
-    generateChangeFiles(['pkg-1'], repository.rootPath);
+    generateChangeFiles(['pkg-1'], repository.rootPath, 2);
     repository.push();
   });
 

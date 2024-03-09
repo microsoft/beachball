@@ -11,7 +11,7 @@ import { pnpm } from '../packageManager/pnpm';
 import { yarn } from '../packageManager/yarn';
 import { callHook } from './callHook';
 
-export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos): void {
+export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos, indentation: number): void {
   for (const pkgName of modifiedPackages) {
     const info = packageInfos[pkgName];
     if (!fs.existsSync(info.packageJsonPath)) {
@@ -39,7 +39,7 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
       }
     }
 
-    fs.writeJSONSync(info.packageJsonPath, packageJson, { spaces: 2 });
+    fs.writeJSONSync(info.packageJsonPath, packageJson, { spaces: indentation });
   }
 }
 
@@ -91,7 +91,7 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
 
   await callHook(options.hooks?.prebump, modifiedPackages, bumpInfo.packageInfos);
 
-  writePackageJson(modifiedPackages, packageInfos);
+  writePackageJson(modifiedPackages, packageInfos, options.indentation);
   await updatePackageLock(options.path);
 
   if (options.generateChangelog) {

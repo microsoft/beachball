@@ -56,7 +56,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
 
     repo.push();
 
@@ -77,7 +77,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
 
     repo.push();
 
@@ -96,7 +96,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
 
     repo.push();
 
@@ -136,7 +136,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
 
     repo.push();
 
@@ -183,7 +183,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
 
     repo.push();
 
@@ -204,7 +204,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
 
     repo.push();
 
@@ -228,7 +228,7 @@ describe('publish command (e2e)', () => {
     const repo = repositoryFactory.cloneRepository();
 
     // bump baz => dependent bump bar => dependent bump foo
-    generateChangeFiles(['baz'], repo.rootPath);
+    generateChangeFiles(['baz'], repo.rootPath, 2);
     expect(repositoryFactory.fixture.folders!.packages.foo.dependencies!.bar).toBeTruthy();
     expect(repositoryFactory.fixture.folders!.packages.bar.dependencies!.baz).toBeTruthy();
 
@@ -270,7 +270,7 @@ describe('publish command (e2e)', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
     // generateChangeFiles(['bar'], repo.rootPath);
 
     repo.push();
@@ -289,8 +289,8 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
-    generateChangeFiles(['bar'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
+    generateChangeFiles(['bar'], repo.rootPath, 2);
 
     repo.push();
 
@@ -315,7 +315,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
 
     repo.push();
 
@@ -357,7 +357,7 @@ describe('publish command (e2e)', () => {
     const repo = repositoryFactory.cloneRepository();
     let notified;
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
 
     repo.push();
 
@@ -385,7 +385,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
 
     repo.push();
 
@@ -413,7 +413,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
 
     repo.push();
 
@@ -440,7 +440,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
 
     repo.push();
 

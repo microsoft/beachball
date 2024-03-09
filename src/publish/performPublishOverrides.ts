@@ -14,7 +14,7 @@ const acceptedKeys: (keyof PublishConfig)[] = [
 ];
 const workspacePrefix = 'workspace:';
 
-export function performPublishOverrides(packagesToPublish: string[], packageInfos: PackageInfos): void {
+export function performPublishOverrides(packagesToPublish: string[], packageInfos: PackageInfos, indentation: number): void {
   for (const pkgName of packagesToPublish) {
     const info = packageInfos[pkgName];
     const packageJson = fs.readJSONSync(info.packageJsonPath);
@@ -22,7 +22,7 @@ export function performPublishOverrides(packagesToPublish: string[], packageInfo
     performWorkspaceVersionOverrides(packageJson, packageInfos);
     performPublishConfigOverrides(packageJson);
 
-    fs.writeJSONSync(info.packageJsonPath, packageJson, { spaces: 2 });
+    fs.writeJSONSync(info.packageJsonPath, packageJson, { spaces: indentation });
   }
 }
 

@@ -29,7 +29,7 @@ describe('readChangeFiles', () => {
   it('does not add commit hash', () => {
     const repository = repositoryFactory.cloneRepository();
     repository.commitChange('foo');
-    generateChangeFiles(['foo'], repository.rootPath);
+    generateChangeFiles(['foo'], repository.rootPath, 2);
 
     const packageInfos = getPackageInfos(repository.rootPath);
     const changeSet = readChangeFiles({ path: repository.rootPath } as BeachballOptions, packageInfos);
@@ -41,7 +41,7 @@ describe('readChangeFiles', () => {
     const monoRepo = monoRepoFactory.cloneRepository();
     monoRepo.updateJsonFile('packages/bar/package.json', { private: true });
     // fake doesn't exist, bar is private, foo is okay
-    generateChangeFiles(['fake', 'bar', 'foo'], monoRepo.rootPath);
+    generateChangeFiles(['fake', 'bar', 'foo'], monoRepo.rootPath, 2);
 
     const packageInfos = getPackageInfos(monoRepo.rootPath);
     const changeSet = readChangeFiles({ path: monoRepo.rootPath } as BeachballOptions, packageInfos);
@@ -57,7 +57,7 @@ describe('readChangeFiles', () => {
     const monoRepo = monoRepoFactory.cloneRepository();
     monoRepo.updateJsonFile('packages/bar/package.json', { private: true });
     // fake doesn't exist, bar is private, foo is okay
-    generateChangeFiles(['fake', 'bar', 'foo'], monoRepo.rootPath, true /*groupChanges*/);
+    generateChangeFiles(['fake', 'bar', 'foo'], monoRepo.rootPath, 2, true /*groupChanges*/);
 
     const packageInfos = getPackageInfos(monoRepo.rootPath);
     const changeSet = readChangeFiles(
@@ -74,7 +74,7 @@ describe('readChangeFiles', () => {
 
   it('excludes out of scope change files', () => {
     const monoRepo = monoRepoFactory.cloneRepository();
-    generateChangeFiles(['bar', 'foo'], monoRepo.rootPath);
+    generateChangeFiles(['bar', 'foo'], monoRepo.rootPath, 2);
 
     const packageInfos = getPackageInfos(monoRepo.rootPath);
     const changeSet = readChangeFiles(
@@ -87,7 +87,7 @@ describe('readChangeFiles', () => {
 
   it('excludes out of scope changes from grouped change file', () => {
     const monoRepo = monoRepoFactory.cloneRepository();
-    generateChangeFiles(['bar', 'foo'], monoRepo.rootPath, true /*groupChanges*/);
+    generateChangeFiles(['bar', 'foo'], monoRepo.rootPath, 2, true /*groupChanges*/);
 
     const packageInfos = getPackageInfos(monoRepo.rootPath);
     const changeSet = readChangeFiles(

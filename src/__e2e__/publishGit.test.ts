@@ -51,7 +51,7 @@ describe('publish command (git)', () => {
   it('can perform a successful git push', async () => {
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
 
     repo.push();
 
@@ -67,7 +67,7 @@ describe('publish command (git)', () => {
   it('can handle a merge when there are change files present', async () => {
     // 1. clone a new repo1, write a change file in repo1
     const repo1 = repositoryFactory.cloneRepository();
-    generateChangeFiles(['foo'], repo1.rootPath);
+    generateChangeFiles(['foo'], repo1.rootPath, 2);
     repo1.push();
 
     // 2. simulate the start of a publish from repo1
@@ -80,7 +80,7 @@ describe('publish command (git)', () => {
 
     // 3. Meanwhile, in repo2, also create a new change file
     const repo2 = repositoryFactory.cloneRepository();
-    generateChangeFiles(['foo2'], repo2.rootPath);
+    generateChangeFiles(['foo2'], repo2.rootPath, 2);
     repo2.push();
 
     // 4. Pretend to continue on with repo1's publish
