@@ -37,7 +37,7 @@ export async function canary(options: BeachballOptions): Promise<void> {
 
   await performBump(bumpInfo, options);
 
-  if (options.publish) {
+  if (options.publish || options.packToPath) {
     await publishToRegistry(bumpInfo, options);
   } else {
     console.log('Skipping publish');

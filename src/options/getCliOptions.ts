@@ -34,6 +34,7 @@ const stringOptions = [
   'dependentChangeType',
   'fromRef',
   'message',
+  'packToPath',
   'prereleasePrefix',
   'registry',
   'tag',
