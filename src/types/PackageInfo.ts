@@ -29,6 +29,7 @@ export interface PackageJson {
   dependencies?: PackageDeps;
   devDependencies?: PackageDeps;
   peerDependencies?: PackageDeps;
+  optionalDependencies?: PackageDeps;
   private?: boolean;
   scripts?: Record<string, string>;
   beachball?: BeachballOptions;
@@ -43,6 +44,7 @@ export interface PackageInfo {
   dependencies?: PackageDeps;
   devDependencies?: PackageDeps;
   peerDependencies?: PackageDeps;
+  optionalDependencies?: PackageDeps;
   private: boolean;
 
   /** options that are combined from the root configuration */

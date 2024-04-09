@@ -14,7 +14,7 @@ export function setDependentsInBumpInfo(bumpInfo: BumpInfo): void {
       continue;
     }
 
-    for (const deps of [info.dependencies, info.devDependencies, info.peerDependencies]) {
+    for (const deps of [info.dependencies, info.devDependencies, info.peerDependencies, info.optionalDependencies]) {
       for (const dep of Object.keys(deps || {})) {
         if (packageInfos[dep]) {
           dependents[dep] ??= [];

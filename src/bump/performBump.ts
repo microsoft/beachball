@@ -24,7 +24,7 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
       packageJson.version = info.version;
     }
 
-    for (const depKind of ['dependencies', 'devDependencies', 'peerDependencies'] as const) {
+    for (const depKind of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'] as const) {
       // updatedDeps contains all of the dependencies in the bump info since the beginning of a build job
       const updatedDepsVersions = info[depKind];
       if (updatedDepsVersions) {
