@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 09 Apr 2024 08:02:58 GMT",
+      "version": "2.42.0",
+      "tag": "beachball_v2.42.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kjell.knapen@craftzing.com",
+            "package": "beachball",
+            "commit": "d99780c9a2289f29ee4c4a49ab150d1e76d47e91",
+            "comment": "Add release types for major and minor prereleases"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 06 Mar 2024 08:03:35 GMT",
       "version": "2.41.0",
       "tag": "beachball_v2.41.0",

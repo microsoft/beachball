@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 06 Mar 2024 08:03:35 GMT and should not be manually modified.
+This log was last generated on Tue, 09 Apr 2024 08:02:58 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.42.0
+
+Tue, 09 Apr 2024 08:02:58 GMT
+
+### Minor changes
+
+- Add release types for major and minor prereleases (kjell.knapen@craftzing.com)
 
 ## 2.41.0
 

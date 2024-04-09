@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add release types for major and minor prereleases",
-  "packageName": "beachball",
-  "email": "kjell.knapen@craftzing.com",
-  "dependentChangeType": "patch"
-}
