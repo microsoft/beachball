@@ -7,6 +7,8 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { PackageInfos, PackageJson } from '../types/PackageInfo';
 import { findProjectRoot } from 'workspace-tools';
 import { npm } from '../packageManager/npm';
+import { pnpm } from '../packageManager/pnpm';
+import { yarn } from '../packageManager/yarn';
 import { callHook } from './callHook';
 
 export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos): void {
@@ -42,7 +44,7 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
 }
 
 /**
- * If `package-lock.json` exists, runs `npm install --package-lock-only` to update it.
+ * Detects lockfile for npm, pnpm, or yarn and runs the appropriate command to update it
  */
 export async function updatePackageLock(cwd: string): Promise<void> {
   const root = findProjectRoot(cwd);
@@ -51,6 +53,30 @@ export async function updatePackageLock(cwd: string): Promise<void> {
     const res = await npm(['install', '--package-lock-only', '--ignore-scripts'], { stdio: 'inherit' });
     if (!res.success) {
       console.warn('Updating package-lock.json failed. Continuing...');
+    }
+  } else if (root && fs.existsSync(path.join(root, 'pnpm-lock.yaml'))) {
+    console.log('Updating pnpm-lock.yaml after bumping packages');
+    const res = await pnpm(['install', '--lockfile-only', '--ignore-scripts'], { stdio: 'inherit' });
+    if (!res.success) {
+      console.warn('Updating pnpm-lock.yaml failed. Continuing...');
+    }
+  } else if (root && fs.existsSync(path.join(root, 'yarn.lock'))) {
+    console.log('Updating yarn.lock after bumping packages');
+    const version = await yarn(['--version']);
+    if (!version.success) {
+      console.warn('Failed to get yarn version. Continuing...');
+      return;
+    }
+
+    if (version.stdout.startsWith('1.')) {
+      console.log('Yarn v1 detected, skipping update lockfile since it is not needed');
+      return;
+    }
+
+    // for yarn v2+
+    const res = await yarn(['install', '--mode', 'update-lockfile'], { stdio: 'inherit' });
+    if (!res.success) {
+      console.warn('Updating yarn.lock failed. Continuing...');
     }
   }
 }

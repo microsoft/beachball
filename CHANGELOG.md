@@ -1,8 +1,28 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 19 Oct 2023 08:03:28 GMT and should not be manually modified.
+This log was last generated on Wed, 06 Mar 2024 08:03:35 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.41.0
+
+Wed, 06 Mar 2024 08:03:35 GMT
+
+### Minor changes
+
+- Adding support for identifier base when bumping with a pre-release prefix (jdesalliers@microsoft.com)
+
+## 2.40.0
+
+Tue, 27 Feb 2024 08:02:43 GMT
+
+### Minor changes
+
+- Add context on the current running command for changeFiles transform (1581488+christiango@users.noreply.github.com)
+
+### Patches
+
+- Support updating lockfiles for pnpm and yarn (#769) (im@pyonpyon.today)
 
 ## 2.39.0
 
