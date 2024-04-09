@@ -20,13 +20,13 @@ export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo, opti
     // Ensure we can bump the correct versions
     let bumpAsPrerelease = false;
     if (options.prereleasePrefix && ! ["premajor", "preminor", "prepatch"].includes(changeType)) {
-      bumbAsPrerelease = true;
+      bumpAsPrerelease = true;
     }
 
     // Version should be updated
     info.version = semver.inc(
       info.version,
-      bumbAsPrerelease ? 'prerelease' : changeType,
+      bumpAsPrerelease ? 'prerelease' : changeType,
       options.prereleasePrefix || undefined,
       options.identifierBase
     ) as string;
