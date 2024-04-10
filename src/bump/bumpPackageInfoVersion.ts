@@ -17,10 +17,16 @@ export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo, opti
   } else if (info.private) {
     console.log(`Skipping bumping private package "${pkgName}"`);
   } else {
+    // Ensure we can bump the correct versions
+    let bumpAsPrerelease = false;
+    if (options.prereleasePrefix && ! ["premajor", "preminor", "prepatch"].includes(changeType)) {
+      bumpAsPrerelease = true;
+    }
+
     // Version should be updated
     info.version = semver.inc(
       info.version,
-      options.prereleasePrefix ? 'prerelease' : changeType,
+      bumpAsPrerelease ? 'prerelease' : changeType,
       options.prereleasePrefix || undefined,
       options.identifierBase
     ) as string;
