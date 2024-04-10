@@ -14,7 +14,7 @@ export function setDependentVersions(
       continue;
     }
 
-    for (const deps of [info.dependencies, info.devDependencies, info.peerDependencies]) {
+    for (const deps of [info.dependencies, info.devDependencies, info.peerDependencies, info.optionalDependencies]) {
       if (!deps) {
         continue;
       }

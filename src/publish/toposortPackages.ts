@@ -18,7 +18,7 @@ export function toposortPackages(packages: string[], packageInfos: PackageInfos)
     }
 
     const allDeps = new Set(
-      [info.dependencies, info.devDependencies, info.peerDependencies]
+      [info.dependencies, info.devDependencies, info.peerDependencies, info.optionalDependencies]
         .flatMap(deps => Object.keys(deps || {}))
         .filter(pkg => packageSet.has(pkg))
     );

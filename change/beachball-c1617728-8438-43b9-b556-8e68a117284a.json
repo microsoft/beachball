@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Support optional dependencies",
+  "packageName": "beachball",
+  "email": "altinokd@microsoft.com",
+  "dependentChangeType": "patch"
+}
