@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Ensure we can bump premajor, preminor and prepatch with a prereleasePrefix",
-  "packageName": "beachball",
-  "email": "kjell.knapen@craftzing.com",
-  "dependentChangeType": "patch"
-}
