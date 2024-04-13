@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add --dry-run option",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

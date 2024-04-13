@@ -14,7 +14,8 @@
       "args": ["--", "--runInBand", "--watch", "--testTimeout=1000000", "${fileBasenameNoExtension}"],
       "sourceMaps": true,
       "outputCapture": "std",
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "runtimeVersion": "14.20.0"
     },
     {
       "type": "node",

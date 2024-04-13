@@ -37,6 +37,15 @@ The `publish` command is designed to run steps in an order that minimizes the ch
 
 It might be surprising that `beachball publish` does so many steps, especially the step about reverting changes! In most version bumping systems that automate syncing the git repo and npm registry, they assume that the source code is still fresh once it's time to push changes back to the git repository. This is rarely the case for large repos with many developers. So, `beachball` fetches the latest changes before pushing back to the target branch to avoid merge conflicts.
 
+### Dry run
+
+If you'd like to do a dry run of publishing, the `--dry-run` option works as follows:
+
+1. Makes all changes locally
+2. Runs `npm publish --dry-run` (skipped if the `publish` option is disabled)
+3. Commits the changes locally and merges them into the target branch, but does _not_ tag or push (skipped if the `bump` or `push` option is disabled)
+4. Stays on the current branch (and doesn't delete the publish branch) so you can inspect changes
+
 ### Example CI workflow
 
 See the [CI integration page](../concepts/ci-integration) details and examples for how to run `beachball publish` in CI.
