@@ -28,6 +28,7 @@ describe('version bumping', () => {
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
         'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
         'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
+        'pkg-5': { version: '1.0.0', optionalDependencies: { 'pkg-4': '1.0.0' } },
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
@@ -45,10 +46,12 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-1'].version).toBe(pkg1NewVersion);
     expect(packageInfos['pkg-2'].version).toBe(monorepo['packages']['pkg-2'].version);
     expect(packageInfos['pkg-3'].version).toBe(monorepo['packages']['pkg-3'].version);
+    expect(packageInfos['pkg-4'].version).toBe(monorepo['packages']['pkg-4'].version);
 
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(pkg1NewVersion);
     expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(monorepo['packages']['pkg-2'].version);
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(monorepo['packages']['pkg-3'].version);
+    expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(monorepo['packages']['pkg-4'].version);
 
     const changeFiles = getChangeFiles(repo.rootPath);
     expect(changeFiles).toHaveLength(0);
@@ -123,6 +126,7 @@ describe('version bumping', () => {
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
         'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
         'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
+        'pkg-5': { version: '1.0.0', optionalDependencies: { 'pkg-4': '1.0.0' } },
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
@@ -145,6 +149,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(pkg1NewVersion);
     expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(dependentNewVersion);
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(dependentNewVersion);
+    expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(dependentNewVersion);
 
     const changeFiles = getChangeFiles(repo.rootPath);
     expect(changeFiles).toHaveLength(0);
@@ -280,6 +285,7 @@ describe('version bumping', () => {
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
         'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
         'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
+        'pkg-5': { version: '1.0.0', optionalDependencies: { 'pkg-4': '1.0.0' } },
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
@@ -301,10 +307,13 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-1'].version).toBe(pkg1NewVersion);
     expect(packageInfos['pkg-2'].version).toBe(monorepo['packages']['pkg-2'].version);
     expect(packageInfos['pkg-3'].version).toBe(monorepo['packages']['pkg-3'].version);
+    expect(packageInfos['pkg-4'].version).toBe(monorepo['packages']['pkg-4'].version);
+    expect(packageInfos['pkg-5'].version).toBe(monorepo['packages']['pkg-5'].version);
 
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(pkg1NewVersion);
     expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(monorepo['packages']['pkg-2'].version);
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(monorepo['packages']['pkg-3'].version);
+    expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(monorepo['packages']['pkg-4'].version);
 
     const changeFiles = getChangeFiles(repo.rootPath);
     expect(changeFiles).toHaveLength(1);
@@ -317,6 +326,7 @@ describe('version bumping', () => {
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
         'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
         'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
+        'pkg-5': { version: '1.0.0', optionalDependencies: { 'pkg-4': '1.0.0' } },
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
@@ -339,10 +349,13 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-1'].version).toBe(newVersion);
     expect(packageInfos['pkg-2'].version).toBe(newVersion);
     expect(packageInfos['pkg-3'].version).toBe(newVersion);
+    expect(packageInfos['pkg-4'].version).toBe(newVersion);
+    expect(packageInfos['pkg-5'].version).toBe(newVersion);
 
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(newVersion);
     expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(newVersion);
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(newVersion);
+    expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(newVersion);
 
     const changeFiles = getChangeFiles(repo.rootPath);
     expect(changeFiles).toHaveLength(0);
@@ -355,6 +368,7 @@ describe('version bumping', () => {
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
         'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
         'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
+        'pkg-5': { version: '1.0.0', optionalDependencies: { 'pkg-4': '1.0.0' } },
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
@@ -369,7 +383,7 @@ describe('version bumping', () => {
       bumpDeps: true,
       keepChangeFiles: false,
       prereleasePrefix: 'beta',
-      identifierBase: "1"
+      identifierBase: '1',
     } as BeachballOptions);
 
     const packageInfos = getPackageInfos(repo.rootPath);
@@ -378,10 +392,13 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-1'].version).toBe(newVersion);
     expect(packageInfos['pkg-2'].version).toBe(newVersion);
     expect(packageInfos['pkg-3'].version).toBe(newVersion);
+    expect(packageInfos['pkg-4'].version).toBe(newVersion);
+    expect(packageInfos['pkg-5'].version).toBe(newVersion);
 
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(newVersion);
     expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(newVersion);
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(newVersion);
+    expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(newVersion);
 
     const changeFiles = getChangeFiles(repo.rootPath);
     expect(changeFiles).toHaveLength(0);
@@ -394,6 +411,7 @@ describe('version bumping', () => {
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
         'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
         'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
+        'pkg-5': { version: '1.0.0', optionalDependencies: { 'pkg-4': '1.0.0' } },
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
@@ -408,7 +426,7 @@ describe('version bumping', () => {
       bumpDeps: true,
       keepChangeFiles: false,
       prereleasePrefix: 'beta',
-      identifierBase: false
+      identifierBase: false,
     } as BeachballOptions);
 
     const packageInfos = getPackageInfos(repo.rootPath);
@@ -417,10 +435,13 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-1'].version).toBe(newVersion);
     expect(packageInfos['pkg-2'].version).toBe(newVersion);
     expect(packageInfos['pkg-3'].version).toBe(newVersion);
+    expect(packageInfos['pkg-4'].version).toBe(newVersion);
+    expect(packageInfos['pkg-5'].version).toBe(newVersion);
 
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(newVersion);
     expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(newVersion);
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(newVersion);
+    expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(newVersion);
 
     const changeFiles = getChangeFiles(repo.rootPath);
     expect(changeFiles).toHaveLength(0);
@@ -433,6 +454,7 @@ describe('version bumping', () => {
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
         'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
         'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
+        'pkg-5': { version: '1.0.0', optionalDependencies: { 'pkg-4': '1.0.0' } },
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
@@ -459,10 +481,12 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-1'].version).toBe(newVersion);
     expect(packageInfos['pkg-2'].version).toBe(newVersion);
     expect(packageInfos['pkg-3'].version).toBe(newVersion);
+    expect(packageInfos['pkg-4'].version).toBe(newVersion);
 
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(newVersion);
     expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(newVersion);
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(newVersion);
+    expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(newVersion);
 
     const changeFiles = getChangeFiles(repo.rootPath);
     expect(changeFiles).toHaveLength(0);
@@ -475,6 +499,7 @@ describe('version bumping', () => {
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
         'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
         'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
+        'pkg-5': { version: '1.0.0', optionalDependencies: { 'pkg-4': '1.0.0' } },
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
@@ -502,10 +527,12 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-1'].version).toBe(pkg1NewVersion);
     expect(packageInfos['pkg-2'].version).toBe(othersNewVersion);
     expect(packageInfos['pkg-3'].version).toBe(othersNewVersion);
+    expect(packageInfos['pkg-4'].version).toBe(othersNewVersion);
 
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(pkg1NewVersion);
     expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(othersNewVersion);
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(othersNewVersion);
+    expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(othersNewVersion);
 
     const changeFiles = getChangeFiles(repo.rootPath);
     expect(changeFiles).toHaveLength(0);

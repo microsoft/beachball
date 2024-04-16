@@ -46,8 +46,8 @@ function performPublishConfigOverrides(packageJson: PackageJson): void {
  * replacement.
  */
 function performWorkspaceVersionOverrides(packageJson: PackageJson, packageInfos: PackageInfos): void {
-  const { dependencies, devDependencies, peerDependencies } = packageJson;
-  for (const deps of [dependencies, devDependencies, peerDependencies]) {
+  const { dependencies, devDependencies, peerDependencies, optionalDependencies } = packageJson;
+  for (const deps of [dependencies, devDependencies, peerDependencies, optionalDependencies]) {
     if (!deps) continue;
 
     for (const [depName, depVersion] of Object.entries(deps)) {

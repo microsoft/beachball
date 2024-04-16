@@ -2,6 +2,44 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 10 Apr 2024 00:55:50 GMT",
+      "version": "2.43.0",
+      "tag": "beachball_v2.43.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "altinokd@microsoft.com",
+            "package": "beachball",
+            "commit": "6ff075cd2bfd49bca7239085545f4de5732b5fb9",
+            "comment": "Support optional dependencies"
+          }
+        ],
+        "patch": [
+          {
+            "author": "kjell.knapen@craftzing.com",
+            "package": "beachball",
+            "commit": "8854e98713c82561a4f60483f9b37c01060cf6b0",
+            "comment": "Ensure we can bump premajor, preminor and prepatch with a prereleasePrefix"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 09 Apr 2024 08:02:58 GMT",
+      "version": "2.42.0",
+      "tag": "beachball_v2.42.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kjell.knapen@craftzing.com",
+            "package": "beachball",
+            "commit": "d99780c9a2289f29ee4c4a49ab150d1e76d47e91",
+            "comment": "Add release types for major and minor prereleases"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 06 Mar 2024 08:03:35 GMT",
       "version": "2.41.0",
       "tag": "beachball_v2.41.0",
