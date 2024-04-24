@@ -10,7 +10,7 @@ export async function npm(
   options: execa.Options = {}
 ): Promise<execa.ExecaReturnValue & { success: boolean }> {
   try {
-    const result = await execa('npm', args, { ...options });
+    const result = await execa('npm', args, { ...options, shell: true });
     return {
       ...result,
       success: !result.failed,
