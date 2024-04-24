@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use shell: true and explicit cwd for all package manager commands",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

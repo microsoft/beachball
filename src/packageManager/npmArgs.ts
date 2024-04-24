@@ -2,7 +2,7 @@ import { AuthType } from '../types/Auth';
 import { NpmOptions } from '../types/NpmOptions';
 import { PackageInfo } from '../types/PackageInfo';
 
-export function getNpmPublishArgs(packageInfo: PackageInfo, options: NpmOptions): string[] {
+export function getNpmPublishArgs(packageInfo: PackageInfo, options: Omit<NpmOptions, 'path'>): string[] {
   const { registry, token, authType, access } = options;
   const pkgCombinedOptions = packageInfo.combinedOptions;
   const args = [

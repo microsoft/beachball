@@ -7,8 +7,7 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { PackageInfos, PackageJson } from '../types/PackageInfo';
 import { findProjectRoot } from 'workspace-tools';
 import { npm } from '../packageManager/npm';
-import { pnpm } from '../packageManager/pnpm';
-import { yarn } from '../packageManager/yarn';
+import { packageManager } from '../packageManager/packageManager';
 import { callHook } from './callHook';
 
 export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos): void {
@@ -50,19 +49,22 @@ export async function updatePackageLock(cwd: string): Promise<void> {
   const root = findProjectRoot(cwd);
   if (root && fs.existsSync(path.join(root, 'package-lock.json'))) {
     console.log('Updating package-lock.json after bumping packages');
-    const res = await npm(['install', '--package-lock-only', '--ignore-scripts'], { stdio: 'inherit' });
+    const res = await npm(['install', '--package-lock-only', '--ignore-scripts'], { stdio: 'inherit', cwd: root });
     if (!res.success) {
       console.warn('Updating package-lock.json failed. Continuing...');
     }
   } else if (root && fs.existsSync(path.join(root, 'pnpm-lock.yaml'))) {
     console.log('Updating pnpm-lock.yaml after bumping packages');
-    const res = await pnpm(['install', '--lockfile-only', '--ignore-scripts'], { stdio: 'inherit' });
+    const res = await packageManager('pnpm', ['install', '--lockfile-only', '--ignore-scripts'], {
+      stdio: 'inherit',
+      cwd: root,
+    });
     if (!res.success) {
       console.warn('Updating pnpm-lock.yaml failed. Continuing...');
     }
   } else if (root && fs.existsSync(path.join(root, 'yarn.lock'))) {
     console.log('Updating yarn.lock after bumping packages');
-    const version = await yarn(['--version']);
+    const version = await packageManager('yarn', ['--version'], { cwd: root });
     if (!version.success) {
       console.warn('Failed to get yarn version. Continuing...');
       return;
@@ -74,7 +76,7 @@ export async function updatePackageLock(cwd: string): Promise<void> {
     }
 
     // for yarn v2+
-    const res = await yarn(['install', '--mode', 'update-lockfile'], { stdio: 'inherit' });
+    const res = await packageManager('yarn', ['install', '--mode', 'update-lockfile'], { stdio: 'inherit', cwd: root });
     if (!res.success) {
       console.warn('Updating yarn.lock failed. Continuing...');
     }
