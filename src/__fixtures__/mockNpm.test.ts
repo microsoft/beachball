@@ -122,48 +122,48 @@ describe('_mockNpmShow', () => {
 
   it("errors if package doesn't exist", () => {
     const emptyData = _makeRegistryData({});
-    const result = _mockNpmShow(emptyData, ['foo'], {});
+    const result = _mockNpmShow(emptyData, ['foo'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ error: '[fake] code E404 - foo - not found' }));
   });
 
   it('returns requested version plus dist-tags and version list', () => {
-    const result = _mockNpmShow(data, ['foo@1.0.0'], {});
+    const result = _mockNpmShow(data, ['foo@1.0.0'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ data: data, name: 'foo', version: '1.0.0' }));
   });
 
   it('returns requested version of scoped package', () => {
-    const result = _mockNpmShow(data, ['@foo/bar@2.0.0'], {});
+    const result = _mockNpmShow(data, ['@foo/bar@2.0.0'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ data, name: '@foo/bar', version: '2.0.0' }));
   });
 
   it('returns requested tag', () => {
-    const result = _mockNpmShow(data, ['foo@beta'], {});
+    const result = _mockNpmShow(data, ['foo@beta'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ data, name: 'foo', version: '1.0.0-beta' }));
   });
 
   it('returns requested tag of scoped package', () => {
-    const result = _mockNpmShow(data, ['@foo/bar@beta'], {});
+    const result = _mockNpmShow(data, ['@foo/bar@beta'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ data, name: '@foo/bar', version: '2.0.0-beta' }));
   });
 
   it('returns latest version if no version requested', () => {
-    const result = _mockNpmShow(data, ['foo'], {});
+    const result = _mockNpmShow(data, ['foo'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ data, name: 'foo', version: '1.0.1' }));
   });
 
   it('returns latest version of scoped package if no version requested', () => {
-    const result = _mockNpmShow(data, ['@foo/bar'], {});
+    const result = _mockNpmShow(data, ['@foo/bar'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ data, name: '@foo/bar', version: '2.0.1' }));
   });
 
   it("errors if requested version doesn't exist", () => {
-    const result = _mockNpmShow(data, ['foo@2.0.0'], {});
+    const result = _mockNpmShow(data, ['foo@2.0.0'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ error: '[fake] code E404 - foo@2.0.0 - not found' }));
   });
 
   // support for this could be added later
   it('currently throws if requested version is a range', () => {
-    expect(() => _mockNpmShow(data, ['foo@^1.0.0'], {})).toThrow(/not currently supported/);
+    expect(() => _mockNpmShow(data, ['foo@^1.0.0'], { cwd: undefined })).toThrow(/not currently supported/);
   });
 });
 
@@ -199,7 +199,7 @@ describe('_mockNpmPublish', () => {
   });
 
   it('throws if cwd is not specified', () => {
-    expect(() => _mockNpmPublish({}, [], {})).toThrow('cwd is required for mock npm publish');
+    expect(() => _mockNpmPublish({}, [], { cwd: undefined })).toThrow('cwd is required for mock npm publish');
   });
 
   it('errors if reading package.json fails', () => {
@@ -294,7 +294,7 @@ describe('mockNpm', () => {
 
   it('mocks npm show', async () => {
     npmMock.setRegistryData({ foo: { versions: ['1.0.0'] } });
-    const result = await npm(['show', 'foo']);
+    const result = await npm(['show', 'foo'], { cwd: undefined });
     expect(result).toMatchObject({
       success: true,
       stdout: expect.stringContaining('"name":"foo"'),
@@ -304,7 +304,7 @@ describe('mockNpm', () => {
   it('resets calls and registry after each test', async () => {
     expect(npmMock.mock).not.toHaveBeenCalled();
     // registry data for foo was set in the previous test but should have been cleared
-    const result = await npm(['show', 'foo']);
+    const result = await npm(['show', 'foo'], { cwd: undefined });
     expect(result).toMatchObject({
       success: false,
       stderr: expect.stringContaining('not found'),
@@ -313,7 +313,7 @@ describe('mockNpm', () => {
 
   it('can "publish" a package to registry with helper', async () => {
     npmMock.publishPackage({ name: 'foo', version: '1.0.0' });
-    const result = await npm(['show', 'foo']);
+    const result = await npm(['show', 'foo'], { cwd: undefined });
     expect(result).toMatchObject({
       success: true,
       stdout: expect.stringContaining('"name":"foo"'),
@@ -330,22 +330,22 @@ describe('mockNpm', () => {
   });
 
   it('throws on unsupported command', async () => {
-    await expect(() => npm(['pack'])).rejects.toThrow('Command not supported by mock npm: pack');
+    await expect(() => npm(['pack'], { cwd: undefined })).rejects.toThrow('Command not supported by mock npm: pack');
   });
 
   it('respects mocked command', async () => {
     const mockShow = jest.fn(() => 'hi');
     npmMock.setCommandOverride('show', mockShow as any);
-    const result = await npm(['show', 'foo']);
+    const result = await npm(['show', 'foo'], { cwd: undefined });
     expect(result).toEqual('hi');
-    expect(mockShow).toHaveBeenCalledWith(expect.any(Object), ['foo'], undefined);
+    expect(mockShow).toHaveBeenCalledWith(expect.any(Object), ['foo'], { cwd: undefined });
   });
 
   it("respects extra mocked command that's not normally supported", async () => {
     const mockPack = jest.fn(() => 'hi');
     npmMock.setCommandOverride('pack', mockPack as any);
-    const result = await npm(['pack']);
+    const result = await npm(['pack'], { cwd: undefined });
     expect(result).toEqual('hi');
-    expect(mockPack).toHaveBeenCalledWith(expect.any(Object), [], undefined);
+    expect(mockPack).toHaveBeenCalledWith(expect.any(Object), [], { cwd: undefined });
   });
 });

@@ -25,7 +25,7 @@ describe('getNpmAuthArgs', () => {
 });
 
 describe('getNpmPublishArgs', () => {
-  const options: NpmOptions = { registry: 'https://testRegistry' };
+  const options: Omit<NpmOptions, 'path'> = { registry: 'https://testRegistry' };
 
   const packageInfos = makePackageInfos({
     basic: {},

@@ -1,24 +1,10 @@
-import execa from 'execa';
+import { PackageManagerResult, packageManager } from './packageManager';
 
-export type NpmResult = Awaited<ReturnType<typeof npm>>;
+// The npm wrapper for packageManager is preserved for convenience.
+
+export type NpmResult = PackageManagerResult;
 
 /**
  * Run an npm command. Returns the error result instead of throwing on failure.
  */
-export async function npm(
-  args: string[],
-  options: execa.Options = {}
-): Promise<execa.ExecaReturnValue & { success: boolean }> {
-  try {
-    const result = await execa('npm', args, { ...options, shell: true });
-    return {
-      ...result,
-      success: !result.failed,
-    };
-  } catch (e) {
-    return {
-      ...(e as execa.ExecaError),
-      success: false,
-    };
-  }
-}
+export const npm = packageManager.bind(null, 'npm');

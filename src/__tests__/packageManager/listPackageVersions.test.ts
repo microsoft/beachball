@@ -14,7 +14,7 @@ jest.mock('../../packageManager/npm');
 describe('list npm versions', () => {
   /** Mock the `npm show` command for `npmAsync` calls. This also handles cleanup after each test. */
   const npmMock = initNpmMock();
-  const npmOptions: NpmOptions = { registry: 'https://fake' };
+  const npmOptions: NpmOptions = { registry: 'https://fake', path: undefined };
 
   afterEach(() => {
     _clearPackageVersionsCache();
