@@ -1,8 +1,17 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 10 Apr 2024 00:55:50 GMT and should not be manually modified.
+This log was last generated on Wed, 24 Apr 2024 01:43:00 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.43.1
+
+Wed, 24 Apr 2024 01:43:00 GMT
+
+### Patches
+
+- Use shell: true and explicit cwd for all package manager commands (elcraig@microsoft.com)
+- Set shell: true when spawning npm commands. This is required for Windows after a [Node security fix](https://nodejs.org/en/blog/vulnerability/april-2024-security-releases-2). (elcraig@microsoft.com)
 
 ## 2.43.0
 

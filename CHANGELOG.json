@@ -2,6 +2,27 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 24 Apr 2024 01:43:00 GMT",
+      "version": "2.43.1",
+      "tag": "beachball_v2.43.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "349712ee2f15a27342de2f856a3f835b4fdb2ddf",
+            "comment": "Use shell: true and explicit cwd for all package manager commands"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "7d50f9216020170edd713001972d7eeaa90d5e53",
+            "comment": "Set shell: true when spawning npm commands. This is required for Windows after a [Node security fix](https://nodejs.org/en/blog/vulnerability/april-2024-security-releases-2)."
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 10 Apr 2024 00:55:50 GMT",
       "version": "2.43.0",
       "tag": "beachball_v2.43.0",
