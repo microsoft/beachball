@@ -28,9 +28,10 @@ async function getNpmPackageInfo(packageName: string, options: NpmOptions): Prom
   const { registry, token, authType, timeout } = options;
 
   if (env.beachballDisableCache || !packageVersionsCache[packageName]) {
-    const args = ['show', '--registry', registry, '--json', packageName, ...getNpmAuthArgs(registry, token, authType)];
-
-    const showResult = await npm(args, { timeout });
+    const showResult = await npm(
+      ['show', '--registry', registry, '--json', packageName, ...getNpmAuthArgs(registry, token, authType)],
+      { timeout, cwd: options.path }
+    );
 
     if (showResult.success && showResult.stdout !== '') {
       const packageInfo = JSON.parse(showResult.stdout);

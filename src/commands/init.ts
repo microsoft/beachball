@@ -28,7 +28,7 @@ export async function init(options: BeachballOptions): Promise<void> {
     errorExit(`Cannot find package.json at ${packageJsonFilePath}`);
   }
 
-  const npmResult = await npm(['info', 'beachball', '--json']);
+  const npmResult = await npm(['info', 'beachball', '--json'], { cwd: undefined });
   if (!npmResult.success) {
     errorExit('Failed to retrieve beachball version from npm');
   }

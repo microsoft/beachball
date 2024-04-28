@@ -82,7 +82,11 @@ describe('packagePublish', () => {
     // Do a basic publishing test against the real registry
     await registry.reset();
     const testPackageInfo = getTestPackageInfo();
-    const publishResult = await packagePublish(testPackageInfo, { registry: registry.getUrl(), retries: 2 });
+    const publishResult = await packagePublish(testPackageInfo, {
+      registry: registry.getUrl(),
+      retries: 2,
+      path: tempRoot,
+    });
     expect(publishResult).toEqual(successResult);
     expect(npmSpy).toHaveBeenCalledTimes(1);
 
@@ -103,12 +107,16 @@ describe('packagePublish', () => {
     // Use real npm for this because the republish detection relies on the real error message
     await registry.reset();
     const testPackageInfo = getTestPackageInfo();
-    let publishResult = await packagePublish(testPackageInfo, { registry: registry.getUrl(), retries: 2 });
+    let publishResult = await packagePublish(testPackageInfo, {
+      registry: registry.getUrl(),
+      retries: 2,
+      path: tempRoot,
+    });
     expect(publishResult).toEqual(successResult);
     expect(npmSpy).toHaveBeenCalledTimes(1);
     logs.clear();
 
-    publishResult = await packagePublish(testPackageInfo, { registry: registry.getUrl(), retries: 2 });
+    publishResult = await packagePublish(testPackageInfo, { registry: registry.getUrl(), retries: 2, path: tempRoot });
     expect(publishResult).toEqual(failedResult);
     // `retries` should be ignored if the version already exists
     expect(npmSpy).toHaveBeenCalledTimes(2);
@@ -130,7 +138,7 @@ describe('packagePublish', () => {
       Promise.resolve({ success: false, all: 'sloooow', timedOut: true } as NpmResult)
     );
 
-    const publishResult = await packagePublish(testPackageInfo, { registry: 'fake', retries: 3 });
+    const publishResult = await packagePublish(testPackageInfo, { registry: 'fake', retries: 3, path: tempRoot });
     expect(publishResult).toEqual(successResult);
     expect(npmSpy).toHaveBeenCalledTimes(3);
 
@@ -146,7 +154,7 @@ describe('packagePublish', () => {
     // Again, mock all npm calls for this test instead of simulating an actual error condition.
     npmSpy.mockImplementation(() => Promise.resolve({ success: false, all: 'some errors' } as NpmResult));
 
-    const publishResult = await packagePublish(getTestPackageInfo(), { registry: 'fake', retries: 3 });
+    const publishResult = await packagePublish(getTestPackageInfo(), { registry: 'fake', retries: 3, path: tempRoot });
     expect(publishResult).toEqual(failedResult);
     expect(npmSpy).toHaveBeenCalledTimes(4);
 
@@ -162,7 +170,7 @@ describe('packagePublish', () => {
     const testPackageInfo = getTestPackageInfo();
     npmSpy.mockImplementation(() => Promise.resolve({ success: false, all: 'ERR! code ENEEDAUTH' } as NpmResult));
 
-    const publishResult = await packagePublish(testPackageInfo, { registry: 'fake', retries: 3 });
+    const publishResult = await packagePublish(testPackageInfo, { registry: 'fake', retries: 3, path: tempRoot });
     expect(publishResult).toEqual(failedResult);
     expect(npmSpy).toHaveBeenCalledTimes(1);
 
@@ -177,7 +185,7 @@ describe('packagePublish', () => {
     const testPackageInfo = getTestPackageInfo();
     npmSpy.mockImplementation(() => Promise.resolve({ success: false, all: 'ERR! code E404' } as NpmResult));
 
-    const publishResult = await packagePublish(testPackageInfo, { registry: 'fake', retries: 3 });
+    const publishResult = await packagePublish(testPackageInfo, { registry: 'fake', retries: 3, path: tempRoot });
     expect(publishResult).toEqual(failedResult);
     expect(npmSpy).toHaveBeenCalledTimes(1);
 
@@ -188,7 +196,7 @@ describe('packagePublish', () => {
     const testPackageInfo = getTestPackageInfo();
     npmSpy.mockImplementation(() => Promise.resolve({ success: false, all: 'ERR! code E403' } as NpmResult));
 
-    const publishResult = await packagePublish(testPackageInfo, { registry: 'fake', retries: 3 });
+    const publishResult = await packagePublish(testPackageInfo, { registry: 'fake', retries: 3, path: tempRoot });
     expect(publishResult).toEqual(failedResult);
     expect(npmSpy).toHaveBeenCalledTimes(1);
 

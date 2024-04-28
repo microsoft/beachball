@@ -19,7 +19,7 @@ export async function npmShow(
   const timeout = env.isCI && os.platform() === 'win32' ? 4500 : 1500;
   const registryArg = registry ? ['--registry', registry.getUrl()] : [];
 
-  const showResult = await npm([...registryArg, 'show', '--json', packageName], { timeout });
+  const showResult = await npm([...registryArg, 'show', '--json', packageName], { timeout, cwd: undefined });
 
   expect(!!showResult.timedOut).toBe(false);
   expect(showResult.failed).toBe(!!shouldFail);
