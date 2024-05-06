@@ -81,6 +81,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `shouldPublish`         | false \| undefined                       |                   | package              | manually disable publishing of a package by beachball (does not work to force publishing)       |
 | `tag`                   | string                                   | `'latest'`        | repo, package        | dist-tag for npm when published                                                                 |
 | `transform`             | `TransformOptions` ([details][4])        |                   | repo                 | transformations for change files                                                                |
+| `indentation`           | number                                   | 2                 | repo                 | a custom indentendation for the beachball generated files |
 
 [1]: https://github.com/microsoft/beachball/blob/master/src/types/ChangeFilePrompt.ts
 [2]: https://github.com/microsoft/beachball/blob/master/src/types/ChangelogOptions.ts
