@@ -37,7 +37,7 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
   }
 
   // performing publishConfig and workspace version overrides requires this procedure to ONLY be run right before npm publish, but NOT in the git push
-  performPublishOverrides(packagesToPublish, bumpInfo.packageInfos, options.indentation);
+  performPublishOverrides(options, packagesToPublish, bumpInfo.packageInfos);
 
   // if there is a prepublish hook perform a prepublish pass, calling the routine on each package
   await callHook(options.hooks?.prepublish, packagesToPublish, bumpInfo.packageInfos);

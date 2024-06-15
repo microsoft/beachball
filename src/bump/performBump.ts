@@ -10,7 +10,7 @@ import { npm } from '../packageManager/npm';
 import { packageManager } from '../packageManager/packageManager';
 import { callHook } from './callHook';
 
-export function writePackageJson(modifiedPackages: Set<string>, packageInfos: PackageInfos, indentation: number): void {
+export function writePackageJson(options: BeachballOptions, modifiedPackages: Set<string>, packageInfos: PackageInfos): void {
   for (const pkgName of modifiedPackages) {
     const info = packageInfos[pkgName];
     if (!fs.existsSync(info.packageJsonPath)) {
@@ -38,7 +38,7 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
       }
     }
 
-    fs.writeJSONSync(info.packageJsonPath, packageJson, { spaces: indentation });
+    fs.writeJSONSync(info.packageJsonPath, packageJson, { spaces: options.indentation });
   }
 }
 
@@ -93,7 +93,7 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
 
   await callHook(options.hooks?.prebump, modifiedPackages, bumpInfo.packageInfos);
 
-  writePackageJson(modifiedPackages, packageInfos, options.indentation);
+  writePackageJson(options, modifiedPackages, packageInfos);
   await updatePackageLock(options.path);
 
   if (options.generateChangelog) {

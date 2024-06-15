@@ -4,6 +4,7 @@ import _ from 'lodash';
 import { performPublishOverrides } from '../../publish/performPublishOverrides';
 import { PackageInfos, PackageJson, PublishConfig } from '../../types/PackageInfo';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import { BeachballOptions } from '../../types/BeachballOptions';
 
 jest.mock('fs-extra', () => ({
   readJSONSync: jest.fn(),
@@ -62,7 +63,7 @@ describe('performPublishOverrides', () => {
     const { packageInfos, packageJsons } = createFixture({ foo: { publishConfig } });
     expect(packageJsons.foo).not.toMatchObject(publishConfig);
 
-    performPublishOverrides(['foo'], packageInfos, 2);
+    performPublishOverrides({ indentation: 2 } as BeachballOptions, ['foo'], packageInfos);
 
     expect(writeJSONSync).toHaveBeenCalledTimes(1);
     expect(publishConfig).toEqual({
@@ -88,7 +89,7 @@ describe('performPublishOverrides', () => {
     const { packageInfos, packageJsons } = createFixture({ foo: { publishConfig } });
     expect(packageJsons.foo).not.toMatchObject(publishConfig);
 
-    performPublishOverrides(['foo'], packageInfos, 2);
+    performPublishOverrides({ indentation: 2 } as BeachballOptions, ['foo'], packageInfos);
 
     expect(writeJSONSync).toHaveBeenCalledTimes(1);
     expect(writeJSONSync).toHaveBeenCalledWith(packageInfos.foo.packageJsonPath, packageJsons.foo, expect.anything());
@@ -104,7 +105,7 @@ describe('performPublishOverrides', () => {
     expect(originalFoo).not.toMatchObject(originalFoo.publishConfig!);
     expect(originalBar).not.toMatchObject(originalBar.publishConfig!);
 
-    performPublishOverrides(['foo', 'bar'], packageInfos, 2);
+    performPublishOverrides({ indentation: 2 } as BeachballOptions, ['foo', 'bar'], packageInfos);
 
     expect(writeJSONSync).toHaveBeenCalledTimes(2);
     expect(writeJSONSync).toHaveBeenCalledWith(
@@ -140,7 +141,7 @@ describe('performPublishOverrides', () => {
     });
     expect(packageJsons.bar.dependencies!.foo).toBe(dependencyVersion);
 
-    performPublishOverrides(['bar'], packageInfos, 2);
+    performPublishOverrides({ indentation: 2 } as BeachballOptions, ['bar'], packageInfos);
 
     expect(writeJSONSync).toHaveBeenCalledTimes(1);
     expect(writeJSONSync).toHaveBeenCalledWith(
