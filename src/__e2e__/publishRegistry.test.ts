@@ -51,7 +51,7 @@ describe('publish command (registry)', () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
 
     repo.push();
 
@@ -73,7 +73,7 @@ describe('publish command (registry)', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foopkg'], repo.rootPath);
+    generateChangeFiles(['foopkg'], repo.rootPath, 2);
 
     repo.push();
 
@@ -96,7 +96,7 @@ describe('publish command (registry)', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foopkg', 'barpkg'], repo.rootPath);
+    generateChangeFiles(['foopkg', 'barpkg'], repo.rootPath, 2);
 
     repo.push();
 
@@ -120,7 +120,7 @@ describe('publish command (registry)', () => {
     });
     const repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['badname'], repo.rootPath);
+    generateChangeFiles(['badname'], repo.rootPath, 2);
 
     repo.push();
 
@@ -141,7 +141,7 @@ describe('publish command (registry)', () => {
 
     repo.updateJsonFile('packages/bar/package.json', { private: true });
 
-    generateChangeFiles(['bar', 'fake'], repo.rootPath);
+    generateChangeFiles(['bar', 'fake'], repo.rootPath, 2);
 
     repo.push();
 

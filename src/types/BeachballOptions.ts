@@ -165,6 +165,11 @@ export interface RepoOptions {
   groupChanges?: boolean;
   /** For shallow clones only: Depth of git history to consider when doing fetch */
   depth?: number;
+  /**
+   * Used spaces indentation for JSON files
+   * @default 2
+   */
+  indentation: number;
 }
 
 export interface PackageOptions {

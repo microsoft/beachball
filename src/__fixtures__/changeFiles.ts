@@ -17,7 +17,8 @@ export type PartialChangeFile = { packageName: string } & Partial<ChangeFileInfo
 export function generateChangeFiles(
   changes: (string | PartialChangeFile)[],
   cwd: string,
-  groupChanges?: boolean
+  indentation: number,
+  groupChanges?: boolean,
 ): void {
   writeChangeFiles({
     changes: changes.map(change => {
@@ -32,6 +33,7 @@ export function generateChangeFiles(
     }),
     groupChanges,
     cwd,
+    indentation,
   });
 }
 

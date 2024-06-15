@@ -118,7 +118,7 @@ async function writeChangelogFiles(
   options: BeachballOptions,
   newVersionChangelog: PackageChangelog,
   changelogPath: string,
-  isGrouped: boolean
+  isGrouped: boolean,
 ): Promise<void> {
   let previousJson: ChangelogJson | undefined;
 
@@ -131,7 +131,7 @@ async function writeChangelogFiles(
   }
   try {
     const nextJson = renderJsonChangelog(newVersionChangelog, previousJson);
-    fs.writeJSONSync(changelogJsonFile, nextJson, { spaces: 2 });
+    fs.writeJSONSync(changelogJsonFile, nextJson, { spaces: options.indentation });
   } catch (e) {
     console.warn(`Problem writing to ${changelogJsonFile}: ${e}`);
   }

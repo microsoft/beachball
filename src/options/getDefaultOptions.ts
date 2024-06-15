@@ -34,5 +34,6 @@ export function getDefaultOptions(): BeachballOptions {
     type: null,
     version: false,
     yes: env.isCI,
+    indentation: 2,
   } as BeachballOptions;
 }

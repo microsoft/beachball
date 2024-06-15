@@ -74,7 +74,7 @@ describe('getChangedPackages', () => {
     // setup: create branch, change foo, create a change file, commit
     repo.checkout('-b', 'test');
     repo.commitChange('packages/foo/test.js');
-    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['foo'], repo.rootPath, 2);
     logs.clear();
 
     const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName, verbose: true } as BeachballOptions;
