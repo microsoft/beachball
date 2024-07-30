@@ -57,8 +57,8 @@ describe('version bumping', () => {
     expect(changeFiles).toHaveLength(0);
   });
 
-  it('correctly bumps packages with change files when changedir is set', async () => {
-    const testChangedir = 'changedir';
+  it('correctly bumps packages with change files when changeDir is set', async () => {
+    const testChangedir = 'changeDir';
 
     const monorepo: RepoFixture['folders'] = {
       packages: {
@@ -76,7 +76,7 @@ describe('version bumping', () => {
 
     repo.push();
 
-    await bump({ path: repo.rootPath, bumpDeps: false, changedir: testChangedir } as BeachballOptions);
+    await bump({ path: repo.rootPath, bumpDeps: false, changeDir: testChangedir } as BeachballOptions);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 

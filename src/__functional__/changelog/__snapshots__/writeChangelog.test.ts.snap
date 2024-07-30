@@ -101,7 +101,7 @@ This log was last generated on (date) and should not be manually modified.
 "
 `;
 
-exports[`writeChangelog generates correct changelog with changedir set: changelog json 1`] = `
+exports[`writeChangelog generates correct changelog with changeDir set: changelog json 1`] = `
 {
   "entries": [
     {
@@ -142,7 +142,7 @@ exports[`writeChangelog generates correct changelog with changedir set: changelo
 }
 `;
 
-exports[`writeChangelog generates correct changelog with changedir set: changelog md 1`] = `
+exports[`writeChangelog generates correct changelog with changeDir set: changelog md 1`] = `
 "# Change Log - foo
 
 This log was last generated on (date) and should not be manually modified.

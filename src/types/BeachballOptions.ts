@@ -13,7 +13,7 @@ export interface CliOptions
     | 'branch'
     | 'bumpDeps'
     | 'changehint'
-    | 'changedir'
+    | 'changeDir'
     | 'depth'
     | 'disallowedChangeTypes'
     | 'fetch'
@@ -93,7 +93,7 @@ export interface RepoOptions {
    * Name of the directory of the change files
    * @default 'change'
    */
-  changedir: string;
+  changeDir: string;
   /** Options for customizing changelog rendering */
   changelog?: ChangelogOptions;
   /**

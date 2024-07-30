@@ -68,7 +68,7 @@ describe('writeChangelog', () => {
     expect(patchComments[0].commit).toBe(repository.getCurrentHash());
   });
 
-  it('generates correct changelog with changedir set', async () => {
+  it('generates correct changelog with changeDir set', async () => {
     const testChangeDir = 'myChangeDir';
     const repository = repositoryFactory.cloneRepository();
     repository.commitChange('foo');
@@ -79,7 +79,7 @@ describe('writeChangelog', () => {
     repository.commitChange('bar');
     generateChangeFiles([getChange('foo', 'comment 2')], repository.rootPath, undefined, testChangeDir);
 
-    const beachballOptions = { path: repository.rootPath, changedir: testChangeDir } as BeachballOptions;
+    const beachballOptions = { path: repository.rootPath, changeDir: testChangeDir } as BeachballOptions;
     const packageInfos = getPackageInfos(repository.rootPath);
     const changes = readChangeFiles(beachballOptions, packageInfos);
 

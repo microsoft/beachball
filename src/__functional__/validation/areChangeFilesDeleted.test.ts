@@ -53,8 +53,8 @@ describe('areChangeFilesDeleted', () => {
     expect(result).toBeTruthy();
   });
 
-  it('deletes change files when changedir option is specified', () => {
-    const testChangedir = 'changedir';
+  it('deletes change files when changeDir option is specified', () => {
+    const testChangedir = 'changeDir';
     generateChangeFiles(['pkg-1'], repository.rootPath, undefined, testChangedir);
     repository.push();
     repository.checkout('-b', 'feature-0');
@@ -67,7 +67,7 @@ describe('areChangeFilesDeleted', () => {
     const result = areChangeFilesDeleted({
       branch: defaultRemoteBranchName,
       path: repository.rootPath,
-      changedir: testChangedir,
+      changeDir: testChangedir,
     } as BeachballOptions);
     expect(result).toBeTruthy();
   });

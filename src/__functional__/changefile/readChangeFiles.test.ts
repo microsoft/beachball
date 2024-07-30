@@ -37,8 +37,8 @@ describe('readChangeFiles', () => {
     expect(changeSet[0].change.commit).toBe(undefined);
   });
 
-  it('reads from a custom changedir', () => {
-    const testChangedir = 'changedir';
+  it('reads from a custom changeDir', () => {
+    const testChangedir = 'changeDir';
 
     const repository = repositoryFactory.cloneRepository();
     repository.commitChange('foo');
@@ -46,7 +46,7 @@ describe('readChangeFiles', () => {
 
     const packageInfos = getPackageInfos(repository.rootPath);
     const changeSet = readChangeFiles(
-      { path: repository.rootPath, changedir: testChangedir } as BeachballOptions,
+      { path: repository.rootPath, changeDir: testChangedir } as BeachballOptions,
       packageInfos
     );
     expect(changeSet).toHaveLength(1);

@@ -140,8 +140,8 @@ describe('change command', () => {
     });
   });
 
-  it('creates and commits a change file with changedir set', async () => {
-    const testChangedir = 'changedir';
+  it('creates and commits a change file with changeDir set', async () => {
+    const testChangedir = 'changeDir';
 
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
@@ -152,7 +152,7 @@ describe('change command', () => {
     const changePromise = change({
       path: repo.rootPath,
       branch: defaultBranchName,
-      changedir: testChangedir,
+      changeDir: testChangedir,
     } as BeachballOptions);
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');

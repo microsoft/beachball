@@ -63,7 +63,7 @@ describe('writeChangeFiles', () => {
     expect(changeFileContents).toEqual({ packageName: 'bar' });
   });
 
-  it('respects changedir option', () => {
+  it('respects changeDir option', () => {
     const repo = monorepoFactory.cloneRepository();
     const previousHead = repo.getCurrentHash();
 
@@ -72,7 +72,7 @@ describe('writeChangeFiles', () => {
     writeChangeFiles({
       changes: [{ packageName: 'foo' }, { packageName: 'bar' }] as ChangeFileInfo[],
       cwd: repo.rootPath,
-      changedir: testChangeDir,
+      changeDir: testChangeDir,
     });
 
     const expectedFiles = [`${testChangeDir}/bar-${uuidGeneric}.json`, `${testChangeDir}/foo-${uuidGeneric}.json`];

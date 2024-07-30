@@ -30,7 +30,7 @@ const stringOptions = [
   'branch',
   'canaryName',
   'changehint',
-  'changedir',
+  'changeDir',
   'configPath',
   'dependentChangeType',
   'fromRef',

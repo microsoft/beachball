@@ -16,10 +16,10 @@ export function writeChangeFiles(params: {
   commitChangeFiles?: boolean;
   /** group all changes into one change file (default false) */
   groupChanges?: boolean;
-  changedir?: string;
+  changeDir?: string;
 }): string[] {
-  const { changes, cwd, commitChangeFiles = true, groupChanges = false, changedir = defaultChangeFolder } = params;
-  const changePath = getChangePath(cwd, changedir);
+  const { changes, cwd, commitChangeFiles = true, groupChanges = false, changeDir = defaultChangeFolder } = params;
+  const changePath = getChangePath(cwd, changeDir);
   const branchName = getBranchName(cwd);
 
   if (!(Object.keys(changes).length && branchName)) {
@@ -34,7 +34,7 @@ export function writeChangeFiles(params: {
   let changeFiles: string[];
 
   if (groupChanges) {
-    const changeFile = getChangeFile(changedir);
+    const changeFile = getChangeFile(changeDir);
     changeFiles = [changeFile];
 
     fs.writeFileSync(changeFile, JSON.stringify({ changes }, null, 2));

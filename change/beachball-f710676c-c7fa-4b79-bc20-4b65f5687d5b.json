@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add `changedir` CLI option",
+  "comment": "Add `changeDir` CLI option",
   "packageName": "beachball",
   "email": "2684369+JamesBurnside@users.noreply.github.com",
   "dependentChangeType": "patch"
