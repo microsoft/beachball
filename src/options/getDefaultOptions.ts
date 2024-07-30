@@ -15,6 +15,7 @@ export function getDefaultOptions(): BeachballOptions {
     bumpDeps: true,
     canaryName: undefined,
     changehint: 'Run "beachball change" to create a change file',
+    changedir: 'change',
     command: 'change',
     defaultNpmTag: 'latest',
     depth: undefined,

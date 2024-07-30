@@ -38,6 +38,7 @@ Options:
   --yes, -y                       - skips the prompts for publish
   --package, -p                   - manually specify a package to create a change file; creates a change file regardless of diffs
   --changehint                    - give your developers a customized hint message when they forget to add a change file
+  --changedir                     - name of the directory to store change files (default: change)
   --since                         - for the bump command: allows to specify the range of change files used to bump packages by using git refs (branch name, commit SHA, etc);
                                     for the publish command: bumps and publishes packages based on the specified range of the change files.
   --keep-change-files             - for the bump and publish commands: when specified, both bump and publish commands do not delete the change files on the disk.

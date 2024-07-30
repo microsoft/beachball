@@ -22,13 +22,21 @@ export function getPackageChangelogs(params: {
   dependentChangedBy?: BumpInfo['dependentChangedBy'];
   packageInfos: PackageInfos;
   cwd: string;
+  changedir?: string;
 }): Record<string, PackageChangelog> {
-  const { changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy = {}, packageInfos, cwd } = params;
+  const {
+    changeFileChangeInfos,
+    calculatedChangeTypes,
+    dependentChangedBy = {},
+    packageInfos,
+    cwd,
+    changedir,
+  } = params;
 
   const changelogs: Record<string, PackageChangelog> = {};
 
   const changeFileCommits: { [changeFile: string]: string } = {};
-  const changePath = getChangePath(cwd);
+  const changePath = getChangePath(cwd, changedir);
 
   for (const { change, changeFile } of changeFileChangeInfos) {
     const { packageName, type: changeType, dependentChangeType, email, ...rest } = change;

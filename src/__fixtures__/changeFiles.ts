@@ -36,7 +36,7 @@ export function generateChangeFiles(
 }
 
 /** Get full paths to existing change files under `cwd` */
-export function getChangeFiles(cwd: string): string[] {
-  const changePath = getChangePath(cwd);
+export function getChangeFiles(cwd: string, changedir?: string): string[] {
+  const changePath = getChangePath(cwd, changedir);
   return changePath && fs.existsSync(changePath) ? fs.readdirSync(changePath).map(p => path.join(changePath, p)) : [];
 }

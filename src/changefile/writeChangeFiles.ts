@@ -1,5 +1,5 @@
 import { ChangeFileInfo } from '../types/ChangeInfo';
-import { getChangePath } from '../paths';
+import { defaultChangeFolder, getChangePath } from '../paths';
 import { getBranchName, stage, commit } from 'workspace-tools';
 import fs from 'fs-extra';
 import path from 'path';
@@ -16,9 +16,10 @@ export function writeChangeFiles(params: {
   commitChangeFiles?: boolean;
   /** group all changes into one change file (default false) */
   groupChanges?: boolean;
+  changedir?: string;
 }): string[] {
-  const { changes, cwd, commitChangeFiles = true, groupChanges = false } = params;
-  const changePath = getChangePath(cwd);
+  const { changes, cwd, commitChangeFiles = true, groupChanges = false, changedir = defaultChangeFolder } = params;
+  const changePath = getChangePath(cwd, changedir);
   const branchName = getBranchName(cwd);
 
   if (!(Object.keys(changes).length && branchName)) {
@@ -33,7 +34,7 @@ export function writeChangeFiles(params: {
   let changeFiles: string[];
 
   if (groupChanges) {
-    const changeFile = getChangeFile('change');
+    const changeFile = getChangeFile(changedir);
     changeFiles = [changeFile];
 
     fs.writeFileSync(changeFile, JSON.stringify({ changes }, null, 2));

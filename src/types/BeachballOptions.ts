@@ -13,6 +13,7 @@ export interface CliOptions
     | 'branch'
     | 'bumpDeps'
     | 'changehint'
+    | 'changedir'
     | 'depth'
     | 'disallowedChangeTypes'
     | 'fetch'
@@ -88,6 +89,11 @@ export interface RepoOptions {
    * @default 'Run "beachball change" to create a change file'
    */
   changehint: string;
+  /**
+   * Name of the directory of the change files
+   * @default 'change'
+   */
+  changedir: string;
   /** Options for customizing changelog rendering */
   changelog?: ChangelogOptions;
   /**
