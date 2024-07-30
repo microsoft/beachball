@@ -52,4 +52,23 @@ describe('areChangeFilesDeleted', () => {
     } as BeachballOptions);
     expect(result).toBeTruthy();
   });
+
+  it('deletes change files when changedir option is specified', () => {
+    const testChangedir = 'changedir';
+    generateChangeFiles(['pkg-1'], repository.rootPath, undefined, testChangedir);
+    repository.push();
+    repository.checkout('-b', 'feature-0');
+
+    const changeDirPath = getChangePath(repository.rootPath, testChangedir);
+    fs.removeSync(changeDirPath);
+
+    repository.commitAll();
+
+    const result = areChangeFilesDeleted({
+      branch: defaultRemoteBranchName,
+      path: repository.rootPath,
+      changedir: testChangedir,
+    } as BeachballOptions);
+    expect(result).toBeTruthy();
+  });
 });

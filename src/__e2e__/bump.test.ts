@@ -57,6 +57,44 @@ describe('version bumping', () => {
     expect(changeFiles).toHaveLength(0);
   });
 
+  it('correctly bumps packages with change files when changedir is set', async () => {
+    const testChangedir = 'changedir';
+
+    const monorepo: RepoFixture['folders'] = {
+      packages: {
+        'pkg-1': { version: '1.0.0' },
+        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
+        'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
+        'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
+        'pkg-5': { version: '1.0.0', optionalDependencies: { 'pkg-4': '1.0.0' } },
+      },
+    };
+    repositoryFactory = new RepositoryFactory({ folders: monorepo });
+    const repo = repositoryFactory.cloneRepository();
+
+    generateChangeFiles(['pkg-1'], repo.rootPath, undefined, testChangedir);
+
+    repo.push();
+
+    await bump({ path: repo.rootPath, bumpDeps: false, changedir: testChangedir } as BeachballOptions);
+
+    const packageInfos = getPackageInfos(repo.rootPath);
+
+    const pkg1NewVersion = '1.1.0';
+    expect(packageInfos['pkg-1'].version).toBe(pkg1NewVersion);
+    expect(packageInfos['pkg-2'].version).toBe(monorepo['packages']['pkg-2'].version);
+    expect(packageInfos['pkg-3'].version).toBe(monorepo['packages']['pkg-3'].version);
+    expect(packageInfos['pkg-4'].version).toBe(monorepo['packages']['pkg-4'].version);
+
+    expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(pkg1NewVersion);
+    expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(monorepo['packages']['pkg-2'].version);
+    expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(monorepo['packages']['pkg-3'].version);
+    expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(monorepo['packages']['pkg-4'].version);
+
+    const changeFiles = getChangeFiles(repo.rootPath);
+    expect(changeFiles).toHaveLength(0);
+  });
+
   it('for multi-workspace (multi-monorepo), only bumps packages in the current workspace', async () => {
     repositoryFactory = new RepositoryFactory('multi-workspace');
     expect(Object.keys(repositoryFactory.fixtures)).toEqual(['workspace-a', 'workspace-b']);

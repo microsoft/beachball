@@ -63,6 +63,36 @@ describe('writeChangeFiles', () => {
     expect(changeFileContents).toEqual({ packageName: 'bar' });
   });
 
+  it('respects changedir option', () => {
+    const repo = monorepoFactory.cloneRepository();
+    const previousHead = repo.getCurrentHash();
+
+    const testChangeDir = 'myChangeDir';
+
+    writeChangeFiles({
+      changes: [{ packageName: 'foo' }, { packageName: 'bar' }] as ChangeFileInfo[],
+      cwd: repo.rootPath,
+      changedir: testChangeDir,
+    });
+
+    const expectedFiles = [`${testChangeDir}/bar-${uuidGeneric}.json`, `${testChangeDir}/foo-${uuidGeneric}.json`];
+
+    // change files are created
+    const changeFiles = getChangeFiles(repo.rootPath, testChangeDir);
+    expect(cleanChangeFilePaths(repo.rootPath, changeFiles)).toEqual(expectedFiles);
+
+    // and tracked
+    const trackedFiles = listAllTrackedFiles([`${testChangeDir}/*`], repo.rootPath);
+    expect(cleanChangeFilePaths(repo.rootPath, trackedFiles)).toEqual(expectedFiles);
+
+    // and committed
+    expect(repo.getCurrentHash()).not.toEqual(previousHead);
+
+    // also verify contents of one file
+    const changeFileContents = fs.readJSONSync(changeFiles[0]);
+    expect(changeFileContents).toEqual({ packageName: 'bar' });
+  });
+
   it('respects commitChangeFiles=false', () => {
     const repo = monorepoFactory.cloneRepository();
     const previousHead = repo.getCurrentHash();

@@ -140,6 +140,38 @@ describe('change command', () => {
     });
   });
 
+  it('creates and commits a change file with changedir set', async () => {
+    const testChangedir = 'changedir';
+
+    repositoryFactory = new RepositoryFactory('single');
+    const repo = repositoryFactory.cloneRepository();
+
+    repo.checkout('-b', 'test');
+    repo.commitChange('file.js');
+
+    const changePromise = change({
+      path: repo.rootPath,
+      branch: defaultBranchName,
+      changedir: testChangedir,
+    } as BeachballOptions);
+
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
+    await stdin.sendByChar('\n'); // default change type
+    await stdin.sendByChar('commit me please\n'); // custom message
+    await changePromise;
+
+    expect(logs.mocks.log).toHaveBeenLastCalledWith(expect.stringMatching(/^git committed these change files:/));
+    expect(repo.status()).toBe('');
+
+    const changeFiles = getChangeFiles(repo.rootPath, testChangedir);
+    expect(changeFiles).toHaveLength(1);
+    expect(fs.readJSONSync(changeFiles[0])).toMatchObject({
+      comment: 'commit me please',
+      packageName: 'foo',
+      type: 'patch',
+    });
+  });
+
   it('creates a change file when there are no changes but package name is provided', async () => {
     repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
