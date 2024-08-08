@@ -12,6 +12,7 @@ export interface CliOptions
     | 'access'
     | 'branch'
     | 'bumpDeps'
+    | 'bumpPeerDeps'
     | 'changehint'
     | 'depth'
     | 'disallowedChangeTypes'
@@ -81,6 +82,11 @@ export interface RepoOptions {
    * @default true
    */
   bumpDeps: boolean;
+  /**
+   * Bump dependent packages (peerDependencies) during publish (bump A if A depends on B as `peerDependencies`)
+   * @default true
+   */
+  bumpPeerDeps?: boolean;
   /** Options for customizing change file prompt. */
   changeFilePrompt?: ChangeFilePromptOptions;
   /**

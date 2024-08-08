@@ -13,6 +13,7 @@ export function getDefaultOptions(): BeachballOptions {
     branch: 'origin/master',
     bump: true,
     bumpDeps: true,
+    bumpPeerDeps: true,
     canaryName: undefined,
     changehint: 'Run "beachball change" to create a change file',
     command: 'change',

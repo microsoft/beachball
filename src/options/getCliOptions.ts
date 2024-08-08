@@ -9,6 +9,7 @@ const booleanOptions = [
   'all',
   'bump',
   'bumpDeps',
+  'bumpPeerDeps',
   'commit',
   'disallowDeletedChangeFiles',
   'fetch',

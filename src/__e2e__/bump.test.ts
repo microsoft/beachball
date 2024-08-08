@@ -155,6 +155,42 @@ describe('version bumping', () => {
     expect(changeFiles).toHaveLength(0);
   });
 
+  it('does not bumps dependent packages with `peerDependencies` when `bumpPeerDeps=false`', async () => {
+    const monorepo: RepoFixture['folders'] = {
+      packages: {
+        'pkg-1': { version: '1.0.0' },
+        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
+        'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
+        'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
+        'pkg-5': { version: '1.0.0', optionalDependencies: { 'pkg-4': '1.0.0' } },
+      },
+    };
+    repositoryFactory = new RepositoryFactory({ folders: monorepo });
+    const repo = repositoryFactory.cloneRepository();
+
+    generateChangeFiles(['pkg-1'], repo.rootPath);
+
+    repo.push();
+
+    await bump({ path: repo.rootPath, bumpDeps: true, bumpPeerDeps: false } as BeachballOptions);
+
+    const packageInfos = getPackageInfos(repo.rootPath);
+
+    const pkg1NewVersion = '1.1.0';
+    const dependentNewVersion = '1.0.1';
+    expect(packageInfos['pkg-1'].version).toBe(pkg1NewVersion);
+    expect(packageInfos['pkg-2'].version).toBe(dependentNewVersion);
+    expect(packageInfos['pkg-3'].version).toBe(dependentNewVersion);
+
+    expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(pkg1NewVersion);
+    expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(dependentNewVersion);
+    expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe('1.0.0');
+    expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe('1.0.0');
+
+    const changeFiles = getChangeFiles(repo.rootPath);
+    expect(changeFiles).toHaveLength(0);
+  });
+
   it('bumps all grouped packages', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
