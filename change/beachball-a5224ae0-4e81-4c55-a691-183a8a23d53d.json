@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix: Avoid git assuming deleted & added change-files consititute a rename. Set the similarity index to 100%",
+  "packageName": "beachball",
+  "email": "nickykalu@microsoft.com",
+  "dependentChangeType": "patch"
+}
