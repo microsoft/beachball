@@ -11,6 +11,7 @@ export function infoFromPackageJson(packageJson: PackageJson, packageJsonPath: s
     dependencies: packageJson.dependencies,
     devDependencies: packageJson.devDependencies,
     peerDependencies: packageJson.peerDependencies,
+    optionalDependencies: packageJson.optionalDependencies,
     private: packageJson.private !== undefined ? packageJson.private : false,
     combinedOptions: getCombinedPackageOptions(packageOptions),
     packageOptions,

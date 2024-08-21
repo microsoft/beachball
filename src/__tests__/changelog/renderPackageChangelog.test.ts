@@ -1,3 +1,4 @@
+import { describe, expect, it } from '@jest/globals';
 import { PackageChangelogRenderInfo } from '../../types/ChangelogOptions';
 import { defaultRenderers, renderPackageChangelog } from '../../changelog/renderPackageChangelog';
 
@@ -18,18 +19,8 @@ describe('changelog renderers -', () => {
         comments: {
           major: [],
           minor: [
-            {
-              comment: 'Awesome change',
-              author: 'user1@example.com',
-              commit: 'sha1',
-              package: 'foo',
-            },
-            {
-              comment: 'Boring change',
-              author: 'user2@example.com',
-              commit: 'sha2',
-              package: 'foo',
-            },
+            { comment: 'Awesome change', author: 'user1@example.com', commit: 'sha1', package: 'foo' },
+            { comment: 'Boring change', author: 'user2@example.com', commit: 'sha2', package: 'foo' },
           ],
           patch: [
             { comment: 'Fix', author: 'user1@example.com', commit: 'sha3', package: 'foo' },

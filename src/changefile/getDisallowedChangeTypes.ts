@@ -6,11 +6,10 @@ export function getDisallowedChangeTypes(
   packageInfos: PackageInfos,
   packageGroups: PackageGroups
 ): ChangeType[] | null {
-  for (const groupName of Object.keys(packageGroups)) {
-    const groupsInfo = packageGroups[groupName];
-    if (groupsInfo.packageNames.indexOf(packageName) > -1) {
-      return groupsInfo.disallowedChangeTypes;
+  for (const group of Object.values(packageGroups)) {
+    if (group.packageNames.includes(packageName)) {
+      return group.disallowedChangeTypes || null;
     }
   }
-  return packageInfos[packageName].combinedOptions.disallowedChangeTypes;
+  return packageInfos[packageName]?.combinedOptions.disallowedChangeTypes || null;
 }

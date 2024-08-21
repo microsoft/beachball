@@ -1,5 +1,6 @@
 ---
-tags: overview
+tags:
+  - overview
 category: doc
 ---
 
@@ -12,20 +13,18 @@ There are two types of configurations:
 1. repository config
 2. package config
 
-## Configuration Files
+## Configuration files
 
-Each type of configuration can be specified one of several ways. The configuration of beachball is provided by [`cosmiconfig`](https://github.com/davidtheclark/cosmiconfig), therefore, you can specify configuration in different kinds of files (and even as CLI arguments).
+`beachball` uses [`cosmiconfig`](https://github.com/davidtheclark/cosmiconfig) to read its configuration, so you can specify configuration in several ways (in addition to CLI arguments).
 
-- `beachball` key inside `package.json`
-- .beachballrc
-- .beachballrc.json
-- beachball.config.js
-
-> Be consistent! We encourage you to use the same convention within the same monorepo! When in doubt, just use `beachball.config.js`.
+- `"beachball"` key inside `package.json`
+- `.beachballrc`
+- `.beachballrc.json`
+- `beachball.config.js`
 
 ### `beachball.config.js`
 
-By far the most flexible of these is, of course, the type of configuration written in JavaScript (exposed as a CommonJS module). We'll concentrate on this type of configuration.
+In many cases, you'll want to use a JavaScript config file (written as a CommonJS module), since this is the most flexible and allows comments.
 
 ```js
 module.exports = {
@@ -35,7 +34,7 @@ module.exports = {
 }
 ```
 
-You can place these in either the root of a repo or within a package like so (package config overrides the repo configuration where applicable). For example:
+Config files can be placed in either the root of a repo and/or within individual packages (package config overrides the repo config where applicable). For example:
 
 ```
 packages/
@@ -49,6 +48,8 @@ packages/
 package.json
 beachball.config.js
 ```
+
+It's also common to have a repo-level `beachball.config.js` and any individual package overrides (if they're simple) in the `"beachball"` key in the package's `package.json`.
 
 ## Options
 
@@ -77,7 +78,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `push`                  | bool                                     | `true`            | repo                 | whether to push to the remote git branch                                                        |
 | `registry`              | string                                   |                   | repo                 | target NPM registry to publish                                                                  |
 | `retries`               | number                                   | `3`               | repo                 | number of retries for a package publish before failing                                          |
-| `shouldPublish`         | bool                                     | `true`            | package              | to manually handle whether or not a package should be published with beachball                  |
+| `shouldPublish`         | false \| undefined                       |                   | package              | manually disable publishing of a package by beachball (does not work to force publishing)       |
 | `tag`                   | string                                   | `'latest'`        | repo, package        | dist-tag for npm when published                                                                 |
 | `transform`             | `TransformOptions` ([details][4])        |                   | repo                 | transformations for change files                                                                |
 

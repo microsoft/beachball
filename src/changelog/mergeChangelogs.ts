@@ -1,25 +1,26 @@
 import _ from 'lodash';
 import { PackageChangelog } from '../types/ChangeLog';
 import { PackageInfo } from '../types/PackageInfo';
-import { generateTag } from '../tag';
+import { generateTag } from '../git/generateTag';
 import { ChangeType } from '../types/ChangeInfo';
 
 /**
- * Merge multiple PackageChangelog into one.
- * `name`, `date` and `version` will be using the values from master changelog. `comments` are merged.
+ * Merge multiple package changelogs into one.
+ * `name` and `version` will use the values from `primaryPackage`'s changelog.
+ * `comments` are merged. `date` will be now.
  */
 export function mergeChangelogs(
   changelogs: PackageChangelog[],
-  masterPackage: PackageInfo
+  primaryPackage: PackageInfo
 ): PackageChangelog | undefined {
-  if (changelogs.length < 1 || !masterPackage) {
+  if (changelogs.length < 1 || !primaryPackage) {
     return undefined;
   }
 
   const result: PackageChangelog = {
-    name: masterPackage.name,
-    version: masterPackage.version,
-    tag: generateTag(masterPackage.name, masterPackage.version),
+    name: primaryPackage.name,
+    version: primaryPackage.version,
+    tag: generateTag(primaryPackage.name, primaryPackage.version),
     date: new Date(),
     comments: {},
   };

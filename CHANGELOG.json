@@ -2,6 +2,1775 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 24 Apr 2024 01:43:00 GMT",
+      "version": "2.43.1",
+      "tag": "beachball_v2.43.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "349712ee2f15a27342de2f856a3f835b4fdb2ddf",
+            "comment": "Use shell: true and explicit cwd for all package manager commands"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "7d50f9216020170edd713001972d7eeaa90d5e53",
+            "comment": "Set shell: true when spawning npm commands. This is required for Windows after a [Node security fix](https://nodejs.org/en/blog/vulnerability/april-2024-security-releases-2)."
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 10 Apr 2024 00:55:50 GMT",
+      "version": "2.43.0",
+      "tag": "beachball_v2.43.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "altinokd@microsoft.com",
+            "package": "beachball",
+            "commit": "6ff075cd2bfd49bca7239085545f4de5732b5fb9",
+            "comment": "Support optional dependencies"
+          }
+        ],
+        "patch": [
+          {
+            "author": "kjell.knapen@craftzing.com",
+            "package": "beachball",
+            "commit": "8854e98713c82561a4f60483f9b37c01060cf6b0",
+            "comment": "Ensure we can bump premajor, preminor and prepatch with a prereleasePrefix"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 09 Apr 2024 08:02:58 GMT",
+      "version": "2.42.0",
+      "tag": "beachball_v2.42.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kjell.knapen@craftzing.com",
+            "package": "beachball",
+            "commit": "d99780c9a2289f29ee4c4a49ab150d1e76d47e91",
+            "comment": "Add release types for major and minor prereleases"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 06 Mar 2024 08:03:35 GMT",
+      "version": "2.41.0",
+      "tag": "beachball_v2.41.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "jdesalliers@microsoft.com",
+            "package": "beachball",
+            "commit": "ed7fb95de96740d9da71e13716460fa7dfab2106",
+            "comment": "Adding support for identifier base when bumping with a pre-release prefix"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 27 Feb 2024 08:02:43 GMT",
+      "version": "2.40.0",
+      "tag": "beachball_v2.40.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "im@pyonpyon.today",
+            "package": "beachball",
+            "commit": "45c62516bc69c008f3eb94aeeff6fe44e4fc2d14",
+            "comment": "Support updating lockfiles for pnpm and yarn (#769)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "1581488+christiango@users.noreply.github.com",
+            "package": "beachball",
+            "commit": "5d8da45132c0c58220a152c9356bcd2a1b4a4631",
+            "comment": "Add context on the current running command for changeFiles transform"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 19 Oct 2023 08:03:28 GMT",
+      "version": "2.39.0",
+      "tag": "beachball_v2.39.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e3e8d29297f3ff13a9117c48126bf4aeb9caa738",
+            "comment": "Update dependency workspace-tools to ^0.36.3"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 18 Oct 2023 08:03:44 GMT",
+      "version": "2.38.0",
+      "tag": "beachball_v2.38.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "26faa29393f3108d65c721fed870afee68d9ba2e",
+            "comment": "Update workspace-tools to fix issue with empty list of recent commit messages"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b6a956000e246565d32080d090bbdf60200262a8",
+            "comment": "Update dependency cosmiconfig to v8"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "0d8966f7ff1605285bcbc425ab2b02fc11c40eaf",
+            "comment": "Update dependency fs-extra to v11"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "1da02494c422a223c911a23bb27ac596cfd275c4",
+            "comment": "Update typescript to v5.2. This should not cause any breaking emit changes."
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 01 Sep 2023 08:03:30 GMT",
+      "version": "2.37.0",
+      "tag": "beachball_v2.37.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "6223ecb4e6d4dda23e5d6d0c40dd300107a79cf2",
+            "comment": "Ensure getCliOptions properly handles all boolean and numeric options"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "527bf1a662fd2e27072c48a59901e466864d3ced",
+            "comment": "Minor improvements to path include/exclude logic"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 31 Aug 2023 08:03:29 GMT",
+      "version": "2.36.1",
+      "tag": "beachball_v2.36.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "6fa75774e03229eafe3f76a98be72e8e0dc11067",
+            "comment": "Add more logging during publishing"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 27 Jul 2023 08:03:27 GMT",
+      "version": "2.36.0",
+      "tag": "beachball_v2.36.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "749812afdc17ba6ef4a836637bdeab69bcec5089",
+            "comment": "Add an index signature to ChangelogEntry"
+          }
+        ],
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "749812afdc17ba6ef4a836637bdeab69bcec5089",
+            "comment": "Stop recording incorrect bump commits in CHANGELOG.json"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "6a450f70ea85d2e85b9d7f67aa71652659d12ea1",
+            "comment": "Add type for PublishConfig"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 21 Jul 2023 20:53:47 GMT",
+      "tag": "beachball_v2.35.0",
+      "version": "2.35.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "tronguye@microsoft.com",
+            "package": "beachball",
+            "commit": "16253f8fffb923d5b1293f9f29bbd83a83f989c3",
+            "comment": "Beachball passes packageInfos as 4th param of prepublish, postpublish, and postbump hooks"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 18 Jul 2023 08:03:27 GMT",
+      "tag": "beachball_v2.34.1",
+      "version": "2.34.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "cc78b36280bb94cb9c5f5b15ba507ef2d847f0d8",
+            "comment": "Update dependency workspace-tools to ^0.35.0"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "62ce25a3378342109fbb187b7c555a0e40ee28e0",
+            "comment": "Prevent retrying publishing and display a specific helpful error message in case of certain common errors (version exists; auth issue)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 13 Jul 2023 08:04:00 GMT",
+      "tag": "beachball_v2.34.0",
+      "version": "2.34.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "8dd65ddd8fab8ba6d3c8a37e994571e91b49bbba",
+            "comment": "Update to typescript 4.5"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "1f5136d127acb70e3b2f763dbda5bc3321bfe791",
+            "comment": "Run all npm commands async"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "bc5908c82f55843e7b0f76957ab83650480dab6c",
+            "comment": "Slightly refactor internal npm args logic"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "73d3558a8e540988d8ea34e30122fea706145da5",
+            "comment": "Add --all option for `change` command"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 27 May 2023 08:02:27 GMT",
+      "tag": "beachball_v2.33.3",
+      "version": "2.33.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "8d587c9f4afe57d4e203f0d5111790df2f494cff",
+            "comment": "Fix validation bug that caused beachball to always exit with an error (and add return types to all functions)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 18 May 2023 08:06:52 GMT",
+      "tag": "beachball_v2.33.2",
+      "version": "2.33.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "bf0cf61ec528f5faeb6d35bc47c133cc02fd6bd5",
+            "comment": "Make init more robust"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "8eb91797c1b01359d94281f910cee7e6b11d973d",
+            "comment": "Improve validation logging and performance"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "bd352a4732c3bbc853b9fefb7fa3e5f9953a947d",
+            "comment": "Reduce redundant logging during publishing"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "bf0cf61ec528f5faeb6d35bc47c133cc02fd6bd5",
+            "comment": "Add comments on BeachballOptions and sort default options"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 17 May 2023 08:04:02 GMT",
+      "tag": "beachball_v2.33.1",
+      "version": "2.33.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "2b871f367d757a950e9ba28d8235a9354e58e51b",
+            "comment": "Minor cleanup of listPackageVersions and getNewPackages"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "1b5f59a9480b574c54bef5c46af999fae6f2ed01",
+            "comment": "Centralize handling of environment variables"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "ace7c6f66d2be0b0fad629b5f4bb83926e652bfe",
+            "comment": "Improve logging during publishing"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 16 May 2023 08:03:41 GMT",
+      "tag": "beachball_v2.33.0",
+      "version": "2.33.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "9efbdbb7f6ae44ee100b63afefd7e07ad434213c",
+            "comment": "Respect fetch depth from options when unshallowing clones to check for changes"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "9efbdbb7f6ae44ee100b63afefd7e07ad434213c",
+            "comment": "Fix bugs with getting adequate history to check for changes and determining if branches are connected"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "9efbdbb7f6ae44ee100b63afefd7e07ad434213c",
+            "comment": "Pipe logs to console for git operations during publish"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "117ab0c530e488f6d0fe7a7a4bbf4de1974a0f00",
+            "comment": "Report all package/group validation errors instead of short circuiting"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b6605e19dc596e85d4ee54ecc00653620c2bb7b1",
+            "comment": "Simplify change type functions and remove unused ones"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 13 May 2023 08:05:18 GMT",
+      "tag": "beachball_v2.32.4",
+      "version": "2.32.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "0d78408778397a63a8e38aab2953d22b8e22ac1b",
+            "comment": "Improve getChangedPackages logging"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "1b3e91c706369739e0cc66af366c48a909b8db9f",
+            "comment": "Combine and add comments for git tag methods, and move tag helper"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 11 May 2023 08:03:48 GMT",
+      "tag": "beachball_v2.32.3",
+      "version": "2.32.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "3c446f684998336b6d8ba13aae1a483a41e1e1cb",
+            "comment": "Improve publish bump/push logging and correctly detect git timeouts"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "3c446f684998336b6d8ba13aae1a483a41e1e1cb",
+            "comment": "Fix line breaks in writeChangeFiles logging"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "3c446f684998336b6d8ba13aae1a483a41e1e1cb",
+            "comment": "When determining changed packages, exclude change files as part of ignorePatterns"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "42078c247fe23ea466c73a5956cf4b140b75b027",
+            "comment": "Simplify some logic in bump and publish"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "3c446f684998336b6d8ba13aae1a483a41e1e1cb",
+            "comment": "Minor cleanup for publish overrides, getChangedPackages, etc"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 05 May 2023 08:03:45 GMT",
+      "tag": "beachball_v2.32.2",
+      "version": "2.32.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "f34f794c6999a0dc1eb81ba11fd45d66367874a8",
+            "comment": "Use proper options and timeout on all npm operations"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 04 May 2023 08:04:29 GMT",
+      "tag": "beachball_v2.32.1",
+      "version": "2.32.1",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "7fe0c5d119279f22910aee2a7842540764a30e8e",
+            "comment": "Update devDependency @types/uuid to v9"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "df543fe7e0bb7ae5f90021e8d3a90c3a4340986a",
+            "comment": "Update devDependency gh-pages to v5"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "ef5182a559c19209e271325e8524145ee7876631",
+            "comment": "Update Jest packages to v29"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "9ed25c018e255e007293f05d28b015cc53e82148",
+            "comment": "Update devDependency @types/minimatch to v5"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 03 May 2023 08:03:35 GMT",
+      "tag": "beachball_v2.32.1",
+      "version": "2.32.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "1477925b467fb84f76eafbb5972f9f7e657c5cb0",
+            "comment": "Update dependency workspace-tools to ^0.34.0"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 02 May 2023 08:05:06 GMT",
+      "tag": "beachball_v2.32.0",
+      "version": "2.32.0",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "18b92bfe6c7e2ad46c489254f682a37465138917",
+            "comment": "Unpin devDependencies"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "57c3fae84a7f465627e8757223fbfaadb75d195b",
+            "comment": "**BREAKING CHANGE**: Require Node 14. This is released as a minor change because Node 12 has been past end of life for a year now."
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 13 Apr 2023 08:03:46 GMT",
+      "tag": "beachball_v2.31.13",
+      "version": "2.31.13",
+      "comments": {
+        "patch": [
+          {
+            "author": "viditmathur@microsoft.com",
+            "package": "beachball",
+            "commit": "a4fef4b9bef05bc5bafd887734a3e142a7015622",
+            "comment": "When bumping, don't modify the version of private packages"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 10 Mar 2023 08:04:24 GMT",
+      "tag": "beachball_v2.31.12",
+      "version": "2.31.12",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "4cd3fe308fc7a13c32288074afd591de9b03bc46",
+            "comment": "Default --yes to true in CI"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 17 Feb 2023 22:51:00 GMT",
+      "tag": "beachball_v2.31.11",
+      "version": "2.31.11",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "294df128638314b05c7d3af23c89bfae68370596",
+            "comment": "Minor fixes for publish logging and checks"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 17 Feb 2023 03:09:06 GMT",
+      "tag": "beachball_v2.31.10",
+      "version": "2.31.10",
+      "comments": {
+        "patch": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "4f808db7a5c1d0dc0ece31a4948b068aef200e86",
+            "comment": "Update dependency workspace-tools to ^0.30.0"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 15 Feb 2023 08:02:51 GMT",
+      "tag": "beachball_v2.31.9",
+      "version": "2.31.9",
+      "comments": {
+        "patch": [
+          {
+            "author": "viditmathur@microsoft.com",
+            "package": "beachball",
+            "commit": "3556b242582091221f88290c7a984142cb91027e",
+            "comment": "Handle file not found issue"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 10 Feb 2023 08:02:57 GMT",
+      "tag": "beachball_v2.31.8",
+      "version": "2.31.8",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "da2cbb0ff0209a5df8b050e65cc6095383ca92d0",
+            "comment": "Update devDependency prettier to v2.8.4"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 08 Feb 2023 08:03:19 GMT",
+      "tag": "beachball_v2.31.8",
+      "version": "2.31.8",
+      "comments": {
+        "patch": [
+          {
+            "author": "viditmathur@microsoft.com",
+            "package": "beachball",
+            "commit": "e4b4aa5e2955d730191e0e4aa1b239a0ce758ba8",
+            "comment": "New flag for git push timeout"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 02 Feb 2023 08:02:50 GMT",
+      "tag": "beachball_v2.31.7",
+      "version": "2.31.7",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "6097c5c55c7cefe3ca5e1868ceb7fca4a2d4df2f",
+            "comment": "Use normalized-tmpdir in tests"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "6097c5c55c7cefe3ca5e1868ceb7fca4a2d4df2f",
+            "comment": "Update devDependency prettier to v2.8.3"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 01 Feb 2023 08:03:58 GMT",
+      "tag": "beachball_v2.31.7",
+      "version": "2.31.7",
+      "comments": {
+        "patch": [
+          {
+            "author": "viditmathur@microsoft.com",
+            "package": "beachball",
+            "commit": "8340c663477042105a5a6bf0ea02d7d857814656",
+            "comment": "Adding timeout for git push operation"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 11 Jan 2023 08:03:20 GMT",
+      "tag": "beachball_v2.31.6",
+      "version": "2.31.6",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "664d4eb12376a6097d19f209b6596939832eeb61",
+            "comment": "Update devDependency vuepress to v1.9.8"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "664d4eb12376a6097d19f209b6596939832eeb61",
+            "comment": "Update devDependency prettier to v2.8.2"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 06 Jan 2023 22:46:24 GMT",
+      "tag": "beachball_v2.31.6",
+      "version": "2.31.6",
+      "comments": {
+        "patch": [
+          {
+            "author": "brandth@microsoft.com",
+            "package": "beachball",
+            "commit": "2f6e0242471f586735e96dd2838277adcfa8d3b4",
+            "comment": "Use `--ignore-scripts` when running `npm install` after bumping packages (for repos using npm only)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 16 Dec 2022 08:02:45 GMT",
+      "tag": "beachball_v2.31.5",
+      "version": "2.31.5",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "1aad99f399cb318b581f220d4f56d835535492d9",
+            "comment": "Update devDependency prettier to v2.8.1"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 07 Dec 2022 08:03:07 GMT",
+      "tag": "beachball_v2.31.5",
+      "version": "2.31.5",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "334753784ec4e06dcb15244cbe396b7693aa0e36",
+            "comment": "Update devDependency @types/prompts to v2.4.2"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 02 Dec 2022 08:03:44 GMT",
+      "tag": "beachball_v2.31.5",
+      "version": "2.31.5",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "2d55d1fa13273be7c96dc699e03d4f4c37f28d7e",
+            "comment": "Update devDependency @types/lodash to v4.14.191"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 26 Nov 2022 08:03:28 GMT",
+      "tag": "beachball_v2.31.5",
+      "version": "2.31.5",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "426b903a900f32ed2a05acdeda308a647acab7cb",
+            "comment": "Update devDependency prettier to v2.8.0"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "426b903a900f32ed2a05acdeda308a647acab7cb",
+            "comment": "Update devDependency @types/lodash to v4.14.190"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 19 Nov 2022 08:02:58 GMT",
+      "tag": "beachball_v2.31.5",
+      "version": "2.31.5",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "4c576d89e29b2648be0b746c1de260971a47f260",
+            "comment": "Update @types devDependencies"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 17 Nov 2022 08:03:27 GMT",
+      "tag": "beachball_v2.31.5",
+      "version": "2.31.5",
+      "comments": {
+        "patch": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "1edbca7612137d718ce58f6881d6c85681bba91c",
+            "comment": "update dependency workspace-tools to ^0.29.0"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 12 Oct 2022 08:03:33 GMT",
+      "tag": "beachball_v2.31.4",
+      "version": "2.31.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "35b8175bf9679a7cc3ce09cdf1e0a84c4a350d54",
+            "comment": "Refactor change command and promptForChange helper for better testability"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 04 Oct 2022 08:03:21 GMT",
+      "tag": "beachball_v2.31.3",
+      "version": "2.31.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "756ae0518343e6a2c937b6abb702740d5a514a0c",
+            "comment": "add validation for multiple specified packages"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "756ae0518343e6a2c937b6abb702740d5a514a0c",
+            "comment": "Simplify getDisallowedChangeTypes implementation"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "756ae0518343e6a2c937b6abb702740d5a514a0c",
+            "comment": "Update dependency workspace-tools to ^0.28.0"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 24 Sep 2022 08:03:07 GMT",
+      "tag": "beachball_v2.31.2",
+      "version": "2.31.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "13329f64ac6cdbf7146b8b5653396a0e54c6b56c",
+            "comment": "Fix commit message suggestions in change command"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 23 Sep 2022 08:03:37 GMT",
+      "tag": "beachball_v2.31.1",
+      "version": "2.31.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b03eb7238a37d7cf0b0ca4dacc72787635b2a7af",
+            "comment": "Don't write change files if prompt is cancelled"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b03eb7238a37d7cf0b0ca4dacc72787635b2a7af",
+            "comment": "Fix handling of shallow clones when checking for change files"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 20 Sep 2022 21:13:11 GMT",
+      "tag": "beachball_v2.31.0",
+      "version": "2.31.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "a83b5bb72f2f556e2f88a313a1ffd72dd0c6eacd",
+            "comment": "Add precommit hook"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 17 Sep 2022 01:48:49 GMT",
+      "tag": "beachball_v2.30.2",
+      "version": "2.30.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "8ec3b5147189443c45a5931331ffb2315f34f4e4",
+            "comment": "Update workspace-tools to ^0.27.0"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 10 Sep 2022 08:02:44 GMT",
+      "tag": "beachball_v2.30.1",
+      "version": "2.30.1",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "2a9753ed3ac27ffc2aa1d3f145a64761596820c4",
+            "comment": "Switch from @types/jest to @jest/globals"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 26 Aug 2022 08:03:37 GMT",
+      "tag": "beachball_v2.30.1",
+      "version": "2.30.1",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "4f7e87a8285534e365d1ca22993a6cbaaf9ae53f",
+            "comment": "Update devDependency @types/jest to v28.1.8"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "4f7e87a8285534e365d1ca22993a6cbaaf9ae53f",
+            "comment": "Add github actions jest reporter and update how to run tests"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 23 Aug 2022 08:03:51 GMT",
+      "tag": "beachball_v2.30.1",
+      "version": "2.30.1",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "f1e376e1b9e194b560ec9881ec77de3dd4d03022",
+            "comment": "Update devDependency @types/lodash to v4.14.184"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 17 Aug 2022 08:02:47 GMT",
+      "tag": "beachball_v2.30.1",
+      "version": "2.30.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "402d76de4de90a31f883be8dd063509445ce542d",
+            "comment": "Error on duplicate package names in different workspaces (for a monorepo with multiple workspaces)"
+          }
+        ],
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "402d76de4de90a31f883be8dd063509445ce542d",
+            "comment": "Update devDependency @types/lodash to v4.14.183"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 16 Aug 2022 08:02:58 GMT",
+      "tag": "beachball_v2.30.0",
+      "version": "2.30.0",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "af775b92895b648dd1b9aae1424d7057ac12a267",
+            "comment": "Update devDependency @types/jest to v28.1.7"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "af775b92895b648dd1b9aae1424d7057ac12a267",
+            "comment": "Update devDependency ts-jest to v28.0.8"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 12 Aug 2022 08:03:19 GMT",
+      "tag": "beachball_v2.30.0",
+      "version": "2.30.0",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "23c02738028eefb0add70a35cee7c0db6863642c",
+            "comment": "Update devDependency @types/semver to v7.3.12"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "23c02738028eefb0add70a35cee7c0db6863642c",
+            "comment": "Update local version of workspace-tools to 0.26.2"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 11 Aug 2022 21:13:57 GMT",
+      "tag": "beachball_v2.30.0",
+      "version": "2.30.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b98d92a4cdc9ddb4b53d6fdd6907a1938e9c23f3",
+            "comment": "Exit publishing early if only invalid change files are present"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b98d92a4cdc9ddb4b53d6fdd6907a1938e9c23f3",
+            "comment": "Use ES2019 output (compatible with Node 12+)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 11 Aug 2022 21:09:34 GMT",
+      "tag": "beachball_v2.29.1",
+      "version": "2.29.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "647200972d6645600427d0869d16bbb6ae01a91a",
+            "comment": "Improve auth error handling and other logs during publishing, and use the npm helper everywhere"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "647200972d6645600427d0869d16bbb6ae01a91a",
+            "comment": "Rename file `monorepo/utils.ts` to `monorepo/isPathIncluded.ts` (no API change)"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "647200972d6645600427d0869d16bbb6ae01a91a",
+            "comment": "Add verbose logs about determining changed packages"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "647200972d6645600427d0869d16bbb6ae01a91a",
+            "comment": "Fix calculation of changed packages on Windows"
+          }
+        ],
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "647200972d6645600427d0869d16bbb6ae01a91a",
+            "comment": "Update jest monorepo to v28"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "647200972d6645600427d0869d16bbb6ae01a91a",
+            "comment": "Update publishing tests to work with npm 8"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "647200972d6645600427d0869d16bbb6ae01a91a",
+            "comment": "Update devDependency @types/semver to v7.3.11"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "647200972d6645600427d0869d16bbb6ae01a91a",
+            "comment": "Update devDependency verdaccio-memory to v10"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 10 Aug 2022 08:03:11 GMT",
+      "tag": "beachball_v2.29.0",
+      "version": "2.29.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "cdf7e775cf403111c645776b7bb6b8822ebc8d18",
+            "comment": "Update typescript to 4.3"
+          }
+        ],
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "cdf7e775cf403111c645776b7bb6b8822ebc8d18",
+            "comment": "Always use console.log not process.stdout for logging"
+          },
+          {
+            "author": "viditganpi10@gmail.com",
+            "package": "beachball",
+            "commit": "cdf7e775cf403111c645776b7bb6b8822ebc8d18",
+            "comment": "Moving non essential and retried commands to git from gitFailFast"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 09 Aug 2022 06:34:24 GMT",
+      "tag": "beachball_v2.28.0",
+      "version": "2.28.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "8b14fe25d19f93be5880dbf82ab654d343caf967",
+            "comment": "Update dependency workspace-tools to ^0.26.0"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 09 Aug 2022 01:24:22 GMT",
+      "tag": "beachball_v2.27.1",
+      "version": "2.27.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Update dependency execa to v5"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Update dependency cosmiconfig to v7 (now supports .cjs config files)"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Update dependency fs-extra to v10"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Update dependency yargs-parser to v21"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Remove unused human-id dependency"
+          }
+        ],
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Update devDependency gh-pages to v4"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Update devDependency vuepress-plugin-mermaidjs to v1.9.1"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "7a173adb00b9eaefab678a86d9e80c0a0e9f873a",
+            "comment": "Update devDependency vuepress to v1.9.7"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 08 Aug 2022 21:56:43 GMT",
+      "tag": "beachball_v2.27.0",
+      "version": "2.27.0",
+      "comments": {
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update devDependency jest to v27.5.1"
+          },
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update devDependency @types/node to v12.20.55"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update devDependency verdaccio-memory to v8.5.2"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update devDependency verdaccio to v4.13.2"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update devDependency gh-pages to v3.2.3"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update devDependency prettier to v2.7.1"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update devDependency ts-jest to v27.1.5"
+          }
+        ],
+        "minor": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update dependency semver to v7"
+          }
+        ],
+        "patch": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "69f86e1be53f1c0ccf616783c5543bf6aa6c26b3",
+            "comment": "Update dependency prompts to ^2.1.0 (widen allowed range)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 06 Aug 2022 03:04:18 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "84f50a908845bfbfd90aa7483a02dd8c7c4366ab",
+            "comment": "Update devDependency @types/lodash to v4.14.182"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 06 Aug 2022 03:01:26 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "not available",
+            "comment": "Update devDependency tmp to v0.2.1"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 06 Aug 2022 03:01:09 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "not available",
+            "comment": "Update devDependency tmp to v0.2.1"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 06 Aug 2022 03:00:27 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "not available",
+            "comment": "Update devDependency @types/minimatch to v3.0.5"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "not available",
+            "comment": "Update devDependency tmp to v0.2.1"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "not available",
+            "comment": "Update devDependency @types/fs-extra to v8.1.2"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 06 Aug 2022 02:59:21 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "not available",
+            "comment": "Update devDependency @types/minimatch to v3.0.5"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "5764cd4df9aa504aeb633650fd8a3b6a749c3b0a",
+            "comment": "Update devDependency tmp to v0.2.1"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "not available",
+            "comment": "Update devDependency @types/fs-extra to v8.1.2"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 06 Aug 2022 02:58:48 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "b5afa8d903e4e4891ff2aa15e1a92a23044905c9",
+            "comment": "Update devDependency @types/minimatch to v3.0.5"
+          },
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "b5afa8d903e4e4891ff2aa15e1a92a23044905c9",
+            "comment": "Update devDependency @types/fs-extra to v8.1.2"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 06 Aug 2022 02:29:10 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "not available",
+            "comment": "Update devDependency @types/uuid to v8.3.4"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 06 Aug 2022 02:28:13 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "renovate@whitesourcesoftware.com",
+            "package": "beachball",
+            "commit": "8d4adefa9496f24d2e2b2c03b8d0f6b5d76baac8",
+            "comment": "Update devDependency @types/uuid to v8.3.4"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 06 Aug 2022 02:14:58 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "not available",
+            "comment": "Pin devDependencies"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 06 Aug 2022 02:14:36 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "not available",
+            "comment": "Pin devDependencies"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 06 Aug 2022 02:14:04 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "5fee178f7f31bf7e80ecad085198e2fc80c40eea",
+            "comment": "Pin devDependencies"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 06 Aug 2022 01:33:25 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "ad533bfb667b9792648fdf0fa9a9f0d08cf008d6",
+            "comment": "Configure Renovate"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 05 Aug 2022 22:30:35 GMT",
+      "tag": "beachball_v2.26.1",
+      "version": "2.26.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b243be7c2944ab90bd613b5a1fac1bc7c366f607",
+            "comment": "Specify `files` in package.json to ensure only intended files are published"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 21 Jul 2022 00:41:14 GMT",
+      "tag": "beachball_v2.26.0",
+      "version": "2.26.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "1e95735b4897363a2100c797129b30db495d0bb6",
+            "comment": "Update workspace-tools to fix remote detection"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 14 Jul 2022 21:17:09 GMT",
+      "tag": "beachball_v2.25.1",
+      "version": "2.25.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "viditganpi10@gmail.com",
+            "package": "beachball",
+            "commit": "c1490d51e33daf38ff7d0d14c79a8bcfc1708f61",
+            "comment": "Added error handling for git fetch"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 13 Jul 2022 21:17:51 GMT",
+      "tag": "beachball_v2.25.0",
+      "version": "2.25.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "bddbce4525f76d209fc91a07ac4128348dcb269d",
+            "comment": "Update `workspace-tools` to pick up new `git-url-parse` (may include [breaking changes](https://github.com/IonicaBizau/git-url-parse/releases/tag/12.0.0))"
+          }
+        ],
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "bddbce4525f76d209fc91a07ac4128348dcb269d",
+            "comment": "Remove unused direct dependencies on `git-url-parse` and `glob` (the code moved to `workspace-tools` awhile back)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 13 Jul 2022 20:33:51 GMT",
+      "tag": "beachball_v2.24.1",
+      "version": "2.24.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "adam.gleitman@gmail.com",
+            "package": "beachball",
+            "commit": "511dc118032faf4326d7bd071e5ccea80332cea8",
+            "comment": "Bump git-url-parse to 12.0.0"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 07 Jul 2022 04:38:07 GMT",
+      "tag": "beachball_v2.24.0",
+      "version": "2.24.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "c35db0c42c5b755066e0bf2434e55c15d7b0dbf1",
+            "comment": "Use path utilities from workspace-tools and remove beachball's redundant implementations"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 06 Jul 2022 21:40:35 GMT",
+      "tag": "beachball_v2.23.1",
+      "version": "2.23.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "dab5879@gmail.com",
+            "package": "beachball",
+            "commit": "3106bf8f003ef07340d65c9727c01c6d281c822a",
+            "comment": "fixes JSON parse failure when npm show output is an empty string and 0 exit code"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 14 Jun 2022 22:58:59 GMT",
+      "tag": "beachball_v2.23.0",
+      "version": "2.23.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "4f3cd1330acf199f628bb72271b606071f33e063",
+            "comment": "Update package-lock.json after bumping packages"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 01 Jun 2022 19:11:29 GMT",
+      "tag": "beachball_v2.22.4",
+      "version": "2.22.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "dzearing@microsoft.com",
+            "package": "beachball",
+            "commit": "a34f2901a4bbbc6e35b74057a8f9d0faabe4c3f7",
+            "comment": "Updating workspace-tools to v0.19.0."
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 18 May 2022 18:21:01 GMT",
+      "tag": "beachball_v2.22.3",
+      "version": "2.22.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "863023+radium-v@users.noreply.github.com",
+            "package": "beachball",
+            "commit": "e00354e7701109d9fe1c8cf0f75381e96d4b20f2",
+            "comment": "Update the api call for prerelease to semver"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 04 May 2022 03:40:52 GMT",
+      "tag": "beachball_v2.22.2",
+      "version": "2.22.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "d7e0f53fb513de48e781a1b71123a49cf1486db0",
+            "comment": "Remove docs for nonexistent changelog command"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 04 May 2022 03:07:37 GMT",
+      "tag": "beachball_v2.22.1",
+      "version": "2.22.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "dannyvv@microsoft.com",
+            "package": "beachball",
+            "commit": "bf86ecb4ac13021ac255d365b33079f1bbcde15f",
+            "comment": "Update help and readme to not refer to 'master' branch"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 28 Apr 2022 20:28:37 GMT",
+      "tag": "beachball_v2.22.0",
+      "version": "2.22.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "dlannoye@microsoft.com",
+            "package": "beachball",
+            "commit": "12e8625052ded947b881e4ff2cdf81f098279c42",
+            "comment": "Add support for \"workspace:\" versions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 27 Apr 2022 23:30:47 GMT",
+      "tag": "beachball_v2.21.1",
+      "version": "2.21.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "dlannoye@microsoft.com",
+            "package": "beachball",
+            "commit": "0162c709538afacc6143d46cfb610a5373afd6b6",
+            "comment": "Prevent generation of changelog files for private packages"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 06 Jan 2022 18:35:57 GMT",
+      "tag": "beachball_v2.21.0",
+      "version": "2.21.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "viditganpi10@gmail.com",
+            "package": "beachball",
+            "commit": "f1e12127e9a04f0bb388f7e2fe93cda7cef82df2",
+            "comment": "Added fetch in cli options and check if fetch required for bump and push"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 04 Nov 2021 20:44:16 GMT",
+      "tag": "beachball_v2.20.0",
+      "version": "2.20.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "ngerlem@microsoft.com",
+            "package": "beachball",
+            "commit": "c93d0e3e72dcfe87956dbe86f3e41adf07b07e26",
+            "comment": "Add Bump Hooks"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 03 Nov 2021 16:56:06 GMT",
+      "tag": "beachball_v2.19.0",
+      "version": "2.19.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "4123478+tido64@users.noreply.github.com",
+            "package": "beachball",
+            "commit": "b7de8021c0d90adfb3733deb384968a189e49e17",
+            "comment": "add `--verbose` flag to make it easier to debug why some packages are being bumped"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 21 Oct 2021 20:15:03 GMT",
       "tag": "beachball_v2.18.0",
       "version": "2.18.0",

@@ -1,27 +1,23 @@
 import { BeachballOptions } from '../types/BeachballOptions';
 import { PackageInfos } from '../types/PackageInfo';
 import path from 'path';
-import { isPathIncluded } from './utils';
+import { isPathIncluded } from './isPathIncluded';
 
-export function getScopedPackages(options: BeachballOptions, packageInfos: PackageInfos) {
-  if (!options.scope) {
+export function getScopedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
+  const { scope, path: cwd } = options;
+  if (!scope) {
     return Object.keys(packageInfos);
   }
 
-  let includeScopes = options.scope!.filter(s => !s.startsWith('!'));
-  includeScopes = includeScopes.length > 0 ? includeScopes : ['**/*', '', '*'];
-  const excludeScopes = options.scope!.filter(s => s.startsWith('!'));
+  let includeScopes: string[] | true = scope.filter(s => !s.startsWith('!'));
+  // If there were no include scopes, include all paths by default
+  includeScopes = includeScopes.length ? includeScopes : true;
 
-  const scopedPackages: string[] = [];
+  const excludeScopes = scope.filter(s => s.startsWith('!'));
 
-  for (let [pkgName, info] of Object.entries(packageInfos)) {
-    const relativePath = path.relative(options.path, path.dirname(info.packageJsonPath));
+  return Object.keys(packageInfos).filter(pkgName => {
+    const packagePath = path.dirname(packageInfos[pkgName].packageJsonPath);
 
-    const shouldInclude = isPathIncluded(relativePath, includeScopes, excludeScopes);
-    if (shouldInclude) {
-      scopedPackages.push(pkgName);
-    }
-  }
-
-  return scopedPackages;
+    return isPathIncluded(path.relative(cwd, packagePath), includeScopes, excludeScopes);
+  });
 }

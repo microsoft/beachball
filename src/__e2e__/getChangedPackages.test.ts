@@ -1,94 +1,204 @@
-import fs from 'fs-extra';
-import path from 'path';
-import { RepositoryFactory } from '../fixtures/repository';
-import { git } from 'workspace-tools';
+import { describe, expect, it, afterEach } from '@jest/globals';
+import { defaultBranchName } from '../__fixtures__/gitDefaults';
+import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { MultiMonoRepoFactory } from '../fixtures/multiMonorepo';
 import { getChangedPackages } from '../changefile/getChangedPackages';
-import { MonoRepoFactory } from '../fixtures/monorepo';
+import { initMockLogs } from '../__fixtures__/mockLogs';
+import { generateChangeFiles } from '../__fixtures__/changeFiles';
 
 describe('getChangedPackages', () => {
   let repositoryFactory: RepositoryFactory | undefined;
-
-  function writeAndAdd(repoRoot: string, filePath: string) {
-    const testFilePath = path.join(repoRoot, filePath);
-    fs.ensureDirSync(path.dirname(testFilePath));
-    fs.writeFileSync(testFilePath, '');
-    git(['add', testFilePath], { cwd: repoRoot });
-  }
+  const logs = initMockLogs();
 
   afterEach(() => {
-    if (repositoryFactory) {
-      repositoryFactory.cleanUp();
-      repositoryFactory = undefined;
-    }
+    repositoryFactory?.cleanUp();
+    repositoryFactory = undefined;
   });
 
   it('detects changed files in single repo', () => {
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
+    repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
-    const options = { fetch: false, path: repo.rootPath, branch: 'master' } as BeachballOptions;
+    const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
 
-    writeAndAdd(repo.rootPath, 'foo.js');
+    repo.stageChange('foo.js');
     expect(getChangedPackages(options, packageInfos)).toStrictEqual(['foo']);
   });
 
   it('respects ignorePatterns option', () => {
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
+    repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
     const options = {
       fetch: false,
       path: repo.rootPath,
-      branch: 'master',
+      branch: defaultBranchName,
       ignorePatterns: ['*.test.js', 'tests/**', 'yarn.lock'],
+      verbose: true,
     } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
 
-    writeAndAdd(repo.rootPath, 'src/foo.test.js');
-    writeAndAdd(repo.rootPath, 'tests/stuff.js');
-    writeAndAdd(repo.rootPath, 'yarn.lock');
+    repo.stageChange('src/foo.test.js');
+    repo.stageChange('tests/stuff.js');
+    repo.stageChange('yarn.lock');
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
+    const logLines = logs.getMockLines('all');
+    expect(logLines).toMatch('ignored by pattern');
+    expect(logLines).toMatchInlineSnapshot(`
+      "[log] Found 2 changed files in branch "master" (before filtering)
+      [log]   - ~~src/foo.test.js~~ (ignored by pattern "*.test.js")
+      [log]   - ~~tests/stuff.js~~ (ignored by pattern "tests/**")
+      [log] All files were ignored"
+    `);
   });
 
   it('detects changed files in monorepo', () => {
-    repositoryFactory = new MonoRepoFactory();
-    repositoryFactory.create();
+    repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
-    const options = { fetch: false, path: repo.rootPath, branch: 'master' } as BeachballOptions;
+    const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
     const packageInfos = getPackageInfos(repo.rootPath);
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
 
-    writeAndAdd(repo.rootPath, 'packages/foo/test.js');
+    repo.stageChange('packages/foo/test.js');
     expect(getChangedPackages(options, packageInfos)).toStrictEqual(['foo']);
   });
 
-  it('detects changed files in multi-monorepo workspace', () => {
-    repositoryFactory = new MultiMonoRepoFactory();
-    repositoryFactory.create();
+  it('excludes packages that already have change files', () => {
+    repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
-    const rootOptions = { fetch: false, branch: 'master', path: repo.rootPath } as BeachballOptions;
-    const repoARoot = path.join(repo.rootPath, 'repo-a');
-    const repoBRoot = path.join(repo.rootPath, 'repo-b');
+
+    // setup: create branch, change foo, create a change file, commit
+    repo.checkout('-b', 'test');
+    repo.commitChange('packages/foo/test.js');
+    generateChangeFiles(['foo'], repo.rootPath);
+    logs.clear();
+
+    const options = { fetch: false, path: repo.rootPath, branch: defaultBranchName, verbose: true } as BeachballOptions;
+    const packageInfos = getPackageInfos(repo.rootPath);
+
+    // foo is not included in changed packages
+    let changedPackages = getChangedPackages(options, packageInfos);
+    const logLines = logs.getMockLines('all', true);
+    expect(logLines).toMatch(/Your local repository already has change files for these packages:\s+foo/);
+    expect(logLines).toMatchInlineSnapshot(`
+      "[log] Found 2 changed files in branch "master" (before filtering)
+      [log]   - ~~change/foo-<guid>.json~~ (ignored by pattern "change/*.json")
+      [log]   - packages/foo/test.js
+      [log] Found 1 file in 1 package that should be published
+      [log] Your local repository already has change files for these packages:
+        foo"
+    `);
+    expect(changedPackages).toStrictEqual([]);
+    logs.clear();
+
+    // change bar => bar is the only changed package returned
+    repo.stageChange('packages/bar/test.js');
+    changedPackages = getChangedPackages(options, packageInfos);
+    expect(logs.getMockLines('all', true)).toMatchInlineSnapshot(`
+      "[log] Found 3 changed files in branch "master" (before filtering)
+      [log]   - ~~change/foo-<guid>.json~~ (ignored by pattern "change/*.json")
+      [log]   - packages/foo/test.js
+      [log]   - packages/bar/test.js
+      [log] Found 2 files in 2 packages that should be published
+      [log] Your local repository already has change files for these packages:
+        foo"
+    `);
+    expect(changedPackages).toStrictEqual(['bar']);
+  });
+
+  it('ignores package changes as appropriate', () => {
+    // Due to cost of fixtures, test various ignore scenarios together
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: {
+          'private-pkg': { version: '1.0.0', private: true },
+          'no-publish': { version: '1.0.0', beachball: { shouldPublish: false } as BeachballOptions },
+          'out-of-scope': { version: '1.0.0' },
+          'ignore-pkg': { version: '1.0.0' },
+          'publish-me': { version: '1.0.0' },
+        },
+      },
+    });
+    const repo = repositoryFactory.cloneRepository();
+    repo.stageChange('packages/private-pkg/test.js');
+    repo.stageChange('packages/no-publish/test.js');
+    repo.stageChange('packages/out-of-scope/test.js');
+    repo.stageChange('packages/ignore-pkg/jest.config.js');
+    repo.stageChange('packages/ignore-pkg/CHANGELOG.md');
+    repo.stageChange('packages/publish-me/test.js');
+
+    const options = {
+      fetch: false,
+      path: repo.rootPath,
+      branch: defaultBranchName,
+      scope: ['!packages/out-of-scope'],
+      ignorePatterns: ['**/jest.config.js'],
+      verbose: true,
+    } as BeachballOptions;
+    const packageInfos = getPackageInfos(repo.rootPath);
+
+    const changedPackages = getChangedPackages(options, packageInfos);
+    const logLines = logs.getMockLines('all');
+    // check individual cases
+    expect(logLines).toMatch('private-pkg is private');
+    expect(logLines).toMatch('no-publish has beachball.shouldPublish=false');
+    expect(logLines).toMatch('out-of-scope is out of scope');
+    expect(logLines).toMatch('ignored by pattern "**/jest.config.js"');
+    expect(logLines).toMatch('ignored by pattern "CHANGELOG.{md,json}"');
+    // and overall output
+    expect(logLines).toMatchInlineSnapshot(`
+      "[log] Found 6 changed files in branch "master" (before filtering)
+      [log]   - ~~packages/ignore-pkg/CHANGELOG.md~~ (ignored by pattern "CHANGELOG.{md,json}")
+      [log]   - ~~packages/ignore-pkg/jest.config.js~~ (ignored by pattern "**/jest.config.js")
+      [log]   - ~~packages/no-publish/test.js~~ (no-publish has beachball.shouldPublish=false)
+      [log]   - ~~packages/out-of-scope/test.js~~ (out-of-scope is out of scope)
+      [log]   - ~~packages/private-pkg/test.js~~ (private-pkg is private)
+      [log]   - packages/publish-me/test.js
+      [log] Found 1 file in 1 package that should be published"
+    `);
+    // and return value
+    expect(changedPackages).toStrictEqual(['publish-me']);
+  });
+
+  it('detects changed files in multi-monorepo (multi-workspace) repo', () => {
+    repositoryFactory = new RepositoryFactory('multi-workspace');
+    const repo = repositoryFactory.cloneRepository();
+    const rootOptions = { fetch: false, branch: defaultBranchName, path: repo.rootPath } as BeachballOptions;
+    expect(Object.keys(repositoryFactory.fixtures)).toEqual(['workspace-a', 'workspace-b']);
+
+    const workspaceARoot = repo.pathTo('workspace-a');
+    const workspaceBRoot = repo.pathTo('workspace-b');
     const rootPackageInfos = getPackageInfos(repo.rootPath);
 
     expect(getChangedPackages(rootOptions, rootPackageInfos)).toStrictEqual([]);
 
-    writeAndAdd(repoARoot, 'packages/foo/test.js');
+    repo.stageChange('workspace-a/packages/foo/test.js');
 
-    const changedPackagesA = getChangedPackages({ ...rootOptions, path: repoARoot }, getPackageInfos(repoARoot));
-    const changedPackagesB = getChangedPackages({ ...rootOptions, path: repoBRoot }, getPackageInfos(repoBRoot));
+    const changedPackagesA = getChangedPackages(
+      { ...rootOptions, path: workspaceARoot },
+      getPackageInfos(workspaceARoot)
+    );
+    const changedPackagesB = getChangedPackages(
+      { ...rootOptions, path: workspaceBRoot },
+      getPackageInfos(workspaceBRoot)
+    );
     const changedPackagesRoot = getChangedPackages(rootOptions, rootPackageInfos);
 
-    expect(changedPackagesA).toStrictEqual(['foo']);
+    expect(changedPackagesA).toStrictEqual(['@workspace-a/foo']);
     expect(changedPackagesB).toStrictEqual([]);
-    expect(changedPackagesRoot).toStrictEqual(['foo']);
+    expect(changedPackagesRoot).toStrictEqual(['@workspace-a/foo']);
+  });
+
+  it('returns all packages with --all option', () => {
+    repositoryFactory = new RepositoryFactory('monorepo');
+    const repo = repositoryFactory.cloneRepository();
+    const options = { all: true, fetch: false, path: repo.rootPath, branch: defaultBranchName } as BeachballOptions;
+    const packageInfos = getPackageInfos(repo.rootPath);
+
+    expect(getChangedPackages(options, packageInfos).sort()).toStrictEqual(['a', 'b', 'bar', 'baz', 'foo']);
   });
 });

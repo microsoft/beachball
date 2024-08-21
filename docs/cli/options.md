@@ -1,6 +1,7 @@
 ---
 title: 'Common Options'
-tags: cli
+tags:
+  - cli
 category: doc
 ---
 
@@ -12,19 +13,14 @@ For the latest full list of supported options, see `CliOptions` [in this file](h
 
 These apply to most CLI commands.
 
-| Option     | Alias      | Default           | Description               |
-| ---------- | ---------- | ----------------- | ------------------------- |
-| `--branch` | `-b`       | `'origin/master'` | target branch from origin |
-| `--help`   | `-?`, `-h` |                   | show help message         |
+| Option       | Alias | Default                                                                      | Description               |
+| ------------ | ----- | ---------------------------------------------------------------------------- | ------------------------- |
+| `--branch`   | `-b`  | Detected default branch in default remote, falling back to `'origin/master'` | target branch from origin |
+| `--no-fetch` |       |                                                                              | Disable fetching          |
 
-## Change options
+## `change` options
 
-These options are applicable to the `change` command.
-
-| Option      | Alias | Default              | Description                                                    |
-| ----------- | ----- | -------------------- | -------------------------------------------------------------- |
-| `--message` | `-m`  | (interactive prompt) | Description for all change files                               |
-| `--type`    |       | (interactive prompt) | Type for all the change files (must be valid for each package) |
+See the [`change` page](./change).
 
 ## Bumping and publishing options
 
@@ -42,4 +38,6 @@ These options are applicable for the `publish` command, as well as `bump` and/or
 | `--retries`                   |       | `3`                            | number of retries for a package publish before failing                                                                                     |
 | `--tag`                       | `-t`  | `'latest'`                     | dist-tag for npm publishes                                                                                                                 |
 | `--token`                     | `-n`  |                                | credential to use with npm commands. its type is specified with the `--authType` argument                                                  |
-| `--yes`                       | `-y`  |                                | skips the prompts for publish                                                                                                              |
+| `--verbose`                   |       | `false`                        | prints additional information to the console                                                                                               |
+| `--yes`                       | `-y`  | if CI detected, `true`         | skips the prompts for publish                                                                                                              |
+| `--new`                       |       | `false`                        | publishes new packages if not in registry                                                                                                  |

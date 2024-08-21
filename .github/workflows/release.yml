@@ -1,40 +1,75 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
 name: Release
 
 on:
+  # release daily
+  # https://crontab-generator.org/
+  schedule:
+    - cron: '0 8 * * *'
+  # or on manual trigger
   workflow_dispatch:
-  push:
-    branches: [master]
+
+env:
+  npmVersion: 8
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [12.x]
+    # This environment contains secrets needed for publishing
+    environment: release
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out code
+        uses: actions/checkout@v4
         with:
-          token: ${{ secrets.repo_pat }}
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+          # Fetch all history (required for publishing which looks at history)
+          fetch-depth: 0
+          # Don't save creds in the git config (so it's easier to override later)
+          persist-credentials: false
+
+      - name: Install Node.js from .nvmrc
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-      - run: yarn
+          node-version-file: .nvmrc
+
+      # Guarantee a predictable version of npm (the PR build tests against both 6 and 8)
+      - name: Install package managers
+        run: npm install --global npm@${{ env.npmVersion }} yarn@1
+
+      - run: yarn --frozen-lockfile
+
       - run: yarn build
-      - run: yarn test
-      - run: |
+
+      - run: yarn test:unit
+
+      - run: yarn test:func
+
+      - name: yarn test:e2e (npm ${{ env.npmVersion }})
+        run: yarn test:e2e
+
+      - name: Publish package
+        run: |
           git config user.email "kchau@microsoft.com"
           git config user.name "Ken Chau"
-      - run: yarn release -y -n $NPM_AUTHTOKEN
+
+          # Get the existing remote URL without creds, and use a trap (like try/finally)
+          # to restore it after this step finishes
+          trap "git remote set-url origin '$(git remote get-url origin)'" EXIT
+
+          # Add a token to the remote URL for auth during release
+          git remote set-url origin "https://$REPO_PAT@github.com/$GITHUB_REPOSITORY"
+
+          yarn release -y -n "$NPM_AUTHTOKEN"
         env:
-          NPM_AUTHTOKEN: ${{ secrets.npm_authtoken }}
-      - run: |
-          git remote set-url origin https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git
+          NPM_AUTHTOKEN: ${{ secrets.NPM_AUTHTOKEN }}
+          REPO_PAT: ${{ secrets.REPO_PAT }}
+
+      - name: Update docs
+        run: |
+          # See previous step for explanation
+          trap "git remote set-url origin '$(git remote get-url origin)'" EXIT
+          git remote set-url origin "https://$REPO_PAT@github.com/$GITHUB_REPOSITORY"
+
           yarn release:docs
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_PAT: ${{ secrets.REPO_PAT }}

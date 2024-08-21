@@ -1,37 +1,44 @@
-import { BumpInfo } from '../types/BumpInfo';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
-import { shouldPublishPackage } from './shouldPublishPackage';
+import { NpmOptions } from '../types/NpmOptions';
+import { formatList } from '../logging/format';
+import { PackageInfos } from '../types/PackageInfo';
 
 /**
- * Validate a package being published is not already published.
+ * Validate each package version being published doesn't already exist in the registry.
  */
-export async function validatePackageVersions(bumpInfo: BumpInfo, registry: string): Promise<boolean> {
-  let hasErrors: boolean = false;
+export async function validatePackageVersions(
+  packagesToValidate: string[],
+  packageInfos: PackageInfos,
+  options: NpmOptions
+): Promise<boolean> {
+  console.log('\nValidating new package versions...');
 
-  const packages = [...bumpInfo.modifiedPackages].filter(pkg => {
-    const { publish, reasonToSkip } = shouldPublishPackage(bumpInfo, pkg);
-    if (!publish) {
-      console.log(`Skipping package version validation - ${reasonToSkip}`);
-      return false;
-    }
+  const publishedVersions = await listPackageVersions(packagesToValidate, options);
 
-    return true;
-  });
+  const okVersions: string[] = [];
+  const errorVersions: string[] = [];
 
-  const publishedVersions = await listPackageVersions(packages, registry);
-
-  for (const pkg of packages) {
-    const packageInfo = bumpInfo.packageInfos[pkg];
-    process.stdout.write(`Validating package version - ${packageInfo.name}@${packageInfo.version}`);
+  for (const pkg of packagesToValidate) {
+    const packageInfo = packageInfos[pkg];
+    const versionSpec = `${packageInfo.name}@${packageInfo.version}`;
     if (publishedVersions[pkg].includes(packageInfo.version)) {
-      console.error(
-        `\nERROR: Attempting to bump to a version that already exists in the registry: ${packageInfo.name}@${packageInfo.version}`
-      );
-      hasErrors = true;
+      errorVersions.push(versionSpec);
     } else {
-      process.stdout.write(' OK!\n');
+      okVersions.push(versionSpec);
     }
   }
 
-  return !hasErrors;
+  if (okVersions.length) {
+    // keep the original order here to show what order they'll be published in
+    console.log(`\nPackage versions are OK to publish:\n${formatList(okVersions)}`);
+  }
+  if (errorVersions.length) {
+    console.error(
+      `\nERROR: Attempting to publish package versions that already exist in the registry:\n` +
+        formatList(errorVersions.sort())
+    );
+    return false;
+  }
+
+  return true;
 }

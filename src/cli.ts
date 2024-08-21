@@ -52,10 +52,10 @@ import { validate } from './validation/validate';
       break;
 
     case 'sync':
-      sync(options);
+      await sync(options);
       break;
 
-    default:
+    case 'change':
       const { isChangeNeeded } = validate(options, { allowMissingChangeFiles: true });
 
       if (!isChangeNeeded && !options.package) {
@@ -63,14 +63,17 @@ import { validate } from './validation/validate';
         return;
       }
 
-      change(options);
+      await change(options);
 
       break;
+
+    default:
+      throw new Error('Invalid command: ' + options.command);
   }
 })().catch(e => {
   showVersion();
   console.error('An error has been detected while running beachball!');
-  console.error(e);
+  console.error(e?.stack || e);
 
   process.exit(1);
 });

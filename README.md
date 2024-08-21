@@ -26,17 +26,13 @@ a tool to help create change files in the change/ folder
 
 checks whether a change file is needed for this branch
 
-### changelog
-
-based on change files, create changelogs and then unlinks the change files
-
 ### [bump](https://microsoft.github.io/beachball/cli/bump.html)
 
 bumps versions as well as generating changelogs
 
 ### [publish](https://microsoft.github.io/beachball/cli/publish.html)
 
-bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into master
+bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into the default branch
 
 ### [sync](https://microsoft.github.io/beachball/cli/sync.html)
 
@@ -61,7 +57,7 @@ registry, defaults to https://registry.npmjs.org
 
 ### --branch, -b
 
-target branch from origin (default: master)
+target branch from origin (default: as configured in 'git config init.defaultBranch')
 
 ### --message, -m
 

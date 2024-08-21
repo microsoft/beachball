@@ -1,31 +1,51 @@
-import { Registry } from '../fixtures/registry';
-import { npm } from '../packageManager/npm';
-import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { git, addGitObserver } from 'workspace-tools';
-import { publish } from '../commands/publish';
-import { RepositoryFactory } from '../fixtures/repository';
-import { MonoRepoFactory } from '../fixtures/monorepo';
+import { describe, expect, it, afterEach, jest } from '@jest/globals';
 import fs from 'fs-extra';
 import path from 'path';
+import { addGitObserver, clearGitObservers } from 'workspace-tools';
+import { generateChangeFiles } from '../__fixtures__/changeFiles';
+import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
+import { initMockLogs } from '../__fixtures__/mockLogs';
+import { npmShow } from '../__fixtures__/npmShow';
+import { Repository } from '../__fixtures__/repository';
+import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
+import { publish } from '../commands/publish';
+import { getDefaultOptions } from '../options/getDefaultOptions';
+import { BeachballOptions } from '../types/BeachballOptions';
+import { initNpmMock } from '../__fixtures__/mockNpm';
+
+// Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
+// this test (packagePublish covers the more complete npm registry scenario).
+//
+// If an issue is found in the future that could only be caught by this test using real npm,
+// a new test file with a real registry should be created to cover that specific scenario.
+jest.mock('../packageManager/npm');
 
 describe('publish command (e2e)', () => {
-  let registry: Registry;
+  initNpmMock();
+
   let repositoryFactory: RepositoryFactory | undefined;
 
-  beforeAll(() => {
-    registry = new Registry();
-    jest.setTimeout(30000);
-  });
+  // show error logs for these tests
+  initMockLogs({ alsoLog: ['error'] });
 
-  afterAll(() => {
-    registry.stop();
-  });
-
-  beforeEach(async () => {
-    await registry.reset();
-  });
+  function getOptions(repo: Repository, overrides?: Partial<BeachballOptions>): BeachballOptions {
+    return {
+      ...getDefaultOptions(),
+      branch: defaultRemoteBranchName,
+      registry: 'fake',
+      path: repo.rootPath,
+      command: 'publish',
+      message: 'apply package updates',
+      tag: 'latest',
+      yes: true,
+      access: 'public',
+      ...overrides,
+    };
+  }
 
   afterEach(() => {
+    clearGitObservers();
+
     if (repositoryFactory) {
       repositoryFactory.cleanUp();
       repositoryFactory = undefined;
@@ -33,151 +53,52 @@ describe('publish command (e2e)', () => {
   });
 
   it('can perform a successful npm publish', async () => {
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
+    repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
+    generateChangeFiles(['foo'], repo.rootPath);
+
+    repo.push();
+
+    await publish(getOptions(repo));
+
+    expect(await npmShow('foo')).toMatchObject({
+      name: 'foo',
+      versions: ['1.1.0'],
+      'dist-tags': { latest: '1.1.0' },
     });
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
-
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
-
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.1.0');
-
-    git(['checkout', 'master'], { cwd: repo.rootPath });
-    git(['pull'], { cwd: repo.rootPath });
-    const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
-
-    expect(gitResults.success).toBeTruthy();
-    expect(gitResults.stdout).toBe('foo_v1.1.0');
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
   });
 
   it('can perform a successful npm publish in detached HEAD', async () => {
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
+    repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
+    generateChangeFiles(['foo'], repo.rootPath);
+
+    repo.push();
+
+    repo.checkout('--detach');
+
+    await publish(getOptions(repo, { push: false }));
+
+    expect(await npmShow('foo')).toMatchObject({
+      name: 'foo',
+      versions: ['1.1.0'],
+      'dist-tags': { latest: '1.1.0' },
     });
-
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
-
-    git(['checkout', '--detach'], { cwd: repo.rootPath });
-
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: false,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
-
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.1.0');
   });
 
   it('can perform a successful npm publish from a race condition', async () => {
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
+    repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     // Adds a step that injects a race condition
     let fetchCount = 0;
@@ -187,97 +108,37 @@ describe('publish command (e2e)', () => {
         if (fetchCount === 0) {
           const anotherRepo = repositoryFactory!.cloneRepository();
           // inject a checkin
-          const packageJsonFile = path.join(anotherRepo.rootPath, 'package.json');
-          const contents = JSON.parse(fs.readFileSync(packageJsonFile, 'utf-8'));
-          fs.writeFileSync(
-            packageJsonFile,
-            JSON.stringify(
-              {
-                ...contents,
-                version: '1.0.2',
-              },
-              null,
-              2
-            )
-          );
-
-          git(['add', packageJsonFile], { cwd: anotherRepo.rootPath });
-          git(['commit', '-m', 'test'], { cwd: anotherRepo.rootPath });
-          git(['push', 'origin', 'HEAD:master'], { cwd: anotherRepo.rootPath });
+          anotherRepo.updateJsonFile('package.json', { version: '1.0.2' });
+          anotherRepo.push();
         }
 
         fetchCount++;
       }
     });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
+    await publish(getOptions(repo));
+
+    expect(await npmShow('foo')).toMatchObject({
+      name: 'foo',
+      versions: ['1.1.0'],
+      'dist-tags': { latest: '1.1.0' },
     });
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.1.0');
-
-    git(['checkout', 'master'], { cwd: repo.rootPath });
-    git(['pull'], { cwd: repo.rootPath });
-    const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
-
-    expect(gitResults.success).toBeTruthy();
-    expect(gitResults.stdout).toBe('foo_v1.1.0');
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
 
     // this indicates 2 tries
     expect(fetchCount).toBe(2);
   });
 
   it('can perform a successful npm publish from a race condition in the dependencies', async () => {
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
+    repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
     // Adds a step that injects a race condition
     let fetchCount = 0;
@@ -287,367 +148,321 @@ describe('publish command (e2e)', () => {
         if (fetchCount === 0) {
           const anotherRepo = repositoryFactory!.cloneRepository();
           // inject a checkin
-          const packageJsonFile = path.join(anotherRepo.rootPath, 'package.json');
-          const contents = JSON.parse(fs.readFileSync(packageJsonFile, 'utf-8'));
-
+          const packageJsonFile = anotherRepo.pathTo('package.json');
+          const contents = fs.readJSONSync(packageJsonFile, 'utf-8');
           delete contents.dependencies.baz;
-
-          fs.writeFileSync(packageJsonFile, JSON.stringify(contents, null, 2));
-
-          git(['add', packageJsonFile], { cwd: anotherRepo.rootPath });
-          git(['commit', '-m', 'test'], { cwd: anotherRepo.rootPath });
-          git(['push', 'origin', 'HEAD:master'], { cwd: anotherRepo.rootPath });
+          anotherRepo.commitChange('package.json', JSON.stringify(contents, null, 2));
+          anotherRepo.push();
         }
 
         fetchCount++;
       }
     });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
+    await publish(getOptions(repo));
+
+    expect(await npmShow('foo')).toMatchObject({
+      name: 'foo',
+      versions: ['1.1.0'],
+      'dist-tags': { latest: '1.1.0' },
     });
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.1.0');
-
-    git(['checkout', 'master'], { cwd: repo.rootPath });
-    git(['pull'], { cwd: repo.rootPath });
-    const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
-
-    expect(gitResults.success).toBeTruthy();
-    expect(gitResults.stdout).toBe('foo_v1.1.0');
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
 
     // this indicates 2 tries
     expect(fetchCount).toBe(2);
 
-    const packageJsonFile = path.join(repo.rootPath, 'package.json');
+    const packageJsonFile = repo.pathTo('package.json');
     const contents = JSON.parse(fs.readFileSync(packageJsonFile, 'utf-8'));
     expect(contents.dependencies.baz).toBeUndefined();
   });
 
   it('can perform a successful npm publish without bump', async () => {
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
+    repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
+    generateChangeFiles(['foo'], repo.rootPath);
+
+    repo.push();
+
+    await publish(getOptions(repo, { bump: false }));
+
+    expect(await npmShow('foo')).toMatchObject({
+      name: 'foo',
+      versions: ['1.0.0'],
+      'dist-tags': { latest: '1.0.0' },
     });
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    expect(repo.getCurrentTags()).toEqual([]);
+  });
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: false,
-      generateChangelog: true,
-      dependentChangeType: null,
+  it('publishes only changed packages in a monorepo', async () => {
+    repositoryFactory = new RepositoryFactory('monorepo');
+    const repo = repositoryFactory.cloneRepository();
+
+    generateChangeFiles(['foo'], repo.rootPath);
+
+    repo.push();
+
+    await publish(getOptions(repo));
+
+    await npmShow('bar', { shouldFail: true });
+
+    expect(await npmShow('foo')).toMatchObject({
+      name: 'foo',
+      versions: ['1.1.0'],
+      'dist-tags': { latest: '1.1.0' },
     });
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
+  });
 
-    expect(showResult.success).toBeTruthy();
+  it('publishes dependent packages in a monorepo', async () => {
+    repositoryFactory = new RepositoryFactory('monorepo');
+    const repo = repositoryFactory.cloneRepository();
 
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.0.0');
+    // bump baz => dependent bump bar => dependent bump foo
+    generateChangeFiles(['baz'], repo.rootPath);
+    expect(repositoryFactory.fixture.folders!.packages.foo.dependencies!.bar).toBeTruthy();
+    expect(repositoryFactory.fixture.folders!.packages.bar.dependencies!.baz).toBeTruthy();
 
-    git(['checkout', 'master'], { cwd: repo.rootPath });
-    git(['pull'], { cwd: repo.rootPath });
+    repo.push();
 
-    const gitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
-    expect(gitResults.success).toBeFalsy();
+    await publish(getOptions(repo));
+
+    expect(await npmShow('baz')).toMatchObject({
+      name: 'baz',
+      versions: ['1.4.0'],
+      'dist-tags': { latest: '1.4.0' },
+    });
+
+    expect(await npmShow('bar')).toMatchObject({
+      name: 'bar',
+      versions: ['1.3.5'],
+      'dist-tags': { latest: '1.3.5' },
+      dependencies: { baz: '^1.4.0' },
+    });
+
+    expect(await npmShow('foo')).toMatchObject({
+      name: 'foo',
+      versions: ['1.0.1'],
+      'dist-tags': { latest: '1.0.1' },
+      dependencies: { bar: '^1.3.5' },
+    });
+
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    expect(repo.getCurrentTags()).toEqual(['bar_v1.3.5', 'baz_v1.4.0', 'foo_v1.0.1']);
+  });
+
+  it('publishes new monorepo packages if requested', async () => {
+    // use a slightly smaller fixture to only publish one extra package
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: { foo: { version: '1.0.0' }, bar: { version: '1.3.4' } },
+      },
+    });
+    const repo = repositoryFactory.cloneRepository();
+
+    generateChangeFiles(['foo'], repo.rootPath);
+    // generateChangeFiles(['bar'], repo.rootPath);
+
+    repo.push();
+
+    await publish(getOptions(repo, { new: true }));
+
+    expect(await npmShow('foo')).toMatchObject({ name: 'foo', versions: ['1.1.0'] });
+    expect(await npmShow('bar')).toMatchObject({ name: 'bar', versions: ['1.3.4'] });
+
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    expect(repo.getCurrentTags()).toEqual(['bar_v1.3.4', 'foo_v1.1.0']);
   });
 
   it('should not perform npm publish on out-of-scope package', async () => {
-    repositoryFactory = new MonoRepoFactory();
-    repositoryFactory.create();
+    repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
+    generateChangeFiles(['foo'], repo.rootPath);
+    generateChangeFiles(['bar'], repo.rootPath);
+
+    repo.push();
+
+    await publish(getOptions(repo, { scope: ['!packages/foo'] }));
+
+    await npmShow('foo', { shouldFail: true });
+
+    expect(repo.getCurrentTags()).toEqual([]);
+
+    expect(await npmShow('bar')).toMatchObject({
+      name: 'bar',
+      versions: ['1.4.0'],
+      'dist-tags': { latest: '1.4.0' },
     });
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'bar',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
-
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
-
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      scope: ['!packages/foo'],
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
-
-    const fooNpmResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-    expect(fooNpmResult.success).toBeFalsy();
-
-    const fooGitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
-    expect(fooGitResults.success).toBeFalsy();
-
-    const barNpmResult = npm(['--registry', registry.getUrl(), 'show', 'bar', '--json']);
-
-    expect(barNpmResult.success).toBeTruthy();
-
-    const show = JSON.parse(barNpmResult.stdout);
-    expect(show.name).toEqual('bar');
-    expect(show.versions.length).toEqual(1);
-    expect(show['dist-tags'].latest).toEqual('1.4.0');
-
-    git(['checkout', 'master'], { cwd: repo.rootPath });
-    git(['pull'], { cwd: repo.rootPath });
-    const barGitResults = git(['describe', '--abbrev=0', 'bar_v1.4.0'], { cwd: repo.rootPath });
-
-    expect(barGitResults.success).toBeTruthy();
-    expect(barGitResults.stdout).toBe('bar_v1.4.0');
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    expect(repo.getCurrentTags()).toEqual(['bar_v1.4.0']);
   });
 
   it('should respect prepublish hooks', async () => {
-    repositoryFactory = new MonoRepoFactory();
-    repositoryFactory.create();
+    repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      hooks: {
-        prepublish: (packagePath: string) => {
-          const packageJsonPath = path.join(packagePath, 'package.json');
-          const packageJson = fs.readJSONSync(packageJsonPath);
-          if (packageJson.onPublish) {
-            Object.assign(packageJson, packageJson.onPublish);
-            delete packageJson.onPublish;
-            fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
-          }
+    await publish(
+      getOptions(repo, {
+        path: repo.rootPath,
+        hooks: {
+          prepublish: (packagePath: string) => {
+            const packageJsonPath = path.join(packagePath, 'package.json');
+            const packageJson = fs.readJSONSync(packageJsonPath);
+            if (packageJson.onPublish) {
+              Object.assign(packageJson, packageJson.onPublish);
+              delete packageJson.onPublish;
+              fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+            }
+          },
         },
-      },
-      dependentChangeType: null,
-    });
+      })
+    );
 
     // Query the information from package.json from the registry to see if it was successfully patched
-    const fooNpmResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
-    expect(fooNpmResult.success).toBeTruthy();
-    const show = JSON.parse(fooNpmResult.stdout);
+    const show = (await npmShow('foo'))!;
     expect(show.name).toEqual('foo');
     expect(show.main).toEqual('lib/index.js');
     expect(show.hasOwnProperty('onPublish')).toBeFalsy();
 
-    git(['checkout', 'master'], { cwd: repo.rootPath });
-    git(['pull'], { cwd: repo.rootPath });
+    repo.checkout(defaultBranchName);
+    repo.pull();
 
     // All git results should still have previous information
-    const fooGitResults = git(['describe', '--abbrev=0'], { cwd: repo.rootPath });
-    expect(fooGitResults.success).toBeTruthy();
-    const fooPackageJson = fs.readJSONSync(path.join(repo.rootPath, 'packages/foo/package.json'));
+    expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
+    const fooPackageJson = fs.readJSONSync(repo.pathTo('packages/foo/package.json'));
     expect(fooPackageJson.main).toBe('src/index.ts');
     expect(fooPackageJson.onPublish.main).toBe('lib/index.js');
   });
 
   it('should respect postpublish hooks', async () => {
-    repositoryFactory = new MonoRepoFactory();
-    repositoryFactory.create();
+    repositoryFactory = new RepositoryFactory('monorepo');
     const repo = repositoryFactory.cloneRepository();
     let notified;
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
+    generateChangeFiles(['foo'], repo.rootPath);
+
+    repo.push();
+
+    await publish(
+      getOptions(repo, {
+        path: repo.rootPath,
+        hooks: {
+          postpublish: packagePath => {
+            const packageJsonPath = path.join(packagePath, 'package.json');
+            const packageJson = fs.readJSONSync(packageJsonPath);
+            if (packageJson.afterPublish) {
+              notified = packageJson.afterPublish.notify;
+            }
+          },
         },
-      ],
-      cwd: repo.rootPath,
-    });
+      })
+    );
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
-
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: true,
-      push: true,
-      registry: registry.getUrl(),
-      gitTags: true,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: '',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      hooks: {
-        postpublish: packagePath => {
-          const packageJsonPath = path.join(packagePath, 'package.json');
-          const packageJson = fs.readJSONSync(packageJsonPath);
-          if (packageJson.afterPublish) {
-            notified = packageJson.afterPublish.notify;
-          }
-        },
-      },
-      dependentChangeType: null,
-    });
-
-    const fooPackageJson = fs.readJSONSync(path.join(repo.rootPath, 'packages/foo/package.json'));
+    const fooPackageJson = fs.readJSONSync(repo.pathTo('packages/foo/package.json'));
     expect(fooPackageJson.main).toBe('src/index.ts');
-    expect(notified).toBeDefined();
     expect(notified).toBe(fooPackageJson.afterPublish.notify);
+  });
+
+  it('can perform a successful npm publish without fetch', async () => {
+    repositoryFactory = new RepositoryFactory('single');
+    const repo = repositoryFactory.cloneRepository();
+
+    generateChangeFiles(['foo'], repo.rootPath);
+
+    repo.push();
+
+    let fetchCount = 0;
+
+    addGitObserver((args, output) => {
+      if (args[0] === 'fetch') {
+        fetchCount++;
+      }
+    });
+
+    await publish(getOptions(repo, { fetch: false }));
+
+    expect(await npmShow('foo')).toMatchObject({
+      name: 'foo',
+      versions: ['1.1.0'],
+      'dist-tags': { latest: '1.1.0' },
+    });
+
+    // no fetch when flag set to false
+    expect(fetchCount).toBe(0);
+  });
+
+  it('should specify fetch depth when depth param is defined', async () => {
+    repositoryFactory = new RepositoryFactory('single');
+    const repo = repositoryFactory.cloneRepository();
+
+    generateChangeFiles(['foo'], repo.rootPath);
+
+    repo.push();
+
+    let fetchCommand: string = '';
+
+    addGitObserver((args, output) => {
+      if (args[0] === 'fetch') {
+        fetchCommand = args.join(' ');
+      }
+    });
+
+    await publish(getOptions(repo, { depth: 10 }));
+
+    expect(await npmShow('foo')).toMatchObject({
+      name: 'foo',
+      versions: ['1.1.0'],
+      'dist-tags': { latest: '1.1.0' },
+    });
+
+    expect(fetchCommand).toMatch('--depth=10');
+  });
+
+  it('calls precommit hook before committing changes', async () => {
+    repositoryFactory = new RepositoryFactory('monorepo');
+    const repo = repositoryFactory.cloneRepository();
+
+    generateChangeFiles(['foo'], repo.rootPath);
+
+    repo.push();
+
+    await publish(
+      getOptions(repo, {
+        path: repo.rootPath,
+        hooks: {
+          precommit: async cwd => {
+            await new Promise(resolve => {
+              fs.writeFile(path.resolve(cwd, 'foo.txt'), 'foo', resolve);
+            });
+          },
+        },
+      })
+    );
+
+    repo.checkout(defaultBranchName);
+    repo.pull();
+
+    // All git results should still have previous information
+    expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
+    const manifestJson = fs.readFileSync(repo.pathTo('foo.txt'));
+    expect(manifestJson.toString()).toMatchInlineSnapshot(`"foo"`);
   });
 });

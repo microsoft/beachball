@@ -5,13 +5,14 @@ module.exports = {
   ignorePatterns: [
     '.*ignore',
     '.github/**',
-    '.prettierrc',
+    '.prettierrc.json5',
     '.vscode/**',
     'docs/**',
+    'docs/.vuepress/**',
     'jest.*.js',
-    'src/__e2e__/**',
-    'src/__tests__/**',
-    'src/fixtures/**',
+    'renovate.json5',
+    'scripts/**',
+    'src/__*/**',
     // This one is especially important (otherwise dependabot would be blocked by change file requirements)
     'yarn.lock',
   ],

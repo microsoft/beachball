@@ -1,9 +1,9 @@
-export function showVersion() {
+export function showVersion(): void {
   const packageJson = require('../package.json');
   console.log(`beachball v${packageJson.version} - the sunniest version bumping tool`);
 }
 
-export function showHelp() {
+export function showHelp(): void {
   showVersion();
 
   console.log(`Prerequisites:
@@ -18,9 +18,8 @@ Commands:
 
   change (default)    - a tool to help create change files in the change/ folder
   check               - checks whether a change file is needed for this branch
-  changelog           - based on change files, create changelogs and then unlinks the change files
   bump                - bumps versions as well as generating changelogs
-  publish             - bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into master
+  publish             - bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into the default branch
   sync                - synchronizes published versions of packages from a registry, makes local package.json changes to match what is published
 
 Options:
@@ -28,7 +27,7 @@ Options:
   --registry, -r                  - registry, defaults to https://registry.npmjs.org
   --tag, -t                       - for the publish command: dist-tag for npm publishes
                                   - for the sync command: will use specified tag to set the version
-  --branch, -b                    - target branch from origin (default: master)
+  --branch, -b                    - target branch from origin (default: as configured in 'git config init.defaultBranch')
   --message, -m                   - for the publish command: custom publish message for the checkin (default: applying package updates);
                                     for the change command: description of the change
   --no-push                       - skip pushing changes back to git remote origin
@@ -46,6 +45,7 @@ Options:
   --dependent-change-type         - for the change command: override the default dependent-change-type that will end-up in the change file.
   --disallow-deleted-change-files - for the check command: verifies that no change files were deleted between head and target branch.
   --prerelease-prefix             - for the bump and publish commands: specify a prerelease prefix for packages that will receive a prerelease bump.
+  --verbose                       - prints additional information to the console
 
 Examples:
 

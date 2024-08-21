@@ -5,8 +5,11 @@ import { ChangeType } from '../types/ChangeInfo';
 
 const groupNames: { [k in ChangeType]: string } = {
   major: 'Major changes',
+  premajor: 'Major changes (pre-release)',
   minor: 'Minor changes',
+  preminor: 'Minor changes (pre-release)',
   patch: 'Patches',
+  prepatch: 'Patches (pre-release)',
   prerelease: 'Changes',
   none: '', // not used
 };
@@ -49,10 +52,7 @@ async function _renderChangeTypeSection(
     : '';
 }
 
-async function _renderChangeTypeHeader(
-  changeType: ChangeType,
-  renderInfo: PackageChangelogRenderInfo
-): Promise<string> {
+async function _renderChangeTypeHeader(changeType: ChangeType): Promise<string> {
   return `### ${groupNames[changeType]}`;
 }
 

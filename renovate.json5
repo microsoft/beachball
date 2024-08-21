@@ -1,0 +1,75 @@
+// Available options:
+// https://docs.renovatebot.com/configuration-options/
+
+// M365 presets:
+// https://github.com/microsoft/m365-renovate-config
+
+// NOTE: Renovate only allows comments in .json5 files, but this isn't well-supported by
+// Prettier + VS Code. Workaround is to configure tools to treat the file as JSONC
+// (in .prettierrc and .vscode/settings.json).
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "github>microsoft/m365-renovate-config",
+    "github>microsoft/m365-renovate-config:disableEsmVersions",
+    "github>microsoft/m365-renovate-config:groupMore",
+    "github>microsoft/m365-renovate-config:groupTypes",
+    "github>microsoft/m365-renovate-config:keepFresh",
+    "github>microsoft/m365-renovate-config:restrictNode(14)"
+  ],
+
+  "gitAuthor": "Renovate Bot <renovate@whitesourcesoftware.com>",
+
+  "labels": ["renovate"],
+
+  "reviewers": ["ecraig12345", "kenotron"],
+  "reviewersSampleSize": 1,
+
+  // For some reason Renovate is detecting that the repo uses semantic commits
+  "semanticCommits": "disabled",
+
+  // The post-upgrade tasks must be repeated since in this repo we need to use beachball@latest
+  // to ensure it's pulled from the registry rather than trying to use the local version,
+  // which isn't built yet in the context of running Renovate.
+  "postUpgradeTasks": {
+    "commands": [
+      "git add --all",
+      "npx beachball@latest change --no-fetch --no-commit --type patch --message '{{{commitMessage}}}'",
+      "git reset"
+    ],
+    "fileFilters": ["**/*"],
+    "executionMode": "branch"
+  },
+
+  "lockFileMaintenance": {
+    "postUpgradeTasks": {
+      "commands": [
+        "git add --all",
+        "npx beachball@latest change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
+        "git reset"
+      ],
+      "fileFilters": ["**/*"],
+      "executionMode": "branch"
+    }
+  },
+
+  "packageRules": [
+    {
+      "matchPackageNames": ["workspace-tools"],
+      "matchUpdateTypes": ["major", "minor"],
+      "dependencyDashboardApproval": false
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "postUpgradeTasks": {
+        "commands": [
+          "git add --all",
+          "npx beachball@latest change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
+          "git reset"
+        ],
+        "fileFilters": ["**/*"],
+        "executionMode": "branch"
+      }
+    }
+  ]
+}

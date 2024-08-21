@@ -1,5 +1,6 @@
 ---
-tags: bump
+tags:
+  - bump
 category: doc
 ---
 
@@ -7,7 +8,7 @@ category: doc
 
 Bumping a single package is a simple task of just looking up a change file for its change type and using semver to bump the version according to what that change type is.
 
-Things get a bit more complicated when we introduce the concepts of version groups and dependent package bumping. For the sake of describing this algorithm, we can take look at the following graph:
+Things get a bit more complicated when we introduce the concepts of version groups and dependent package bumping. For the sake of describing this algorithm, we can take a look at the following graph:
 
 ```mermaid
 graph TD
@@ -21,7 +22,7 @@ graph TD
   end
 ```
 
-### Dependent Version Bumping
+### Dependent version bumping
 
 In the above example, the `app` package is dependent on `fooLib`. Let's assume that the developer has created a `minor` change inside `fooLib`. By default, `beachball` will also bump `app` with a `patch` change type, like this:
 
@@ -53,7 +54,7 @@ To modify what the dependent package bumped change type would be (e.g. making `a
 }
 ```
 
-### Grouped Bumping
+### Grouped bumping
 
 In the above example, `fooUtils`, `styleUtils`, `dateUtils` all belong to a `utils` group. Whenever one of those packages get bumped, the entire group would get bumped by the same change type. We can illustrate it like so:
 
@@ -74,4 +75,4 @@ graph TD
   dateUtils -. minor .->dateUtilsNext
 ```
 
-> NOTE: the group get bumped together even if it is part of a dependent package bump. In other words, package bumps propagate their changes via dependent package bump as well as group package bumps
+> NOTE: the group get bumped together even if it is part of a dependent package bump. In other words, package bumps propagate their changes via dependent package bumps as well as group package bumps.

@@ -2,7 +2,7 @@ import { getChangedPackages } from '../changefile/getChangedPackages';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { PackageInfos } from '../types/PackageInfo';
 
-export function isChangeFileNeeded(options: BeachballOptions, packageInfos: PackageInfos) {
+export function isChangeFileNeeded(options: BeachballOptions, packageInfos: PackageInfos): boolean {
   const { branch } = options;
 
   console.log(`Checking for changes against "${branch}"`);
@@ -14,6 +14,7 @@ export function isChangeFileNeeded(options: BeachballOptions, packageInfos: Pack
         .map(pkg => `\n  ${pkg}`)
         .join('')}`
     );
+    return true;
   }
-  return changedPackages.length > 0;
+  return false;
 }

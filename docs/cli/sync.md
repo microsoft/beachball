@@ -1,5 +1,6 @@
 ---
-tags: cli
+tags:
+  - cli
 category: doc
 ---
 
@@ -9,14 +10,16 @@ Synchronizes the local version number of each package to the current version of 
 
 By default, the local version will only be updated if it's **older** than the version the specified `dist-tag` points to. Use `--force` to override this behavior.
 
-#### Options
+After syncing, be sure to commit and push the changes.
+
+### Options
 
 In addition to the options below, certain [common options](./options) also apply.
 
-##### `--force`
+#### `--force`
 
 Force the sync command to skip the version comparison and use the version in the registry as is.
 
-##### `--tag, -t`
+#### `--tag, -t`
 
-Sync with the version this `dist-tag` points to. Defaults to the tag from repo, group, or package level beachball configs if present.
+Sync with the version this `dist-tag` points to. Defaults to the tag from repo, group, or package level beachball configs if present, falling back to `latest`.

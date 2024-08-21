@@ -1,401 +1,158 @@
-import { Registry } from '../fixtures/registry';
-import { npm } from '../packageManager/npm';
-import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { git } from 'workspace-tools';
+import { describe, expect, it, afterEach, jest } from '@jest/globals';
+import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
+import { generateChangeFiles } from '../__fixtures__/changeFiles';
+import { initMockLogs } from '../__fixtures__/mockLogs';
+import { npmShow } from '../__fixtures__/npmShow';
+import { Repository } from '../__fixtures__/repository';
+import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { publish } from '../commands/publish';
-import { RepositoryFactory } from '../fixtures/repository';
+import { getDefaultOptions } from '../options/getDefaultOptions';
+import { BeachballOptions } from '../types/BeachballOptions';
+import { initNpmMock } from '../__fixtures__/mockNpm';
+
+// Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
+// this test (packagePublish covers the more complete npm registry scenario).
+//
+// If an issue is found in the future that could only be caught by this test using real npm,
+// a new test file with a real registry should be created to cover that specific scenario.
+jest.mock('../packageManager/npm');
 
 describe('publish command (registry)', () => {
-  let registry: Registry;
+  initNpmMock();
+
   let repositoryFactory: RepositoryFactory | undefined;
-  let spy: jest.SpyInstance | undefined;
 
-  beforeAll(() => {
-    registry = new Registry();
-    jest.setTimeout(30000);
-  });
+  // show error logs for these tests
+  const logs = initMockLogs({ alsoLog: ['error'] });
 
-  afterAll(() => {
-    registry.stop();
-  });
-
-  beforeEach(async () => {
-    await registry.reset();
-  });
+  function getOptions(repo: Repository): BeachballOptions {
+    return {
+      ...getDefaultOptions(),
+      branch: defaultRemoteBranchName,
+      path: repo.rootPath,
+      registry: 'fake',
+      command: 'publish',
+      message: 'apply package updates',
+      bumpDeps: false,
+      push: false,
+      gitTags: false,
+      tag: 'latest',
+      yes: true,
+      access: 'public',
+    };
+  }
 
   afterEach(() => {
-    if (repositoryFactory) {
-      repositoryFactory.cleanUp();
-      repositoryFactory = undefined;
-    }
-    if (spy) {
-      spy.mockRestore();
-      spy = undefined;
-    }
+    repositoryFactory?.cleanUp();
+    repositoryFactory = undefined;
   });
 
-  it('will perform retries', async () => {
-    registry.stop();
-
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
+  it('publishes single package', async () => {
+    repositoryFactory = new RepositoryFactory('single');
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foo'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
-    spy = jest.spyOn(console, 'log').mockImplementation();
+    await publish(getOptions(repo));
 
-    const publishPromise = publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: false,
-      push: false,
-      registry: 'httppppp://somethingwrong',
-      gitTags: false,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: 'foo',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      timeout: 100,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
-
-    await expect(publishPromise).rejects.toThrow();
-    expect(spy).toHaveBeenCalledWith('\nRetrying... (3/3)');
-
-    spy.mockRestore();
-
-    await registry.start();
+    const publishedPackage = (await npmShow('foo'))!;
+    expect(publishedPackage.name).toEqual('foo');
+    expect(publishedPackage.versions).toHaveLength(1);
   });
 
-  it('can perform a successful npm publish', async () => {
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
+  it('publishes in monorepo with mixed public and private packages', async () => {
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: {
+          foopkg: { version: '1.0.0', private: true },
+          publicpkg: { version: '1.0.0' },
+        },
+      },
+    });
     const repo = repositoryFactory.cloneRepository();
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foo',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
+    generateChangeFiles(['foopkg'], repo.rootPath);
 
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
+    repo.push();
 
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: false,
-      push: false,
-      registry: registry.getUrl(),
-      gitTags: false,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: 'foo',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
+    await publish(getOptions(repo));
 
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foo', '--json']);
+    expect(logs.mocks.log).toHaveBeenCalledWith('Nothing to bump, skipping publish!');
+    expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package foopkg'));
 
-    expect(showResult.success).toBeTruthy();
-
-    const show = JSON.parse(showResult.stdout);
-    expect(show.name).toEqual('foo');
-    expect(show.versions.length).toEqual(1);
+    await npmShow('foopkg', { shouldFail: true });
   });
 
-  it('can perform a successful npm publish even with private packages', async () => {
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
+  it('publishes when multiple packages changed at same time', async () => {
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: {
+          foopkg: { version: '1.0.0', dependencies: { barpkg: '^1.0.0' } },
+          barpkg: { version: '1.0.0' },
+        },
+      },
+    });
     const repo = repositoryFactory.cloneRepository();
 
-    repo.commitChange(
-      'packages/foopkg/package.json',
-      JSON.stringify({
-        name: 'foopkg',
-        version: '1.0.0',
-        private: true,
-      })
-    );
+    generateChangeFiles(['foopkg', 'barpkg'], repo.rootPath);
 
-    repo.commitChange(
-      'packages/publicpkg/package.json',
-      JSON.stringify({
-        name: 'publicpkg',
-        version: '1.0.0',
-      })
-    );
+    repo.push();
 
-    repo.commitChange(
-      'package.json',
-      JSON.stringify({
-        name: 'foo-repo',
-        version: '1.0.0',
-        private: true,
-      })
-    );
+    await publish(getOptions(repo));
 
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foopkg',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
-
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
-
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: false,
-      push: false,
-      registry: registry.getUrl(),
-      gitTags: false,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: 'foopkg',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
-
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'foopkg', '--json']);
-
-    expect(showResult.success).toBeFalsy();
-  });
-
-  it('can perform a successful npm publish when multiple packages changed at same time', async () => {
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
-    const repo = repositoryFactory.cloneRepository();
-
-    repo.commitChange(
-      'packages/foopkg/package.json',
-      JSON.stringify({
-        name: 'foopkg',
-        version: '1.0.0',
-        dependencies: {
-          barpkg: '^1.0.0',
-        },
-      })
-    );
-
-    repo.commitChange(
-      'packages/barpkg/package.json',
-      JSON.stringify({
-        name: 'barpkg',
-        version: '1.0.0',
-      })
-    );
-
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'foopkg',
-          dependentChangeType: 'patch',
-        },
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'barpkg',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
-
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
-
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: false,
-      push: false,
-      registry: registry.getUrl(),
-      gitTags: false,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: 'foopkg',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
-
-    const showResultFoo = npm(['--registry', registry.getUrl(), 'show', 'foopkg', '--json']);
-    expect(showResultFoo.success).toBeTruthy();
-    const showFoo = JSON.parse(showResultFoo.stdout);
+    const showFoo = (await npmShow('foopkg'))!;
     expect(showFoo['dist-tags'].latest).toEqual('1.1.0');
 
-    const showResultBar = npm(['--registry', registry.getUrl(), 'show', 'barpkg', '--json']);
-    expect(showResultBar.success).toBeTruthy();
-    const showBar = JSON.parse(showResultFoo.stdout);
+    const showBar = (await npmShow('barpkg'))!;
     expect(showBar['dist-tags'].latest).toEqual('1.1.0');
   });
 
-  it('can perform a successful npm publish even with a non-existent package listed in the change file', async () => {
-    repositoryFactory = new RepositoryFactory();
-    repositoryFactory.create();
+  it('succeeds even with a non-existent package listed in a change file', async () => {
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: {
+          foopkg: { version: '1.0.0' },
+          barpkg: { version: '1.0.0' },
+        },
+      },
+    });
     const repo = repositoryFactory.cloneRepository();
 
-    repo.commitChange(
-      'packages/foopkg/package.json',
-      JSON.stringify({
-        name: 'foopkg',
-        version: '1.0.0',
-      })
+    generateChangeFiles(['badname'], repo.rootPath);
+
+    repo.push();
+
+    await publish(getOptions(repo));
+
+    expect(logs.mocks.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Change detected for nonexistent package badname')
+    );
+    expect(logs.mocks.log).toHaveBeenCalledWith('Nothing to bump, skipping publish!');
+
+    // didn't somehow publish a package that doesn't exist
+    await npmShow('badname', { shouldFail: true });
+  });
+
+  it('exits publishing early if only invalid change files exist', async () => {
+    repositoryFactory = new RepositoryFactory('monorepo');
+    const repo = repositoryFactory.cloneRepository();
+
+    repo.updateJsonFile('packages/bar/package.json', { private: true });
+
+    generateChangeFiles(['bar', 'fake'], repo.rootPath);
+
+    repo.push();
+
+    await publish(getOptions(repo));
+
+    expect(logs.mocks.log).toHaveBeenCalledWith('Nothing to bump, skipping publish!');
+    expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));
+    expect(logs.mocks.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Change detected for nonexistent package fake')
     );
 
-    repo.commitChange(
-      'packages/publicpkg/package.json',
-      JSON.stringify({
-        name: 'publicpkg',
-        version: '1.0.0',
-      })
-    );
-
-    repo.commitChange(
-      'package.json',
-      JSON.stringify({
-        name: 'foo-repo',
-        version: '1.0.0',
-        private: true,
-      })
-    );
-
-    writeChangeFiles({
-      changes: [
-        {
-          type: 'minor',
-          comment: 'test',
-          email: 'test@test.com',
-          packageName: 'badname',
-          dependentChangeType: 'patch',
-        },
-      ],
-      cwd: repo.rootPath,
-    });
-
-    git(['push', 'origin', 'master'], { cwd: repo.rootPath });
-
-    await publish({
-      all: false,
-      authType: 'authtoken',
-      branch: 'origin/master',
-      command: 'publish',
-      message: 'apply package updates',
-      path: repo.rootPath,
-      publish: true,
-      bumpDeps: false,
-      push: false,
-      registry: registry.getUrl(),
-      gitTags: false,
-      tag: 'latest',
-      token: '',
-      yes: true,
-      new: false,
-      access: 'public',
-      package: 'foopkg',
-      changehint: 'Run "beachball change" to create a change file',
-      type: null,
-      fetch: true,
-      disallowedChangeTypes: null,
-      defaultNpmTag: 'latest',
-      retries: 3,
-      bump: true,
-      generateChangelog: true,
-      dependentChangeType: null,
-    });
-
-    const showResult = npm(['--registry', registry.getUrl(), 'show', 'badname', '--json']);
-
-    expect(showResult.success).toBeFalsy();
+    await npmShow('fake', { shouldFail: true });
   });
 });

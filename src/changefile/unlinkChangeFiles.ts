@@ -15,9 +15,9 @@ export function unlinkChangeFiles(
     [pkg: string]: PackageInfo;
   },
   cwd: string
-) {
+): void {
   const changePath = getChangePath(cwd);
-  if (!changePath || !changeSet || !changeSet.length) {
+  if (!changeSet || !changeSet.length) {
     return;
   }
   console.log('Removing change files:');

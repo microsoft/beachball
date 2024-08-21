@@ -1,4 +1,7 @@
+import { describe, expect, it, jest } from '@jest/globals';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { MarkdownChangelogRenderOptions, renderChangelog, markerComment } from '../../changelog/renderChangelog';
+import { ChangelogEntry } from '../../types/ChangeLog';
 
 const previousHeader = `# Change Log - foo
 
@@ -10,6 +13,8 @@ const previousVersion = `## 1.2.0
 `;
 
 describe('renderChangelog', () => {
+  initMockLogs();
+
   function getOptions(): MarkdownChangelogRenderOptions {
     return {
       isGrouped: false,
@@ -21,18 +26,8 @@ describe('renderChangelog', () => {
         comments: {
           major: [],
           minor: [
-            {
-              comment: 'Awesome change',
-              author: 'user1@example.com',
-              commit: 'sha1',
-              package: 'foo',
-            },
-            {
-              comment: 'Boring change',
-              author: 'user2@example.com',
-              commit: 'sha2',
-              package: 'foo',
-            },
+            { comment: 'Awesome change', author: 'user1@example.com', commit: 'sha1', package: 'foo' },
+            { comment: 'Boring change', author: 'user2@example.com', commit: 'sha2', package: 'foo' },
           ],
           patch: [
             { comment: 'Fix', author: 'user1@example.com', commit: 'sha3', package: 'foo' },
@@ -111,5 +106,30 @@ describe('renderChangelog', () => {
     expect(result).toContain('no notes for you'); // uses custom version body
     expect(result).toContain('content here'); // includes previous content
     expect(result).toMatchSnapshot();
+  });
+
+  it('passes custom change file properties to renderers', async () => {
+    const options = getOptions();
+    options.newVersionChangelog.comments = {
+      patch: [
+        {
+          comment: 'Awesome change',
+          author: 'user1@example.com',
+          commit: 'sha1',
+          package: 'foo',
+          extra: 'custom',
+        },
+      ],
+    };
+    options.changelogOptions.customRenderers = {
+      renderEntry: jest.fn(async (entry: ChangelogEntry) => `- ${entry.comment} ${entry.extra})`),
+    };
+
+    const result = await renderChangelog(options);
+    expect(result).toContain('Awesome change custom');
+    expect(options.changelogOptions.customRenderers.renderEntry).toHaveBeenCalledWith(
+      expect.objectContaining({ extra: 'custom' }),
+      expect.anything()
+    );
   });
 });

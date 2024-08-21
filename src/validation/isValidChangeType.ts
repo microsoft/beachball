@@ -1,3 +1,5 @@
-export function isValidChangeType(changeType: string) {
-  return ['patch', 'major', 'minor', 'prerelease', 'none'].includes(changeType);
+import { SortedChangeTypes } from '../changefile/changeTypes';
+
+export function isValidChangeType(changeType: string): boolean {
+  return SortedChangeTypes.includes(changeType as any);
 }

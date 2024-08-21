@@ -1,13 +1,13 @@
 import path from 'path';
 import fs from 'fs-extra';
 import _ from 'lodash';
-import { PackageInfo } from '../types/PackageInfo';
+import { PackageInfo, PackageInfos } from '../types/PackageInfo';
 import { getPackageChangelogs } from './getPackageChangelogs';
 import { renderChangelog } from './renderChangelog';
 import { renderJsonChangelog } from './renderJsonChangelog';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { BumpInfo } from '../types/BumpInfo';
-import { isPathIncluded } from '../monorepo/utils';
+import { isPathIncluded } from '../monorepo/isPathIncluded';
 import { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
 import { mergeChangelogs } from './mergeChangelogs';
 import { ChangeSet } from '../types/ChangeInfo';
@@ -17,9 +17,7 @@ export async function writeChangelog(
   changeFileChangeInfos: ChangeSet,
   calculatedChangeTypes: BumpInfo['calculatedChangeTypes'],
   dependentChangedBy: BumpInfo['dependentChangedBy'],
-  packageInfos: {
-    [pkg: string]: PackageInfo;
-  }
+  packageInfos: PackageInfos
 ): Promise<void> {
   const groupedChangelogPaths = await writeGroupedChangelog(
     options,
@@ -29,13 +27,13 @@ export async function writeChangelog(
   );
   const groupedChangelogPathSet = new Set(groupedChangelogPaths);
 
-  const changelogs = getPackageChangelogs(
+  const changelogs = getPackageChangelogs({
     changeFileChangeInfos,
     calculatedChangeTypes,
     dependentChangedBy,
     packageInfos,
-    options.path
-  );
+    cwd: options.path,
+  });
   // Use a standard for loop here to prevent potentially firing off multiple network requests at once
   // (in case any custom renderers have network requests)
   for (const pkg of Object.keys(changelogs)) {
@@ -52,21 +50,24 @@ async function writeGroupedChangelog(
   options: BeachballOptions,
   changeFileChangeInfos: ChangeSet,
   calculatedChangeTypes: BumpInfo['calculatedChangeTypes'],
-  packageInfos: {
-    [pkg: string]: PackageInfo;
-  }
+  packageInfos: PackageInfos
 ): Promise<string[]> {
   if (!options.changelog) {
     return [];
   }
 
   const { groups: changelogGroups } = options.changelog;
-  if (!changelogGroups || changelogGroups.length < 1) {
+  if (!changelogGroups?.length) {
     return [];
   }
 
   // Grouped changelogs should not contain dependency bump entries
-  const changelogs = getPackageChangelogs(changeFileChangeInfos, calculatedChangeTypes, {}, packageInfos, options.path);
+  const changelogs = getPackageChangelogs({
+    changeFileChangeInfos,
+    calculatedChangeTypes,
+    packageInfos,
+    cwd: options.path,
+  });
   const groupedChangelogs: {
     [path: string]: {
       changelogs: PackageChangelog[];
@@ -74,7 +75,7 @@ async function writeGroupedChangelog(
     };
   } = {};
 
-  for (const pkg in changelogs) {
+  for (const pkg of Object.keys(changelogs)) {
     const packagePath = path.dirname(packageInfos[pkg].packageJsonPath);
     const relativePath = path.relative(options.path, packagePath);
     for (const group of changelogGroups) {
@@ -91,13 +92,10 @@ async function writeGroupedChangelog(
 
       const isInGroup = isPathIncluded(relativePath, group.include, group.exclude);
       if (isInGroup) {
-        if (!groupedChangelogs[changelogPath]) {
-          groupedChangelogs[changelogPath] = {
-            changelogs: [],
-            masterPackage,
-          };
-        }
-
+        groupedChangelogs[changelogPath] ??= {
+          changelogs: [],
+          masterPackage,
+        };
         groupedChangelogs[changelogPath].changelogs.push(changelogs[pkg]);
       }
     }
@@ -129,13 +127,13 @@ async function writeChangelogFiles(
   try {
     previousJson = fs.existsSync(changelogJsonFile) ? fs.readJSONSync(changelogJsonFile) : undefined;
   } catch (e) {
-    console.warn('CHANGELOG.json is invalid:', e);
+    console.warn(`${changelogJsonFile} is invalid: ${e}`);
   }
   try {
     const nextJson = renderJsonChangelog(newVersionChangelog, previousJson);
     fs.writeJSONSync(changelogJsonFile, nextJson, { spaces: 2 });
   } catch (e) {
-    console.warn('Problem writing to CHANGELOG.json:', e);
+    console.warn(`Problem writing to ${changelogJsonFile}: ${e}`);
   }
 
   // Update CHANGELOG.md

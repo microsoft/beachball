@@ -36,10 +36,17 @@ export interface ChangelogGroupOptions {
    */
   masterPackageName: string;
 
-  /** minimatch pattern (or array of minimatch) to detect which packages should be included in this group */
-  include: string | string[];
+  /**
+   * minimatch pattern (or array of minimatch) to detect which packages should be included in this group.
+   * If `true`, include all packages except those excluded by `exclude`.
+   */
+  include: string | string[] | true;
 
-  /** minimatch pattern (or array of minimatch) to detect which packages should be excluded in this group */
+  /**
+   * minimatch pattern (or array of minimatch) to detect which packages should be excluded in this group.
+   * Currently this must use **negated patterns only**: e.g. if you want to exclude `packages/foo`,
+   * you must specify `exclude` as `!packages/foo`. (This will be fixed in a future major version.)
+   */
   exclude?: string | string[];
 
   changelogPath: string;

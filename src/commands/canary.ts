@@ -7,7 +7,7 @@ import { listPackageVersions } from '../packageManager/listPackageVersions';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import { BeachballOptions } from '../types/BeachballOptions';
 
-export async function canary(options: BeachballOptions) {
+export async function canary(options: BeachballOptions): Promise<void> {
   const oldPackageInfo = getPackageInfos(options.path);
 
   const bumpInfo = gatherBumpInfo(options, oldPackageInfo);
@@ -21,7 +21,7 @@ export async function canary(options: BeachballOptions) {
     }
   }
 
-  const packageVersions = await listPackageVersions([...bumpInfo.modifiedPackages], options.registry);
+  const packageVersions = await listPackageVersions([...bumpInfo.modifiedPackages], options);
 
   for (const pkg of bumpInfo.modifiedPackages) {
     let newVersion = oldPackageInfo[pkg].version;
@@ -33,7 +33,7 @@ export async function canary(options: BeachballOptions) {
     bumpInfo.packageInfos[pkg].version = newVersion;
   }
 
-  setDependentVersions(bumpInfo.packageInfos, bumpInfo.scopedPackages);
+  setDependentVersions(bumpInfo.packageInfos, bumpInfo.scopedPackages, options);
 
   await performBump(bumpInfo, options);
 

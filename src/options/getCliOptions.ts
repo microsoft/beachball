@@ -1,14 +1,114 @@
 import parser from 'yargs-parser';
 import { CliOptions } from '../types/BeachballOptions';
-import { findProjectRoot } from '../paths';
-import { getDefaultRemoteBranch } from 'workspace-tools';
+import { getDefaultRemoteBranch, findProjectRoot } from 'workspace-tools';
+import { env } from '../env';
+
+// For camelCased options, yargs will automatically accept them with-dashes too.
+const arrayOptions = ['disallowedChangeTypes', 'package', 'scope'] as const;
+const booleanOptions = [
+  'all',
+  'bump',
+  'bumpDeps',
+  'commit',
+  'disallowDeletedChangeFiles',
+  'fetch',
+  'forceVersions',
+  'gitTags',
+  'help',
+  'keepChangeFiles',
+  'new',
+  'publish',
+  'push',
+  'verbose',
+  'version',
+  'yes',
+] as const;
+const numberOptions = ['depth', 'gitTimeout', 'retries', 'timeout'] as const;
+const stringOptions = [
+  'access',
+  'authType',
+  'branch',
+  'canaryName',
+  'changehint',
+  'configPath',
+  'dependentChangeType',
+  'fromRef',
+  'message',
+  'prereleasePrefix',
+  'registry',
+  'tag',
+  'token',
+  'type',
+] as const;
+
+type AtLeastOne<T> = [T, ...T[]];
+/** Type hack to verify that an array includes all keys of a type */
+const allKeysOfType =
+  <T extends string>() =>
+  <L extends AtLeastOne<T>>(
+    ...x: L extends any ? (Exclude<T, L[number]> extends never ? L : Exclude<T, L[number]>[]) : never
+  ) =>
+    x;
+
+// Verify that all the known CLI options have types specified, to ensure correct parsing.
+//
+// NOTE: If a prop is missing, this will have a somewhat misleading error:
+//   Argument of type '"disallowedChangeTypes"' is not assignable to parameter of type '"tag" | "version"'
+//
+// To fix, add the missing names after "parameter of type" ("tag" and "version" in this example)
+// to the appropriate array above.
+const knownOptions = allKeysOfType<keyof CliOptions>()(
+  ...arrayOptions,
+  ...booleanOptions,
+  ...numberOptions,
+  ...stringOptions,
+  // these options are filled in below, not respected from the command line
+  'path',
+  'command'
+);
+
+const parserOptions: parser.Options = {
+  configuration: {
+    'boolean-negation': true,
+    'camel-case-expansion': true,
+    'dot-notation': false,
+    'duplicate-arguments-array': true,
+    'flatten-duplicate-arrays': true,
+    'greedy-arrays': true, // for now; we might want to change this to false in the future
+    'parse-numbers': true,
+    'parse-positional-numbers': false,
+    'short-option-groups': false,
+    'strip-aliased': true,
+    'strip-dashed': true,
+  },
+  // spread to get rid of readonly...
+  array: [...arrayOptions],
+  boolean: [...booleanOptions],
+  number: [...numberOptions],
+  string: [...stringOptions],
+  alias: {
+    authType: ['a'],
+    branch: ['b'],
+    configPath: ['c', 'config'],
+    forceVersions: ['force'],
+    fromRef: ['since'],
+    help: ['h', '?'],
+    message: ['m'],
+    package: ['p'],
+    registry: ['r'],
+    tag: ['t'],
+    token: ['n'],
+    version: ['v'],
+    yes: ['y'],
+  },
+};
 
 let cachedCliOptions: CliOptions;
 
-export function getCliOptions(argv: string[]): CliOptions {
+export function getCliOptions(argv: string[], disableCache?: boolean): CliOptions {
   // Special case caching to process.argv which should be immutable
   if (argv === process.argv) {
-    if (!cachedCliOptions) {
+    if (disableCache || env.beachballDisableCache || !cachedCliOptions) {
       cachedCliOptions = getCliOptionsUncached(process.argv);
     }
     return cachedCliOptions;
@@ -19,51 +119,59 @@ export function getCliOptions(argv: string[]): CliOptions {
 
 function getCliOptionsUncached(argv: string[]): CliOptions {
   // Be careful not to mutate the input argv
-  const trimmedArgv = [...argv].splice(2);
+  const trimmedArgv = argv.slice(2);
 
-  const args = parser(trimmedArgv, {
-    string: ['branch', 'tag', 'message', 'package', 'since', 'dependent-change-type', 'config'],
-    array: ['scope', 'disallowed-change-types'],
-    boolean: ['git-tags', 'keep-change-files', 'force', 'disallow-deleted-change-files', 'no-commit'],
-    alias: {
-      authType: ['a'],
-      branch: ['b'],
-      config: ['c'],
-      tag: ['t'],
-      registry: ['r'],
-      message: ['m'],
-      token: ['n'],
-      help: ['h', '?'],
-      yes: ['y'],
-      package: ['p'],
-      version: ['v'],
-    },
-  });
+  const args = parser(trimmedArgv, parserOptions);
 
-  const { _, ...restArgs } = args;
-  const cwd = findProjectRoot(process.cwd()) || process.cwd();
-  const cliOptions = {
-    ...(_.length > 0 && { command: _[0] }),
-    ...(restArgs as any),
-    path: cwd,
-    fromRef: args.since,
-    keepChangeFiles: args['keep-change-files'],
-    disallowDeletedChangeFiles: args['disallow-deleted-change-files'],
-    forceVersions: args.force,
-    configPath: args.config,
-  } as CliOptions;
-
-  const disallowedChangeTypesArgs = args['disallowed-change-types'];
-  if (disallowedChangeTypesArgs) {
-    cliOptions.disallowedChangeTypes = disallowedChangeTypesArgs;
+  const { _: positionalArgs, ...options } = args;
+  let cwd: string;
+  try {
+    cwd = findProjectRoot(process.cwd());
+  } catch (err) {
+    cwd = process.cwd();
   }
 
+  if (positionalArgs.length > 1) {
+    throw new Error(`Only one positional argument (the command) is allowed. Received: ${positionalArgs.join(' ')}`);
+  }
+
+  const cliOptions = {
+    ...(options as CliOptions),
+    command: positionalArgs.length ? String(positionalArgs[0]) : 'change',
+    path: cwd,
+  };
+
   if (args.branch) {
-    cliOptions.branch = args.branch.indexOf('/') > -1 ? args.branch : getDefaultRemoteBranch(args.branch, cwd);
+    // TODO: This logic assumes the first segment of any branch name with a slash must be the remote,
+    // which is not necessarily accurate. Ideally we should check if a remote with that name exists,
+    // and if not, perform the default remote lookup.
+    cliOptions.branch =
+      args.branch.indexOf('/') > -1
+        ? args.branch
+        : getDefaultRemoteBranch({ branch: args.branch, verbose: args.verbose, cwd });
   }
 
   if (cliOptions.command === 'canary') {
     cliOptions.tag = cliOptions.canaryName || 'canary';
+  }
+
+  for (const key of Object.keys(cliOptions) as (keyof CliOptions)[]) {
+    const value = cliOptions[key];
+    if (value === undefined) {
+      delete cliOptions[key];
+    } else if (typeof value === 'number' && isNaN(value)) {
+      throw new Error(`Non-numeric value passed for numeric option "${key}"`);
+    } else if (knownOptions.includes(key)) {
+      if (Array.isArray(value) && !arrayOptions.includes(key as any)) {
+        throw new Error(`Option "${key}" only accepts a single value. Received: ${value.join(' ')}`);
+      }
+    } else if (value === 'true') {
+      // For unknown arguments like --foo=true or --bar=false, yargs will handle the value as a string.
+      // Convert it to a boolean to avoid subtle bugs.
+      (cliOptions as any)[key] = true;
+    } else if (value === 'false') {
+      (cliOptions as any)[key] = false;
+    }
   }
 
   return cliOptions;
