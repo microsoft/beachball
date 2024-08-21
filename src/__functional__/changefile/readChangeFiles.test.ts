@@ -37,6 +37,21 @@ describe('readChangeFiles', () => {
     expect(changeSet[0].change.commit).toBe(undefined);
   });
 
+  it('reads from a custom changeDir', () => {
+    const testChangedir = 'changeDir';
+
+    const repository = repositoryFactory.cloneRepository();
+    repository.commitChange('foo');
+    generateChangeFiles(['foo'], repository.rootPath, undefined, testChangedir);
+
+    const packageInfos = getPackageInfos(repository.rootPath);
+    const changeSet = readChangeFiles(
+      { path: repository.rootPath, changeDir: testChangedir } as BeachballOptions,
+      packageInfos
+    );
+    expect(changeSet).toHaveLength(1);
+  });
+
   it('excludes invalid change files', () => {
     const monoRepo = monoRepoFactory.cloneRepository();
     monoRepo.updateJsonFile('packages/bar/package.json', { private: true });

@@ -62,6 +62,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `bumpDeps`              | bool                                     | `true`            | repo                 | bump dependent packages during publish (bump A if A depends on B)                               |
 | `changeFilePrompt`      | `ChangeFilePromptOptions` ([details][1]) |                   | repo                 | customize the prompt for change files (can be used to add custom fields)                        |
 | `changehint`            | string                                   |                   | repo                 | hint message for when change files are not detected but required                                |
+| `changeDir`             | string                                   | `change`          | repo                 | directory of the change files                                                                   |
 | `changelog`             | `ChangelogOptions` ([details][2])        |                   | repo                 | changelog rendering and grouping options                                                        |
 | `defaultNpmTag`         | string                                   | `'latest'`        | package              | the default dist-tag used for NPM publish                                                       |
 | `disallowedChangeTypes` | string[]                                 |                   | repo, group, package | what change types are disallowed                                                                |

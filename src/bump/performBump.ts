@@ -103,7 +103,7 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
 
   if (!options.keepChangeFiles) {
     // Unlink changelogs
-    unlinkChangeFiles(changeFileChangeInfos, packageInfos, options.path);
+    unlinkChangeFiles(changeFileChangeInfos, packageInfos, options.path, options.changeDir);
   }
 
   await callHook(options.hooks?.postbump, modifiedPackages, bumpInfo.packageInfos);

@@ -1,4 +1,5 @@
 import { env } from '../env';
+import { defaultChangeFolder } from '../paths';
 import { BeachballOptions } from '../types/BeachballOptions';
 
 /**
@@ -15,6 +16,7 @@ export function getDefaultOptions(): BeachballOptions {
     bumpDeps: true,
     canaryName: undefined,
     changehint: 'Run "beachball change" to create a change file',
+    changeDir: defaultChangeFolder,
     command: 'change',
     defaultNpmTag: 'latest',
     depth: undefined,

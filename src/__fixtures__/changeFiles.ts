@@ -13,11 +13,13 @@ export type PartialChangeFile = { packageName: string } & Partial<ChangeFileInfo
  * Default values are `type: 'minor'`, `dependentChangeType: 'patch'`, and placeholders for other fields.
  * @param cwd Working directory
  * @param groupChanges Whether to group all changes into one change file.
+ * @param changeDir Directory to write change files to.
  */
 export function generateChangeFiles(
   changes: (string | PartialChangeFile)[],
   cwd: string,
-  groupChanges?: boolean
+  groupChanges?: boolean,
+  changeDir?: string
 ): void {
   writeChangeFiles({
     changes: changes.map(change => {
@@ -32,11 +34,12 @@ export function generateChangeFiles(
     }),
     groupChanges,
     cwd,
+    changeDir,
   });
 }
 
 /** Get full paths to existing change files under `cwd` */
-export function getChangeFiles(cwd: string): string[] {
-  const changePath = getChangePath(cwd);
+export function getChangeFiles(cwd: string, changeDir?: string): string[] {
+  const changePath = getChangePath(cwd, changeDir);
   return changePath && fs.existsSync(changePath) ? fs.readdirSync(changePath).map(p => path.join(changePath, p)) : [];
 }

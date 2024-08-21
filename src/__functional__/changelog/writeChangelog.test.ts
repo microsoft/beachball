@@ -68,6 +68,37 @@ describe('writeChangelog', () => {
     expect(patchComments[0].commit).toBe(repository.getCurrentHash());
   });
 
+  it('generates correct changelog with changeDir set', async () => {
+    const testChangeDir = 'myChangeDir';
+    const repository = repositoryFactory.cloneRepository();
+    repository.commitChange('foo');
+    generateChangeFiles([getChange('foo', 'additional comment 2')], repository.rootPath, undefined, testChangeDir);
+    generateChangeFiles([getChange('foo', 'additional comment 1')], repository.rootPath, undefined, testChangeDir);
+    generateChangeFiles([getChange('foo', 'comment 1')], repository.rootPath, undefined, testChangeDir);
+
+    repository.commitChange('bar');
+    generateChangeFiles([getChange('foo', 'comment 2')], repository.rootPath, undefined, testChangeDir);
+
+    const beachballOptions = { path: repository.rootPath, changeDir: testChangeDir } as BeachballOptions;
+    const packageInfos = getPackageInfos(repository.rootPath);
+    const changes = readChangeFiles(beachballOptions, packageInfos);
+
+    await writeChangelog(beachballOptions, changes, { foo: 'patch' }, { foo: new Set(['foo']) }, packageInfos);
+
+    expect(readChangelogMd(repository.rootPath)).toMatchSnapshot('changelog md');
+
+    const changelogJson = readChangelogJson(repository.rootPath);
+    expect(cleanChangelogJson(changelogJson)).toMatchSnapshot('changelog json');
+
+    // Every entry should have a different commit hash
+    const patchComments = changelogJson.entries[0].comments.patch!;
+    const commits = patchComments.map(entry => entry.commit);
+    expect(new Set(commits).size).toEqual(patchComments.length);
+
+    // The first entry should be the newest
+    expect(patchComments[0].commit).toBe(repository.getCurrentHash());
+  });
+
   it('generates correct changelog in monorepo with groupChanges (grouped change FILES)', async () => {
     const monoRepo = monoRepoFactory.cloneRepository();
     monoRepo.commitChange('foo');
