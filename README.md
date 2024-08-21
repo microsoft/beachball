@@ -79,6 +79,10 @@ show help message
 
 skips the prompts for publish
 
+## Overriding Concurrency
+
+In large monorepos, the Beachball sync process can be time-consuming due to the high number of packages. To optimize performance, you can override the default concurrency (typically set to 2 or 5) by setting the NPM_CONCURRENCY environment variable to a value that best suits your needs
+
 ## Examples
 
 ```
