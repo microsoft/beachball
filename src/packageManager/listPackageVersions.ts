@@ -18,7 +18,7 @@ export type NpmShowResult = PackageJson & {
 
 let packageVersionsCache: { [pkgName: string]: NpmShowResult | false } = {};
 
-const NPM_CONCURRENCY = env.isJest ? 2 : 5;
+const NPM_CONCURRENCY = env.npmConcurrency ?? (env.isJest ? 2 : 5);
 
 export function _clearPackageVersionsCache(): void {
   packageVersionsCache = {};
