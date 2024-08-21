@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 24 Apr 2024 01:43:00 GMT and should not be manually modified.
+This log was last generated on Wed, 21 Aug 2024 22:56:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.44.0
+
+Wed, 21 Aug 2024 22:56:03 GMT
+
+### Minor changes
+
+- Add `changeDir` CLI option (2684369+JamesBurnside@users.noreply.github.com)
 
 ## 2.43.1
 
