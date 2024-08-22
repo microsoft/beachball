@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 22 Aug 2024 08:02:52 GMT",
+      "version": "2.44.1",
+      "tag": "beachball_v2.44.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "755b88a30215035c316b8595987b9b99b444ff41",
+            "comment": "Ensure changeDir is always set"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 21 Aug 2024 22:56:03 GMT",
       "version": "2.44.0",
       "tag": "beachball_v2.44.0",

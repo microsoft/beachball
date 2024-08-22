@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Ensure changeDir is always set",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

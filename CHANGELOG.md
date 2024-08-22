@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Wed, 21 Aug 2024 22:56:03 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Aug 2024 08:02:52 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.44.1
+
+Thu, 22 Aug 2024 08:02:52 GMT
+
+### Patches
+
+- Ensure changeDir is always set (elcraig@microsoft.com)
 
 ## 2.44.0
 
