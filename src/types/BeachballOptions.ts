@@ -35,7 +35,7 @@ export interface CliOptions
   command: string;
   commit?: boolean;
   configPath?: string;
-  dependentChangeType: ChangeType | null;
+  dependentChangeType?: ChangeType;
   disallowDeletedChangeFiles?: boolean;
   forceVersions?: boolean;
   fromRef?: string;

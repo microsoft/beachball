@@ -1,4 +1,4 @@
-import { describe, expect, it, afterEach } from '@jest/globals';
+import { describe, expect, it, afterEach, jest } from '@jest/globals';
 import fs from 'fs-extra';
 import path from 'path';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
@@ -7,18 +7,30 @@ import { initMockLogs } from '../__fixtures__/mockLogs';
 import { RepoFixture, RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { bump } from '../commands/bump';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { BeachballOptions } from '../types/BeachballOptions';
+import { BeachballOptions, HooksOptions } from '../types/BeachballOptions';
+import type { Repository } from '../__fixtures__/repository';
+import { getDefaultOptions } from '../options/getDefaultOptions';
 
 describe('version bumping', () => {
   let repositoryFactory: RepositoryFactory | undefined;
+  let repo: Repository | undefined;
 
   initMockLogs();
+
+  function getOptions(options?: Partial<BeachballOptions>): BeachballOptions {
+    return {
+      ...getDefaultOptions(),
+      path: repo?.rootPath || '',
+      ...options,
+    };
+  }
 
   afterEach(() => {
     if (repositoryFactory) {
       repositoryFactory.cleanUp();
       repositoryFactory = undefined;
     }
+    repo = undefined;
   });
 
   it('bumps only packages with change files', async () => {
@@ -32,13 +44,15 @@ describe('version bumping', () => {
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
-
+    const options = getOptions({
+      bumpDeps: false,
+    });
+    generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    await bump({ path: repo.rootPath, bumpDeps: false } as BeachballOptions);
+    await bump(options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -53,7 +67,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(monorepo['packages']['pkg-3'].version);
     expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(monorepo['packages']['pkg-4'].version);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
   });
 
@@ -64,59 +78,54 @@ describe('version bumping', () => {
       packages: {
         'pkg-1': { version: '1.0.0' },
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
-        'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
-        'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
-        'pkg-5': { version: '1.0.0', optionalDependencies: { 'pkg-4': '1.0.0' } },
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath, undefined, testChangedir);
-
+    const options = getOptions({
+      bumpDeps: false,
+      changeDir: testChangedir,
+    });
+    generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    await bump({ path: repo.rootPath, bumpDeps: false, changeDir: testChangedir } as BeachballOptions);
+    await bump(options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
     const pkg1NewVersion = '1.1.0';
     expect(packageInfos['pkg-1'].version).toBe(pkg1NewVersion);
     expect(packageInfos['pkg-2'].version).toBe(monorepo['packages']['pkg-2'].version);
-    expect(packageInfos['pkg-3'].version).toBe(monorepo['packages']['pkg-3'].version);
-    expect(packageInfos['pkg-4'].version).toBe(monorepo['packages']['pkg-4'].version);
-
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(pkg1NewVersion);
-    expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(monorepo['packages']['pkg-2'].version);
-    expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(monorepo['packages']['pkg-3'].version);
-    expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(monorepo['packages']['pkg-4'].version);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
   });
 
   it('for multi-workspace (multi-monorepo), only bumps packages in the current workspace', async () => {
     repositoryFactory = new RepositoryFactory('multi-workspace');
     expect(Object.keys(repositoryFactory.fixtures)).toEqual(['workspace-a', 'workspace-b']);
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
     const workspaceARoot = repo.pathTo('workspace-a');
     const workspaceBRoot = repo.pathTo('workspace-b');
+    const optionsA = getOptions({ path: workspaceARoot, bumpDeps: true });
+    const optionsB = getOptions({ path: workspaceBRoot, bumpDeps: true });
 
-    generateChangeFiles([{ packageName: '@workspace-a/foo' }], workspaceARoot);
-    generateChangeFiles([{ packageName: '@workspace-a/foo', type: 'major' }], workspaceBRoot);
-
+    generateChangeFiles([{ packageName: '@workspace-a/foo' }], optionsA);
+    generateChangeFiles([{ packageName: '@workspace-a/foo', type: 'major' }], optionsB);
     repo.push();
 
-    await bump({ path: workspaceARoot, bumpDeps: true } as BeachballOptions);
+    await bump(optionsA);
 
     const packageInfosA = getPackageInfos(workspaceARoot);
     const packageInfosB = getPackageInfos(workspaceBRoot);
     expect(packageInfosA['@workspace-a/foo'].version).toBe('1.1.0');
     expect(packageInfosB['@workspace-b/foo'].version).toBe('1.0.0');
 
-    const changeFilesA = getChangeFiles(workspaceARoot);
-    const changeFilesB = getChangeFiles(workspaceBRoot);
+    const changeFilesA = getChangeFiles(optionsA);
+    const changeFilesB = getChangeFiles(optionsB);
     expect(changeFilesA).toHaveLength(0);
     expect(changeFilesB).toHaveLength(1);
   });
@@ -130,21 +139,19 @@ describe('version bumping', () => {
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    // generate an initial set of change files
+    const options = getOptions({ bumpDeps: false });
+    generateChangeFiles(['pkg-1'], options);
+    // set the initial change files commit as fromRef
+    options.fromRef = repo.getCurrentHash();
 
-    const oldCommit = repo.getCurrentHash();
-
-    generateChangeFiles(['pkg-3'], repo.rootPath);
-
+    // generate a new set of change files
+    generateChangeFiles(['pkg-3'], options);
     repo.push();
 
-    await bump({
-      path: repo.rootPath,
-      bumpDeps: false,
-      fromRef: oldCommit,
-    } as BeachballOptions);
+    await bump(options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -153,7 +160,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-3'].version).toBe('1.1.0');
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(monorepo['packages']['pkg-1'].version);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
   });
 
@@ -168,13 +175,13 @@ describe('version bumping', () => {
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
-
+    const options = getOptions({ bumpDeps: true });
+    generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    await bump({ path: repo.rootPath, bumpDeps: true } as BeachballOptions);
+    await bump(options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -189,7 +196,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(dependentNewVersion);
     expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(dependentNewVersion);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
   });
 
@@ -205,16 +212,16 @@ describe('version bumping', () => {
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    const options = getOptions({
+      groups: [{ include: 'packages/*', name: 'testgroup', disallowedChangeTypes: [] }],
+    });
+    generateChangeFiles(['pkg-1'], options);
 
     repo.push();
 
-    await bump({
-      path: repo.rootPath,
-      groups: [{ include: 'packages/*', name: 'testgroup' }],
-    } as BeachballOptions);
+    await bump(options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -224,7 +231,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-3'].version).toBe(newVersion);
     expect(packageInfos['pkg-4'].version).toBe(monorepo['unrelated']['pkg-4'].version);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
   });
 
@@ -243,17 +250,16 @@ describe('version bumping', () => {
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles([{ packageName: 'commonlib', dependentChangeType: 'minor' }], repo.rootPath);
-
+    const options = getOptions({
+      groups: [{ include: 'packages/grp/*', name: 'grp', disallowedChangeTypes: [] }],
+      bumpDeps: true,
+    });
+    generateChangeFiles([{ packageName: 'commonlib', dependentChangeType: 'minor' }], options);
     repo.push();
 
-    await bump({
-      path: repo.rootPath,
-      groups: [{ include: 'packages/grp/*', name: 'grp' }],
-      bumpDeps: true,
-    } as BeachballOptions);
+    await bump(options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -265,54 +271,52 @@ describe('version bumping', () => {
     expect(packageInfos['app'].version).toBe('1.1.0');
     expect(packageInfos['unrelated'].version).toBe(monorepo['packages'].unrelated.version);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
   });
 
   it('should not bump out-of-scope package even if package has change', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     const monorepo = repositoryFactory.fixture.folders!;
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
-
-    repo.push();
-
-    await bump({
-      path: repo.rootPath,
+    const options = getOptions({
       bumpDeps: true,
       scope: ['!packages/foo'],
-    } as BeachballOptions);
+    });
+    generateChangeFiles(['foo'], options);
+    repo.push();
+
+    await bump(options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
     expect(packageInfos['foo'].version).toBe(monorepo['packages']['foo'].version);
     expect(packageInfos['bar'].version).toBe(monorepo['packages']['bar'].version);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
   });
 
   it('should not bump out-of-scope package and its dependencies even if dependency of the package has change', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     const monorepo = repositoryFactory.fixture.folders!;
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles([{ packageName: 'bar', type: 'patch' }], repo.rootPath);
-
-    repo.push();
-
-    await bump({
-      path: repo.rootPath,
+    const options = getOptions({
       bumpDeps: true,
       scope: ['!packages/foo'],
-    } as BeachballOptions);
+    });
+    generateChangeFiles([{ packageName: 'bar', type: 'patch' }], options);
+    repo.push();
+
+    await bump(options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
     expect(packageInfos['foo'].version).toBe(monorepo['packages']['foo'].version);
     expect(packageInfos['bar'].version).toBe('1.3.5');
     expect(packageInfos['foo'].dependencies!['bar']).toBe(monorepo['packages']['foo'].dependencies!['bar']);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
   });
 
@@ -327,17 +331,17 @@ describe('version bumping', () => {
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    const options = getOptions({
+      bumpDeps: false,
+      keepChangeFiles: true,
+    });
+    generateChangeFiles(['pkg-1'], options);
 
     repo.push();
 
-    await bump({
-      path: repo.rootPath,
-      bumpDeps: false,
-      keepChangeFiles: true,
-    } as BeachballOptions);
+    await bump(options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -353,7 +357,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(monorepo['packages']['pkg-3'].version);
     expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(monorepo['packages']['pkg-4'].version);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
   });
 
@@ -368,18 +372,17 @@ describe('version bumping', () => {
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], repo.rootPath);
-
-    repo.push();
-
-    await bump({
-      path: repo.rootPath,
+    const options = getOptions({
       bumpDeps: true,
       keepChangeFiles: false,
       prereleasePrefix: 'beta',
-    } as BeachballOptions);
+    });
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], options);
+    repo.push();
+
+    await bump(options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -395,7 +398,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(newVersion);
     expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(newVersion);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
   });
 
@@ -410,19 +413,18 @@ describe('version bumping', () => {
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], repo.rootPath);
-
-    repo.push();
-
-    await bump({
-      path: repo.rootPath,
+    const options = getOptions({
       bumpDeps: true,
       keepChangeFiles: false,
       prereleasePrefix: 'beta',
       identifierBase: '1',
-    } as BeachballOptions);
+    });
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], options);
+    repo.push();
+
+    await bump(options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -438,7 +440,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(newVersion);
     expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(newVersion);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
   });
 
@@ -453,19 +455,18 @@ describe('version bumping', () => {
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], repo.rootPath);
-
-    repo.push();
-
-    await bump({
-      path: repo.rootPath,
+    const options = getOptions({
       bumpDeps: true,
       keepChangeFiles: false,
       prereleasePrefix: 'beta',
       identifierBase: false,
-    } as BeachballOptions);
+    });
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], options);
+    repo.push();
+
+    await bump(options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -481,7 +482,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(newVersion);
     expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(newVersion);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
   });
 
@@ -496,21 +497,17 @@ describe('version bumping', () => {
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(
-      [{ packageName: 'pkg-1', type: 'prerelease', dependentChangeType: 'prerelease' }],
-      repo.rootPath
-    );
-
-    repo.push();
-
-    await bump({
-      path: repo.rootPath,
+    const options = getOptions({
       bumpDeps: true,
       keepChangeFiles: false,
       prereleasePrefix: 'beta',
-    } as BeachballOptions);
+    });
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease', dependentChangeType: 'prerelease' }], options);
+    repo.push();
+
+    await bump(options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -525,7 +522,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(newVersion);
     expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(newVersion);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
   });
 
@@ -540,21 +537,17 @@ describe('version bumping', () => {
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(
-      [{ packageName: 'pkg-1', type: 'prerelease', dependentChangeType: 'prerelease' }],
-      repo.rootPath
-    );
-
-    repo.push();
-
-    await bump({
-      path: repo.rootPath,
+    const options = getOptions({
       bumpDeps: true,
       keepChangeFiles: false,
       prereleasePrefix: 'beta',
-    } as BeachballOptions);
+    });
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease', dependentChangeType: 'prerelease' }], options);
+    repo.push();
+
+    await bump(options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
 
@@ -570,7 +563,7 @@ describe('version bumping', () => {
     expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(othersNewVersion);
     expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(othersNewVersion);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
   });
 
@@ -582,8 +575,13 @@ describe('version bumping', () => {
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
+    const options = getOptions({
+      bumpDeps: true,
+      keepChangeFiles: false,
+      generateChangelog: true,
+    });
     generateChangeFiles(
       [
         {
@@ -592,17 +590,12 @@ describe('version bumping', () => {
           packageName: 'package1',
         },
       ],
-      repo.rootPath
+      options
     );
 
     repo.push();
 
-    const bumpInfo = await bump({
-      path: repo.rootPath,
-      bumpDeps: true,
-      keepChangeFiles: false,
-      generateChangelog: true,
-    } as BeachballOptions);
+    const bumpInfo = await bump(options);
 
     const modified = [...bumpInfo.modifiedPackages];
     expect(modified).toContain('package1');
@@ -618,31 +611,28 @@ describe('version bumping', () => {
         packages: { 'pkg-1': { version: '1.0.0' } },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
-
-    repo.push();
-
-    let prebumpCalled = false;
-
-    await bump({
-      path: repo.rootPath,
+    const options = getOptions({
       bumpDeps: false,
       hooks: {
-        prebump: (packagePath, name, version) => {
-          prebumpCalled = true;
+        prebump: jest.fn<Required<HooksOptions>['prebump']>((packagePath, name, version) => {
           expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
           expect(name).toBe('pkg-1');
           expect(version).toBe('1.1.0');
 
           const jsonPath = path.join(packagePath, 'package.json');
           expect(fs.readJSONSync(jsonPath).version).toBe('1.0.0');
-        },
+        }),
       },
-    } as BeachballOptions);
+    });
 
-    expect(prebumpCalled).toBe(true);
+    generateChangeFiles(['pkg-1'], options);
+    repo.push();
+
+    await bump(options);
+
+    expect(options.hooks?.prebump).toHaveBeenCalled();
   });
 
   it('calls async prebump hook before packages are bumped', async () => {
@@ -651,31 +641,28 @@ describe('version bumping', () => {
         packages: { 'pkg-1': { version: '1.0.0' } },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
-
-    repo.push();
-
-    let prebumpCalled = false;
-
-    await bump({
-      path: repo.rootPath,
+    const options = getOptions({
       bumpDeps: false,
       hooks: {
-        prebump: async (packagePath, name, version) => {
-          prebumpCalled = true;
+        prebump: jest.fn<Required<HooksOptions>['prebump']>(async (packagePath, name, version) => {
           expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
           expect(name).toBe('pkg-1');
           expect(version).toBe('1.1.0');
 
           const jsonPath = path.join(packagePath, 'package.json');
           expect((await fs.readJSON(jsonPath)).version).toBe('1.0.0');
-        },
+        }),
       },
-    } as BeachballOptions);
+    });
 
-    expect(prebumpCalled).toBe(true);
+    generateChangeFiles(['pkg-1'], options);
+    repo.push();
+
+    await bump(options);
+
+    expect(options.hooks?.prebump).toHaveBeenCalled();
   });
 
   it('propagates prebump hook exceptions', async () => {
@@ -684,13 +671,9 @@ describe('version bumping', () => {
         packages: { 'pkg-1': { version: '1.0.0' } },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
-
-    repo.push();
-
-    const bumpResult = bump({
+    const options = getOptions({
       path: repo.rootPath,
       bumpDeps: false,
       hooks: {
@@ -698,7 +681,12 @@ describe('version bumping', () => {
           throw new Error('Foo');
         },
       },
-    } as BeachballOptions);
+    });
+
+    generateChangeFiles(['pkg-1'], options);
+    repo.push();
+
+    const bumpResult = bump(options);
 
     await expect(bumpResult).rejects.toThrow('Foo');
   });
@@ -709,33 +697,28 @@ describe('version bumping', () => {
         packages: { 'pkg-1': { version: '1.0.0' } },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    const options = getOptions({
+      bumpDeps: false,
+      hooks: {
+        postbump: jest.fn<Required<HooksOptions>['postbump']>((packagePath, name, version) => {
+          expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
+          expect(name).toBe('pkg-1');
+          expect(version).toBe('1.1.0');
 
+          const jsonPath = path.join(packagePath, 'package.json');
+          expect(fs.readJSONSync(jsonPath).version).toBe('1.1.0');
+        }),
+      },
+    });
+
+    generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    let postBumpCalled = false;
+    await bump(options);
 
-    const hooks: BeachballOptions['hooks'] = {
-      postbump: (packagePath, name, version) => {
-        postBumpCalled = true;
-        expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
-        expect(name).toBe('pkg-1');
-        expect(version).toBe('1.1.0');
-
-        const jsonPath = path.join(packagePath, 'package.json');
-        expect(fs.readJSONSync(jsonPath).version).toBe('1.1.0');
-      },
-    };
-
-    await bump({
-      path: repo.rootPath,
-      bumpDeps: false,
-      hooks,
-    } as BeachballOptions);
-
-    expect(postBumpCalled).toBe(true);
+    expect(options.hooks?.postbump).toHaveBeenCalled();
   });
 
   it('calls async postbump hook before packages are bumped', async () => {
@@ -744,33 +727,28 @@ describe('version bumping', () => {
         packages: { 'pkg-1': { version: '1.0.0' } },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    const options = getOptions({
+      bumpDeps: false,
+      hooks: {
+        postbump: jest.fn<Required<HooksOptions>['postbump']>(async (packagePath, name, version) => {
+          expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
+          expect(name).toBe('pkg-1');
+          expect(version).toBe('1.1.0');
 
+          const jsonPath = path.join(packagePath, 'package.json');
+          expect((await fs.readJSON(jsonPath)).version).toBe('1.1.0');
+        }),
+      },
+    });
+
+    generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    let postbumpCalled = false;
+    await bump(options);
 
-    const hooks: BeachballOptions['hooks'] = {
-      postbump: async (packagePath, name, version) => {
-        postbumpCalled = true;
-        expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
-        expect(name).toBe('pkg-1');
-        expect(version).toBe('1.1.0');
-
-        const jsonPath = path.join(packagePath, 'package.json');
-        expect((await fs.readJSON(jsonPath)).version).toBe('1.1.0');
-      },
-    };
-
-    await bump({
-      path: repo.rootPath,
-      bumpDeps: false,
-      hooks,
-    } as BeachballOptions);
-
-    expect(postbumpCalled).toBe(true);
+    expect(options.hooks?.postbump).toHaveBeenCalled();
   });
 
   it('propagates postbump hook exceptions', async () => {
@@ -779,23 +757,21 @@ describe('version bumping', () => {
         packages: { 'pkg-1': { version: '1.0.0' } },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['pkg-1'], repo.rootPath);
+    const options = getOptions({
+      bumpDeps: false,
+      hooks: {
+        postbump: async (_packagePath, _name, _version): Promise<void> => {
+          throw new Error('Foo');
+        },
+      },
+    });
 
+    generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    const hooks: BeachballOptions['hooks'] = {
-      postbump: async (_packagePath, _name, _version): Promise<void> => {
-        throw new Error('Foo');
-      },
-    };
-
-    const bumpResult = bump({
-      path: repo.rootPath,
-      bumpDeps: false,
-      hooks,
-    } as BeachballOptions);
+    const bumpResult = bump(options);
 
     await expect(bumpResult).rejects.toThrow('Foo');
   });

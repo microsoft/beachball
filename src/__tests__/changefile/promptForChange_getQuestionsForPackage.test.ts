@@ -1,7 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import prompts from 'prompts';
 import { _getQuestionsForPackage } from '../../changefile/promptForChange';
-import { BeachballOptions } from '../../types/BeachballOptions';
 import { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
@@ -18,7 +17,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
     pkg,
     packageInfos: makePackageInfos({ [pkg]: {} }),
     packageGroups: {},
-    options: {} as BeachballOptions,
+    options: { message: '' },
     recentMessages: ['message'],
   };
 
@@ -54,7 +53,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
     const questions = _getQuestionsForPackage({
       ...defaultQuestionsParams,
       packageInfos: makePackageInfos({ [pkg]: { combinedOptions: { disallowedChangeTypes: ['major'] } } }),
-      options: { type: 'major' } as BeachballOptions,
+      options: { type: 'major', message: '' },
     });
     expect(questions).toBeUndefined();
     expect(logs.mocks.error).toHaveBeenCalledWith('Change type "major" is not allowed for package "foo"');
@@ -104,7 +103,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
   it('excludes the change type question when options.type is specified', () => {
     const questions = _getQuestionsForPackage({
       ...defaultQuestionsParams,
-      options: { type: 'patch' } as BeachballOptions,
+      options: { type: 'patch', message: '' },
     });
     expect(questions).toHaveLength(1);
     expect(questions![0].name).toBe('comment');
@@ -138,7 +137,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
   it('excludes the comment question when options.message is set', () => {
     const questions = _getQuestionsForPackage({
       ...defaultQuestionsParams,
-      options: { message: 'message' } as BeachballOptions,
+      options: { message: 'message' },
     });
     expect(questions).toHaveLength(1);
     expect(questions![0].name).toBe('type');

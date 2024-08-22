@@ -19,9 +19,9 @@ import { PackageInfos } from '../types/PackageInfo';
  * (so it's possible that multiple entries will have the same filename).
  */
 export function readChangeFiles(options: BeachballOptions, packageInfos: PackageInfos): ChangeSet {
-  const { path: cwd, fromRef, command, changeDir } = options;
+  const { fromRef, command } = options;
   const scopedPackages = getScopedPackages(options, packageInfos);
-  const changePath = getChangePath(cwd, changeDir);
+  const changePath = getChangePath(options);
 
   if (!fs.existsSync(changePath)) {
     return [];

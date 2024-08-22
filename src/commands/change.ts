@@ -35,12 +35,6 @@ export async function change(options: BeachballOptions): Promise<void> {
   });
 
   if (changes) {
-    writeChangeFiles({
-      changes,
-      cwd: options.path,
-      commitChangeFiles: options.commit,
-      groupChanges: options.groupChanges,
-      changeDir: options.changeDir,
-    });
+    writeChangeFiles(changes, options);
   }
 }

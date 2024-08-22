@@ -1,7 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
 import { _getChangeFileInfoFromResponse } from '../../changefile/promptForChange';
-import { BeachballOptions } from '../../types/BeachballOptions';
-import { ChangeFileInfo } from '../../types/ChangeInfo';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 /**
@@ -11,13 +9,17 @@ describe('promptForChange _getChangeFileInfoFromResponse', () => {
   /** Package name used in the tests */
   const pkg = 'foo';
   const comment = 'message';
-  const defaultParams = { pkg, options: {} as BeachballOptions, email: null };
+  const defaultParams: Omit<Parameters<typeof _getChangeFileInfoFromResponse>[0], 'response'> = {
+    pkg,
+    options: { message: '' },
+    email: null,
+  };
 
   const logs = initMockLogs();
 
   it('works in normal case', () => {
     const change = _getChangeFileInfoFromResponse({ ...defaultParams, response: { comment, type: 'patch' } });
-    expect<ChangeFileInfo>(change!).toEqual({
+    expect(change).toEqual({
       type: 'patch',
       comment,
       packageName: pkg,
@@ -37,7 +39,7 @@ describe('promptForChange _getChangeFileInfoFromResponse', () => {
     const change = _getChangeFileInfoFromResponse({
       ...defaultParams,
       response: { comment },
-      options: { type: 'minor' } as BeachballOptions,
+      options: { type: 'minor', message: '' },
     });
     expect(change).toMatchObject({ type: 'minor', dependentChangeType: 'patch' });
     expect(logs.mocks.log).not.toHaveBeenCalled();
@@ -48,7 +50,7 @@ describe('promptForChange _getChangeFileInfoFromResponse', () => {
     const change = _getChangeFileInfoFromResponse({
       ...defaultParams,
       response: { type: 'patch', comment },
-      options: { type: 'minor' } as BeachballOptions,
+      options: { type: 'minor', message: '' },
     });
     expect(change).toMatchObject({ type: 'patch' });
   });
@@ -67,7 +69,7 @@ describe('promptForChange _getChangeFileInfoFromResponse', () => {
     const change = _getChangeFileInfoFromResponse({
       ...defaultParams,
       response: { type: 'patch' },
-      options: { message: comment } as BeachballOptions,
+      options: { message: comment },
     });
     expect(change).toMatchObject({ comment });
     expect(logs.mocks.log).not.toHaveBeenCalled();
@@ -78,7 +80,7 @@ describe('promptForChange _getChangeFileInfoFromResponse', () => {
     const change = _getChangeFileInfoFromResponse({
       ...defaultParams,
       response: { type: 'patch', comment: 'response message' },
-      options: { message: comment } as BeachballOptions,
+      options: { message: comment },
     });
     expect(change).toMatchObject({ comment: 'response message' });
   });
@@ -87,7 +89,7 @@ describe('promptForChange _getChangeFileInfoFromResponse', () => {
     const change = _getChangeFileInfoFromResponse({
       ...defaultParams,
       response: { type: 'patch', comment },
-      options: { dependentChangeType: 'minor' } as BeachballOptions,
+      options: { dependentChangeType: 'minor', message: '' },
     });
     expect(change).toMatchObject({ dependentChangeType: 'minor' });
   });

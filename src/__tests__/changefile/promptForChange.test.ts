@@ -6,7 +6,6 @@ import {
   _getQuestionsForPackage,
   _promptForPackageChange,
 } from '../../changefile/promptForChange';
-import { BeachballOptions } from '../../types/BeachballOptions';
 import { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { MockStdin } from '../../__fixtures__/mockStdin';
@@ -46,7 +45,7 @@ describe('promptForChange', () => {
     changedPackages: ['foo', 'bar'],
     packageInfos: makePackageInfos({ foo: {}, bar: {}, baz: {} }),
     packageGroups: {},
-    options: {} as BeachballOptions,
+    options: { message: '' },
     recentMessages: ['commit 2', 'commit 1'],
     email: null,
   });
@@ -69,7 +68,7 @@ describe('promptForChange', () => {
   it('does not prompt if options.type and options.message are provided', async () => {
     const changeFiles = await promptForChange({
       ...defaultParams(),
-      options: { type: 'minor', message: 'message' } as BeachballOptions,
+      options: { type: 'minor', message: 'message' },
     });
     expect(changeFiles).toEqual([
       expect.objectContaining({ type: 'minor', comment: 'message', packageName: 'foo' }),

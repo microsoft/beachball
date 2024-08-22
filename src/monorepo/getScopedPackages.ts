@@ -3,7 +3,10 @@ import { PackageInfos } from '../types/PackageInfo';
 import path from 'path';
 import { isPathIncluded } from './isPathIncluded';
 
-export function getScopedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
+export function getScopedPackages(
+  options: Pick<BeachballOptions, 'path' | 'scope'>,
+  packageInfos: PackageInfos
+): string[] {
   const { scope, path: cwd } = options;
   if (!scope) {
     return Object.keys(packageInfos);

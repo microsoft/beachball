@@ -2,11 +2,11 @@ import { getChangePath } from '../paths';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getChangesBetweenRefs, findProjectRoot } from 'workspace-tools';
 
-export function areChangeFilesDeleted(options: BeachballOptions): boolean {
-  const { branch, path: cwd, changeDir } = options;
+export function areChangeFilesDeleted(options: Pick<BeachballOptions, 'branch' | 'path' | 'changeDir'>): boolean {
+  const { branch, path: cwd } = options;
 
   const root = findProjectRoot(cwd);
-  const changePath = getChangePath(cwd, changeDir);
+  const changePath = getChangePath(options);
 
   console.log(`Checking for deleted change files against "${branch}"`);
   const changeFilesDeletedSinceRef = getChangesBetweenRefs(

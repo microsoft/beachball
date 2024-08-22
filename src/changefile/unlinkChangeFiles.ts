@@ -3,6 +3,7 @@ import { getChangePath } from '../paths';
 import fs from 'fs-extra';
 import path from 'path';
 import { PackageInfo } from '../types/PackageInfo';
+import type { BeachballOptions } from '../types/BeachballOptions';
 
 /**
  * Unlink only change files that are specified in the changes param
@@ -14,10 +15,9 @@ export function unlinkChangeFiles(
   packageInfos: {
     [pkg: string]: PackageInfo;
   },
-  cwd: string,
-  changeDir?: string
+  options: Pick<BeachballOptions, 'path' | 'changeDir'>
 ): void {
-  const changePath = getChangePath(cwd, changeDir);
+  const changePath = getChangePath(options);
   if (!changeSet || !changeSet.length) {
     return;
   }

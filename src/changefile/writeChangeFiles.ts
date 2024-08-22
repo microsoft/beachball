@@ -1,25 +1,21 @@
 import { ChangeFileInfo } from '../types/ChangeInfo';
-import { defaultChangeFolder, getChangePath } from '../paths';
+import { getChangePath } from '../paths';
 import { getBranchName, stage, commit } from 'workspace-tools';
 import fs from 'fs-extra';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import type { BeachballOptions } from '../types/BeachballOptions';
 
 /**
  * Loops through the `changes` and writes out a list of change files
  * @returns List of changefile paths, mainly for testing purposes.
  */
-export function writeChangeFiles(params: {
-  changes: ChangeFileInfo[];
-  cwd: string;
-  /** default true */
-  commitChangeFiles?: boolean;
-  /** group all changes into one change file (default false) */
-  groupChanges?: boolean;
-  changeDir?: string;
-}): string[] {
-  const { changes, cwd, commitChangeFiles = true, groupChanges = false, changeDir = defaultChangeFolder } = params;
-  const changePath = getChangePath(cwd, changeDir);
+export function writeChangeFiles(
+  changes: ChangeFileInfo[],
+  options: Pick<BeachballOptions, 'path' | 'groupChanges' | 'changeDir' | 'commit'>
+): string[] {
+  const { path: cwd, groupChanges, commit: commitChangeFiles } = options;
+  const changePath = getChangePath(options);
   const branchName = getBranchName(cwd);
 
   if (!(Object.keys(changes).length && branchName)) {
@@ -34,13 +30,14 @@ export function writeChangeFiles(params: {
   let changeFiles: string[];
 
   if (groupChanges) {
-    const changeFile = getChangeFile(changeDir);
+    // use a generic file prefix when grouping changes
+    const changeFile = getChangeFile('change');
     changeFiles = [changeFile];
 
     fs.writeFileSync(changeFile, JSON.stringify({ changes }, null, 2));
   } else {
     changeFiles = changes.map(change => {
-      const changeFile = getChangeFile(change.packageName.replace(/[^a-zA-Z0-9@]/g, '-'));
+      const changeFile = getChangeFile(change.packageName.replace(/[^\w@]/g, '-'));
       fs.writeJSONSync(changeFile, change, { spaces: 2 });
       return changeFile;
     });
