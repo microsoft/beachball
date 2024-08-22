@@ -19,7 +19,7 @@ export async function promptForChange(params: {
   packageGroups: PackageGroups;
   recentMessages: string[];
   email: string | null;
-  options: BeachballOptions;
+  options: Pick<BeachballOptions, 'message' | 'type' | 'dependentChangeType'>;
 }): Promise<ChangeFileInfo[] | undefined> {
   const { changedPackages, email, options } = params;
   if (!changedPackages.length) {
@@ -62,7 +62,7 @@ export function _getQuestionsForPackage(params: {
   pkg: string;
   packageInfos: PackageInfos;
   packageGroups: PackageGroups;
-  options: BeachballOptions;
+  options: Pick<BeachballOptions, 'message' | 'type'>;
   recentMessages: string[];
 }): prompts.PromptObject[] | undefined {
   const { pkg, packageInfos, packageGroups, options, recentMessages } = params;
@@ -178,7 +178,7 @@ export function _getChangeFileInfoFromResponse(params: {
   response: ChangePromptResponse;
   pkg: string;
   email: string | null;
-  options: BeachballOptions;
+  options: Pick<BeachballOptions, 'type' | 'message' | 'dependentChangeType'>;
 }): ChangeFileInfo | undefined {
   const { pkg, email, options } = params;
   let response = params.response;

@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import prompts from 'prompts';
 import { _getQuestionsForPackage, _promptForPackageChange } from '../../changefile/promptForChange';
-import { BeachballOptions } from '../../types/BeachballOptions';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { MockStdin } from '../../__fixtures__/mockStdin';
 import { MockStdout } from '../../__fixtures__/mockStdout';
@@ -33,7 +32,7 @@ describe('promptForChange _promptForPackageChange', () => {
     pkg,
     packageInfos: makePackageInfos({ [pkg]: {} }),
     packageGroups: {},
-    options: {} as BeachballOptions,
+    options: { message: '' },
     recentMessages: ['message'],
   };
   const expectedQuestions = [
@@ -91,8 +90,10 @@ describe('promptForChange _promptForPackageChange', () => {
 
   it('accepts custom description typed by character', async () => {
     // For this one we provide a type in options and only ask for the description
-    const options = { type: 'minor' } as BeachballOptions;
-    const questions = _getQuestionsForPackage({ ...defaultQuestionsParams, options });
+    const questions = _getQuestionsForPackage({
+      ...defaultQuestionsParams,
+      options: { type: 'minor', message: '' },
+    });
     expect(questions).toEqual(expectedQuestions.slice(1));
 
     const answerPromise = _promptForPackageChange(questions!, pkg);
@@ -120,8 +121,10 @@ describe('promptForChange _promptForPackageChange', () => {
 
   it('accepts custom description pasted', async () => {
     // For this one we provide a type in options and only ask for the description
-    const options = { type: 'minor' } as BeachballOptions;
-    const questions = _getQuestionsForPackage({ ...defaultQuestionsParams, options });
+    const questions = _getQuestionsForPackage({
+      ...defaultQuestionsParams,
+      options: { type: 'minor', message: '' },
+    });
     expect(questions).toEqual(expectedQuestions.slice(1));
 
     const answerPromise = _promptForPackageChange(questions!, pkg);
@@ -148,8 +151,10 @@ describe('promptForChange _promptForPackageChange', () => {
 
   it('accepts custom description pasted with newline', async () => {
     // For this one we provide a type in options and only ask for the description
-    const options = { type: 'minor' } as BeachballOptions;
-    const questions = _getQuestionsForPackage({ ...defaultQuestionsParams, options });
+    const questions = _getQuestionsForPackage({
+      ...defaultQuestionsParams,
+      options: { type: 'minor', message: '' },
+    });
     expect(questions).toEqual(expectedQuestions.slice(1));
 
     const answerPromise = _promptForPackageChange(questions!, pkg);
@@ -218,9 +223,11 @@ describe('promptForChange _promptForPackageChange', () => {
   });
 
   it('filters options while typing', async () => {
-    const recentMessages = ['foo', 'bar', 'baz'];
-    const options = { type: 'minor' } as BeachballOptions;
-    const questions = _getQuestionsForPackage({ ...defaultQuestionsParams, recentMessages, options });
+    const questions = _getQuestionsForPackage({
+      ...defaultQuestionsParams,
+      recentMessages: ['foo', 'bar', 'baz'],
+      options: { type: 'minor', message: '' },
+    });
     expect(questions).toEqual(expectedQuestions.slice(1));
 
     const answerPromise = _promptForPackageChange(questions!, pkg);
@@ -247,9 +254,11 @@ describe('promptForChange _promptForPackageChange', () => {
   });
 
   it('handles pressing delete while typing', async () => {
-    const recentMessages = ['foo', 'bar', 'baz'];
-    const options = { type: 'minor' } as BeachballOptions;
-    const questions = _getQuestionsForPackage({ ...defaultQuestionsParams, recentMessages, options });
+    const questions = _getQuestionsForPackage({
+      ...defaultQuestionsParams,
+      recentMessages: ['foo', 'bar', 'baz'],
+      options: { type: 'minor', message: '' },
+    });
     expect(questions).toEqual(expectedQuestions.slice(1));
 
     const answerPromise = _promptForPackageChange(questions!, pkg);

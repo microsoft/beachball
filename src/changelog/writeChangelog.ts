@@ -32,8 +32,7 @@ export async function writeChangelog(
     calculatedChangeTypes,
     dependentChangedBy,
     packageInfos,
-    cwd: options.path,
-    changeDir: options.changeDir,
+    options,
   });
   // Use a standard for loop here to prevent potentially firing off multiple network requests at once
   // (in case any custom renderers have network requests)
@@ -67,8 +66,7 @@ async function writeGroupedChangelog(
     changeFileChangeInfos,
     calculatedChangeTypes,
     packageInfos,
-    cwd: options.path,
-    changeDir: options.changeDir,
+    options,
   });
   const groupedChangelogs: {
     [path: string]: {

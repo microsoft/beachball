@@ -42,7 +42,6 @@ describe('sync command (e2e)', () => {
       access: 'public',
       bump: false,
       generateChangelog: false,
-      dependentChangeType: null,
       ...overrides,
     };
   }

@@ -6,6 +6,7 @@ import { BumpInfo } from '../types/BumpInfo';
 import { getChangePath } from '../paths';
 import { getFileAddedHash } from 'workspace-tools';
 import { ChangeSet } from '../types/ChangeInfo';
+import type { BeachballOptions } from '../types/BeachballOptions';
 
 /**
  * Used for `ChangelogEntry.commit` if the commit hash is not available.
@@ -21,28 +22,21 @@ export function getPackageChangelogs(params: {
   calculatedChangeTypes: BumpInfo['calculatedChangeTypes'];
   dependentChangedBy?: BumpInfo['dependentChangedBy'];
   packageInfos: PackageInfos;
-  cwd: string;
-  changeDir?: string;
+  options: Pick<BeachballOptions, 'path' | 'changeDir'>;
 }): Record<string, PackageChangelog> {
-  const {
-    changeFileChangeInfos,
-    calculatedChangeTypes,
-    dependentChangedBy = {},
-    packageInfos,
-    cwd,
-    changeDir,
-  } = params;
+  const { changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy = {}, packageInfos, options } = params;
 
   const changelogs: Record<string, PackageChangelog> = {};
 
   const changeFileCommits: { [changeFile: string]: string } = {};
-  const changePath = getChangePath(cwd, changeDir);
+  const changePath = getChangePath(options);
 
   for (const { change, changeFile } of changeFileChangeInfos) {
     const { packageName, type: changeType, dependentChangeType, email, ...rest } = change;
     changelogs[packageName] ??= createPackageChangelog(packageInfos[packageName]);
 
-    changeFileCommits[changeFile] ??= getFileAddedHash(path.join(changePath, changeFile), cwd) || commitNotAvailable;
+    changeFileCommits[changeFile] ??=
+      getFileAddedHash(path.join(changePath, changeFile), options.path) || commitNotAvailable;
 
     changelogs[packageName].comments ??= {};
     changelogs[packageName].comments[changeType] ??= [];

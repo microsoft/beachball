@@ -5,10 +5,13 @@ import { ChangeFileInfo, ChangeSet } from '../../types/ChangeInfo';
 import { PackageInfos } from '../../types/PackageInfo';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
+const commit = 'deadbeef';
+const author = 'something@something.com';
+
 // Mock the methods used from workspace-tools so we don't access the filesystem
 jest.mock('workspace-tools', () => ({
   findProjectRoot: () => '.',
-  getFileAddedHash: () => 'deadbeef',
+  getFileAddedHash: () => commit,
 }));
 
 function makeChangeInfo(pkg: string, overrides?: Partial<ChangeFileInfo>): ChangeSet[number] {
@@ -17,13 +20,18 @@ function makeChangeInfo(pkg: string, overrides?: Partial<ChangeFileInfo>): Chang
     change: {
       comment: `comment for ${pkg}`,
       dependentChangeType: 'patch',
-      email: 'something@something.com',
+      email: author,
       packageName: pkg,
       type: 'patch',
       ...overrides,
     },
   };
 }
+
+const options: Parameters<typeof getPackageChangelogs>[0]['options'] = {
+  path: '.',
+  changeDir: 'change',
+};
 
 describe('getPackageChangelogs', () => {
   it('generates correct changelog entries for a single package', () => {
@@ -37,13 +45,13 @@ describe('getPackageChangelogs', () => {
       changeFileChangeInfos,
       calculatedChangeTypes: { foo: 'patch' },
       packageInfos,
-      cwd: '.',
+      options,
     });
 
     expect(changelogs.foo).toEqual({
       comments: {
-        minor: [{ author: 'something@something.com', comment: 'other comment', commit: 'deadbeef', package: 'foo' }],
-        patch: [{ author: 'something@something.com', comment: 'comment for foo', commit: 'deadbeef', package: 'foo' }],
+        minor: [{ author, comment: 'other comment', commit, package: 'foo' }],
+        patch: [{ author, comment: 'comment for foo', commit, package: 'foo' }],
       },
       date: expect.any(Date),
       name: 'foo',
@@ -64,12 +72,12 @@ describe('getPackageChangelogs', () => {
       changeFileChangeInfos,
       calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
       packageInfos,
-      cwd: '.',
+      options,
     });
 
     expect(changelogs.foo).toEqual({
       comments: {
-        patch: [{ author: 'something@something.com', comment: 'comment for foo', commit: 'deadbeef', package: 'foo' }],
+        patch: [{ author, comment: 'comment for foo', commit, package: 'foo' }],
       },
       date: expect.any(Date),
       name: 'foo',
@@ -78,7 +86,7 @@ describe('getPackageChangelogs', () => {
     });
     expect(changelogs.bar).toEqual({
       comments: {
-        patch: [{ author: 'something@something.com', comment: 'comment for bar', commit: 'deadbeef', package: 'bar' }],
+        patch: [{ author, comment: 'comment for bar', commit, package: 'bar' }],
       },
       date: expect.any(Date),
       name: 'bar',
@@ -95,7 +103,7 @@ describe('getPackageChangelogs', () => {
       changeFileChangeInfos,
       calculatedChangeTypes: { foo: 'patch' },
       packageInfos,
-      cwd: '.',
+      options,
     });
 
     expect(changelogs.foo.comments.patch![0]).toMatchObject({ extra: 'prop' });
@@ -118,7 +126,7 @@ describe('getPackageChangelogs', () => {
       calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
       dependentChangedBy,
       packageInfos,
-      cwd: '.',
+      options,
     });
 
     expect(Object.keys(changelogs.foo.comments.patch!)).toHaveLength(1);
@@ -159,7 +167,7 @@ describe('getPackageChangelogs', () => {
       calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
       dependentChangedBy,
       packageInfos,
-      cwd: '.',
+      options,
     });
 
     expect(changelogs.bar.comments).toEqual({
@@ -194,7 +202,7 @@ describe('getPackageChangelogs', () => {
       calculatedChangeTypes: { bar: 'patch', 'private-pkg': 'patch' },
       dependentChangedBy,
       packageInfos,
-      cwd: '.',
+      options,
     });
 
     expect(changelogs.bar).toBeTruthy();

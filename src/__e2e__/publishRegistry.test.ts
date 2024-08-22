@@ -21,15 +21,17 @@ describe('publish command (registry)', () => {
   initNpmMock();
 
   let repositoryFactory: RepositoryFactory | undefined;
+  let repo: Repository | undefined;
 
   // show error logs for these tests
   const logs = initMockLogs({ alsoLog: ['error'] });
 
-  function getOptions(repo: Repository): BeachballOptions {
+  function getOptions(): BeachballOptions {
     return {
       ...getDefaultOptions(),
       branch: defaultRemoteBranchName,
-      path: repo.rootPath,
+      // change to ?. if a future test uses a non-standard repo
+      path: repo!.rootPath,
       registry: 'fake',
       command: 'publish',
       message: 'apply package updates',
@@ -45,17 +47,19 @@ describe('publish command (registry)', () => {
   afterEach(() => {
     repositoryFactory?.cleanUp();
     repositoryFactory = undefined;
+    repo = undefined;
   });
 
   it('publishes single package', async () => {
     repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    const options = getOptions();
+    generateChangeFiles(['foo'], options);
 
     repo.push();
 
-    await publish(getOptions(repo));
+    await publish(options);
 
     const publishedPackage = (await npmShow('foo'))!;
     expect(publishedPackage.name).toEqual('foo');
@@ -71,13 +75,14 @@ describe('publish command (registry)', () => {
         },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foopkg'], repo.rootPath);
+    const options = getOptions();
+    generateChangeFiles(['foopkg'], options);
 
     repo.push();
 
-    await publish(getOptions(repo));
+    await publish(options);
 
     expect(logs.mocks.log).toHaveBeenCalledWith('Nothing to bump, skipping publish!');
     expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package foopkg'));
@@ -94,13 +99,14 @@ describe('publish command (registry)', () => {
         },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foopkg', 'barpkg'], repo.rootPath);
+    const options = getOptions();
+    generateChangeFiles(['foopkg', 'barpkg'], options);
 
     repo.push();
 
-    await publish(getOptions(repo));
+    await publish(options);
 
     const showFoo = (await npmShow('foopkg'))!;
     expect(showFoo['dist-tags'].latest).toEqual('1.1.0');
@@ -118,13 +124,14 @@ describe('publish command (registry)', () => {
         },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['badname'], repo.rootPath);
+    const options = getOptions();
+    generateChangeFiles(['badname'], options);
 
     repo.push();
 
-    await publish(getOptions(repo));
+    await publish(options);
 
     expect(logs.mocks.warn).toHaveBeenCalledWith(
       expect.stringContaining('Change detected for nonexistent package badname')
@@ -137,15 +144,16 @@ describe('publish command (registry)', () => {
 
   it('exits publishing early if only invalid change files exist', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
     repo.updateJsonFile('packages/bar/package.json', { private: true });
 
-    generateChangeFiles(['bar', 'fake'], repo.rootPath);
+    const options = getOptions();
+    generateChangeFiles(['bar', 'fake'], options);
 
     repo.push();
 
-    await publish(getOptions(repo));
+    await publish(options);
 
     expect(logs.mocks.log).toHaveBeenCalledWith('Nothing to bump, skipping publish!');
     expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));

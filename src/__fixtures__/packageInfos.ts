@@ -1,6 +1,9 @@
 import _ from 'lodash';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { PackageInfo, PackageInfos } from '../types/PackageInfo';
+import { getDefaultOptions } from '../options/getDefaultOptions';
+
+const defaultOptions = getDefaultOptions();
 
 /**
  * Makes a properly typed PackageInfos object from a partial object, filling in defaults:
@@ -24,7 +27,7 @@ export function makePackageInfos(packageInfos: {
       name,
       version: '1.0.0',
       private: false,
-      combinedOptions: { ...combinedOptions } as BeachballOptions,
+      combinedOptions: { ...defaultOptions, ...combinedOptions },
       packageOptions: {},
       packageJsonPath: '',
       ...rest,

@@ -1,10 +1,8 @@
 import { env } from '../env';
-import { defaultChangeFolder } from '../paths';
 import { BeachballOptions } from '../types/BeachballOptions';
 
 /**
  * Default options.
- * Note that as of writing, this does not actually set values for all "required" BeachballOptions.
  */
 export function getDefaultOptions(): BeachballOptions {
   return {
@@ -16,8 +14,9 @@ export function getDefaultOptions(): BeachballOptions {
     bumpDeps: true,
     canaryName: undefined,
     changehint: 'Run "beachball change" to create a change file',
-    changeDir: defaultChangeFolder,
+    changeDir: 'change',
     command: 'change',
+    commit: true,
     defaultNpmTag: 'latest',
     depth: undefined,
     disallowedChangeTypes: null,
@@ -26,6 +25,8 @@ export function getDefaultOptions(): BeachballOptions {
     gitTags: true,
     gitTimeout: undefined,
     message: '',
+    new: false,
+    path: '',
     publish: true,
     push: true,
     registry: 'https://registry.npmjs.org/',
@@ -36,5 +37,5 @@ export function getDefaultOptions(): BeachballOptions {
     type: null,
     version: false,
     yes: env.isCI,
-  } as BeachballOptions;
+  };
 }

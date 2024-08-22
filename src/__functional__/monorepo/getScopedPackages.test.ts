@@ -2,7 +2,6 @@ import { describe, expect, it, beforeAll, afterAll } from '@jest/globals';
 import { Repository } from '../../__fixtures__/repository';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
-import { BeachballOptions } from '../../types/BeachballOptions';
 import { PackageInfos } from '../../types/PackageInfo';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 
@@ -25,7 +24,7 @@ describe('getScopedPackages', () => {
       {
         path: repo.rootPath,
         scope: ['packages/grouped/*'],
-      } as BeachballOptions,
+      },
       packageInfos
     );
 
@@ -37,7 +36,7 @@ describe('getScopedPackages', () => {
       {
         path: repo.rootPath,
         scope: ['!packages/grouped/*'],
-      } as BeachballOptions,
+      },
       packageInfos
     );
 
@@ -49,7 +48,7 @@ describe('getScopedPackages', () => {
       {
         path: repo.rootPath,
         scope: ['packages/b*', '!packages/grouped/*'],
-      } as BeachballOptions,
+      },
       packageInfos
     );
 

@@ -11,6 +11,7 @@ import { MockStdout } from '../__fixtures__/mockStdout';
 import { MockStdin } from '../__fixtures__/mockStdin';
 import { ChangeFileInfo } from '../types/ChangeInfo';
 import { Repository } from '../__fixtures__/repository';
+import { getDefaultOptions } from '../options/getDefaultOptions';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
 // so instead we inject a custom mock stdout stream, as well as stdin for entering answers
@@ -56,8 +57,19 @@ function makeMonorepoChanges(repo: Repository) {
 
 describe('change command', () => {
   let repositoryFactory: RepositoryFactory | undefined;
+  let repo: Repository | undefined;
 
   const logs = initMockLogs();
+
+  function getOptions(options?: Partial<BeachballOptions>): BeachballOptions {
+    return {
+      ...getDefaultOptions(),
+      // change to ?. if a future test uses a non-standard repo
+      path: repo!.rootPath,
+      branch: defaultBranchName,
+      ...options,
+    };
+  }
 
   beforeEach(() => {
     stdin = new MockStdin();
@@ -69,26 +81,29 @@ describe('change command', () => {
     stdout.destroy();
     repositoryFactory?.cleanUp();
     repositoryFactory = undefined;
+    repo = undefined;
     mockBeachballOptions = undefined;
   });
 
   it('does not create change files when there are no changes', async () => {
     repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    await change({ path: repo.rootPath, branch: defaultBranchName } as BeachballOptions);
+    const options = getOptions();
+    await change(options);
 
-    expect(getChangeFiles(repo.rootPath)).toHaveLength(0);
+    expect(getChangeFiles(options)).toHaveLength(0);
   });
 
   it('creates and stages a change file', async () => {
     repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
     repo.checkout('-b', 'test');
     repo.commitChange('file.js');
 
-    const changePromise = change({ path: repo.rootPath, branch: defaultBranchName, commit: false } as BeachballOptions);
+    const options = getOptions({ commit: false });
+    const changePromise = change(options);
     await waitForPrompt();
 
     // Use default change type and custom message
@@ -105,7 +120,7 @@ describe('change command', () => {
     expect(repo.status()).toMatch(/^A  change/);
     expect(logs.mocks.log).toHaveBeenLastCalledWith(expect.stringMatching(/^git staged these change files:/));
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
     expect(fs.readJSONSync(changeFiles[0])).toMatchObject({
       comment: 'stage me please',
@@ -116,12 +131,13 @@ describe('change command', () => {
 
   it('creates and commits a change file', async () => {
     repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
     repo.checkout('-b', 'test');
     repo.commitChange('file.js');
 
-    const changePromise = change({ path: repo.rootPath, branch: defaultBranchName } as BeachballOptions);
+    const options = getOptions();
+    const changePromise = change(options);
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
     await stdin.sendByChar('\n'); // default change type
@@ -131,7 +147,7 @@ describe('change command', () => {
     expect(logs.mocks.log).toHaveBeenLastCalledWith(expect.stringMatching(/^git committed these change files:/));
     expect(repo.status()).toBe('');
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
     expect(fs.readJSONSync(changeFiles[0])).toMatchObject({
       comment: 'commit me please',
@@ -144,16 +160,15 @@ describe('change command', () => {
     const testChangedir = 'changeDir';
 
     repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
     repo.checkout('-b', 'test');
     repo.commitChange('file.js');
 
-    const changePromise = change({
-      path: repo.rootPath,
-      branch: defaultBranchName,
+    const options = getOptions({
       changeDir: testChangedir,
-    } as BeachballOptions);
+    });
+    const changePromise = change(options);
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
     await stdin.sendByChar('\n'); // default change type
@@ -163,7 +178,7 @@ describe('change command', () => {
     expect(logs.mocks.log).toHaveBeenLastCalledWith(expect.stringMatching(/^git committed these change files:/));
     expect(repo.status()).toBe('');
 
-    const changeFiles = getChangeFiles(repo.rootPath, testChangedir);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
     expect(fs.readJSONSync(changeFiles[0])).toMatchObject({
       comment: 'commit me please',
@@ -174,14 +189,13 @@ describe('change command', () => {
 
   it('creates a change file when there are no changes but package name is provided', async () => {
     repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    const changePromise = change({
+    const options = getOptions({
       package: repositoryFactory.fixture.rootPackage!.name,
-      path: repo.rootPath,
-      branch: defaultBranchName,
       commit: false,
-    } as BeachballOptions);
+    });
+    const changePromise = change(options);
     await waitForPrompt();
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
@@ -191,16 +205,17 @@ describe('change command', () => {
 
     expect(repo.status()).toMatch(/^A  change/);
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
   });
 
   it('creates and commits change files for multiple packages', async () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
     makeMonorepoChanges(repo);
 
-    const changePromise = change({ path: repo.rootPath, branch: defaultBranchName } as BeachballOptions);
+    const options = getOptions();
+    const changePromise = change(options);
 
     // use custom values for first package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
@@ -223,7 +238,7 @@ describe('change command', () => {
     expect(logs.mocks.log).toHaveBeenLastCalledWith(expect.stringMatching(/^git committed these change files:/));
     expect(repo.status()).toBe('');
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(2);
     const changeFileContents = changeFiles.map(changeFile => fs.readJSONSync(changeFile)) as ChangeFileInfo[];
     expect(changeFileContents).toContainEqual(
@@ -236,14 +251,13 @@ describe('change command', () => {
 
   it('creates and commits grouped change file for multiple packages', async () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
     makeMonorepoChanges(repo);
 
-    const changePromise = change({
-      path: repo.rootPath,
-      branch: defaultBranchName,
+    const options = getOptions({
       groupChanges: true,
-    } as BeachballOptions);
+    });
+    const changePromise = change(options);
 
     // use custom values for first package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
@@ -260,7 +274,7 @@ describe('change command', () => {
     expect(logs.mocks.log).toHaveBeenLastCalledWith(expect.stringMatching(/^git committed these change files:/));
     expect(repo.status()).toBe('');
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
     const contents = fs.readJSONSync(changeFiles[0]);
     expect(contents.changes).toEqual([
@@ -271,7 +285,7 @@ describe('change command', () => {
 
   it('uses custom per-package prompt', async () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
     makeMonorepoChanges(repo);
 
     mockBeachballOptions = {
@@ -285,11 +299,10 @@ describe('change command', () => {
       },
     };
 
-    const changePromise = change({
-      path: repo.rootPath,
-      branch: defaultBranchName,
+    const options = getOptions({
       groupChanges: true,
-    } as BeachballOptions);
+    });
+    const changePromise = change(options);
     await waitForPrompt();
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
@@ -308,7 +321,7 @@ describe('change command', () => {
 
     await changePromise;
 
-    const changeFiles = getChangeFiles(repo.rootPath);
+    const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
     const contents = fs.readJSONSync(changeFiles[0]);
     expect(contents.changes).toEqual([

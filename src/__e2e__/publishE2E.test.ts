@@ -24,16 +24,18 @@ describe('publish command (e2e)', () => {
   initNpmMock();
 
   let repositoryFactory: RepositoryFactory | undefined;
+  let repo: Repository | undefined;
 
   // show error logs for these tests
   initMockLogs({ alsoLog: ['error'] });
 
-  function getOptions(repo: Repository, overrides?: Partial<BeachballOptions>): BeachballOptions {
+  function getOptions(overrides?: Partial<BeachballOptions>): BeachballOptions {
     return {
       ...getDefaultOptions(),
       branch: defaultRemoteBranchName,
       registry: 'fake',
-      path: repo.rootPath,
+      // change to ?. if a future test uses a non-standard repo
+      path: repo!.rootPath,
       command: 'publish',
       message: 'apply package updates',
       tag: 'latest',
@@ -50,17 +52,19 @@ describe('publish command (e2e)', () => {
       repositoryFactory.cleanUp();
       repositoryFactory = undefined;
     }
+    repo = undefined;
   });
 
   it('can perform a successful npm publish', async () => {
     repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    const options = getOptions();
 
+    generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(getOptions(repo));
+    await publish(options);
 
     expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
@@ -75,15 +79,16 @@ describe('publish command (e2e)', () => {
 
   it('can perform a successful npm publish in detached HEAD', async () => {
     repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    const options = getOptions({ push: false });
 
+    generateChangeFiles(['foo'], options);
     repo.push();
 
     repo.checkout('--detach');
 
-    await publish(getOptions(repo, { push: false }));
+    await publish(options);
 
     expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
@@ -94,10 +99,11 @@ describe('publish command (e2e)', () => {
 
   it('can perform a successful npm publish from a race condition', async () => {
     repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    const options = getOptions();
 
+    generateChangeFiles(['foo'], options);
     repo.push();
 
     // Adds a step that injects a race condition
@@ -116,7 +122,7 @@ describe('publish command (e2e)', () => {
       }
     });
 
-    await publish(getOptions(repo));
+    await publish(options);
 
     expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
@@ -134,10 +140,11 @@ describe('publish command (e2e)', () => {
 
   it('can perform a successful npm publish from a race condition in the dependencies', async () => {
     repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    const options = getOptions();
 
+    generateChangeFiles(['foo'], options);
     repo.push();
 
     // Adds a step that injects a race condition
@@ -159,7 +166,7 @@ describe('publish command (e2e)', () => {
       }
     });
 
-    await publish(getOptions(repo));
+    await publish(options);
 
     expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
@@ -181,13 +188,15 @@ describe('publish command (e2e)', () => {
 
   it('can perform a successful npm publish without bump', async () => {
     repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    const options = getOptions({ bump: false });
+
+    generateChangeFiles(['foo'], options);
 
     repo.push();
 
-    await publish(getOptions(repo, { bump: false }));
+    await publish(options);
 
     expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
@@ -202,13 +211,14 @@ describe('publish command (e2e)', () => {
 
   it('publishes only changed packages in a monorepo', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    const options = getOptions();
 
+    generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(getOptions(repo));
+    await publish(options);
 
     await npmShow('bar', { shouldFail: true });
 
@@ -225,16 +235,17 @@ describe('publish command (e2e)', () => {
 
   it('publishes dependent packages in a monorepo', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
+
+    const options = getOptions();
 
     // bump baz => dependent bump bar => dependent bump foo
-    generateChangeFiles(['baz'], repo.rootPath);
+    generateChangeFiles(['baz'], options);
     expect(repositoryFactory.fixture.folders!.packages.foo.dependencies!.bar).toBeTruthy();
     expect(repositoryFactory.fixture.folders!.packages.bar.dependencies!.baz).toBeTruthy();
-
     repo.push();
 
-    await publish(getOptions(repo));
+    await publish(options);
 
     expect(await npmShow('baz')).toMatchObject({
       name: 'baz',
@@ -268,14 +279,14 @@ describe('publish command (e2e)', () => {
         packages: { foo: { version: '1.0.0' }, bar: { version: '1.3.4' } },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
-    // generateChangeFiles(['bar'], repo.rootPath);
+    const options = getOptions({ new: true });
 
+    generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(getOptions(repo, { new: true }));
+    await publish(options);
 
     expect(await npmShow('foo')).toMatchObject({ name: 'foo', versions: ['1.1.0'] });
     expect(await npmShow('bar')).toMatchObject({ name: 'bar', versions: ['1.3.4'] });
@@ -287,14 +298,15 @@ describe('publish command (e2e)', () => {
 
   it('should not perform npm publish on out-of-scope package', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
-    generateChangeFiles(['bar'], repo.rootPath);
+    const options = getOptions({ scope: ['!packages/foo'] });
 
+    generateChangeFiles(['foo'], options);
+    generateChangeFiles(['bar'], options);
     repo.push();
 
-    await publish(getOptions(repo, { scope: ['!packages/foo'] }));
+    await publish(options);
 
     await npmShow('foo', { shouldFail: true });
 
@@ -313,28 +325,26 @@ describe('publish command (e2e)', () => {
 
   it('should respect prepublish hooks', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    const options = getOptions({
+      hooks: {
+        prepublish: (packagePath: string) => {
+          const packageJsonPath = path.join(packagePath, 'package.json');
+          const packageJson = fs.readJSONSync(packageJsonPath);
+          if (packageJson.onPublish) {
+            Object.assign(packageJson, packageJson.onPublish);
+            delete packageJson.onPublish;
+            fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+          }
+        },
+      },
+    });
 
+    generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(
-      getOptions(repo, {
-        path: repo.rootPath,
-        hooks: {
-          prepublish: (packagePath: string) => {
-            const packageJsonPath = path.join(packagePath, 'package.json');
-            const packageJson = fs.readJSONSync(packageJsonPath);
-            if (packageJson.onPublish) {
-              Object.assign(packageJson, packageJson.onPublish);
-              delete packageJson.onPublish;
-              fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
-            }
-          },
-        },
-      })
-    );
+    await publish(options);
 
     // Query the information from package.json from the registry to see if it was successfully patched
     const show = (await npmShow('foo'))!;
@@ -354,27 +364,25 @@ describe('publish command (e2e)', () => {
 
   it('should respect postpublish hooks', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
     let notified;
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    const options = getOptions({
+      hooks: {
+        postpublish: packagePath => {
+          const packageJsonPath = path.join(packagePath, 'package.json');
+          const packageJson = fs.readJSONSync(packageJsonPath);
+          if (packageJson.afterPublish) {
+            notified = packageJson.afterPublish.notify;
+          }
+        },
+      },
+    });
 
+    generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(
-      getOptions(repo, {
-        path: repo.rootPath,
-        hooks: {
-          postpublish: packagePath => {
-            const packageJsonPath = path.join(packagePath, 'package.json');
-            const packageJson = fs.readJSONSync(packageJsonPath);
-            if (packageJson.afterPublish) {
-              notified = packageJson.afterPublish.notify;
-            }
-          },
-        },
-      })
-    );
+    await publish(options);
 
     const fooPackageJson = fs.readJSONSync(repo.pathTo('packages/foo/package.json'));
     expect(fooPackageJson.main).toBe('src/index.ts');
@@ -383,10 +391,11 @@ describe('publish command (e2e)', () => {
 
   it('can perform a successful npm publish without fetch', async () => {
     repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    const options = getOptions({ fetch: false });
 
+    generateChangeFiles(['foo'], options);
     repo.push();
 
     let fetchCount = 0;
@@ -397,7 +406,7 @@ describe('publish command (e2e)', () => {
       }
     });
 
-    await publish(getOptions(repo, { fetch: false }));
+    await publish(options);
 
     expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
@@ -411,9 +420,11 @@ describe('publish command (e2e)', () => {
 
   it('should specify fetch depth when depth param is defined', async () => {
     repositoryFactory = new RepositoryFactory('single');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    const options = getOptions({ depth: 10 });
+
+    generateChangeFiles(['foo'], options);
 
     repo.push();
 
@@ -425,7 +436,7 @@ describe('publish command (e2e)', () => {
       }
     });
 
-    await publish(getOptions(repo, { depth: 10 }));
+    await publish(options);
 
     expect(await npmShow('foo')).toMatchObject({
       name: 'foo',
@@ -438,24 +449,22 @@ describe('publish command (e2e)', () => {
 
   it('calls precommit hook before committing changes', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], repo.rootPath);
+    const options = getOptions({
+      hooks: {
+        precommit: async cwd => {
+          await new Promise(resolve => {
+            fs.writeFile(path.resolve(cwd, 'foo.txt'), 'foo', resolve);
+          });
+        },
+      },
+    });
 
+    generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(
-      getOptions(repo, {
-        path: repo.rootPath,
-        hooks: {
-          precommit: async cwd => {
-            await new Promise(resolve => {
-              fs.writeFile(path.resolve(cwd, 'foo.txt'), 'foo', resolve);
-            });
-          },
-        },
-      })
-    );
+    await publish(options);
 
     repo.checkout(defaultBranchName);
     repo.pull();
