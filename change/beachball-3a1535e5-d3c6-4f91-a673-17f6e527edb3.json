@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "override NPM_CONCURRENCY defaults through env variable",
-  "packageName": "beachball",
-  "email": "nickykalu@microsoft.com",
-  "dependentChangeType": "patch"
-}

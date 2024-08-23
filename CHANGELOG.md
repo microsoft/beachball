@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Thu, 22 Aug 2024 08:02:52 GMT and should not be manually modified.
+This log was last generated on Fri, 23 Aug 2024 08:03:09 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.45.0
+
+Fri, 23 Aug 2024 08:03:09 GMT
+
+### Minor changes
+
+- override NPM_CONCURRENCY defaults through env variable (nickykalu@microsoft.com)
 
 ## 2.44.1
 

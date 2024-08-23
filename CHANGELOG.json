@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 23 Aug 2024 08:03:09 GMT",
+      "version": "2.45.0",
+      "tag": "beachball_v2.45.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "nickykalu@microsoft.com",
+            "package": "beachball",
+            "commit": "c2cec80d0920cc9036d94dee337f4aa9fff34615",
+            "comment": "override NPM_CONCURRENCY defaults through env variable"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Aug 2024 08:02:52 GMT",
       "version": "2.44.1",
       "tag": "beachball_v2.44.1",
