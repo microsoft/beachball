@@ -1,4 +1,5 @@
 import { renderPackageChangelog, defaultRenderers } from './renderPackageChangelog';
+import { renderMainHeader } from './renderMainHeader';
 import { ChangelogOptions, PackageChangelogRenderInfo } from '../types/ChangelogOptions';
 
 export interface MarkdownChangelogRenderOptions extends Omit<PackageChangelogRenderInfo, 'renderers'> {
@@ -14,7 +15,11 @@ export async function renderChangelog(renderOptions: MarkdownChangelogRenderOpti
     previousContent = '',
     newVersionChangelog,
     isGrouped,
-    changelogOptions: { renderPackageChangelog: customRenderPackageChangelog, customRenderers },
+    changelogOptions: {
+      renderPackageChangelog: customRenderPackageChangelog,
+      customRenderers,
+      renderMainHeader: customRenderMainHeader,
+    },
   } = renderOptions;
 
   let previousLogEntries: string;
@@ -45,8 +50,8 @@ export async function renderChangelog(renderOptions: MarkdownChangelogRenderOpti
 
     return (
       [
-        `# Change Log - ${newVersionChangelog.name}`,
-        `This log was last generated on ${newVersionChangelog.date.toUTCString()} and should not be manually modified.`,
+        await (customRenderMainHeader || renderMainHeader)(newVersionChangelog),
+        `<!-- This log was last generated on ${newVersionChangelog.date.toUTCString()} and should not be manually modified. -->`,
         markerComment,
         await (customRenderPackageChangelog || renderPackageChangelog)(renderInfo),
         previousLogEntries,

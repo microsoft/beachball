@@ -24,6 +24,15 @@ export interface ChangelogOptions {
    * If using a custom `renderPackageChangelog`, these will not be called automatically.
    */
   customRenderers?: ChangelogRenderers;
+  /**
+   * Custom renderer for the header for the entire changelog.
+   *
+   * Default is like this (no leading or trailing newlines):
+   * ```txt
+   * # Change Log - @scope/package-name
+   * ```
+   */
+  renderMainHeader?: (packageChangelog: PackageChangelog) => Promise<string>;
 }
 
 /**

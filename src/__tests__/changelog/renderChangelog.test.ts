@@ -1,7 +1,7 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { MarkdownChangelogRenderOptions, renderChangelog, markerComment } from '../../changelog/renderChangelog';
-import { ChangelogEntry } from '../../types/ChangeLog';
+import { ChangelogEntry, PackageChangelog } from '../../types/ChangeLog';
 
 const previousHeader = `# Change Log - foo
 
@@ -124,9 +124,14 @@ describe('renderChangelog', () => {
     options.changelogOptions.customRenderers = {
       renderEntry: jest.fn(async (entry: ChangelogEntry) => `- ${entry.comment} ${entry.extra})`),
     };
+    options.changelogOptions.renderMainHeader = jest.fn(
+      async (packageChangelog: PackageChangelog) => `Custom main header ${packageChangelog.name}`
+    );
 
     const result = await renderChangelog(options);
     expect(result).toContain('Awesome change custom');
+    expect(result).toContain('Custom main header foo');
+    expect(result).not.toContain('# Change Log -');
     expect(options.changelogOptions.customRenderers.renderEntry).toHaveBeenCalledWith(
       expect.objectContaining({ extra: 'custom' }),
       expect.anything()
