@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-This log was last generated on Fri, 23 Aug 2024 08:03:09 GMT and should not be manually modified.
+<!-- This log was last generated on Wed, 04 Sep 2024 18:40:01 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.46.0
+
+Wed, 04 Sep 2024 18:40:01 GMT
+
+### Minor changes
+
+- add renderMainHeader changelog option (email not defined)
 
 ## 2.45.0
 

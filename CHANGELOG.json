@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 04 Sep 2024 18:40:01 GMT",
+      "version": "2.46.0",
+      "tag": "beachball_v2.46.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "39867c7467fe51e7969b4d796caf7130ade74a88",
+            "comment": "add renderMainHeader changelog option"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 23 Aug 2024 08:03:09 GMT",
       "version": "2.45.0",
       "tag": "beachball_v2.45.0",

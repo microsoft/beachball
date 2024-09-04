@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "add renderMainHeader changelog option",
-  "packageName": "beachball",
-  "email": "email not defined",
-  "dependentChangeType": "patch"
-}
