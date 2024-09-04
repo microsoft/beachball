@@ -26,7 +26,7 @@ exports[`writeChangelog generates correct changelog in monorepo with groupChange
 exports[`writeChangelog generates correct changelog in monorepo with groupChanges (grouped change FILES): bar CHANGELOG.md 1`] = `
 "# Change Log - bar
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
@@ -84,7 +84,7 @@ exports[`writeChangelog generates correct changelog in monorepo with groupChange
 exports[`writeChangelog generates correct changelog in monorepo with groupChanges (grouped change FILES): foo CHANGELOG.md 1`] = `
 "# Change Log - foo
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
@@ -145,7 +145,7 @@ exports[`writeChangelog generates correct changelog with changeDir set: changelo
 exports[`writeChangelog generates correct changelog with changeDir set: changelog md 1`] = `
 "# Change Log - foo
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
@@ -206,7 +206,7 @@ exports[`writeChangelog generates correct changelog: changelog json 1`] = `
 exports[`writeChangelog generates correct changelog: changelog md 1`] = `
 "# Change Log - foo
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
@@ -226,7 +226,7 @@ This log was last generated on (date) and should not be manually modified.
 exports[`writeChangelog generates correct grouped changelog in monorepo: bar CHANGELOG.md 1`] = `
 "# Change Log - bar
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
@@ -244,7 +244,7 @@ This log was last generated on (date) and should not be manually modified.
 exports[`writeChangelog generates correct grouped changelog in monorepo: foo CHANGELOG.md 1`] = `
 "# Change Log - foo
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
@@ -261,7 +261,7 @@ This log was last generated on (date) and should not be manually modified.
 exports[`writeChangelog generates correct grouped changelog in monorepo: grouped CHANGELOG.md 1`] = `
 "# Change Log - foo
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
@@ -282,7 +282,7 @@ This log was last generated on (date) and should not be manually modified.
 exports[`writeChangelog generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog 1`] = `
 "# Change Log - bar
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
@@ -299,7 +299,7 @@ This log was last generated on (date) and should not be manually modified.
 exports[`writeChangelog generates correct grouped changelog when grouped change log is saved to the same dir as a regular changelog 2`] = `
 "# Change Log - foo
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
@@ -319,7 +319,7 @@ This log was last generated on (date) and should not be manually modified.
 exports[`writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependency changes: bar CHANGELOG.md 1`] = `
 "# Change Log - bar
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
@@ -337,7 +337,7 @@ This log was last generated on (date) and should not be manually modified.
 exports[`writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependency changes: baz CHANGELOG.md 1`] = `
 "# Change Log - baz
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
@@ -354,7 +354,7 @@ This log was last generated on (date) and should not be manually modified.
 exports[`writeChangelog generates grouped changelog without dependent change entries where packages have normal changes and dependency changes: grouped CHANGELOG.md 1`] = `
 "# Change Log - foo
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
@@ -374,7 +374,7 @@ This log was last generated on (date) and should not be manually modified.
 exports[`writeChangelog generates grouped changelog without dependent change entries: bar CHANGELOG.md 1`] = `
 "# Change Log - bar
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
@@ -391,7 +391,7 @@ This log was last generated on (date) and should not be manually modified.
 exports[`writeChangelog generates grouped changelog without dependent change entries: baz CHANGELOG.md 1`] = `
 "# Change Log - baz
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
@@ -408,7 +408,7 @@ This log was last generated on (date) and should not be manually modified.
 exports[`writeChangelog generates grouped changelog without dependent change entries: grouped CHANGELOG.md 1`] = `
 "# Change Log - foo
 
-This log was last generated on (date) and should not be manually modified.
+<!-- This log was last generated on (date) and should not be manually modified. -->
 
 <!-- Start content -->
 
