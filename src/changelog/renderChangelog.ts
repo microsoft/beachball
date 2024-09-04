@@ -46,7 +46,7 @@ export async function renderChangelog(renderOptions: MarkdownChangelogRenderOpti
     return (
       [
         `# Change Log - ${newVersionChangelog.name}`,
-        `This log was last generated on ${newVersionChangelog.date.toUTCString()} and should not be manually modified.`,
+        `<!-- This log was last generated on ${newVersionChangelog.date.toUTCString()} and should not be manually modified. -->`,
         markerComment,
         await (customRenderPackageChangelog || renderPackageChangelog)(renderInfo),
         previousLogEntries,
