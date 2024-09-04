@@ -1,11 +1,12 @@
 import type { BumpInfo } from '../types/BumpInfo';
+import type { BeachballOptions } from '../types/BeachballOptions';
 
 /**
  * Gets dependents for all packages
  *
  * Example: "BigApp" deps on "SomeUtil", "BigApp" would be the dependent
  */
-export function setDependentsInBumpInfo(bumpInfo: BumpInfo): void {
+export function setDependentsInBumpInfo(bumpInfo: BumpInfo, { bumpPeerDeps = true }: BeachballOptions): void {
   const { packageInfos, scopedPackages } = bumpInfo;
   const dependents: BumpInfo['dependents'] = {};
 
@@ -14,7 +15,12 @@ export function setDependentsInBumpInfo(bumpInfo: BumpInfo): void {
       continue;
     }
 
-    for (const deps of [info.dependencies, info.devDependencies, info.peerDependencies, info.optionalDependencies]) {
+    for (const deps of [
+      info.dependencies,
+      info.devDependencies,
+      bumpPeerDeps && info.peerDependencies,
+      info.optionalDependencies,
+    ]) {
       for (const dep of Object.keys(deps || {})) {
         if (packageInfos[dep]) {
           dependents[dep] ??= [];

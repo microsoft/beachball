@@ -5,7 +5,7 @@ import { bumpMinSemverRange } from './bumpMinSemverRange';
 export function setDependentVersions(
   packageInfos: PackageInfos,
   scopedPackages: Set<string>,
-  { verbose }: BeachballOptions
+  { verbose, bumpPeerDeps = true }: BeachballOptions
 ): { [dependent: string]: Set<string> } {
   const dependentChangedBy: { [dependent: string]: Set<string> } = {};
 
@@ -14,7 +14,12 @@ export function setDependentVersions(
       continue;
     }
 
-    for (const deps of [info.dependencies, info.devDependencies, info.peerDependencies, info.optionalDependencies]) {
+    for (const deps of [
+      info.dependencies,
+      info.devDependencies,
+      bumpPeerDeps && info.peerDependencies,
+      info.optionalDependencies,
+    ]) {
       if (!deps) {
         continue;
       }
