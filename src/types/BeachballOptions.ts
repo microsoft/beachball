@@ -171,6 +171,11 @@ export interface RepoOptions {
   groupChanges?: boolean;
   /** For shallow clones only: Depth of git history to consider when doing fetch */
   depth?: number;
+  /**
+   * Whether to write CHANGELOG.json files.
+   * @default true
+   */
+  writeChangelogJson?: boolean;
 }
 
 export interface PackageOptions {

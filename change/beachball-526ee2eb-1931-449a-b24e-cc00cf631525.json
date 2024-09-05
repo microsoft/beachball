@@ -1,0 +1,7 @@
+{
+  "comment": "Add writeChangelogJson option",
+  "type": "minor",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

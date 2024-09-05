@@ -122,18 +122,20 @@ async function writeChangelogFiles(
 ): Promise<void> {
   let previousJson: ChangelogJson | undefined;
 
-  // Update CHANGELOG.json
-  const changelogJsonFile = path.join(changelogPath, 'CHANGELOG.json');
-  try {
-    previousJson = fs.existsSync(changelogJsonFile) ? fs.readJSONSync(changelogJsonFile) : undefined;
-  } catch (e) {
-    console.warn(`${changelogJsonFile} is invalid: ${e}`);
-  }
-  try {
-    const nextJson = renderJsonChangelog(newVersionChangelog, previousJson);
-    fs.writeJSONSync(changelogJsonFile, nextJson, { spaces: 2 });
-  } catch (e) {
-    console.warn(`Problem writing to ${changelogJsonFile}: ${e}`);
+  if (options.writeChangelogJson) {
+    // Update CHANGELOG.json
+    const changelogJsonFile = path.join(changelogPath, 'CHANGELOG.json');
+    try {
+      previousJson = fs.existsSync(changelogJsonFile) ? fs.readJSONSync(changelogJsonFile) : undefined;
+    } catch (e) {
+      console.warn(`${changelogJsonFile} is invalid: ${e}`);
+    }
+    try {
+      const nextJson = renderJsonChangelog(newVersionChangelog, previousJson);
+      fs.writeJSONSync(changelogJsonFile, nextJson, { spaces: 2 });
+    } catch (e) {
+      console.warn(`Problem writing to ${changelogJsonFile}: ${e}`);
+    }
   }
 
   // Update CHANGELOG.md

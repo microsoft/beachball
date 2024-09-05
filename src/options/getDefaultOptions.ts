@@ -36,6 +36,7 @@ export function getDefaultOptions(): BeachballOptions {
     timeout: undefined,
     type: null,
     version: false,
+    writeChangelogJson: true,
     yes: env.isCI,
   };
 }

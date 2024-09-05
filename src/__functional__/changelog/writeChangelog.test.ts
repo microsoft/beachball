@@ -1,4 +1,5 @@
 import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
+import fs from 'fs';
 import { generateChangeFiles } from '../../__fixtures__/changeFiles';
 import { cleanChangelogJson, readChangelogJson, readChangelogMd } from '../../__fixtures__/changelog';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
@@ -8,16 +9,16 @@ import { writeChangelog } from '../../changelog/writeChangelog';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { readChangeFiles } from '../../changefile/readChangeFiles';
 import { BeachballOptions } from '../../types/BeachballOptions';
-import { ChangeFileInfo } from '../../types/ChangeInfo';
+import { ChangeFileInfo, ChangeType } from '../../types/ChangeInfo';
 import type { Repository } from '../../__fixtures__/repository';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
 
-function getChange(packageName: string, comment: string): ChangeFileInfo {
+function getChange(packageName: string, comment: string, type: ChangeType = 'patch'): ChangeFileInfo {
   return {
     comment,
     email: 'test@testtestme.com',
     packageName,
-    type: 'patch',
+    type,
     dependentChangeType: 'patch',
   };
 }
@@ -77,7 +78,7 @@ describe('writeChangelog', () => {
     expect(cleanChangelogJson(changelogJson)).toMatchSnapshot('changelog json');
 
     // Every entry should have a different commit hash
-    const patchComments = changelogJson.entries[0].comments.patch!;
+    const patchComments = changelogJson!.entries[0].comments.patch!;
     const commits = patchComments.map(entry => entry.commit);
     expect(new Set(commits).size).toEqual(patchComments.length);
 
@@ -111,7 +112,7 @@ describe('writeChangelog', () => {
     expect(cleanChangelogJson(changelogJson)).toMatchSnapshot('changelog json');
 
     // Every entry should have a different commit hash
-    const patchComments = changelogJson.entries[0].comments.patch!;
+    const patchComments = changelogJson!.entries[0].comments.patch!;
     const commits = patchComments.map(entry => entry.commit);
     expect(new Set(commits).size).toEqual(patchComments.length);
 
@@ -151,7 +152,7 @@ describe('writeChangelog', () => {
     expect(readChangelogJson(repo.pathTo('packages/bar'), true /*clean*/)).toMatchSnapshot('bar CHANGELOG.json');
 
     // Every entry should have a different commit hash
-    const patchComments = fooJson.entries[0].comments.patch!;
+    const patchComments = fooJson!.entries[0].comments.patch!;
     const commits = patchComments.map(entry => entry.commit);
     expect(new Set(commits).size).toEqual(patchComments.length);
 
@@ -295,5 +296,24 @@ describe('writeChangelog', () => {
 
     // Validate grouped changelog for foo and bar packages
     expect(readChangelogMd(repo.pathTo('packages/foo'))).toMatchSnapshot();
+  });
+
+  it('does not write CHANGELOG.json if writeChangelogJson is false', async () => {
+    repo = repositoryFactory.cloneRepository();
+    const options = getOptions({ writeChangelogJson: false });
+
+    repo.commitChange('foo');
+    generateChangeFiles([getChange('foo', 'comment 1')], options);
+
+    const packageInfos = getPackageInfos(repo.rootPath);
+    const changes = readChangeFiles(options, packageInfos);
+
+    await writeChangelog(options, changes, { foo: 'patch' }, { foo: new Set(['foo']) }, packageInfos);
+
+    // CHANGELOG.md is written
+    expect(readChangelogMd(repo.rootPath)).toContain('## 1.0.0');
+
+    // CHANGELOG.json is not written
+    expect(fs.existsSync(repo.pathTo('CHANGELOG.json'))).toBe(false);
   });
 });
