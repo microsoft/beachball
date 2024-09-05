@@ -19,7 +19,7 @@ export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo, opti
   } else {
     // Ensure we can bump the correct versions
     let bumpAsPrerelease = false;
-    if (options.prereleasePrefix && ! ["premajor", "preminor", "prepatch"].includes(changeType)) {
+    if (options.prereleasePrefix && !['premajor', 'preminor', 'prepatch'].includes(changeType)) {
       bumpAsPrerelease = true;
     }
 

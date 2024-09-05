@@ -19,7 +19,15 @@ describe('getMaxChangeType', () => {
   });
 
   it('returns none if all given change types are disallowed', () => {
-    const changeType = getMaxChangeType('patch', 'major', ['major', 'minor', 'patch', 'prerelease', 'premajor', 'preminor', 'prepatch']);
+    const changeType = getMaxChangeType('patch', 'major', [
+      'major',
+      'minor',
+      'patch',
+      'prerelease',
+      'premajor',
+      'preminor',
+      'prepatch',
+    ]);
     expect(changeType).toBe('none');
   });
 
@@ -29,7 +37,14 @@ describe('getMaxChangeType', () => {
   });
 
   it('handles prerelease only case', () => {
-    const changeType = getMaxChangeType('patch', 'major', ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch']);
+    const changeType = getMaxChangeType('patch', 'major', [
+      'major',
+      'minor',
+      'patch',
+      'premajor',
+      'preminor',
+      'prepatch',
+    ]);
     expect(changeType).toBe('prerelease');
   });
 });

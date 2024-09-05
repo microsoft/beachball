@@ -18,5 +18,5 @@ export const env = Object.freeze({
   workspaceToolsGitDebug: !!process.env.GIT_DEBUG,
   workspaceToolsGitMaxBuffer: (process.env.GIT_MAX_BUFFER && parseInt(process.env.GIT_MAX_BUFFER, 10)) || undefined,
   // Override default NPM_CONCURRENCY
-  npmConcurrency: (process.env.NPM_CONCURRENCY && parseInt(process.env.NPM_CONCURRENCY)) || undefined
+  npmConcurrency: (process.env.NPM_CONCURRENCY && parseInt(process.env.NPM_CONCURRENCY)) || undefined,
 });

@@ -1,4 +1,4 @@
-export type ChangeType = 'prerelease' | 'prepatch' |'patch' | 'preminor' |'minor' | 'premajor' |'major' | 'none';
+export type ChangeType = 'prerelease' | 'prepatch' | 'patch' | 'preminor' | 'minor' | 'premajor' | 'major' | 'none';
 
 /**
  * Info saved in each change file.
