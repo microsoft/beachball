@@ -123,25 +123,25 @@ async function writeChangelogFiles(
   let previousJson: ChangelogJson | undefined;
 
   // Update CHANGELOG.json
-  const changelogJsonFile = path.join(changelogPath, 'CHANGELOG.json');
-  try {
-    previousJson = fs.existsSync(changelogJsonFile) ? fs.readJSONSync(changelogJsonFile) : undefined;
-  } catch (e) {
-    console.warn(`${changelogJsonFile} is invalid: ${e}`);
-  }
-  try {
-    const nextJson = renderJsonChangelog(newVersionChangelog, previousJson);
-    fs.writeJSONSync(changelogJsonFile, nextJson, { spaces: 2 });
-  } catch (e) {
-    console.warn(`Problem writing to ${changelogJsonFile}: ${e}`);
+  if (options.generateChangelog === true || options.generateChangelog === 'json') {
+    const changelogJsonFile = path.join(changelogPath, 'CHANGELOG.json');
+    try {
+      previousJson = fs.existsSync(changelogJsonFile) ? fs.readJSONSync(changelogJsonFile) : undefined;
+    } catch (e) {
+      console.warn(`${changelogJsonFile} is invalid: ${e}`);
+    }
+    try {
+      const nextJson = renderJsonChangelog(newVersionChangelog, previousJson);
+      fs.writeJSONSync(changelogJsonFile, nextJson, { spaces: 2 });
+    } catch (e) {
+      console.warn(`Problem writing to ${changelogJsonFile}: ${e}`);
+    }
   }
 
-  // Update CHANGELOG.md
+  // Update CHANGELOG.md if there are changes of types besides "none"
   if (
-    newVersionChangelog.comments.major ||
-    newVersionChangelog.comments.minor ||
-    newVersionChangelog.comments.patch ||
-    newVersionChangelog.comments.prerelease
+    (options.generateChangelog === true || options.generateChangelog === 'md') &&
+    Object.entries(newVersionChangelog.comments).some(([type, comments]) => type !== 'none' && comments?.length)
   ) {
     const changelogFile = path.join(changelogPath, 'CHANGELOG.md');
     const previousContent = fs.existsSync(changelogFile) ? fs.readFileSync(changelogFile).toString() : '';

@@ -602,7 +602,7 @@ describe('version bumping', () => {
     expect(modified).toContain('package2');
 
     const changelogJson = readChangelogJson(repo.pathTo('packages/package2'));
-    expect(changelogJson.entries[0].comments.patch![0].comment).toBe('Bump package1 to v0.0.2');
+    expect(changelogJson?.entries[0].comments.patch![0].comment).toBe('Bump package1 to v0.0.2');
   });
 
   it('calls sync prebump hook before packages are bumped', async () => {

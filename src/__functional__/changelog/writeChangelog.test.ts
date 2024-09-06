@@ -8,16 +8,16 @@ import { writeChangelog } from '../../changelog/writeChangelog';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { readChangeFiles } from '../../changefile/readChangeFiles';
 import { BeachballOptions } from '../../types/BeachballOptions';
-import { ChangeFileInfo } from '../../types/ChangeInfo';
+import { ChangeFileInfo, ChangeType } from '../../types/ChangeInfo';
 import type { Repository } from '../../__fixtures__/repository';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
 
-function getChange(packageName: string, comment: string): ChangeFileInfo {
+function getChange(packageName: string, comment: string, type: ChangeType = 'patch'): ChangeFileInfo {
   return {
     comment,
     email: 'test@testtestme.com',
     packageName,
-    type: 'patch',
+    type,
     dependentChangeType: 'patch',
   };
 }
@@ -77,7 +77,7 @@ describe('writeChangelog', () => {
     expect(cleanChangelogJson(changelogJson)).toMatchSnapshot('changelog json');
 
     // Every entry should have a different commit hash
-    const patchComments = changelogJson.entries[0].comments.patch!;
+    const patchComments = changelogJson!.entries[0].comments.patch!;
     const commits = patchComments.map(entry => entry.commit);
     expect(new Set(commits).size).toEqual(patchComments.length);
 
@@ -111,7 +111,7 @@ describe('writeChangelog', () => {
     expect(cleanChangelogJson(changelogJson)).toMatchSnapshot('changelog json');
 
     // Every entry should have a different commit hash
-    const patchComments = changelogJson.entries[0].comments.patch!;
+    const patchComments = changelogJson!.entries[0].comments.patch!;
     const commits = patchComments.map(entry => entry.commit);
     expect(new Set(commits).size).toEqual(patchComments.length);
 
@@ -151,7 +151,7 @@ describe('writeChangelog', () => {
     expect(readChangelogJson(repo.pathTo('packages/bar'), true /*clean*/)).toMatchSnapshot('bar CHANGELOG.json');
 
     // Every entry should have a different commit hash
-    const patchComments = fooJson.entries[0].comments.patch!;
+    const patchComments = fooJson!.entries[0].comments.patch!;
     const commits = patchComments.map(entry => entry.commit);
     expect(new Set(commits).size).toEqual(patchComments.length);
 
@@ -295,5 +295,45 @@ describe('writeChangelog', () => {
 
     // Validate grouped changelog for foo and bar packages
     expect(readChangelogMd(repo.pathTo('packages/foo'))).toMatchSnapshot();
+  });
+
+  it('writes only CHANGELOG.md if generateChangelog is "md"', async () => {
+    repo = repositoryFactory.cloneRepository();
+    const options = getOptions({ generateChangelog: 'md' });
+
+    repo.commitChange('foo');
+    generateChangeFiles([getChange('foo', 'comment 1')], options);
+
+    const packageInfos = getPackageInfos(repo.rootPath);
+    const changes = readChangeFiles(options, packageInfos);
+
+    await writeChangelog(options, changes, { foo: 'patch' }, { foo: new Set(['foo']) }, packageInfos);
+
+    // CHANGELOG.md is written
+    expect(readChangelogMd(repo.rootPath)).toContain('## 1.0.0');
+
+    // CHANGELOG.json is not written
+    expect(readChangelogJson(repo.rootPath)).toBeNull();
+  });
+
+  it('writes only CHANGELOG.json if generateChangelog is "json"', async () => {
+    repo = repositoryFactory.cloneRepository();
+    const options = getOptions({ generateChangelog: 'json' });
+
+    repo.commitChange('foo');
+    generateChangeFiles([getChange('foo', 'comment 1')], options);
+
+    const packageInfos = getPackageInfos(repo.rootPath);
+    const changes = readChangeFiles(options, packageInfos);
+
+    await writeChangelog(options, changes, { foo: 'patch' }, { foo: new Set(['foo']) }, packageInfos);
+
+    // CHANGELOG.md is not written
+    expect(readChangelogMd(repo.rootPath)).toBeNull();
+
+    // CHANGELOG.json is written
+    const changelogJson = readChangelogJson(repo.rootPath);
+    expect(changelogJson).not.toBeNull();
+    expect(changelogJson!.entries[0].comments.patch).toEqual([expect.objectContaining({ comment: 'comment 1' })]);
   });
 });
