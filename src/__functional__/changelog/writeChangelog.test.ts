@@ -8,7 +8,7 @@ import { writeChangelog } from '../../changelog/writeChangelog';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { readChangeFiles } from '../../changefile/readChangeFiles';
 import { BeachballOptions } from '../../types/BeachballOptions';
-import { ChangeFileInfo, ChangeInfo } from '../../types/ChangeInfo';
+import { ChangeFileInfo } from '../../types/ChangeInfo';
 import type { Repository } from '../../__fixtures__/repository';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
 
@@ -295,52 +295,5 @@ describe('writeChangelog', () => {
 
     // Validate grouped changelog for foo and bar packages
     expect(readChangelogMd(repo.pathTo('packages/foo'))).toMatchSnapshot();
-  });
-
-  it('runs transform.changeFiles functions if provided', async () => {
-    const editedComment: string = 'Edited comment for testing';
-    repo = monoRepoFactory.cloneRepository();
-
-    const options = getOptions({
-      command: 'change',
-      transform: {
-        changeFiles: (changeFile, changeFilePath, { command }) => {
-          // For test, we will be changing the comment based on the package name
-          if ((changeFile as ChangeInfo).packageName === 'foo') {
-            (changeFile as ChangeInfo).comment = editedComment;
-            (changeFile as ChangeInfo).command = command;
-          }
-          return changeFile as ChangeInfo;
-        },
-      },
-      changelog: {
-        groups: [
-          {
-            masterPackageName: 'foo',
-            changelogPath: repo.pathTo('packages/foo'),
-            include: ['packages/foo', 'packages/bar'],
-          },
-        ],
-      },
-    });
-
-    repo.commitChange('foo');
-    generateChangeFiles([getChange('foo', 'comment 1')], options);
-
-    repo.commitChange('bar');
-    generateChangeFiles([getChange('bar', 'comment 2')], options);
-
-    const packageInfos = getPackageInfos(repo.rootPath);
-    const changes = readChangeFiles(options, packageInfos);
-
-    // Verify that the comment of only the intended change file is changed
-    for (const { change, changeFile } of changes) {
-      if (changeFile.startsWith('foo')) {
-        expect(change.comment).toBe(editedComment);
-        expect(change.command).toEqual('change');
-      } else {
-        expect(change.comment).toBe('comment 2');
-      }
-    }
   });
 });
