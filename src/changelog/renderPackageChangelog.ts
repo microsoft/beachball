@@ -2,6 +2,7 @@ import { ChangelogEntry } from '../types/ChangeLog';
 import _ from 'lodash';
 import { PackageChangelogRenderInfo, ChangelogRenderers } from '../types/ChangelogOptions';
 import { ChangeType } from '../types/ChangeInfo';
+import { SortedChangeTypes } from '../changefile/changeTypes';
 
 const groupNames: { [k in ChangeType]: string } = {
   major: 'Major changes',
@@ -14,6 +15,9 @@ const groupNames: { [k in ChangeType]: string } = {
   none: '', // not used
 };
 
+// Skip 'none' changes, then order from major down to prerelease
+const changeTypeOrder = SortedChangeTypes.slice(1).reverse();
+
 export const defaultRenderers: Required<ChangelogRenderers> = {
   renderHeader: _renderHeader,
   renderChangeTypeSection: _renderChangeTypeSection,
@@ -24,17 +28,17 @@ export const defaultRenderers: Required<ChangelogRenderers> = {
 
 export async function renderPackageChangelog(renderInfo: PackageChangelogRenderInfo): Promise<string> {
   const { renderHeader, renderChangeTypeSection } = renderInfo.renderers;
-  const versionHeader = await renderHeader(renderInfo);
 
-  return [
-    versionHeader,
-    await renderChangeTypeSection('major', renderInfo),
-    await renderChangeTypeSection('minor', renderInfo),
-    await renderChangeTypeSection('patch', renderInfo),
-    await renderChangeTypeSection('prerelease', renderInfo),
-  ]
-    .filter(Boolean)
-    .join('\n\n');
+  const sections = [await renderHeader(renderInfo)];
+
+  for (const changeType of changeTypeOrder) {
+    const section = await renderChangeTypeSection(changeType, renderInfo);
+    if (section) {
+      sections.push(section);
+    }
+  }
+
+  return sections.join('\n\n');
 }
 
 async function _renderHeader(renderInfo: PackageChangelogRenderInfo): Promise<string> {
