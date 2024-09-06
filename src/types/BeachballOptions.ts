@@ -109,10 +109,13 @@ export interface RepoOptions {
    */
   fetch: boolean;
   /**
-   * Whether to generate changelog files
-   * @default true
+   * Whether to generate changelog files.
+   * - `true` (default) to generate both CHANGELOG.md and CHANGELOG.json
+   * - `false` to skip changelog generation
+   * - `'md'` to generate only CHANGELOG.md
+   * - `'json'` to generate only CHANGELOG.json
    */
-  generateChangelog: boolean;
+  generateChangelog: boolean | 'md' | 'json';
   /** Options for bumping package versions together */
   groups?: VersionGroupOptions[];
   /**
@@ -171,11 +174,6 @@ export interface RepoOptions {
   groupChanges?: boolean;
   /** For shallow clones only: Depth of git history to consider when doing fetch */
   depth?: number;
-  /**
-   * Whether to write CHANGELOG.json files.
-   * @default true
-   */
-  writeChangelogJson?: boolean;
 }
 
 export interface PackageOptions {

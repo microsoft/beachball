@@ -1,5 +1,4 @@
 import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
-import fs from 'fs';
 import { generateChangeFiles } from '../../__fixtures__/changeFiles';
 import { cleanChangelogJson, readChangelogJson, readChangelogMd } from '../../__fixtures__/changelog';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
@@ -298,9 +297,9 @@ describe('writeChangelog', () => {
     expect(readChangelogMd(repo.pathTo('packages/foo'))).toMatchSnapshot();
   });
 
-  it('does not write CHANGELOG.json if writeChangelogJson is false', async () => {
+  it('writes only CHANGELOG.md if generateChangelog is "md"', async () => {
     repo = repositoryFactory.cloneRepository();
-    const options = getOptions({ writeChangelogJson: false });
+    const options = getOptions({ generateChangelog: 'md' });
 
     repo.commitChange('foo');
     generateChangeFiles([getChange('foo', 'comment 1')], options);
@@ -314,6 +313,27 @@ describe('writeChangelog', () => {
     expect(readChangelogMd(repo.rootPath)).toContain('## 1.0.0');
 
     // CHANGELOG.json is not written
-    expect(fs.existsSync(repo.pathTo('CHANGELOG.json'))).toBe(false);
+    expect(readChangelogJson(repo.rootPath)).toBeNull();
+  });
+
+  it('writes only CHANGELOG.json if generateChangelog is "json"', async () => {
+    repo = repositoryFactory.cloneRepository();
+    const options = getOptions({ generateChangelog: 'json' });
+
+    repo.commitChange('foo');
+    generateChangeFiles([getChange('foo', 'comment 1')], options);
+
+    const packageInfos = getPackageInfos(repo.rootPath);
+    const changes = readChangeFiles(options, packageInfos);
+
+    await writeChangelog(options, changes, { foo: 'patch' }, { foo: new Set(['foo']) }, packageInfos);
+
+    // CHANGELOG.md is not written
+    expect(readChangelogMd(repo.rootPath)).toBeNull();
+
+    // CHANGELOG.json is written
+    const changelogJson = readChangelogJson(repo.rootPath);
+    expect(changelogJson).not.toBeNull();
+    expect(changelogJson!.entries[0].comments.patch).toEqual([expect.objectContaining({ comment: 'comment 1' })]);
   });
 });

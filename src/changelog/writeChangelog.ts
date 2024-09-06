@@ -122,8 +122,8 @@ async function writeChangelogFiles(
 ): Promise<void> {
   let previousJson: ChangelogJson | undefined;
 
-  if (options.writeChangelogJson) {
-    // Update CHANGELOG.json
+  // Update CHANGELOG.json
+  if (options.generateChangelog === true || options.generateChangelog === 'json') {
     const changelogJsonFile = path.join(changelogPath, 'CHANGELOG.json');
     try {
       previousJson = fs.existsSync(changelogJsonFile) ? fs.readJSONSync(changelogJsonFile) : undefined;
@@ -138,12 +138,10 @@ async function writeChangelogFiles(
     }
   }
 
-  // Update CHANGELOG.md
+  // Update CHANGELOG.md if there are changes of types besides "none"
   if (
-    newVersionChangelog.comments.major ||
-    newVersionChangelog.comments.minor ||
-    newVersionChangelog.comments.patch ||
-    newVersionChangelog.comments.prerelease
+    (options.generateChangelog === true || options.generateChangelog === 'md') &&
+    Object.entries(newVersionChangelog.comments).some(([type, comments]) => type !== 'none' && comments?.length)
   ) {
     const changelogFile = path.join(changelogPath, 'CHANGELOG.md');
     const previousContent = fs.existsSync(changelogFile) ? fs.readFileSync(changelogFile).toString() : '';

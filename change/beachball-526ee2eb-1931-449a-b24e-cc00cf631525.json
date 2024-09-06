@@ -1,5 +1,5 @@
 {
-  "comment": "Add writeChangelogJson option",
+  "comment": "Add `'md'` and `'json'` options for `generateChangelog`",
   "type": "minor",
   "packageName": "beachball",
   "email": "elcraig@microsoft.com",
