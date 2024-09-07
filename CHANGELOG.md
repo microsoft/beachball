@@ -1,8 +1,22 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Wed, 04 Sep 2024 18:40:01 GMT and should not be manually modified. -->
+<!-- This log was last generated on Sat, 07 Sep 2024 08:02:58 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.47.0
+
+Sat, 07 Sep 2024 08:02:58 GMT
+
+### Minor changes
+
+- Add `'md'` and `'json'` options for `generateChangelog` (elcraig@microsoft.com)
+
+### Patches
+
+- Prevent accidentally writing dep bumps to grouped changelog (elcraig@microsoft.com)
+- Don't bail early when updating calculated change types if one change file referenced an invalid package (elcraig@microsoft.com)
+- Include pre* changes in changelog (elcraig@microsoft.com)
 
 ## 2.46.0
 

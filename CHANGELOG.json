@@ -2,6 +2,41 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 07 Sep 2024 08:02:58 GMT",
+      "version": "2.47.0",
+      "tag": "beachball_v2.47.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "dbdde9c4b92fb9c943fa975a2aafff1ac2465c0c",
+            "comment": "Add `'md'` and `'json'` options for `generateChangelog`"
+          }
+        ],
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "ff4f5da25ee305f161a26aa8f90f61288fbc878b",
+            "comment": "Prevent accidentally writing dep bumps to grouped changelog"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "636be3b3bce18f58abe28ed0f4528845a8ca990b",
+            "comment": "Don't bail early when updating calculated change types if one change file referenced an invalid package"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "eade30dbb4ee90516671da29ee12a8551c17a8e3",
+            "comment": "Include pre* changes in changelog"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 04 Sep 2024 18:40:01 GMT",
       "version": "2.46.0",
       "tag": "beachball_v2.46.0",

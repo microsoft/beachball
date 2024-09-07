@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Prevent accidentally writing dep bumps to grouped changelog",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
