@@ -13,19 +13,17 @@ import { mergeChangelogs } from './mergeChangelogs';
 import { ChangeSet } from '../types/ChangeInfo';
 
 export async function writeChangelog(
-  options: BeachballOptions,
-  changeFileChangeInfos: ChangeSet,
-  calculatedChangeTypes: BumpInfo['calculatedChangeTypes'],
-  dependentChangedBy: BumpInfo['dependentChangedBy'],
-  packageInfos: PackageInfos
+  bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'dependentChangedBy' | 'packageInfos'>,
+  options: BeachballOptions
 ): Promise<void> {
-  const groupedChangelogPaths = await writeGroupedChangelog(
+  const { changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy, packageInfos } = bumpInfo;
+
+  const groupedChangelogDirs = await writeGroupedChangelog(
     options,
     changeFileChangeInfos,
     calculatedChangeTypes,
     packageInfos
   );
-  const groupedChangelogPathSet = new Set(groupedChangelogPaths);
 
   const changelogs = getPackageChangelogs({
     changeFileChangeInfos,
@@ -34,84 +32,90 @@ export async function writeChangelog(
     packageInfos,
     options,
   });
+
+  // Write package changelogs.
   // Use a standard for loop here to prevent potentially firing off multiple network requests at once
-  // (in case any custom renderers have network requests)
+  // (in case any custom renderers have network requests).
   for (const pkg of Object.keys(changelogs)) {
     const packagePath = path.dirname(packageInfos[pkg].packageJsonPath);
-    if (groupedChangelogPathSet?.has(packagePath)) {
-      console.log(`Changelog for ${pkg} has been written as a group here: ${packagePath}`);
-    } else {
+    if (!groupedChangelogDirs.includes(packagePath)) {
       await writeChangelogFiles(options, changelogs[pkg], packagePath, false);
     }
   }
 }
 
+/**
+ * Write grouped changelogs.
+ * @returns The list of directories where grouped changelogs were written.
+ */
 async function writeGroupedChangelog(
   options: BeachballOptions,
   changeFileChangeInfos: ChangeSet,
   calculatedChangeTypes: BumpInfo['calculatedChangeTypes'],
   packageInfos: PackageInfos
 ): Promise<string[]> {
-  if (!options.changelog) {
-    return [];
-  }
-
-  const { groups: changelogGroups } = options.changelog;
+  // Get the changelog groups with absolute paths.
+  const changelogGroups = options.changelog?.groups?.map(({ changelogPath, ...rest }) => ({
+    ...rest,
+    changelogAbsDir: path.resolve(options.path, changelogPath),
+  }));
   if (!changelogGroups?.length) {
     return [];
   }
 
-  // Grouped changelogs should not contain dependency bump entries
+  // Get changelogs without dependency bump entries
   const changelogs = getPackageChangelogs({
     changeFileChangeInfos,
     calculatedChangeTypes,
     packageInfos,
     options,
   });
+
   const groupedChangelogs: {
-    [path: string]: {
-      changelogs: PackageChangelog[];
-      masterPackage: PackageInfo;
-    };
+    [changelogAbsDir: string]: { changelogs: PackageChangelog[]; masterPackage: PackageInfo };
   } = {};
 
+  // Validate groups and initialize groupedChangelogs
+  for (const { masterPackageName, changelogAbsDir } of changelogGroups) {
+    const masterPackage = packageInfos[masterPackageName];
+    if (!masterPackage) {
+      console.warn(`master package ${masterPackageName} does not exist.`);
+      continue;
+    }
+    if (!fs.existsSync(changelogAbsDir)) {
+      console.warn(`changelog path ${changelogAbsDir} does not exist.`);
+      continue;
+    }
+    groupedChangelogs[changelogAbsDir] = { masterPackage, changelogs: [] };
+  }
+
+  // Put changelogs into groups
   for (const pkg of Object.keys(changelogs)) {
     const packagePath = path.dirname(packageInfos[pkg].packageJsonPath);
     const relativePath = path.relative(options.path, packagePath);
-    for (const group of changelogGroups) {
-      const { changelogPath, masterPackageName } = group;
-      const masterPackage = packageInfos[masterPackageName];
-      if (!masterPackage) {
-        console.warn(`master package ${masterPackageName} does not exist.`);
-        continue;
-      }
-      if (!fs.existsSync(changelogPath)) {
-        console.warn(`changelog path ${changelogPath} does not exist.`);
-        continue;
-      }
 
+    for (const group of changelogGroups) {
       const isInGroup = isPathIncluded(relativePath, group.include, group.exclude);
       if (isInGroup) {
-        groupedChangelogs[changelogPath] ??= {
-          changelogs: [],
-          masterPackage,
-        };
-        groupedChangelogs[changelogPath].changelogs.push(changelogs[pkg]);
+        groupedChangelogs[group.changelogAbsDir].changelogs.push(changelogs[pkg]);
       }
     }
   }
 
-  const changelogAbsolutePaths: string[] = [];
-  for (const changelogPath in groupedChangelogs) {
-    const { masterPackage, changelogs } = groupedChangelogs[changelogPath];
+  // Write each grouped changelog if it's not empty
+  for (const [changelogAbsDir, { masterPackage, changelogs }] of Object.entries(groupedChangelogs)) {
     const groupedChangelog = mergeChangelogs(changelogs, masterPackage);
     if (groupedChangelog) {
-      await writeChangelogFiles(options, groupedChangelog, changelogPath, true);
-      changelogAbsolutePaths.push(path.resolve(changelogPath));
+      await writeChangelogFiles(options, groupedChangelog, changelogAbsDir, true);
     }
   }
 
-  return changelogAbsolutePaths;
+  // Return all the possible grouped changelog directories (even if there was nothing to write).
+  // Otherwise if a grouped changelog location overlaps with a package changelog location, and
+  // on one publish there are only dependent bump changes for that package (and no changes for
+  // other packages in the group), we'd get the package changelog updates with dependent bumps
+  // added to the otherwise-grouped changelog file.
+  return Object.keys(groupedChangelogs);
 }
 
 async function writeChangelogFiles(

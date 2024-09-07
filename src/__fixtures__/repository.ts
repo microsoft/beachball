@@ -2,7 +2,13 @@ import path from 'path';
 import * as fs from 'fs-extra';
 import { tmpdir } from './tmpdir';
 import { git } from 'workspace-tools';
-import { defaultBranchName, defaultRemoteName, optsWithLang, setDefaultBranchName } from './gitDefaults';
+import {
+  defaultBranchName,
+  defaultRemoteBranchName,
+  defaultRemoteName,
+  optsWithLang,
+  setDefaultBranchName,
+} from './gitDefaults';
 import { env } from '../env';
 
 /**
@@ -202,6 +208,12 @@ ${gitResult.stderr.toString()}`);
   /** Push to the default remote. */
   push(branchName: string = defaultBranchName) {
     this.git(['push', defaultRemoteName, `HEAD:${branchName}`]);
+  }
+
+  /** `git reset --hard <ref>` and `git clean -dfx` */
+  resetAndClean(ref: string = defaultRemoteBranchName) {
+    this.git(['reset', '--hard', ref]);
+    this.git(['clean', '-dfx']);
   }
 
   /**
