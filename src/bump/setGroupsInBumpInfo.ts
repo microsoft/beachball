@@ -2,7 +2,13 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { BumpInfo } from '../types/BumpInfo';
 import { getPackageGroups } from '../monorepo/getPackageGroups';
 
-export function setGroupsInBumpInfo(bumpInfo: BumpInfo, options: BeachballOptions): void {
+/**
+ * Set `bumpInfo.packageGroups` and `bumpInfo.groupOptions` based on `options.groups`.
+ */
+export function setGroupsInBumpInfo(
+  bumpInfo: Pick<BumpInfo, 'packageGroups' | 'packageInfos' | 'groupOptions'>,
+  options: Pick<BeachballOptions, 'groups' | 'path'>
+): void {
   if (options.groups) {
     bumpInfo.packageGroups = getPackageGroups(bumpInfo.packageInfos, options.path, options.groups);
 

@@ -39,6 +39,7 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions): void
     }
   }
 
+  // Calculate change types for packages and dependencies
   for (const { changeFile } of changeFileChangeInfos) {
     updateRelatedChangeType(changeFile, bumpInfo, bumpDeps);
   }

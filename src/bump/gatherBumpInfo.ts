@@ -6,6 +6,9 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { PackageInfos } from '../types/PackageInfo';
 
+/**
+ * Gather bump info and bump versions in memory.
+ */
 export function gatherBumpInfo(options: BeachballOptions, packageInfos: PackageInfos): BumpInfo {
   // Collate the changes per package
   const changes = readChangeFiles(options, packageInfos);

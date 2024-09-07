@@ -25,13 +25,14 @@ export function mergeChangelogs(
     comments: {},
   };
 
-  changelogs.forEach(changelog => {
-    (Object.keys(changelog.comments) as ChangeType[]).forEach(changeType => {
-      if (changelog.comments[changeType]) {
-        result.comments[changeType] = (result.comments[changeType] || []).concat(changelog.comments[changeType]!);
+  for (const changelog of changelogs) {
+    for (const changeType of Object.keys(changelog.comments) as ChangeType[]) {
+      const comments = changelog.comments[changeType];
+      if (comments?.length) {
+        (result.comments[changeType] ??= []).push(...comments);
       }
-    });
-  });
+    }
+  }
 
   return result;
 }

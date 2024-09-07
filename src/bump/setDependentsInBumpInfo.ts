@@ -1,13 +1,14 @@
 import type { BumpInfo } from '../types/BumpInfo';
 
 /**
- * Gets dependents for all packages
+ * Set dependents for all packages. **This mutates `bumpInfo.dependents`.**
  *
  * Example: "BigApp" deps on "SomeUtil", "BigApp" would be the dependent
  */
-export function setDependentsInBumpInfo(bumpInfo: BumpInfo): void {
-  const { packageInfos, scopedPackages } = bumpInfo;
-  const dependents: BumpInfo['dependents'] = {};
+export function setDependentsInBumpInfo(
+  bumpInfo: Pick<BumpInfo, 'packageInfos' | 'scopedPackages' | 'dependents'>
+): void {
+  const { packageInfos, scopedPackages, dependents } = bumpInfo;
 
   for (const [pkgName, info] of Object.entries(packageInfos)) {
     if (!scopedPackages.has(pkgName)) {
@@ -25,6 +26,4 @@ export function setDependentsInBumpInfo(bumpInfo: BumpInfo): void {
       }
     }
   }
-
-  bumpInfo.dependents = dependents;
 }
