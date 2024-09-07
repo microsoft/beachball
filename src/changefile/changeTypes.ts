@@ -58,7 +58,14 @@ function getAllowedChangeType(changeType: ChangeType, disallowedChangeTypes: Cha
  * e.g. if `a` is "major" and `b` is "patch", and "major" is disallowed, the result will be "minor"
  * (the greatest allowed change type).
  */
-export function getMaxChangeType(a: ChangeType, b: ChangeType, disallowedChangeTypes: ChangeType[] | null): ChangeType {
+export function getMaxChangeType(
+  a: ChangeType | undefined,
+  b: ChangeType | undefined,
+  disallowedChangeTypes?: ChangeType[] | null
+): ChangeType {
+  a ??= MinChangeType;
+  b ??= MinChangeType;
+
   if (disallowedChangeTypes) {
     a = getAllowedChangeType(a, disallowedChangeTypes);
     b = getAllowedChangeType(b, disallowedChangeTypes);

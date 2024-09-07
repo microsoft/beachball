@@ -58,6 +58,10 @@ export interface ChangelogGroupOptions {
    */
   exclude?: string | string[];
 
+  /**
+   * Put the grouped changelog file under this directory.
+   * Can be relative to the root, or absolute.
+   */
   changelogPath: string;
 }
 

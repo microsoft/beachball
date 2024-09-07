@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Don't bail early when updating calculated change types if one change file referenced an invalid package",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

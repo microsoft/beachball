@@ -27,6 +27,7 @@ export type BumpInfo = {
   /** Set of new packages detected in this info */
   newPackages: Set<string>;
 
+  /** Map from package name to its internal dependency names that were bumped. */
   dependentChangedBy: { [pkgName: string]: Set<string> };
 
   /** Set of packages that are in scope for this bump */
