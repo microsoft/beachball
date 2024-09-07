@@ -89,7 +89,7 @@ export async function updatePackageLock(cwd: string): Promise<void> {
  * deletes change files, update package.json, and changelogs
  */
 export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions): Promise<BumpInfo> {
-  const { modifiedPackages, packageInfos, changeFileChangeInfos, dependentChangedBy, calculatedChangeTypes } = bumpInfo;
+  const { modifiedPackages, packageInfos, changeFileChangeInfos } = bumpInfo;
 
   await callHook(options.hooks?.prebump, modifiedPackages, bumpInfo.packageInfos);
 
@@ -98,7 +98,7 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
 
   if (options.generateChangelog) {
     // Generate changelog
-    await writeChangelog(options, changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy, packageInfos);
+    await writeChangelog(bumpInfo, options);
   }
 
   if (!options.keepChangeFiles) {

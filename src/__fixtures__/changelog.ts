@@ -1,8 +1,11 @@
 import fs from 'fs-extra';
 import path from 'path';
 import _ from 'lodash';
-import { SortedChangeTypes } from '../changefile/changeTypes';
 import { ChangelogJson } from '../types/ChangeLog';
+import { markerComment } from '../changelog/renderChangelog';
+
+/** Placeholder commit as replaced by cleanChangelogJson */
+export const fakeCommit = '(sha1)';
 
 /**
  * Read the CHANGELOG.md under the given package path, sanitizing any dates for snapshots.
@@ -15,6 +18,11 @@ export function readChangelogMd(packagePath: string): string | null {
   }
   const text = fs.readFileSync(changelogFile, { encoding: 'utf-8' });
   return text.replace(/\w\w\w, \d\d \w\w\w [\d :]+?GMT/gm, '(date)');
+}
+
+/** Get only the part of CHANGELOG.md after the marker comment. */
+export function trimChangelogMd(changelogMd: string): string {
+  return changelogMd.split(markerComment)[1].trim();
 }
 
 /**
@@ -39,19 +47,17 @@ export function cleanChangelogJson(changelog: ChangelogJson | null): ChangelogJs
     return null;
   }
   changelog = _.cloneDeep(changelog);
-  // for a better snapshot, make the fake commit match if the real commit did
-  const fakeCommits: { [commit: string]: string } = {};
-  let fakeHashNum = 0;
 
   for (const entry of changelog.entries) {
-    entry.date = '(date)';
-    for (const changeType of SortedChangeTypes) {
-      if (entry.comments[changeType]) {
-        for (const comment of entry.comments[changeType]!) {
-          if (!fakeCommits[comment.commit]) {
-            fakeCommits[comment.commit] = `(sha1-${fakeHashNum++})`;
-          }
-          comment.commit = fakeCommits[comment.commit];
+    // Only replace properties if they existed, to help catch bugs if things are no longer written
+    if (entry.date) {
+      entry.date = '(date)';
+    }
+
+    for (const comments of Object.values(entry.comments)) {
+      for (const comment of comments!) {
+        if (comment.commit) {
+          comment.commit = fakeCommit;
         }
       }
     }

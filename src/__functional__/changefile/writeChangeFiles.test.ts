@@ -23,7 +23,7 @@ function cleanChangeFilePaths(root: string, changeFiles: string[]) {
 
 describe('writeChangeFiles', () => {
   let monorepoFactory: RepositoryFactory;
-  let repo: Repository | undefined;
+  let repo: Repository;
 
   initMockLogs();
 
@@ -40,10 +40,11 @@ describe('writeChangeFiles', () => {
     // These tests can share the same repo factories because they don't push to origin
     // (the actual tests run against a clone)
     monorepoFactory = new RepositoryFactory('monorepo');
+    repo = monorepoFactory.cloneRepository();
   });
 
   afterEach(() => {
-    repo = undefined;
+    repo?.resetAndClean();
   });
 
   afterAll(() => {
@@ -51,7 +52,6 @@ describe('writeChangeFiles', () => {
   });
 
   it('writes individual change files', () => {
-    repo = monorepoFactory.cloneRepository();
     const previousHead = repo.getCurrentHash();
     const options = getOptions();
 
@@ -76,8 +76,6 @@ describe('writeChangeFiles', () => {
   });
 
   it('respects changeDir option', () => {
-    repo = monorepoFactory.cloneRepository();
-
     const testChangeDir = 'myChangeDir';
     const options = getOptions({ changeDir: testChangeDir });
 
@@ -95,7 +93,6 @@ describe('writeChangeFiles', () => {
   });
 
   it('respects commit=false', () => {
-    repo = monorepoFactory.cloneRepository();
     const previousHead = repo.getCurrentHash();
 
     const options = getOptions({ commit: false });
@@ -117,8 +114,6 @@ describe('writeChangeFiles', () => {
   });
 
   it('writes grouped change files', () => {
-    repo = monorepoFactory.cloneRepository();
-
     const options = getOptions({
       groupChanges: true,
     });

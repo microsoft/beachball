@@ -15,6 +15,8 @@ describe('readChangeFiles', () => {
   let repositoryFactory: RepositoryFactory;
   let monoRepoFactory: RepositoryFactory;
   let repo: Repository | undefined;
+  let sharedSingleRepo: Repository;
+  let sharedMonoRepo: Repository;
 
   const logs = initMockLogs();
 
@@ -28,13 +30,17 @@ describe('readChangeFiles', () => {
   }
 
   beforeAll(() => {
-    // These tests can share the same repo factories because they don't push to origin
-    // (the actual tests run against a clone)
+    // These tests can share the same factories and repos because they don't push to the remote,
+    // and the repo used is reset after each test (which is faster than making new clones).
     repositoryFactory = new RepositoryFactory('single');
     monoRepoFactory = new RepositoryFactory('monorepo');
+    sharedSingleRepo = repositoryFactory.cloneRepository();
+    sharedMonoRepo = monoRepoFactory.cloneRepository();
   });
 
   afterEach(() => {
+    // Revert whichever shared repo was used to the original state
+    repo?.resetAndClean();
     repo = undefined;
   });
 
@@ -44,7 +50,7 @@ describe('readChangeFiles', () => {
   });
 
   it('does not add commit hash', () => {
-    repo = repositoryFactory.cloneRepository();
+    repo = sharedSingleRepo;
     repo.commitChange('foo');
 
     const options = getOptions();
@@ -57,7 +63,7 @@ describe('readChangeFiles', () => {
   });
 
   it('reads from a custom changeDir', () => {
-    repo = repositoryFactory.cloneRepository();
+    repo = sharedSingleRepo;
     repo.commitChange('foo');
 
     const options = getOptions({ changeDir: 'changeDir' });
@@ -69,7 +75,7 @@ describe('readChangeFiles', () => {
   });
 
   it('excludes invalid change files', () => {
-    repo = monoRepoFactory.cloneRepository();
+    repo = sharedMonoRepo;
     repo.updateJsonFile('packages/bar/package.json', { private: true });
     const options = getOptions();
 
@@ -87,7 +93,7 @@ describe('readChangeFiles', () => {
   });
 
   it('excludes invalid changes from grouped change file in monorepo', () => {
-    repo = monoRepoFactory.cloneRepository();
+    repo = sharedMonoRepo;
     repo.updateJsonFile('packages/bar/package.json', { private: true });
 
     const options = getOptions({ groupChanges: true });
@@ -106,7 +112,7 @@ describe('readChangeFiles', () => {
   });
 
   it('excludes out of scope change files in monorepo', () => {
-    repo = monoRepoFactory.cloneRepository();
+    repo = sharedMonoRepo;
 
     const options = getOptions({ scope: ['packages/foo'] });
 
@@ -119,7 +125,7 @@ describe('readChangeFiles', () => {
   });
 
   it('excludes out of scope changes from grouped change file in monorepo', () => {
-    repo = monoRepoFactory.cloneRepository();
+    repo = sharedMonoRepo;
 
     const options = getOptions({ scope: ['packages/foo'], groupChanges: true });
 
@@ -133,7 +139,7 @@ describe('readChangeFiles', () => {
 
   it('runs transform.changeFiles functions if provided', async () => {
     const editedComment: string = 'Edited comment for testing';
-    repo = monoRepoFactory.cloneRepository();
+    repo = sharedMonoRepo;
 
     const options = getOptions({
       command: 'change',
