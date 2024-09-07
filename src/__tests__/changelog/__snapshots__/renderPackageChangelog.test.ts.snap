@@ -84,6 +84,40 @@ Thu, 22 Aug 2019 21:20:40 GMT
 - stuff (user2@example.com)"
 `;
 
+exports[`changelog renderers - renderPackageChangelog includes all change types 1`] = `
+"## 1.2.3
+
+Thu, 22 Aug 2019 21:20:40 GMT
+
+### Major changes
+
+- major change (user1@example.com)
+
+### Major changes (pre-release)
+
+- premajor change (user1@example.com)
+
+### Minor changes
+
+- minor change (user1@example.com)
+
+### Minor changes (pre-release)
+
+- preminor change (user1@example.com)
+
+### Patches
+
+- patch change (user1@example.com)
+
+### Patches (pre-release)
+
+- prepatch change (user1@example.com)
+
+### Changes
+
+- prerelease change (user1@example.com)"
+`;
+
 exports[`changelog renderers - renderPackageChangelog uses custom renderChangeTypeHeader 1`] = `
 "## 1.2.3
 

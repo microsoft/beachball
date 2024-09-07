@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Include pre* changes in changelog",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

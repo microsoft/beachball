@@ -1,6 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 import { PackageChangelogRenderInfo } from '../../types/ChangelogOptions';
 import { defaultRenderers, renderPackageChangelog } from '../../changelog/renderPackageChangelog';
+import { ChangelogEntry } from '../../types/ChangeLog';
+import { SortedChangeTypes } from '../../changefile/changeTypes';
 
 const { renderEntry, renderEntries, renderChangeTypeHeader, renderChangeTypeSection, renderHeader } = defaultRenderers;
 
@@ -30,6 +32,16 @@ describe('changelog renderers -', () => {
       },
       previousJson: {} as any,
       renderers: { ...defaultRenderers }, // copy in case of modification
+    };
+  }
+
+  function getChangelogEntry(entry: Partial<ChangelogEntry>): ChangelogEntry {
+    return {
+      comment: 'comment',
+      author: 'user1@example.com',
+      commit: 'sha1',
+      package: 'foo',
+      ...entry,
     };
   }
 
@@ -121,6 +133,22 @@ describe('changelog renderers -', () => {
     it('has correct output', async () => {
       const renderInfo = getRenderInfo();
       const result = await renderPackageChangelog(renderInfo);
+      doBasicTests(result);
+    });
+
+    it('includes all change types', async () => {
+      const renderInfo = getRenderInfo();
+      renderInfo.newVersionChangelog.comments = Object.fromEntries(
+        SortedChangeTypes.map(type => [type, [getChangelogEntry({ comment: `${type} change` })]])
+      );
+      const result = await renderPackageChangelog(renderInfo);
+      // a couple explicit tests
+      expect(result).not.toContain('none change');
+      for (const type of SortedChangeTypes) {
+        if (type !== 'none') {
+          expect(result).toContain(`${type} change`);
+        }
+      }
       doBasicTests(result);
     });
 

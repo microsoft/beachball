@@ -297,6 +297,29 @@ describe('writeChangelog', () => {
     expect(readChangelogMd(repo.pathTo('packages/foo'))).toMatchSnapshot();
   });
 
+  it('includes pre* changes', async () => {
+    repo = repositoryFactory.cloneRepository();
+    const options = getOptions();
+
+    generateChangeFiles(
+      [
+        { packageName: 'foo', comment: 'comment 1', type: 'premajor' },
+        { packageName: 'foo', comment: 'comment 2', type: 'preminor' },
+        { packageName: 'foo', comment: 'comment 3', type: 'prepatch' },
+      ],
+      options
+    );
+
+    const packageInfos = getPackageInfos(repo.rootPath);
+    const changes = readChangeFiles(options, packageInfos);
+    await writeChangelog(options, changes, {}, {}, packageInfos);
+
+    const changelogMd = readChangelogMd(repo.rootPath);
+    expect(changelogMd).toContain('### Major changes (pre-release)\n\n- comment 1');
+    expect(changelogMd).toContain('### Minor changes (pre-release)\n\n- comment 2');
+    expect(changelogMd).toContain('### Patches (pre-release)\n\n- comment 3');
+  });
+
   it('writes only CHANGELOG.md if generateChangelog is "md"', async () => {
     repo = repositoryFactory.cloneRepository();
     const options = getOptions({ generateChangelog: 'md' });
