@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use a shared helper for workspace versions",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
