@@ -28,7 +28,7 @@ function makeChangeInfo(pkg: string, overrides?: Partial<ChangeFileInfo>): Chang
   };
 }
 
-const options: Parameters<typeof getPackageChangelogs>[0]['options'] = {
+const options: Parameters<typeof getPackageChangelogs>[1] = {
   path: '.',
   changeDir: 'change',
 };
@@ -41,12 +41,14 @@ describe('getPackageChangelogs', () => {
     ];
     const packageInfos = makePackageInfos({ foo: { version: '1.0.0' } });
 
-    const changelogs = getPackageChangelogs({
-      changeFileChangeInfos,
-      calculatedChangeTypes: { foo: 'patch' },
-      packageInfos,
-      options,
-    });
+    const changelogs = getPackageChangelogs(
+      {
+        changeFileChangeInfos,
+        calculatedChangeTypes: { foo: 'patch' },
+        packageInfos,
+      },
+      options
+    );
 
     expect(changelogs.foo).toEqual({
       comments: {
@@ -68,12 +70,14 @@ describe('getPackageChangelogs', () => {
       bar: { version: '2.0.0' },
     });
 
-    const changelogs = getPackageChangelogs({
-      changeFileChangeInfos,
-      calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
-      packageInfos,
-      options,
-    });
+    const changelogs = getPackageChangelogs(
+      {
+        changeFileChangeInfos,
+        calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
+        packageInfos,
+      },
+      options
+    );
 
     expect(changelogs.foo).toEqual({
       comments: {
@@ -99,12 +103,14 @@ describe('getPackageChangelogs', () => {
     const changeFileChangeInfos: ChangeSet = [makeChangeInfo('foo', { extra: 'prop' })];
     const packageInfos: PackageInfos = makePackageInfos({ foo: { version: '1.0.0' } });
 
-    const changelogs = getPackageChangelogs({
-      changeFileChangeInfos,
-      calculatedChangeTypes: { foo: 'patch' },
-      packageInfos,
-      options,
-    });
+    const changelogs = getPackageChangelogs(
+      {
+        changeFileChangeInfos,
+        calculatedChangeTypes: { foo: 'patch' },
+        packageInfos,
+      },
+      options
+    );
 
     expect(changelogs.foo.comments.patch![0]).toMatchObject({ extra: 'prop' });
   });
@@ -121,13 +127,15 @@ describe('getPackageChangelogs', () => {
       bar: { version: '2.0.0', dependencies: { foo: '^1.0.0' } },
     });
 
-    const changelogs = getPackageChangelogs({
-      changeFileChangeInfos,
-      calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
-      dependentChangedBy,
-      packageInfos,
-      options,
-    });
+    const changelogs = getPackageChangelogs(
+      {
+        changeFileChangeInfos,
+        calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
+        dependentChangedBy,
+        packageInfos,
+      },
+      options
+    );
 
     expect(Object.keys(changelogs.foo.comments.patch!)).toHaveLength(1);
     expect(changelogs.bar).toEqual({
@@ -162,13 +170,15 @@ describe('getPackageChangelogs', () => {
       bar: { version: '2.0.0', dependencies: { foo: '^1.0.0' } },
     });
 
-    const changelogs = getPackageChangelogs({
-      changeFileChangeInfos,
-      calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
-      dependentChangedBy,
-      packageInfos,
-      options,
-    });
+    const changelogs = getPackageChangelogs(
+      {
+        changeFileChangeInfos,
+        calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
+        dependentChangedBy,
+        packageInfos,
+      },
+      options
+    );
 
     expect(changelogs.bar.comments).toEqual({
       patch: [
@@ -197,13 +207,15 @@ describe('getPackageChangelogs', () => {
       bar: { version: '1.0.0' },
     });
 
-    const changelogs = getPackageChangelogs({
-      changeFileChangeInfos,
-      calculatedChangeTypes: { bar: 'patch', 'private-pkg': 'patch' },
-      dependentChangedBy,
-      packageInfos,
-      options,
-    });
+    const changelogs = getPackageChangelogs(
+      {
+        changeFileChangeInfos,
+        calculatedChangeTypes: { bar: 'patch', 'private-pkg': 'patch' },
+        dependentChangedBy,
+        packageInfos,
+      },
+      options
+    );
 
     expect(changelogs.bar).toBeTruthy();
     expect(changelogs['private-pkg']).toBeUndefined();

@@ -1,13 +1,11 @@
 import path from 'path';
-import { PackageInfo, PackageInfos } from '../types/PackageInfo';
+import { PackageInfo } from '../types/PackageInfo';
 import { PackageChangelog } from '../types/ChangeLog';
 import { generateTag } from '../git/generateTag';
 import { BumpInfo } from '../types/BumpInfo';
 import { getChangePath } from '../paths';
 import { getFileAddedHash } from 'workspace-tools';
-import { ChangeSet } from '../types/ChangeInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import { DeepReadonly } from '../types/DeepReadonly';
 
 /**
  * Used for `ChangelogEntry.commit` if the commit hash is not available.
@@ -15,20 +13,18 @@ import { DeepReadonly } from '../types/DeepReadonly';
 const commitNotAvailable = 'not available';
 
 /**
- * Get the preliminary changelog info for each modified package, based on change files and dependent bumps.
+ * Get the preliminary changelog info for each modified package, based on change files and
+ * possibly dependent bumps. (Omit `dependentChangedBy` to exclude dependent bumps.)
  * @returns Mapping from package name to package changelog.
  */
-export function getPackageChangelogs(params: {
-  changeFileChangeInfos: DeepReadonly<ChangeSet>;
-  calculatedChangeTypes: BumpInfo['calculatedChangeTypes'];
-  dependentChangedBy?: BumpInfo['dependentChangedBy'];
-  packageInfos: PackageInfos;
-  options: Pick<BeachballOptions, 'path' | 'changeDir'>;
-}): Record<string, PackageChangelog> {
-  const { changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy = {}, packageInfos, options } = params;
+export function getPackageChangelogs(
+  bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'packageInfos'> &
+    Partial<Pick<BumpInfo, 'dependentChangedBy'>>,
+  options: Pick<BeachballOptions, 'path' | 'changeDir'>
+): Record<string, PackageChangelog> {
+  const { changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy = {}, packageInfos } = bumpInfo;
 
   const changelogs: Record<string, PackageChangelog> = {};
-
   const changeFileCommits: { [changeFile: string]: string } = {};
   const changePath = getChangePath(options);
 
