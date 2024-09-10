@@ -12,6 +12,7 @@ import { callHook } from '../bump/callHook';
 
 /**
  * Publish all the bumped packages to the registry.
+ * This will bump packages on the filesystem first if `options.bump` is true.
  */
 export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions): Promise<void> {
   const bumpInfo = _.cloneDeep(originalBumpInfo);

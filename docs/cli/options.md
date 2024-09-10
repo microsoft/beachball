@@ -40,4 +40,3 @@ These options are applicable for the `publish` command, as well as `bump` and/or
 | `--token`                     | `-n`  |                                | credential to use with npm commands. its type is specified with the `--authType` argument                                                  |
 | `--verbose`                   |       | `false`                        | prints additional information to the console                                                                                               |
 | `--yes`                       | `-y`  | if CI detected, `true`         | skips the prompts for publish                                                                                                              |
-| `--new`                       |       | `false`                        | publishes new packages if not in registry                                                                                                  |

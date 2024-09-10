@@ -3,7 +3,8 @@ import semver from 'semver';
 import { BeachballOptions } from '../types/BeachballOptions';
 
 /**
- * Bumps an individual package version based on the change type
+ * Bumps an individual package version based on the change type.
+ * **This mutates `info.version`!**
  */
 export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo, options: BeachballOptions): void {
   const { calculatedChangeTypes, packageInfos, modifiedPackages } = bumpInfo;
