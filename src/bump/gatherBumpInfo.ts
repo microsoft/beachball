@@ -5,6 +5,7 @@ import { bumpInPlace } from './bumpInPlace';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { PackageInfos } from '../types/PackageInfo';
+import { getPackageGroups } from '../monorepo/getPackageGroups';
 
 /**
  * Gather bump info and bump versions in memory.
@@ -24,15 +25,15 @@ export function gatherBumpInfo(options: BeachballOptions, packageInfos: PackageI
   const bumpInfo: BumpInfo = {
     calculatedChangeTypes,
     packageInfos,
-    packageGroups: {},
+    packageGroups: getPackageGroups(packageInfos, options.path, options.groups),
     changeFileChangeInfos: changes,
     modifiedPackages: new Set<string>(),
     newPackages: new Set<string>(),
     scopedPackages: new Set(getScopedPackages(options, packageInfos)),
     dependentChangedBy: {},
-    groupOptions: {},
   };
 
   bumpInPlace(bumpInfo, options);
+
   return bumpInfo;
 }

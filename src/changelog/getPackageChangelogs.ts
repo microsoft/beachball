@@ -7,6 +7,7 @@ import { getChangePath } from '../paths';
 import { getFileAddedHash } from 'workspace-tools';
 import { ChangeSet } from '../types/ChangeInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
+import { DeepReadonly } from '../types/DeepReadonly';
 
 /**
  * Used for `ChangelogEntry.commit` if the commit hash is not available.
@@ -18,7 +19,7 @@ const commitNotAvailable = 'not available';
  * @returns Mapping from package name to package changelog.
  */
 export function getPackageChangelogs(params: {
-  changeFileChangeInfos: ChangeSet;
+  changeFileChangeInfos: DeepReadonly<ChangeSet>;
   calculatedChangeTypes: BumpInfo['calculatedChangeTypes'];
   dependentChangedBy?: BumpInfo['dependentChangedBy'];
   packageInfos: PackageInfos;

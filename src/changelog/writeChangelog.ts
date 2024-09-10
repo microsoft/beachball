@@ -11,6 +11,7 @@ import { isPathIncluded } from '../monorepo/isPathIncluded';
 import { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
 import { mergeChangelogs } from './mergeChangelogs';
 import { ChangeSet } from '../types/ChangeInfo';
+import { DeepReadonly } from '../types/DeepReadonly';
 
 export async function writeChangelog(
   bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'dependentChangedBy' | 'packageInfos'>,
@@ -50,7 +51,7 @@ export async function writeChangelog(
  */
 async function writeGroupedChangelog(
   options: BeachballOptions,
-  changeFileChangeInfos: ChangeSet,
+  changeFileChangeInfos: DeepReadonly<ChangeSet>,
   calculatedChangeTypes: BumpInfo['calculatedChangeTypes'],
   packageInfos: PackageInfos
 ): Promise<string[]> {

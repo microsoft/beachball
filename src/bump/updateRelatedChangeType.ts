@@ -21,15 +21,12 @@ import { BumpInfo, PackageDependents } from '../types/BumpInfo';
  */
 export function updateRelatedChangeType(params: {
   changeFile: string;
-  bumpInfo: Pick<
-    BumpInfo,
-    'calculatedChangeTypes' | 'changeFileChangeInfos' | 'packageGroups' | 'packageInfos' | 'groupOptions'
-  >;
+  bumpInfo: Pick<BumpInfo, 'calculatedChangeTypes' | 'changeFileChangeInfos' | 'packageGroups' | 'packageInfos'>;
   dependents: PackageDependents;
   bumpDeps: boolean;
 }): void {
   const { changeFile, bumpInfo, dependents, bumpDeps } = params;
-  const { calculatedChangeTypes, changeFileChangeInfos, packageGroups, packageInfos, groupOptions } = bumpInfo;
+  const { calculatedChangeTypes, changeFileChangeInfos, packageGroups, packageInfos } = bumpInfo;
 
   for (const info of changeFileChangeInfos) {
     if (info.changeFile !== changeFile) {
@@ -46,7 +43,7 @@ export function updateRelatedChangeType(params: {
       continue;
     }
 
-    let updatedChangeType = getMaxChangeType(dependentChangeType, MinChangeType);
+    const updatedChangeType = getMaxChangeType(dependentChangeType, MinChangeType);
 
     const queue = [{ subjectPackage: entryPointPackageName, changeType: MinChangeType }];
 
@@ -54,7 +51,7 @@ export function updateRelatedChangeType(params: {
     const visited = new Set<string>();
 
     while (queue.length > 0) {
-      let { subjectPackage, changeType } = queue.shift()!;
+      const { subjectPackage, changeType } = queue.shift()!;
 
       if (visited.has(subjectPackage)) {
         continue;
@@ -81,27 +78,20 @@ export function updateRelatedChangeType(params: {
       // Step 2. For all dependent packages of the current subjectPackage, place in queue to be updated at least to the "updatedChangeType"
       const dependentPackages = dependents[subjectPackage];
 
-      if (bumpDeps && dependentPackages && dependentPackages.length > 0) {
-        for (const dependentPackage of dependentPackages) {
-          queue.push({
-            subjectPackage: dependentPackage,
-            changeType: updatedChangeType,
-          });
-        }
+      if (bumpDeps && dependentPackages?.length) {
+        queue.push(...dependentPackages.map(pkg => ({ subjectPackage: pkg, changeType: updatedChangeType })));
       }
 
       // TODO: when we do "locked", or "lock step" versioning, we could simply skip this grouped traversal,
-      //       - set the version for all packages in the group in (bumpPackageInfoVersion())
+      //       - set the version for all packages in the group in bumpPackageInfoVersion()
       //       - the main concern is how to capture the bump reason in grouped changelog
 
       // Step 3. For group-linked packages, update the change type to the max(change file info's change type, propagated update change type)
-      const groupName = Object.keys(packageGroups).find(group =>
-        packageGroups[group].packageNames.includes(packageInfo.name)
-      );
+      const group = Object.values(packageGroups).find(group => group.packageNames.includes(packageInfo.name));
 
-      if (groupName) {
-        for (const packageNameInGroup of packageGroups[groupName].packageNames) {
-          if (!groupOptions[groupName]?.disallowedChangeTypes?.includes(updatedChangeType)) {
+      if (group) {
+        for (const packageNameInGroup of group.packageNames) {
+          if (!group.disallowedChangeTypes?.includes(updatedChangeType)) {
             queue.push({
               subjectPackage: packageNameInGroup,
               changeType: updatedChangeType,
