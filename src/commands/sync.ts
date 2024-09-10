@@ -4,7 +4,8 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { listPackageVersionsByTag } from '../packageManager/listPackageVersions';
 import semver from 'semver';
 import { setDependentVersions } from '../bump/setDependentVersions';
-import { writePackageJson, updatePackageLock } from '../bump/performBump';
+import { updateLockFile } from '../bump/updateLockFile';
+import { updatePackageJsons } from '../bump/updatePackageJsons';
 
 export async function sync(options: BeachballOptions): Promise<void> {
   const packageInfos = getPackageInfos(options.path);
@@ -33,6 +34,6 @@ export async function sync(options: BeachballOptions): Promise<void> {
   const dependentModifiedPackages = setDependentVersions(packageInfos, scopedPackages, options);
   Object.keys(dependentModifiedPackages).forEach(pkg => modifiedPackages.add(pkg));
 
-  writePackageJson(modifiedPackages, packageInfos);
-  await updatePackageLock(options.path);
+  updatePackageJsons(modifiedPackages, packageInfos);
+  await updateLockFile(options.path);
 }
