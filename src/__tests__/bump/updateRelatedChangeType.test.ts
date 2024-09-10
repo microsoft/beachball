@@ -28,7 +28,6 @@ describe('updateRelatedChangeType', () => {
         modifiedPackages: new Set(),
         newPackages: new Set(),
         packageGroups: {},
-        groupOptions: {},
         scopedPackages: new Set(),
         dependentChangedBy: {},
       },

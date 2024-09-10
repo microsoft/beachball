@@ -1,6 +1,5 @@
 import { ChangeSet, ChangeType } from './ChangeInfo';
 import { PackageInfos, PackageGroups } from './PackageInfo';
-import { VersionGroupOptions } from './BeachballOptions';
 
 export type BumpInfo = {
   /** Changes coming from the change files */
@@ -17,9 +16,6 @@ export type BumpInfo = {
 
   /** Package grouping */
   packageGroups: PackageGroups;
-
-  /** Package group options */
-  groupOptions: { [grp: string]: VersionGroupOptions };
 
   /** Set of packages that had been modified */
   modifiedPackages: Set<string>;
