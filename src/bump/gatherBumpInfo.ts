@@ -31,7 +31,6 @@ export function gatherBumpInfo(options: BeachballOptions, packageInfos: PackageI
     scopedPackages: new Set(getScopedPackages(options, packageInfos)),
     dependentChangedBy: {},
     groupOptions: {},
-    dependents: {},
   };
 
   bumpInPlace(bumpInfo, options);

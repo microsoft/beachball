@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Internal refactoring: remove dependents from BumpInfo",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

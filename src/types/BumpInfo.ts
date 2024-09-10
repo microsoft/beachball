@@ -21,9 +21,6 @@ export type BumpInfo = {
   /** Package group options */
   groupOptions: { [grp: string]: VersionGroupOptions };
 
-  /** Dependents cache (if A depends on B, then {B: [A]}) - child points to parents */
-  dependents: { [pkgName: string]: string[] };
-
   /** Set of packages that had been modified */
   modifiedPackages: Set<string>;
 
@@ -36,3 +33,6 @@ export type BumpInfo = {
   /** Set of packages that are in scope for this bump */
   scopedPackages: Set<string>;
 };
+
+/** Dependents cache (child points to parents): if A depends on B, then `{ B: [A] }` */
+export type PackageDependents = { [pkgName: string]: string[] };

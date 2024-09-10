@@ -1,5 +1,5 @@
 import { BumpInfo } from '../types/BumpInfo';
-import { setDependentsInBumpInfo } from './setDependentsInBumpInfo';
+import { getDependentsForPackages } from './getDependentsForPackages';
 import { updateRelatedChangeType } from './updateRelatedChangeType';
 import { bumpPackageInfoVersion } from './bumpPackageInfoVersion';
 import { BeachballOptions } from '../types/BeachballOptions';
@@ -16,9 +16,7 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions): void
   const { packageInfos, scopedPackages, calculatedChangeTypes, changeFileChangeInfos, modifiedPackages } = bumpInfo;
 
   // pass 1: figure out all the change types for all the packages taking into account the bumpDeps option and version groups
-  if (bumpDeps) {
-    setDependentsInBumpInfo(bumpInfo);
-  }
+  const dependents = bumpDeps ? getDependentsForPackages(bumpInfo) : {};
 
   setGroupsInBumpInfo(bumpInfo, options);
 
@@ -41,7 +39,7 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions): void
 
   // Calculate change types for packages and dependencies
   for (const { changeFile } of changeFileChangeInfos) {
-    updateRelatedChangeType(changeFile, bumpInfo, bumpDeps);
+    updateRelatedChangeType({ changeFile, bumpInfo, dependents, bumpDeps });
   }
 
   // pass 3: actually bump the packages in the bumpInfo in memory (no disk writes at this point)
