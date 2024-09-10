@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import { getWorkspaceRange } from '../packageManager/getWorkspaceRange';
-import type { PackageInfos, PackageJson, PublishConfig } from '../types/PackageInfo';
+import { consideredDependencies, type PackageInfos, type PackageJson, type PublishConfig } from '../types/PackageInfo';
 
 const acceptedKeys: (keyof PublishConfig)[] = [
   'types',
@@ -46,8 +46,8 @@ function performPublishConfigOverrides(packageJson: PackageJson): void {
  * replacement.
  */
 function performWorkspaceVersionOverrides(packageJson: PackageJson, packageInfos: PackageInfos): void {
-  const { dependencies, devDependencies, peerDependencies, optionalDependencies } = packageJson;
-  for (const deps of [dependencies, devDependencies, peerDependencies, optionalDependencies]) {
+  for (const depType of consideredDependencies) {
+    const deps = packageJson[depType];
     if (!deps) continue;
 
     for (const [depName, depVersion] of Object.entries(deps)) {

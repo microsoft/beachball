@@ -1,5 +1,5 @@
 import { getMaxChangeType, MinChangeType } from '../changefile/changeTypes';
-import { BumpInfo } from '../types/BumpInfo';
+import { BumpInfo, PackageDependents } from '../types/BumpInfo';
 
 /**
  * This is the core of the bumpInfo dependency bumping logic - done once per change file
@@ -18,14 +18,20 @@ import { BumpInfo } from '../types/BumpInfo';
  *
  * What it does not do:
  * - bumpInfo.calculatedChangeTypes: will not mutate the entryPoint `pkgName` change type
- *
- * Inputs from bumpInfo are listed in the [^1] below in the function body
  */
-export function updateRelatedChangeType(changeFile: string, bumpInfo: BumpInfo, bumpDeps: boolean): void {
-  /** [^1]: all the information needed from `bumpInfo` */
-  const { calculatedChangeTypes, packageGroups, dependents, packageInfos, groupOptions } = bumpInfo;
+export function updateRelatedChangeType(params: {
+  changeFile: string;
+  bumpInfo: Pick<
+    BumpInfo,
+    'calculatedChangeTypes' | 'changeFileChangeInfos' | 'packageGroups' | 'packageInfos' | 'groupOptions'
+  >;
+  dependents: PackageDependents;
+  bumpDeps: boolean;
+}): void {
+  const { changeFile, bumpInfo, dependents, bumpDeps } = params;
+  const { calculatedChangeTypes, changeFileChangeInfos, packageGroups, packageInfos, groupOptions } = bumpInfo;
 
-  for (const info of bumpInfo.changeFileChangeInfos) {
+  for (const info of changeFileChangeInfos) {
     if (info.changeFile !== changeFile) {
       continue;
     }

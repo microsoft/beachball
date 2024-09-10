@@ -1,6 +1,6 @@
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { BumpInfo } from '../types/BumpInfo';
-import type { PackageInfos } from '../types/PackageInfo';
+import { consideredDependencies, type PackageInfos } from '../types/PackageInfo';
 import { bumpMinSemverRange } from './bumpMinSemverRange';
 
 /**
@@ -21,10 +21,8 @@ export function setDependentVersions(
       continue; // out of scope
     }
 
-    for (const deps of [info.dependencies, info.devDependencies, info.peerDependencies, info.optionalDependencies]) {
-      if (!deps) {
-        continue; // package doesn't have this dep type
-      }
+    for (const depType of consideredDependencies) {
+      const deps = info[depType] || {};
 
       for (const [dep, existingVersionRange] of Object.entries(deps)) {
         const depPackage = packageInfos[dep];

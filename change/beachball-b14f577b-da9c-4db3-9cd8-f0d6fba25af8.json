@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use a shared list of considered dependency types",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
