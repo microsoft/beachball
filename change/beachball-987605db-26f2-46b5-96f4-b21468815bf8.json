@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update internal changelog helper options",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

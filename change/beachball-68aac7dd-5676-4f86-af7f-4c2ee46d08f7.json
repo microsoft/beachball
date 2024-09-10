@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Refactor post-bump updating utilities",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Clarify signatures of various internal functions",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

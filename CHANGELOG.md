@@ -1,8 +1,24 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Sat, 07 Sep 2024 08:02:58 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 10 Sep 2024 08:02:59 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.47.1
+
+Tue, 10 Sep 2024 08:02:59 GMT
+
+### Patches
+
+- Update readme (elcraig@microsoft.com)
+- Refactor post-bump updating utilities (elcraig@microsoft.com)
+- Simplify handling of groups while bumping (elcraig@microsoft.com)
+- Remove newPackages from main BumpInfo (elcraig@microsoft.com)
+- Update internal changelog helper options (elcraig@microsoft.com)
+- Use a shared list of considered dependency types (elcraig@microsoft.com)
+- Use a shared helper for workspace versions (elcraig@microsoft.com)
+- Exit with an error on invalid change files (elcraig@microsoft.com)
+- Clarify signatures of various internal functions (elcraig@microsoft.com)
 
 ## 2.47.0
 

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Simplify handling of groups while bumping",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

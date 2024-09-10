@@ -2,6 +2,69 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 10 Sep 2024 08:02:59 GMT",
+      "version": "2.47.1",
+      "tag": "beachball_v2.47.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "5cfd787178e267fdea6d580d34995c546c888aa9",
+            "comment": "Update readme"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "5dec300597aa75838ff9f692d89c9d54a52e228c",
+            "comment": "Refactor post-bump updating utilities"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "50f483e754c13e7805728b1b547860699389baef",
+            "comment": "Simplify handling of groups while bumping"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "072d3a85e7765bd8390f07d583b37ee543154e9b",
+            "comment": "Remove newPackages from main BumpInfo"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "f857744ac98ed832237ef517b5e8978aa4be35ca",
+            "comment": "Update internal changelog helper options"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "2f5fbbdf1d99330816bf1101be69c4b73a797612",
+            "comment": "Use a shared list of considered dependency types"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "70e438c7826d0098dba82068fea39697223ddce3",
+            "comment": "Use a shared helper for workspace versions"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "f313e501d2784ace156cf55911eb05264e083c0b",
+            "comment": "Exit with an error on invalid change files"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b339fa7e541a0b48a88dcca2f3e2d75ac3aa8155",
+            "comment": "Clarify signatures of various internal functions"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 07 Sep 2024 08:02:58 GMT",
       "version": "2.47.0",
       "tag": "beachball_v2.47.0",

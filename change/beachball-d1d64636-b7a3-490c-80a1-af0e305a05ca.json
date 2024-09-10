@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Exit with an error on invalid change files",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
