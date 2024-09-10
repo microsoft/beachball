@@ -1,9 +1,10 @@
 import { ChangeSet, ChangeType } from './ChangeInfo';
+import { DeepReadonly } from './DeepReadonly';
 import { PackageInfos, PackageGroups } from './PackageInfo';
 
 export type BumpInfo = {
   /** Changes coming from the change files */
-  changeFileChangeInfos: ChangeSet;
+  changeFileChangeInfos: DeepReadonly<ChangeSet>;
 
   /**
    * Cached version of package info (e.g. package.json, package path).
@@ -15,7 +16,7 @@ export type BumpInfo = {
   calculatedChangeTypes: { [pkgName: string]: ChangeType };
 
   /** Package grouping */
-  packageGroups: PackageGroups;
+  packageGroups: DeepReadonly<PackageGroups>;
 
   /** Set of packages that had been modified */
   modifiedPackages: Set<string>;
@@ -27,7 +28,7 @@ export type BumpInfo = {
   dependentChangedBy: { [pkgName: string]: Set<string> };
 
   /** Set of packages that are in scope for this bump */
-  scopedPackages: Set<string>;
+  scopedPackages: ReadonlySet<string>;
 };
 
 /** Dependents cache (child points to parents): if A depends on B, then `{ B: [A] }` */

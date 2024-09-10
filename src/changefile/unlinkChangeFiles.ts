@@ -2,8 +2,9 @@ import { ChangeSet } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
 import fs from 'fs-extra';
 import path from 'path';
-import { PackageInfo } from '../types/PackageInfo';
+import { PackageInfos } from '../types/PackageInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
+import { DeepReadonly } from '../types/DeepReadonly';
 
 /**
  * Unlink only change files that are specified in the changes param
@@ -11,14 +12,12 @@ import type { BeachballOptions } from '../types/BeachballOptions';
  * @param changes existing change files to be removed
  */
 export function unlinkChangeFiles(
-  changeSet: ChangeSet,
-  packageInfos: {
-    [pkg: string]: PackageInfo;
-  },
+  changeSet: DeepReadonly<ChangeSet>,
+  packageInfos: PackageInfos,
   options: Pick<BeachballOptions, 'path' | 'changeDir'>
 ): void {
   const changePath = getChangePath(options);
-  if (!changeSet || !changeSet.length) {
+  if (!changeSet?.length) {
     return;
   }
   console.log('Removing change files:');

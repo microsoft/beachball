@@ -10,7 +10,7 @@ import { bumpMinSemverRange } from './bumpMinSemverRange';
  */
 export function setDependentVersions(
   packageInfos: PackageInfos,
-  scopedPackages: Set<string>,
+  scopedPackages: ReadonlySet<string>,
   options: Pick<BeachballOptions, 'verbose'>
 ): BumpInfo['dependentChangedBy'] {
   const { verbose } = options;
