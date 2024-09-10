@@ -113,29 +113,6 @@ export function validate(
     hasError = true; // the helper logs this
   }
 
-  if (hasError) {
-    // If any of the above basic checks failed, it doesn't make sense to check if change files are needed
-    process.exit(1);
-  }
-
-  let isChangeNeeded = false;
-
-  if (allowFetching) {
-    // This has the side effect of fetching, so call it even if !allowMissingChangeFiles for now
-    isChangeNeeded = isChangeFileNeeded(options, packageInfos);
-
-    if (isChangeNeeded && !allowMissingChangeFiles) {
-      logValidationError('Change files are needed!');
-      console.log(options.changehint);
-      process.exit(1); // exit here (this is the main poin)
-    }
-
-    if (options.disallowDeletedChangeFiles && areChangeFilesDeleted(options)) {
-      logValidationError('Change files must not be deleted!');
-      process.exit(1);
-    }
-  }
-
   const changeSet = readChangeFiles(options, packageInfos);
 
   for (const { changeFile, change } of changeSet) {
@@ -158,6 +135,29 @@ export function validate(
     } else if (!isValidDependentChangeType(change.dependentChangeType, disallowedChangeTypes)) {
       logValidationError(`Invalid dependentChangeType detected in ${changeFile}: "${change.dependentChangeType}"`);
       hasError = true;
+    }
+  }
+
+  if (hasError) {
+    // If any of the above basic checks failed, it doesn't make sense to check if change files are needed
+    process.exit(1);
+  }
+
+  let isChangeNeeded = false;
+
+  if (allowFetching) {
+    // This has the side effect of fetching, so call it even if !allowMissingChangeFiles for now
+    isChangeNeeded = isChangeFileNeeded(options, packageInfos);
+
+    if (isChangeNeeded && !allowMissingChangeFiles) {
+      logValidationError('Change files are needed!');
+      console.log(options.changehint);
+      process.exit(1); // exit here (this is the main poin)
+    }
+
+    if (options.disallowDeletedChangeFiles && areChangeFilesDeleted(options)) {
+      logValidationError('Change files must not be deleted!');
+      process.exit(1);
     }
   }
 
