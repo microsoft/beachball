@@ -1,5 +1,6 @@
-import { PackageInfos, PackageJson, PublishConfig } from '../types/PackageInfo';
 import * as fs from 'fs-extra';
+import { getWorkspaceRange } from '../packageManager/getWorkspaceRange';
+import type { PackageInfos, PackageJson, PublishConfig } from '../types/PackageInfo';
 
 const acceptedKeys: (keyof PublishConfig)[] = [
   'types',
@@ -12,7 +13,6 @@ const acceptedKeys: (keyof PublishConfig)[] = [
   'browser',
   'files',
 ];
-const workspacePrefix = 'workspace:';
 
 export function performPublishOverrides(packagesToPublish: string[], packageInfos: PackageInfos): void {
   for (const pkgName of packagesToPublish) {
@@ -52,8 +52,9 @@ function performWorkspaceVersionOverrides(packageJson: PackageJson, packageInfos
 
     for (const [depName, depVersion] of Object.entries(deps)) {
       const packageInfo = packageInfos[depName];
-      if (packageInfo && depVersion.startsWith(workspacePrefix)) {
-        deps[depName] = resolveWorkspaceVersionForPublish(depVersion, packageInfo.version);
+      const workspaceRange = getWorkspaceRange(depVersion);
+      if (packageInfo && workspaceRange) {
+        deps[depName] = resolveWorkspaceVersionForPublish(workspaceRange, packageInfo.version);
       }
     }
   }
@@ -63,14 +64,14 @@ function performWorkspaceVersionOverrides(packageJson: PackageJson, packageInfos
  * Resolves version for publishing following the replacements defined here:
  * https://pnpm.io/workspaces#workspace-protocol-workspace
  * https://yarnpkg.com/features/workspaces#publishing-workspaces
+ * @param workspaceRange Second part of a `workspace:___` range, e.g. `^` or `^1.0.0`
  */
-function resolveWorkspaceVersionForPublish(workspaceDependency: string, packageInfoVersion: string): string {
-  const workspaceVersion = workspaceDependency.substring(workspacePrefix.length);
-  if (workspaceVersion === '*') {
+function resolveWorkspaceVersionForPublish(workspaceRange: string, packageInfoVersion: string): string {
+  if (workspaceRange === '*') {
     return packageInfoVersion;
   }
-  if (workspaceVersion === '^' || workspaceVersion === '~') {
-    return `${workspaceVersion}${packageInfoVersion}`;
+  if (workspaceRange === '^' || workspaceRange === '~') {
+    return `${workspaceRange}${packageInfoVersion}`;
   }
-  return workspaceVersion;
+  return workspaceRange;
 }

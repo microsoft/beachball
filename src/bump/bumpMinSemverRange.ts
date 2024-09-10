@@ -1,10 +1,14 @@
 import semver from 'semver';
+import { getWorkspaceRange } from '../packageManager/getWorkspaceRange';
 
 export function bumpMinSemverRange(minVersion: string, semverRange: string): string {
   if (semverRange === '*') {
     return semverRange;
   }
-  if (['workspace:*', 'workspace:~', 'workspace:^'].includes(semverRange)) {
+
+  const workspaceRange = getWorkspaceRange(semverRange);
+
+  if (workspaceRange === '*' || workspaceRange === '~' || workspaceRange === '^') {
     // For basic workspace ranges we can just preserve current value and replace during publish
     // https://pnpm.io/workspaces#workspace-protocol-workspace
     return semverRange;
@@ -14,10 +18,10 @@ export function bumpMinSemverRange(minVersion: string, semverRange: string): str
     // ^1.0.0
     return semverRange[0] + minVersion;
   }
-  if (semverRange.startsWith('workspace:~') || semverRange.startsWith('workspace:^')) {
+  if (workspaceRange && (workspaceRange[0] === '~' || workspaceRange[0] === '^')) {
     // workspace:~1.0.0
     // workspace:^1.0.0
-    return `workspace:${semverRange[10]}${minVersion}`;
+    return `workspace:${workspaceRange[0]}${minVersion}`;
   }
   if (semverRange.includes('>')) {
     // Less frequently used, but we treat any of these kinds of ranges to be within a minor band for now:
