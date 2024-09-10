@@ -1,7 +1,8 @@
-import { BumpInfo } from '../types/BumpInfo';
+import { PublishBumpInfo } from '../types/BumpInfo';
 import { generateTag } from '../git/generateTag';
 import { gitFailFast } from 'workspace-tools';
 import { BeachballOptions } from '../types/BeachballOptions';
+import { DeepReadonly } from '../types/DeepReadonly';
 
 function createTag(tag: string, cwd: string): void {
   gitFailFast(['tag', '-a', '-f', tag, '-m', tag], { cwd });
@@ -12,13 +13,19 @@ function createTag(tag: string, cwd: string): void {
  * Also, if git tags aren't disabled for the repo and the overall dist-tag (`options.tag`) has a
  * non-default value (not "latest"), create a git tag for the dist-tag.
  */
-export function tagPackages(bumpInfo: BumpInfo, options: Pick<BeachballOptions, 'gitTags' | 'path' | 'tag'>): void {
+export function tagPackages(
+  bumpInfo: Pick<
+    DeepReadonly<PublishBumpInfo>,
+    'modifiedPackages' | 'newPackages' | 'packageInfos' | 'calculatedChangeTypes'
+  >,
+  options: Pick<BeachballOptions, 'gitTags' | 'path' | 'tag'>
+): void {
   const { gitTags, tag: distTag, path: cwd } = options;
-  const { modifiedPackages, newPackages } = bumpInfo;
+  const { modifiedPackages, newPackages, packageInfos, calculatedChangeTypes } = bumpInfo;
 
-  for (const pkg of [...modifiedPackages, ...newPackages]) {
-    const packageInfo = bumpInfo.packageInfos[pkg];
-    const changeType = bumpInfo.calculatedChangeTypes[pkg];
+  for (const pkg of [...modifiedPackages, ...(newPackages || [])]) {
+    const packageInfo = packageInfos[pkg];
+    const changeType = calculatedChangeTypes[pkg];
     // Do not tag change type of "none", private packages, or packages opting out of tagging
     if (changeType === 'none' || packageInfo.private || !packageInfo.combinedOptions.gitTags) {
       continue;
