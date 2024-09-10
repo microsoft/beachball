@@ -26,7 +26,6 @@ describe('updateRelatedChangeType', () => {
           baz: { combinedOptions: { disallowedChangeTypes: [], defaultNpmTag: 'latest' } },
         }),
         modifiedPackages: new Set(),
-        newPackages: new Set(),
         packageGroups: {},
         scopedPackages: new Set(),
         dependentChangedBy: {},

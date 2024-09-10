@@ -7,6 +7,7 @@ import { bumpAndPush } from '../publish/bumpAndPush';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import { getNewPackages } from '../publish/getNewPackages';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
+import { PublishBumpInfo } from '../types/BumpInfo';
 
 export async function publish(options: BeachballOptions): Promise<void> {
   console.log('\nPreparing to publish');
@@ -57,14 +58,21 @@ export async function publish(options: BeachballOptions): Promise<void> {
   gitFailFast(['checkout', '-b', publishBranch], { cwd });
 
   console.log(`\nGathering info ${options.bump ? 'to bump versions' : 'about versions and changes'}`);
-  const bumpInfo = gatherBumpInfo(options, oldPackageInfos);
+  const bumpInfo: PublishBumpInfo = gatherBumpInfo(options, oldPackageInfos);
+
   if (options.new) {
     // Publish newly created packages even if they don't have change files
     // (this is unlikely unless the packages were pushed without a PR that runs "beachball check")
-    bumpInfo.newPackages = new Set<string>(await getNewPackages(bumpInfo, options));
+    console.log(
+      '\nFetching all unmodified packages from the registry to check if there are any ' +
+        "newly-added packages that didn't have a change file...\n" +
+        '(If your PR build runs `beachball check`, it should be safe to disable this step by ' +
+        'removing `new: true` from your config or removing `--new` from your publish command.)'
+    );
+    bumpInfo.newPackages = await getNewPackages(bumpInfo, options);
   }
 
-  // Step 1. Bump + npm publish
+  // Step 1. Bump on disk + npm publish
   // npm / yarn publish
   if (options.publish) {
     console.log('\nBumping versions and publishing to npm');
@@ -75,7 +83,8 @@ export async function publish(options: BeachballOptions): Promise<void> {
   }
 
   // Step 2.
-  // - reset, fetch latest from origin/master (to ensure less chance of conflict), then bump again + commit
+  // - reset, fetch latest from origin/master (to ensure less chance of conflict),
+  //   then bump on disk again + commit
   if (options.bump && branch && options.push) {
     // this does its own section logging
     await bumpAndPush(bumpInfo, publishBranch, options);

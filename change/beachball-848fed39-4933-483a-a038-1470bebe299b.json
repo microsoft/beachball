@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Remove newPackages from main BumpInfo",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

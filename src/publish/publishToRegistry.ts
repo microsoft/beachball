@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { performBump } from '../bump/performBump';
-import { BumpInfo } from '../types/BumpInfo';
+import { PublishBumpInfo } from '../types/BumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { packagePublish } from '../packageManager/packagePublish';
 import { validatePackageVersions } from './validatePackageVersions';
@@ -14,7 +14,7 @@ import { callHook } from '../bump/callHook';
  * Publish all the bumped packages to the registry.
  * This will bump packages on the filesystem first if `options.bump` is true.
  */
-export async function publishToRegistry(originalBumpInfo: BumpInfo, options: BeachballOptions): Promise<void> {
+export async function publishToRegistry(originalBumpInfo: PublishBumpInfo, options: BeachballOptions): Promise<void> {
   const bumpInfo = _.cloneDeep(originalBumpInfo);
 
   if (options.bump) {
@@ -37,7 +37,8 @@ export async function publishToRegistry(originalBumpInfo: BumpInfo, options: Bea
     process.exit(1);
   }
 
-  // performing publishConfig and workspace version overrides requires this procedure to ONLY be run right before npm publish, but NOT in the git push
+  // performing publishConfig and workspace version overrides requires this procedure to
+  // ONLY be run right before npm publish, but NOT in the git push
   performPublishOverrides(packagesToPublish, bumpInfo.packageInfos);
 
   // if there is a prepublish hook perform a prepublish pass, calling the routine on each package

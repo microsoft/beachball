@@ -28,7 +28,6 @@ export function gatherBumpInfo(options: BeachballOptions, packageInfos: PackageI
     packageGroups: getPackageGroups(packageInfos, options.path, options.groups),
     changeFileChangeInfos: changes,
     modifiedPackages: new Set<string>(),
-    newPackages: new Set<string>(),
     scopedPackages: new Set(getScopedPackages(options, packageInfos)),
     dependentChangedBy: {},
   };

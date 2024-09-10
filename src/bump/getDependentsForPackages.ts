@@ -12,7 +12,7 @@ export function getDependentsForPackages(
 ): PackageDependents {
   const { packageInfos, scopedPackages } = bumpInfo;
 
-  const dependents: PackageDependents = {};
+  const dependents: { [pkgName: string]: string[] } = {};
 
   for (const [pkgName, info] of Object.entries(packageInfos)) {
     if (!scopedPackages.has(pkgName)) {

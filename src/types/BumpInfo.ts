@@ -21,9 +21,6 @@ export type BumpInfo = {
   /** Set of packages that had been modified */
   modifiedPackages: Set<string>;
 
-  /** Set of new packages detected in this info */
-  newPackages: Set<string>;
-
   /** Map from package name to its internal dependency names that were bumped. */
   dependentChangedBy: { [pkgName: string]: Set<string> };
 
@@ -32,4 +29,16 @@ export type BumpInfo = {
 };
 
 /** Dependents cache (child points to parents): if A depends on B, then `{ B: [A] }` */
-export type PackageDependents = { [pkgName: string]: string[] };
+export type PackageDependents = { readonly [pkgName: string]: ReadonlyArray<string> };
+
+/**
+ * Bump info with additional property set/used only during publishing (not while calculating
+ * packages to bump).
+ */
+export type PublishBumpInfo = BumpInfo & {
+  /**
+   * Set of packages detected in this info which weren't previously published and didn't have
+   * change files. (Only populated if `options.new` is set.)
+   */
+  newPackages?: ReadonlyArray<string>;
+};
