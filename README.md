@@ -79,20 +79,24 @@ show help message
 
 skips the prompts for publish
 
-## Overriding Concurrency
-
-In large monorepos, the Beachball sync process can be time-consuming due to the high number of packages. To optimize performance, you can override the default concurrency (typically set to 2 or 5) by setting the NPM_CONCURRENCY environment variable to a value that best suits your needs
-
 ## Examples
 
 ```
-  $ beachball
+$ beachball
 
-  $ beachball check
+$ beachball check
 
-  $ beachball publish -r http://localhost:4873 -t beta
+$ beachball publish -r http://localhost:4873 -t beta
 ```
 
-<!--
-If making changes, don't forget to update the version under packages/beachball/README.md too!
--->
+## Notes
+
+### Overriding concurrency
+
+In large monorepos, the Beachball sync process can be time-consuming due to the high number of packages. To optimize performance, you can override the default concurrency (typically 2 or 5) by setting the `NPM_CONCURRENCY` environment variable to a value that best suits your needs.
+
+### API surface
+
+Beachball **does not** have a public API beyond the provided [options](https://microsoft.github.io/beachball/overview/configuration.html). Usage of private APIs is not supported and may break at any time.
+
+If you need to customize something beyond what's currently supported in the options, please open a feature request or talk with the maintainers.

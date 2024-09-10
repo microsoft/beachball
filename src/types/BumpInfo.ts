@@ -1,13 +1,16 @@
 import { ChangeSet, ChangeType } from './ChangeInfo';
-import { PackageInfo, PackageGroups } from './PackageInfo';
+import { PackageInfos, PackageGroups } from './PackageInfo';
 import { VersionGroupOptions } from './BeachballOptions';
 
 export type BumpInfo = {
   /** Changes coming from the change files */
   changeFileChangeInfos: ChangeSet;
 
-  /** Cached version of package info (e.g. package.json, package path) */
-  packageInfos: { [pkgName: string]: PackageInfo };
+  /**
+   * Cached version of package info (e.g. package.json, package path).
+   * This will be updated to reflect the bumped versions and dependencies.
+   */
+  packageInfos: PackageInfos;
 
   /** Change types collated by the package names */
   calculatedChangeTypes: { [pkgName: string]: ChangeType };
