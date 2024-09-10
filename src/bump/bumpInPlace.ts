@@ -10,12 +10,7 @@ import { setDependentVersions } from './setDependentVersions';
  *
  * NOTE: THIS FUNCTION MUTATES STATE!
  */
-export function bumpInPlace(
-  bumpInfo: BumpInfo,
-  options: Pick<BeachballOptions, 'bumpDeps'> &
-    Parameters<typeof bumpPackageInfoVersion>[2] &
-    Parameters<typeof setDependentVersions>[1]
-): void {
+export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions): void {
   const { bumpDeps } = options;
   const { calculatedChangeTypes, changeFileChangeInfos, modifiedPackages } = bumpInfo;
 

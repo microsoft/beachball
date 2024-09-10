@@ -57,11 +57,7 @@ function isPackageIncluded(
  * Gets all the changed package names, regardless of the change files.
  * If `options.all` is set, returns all the packages in scope, regardless of whether they've changed.
  */
-function getAllChangedPackages(
-  options: Pick<BeachballOptions, 'all' | 'branch' | 'changeDir' | 'ignorePatterns' | 'verbose'> &
-    Parameters<typeof getScopedPackages>[0],
-  packageInfos: PackageInfos
-): string[] {
+function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
   const { branch, path: cwd, verbose, all, changeDir } = options;
 
   const verboseLog = (msg: string) => verbose && console.log(msg);
@@ -134,10 +130,7 @@ function getAllChangedPackages(
 /**
  * Gets all the changed packages which do not already have a change file
  */
-export function getChangedPackages(
-  options: Parameters<typeof getAllChangedPackages>[0] & Parameters<typeof ensureSharedHistory>[0],
-  packageInfos: PackageInfos
-) {
+export function getChangedPackages(options: BeachballOptions, packageInfos: PackageInfos) {
   const { path: cwd, branch, changeDir } = options;
 
   const changePath = getChangePath(options);
@@ -146,17 +139,16 @@ export function getChangedPackages(
 
   const changedPackages = getAllChangedPackages(options, packageInfos);
 
-  const changeFilesResult = git(
+  const changedFilesResult = git(
     ['diff', '--name-only', '--relative', '--no-renames', '--diff-filter=A', `${branch}...`],
     { cwd }
   );
 
-  if (!fs.existsSync(changePath) || !changeFilesResult.success) {
+  if (!fs.existsSync(changePath) || !changedFilesResult.success) {
     return changedPackages;
   }
 
-  const changes = changeFilesResult.stdout.split(/\n/);
-  const changeFiles = changes.filter(name => path.dirname(name) === changeDir);
+  const changeFiles = changedFilesResult.stdout.split('\n').filter(name => path.dirname(name) === changeDir);
   const changeFilePackageSet = new Set<string>();
 
   // Loop through the change files, building up a set of packages that we can skip
