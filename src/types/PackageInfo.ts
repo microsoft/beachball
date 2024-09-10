@@ -64,3 +64,11 @@ export interface PackageGroupsInfo {
 }
 
 export type PackageGroups = { [groupName: string]: PackageGroupsInfo };
+
+/** Types of dependencies to consider when bumping. */
+export const consideredDependencies = [
+  'dependencies',
+  'devDependencies',
+  'peerDependencies',
+  'optionalDependencies',
+] as const;

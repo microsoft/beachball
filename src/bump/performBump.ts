@@ -4,7 +4,7 @@ import { unlinkChangeFiles } from '../changefile/unlinkChangeFiles';
 import { writeChangelog } from '../changelog/writeChangelog';
 import { BumpInfo } from '../types/BumpInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { PackageInfos, PackageJson } from '../types/PackageInfo';
+import { PackageInfos, PackageJson, consideredDependencies } from '../types/PackageInfo';
 import { findProjectRoot } from 'workspace-tools';
 import { npm } from '../packageManager/npm';
 import { packageManager } from '../packageManager/packageManager';
@@ -23,17 +23,16 @@ export function writePackageJson(modifiedPackages: Set<string>, packageInfos: Pa
       packageJson.version = info.version;
     }
 
-    for (const depKind of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'] as const) {
+    for (const depKind of consideredDependencies) {
       // updatedDeps contains all of the dependencies in the bump info since the beginning of a build job
-      const updatedDepsVersions = info[depKind];
-      if (updatedDepsVersions) {
-        // to be cautious, only update internal && modifiedPackages, since some other dependency
-        // changes could have occurred since the beginning of the build job and the next merge step
-        // would overwrite those incorrectly!
-        for (const [dep, updatedVersion] of Object.entries(updatedDepsVersions)) {
-          if (modifiedPackages.has(dep) && packageJson[depKind]?.[dep]) {
-            packageJson[depKind]![dep] = updatedVersion;
-          }
+      const updatedDeps = info[depKind] || {};
+
+      // to be cautious, only update internal && modifiedPackages, since some other dependency
+      // changes could have occurred since the beginning of the build job and the next merge step
+      // would overwrite those incorrectly!
+      for (const [dep, updatedVersion] of Object.entries(updatedDeps)) {
+        if (modifiedPackages.has(dep) && packageJson[depKind]?.[dep]) {
+          packageJson[depKind]![dep] = updatedVersion;
         }
       }
     }

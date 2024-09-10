@@ -1,6 +1,5 @@
 import type { BumpInfo, PackageDependents } from '../types/BumpInfo';
-
-const depTypes = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'] as const;
+import { consideredDependencies } from '../types/PackageInfo';
 
 /**
  * Gets dependents for all packages (child points to parents): if A depends on B, then `{B: [A]}`
@@ -20,7 +19,7 @@ export function getDependentsForPackages(
       continue;
     }
 
-    for (const depType of depTypes) {
+    for (const depType of consideredDependencies) {
       for (const dep of Object.keys(info[depType] || {})) {
         if (packageInfos[dep]) {
           dependents[dep] ??= [];
