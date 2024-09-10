@@ -15,17 +15,12 @@ export async function writeChangelog(
   bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'dependentChangedBy' | 'packageInfos'>,
   options: Pick<BeachballOptions, 'changeDir' | 'changelog' | 'generateChangelog' | 'path'>
 ): Promise<void> {
-  const { changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy, packageInfos } = bumpInfo;
+  const { packageInfos } = bumpInfo;
 
   const groupedChangelogDirs = await writeGroupedChangelog(bumpInfo, options);
 
-  const changelogs = getPackageChangelogs({
-    changeFileChangeInfos,
-    calculatedChangeTypes,
-    dependentChangedBy,
-    packageInfos,
-    options,
-  });
+  // Get changelogs including dependent changes
+  const changelogs = getPackageChangelogs(bumpInfo, options);
 
   // Write package changelogs.
   // Use a standard for loop here to prevent potentially firing off multiple network requests at once
@@ -63,12 +58,8 @@ async function writeGroupedChangelog(
   }
 
   // Get changelogs without dependency bump entries
-  const changelogs = getPackageChangelogs({
-    changeFileChangeInfos,
-    calculatedChangeTypes,
-    packageInfos,
-    options,
-  });
+  // (do NOT spread the bump info here!)
+  const changelogs = getPackageChangelogs({ changeFileChangeInfos, calculatedChangeTypes, packageInfos }, options);
 
   const groupedChangelogs: {
     [changelogAbsDir: string]: { changelogs: PackageChangelog[]; masterPackage: PackageInfo };
