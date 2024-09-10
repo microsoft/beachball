@@ -6,7 +6,11 @@ import { BeachballOptions } from '../types/BeachballOptions';
  * Bumps an individual package version based on the change type.
  * **This mutates `info.version`!**
  */
-export function bumpPackageInfoVersion(pkgName: string, bumpInfo: BumpInfo, options: BeachballOptions): void {
+export function bumpPackageInfoVersion(
+  pkgName: string,
+  bumpInfo: Pick<BumpInfo, 'calculatedChangeTypes' | 'packageInfos' | 'modifiedPackages'>,
+  options: Pick<BeachballOptions, 'prereleasePrefix' | 'identifierBase'>
+): void {
   const { calculatedChangeTypes, packageInfos, modifiedPackages } = bumpInfo;
   const info = packageInfos[pkgName];
   const changeType = calculatedChangeTypes[pkgName];

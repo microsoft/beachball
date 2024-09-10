@@ -130,7 +130,7 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
 /**
  * Gets all the changed packages which do not already have a change file
  */
-export function getChangedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
+export function getChangedPackages(options: BeachballOptions, packageInfos: PackageInfos) {
   const { path: cwd, branch, changeDir } = options;
 
   const changePath = getChangePath(options);
@@ -139,17 +139,16 @@ export function getChangedPackages(options: BeachballOptions, packageInfos: Pack
 
   const changedPackages = getAllChangedPackages(options, packageInfos);
 
-  const changeFilesResult = git(
+  const changedFilesResult = git(
     ['diff', '--name-only', '--relative', '--no-renames', '--diff-filter=A', `${branch}...`],
     { cwd }
   );
 
-  if (!fs.existsSync(changePath) || !changeFilesResult.success) {
+  if (!fs.existsSync(changePath) || !changedFilesResult.success) {
     return changedPackages;
   }
 
-  const changes = changeFilesResult.stdout.split(/\n/);
-  const changeFiles = changes.filter(name => path.dirname(name) === changeDir);
+  const changeFiles = changedFilesResult.stdout.split('\n').filter(name => path.dirname(name) === changeDir);
   const changeFilePackageSet = new Set<string>();
 
   // Loop through the change files, building up a set of packages that we can skip

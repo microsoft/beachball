@@ -13,7 +13,7 @@ function errorExit(message: string): void {
   process.exit(1);
 }
 
-export async function init(options: BeachballOptions): Promise<void> {
+export async function init(options: Pick<BeachballOptions, 'path'>): Promise<void> {
   let root: string;
   try {
     root = findProjectRoot(options.path);
