@@ -13,6 +13,7 @@ import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import type { Repository } from '../__fixtures__/repository';
 import { getParsedOptions } from '../options/getOptions';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
+import { mockProcessExit } from '../__fixtures__/mockProcessExit';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
 // so instead we inject a custom mock stdout stream, as well as stdin for entering answers
@@ -63,6 +64,7 @@ describe('change command', () => {
   let repo: Repository | undefined;
 
   const logs = initMockLogs();
+  mockProcessExit();
 
   function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
     const parsedOptions = getParsedOptions({

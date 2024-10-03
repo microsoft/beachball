@@ -33,26 +33,17 @@ import { validate } from './validation/validate';
     }
 
     case 'publish': {
-      const packageInfos = getPackageInfos(parsedOptions);
-      validate(options, { checkDependencies: true }, packageInfos);
-
-      // set a default publish message
-      options.message = options.message || 'applying package updates';
-      await publish(options, packageInfos);
+      await publish(options);
       break;
     }
 
     case 'bump': {
-      const packageInfos = getPackageInfos(parsedOptions);
-      validate(options, { checkDependencies: true }, packageInfos);
-      await bump(options, packageInfos);
+      await bump(options);
       break;
     }
 
     case 'canary': {
-      const packageInfos = getPackageInfos(parsedOptions);
-      validate(options, { checkDependencies: true }, packageInfos);
-      await canary(options, packageInfos);
+      await canary(options);
       break;
     }
 
@@ -67,20 +58,7 @@ import { validate } from './validation/validate';
     }
 
     case 'change': {
-      const packageInfos = getPackageInfos(parsedOptions);
-      const { isChangeNeeded } = validate(
-        options,
-        { checkChangeNeeded: true, allowMissingChangeFiles: true },
-        packageInfos
-      );
-
-      if (!isChangeNeeded && !options.package) {
-        console.log('No change files are needed');
-        return;
-      }
-
-      await change(options, packageInfos);
-
+      await change(options);
       break;
     }
 

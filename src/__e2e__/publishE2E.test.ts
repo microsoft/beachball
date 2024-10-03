@@ -14,6 +14,7 @@ import { _mockNpmPublish, initNpmMock } from '../__fixtures__/mockNpm';
 import type { PackageJson } from '../types/PackageInfo';
 import { getParsedOptions } from '../options/getOptions';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
+import { mockProcessExit } from '../__fixtures__/mockProcessExit';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -30,6 +31,7 @@ describe('publish command (e2e)', () => {
 
   // show error logs for these tests
   const logs = initMockLogs({ alsoLog: ['error'] });
+  mockProcessExit();
 
   function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
     const parsedOptions = getParsedOptions({

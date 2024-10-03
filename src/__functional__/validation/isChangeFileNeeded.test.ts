@@ -8,6 +8,7 @@ import type { BeachballOptions } from '../../types/BeachballOptions';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { getParsedOptions } from '../../options/getOptions';
 
+// TODO merge with new logic
 describe('isChangeFileNeeded', () => {
   let repositoryFactory: RepositoryFactory;
   let repository: Repository;

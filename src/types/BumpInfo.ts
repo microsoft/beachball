@@ -2,7 +2,7 @@ import type { ChangeSet, ChangeType } from './ChangeInfo';
 import type { DeepReadonly } from './DeepReadonly';
 import type { PackageInfos, PackageGroups } from './PackageInfo';
 
-export type BumpInfo = {
+export type BumpInfo = Readonly<{
   /**
    * Changes coming from the change files.
    * `readChangeFiles` ensures that this will only contain changes for packages that exist.
@@ -29,14 +29,14 @@ export type BumpInfo = {
   packageGroups: DeepReadonly<PackageGroups>;
 
   /** Set of packages that had been modified */
-  modifiedPackages: Set<string>;
+  modifiedPackages: ReadonlySet<string>;
 
   /** Map from package name to its internal dependency names that were bumped. */
-  dependentChangedBy: { [pkgName: string]: Set<string> };
+  dependentChangedBy: { readonly [pkgName: string]: ReadonlySet<string> };
 
   /** Set of packages that are in scope for this bump */
   scopedPackages: ReadonlySet<string>;
-};
+}>;
 
 /** Dependents cache (child points to parents): if A depends on B, then `{ B: [A] }` */
 export type PackageDependents = { readonly [pkgName: string]: ReadonlyArray<string> };

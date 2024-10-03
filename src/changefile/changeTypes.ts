@@ -1,5 +1,6 @@
 import { BumpInfo } from '../types/BumpInfo';
 import type { ChangeSet, ChangeType } from '../types/ChangeInfo';
+import { PackageInfos } from '../types/PackageInfo';
 
 /**
  * List of all change types from least to most significant.
@@ -29,15 +30,20 @@ const ChangeTypeWeights = Object.fromEntries(SortedChangeTypes.map((t, i) => [t,
  * change file, accounting for any disallowed change types or nonexistent packages.
  * Anything with change type "none" will be ignored.
  */
-export function initializePackageChangeTypes(changeSet: ChangeSet): BumpInfo['calculatedChangeTypes'] {
+export function initializePackageChangeTypes(
+  changeSet: ChangeSet,
+  packageInfos: PackageInfos
+): BumpInfo['calculatedChangeTypes'] {
   const pkgChangeTypes: BumpInfo['calculatedChangeTypes'] = {};
 
   for (const { change } of changeSet) {
     const { packageName: pkg } = change;
-    const changeType = getMaxChangeType([change.type, pkgChangeTypes[pkg]]);
-    // It's best to totally ignore "none" changes to do a bit less processing.
-    if (changeType !== 'none') {
-      pkgChangeTypes[pkg] = changeType;
+    if (packageInfos[pkg]) {
+      const changeType = getMaxChangeType([change.type, pkgChangeTypes[pkg]]);
+      // It's best to totally ignore "none" changes to do a bit less processing.
+      if (changeType !== 'none') {
+        pkgChangeTypes[pkg] = changeType;
+      }
     }
   }
 

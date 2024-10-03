@@ -42,6 +42,11 @@ describe('getChangedPackages', () => {
     repo = repositoryFactory.cloneRepository();
     const { packageInfos, options } = getOptionsAndPackages();
 
+    // no changed packages if no changes
+    expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
+
+    // no changed packages if CHANGELOG
+    repo.stageChange('CHANGELOG.md');
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
 
     repo.stageChange('foo.js');

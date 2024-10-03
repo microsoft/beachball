@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { getMaxChangeType, initializePackageChangeTypes } from '../../changefile/changeTypes';
 import type { ChangeSet } from '../../types/ChangeInfo';
+import { PackageInfo } from '../../types/PackageInfo';
 
 describe('getMaxChangeType', () => {
   it('handles empty change type array', () => {
@@ -55,7 +56,7 @@ describe('getMaxChangeType', () => {
 
 describe('initializePackageChangeTypes', () => {
   it('handles an empty change set', () => {
-    expect(initializePackageChangeTypes([])).toEqual({});
+    expect(initializePackageChangeTypes([], {})).toEqual({});
   });
 
   it('works with a normal change set', () => {
@@ -65,8 +66,13 @@ describe('initializePackageChangeTypes', () => {
       { change: { packageName: 'bar', type: 'minor' } },
       { change: { packageName: 'foo', type: 'patch' } },
     ] as ChangeSet;
-
-    expect(initializePackageChangeTypes(changeSet)).toEqual({
+    expect(
+      initializePackageChangeTypes(changeSet, {
+        foo: {} as PackageInfo,
+        bar: {} as PackageInfo,
+        baz: {} as PackageInfo,
+      })
+    ).toEqual({
       foo: 'minor',
       bar: 'minor',
     });

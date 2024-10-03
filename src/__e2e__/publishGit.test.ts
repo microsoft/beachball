@@ -12,12 +12,15 @@ import type { ChangeFileInfo } from '../types/ChangeInfo';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import type { PackageJson } from '../types/PackageInfo';
 import { getParsedOptions } from '../options/getOptions';
+import { mockProcessExit } from '../__fixtures__/mockProcessExit';
+import { validate } from '../validation/validate';
 
 describe('publish command (git)', () => {
   let repositoryFactory: RepositoryFactory;
   let repo: Repository | undefined;
 
   initMockLogs();
+  mockProcessExit();
 
   function getOptionsAndPackages(cwd?: string) {
     cwd ??= repo!.rootPath;
@@ -74,7 +77,7 @@ describe('publish command (git)', () => {
     const publishBranch = 'publish_test';
     repo1.checkout('-b', publishBranch);
 
-    const bumpInfo = gatherBumpInfo(options1, packageInfos1);
+    const bumpInfo = validate(options1, { checkChangeNeeded: false }, packageInfos1).bumpInfo!;
 
     // 3. Meanwhile, in repo2, also create a new change file
     const repo2 = repositoryFactory.cloneRepository();

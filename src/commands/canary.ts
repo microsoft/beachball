@@ -1,28 +1,34 @@
 import semver from 'semver';
-import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { performBump } from '../bump/performBump';
 import { setDependentVersions } from '../bump/setDependentVersions';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfos } from '../types/PackageInfo';
+import { validate } from '../validation/validate';
+import { getPackageInfos } from '../monorepo/getPackageInfos';
 
 export async function canary(options: BeachballOptions, oldPackageInfo: PackageInfos): Promise<void>;
 /** @deprecated Must provide the package infos */
 export async function canary(options: BeachballOptions): Promise<void>;
 export async function canary(options: BeachballOptions, oldPackageInfo?: PackageInfos): Promise<void> {
   oldPackageInfo = oldPackageInfo || getPackageInfos(options.path);
+  const repoInfo = validate(options, { checkChangeNeeded: false }, oldPackageInfo);
+  let bumpInfo = repoInfo.bumpInfo!;
 
-  const bumpInfo = gatherBumpInfo(options, oldPackageInfo);
+  // TODO: Previously this was called oldPackageInfo but was then passed to bumpInPlace, which mutated it...
+  // If bumping based on the new versions was the intended behavior, this line should be switched
+  // to use bumpInfo.packageInfos instead.
+  oldPackageInfo = repoInfo.packageInfos;
 
   options.keepChangeFiles = true;
   options.generateChangelog = false;
 
   if (options.all) {
-    for (const pkg of Object.keys(oldPackageInfo)) {
-      bumpInfo.modifiedPackages.add(pkg);
-    }
+    bumpInfo = {
+      ...bumpInfo,
+      modifiedPackages: new Set([...bumpInfo.modifiedPackages, ...Object.keys(bumpInfo.packageInfos)]),
+    };
   }
 
   const packageVersions = await listPackageVersions([...bumpInfo.modifiedPackages], options);

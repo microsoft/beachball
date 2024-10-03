@@ -1,8 +1,7 @@
-import { gatherBumpInfo } from '../bump/gatherBumpInfo';
+import { validate } from '../validation/validate';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { gitFailFast, getBranchName, getCurrentHash, git } from 'workspace-tools';
 import prompts from 'prompts';
-import { readChangeFiles } from '../changefile/readChangeFiles';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import { getNewPackages } from '../publish/getNewPackages';
@@ -17,14 +16,19 @@ export async function publish(options: BeachballOptions, oldPackageInfos: Packag
 /** @deprecated Must provide the package infos */
 export async function publish(options: BeachballOptions): Promise<void>;
 export async function publish(options: BeachballOptions, oldPackageInfos?: PackageInfos): Promise<void> {
-  console.log('\nPreparing to publish');
-
   const { path: cwd, branch, registry, tag } = options;
   // First, validate that we have changes to publish
   oldPackageInfos ||= getPackageInfos(cwd);
-  const changes = readChangeFiles(options, oldPackageInfos);
 
-  if (!changes.length) {
+  const bumpInfo: PublishBumpInfo = validate(options, { checkChangeNeeded: false }, oldPackageInfos).bumpInfo!;
+
+  console.log('\nPreparing to publish');
+
+  // set a default publish message
+  options.message ??= 'applying package updates';
+
+  // First, validate that we have changes to publish
+  if (!bumpInfo.modifiedPackages.size) {
     console.log('Nothing to bump, skipping publish!');
     return;
   }
@@ -63,9 +67,6 @@ export async function publish(options: BeachballOptions, oldPackageInfos?: Packa
 
   console.log(`Creating temporary publish branch ${publishBranch}`);
   gitFailFast(['checkout', '-b', publishBranch], { cwd });
-
-  console.log(`\nGathering info ${options.bump ? 'to bump versions' : 'about versions and changes'}`);
-  const bumpInfo: PublishBumpInfo = gatherBumpInfo(options, oldPackageInfos);
 
   if (options.new) {
     // Publish newly created packages even if they don't have change files

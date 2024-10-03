@@ -1,11 +1,9 @@
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { promptForChange } from '../changefile/promptForChange';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { getRecentCommitMessages, getUserEmail } from 'workspace-tools';
-import { getChangedPackages } from '../changefile/getChangedPackages';
-import { getPackageGroups } from '../monorepo/getPackageGroups';
 import type { PackageInfos } from '../types/PackageInfo';
+import { validate } from '../validation/validate';
 
 /**
  * Generate change files.
@@ -17,15 +15,31 @@ export async function change(options: BeachballOptions, packageInfos?: PackageIn
   const { branch, path: cwd, package: specificPackage } = options;
 
   packageInfos ||= getPackageInfos(cwd);
-  const packageGroups = getPackageGroups(packageInfos, cwd, options.groups);
+
+  const { isChangeNeeded, ...repoInfo } = validate(
+    options,
+    {
+      allowMissingChangeFiles: true,
+      // If the user requested a change file for a specific package, don't check if change files are needed
+      checkChangeNeeded: !specificPackage,
+    },
+    packageInfos
+  );
+
+  if (!isChangeNeeded && !specificPackage) {
+    console.log('No change files are needed');
+    return;
+  }
+
+  const { packageInfos, packageGroups } = repoInfo;
 
   const changedPackages =
     typeof specificPackage === 'string'
       ? [specificPackage]
       : Array.isArray(specificPackage)
       ? specificPackage
-      : getChangedPackages(options, packageInfos);
-  if (!changedPackages.length) {
+      : repoInfo.changedPackages;
+  if (!changedPackages?.length) {
     return;
   }
 

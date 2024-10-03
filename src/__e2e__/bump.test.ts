@@ -12,12 +12,14 @@ import type { Repository } from '../__fixtures__/repository';
 import type { PackageJson } from '../types/PackageInfo';
 import { getParsedOptions } from '../options/getOptions';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
+import { mockProcessExit } from '../__fixtures__/mockProcessExit';
 
 describe('version bumping', () => {
   let repositoryFactory: RepositoryFactory | undefined;
   let repo: Repository | undefined;
 
   initMockLogs();
+  mockProcessExit();
 
   function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, cwd?: string) {
     const parsedOptions = getParsedOptions({
@@ -651,7 +653,7 @@ describe('version bumping', () => {
 
     const bumpInfo = await bump(options, originalPackageInfos);
 
-    const modified = [...bumpInfo.modifiedPackages];
+    const modified = [...bumpInfo!.modifiedPackages];
     expect(modified).toContain('package1');
     expect(modified).toContain('package2');
 

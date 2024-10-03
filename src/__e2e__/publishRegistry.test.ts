@@ -12,6 +12,7 @@ import { initNpmMock } from '../__fixtures__/mockNpm';
 import { removeTempDir, tmpdir } from '../__fixtures__/tmpdir';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { getParsedOptions } from '../options/getOptions';
+import { mockProcessExit } from '../__fixtures__/mockProcessExit';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -22,6 +23,7 @@ jest.mock('../packageManager/npm');
 
 describe('publish command (registry)', () => {
   initNpmMock();
+  mockProcessExit();
 
   let repositoryFactory: RepositoryFactory | undefined;
   let repo: Repository | undefined;
