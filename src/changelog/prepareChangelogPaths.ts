@@ -8,12 +8,12 @@ interface ChangelogPaths {
   md?: string;
   /** Absolute path to changelog json file (new or existing) */
   json?: string;
-  /** Hash being used in files, if any */
-  hash?: string;
+  /** Suffix being used in files, if any */
+  suffix?: string;
 }
 
 /**
- * Get the paths to the changelog files. Also handles conversion between `changelog.hashFilenames`
+ * Get the paths to the changelog files. Also handles conversion between `changelog.uniqueFilenames`
  * being true and false/unset (moving the files if needed).
  *
  * @returns object with each changelog path, or undefined if that changelog shouldn't be written.
@@ -25,10 +25,10 @@ export function prepareChangelogPaths(params: {
 }): ChangelogPaths {
   const { options, changelogAbsDir: cwd } = params;
   const { changelog, generateChangelog } = options;
-  const { hashFilenames } = changelog || {};
+  const { uniqueFilenames } = changelog || {};
 
   const paths: ChangelogPaths = {};
-  let existingHashedPaths: ChangelogPaths | undefined;
+  let existingSuffixedPaths: ChangelogPaths | undefined;
 
   if (!generateChangelog) {
     return paths;
@@ -41,30 +41,30 @@ export function prepareChangelogPaths(params: {
 
     const defaultPath = path.join(cwd, `CHANGELOG.${ext}`);
 
-    if (hashFilenames) {
-      // Filenames should be hashed. Start by getting any existing hashed changelogs...
-      existingHashedPaths ??= _getExistingHashedChangelogs(cwd);
-      // Use the existing hash or generate a new one
-      paths.hash ??= existingHashedPaths.hash ?? uuid().slice(0, 8);
+    if (uniqueFilenames) {
+      // Filenames should use a suffix. Start by getting any existing suffixed changelogs...
+      existingSuffixedPaths ??= _getExistingSuffixedChangelogs(cwd);
+      // Use the existing suffix or generate a new one
+      paths.suffix ??= existingSuffixedPaths.suffix ?? uuid().slice(0, 8);
 
-      if (existingHashedPaths[ext]) {
-        // Hashed file already exists, so use it
-        paths[ext] = existingHashedPaths[ext];
+      if (existingSuffixedPaths[ext]) {
+        // Suffixed file already exists, so use it
+        paths[ext] = existingSuffixedPaths[ext];
       } else {
-        // New hashed file
-        paths[ext] = path.join(cwd, `CHANGELOG-${paths.hash}.${ext}`);
-        // Move any existing non-hashed file to the new hashed path
-        moveIfNeeded({ oldPath: defaultPath, newPath: paths[ext]!, wasHashed: false });
+        // New suffixed file
+        paths[ext] = path.join(cwd, `CHANGELOG-${paths.suffix}.${ext}`);
+        // Move any existing non-suffixed file to the new suffixed path
+        moveIfNeeded({ oldPath: defaultPath, newPath: paths[ext]!, hadSuffix: false });
       }
     } else {
-      // Filenames should not be hashed
+      // Filenames should not use a suffix
       paths[ext] = defaultPath;
 
       if (!fs.existsSync(defaultPath)) {
-        // If the default file doesn't exist, check for a hashed file to move back
-        existingHashedPaths ??= _getExistingHashedChangelogs(cwd);
-        if (existingHashedPaths[ext]) {
-          moveIfNeeded({ oldPath: existingHashedPaths[ext]!, newPath: defaultPath, wasHashed: true });
+        // If the default file doesn't exist, check for a suffixed file to move back
+        existingSuffixedPaths ??= _getExistingSuffixedChangelogs(cwd);
+        if (existingSuffixedPaths[ext]) {
+          moveIfNeeded({ oldPath: existingSuffixedPaths[ext]!, newPath: defaultPath, hadSuffix: true });
         }
       }
     }
@@ -74,52 +74,52 @@ export function prepareChangelogPaths(params: {
 }
 
 /**
- * Get paths to existing `CHANGELOG-{hash}.md` and `CHANGELOG-{hash}.json` files.
+ * Get paths to existing `CHANGELOG-{suffix}.md` and `CHANGELOG-{suffix}.json` files.
  * Exported for testing only.
  */
-export function _getExistingHashedChangelogs(cwd: string): ChangelogPaths {
-  let hashedFiles: { file: string; hash: string; date?: number }[];
+export function _getExistingSuffixedChangelogs(cwd: string): ChangelogPaths {
+  let suffixedFiles: { file: string; suffix: string; date?: number }[];
   try {
-    hashedFiles = fs
+    suffixedFiles = fs
       .readdirSync(cwd)
       .filter(file => /^CHANGELOG-[a-f\d]{8,}\.(json|md)$/.test(file))
-      .map(file => ({ file, hash: file.match(/[a-f\d]{8,}/)![0] }));
+      .map(file => ({ file, suffix: file.match(/[a-f\d]{8,}/)![0] }));
   } catch (e) {
     console.warn(`Error listing files in ${cwd}: ${e}`);
     return {};
   }
 
-  if (!hashedFiles.length) {
+  if (!suffixedFiles.length) {
     return {};
   }
 
   const paths: ChangelogPaths = {};
 
-  if (hashedFiles.every(({ hash }) => hash === hashedFiles[0].hash)) {
-    // All the files have the same hash, so use that.
-    paths.hash = hashedFiles[0].hash;
+  if (suffixedFiles.every(({ suffix }) => suffix === suffixedFiles[0].suffix)) {
+    // All the files have the same suffix, so use that.
+    paths.suffix = suffixedFiles[0].suffix;
   } else {
-    // Not likely, but just in case there are mismatched hashes, pick the newest one.
+    // Not likely, but just in case there are mismatched suffixes, pick the newest one.
     try {
-      for (const fileInfo of hashedFiles) {
+      for (const fileInfo of suffixedFiles) {
         fileInfo.date = fs.statSync(path.join(cwd, fileInfo.file)).mtimeMs;
       }
       // sort by date descending
-      hashedFiles.sort((a, b) => b.date! - a.date!);
-      paths.hash = hashedFiles[0].hash;
+      suffixedFiles.sort((a, b) => b.date! - a.date!);
+      paths.suffix = suffixedFiles[0].suffix;
       console.warn(
-        `Found changelog files with multiple hashes in ${cwd} (using the newest one ${paths.hash}):\n` +
-          hashedFiles.map(({ file }) => file).join('\n')
+        `Found changelog files with multiple suffixes in ${cwd} (using the newest one ${paths.suffix}):\n` +
+          suffixedFiles.map(({ file }) => file).join('\n')
       );
     } catch (e) {
       console.warn(`Error getting changelog file dates in ${cwd}:`, e);
     }
   }
 
-  if (paths.hash) {
+  if (paths.suffix) {
     for (const ext of ['md', 'json'] as const) {
-      // Only return hashed files that actually exist and match the chosen hash
-      const extPath = hashedFiles.find(({ file }) => file.endsWith(`${paths.hash}.${ext}`))?.file;
+      // Only return suffixed files that actually exist and match the chosen suffix
+      const extPath = suffixedFiles.find(({ file }) => file.endsWith(`${paths.suffix}.${ext}`))?.file;
       paths[ext] = extPath && path.join(cwd, extPath);
     }
   }
@@ -127,12 +127,14 @@ export function _getExistingHashedChangelogs(cwd: string): ChangelogPaths {
   return paths;
 }
 
-function moveIfNeeded(params: { oldPath: string; newPath: string; wasHashed: boolean }) {
-  const { oldPath, newPath, wasHashed } = params;
+function moveIfNeeded(params: { oldPath: string; newPath: string; hadSuffix: boolean }) {
+  const { oldPath, newPath, hadSuffix } = params;
   try {
     if (fs.existsSync(oldPath)) {
       fs.renameSync(oldPath, newPath);
-      console.log(`Renamed existing ${wasHashed ? 'hashed' : 'non-hashed'} changelog file ${oldPath} to ${newPath}`);
+      console.log(
+        `Renamed existing ${hadSuffix ? 'suffixed' : 'non-suffixed'} changelog file ${oldPath} to ${newPath}`
+      );
     }
   } catch (e) {
     console.warn(`Error renaming changelog file ${oldPath} to ${newPath}: ${e}`);

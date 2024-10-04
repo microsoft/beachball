@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add option changelog.hashFilenames",
+  "comment": "Add option changelog.uniqueFilenames",
   "packageName": "beachball",
   "email": "elcraig@microsoft.com",
   "dependentChangeType": "patch"
