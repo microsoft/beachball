@@ -11,7 +11,7 @@ import {
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { writeChangelog } from '../../changelog/writeChangelog';
-import { _getExistingHashedChangelogs } from '../../changelog/prepareChangelogPaths';
+import { _getExistingSuffixedChangelogs } from '../../changelog/prepareChangelogPaths';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { readChangeFiles } from '../../changefile/readChangeFiles';
 import type { BeachballOptions } from '../../types/BeachballOptions';
@@ -513,7 +513,7 @@ describe('writeChangelog', () => {
     });
   });
 
-  it('appends to existing changelog when migrating from non-hashed to hashed changelog filenames', async () => {
+  it('appends to existing changelog when migrating from non-suffixed to suffixed changelog filenames', async () => {
     repo = sharedSingleRepo;
     const options = getOptions();
 
@@ -530,15 +530,15 @@ describe('writeChangelog', () => {
     // Delete the initial change files
     fs.emptyDirSync(getChangePath(options));
 
-    // Change the options to used hashed filenames, generate new change files, and re-generate changelogs
-    options.changelog = { hashFilenames: true };
+    // Change the options to used suffixed filenames, generate new change files, and re-generate changelogs
+    options.changelog = { uniqueFilenames: true };
     generateChangeFiles([getChange('foo', 'extra change')], options);
     await writeChangelogWrapper({ options });
 
     // Verify the old changelog is moved
     expect(readChangelogMd(repo.rootPath)).toBeNull();
-    // Get hashed changelog paths
-    const paths = _getExistingHashedChangelogs(repo.rootPath);
+    // Get suffixed changelog paths
+    const paths = _getExistingSuffixedChangelogs(repo.rootPath);
     expect(paths).toMatchObject({ md: expect.any(String), json: expect.any(String) });
 
     // Read the changelogs again and verify that the previous content is still there
