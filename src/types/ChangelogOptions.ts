@@ -33,6 +33,16 @@ export interface ChangelogOptions {
    * ```
    */
   renderMainHeader?: (packageChangelog: PackageChangelog) => Promise<string>;
+
+  /**
+   * If true, add a hash suffix to changelog filenames: e.g. CHANGELOG-d7d39c3f.md and CHANGELOG-d7d39c3f.json.
+   * (Once added, this suffix will stay stable between commits.)
+   *
+   * This is one option for working around an issue with Git: its default hash algorithm only
+   * considers the last 16 characters of filenames, which can lead to collisions and inefficient
+   * packing when many files have similar names.
+   */
+  hashFilenames?: boolean;
 }
 
 /**

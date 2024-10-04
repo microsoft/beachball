@@ -5,7 +5,11 @@ const commonOptions = {
   roots: ['<rootDir>/src'],
   setupFilesAfterEnv: ['<rootDir>/scripts/jestSetup.js'],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      // in ts-jest, this means skip type checking (we already type check in the build step)
+      { isolatedModules: true },
+    ],
   },
   testEnvironment: 'node',
 };

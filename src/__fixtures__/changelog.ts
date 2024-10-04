@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
 import path from 'path';
-import _ from 'lodash';
 import { ChangelogJson } from '../types/ChangeLog';
 import { markerComment } from '../changelog/renderChangelog';
 
@@ -11,8 +10,8 @@ export const fakeCommit = '(sha1)';
  * Read the CHANGELOG.md under the given package path, sanitizing any dates for snapshots.
  * Returns null if it doesn't exist.
  */
-export function readChangelogMd(packagePath: string): string | null {
-  const changelogFile = path.join(packagePath, 'CHANGELOG.md');
+export function readChangelogMd(packagePath: string, filename?: string): string | null {
+  const changelogFile = path.join(packagePath, filename || 'CHANGELOG.md');
   if (!fs.existsSync(changelogFile)) {
     return null;
   }
@@ -26,27 +25,23 @@ export function trimChangelogMd(changelogMd: string): string {
 }
 
 /**
- * Read the CHANGELOG.json under the given package path.
- * Returns null if it doesn't exist.
+ * Read the CHANGELOG.json, and clean it for a snapshot (unless `noClean` is true):
+ * replace dates and SHAs with placeholders.
+ * @param packagePath The path to the package directory.
+ * @param filename The name of the changelog file. Defaults to 'CHANGELOG.json'.
+ * @param noClean If true, don't clean the changelog for snapshots.
+ * @returns The parsed changelog JSON, or null if it doesn't exist.
  */
-export function readChangelogJson(packagePath: string, cleanForSnapshot: boolean = false): ChangelogJson | null {
-  const changelogJsonFile = path.join(packagePath, 'CHANGELOG.json');
+export function readChangelogJson(packagePath: string, filename?: string, noClean?: boolean): ChangelogJson | null {
+  const changelogJsonFile = path.join(packagePath, filename || 'CHANGELOG.json');
   if (!fs.existsSync(changelogJsonFile)) {
     return null;
   }
-  const json = fs.readJSONSync(changelogJsonFile, { encoding: 'utf-8' });
-  return cleanForSnapshot ? cleanChangelogJson(json) : json;
-}
 
-/**
- * Clean changelog json for a snapshot: replace dates and SHAs with placeholders.
- * Note: this clones the changelog object rather than modifying the original.
- */
-export function cleanChangelogJson(changelog: ChangelogJson | null): ChangelogJson | null {
-  if (!changelog) {
-    return null;
+  const changelog: ChangelogJson = fs.readJSONSync(changelogJsonFile, { encoding: 'utf-8' });
+  if (noClean) {
+    return changelog;
   }
-  changelog = _.cloneDeep(changelog);
 
   for (const entry of changelog.entries) {
     // Only replace properties if they existed, to help catch bugs if things are no longer written
