@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
 import fs from 'fs-extra';
+import semver from 'semver';
 import { generateChangeFiles, getChange, fakeEmail as author } from '../../__fixtures__/changeFiles';
 import {
   cleanChangelogJson,
@@ -19,6 +20,7 @@ import { getDefaultOptions } from '../../options/getDefaultOptions';
 import type { BumpInfo } from '../../types/BumpInfo';
 import { getMaxChangeType } from '../../changefile/changeTypes';
 import { getChangePath } from '../../paths';
+import { trimmedVersionsNote } from '../../changelog/renderChangelog';
 
 describe('writeChangelog', () => {
   let repositoryFactory: RepositoryFactory;
@@ -30,10 +32,15 @@ describe('writeChangelog', () => {
   initMockLogs();
 
   /**
-   * Read package infos and change files, fill in default options, and call `writeChangelog`.
+   * Read package infos and change files, fill in default options, bump versions in package info,
+   * and call `writeChangelog`.
    *
    * `calculatedChangeTypes` will be generated based on the max change type of each package's change files,
    * and assuming every `dependentChangedBy` package has change type `patch`.
+   *
+   * The package info versions and package.json versions on disk (but not dependency ranges) will be
+   * bumped based on the `calculatedChangeTypes`, so that the changelog results are more realistic,
+   * and tests involving multiple bumps work more realistically.
    */
   async function writeChangelogWrapper(
     params: Partial<Pick<BumpInfo, 'dependentChangedBy'>> & {
@@ -52,6 +59,14 @@ describe('writeChangelog', () => {
     }
     for (const pkgName of Object.keys(dependentChangedBy)) {
       calculatedChangeTypes[pkgName] = getMaxChangeType('patch', calculatedChangeTypes[pkgName]);
+    }
+
+    // Bump versions in package info and package.json for more realistic changelogs.
+    // (This is a much more basic variant of the usual bump process.)
+    for (const [pkgName, changeType] of Object.entries(calculatedChangeTypes)) {
+      packageInfos[pkgName].version = semver.inc(packageInfos[pkgName].version, changeType as semver.ReleaseType)!;
+      const { packageJsonPath, ...packageJson } = packageInfos[pkgName];
+      fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 2 });
     }
 
     await writeChangelog({ dependentChangedBy, calculatedChangeTypes, changeFileChangeInfos, packageInfos }, options);
@@ -118,9 +133,9 @@ describe('writeChangelog', () => {
     const changelogJson = readChangelogJson(repo.rootPath);
     expect(changelogJson).toEqual({ name: 'foo', entries: [expect.anything()] });
     expect(cleanChangelogJson(changelogJson)!.entries[0]).toEqual({
-      version: '1.0.0',
+      version: '1.1.0',
       date: '(date)',
-      tag: 'foo_v1.0.0',
+      tag: 'foo_v1.1.0',
       comments: {
         minor: [
           { comment: 'new minor comment', package: 'foo', author, commit },
@@ -191,13 +206,13 @@ describe('writeChangelog', () => {
     const fooJson = readChangelogJson(repo.pathTo('packages/foo'));
     expect(fooJson).toEqual({ name: 'foo', entries: [expect.anything()] });
     expect(cleanChangelogJson(fooJson)!.entries[0]).toEqual({
-      version: '1.0.0',
+      version: '1.1.0',
       date: '(date)',
-      tag: 'foo_v1.0.0',
+      tag: 'foo_v1.1.0',
       comments: {
         minor: [
           { package: 'foo', comment: 'foo comment', author, commit },
-          { package: 'foo', comment: 'Bump bar to v1.3.4', author: 'beachball', commit },
+          { package: 'foo', comment: 'Bump bar to v1.3.5', author: 'beachball', commit },
         ],
       },
     });
@@ -206,19 +221,19 @@ describe('writeChangelog', () => {
     expect(barJson).toEqual({ name: 'bar', entries: [expect.anything()] });
     expect(cleanChangelogJson(barJson)!.entries[0]).toEqual({
       comments: {
-        patch: [{ package: 'bar', comment: 'Bump baz to v1.3.4', author: 'beachball', commit }],
+        patch: [{ package: 'bar', comment: 'Bump baz to v1.4.0', author: 'beachball', commit }],
       },
       date: '(date)',
-      tag: 'bar_v1.3.4',
-      version: '1.3.4',
+      tag: 'bar_v1.3.5',
+      version: '1.3.5',
     });
 
     const bazJson = readChangelogJson(repo.pathTo('packages/baz'));
     expect(bazJson).toEqual({ name: 'baz', entries: [expect.anything()] });
     expect(cleanChangelogJson(bazJson)!.entries[0]).toEqual({
-      version: '1.3.4',
+      version: '1.4.0',
       date: '(date)',
-      tag: 'baz_v1.3.4',
+      tag: 'baz_v1.4.0',
       comments: {
         minor: [{ package: 'baz', comment: 'baz comment', author, commit }],
       },
@@ -251,7 +266,7 @@ describe('writeChangelog', () => {
       minor: [
         expect.objectContaining({ comment: 'comment 1', package: 'foo' }),
         expect.objectContaining({ comment: 'comment 2', package: 'foo' }),
-        expect.objectContaining({ comment: 'Bump bar to v1.3.4', package: 'foo' }),
+        expect.objectContaining({ comment: 'Bump bar to v1.4.0', package: 'foo' }),
       ],
     });
 
@@ -306,7 +321,7 @@ describe('writeChangelog', () => {
     const fooJson = readChangelogJson(repo.pathTo('packages/foo'));
     expect(fooJson).toEqual({ name: 'foo', entries: [expect.anything()] });
     expect(fooJson!.entries[0].comments.minor).toContainEqual(
-      expect.objectContaining({ comment: 'Bump bar to v1.3.4' })
+      expect.objectContaining({ comment: 'Bump bar to v1.3.5' })
     );
 
     // Validate grouped changelog: it shouldn't have dependent entries
@@ -328,8 +343,8 @@ describe('writeChangelog', () => {
         ],
       },
       date: '(date)',
-      tag: 'foo_v1.0.0',
-      version: '1.0.0',
+      tag: 'foo_v1.1.0',
+      version: '1.1.0',
     });
   });
 
@@ -455,7 +470,7 @@ describe('writeChangelog', () => {
     await writeChangelogWrapper({ options });
 
     // CHANGELOG.md is written
-    expect(readChangelogMd(repo.rootPath)).toContain('## 1.0.0');
+    expect(readChangelogMd(repo.rootPath)).toContain('## 1.1.0');
 
     // CHANGELOG.json is not written
     expect(readChangelogJson(repo.rootPath)).toBeNull();
@@ -509,5 +524,30 @@ describe('writeChangelog', () => {
       name: 'foo',
       entries: [expect.anything(), firstChangelogJson!.entries[0]],
     });
+  });
+
+  it('trims previous changelog entries over maxVersions', async () => {
+    repo = sharedSingleRepo;
+    const options = getOptions({ changelog: { maxVersions: 2 } });
+
+    // Bump and write three times
+    for (let i = 1; i <= 3; i++) {
+      fs.emptyDirSync(getChangePath(options));
+      generateChangeFiles([{ packageName: 'foo', comment: `foo comment ${i}` }], options);
+      await writeChangelogWrapper({ options });
+    }
+
+    // Read the changelog md and verify that it only has the last two versions
+    const changelogMd = readChangelogMd(repo.rootPath);
+    expect(changelogMd).toContain('## 1.3.0');
+    expect(changelogMd).toContain('## 1.2.0');
+    expect(changelogMd).not.toContain('## 1.1.0');
+    expect(changelogMd).toContain(trimmedVersionsNote);
+    // Do a snapshot to make sure there's no funny formatting
+    expect(changelogMd).toMatchSnapshot('CHANGELOG.md');
+
+    // Same with changelog json
+    const changelogJson = readChangelogJson(repo.rootPath);
+    expect(changelogJson!.entries).toHaveLength(2);
   });
 });

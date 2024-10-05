@@ -24,6 +24,7 @@ export interface ChangelogOptions {
    * If using a custom `renderPackageChangelog`, these will not be called automatically.
    */
   customRenderers?: ChangelogRenderers;
+
   /**
    * Custom renderer for the header for the entire changelog.
    *
@@ -33,6 +34,12 @@ export interface ChangelogOptions {
    * ```
    */
   renderMainHeader?: (packageChangelog: PackageChangelog) => Promise<string>;
+
+  /**
+   * Maximum number of versions to keep in the changelog md and json files.
+   * (If the md file is truncated, it will include a comment about referring to git for older entries.)
+   */
+  maxVersions?: number;
 }
 
 /**
@@ -89,6 +96,7 @@ export interface PackageChangelogRenderInfo {
 export interface ChangelogRenderers {
   /**
    * Custom renderer for the header for a particular package version.
+   * The returned string must start with a markdown header, usually h2 (`##`).
    *
    * Default is like this (no leading or trailing newlines):
    * ```txt
