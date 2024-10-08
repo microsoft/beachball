@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Replace usage of uuid library with built-in crypto.randomUUID()",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

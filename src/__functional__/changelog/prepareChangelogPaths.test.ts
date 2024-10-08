@@ -7,10 +7,12 @@ import { createTestFileStructure } from '../../__fixtures__/createTestFileStruct
 
 describe('prepareChangelogPaths', () => {
   let consoleLogMock: jest.SpiedFunction<typeof console.log>;
-  let consoleWarnMock: jest.SpiedFunction<typeof console.warn>;
   let tempDir: string | undefined;
+
   const fakeDir = slash(path.resolve('/faketmpdir'));
-  const suffixRegexp = /^[0-9a-f]{8}$/;
+  const packageName = 'test';
+  /** This is the beginning of the md5 hash digest of "test" */
+  const testHash = '098f6bcd';
 
   /** Wrapper that calls `prepareChangelogPaths` and converts the result to forward slashes */
   function prepareChangelogPathsWrapper(options: Parameters<typeof prepareChangelogPaths>[0]) {
@@ -26,11 +28,12 @@ describe('prepareChangelogPaths', () => {
 
   beforeAll(() => {
     consoleLogMock = jest.spyOn(console, 'log').mockImplementation(() => {});
-    consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    // there will be a bunch of ignorable warnings because /faketmpdir doesn't exist
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    consoleWarnMock.mockClear();
+    consoleLogMock.mockClear();
     tempDir && removeTempDir(tempDir);
     tempDir = undefined;
   });
@@ -39,6 +42,7 @@ describe('prepareChangelogPaths', () => {
     const paths = prepareChangelogPathsWrapper({
       options: { generateChangelog: false, changelog: {} },
       changelogAbsDir: fakeDir,
+      packageName,
     });
 
     expect(paths).toEqual({});
@@ -48,6 +52,7 @@ describe('prepareChangelogPaths', () => {
     const paths = prepareChangelogPathsWrapper({
       options: { generateChangelog: true },
       changelogAbsDir: fakeDir,
+      packageName,
     });
 
     expect(paths).toEqual({ md: `${fakeDir}/CHANGELOG.md`, json: `${fakeDir}/CHANGELOG.json` });
@@ -57,6 +62,7 @@ describe('prepareChangelogPaths', () => {
     const paths = prepareChangelogPathsWrapper({
       options: { generateChangelog: 'md' },
       changelogAbsDir: fakeDir,
+      packageName,
     });
 
     expect(paths).toEqual({ md: `${fakeDir}/CHANGELOG.md` });
@@ -66,183 +72,96 @@ describe('prepareChangelogPaths', () => {
     const paths = prepareChangelogPathsWrapper({
       options: { generateChangelog: 'json' },
       changelogAbsDir: fakeDir,
+      packageName,
     });
 
     expect(paths).toEqual({ json: `${fakeDir}/CHANGELOG.json` });
   });
 
-  it('returns new suffixed paths if uniqueFilenames is true and no files exist', () => {
-    const paths = prepareChangelogPathsWrapper({
+  it('returns new paths with hashes if uniqueFilenames is true and no files exist', () => {
+    const options = {
       options: { generateChangelog: true, changelog: { uniqueFilenames: true } },
       changelogAbsDir: fakeDir,
-    });
+    };
+
+    const paths = prepareChangelogPathsWrapper({ ...options, packageName: 'test' });
 
     expect(paths).toEqual({
-      md: `${fakeDir}/CHANGELOG-${paths.suffix}.md`,
-      json: `${fakeDir}/CHANGELOG-${paths.suffix}.json`,
-      suffix: expect.stringMatching(suffixRegexp),
+      md: `${fakeDir}/CHANGELOG-${testHash}.md`,
+      json: `${fakeDir}/CHANGELOG-${testHash}.json`,
+    });
+
+    // hash is based on package name, not path or anything else
+    const otherPaths = prepareChangelogPathsWrapper({ ...options, packageName: 'other' });
+
+    expect(otherPaths).toEqual({
+      md: `${fakeDir}/CHANGELOG-795f3202.md`,
+      json: `${fakeDir}/CHANGELOG-795f3202.json`,
     });
   });
 
-  it('returns new suffixed md path if uniqueFilenames is true and generateChangelog is "md"', () => {
+  it('returns new md path with hash if uniqueFilenames is true and generateChangelog is "md"', () => {
     const paths = prepareChangelogPathsWrapper({
       options: { generateChangelog: 'md', changelog: { uniqueFilenames: true } },
       changelogAbsDir: fakeDir,
+      packageName,
     });
 
     expect(paths).toEqual({
-      md: `${fakeDir}/CHANGELOG-${paths.suffix}.md`,
-      suffix: expect.stringMatching(suffixRegexp),
+      md: `${fakeDir}/CHANGELOG-${testHash}.md`,
     });
   });
 
-  it('returns new suffixed json path if uniqueFilenames is true and generateChangelog is "json"', () => {
+  it('returns new json path with hash if uniqueFilenames is true and generateChangelog is "json"', () => {
     const paths = prepareChangelogPathsWrapper({
       options: { generateChangelog: 'json', changelog: { uniqueFilenames: true } },
       changelogAbsDir: fakeDir,
+      packageName,
     });
 
     expect(paths).toEqual({
-      json: `${fakeDir}/CHANGELOG-${paths.suffix}.json`,
-      suffix: expect.stringMatching(suffixRegexp),
+      json: `${fakeDir}/CHANGELOG-${testHash}.json`,
     });
   });
 
-  it('detects existing suffixed files if uniqueFilenames is true', () => {
-    const suffix = 'abcdef12';
-    tempDir = createTestFileStructure({
-      [`CHANGELOG-${suffix}.md`]: 'existing md',
-      [`CHANGELOG-${suffix}.json`]: {},
-    });
-
-    const paths = prepareChangelogPathsWrapper({
-      options: { generateChangelog: true, changelog: { uniqueFilenames: true } },
-      changelogAbsDir: tempDir,
-    });
-    expect(paths).toEqual({
-      md: `${tempDir}/CHANGELOG-${suffix}.md`,
-      json: `${tempDir}/CHANGELOG-${suffix}.json`,
-      suffix,
-    });
-  });
-
-  it('detects suffix from existing md file if uniqueFilenames is true', () => {
-    // only the md file is present, but its suffix will be used for both files
-    const suffix = 'abcdef12';
-    tempDir = createTestFileStructure({
-      [`CHANGELOG-${suffix}.md`]: 'existing md',
-    });
-
-    const pathsWithBoth = prepareChangelogPathsWrapper({
-      options: { generateChangelog: true, changelog: { uniqueFilenames: true } },
-      changelogAbsDir: tempDir,
-    });
-    expect(pathsWithBoth).toEqual({
-      md: `${tempDir}/CHANGELOG-${suffix}.md`,
-      json: `${tempDir}/CHANGELOG-${suffix}.json`,
-      suffix,
-    });
-  });
-
-  it('detects suffix from existing json file if uniqueFilenames is true', () => {
-    // only the json file is present, but its suffix will be used for both files
-    const suffix = 'abcdef12';
-    tempDir = createTestFileStructure({
-      [`CHANGELOG-${suffix}.json`]: {},
-    });
-
-    const paths = prepareChangelogPathsWrapper({
-      options: { generateChangelog: true, changelog: { uniqueFilenames: true } },
-      changelogAbsDir: tempDir,
-    });
-    expect(paths).toEqual({
-      md: `${tempDir}/CHANGELOG-${suffix}.md`,
-      json: `${tempDir}/CHANGELOG-${suffix}.json`,
-      suffix,
-    });
-  });
-
-  it('uses newer suffix if uniqueFilenames is true and md/json files have different suffixes', async () => {
-    const suffixJson = 'abcdef34';
-    const suffixMd = 'abcdef12';
-    tempDir = createTestFileStructure({
-      [`CHANGELOG-${suffixJson}.json`]: {},
-    });
-    // ensure different timestamps by waiting 1ms
-    await new Promise(resolve => setTimeout(resolve, 1));
-    fs.writeFileSync(path.join(tempDir, `CHANGELOG-${suffixMd}.md`), 'existing md');
-
-    const paths = prepareChangelogPathsWrapper({
-      options: { generateChangelog: true, changelog: { uniqueFilenames: true } },
-      changelogAbsDir: tempDir,
-    });
-    // md suffix is preferred for both files because the file is newer
-    expect(paths).toEqual({
-      md: `${tempDir}/CHANGELOG-${suffixMd}.md`,
-      json: `${tempDir}/CHANGELOG-${suffixMd}.json`,
-      suffix: suffixMd,
-    });
-    expect(consoleWarnMock).toHaveBeenCalledWith(
-      expect.stringContaining('Found changelog files with multiple suffixes')
-    );
-  });
-
-  it('uses newest suffix if uniqueFilenames is true and there are multiple suffixed files', async () => {
-    const lastSuffix = 'abcdef12';
-    tempDir = createTestFileStructure({
-      'CHANGELOG-12345678.md': 'existing md',
-      'CHANGELOG-abcd40ef.md': 'existing md',
-    });
-    // ensure different timestamps by waiting 1ms
-    await new Promise(resolve => setTimeout(resolve, 1));
-    fs.writeFileSync(path.join(tempDir, `CHANGELOG-${lastSuffix}.md`), 'existing md');
-
-    const paths = prepareChangelogPathsWrapper({
-      options: { generateChangelog: true, changelog: { uniqueFilenames: true } },
-      changelogAbsDir: tempDir,
-    });
-    expect(paths).toEqual({
-      md: `${tempDir}/CHANGELOG-${lastSuffix}.md`,
-      json: `${tempDir}/CHANGELOG-${lastSuffix}.json`,
-      suffix: lastSuffix,
-    });
-    expect(consoleWarnMock).toHaveBeenCalledWith(
-      expect.stringContaining('Found changelog files with multiple suffixes')
-    );
-  });
-
-  it('migrates existing non-suffixed file to suffixed path', () => {
+  it('migrates existing non-hash file to path with hash (uniqueFilenames false to true)', () => {
     tempDir = createTestFileStructure({
       'CHANGELOG.md': 'existing md',
+      'CHANGELOG.json': {},
     });
 
     const paths = prepareChangelogPathsWrapper({
       options: { generateChangelog: true, changelog: { uniqueFilenames: true } },
       changelogAbsDir: tempDir,
+      packageName,
     });
 
     expect(paths).toEqual({
-      md: `${tempDir}/CHANGELOG-${paths.suffix}.md`,
-      json: `${tempDir}/CHANGELOG-${paths.suffix}.json`,
-      suffix: expect.stringMatching(suffixRegexp),
+      md: `${tempDir}/CHANGELOG-${testHash}.md`,
+      json: `${tempDir}/CHANGELOG-${testHash}.json`,
     });
+
     expect(fs.existsSync(`${tempDir}/CHANGELOG.md`)).toBe(false);
     expect(fs.readFileSync(paths.md!, 'utf8')).toBe('existing md');
 
-    expect(consoleLogMock).toHaveBeenCalledWith(
-      expect.stringContaining('Renamed existing non-suffixed changelog file')
-    );
+    expect(fs.existsSync(`${tempDir}/CHANGELOG.json`)).toBe(false);
+    expect(fs.readFileSync(paths.json!, 'utf8')).toBe('{}');
+
+    expect(consoleLogMock).toHaveBeenCalledWith(expect.stringContaining('Renamed existing changelog file'));
+    expect(consoleLogMock).toHaveBeenCalledTimes(2);
   });
 
-  it('migrates existing suffixed file to non-suffixed path', () => {
-    const suffixedName = 'CHANGELOG-abcdef08.md';
+  it('migrates existing path with hash to non-hash path (uniqueFilenames true to false)', () => {
+    const oldName = 'CHANGELOG-abcdef08';
     tempDir = createTestFileStructure({
-      [suffixedName]: 'existing md',
+      [`${oldName}.md`]: 'existing md',
+      [`${oldName}.json`]: {},
     });
 
     const paths = prepareChangelogPathsWrapper({
       options: { generateChangelog: true },
       changelogAbsDir: tempDir,
+      packageName,
     });
 
     expect(paths).toEqual({
@@ -250,9 +169,49 @@ describe('prepareChangelogPaths', () => {
       json: `${tempDir}/CHANGELOG.json`,
     });
 
-    expect(fs.existsSync(`${tempDir}/${suffixedName}`)).toBe(false);
+    expect(fs.existsSync(`${tempDir}/${oldName}.md`)).toBe(false);
     expect(fs.readFileSync(paths.md!, 'utf8')).toBe('existing md');
 
-    expect(consoleLogMock).toHaveBeenCalledWith(expect.stringContaining('Renamed existing suffixed changelog file'));
+    expect(fs.existsSync(`${tempDir}/${oldName}.json`)).toBe(false);
+    expect(fs.readFileSync(paths.json!, 'utf8')).toBe('{}');
+
+    expect(consoleLogMock).toHaveBeenCalledWith(expect.stringContaining('Renamed existing changelog file'));
+    expect(consoleLogMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('renames newest file if uniqueFilenames is true and there are multiple files with hashes', async () => {
+    const file1 = 'CHANGELOG-12345678.md';
+    const file2 = 'CHANGELOG-fbcd40ef.md';
+    const lastHash = 'abcdef12';
+    tempDir = createTestFileStructure({
+      [file1]: 'md 1',
+      [file2]: 'md 2',
+    });
+    // ensure different timestamps by waiting 1ms
+    await new Promise(resolve => setTimeout(resolve, 1));
+    fs.writeFileSync(path.join(tempDir, `CHANGELOG-${lastHash}.md`), 'last md');
+
+    const paths = prepareChangelogPathsWrapper({
+      options: { generateChangelog: true, changelog: { uniqueFilenames: true } },
+      changelogAbsDir: tempDir,
+      packageName,
+    });
+
+    // Paths use the actual hash of "test"
+    expect(paths).toEqual({
+      md: `${tempDir}/CHANGELOG-${testHash}.md`,
+      json: `${tempDir}/CHANGELOG-${testHash}.json`,
+    });
+
+    // The most recently modified file is renamed
+    expect(fs.existsSync(`${tempDir}/CHANGELOG-${lastHash}.md`)).toBe(false);
+    expect(fs.readFileSync(paths.md!, 'utf8')).toBe('last md');
+
+    expect(consoleLogMock).toHaveBeenCalledWith(expect.stringContaining('Renamed existing changelog file'));
+    expect(consoleLogMock).toHaveBeenCalledTimes(1);
+
+    // The other files are untouched
+    expect(fs.readFileSync(`${tempDir}/${file1}`, 'utf8')).toBe('md 1');
+    expect(fs.readFileSync(`${tempDir}/${file2}`, 'utf8')).toBe('md 2');
   });
 });
