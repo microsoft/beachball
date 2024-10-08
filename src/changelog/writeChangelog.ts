@@ -122,7 +122,7 @@ async function writeChangelogFiles(params: {
 }): Promise<void> {
   const { options, newVersionChangelog, changelogAbsDir, isGrouped } = params;
 
-  const changelogPaths = prepareChangelogPaths({ options, changelogAbsDir });
+  const changelogPaths = prepareChangelogPaths({ options, changelogAbsDir, packageName: newVersionChangelog.name });
 
   let previousJson: ChangelogJson | undefined;
 

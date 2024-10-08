@@ -1,6 +1,5 @@
 import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
 import fs from 'fs-extra';
-import path from 'path';
 import { generateChangeFiles, getChange, fakeEmail as author } from '../../__fixtures__/changeFiles';
 import {
   readChangelogJson,
@@ -11,7 +10,6 @@ import {
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { writeChangelog } from '../../changelog/writeChangelog';
-import { _getExistingSuffixedChangelogs } from '../../changelog/prepareChangelogPaths';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { readChangeFiles } from '../../changefile/readChangeFiles';
 import type { BeachballOptions } from '../../types/BeachballOptions';
@@ -513,7 +511,7 @@ describe('writeChangelog', () => {
     });
   });
 
-  it('appends to existing changelog when migrating from non-suffixed to suffixed changelog filenames', async () => {
+  it('appends to existing changelog when migrating from uniqueFilenames=false to true', async () => {
     repo = sharedSingleRepo;
     const options = getOptions();
 
@@ -537,16 +535,14 @@ describe('writeChangelog', () => {
 
     // Verify the old changelog is moved
     expect(readChangelogMd(repo.rootPath)).toBeNull();
-    // Get suffixed changelog paths
-    const paths = _getExistingSuffixedChangelogs(repo.rootPath);
-    expect(paths).toMatchObject({ md: expect.any(String), json: expect.any(String) });
 
     // Read the changelogs again and verify that the previous content is still there
-    const secondChangelogMd = readChangelogMd(repo.rootPath, path.basename(paths.md!));
+    // ("acbd18db" is the start of the md5 hash digest of "foo")
+    const secondChangelogMd = readChangelogMd(repo.rootPath, 'CHANGELOG-acbd18db.md');
     expect(secondChangelogMd).toContain('extra change');
     expect(secondChangelogMd).toContain(trimChangelogMd(firstChangelogMd!));
 
-    const secondChangelogJson = readChangelogJson(repo.rootPath, path.basename(paths.json!));
+    const secondChangelogJson = readChangelogJson(repo.rootPath, 'CHANGELOG-acbd18db.json');
     expect(secondChangelogJson).toEqual({
       name: 'foo',
       entries: [expect.anything(), firstChangelogJson!.entries[0]],
