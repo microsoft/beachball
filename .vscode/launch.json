@@ -14,7 +14,10 @@
       "args": ["--", "--runInBand", "--watch", "--testTimeout=1000000", "${fileBasenameNoExtension}"],
       "sourceMaps": true,
       "outputCapture": "std",
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      // Debug with Node 14 via nvm.
+      // On Windows, you might have to change this to a specific version.
+      "runtimeVersion": "14"
     },
     {
       "type": "node",
