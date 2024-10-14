@@ -40,7 +40,7 @@ export async function packagePublish(
     });
 
     if (result.success) {
-      console.log('Published!');
+      console.log(`Published! - ${packageSpec}`);
       return result;
     }
 
