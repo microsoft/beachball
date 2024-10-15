@@ -12,6 +12,7 @@ import { publish } from '../commands/publish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { initNpmMock } from '../__fixtures__/mockNpm';
+import os from 'os';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -21,6 +22,7 @@ import { initNpmMock } from '../__fixtures__/mockNpm';
 jest.mock('../packageManager/npm');
 
 describe('publish command (e2e)', () => {
+  const concurrencyValues = [[1],[os.cpus().length]];
   initNpmMock();
 
   let repositoryFactory: RepositoryFactory | undefined;
@@ -55,11 +57,11 @@ describe('publish command (e2e)', () => {
     repo = undefined;
   });
 
-  it('can perform a successful npm publish', async () => {
+  it.each(concurrencyValues)('can perform a successful npm publish, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions();
+    const options = getOptions({ concurrency: concurrency });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -77,11 +79,14 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
   });
 
-  it('can perform a successful npm publish in detached HEAD', async () => {
+  it.each(concurrencyValues)('can perform a successful npm publish in detached HEAD, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({ push: false });
+    const options = getOptions({
+      push: false,
+      concurrency: concurrency,
+    });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -97,11 +102,11 @@ describe('publish command (e2e)', () => {
     });
   });
 
-  it('can perform a successful npm publish from a race condition', async () => {
+  it.each(concurrencyValues)('can perform a successful npm publish from a race condition, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions();
+    const options = getOptions({ concurrency: concurrency });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -138,11 +143,11 @@ describe('publish command (e2e)', () => {
     expect(fetchCount).toBe(2);
   });
 
-  it('can perform a successful npm publish from a race condition in the dependencies', async () => {
+  it.each(concurrencyValues)('can perform a successful npm publish from a race condition in the dependencies, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions();
+    const options = getOptions({ concurrency: concurrency });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -186,7 +191,7 @@ describe('publish command (e2e)', () => {
     expect(contents.dependencies.baz).toBeUndefined();
   });
 
-  it('can perform a successful npm publish without bump', async () => {
+  it.each(concurrencyValues)('can perform a successful npm publish without bump, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
@@ -209,11 +214,11 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual([]);
   });
 
-  it('publishes only changed packages in a monorepo', async () => {
+  it.each(concurrencyValues)('publishes only changed packages in a monorepo, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions();
+    const options = getOptions({ concurrency: concurrency });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -233,11 +238,11 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
   });
 
-  it('publishes dependent packages in a monorepo', async () => {
+  it.each(concurrencyValues)('publishes dependent packages in a monorepo, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions();
+    const options = getOptions({ concurrency: concurrency });
 
     // bump baz => dependent bump bar => dependent bump foo
     generateChangeFiles(['baz'], options);
@@ -272,7 +277,7 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual(['bar_v1.3.5', 'baz_v1.4.0', 'foo_v1.0.1']);
   });
 
-  it('publishes new monorepo packages if requested', async () => {
+  it.each(concurrencyValues)('publishes new monorepo packages if requested, concurrency: %s', async (concurrency: number) => {
     // use a slightly smaller fixture to only publish one extra package
     repositoryFactory = new RepositoryFactory({
       folders: {
@@ -281,7 +286,10 @@ describe('publish command (e2e)', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({ new: true });
+    const options = getOptions({
+      new: true,
+      concurrency: concurrency,
+    });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -296,11 +304,14 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual(['bar_v1.3.4', 'foo_v1.1.0']);
   });
 
-  it('should not perform npm publish on out-of-scope package', async () => {
+  it.each(concurrencyValues)('should not perform npm publish on out-of-scope package, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({ scope: ['!packages/foo'] });
+    const options = getOptions({
+      scope: ['!packages/foo'],
+      concurrency: concurrency,
+    });
 
     generateChangeFiles(['foo'], options);
     generateChangeFiles(['bar'], options);
@@ -323,7 +334,7 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual(['bar_v1.4.0']);
   });
 
-  it('should respect prepublish hooks', async () => {
+  it.each(concurrencyValues)('should respect prepublish hooks, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
@@ -339,6 +350,7 @@ describe('publish command (e2e)', () => {
           }
         },
       },
+      concurrency: concurrency,
     });
 
     generateChangeFiles(['foo'], options);
@@ -362,7 +374,7 @@ describe('publish command (e2e)', () => {
     expect(fooPackageJson.onPublish.main).toBe('lib/index.js');
   });
 
-  it('should respect postpublish hooks', async () => {
+  it.each(concurrencyValues)('should respect postpublish hooks, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
     let notified;
@@ -377,6 +389,7 @@ describe('publish command (e2e)', () => {
           }
         },
       },
+      concurrency: concurrency,
     });
 
     generateChangeFiles(['foo'], options);
@@ -389,11 +402,14 @@ describe('publish command (e2e)', () => {
     expect(notified).toBe(fooPackageJson.afterPublish.notify);
   });
 
-  it('can perform a successful npm publish without fetch', async () => {
+  it.each(concurrencyValues)('can perform a successful npm publish without fetch, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({ fetch: false });
+    const options = getOptions({
+      fetch: false,
+      concurrency: concurrency,
+    });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -418,11 +434,14 @@ describe('publish command (e2e)', () => {
     expect(fetchCount).toBe(0);
   });
 
-  it('should specify fetch depth when depth param is defined', async () => {
+  it.each(concurrencyValues)('should specify fetch depth when depth param is defined, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({ depth: 10 });
+    const options = getOptions({
+      depth: 10,
+      concurrency: concurrency,
+     });
 
     generateChangeFiles(['foo'], options);
 
@@ -447,7 +466,7 @@ describe('publish command (e2e)', () => {
     expect(fetchCommand).toMatch('--depth=10');
   });
 
-  it('calls precommit hook before committing changes', async () => {
+  it.each(concurrencyValues)('calls precommit hook before committing changes, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
@@ -459,6 +478,7 @@ describe('publish command (e2e)', () => {
           });
         },
       },
+      concurrency: concurrency,
     });
 
     generateChangeFiles(['foo'], options);
