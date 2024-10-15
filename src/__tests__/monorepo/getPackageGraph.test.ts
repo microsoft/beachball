@@ -117,18 +117,18 @@ describe('getPackageGraph', () => {
       bar: { dependencies: { foo: '1.0.0' } },
     });
 
-    expect(async () => {
+    await expect(async () => {
       await getPackageGraphPackageNames(['foo', 'bar'], packageInfos);
     }).rejects.toThrow(/We could not find a node in the graph with no dependencies, this likely means there is a cycle including all nodes/);
   });
 
-  it('throws if contains circular dependencies', () => {
+  it('throws if contains circular dependencies', async () => {
     const packageInfos = makePackageInfos({
       foo: { dependencies: { bar: '1.0.0', bar2: '1.0.0' } },
       bar: { dependencies: { foo: '1.0.0' } },
     });
 
-    expect(async () => {
+    await expect(async () => {
       await getPackageGraphPackageNames(['foo', 'bar', 'bar2'], packageInfos);
     }).rejects.toThrow(/A cycle has been detected including the following nodes:\nfoo\nbar/);
   });
@@ -144,10 +144,10 @@ describe('getPackageGraph', () => {
     await getPackageGraphPackageNames(['foo', 'bar'], packageInfos)
   });
 
-  it('throws if package info is missing', () => {
+  it('throws if package info is missing', async () => {
     const packageInfos = {} as any as PackageInfos;
 
-    expect(async () => {
+    await expect(async () => {
       await getPackageGraphPackageNames(['foo', 'bar'], packageInfos)
     }).rejects.toThrow(`Cannot read properties of undefined (reading 'name')`);
   });
