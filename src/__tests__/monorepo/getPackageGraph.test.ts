@@ -129,8 +129,8 @@ describe('getPackageGraph', () => {
     });
 
     await expect(async () => {
-      await getPackageGraphPackageNames(['foo', 'bar', 'bar2'], packageInfos);
-    }).rejects.toThrow(/A cycle has been detected including the following nodes:\nfoo\nbar/);
+      await getPackageGraphPackageNames(['foo', 'bar'], packageInfos);
+    }).rejects.toThrow(/We could not find a node in the graph with no dependencies, this likely means there is a cycle including all nodes/);
   });
 
   it(`doesn't throws if graph contains circular dependencies outside affected packages`, async () => {
@@ -149,6 +149,6 @@ describe('getPackageGraph', () => {
 
     await expect(async () => {
       await getPackageGraphPackageNames(['foo', 'bar'], packageInfos)
-    }).rejects.toThrow(`Cannot read properties of undefined (reading 'name')`);
+    }).rejects.toThrow(`Failed to create the package graph. Affected packages size (2) is different from the created graph size (0). Affected packages: foo, bar, created graph packages:`);
   });
 });

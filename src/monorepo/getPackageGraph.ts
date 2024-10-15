@@ -42,5 +42,9 @@ function createPackageGraphInternal(packageInfos: PackageInfos, affectedPackages
     dependencies: packageGraph.dependencies.filter(dep => affectedPackages.includes(dep.name) && affectedPackages.includes(dep.dependency)),
   };
 
+  if (filteredGraph.packages.length !== affectedPackages.length) {
+    throw new Error(`Failed to create the package graph. Affected packages size (${affectedPackages.length}) is different from the created graph size (${filteredGraph.packages.length}). Affected packages: ${affectedPackages.join(', ')}, created graph packages: ${filteredGraph.packages.join(', ')}`);
+  }
+
   return filteredGraph;
 }
