@@ -149,6 +149,6 @@ describe('getPackageGraph', () => {
 
     await expect(async () => {
       await getPackageGraphPackageNames(['foo', 'bar'], packageInfos)
-    }).rejects.toThrow(`Failed to create the package graph. Affected packages size (2) is different from the created graph size (0). Affected packages: foo, bar, created graph packages:`);
+    }).rejects.toThrow(`Package info is missing for foo.`);
   });
 });
