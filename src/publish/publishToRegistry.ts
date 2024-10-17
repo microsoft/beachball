@@ -54,22 +54,32 @@ export async function publishToRegistry(originalBumpInfo: PublishBumpInfo, optio
     if (result.success) {
       succeededPackages.add(packageInfo.name);
     } else {
-      displayManualRecovery(bumpInfo, succeededPackages);
       throw new Error('Error publishing! Refer to the previous logs for recovery instructions.');
     }
   };
 
-  if (options.concurrency === 1) {
-    for (const pkg of packagesToPublish) {
-      await packagePublishInternal(bumpInfo.packageInfos[pkg]);
+  try {
+    if (options.concurrency === 1) {
+      for (const pkg of packagesToPublish) {
+        await packagePublishInternal(bumpInfo.packageInfos[pkg]);
+      }
+    } else {
+      const packageGraph = getPackageGraph(packagesToPublish, bumpInfo.packageInfos, packagePublishInternal);
+      await packageGraph.run({
+        concurrency: options.concurrency,
+        // This option is set to true to ensure that all tasks that are started are awaited,
+        // this doesn't actually start tasks for packages of which dependencies have failed.
+        continue: true
+      });
     }
-  } else {
-    const packageGraph = getPackageGraph(packagesToPublish, bumpInfo.packageInfos, packagePublishInternal);
-
-    await packageGraph.run({
-      concurrency: options.concurrency,
-      continue: false
-    });
+  } catch (error) {
+    // p-graph will throw an array of errors if it fails to run all tasks
+    if (Array.isArray(error)) {
+      const errorSet = new Set(error);
+      error = new Error(Array.from(errorSet).join('\n'));
+    }
+    displayManualRecovery(bumpInfo, succeededPackages);
+    throw error;
   }
 
   // if there is a postpublish hook perform a postpublish pass, calling the routine on each package
