@@ -10021,12 +10021,12 @@ safe-array-concat@^1.1.2:
     has-symbols "^1.0.3"
     isarray "^2.0.5"
 
-safe-buffer@5.1.2, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
+safe-buffer@5.1.2, safe-buffer@>=5.1.0, safe-buffer@^5.0.1, safe-buffer@^5.1.0, safe-buffer@^5.1.1, safe-buffer@^5.1.2, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.2.tgz#991ec69d296e0313747d59bdfd2b745c35f8828d"
   integrity sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==
 
-safe-buffer@>=5.1.0, safe-buffer@^5.0.1, safe-buffer@^5.1.0, safe-buffer@^5.1.1, safe-buffer@^5.1.2, safe-buffer@^5.2.1:
+safe-buffer@^5.2.1:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.2.1.tgz#1eaf9fa9bdb1fdd4ec75f58f9cdb4e6b7827eec6"
   integrity sha512-rp3So07KcdmmKbGvgaNxQSJr7bGVSVk5S9Eq1F+ppbRo70+YeaDxkw5Dd8NPN+GD6bjnYm2VuPuCXmpuYvmCXQ==
@@ -11894,10 +11894,10 @@ worker-farm@^1.7.0:
   dependencies:
     errno "~0.1.7"
 
-workspace-tools@^0.36.3:
-  version "0.36.4"
-  resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.36.4.tgz#57504c687569785148c5b7ef1470dadc9be970c5"
-  integrity sha512-v0UFVvw9BjHtRu2Dau5PEJKkuG8u4jPlpXZQWjSz9XgbSutpPURqtO2P0hp3cVmQVATh8lkMFCewFgJuDnyC/w==
+workspace-tools@^0.38.0:
+  version "0.38.0"
+  resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.38.0.tgz#5d7677f9c9f0a7df592537b17b378d1c33eddb86"
+  integrity sha512-BpvydL36Q+AVBU6Rj/a7nfxfEhxvX4ZkLVCsUx5LJ5UpzIcvLDgxvnolBSY+2MUU8VYhvf+PGtF7eWS8xBC1Iw==
   dependencies:
     "@yarnpkg/lockfile" "^1.1.0"
     fast-glob "^3.3.1"
