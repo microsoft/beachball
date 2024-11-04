@@ -1,3 +1,4 @@
+import { getPackageDependencies } from 'workspace-tools/lib/graph/getPackageDependencies';
 import { PackageInfos } from '../types/PackageInfo';
 
 /**
@@ -14,12 +15,8 @@ export function getPackageDependencyGraph(packages: string[], packageInfos: Pack
       throw new Error(`Package info is missing for ${pkgName}.`);
     }
 
-    const allDeps = new Set(
-      [info.dependencies, info.devDependencies, info.peerDependencies, info.optionalDependencies]
-        .flatMap(deps => Object.keys(deps || {}))
-        .filter(pkg => packageSet.has(pkg))
-    );
-    if (allDeps.size) {
+    const allDeps = getPackageDependencies(info, packageSet, { withDevDependencies: true, withPeerDependencies: true });
+    if (allDeps.length > 0) {
       for (const depPkgName of allDeps) {
         dependencyGraph.push([depPkgName, pkgName]);
       }
