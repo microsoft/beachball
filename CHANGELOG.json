@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 05 Nov 2024 08:03:18 GMT",
+      "version": "2.48.0",
+      "tag": "beachball_v2.48.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "nemanjatesic@microsoft.com",
+            "package": "beachball",
+            "commit": "d97e089805ed843caa4a5d2fb95e1a0f264d9d45",
+            "comment": "Add concurrency flag"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 10 Sep 2024 08:02:59 GMT",
       "version": "2.47.1",
       "tag": "beachball_v2.47.1",

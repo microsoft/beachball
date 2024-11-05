@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Tue, 10 Sep 2024 08:02:59 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 05 Nov 2024 08:03:18 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.48.0
+
+Tue, 05 Nov 2024 08:03:18 GMT
+
+### Minor changes
+
+- Add concurrency flag (nemanjatesic@microsoft.com)
 
 ## 2.47.1
 

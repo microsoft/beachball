@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add concurrency flag",
-  "packageName": "beachball",
-  "email": "nemanjatesic@microsoft.com",
-  "dependentChangeType": "patch"
-}
