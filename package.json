@@ -50,8 +50,9 @@
     "prompts": "^2.4.2",
     "semver": "^7.0.0",
     "toposort": "^2.0.2",
+    "p-graph": "^1.1.2",
     "uuid": "^9.0.0",
-    "workspace-tools": "^0.36.3",
+    "workspace-tools": "^0.38.0",
     "yargs-parser": "^21.0.0"
   },
   "devDependencies": {

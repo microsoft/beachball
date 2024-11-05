@@ -9,6 +9,8 @@ import { validatePackageDependencies } from './validatePackageDependencies';
 import { performPublishOverrides } from './performPublishOverrides';
 import { getPackagesToPublish } from './getPackagesToPublish';
 import { callHook } from '../bump/callHook';
+import { getPackageGraph } from '../monorepo/getPackageGraph';
+import { PackageInfo } from '../types/PackageInfo';
 
 /**
  * Publish all the bumped packages to the registry.
@@ -42,21 +44,44 @@ export async function publishToRegistry(originalBumpInfo: PublishBumpInfo, optio
   performPublishOverrides(packagesToPublish, bumpInfo.packageInfos);
 
   // if there is a prepublish hook perform a prepublish pass, calling the routine on each package
-  await callHook(options.hooks?.prepublish, packagesToPublish, bumpInfo.packageInfos);
+  await callHook(options.hooks?.prepublish, packagesToPublish, bumpInfo.packageInfos, options.concurrency);
 
   // finally pass through doing the actual npm publish command
   const succeededPackages = new Set<string>();
 
-  for (const pkg of packagesToPublish) {
-    const result = await packagePublish(bumpInfo.packageInfos[pkg], options);
+  const packagePublishInternal = async (packageInfo: PackageInfo) => {
+    const result = await packagePublish(packageInfo, options);
     if (result.success) {
-      succeededPackages.add(pkg);
+      succeededPackages.add(packageInfo.name);
     } else {
-      displayManualRecovery(bumpInfo, succeededPackages);
       throw new Error('Error publishing! Refer to the previous logs for recovery instructions.');
     }
+  };
+
+  try {
+    if (options.concurrency === 1) {
+      for (const pkg of packagesToPublish) {
+        await packagePublishInternal(bumpInfo.packageInfos[pkg]);
+      }
+    } else {
+      const packageGraph = getPackageGraph(packagesToPublish, bumpInfo.packageInfos, packagePublishInternal);
+      await packageGraph.run({
+        concurrency: options.concurrency,
+        // This option is set to true to ensure that all tasks that are started are awaited,
+        // this doesn't actually start tasks for packages of which dependencies have failed.
+        continue: true
+      });
+    }
+  } catch (error) {
+    // p-graph will throw an array of errors if it fails to run all tasks
+    if (Array.isArray(error)) {
+      const errorSet = new Set(error);
+      error = new Error(Array.from(errorSet).join('\n'));
+    }
+    displayManualRecovery(bumpInfo, succeededPackages);
+    throw error;
   }
 
   // if there is a postpublish hook perform a postpublish pass, calling the routine on each package
-  await callHook(options.hooks?.postpublish, packagesToPublish, bumpInfo.packageInfos);
+  await callHook(options.hooks?.postpublish, packagesToPublish, bumpInfo.packageInfos, options.concurrency);
 }

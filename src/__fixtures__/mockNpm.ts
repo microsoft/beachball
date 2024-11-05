@@ -31,7 +31,7 @@ type MockNpmCommand = (
   registryData: MockNpmRegistry,
   args: string[],
   opts: Parameters<typeof npm>[1]
-) => Pick<NpmResult, 'stdout' | 'stderr' | 'all' | 'success' | 'failed'>;
+) => Promise<Pick<NpmResult, 'stdout' | 'stderr' | 'all' | 'success' | 'failed'>>;
 
 export type NpmMock = {
   /**
@@ -88,7 +88,7 @@ export function initNpmMock(): NpmMock {
       if (!func) {
         throw new Error(`Command not supported by mock npm: ${command}`);
       }
-      return func(registryData, args, opts) as NpmResult;
+      return await func(registryData, args, opts) as NpmResult;
     });
   });
 
@@ -142,7 +142,7 @@ export function _makeRegistryData(data: PartialRegistryData): MockNpmRegistry {
 }
 
 /** (exported for testing) Mock npm show based on the registry data */
-export const _mockNpmShow: MockNpmCommand = (registryData, args) => {
+export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
   // Assumption: all beachball callers to "npm show" list the package name last
   const packageSpec = args.slice(-1)[0];
 
@@ -187,7 +187,7 @@ export const _mockNpmShow: MockNpmCommand = (registryData, args) => {
 };
 
 /** (exported for testing) Mock npm publish to the registry data */
-export const _mockNpmPublish: MockNpmCommand = (registryData, args: string[], opts: Parameters<typeof npm>[1]) => {
+export const _mockNpmPublish: MockNpmCommand = async (registryData, args: string[], opts: Parameters<typeof npm>[1]) => {
   if (!opts?.cwd) {
     throw new Error('cwd is required for mock npm publish');
   }

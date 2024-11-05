@@ -34,6 +34,7 @@ export interface CliOptions
   canaryName?: string | undefined;
   command: string;
   commit?: boolean;
+  concurrency: number;
   configPath?: string;
   dependentChangeType?: ChangeType;
   disallowDeletedChangeFiles?: boolean;

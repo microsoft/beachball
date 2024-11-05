@@ -7,11 +7,12 @@ import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitD
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { npmShow } from '../__fixtures__/npmShow';
 import { Repository } from '../__fixtures__/repository';
-import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
+import { PackageJsonFixture, RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { publish } from '../commands/publish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { initNpmMock } from '../__fixtures__/mockNpm';
+import { _mockNpmPublish, initNpmMock } from '../__fixtures__/mockNpm';
+import os from 'os';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -21,7 +22,8 @@ import { initNpmMock } from '../__fixtures__/mockNpm';
 jest.mock('../packageManager/npm');
 
 describe('publish command (e2e)', () => {
-  initNpmMock();
+  const concurrencyValues = [[1],[os.cpus().length]];
+  const npmMock = initNpmMock();
 
   let repositoryFactory: RepositoryFactory | undefined;
   let repo: Repository | undefined;
@@ -55,11 +57,11 @@ describe('publish command (e2e)', () => {
     repo = undefined;
   });
 
-  it('can perform a successful npm publish', async () => {
+  it.each(concurrencyValues)('can perform a successful npm publish, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions();
+    const options = getOptions({ concurrency: concurrency });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -81,7 +83,9 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({ push: false });
+    const options = getOptions({
+      push: false,
+    });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -97,11 +101,11 @@ describe('publish command (e2e)', () => {
     });
   });
 
-  it('can perform a successful npm publish from a race condition', async () => {
+  it.each(concurrencyValues)('can perform a successful npm publish from a race condition, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions();
+    const options = getOptions({ concurrency: concurrency });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -138,11 +142,11 @@ describe('publish command (e2e)', () => {
     expect(fetchCount).toBe(2);
   });
 
-  it('can perform a successful npm publish from a race condition in the dependencies', async () => {
+  it.each(concurrencyValues)('can perform a successful npm publish from a race condition in the dependencies, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions();
+    const options = getOptions({ concurrency: concurrency });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -281,7 +285,9 @@ describe('publish command (e2e)', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({ new: true });
+    const options = getOptions({
+      new: true,
+    });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -296,11 +302,14 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual(['bar_v1.3.4', 'foo_v1.1.0']);
   });
 
-  it('should not perform npm publish on out-of-scope package', async () => {
+  it.each(concurrencyValues)('should not perform npm publish on out-of-scope package, concurrency: %s', async (concurrency: number) => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({ scope: ['!packages/foo'] });
+    const options = getOptions({
+      scope: ['!packages/foo'],
+      concurrency: concurrency,
+    });
 
     generateChangeFiles(['foo'], options);
     generateChangeFiles(['bar'], options);
@@ -393,7 +402,9 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({ fetch: false });
+    const options = getOptions({
+      fetch: false,
+    });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -422,7 +433,9 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({ depth: 10 });
+    const options = getOptions({
+      depth: 10,
+     });
 
     generateChangeFiles(['foo'], options);
 
@@ -473,5 +486,176 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
     const manifestJson = fs.readFileSync(repo.pathTo('foo.txt'));
     expect(manifestJson.toString()).toMatchInlineSnapshot(`"foo"`);
+  });
+
+  it('publishes multiple packages concurrently respecting the concurrency limit', async () => {
+    const packagesToPublish = ['pkg1', 'pkg2', 'pkg3', 'pkg4', 'pkg5', 'pkg6', 'pkg7', 'pkg8', 'pkg9'];
+    const packages: { [packageName: string]: PackageJsonFixture } = {};
+    for (const name of packagesToPublish) {
+      packages[name] = { version: '1.0.0' };
+    }
+
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: packages,
+      },
+    });
+    repo = repositoryFactory.cloneRepository();
+
+    const concurrency = 2;
+    const options = getOptions({ concurrency: concurrency });
+
+    generateChangeFiles(packagesToPublish, options);
+    repo.push();
+
+    const simulateWait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    let currentConcurrency = 0;
+    let maxConcurrency = 0;
+    npmMock.setCommandOverride('publish', async (registryData, args, opts) => {
+      currentConcurrency++;
+      await simulateWait(100);
+      const result = await _mockNpmPublish(registryData, args, opts);
+      maxConcurrency = Math.max(maxConcurrency, currentConcurrency);
+      currentConcurrency--;
+      return result;
+    });
+
+    await publish(options);
+    // Verify that at most `concurrency` number of packages were published concurrently
+    expect(maxConcurrency).toBe(concurrency);
+
+    // Verify all packages were published
+    for (const pkg of packagesToPublish) {
+      expect(await npmShow(pkg)).toMatchObject({
+        name: pkg,
+        versions: ['1.1.0'],
+        'dist-tags': { latest: '1.1.0' },
+      });
+    }
+
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    const expectedTags = packagesToPublish.map(pkg => `${pkg}_v1.1.0`);
+    // Verify all tags were updated
+    expect(repo.getCurrentTags().sort()).toEqual(expectedTags.sort());
+  });
+
+  it('handles errors correctly when one of the packages fails during concurrent publishing', async () => {
+    const packageNames = ['pkg1', 'pkg2', 'pkg3', 'pkg4', 'pkg5', 'pkg6', 'pkg7', 'pkg8'];
+    const packages: { [packageName: string]: PackageJsonFixture } = {};
+    const packageToFail = 'pkg4';
+    for (const name of packageNames) {
+      packages[name] = { version: '1.0.0' };
+    }
+    packages['pkg8'].dependencies = { [packageToFail]: '1.0.0' };
+    packages['pkg7'].dependencies = { [packageToFail]: '1.0.0' };
+
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: packages,
+      },
+    });
+    repo = repositoryFactory.cloneRepository();
+
+    const options = getOptions({ concurrency: 3 });
+
+    generateChangeFiles(packageNames, options);
+    repo.push();
+
+    npmMock.setCommandOverride('publish', async (registryData, args, opts) => {
+      if (opts.cwd?.endsWith(packageToFail)) {
+        return {
+          failed: true,
+          stderr: 'Failed to publish package',
+          stdout: '',
+          success: false,
+          all: 'Failed to publish package',
+        }
+      }
+      return _mockNpmPublish(registryData, args, opts);
+    });
+
+    await expect(publish(options)).rejects.toThrow('Error publishing! Refer to the previous logs for recovery instructions.');
+
+    for (const name of packageNames) {
+      if (['pkg7', 'pkg8', packageToFail].includes(name)) {
+        // Verify that the packages that failed to publish are not published
+        // pkg7 and pkg8 are not published because they depend on pkg4 and pkg4 failed to publish
+        await npmShow(name, { shouldFail: true });
+      } else {
+        // Verify that the packages that did not fail to publish are published
+        expect(await npmShow(name)).toMatchObject({
+          name: name,
+          versions: ['1.1.0'],
+          'dist-tags': { latest: '1.1.0' },
+        });
+      }
+    }
+  });
+
+  it('should respect postpublish hook respecting the concurrency limit when publishing multiple packages concurrently', async () => {
+    const packagesToPublish = ['pkg1', 'pkg2', 'pkg3', 'pkg4', 'pkg5', 'pkg6', 'pkg7', 'pkg8', 'pkg9'];
+    const packages: { [packageName: string]: PackageJsonFixture } = {};
+    for (const name of packagesToPublish) {
+      packages[name] = {
+        version: '1.0.0',
+        afterPublish: {
+          notify: `message-${name}`,
+        },
+      };
+    }
+
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: packages,
+      },
+    });
+    repo = repositoryFactory.cloneRepository();
+
+    const simulateWait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    const afterPublishStrings: { packageName: string; notify: string }[] = [];
+    const concurrency = 2;
+    let currentConcurrency = 0;
+    let maxConcurrency = 0;
+    const options = getOptions({
+      hooks: {
+        postpublish: async (packagePath) => {
+          currentConcurrency++;
+          await simulateWait(100);
+          const packageName = path.basename(packagePath);
+          const packageJsonPath = path.join(packagePath, 'package.json');
+          const packageJson = fs.readJSONSync(packageJsonPath);
+          if (packageJson.afterPublish) {
+            afterPublishStrings.push({
+              packageName,
+              notify: packageJson.afterPublish.notify,
+            });
+          }
+          maxConcurrency = Math.max(maxConcurrency, currentConcurrency);
+          currentConcurrency--;
+        },
+      },
+      concurrency: concurrency,
+    });
+
+    generateChangeFiles(packagesToPublish, options);
+    repo.push();
+
+    await publish(options);
+    // Verify that at most `concurrency` number of postpublish hooks were running concurrently
+    expect(maxConcurrency).toBe(concurrency);
+
+    for (const pkg of packagesToPublish) {
+      const packageJson = fs.readJSONSync(repo.pathTo(`packages/${pkg}/package.json`));
+      if (packageJson.afterPublish) {
+        // Verify that all postpublish hooks were called
+        expect(afterPublishStrings).toContainEqual({
+          packageName: pkg,
+          notify: packageJson.afterPublish.notify,
+        });
+      }
+    }
   });
 });

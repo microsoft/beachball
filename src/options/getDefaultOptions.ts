@@ -17,6 +17,7 @@ export function getDefaultOptions(): BeachballOptions {
     changeDir: 'change',
     command: 'change',
     commit: true,
+    concurrency: 1,
     defaultNpmTag: 'latest',
     depth: undefined,
     disallowedChangeTypes: null,

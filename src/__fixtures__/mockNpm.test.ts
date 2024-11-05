@@ -120,50 +120,50 @@ describe('_mockNpmShow', () => {
     },
   });
 
-  it("errors if package doesn't exist", () => {
+  it("errors if package doesn't exist", async () => {
     const emptyData = _makeRegistryData({});
-    const result = _mockNpmShow(emptyData, ['foo'], { cwd: undefined });
+    const result = await _mockNpmShow(emptyData, ['foo'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ error: '[fake] code E404 - foo - not found' }));
   });
 
-  it('returns requested version plus dist-tags and version list', () => {
-    const result = _mockNpmShow(data, ['foo@1.0.0'], { cwd: undefined });
+  it('returns requested version plus dist-tags and version list', async () => {
+    const result = await _mockNpmShow(data, ['foo@1.0.0'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ data: data, name: 'foo', version: '1.0.0' }));
   });
 
-  it('returns requested version of scoped package', () => {
-    const result = _mockNpmShow(data, ['@foo/bar@2.0.0'], { cwd: undefined });
+  it('returns requested version of scoped package', async () => {
+    const result = await _mockNpmShow(data, ['@foo/bar@2.0.0'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ data, name: '@foo/bar', version: '2.0.0' }));
   });
 
-  it('returns requested tag', () => {
-    const result = _mockNpmShow(data, ['foo@beta'], { cwd: undefined });
+  it('returns requested tag', async () => {
+    const result = await _mockNpmShow(data, ['foo@beta'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ data, name: 'foo', version: '1.0.0-beta' }));
   });
 
-  it('returns requested tag of scoped package', () => {
-    const result = _mockNpmShow(data, ['@foo/bar@beta'], { cwd: undefined });
+  it('returns requested tag of scoped package', async () => {
+    const result = await _mockNpmShow(data, ['@foo/bar@beta'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ data, name: '@foo/bar', version: '2.0.0-beta' }));
   });
 
-  it('returns latest version if no version requested', () => {
-    const result = _mockNpmShow(data, ['foo'], { cwd: undefined });
+  it('returns latest version if no version requested', async () => {
+    const result = await _mockNpmShow(data, ['foo'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ data, name: 'foo', version: '1.0.1' }));
   });
 
-  it('returns latest version of scoped package if no version requested', () => {
-    const result = _mockNpmShow(data, ['@foo/bar'], { cwd: undefined });
+  it('returns latest version of scoped package if no version requested', async () => {
+    const result = await _mockNpmShow(data, ['@foo/bar'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ data, name: '@foo/bar', version: '2.0.1' }));
   });
 
-  it("errors if requested version doesn't exist", () => {
-    const result = _mockNpmShow(data, ['foo@2.0.0'], { cwd: undefined });
+  it("errors if requested version doesn't exist", async () => {
+    const result = await _mockNpmShow(data, ['foo@2.0.0'], { cwd: undefined });
     expect(result).toEqual(getShowResult({ error: '[fake] code E404 - foo@2.0.0 - not found' }));
   });
 
   // support for this could be added later
-  it('currently throws if requested version is a range', () => {
-    expect(() => _mockNpmShow(data, ['foo@^1.0.0'], { cwd: undefined })).toThrow(/not currently supported/);
+  it('currently throws if requested version is a range', async () => {
+    await expect(() => _mockNpmShow(data, ['foo@^1.0.0'], { cwd: undefined })).rejects.toThrow(/not currently supported/);
   });
 });
 
@@ -198,19 +198,19 @@ describe('_mockNpmPublish', () => {
     jest.restoreAllMocks();
   });
 
-  it('throws if cwd is not specified', () => {
-    expect(() => _mockNpmPublish({}, [], { cwd: undefined })).toThrow('cwd is required for mock npm publish');
+  it('throws if cwd is not specified', async () => {
+    await expect(() => _mockNpmPublish({}, [], { cwd: undefined })).rejects.toThrow('cwd is required for mock npm publish');
   });
 
-  it('errors if reading package.json fails', () => {
+  it('errors if reading package.json fails', async () => {
     // this error is from the fs.readJsonSync mock, but it's the same code path as if reading the file fails
-    expect(() => _mockNpmPublish({}, [], { cwd: 'fake' })).toThrow('packageJson not set');
+    await expect(() => _mockNpmPublish({}, [], { cwd: 'fake' })).rejects.toThrow('packageJson not set');
   });
 
-  it('errors on re-publish', () => {
+  it('errors on re-publish', async () => {
     const data = _makeRegistryData({ foo: { versions: ['1.0.0'] } });
     packageJson = { name: 'foo', version: '1.0.0', main: 'nope.js' };
-    const result = _mockNpmPublish(data, [], { cwd: 'fake' });
+    const result = await _mockNpmPublish(data, [], { cwd: 'fake' });
     expect(result).toEqual(
       getPublishResult({
         error: '[fake] EPUBLISHCONFLICT foo@1.0.0 already exists in registry',
@@ -221,11 +221,11 @@ describe('_mockNpmPublish', () => {
     expect(data.foo.versionData['1.0.0'].main).toBeUndefined();
   });
 
-  it('publishes to empty registry with default tag latest', () => {
+  it('publishes to empty registry with default tag latest', async () => {
     const data = _makeRegistryData({});
     packageJson = { name: 'foo', version: '1.0.0', main: 'index.js' };
 
-    const result = _mockNpmPublish(data, [], { cwd: 'fake' });
+    const result = await _mockNpmPublish(data, [], { cwd: 'fake' });
     expect(result).toEqual(getPublishResult({ tag: 'latest' }));
     expect(data.foo).toEqual({
       versions: ['1.0.0'],
@@ -234,13 +234,13 @@ describe('_mockNpmPublish', () => {
     });
   });
 
-  it('publishes package and updates latest tag', () => {
+  it('publishes package and updates latest tag', async () => {
     const data = _makeRegistryData({
       foo: { versions: ['1.0.0'], 'dist-tags': { latest: '1.0.0' } },
     });
     packageJson = { name: 'foo', version: '2.0.0', main: 'index.js' };
 
-    const result = _mockNpmPublish(data, [], { cwd: 'fake' });
+    const result = await _mockNpmPublish(data, [], { cwd: 'fake' });
     expect(result).toEqual(getPublishResult({ tag: 'latest' }));
     expect(data.foo).toEqual({
       versions: ['1.0.0', '2.0.0'],
@@ -253,13 +253,13 @@ describe('_mockNpmPublish', () => {
     });
   });
 
-  it('publishes requested tag and does not update latest', () => {
+  it('publishes requested tag and does not update latest', async () => {
     const data = _makeRegistryData({
       foo: { versions: ['1.0.0'], 'dist-tags': { latest: '1.0.0', beta: '1.0.0' } },
     });
     packageJson = { name: 'foo', version: '2.0.0', main: 'index.js' };
 
-    const result = _mockNpmPublish(data, ['--tag', 'beta'], { cwd: 'fake' });
+    const result = await _mockNpmPublish(data, ['--tag', 'beta'], { cwd: 'fake' });
     expect(result).toEqual(getPublishResult({ tag: 'beta' }));
     expect(data.foo).toEqual({
       versions: ['1.0.0', '2.0.0'],
