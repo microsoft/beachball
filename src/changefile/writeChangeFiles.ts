@@ -1,9 +1,9 @@
 import { ChangeFileInfo } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
 import { getBranchName, stage, commit } from 'workspace-tools';
+import crypto from 'crypto';
 import fs from 'fs-extra';
 import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
 import type { BeachballOptions } from '../types/BeachballOptions';
 
 /**
@@ -26,7 +26,7 @@ export function writeChangeFiles(
     fs.mkdirpSync(changePath);
   }
 
-  const getChangeFile = (prefix: string) => path.join(changePath, `${prefix}-${uuidv4()}.json`);
+  const getChangeFile = (prefix: string) => path.join(changePath, `${prefix}-${crypto.randomUUID()}.json`);
   let changeFiles: string[];
 
   if (groupChanges) {

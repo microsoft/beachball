@@ -36,6 +36,19 @@ export interface ChangelogOptions {
   renderMainHeader?: (packageChangelog: PackageChangelog) => Promise<string>;
 
   /**
+   * If true, add a unique suffix to changelog filenames, based on the hash of the package name:
+   * e.g. `CHANGELOG-d7d39c3f.md`/`.json`.
+   *
+   * When this is initially enabled, any existing changelog files will be renamed. If the package name
+   * (and therefore the hash) changes, renaming the file should also be handled automatically.
+   *
+   * This is one option for working around an issue with Git: its default hash algorithm only
+   * considers the last 16 characters of filenames, which can lead to collisions and inefficient
+   * packing when many files have similar names.
+   */
+  uniqueFilenames?: boolean;
+
+  /**
    * Maximum number of versions to keep in the changelog md and json files.
    * (If the md file is truncated, it will include a comment about referring to git for older entries.)
    */

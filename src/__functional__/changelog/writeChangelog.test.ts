@@ -3,7 +3,6 @@ import fs from 'fs-extra';
 import semver from 'semver';
 import { generateChangeFiles, getChange, fakeEmail as author } from '../../__fixtures__/changeFiles';
 import {
-  cleanChangelogJson,
   readChangelogJson,
   readChangelogMd,
   fakeCommit as commit,
@@ -132,7 +131,7 @@ describe('writeChangelog', () => {
 
     const changelogJson = readChangelogJson(repo.rootPath);
     expect(changelogJson).toEqual({ name: 'foo', entries: [expect.anything()] });
-    expect(cleanChangelogJson(changelogJson)!.entries[0]).toEqual({
+    expect(changelogJson!.entries[0]).toEqual({
       version: '1.1.0',
       date: '(date)',
       tag: 'foo_v1.1.0',
@@ -147,7 +146,8 @@ describe('writeChangelog', () => {
     });
 
     // Every entry should have a different commit hash
-    const minorComments = changelogJson!.entries[0].comments.minor!;
+    const nonTransformedJson = readChangelogJson(repo.rootPath, undefined, true /* noTransform */);
+    const minorComments = nonTransformedJson!.entries[0].comments.minor!;
     expect(minorComments).toBeTruthy();
     const commits = minorComments.map(entry => entry.commit);
     expect(new Set(commits).size).toEqual(minorComments.length);
@@ -205,7 +205,7 @@ describe('writeChangelog', () => {
 
     const fooJson = readChangelogJson(repo.pathTo('packages/foo'));
     expect(fooJson).toEqual({ name: 'foo', entries: [expect.anything()] });
-    expect(cleanChangelogJson(fooJson)!.entries[0]).toEqual({
+    expect(fooJson!.entries[0]).toEqual({
       version: '1.1.0',
       date: '(date)',
       tag: 'foo_v1.1.0',
@@ -219,7 +219,7 @@ describe('writeChangelog', () => {
 
     const barJson = readChangelogJson(repo.pathTo('packages/bar'));
     expect(barJson).toEqual({ name: 'bar', entries: [expect.anything()] });
-    expect(cleanChangelogJson(barJson)!.entries[0]).toEqual({
+    expect(barJson!.entries[0]).toEqual({
       comments: {
         patch: [{ package: 'bar', comment: 'Bump baz to v1.4.0', author: 'beachball', commit }],
       },
@@ -230,7 +230,7 @@ describe('writeChangelog', () => {
 
     const bazJson = readChangelogJson(repo.pathTo('packages/baz'));
     expect(bazJson).toEqual({ name: 'baz', entries: [expect.anything()] });
-    expect(cleanChangelogJson(bazJson)!.entries[0]).toEqual({
+    expect(bazJson!.entries[0]).toEqual({
       version: '1.4.0',
       date: '(date)',
       tag: 'baz_v1.4.0',
@@ -262,7 +262,7 @@ describe('writeChangelog', () => {
 
     const fooJson = readChangelogJson(repo.pathTo('packages/foo'));
     expect(fooJson).toEqual({ name: 'foo', entries: [expect.anything()] });
-    expect(cleanChangelogJson(fooJson)!.entries[0].comments).toEqual({
+    expect(fooJson!.entries[0].comments).toEqual({
       minor: [
         expect.objectContaining({ comment: 'comment 1', package: 'foo' }),
         expect.objectContaining({ comment: 'comment 2', package: 'foo' }),
@@ -272,7 +272,7 @@ describe('writeChangelog', () => {
 
     const barJson = readChangelogJson(repo.pathTo('packages/bar'));
     expect(barJson).toEqual({ name: 'bar', entries: [expect.anything()] });
-    expect(cleanChangelogJson(barJson)!.entries[0].comments).toEqual({
+    expect(barJson!.entries[0].comments).toEqual({
       minor: [expect.objectContaining({ comment: 'bar comment', package: 'bar' })],
     });
   });
@@ -334,7 +334,7 @@ describe('writeChangelog', () => {
     // Validate grouped CHANGELOG.json
     const groupedJson = readChangelogJson(repo.rootPath);
     expect(groupedJson).toEqual({ name: 'foo', entries: [expect.anything()] });
-    expect(cleanChangelogJson(groupedJson)!.entries[0]).toEqual({
+    expect(groupedJson!.entries[0]).toEqual({
       comments: {
         minor: [
           { comment: 'foo comment 2', package: 'foo', author, commit },
@@ -506,7 +506,7 @@ describe('writeChangelog', () => {
     // Read and save the initial changelogs
     const firstChangelogMd = readChangelogMd(repo.rootPath);
     expect(firstChangelogMd).toContain('foo comment');
-    const firstChangelogJson = cleanChangelogJson(readChangelogJson(repo.rootPath));
+    const firstChangelogJson = readChangelogJson(repo.rootPath);
     expect(firstChangelogJson).toEqual({ name: 'foo', entries: [expect.anything()] });
 
     // Delete the change files, generate new ones, and re-generate changelogs
@@ -519,7 +519,45 @@ describe('writeChangelog', () => {
     expect(secondChangelogMd).toContain('extra change');
     expect(secondChangelogMd).toContain(trimChangelogMd(firstChangelogMd!));
 
-    const secondChangelogJson = cleanChangelogJson(readChangelogJson(repo.rootPath));
+    const secondChangelogJson = readChangelogJson(repo.rootPath);
+    expect(secondChangelogJson).toEqual({
+      name: 'foo',
+      entries: [expect.anything(), firstChangelogJson!.entries[0]],
+    });
+  });
+
+  it('appends to existing changelog when migrating from uniqueFilenames=false to true', async () => {
+    repo = sharedSingleRepo;
+    const options = getOptions();
+
+    // Write some changes and generate changelogs
+    generateChangeFiles(['foo'], options);
+    await writeChangelogWrapper({ options });
+
+    // Read and save the initial changelogs
+    const firstChangelogMd = readChangelogMd(repo.rootPath);
+    expect(firstChangelogMd).toContain('foo comment');
+    const firstChangelogJson = readChangelogJson(repo.rootPath);
+    expect(firstChangelogJson).toEqual({ name: 'foo', entries: [expect.anything()] });
+
+    // Delete the initial change files
+    fs.emptyDirSync(getChangePath(options));
+
+    // Change the options to used suffixed filenames, generate new change files, and re-generate changelogs
+    options.changelog = { uniqueFilenames: true };
+    generateChangeFiles([getChange('foo', 'extra change')], options);
+    await writeChangelogWrapper({ options });
+
+    // Verify the old changelog is moved
+    expect(readChangelogMd(repo.rootPath)).toBeNull();
+
+    // Read the changelogs again and verify that the previous content is still there
+    // ("acbd18db" is the start of the md5 hash digest of "foo")
+    const secondChangelogMd = readChangelogMd(repo.rootPath, 'CHANGELOG-acbd18db.md');
+    expect(secondChangelogMd).toContain('extra change');
+    expect(secondChangelogMd).toContain(trimChangelogMd(firstChangelogMd!));
+
+    const secondChangelogJson = readChangelogJson(repo.rootPath, 'CHANGELOG-acbd18db.json');
     expect(secondChangelogJson).toEqual({
       name: 'foo',
       entries: [expect.anything(), firstChangelogJson!.entries[0]],

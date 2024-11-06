@@ -51,7 +51,6 @@
     "semver": "^7.0.0",
     "toposort": "^2.0.2",
     "p-graph": "^1.1.2",
-    "uuid": "^9.0.0",
     "workspace-tools": "^0.38.0",
     "yargs-parser": "^21.0.0"
   },
@@ -65,7 +64,6 @@
     "@types/semver": "^7.3.13",
     "@types/tmp": "^0.2.3",
     "@types/toposort": "^2.0.3",
-    "@types/uuid": "^9.0.0",
     "@types/yargs-parser": "^21.0.0",
     "find-free-port": "^2.0.0",
     "gh-pages": "^5.0.0",

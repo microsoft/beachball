@@ -10,6 +10,7 @@ import { BumpInfo } from '../types/BumpInfo';
 import { isPathIncluded } from '../monorepo/isPathIncluded';
 import { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
 import { mergeChangelogs } from './mergeChangelogs';
+import { prepareChangelogPaths } from './prepareChangelogPaths';
 
 export async function writeChangelog(
   bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'dependentChangedBy' | 'packageInfos'>,
@@ -31,7 +32,7 @@ export async function writeChangelog(
       await writeChangelogFiles({
         options,
         newVersionChangelog: changelogs[pkg],
-        changelogPath: packagePath,
+        changelogAbsDir: packagePath,
         isGrouped: false,
       });
     }
@@ -99,7 +100,7 @@ async function writeGroupedChangelog(
       await writeChangelogFiles({
         options,
         newVersionChangelog: groupedChangelog,
-        changelogPath: changelogAbsDir,
+        changelogAbsDir,
         isGrouped: true,
       });
     }
@@ -114,21 +115,24 @@ async function writeGroupedChangelog(
 }
 
 async function writeChangelogFiles(params: {
-  options: Pick<BeachballOptions, 'generateChangelog' | 'changelog'>;
+  options: Pick<BeachballOptions, 'generateChangelog' | 'changelog' | 'path'>;
   newVersionChangelog: PackageChangelog;
-  changelogPath: string;
+  changelogAbsDir: string;
   isGrouped: boolean;
 }): Promise<void> {
-  const { options, newVersionChangelog, changelogPath, isGrouped } = params;
+  const { options, newVersionChangelog, changelogAbsDir, isGrouped } = params;
+
+  const changelogPaths = prepareChangelogPaths({ options, changelogAbsDir, packageName: newVersionChangelog.name });
+
   let previousJson: ChangelogJson | undefined;
 
-  // Update CHANGELOG.json
-  if (options.generateChangelog === true || options.generateChangelog === 'json') {
-    const changelogJsonFile = path.join(changelogPath, 'CHANGELOG.json');
+  // Update CHANGELOG.json if appropriate
+  // (changelogPaths.json will only be set if generateChangelog is true or 'json')
+  if (changelogPaths.json) {
     try {
-      previousJson = fs.existsSync(changelogJsonFile) ? fs.readJSONSync(changelogJsonFile) : undefined;
+      previousJson = fs.existsSync(changelogPaths.json) ? fs.readJSONSync(changelogPaths.json) : undefined;
     } catch (e) {
-      console.warn(`${changelogJsonFile} is invalid: ${e}`);
+      console.warn(`${changelogPaths.json} is invalid: ${e}`);
     }
     try {
       const nextJson = renderJsonChangelog({
@@ -136,19 +140,18 @@ async function writeChangelogFiles(params: {
         previousChangelog: previousJson,
         maxVersions: options.changelog?.maxVersions,
       });
-      fs.writeJSONSync(changelogJsonFile, nextJson, { spaces: 2 });
+      fs.writeJSONSync(changelogPaths.json, nextJson, { spaces: 2 });
     } catch (e) {
-      console.warn(`Problem writing to ${changelogJsonFile}: ${e}`);
+      console.warn(`Problem writing to ${changelogPaths.json}: ${e}`);
     }
   }
 
   // Update CHANGELOG.md if there are changes of types besides "none"
   if (
-    (options.generateChangelog === true || options.generateChangelog === 'md') &&
+    changelogPaths.md &&
     Object.entries(newVersionChangelog.comments).some(([type, comments]) => type !== 'none' && comments?.length)
   ) {
-    const changelogFile = path.join(changelogPath, 'CHANGELOG.md');
-    const previousContent = fs.existsSync(changelogFile) ? fs.readFileSync(changelogFile).toString() : '';
+    const previousContent = fs.existsSync(changelogPaths.md) ? fs.readFileSync(changelogPaths.md).toString() : '';
 
     const newChangelog = await renderChangelog({
       previousJson,
@@ -158,6 +161,6 @@ async function writeChangelogFiles(params: {
       changelogOptions: options.changelog || {},
     });
 
-    fs.writeFileSync(changelogFile, newChangelog);
+    fs.writeFileSync(changelogPaths.md, newChangelog);
   }
 }
