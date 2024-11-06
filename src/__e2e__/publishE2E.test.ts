@@ -22,14 +22,14 @@ import os from 'os';
 jest.mock('../packageManager/npm');
 
 describe('publish command (e2e)', () => {
-  const concurrencyValues = [[1],[os.cpus().length]];
+  const concurrencyValues = [[1], [os.cpus().length]];
   const npmMock = initNpmMock();
 
   let repositoryFactory: RepositoryFactory | undefined;
   let repo: Repository | undefined;
 
   // show error logs for these tests
-  initMockLogs({ alsoLog: ['error'] });
+  const logs = initMockLogs({ alsoLog: ['error'] });
 
   function getOptions(overrides?: Partial<BeachballOptions>): BeachballOptions {
     return {
@@ -101,94 +101,100 @@ describe('publish command (e2e)', () => {
     });
   });
 
-  it.each(concurrencyValues)('can perform a successful npm publish from a race condition, concurrency: %s', async (concurrency: number) => {
-    repositoryFactory = new RepositoryFactory('single');
-    repo = repositoryFactory.cloneRepository();
+  it.each(concurrencyValues)(
+    'can perform a successful npm publish from a race condition, concurrency: %s',
+    async (concurrency: number) => {
+      repositoryFactory = new RepositoryFactory('single');
+      repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({ concurrency: concurrency });
+      const options = getOptions({ concurrency: concurrency });
 
-    generateChangeFiles(['foo'], options);
-    repo.push();
+      generateChangeFiles(['foo'], options);
+      repo.push();
 
-    // Adds a step that injects a race condition
-    let fetchCount = 0;
+      // Adds a step that injects a race condition
+      let fetchCount = 0;
 
-    addGitObserver((args, output) => {
-      if (args[0] === 'fetch') {
-        if (fetchCount === 0) {
-          const anotherRepo = repositoryFactory!.cloneRepository();
-          // inject a checkin
-          anotherRepo.updateJsonFile('package.json', { version: '1.0.2' });
-          anotherRepo.push();
+      addGitObserver((args, output) => {
+        if (args[0] === 'fetch') {
+          if (fetchCount === 0) {
+            const anotherRepo = repositoryFactory!.cloneRepository();
+            // inject a checkin
+            anotherRepo.updateJsonFile('package.json', { version: '1.0.2' });
+            anotherRepo.push();
+          }
+
+          fetchCount++;
         }
+      });
 
-        fetchCount++;
-      }
-    });
+      await publish(options);
 
-    await publish(options);
+      expect(await npmShow('foo')).toMatchObject({
+        name: 'foo',
+        versions: ['1.1.0'],
+        'dist-tags': { latest: '1.1.0' },
+      });
 
-    expect(await npmShow('foo')).toMatchObject({
-      name: 'foo',
-      versions: ['1.1.0'],
-      'dist-tags': { latest: '1.1.0' },
-    });
+      repo.checkout(defaultBranchName);
+      repo.pull();
+      expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
 
-    repo.checkout(defaultBranchName);
-    repo.pull();
-    expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
+      // this indicates 2 tries
+      expect(fetchCount).toBe(2);
+    }
+  );
 
-    // this indicates 2 tries
-    expect(fetchCount).toBe(2);
-  });
+  it.each(concurrencyValues)(
+    'can perform a successful npm publish from a race condition in the dependencies, concurrency: %s',
+    async (concurrency: number) => {
+      repositoryFactory = new RepositoryFactory('single');
+      repo = repositoryFactory.cloneRepository();
 
-  it.each(concurrencyValues)('can perform a successful npm publish from a race condition in the dependencies, concurrency: %s', async (concurrency: number) => {
-    repositoryFactory = new RepositoryFactory('single');
-    repo = repositoryFactory.cloneRepository();
+      const options = getOptions({ concurrency: concurrency });
 
-    const options = getOptions({ concurrency: concurrency });
+      generateChangeFiles(['foo'], options);
+      repo.push();
 
-    generateChangeFiles(['foo'], options);
-    repo.push();
+      // Adds a step that injects a race condition
+      let fetchCount = 0;
 
-    // Adds a step that injects a race condition
-    let fetchCount = 0;
+      addGitObserver((args, output) => {
+        if (args[0] === 'fetch') {
+          if (fetchCount === 0) {
+            const anotherRepo = repositoryFactory!.cloneRepository();
+            // inject a checkin
+            const packageJsonFile = anotherRepo.pathTo('package.json');
+            const contents = fs.readJSONSync(packageJsonFile, 'utf-8');
+            delete contents.dependencies.baz;
+            anotherRepo.commitChange('package.json', JSON.stringify(contents, null, 2));
+            anotherRepo.push();
+          }
 
-    addGitObserver((args, output) => {
-      if (args[0] === 'fetch') {
-        if (fetchCount === 0) {
-          const anotherRepo = repositoryFactory!.cloneRepository();
-          // inject a checkin
-          const packageJsonFile = anotherRepo.pathTo('package.json');
-          const contents = fs.readJSONSync(packageJsonFile, 'utf-8');
-          delete contents.dependencies.baz;
-          anotherRepo.commitChange('package.json', JSON.stringify(contents, null, 2));
-          anotherRepo.push();
+          fetchCount++;
         }
+      });
 
-        fetchCount++;
-      }
-    });
+      await publish(options);
 
-    await publish(options);
+      expect(await npmShow('foo')).toMatchObject({
+        name: 'foo',
+        versions: ['1.1.0'],
+        'dist-tags': { latest: '1.1.0' },
+      });
 
-    expect(await npmShow('foo')).toMatchObject({
-      name: 'foo',
-      versions: ['1.1.0'],
-      'dist-tags': { latest: '1.1.0' },
-    });
+      repo.checkout(defaultBranchName);
+      repo.pull();
+      expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
 
-    repo.checkout(defaultBranchName);
-    repo.pull();
-    expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
+      // this indicates 2 tries
+      expect(fetchCount).toBe(2);
 
-    // this indicates 2 tries
-    expect(fetchCount).toBe(2);
-
-    const packageJsonFile = repo.pathTo('package.json');
-    const contents = JSON.parse(fs.readFileSync(packageJsonFile, 'utf-8'));
-    expect(contents.dependencies.baz).toBeUndefined();
-  });
+      const packageJsonFile = repo.pathTo('package.json');
+      const contents = JSON.parse(fs.readFileSync(packageJsonFile, 'utf-8'));
+      expect(contents.dependencies.baz).toBeUndefined();
+    }
+  );
 
   it('can perform a successful npm publish without bump', async () => {
     repositoryFactory = new RepositoryFactory('single');
@@ -302,35 +308,38 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual(['bar_v1.3.4', 'foo_v1.1.0']);
   });
 
-  it.each(concurrencyValues)('should not perform npm publish on out-of-scope package, concurrency: %s', async (concurrency: number) => {
-    repositoryFactory = new RepositoryFactory('monorepo');
-    repo = repositoryFactory.cloneRepository();
+  it.each(concurrencyValues)(
+    'should not perform npm publish on out-of-scope package, concurrency: %s',
+    async (concurrency: number) => {
+      repositoryFactory = new RepositoryFactory('monorepo');
+      repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({
-      scope: ['!packages/foo'],
-      concurrency: concurrency,
-    });
+      const options = getOptions({
+        scope: ['!packages/foo'],
+        concurrency: concurrency,
+      });
 
-    generateChangeFiles(['foo'], options);
-    generateChangeFiles(['bar'], options);
-    repo.push();
+      generateChangeFiles(['foo'], options);
+      generateChangeFiles(['bar'], options);
+      repo.push();
 
-    await publish(options);
+      await publish(options);
 
-    await npmShow('foo', { shouldFail: true });
+      await npmShow('foo', { shouldFail: true });
 
-    expect(repo.getCurrentTags()).toEqual([]);
+      expect(repo.getCurrentTags()).toEqual([]);
 
-    expect(await npmShow('bar')).toMatchObject({
-      name: 'bar',
-      versions: ['1.4.0'],
-      'dist-tags': { latest: '1.4.0' },
-    });
+      expect(await npmShow('bar')).toMatchObject({
+        name: 'bar',
+        versions: ['1.4.0'],
+        'dist-tags': { latest: '1.4.0' },
+      });
 
-    repo.checkout(defaultBranchName);
-    repo.pull();
-    expect(repo.getCurrentTags()).toEqual(['bar_v1.4.0']);
-  });
+      repo.checkout(defaultBranchName);
+      repo.pull();
+      expect(repo.getCurrentTags()).toEqual(['bar_v1.4.0']);
+    }
+  );
 
   it('should respect prepublish hooks', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
@@ -435,7 +444,7 @@ describe('publish command (e2e)', () => {
 
     const options = getOptions({
       depth: 10,
-     });
+    });
 
     generateChangeFiles(['foo'], options);
 
@@ -542,6 +551,7 @@ describe('publish command (e2e)', () => {
   });
 
   it('handles errors correctly when one of the packages fails during concurrent publishing', async () => {
+    logs.setOverrideOptions({ alsoLog: [] });
     const packageNames = ['pkg1', 'pkg2', 'pkg3', 'pkg4', 'pkg5', 'pkg6', 'pkg7', 'pkg8'];
     const packages: { [packageName: string]: PackageJsonFixture } = {};
     const packageToFail = 'pkg4';
@@ -571,12 +581,14 @@ describe('publish command (e2e)', () => {
           stdout: '',
           success: false,
           all: 'Failed to publish package',
-        }
+        };
       }
       return _mockNpmPublish(registryData, args, opts);
     });
 
-    await expect(publish(options)).rejects.toThrow('Error publishing! Refer to the previous logs for recovery instructions.');
+    await expect(publish(options)).rejects.toThrow(
+      'Error publishing! Refer to the previous logs for recovery instructions.'
+    );
 
     for (const name of packageNames) {
       if (['pkg7', 'pkg8', packageToFail].includes(name)) {
@@ -621,7 +633,7 @@ describe('publish command (e2e)', () => {
     let maxConcurrency = 0;
     const options = getOptions({
       hooks: {
-        postpublish: async (packagePath) => {
+        postpublish: async packagePath => {
           currentConcurrency++;
           await simulateWait(100);
           const packageName = path.basename(packagePath);

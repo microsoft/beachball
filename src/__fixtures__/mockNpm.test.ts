@@ -163,7 +163,9 @@ describe('_mockNpmShow', () => {
 
   // support for this could be added later
   it('currently throws if requested version is a range', async () => {
-    await expect(() => _mockNpmShow(data, ['foo@^1.0.0'], { cwd: undefined })).rejects.toThrow(/not currently supported/);
+    await expect(() => _mockNpmShow(data, ['foo@^1.0.0'], { cwd: undefined })).rejects.toThrow(
+      /not currently supported/
+    );
   });
 });
 
@@ -199,7 +201,9 @@ describe('_mockNpmPublish', () => {
   });
 
   it('throws if cwd is not specified', async () => {
-    await expect(() => _mockNpmPublish({}, [], { cwd: undefined })).rejects.toThrow('cwd is required for mock npm publish');
+    await expect(() => _mockNpmPublish({}, [], { cwd: undefined })).rejects.toThrow(
+      'cwd is required for mock npm publish'
+    );
   });
 
   it('errors if reading package.json fails', async () => {

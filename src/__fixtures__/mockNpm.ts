@@ -88,7 +88,7 @@ export function initNpmMock(): NpmMock {
       if (!func) {
         throw new Error(`Command not supported by mock npm: ${command}`);
       }
-      return await func(registryData, args, opts) as NpmResult;
+      return (await func(registryData, args, opts)) as NpmResult;
     });
   });
 
@@ -187,7 +187,11 @@ export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
 };
 
 /** (exported for testing) Mock npm publish to the registry data */
-export const _mockNpmPublish: MockNpmCommand = async (registryData, args: string[], opts: Parameters<typeof npm>[1]) => {
+export const _mockNpmPublish: MockNpmCommand = async (
+  registryData,
+  args: string[],
+  opts: Parameters<typeof npm>[1]
+) => {
   if (!opts?.cwd) {
     throw new Error('cwd is required for mock npm publish');
   }

@@ -30,7 +30,7 @@ export async function callHook(
 
     await packageGraph.run({
       concurrency: concurrency,
-      continue: false
-    })
+      continue: false,
+    });
   }
 }
