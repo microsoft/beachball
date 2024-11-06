@@ -3,14 +3,15 @@
 *.styl
 *.svg
 .*ignore
+.husky/
 .DS_Store
 .nojekyll
 .nvmrc
-docs/.vuepress/dist
+docs/.vuepress/dist/
 /change/
 /CHANGELOG.*
 /lib/
 LICENSE
-node_modules
+node_modules/
 SECURITY.md
 yarn.lock
