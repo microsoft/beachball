@@ -69,7 +69,7 @@ export async function publishToRegistry(originalBumpInfo: PublishBumpInfo, optio
         concurrency: options.concurrency,
         // This option is set to true to ensure that all tasks that are started are awaited,
         // this doesn't actually start tasks for packages of which dependencies have failed.
-        continue: true
+        continue: true,
       });
     }
   } catch (error) {

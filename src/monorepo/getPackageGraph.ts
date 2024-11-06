@@ -14,7 +14,10 @@ export function getPackageGraph(
     });
   }
 
-  const dependencyGraph: [string | undefined, string][] = getPackageDependencyGraph(Array.from(affectedPackages), packageInfos);
+  const dependencyGraph: [string | undefined, string][] = getPackageDependencyGraph(
+    Array.from(affectedPackages),
+    packageInfos
+  );
   const filteredDependencyGraph = filterDependencyGraph(dependencyGraph);
   return pGraph(nodeMap, filteredDependencyGraph);
 }

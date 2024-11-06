@@ -187,8 +187,8 @@ describe('prepareChangelogPaths', () => {
       [file1]: 'md 1',
       [file2]: 'md 2',
     });
-    // ensure different timestamps by waiting 1ms
-    await new Promise(resolve => setTimeout(resolve, 1));
+    // ensure different timestamps by waiting 5ms
+    await new Promise(resolve => setTimeout(resolve, 5));
     fs.writeFileSync(path.join(tempDir, `CHANGELOG-${lastHash}.md`), 'last md');
 
     const paths = prepareChangelogPathsWrapper({
