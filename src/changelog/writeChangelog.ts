@@ -135,7 +135,11 @@ async function writeChangelogFiles(params: {
       console.warn(`${changelogPaths.json} is invalid: ${e}`);
     }
     try {
-      const nextJson = renderJsonChangelog(newVersionChangelog, previousJson);
+      const nextJson = renderJsonChangelog({
+        changelog: newVersionChangelog,
+        previousChangelog: previousJson,
+        maxVersions: options.changelog?.maxVersions,
+      });
       fs.writeJSONSync(changelogPaths.json, nextJson, { spaces: 2 });
     } catch (e) {
       console.warn(`Problem writing to ${changelogPaths.json}: ${e}`);

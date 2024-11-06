@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add option changelog.maxVersions",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
