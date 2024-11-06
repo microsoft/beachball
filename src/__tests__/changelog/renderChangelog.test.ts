@@ -1,16 +1,25 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { MarkdownChangelogRenderOptions, renderChangelog, markerComment } from '../../changelog/renderChangelog';
+import {
+  MarkdownChangelogRenderOptions,
+  renderChangelog,
+  markerComment,
+  _trimPreviousLog,
+  trimmedVersionsNote,
+} from '../../changelog/renderChangelog';
 import { ChangelogEntry, PackageChangelog } from '../../types/ChangeLog';
+
+/** Make a changelog string with a header and basic content for each version */
+function changelogFromVersions(versions: string[]): string {
+  // Having the change type h3 is important for testing trimming
+  return versions.map(v => [`## ${v}`, '(date)', '### Patch changes', `- content of ${v}`].join('\n\n')).join('\n\n');
+}
 
 const previousHeader = `# Change Log - foo
 
-This log was last generated on Wed, 21 Aug 2019 21:20:40 GMT and should not be manually modified.`;
+<!-- This log was last generated on Wed, 21 Aug 2019 21:20:40 GMT and should not be manually modified. -->`;
 
-const previousVersion = `## 1.2.0
-
-(content here)
-`;
+const previousVersion = changelogFromVersions(['1.2.0']);
 
 describe('renderChangelog', () => {
   initMockLogs();
@@ -76,6 +85,22 @@ describe('renderChangelog', () => {
     expect(result).toMatchSnapshot();
   });
 
+  it('trims previous versions if over maxVersions', async () => {
+    const options = getOptions();
+    options.previousContent += '\n\n' + changelogFromVersions(['1.1.9', '1.1.8', '1.1.7']);
+    options.changelogOptions.maxVersions = 3;
+
+    const result = await renderChangelog(options);
+    expect(result).toContain(trimmedVersionsNote);
+    expect(result.trim().endsWith(trimmedVersionsNote)).toBe(true);
+    expect(result).toContain(changelogFromVersions(['1.2.0']));
+    expect(result).toContain(changelogFromVersions(['1.1.9']));
+    expect(result).not.toContain('1.1.8');
+    expect(result).not.toContain('1.1.7');
+    // do a snapshot to make sure there's no funny formatting
+    expect(result).toMatchSnapshot();
+  });
+
   it('merges default and custom renderers', async () => {
     const options = getOptions();
     options.changelogOptions.customRenderers = {
@@ -104,7 +129,7 @@ describe('renderChangelog', () => {
     expect(result).toContain('# Change Log - foo'); // still includes header
     expect(result).toContain(markerComment); // still includes marker comment
     expect(result).toContain('no notes for you'); // uses custom version body
-    expect(result).toContain('content here'); // includes previous content
+    expect(result).toContain(previousVersion); // includes previous content
     expect(result).toMatchSnapshot();
   });
 
@@ -136,5 +161,47 @@ describe('renderChangelog', () => {
       expect.objectContaining({ extra: 'custom' }),
       expect.anything()
     );
+  });
+});
+
+describe('renderChangelog _trimPreviousLog', () => {
+  it('returns log as-is if under max', () => {
+    const previousLogEntries = changelogFromVersions(['1.2.2', '1.2.1']);
+    const trimmed = _trimPreviousLog({
+      packageChangelog: changelogFromVersions(['1.2.3']),
+      previousLogEntries,
+      maxVersions: 5,
+    });
+    expect(trimmed).toEqual(previousLogEntries);
+  });
+
+  it('returns log as-is if equal to max', () => {
+    // 2 previous + current version = 3
+    const previousLogEntries = changelogFromVersions(['1.2.2', '1.2.1']);
+    const trimmed = _trimPreviousLog({
+      packageChangelog: changelogFromVersions(['1.2.3']),
+      previousLogEntries,
+      maxVersions: 3,
+    });
+    expect(trimmed).toEqual(previousLogEntries);
+  });
+
+  it('trims versions if one over max', () => {
+    // 3 previous + current version = 4
+    const trimmed = _trimPreviousLog({
+      packageChangelog: changelogFromVersions(['1.2.3']),
+      previousLogEntries: changelogFromVersions(['1.2.2', '1.2.1', '1.2.0']),
+      maxVersions: 3,
+    });
+    expect(trimmed).toEqual(changelogFromVersions(['1.2.2', '1.2.1']) + '\n\n' + trimmedVersionsNote);
+  });
+
+  it('trims versions if multiple over max', () => {
+    const trimmed = _trimPreviousLog({
+      packageChangelog: changelogFromVersions(['1.2.3']),
+      previousLogEntries: changelogFromVersions(['1.2.2', '1.2.1', '1.2.0', '1.1.0']),
+      maxVersions: 3,
+    });
+    expect(trimmed).toEqual(changelogFromVersions(['1.2.2', '1.2.1']) + '\n\n' + trimmedVersionsNote);
   });
 });
