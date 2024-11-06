@@ -1,8 +1,21 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Tue, 05 Nov 2024 08:03:18 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 06 Nov 2024 22:56:34 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.49.0
+
+Wed, 06 Nov 2024 22:56:34 GMT
+
+### Minor changes
+
+- Add option `changelog.uniqueFilenames` for adding a hash to the changelog filename based on the package name (elcraig@microsoft.com)
+- Add option changelog.maxVersions (elcraig@microsoft.com)
+
+### Patches
+
+- Replace usage of uuid library with built-in crypto.randomUUID() (elcraig@microsoft.com)
 
 ## 2.48.0
 

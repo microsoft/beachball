@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add option `changelog.uniqueFilenames` for adding a hash to the changelog filename based on the package name",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

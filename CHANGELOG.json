@@ -2,6 +2,43 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 06 Nov 2024 22:56:34 GMT",
+      "version": "2.49.0",
+      "tag": "beachball_v2.49.0",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e3880767893fec01ebd5924605bc8d18258da9f0",
+            "comment": "Update formatting"
+          }
+        ],
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e349314081b36859d7f4b49ea5b5290203d56d47",
+            "comment": "Replace usage of uuid library with built-in crypto.randomUUID()"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e349314081b36859d7f4b49ea5b5290203d56d47",
+            "comment": "Add option `changelog.uniqueFilenames` for adding a hash to the changelog filename based on the package name"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "a4f19d487194377b2cd8eb8086de85f7bfe185cc",
+            "comment": "Add option changelog.maxVersions"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Nov 2024 08:03:18 GMT",
       "version": "2.48.0",
       "tag": "beachball_v2.48.0",
