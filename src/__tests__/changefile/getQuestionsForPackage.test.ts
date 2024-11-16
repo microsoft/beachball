@@ -1,7 +1,7 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import prompts from 'prompts';
 import { getQuestionsForPackage } from '../../changefile/getQuestionsForPackage';
-import { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
+import { ChangeFilePromptOptions, ChangeTypeDescriptions } from '../../types/ChangeFilePrompt';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
@@ -28,10 +28,10 @@ describe('getQuestionsForPackage', () => {
     expect(questions).toEqual([
       {
         choices: [
-          { title: expect.stringContaining('Patch'), value: 'patch' },
-          { title: expect.stringContaining('Minor'), value: 'minor' },
-          { title: expect.stringContaining('None'), value: 'none' },
-          { title: expect.stringContaining('Major'), value: 'major' },
+          { title: ' [1mPatch[22m      - bug fixes; no API changes', value: 'patch' },
+          { title: ' [1mMinor[22m      - new feature; backwards-compatible API changes', value: 'minor' },
+          { title: ' [1mNone[22m       - this change does not affect the published package in any way', value: 'none' },
+          { title: ' [1mMajor[22m      - breaking changes; major feature', value: 'major' },
         ],
         message: 'Change type',
         name: 'type',
@@ -45,6 +45,26 @@ describe('getQuestionsForPackage', () => {
         suggest: expect.any(Function),
         type: 'autocomplete',
       },
+    ]);
+  });
+
+  it('uses different descriptions for v0 package', () => {
+    const questions = getQuestionsForPackage({
+      ...defaultQuestionsParams,
+      packageInfos: makePackageInfos({ [pkg]: { version: '0.1.0' } }),
+    });
+    expect(questions![0].choices).toEqual([
+      {
+        title:
+          ' [1mPatch[22m      - bug fixes; new features; backwards-compatible API changes (ok in patches for v0.x packages)',
+        value: 'patch',
+      },
+      {
+        title: ' [1mMinor[22m      - breaking changes; major feature (ok in minor versions for v0.x packages)',
+        value: 'minor',
+      },
+      { title: ' [1mNone[22m       - this change does not affect the published package in any way', value: 'none' },
+      { title: ' [1mMajor[22m      - official release', value: 'major' },
     ]);
   });
 
@@ -161,6 +181,46 @@ describe('getQuestionsForPackage', () => {
       },
       pkg
     );
+  });
+
+  it('uses options.changeTypeDescriptions if set', () => {
+    const changeTypeDescriptions: ChangeTypeDescriptions = {
+      major: 'exciting',
+      minor: { v0: 'exciting v0!', general: 'boring' },
+      premajor: 'almost exciting',
+    };
+    const questions = getQuestionsForPackage({
+      ...defaultQuestionsParams,
+      packageInfos: makePackageInfos({
+        [pkg]: { version: '1.0.0', combinedOptions: { changeFilePrompt: { changeTypeDescriptions } } },
+      }),
+    });
+
+    expect(questions![0].choices).toEqual([
+      { title: ' [1mMajor[22m      - exciting', value: 'major' },
+      { title: ' [1mMinor[22m      - boring', value: 'minor' },
+      { title: ' [1mPremajor[22m   - almost exciting', value: 'premajor' },
+    ]);
+  });
+
+  it('uses v0-specific options.changeTypeDescriptions if set', () => {
+    const changeTypeDescriptions: ChangeTypeDescriptions = {
+      major: 'exciting',
+      minor: { v0: 'exciting v0!', general: 'boring' },
+      premajor: 'almost exciting',
+    };
+    const questions = getQuestionsForPackage({
+      ...defaultQuestionsParams,
+      packageInfos: makePackageInfos({
+        [pkg]: { version: '0.1.0', combinedOptions: { changeFilePrompt: { changeTypeDescriptions } } },
+      }),
+    });
+
+    expect(questions![0].choices).toEqual([
+      { title: ' [1mMajor[22m      - exciting', value: 'major' },
+      { title: ' [1mMinor[22m      - exciting v0!', value: 'minor' },
+      { title: ' [1mPremajor[22m   - almost exciting', value: 'premajor' },
+    ]);
   });
 
   it('does case-insensitive filtering on description suggestions', async () => {

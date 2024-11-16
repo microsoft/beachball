@@ -2,9 +2,27 @@ import prompts from 'prompts';
 import semver from 'semver';
 import { ChangeType } from '../types/ChangeInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
-import { DefaultPrompt } from '../types/ChangeFilePrompt';
+import { ChangeTypeDescriptions, DefaultPrompt } from '../types/ChangeFilePrompt';
 import { getDisallowedChangeTypes } from './getDisallowedChangeTypes';
 import { PackageGroups, PackageInfos } from '../types/PackageInfo';
+
+const defaultChangeTypeDescriptions: ChangeTypeDescriptions = {
+  prerelease: 'bump prerelease version',
+  patch: {
+    general: 'bug fixes; no API changes',
+    v0: 'bug fixes; new features; backwards-compatible API changes (ok in patches for version < 1)',
+  },
+  minor: {
+    general: 'new feature; backwards-compatible API changes',
+    v0: 'breaking changes; major feature (ok in minors for version < 1)',
+  },
+  none: 'this change does not affect the published package in any way',
+  major: {
+    general: 'breaking changes; major feature',
+    v0: 'official release',
+  },
+  // TODO: add an option to show other pre* versions, and add their text
+};
 
 /**
  * Build the list of questions to ask the user for this package.
@@ -52,17 +70,29 @@ function getChangeTypePrompt(params: {
     return;
   }
 
-  const showPrereleaseOption = !!semver.prerelease(packageInfo.version);
-  const changeTypeChoices: prompts.Choice[] = [
-    ...(showPrereleaseOption ? [{ value: 'prerelease', title: ' [1mPrerelease[22m - bump prerelease version' }] : []),
-    { value: 'patch', title: ' [1mPatch[22m      - bug fixes; no API changes.' },
-    { value: 'minor', title: ' [1mMinor[22m      - small feature; backwards compatible API changes.' },
-    {
-      value: 'none',
-      title: ' [1mNone[22m       - this change does not affect the published package in any way.',
-    },
-    { value: 'major', title: ' [1mMajor[22m      - major feature; breaking changes.' },
-  ].filter(choice => !disallowedChangeTypes?.includes(choice.value as ChangeType));
+  const omittedChangeTypes = [...disallowedChangeTypes];
+  // if the current version doesn't include a prerelease part, omit the prerelease option
+  if (!semver.prerelease(packageInfo.version)) {
+    omittedChangeTypes.push('prerelease');
+  }
+  const isVersion0 = semver.major(packageInfo.version) === 0;
+  // this is used to determine padding length since it's the longest
+  const labelPadEnd = getChangeTypeLabel('prerelease').length;
+
+  const changeTypeChoices: prompts.Choice[] = Object.entries(
+    packageInfo.combinedOptions.changeFilePrompt?.changeTypeDescriptions || defaultChangeTypeDescriptions
+  )
+    .filter(([changeType]) => !omittedChangeTypes.includes(changeType as ChangeType))
+    .map(([changeType, descriptions]): prompts.Choice => {
+      const label = getChangeTypeLabel(changeType);
+      // use the appropriate message for 0.x or >= 1.x (if different)
+      const description =
+        typeof descriptions === 'string' ? descriptions : isVersion0 ? descriptions.v0 : descriptions.general;
+      return {
+        value: changeType,
+        title: ` ${label.padEnd(labelPadEnd)} - ${description}`,
+      };
+    });
 
   if (!changeTypeChoices.length) {
     console.error(`No valid change types available for package "${pkg}"`);
@@ -75,6 +105,11 @@ function getChangeTypePrompt(params: {
     message: 'Change type',
     choices: changeTypeChoices,
   };
+}
+
+function getChangeTypeLabel(changeType: string): string {
+  // bold formatting
+  return `[1m${changeType[0].toUpperCase() + changeType.slice(1)}[22m`;
 }
 
 function getDescriptionPrompt(recentMessages: string[]): prompts.PromptObject<string> {

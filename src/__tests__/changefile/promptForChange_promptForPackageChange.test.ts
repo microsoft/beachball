@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import prompts from 'prompts';
 import { _promptForPackageChange } from '../../changefile/promptForChange';
+import { getQuestionsForPackage } from '../../changefile/getQuestionsForPackage';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { MockStdin } from '../../__fixtures__/mockStdin';
 import { MockStdout } from '../../__fixtures__/mockStdout';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
-import { getQuestionsForPackage } from '../../changefile/getQuestionsForPackage';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
 // so instead we inject a custom mock stdout stream, as well as stdin for entering answers
@@ -78,16 +78,16 @@ describe('promptForChange _promptForPackageChange', () => {
 
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`"Please describe the changes for: foo"`);
     expect(stdout.getOutput()).toMatchInlineSnapshot(`
-        "? Change type » - Use arrow-keys. Return to submit.
-        >    Patch      - bug fixes; no API changes.
-             Minor      - small feature; backwards compatible API changes.
-             None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        √ Change type »  Patch      - bug fixes; no API changes.
-        ? Describe changes (type or choose one) »
-        >   message
-        √ Describe changes (type or choose one) » message"
-      `);
+      "? Change type » - Use arrow-keys. Return to submit.
+      >    Patch      - bug fixes; no API changes
+           Minor      - new feature; backwards-compatible API changes
+           None       - this change does not affect the published package in any way
+           Major      - breaking changes; major feature
+      √ Change type »  Patch      - bug fixes; no API changes
+      ? Describe changes (type or choose one) »
+      >   message
+      √ Describe changes (type or choose one) » message"
+    `);
     expect(answers).toEqual({ type: 'patch', comment: 'message' });
   });
 
@@ -194,32 +194,32 @@ describe('promptForChange _promptForPackageChange', () => {
     await stdin.sendByChar('\n');
 
     expect(stdout.getOutput()).toMatchInlineSnapshot(`
-        "? Change type » - Use arrow-keys. Return to submit.
-        >    Patch      - bug fixes; no API changes.
-             Minor      - small feature; backwards compatible API changes.
-             None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        ? Change type » - Use arrow-keys. Return to submit.
-             Patch      - bug fixes; no API changes.
-        >    Minor      - small feature; backwards compatible API changes.
-             None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        ? Change type » - Use arrow-keys. Return to submit.
-             Patch      - bug fixes; no API changes.
-             Minor      - small feature; backwards compatible API changes.
-        >    None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        √ Change type »  None       - this change does not affect the published package in any way.
-        ? Describe changes (type or choose one) »
-        >   first
-            second
-            third
-        ? Describe changes (type or choose one) »
-            first
-        >   second
-            third
-        √ Describe changes (type or choose one) » second"
-      `);
+      "? Change type » - Use arrow-keys. Return to submit.
+      >    Patch      - bug fixes; no API changes
+           Minor      - new feature; backwards-compatible API changes
+           None       - this change does not affect the published package in any way
+           Major      - breaking changes; major feature
+      ? Change type » - Use arrow-keys. Return to submit.
+           Patch      - bug fixes; no API changes
+      >    Minor      - new feature; backwards-compatible API changes
+           None       - this change does not affect the published package in any way
+           Major      - breaking changes; major feature
+      ? Change type » - Use arrow-keys. Return to submit.
+           Patch      - bug fixes; no API changes
+           Minor      - new feature; backwards-compatible API changes
+      >    None       - this change does not affect the published package in any way
+           Major      - breaking changes; major feature
+      √ Change type »  None       - this change does not affect the published package in any way
+      ? Describe changes (type or choose one) »
+      >   first
+          second
+          third
+      ? Describe changes (type or choose one) »
+          first
+      >   second
+          third
+      √ Describe changes (type or choose one) » second"
+    `);
 
     const answers = await answerPromise;
     expect(answers).toEqual({ type: 'none', comment: 'second' });
@@ -305,22 +305,22 @@ describe('promptForChange _promptForPackageChange', () => {
     const answers = await answerPromise;
 
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`
-        "Please describe the changes for: foo
-        Cancelled, no change files are written"
-      `);
+      "Please describe the changes for: foo
+      Cancelled, no change files are written"
+    `);
 
     expect(stdout.getOutput()).toMatchInlineSnapshot(`
-        "? Change type » - Use arrow-keys. Return to submit.
-        >    Patch      - bug fixes; no API changes.
-             Minor      - small feature; backwards compatible API changes.
-             None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        √ Change type »  Patch      - bug fixes; no API changes.
-        ? Describe changes (type or choose one) »
-        >   message
-        ? Describe changes (type or choose one) » a
-        × Describe changes (type or choose one) » a"
-      `);
+      "? Change type » - Use arrow-keys. Return to submit.
+      >    Patch      - bug fixes; no API changes
+           Minor      - new feature; backwards-compatible API changes
+           None       - this change does not affect the published package in any way
+           Major      - breaking changes; major feature
+      √ Change type »  Patch      - bug fixes; no API changes
+      ? Describe changes (type or choose one) »
+      >   message
+      ? Describe changes (type or choose one) » a
+      × Describe changes (type or choose one) » a"
+    `);
 
     expect(answers).toBeUndefined();
   });
