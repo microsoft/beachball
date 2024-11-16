@@ -26,12 +26,18 @@ export async function promptForChange(params: {
 
   // Get the questions for each package first, in case one package has a validation issue
   const packageQuestions: { [pkg: string]: prompts.PromptObject[] } = {};
+  let hasError = false;
   for (const pkg of changedPackages) {
     const questions = getQuestionsForPackage({ pkg, ...params });
-    if (!questions) {
-      return; // validation issue
+    if (questions) {
+      packageQuestions[pkg] = questions;
+    } else {
+      // show all the errors before returning
+      hasError = true;
     }
-    packageQuestions[pkg] = questions;
+  }
+  if (hasError) {
+    return;
   }
 
   // Now prompt for each package
