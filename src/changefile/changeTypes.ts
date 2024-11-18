@@ -1,4 +1,4 @@
-import { ChangeSet, ChangeType } from '../types/ChangeInfo';
+import { ChangeSet, ChangeType, PrereleaseChangeType } from '../types/ChangeInfo';
 
 /**
  * List of all change types from least to most significant.
@@ -13,6 +13,16 @@ export const SortedChangeTypes: ChangeType[] = [
   'premajor',
   'major',
 ];
+
+/**
+ * All the prerelease change types.
+ */
+export const PrereleaseChangeTypes: ChangeType[] = [
+  'prerelease',
+  'prepatch',
+  'preminor',
+  'premajor',
+] satisfies PrereleaseChangeType[];
 
 /**
  * Change type with the smallest weight.

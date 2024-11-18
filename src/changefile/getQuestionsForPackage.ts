@@ -5,9 +5,14 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { ChangeTypeDescriptions, DefaultPrompt } from '../types/ChangeFilePrompt';
 import { getDisallowedChangeTypes } from './getDisallowedChangeTypes';
 import { PackageGroups, PackageInfos } from '../types/PackageInfo';
+import { PrereleaseChangeTypes } from './changeTypes';
 
-const defaultChangeTypeDescriptions: ChangeTypeDescriptions = {
+const defaultChangeTypeDescriptions: Required<ChangeTypeDescriptions> = {
   prerelease: 'bump prerelease version',
+  // TODO: these pre* types are included for completeness but currently won't be shown
+  prepatch: 'bump to prerelease of the next patch version',
+  preminor: 'bump to prerelease of the next minor version',
+  premajor: 'bump to prerelease of the next major version',
   patch: {
     general: 'bug fixes; no API changes',
     v0: 'bug fixes; new features; backwards-compatible API changes (ok in patches for version < 1)',
@@ -21,7 +26,6 @@ const defaultChangeTypeDescriptions: ChangeTypeDescriptions = {
     general: 'breaking changes; major feature',
     v0: 'official release',
   },
-  // TODO: add an option to show other pre* versions, and add their text
 };
 
 /**
@@ -70,10 +74,11 @@ function getChangeTypePrompt(params: {
     return;
   }
 
-  const omittedChangeTypes = [...disallowedChangeTypes];
-  // if the current version doesn't include a prerelease part, omit the prerelease option
-  if (!semver.prerelease(packageInfo.version)) {
-    omittedChangeTypes.push('prerelease');
+  // TODO: conditionally add other prerelease types later
+  const omittedChangeTypes = new Set([...disallowedChangeTypes, ...PrereleaseChangeTypes]);
+  // if the current version includes a prerelease part, show the prerelease option
+  if (semver.prerelease(packageInfo.version)) {
+    omittedChangeTypes.add('prerelease');
   }
   const isVersion0 = semver.major(packageInfo.version) === 0;
   // this is used to determine padding length since it's the longest
@@ -82,7 +87,7 @@ function getChangeTypePrompt(params: {
   const changeTypeChoices: prompts.Choice[] = Object.entries(
     packageInfo.combinedOptions.changeFilePrompt?.changeTypeDescriptions || defaultChangeTypeDescriptions
   )
-    .filter(([changeType]) => !omittedChangeTypes.includes(changeType as ChangeType))
+    .filter(([changeType]) => !omittedChangeTypes.has(changeType as ChangeType))
     .map(([changeType, descriptions]): prompts.Choice => {
       const label = getChangeTypeLabel(changeType);
       // use the appropriate message for 0.x or >= 1.x (if different)

@@ -25,13 +25,14 @@ export type ChangeTypeDescriptions = {
 
 /**
  * Options for customizing change file prompt.
- * The package name is provided so that the prompt can be customized by package if desired.
  */
 export interface ChangeFilePromptOptions {
   /**
-   * Get custom change file prompt questions.
-   * The questions MUST result in an answers object `{ comment: string; type: ChangeType }`.
-   * If you just want to customize the descriptions of each change type, use `changeTypeDescriptions`.
+   * Get custom change file prompt questions. The questions MUST result in an answers object
+   * `{ comment: string; type: ChangeType }`, though any extra properties returned will be preserved.
+   *
+   * (If you just want to customize the descriptions of each change type, use `changeTypeDescriptions`.)
+   *
    * @param defaultPrompt Default prompt questions
    * @param pkg Package name, so that changelog customizations can be specified at the package level
    */
@@ -39,7 +40,7 @@ export interface ChangeFilePromptOptions {
 
   /**
    * Custom descriptions for each change type. This is good for if you only want to customize the
-   * descriptions, not the whole prompt.
+   * descriptions, not the whole prompt. (Any types not included here will use the defaults.)
    *
    * Each description can either be a single string, or one string for 0.x versions (which follow
    * different semver rules) and one string for general use with versions >= 1.
