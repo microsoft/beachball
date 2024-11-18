@@ -3,7 +3,6 @@ import prompts from 'prompts';
 import {
   promptForChange,
   _getChangeFileInfoFromResponse,
-  _getQuestionsForPackage,
   _promptForPackageChange,
 } from '../../changefile/promptForChange';
 import { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
@@ -16,15 +15,17 @@ import { makePackageInfos } from '../../__fixtures__/packageInfos';
 // so instead we inject a custom mock stdout stream, as well as stdin for entering answers
 let stdin: MockStdin;
 let stdout: MockStdout;
-jest.mock(
-  'prompts',
-  () =>
-    ((questions, options) => {
-      questions = Array.isArray(questions) ? questions : [questions];
-      questions = questions.map(q => ({ ...q, stdin, stdout }));
-      return (jest.requireActual('prompts') as typeof prompts)(questions, options);
-    }) as typeof prompts
-);
+jest.mock('prompts', () => {
+  const realPrompts = jest.requireActual('prompts') as typeof prompts;
+
+  return ((questions, options) => {
+    const questionsArr = Array.isArray(questions) ? questions : [questions];
+    return realPrompts(
+      questionsArr.map(q => ({ ...q, stdin, stdout })),
+      options
+    );
+  }) as typeof prompts;
+});
 
 /**
  * These combined tests mainly cover various early bail-out cases (the only meaningful logic in

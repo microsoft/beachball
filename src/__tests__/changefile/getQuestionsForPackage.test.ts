@@ -1,6 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import prompts from 'prompts';
-import { _getQuestionsForPackage } from '../../changefile/promptForChange';
+import { getQuestionsForPackage } from '../../changefile/getQuestionsForPackage';
 import { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
@@ -8,12 +8,12 @@ import { makePackageInfos } from '../../__fixtures__/packageInfos';
 /**
  * This covers the first part of `promptForChange`: determining what questions to ask for each package.
  */
-describe('promptForChange _getQuestionsForPackage', () => {
+describe('getQuestionsForPackage', () => {
   /** Package name used in the tests */
   const pkg = 'foo';
 
-  /** Basic params for `_getQuestionsForPackage`, for a package named `foo` */
-  const defaultQuestionsParams: Parameters<typeof _getQuestionsForPackage>[0] = {
+  /** Basic params for `getQuestionsForPackage`, for a package named `foo` */
+  const defaultQuestionsParams: Parameters<typeof getQuestionsForPackage>[0] = {
     pkg,
     packageInfos: makePackageInfos({ [pkg]: {} }),
     packageGroups: {},
@@ -24,7 +24,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
   const logs = initMockLogs();
 
   it('works in basic case', () => {
-    const questions = _getQuestionsForPackage(defaultQuestionsParams);
+    const questions = getQuestionsForPackage(defaultQuestionsParams);
     expect(questions).toEqual([
       {
         choices: [
@@ -50,7 +50,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
 
   // it's somewhat debatable if this is correct (maybe --type should be the override for disallowedChangeTypes?)
   it('errors if options.type is disallowed', () => {
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       packageInfos: makePackageInfos({ [pkg]: { combinedOptions: { disallowedChangeTypes: ['major'] } } }),
       options: { type: 'major', message: '' },
@@ -60,7 +60,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
   });
 
   it('errors if there are no valid change types for package', () => {
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       packageInfos: makePackageInfos({
         [pkg]: { combinedOptions: { disallowedChangeTypes: ['major', 'minor', 'patch', 'none'] } },
@@ -71,7 +71,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
   });
 
   it('respects disallowedChangeTypes', () => {
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       packageInfos: makePackageInfos({ [pkg]: { combinedOptions: { disallowedChangeTypes: ['major'] } } }),
     });
@@ -80,7 +80,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
   });
 
   it('allows prerelease change for package with prerelease version', () => {
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       packageInfos: makePackageInfos({ [pkg]: { version: '1.0.0-beta.1' } }),
     });
@@ -90,7 +90,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
 
   // this is a bit weird as well, but documenting current behavior
   it('excludes prerelease if disallowed', () => {
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       packageInfos: makePackageInfos({
         [pkg]: { version: '1.0.0-beta.1', combinedOptions: { disallowedChangeTypes: ['prerelease'] } },
@@ -101,7 +101,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
   });
 
   it('excludes the change type question when options.type is specified', () => {
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       options: { type: 'patch', message: '' },
     });
@@ -110,7 +110,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
   });
 
   it('excludes the change type question with only one valid option', () => {
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       packageInfos: makePackageInfos({
         [pkg]: { combinedOptions: { disallowedChangeTypes: ['major', 'minor', 'none'] } },
@@ -121,7 +121,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
   });
 
   it('excludes the change type question when prerelease is implicitly the only valid option', () => {
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       packageInfos: makePackageInfos({
         [pkg]: {
@@ -135,7 +135,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
   });
 
   it('excludes the comment question when options.message is set', () => {
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       options: { message: 'message' },
     });
@@ -147,7 +147,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
     const customQuestions: prompts.PromptObject[] = [{ name: 'custom', message: 'custom prompt', type: 'text' }];
     const changePrompt: ChangeFilePromptOptions['changePrompt'] = jest.fn(() => customQuestions);
 
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       packageInfos: makePackageInfos({ [pkg]: { combinedOptions: { changeFilePrompt: { changePrompt } } } }),
     });
@@ -166,7 +166,7 @@ describe('promptForChange _getQuestionsForPackage', () => {
   it('does case-insensitive filtering on description suggestions', async () => {
     const recentMessages = ['Foo', 'Bar', 'Baz'];
     const recentMessageChoices = [{ title: 'Foo' }, { title: 'Bar' }, { title: 'Baz' }];
-    const questions = _getQuestionsForPackage({ ...defaultQuestionsParams, recentMessages });
+    const questions = getQuestionsForPackage({ ...defaultQuestionsParams, recentMessages });
     expect(questions).toEqual([
       expect.anything(),
       expect.objectContaining({

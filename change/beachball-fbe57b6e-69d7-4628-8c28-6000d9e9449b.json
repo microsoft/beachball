@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Internal refactor: getQuestionsForPackage to its own file",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

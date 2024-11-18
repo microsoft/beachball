@@ -1,11 +1,9 @@
 import prompts from 'prompts';
-import { prerelease } from 'semver';
 import { ChangeFileInfo, ChangeType } from '../types/ChangeInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { isValidChangeType } from '../validation/isValidChangeType';
-import { DefaultPrompt } from '../types/ChangeFilePrompt';
-import { getDisallowedChangeTypes } from './getDisallowedChangeTypes';
 import { PackageGroups, PackageInfos } from '../types/PackageInfo';
+import { getQuestionsForPackage } from './getQuestionsForPackage';
 
 type ChangePromptResponse = { type?: ChangeType; comment?: string };
 
@@ -29,7 +27,7 @@ export async function promptForChange(params: {
   // Get the questions for each package first, in case one package has a validation issue
   const packageQuestions: { [pkg: string]: prompts.PromptObject[] } = {};
   for (const pkg of changedPackages) {
-    const questions = _getQuestionsForPackage({ pkg, ...params });
+    const questions = getQuestionsForPackage({ pkg, ...params });
     if (!questions) {
       return; // validation issue
     }
@@ -52,91 +50,6 @@ export async function promptForChange(params: {
   }
 
   return packageChangeInfo;
-}
-
-/**
- * Build the list of questions to ask the user for this package.
- * @internal exported for testing
- */
-export function _getQuestionsForPackage(params: {
-  pkg: string;
-  packageInfos: PackageInfos;
-  packageGroups: PackageGroups;
-  options: Pick<BeachballOptions, 'message' | 'type'>;
-  recentMessages: string[];
-}): prompts.PromptObject[] | undefined {
-  const { pkg, packageInfos, packageGroups, options, recentMessages } = params;
-
-  const disallowedChangeTypes = getDisallowedChangeTypes(pkg, packageInfos, packageGroups);
-
-  if (options.type && disallowedChangeTypes?.includes(options.type as ChangeType)) {
-    console.error(`Change type "${options.type}" is not allowed for package "${pkg}"`);
-    return;
-  }
-
-  const packageInfo = packageInfos[pkg];
-  const showPrereleaseOption = !!prerelease(packageInfo.version);
-  const changeTypeChoices: prompts.Choice[] = [
-    ...(showPrereleaseOption ? [{ value: 'prerelease', title: ' [1mPrerelease[22m - bump prerelease version' }] : []),
-    { value: 'patch', title: ' [1mPatch[22m      - bug fixes; no API changes.' },
-    { value: 'minor', title: ' [1mMinor[22m      - small feature; backwards compatible API changes.' },
-    {
-      value: 'none',
-      title: ' [1mNone[22m       - this change does not affect the published package in any way.',
-    },
-    { value: 'major', title: ' [1mMajor[22m      - major feature; breaking changes.' },
-  ].filter(choice => !disallowedChangeTypes?.includes(choice.value as ChangeType));
-
-  if (!changeTypeChoices.length) {
-    console.error(`No valid change types available for package "${pkg}"`);
-    return;
-  }
-
-  const changeTypePrompt: prompts.PromptObject<string> = {
-    type: 'select',
-    name: 'type',
-    message: 'Change type',
-    choices: changeTypeChoices,
-  };
-
-  // Do case-insensitive filtering of recent commit messages
-  const recentMessageChoices: prompts.Choice[] = recentMessages.map(msg => ({ title: msg }));
-  const getSuggestions = (input: string) =>
-    input
-      ? recentMessageChoices.filter(({ title }) => title.toLowerCase().startsWith(input.toLowerCase()))
-      : recentMessageChoices;
-
-  const descriptionPrompt: prompts.PromptObject<string> = {
-    type: 'autocomplete',
-    name: 'comment',
-    message: 'Describe changes (type or choose one)',
-    choices: recentMessageChoices,
-    suggest: (input: string) => Promise.resolve(getSuggestions(input)),
-    // prompts doesn't have proper support for "freeform" input (value not in the list), and the
-    // previously implemented hack of adding the input to the returned list from `suggest`
-    // no longer works. So this new hack adds the current input as the fallback.
-    // https://github.com/terkelg/prompts/issues/131
-    onState: function (this: any, state: any) {
-      // If there are no suggestions, update the value to match the input, and unset the fallback
-      // (this.suggestions may be out of date if the user pasted text ending with a newline, so re-calculate)
-      if (!getSuggestions(this.input).length) {
-        this.value = this.input;
-        this.fallback = '';
-      }
-    },
-  };
-
-  const showChangeTypePrompt = !options.type && changeTypePrompt.choices!.length > 1;
-
-  const defaultPrompt: DefaultPrompt = {
-    changeType: showChangeTypePrompt ? changeTypePrompt : undefined,
-    description: !options.message ? descriptionPrompt : undefined,
-  };
-  const defaultPrompts = [defaultPrompt.changeType, defaultPrompt.description];
-
-  return (packageInfo.combinedOptions.changeFilePrompt?.changePrompt?.(defaultPrompt, pkg) || defaultPrompts).filter(
-    (q): q is prompts.PromptObject => !!q
-  );
 }
 
 /**
