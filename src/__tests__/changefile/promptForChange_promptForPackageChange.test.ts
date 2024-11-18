@@ -1,24 +1,27 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import prompts from 'prompts';
-import { _getQuestionsForPackage, _promptForPackageChange } from '../../changefile/promptForChange';
+import { _promptForPackageChange } from '../../changefile/promptForChange';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { MockStdin } from '../../__fixtures__/mockStdin';
 import { MockStdout } from '../../__fixtures__/mockStdout';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import { getQuestionsForPackage } from '../../changefile/getQuestionsForPackage';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
 // so instead we inject a custom mock stdout stream, as well as stdin for entering answers
 let stdin: MockStdin;
 let stdout: MockStdout;
-jest.mock(
-  'prompts',
-  () =>
-    ((questions, options) => {
-      questions = Array.isArray(questions) ? questions : [questions];
-      questions = questions.map(q => ({ ...q, stdin, stdout }));
-      return (jest.requireActual('prompts') as typeof prompts)(questions, options);
-    }) as typeof prompts
-);
+jest.mock('prompts', () => {
+  const realPrompts = jest.requireActual('prompts') as typeof prompts;
+
+  return ((questions, options) => {
+    const questionsArr = Array.isArray(questions) ? questions : [questions];
+    return realPrompts(
+      questionsArr.map(q => ({ ...q, stdin, stdout })),
+      options
+    );
+  }) as typeof prompts;
+});
 
 /**
  * This covers the actual prompting part of `promptForChange`.
@@ -27,8 +30,8 @@ describe('promptForChange _promptForPackageChange', () => {
   /** Package name used in the tests */
   const pkg = 'foo';
 
-  /** Basic params for `_getQuestionsForPackage`, for a package named `foo` */
-  const defaultQuestionsParams: Parameters<typeof _getQuestionsForPackage>[0] = {
+  /** Basic params for `getQuestionsForPackage`, for a package named `foo` */
+  const defaultQuestionsParams: Parameters<typeof getQuestionsForPackage>[0] = {
     pkg,
     packageInfos: makePackageInfos({ [pkg]: {} }),
     packageGroups: {},
@@ -64,7 +67,7 @@ describe('promptForChange _promptForPackageChange', () => {
   });
 
   it('prompts for change type and description', async () => {
-    const questions = _getQuestionsForPackage(defaultQuestionsParams);
+    const questions = getQuestionsForPackage(defaultQuestionsParams);
     expect(questions).toEqual(expectedQuestions);
 
     const answersPromise = _promptForPackageChange(questions!, pkg);
@@ -90,7 +93,7 @@ describe('promptForChange _promptForPackageChange', () => {
 
   it('accepts custom description typed by character', async () => {
     // For this one we provide a type in options and only ask for the description
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       options: { type: 'minor', message: '' },
     });
@@ -121,7 +124,7 @@ describe('promptForChange _promptForPackageChange', () => {
 
   it('accepts custom description pasted', async () => {
     // For this one we provide a type in options and only ask for the description
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       options: { type: 'minor', message: '' },
     });
@@ -151,7 +154,7 @@ describe('promptForChange _promptForPackageChange', () => {
 
   it('accepts custom description pasted with newline', async () => {
     // For this one we provide a type in options and only ask for the description
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       options: { type: 'minor', message: '' },
     });
@@ -177,7 +180,7 @@ describe('promptForChange _promptForPackageChange', () => {
 
   it('uses options selected with arrow keys', async () => {
     const recentMessages = ['first', 'second', 'third'];
-    const questions = _getQuestionsForPackage({ ...defaultQuestionsParams, recentMessages });
+    const questions = getQuestionsForPackage({ ...defaultQuestionsParams, recentMessages });
     expect(questions).toEqual(expectedQuestions);
 
     const answerPromise = _promptForPackageChange(questions!, pkg);
@@ -223,7 +226,7 @@ describe('promptForChange _promptForPackageChange', () => {
   });
 
   it('filters options while typing', async () => {
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       recentMessages: ['foo', 'bar', 'baz'],
       options: { type: 'minor', message: '' },
@@ -254,7 +257,7 @@ describe('promptForChange _promptForPackageChange', () => {
   });
 
   it('handles pressing delete while typing', async () => {
-    const questions = _getQuestionsForPackage({
+    const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       recentMessages: ['foo', 'bar', 'baz'],
       options: { type: 'minor', message: '' },
@@ -288,7 +291,7 @@ describe('promptForChange _promptForPackageChange', () => {
   });
 
   it('returns no answers if cancelled with ctrl-c', async () => {
-    const questions = _getQuestionsForPackage(defaultQuestionsParams);
+    const questions = getQuestionsForPackage(defaultQuestionsParams);
     expect(questions).toEqual(expectedQuestions);
 
     const answerPromise = _promptForPackageChange(questions!, pkg);
