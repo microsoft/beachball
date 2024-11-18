@@ -56,11 +56,11 @@ describe('getQuestionsForPackage', () => {
     expect(questions![0].choices).toEqual([
       {
         title:
-          ' [1mPatch[22m      - bug fixes; new features; backwards-compatible API changes (ok in patches for v0.x packages)',
+          ' [1mPatch[22m      - bug fixes; new features; backwards-compatible API changes (ok in patches for version < 1)',
         value: 'patch',
       },
       {
-        title: ' [1mMinor[22m      - breaking changes; major feature (ok in minor versions for v0.x packages)',
+        title: ' [1mMinor[22m      - breaking changes; major feature (ok in minors for version < 1)',
         value: 'minor',
       },
       { title: ' [1mNone[22m       - this change does not affect the published package in any way', value: 'none' },
