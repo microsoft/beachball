@@ -107,7 +107,7 @@ describe('change command', () => {
     await waitForPrompt();
 
     // Use default change type and custom message
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo  (currently v1.0.0)');
     await stdin.sendByChar('\n');
     // Also verify that the options shown are correct
     expect(stdout.lastOutput()).toMatchInlineSnapshot(`
@@ -139,7 +139,7 @@ describe('change command', () => {
     const options = getOptions();
     const changePromise = change(options);
 
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo  (currently v1.0.0)');
     await stdin.sendByChar('\n'); // default change type
     await stdin.sendByChar('commit me please\n'); // custom message
     await changePromise;
@@ -170,7 +170,7 @@ describe('change command', () => {
     });
     const changePromise = change(options);
 
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo  (currently v1.0.0)');
     await stdin.sendByChar('\n'); // default change type
     await stdin.sendByChar('commit me please\n'); // custom message
     await changePromise;
@@ -198,7 +198,7 @@ describe('change command', () => {
     const changePromise = change(options);
     await waitForPrompt();
 
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo  (currently v1.0.0)');
     await stdin.sendByChar('\n'); // default change type
     await stdin.sendByChar('stage me please\n'); // custom message
     await changePromise;
@@ -218,7 +218,7 @@ describe('change command', () => {
     const changePromise = change(options);
 
     // use custom values for first package
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1  (currently v1.0.0)');
     stdin.emitKey({ name: 'down' });
     await stdin.sendByChar('\n');
     // also verify that the options shown are correct
@@ -230,7 +230,7 @@ describe('change command', () => {
     await stdin.sendByChar('custom\n');
 
     // use defaults for second package
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-2');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-2  (currently v1.0.0)');
     await stdin.sendByChar('\n\n');
 
     await changePromise;
@@ -260,13 +260,13 @@ describe('change command', () => {
     const changePromise = change(options);
 
     // use custom values for first package
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1  (currently v1.0.0)');
     stdin.emitKey({ name: 'down' });
     await stdin.sendByChar('\n');
     await stdin.sendByChar('custom\n');
 
     // use defaults for second package
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-2');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-2  (currently v1.0.0)');
     await stdin.sendByChar('\n\n');
 
     await changePromise;
@@ -305,13 +305,13 @@ describe('change command', () => {
     const changePromise = change(options);
     await waitForPrompt();
 
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1  (currently v1.0.0)');
     expect(stdout.lastOutput()).toMatch(/Change type/);
     await stdin.sendByChar('\n');
     expect(stdout.lastOutput()).toMatch(/Describe changes/);
     await stdin.sendByChar('\n');
 
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-2');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-2  (currently v1.0.0)');
     expect(stdout.lastOutput()).toMatch(/custom question/);
     await stdin.sendByChar('stuff\n');
     expect(stdout.lastOutput()).toMatch(/Change type/);
