@@ -4,6 +4,7 @@ import { ChangeFilePromptOptions } from './ChangeFilePrompt';
 import { ChangelogOptions } from './ChangelogOptions';
 import { PackageInfos } from './PackageInfo';
 
+// TODO introduce a separate all-optional BeachballConfig type
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
 export interface CliOptions
@@ -14,9 +15,13 @@ export interface CliOptions
     | 'bumpDeps'
     | 'changehint'
     | 'changeDir'
+    | 'concurrency'
+    | 'defaultNpmTag'
     | 'depth'
     | 'disallowedChangeTypes'
     | 'fetch'
+    // this is tricky to parse
+    // | 'generateChangelog'
     | 'gitTags'
     | 'message'
     | 'path'
@@ -34,13 +39,14 @@ export interface CliOptions
   canaryName?: string | undefined;
   command: string;
   commit?: boolean;
-  concurrency: number;
+  /** Path to the config file (CLI: `-c`, `--config`) */
   configPath?: string;
   dependentChangeType?: ChangeType;
   disallowDeletedChangeFiles?: boolean;
+  /** For sync only: force syncing to the published version, even if older than the local version (CLI: `--force`) */
   forceVersions?: boolean;
+  /** Only read change files after this ref (CLI: `--since`) */
   fromRef?: string;
-  help?: boolean;
   keepChangeFiles?: boolean;
   /**
    * For publish: If true, publish all newly added packages in addition to modified packages.
@@ -60,7 +66,6 @@ export interface CliOptions
   token?: string;
   type?: ChangeType | null;
   verbose?: boolean;
-  version?: boolean;
   yes: boolean;
 }
 
@@ -99,6 +104,12 @@ export interface RepoOptions {
   /** Options for customizing changelog rendering */
   changelog?: ChangelogOptions;
   /**
+   * Maximum concurrency.
+   * As of writing, concurrency only applies for calling hooks and publishing to npm.
+   * @default 1
+   */
+  concurrency: number;
+  /**
    * The default dist-tag used for npm publish
    * @default 'latest'
    */
@@ -130,6 +141,7 @@ export interface RepoOptions {
   /** Ignore changes in these files (minimatch patterns; negations not supported) */
   ignorePatterns?: string[];
   /** For the `change` command, change message. For the `publish` command, commit message. */
+  // TODO this shouldn't be required in RepoOptions
   message: string;
   /**
    * The directory to run beachball in
@@ -174,7 +186,7 @@ export interface RepoOptions {
   transform?: TransformOptions;
   /** Put multiple changes in a single changefile */
   groupChanges?: boolean;
-  /** For shallow clones only: Depth of git history to consider when doing fetch */
+  /** For shallow clones only: depth of git history to fetch */
   depth?: number;
 }
 

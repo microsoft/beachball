@@ -1,42 +1,24 @@
-import { env } from '../env';
 import { BeachballOptions } from '../types/BeachballOptions';
+import { cliOptions } from './cliOptions';
+
+const defaults = Object.fromEntries(
+  Object.entries(cliOptions)
+    .filter(([, val]) => 'default' in val)
+    .map(([key, val]) => {
+      const defaultValue = val.default!;
+      if (defaultValue && typeof defaultValue === 'object' && 'simpleValue' in defaultValue) {
+        return [key, defaultValue.simpleValue];
+      }
+      return [key, defaultValue];
+    })
+);
 
 /**
- * Default options.
+ * Default options, used for tests.
  */
 export function getDefaultOptions(): BeachballOptions {
   return {
-    access: 'restricted',
-    all: false,
-    authType: 'authtoken',
-    branch: 'origin/master',
-    bump: true,
-    bumpDeps: true,
-    canaryName: undefined,
-    changehint: 'Run "beachball change" to create a change file',
-    changeDir: 'change',
-    command: 'change',
-    commit: true,
-    concurrency: 1,
-    defaultNpmTag: 'latest',
-    depth: undefined,
-    disallowedChangeTypes: null,
-    fetch: true,
+    ...defaults,
     generateChangelog: true,
-    gitTags: true,
-    gitTimeout: undefined,
-    message: '',
-    new: false,
-    path: '',
-    publish: true,
-    push: true,
-    registry: 'https://registry.npmjs.org/',
-    retries: 3,
-    scope: null,
-    tag: '',
-    timeout: undefined,
-    type: null,
-    version: false,
-    yes: env.isCI,
-  };
+  } as BeachballOptions;
 }

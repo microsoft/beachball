@@ -1,108 +1,9 @@
-import parser from 'yargs-parser';
-import { CliOptions } from '../types/BeachballOptions';
-import { getDefaultRemoteBranch, findProjectRoot } from 'workspace-tools';
+import { Command, InvalidArgumentError, Option } from 'commander';
+import { findProjectRoot, getDefaultRemoteBranch } from 'workspace-tools';
 import { env } from '../env';
-
-// For camelCased options, yargs will automatically accept them with-dashes too.
-const arrayOptions = ['disallowedChangeTypes', 'package', 'scope'] as const;
-const booleanOptions = [
-  'all',
-  'bump',
-  'bumpDeps',
-  'commit',
-  'disallowDeletedChangeFiles',
-  'fetch',
-  'forceVersions',
-  'gitTags',
-  'help',
-  'keepChangeFiles',
-  'new',
-  'publish',
-  'push',
-  'verbose',
-  'version',
-  'yes',
-] as const;
-const numberOptions = ['concurrency', 'depth', 'gitTimeout', 'retries', 'timeout'] as const;
-const stringOptions = [
-  'access',
-  'authType',
-  'branch',
-  'canaryName',
-  'changehint',
-  'changeDir',
-  'configPath',
-  'dependentChangeType',
-  'fromRef',
-  'message',
-  'prereleasePrefix',
-  'registry',
-  'tag',
-  'token',
-  'type',
-] as const;
-
-type AtLeastOne<T> = [T, ...T[]];
-/** Type hack to verify that an array includes all keys of a type */
-const allKeysOfType =
-  <T extends string>() =>
-  <L extends AtLeastOne<T>>(
-    ...x: L extends any ? (Exclude<T, L[number]> extends never ? L : Exclude<T, L[number]>[]) : never
-  ) =>
-    x;
-
-// Verify that all the known CLI options have types specified, to ensure correct parsing.
-//
-// NOTE: If a prop is missing, this will have a somewhat misleading error:
-//   Argument of type '"disallowedChangeTypes"' is not assignable to parameter of type '"tag" | "version"'
-//
-// To fix, add the missing names after "parameter of type" ("tag" and "version" in this example)
-// to the appropriate array above.
-const knownOptions = allKeysOfType<keyof CliOptions>()(
-  ...arrayOptions,
-  ...booleanOptions,
-  ...numberOptions,
-  ...stringOptions,
-  // these options are filled in below, not respected from the command line
-  'path',
-  'command'
-);
-
-const parserOptions: parser.Options = {
-  configuration: {
-    'boolean-negation': true,
-    'camel-case-expansion': true,
-    'dot-notation': false,
-    'duplicate-arguments-array': true,
-    'flatten-duplicate-arrays': true,
-    'greedy-arrays': true, // for now; we might want to change this to false in the future
-    'parse-numbers': true,
-    'parse-positional-numbers': false,
-    'short-option-groups': false,
-    'strip-aliased': true,
-    'strip-dashed': true,
-  },
-  // spread to get rid of readonly...
-  array: [...arrayOptions],
-  boolean: [...booleanOptions],
-  number: [...numberOptions],
-  string: [...stringOptions],
-  alias: {
-    authType: ['a'],
-    branch: ['b'],
-    configPath: ['c', 'config'],
-    forceVersions: ['force'],
-    fromRef: ['since'],
-    help: ['h', '?'],
-    message: ['m'],
-    package: ['p'],
-    registry: ['r'],
-    tag: ['t'],
-    token: ['n'],
-    version: ['v'],
-    yes: ['y'],
-  },
-};
+import { CliOptions } from '../types/BeachballOptions';
+import { CommandName, cliCommands } from './cliCommands';
+import { cliOptions } from './cliOptions';
 
 let cachedCliOptions: CliOptions;
 
@@ -113,53 +14,101 @@ export function getCliOptions(argv: string[], disableCache?: boolean): CliOption
       cachedCliOptions = getCliOptionsUncached(process.argv);
     }
     return cachedCliOptions;
-  } else {
-    return getCliOptionsUncached(argv);
   }
+
+  return getCliOptionsUncached(argv);
 }
 
 function getCliOptionsUncached(argv: string[]): CliOptions {
-  // Be careful not to mutate the input argv
-  const trimmedArgv = argv.slice(2);
+  const program = new Command('beachball')
+    .description('the sunniest version bumping tool')
+    .version(require('../../package.json').version, '-v, --version')
+    .showHelpAfterError().exitOverride;
 
-  const args = parser(trimmedArgv, parserOptions);
+  let chosenCommand: CommandName | undefined;
 
-  const { _: positionalArgs, ...options } = args;
-  let cwd: string;
-  try {
-    cwd = findProjectRoot(process.cwd());
-  } catch (err) {
-    cwd = process.cwd();
+  for (const [_cmdName, cmdMeta] of Object.entries(cliCommands)) {
+    const cmdName = _cmdName as CommandName;
+    const command = program
+      .command(cmdName, cmdMeta)
+      .description(cmdMeta.description)
+      .action(() => {
+        // hack to save the chosen command
+        // TODO properly implement commands.....
+        chosenCommand = cmdName;
+      });
+
+    for (const [configName, optMeta] of Object.entries(cliOptions)) {
+      if (!optMeta.commands.includes(cmdName)) {
+        continue;
+      }
+
+      const {
+        displayName = configName,
+        description: desc,
+        choices,
+        default: defaultValue,
+        hide,
+        short,
+        type = 'default',
+      } = optMeta;
+
+      const description = typeof desc === 'string' ? desc : desc(cmdName);
+
+      const options =
+        type === 'boolean' || type === 'boolean-negated'
+          ? makeBooleanOptions({ name: displayName, short, description, negated: type === 'boolean-negated' })
+          : makeOtherOptions({ name: displayName, short, description, type });
+
+      for (const opt of options) {
+        hide && opt.hideHelp();
+        defaultValue !== undefined && opt.default(defaultValue);
+        choices && opt.choices(choices);
+        type === 'int' && opt.argParser(parseIntValue);
+        type === 'multi' && opt.argParser(v => v.split(','));
+        command.addOption(opt);
+      }
+    }
   }
 
-  if (positionalArgs.length > 1) {
-    throw new Error(`Only one positional argument (the command) is allowed. Received: ${positionalArgs.join(' ')}`);
+  // // Be careful not to mutate the input argv
+  // program.parse([...argv]);
+
+  // const options = program.opts<CliOptions>();
+
+  // const options = { ...program.lastOptions };
+  // for (const [optionName, configName] of Object.entries(remappedOpts)) {
+  //   if (options[optionName] !== undefined) {
+  //     options[configName] = options[optionName];
+  //     delete options[optionName];
+  //   }
+  // }
+
+  // const cliOptions = options as CliOptions;
+  // cliOptions.command = program.lastSubCommand;
+
+  if (!options.path) {
+    try {
+      options.path = findProjectRoot(process.cwd());
+    } catch (err) {
+      options.path = process.cwd();
+    }
   }
 
-  const cliOptions = {
-    ...(options as CliOptions),
-    command: positionalArgs.length ? String(positionalArgs[0]) : 'change',
-    path: cwd,
-  };
-
-  if (args.branch) {
-    // TODO: This logic assumes the first segment of any branch name with a slash must be the remote,
-    // which is not necessarily accurate. Ideally we should check if a remote with that name exists,
-    // and if not, perform the default remote lookup.
-    cliOptions.branch =
-      args.branch.indexOf('/') > -1
-        ? args.branch
-        : getDefaultRemoteBranch({ branch: args.branch, verbose: args.verbose, cwd });
+  if (options.branch) {
+    options.branch = options.branch.includes('/')
+      ? options.branch
+      : getDefaultRemoteBranch({ branch: options.branch, verbose: options.verbose, cwd: options.path });
   }
 
-  if (cliOptions.command === 'canary') {
-    cliOptions.tag = cliOptions.canaryName || 'canary';
+  if (options.command === 'canary') {
+    options.tag = options.canaryName || 'canary';
   }
 
-  for (const key of Object.keys(cliOptions) as (keyof CliOptions)[]) {
-    const value = cliOptions[key];
+  for (const key of Object.keys(options) as (keyof CliOptions)[]) {
+    const value = options[key];
     if (value === undefined) {
-      delete cliOptions[key];
+      delete options[key];
     } else if (typeof value === 'number' && isNaN(value)) {
       throw new Error(`Non-numeric value passed for numeric option "${key}"`);
     } else if (knownOptions.includes(key)) {
@@ -169,11 +118,77 @@ function getCliOptionsUncached(argv: string[]): CliOptions {
     } else if (value === 'true') {
       // For unknown arguments like --foo=true or --bar=false, yargs will handle the value as a string.
       // Convert it to a boolean to avoid subtle bugs.
-      (cliOptions as any)[key] = true;
+      (options as any)[key] = true;
     } else if (value === 'false') {
-      (cliOptions as any)[key] = false;
+      (options as any)[key] = false;
     }
   }
 
-  return cliOptions;
+  return options;
+}
+
+function parseIntValue(value: string) {
+  const num = parseInt(value);
+  if (isNaN(num)) {
+    throw new InvalidArgumentError('Not a number');
+  }
+  return num;
+}
+
+function getMainOptionFlags(name: string, short: string | undefined) {
+  const decamelizedName = decamelize(name);
+  return short ? `-${short}, --${decamelizedName}` : `--${decamelizedName}`;
+}
+
+function makeBooleanOptions(params: {
+  name: string;
+  short: string | undefined;
+  description: string;
+  negated: boolean;
+}) {
+  const { name, short, description, negated } = params;
+
+  // Accept multiple variations of boolean input:
+  // `--some-opt`, `--some-opt=true|false`, `--some-opt true|false`
+  const booleanOption = (nameFlags: string) =>
+    new Option(`${nameFlags} [value]`, description).choices(['true', 'false']).argParser(v => v === 'true');
+
+  const options: Option[] = [booleanOption(getMainOptionFlags(name, short))];
+  const decamelizedName = decamelize(name);
+
+  if (decamelizedName !== name) {
+    // As above but camel case (`--someOpt`) and hidden from help
+    options.push(booleanOption(`--${name}`).hideHelp());
+  }
+
+  if (negated) {
+    // If requested, make a negated version (non-camelcase only, `--no-some-opt`)
+    const negativeDescription = description.replace(/^(whether to)?/, 'do not').replace(' (default true)', '');
+    options.push(new Option(`--no-${decamelizedName}`, negativeDescription).hideHelp());
+  }
+
+  return options;
+}
+
+function makeOtherOptions(params: {
+  name: string;
+  short: string | undefined;
+  description: string;
+  type: 'int' | 'multi' | 'default' | 'flag';
+}) {
+  const { name, short, description, type } = params;
+
+  const valueFlags = type === 'multi' ? '<values...>' : type === 'flag' ? '' : '<value>';
+
+  const options = [new Option(`${getMainOptionFlags(name, short)} ${valueFlags}`.trim(), description)];
+
+  if (decamelize(name) !== name) {
+    // As above but camel case (`--someOpt`) and hidden from help
+    options.push(new Option(`--${name} ${valueFlags}`, description).hideHelp());
+  }
+  return options;
+}
+
+function decamelize(str: string) {
+  return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
 }

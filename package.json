@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "cosmiconfig": "^8.3.6",
+    "commander": "^10.0.1",
     "execa": "^5.0.0",
     "fs-extra": "^11.1.1",
     "lodash": "^4.17.15",
@@ -57,8 +58,7 @@
     "prompts": "^2.4.2",
     "semver": "^7.0.0",
     "toposort": "^2.0.2",
-    "workspace-tools": "^0.38.0",
-    "yargs-parser": "^21.0.0"
+    "workspace-tools": "^0.38.0"
   },
   "devDependencies": {
     "@jest/globals": "^29.0.0",
@@ -70,7 +70,6 @@
     "@types/semver": "^7.3.13",
     "@types/tmp": "^0.2.3",
     "@types/toposort": "^2.0.3",
-    "@types/yargs-parser": "^21.0.0",
     "find-free-port": "^2.0.0",
     "gh-pages": "^5.0.0",
     "husky": "^8.0.0",
