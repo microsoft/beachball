@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Wed, 06 Nov 2024 22:56:34 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 19 Nov 2024 08:03:08 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.49.1
+
+Tue, 19 Nov 2024 08:03:08 GMT
+
+### Patches
+
+- Internal refactor: getQuestionsForPackage to its own file (elcraig@microsoft.com)
 
 ## 2.49.0
 

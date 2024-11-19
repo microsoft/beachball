@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 19 Nov 2024 08:03:08 GMT",
+      "version": "2.49.1",
+      "tag": "beachball_v2.49.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "ae9721a5ba88447fd431fe163a3d8774f73c4e0c",
+            "comment": "Internal refactor: getQuestionsForPackage to its own file"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 06 Nov 2024 22:56:34 GMT",
       "version": "2.49.0",
       "tag": "beachball_v2.49.0",
