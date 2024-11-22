@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import prompts from 'prompts';
 import { _promptForPackageChange } from '../../changefile/promptForChange';
+import { getQuestionsForPackage } from '../../changefile/getQuestionsForPackage';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { MockStdin } from '../../__fixtures__/mockStdin';
 import { MockStdout } from '../../__fixtures__/mockStdout';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
-import { getQuestionsForPackage } from '../../changefile/getQuestionsForPackage';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
 // so instead we inject a custom mock stdout stream, as well as stdin for entering answers
@@ -43,6 +43,9 @@ describe('promptForChange _promptForPackageChange', () => {
     expect.objectContaining({ name: 'comment', type: 'autocomplete' }),
   ];
 
+  /** Info for the default package used in tests */
+  const pkgInfo = defaultQuestionsParams.packageInfos[pkg];
+
   /** Wait for the prompt to finish rendering (simulates real user input) */
   const waitForPrompt = () => new Promise(resolve => process.nextTick(resolve));
 
@@ -61,7 +64,7 @@ describe('promptForChange _promptForPackageChange', () => {
   });
 
   it('returns an empty object and logs nothing if there are no questions', async () => {
-    const answers = await _promptForPackageChange([], pkg);
+    const answers = await _promptForPackageChange([], pkgInfo);
     expect(answers).toEqual({});
     expect(logs.mocks.log).not.toHaveBeenCalled();
   });
@@ -70,24 +73,26 @@ describe('promptForChange _promptForPackageChange', () => {
     const questions = getQuestionsForPackage(defaultQuestionsParams);
     expect(questions).toEqual(expectedQuestions);
 
-    const answersPromise = _promptForPackageChange(questions!, pkg);
+    const answersPromise = _promptForPackageChange(questions!, pkgInfo);
 
     // input: press enter twice to use defaults (with a pause in between to simulate real user input)
     await stdin.sendByChar('\n\n');
     const answers = await answersPromise;
 
-    expect(logs.getMockLines('log')).toMatchInlineSnapshot(`"Please describe the changes for: foo"`);
+    expect(logs.getMockLines('log')).toMatchInlineSnapshot(
+      `"Please describe the changes for: foo  (currently v1.0.0)"`
+    );
     expect(stdout.getOutput()).toMatchInlineSnapshot(`
-        "? Change type » - Use arrow-keys. Return to submit.
-        >    Patch      - bug fixes; no API changes.
-             Minor      - small feature; backwards compatible API changes.
-             None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        √ Change type »  Patch      - bug fixes; no API changes.
-        ? Describe changes (type or choose one) »
-        >   message
-        √ Describe changes (type or choose one) » message"
-      `);
+      "? Change type » - Use arrow-keys. Return to submit.
+      >    Patch      - bug fixes; no API changes
+           Minor      - new feature; backwards-compatible API changes
+           None       - this change does not affect the published package in any way
+           Major      - breaking changes; major feature
+      √ Change type »  Patch      - bug fixes; no API changes
+      ? Describe changes (type or choose one) »
+      >   message
+      √ Describe changes (type or choose one) » message"
+    `);
     expect(answers).toEqual({ type: 'patch', comment: 'message' });
   });
 
@@ -99,7 +104,7 @@ describe('promptForChange _promptForPackageChange', () => {
     });
     expect(questions).toEqual(expectedQuestions.slice(1));
 
-    const answerPromise = _promptForPackageChange(questions!, pkg);
+    const answerPromise = _promptForPackageChange(questions!, pkgInfo);
     await waitForPrompt();
     expect(stdout.lastOutput()).toMatchInlineSnapshot(`
         "? Describe changes (type or choose one) »
@@ -112,7 +117,9 @@ describe('promptForChange _promptForPackageChange', () => {
     await stdin.sendByChar('abc\n');
     const answers = await answerPromise;
 
-    expect(logs.getMockLines('log')).toMatchInlineSnapshot(`"Please describe the changes for: foo"`);
+    expect(logs.getMockLines('log')).toMatchInlineSnapshot(
+      `"Please describe the changes for: foo  (currently v1.0.0)"`
+    );
     expect(stdout.getOutput()).toMatchInlineSnapshot(`
         "? Describe changes (type or choose one) » a
         ? Describe changes (type or choose one) » ab
@@ -130,7 +137,7 @@ describe('promptForChange _promptForPackageChange', () => {
     });
     expect(questions).toEqual(expectedQuestions.slice(1));
 
-    const answerPromise = _promptForPackageChange(questions!, pkg);
+    const answerPromise = _promptForPackageChange(questions!, pkgInfo);
     await waitForPrompt();
     expect(stdout.lastOutput()).toMatchInlineSnapshot(`
         "? Describe changes (type or choose one) »
@@ -144,7 +151,9 @@ describe('promptForChange _promptForPackageChange', () => {
     await stdin.sendByChar('\n');
     const answers = await answerPromise;
 
-    expect(logs.getMockLines('log')).toMatchInlineSnapshot(`"Please describe the changes for: foo"`);
+    expect(logs.getMockLines('log')).toMatchInlineSnapshot(
+      `"Please describe the changes for: foo  (currently v1.0.0)"`
+    );
     expect(stdout.getOutput()).toMatchInlineSnapshot(`
         "? Describe changes (type or choose one) » abc
         √ Describe changes (type or choose one) » abc"
@@ -160,7 +169,7 @@ describe('promptForChange _promptForPackageChange', () => {
     });
     expect(questions).toEqual(expectedQuestions.slice(1));
 
-    const answerPromise = _promptForPackageChange(questions!, pkg);
+    const answerPromise = _promptForPackageChange(questions!, pkgInfo);
     await waitForPrompt();
     expect(stdout.lastOutput()).toMatchInlineSnapshot(`
         "? Describe changes (type or choose one) »
@@ -173,7 +182,9 @@ describe('promptForChange _promptForPackageChange', () => {
     stdin.send('abc\n');
     const answers = await answerPromise;
 
-    expect(logs.getMockLines('log')).toMatchInlineSnapshot(`"Please describe the changes for: foo"`);
+    expect(logs.getMockLines('log')).toMatchInlineSnapshot(
+      `"Please describe the changes for: foo  (currently v1.0.0)"`
+    );
     expect(stdout.getOutput()).toMatchInlineSnapshot(`""`);
     expect(answers).toEqual({ comment: 'abc' });
   });
@@ -183,7 +194,7 @@ describe('promptForChange _promptForPackageChange', () => {
     const questions = getQuestionsForPackage({ ...defaultQuestionsParams, recentMessages });
     expect(questions).toEqual(expectedQuestions);
 
-    const answerPromise = _promptForPackageChange(questions!, pkg);
+    const answerPromise = _promptForPackageChange(questions!, pkgInfo);
 
     // arrow down to select the third type
     stdin.emitKey({ name: 'down' });
@@ -194,32 +205,32 @@ describe('promptForChange _promptForPackageChange', () => {
     await stdin.sendByChar('\n');
 
     expect(stdout.getOutput()).toMatchInlineSnapshot(`
-        "? Change type » - Use arrow-keys. Return to submit.
-        >    Patch      - bug fixes; no API changes.
-             Minor      - small feature; backwards compatible API changes.
-             None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        ? Change type » - Use arrow-keys. Return to submit.
-             Patch      - bug fixes; no API changes.
-        >    Minor      - small feature; backwards compatible API changes.
-             None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        ? Change type » - Use arrow-keys. Return to submit.
-             Patch      - bug fixes; no API changes.
-             Minor      - small feature; backwards compatible API changes.
-        >    None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        √ Change type »  None       - this change does not affect the published package in any way.
-        ? Describe changes (type or choose one) »
-        >   first
-            second
-            third
-        ? Describe changes (type or choose one) »
-            first
-        >   second
-            third
-        √ Describe changes (type or choose one) » second"
-      `);
+      "? Change type » - Use arrow-keys. Return to submit.
+      >    Patch      - bug fixes; no API changes
+           Minor      - new feature; backwards-compatible API changes
+           None       - this change does not affect the published package in any way
+           Major      - breaking changes; major feature
+      ? Change type » - Use arrow-keys. Return to submit.
+           Patch      - bug fixes; no API changes
+      >    Minor      - new feature; backwards-compatible API changes
+           None       - this change does not affect the published package in any way
+           Major      - breaking changes; major feature
+      ? Change type » - Use arrow-keys. Return to submit.
+           Patch      - bug fixes; no API changes
+           Minor      - new feature; backwards-compatible API changes
+      >    None       - this change does not affect the published package in any way
+           Major      - breaking changes; major feature
+      √ Change type »  None       - this change does not affect the published package in any way
+      ? Describe changes (type or choose one) »
+      >   first
+          second
+          third
+      ? Describe changes (type or choose one) »
+          first
+      >   second
+          third
+      √ Describe changes (type or choose one) » second"
+    `);
 
     const answers = await answerPromise;
     expect(answers).toEqual({ type: 'none', comment: 'second' });
@@ -233,7 +244,7 @@ describe('promptForChange _promptForPackageChange', () => {
     });
     expect(questions).toEqual(expectedQuestions.slice(1));
 
-    const answerPromise = _promptForPackageChange(questions!, pkg);
+    const answerPromise = _promptForPackageChange(questions!, pkgInfo);
 
     // type "ba" and press enter to select "bar"
     await stdin.sendByChar('ba\n');
@@ -264,7 +275,7 @@ describe('promptForChange _promptForPackageChange', () => {
     });
     expect(questions).toEqual(expectedQuestions.slice(1));
 
-    const answerPromise = _promptForPackageChange(questions!, pkg);
+    const answerPromise = _promptForPackageChange(questions!, pkgInfo);
 
     // type "b", press backspace to delete it, press enter to select foo
     await stdin.sendByChar('b');
@@ -294,7 +305,7 @@ describe('promptForChange _promptForPackageChange', () => {
     const questions = getQuestionsForPackage(defaultQuestionsParams);
     expect(questions).toEqual(expectedQuestions);
 
-    const answerPromise = _promptForPackageChange(questions!, pkg);
+    const answerPromise = _promptForPackageChange(questions!, pkgInfo);
 
     // answer the first question
     await stdin.sendByChar('\n');
@@ -305,22 +316,22 @@ describe('promptForChange _promptForPackageChange', () => {
     const answers = await answerPromise;
 
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`
-        "Please describe the changes for: foo
-        Cancelled, no change files are written"
-      `);
+      "Please describe the changes for: foo  (currently v1.0.0)
+      Cancelled, no change files are written"
+    `);
 
     expect(stdout.getOutput()).toMatchInlineSnapshot(`
-        "? Change type » - Use arrow-keys. Return to submit.
-        >    Patch      - bug fixes; no API changes.
-             Minor      - small feature; backwards compatible API changes.
-             None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        √ Change type »  Patch      - bug fixes; no API changes.
-        ? Describe changes (type or choose one) »
-        >   message
-        ? Describe changes (type or choose one) » a
-        × Describe changes (type or choose one) » a"
-      `);
+      "? Change type » - Use arrow-keys. Return to submit.
+      >    Patch      - bug fixes; no API changes
+           Minor      - new feature; backwards-compatible API changes
+           None       - this change does not affect the published package in any way
+           Major      - breaking changes; major feature
+      √ Change type »  Patch      - bug fixes; no API changes
+      ? Describe changes (type or choose one) »
+      >   message
+      ? Describe changes (type or choose one) » a
+      × Describe changes (type or choose one) » a"
+    `);
 
     expect(answers).toBeUndefined();
   });

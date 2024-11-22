@@ -83,7 +83,7 @@ describe('promptForChange', () => {
     await waitForPrompt();
 
     // verify asking for first package
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo  (currently v1.0.0)');
     // choose custom options for this package
     stdin.emitKey({ name: 'down' });
     await stdin.sendByChar('\n');
@@ -91,7 +91,7 @@ describe('promptForChange', () => {
     await stdin.sendByChar('\n');
 
     // verify asking for second package
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: bar');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: bar  (currently v1.0.0)');
     // choose defaults
     await stdin.sendByChar('\n\n');
 
@@ -120,11 +120,11 @@ describe('promptForChange', () => {
     await waitForPrompt();
 
     // use defaults for first package
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo  (currently v1.0.0)');
     await stdin.sendByChar('\n\n');
 
     // cancel for second package
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: bar');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: bar  (currently v1.0.0)');
     stdin.emitKey({ name: 'c', ctrl: true });
 
     // nothing is returned
@@ -148,12 +148,12 @@ describe('promptForChange', () => {
     await waitForPrompt();
 
     // enter a valid type for foo
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
+    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo  (currently v1.0.0)');
     expect(stdout.getOutput()).toMatch(/enter any type/);
     await stdin.sendByChar('patch\n');
 
     // enter an invalid type for bar
-    expect(logs.mocks.log).toHaveBeenCalledWith('Please describe the changes for: bar');
+    expect(logs.mocks.log).toHaveBeenCalledWith('Please describe the changes for: bar  (currently v1.0.0)');
     await stdin.sendByChar('invalid\n');
 
     expect(await changeFilesPromise).toBeUndefined();

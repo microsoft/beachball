@@ -1,0 +1,7 @@
+{
+  "comment": "Add v0-specific change descriptions",
+  "type": "minor",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

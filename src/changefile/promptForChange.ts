@@ -2,7 +2,7 @@ import prompts from 'prompts';
 import { ChangeFileInfo, ChangeType } from '../types/ChangeInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { isValidChangeType } from '../validation/isValidChangeType';
-import { PackageGroups, PackageInfos } from '../types/PackageInfo';
+import { PackageGroups, PackageInfo, PackageInfos } from '../types/PackageInfo';
 import { getQuestionsForPackage } from './getQuestionsForPackage';
 
 type ChangePromptResponse = { type?: ChangeType; comment?: string };
@@ -19,25 +19,31 @@ export async function promptForChange(params: {
   email: string | null;
   options: Pick<BeachballOptions, 'message' | 'type' | 'dependentChangeType'>;
 }): Promise<ChangeFileInfo[] | undefined> {
-  const { changedPackages, email, options } = params;
+  const { changedPackages, packageInfos, email, options } = params;
   if (!changedPackages.length) {
     return;
   }
 
   // Get the questions for each package first, in case one package has a validation issue
   const packageQuestions: { [pkg: string]: prompts.PromptObject[] } = {};
+  let hasError = false;
   for (const pkg of changedPackages) {
     const questions = getQuestionsForPackage({ pkg, ...params });
-    if (!questions) {
-      return; // validation issue
+    if (questions) {
+      packageQuestions[pkg] = questions;
+    } else {
+      // show all the errors before returning
+      hasError = true;
     }
-    packageQuestions[pkg] = questions;
+  }
+  if (hasError) {
+    return;
   }
 
   // Now prompt for each package
   const packageChangeInfo: ChangeFileInfo[] = [];
   for (let pkg of changedPackages) {
-    const response = await _promptForPackageChange(packageQuestions[pkg], pkg);
+    const response = await _promptForPackageChange(packageQuestions[pkg], packageInfos[pkg]);
     if (!response) {
       return; // user cancelled
     }
@@ -58,7 +64,7 @@ export async function promptForChange(params: {
  */
 export async function _promptForPackageChange(
   questions: prompts.PromptObject[],
-  pkg: string
+  pkg: PackageInfo
 ): Promise<ChangePromptResponse | undefined> {
   if (!questions.length) {
     // This MUST return an empty object rather than nothing, because returning nothing means the
@@ -67,7 +73,7 @@ export async function _promptForPackageChange(
   }
 
   console.log('');
-  console.log(`Please describe the changes for: ${pkg}`);
+  console.log(`Please describe the changes for: ${pkg.name}  (currently v${pkg.version})`);
 
   let isCancelled = false;
   const onCancel = () => {
