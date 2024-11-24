@@ -195,6 +195,7 @@ export class Registry {
         type: 'file',
         level: 'trace',
         format: 'file',
+        // @ts-expect-error -- this is missing from the types?
         path: path.join(process.cwd(), `verdaccio-${Date.now()}.log`),
       });
     }
