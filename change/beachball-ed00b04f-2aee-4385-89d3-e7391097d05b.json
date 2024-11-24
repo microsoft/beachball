@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update to typescript 5.7",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

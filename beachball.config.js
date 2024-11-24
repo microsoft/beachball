@@ -1,6 +1,9 @@
 // @ts-check
-/** @type {import('./src/types/BeachballOptions').RepoOptions}*/
-module.exports = {
+/** @import { BeachballConfig } from './src/index' */
+/** @import { CliOptions } from './src/types/BeachballOptions' */
+// TODO: fix this type ("commit" should be allowed in repo options)
+/** @type {BeachballConfig & Partial<CliOptions>}*/
+const config = {
   ignorePatterns: [
     '.*',
     '.*/**',
@@ -20,4 +23,7 @@ module.exports = {
   branch: 'next',
   defaultNpmTag: 'next',
   gitTags: false,
+  commit: false,
 };
+
+module.exports = config;

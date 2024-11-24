@@ -85,7 +85,7 @@
     "strip-ansi": "^6.0.1",
     "tmp": "^0.2.1",
     "ts-jest": "^29.0.0",
-    "typescript": "~5.2.0",
+    "typescript": "~5.7.0",
     "verdaccio": "5.29.2",
     "verdaccio-auth-memory": "^10.2.0",
     "verdaccio-memory": "^10.3.0",

@@ -4,6 +4,7 @@
   "editor.insertSpaces": true,
   "editor.tabSize": 2,
   "files.trimTrailingWhitespace": true,
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
   "javascript.preferences.quoteStyle": "single",
   "typescript.preferences.quoteStyle": "single",
   "typescript.tsdk": "node_modules/typescript/lib",
