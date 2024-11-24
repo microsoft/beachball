@@ -67,7 +67,7 @@ describe('configList', () => {
         depth: undefined
         disallowedChangeTypes: null
         fetch: true
-        generateChangelog: true
+        generateChangelog: "md"
         gitTags: true
         gitTimeout: undefined
         ignorePatterns: ["*.test.ts"]

@@ -4,6 +4,7 @@ const config = {
   // TODO (release): change back to 'main'
   branch: 'next',
   commit: false,
+  generateChangelog: true,
   // TODO (release): change back to 'major'
   disallowedChangeTypes: ['prerelease', 'premajor', 'preminor', 'prepatch'],
 
