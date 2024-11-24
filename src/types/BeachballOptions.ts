@@ -130,10 +130,11 @@ export interface RepoOptions {
   fromRef?: string;
   /**
    * Whether to generate changelog files.
-   * - `true` (default) to generate both CHANGELOG.md and CHANGELOG.json
+   * - `'md'` (default) to generate only CHANGELOG.md
+   * - `true` to generate both CHANGELOG.md and CHANGELOG.json
    * - `false` to skip changelog generation
-   * - `'md'` to generate only CHANGELOG.md
    * - `'json'` to generate only CHANGELOG.json
+   * @default 'md'
    */
   generateChangelog: boolean | 'md' | 'json';
   /** Options for bumping package versions together */

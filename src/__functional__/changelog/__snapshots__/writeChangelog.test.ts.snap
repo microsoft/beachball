@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`writeChangelog generates basic changelog: changelog md 1`] = `
+exports[`writeChangelog generates basic changelog (md only by default): changelog md 1`] = `
 "# Change Log - foo
 
 <!-- This log was last generated on (date) and should not be manually modified. -->

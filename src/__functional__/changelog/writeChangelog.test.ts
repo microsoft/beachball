@@ -110,7 +110,7 @@ describe('writeChangelog', () => {
     expect(readChangelogJson(repo.rootPath)).toBeNull();
   });
 
-  it('generates basic changelog', async () => {
+  it('generates basic changelog (md only by default)', async () => {
     repo = sharedSingleRepo;
     const options = getOptions();
 
@@ -128,6 +128,25 @@ describe('writeChangelog', () => {
     expect(changelogMd).toContain('### Patches\n\n- patch comment');
     expect(changelogMd).not.toContain('no comment');
     expect(changelogMd).toMatchSnapshot('changelog md');
+
+    const changelogJson = readChangelogJson(repo.rootPath);
+    expect(changelogJson).toBeNull();
+  });
+
+  it('generates basic changelog md and json if generateChangelog is true', async () => {
+    repo = sharedSingleRepo;
+    const options = getOptions({ generateChangelog: true });
+
+    generateChangeFiles([getChange('foo', 'old minor comment')], options);
+    generateChangeFiles([getChange('foo', 'patch comment', 'patch')], options);
+    generateChangeFiles([getChange('foo', 'no comment', 'none')], options);
+    generateChangeFiles([getChange('foo', 'new minor comment', 'minor')], options);
+
+    await writeChangelogWrapper({ options });
+
+    const changelogMd = readChangelogMd(repo.rootPath);
+    // Just verify that this one was written (prevoius test covered details)
+    expect(changelogMd).toMatch(/^# Change Log - foo/);
 
     const changelogJson = readChangelogJson(repo.rootPath);
     expect(changelogJson).toEqual({ name: 'foo', entries: [expect.anything()] });
@@ -173,7 +192,7 @@ describe('writeChangelog', () => {
 
   it('generates changelogs with dependent changes in monorepo', async () => {
     repo = sharedMonoRepo;
-    const options = getOptions();
+    const options = getOptions({ generateChangelog: true });
 
     generateChangeFiles([{ packageName: 'foo', comment: 'foo comment' }], options);
     generateChangeFiles([{ packageName: 'baz', comment: 'baz comment' }], options);
@@ -242,7 +261,7 @@ describe('writeChangelog', () => {
 
   it('generates changelog in monorepo with grouped change files (groupChanges)', async () => {
     repo = sharedMonoRepo;
-    const options = getOptions({ groupChanges: true });
+    const options = getOptions({ groupChanges: true, generateChangelog: true });
 
     // these will be in one change file
     generateChangeFiles([getChange('foo', 'comment 2'), getChange('bar', 'bar comment')], options);
@@ -280,6 +299,7 @@ describe('writeChangelog', () => {
   it('generates grouped changelog in monorepo', async () => {
     repo = sharedMonoRepo;
     const options = getOptions({
+      generateChangelog: true,
       changelog: {
         groups: [
           {
@@ -351,6 +371,7 @@ describe('writeChangelog', () => {
   it('generates grouped changelog when path overlaps with regular changelog', async () => {
     repo = sharedMonoRepo;
     const options = getOptions({
+      generateChangelog: true,
       changelog: {
         groups: [
           {
@@ -497,7 +518,7 @@ describe('writeChangelog', () => {
     // Most of the previous content tests are handled by renderChangelog, but writeChangelog is
     // responsible for reading that content and passing it in.
     repo = sharedSingleRepo;
-    const options = getOptions();
+    const options = getOptions({ generateChangelog: true });
 
     // Write some changes and generate changelogs
     generateChangeFiles(['foo'], options);
@@ -528,7 +549,7 @@ describe('writeChangelog', () => {
 
   it('appends to existing changelog when migrating from uniqueFilenames=false to true', async () => {
     repo = sharedSingleRepo;
-    const options = getOptions();
+    const options = getOptions({ generateChangelog: true });
 
     // Write some changes and generate changelogs
     generateChangeFiles(['foo'], options);
@@ -566,7 +587,10 @@ describe('writeChangelog', () => {
 
   it('trims previous changelog entries over maxVersions', async () => {
     repo = sharedSingleRepo;
-    const options = getOptions({ changelog: { maxVersions: 2 } });
+    const options = getOptions({
+      generateChangelog: true,
+      changelog: { maxVersions: 2 },
+    });
 
     // Bump and write three times
     for (let i = 1; i <= 3; i++) {

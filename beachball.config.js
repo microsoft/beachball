@@ -4,6 +4,7 @@
 // TODO: fix this type ("commit" should be allowed in repo options)
 /** @type {BeachballConfig & Partial<CliOptions>}*/
 const config = {
+  generateChangelog: true,
   ignorePatterns: [
     '.*',
     '.*/**',
