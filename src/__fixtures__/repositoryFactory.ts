@@ -179,9 +179,9 @@ export class RepositoryFactory {
           fixtureParam === 'single'
             ? getSinglePackageFixture()
             : fixtureParam === 'monorepo'
-            ? getMonorepoFixture()
-            : // Clone the user-provided fixture so it's safe to modify
-              cloneObject(fixtureParam),
+              ? getMonorepoFixture()
+              : // Clone the user-provided fixture so it's safe to modify
+                cloneObject(fixtureParam),
       };
     }
 

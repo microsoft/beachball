@@ -44,9 +44,9 @@ Example:
       "name": "group name",
       "include": ["packages/groupfoo/*"],
       "exclude": ["!packages/groupfoo/bar"],
-      "disallowedChangeTypes": ["major"]
-    }
-  ]
+      "disallowedChangeTypes": ["major"],
+    },
+  ],
 }
 ```
 
