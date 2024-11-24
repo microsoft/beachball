@@ -25,7 +25,7 @@ describe('gitFetch', () => {
   const logs = initMockLogs();
 
   /** To speed things up, some tests only check the arguments and skip the git operation */
-  const noOpSuccess = () => ({ success: true, stdout: '', stderr: '', status: 0 } as GitProcessOutput);
+  const noOpSuccess = () => ({ success: true, stdout: '', stderr: '', status: 0 }) as GitProcessOutput;
 
   const realGit = jest.requireActual<typeof workspaceTools>('workspace-tools').git;
   /**
@@ -75,7 +75,7 @@ describe('gitFetch', () => {
 
   it('returns error but does not throw or log on failure by default', () => {
     // This test uses controlled non-localized fake stdio so we can test the whole output
-    gitOverride = () => ({ success: false, stdout: 'some logs', stderr: 'oh no', status: 1 } as GitProcessOutput);
+    gitOverride = () => ({ success: false, stdout: 'some logs', stderr: 'oh no', status: 1 }) as GitProcessOutput;
 
     const res = gitFetch({ cwd: repo.rootPath });
     expect(res).toEqual(
@@ -119,7 +119,7 @@ describe('gitFetch', () => {
   });
 
   it('logs git output with failed fetch if verbose is true', () => {
-    gitOverride = () => ({ success: false, stdout: 'some logs', stderr: 'oh no', status: 1 } as GitProcessOutput);
+    gitOverride = () => ({ success: false, stdout: 'some logs', stderr: 'oh no', status: 1 }) as GitProcessOutput;
 
     const res = gitFetch({ cwd: repo.rootPath, verbose: true });
     expect(gitSpy).toHaveBeenCalledWith(['fetch'], expect.anything());

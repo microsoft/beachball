@@ -43,12 +43,12 @@ function isPackageIncluded(
   const reason = !packageInfo
     ? 'no corresponding package found'
     : packageInfo.private
-    ? `${packageInfo.name} is private`
-    : packageInfo.combinedOptions.shouldPublish === false
-    ? `${packageInfo.name} has beachball.shouldPublish=false`
-    : !scopedPackages.includes(packageInfo.name)
-    ? `${packageInfo.name} is out of scope`
-    : ''; // not ignored
+      ? `${packageInfo.name} is private`
+      : packageInfo.combinedOptions.shouldPublish === false
+        ? `${packageInfo.name} has beachball.shouldPublish=false`
+        : !scopedPackages.includes(packageInfo.name)
+          ? `${packageInfo.name} is out of scope`
+          : ''; // not ignored
 
   return { isIncluded: !reason, reason };
 }

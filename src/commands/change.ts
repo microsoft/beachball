@@ -16,8 +16,8 @@ export async function change(options: BeachballOptions): Promise<void> {
     typeof specificPackage === 'string'
       ? [specificPackage]
       : Array.isArray(specificPackage)
-      ? specificPackage
-      : getChangedPackages(options, packageInfos);
+        ? specificPackage
+        : getChangedPackages(options, packageInfos);
   if (!changedPackages.length) {
     return;
   }

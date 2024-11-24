@@ -162,7 +162,10 @@ class MockData {
   pos = 0;
   done = false;
 
-  constructor(private data: Buffer | string | null, public encoding?: BufferEncoding) {}
+  constructor(
+    private data: Buffer | string | null,
+    public encoding?: BufferEncoding
+  ) {}
 
   get length() {
     if (Buffer.isBuffer(this.data)) {
