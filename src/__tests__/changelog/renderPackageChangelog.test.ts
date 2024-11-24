@@ -160,7 +160,7 @@ describe('changelog renderers -', () => {
 
     it('uses custom renderEntry', async () => {
       const renderInfo = getGroupedRenderInfo();
-      renderInfo.renderers.renderEntry = async (entry, renderInfo) => `- ${entry.comment} (#123)`;
+      renderInfo.renderers.renderEntry = entry => `- ${entry.comment} (#123)`;
 
       const result = await renderPackageChangelog(renderInfo);
       expect(result).toContain('#123');
@@ -169,8 +169,8 @@ describe('changelog renderers -', () => {
 
     it('uses custom renderEntries', async () => {
       const renderInfo = getRenderInfo();
-      renderInfo.renderers.renderEntries = async (changeType, renderInfo) => {
-        const entries = renderInfo.newVersionChangelog.comments[changeType];
+      renderInfo.renderers.renderEntries = (changeType, info) => {
+        const entries = info.newVersionChangelog.comments[changeType];
         return entries ? entries.map(entry => `${entry.comment}!!!`).join('\n\n') : '';
       };
 
@@ -181,7 +181,7 @@ describe('changelog renderers -', () => {
 
     it('uses custom renderChangeTypeHeader', async () => {
       const renderInfo = getRenderInfo();
-      renderInfo.renderers.renderChangeTypeHeader = async (changeType, renderInfo) =>
+      renderInfo.renderers.renderChangeTypeHeader = changeType =>
         changeType === 'minor' || changeType === 'major' ? '### Important stuff' : '### Boring stuff';
 
       const result = await renderPackageChangelog(renderInfo);
@@ -191,8 +191,8 @@ describe('changelog renderers -', () => {
 
     it('uses custom renderChangeTypeSection', async () => {
       const renderInfo = getRenderInfo();
-      renderInfo.renderers.renderChangeTypeSection = async (changeType, renderInfo) =>
-        changeType === 'minor' || changeType === 'major' ? renderChangeTypeSection(changeType, renderInfo) : '';
+      renderInfo.renderers.renderChangeTypeSection = async (changeType, info) =>
+        changeType === 'minor' || changeType === 'major' ? renderChangeTypeSection(changeType, info) : '';
 
       const result = await renderPackageChangelog(renderInfo);
       expect(result).not.toContain('Patches');
@@ -201,9 +201,9 @@ describe('changelog renderers -', () => {
 
     it('uses custom renderHeader', async () => {
       const renderInfo = getRenderInfo();
-      renderInfo.renderers.renderHeader = async renderInfo =>
+      renderInfo.renderers.renderHeader = info =>
         [
-          `## ${renderInfo.newVersionChangelog.version}`,
+          `## ${info.newVersionChangelog.version}`,
           renderInfo.newVersionChangelog.date.toUTCString(),
           `[Compare changes](http://real-github-compare-link)`,
         ].join('\n');
