@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "[BREAKING] Set `generateChangelog` to `'md'` by default (only write `CHANGELOG.md`, not `CHANGELOG.json`). To keep the old behavior, set `generateChangelog: true`. Or if you're not using the `CHANGELOG.json` files, it's safe to delete them.' (See #978 and #979 for more context.)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
