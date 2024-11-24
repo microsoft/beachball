@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "[breaking] Require Node 20",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

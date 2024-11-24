@@ -10,11 +10,9 @@
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "bin": {
-    "beachball": "./bin/beachball.js"
-  },
+  "bin": "./bin/beachball.js",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=20"
   },
   "files": [
     "bin",
@@ -25,13 +23,13 @@
     "build": "tsc",
     "change": "node ./lib/cli.js change",
     "checkchange": "node ./lib/cli.js check",
-    "docs": "echo \"Run this from the docs folder instead\" && exit 1",
-    "docs:build": "echo \"Run this from the docs folder instead\" && exit 1",
+    "docs": "vuepress dev docs --host localhost",
+    "docs:build": "vuepress build docs",
     "format": "prettier --write '**/*'",
     "prepare": "husky install",
     "pub": "node ./lib/cli.js publish",
     "release": "node ./lib/cli.js publish -y",
-    "release:docs": "echo \"Run this from the docs folder instead\" && exit 1",
+    "release:docs": "yarn docs:build && yarn gh-pages -d docs/.vuepress/dist --dotfiles",
     "start": "tsc -w --preserveWatchOutput",
     "test": "jest",
     "test:all": "yarn test:unit && yarn test:func && yarn test:e2e",
@@ -65,28 +63,37 @@
     "@types/fs-extra": "^11.0.0",
     "@types/lodash": "^4.14.191",
     "@types/minimatch": "^5.0.0",
-    "@types/node": "^14.0.0",
+    "@types/node": "^20.0.0",
     "@types/prompts": "^2.4.2",
     "@types/semver": "^7.3.13",
     "@types/tmp": "^0.2.3",
     "@types/toposort": "^2.0.3",
     "@types/yargs-parser": "^21.0.0",
+    "@vuepress/bundler-vite": "^2.0.0-rc",
+    "@vuepress/plugin-search": "^2.0.0-rc",
+    "@vuepress/theme-default": "^2.0.0-rc",
     "find-free-port": "^2.0.0",
     "get-port": "^5.0.0",
+    "gh-pages": "^6.0.0",
     "husky": "^8.0.0",
     "jest": "^29.0.0",
     "lint-staged": "^12.0.0",
+    "mermaid": "^11.4.0",
     "normalized-tmpdir": "^1.0.1",
     "prettier": "~2.8.4",
+    "sass-embedded": "^1.81.0",
     "strip-ansi": "^6.0.1",
     "tmp": "^0.2.1",
     "ts-jest": "^29.0.0",
     "typescript": "~5.2.0",
     "verdaccio": "5.29.2",
     "verdaccio-auth-memory": "^10.2.0",
-    "verdaccio-memory": "^10.3.0"
+    "verdaccio-memory": "^10.3.0",
+    "vuepress": "^2.0.0-rc",
+    "vuepress-plugin-md-enhance": "^2.0.0-rc"
   },
   "resolutions": {
-    "@types/node": "^14.0.0"
-  }
+    "@types/node@npm:*": "^20.0.0"
+  },
+  "packageManager": "yarn@4.5.2"
 }

@@ -8,5 +8,10 @@ package-lock.json
 
 docs/.vuepress/.cache
 docs/.vuepress/.temp
-docs/.yarn/*
-!docs/.yarn/releases/
+docs/.yarn
+
+.yarn/*
+!.yarn/patches/
+!.yarn/releases/
+# Ignore this in case a local .npmrc is added with a token for publishing
+.npmrc

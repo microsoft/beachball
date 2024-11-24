@@ -5,9 +5,9 @@ name: PR
 
 on:
   pull_request:
-    branches: [master]
+    branches: [master, next]
   push:
-    branches: [master]
+    branches: [master, next]
 
 concurrency:
   group: pr-${{ github.ref }}
@@ -18,15 +18,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        npm: [8]
-        include:
-          - os: ubuntu-latest
-            # npm 6 and 8 have slightly different behavior with verdaccio in publishing tests.
-            # It's unclear if this translates to meaningful differences in behavior in actual scenarios,
-            # but test against both versions to be safe. (Only do this on the ubuntu build for speed.)
-            npm: 6
 
-    name: build (${{ matrix.os }}, npm ${{ matrix.npm }})
+    name: build (${{ matrix.os }})
 
     runs-on: ${{ matrix.os }}
 
@@ -41,12 +34,14 @@ jobs:
           node-version-file: .nvmrc
 
       # Guarantee a predictable version of npm for the first round of tests
-      - name: Install npm@${{ matrix.npm }}
-        run: npm install --global npm@${{ matrix.npm }}
+      - name: Install npm@10
+        run: npm install --global npm@10
 
-      - run: yarn --frozen-lockfile
+      - run: yarn --immutable
 
       - run: yarn build
+
+      - run: yarn docs:build
 
       - run: yarn checkchange --verbose
 
@@ -55,25 +50,3 @@ jobs:
       - run: yarn test:func
 
       - run: yarn test:e2e
-
-  # The docs have a separate installation using Node 20 due to needing newer dependencies
-  docs:
-    name: build docs
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Install Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          cache: yarn
-          node-version: 20
-
-      - run: yarn --immutable
-        working-directory: ./docs
-
-      - run: yarn docs:build
-        working-directory: ./docs

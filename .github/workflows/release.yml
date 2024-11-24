@@ -1,15 +1,19 @@
 name: Release
 
 on:
-  # release daily
-  # https://crontab-generator.org/
-  schedule:
-    - cron: '0 8 * * *'
+  # # release daily
+  # # https://crontab-generator.org/
+  # schedule:
+  #   - cron: '0 8 * * *'
   # or on manual trigger
   workflow_dispatch:
 
 env:
-  npmVersion: 8
+  npmVersion: 10
+
+permissions:
+  # Needed by gh-pages publish
+  contents: write
 
 jobs:
   build:
@@ -22,6 +26,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
+          # Fetch all history (allows docs to show dates)
+          fetch-depth: 0
           # Don't save creds in the git config (so it's easier to override later)
           persist-credentials: false
 
@@ -30,13 +36,15 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      # Guarantee a predictable version of npm (the PR build tests against both 6 and 8)
-      - name: Install package managers
-        run: npm install --global npm@${{ env.npmVersion }} yarn@1
+      # Guarantee a predictable version of npm
+      - name: Install npm@${{ env.npmVersion }}
+        run: npm install --global npm@${{ env.npmVersion }}
 
-      - run: yarn --frozen-lockfile
+      - run: yarn --immutable
 
       - run: yarn build
+
+      - run: yarn docs:build
 
       - run: yarn test:unit
 
@@ -61,37 +69,6 @@ jobs:
         env:
           NPM_AUTHTOKEN: ${{ secrets.NPM_AUTHTOKEN }}
           REPO_PAT: ${{ secrets.REPO_PAT }}
-
-  # The docs have a separate installation using Node 20 due to needing newer dependencies
-  docs:
-    name: Update docs
-
-    needs: build
-
-    runs-on: ubuntu-latest
-
-    permissions:
-      # Needed by gh-pages publish
-      contents: write
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          # Don't save creds in the git config (so it's easier to override later)
-          persist-credentials: false
-
-      - name: Install Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          cache: yarn
-          node-version: 20
-
-      - run: yarn --immutable
-        working-directory: ./docs
-
-      - run: yarn docs:build
-        working-directory: ./docs
 
       - name: Update docs
         run: |
