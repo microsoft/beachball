@@ -7,7 +7,9 @@ const cachedRepoOptions = new Map<CliOptions, Partial<RepoOptions>>();
 
 export function getRepoOptions(cliOptions: CliOptions): Partial<RepoOptions> {
   const { configPath, path: cwd, branch } = cliOptions;
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   if (!env.beachballDisableCache && cachedRepoOptions.has(cliOptions)) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- checked previously
     return cachedRepoOptions.get(cliOptions)!;
   }
 

@@ -27,6 +27,7 @@ export async function canary(options: BeachballOptions): Promise<void> {
     let newVersion = oldPackageInfo[pkg].version;
 
     do {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       newVersion = semver.inc(newVersion, 'prerelease', options.canaryName || 'canary')!;
     } while (packageVersions[pkg].includes(newVersion));
 

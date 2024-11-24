@@ -46,6 +46,8 @@ jobs:
 
       - run: yarn docs:build
 
+      - run: yarn lint
+
       - run: yarn test:unit
 
       - run: yarn test:func

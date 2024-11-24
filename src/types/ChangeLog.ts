@@ -30,7 +30,7 @@ export interface ChangelogEntry {
   /** Package name the change was in */
   package: string;
   /** Extra info added to the change file via custom prompts */
-  [extraInfo: string]: any;
+  [extraInfo: string]: unknown;
 }
 
 /**

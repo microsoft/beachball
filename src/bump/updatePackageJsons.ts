@@ -27,7 +27,7 @@ export function updatePackageJsons(modifiedPackages: Set<string>, packageInfos: 
       // would overwrite those incorrectly!
       for (const [dep, updatedVersion] of Object.entries(updatedDeps)) {
         if (modifiedPackages.has(dep) && packageJson[depKind]?.[dep]) {
-          packageJson[depKind]![dep] = updatedVersion;
+          packageJson[depKind][dep] = updatedVersion;
         }
       }
     }

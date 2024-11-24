@@ -12,6 +12,7 @@ describe('validate', () => {
   let repo: Repository | undefined;
   const logs = initMockLogs();
   // this is mocked in jestSetup
+  // eslint-disable-next-line @typescript-eslint/unbound-method
   const processExit = process.exit as jest.MockedFunction<typeof process.exit>;
 
   function getOptions(): BeachballOptions {

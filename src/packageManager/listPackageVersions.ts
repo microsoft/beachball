@@ -27,6 +27,7 @@ export function _clearPackageVersionsCache(): void {
 async function getNpmPackageInfo(packageName: string, options: NpmOptions): Promise<NpmShowResult | false> {
   const { registry, token, authType, timeout } = options;
 
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   if (env.beachballDisableCache || !packageVersionsCache[packageName]) {
     const showResult = await npm(
       ['show', '--registry', registry, '--json', packageName, ...getNpmAuthArgs(registry, token, authType)],
@@ -34,7 +35,7 @@ async function getNpmPackageInfo(packageName: string, options: NpmOptions): Prom
     );
 
     if (showResult.success && showResult.stdout !== '') {
-      const packageInfo = JSON.parse(showResult.stdout);
+      const packageInfo = JSON.parse(showResult.stdout) as NpmShowResult;
       packageVersionsCache[packageName] = packageInfo;
     } else {
       packageVersionsCache[packageName] = false;

@@ -177,6 +177,7 @@ describe('getQuestionsForPackage', () => {
       }),
     ]);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const suggestions = await questions![1].suggest!('ba', recentMessageChoices);
     expect(suggestions).toEqual([{ title: 'Bar' }, { title: 'Baz' }]);
   });

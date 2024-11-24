@@ -51,6 +51,7 @@ export function updateRelatedChangeType(params: {
     const visited = new Set<string>();
 
     while (queue.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- checked above
       const { subjectPackage, changeType } = queue.shift()!;
 
       if (visited.has(subjectPackage)) {

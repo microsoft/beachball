@@ -47,6 +47,7 @@ type AtLeastOne<T> = [T, ...T[]];
 const allKeysOfType =
   <T extends string>() =>
   <L extends AtLeastOne<T>>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...x: L extends any ? (Exclude<T, L[number]> extends never ? L : Exclude<T, L[number]>[]) : never
   ) =>
     x;
@@ -109,6 +110,7 @@ let cachedCliOptions: CliOptions;
 export function getCliOptions(argv: string[], disableCache?: boolean): CliOptions {
   // Special case caching to process.argv which should be immutable
   if (argv === process.argv) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (disableCache || env.beachballDisableCache || !cachedCliOptions) {
       cachedCliOptions = getCliOptionsUncached(process.argv);
     }
@@ -170,8 +172,10 @@ function getCliOptionsUncached(argv: string[]): CliOptions {
     } else if (value === 'true') {
       // For unknown arguments like --foo=true or --bar=false, yargs will handle the value as a string.
       // Convert it to a boolean to avoid subtle bugs.
+      // eslint-disable-next-line
       (cliOptions as any)[key] = true;
     } else if (value === 'false') {
+      // eslint-disable-next-line
       (cliOptions as any)[key] = false;
     }
   }

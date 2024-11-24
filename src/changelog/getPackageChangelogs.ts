@@ -37,7 +37,7 @@ export function getPackageChangelogs(
 
     changelogs[packageName].comments ??= {};
     changelogs[packageName].comments[changeType] ??= [];
-    changelogs[packageName].comments[changeType]?.push({
+    changelogs[packageName].comments[changeType].push({
       author: change.email,
       package: packageName,
       commit: changeFileCommits[changeFile],
@@ -63,7 +63,7 @@ export function getPackageChangelogs(
 
     for (const dep of changedBy) {
       if (dep !== dependent) {
-        changelogs[dependent].comments[changeType]?.push({
+        changelogs[dependent].comments[changeType].push({
           author: 'beachball',
           package: dependent,
           comment: `Bump ${dep} to v${packageInfos[dep].version}`,

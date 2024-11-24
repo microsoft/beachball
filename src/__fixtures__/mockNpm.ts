@@ -4,7 +4,7 @@ import _ from 'lodash';
 import path from 'path';
 import semver from 'semver';
 import type { NpmShowResult } from '../packageManager/listPackageVersions';
-import { npm, NpmResult } from '../packageManager/npm';
+import { npm, type NpmResult } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
 import type { PackageManagerOptions } from '../packageManager/packageManager';
 
@@ -145,6 +145,7 @@ export function _makeRegistryData(data: PartialRegistryData): MockNpmRegistry {
 }
 
 /** (exported for testing) Mock npm show based on the registry data */
+// eslint-disable-next-line @typescript-eslint/require-await -- returns a promise to mimic real version
 export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
   // Assumption: all beachball callers to "npm show" list the package name last
   const packageSpec = args.slice(-1)[0];
@@ -190,6 +191,7 @@ export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
 };
 
 /** (exported for testing) Mock npm publish to the registry data */
+// eslint-disable-next-line @typescript-eslint/require-await -- returns a promise to mimic real version
 export const _mockNpmPublish: MockNpmCommand = async (registryData, args, opts) => {
   if (!opts?.cwd) {
     throw new Error('cwd is required for mock npm publish');

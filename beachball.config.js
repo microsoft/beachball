@@ -9,6 +9,7 @@ const config = {
     '.*/**',
     'docs/**',
     'docs/.vuepress/**',
+    'eslint.config.*',
     'jest.*.js',
     'renovate.json5',
     'scripts/**',
