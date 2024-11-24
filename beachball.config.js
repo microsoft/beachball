@@ -1,6 +1,7 @@
 // @ts-check
 /** @type {Partial<import('./src/types/BeachballOptions').RepoOptions>} */
 const config = {
+  generateChangelog: true,
   ignorePatterns: [
     '.*',
     '.*/**',
