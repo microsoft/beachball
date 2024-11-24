@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "[BREAKING] Fix behavior of `VersionGroupOptions.exclude`: if a package path **matches** any `exclude` pattern, it's excluded, rather than requiring negation. (To migrate, just remove the leading `!` from your `exclude` patterns.)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

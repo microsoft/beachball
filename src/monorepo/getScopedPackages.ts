@@ -21,12 +21,16 @@ export function getScopedPackages(
   // If there were no include scopes, include all paths by default
   includeScopes = includeScopes.length ? includeScopes : true;
 
-  const excludeScopes = scope.filter(s => s.startsWith('!'));
+  const excludeScopes = scope.filter(s => s.startsWith('!')).map(s => s.slice(1));
 
   const result = Object.keys(packageInfos).filter(pkgName => {
     const packagePath = path.dirname(packageInfos[pkgName].packageJsonPath);
 
-    return isPathIncluded(path.relative(cwd, packagePath), includeScopes, excludeScopes);
+    return isPathIncluded({
+      relativePath: path.relative(cwd, packagePath),
+      include: includeScopes,
+      exclude: excludeScopes,
+    });
   });
   return new Set(result);
 }
