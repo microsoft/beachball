@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Use ES2022 output (Node 20)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "outDir": "./lib",
-    // compatible with node 14
-    "target": "ES2020",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    // compatible with node 20
+    "target": "ES2022",
+    "module": "Node16",
+    "moduleResolution": "Node16",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -15,7 +15,7 @@
     "allowJs": true,
     "checkJs": true,
     "skipLibCheck": true,
-    "lib": ["ES2020"],
+    "lib": ["ES2022"],
     "types": ["node"]
   },
   "include": ["src/**/*"]
