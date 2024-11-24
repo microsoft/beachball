@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update doc site to vuepress 2",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}

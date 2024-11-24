@@ -3,8 +3,11 @@ home: true
 # heroImage: /hero.png
 heroText: The Sunniest Semantic Version Bumper
 tagline: Makes automating npm publishing a breeze
-actionText: Get Started →
-actionLink: /overview/getting-started
+actions:
+  - text: Get Started →
+    link: /overview/getting-started
+    type: primary
+
 features:
   - title: Synchronized in git and npm
     details: 'keep your git and npm versions in sync in CI and local workflows'

@@ -48,8 +48,6 @@ jobs:
 
       - run: yarn build
 
-      - run: yarn docs:build
-
       - run: yarn checkchange --verbose
 
       - run: yarn test:unit
@@ -57,3 +55,25 @@ jobs:
       - run: yarn test:func
 
       - run: yarn test:e2e
+
+  # The docs have a separate installation using Node 20 due to needing newer dependencies
+  docs:
+    name: build docs
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Install Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          cache: yarn
+          node-version: 20
+
+      - run: yarn --immutable
+        working-directory: ./docs
+
+      - run: yarn docs:build
+        working-directory: ./docs
