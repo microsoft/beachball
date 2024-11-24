@@ -1,18 +1,15 @@
+# As of version 3, Prettier respects .gitignore in addition to this file.
+
 .yarn/
-*.log
 *.snap
 *.styl
 *.svg
 .*ignore
 .husky/
-.DS_Store
 .nojekyll
 .nvmrc
-docs/.vuepress/dist/
 /change/
 /CHANGELOG.*
-/lib/
 LICENSE
-node_modules/
 SECURITY.md
 yarn.lock

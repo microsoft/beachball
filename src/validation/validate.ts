@@ -192,8 +192,8 @@ export function validate(
       const message = options.all
         ? 'Considering the following packages due to --all'
         : options.package
-        ? 'Considering the specific --package'
-        : 'Found changes in the following packages';
+          ? 'Considering the specific --package'
+          : 'Found changes in the following packages';
       console.log(`${message}:\n${bulletedList([...changedPackages].sort())}`);
     }
 
