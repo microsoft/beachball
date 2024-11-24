@@ -125,7 +125,7 @@ describe('getPackageGroups', () => {
       },
       repoOptions: {
         groups: [
-          { name: 'group', include: ['packages/*'], exclude: ['!packages/internal'], disallowedChangeTypes: null },
+          { name: 'group', include: ['packages/*'], exclude: ['packages/internal'], disallowedChangeTypes: null },
         ],
       },
     });
@@ -147,7 +147,7 @@ describe('getPackageGroups', () => {
           {
             name: 'group1',
             include: ['packages/**/*'],
-            exclude: ['!packages/core/*'],
+            exclude: ['packages/core/*'],
             disallowedChangeTypes: null,
           },
         ],
