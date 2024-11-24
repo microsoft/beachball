@@ -28,22 +28,22 @@ For cases where it's necessary to bump packages together, `beachball` also provi
 
 Groups can be added to the [configuration file](../overview/configuration). See the [`VersionGroupOptions` source](https://github.com/microsoft/beachball/blob/master/src/types/ChangelogOptions.ts) for full details.
 
-| Name                    | Type                         | Description                                                                                                                                             |
-| ----------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`                  | `string`                     | Name of the version group                                                                                                                               |
-| `include`               | `string \| string[] \| true` | glob pattern(s) for package paths to include (see [notes on globs][1]). If `true`, include all packages except those matching `exclude`.                |
-| `exclude`               | `string \| string[]`         | glob pattern(s) for package paths to exclude (see [notes on globs][1]). This currently must use **negated patterns only** (will be fixed in version 3). |
-| `disallowedChangeTypes` | `ChangeType[] \| null`       | Disallow these change types for the group.                                                                                                              |
+| Name                    | Type                         | Description                                                                                                                              |
+| ----------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                  | `string`                     | Name of the version group                                                                                                                |
+| `include`               | `string \| string[] \| true` | glob pattern(s) for package paths to include (see [notes on globs][1]). If `true`, include all packages except those matching `exclude`. |
+| `exclude`               | `string \| string[]`         | glob pattern(s) for package paths to exclude (see [notes on globs][1]).                                                                  |
+| `disallowedChangeTypes` | `ChangeType[] \| null`       | Disallow these change types for the group.                                                                                               |
 
 Example:
 
-```jsonc
+```json
 {
   "groups": [
     {
       "name": "group name",
       "include": ["packages/groupfoo/*"],
-      "exclude": ["!packages/groupfoo/bar"],
+      "exclude": ["packages/groupfoo/bar"],
       "disallowedChangeTypes": ["major"]
     }
   ]
@@ -58,12 +58,12 @@ If you only want to publish or record changes for certain packages, you should u
 
 To show changes for multiple packages in one change file, use the `changelog.groups` option. See the [`ChangelogGroupOptions` source](https://github.com/microsoft/beachball/blob/master/src/types/ChangelogOptions.ts) for full details.
 
-| Name                | Type                         | Description                                                                                                                                             |
-| ------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `masterPackageName` | `string`                     | The main package which a group of changes bubbles up to.                                                                                                |
-| `include`           | `string \| string[] \| true` | glob pattern(s) for package paths to include (see [notes on globs][1]). If `true`, include all packages except those matching `exclude`.                |
-| `exclude`           | `string \| string[]`         | glob pattern(s) for package paths to exclude (see [notes on globs][1]). This currently must use **negated patterns only** (will be fixed in version 3). |
-| `changelogPath`     | `string`                     | Put the grouped changelog file under this directory. Can be relative to the root, or absolute.                                                          |
+| Name                | Type                         | Description                                                                                                                              |
+| ------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `masterPackageName` | `string`                     | The main package which a group of changes bubbles up to.                                                                                 |
+| `include`           | `string \| string[] \| true` | glob pattern(s) for package paths to include (see [notes on globs][1]). If `true`, include all packages except those matching `exclude`. |
+| `exclude`           | `string \| string[]`         | glob pattern(s) for package paths to exclude (see [notes on globs][1]).                                                                  |
+| `changelogPath`     | `string`                     | Put the grouped changelog file under this directory. Can be relative to the root, or absolute.                                           |
 
 In this example, changelogs for all packages under `packages/*` (except `packages/baz`) are written to a `CHANGELOG.md` at the repo root (`.`), with `foo` as the master package. (To replace `foo`'s usual changelog with a grouped one, you'd specify `changelogPath` as the path to `foo` instead, e.g. `packages/foo`.)
 
@@ -75,7 +75,7 @@ In this example, changelogs for all packages under `packages/*` (except `package
         "masterPackageName": "foo",
         "changelogPath": ".",
         "include": ["packages/*"],
-        "exclude": ["!packages/baz"]
+        "exclude": ["packages/baz"]
       }
     ]
   }

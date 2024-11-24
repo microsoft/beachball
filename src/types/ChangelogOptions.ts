@@ -75,9 +75,6 @@ export interface ChangelogGroupOptions {
   /**
    * minimatch pattern(s) for package paths to exclude from this group.
    * Patterns are relative to the repo root and must use forward slashes.
-   *
-   * Currently this must use **negated patterns only**: e.g. if you want to exclude `packages/foo`,
-   * you must specify `exclude` as `!packages/foo`. (This will be fixed in a future major version.)
    */
   exclude?: string | string[];
 

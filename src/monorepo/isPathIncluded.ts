@@ -8,11 +8,13 @@ import minimatch from 'minimatch';
  * e.g. if you want to exclude `packages/foo`, you must specify `exclude` as `!packages/foo`.
  * (This will be fixed in a future major version.)
  */
-export function isPathIncluded(
-  relativePath: string,
-  include: string | string[] | true,
-  exclude?: string | string[]
-): boolean {
+export function isPathIncluded(params: {
+  relativePath: string;
+  include: string | string[] | true;
+  exclude?: string | string[];
+}): boolean {
+  const { relativePath, include, exclude } = params;
+
   let shouldInclude: boolean;
   if (include === true) {
     shouldInclude = true;
@@ -22,14 +24,8 @@ export function isPathIncluded(
   }
 
   if (exclude?.length && shouldInclude) {
-    // TODO: this is weird/buggy--it assumes that exclude patterns are always negated,
-    // which intuitively (or comparing to other tools) is not how it should work.
-    // If this is fixed, updates will be needed in:
-    // - getScopedPackages()
-    // - ChangelogGroupOptions
-    // - VersionGroupOptions
     const excludePatterns = typeof exclude === 'string' ? [exclude] : exclude;
-    shouldInclude = excludePatterns.every(pattern => minimatch(relativePath, pattern));
+    shouldInclude = !excludePatterns.some(pattern => minimatch(relativePath, pattern));
   }
 
   return shouldInclude;

@@ -85,7 +85,7 @@ async function writeGroupedChangelog(
     const relativePath = path.relative(options.path, packagePath);
 
     for (const group of changelogGroups) {
-      const isInGroup = isPathIncluded(relativePath, group.include, group.exclude);
+      const isInGroup = isPathIncluded({ relativePath, include: group.include, exclude: group.exclude });
       if (isInGroup) {
         groupedChangelogs[group.changelogAbsDir].changelogs.push(changelogs[pkg]);
       }

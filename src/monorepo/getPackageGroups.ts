@@ -23,7 +23,9 @@ export function getPackageGroups(
     const packagePath = path.dirname(info.packageJsonPath);
     const relativePath = path.relative(root, packagePath);
 
-    const groupsForPkg = groups.filter(group => isPathIncluded(relativePath, group.include, group.exclude));
+    const groupsForPkg = groups.filter(group =>
+      isPathIncluded({ relativePath, include: group.include, exclude: group.exclude })
+    );
     if (groupsForPkg.length > 1) {
       // Keep going after this error to ensure we report all errors
       errorPackages[pkgName] = groupsForPkg;
