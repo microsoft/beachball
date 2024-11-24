@@ -15,41 +15,40 @@ export interface ParsedOptions {
   options: BeachballOptions;
 }
 
-export interface CliOptions
-  extends Pick<
-    RepoOptions,
-    | 'access'
-    | 'authType'
-    | 'branch'
-    | 'bump'
-    | 'bumpDeps'
-    | 'canaryName'
-    | 'changehint'
-    | 'changeDir'
-    | 'commit'
-    | 'concurrency'
-    | 'depth'
-    | 'disallowedChangeTypes'
-    | 'disallowDeletedChangeFiles'
-    | 'fetch'
-    | 'fromRef'
-    | 'gitTags'
-    | 'gitTimeout'
-    | 'keepChangeFiles'
-    | 'message'
-    | 'new'
-    | 'npmReadConcurrency'
-    | 'packToPath'
-    | 'path'
-    | 'prereleasePrefix'
-    | 'publish'
-    | 'push'
-    | 'registry'
-    | 'retries'
-    | 'scope'
-    | 'tag'
-    | 'timeout'
-  > {
+export interface CliOptions extends Pick<
+  RepoOptions,
+  | 'access'
+  | 'authType'
+  | 'branch'
+  | 'bump'
+  | 'bumpDeps'
+  | 'canaryName'
+  | 'changehint'
+  | 'changeDir'
+  | 'commit'
+  | 'concurrency'
+  | 'depth'
+  | 'disallowedChangeTypes'
+  | 'disallowDeletedChangeFiles'
+  | 'fetch'
+  | 'fromRef'
+  | 'gitTags'
+  | 'gitTimeout'
+  | 'keepChangeFiles'
+  | 'message'
+  | 'new'
+  | 'npmReadConcurrency'
+  | 'packToPath'
+  | 'path'
+  | 'prereleasePrefix'
+  | 'publish'
+  | 'push'
+  | 'registry'
+  | 'retries'
+  | 'scope'
+  | 'tag'
+  | 'timeout'
+> {
   /** Consider all packages to have changed */
   all: boolean;
   command: string;
@@ -262,8 +261,9 @@ export interface RepoOptions {
   new: boolean;
 }
 
-export interface PackageOptions
-  extends Partial<Pick<RepoOptions, 'gitTags' | 'disallowedChangeTypes' | 'defaultNpmTag'>> {
+export interface PackageOptions extends Partial<
+  Pick<RepoOptions, 'gitTags' | 'disallowedChangeTypes' | 'defaultNpmTag'>
+> {
   tag?: string | null;
   /**
    * Disable publishing a particular package.

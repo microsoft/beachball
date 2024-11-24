@@ -93,8 +93,8 @@ export function readChangeFiles(
       const warningType = !packageInfos[change.packageName]
         ? 'nonexistent'
         : packageInfos[change.packageName].private
-        ? 'private'
-        : undefined;
+          ? 'private'
+          : undefined;
       if (warningType) {
         const resolution = options.groupChanges ? 'remove the entry from this file' : 'delete this file';
         console.warn(

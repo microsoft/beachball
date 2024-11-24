@@ -44,7 +44,7 @@ export function resolveSpecialVersion(params: {
     return workspaceRange === '*'
       ? packageInfo.version
       : workspaceRange === '^' || workspaceRange === '~'
-      ? `${workspaceRange}${packageInfo.version}`
-      : workspaceRange;
+        ? `${workspaceRange}${packageInfo.version}`
+        : workspaceRange;
   }
 }
