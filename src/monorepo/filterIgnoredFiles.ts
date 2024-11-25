@@ -1,7 +1,5 @@
-import minimatch from 'minimatch';
 import type { BeachballOptions } from '../types/BeachballOptions';
-
-const minimatchOptions: minimatch.IOptions = { matchBase: true };
+import { makeFileGlobMatcher } from './isPathIncluded';
 
 /**
  * Filter `filePaths` to exclude any paths matching `ignorePatterns`.
@@ -19,8 +17,13 @@ export function filterIgnoredFiles(
     return filePaths;
   }
 
+  const ignoreMatchers = Object.fromEntries(
+    // Pre-create a matcher for each pattern for efficiency
+    ignorePatterns.map(pattern => [pattern, makeFileGlobMatcher(pattern)])
+  );
+
   return filePaths.filter(filePath => {
-    const ignorePattern = ignorePatterns.find(pattern => minimatch(filePath, pattern, minimatchOptions));
+    const [ignorePattern] = Object.entries(ignoreMatchers).find(([_pattern, matcher]) => matcher(filePath)) || [];
     ignorePattern && logIgnored?.(filePath, `ignored by pattern "${ignorePattern}"`);
     return !ignorePattern;
   });

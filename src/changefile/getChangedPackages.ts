@@ -102,6 +102,7 @@ function getAllChangedPackages(
     ignorePatterns: [...(options.ignorePatterns || []), `${changeDir}/*.json`, 'CHANGELOG.{md,json}'],
     logIgnored,
   });
+
   if (!nonIgnoredChanges.length) {
     verboseLog('All files were ignored');
     return [];
