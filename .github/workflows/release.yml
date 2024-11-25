@@ -95,6 +95,9 @@ jobs:
 
       - name: Update docs
         run: |
+          git config user.email "kchau@microsoft.com"
+          git config user.name "Ken Chau"
+
           # See previous step for explanation
           trap "git remote set-url origin '$(git remote get-url origin)'" EXIT
           git remote set-url origin "https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git"
