@@ -66,14 +66,14 @@ export interface ChangelogGroupOptions {
   masterPackageName: string;
 
   /**
-   * minimatch pattern(s) for package paths to include in this group.
+   * picomatch pattern(s) for package paths to include in this group.
    * Patterns are relative to the repo root and must use forward slashes.
    * If `true`, include all packages except those matching `exclude`.
    */
   include: string | string[] | true;
 
   /**
-   * minimatch pattern(s) for package paths to exclude from this group.
+   * picomatch pattern(s) for package paths to exclude from this group.
    * Patterns are relative to the repo root and must use forward slashes.
    */
   exclude?: string | string[];

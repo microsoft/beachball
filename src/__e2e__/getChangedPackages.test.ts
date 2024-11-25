@@ -58,7 +58,7 @@ describe('getChangedPackages', () => {
     repo.stageChange('tests/stuff.js');
     repo.stageChange('yarn.lock');
 
-    expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
+    const changedPackages = getChangedPackages(options, packageInfos);
     const logLines = logs.getMockLines('all');
     expect(logLines).toMatch('ignored by pattern');
     expect(logLines).toMatchInlineSnapshot(`
@@ -66,7 +66,8 @@ describe('getChangedPackages', () => {
       [log]   - ~~src/foo.test.js~~ (ignored by pattern "*.test.js")
       [log]   - ~~tests/stuff.js~~ (ignored by pattern "tests/**")
       [log] All files were ignored"
-    `);
+      `);
+    expect(changedPackages).toStrictEqual([]);
   });
 
   it('detects changed files in monorepo', () => {

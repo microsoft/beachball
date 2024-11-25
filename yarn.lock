@@ -2098,13 +2098,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/minimatch@npm:^5.0.0":
-  version: 5.1.2
-  resolution: "@types/minimatch@npm:5.1.2"
-  checksum: 10c0/83cf1c11748891b714e129de0585af4c55dd4c2cafb1f1d5233d79246e5e1e19d1b5ad9e8db449667b3ffa2b6c80125c429dbee1054e9efb45758dbc4e118562
-  languageName: node
-  linkType: hard
-
 "@types/ms@npm:*":
   version: 0.7.34
   resolution: "@types/ms@npm:0.7.34"
@@ -2125,6 +2118,13 @@ __metadata:
   dependencies:
     undici-types: "npm:~6.19.2"
   checksum: 10c0/e1fbc69ed34515da8a8a5cf4427e473f9c378f4cfe291f20635dda10a51a9854c687f5ab91eafdcbec2a0d52a1590e53ec6d49e53c1bc0e35ddde4f159246fcd
+  languageName: node
+  linkType: hard
+
+"@types/picomatch@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "@types/picomatch@npm:3.0.1"
+  checksum: 10c0/4f60d98668030e4a5b3d7dda1e0a6d86056f7e6201f013dcb411249dc9d9d34373d3e8de3b2f0c156be43e2b0da99d30e06a8292282dd5f84b105bf9ff654dec
   languageName: node
   linkType: hard
 
@@ -3618,8 +3618,8 @@ __metadata:
     "@jest/globals": "npm:^29.0.0"
     "@types/fs-extra": "npm:^11.0.0"
     "@types/lodash": "npm:^4.14.191"
-    "@types/minimatch": "npm:^5.0.0"
     "@types/node": "npm:^20.0.0"
+    "@types/picomatch": "npm:^3.0.1"
     "@types/prompts": "npm:^2.4.2"
     "@types/semver": "npm:^7.3.13"
     "@types/tmp": "npm:^0.2.3"
@@ -3642,10 +3642,10 @@ __metadata:
     lint-staged: "npm:^15.0.0"
     lodash: "npm:^4.17.15"
     mermaid: "npm:^11.4.0"
-    minimatch: "npm:^3.0.4"
     normalized-tmpdir: "npm:^1.0.1"
     p-graph: "npm:^1.1.2"
     p-limit: "npm:^3.0.2"
+    picomatch: "npm:^4.0.0"
     prettier: "npm:~3.3.0"
     prompts: "npm:^2.4.2"
     sass-embedded: "npm:^1.81.0"
@@ -8759,6 +8759,13 @@ __metadata:
   version: 2.3.1
   resolution: "picomatch@npm:2.3.1"
   checksum: 10c0/26c02b8d06f03206fc2ab8d16f19960f2ff9e81a658f831ecb656d8f17d9edc799e8364b1f4a7873e89d9702dff96204be0fa26fe4181f6843f040f819dac4be
+  languageName: node
+  linkType: hard
+
+"picomatch@npm:^4.0.0":
+  version: 4.0.2
+  resolution: "picomatch@npm:4.0.2"
+  checksum: 10c0/7c51f3ad2bb42c776f49ebf964c644958158be30d0a510efd5a395e8d49cb5acfed5b82c0c5b365523ce18e6ab85013c9ebe574f60305892ec3fa8eee8304ccc
   languageName: node
   linkType: hard
 

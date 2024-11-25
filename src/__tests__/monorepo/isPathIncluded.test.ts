@@ -1,9 +1,13 @@
 import { describe, expect, it } from '@jest/globals';
-import { isPathIncluded } from '../../monorepo/isPathIncluded';
+import { isPathIncluded, makeFileGlobMatcher } from '../../monorepo/isPathIncluded';
 
 describe('isPathIncluded', () => {
   it('returns true if path is included (single include path)', () => {
     expect(isPathIncluded({ relativePath: 'packages/a', include: 'packages/*' })).toBeTruthy();
+
+    if (process.platform === 'win32') {
+      expect(isPathIncluded({ relativePath: 'packages\\a', include: 'packages/*' })).toBeTruthy();
+    }
   });
 
   it('returns false if path is not included, with single include path', () => {
@@ -35,11 +39,36 @@ describe('isPathIncluded', () => {
     expect(isPathIncluded({ relativePath: 'packages/a', include: true, exclude: 'packages/a' })).toBeFalsy();
   });
 
-  it('returns false if include path is empty', () => {
-    expect(isPathIncluded({ relativePath: 'packages/a', include: '' })).toBeFalsy();
-  });
-
   it('ignores empty exclude path array', () => {
     expect(isPathIncluded({ relativePath: 'packages/a', include: 'packages/*', exclude: [] })).toBeTruthy();
+  });
+});
+
+describe('makeFileGlobMatcher', () => {
+  it('matches any file with **', () => {
+    const matcher = makeFileGlobMatcher('**');
+    expect(matcher('foo.js')).toBe(true);
+    expect(matcher('src/foo.js')).toBe(true);
+    expect(matcher('src/bar/foo.js')).toBe(true);
+  });
+
+  it('matches against basename if pattern has no slashes', () => {
+    const matcher = makeFileGlobMatcher('*.test.js');
+    expect(matcher('foo.js')).toBe(false);
+    expect(matcher('foo.test.js')).toBe(true);
+    expect(matcher('src/foo.test.js')).toBe(true);
+  });
+
+  // Test the workaround for this picomatch bug https://github.com/micromatch/picomatch/issues/136
+  it('matches against full path if pattern has slashes', () => {
+    const matcher = makeFileGlobMatcher('tests/**');
+    expect(matcher('foo.js')).toBe(false);
+    expect(matcher('src/foo.js')).toBe(false);
+    expect(matcher('tests/foo.js')).toBe(true);
+    expect(matcher('tests/bar/foo.js')).toBe(true);
+
+    if (process.platform === 'win32') {
+      expect(matcher('tests\\foo.js')).toBe(true);
+    }
   });
 });

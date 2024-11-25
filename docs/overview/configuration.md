@@ -109,7 +109,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 
 ### Glob matching
 
-Glob matching is implemented using [`minimatch`](https://www.npmjs.com/package/minimatch), which supports most glob syntax.
+Glob matching is implemented using [`picomatch`](https://www.npmjs.com/package/picomatch), which supports most glob syntax.
 
 All glob patterns are relative to the repo or monorepo root and must use **forward slashes only**.
 
