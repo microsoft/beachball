@@ -75,6 +75,7 @@ describe('packagePublish', () => {
 
   afterAll(() => {
     registry.stop();
+    registry.cleanUp();
     fs.removeSync(tempRoot);
   });
 

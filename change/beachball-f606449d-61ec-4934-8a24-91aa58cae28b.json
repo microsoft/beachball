@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Tests: update verdaccio, and replace find-free-port with get-port",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}
