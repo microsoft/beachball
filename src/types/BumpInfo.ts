@@ -1,6 +1,6 @@
-import { ChangeSet, ChangeType } from './ChangeInfo';
-import { DeepReadonly } from './DeepReadonly';
-import { PackageInfos, PackageGroups } from './PackageInfo';
+import type { ChangeSet, ChangeType } from './ChangeInfo';
+import type { DeepReadonly } from './DeepReadonly';
+import type { PackageInfos, PackageGroups } from './PackageInfo';
 
 export type BumpInfo = {
   /** Changes coming from the change files */

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import prompts from 'prompts';
+import type prompts from 'prompts';
 import { promptForChange } from '../../changefile/promptForChange';
-import { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
+import type { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { MockStdin } from '../../__fixtures__/mockStdin';
 import { MockStdout } from '../../__fixtures__/mockStdout';

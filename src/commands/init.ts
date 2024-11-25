@@ -1,9 +1,9 @@
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { findProjectRoot } from 'workspace-tools';
 import { npm } from '../packageManager/npm';
-import { PackageJson } from '../types/PackageInfo';
+import type { PackageJson } from '../types/PackageInfo';
 
 function errorExit(message: string): void {
   console.error(message);

@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { getChangePath } from '../paths';
-import { ChangeFileInfo, ChangeType } from '../types/ChangeInfo';
+import type { ChangeFileInfo, ChangeType } from '../types/ChangeInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
 
 /** Change file with `packageName` required and other props optional */

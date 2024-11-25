@@ -1,9 +1,9 @@
-import { PackageInfo } from '../types/PackageInfo';
+import type { PackageInfo } from '../types/PackageInfo';
 import path from 'path';
-import { npm, NpmResult } from './npm';
-import { BeachballOptions } from '../types/BeachballOptions';
+import { npm, type NpmResult } from './npm';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { getNpmPublishArgs } from './npmArgs';
-import { NpmOptions } from '../types/NpmOptions';
+import type { NpmOptions } from '../types/NpmOptions';
 
 /**
  * Attempt to publish the package with retries. Returns the result of the final npm publish call

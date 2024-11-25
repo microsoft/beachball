@@ -1,14 +1,14 @@
 // Public types of Beachball used in config files
 // (the package does not have a callable public API since it's meant to be invoked via command line)
-import { RepoOptions, PackageOptions } from './types/BeachballOptions';
+import type { RepoOptions, PackageOptions } from './types/BeachballOptions';
 
 export type BeachballConfig = Partial<RepoOptions> & Partial<PackageOptions>;
 
-export { VersionGroupOptions } from './types/BeachballOptions';
-export { ChangeFilePromptOptions } from './types/ChangeFilePrompt';
-export { ChangeType } from './types/ChangeInfo';
-export { ChangelogEntry, ChangelogJson, ChangelogJsonEntry, PackageChangelog } from './types/ChangeLog';
-export {
+export type { VersionGroupOptions } from './types/BeachballOptions';
+export type { ChangeFilePromptOptions } from './types/ChangeFilePrompt';
+export type { ChangeType } from './types/ChangeInfo';
+export type { ChangelogEntry, ChangelogJson, ChangelogJsonEntry, PackageChangelog } from './types/ChangeLog';
+export type {
   ChangelogOptions,
   ChangelogGroupOptions,
   PackageChangelogRenderInfo,

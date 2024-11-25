@@ -1,8 +1,8 @@
-import { PublishBumpInfo } from '../types/BumpInfo';
+import type { PublishBumpInfo } from '../types/BumpInfo';
 import { generateTag } from '../git/generateTag';
 import { gitFailFast } from 'workspace-tools';
-import { BeachballOptions } from '../types/BeachballOptions';
-import { DeepReadonly } from '../types/DeepReadonly';
+import type { BeachballOptions } from '../types/BeachballOptions';
+import type { DeepReadonly } from '../types/DeepReadonly';
 
 function createTag(tag: string, cwd: string): void {
   gitFailFast(['tag', '-a', '-f', tag, '-m', tag], { cwd });

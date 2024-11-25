@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { getNpmAuthArgs, getNpmPublishArgs } from '../../packageManager/npmArgs';
-import { AuthType } from '../../types/Auth';
-import { NpmOptions } from '../../types/NpmOptions';
+import type { AuthType } from '../../types/Auth';
+import type { NpmOptions } from '../../types/NpmOptions';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 describe('getNpmAuthArgs', () => {

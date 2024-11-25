@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { getDisallowedChangeTypes } from '../../changefile/getDisallowedChangeTypes';
-import { PackageGroups } from '../../types/PackageInfo';
+import type { PackageGroups } from '../../types/PackageInfo';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 describe('getDisallowedChangeTypes', () => {

@@ -1,13 +1,13 @@
 import path from 'path';
 import fs from 'fs-extra';
-import { PackageInfo } from '../types/PackageInfo';
+import type { PackageInfo } from '../types/PackageInfo';
 import { getPackageChangelogs } from './getPackageChangelogs';
 import { renderChangelog } from './renderChangelog';
 import { renderJsonChangelog } from './renderJsonChangelog';
-import { BeachballOptions } from '../types/BeachballOptions';
-import { BumpInfo } from '../types/BumpInfo';
+import type { BeachballOptions } from '../types/BeachballOptions';
+import type { BumpInfo } from '../types/BumpInfo';
 import { isPathIncluded } from '../monorepo/isPathIncluded';
-import { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
+import type { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
 import { mergeChangelogs } from './mergeChangelogs';
 import { prepareChangelogPaths } from './prepareChangelogPaths';
 

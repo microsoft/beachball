@@ -1,5 +1,5 @@
 import { renderPackageChangelog, defaultRenderers } from './renderPackageChangelog';
-import { ChangelogOptions, PackageChangelogRenderInfo } from '../types/ChangelogOptions';
+import type { ChangelogOptions, PackageChangelogRenderInfo } from '../types/ChangelogOptions';
 import type { PackageChangelog } from '../types/ChangeLog';
 
 export interface MarkdownChangelogRenderOptions extends Omit<PackageChangelogRenderInfo, 'renderers'> {

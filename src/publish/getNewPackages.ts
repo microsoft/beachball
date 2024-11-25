@@ -1,6 +1,6 @@
-import { BumpInfo } from '../types/BumpInfo';
+import type { BumpInfo } from '../types/BumpInfo';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
-import { NpmOptions } from '../types/NpmOptions';
+import type { NpmOptions } from '../types/NpmOptions';
 
 /**
  * Get package versions from the registry to determine if there are any new packages that didn't

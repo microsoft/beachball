@@ -1,5 +1,5 @@
 import { getPackageDependencies } from 'workspace-tools/lib/graph/getPackageDependencies';
-import { PackageInfos } from '../types/PackageInfo';
+import type { PackageInfos } from '../types/PackageInfo';
 
 /**
  * @returns Each element is a tuple of [dependency, dependent] where `dependent` depends on `dependency`.

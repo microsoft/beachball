@@ -1,4 +1,4 @@
-import { ChangeSet, ChangeType } from '../types/ChangeInfo';
+import type { ChangeSet, ChangeType } from '../types/ChangeInfo';
 
 /**
  * List of all change types from least to most significant.

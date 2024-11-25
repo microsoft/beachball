@@ -1,4 +1,4 @@
-import { PackageInfos } from '../types/PackageInfo';
+import type { PackageInfos } from '../types/PackageInfo';
 
 /**
  * Validate no private package is listed as package dependency for packages which will be published.

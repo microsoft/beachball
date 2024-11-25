@@ -1,10 +1,10 @@
-import prompts from 'prompts';
+import type prompts from 'prompts';
 import semver from 'semver';
-import { ChangeType } from '../types/ChangeInfo';
-import { BeachballOptions } from '../types/BeachballOptions';
-import { DefaultPrompt } from '../types/ChangeFilePrompt';
+import type { ChangeType } from '../types/ChangeInfo';
+import type { BeachballOptions } from '../types/BeachballOptions';
+import type { DefaultPrompt } from '../types/ChangeFilePrompt';
 import { getDisallowedChangeTypes } from './getDisallowedChangeTypes';
-import { PackageGroups, PackageInfos } from '../types/PackageInfo';
+import type { PackageGroups, PackageInfos } from '../types/PackageInfo';
 
 /**
  * Build the list of questions to ask the user for this package.

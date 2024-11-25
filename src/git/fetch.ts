@@ -1,4 +1,4 @@
-import { git, GitProcessOutput } from 'workspace-tools';
+import { git, type GitProcessOutput } from 'workspace-tools';
 import { getGitEnv } from './gitAsync';
 
 type GitFetchParams = {

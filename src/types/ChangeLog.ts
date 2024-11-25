@@ -3,7 +3,7 @@
  * Changes made to interfaces here can affect custom changelog rendering done by end-user.
  */
 
-import { ChangeType } from './ChangeInfo';
+import type { ChangeType } from './ChangeInfo';
 
 /**
  * Entry ("comment") in CHANGELOG.json from a change file or dependent bump.

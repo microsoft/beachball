@@ -1,8 +1,8 @@
-import { AuthType } from './Auth';
-import { ChangeInfo, ChangeInfoMultiple, ChangeType } from './ChangeInfo';
-import { ChangeFilePromptOptions } from './ChangeFilePrompt';
-import { ChangelogOptions } from './ChangelogOptions';
-import { PackageInfos } from './PackageInfo';
+import type { AuthType } from './Auth';
+import type { ChangeInfo, ChangeInfoMultiple, ChangeType } from './ChangeInfo';
+import type { ChangeFilePromptOptions } from './ChangeFilePrompt';
+import type { ChangelogOptions } from './ChangelogOptions';
+import type { PackageInfos } from './PackageInfo';
 
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 

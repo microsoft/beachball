@@ -1,4 +1,4 @@
-import { ChangeFileInfo } from '../types/ChangeInfo';
+import type { ChangeFileInfo } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
 import { getBranchName, stage, commit } from 'workspace-tools';
 import crypto from 'crypto';

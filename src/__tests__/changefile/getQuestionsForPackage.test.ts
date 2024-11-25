@@ -1,7 +1,7 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import prompts from 'prompts';
+import type prompts from 'prompts';
 import { getQuestionsForPackage } from '../../changefile/getQuestionsForPackage';
-import { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
+import type { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import type { ChangeType } from '../../types/ChangeInfo';

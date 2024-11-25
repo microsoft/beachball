@@ -1,7 +1,7 @@
 import { cosmiconfigSync } from 'cosmiconfig';
 import { getDefaultRemoteBranch } from 'workspace-tools';
 import { env } from '../env';
-import { RepoOptions, CliOptions, BeachballOptions } from '../types/BeachballOptions';
+import type { RepoOptions, CliOptions, BeachballOptions } from '../types/BeachballOptions';
 
 const cachedRepoOptions = new Map<CliOptions, RepoOptions>();
 

@@ -1,8 +1,8 @@
 import path from 'path';
-import { PackageInfo } from '../types/PackageInfo';
-import { PackageChangelog } from '../types/ChangeLog';
+import type { PackageInfo } from '../types/PackageInfo';
+import type { PackageChangelog } from '../types/ChangeLog';
 import { generateTag } from '../git/generateTag';
-import { BumpInfo } from '../types/BumpInfo';
+import type { BumpInfo } from '../types/BumpInfo';
 import { getChangePath } from '../paths';
 import { getFileAddedHash } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';

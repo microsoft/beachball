@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { ChangelogJson } from '../types/ChangeLog';
+import type { ChangelogJson } from '../types/ChangeLog';
 import { markerComment } from '../changelog/renderChangelog';
 
 /** Placeholder commit as replaced by cleanChangelogJson */

@@ -1,5 +1,5 @@
 import { getMaxChangeType, MinChangeType } from '../changefile/changeTypes';
-import { BumpInfo, PackageDependents } from '../types/BumpInfo';
+import type { BumpInfo, PackageDependents } from '../types/BumpInfo';
 
 /**
  * This is the core of the bumpInfo dependency bumping logic - done once per change file

@@ -1,7 +1,7 @@
-import { describe, expect, it, afterAll, jest, beforeAll, afterEach } from '@jest/globals';
+import { describe, expect, it, afterAll, type jest, beforeAll, afterEach } from '@jest/globals';
 import { defaultBranchName } from '../__fixtures__/gitDefaults';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { validate } from '../validation/validate';
 import type { Repository } from '../__fixtures__/repository';

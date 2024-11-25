@@ -2,7 +2,7 @@ import { describe, expect, it, afterEach, jest } from '@jest/globals';
 import * as fs from 'fs-extra';
 import _ from 'lodash';
 import { performPublishOverrides } from '../../publish/performPublishOverrides';
-import { PackageInfos, PackageJson, PublishConfig } from '../../types/PackageInfo';
+import type { PackageInfos, PackageJson, PublishConfig } from '../../types/PackageInfo';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 jest.mock('fs-extra', () => ({

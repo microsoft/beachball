@@ -4,8 +4,8 @@
 
 import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs-extra';
-import { NpmResult, npm } from '../packageManager/npm';
-import { PackageJson } from '../types/PackageInfo';
+import { type NpmResult, npm } from '../packageManager/npm';
+import type { PackageJson } from '../types/PackageInfo';
 import { initNpmMock, _makeRegistryData, _mockNpmPublish, _mockNpmShow, type MockNpmResult } from './mockNpm';
 
 jest.mock('fs-extra');

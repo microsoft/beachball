@@ -1,5 +1,5 @@
 import toposort from 'toposort';
-import { PackageInfos } from '../types/PackageInfo';
+import type { PackageInfos } from '../types/PackageInfo';
 import { getPackageDependencyGraph } from '../monorepo/getPackageDependencyGraph';
 
 /**

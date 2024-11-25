@@ -1,4 +1,4 @@
-import { BumpInfo } from '../types/BumpInfo';
+import type { BumpInfo } from '../types/BumpInfo';
 
 export function displayManualRecovery(bumpInfo: BumpInfo, succeededPackages: Set<string> = new Set<string>()): void {
   const errorLines: string[] = [];

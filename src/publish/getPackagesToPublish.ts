@@ -1,5 +1,5 @@
 import { formatList } from '../logging/format';
-import { PublishBumpInfo } from '../types/BumpInfo';
+import type { PublishBumpInfo } from '../types/BumpInfo';
 import { toposortPackages } from './toposortPackages';
 
 /**

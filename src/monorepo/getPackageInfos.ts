@@ -5,7 +5,7 @@ import {
   listAllTrackedFiles,
   findPackageRoot,
   findProjectRoot,
-  WorkspaceInfo,
+  type WorkspaceInfo,
 } from 'workspace-tools';
 import type { PackageInfos, PackageJson } from '../types/PackageInfo';
 import { infoFromPackageJson } from './infoFromPackageJson';

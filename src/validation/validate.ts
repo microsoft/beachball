@@ -4,7 +4,7 @@ import { isValidAuthType } from './isValidAuthType';
 import { isValidChangeType } from './isValidChangeType';
 import { isChangeFileNeeded } from './isChangeFileNeeded';
 import { isValidGroupedPackageOptions, isValidGroupOptions } from './isValidGroupOptions';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { isValidChangelogOptions } from './isValidChangelogOptions';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { getPackageInfos } from '../monorepo/getPackageInfos';

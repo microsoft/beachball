@@ -1,5 +1,5 @@
 import { git, parseRemoteBranch } from 'workspace-tools';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { gitFetch } from './fetch';
 
 /**

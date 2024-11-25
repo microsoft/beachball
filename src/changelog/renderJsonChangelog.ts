@@ -1,4 +1,4 @@
-import { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
+import type { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
 
 export function renderJsonChangelog(params: {
   changelog: PackageChangelog;

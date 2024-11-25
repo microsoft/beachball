@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { toposortPackages } from '../../publish/toposortPackages';
-import { PackageInfos } from '../../types/PackageInfo';
+import type { PackageInfos } from '../../types/PackageInfo';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 describe('toposortPackages', () => {

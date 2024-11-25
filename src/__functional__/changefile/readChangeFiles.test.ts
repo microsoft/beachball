@@ -6,10 +6,10 @@ import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { readChangeFiles } from '../../changefile/readChangeFiles';
-import { BeachballOptions } from '../../types/BeachballOptions';
+import type { BeachballOptions } from '../../types/BeachballOptions';
 import type { Repository } from '../../__fixtures__/repository';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
-import { ChangeInfo } from '../../types/ChangeInfo';
+import type { ChangeInfo } from '../../types/ChangeInfo';
 
 describe('readChangeFiles', () => {
   let repositoryFactory: RepositoryFactory;

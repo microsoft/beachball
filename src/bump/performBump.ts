@@ -1,7 +1,7 @@
 import { unlinkChangeFiles } from '../changefile/unlinkChangeFiles';
 import { writeChangelog } from '../changelog/writeChangelog';
-import { BumpInfo } from '../types/BumpInfo';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BumpInfo } from '../types/BumpInfo';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { callHook } from './callHook';
 import { updatePackageJsons } from './updatePackageJsons';
 import { updateLockFile } from './updateLockFile';

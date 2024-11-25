@@ -1,5 +1,5 @@
-import { PackageOptions, BeachballOptions } from './BeachballOptions';
-import { ChangeType } from './ChangeInfo';
+import type { PackageOptions, BeachballOptions } from './BeachballOptions';
+import type { ChangeType } from './ChangeInfo';
 
 export interface PackageDeps {
   [dep: string]: string;

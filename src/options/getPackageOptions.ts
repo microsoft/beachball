@@ -1,5 +1,5 @@
 import { cosmiconfigSync } from 'cosmiconfig';
-import { PackageOptions } from '../types/BeachballOptions';
+import type { PackageOptions } from '../types/BeachballOptions';
 import { getCliOptions } from './getCliOptions';
 import { getRepoOptions } from './getRepoOptions';
 import { getDefaultOptions } from './getDefaultOptions';

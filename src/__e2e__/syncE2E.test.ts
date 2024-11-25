@@ -2,13 +2,13 @@ import { describe, expect, it, afterEach, jest } from '@jest/globals';
 import fs from 'fs-extra';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import { Repository } from '../__fixtures__/repository';
+import type { Repository } from '../__fixtures__/repository';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { sync } from '../commands/sync';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { packagePublish } from '../packageManager/packagePublish';
+import type { packagePublish } from '../packageManager/packagePublish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { initNpmMock } from '../__fixtures__/mockNpm';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for

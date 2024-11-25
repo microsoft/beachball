@@ -1,6 +1,6 @@
 import { formatList, singleLineStringify } from '../logging/format';
-import { VersionGroupOptions } from '../types/BeachballOptions';
-import { PackageGroups, PackageInfos } from '../types/PackageInfo';
+import type { VersionGroupOptions } from '../types/BeachballOptions';
+import type { PackageGroups, PackageInfos } from '../types/PackageInfo';
 
 export function isValidGroupOptions(groups: VersionGroupOptions[]): boolean {
   // Values that violate types could happen in a user-provided object

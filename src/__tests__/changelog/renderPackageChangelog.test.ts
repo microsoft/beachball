@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { PackageChangelogRenderInfo } from '../../types/ChangelogOptions';
+import type { PackageChangelogRenderInfo } from '../../types/ChangelogOptions';
 import { defaultRenderers, renderPackageChangelog } from '../../changelog/renderPackageChangelog';
 import type { ChangelogEntry, ChangelogJson } from '../../types/ChangeLog';
 import { SortedChangeTypes } from '../../changefile/changeTypes';

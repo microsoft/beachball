@@ -1,5 +1,5 @@
 import { env } from '../env';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 
 /**
  * Default options.

@@ -7,8 +7,8 @@ import { Registry } from '../../__fixtures__/registry';
 import { tmpdir } from '../../__fixtures__/tmpdir';
 import * as npmModule from '../../packageManager/npm';
 import { packagePublish } from '../../packageManager/packagePublish';
-import { PackageInfo } from '../../types/PackageInfo';
-import { npm, NpmResult } from '../../packageManager/npm';
+import type { PackageInfo } from '../../types/PackageInfo';
+import type { npm, NpmResult } from '../../packageManager/npm';
 import type { PackageOptions } from '../../types/BeachballOptions';
 
 const testTag = 'testbeachballtag';

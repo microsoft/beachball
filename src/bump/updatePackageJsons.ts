@@ -1,5 +1,5 @@
 import fs from 'fs-extra';
-import { PackageInfos, PackageJson, consideredDependencies } from '../types/PackageInfo';
+import { type PackageInfos, type PackageJson, consideredDependencies } from '../types/PackageInfo';
 
 /**
  * Update package.json files for modified packages after bumping.
