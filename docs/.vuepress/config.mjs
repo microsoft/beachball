@@ -13,8 +13,8 @@ export default defineUserConfig({
   theme: defaultTheme({
     navbar: [
       { text: 'Home', link: '/' },
-      { text: 'Getting Started', link: '/overview/getting-started' },
-      { text: 'Github', link: 'https://github.com/microsoft/beachball' },
+      { text: 'Getting started', link: '/overview/getting-started' },
+      { text: 'GitHub', link: 'https://github.com/microsoft/beachball' },
     ],
     sidebar: [
       {
@@ -33,7 +33,7 @@ export default defineUserConfig({
         ],
       },
       {
-        text: 'Command Line Args',
+        text: 'CLI commands',
         collapsible: false,
         children: ['/cli/options', '/cli/bump', '/cli/change', '/cli/check', '/cli/publish', '/cli/sync'],
       },

@@ -4,7 +4,7 @@ tags:
 category: doc
 ---
 
-# Getting Started
+# Getting started
 
 ## Why Beachball?
 

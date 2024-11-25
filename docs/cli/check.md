@@ -18,7 +18,14 @@ This command also checks for misconfigurations that would result in problems whe
 
 ### Options
 
-See the [options page](./options).
+### Options
+
+[General options](./options) also apply for this command.
+
+| Option                            | Default                                            | Description                                                               |
+| --------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------- |
+| `--changehint`                    | `'Run "beachball change" to create a change file'` | Hint message if the developer forgot to add a change file.                |
+| `--disallow-deleted-change-files` | `false`                                            | verifies that no change files were deleted between head and target branch |
 
 ### Where should `check` be run?
 
@@ -26,8 +33,8 @@ See the [options page](./options).
 
 See the [change files page](../concepts/change-files#validating-change-files) for how to set this up.
 
-#### As git hook (optional)
+#### Not recommended: as a git hook
 
-For a reference about git hooks, take a look at [this documentation](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks). This hook would typically be run pre-push.
+While running `beachball check` as a pre-push hook may seem appealing, it has some downsides: it will substantially slow down running `git push` and could be annoying when pushing work-in-progress changes to remote branches. Our experience with repos enabling this hook is that it will quickly be removed due to developer feedback.
 
-While running `beachball check` before push may seem appealing, it has some downsides: it will substantially slow down running `git push` and could be annoying when pushing work-in-progress changes to remote branches. Our experience with repos enabling this hook is that it's often quickly removed due to developer feedback.
+If you want to try this, take a look at [this documentation](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks) about git hooks.

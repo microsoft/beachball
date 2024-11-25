@@ -20,18 +20,21 @@ There are two types of configurations:
 - `"beachball"` key inside `package.json`
 - `.beachballrc`
 - `.beachballrc.json`
-- `beachball.config.js`
+- `beachball.config.js` (CJS or ESM depending on your project setup; explicit `.cjs` or `.mjs` is also supported)
 
 ### `beachball.config.js`
 
-In many cases, you'll want to use a JavaScript config file (written as a CommonJS module), since this is the most flexible and allows comments.
+In many cases, you'll want to use a JavaScript config file, since this is the most flexible and allows comments. The example below uses JSDoc type annotations to enable intellisense in some editors (these are optional).
 
 ```js
-module.exports = {
+// @ts-check
+/** @type {import('beachball').BeachallConfig} */
+const config = {
   key: value,
   key2: value2
   key3: value3
-}
+};
+module.exports = config;
 ```
 
 Config files can be placed in either the root of a repo and/or within individual packages (package config overrides the repo config where applicable). For example:
@@ -55,35 +58,65 @@ It's also common to have a repo-level `beachball.config.js` and any individual p
 
 For the latest full list of supported options, see `RepoOptions` [in this file](https://github.com/microsoft/beachball/blob/master/src/types/BeachballOptions.ts).
 
-| Option                  | Type                                     | Default           | Option Type          | Description                                                                                     |
-| ----------------------- | ---------------------------------------- | ----------------- | -------------------- | ----------------------------------------------------------------------------------------------- |
-| `access`                | `'public'` or `'restricted'`             | `'restricted'`    | repo                 | publishes private packages access level                                                         |
-| `branch`                | string                                   | `'origin/master'` | repo                 | the target branch (with remote)                                                                 |
-| `bumpDeps`              | bool                                     | `true`            | repo                 | bump dependent packages during publish (bump A if A depends on B)                               |
-| `changeFilePrompt`      | `ChangeFilePromptOptions` ([details][1]) |                   | repo                 | customize the prompt for change files (can be used to add custom fields)                        |
-| `changehint`            | string                                   |                   | repo                 | hint message for when change files are not detected but required                                |
-| `changeDir`             | string                                   | `change`          | repo                 | directory of the change files                                                                   |
-| `changelog`             | `ChangelogOptions` ([details][2])        |                   | repo                 | changelog rendering and grouping options                                                        |
-| `defaultNpmTag`         | string                                   | `'latest'`        | package              | the default dist-tag used for NPM publish                                                       |
-| `disallowedChangeTypes` | string[]                                 |                   | repo, group, package | what change types are disallowed                                                                |
-| `fetch`                 | bool                                     | `true`            | repo                 | fetch from remote before doing diff comparisons                                                 |
-| `generateChangelog`     | bool, `'md'`, or `'json'`                | `true`            | repo                 | whether to generate `CHANGELOG.md/json` (`'md'` or `'json'` to generate only that type)         |
-| `gitTags`               | bool                                     | `true`            | repo, package        | whether to create git tags for published packages (eg: foo_v1.0.1)                              |
-| `groups`                | `VersionGroupOptions[]` ([details][3])   |                   | repo                 | specifies groups of packages that need to be version bumped at the same time                    |
-| `groupChanges`          | bool                                     | `false`           | repo                 | will write multiple changes to a single changefile                                              |
-| `hooks`                 | `HooksOptions` ([details][4])            |                   | repo                 | hooks for custom pre/post publish actions                                                       |
-| `ignorePatterns`        | string[]                                 |                   | repo                 | ignore changes in these files (minimatch patterns; negations not supported)                     |
-| `package`               | string                                   |                   | repo                 | specifies which package the command relates to (overrides change detection based on `git diff`) |
-| `prereleasePrefix`      | string                                   |                   | repo                 | prerelease prefix for packages that are specified to receive a prerelease bump                  |
-| `publish`               | bool                                     | `true`            | repo                 | whether to publish to npm registry                                                              |
-| `push`                  | bool                                     | `true`            | repo                 | whether to push to the remote git branch                                                        |
-| `registry`              | string                                   |                   | repo                 | target NPM registry to publish                                                                  |
-| `retries`               | number                                   | `3`               | repo                 | number of retries for a package publish before failing                                          |
-| `shouldPublish`         | false \| undefined                       |                   | package              | manually disable publishing of a package by beachball (does not work to force publishing)       |
-| `tag`                   | string                                   | `'latest'`        | repo, package        | dist-tag for npm when published                                                                 |
-| `transform`             | `TransformOptions` ([details][4])        |                   | repo                 | transformations for change files                                                                |
+"Applies to" indicates where the settings can be specified: repo-level config or package-level config.
+
+| Option                  | Type                           | Default        | Applies to    | Description                                                                                      |
+| ----------------------- | ------------------------------ | -------------- | ------------- | ------------------------------------------------------------------------------------------------ |
+| `access`                | `'public'` or `'restricted'`   | `'restricted'` | repo          | publish access level for scoped package names (e.g. `@foo/bar`)                                  |
+| `branch`                | `string`                       | [see notes][5] | repo          | target branch; [see notes][5]                                                                    |
+| `bumpDeps`              | `boolean`                      | `true`         | repo          | bump dependent packages during publish (if B is bumped, and A depends on B, also bump A)         |
+| `changeFilePrompt`      | [`ChangeFilePromptOptions`][1] |                | repo          | customize the prompt for change files (can be used to add custom fields)                         |
+| `changehint`            | `string`                       |                | repo          | hint message for when change files are not detected but required                                 |
+| `changeDir`             | `string`                       | `change`       | repo          | directory where change files are stored (relative to repo root)                                  |
+| `changelog`             | [`ChangelogOptions`][2]        |                | repo          | changelog rendering and grouping options                                                         |
+| `defaultNpmTag`         | `string`                       | `'latest'`     | repo, package | the default dist-tag used for NPM publish                                                        |
+| `disallowedChangeTypes` | `string[]`                     |                | repo, package | what change types are disallowed                                                                 |
+| `fetch`                 | `boolean`                      | `true`         | repo          | fetch from remote before doing diff comparisons                                                  |
+| `generateChangelog`     | `boolean \| 'md' \| 'json'`    | `true`         | repo          | whether to generate `CHANGELOG.md/json` (`'md'` or `'json'` to generate only that type)          |
+| `gitTags`               | `boolean`                      | `true`         | repo, package | whether to create git tags for published packages (eg: foo_v1.0.1)                               |
+| `groups`                | [`VersionGroupOptions[]`][3]   |                | repo          | bump these packages together ([see details][3])                                                  |
+| `groupChanges`          | `boolean`                      | `false`        | repo          | write multiple changes to a single changefile                                                    |
+| `hooks`                 | [`HooksOptions`][4]            |                | repo          | hooks for custom pre/post publish actions                                                        |
+| `ignorePatterns`        | `string[]`                     |                | repo          | ignore changes in these files (minimatch patterns with forward slashes; negations not supported) |
+| `package`               | `string`                       |                | repo          | specifies which package the command relates to (overrides change detection based on `git diff`)  |
+| `prereleasePrefix`      | `string`                       |                | repo          | prerelease prefix for packages that are specified to receive a prerelease bump                   |
+| `publish`               | `boolean`                      | `true`         | repo          | whether to publish to npm registry                                                               |
+| `push`                  | `boolean`                      | `true`         | repo          | whether to push to the remote git branch                                                         |
+| `registry`              | `string`                       |                | repo          | target NPM registry to publish                                                                   |
+| `retries`               | `number`                       | `3`            | repo          | number of retries for a package publish before failing                                           |
+| `scope`                 | `string[]`                     |                | repo          | only consider package paths matching these patterns ([see details](#scoping))                    |
+| `shouldPublish`         | `false \| undefined`           |                | package       | manually disable publishing of a package by beachball (does not work to force publishing)        |
+| `tag`                   | `string`                       | `'latest'`     | repo, package | dist-tag for npm when published                                                                  |
+| `transform`             | [`TransformOptions`][4]        |                | repo          | transformations for change files                                                                 |
 
 [1]: https://github.com/microsoft/beachball/blob/master/src/types/ChangeFilePrompt.ts
 [2]: https://github.com/microsoft/beachball/blob/master/src/types/ChangelogOptions.ts
-[3]: ../concepts/groups
+[3]: ../concepts/groups#version-groups
 [4]: https://github.com/microsoft/beachball/blob/master/src/types/BeachballOptions.ts
+[5]: #determining-the-target-branch-and-remote
+
+### Scoping
+
+The `scope` option allows limiting which packages are considered. You can set it in the config file if it should always apply, or on the command line for a specific operation.
+
+This option takes a list of patterns which are matched against package paths. Patterns are relative to the monorepo root and must use forward slashes. Negations are supported.
+
+Example: with this config, `beachball` will only consider packages under `packages/foo` (excluding `packages/foo/bar`).
+
+```json
+{
+  "scope": ["packages/foo/*", "!packages/foo/bar"]
+}
+```
+
+On the command line, this could be specified as `--scope 'packages/foo/*' --scope '!packages/foo/bar'` (don't forget the quotes!).
+
+> Note: if you have multiple sets of packages in the repo with different scopes, `groupChanges` is not supported.
+
+### Determining the target branch and remote
+
+The `branch` option is the official target branch to compare against when determining changes. Usually it should be a name only, though you can also include a remote. The default is the system default branch name (`main` or `master`) and the official remote.
+
+To let `beachball` reliably determine the official remote, it's recommended to specify `repository` in the repo root `package.json`. This allows matching via URL regardless of what the user decided to call the remote.
+
+If `repository` isn't specified and `branch` doesn't include a remote, the fallback is `upstream` if defined, `origin` if defined, or the first defined remote.

@@ -1,42 +1,30 @@
 ---
-title: 'Common Options'
+title: 'Common options'
 tags:
   - cli
 category: doc
 ---
 
-# Beachball CLI Options
+# Beachball CLI options
 
 For the latest full list of supported options, see `CliOptions` [in this file](https://github.com/microsoft/beachball/blob/master/src/types/BeachballOptions.ts).
 
+**Most options can also be specified in the [configuration file](../overview/configuration)**, which is generally preferable as it's easier to read and maintain.
+
 ## General options
 
-These apply to most CLI commands.
+The options below apply to most CLI commands.
 
-| Option       | Alias | Default                                                                      | Description               |
-| ------------ | ----- | ---------------------------------------------------------------------------- | ------------------------- |
-| `--branch`   | `-b`  | Detected default branch in default remote, falling back to `'origin/master'` | target branch from origin |
-| `--no-fetch` |       |                                                                              | Disable fetching          |
+| Option          | Alias | Default                   | Description                                                                                  |
+| --------------- | ----- | ------------------------- | -------------------------------------------------------------------------------------------- |
+| `--branch, -b`  | `-b`  |                           | target branch; see [config docs][1] for details                                              |
+| `--config-path` | `-c`  | [cosmiconfig][2] defaults | custom beachball config path                                                                 |
+| `--no-fetch`    |       |                           | skip fetching from the remote                                                                |
+| `--change-dir`  |       | `'change'`                | name of the directory to store change files                                                  |
+| `--scope`       |       |                           | only consider matching package paths (can be specified multiple times); see [config docs][3] |
+| `--since`       |       |                           | only consider changes or change files since this git ref (branch name, commit SHA)           |
+| `--verbose`     |       |                           | prints additional information to the console                                                 |
 
-## `change` options
-
-See the [`change` page](./change).
-
-## Bumping and publishing options
-
-These options are applicable for the `publish` command, as well as `bump` and/or `canary` in some cases.
-
-| Option                        | Alias | Default                        | Description                                                                                                                                |
-| ----------------------------- | ----- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--authType`                  | `-a`  | `'authtoken'`                  | type of token argument, affecting how it is applied to npm commands.                                                                       |
-| `--message`                   | `-m`  | `'applying package updates'`   | custom message for the checkin                                                                                                             |
-| `--git-tags`, `--no-git-tags` |       | `true` (`--git-tags`)          | whether to create git tags for published packages                                                                                          |
-| `--publish`, `--no-publish`   |       | `true` (`--publish`)           | whether to publish to the npm registry                                                                                                     |
-| `--push`, `--no-push`         |       | `true` (`--push`)              | whether to push changes back to git remote origin                                                                                          |
-| `--prerelease-prefix`         |       |                                | prerelease prefix for packages that are specified to receive a prerelease bump (`--prerelease-prefix beta` makes the `x.y.z-beta` version) |
-| `--registry`                  | `-r`  | `'https://registry.npmjs.org'` | npm registry for publishing                                                                                                                |
-| `--retries`                   |       | `3`                            | number of retries for a package publish before failing                                                                                     |
-| `--tag`                       | `-t`  | `'latest'`                     | dist-tag for npm publishes                                                                                                                 |
-| `--token`                     | `-n`  |                                | credential to use with npm commands. its type is specified with the `--authType` argument                                                  |
-| `--verbose`                   |       | `false`                        | prints additional information to the console                                                                                               |
-| `--yes`                       | `-y`  | if CI detected, `true`         | skips the prompts for publish                                                                                                              |
+[1]: ../overview/configuration#determining-the-target-branch-and-remote
+[2]: https://www.npmjs.com/package/cosmiconfig
+[3]: ../overview/configuration#scoping

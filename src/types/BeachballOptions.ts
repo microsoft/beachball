@@ -38,7 +38,13 @@ export interface CliOptions
   configPath?: string;
   dependentChangeType?: ChangeType;
   disallowDeletedChangeFiles?: boolean;
+  /**
+   * For sync: use the version from the registry even if it's older than local.
+   */
   forceVersions?: boolean;
+  /**
+   * Consider change files since this git ref (branch name, commit SHA, etc).
+   */
   fromRef?: string;
   help?: boolean;
   keepChangeFiles?: boolean;
@@ -80,7 +86,7 @@ export interface RepoOptions {
    */
   branch: string;
   /**
-   * Bump dependent packages during publish (bump A if A depends on B)
+   * Bump dependent packages during publish: e.g. if B is bumped, and A depends on B, also bump A.
    * @default true
    */
   bumpDeps: boolean;
@@ -92,7 +98,7 @@ export interface RepoOptions {
    */
   changehint: string;
   /**
-   * Name of the directory of the change files
+   * Directory where change files are stored (relative to repo root).
    * @default 'change'
    */
   changeDir: string;
@@ -127,7 +133,10 @@ export interface RepoOptions {
   gitTags: boolean;
   /** Custom pre/post publish actions */
   hooks?: HooksOptions;
-  /** Ignore changes in these files (minimatch patterns; negations not supported) */
+  /**
+   * Ignore changes in these files (minimatch patterns; negations not supported).
+   * Patterns are relative to the repo root and must use forward slashes.
+   */
   ignorePatterns?: string[];
   /** For the `change` command, change message. For the `publish` command, commit message. */
   message: string;
@@ -163,7 +172,15 @@ export interface RepoOptions {
    * @default 3
    */
   retries: number;
-  /** Filters paths that beachball uses to find packages */
+  /**
+   * Only apply commands to package paths matching these minimatch patterns.
+   * Patterns are relative to the monorepo root and must use forward slashes.
+   *
+   * Negations are supported: e.g. `['packages/foo/*', '!packages/foo/bar']`
+   *
+   * Note that if you have multiple sets of packages with different scopes,
+   * `groupChanges` is not supported.
+   */
   scope?: string[] | null;
   /**
    * npm dist-tag when publishing
@@ -195,23 +212,26 @@ export interface PackageOptions {
  * Options for bumping package versions together.
  */
 export interface VersionGroupOptions {
+  /** name of the version group */
+  name: string;
+
   /**
-   * minimatch pattern (or array of minimatch) to detect which packages should be included in this group.
-   * If `true`, include all packages except those excluded by `exclude`.
+   * minimatch pattern(s) for package paths to include in this group.
+   * Patterns are relative to the repo root and must use forward slashes.
+   * If `true`, include all packages except those matching `exclude`.
    */
   include: string | string[] | true;
 
   /**
-   * minimatch pattern (or array of minimatch) to detect which packages should be excluded in this group.
+   * minimatch pattern(s) for package paths to exclude from this group.
+   * Patterns are relative to the repo root and must use forward slashes.
+   *
    * Currently this must use **negated patterns only**: e.g. if you want to exclude `packages/foo`,
    * you must specify `exclude` as `!packages/foo`. (This will be fixed in a future major version.)
    */
   exclude?: string | string[];
 
   disallowedChangeTypes: ChangeType[] | null;
-
-  /** name of the version group */
-  name: string;
 }
 
 export interface HooksOptions {

@@ -18,4 +18,9 @@ $ beachball bump
 
 ### Options
 
-See the [options page](./options).
+[General options](./options) also apply for this command.
+
+| Option                | Description                                                                      |
+| --------------------- | -------------------------------------------------------------------------------- |
+| `--keep-change-files` | don't delete the change files from disk after bumping                            |
+| `--prerelease-prefix` | prerelease prefix (e.g. `beta`) for packages that will receive a prerelease bump |
