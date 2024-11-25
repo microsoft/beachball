@@ -1,8 +1,22 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Tue, 19 Nov 2024 08:03:08 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 25 Nov 2024 08:04:31 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.50.0
+
+Mon, 25 Nov 2024 08:04:31 GMT
+
+### Minor changes
+
+- Allow changelog render functions to be synchronous (elcraig@microsoft.com)
+- Use import/export type (elcraig@microsoft.com)
+
+### Patches
+
+- Fix publish failure package exists check to work with npm 10 (elcraig@microsoft.com)
+- Fix issues found by lint rules (elcraig@microsoft.com)
 
 ## 2.49.1
 

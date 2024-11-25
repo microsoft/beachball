@@ -2,6 +2,67 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Mon, 25 Nov 2024 08:04:31 GMT",
+      "version": "2.50.0",
+      "tag": "beachball_v2.50.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "baa6936ee964af968ca3adcb2e2434e94055d5f3",
+            "comment": "Fix publish failure package exists check to work with npm 10"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "baa6936ee964af968ca3adcb2e2434e94055d5f3",
+            "comment": "Fix issues found by lint rules"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "baa6936ee964af968ca3adcb2e2434e94055d5f3",
+            "comment": "Allow changelog render functions to be synchronous"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "baa6936ee964af968ca3adcb2e2434e94055d5f3",
+            "comment": "Use import/export type"
+          }
+        ],
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "baa6936ee964af968ca3adcb2e2434e94055d5f3",
+            "comment": "Update doc site to vuepress 2"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "baa6936ee964af968ca3adcb2e2434e94055d5f3",
+            "comment": "Never update lock file after publish when running tests"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "baa6936ee964af968ca3adcb2e2434e94055d5f3",
+            "comment": "Remove jest-mock dev dep"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "baa6936ee964af968ca3adcb2e2434e94055d5f3",
+            "comment": "Tests: update verdaccio, and replace find-free-port with get-port"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 19 Nov 2024 08:03:08 GMT",
       "version": "2.49.1",
       "tag": "beachball_v2.49.1",

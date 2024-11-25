@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Remove jest-mock dev dep",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}

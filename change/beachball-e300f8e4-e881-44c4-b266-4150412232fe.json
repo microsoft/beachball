@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix issues found by lint rules",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
