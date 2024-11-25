@@ -1,5 +1,5 @@
 import { getChangedPackages } from '../changefile/getChangedPackages';
-import { PackageInfos } from '../types/PackageInfo';
+import type { PackageInfos } from '../types/PackageInfo';
 
 export function isChangeFileNeeded(
   options: Parameters<typeof getChangedPackages>[0],

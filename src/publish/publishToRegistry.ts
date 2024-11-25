@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { performBump } from '../bump/performBump';
-import { PublishBumpInfo } from '../types/BumpInfo';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { PublishBumpInfo } from '../types/BumpInfo';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { packagePublish } from '../packageManager/packagePublish';
 import { validatePackageVersions } from './validatePackageVersions';
 import { displayManualRecovery } from './displayManualRecovery';
@@ -10,7 +10,7 @@ import { performPublishOverrides } from './performPublishOverrides';
 import { getPackagesToPublish } from './getPackagesToPublish';
 import { callHook } from '../bump/callHook';
 import { getPackageGraph } from '../monorepo/getPackageGraph';
-import { PackageInfo } from '../types/PackageInfo';
+import type { PackageInfo } from '../types/PackageInfo';
 
 /**
  * Publish all the bumped packages to the registry.

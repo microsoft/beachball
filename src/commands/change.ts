@@ -1,4 +1,4 @@
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { promptForChange } from '../changefile/promptForChange';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { getPackageInfos } from '../monorepo/getPackageInfos';

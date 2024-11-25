@@ -1,4 +1,4 @@
-import prompts from 'prompts';
+import type prompts from 'prompts';
 
 export interface DefaultPrompt {
   changeType: prompts.PromptObject<string> | undefined;

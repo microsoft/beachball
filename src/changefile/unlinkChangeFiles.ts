@@ -1,10 +1,10 @@
-import { ChangeSet } from '../types/ChangeInfo';
+import type { ChangeSet } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
 import fs from 'fs-extra';
 import path from 'path';
-import { PackageInfos } from '../types/PackageInfo';
+import type { PackageInfos } from '../types/PackageInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import { DeepReadonly } from '../types/DeepReadonly';
+import type { DeepReadonly } from '../types/DeepReadonly';
 
 /**
  * Unlink only change files that are specified in the changes param

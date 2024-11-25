@@ -1,6 +1,6 @@
 import pLimit from 'p-limit';
-import { PackageInfo, PackageJson } from '../types/PackageInfo';
-import { NpmOptions } from '../types/NpmOptions';
+import type { PackageInfo, PackageJson } from '../types/PackageInfo';
+import type { NpmOptions } from '../types/NpmOptions';
 import { env } from '../env';
 import { npm } from './npm';
 import { getNpmAuthArgs } from './npmArgs';

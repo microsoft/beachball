@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { _clearPackageVersionsCache } from '../../packageManager/listPackageVersions';
 import { getNewPackages } from '../../publish/getNewPackages';
-import { NpmOptions } from '../../types/NpmOptions';
+import type { NpmOptions } from '../../types/NpmOptions';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { initNpmMock } from '../../__fixtures__/mockNpm';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';

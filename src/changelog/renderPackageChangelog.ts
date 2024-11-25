@@ -1,7 +1,7 @@
-import { ChangelogEntry } from '../types/ChangeLog';
+import type { ChangelogEntry } from '../types/ChangeLog';
 import _ from 'lodash';
-import { PackageChangelogRenderInfo, ChangelogRenderers } from '../types/ChangelogOptions';
-import { ChangeType } from '../types/ChangeInfo';
+import type { PackageChangelogRenderInfo, ChangelogRenderers } from '../types/ChangelogOptions';
+import type { ChangeType } from '../types/ChangeInfo';
 import { SortedChangeTypes } from '../changefile/changeTypes';
 
 const groupNames: { [k in ChangeType]: string } = {

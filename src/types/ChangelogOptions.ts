@@ -1,5 +1,5 @@
-import { ChangelogJson, PackageChangelog, ChangelogEntry } from './ChangeLog';
-import { ChangeType } from './ChangeInfo';
+import type { ChangelogJson, PackageChangelog, ChangelogEntry } from './ChangeLog';
+import type { ChangeType } from './ChangeInfo';
 
 /**
  * Options for changelog-related configuration.

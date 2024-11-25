@@ -1,8 +1,8 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { PackageJson } from '../types/PackageInfo';
-import { Repository, RepositoryCloneOptions } from './repository';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { PackageJson } from '../types/PackageInfo';
+import { Repository, type RepositoryCloneOptions } from './repository';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { tmpdir } from './tmpdir';
 import { gitFailFast } from 'workspace-tools';
 import { setDefaultBranchName } from './gitDefaults';

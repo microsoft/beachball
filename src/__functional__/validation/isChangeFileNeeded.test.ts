@@ -1,10 +1,10 @@
 import { describe, expect, it, beforeAll, beforeEach, afterAll } from '@jest/globals';
 import { defaultRemoteBranchName, defaultRemoteName } from '../../__fixtures__/gitDefaults';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { Repository } from '../../__fixtures__/repository';
+import type { Repository } from '../../__fixtures__/repository';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { isChangeFileNeeded } from '../../validation/isChangeFileNeeded';
-import { BeachballOptions } from '../../types/BeachballOptions';
+import type { BeachballOptions } from '../../types/BeachballOptions';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
 

@@ -1,5 +1,5 @@
-import { BeachballOptions } from '../types/BeachballOptions';
-import { PackageInfos } from '../types/PackageInfo';
+import type { BeachballOptions } from '../types/BeachballOptions';
+import type { PackageInfos } from '../types/PackageInfo';
 import path from 'path';
 import { isPathIncluded } from './isPathIncluded';
 

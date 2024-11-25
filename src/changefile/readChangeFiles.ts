@@ -1,11 +1,11 @@
-import { ChangeSet, ChangeInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
+import type { ChangeSet, ChangeInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
 import fs from 'fs-extra';
 import path from 'path';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { getChangesBetweenRefs } from 'workspace-tools';
-import { PackageInfos } from '../types/PackageInfo';
+import type { PackageInfos } from '../types/PackageInfo';
 
 /**
  * Read change files, excluding any changes for packages that are:

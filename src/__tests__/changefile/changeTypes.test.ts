@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { getMaxChangeType, initializePackageChangeTypes } from '../../changefile/changeTypes';
-import { ChangeSet } from '../../types/ChangeInfo';
+import type { ChangeSet } from '../../types/ChangeInfo';
 
 describe('getMaxChangeType', () => {
   it('handles equal change types', () => {

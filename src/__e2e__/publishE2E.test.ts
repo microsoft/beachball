@@ -6,11 +6,11 @@ import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { npmShow } from '../__fixtures__/npmShow';
-import { Repository } from '../__fixtures__/repository';
-import { PackageJsonFixture, RepositoryFactory } from '../__fixtures__/repositoryFactory';
+import type { Repository } from '../__fixtures__/repository';
+import { type PackageJsonFixture, RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { publish } from '../commands/publish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { _mockNpmPublish, initNpmMock } from '../__fixtures__/mockNpm';
 import type { PackageJson } from '../types/PackageInfo';
 

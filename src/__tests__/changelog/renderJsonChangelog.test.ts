@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { ChangelogJson, PackageChangelog } from '../..';
+import type { ChangelogJson, PackageChangelog } from '../../types/ChangeLog';
 import { renderJsonChangelog } from '../../changelog/renderJsonChangelog';
 
 describe('renderJsonChangelog', () => {

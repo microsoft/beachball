@@ -1,6 +1,6 @@
-import { VersionGroupOptions } from '../types/BeachballOptions';
+import type { VersionGroupOptions } from '../types/BeachballOptions';
 import path from 'path';
-import { PackageInfos, PackageGroups } from '../types/PackageInfo';
+import type { PackageInfos, PackageGroups } from '../types/PackageInfo';
 import { isPathIncluded } from './isPathIncluded';
 
 export function getPackageGroups(

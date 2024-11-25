@@ -1,5 +1,5 @@
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { gitFailFast, getBranchName, getCurrentHash, git } from 'workspace-tools';
 import prompts from 'prompts';
 import { readChangeFiles } from '../changefile/readChangeFiles';
@@ -7,7 +7,7 @@ import { bumpAndPush } from '../publish/bumpAndPush';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import { getNewPackages } from '../publish/getNewPackages';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { PublishBumpInfo } from '../types/BumpInfo';
+import type { PublishBumpInfo } from '../types/BumpInfo';
 
 export async function publish(options: BeachballOptions): Promise<void> {
   console.log('\nPreparing to publish');

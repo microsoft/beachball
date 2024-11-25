@@ -1,4 +1,4 @@
-import { git, gitFailFast } from 'workspace-tools';
+import { type git, gitFailFast } from 'workspace-tools';
 
 export const defaultBranchName = 'master';
 export const defaultRemoteName = 'origin';

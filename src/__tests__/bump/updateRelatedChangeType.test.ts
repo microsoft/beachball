@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 import { updateRelatedChangeType } from '../../bump/updateRelatedChangeType';
-import { BumpInfo } from '../../types/BumpInfo';
+import type { BumpInfo } from '../../types/BumpInfo';
 import _ from 'lodash';
-import { ChangeInfo, ChangeSet, ChangeType } from '../../types/ChangeInfo';
+import type { ChangeInfo, ChangeSet, ChangeType } from '../../types/ChangeInfo';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 type DeepPartial<T> = {

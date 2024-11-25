@@ -1,8 +1,8 @@
-import { BumpInfo } from '../types/BumpInfo';
+import type { BumpInfo } from '../types/BumpInfo';
 import { getDependentsForPackages } from './getDependentsForPackages';
 import { updateRelatedChangeType } from './updateRelatedChangeType';
 import { bumpPackageInfoVersion } from './bumpPackageInfoVersion';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { setDependentVersions } from './setDependentVersions';
 
 /**

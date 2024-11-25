@@ -1,10 +1,10 @@
 import { initializePackageChangeTypes } from '../changefile/changeTypes';
 import { readChangeFiles } from '../changefile/readChangeFiles';
-import { BumpInfo } from '../types/BumpInfo';
+import type { BumpInfo } from '../types/BumpInfo';
 import { bumpInPlace } from './bumpInPlace';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
-import { PackageInfos } from '../types/PackageInfo';
+import type { PackageInfos } from '../types/PackageInfo';
 import { getPackageGroups } from '../monorepo/getPackageGroups';
 
 /**

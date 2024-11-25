@@ -1,8 +1,8 @@
 import prompts from 'prompts';
-import { ChangeFileInfo, ChangeType } from '../types/ChangeInfo';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { ChangeFileInfo, ChangeType } from '../types/ChangeInfo';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { isValidChangeType } from '../validation/isValidChangeType';
-import { PackageGroups, PackageInfos } from '../types/PackageInfo';
+import type { PackageGroups, PackageInfos } from '../types/PackageInfo';
 import { getQuestionsForPackage } from './getQuestionsForPackage';
 
 export type ChangePromptResponse = { type?: ChangeType; comment?: string };

@@ -5,7 +5,7 @@ import { setDependentVersions } from '../bump/setDependentVersions';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
 import { publishToRegistry } from '../publish/publishToRegistry';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 
 export async function canary(options: BeachballOptions): Promise<void> {
   const oldPackageInfo = getPackageInfos(options.path);

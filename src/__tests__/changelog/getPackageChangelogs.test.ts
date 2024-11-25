@@ -1,8 +1,8 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { getPackageChangelogs } from '../../changelog/getPackageChangelogs';
-import { BumpInfo } from '../../types/BumpInfo';
-import { ChangeFileInfo, ChangeSet } from '../../types/ChangeInfo';
-import { PackageInfos } from '../../types/PackageInfo';
+import type { BumpInfo } from '../../types/BumpInfo';
+import type { ChangeFileInfo, ChangeSet } from '../../types/ChangeInfo';
+import type { PackageInfos } from '../../types/PackageInfo';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 const commit = 'deadbeef';

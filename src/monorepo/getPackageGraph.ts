@@ -1,5 +1,5 @@
-import { PackageInfo, PackageInfos } from '../types/PackageInfo';
-import pGraph, { PGraphNodeMap } from 'p-graph';
+import type { PackageInfo, PackageInfos } from '../types/PackageInfo';
+import pGraph, { type PGraphNodeMap } from 'p-graph';
 import { getPackageDependencyGraph } from './getPackageDependencyGraph';
 
 // this export is missing from the top level of the package

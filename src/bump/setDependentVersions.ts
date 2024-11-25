@@ -1,5 +1,5 @@
 import type { BeachballOptions } from '../types/BeachballOptions';
-import { BumpInfo } from '../types/BumpInfo';
+import type { BumpInfo } from '../types/BumpInfo';
 import { consideredDependencies } from '../types/PackageInfo';
 import { bumpMinSemverRange } from './bumpMinSemverRange';
 

@@ -1,6 +1,6 @@
-import { BumpInfo } from '../types/BumpInfo';
+import type { BumpInfo } from '../types/BumpInfo';
 import semver from 'semver';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 
 /**
  * Bumps an individual package version based on the change type.

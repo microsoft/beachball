@@ -1,6 +1,6 @@
 import { performBump } from '../bump/performBump';
-import { BumpInfo } from '../types/BumpInfo';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BumpInfo } from '../types/BumpInfo';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { revertLocalChanges, parseRemoteBranch } from 'workspace-tools';
 import { tagPackages } from './tagPackages';
 import { displayManualRecovery } from './displayManualRecovery';

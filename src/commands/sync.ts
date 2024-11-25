@@ -1,4 +1,4 @@
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { listPackageVersionsByTag } from '../packageManager/listPackageVersions';

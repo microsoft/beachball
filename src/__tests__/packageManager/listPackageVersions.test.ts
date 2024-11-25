@@ -5,7 +5,7 @@ import {
   listPackageVersionsByTag,
   _clearPackageVersionsCache,
 } from '../../packageManager/listPackageVersions';
-import { NpmOptions } from '../../types/NpmOptions';
+import type { NpmOptions } from '../../types/NpmOptions';
 import { initNpmMock } from '../../__fixtures__/mockNpm';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 

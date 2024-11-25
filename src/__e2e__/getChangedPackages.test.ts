@@ -2,7 +2,7 @@ import { describe, expect, it, afterEach } from '@jest/globals';
 import { defaultBranchName } from '../__fixtures__/gitDefaults';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { getChangedPackages } from '../changefile/getChangedPackages';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';

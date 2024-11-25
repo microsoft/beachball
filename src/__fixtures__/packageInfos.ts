@@ -1,6 +1,6 @@
 import _ from 'lodash';
-import { BeachballOptions } from '../types/BeachballOptions';
-import { PackageInfo, PackageInfos } from '../types/PackageInfo';
+import type { BeachballOptions } from '../types/BeachballOptions';
+import type { PackageInfo, PackageInfos } from '../types/PackageInfo';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 
 const defaultOptions = getDefaultOptions();

@@ -1,5 +1,5 @@
 import { singleLineStringify } from '../logging/format';
-import { ChangelogOptions } from '../types/ChangelogOptions';
+import type { ChangelogOptions } from '../types/ChangelogOptions';
 
 export function isValidChangelogOptions(options: ChangelogOptions): boolean {
   if (!options.groups) {

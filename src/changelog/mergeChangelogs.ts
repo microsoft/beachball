@@ -1,7 +1,7 @@
-import { PackageChangelog } from '../types/ChangeLog';
-import { PackageInfo } from '../types/PackageInfo';
+import type { PackageChangelog } from '../types/ChangeLog';
+import type { PackageInfo } from '../types/PackageInfo';
 import { generateTag } from '../git/generateTag';
-import { ChangeType } from '../types/ChangeInfo';
+import type { ChangeType } from '../types/ChangeInfo';
 
 /**
  * Merge multiple package changelogs into one.

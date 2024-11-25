@@ -1,9 +1,9 @@
 import { expect } from '@jest/globals';
 import os from 'os';
 import { env } from '../env';
-import { NpmShowResult } from '../packageManager/listPackageVersions';
+import type { NpmShowResult } from '../packageManager/listPackageVersions';
 import { npm } from '../packageManager/npm';
-import { Registry } from './registry';
+import type { Registry } from './registry';
 
 /**
  * Runs `npm show <packageName>` on the fake registry and returns the result.

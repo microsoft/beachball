@@ -1,7 +1,7 @@
 import { listPackageVersions } from '../packageManager/listPackageVersions';
-import { NpmOptions } from '../types/NpmOptions';
+import type { NpmOptions } from '../types/NpmOptions';
 import { formatList } from '../logging/format';
-import { PackageInfos } from '../types/PackageInfo';
+import type { PackageInfos } from '../types/PackageInfo';
 
 /**
  * Validate each package version being published doesn't already exist in the registry.

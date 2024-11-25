@@ -1,6 +1,6 @@
 import path from 'path';
-import { HooksOptions } from '../types/BeachballOptions';
-import { PackageInfo, PackageInfos } from '../types/PackageInfo';
+import type { HooksOptions } from '../types/BeachballOptions';
+import type { PackageInfo, PackageInfos } from '../types/PackageInfo';
 import { getPackageGraph } from '../monorepo/getPackageGraph';
 
 /**

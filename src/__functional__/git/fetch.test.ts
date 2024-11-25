@@ -2,10 +2,10 @@ import { describe, expect, it, beforeAll, afterAll, jest, afterEach } from '@jes
 import * as workspaceTools from 'workspace-tools';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { Repository } from '../../__fixtures__/repository';
+import type { Repository } from '../../__fixtures__/repository';
 import { gitFetch } from '../../git/fetch';
 import { defaultBranchName, defaultRemoteName } from '../../__fixtures__/gitDefaults';
-import { GitProcessOutput } from 'workspace-tools';
+import type { GitProcessOutput } from 'workspace-tools';
 
 // required for `jest.spyOn('workspace-tools', git)` to work
 jest.mock('workspace-tools', () => {

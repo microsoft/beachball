@@ -1,11 +1,11 @@
-import { afterAll, afterEach, beforeAll, jest } from '@jest/globals';
+import { afterAll, afterEach, beforeAll, type jest } from '@jest/globals';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import semver from 'semver';
-import { NpmShowResult } from '../packageManager/listPackageVersions';
+import type { NpmShowResult } from '../packageManager/listPackageVersions';
 import { npm, NpmResult } from '../packageManager/npm';
-import { PackageJson } from '../types/PackageInfo';
+import type { PackageJson } from '../types/PackageInfo';
 import type { PackageManagerOptions } from '../packageManager/packageManager';
 
 /** Published versions and dist-tags for a package */

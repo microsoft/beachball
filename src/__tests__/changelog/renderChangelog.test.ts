@@ -1,7 +1,7 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import {
-  MarkdownChangelogRenderOptions,
+  type MarkdownChangelogRenderOptions,
   renderChangelog,
   markerComment,
   _trimPreviousLog,

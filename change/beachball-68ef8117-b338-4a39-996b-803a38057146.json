@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Use import/export type",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

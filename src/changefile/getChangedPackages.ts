@@ -1,12 +1,12 @@
 import fs from 'fs-extra';
 import path from 'path';
 import minimatch from 'minimatch';
-import { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
+import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
 import { getChanges, getStagedChanges, git } from 'workspace-tools';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
-import { BeachballOptions } from '../types/BeachballOptions';
-import { PackageInfos, PackageInfo } from '../types/PackageInfo';
+import type { BeachballOptions } from '../types/BeachballOptions';
+import type { PackageInfos, PackageInfo } from '../types/PackageInfo';
 import { ensureSharedHistory } from '../git/ensureSharedHistory';
 
 const count = (n: number, str: string) => `${n} ${str}${n === 1 ? '' : 's'}`;

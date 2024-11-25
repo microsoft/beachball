@@ -1,8 +1,8 @@
 import { describe, expect, it, beforeAll, afterAll } from '@jest/globals';
-import { Repository } from '../../__fixtures__/repository';
+import type { Repository } from '../../__fixtures__/repository';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
-import { PackageInfos } from '../../types/PackageInfo';
+import type { PackageInfos } from '../../types/PackageInfo';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 
 describe('getScopedPackages', () => {

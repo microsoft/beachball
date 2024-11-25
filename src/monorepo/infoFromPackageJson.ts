@@ -1,5 +1,5 @@
 import path from 'path';
-import { PackageInfo, PackageJson } from '../types/PackageInfo';
+import type { PackageInfo, PackageJson } from '../types/PackageInfo';
 import { getPackageOptions, getCombinedPackageOptions } from '../options/getPackageOptions';
 
 export function infoFromPackageJson(packageJson: PackageJson, packageJsonPath: string): PackageInfo {

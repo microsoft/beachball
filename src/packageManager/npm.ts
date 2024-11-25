@@ -1,4 +1,5 @@
-import { PackageManagerResult, packageManager } from './packageManager';
+import type { PackageManagerResult } from './packageManager';
+import { packageManager } from './packageManager';
 
 // The npm wrapper for packageManager is preserved for convenience.
 
