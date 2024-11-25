@@ -49,7 +49,7 @@ export async function packagePublish(
 
     // First check the output for specific cases where retries are unlikely to help.
     // NOTE: much of npm's output is localized, so it's best to only check for error codes.
-    if (result.all!.includes('EPUBLISHCONFLICT')) {
+    if (result.all?.includes('EPUBLISHCONFLICT') || result.all?.includes('E409')) {
       console.error(`${packageSpec} already exists in the registry. ${output}`);
       break;
     }
