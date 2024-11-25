@@ -18,13 +18,14 @@ $ beachball change
 
 Some [general options](./options) including `--branch` and `--scope` also apply for this command.
 
-| Option        | Alias | Default              | Description                                                                       |
-| ------------- | ----- | -------------------- | --------------------------------------------------------------------------------- |
-| `--all`       |       | false                | Generate change files for all packages                                            |
-| `--message`   | `-m`  | (interactive prompt) | Description for all change files                                                  |
-| `--no-commit` |       | false                | Stage the change files rather than committing                                     |
-| `--package`   |       | (changed packages)   | Generate change files for these packages (option can be specified multiple times) |
-| `--type`      |       | (interactive prompt) | Type for all the change files (must be valid for each package)                    |
+| Option                    | Alias | Default            | Description                                                                |
+| ------------------------- | ----- | ------------------ | -------------------------------------------------------------------------- |
+| `--all`                   |       | false              | Generate change files for all packages                                     |
+| `--dependent-change-type` |       | `patch`            | use this change type for dependent packages                                |
+| `--message`               | `-m`  | (prompt)           | Description for all change files                                           |
+| `--no-commit`             |       | false              | Stage the change files rather than committing                              |
+| `--package`               |       | (changed packages) | Generate change files for these packages (can be specified multiple times) |
+| `--type`                  |       | (prompt)           | Type for all the change files (must be valid for each package)             |
 
 ### Examples
 

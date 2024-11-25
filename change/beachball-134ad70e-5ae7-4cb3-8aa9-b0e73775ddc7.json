@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update help message",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

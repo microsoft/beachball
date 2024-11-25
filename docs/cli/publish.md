@@ -10,7 +10,23 @@ Publishing automates all the bumping and synchronizing of package versions in th
 
 ### Options
 
-See the [options page](./options).
+[General options](./options) also apply for this command.
+
+| Option                        | Alias | Default                        | Description                                                                      |
+| ----------------------------- | ----- | ------------------------------ | -------------------------------------------------------------------------------- |
+| `--auth-type`                 | `-a`  | `'authtoken'`                  | npm auth type: `'authtoken'` or `'password'`                                     |
+| `--git-tags`, `--no-git-tags` |       | `true` (`--git-tags`)          | whether to create git tags for published package versions                        |
+| `--keep-change-files`         |       |                                | don't delete the change files from disk after bumping                            |
+| `--message`                   | `-m`  | `'applying package updates'`   | custom commit message                                                            |
+| `--prerelease-prefix`         |       |                                | prerelease prefix (e.g. `beta`) for packages that will receive a prerelease bump |
+| `--publish`, `--no-publish`   |       | `true` (`--publish`)           | whether to publish to the npm registry                                           |
+| `--push`, `--no-push`         |       | `true` (`--push`)              | whether to commit changes and push them back to the git remote                   |
+| `--registry`                  | `-r`  | `'https://registry.npmjs.org'` | npm registry for publishing                                                      |
+| `--retries`                   |       | `3`                            | number of retries for a package publish before failing                           |
+| `--tag`                       | `-t`  | `'latest'`                     | dist-tag for npm publishes                                                       |
+| `--token`                     | `-n`  |                                | credential to use with npm commands (type specified by `--auth-type`)            |
+| `--verbose`                   |       | `false`                        | prints additional information to the console                                     |
+| `--yes`                       | `-y`  | if CI detected, `true`         | skips the prompts for publish                                                    |
 
 ### Algorithm
 

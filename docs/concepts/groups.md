@@ -5,41 +5,97 @@ tags:
 category: doc
 ---
 
-# Version Groups
+# Groups
 
-By default, all packages in the repository are versioned based solely on the changes as specified by the change files. Developers are expected to create these change files along with the bump type for the packages as they go.
+`beachball` supports different ways of grouping packages together or limiting the packages considered.
 
-Some projects require bumping versions together so that the consumers really only need to remember one single version number when bumping related packages. The most famous of this strategy is Babel that versions all their related packages together with the locked step versioning.
+- [**Version groups**](#version-groups) allow bumping packages together.
+- [**Grouped changelogs**](#grouped-changelogs) allow grouping changelog entries for multiple packages into a single file.
 
-`beachball` strives to be automated and flexible, so it provides a concept of version groups. Whenever one of the packages of one of the packages inside a group is bumped, the entire group's packages will get bumped the same way.
+You can also use [**scoping**](../overview/configuration#scoping) to limit which packages are considered, either for a specific operation or at all.
 
-> Note: a package cannot belong to multiple groups - beachball will not allow its commands to work with that configuration
+## Version groups
 
-### Configuring groups
+By default, all packages in the repository are only bumped based on the changes specified in their own [change files](./change-files) (or if their in-repo dependencies are bumped and `bumpDeps` is enabled). Developers are expected to create change files specifying the bump type for each package as they go.
 
-In the [configuration](../overview/configuration) section, we discussed how to configure `beachball`. Here's an example of a config file named `beachball.config.js`:
+For cases where it's necessary to bump packages together, `beachball` also provides a concept of version groups. Whenever one package in a group is bumped, the versions of all packages in the group will be updated with the **same bump type**.
 
-```js
-module.exports = {
-  bumpDeps: true,
-};
-```
+> Note: this is slightly different from lock step versioning (where all packages use the exact same version): `beachball` only applies the same bump _type_ to each package's current version. There's an open [feature request](https://github.com/microsoft/beachball/issues/214) discussing full lock step versioning.
 
-We can add a group by adding it to the configuration like this:
+> Note: a package cannot belong to multiple groups - `beachball` will not allow its commands to work with that configuration
 
-```diff
-module.exports = {
-  bumpDeps: true
-+ groups: [
-+   {
-+      name: "group name",
-+      include: ["packages/groupfoo/*"],
-+      exclude: ["packages/groupfoo/bar"]
-+   }
-+ ]
+### Configuring version groups
+
+Groups can be added to the [configuration file](../overview/configuration). See the [`VersionGroupOptions` source](https://github.com/microsoft/beachball/blob/master/src/types/ChangelogOptions.ts) for full details.
+
+| Name                    | Type                         | Description                                                                                                                                                                                                                        |
+| ----------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                  | `string`                     | Name of the version group                                                                                                                                                                                                          |
+| `include`               | `string \| string[] \| true` | minimatch pattern(s) for package paths to include in this group. Patterns are relative to the repo root and must use forward slashes. If `true`, include all packages except those matching `exclude`.                             |
+| `exclude`               | `string \| string[]`         | minimatch pattern(s) for package paths to include in this group. Patterns are relative to the repo root and must use forward slashes. Currently this must use **negated patterns only** (will be fixed in the next major version). |
+| `disallowedChangeTypes` | `ChangeType[] \| null`       | Disallow these change types for the group.                                                                                                                                                                                         |
+
+Example:
+
+```jsonc
+{
+  "groups": [
+    {
+      "name": "group name",
+      "include": ["packages/groupfoo/*"],
+      "exclude": ["!packages/groupfoo/bar"],
+      "disallowedChangeTypes": ["major"]
+    }
+  ]
 }
 ```
 
-`beachball` uses `minimatch` to match which packages belong to which group via this configuration. In the above configuration, packages located inside `packages/groupfoo` would be bumped together.
+Note that if you want [grouped changelogs](#grouped-changelogs) for your version groups, this must be configured separately as explained below.
 
-> NOTE: Beachball does not guarantee currently that these packages have the same version number, but that it will be bumped at the same rate. This is an area of active development, so please consider submitting feature request issues to change its behavior with justifications
+If you only want to publish or record changes for certain packages, you should use [scoping](../overview/configuration#scoping) instead.
+
+## Grouped changelogs
+
+To show changes for multiple packages in one change file, use the `changelog.groups` option. See the [`ChangelogGroupOptions` source](https://github.com/microsoft/beachball/blob/master/src/types/ChangelogOptions.ts) for full details.
+
+| Name                | Type                         | Description                                                                                                                                                                                                                          |
+| ------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `masterPackageName` | `string`                     | The main package which a group of changes bubbles up to.                                                                                                                                                                             |
+| `include`           | `string \| string[] \| true` | minimatch pattern(s) for package paths to include in this group. Patterns are relative to the repo root and must use forward slashes. If `true`, include all packages except those matching `exclude`.                               |
+| `exclude`           | `string \| string[]`         | minimatch pattern(s) for package paths to exclude from this group. Patterns are relative to the repo root and must use forward slashes. Currently this must use **negated patterns only** (will be fixed in the next major version). |
+| `changelogPath`     | `string`                     | Put the grouped changelog file under this directory. Can be relative to the root, or absolute.                                                                                                                                       |
+
+In this example, changelogs for all packages under `packages/*` (except `packages/baz`) are written to a `CHANGELOG.md` at the repo root (`.`), with `foo` as the master package. (To replace `foo`'s usual changelog with a grouped one, you'd specify `changelogPath` as the path to `foo` instead, e.g. `packages/foo`.)
+
+```json
+{
+  "changelog": {
+    "groups": [
+      {
+        "masterPackageName": "foo",
+        "changelogPath": ".",
+        "include": ["packages/*"],
+        "exclude": ["!packages/baz"]
+      }
+    ]
+  }
+}
+```
+
+The result looks something like this:
+
+```md
+# Change Log - foo
+
+## 1.1.0
+
+Tue, 19 Nov 2024 08:03:08 GMT
+
+### Minor changes
+
+- `foo`
+  - some change (example@example.com)
+  - other change (example@example.com)
+- `bar`
+  - bar change (example@example.com)
+```

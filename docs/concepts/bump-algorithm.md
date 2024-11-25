@@ -4,7 +4,7 @@ tags:
 category: doc
 ---
 
-# Bump Algorithm
+# Bump algorithm
 
 Bumping a single package is a simple task of just looking up a change file for its change type and using semver to bump the version according to what that change type is.
 

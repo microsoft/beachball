@@ -4,7 +4,7 @@ tags:
 category: doc
 ---
 
-# CI Integration
+# CI integration
 
 There are two parts to CI integration with `beachball`:
 

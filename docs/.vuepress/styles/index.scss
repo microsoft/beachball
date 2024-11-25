@@ -1,6 +1,8 @@
 // https://ecosystem.vuejs.press/themes/default/styles.html
 
 :root {
+  --content-width: 900px;
+
   // link text
   --vp-c-accent: #a17d08;
   // homepage action
@@ -35,4 +37,9 @@ p a code {
 .vp-hero-action-button:hover {
   // make sidebar and action links more obvious
   text-decoration: underline;
+}
+
+td:first-child code {
+  // don't wrap CLI option names
+  white-space: nowrap;
 }

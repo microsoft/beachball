@@ -8,53 +8,80 @@ export function showVersion(): void {
 export function showHelp(): void {
   showVersion();
 
-  console.log(`Prerequisites:
-
-  git and a remote named "origin"
-
-Usage:
+  console.log(`Usage:
 
   beachball [command] [options]
 
-Commands:
-
-  change (default)    - a tool to help create change files in the change/ folder
-  check               - checks whether a change file is needed for this branch
-  bump                - bumps versions as well as generating changelogs
-  publish             - bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into the default branch
-  sync                - synchronizes published versions of packages from a registry, makes local package.json changes to match what is published
-
-Options:
-
-  --registry, -r                  - registry, defaults to https://registry.npmjs.org
-  --tag, -t                       - for the publish command: dist-tag for npm publishes
-                                  - for the sync command: will use specified tag to set the version
-  --branch, -b                    - target branch from origin (default: as configured in 'git config init.defaultBranch')
-  --message, -m                   - for the publish command: custom publish message for the checkin (default: applying package updates);
-                                    for the change command: description of the change
-  --no-push                       - skip pushing changes back to git remote origin
-  --no-publish                    - skip publishing to the npm registry
-  --no-bump                       - skip both bumping versions and pushing changes back to git remote origin when publishing;
-  --no-commit                     - for the change command: stage change files only without autocommitting them
-  --help, -?, -h                  - this very help message
-  --yes, -y                       - skips the prompts for publish
-  --package, -p                   - manually specify a package to create a change file; creates a change file regardless of diffs
-  --changehint                    - give your developers a customized hint message when they forget to add a change file
-  --changeDir                     - name of the directory to store change files (default: change)
-  --since                         - for the bump command: allows to specify the range of change files used to bump packages by using git refs (branch name, commit SHA, etc);
-                                    for the publish command: bumps and publishes packages based on the specified range of the change files.
-  --keep-change-files             - for the bump and publish commands: when specified, both bump and publish commands do not delete the change files on the disk.
-  --force                         - force the sync command to skip the version comparison and use the version in the registry as is.
-  --dependent-change-type         - for the change command: override the default dependent-change-type that will end-up in the change file.
-  --disallow-deleted-change-files - for the check command: verifies that no change files were deleted between head and target branch.
-  --prerelease-prefix             - for the bump and publish commands: specify a prerelease prefix for packages that will receive a prerelease bump.
-  --verbose                       - prints additional information to the console
-
 Examples:
 
-  $ beachball
-  $ beachball check
-  $ beachball publish -r http://localhost:4873 -t beta -b beta
+    $ beachball
+    $ beachball check
+    $ beachball publish -r http://localhost:4873 -t beta -b beta
+
+Commands:
+
+    change (default)  - create change files in the change/ folder
+    check             - checks whether a change file is needed for this branch
+    bump              - bumps versions as well as generating changelogs
+    publish           - bumps, publishes to npm registry (optionally does dist-tags), and
+                        pushes changelogs back into the default branch
+    sync              - synchronize published versions of packages from the registry with
+                        local package.json versions
+
+Options supported by all commands:
+
+    --branch, -b      - target branch from remote (default: git config init.defaultBranch)
+    --change-dir      - name of the directory to store change files (default: change)
+    --config-path, -c - custom beachball config path (default: cosmiconfig standard paths)
+    --no-fetch        - skip fetching from the remote before determining changes
+    --scope           - only consider package paths matching this pattern
+                        (can be specified multiple times; supports negations)
+    --since           - consider changes or change files since this git ref (branch name, commit SHA)
+    --verbose         - prints additional information to the console
+
+'change' options:
+
+    --message, -m           - description for all changed packages (instead of prompting)
+    --type                  - type of change: minor, patch, none, ... (instead of prompting)
+    --package, -p           - force creating a change file for this package, regardless of diffs
+                              (can be specified multiple times)
+    --all                   - generate change files for all packages
+    --dependent-change-type - use this change type for dependent packages (default patch)
+    --no-commit             - stage change files only
+
+'check' options:
+
+    --changehint                    - give your developers a customized hint message when they
+                                      forget to add a change file
+    --disallow-deleted-change-files - verifies that no change files were deleted between head and
+                                      target branch.
+
+'bump' options:
+
+    --keep-change-files     - don't delete the change files from disk after bumping
+    --prerelease-prefix     - prerelease prefix for packages that will receive a prerelease bump
+
+'publish' options:
+
+    Also supports all 'bump' options.
+
+    --auth-type             - npm auth type: 'authtoken' or 'password'
+    --message, -m           - commit message (default: "applying package updates")
+    --no-bump               - skip both bumping versions and pushing changes back to git remote
+    --no-git-tags           - don't create git tags for each published package version
+    --no-publish            - skip publishing to the npm registry
+    --no-push               - skip committing changes and pushing them back to the git remote
+    --registry, -r          - registry (default https://registry.npmjs.org)
+    --retries               - number of retries for npm publishes (default: 3)
+    --tag, -t               - dist-tag for npm publishes (default: "latest")
+    --token                 - npm token or password
+    --yes, -y               - skip the confirmation prompts
+
+'sync' options:
+
+    --registry, -r          - registry (default https://registry.npmjs.org)
+    --tag, -t               - sync to the specified npm dist-tag (default: 'latest')
+    --force                 - use the version from the registry even if it's older than local
 
 `);
 }
