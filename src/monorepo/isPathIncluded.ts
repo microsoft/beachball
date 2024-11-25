@@ -1,7 +1,7 @@
-import minimatch from 'minimatch';
+import picomatch, { type Matcher, type PicomatchOptions } from 'picomatch';
 
 /**
- * Check if a relative package path should be included given include and exclude patterns using minimatch.
+ * Use picomatch to check if a relative package path should be included.
  */
 export function isPathIncluded(params: {
   /** Relative path to the package from the repo root. */
@@ -17,14 +17,37 @@ export function isPathIncluded(params: {
   if (include === true) {
     shouldInclude = true;
   } else {
-    const includePatterns = typeof include === 'string' ? [include] : include;
-    shouldInclude = includePatterns.some(pattern => minimatch(relativePath, pattern));
+    shouldInclude = makeGlobMatcher(include)(relativePath);
   }
 
   if (exclude?.length && shouldInclude) {
-    const excludePatterns = typeof exclude === 'string' ? [exclude] : exclude;
-    shouldInclude = !excludePatterns.some(pattern => minimatch(relativePath, pattern));
+    shouldInclude = !makeGlobMatcher(exclude)(relativePath);
   }
 
   return shouldInclude;
+}
+
+/**
+ * Make a picomatch glob matcher for the given pattern, with appropriate options for
+ * checking for matches against files (not directories).
+ */
+export function makeFileGlobMatcher(pattern: string): Matcher {
+  return makeGlobMatcher(pattern, {
+    dot: true,
+    // picomatch matchBase behavior is different from minimatch, so we only set the option if
+    // there are no slashes to get the desired behavior.
+    // https://github.com/micromatch/picomatch/issues/136
+    matchBase: !pattern.includes('/'),
+  });
+}
+
+/**
+ * Make a picomatch glob matcher for the given pattern(s).
+ * It will automatically set `windows` (match backslashes as forward slashes) on Windows.
+ */
+function makeGlobMatcher(patterns: string | string[], options?: PicomatchOptions): Matcher {
+  return picomatch(patterns, {
+    windows: process.platform === 'win32',
+    ...options,
+  });
 }
