@@ -26,7 +26,7 @@ export function getQuestionsForPackage(params: {
   }
 
   const defaultPrompt: DefaultPrompt = {
-    changeType: !options.type && changeTypePrompt.choices!.length > 1 ? changeTypePrompt : undefined,
+    changeType: !options.type && changeTypePrompt.choices.length > 1 ? changeTypePrompt : undefined,
     description: !options.message ? getDescriptionPrompt(recentMessages) : undefined,
   };
 
@@ -41,13 +41,13 @@ function getChangeTypePrompt(params: {
   packageInfos: PackageInfos;
   packageGroups: PackageGroups;
   options: Pick<BeachballOptions, 'type'>;
-}): prompts.PromptObject<string> | undefined {
+}): (prompts.PromptObject & Required<Pick<prompts.PromptObject, 'choices'>>) | undefined {
   const { pkg, packageInfos, packageGroups, options } = params;
   const packageInfo = packageInfos[pkg];
 
   const disallowedChangeTypes = getDisallowedChangeTypes(pkg, packageInfos, packageGroups) || [];
 
-  if (options.type && disallowedChangeTypes.includes(options.type as ChangeType)) {
+  if (options.type && disallowedChangeTypes.includes(options.type)) {
     console.error(`Change type "${options.type}" is not allowed for package "${pkg}"`);
     return;
   }
@@ -77,7 +77,7 @@ function getChangeTypePrompt(params: {
   };
 }
 
-function getDescriptionPrompt(recentMessages: string[]): prompts.PromptObject<string> {
+function getDescriptionPrompt(recentMessages: string[]): prompts.PromptObject {
   // Do case-insensitive filtering of recent commit messages
   const recentMessageChoices: prompts.Choice[] = recentMessages.map(msg => ({ title: msg }));
   const getSuggestions = (input: string) =>
@@ -95,7 +95,7 @@ function getDescriptionPrompt(recentMessages: string[]): prompts.PromptObject<st
     // previously implemented hack of adding the input to the returned list from `suggest`
     // no longer works. So this new hack adds the current input as the fallback.
     // https://github.com/terkelg/prompts/issues/131
-    onState: function (this: any, state: any) {
+    onState: function (this: { input: string; value: string; fallback: string }) {
       // If there are no suggestions, update the value to match the input, and unset the fallback
       // (this.suggestions may be out of date if the user pasted text ending with a newline, so re-calculate)
       if (!getSuggestions(this.input).length) {

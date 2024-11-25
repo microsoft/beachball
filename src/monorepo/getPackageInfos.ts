@@ -7,7 +7,7 @@ import {
   findProjectRoot,
   WorkspaceInfo,
 } from 'workspace-tools';
-import { PackageInfos } from '../types/PackageInfo';
+import type { PackageInfos, PackageJson } from '../types/PackageInfo';
 import { infoFromPackageJson } from './infoFromPackageJson';
 
 /**
@@ -31,7 +31,7 @@ function getPackageInfosFromWorkspace(projectRoot: string): PackageInfos | undef
   try {
     // first try using the workspace provided packages (if available)
     workspacePackages = getWorkspacePackages(projectRoot);
-  } catch (e) {
+  } catch {
     // not a recognized workspace from workspace-tools
   }
 
@@ -68,7 +68,7 @@ function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string): PackageIn
   for (const packageJsonPath of packageJsonFiles) {
     try {
       const packageJsonFullPath = path.join(projectRoot, packageJsonPath);
-      const packageJson = fs.readJSONSync(packageJsonFullPath);
+      const packageJson = fs.readJSONSync(packageJsonFullPath) as PackageJson;
       if (!packageInfos[packageJson.name]) {
         packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonFullPath);
       } else {
@@ -96,7 +96,7 @@ function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string): PackageIn
 function getPackageInfosFromSingleRepo(packageRoot: string): PackageInfos {
   const packageInfos: PackageInfos = {};
   const packageJsonFullPath = path.resolve(packageRoot, 'package.json');
-  const packageJson = fs.readJSONSync(packageJsonFullPath);
+  const packageJson = fs.readJSONSync(packageJsonFullPath) as PackageJson;
   packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonFullPath);
   return packageInfos;
 }

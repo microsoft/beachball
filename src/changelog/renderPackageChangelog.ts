@@ -70,7 +70,7 @@ async function _renderEntries(changeType: ChangeType, renderInfo: PackageChangel
     const entriesByPackage = _.entries(_.groupBy(entries, entry => entry.package));
 
     // Use a for loop here (not map) so that if renderEntry does network requests, we don't fire them all at once
-    let packagesText: string[] = [];
+    const packagesText: string[] = [];
     for (const [pkgName, pkgEntries] of entriesByPackage) {
       const entriesText = (await _renderEntriesBasic(pkgEntries, renderInfo)).map(entry => `  ${entry}`).join('\n');
 
@@ -87,7 +87,7 @@ async function _renderEntriesBasic(
   renderInfo: PackageChangelogRenderInfo
 ): Promise<string[]> {
   // Use a for loop here (not map) so that if renderEntry does network requests, we don't fire them all at once
-  let results: string[] = [];
+  const results: string[] = [];
   for (const entry of entries) {
     results.push(await renderInfo.renderers.renderEntry(entry, renderInfo));
   }

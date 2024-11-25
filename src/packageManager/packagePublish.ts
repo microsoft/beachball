@@ -53,7 +53,7 @@ export async function packagePublish(
       console.error(`${packageSpec} already exists in the registry. ${output}`);
       break;
     }
-    if (result.all!.includes('code E403')) {
+    if (result.all?.includes('code E403')) {
       // This is apparently a less common variant of trying to publish over an existing version
       // (not sure when this error is used vs. EPUBLISHCONFLICT). Keep the message generic since
       // there may be other possible causes for 403 errors.
@@ -65,12 +65,12 @@ export async function packagePublish(
       console.error(`Publishing ${packageSpec} failed due to a 403 error. ${output}`);
       break;
     }
-    if (result.all!.includes('ENEEDAUTH')) {
+    if (result.all?.includes('ENEEDAUTH')) {
       // ENEEDAUTH only happens if no auth was attempted (no token/password provided).
       console.error(`Publishing ${packageSpec} failed due to an auth error. ${output}`);
       break;
     }
-    if (result.all!.includes('code E404')) {
+    if (result.all?.includes('code E404')) {
       // All types of invalid credentials appear to cause E404.
       // validate() already checks for the most common ways invalid variable names might show up,
       // so log a slightly more generic message instead of details about the token.

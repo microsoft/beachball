@@ -3,7 +3,7 @@ import { getDefaultRemoteBranch } from 'workspace-tools';
 import { env } from '../env';
 import { RepoOptions, CliOptions, BeachballOptions } from '../types/BeachballOptions';
 
-let cachedRepoOptions = new Map<CliOptions, RepoOptions>();
+const cachedRepoOptions = new Map<CliOptions, RepoOptions>();
 
 export function getRepoOptions(cliOptions: CliOptions): RepoOptions {
   const { configPath, path: cwd, branch } = cliOptions;
@@ -45,11 +45,11 @@ export function getRepoOptions(cliOptions: CliOptions): RepoOptions {
 function tryLoadConfig(configPath: string): RepoOptions | null {
   const configExplorer = cosmiconfigSync('beachball');
   const loadResults = configExplorer.load(configPath);
-  return (loadResults && loadResults.config) || null;
+  return (loadResults?.config as RepoOptions) || null;
 }
 
 function trySearchConfig(): RepoOptions | null {
   const configExplorer = cosmiconfigSync('beachball');
   const searchResults = configExplorer.search();
-  return (searchResults && searchResults.config) || null;
+  return (searchResults?.config as RepoOptions) || null;
 }

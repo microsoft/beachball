@@ -4,6 +4,7 @@ import { getQuestionsForPackage } from '../../changefile/getQuestionsForPackage'
 import { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import type { ChangeType } from '../../types/ChangeInfo';
 
 /**
  * This covers the first part of `promptForChange`: determining what questions to ask for each package.
@@ -75,7 +76,7 @@ describe('getQuestionsForPackage', () => {
       ...defaultQuestionsParams,
       packageInfos: makePackageInfos({ [pkg]: { combinedOptions: { disallowedChangeTypes: ['major'] } } }),
     });
-    const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value);
+    const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value as ChangeType);
     expect(choices).toEqual(['patch', 'minor', 'none']);
   });
 
@@ -84,7 +85,7 @@ describe('getQuestionsForPackage', () => {
       ...defaultQuestionsParams,
       packageInfos: makePackageInfos({ [pkg]: { version: '1.0.0-beta.1' } }),
     });
-    const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value);
+    const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value as ChangeType);
     expect(choices).toEqual(['prerelease', 'patch', 'minor', 'none', 'major']);
   });
 
@@ -96,7 +97,7 @@ describe('getQuestionsForPackage', () => {
         [pkg]: { version: '1.0.0-beta.1', combinedOptions: { disallowedChangeTypes: ['prerelease'] } },
       }),
     });
-    const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value);
+    const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value as ChangeType);
     expect(choices).toEqual(['patch', 'minor', 'none', 'major']);
   });
 

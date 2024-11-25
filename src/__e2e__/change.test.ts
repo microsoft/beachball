@@ -9,7 +9,7 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { defaultBranchName } from '../__fixtures__/gitDefaults';
 import { MockStdout } from '../__fixtures__/mockStdout';
 import { MockStdin } from '../__fixtures__/mockStdin';
-import { ChangeFileInfo } from '../types/ChangeInfo';
+import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import { Repository } from '../__fixtures__/repository';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 
@@ -23,7 +23,7 @@ jest.mock(
     ((questions, options) => {
       questions = Array.isArray(questions) ? questions : [questions];
       questions = questions.map(q => ({ ...q, stdin, stdout }));
-      return (jest.requireActual('prompts') as typeof prompts)(questions, options);
+      return jest.requireActual<typeof prompts>('prompts')(questions, options);
     }) as typeof prompts
 );
 
@@ -35,7 +35,9 @@ jest.mock(
 let mockBeachballOptions: Partial<BeachballOptions> | undefined;
 jest.mock('../options/getDefaultOptions', () => ({
   getDefaultOptions: () => ({
-    ...(jest.requireActual('../options/getDefaultOptions') as any).getDefaultOptions(),
+    ...jest
+      .requireActual<typeof import('../options/getDefaultOptions')>('../options/getDefaultOptions')
+      .getDefaultOptions(),
     ...mockBeachballOptions,
   }),
 }));
@@ -192,7 +194,7 @@ describe('change command', () => {
     repo = repositoryFactory.cloneRepository();
 
     const options = getOptions({
-      package: repositoryFactory.fixture.rootPackage!.name,
+      package: repositoryFactory.fixture.rootPackage.name,
       commit: false,
     });
     const changePromise = change(options);
@@ -240,7 +242,7 @@ describe('change command', () => {
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(2);
-    const changeFileContents = changeFiles.map(changeFile => fs.readJSONSync(changeFile)) as ChangeFileInfo[];
+    const changeFileContents = changeFiles.map(changeFile => fs.readJSONSync(changeFile) as ChangeFileInfo);
     expect(changeFileContents).toContainEqual(
       expect.objectContaining({ comment: 'custom', packageName: 'pkg-1', type: 'minor' })
     );
@@ -276,7 +278,7 @@ describe('change command', () => {
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
-    const contents = fs.readJSONSync(changeFiles[0]);
+    const contents = fs.readJSONSync(changeFiles[0]) as ChangeInfoMultiple;
     expect(contents.changes).toEqual([
       expect.objectContaining({ comment: 'custom', packageName: 'pkg-1', type: 'minor' }),
       expect.objectContaining({ comment: 'commit 2', packageName: 'pkg-2', type: 'patch' }),
@@ -323,7 +325,7 @@ describe('change command', () => {
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
-    const contents = fs.readJSONSync(changeFiles[0]);
+    const contents = fs.readJSONSync(changeFiles[0]) as ChangeInfoMultiple;
     expect(contents.changes).toEqual([
       expect.objectContaining({ packageName: 'pkg-1', type: 'patch', comment: 'commit 2' }),
       expect.objectContaining({ packageName: 'pkg-2', type: 'patch', comment: 'commit 2', custom: 'stuff' }),

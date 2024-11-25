@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { PackageChangelogRenderInfo } from '../../types/ChangelogOptions';
 import { defaultRenderers, renderPackageChangelog } from '../../changelog/renderPackageChangelog';
-import { ChangelogEntry } from '../../types/ChangeLog';
+import type { ChangelogEntry, ChangelogJson } from '../../types/ChangeLog';
 import { SortedChangeTypes } from '../../changefile/changeTypes';
 
 const { renderEntry, renderEntries, renderChangeTypeHeader, renderChangeTypeSection, renderHeader } = defaultRenderers;
@@ -30,7 +30,7 @@ describe('changelog renderers -', () => {
           ],
         },
       },
-      previousJson: {} as any,
+      previousJson: {} as ChangelogJson,
       renderers: { ...defaultRenderers }, // copy in case of modification
     };
   }

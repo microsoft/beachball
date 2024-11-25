@@ -1,5 +1,5 @@
 import stream from 'stream';
-import readline from 'readline';
+import type readline from 'readline';
 
 /**
  * Mock stdin stream. This is a modernized version of https://www.npmjs.com/package/mock-stdin
@@ -15,14 +15,21 @@ export class MockStdin extends stream.Readable {
     emittedData: false,
     lastOutput: null,
   };
-  // @ts-expect-error private property of parent class
-  private _readableState: { length: number; ended: boolean; endEmitted: boolean; buffer: any[] };
+  // This is a private property of the parent class. As of TS ES2022 output, it's necessary to use
+  // `declare` to prevent TS from emitting an unset property which overwrites the one from the parent.
+  protected declare _readableState?: {
+    length: number;
+    ended: boolean;
+    endEmitted: boolean;
+    // this is some object with a length (probably string or buffer)
+    buffer: Array<{ length: number }>;
+  };
 
   constructor(private restoreTarget?: stream.Stream) {
     super({ highWaterMark: 0 });
   }
 
-  emit(event: string, ...args: any[]): boolean {
+  emit(event: string, ...args: unknown[]): boolean {
     if (event === 'data') {
       this._flags.emittedData = true;
       this._flags.lastOutput = null;
@@ -34,7 +41,7 @@ export class MockStdin extends stream.Readable {
    * Emit a keypress event as defined by `readline`
    * https://nodejs.org/api/readline.html#rlwritedata-key
    */
-  emitKey(key: readline.Key) {
+  emitKey(key: readline.Key): boolean {
     return this.emit('keypress', null, key);
   }
 
@@ -42,7 +49,7 @@ export class MockStdin extends stream.Readable {
    * Send text in a way that's presumably intended to simulate real `process.stdin` input
    * (this approach is copied from `mock-stdin`).
    */
-  send(text: string[] | Buffer | string | null, encoding?: BufferEncoding) {
+  send(text: string[] | Buffer | string | null, encoding?: BufferEncoding): MockStdin {
     if (Array.isArray(text)) {
       if (encoding) {
         throw new TypeError('Cannot invoke MockStdin#send(): `encoding` specified while text specified as an array.');
@@ -52,7 +59,7 @@ export class MockStdin extends stream.Readable {
     if (Buffer.isBuffer(text) || typeof text === 'string' || text === null) {
       this._mockData.push(new MockData(text, encoding));
       this._read();
-      if (!this._flags.emittedData && this._readableState.length) {
+      if (!this._flags.emittedData && this._readableState?.length) {
         this.drainData();
       }
       if (text === null) {
@@ -66,7 +73,7 @@ export class MockStdin extends stream.Readable {
   /**
    * Send `text` character by character (with `process.nextTick` in between) to simulate typing.
    */
-  async sendByChar(text: string) {
+  async sendByChar(text: string): Promise<MockStdin> {
     await new Promise(resolve => process.nextTick(resolve));
     for (const char of text) {
       this.send(char);
@@ -75,12 +82,12 @@ export class MockStdin extends stream.Readable {
     return this;
   }
 
-  end() {
+  end(): MockStdin {
     this.send(null);
     return this;
   }
 
-  restore() {
+  restore(): MockStdin {
     if (this.restoreTarget) {
       Object.defineProperty(process, 'stdin', {
         value: this.restoreTarget,
@@ -91,16 +98,18 @@ export class MockStdin extends stream.Readable {
     return this;
   }
 
-  reset(removeListeners: boolean) {
-    this._readableState.ended = false;
-    this._readableState.endEmitted = false;
+  reset(removeListeners: boolean): MockStdin {
+    if (this._readableState) {
+      this._readableState.ended = false;
+      this._readableState.endEmitted = false;
+    }
     if (removeListeners) {
       this.removeAllListeners();
     }
     return this;
   }
 
-  _read(size: number = Infinity) {
+  _read(size: number = Infinity): void {
     let count = 0;
     let read = true;
     while (read && this._mockData.length && count < size) {
@@ -122,13 +131,13 @@ export class MockStdin extends stream.Readable {
     }
   }
 
-  setRawMode() {
+  setRawMode(): MockStdin {
     return this;
   }
 
   private endReadable() {
     // Synchronously emit an end event, if possible.
-    if (!this._readableState.length) {
+    if (this._readableState && !this._readableState.length) {
       this._readableState.ended = true;
       this._readableState.endEmitted = true;
       this.readable = false;
@@ -138,7 +147,7 @@ export class MockStdin extends stream.Readable {
 
   private drainData() {
     const state = this._readableState;
-    while (state.buffer.length) {
+    while (state?.buffer.length) {
       const chunk = state.buffer.shift();
       if (chunk !== null && chunk !== undefined) {
         state.length -= chunk.length;
@@ -181,7 +190,7 @@ class MockData {
   }
 }
 
-export function mockProcessStdin() {
+export function mockProcessStdin(): MockStdin {
   const mock = new MockStdin(process.stdin);
   Object.defineProperty(process, 'stdin', {
     value: mock,

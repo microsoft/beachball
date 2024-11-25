@@ -153,7 +153,7 @@ describe('writeChangelog', () => {
     expect(new Set(commits).size).toEqual(minorComments.length);
 
     // The first entry should be the newest
-    expect(minorComments[0].commit).toBe(repo!.getCurrentHash());
+    expect(minorComments[0].commit).toBe(repo.getCurrentHash());
   });
 
   it('generates changelog with custom changeDir', async () => {

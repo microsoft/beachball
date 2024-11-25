@@ -42,8 +42,8 @@ export async function gitAsync(args: string[], options: GitAsyncOptions): Promis
   });
 
   if (shouldLog === 'live') {
-    child.stdout!.pipe(process.stdout);
-    child.stderr!.pipe(process.stderr);
+    child.stdout?.pipe(process.stdout);
+    child.stderr?.pipe(process.stderr);
   }
 
   const execaResult = await child;

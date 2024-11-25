@@ -30,8 +30,8 @@ export function getPackageOptions(packagePath: string): Partial<PackageOptions> 
   const configExplorer = cosmiconfigSync('beachball', { cache: false });
   try {
     const results = configExplorer.load(path.join(packagePath, 'package.json'));
-    return (results && results.config) || {};
-  } catch (e) {
+    return (results?.config as PackageOptions) || {};
+  } catch {
     // File does not exist, returns the default packageOptions
     return {};
   }

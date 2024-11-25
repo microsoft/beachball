@@ -6,6 +6,7 @@ import semver from 'semver';
 import { NpmShowResult } from '../packageManager/listPackageVersions';
 import { npm, NpmResult } from '../packageManager/npm';
 import { PackageJson } from '../types/PackageInfo';
+import type { PackageManagerOptions } from '../packageManager/packageManager';
 
 /** Published versions and dist-tags for a package */
 type NpmPackageVersionsData = Pick<NpmShowResult, 'versions' | 'dist-tags'>;
@@ -21,17 +22,19 @@ type MockNpmRegistry = Record<string, MockNpmRegistryPackage>;
 /** Mapping from package name to partial registry data (easier to specify in tests) */
 type PartialRegistryData = Record<string, Partial<NpmPackageVersionsData>>;
 
+export type MockNpmResult = Pick<NpmResult, 'stdout' | 'stderr' | 'all' | 'success' | 'failed'>;
+
 /**
  * Mock implementation of an npm command.
  * @param registryData Fake registry data to operate on
  * @param args Command line args, *excluding* the command name
  * @param opts Command line options, notably `cwd` for publish
  */
-type MockNpmCommand = (
+export type MockNpmCommand = (
   registryData: MockNpmRegistry,
   args: string[],
-  opts: Parameters<typeof npm>[1]
-) => Promise<Pick<NpmResult, 'stdout' | 'stderr' | 'all' | 'success' | 'failed'>>;
+  opts: PackageManagerOptions
+) => Promise<MockNpmResult>;
 
 export type NpmMock = {
   /**
@@ -187,11 +190,7 @@ export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
 };
 
 /** (exported for testing) Mock npm publish to the registry data */
-export const _mockNpmPublish: MockNpmCommand = async (
-  registryData,
-  args: string[],
-  opts: Parameters<typeof npm>[1]
-) => {
+export const _mockNpmPublish: MockNpmCommand = async (registryData, args, opts) => {
   if (!opts?.cwd) {
     throw new Error('cwd is required for mock npm publish');
   }

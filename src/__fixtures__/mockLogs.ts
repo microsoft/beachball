@@ -38,8 +38,8 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
 
   const logs: MockLogs = {
     mocks: {} as MockLogs['mocks'],
-    setOverrideOptions: options => {
-      overrideOptions = options;
+    setOverrideOptions: opt => {
+      overrideOptions = opt;
     },
     clear: () => {
       allLines = [];

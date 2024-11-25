@@ -1,10 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import prompts from 'prompts';
-import {
-  promptForChange,
-  _getChangeFileInfoFromResponse,
-  _promptForPackageChange,
-} from '../../changefile/promptForChange';
+import { promptForChange } from '../../changefile/promptForChange';
 import { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { MockStdin } from '../../__fixtures__/mockStdin';
@@ -16,7 +12,7 @@ import { makePackageInfos } from '../../__fixtures__/packageInfos';
 let stdin: MockStdin;
 let stdout: MockStdout;
 jest.mock('prompts', () => {
-  const realPrompts = jest.requireActual('prompts') as typeof prompts;
+  const realPrompts = jest.requireActual<typeof prompts>('prompts');
 
   return ((questions, options) => {
     const questionsArr = Array.isArray(questions) ? questions : [questions];

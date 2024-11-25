@@ -2,11 +2,14 @@ import { PackageInfo, PackageInfos } from '../types/PackageInfo';
 import pGraph, { PGraphNodeMap } from 'p-graph';
 import { getPackageDependencyGraph } from './getPackageDependencyGraph';
 
+// this export is missing from the top level of the package
+type PGraph = ReturnType<typeof pGraph>;
+
 export function getPackageGraph(
   affectedPackages: Iterable<string>,
   packageInfos: PackageInfos,
   runHook: (packageInfo: PackageInfo) => Promise<void>
-) {
+): PGraph {
   const nodeMap: PGraphNodeMap = new Map();
   for (const packageToBump of affectedPackages) {
     nodeMap.set(packageToBump, {
@@ -23,5 +26,5 @@ export function getPackageGraph(
 }
 
 function filterDependencyGraph(dependencyGraph: [string | undefined, string][]): [string, string][] {
-  return dependencyGraph.filter(([dep, _]) => dep !== undefined) as [string, string][];
+  return dependencyGraph.filter(([dep]) => dep !== undefined) as [string, string][];
 }

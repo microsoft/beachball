@@ -55,7 +55,7 @@ describe('toposortPackages', () => {
   });
 
   it('throws if package info is missing', () => {
-    const packageInfos = {} as any as PackageInfos;
+    const packageInfos = {} as PackageInfos;
 
     expect(() => {
       toposortPackages(['foo'], packageInfos);

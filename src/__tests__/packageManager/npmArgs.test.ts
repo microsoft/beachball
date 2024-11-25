@@ -19,8 +19,8 @@ describe('getNpmAuthArgs', () => {
     { token, authType: 'authtoken', expected: '--//testRegistry:_authToken=someToken' },
     { token, authType: 'password', expected: '--//testRegistry:_password=someToken' },
     { token, authType: 'invalidvalue' as AuthType, expected: '--//testRegistry:_authToken=someToken' },
-  ])('token = $token, authType = $authType', ({ token, authType, expected }) => {
-    expect(getNpmAuthArgs(registry, token, authType).join(' ')).toStrictEqual(expected);
+  ])('token = $token, authType = $authType', ({ token: tkn, authType, expected }) => {
+    expect(getNpmAuthArgs(registry, tkn, authType).join(' ')).toStrictEqual(expected);
   });
 });
 

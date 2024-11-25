@@ -39,7 +39,7 @@ export async function renderChangelog(renderOptions: MarkdownChangelogRenderOpti
     // Otherwise look for an h2 (used as version header with default renderer).
     // If that's not present, preserve the previous content as-is.
     const h2Match = previousContent.match(/^## /m);
-    previousLogEntries = h2Match ? previousContent.substring(h2Match.index!) : previousContent;
+    previousLogEntries = h2Match ? previousContent.substring(h2Match.index || 0) : previousContent;
   }
 
   try {
@@ -107,7 +107,7 @@ export function _trimPreviousLog(params: {
   let count = 0;
   // We need to use a regexp anchored to the line start to avoid matching lower level headers
   // (e.g. if the header prefix is '## ', we don't want to match a substring of '### ').
-  let headerRegexp = new RegExp(`^${headerPrefix}`, 'gm');
+  const headerRegexp = new RegExp(`^${headerPrefix}`, 'gm');
   let lastMatch: RegExpExecArray | null = null;
   while (count < maxVersions && (lastMatch = headerRegexp.exec(previousLogEntries))) {
     count++;

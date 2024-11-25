@@ -9,7 +9,7 @@ import { GitProcessOutput } from 'workspace-tools';
 
 // required for `jest.spyOn('workspace-tools', git)` to work
 jest.mock('workspace-tools', () => {
-  const original = jest.requireActual('workspace-tools') as typeof workspaceTools;
+  const original = jest.requireActual<typeof workspaceTools>('workspace-tools');
   return {
     ...original,
     git: jest.fn(original.git),
@@ -27,13 +27,13 @@ describe('gitFetch', () => {
   /** To speed things up, some tests only check the arguments and skip the git operation */
   const noOpSuccess = () => ({ success: true, stdout: '', stderr: '', status: 0 } as GitProcessOutput);
 
-  const realGit = (jest.requireActual('workspace-tools') as typeof workspaceTools).git;
+  const realGit = jest.requireActual<typeof workspaceTools>('workspace-tools').git;
   /**
    * Set this to override the git implementation for one test.
    * (Use this instead of `.mockImplementation()` to avoid interference with other mocks.)
    */
   let gitOverride: typeof realGit | undefined;
-  let gitSpy = jest.spyOn(workspaceTools, 'git').mockImplementation((...args) => (gitOverride || realGit)(...args));
+  const gitSpy = jest.spyOn(workspaceTools, 'git').mockImplementation((...args) => (gitOverride || realGit)(...args));
 
   beforeAll(() => {
     repositoryFactory = new RepositoryFactory('single');

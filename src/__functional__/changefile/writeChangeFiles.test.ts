@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 
-import { ChangeFileInfo } from '../../types/ChangeInfo';
+import type { ChangeFileInfo, ChangeInfoMultiple } from '../../types/ChangeInfo';
 import { writeChangeFiles } from '../../changefile/writeChangeFiles';
 import { getChangeFiles } from '../../__fixtures__/changeFiles';
 import { listAllTrackedFiles } from 'workspace-tools';
@@ -71,7 +71,7 @@ describe('writeChangeFiles', () => {
     expect(repo.getCurrentHash()).not.toEqual(previousHead);
 
     // also verify contents of one file
-    const changeFileContents = fs.readJSONSync(changeFiles[0]);
+    const changeFileContents = fs.readJSONSync(changeFiles[0]) as ChangeFileInfo;
     expect(changeFileContents).toEqual({ packageName: 'bar' });
   });
 
@@ -128,7 +128,7 @@ describe('writeChangeFiles', () => {
     const trackedFiles = listAllTrackedFiles(['change/*'], repo.rootPath);
     expect(cleanChangeFilePaths(repo.rootPath, trackedFiles)).toEqual(expectedFile);
 
-    const changeFileContents = fs.readJSONSync(changeFiles[0]);
+    const changeFileContents = fs.readJSONSync(changeFiles[0]) as ChangeInfoMultiple;
     expect(changeFileContents).toEqual({
       changes: [{ packageName: 'foo' }, { packageName: 'bar' }],
     });

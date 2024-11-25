@@ -17,7 +17,7 @@ export async function init(options: Pick<BeachballOptions, 'path'>): Promise<voi
   let root: string;
   try {
     root = findProjectRoot(options.path);
-  } catch (err) {
+  } catch {
     console.log('Please run this command on an existing repository root.');
     return;
   }
@@ -35,16 +35,16 @@ export async function init(options: Pick<BeachballOptions, 'path'>): Promise<voi
 
   let beachballVersion = '';
   try {
-    const beachballInfo = JSON.parse(npmResult.stdout.toString());
+    const beachballInfo = JSON.parse(npmResult.stdout.toString()) as { 'dist-tags': { latest: string } };
     beachballVersion = beachballInfo['dist-tags'].latest;
-  } catch (err) {
+  } catch {
     errorExit("Couldn't parse beachball version from npm");
   }
 
   let packageJson = {} as PackageJson;
   try {
-    packageJson = fs.readJSONSync(packageJsonFilePath, 'utf-8');
-  } catch (err) {
+    packageJson = fs.readJSONSync(packageJsonFilePath, 'utf-8') as PackageJson;
+  } catch {
     errorExit(`Failed to read package.json at ${packageJsonFilePath}`);
   }
 

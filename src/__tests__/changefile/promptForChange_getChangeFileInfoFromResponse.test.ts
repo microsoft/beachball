@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { _getChangeFileInfoFromResponse } from '../../changefile/promptForChange';
+import { _getChangeFileInfoFromResponse, type ChangePromptResponse } from '../../changefile/promptForChange';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
+import type { ChangeType } from '../../types/ChangeInfo';
 
 /**
  * This covers the last part of `promptForChange`: translating the user's responses into a `ChangeFileInfo`.
@@ -95,7 +96,10 @@ describe('promptForChange _getChangeFileInfoFromResponse', () => {
   });
 
   it('returns error if response.type is invalid', () => {
-    const change = _getChangeFileInfoFromResponse({ ...defaultParams, response: { type: 'invalid' as any } });
+    const change = _getChangeFileInfoFromResponse({
+      ...defaultParams,
+      response: { type: 'invalid' as unknown as ChangeType },
+    });
     expect(change).toBeUndefined();
     expect(logs.mocks.error).toHaveBeenCalledTimes(1);
     expect(logs.mocks.error).toHaveBeenCalledWith('Prompt response contains invalid change type "invalid"');
@@ -105,7 +109,7 @@ describe('promptForChange _getChangeFileInfoFromResponse', () => {
   it('preserves extra properties on the returned object', () => {
     const change = _getChangeFileInfoFromResponse({
       ...defaultParams,
-      response: { comment, type: 'patch', extra: 'extra' } as any,
+      response: { comment, type: 'patch', extra: 'extra' } as unknown as ChangePromptResponse,
     });
     expect(change).toMatchObject({ extra: 'extra' });
   });

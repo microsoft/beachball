@@ -12,6 +12,7 @@ import { publish } from '../commands/publish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import { BeachballOptions } from '../types/BeachballOptions';
 import { _mockNpmPublish, initNpmMock } from '../__fixtures__/mockNpm';
+import type { PackageJson } from '../types/PackageInfo';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -109,7 +110,7 @@ describe('publish command (e2e)', () => {
     // Adds a step that injects a race condition
     let fetchCount = 0;
 
-    addGitObserver((args, output) => {
+    addGitObserver(args => {
       if (args[0] === 'fetch') {
         if (fetchCount === 0) {
           const anotherRepo = repositoryFactory!.cloneRepository();
@@ -150,14 +151,14 @@ describe('publish command (e2e)', () => {
     // Adds a step that injects a race condition
     let fetchCount = 0;
 
-    addGitObserver((args, output) => {
+    addGitObserver(args => {
       if (args[0] === 'fetch') {
         if (fetchCount === 0) {
           const anotherRepo = repositoryFactory!.cloneRepository();
           // inject a checkin
           const packageJsonFile = anotherRepo.pathTo('package.json');
-          const contents = fs.readJSONSync(packageJsonFile, 'utf-8');
-          delete contents.dependencies.baz;
+          const contents = fs.readJSONSync(packageJsonFile, 'utf-8') as PackageJson;
+          delete contents.dependencies?.baz;
           anotherRepo.commitChange('package.json', JSON.stringify(contents, null, 2));
           anotherRepo.push();
         }
@@ -182,8 +183,8 @@ describe('publish command (e2e)', () => {
     expect(fetchCount).toBe(2);
 
     const packageJsonFile = repo.pathTo('package.json');
-    const contents = JSON.parse(fs.readFileSync(packageJsonFile, 'utf-8'));
-    expect(contents.dependencies.baz).toBeUndefined();
+    const contents = JSON.parse(fs.readFileSync(packageJsonFile, 'utf-8')) as PackageJson;
+    expect(contents.dependencies?.baz).toBeUndefined();
   });
 
   it('can perform a successful npm publish without bump', async () => {
@@ -241,8 +242,8 @@ describe('publish command (e2e)', () => {
 
     // bump baz => dependent bump bar => dependent bump foo
     generateChangeFiles(['baz'], options);
-    expect(repositoryFactory.fixture.folders!.packages.foo.dependencies!.bar).toBeTruthy();
-    expect(repositoryFactory.fixture.folders!.packages.bar.dependencies!.baz).toBeTruthy();
+    expect(repositoryFactory.fixture.folders.packages.foo.dependencies!.bar).toBeTruthy();
+    expect(repositoryFactory.fixture.folders.packages.bar.dependencies!.baz).toBeTruthy();
     repo.push();
 
     await publish(options);
@@ -329,11 +330,13 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
+    type ExtraPackageJson = PackageJson & { onPublish?: { main: string } };
+
     const options = getOptions({
       hooks: {
         prepublish: (packagePath: string) => {
           const packageJsonPath = path.join(packagePath, 'package.json');
-          const packageJson = fs.readJSONSync(packageJsonPath);
+          const packageJson = fs.readJSONSync(packageJsonPath) as ExtraPackageJson;
           if (packageJson.onPublish) {
             Object.assign(packageJson, packageJson.onPublish);
             delete packageJson.onPublish;
@@ -352,16 +355,16 @@ describe('publish command (e2e)', () => {
     const show = (await npmShow('foo'))!;
     expect(show.name).toEqual('foo');
     expect(show.main).toEqual('lib/index.js');
-    expect(show.hasOwnProperty('onPublish')).toBeFalsy();
+    expect(show).not.toHaveProperty('onPublish');
 
     repo.checkout(defaultBranchName);
     repo.pull();
 
     // All git results should still have previous information
     expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
-    const fooPackageJson = fs.readJSONSync(repo.pathTo('packages/foo/package.json'));
+    const fooPackageJson = fs.readJSONSync(repo.pathTo('packages/foo/package.json')) as ExtraPackageJson;
     expect(fooPackageJson.main).toBe('src/index.ts');
-    expect(fooPackageJson.onPublish.main).toBe('lib/index.js');
+    expect(fooPackageJson.onPublish?.main).toBe('lib/index.js');
   });
 
   it('should respect postpublish hooks', async () => {
@@ -369,11 +372,13 @@ describe('publish command (e2e)', () => {
     repo = repositoryFactory.cloneRepository();
     let notified;
 
+    type ExtraPackageJson = PackageJson & { afterPublish?: { notify: string } };
+
     const options = getOptions({
       hooks: {
         postpublish: packagePath => {
           const packageJsonPath = path.join(packagePath, 'package.json');
-          const packageJson = fs.readJSONSync(packageJsonPath);
+          const packageJson = fs.readJSONSync(packageJsonPath) as ExtraPackageJson;
           if (packageJson.afterPublish) {
             notified = packageJson.afterPublish.notify;
           }
@@ -386,9 +391,9 @@ describe('publish command (e2e)', () => {
 
     await publish(options);
 
-    const fooPackageJson = fs.readJSONSync(repo.pathTo('packages/foo/package.json'));
+    const fooPackageJson = fs.readJSONSync(repo.pathTo('packages/foo/package.json')) as ExtraPackageJson;
     expect(fooPackageJson.main).toBe('src/index.ts');
-    expect(notified).toBe(fooPackageJson.afterPublish.notify);
+    expect(notified).toBe(fooPackageJson.afterPublish?.notify);
   });
 
   it('can perform a successful npm publish without fetch', async () => {
@@ -404,7 +409,7 @@ describe('publish command (e2e)', () => {
 
     let fetchCount = 0;
 
-    addGitObserver((args, output) => {
+    addGitObserver(args => {
       if (args[0] === 'fetch') {
         fetchCount++;
       }
@@ -436,7 +441,7 @@ describe('publish command (e2e)', () => {
 
     let fetchCommand: string = '';
 
-    addGitObserver((args, output) => {
+    addGitObserver(args => {
       if (args[0] === 'fetch') {
         fetchCommand = args.join(' ');
       }
@@ -592,7 +597,8 @@ describe('publish command (e2e)', () => {
 
   it('should respect postpublish hook respecting the concurrency limit when publishing multiple packages concurrently', async () => {
     const packagesToPublish = ['pkg1', 'pkg2', 'pkg3', 'pkg4', 'pkg5', 'pkg6', 'pkg7', 'pkg8', 'pkg9'];
-    const packages: { [packageName: string]: PackageJsonFixture } = {};
+    type ExtraPackageJsonFixture = PackageJsonFixture & { afterPublish?: { notify: string } };
+    const packages: { [packageName: string]: ExtraPackageJsonFixture } = {};
     for (const name of packagesToPublish) {
       packages[name] = {
         version: '1.0.0',
@@ -622,7 +628,7 @@ describe('publish command (e2e)', () => {
           await simulateWait(100);
           const packageName = path.basename(packagePath);
           const packageJsonPath = path.join(packagePath, 'package.json');
-          const packageJson = fs.readJSONSync(packageJsonPath);
+          const packageJson = fs.readJSONSync(packageJsonPath) as ExtraPackageJsonFixture;
           if (packageJson.afterPublish) {
             afterPublishStrings.push({
               packageName,
@@ -644,7 +650,7 @@ describe('publish command (e2e)', () => {
     expect(maxConcurrency).toBe(concurrency);
 
     for (const pkg of packagesToPublish) {
-      const packageJson = fs.readJSONSync(repo.pathTo(`packages/${pkg}/package.json`));
+      const packageJson = fs.readJSONSync(repo.pathTo(`packages/${pkg}/package.json`)) as ExtraPackageJsonFixture;
       if (packageJson.afterPublish) {
         // Verify that all postpublish hooks were called
         expect(afterPublishStrings).toContainEqual({

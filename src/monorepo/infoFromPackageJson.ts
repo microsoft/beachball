@@ -5,7 +5,7 @@ import { getPackageOptions, getCombinedPackageOptions } from '../options/getPack
 export function infoFromPackageJson(packageJson: PackageJson, packageJsonPath: string): PackageInfo {
   const packageOptions = getPackageOptions(path.dirname(packageJsonPath));
   return {
-    name: packageJson.name!,
+    name: packageJson.name,
     version: packageJson.version,
     packageJsonPath,
     dependencies: packageJson.dependencies,

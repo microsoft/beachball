@@ -5,7 +5,7 @@ import { isValidChangeType } from '../validation/isValidChangeType';
 import { PackageGroups, PackageInfos } from '../types/PackageInfo';
 import { getQuestionsForPackage } from './getQuestionsForPackage';
 
-type ChangePromptResponse = { type?: ChangeType; comment?: string };
+export type ChangePromptResponse = { type?: ChangeType; comment?: string };
 
 /**
  * Uses `prompts` package to prompt for change type and description.
@@ -36,7 +36,7 @@ export async function promptForChange(params: {
 
   // Now prompt for each package
   const packageChangeInfo: ChangeFileInfo[] = [];
-  for (let pkg of changedPackages) {
+  for (const pkg of changedPackages) {
     const response = await _promptForPackageChange(packageQuestions[pkg], pkg);
     if (!response) {
       return; // user cancelled
@@ -73,8 +73,7 @@ export async function _promptForPackageChange(
   const onCancel = () => {
     isCancelled = true;
   };
-  // onCancel is missing from the typings
-  const response: ChangePromptResponse = await prompts(questions, { onCancel } as any);
+  const response: ChangePromptResponse = await prompts(questions, { onCancel });
 
   if (isCancelled) {
     console.log('Cancelled, no change files are written');
@@ -117,7 +116,7 @@ export function _getChangeFileInfoFromResponse(params: {
   }
 
   // prevent invalid change types from being entered via custom prompts
-  if (!isValidChangeType(response.type!)) {
+  if (!response.type || !isValidChangeType(response.type)) {
     console.error(`Prompt response contains invalid change type "${response.type}"`);
     return;
   }

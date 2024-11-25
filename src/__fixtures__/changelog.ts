@@ -38,7 +38,7 @@ export function readChangelogJson(packagePath: string, filename?: string, noClea
     return null;
   }
 
-  const changelog: ChangelogJson = fs.readJSONSync(changelogJsonFile, { encoding: 'utf-8' });
+  const changelog = fs.readJSONSync(changelogJsonFile, { encoding: 'utf-8' }) as ChangelogJson;
   if (noClean) {
     return changelog;
   }
@@ -50,7 +50,7 @@ export function readChangelogJson(packagePath: string, filename?: string, noClea
     }
 
     for (const comments of Object.values(entry.comments)) {
-      for (const comment of comments!) {
+      for (const comment of comments) {
         if (comment.commit) {
           comment.commit = fakeCommit;
         }

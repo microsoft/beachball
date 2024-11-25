@@ -74,12 +74,13 @@ export async function publishToRegistry(originalBumpInfo: PublishBumpInfo, optio
     }
   } catch (error) {
     // p-graph will throw an array of errors if it fails to run all tasks
+    let err = error;
     if (Array.isArray(error)) {
       const errorSet = new Set(error);
-      error = new Error(Array.from(errorSet).join('\n'));
+      err = new Error(Array.from(errorSet).join('\n'));
     }
     displayManualRecovery(bumpInfo, succeededPackages);
-    throw error;
+    throw err;
   }
 
   // if there is a postpublish hook perform a postpublish pass, calling the routine on each package
