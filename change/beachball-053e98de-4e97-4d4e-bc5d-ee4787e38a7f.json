@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix publish failure package exists check to work with npm 10",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
