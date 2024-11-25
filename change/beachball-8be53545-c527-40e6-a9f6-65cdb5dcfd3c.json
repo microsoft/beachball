@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Never update lock file after publish when running tests",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}
