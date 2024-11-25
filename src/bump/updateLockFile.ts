@@ -2,11 +2,18 @@ import fs from 'fs-extra';
 import path from 'path';
 import { findProjectRoot } from 'workspace-tools';
 import { packageManager } from '../packageManager/packageManager';
+import { env } from '../env';
 
 /**
  * Detects lockfile for npm, pnpm, or yarn and runs the appropriate command to update it
  */
 export async function updateLockFile(cwd: string): Promise<void> {
+  // Never update the lock file while running in tests (if tests are added to cover this step,
+  // a method can be added to override this condition with a local variable)
+  if (env.isJest) {
+    return;
+  }
+
   const root = findProjectRoot(cwd);
   if (!root) {
     return;
