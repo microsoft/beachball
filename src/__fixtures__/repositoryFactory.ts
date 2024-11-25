@@ -24,7 +24,7 @@ export type PackageJsonFixture = Omit<PackageJson, 'name'> & {
   /** Name is inferred from the package folder name by default */
   name?: string;
   /** Allow arbitrary keys */
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 export type RepoFixture = {
@@ -199,7 +199,7 @@ export class RepositoryFactory {
     // Create the fixture files and save the full fixture objects.
     // The files are committed all together at the end to speed things up.
     this.fixtures = {};
-    for (let [parentFolder, fixture] of Object.entries(initialFixtures)) {
+    for (const [parentFolder, fixture] of Object.entries(initialFixtures)) {
       if (!fixture.folders && !fixture.rootPackage) {
         throw new Error('`fixtures` must define `rootPackage` and/or `folders`');
       }
@@ -259,7 +259,7 @@ export class RepositoryFactory {
    * Doing this in CI is unnecessary because all the fixtures use unique temp directories (no collisions)
    * and the agents are wiped after each job, so manually deleting the files just slows things down.
    */
-  cleanUp() {
+  cleanUp(): void {
     if (!this.root) return;
 
     try {
@@ -269,7 +269,7 @@ export class RepositoryFactory {
       }
     } catch (err) {
       // This is non-fatal since the temp dir will eventually be cleaned up automatically
-      console.warn('Could not clean up factory: ' + err);
+      console.warn(`Could not clean up factory: ${err}`);
     }
     this.root = undefined;
     for (const repo of this.childRepos) {

@@ -23,9 +23,7 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions): void
 
   // pass 2: initialize grouped calculatedChangeTypes together
   for (const { change: changeInfo } of changeFileChangeInfos) {
-    const group = Object.values(bumpInfo.packageGroups).find(group =>
-      group.packageNames.includes(changeInfo.packageName)
-    );
+    const group = Object.values(bumpInfo.packageGroups).find(g => g.packageNames.includes(changeInfo.packageName));
 
     if (group) {
       for (const packageNameInGroup of group.packageNames) {

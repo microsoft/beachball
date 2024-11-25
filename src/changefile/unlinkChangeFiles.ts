@@ -21,7 +21,7 @@ export function unlinkChangeFiles(
     return;
   }
   console.log('Removing change files:');
-  for (let { changeFile, change } of changeSet) {
+  for (const { changeFile, change } of changeSet) {
     if (changeFile && packageInfos[change.packageName] && !packageInfos[change.packageName].private) {
       console.log(`- ${changeFile}`);
       fs.removeSync(path.join(changePath, changeFile));

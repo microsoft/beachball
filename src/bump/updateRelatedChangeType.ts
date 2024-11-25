@@ -87,7 +87,7 @@ export function updateRelatedChangeType(params: {
       //       - the main concern is how to capture the bump reason in grouped changelog
 
       // Step 3. For group-linked packages, update the change type to the max(change file info's change type, propagated update change type)
-      const group = Object.values(packageGroups).find(group => group.packageNames.includes(packageInfo.name));
+      const group = Object.values(packageGroups).find(g => g.packageNames.includes(packageInfo.name));
 
       if (group) {
         for (const packageNameInGroup of group.packageNames) {

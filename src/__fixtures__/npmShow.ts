@@ -24,5 +24,5 @@ export async function npmShow(
   expect(!!showResult.timedOut).toBe(false);
   expect(showResult.failed).toBe(!!shouldFail);
 
-  return shouldFail ? undefined : JSON.parse(showResult.stdout);
+  return shouldFail ? undefined : (JSON.parse(showResult.stdout) as NpmShowResult);
 }

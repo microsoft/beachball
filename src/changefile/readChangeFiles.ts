@@ -63,7 +63,7 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
 
     let changeInfo: ChangeInfo | ChangeInfoMultiple;
     try {
-      changeInfo = fs.readJSONSync(changeFilePath);
+      changeInfo = fs.readJSONSync(changeFilePath) as ChangeInfo | ChangeInfoMultiple;
     } catch (e) {
       console.warn(`Error reading or parsing change file ${changeFilePath}: ${e}`);
       continue;
@@ -81,7 +81,7 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
       }
     }
 
-    const changes: ChangeInfo[] = changeInfo.changes || [changeInfo as ChangeInfo];
+    const changes = (changeInfo as ChangeInfoMultiple).changes || [changeInfo as ChangeInfo];
 
     // Filter the changes from this file
     for (const change of changes) {
@@ -96,7 +96,7 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
         const resolution = options.groupChanges ? 'remove the entry from this file' : 'delete this file';
         console.warn(
           `Change detected for ${warningType} package ${change.packageName}; ${resolution}: "${path.resolve(
-            changePath!,
+            changePath,
             changeFile
           )}"`
         );

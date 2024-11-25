@@ -7,7 +7,7 @@ import {
   _trimPreviousLog,
   trimmedVersionsNote,
 } from '../../changelog/renderChangelog';
-import { ChangelogEntry, PackageChangelog } from '../../types/ChangeLog';
+import type { ChangelogEntry, PackageChangelog, ChangelogJson } from '../../types/ChangeLog';
 
 /** Make a changelog string with a header and basic content for each version */
 function changelogFromVersions(versions: string[]): string {
@@ -45,7 +45,7 @@ describe('renderChangelog', () => {
         },
       },
       previousContent: [previousHeader, markerComment, previousVersion].join('\n\n'),
-      previousJson: {} as any,
+      previousJson: {} as ChangelogJson,
       changelogOptions: {},
     };
   }

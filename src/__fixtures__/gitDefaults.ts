@@ -9,7 +9,7 @@ export const defaultRemoteBranchName = 'origin/master';
  * users have configured a different default branch name.
  * @param isRemoteRepo Whether this is the bare repo used as the remote
  */
-export function setDefaultBranchName(cwd: string, isRemoteRepo?: boolean) {
+export function setDefaultBranchName(cwd: string, isRemoteRepo?: boolean): void {
   if (isRemoteRepo) {
     // Change the name of the default branch on the repo used for the remote
     // (for clones, this is unnecessary and can cause problems)
@@ -26,6 +26,6 @@ export function setDefaultBranchName(cwd: string, isRemoteRepo?: boolean) {
  * (This should NOT be used to make full snapshots of git logs, or as the primary means of testing.
  * But it can be useful for allowing backup checks for absence of strings like "warning" or "fatal".)
  */
-export function optsWithLang(opts?: Parameters<typeof git>[1]) {
+export function optsWithLang(opts?: Parameters<typeof git>[1]): Parameters<typeof git>[1] {
   return { ...opts, env: { ...opts?.env, LANG: 'en_US.UTF-8' } };
 }

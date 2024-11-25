@@ -12,7 +12,7 @@ export function updatePackageJsons(modifiedPackages: Set<string>, packageInfos: 
       console.warn(`Skipping ${pkgName} since package.json does not exist`);
       continue;
     }
-    const packageJson: PackageJson = fs.readJSONSync(info.packageJsonPath);
+    const packageJson = fs.readJSONSync(info.packageJsonPath) as PackageJson;
 
     if (!info.private) {
       packageJson.version = info.version;

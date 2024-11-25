@@ -12,6 +12,7 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { ChangeFileInfo } from '../types/ChangeInfo';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { getDefaultOptions } from '../options/getDefaultOptions';
+import type { PackageJson } from '../types/PackageInfo';
 
 describe('publish command (git)', () => {
   let repositoryFactory: RepositoryFactory;
@@ -61,7 +62,7 @@ describe('publish command (git)', () => {
 
     const newRepo = repositoryFactory.cloneRepository();
 
-    const packageJson = fs.readJSONSync(newRepo.pathTo('package.json'));
+    const packageJson = fs.readJSONSync(newRepo.pathTo('package.json')) as PackageJson;
 
     expect(packageJson.version).toBe('1.1.0');
   });
@@ -91,7 +92,7 @@ describe('publish command (git)', () => {
     const newRepo = repositoryFactory.cloneRepository();
     const changeFiles = getChangeFiles({ ...options1, path: newRepo.rootPath });
     expect(changeFiles).toHaveLength(1);
-    const changeFileContent: ChangeFileInfo = fs.readJSONSync(changeFiles[0]);
+    const changeFileContent = fs.readJSONSync(changeFiles[0]) as ChangeFileInfo;
     expect(changeFileContent.packageName).toBe('foo2');
   });
 });

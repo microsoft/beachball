@@ -9,6 +9,7 @@ import * as npmModule from '../../packageManager/npm';
 import { packagePublish } from '../../packageManager/packagePublish';
 import { PackageInfo } from '../../types/PackageInfo';
 import { npm, NpmResult } from '../../packageManager/npm';
+import type { PackageOptions } from '../../types/BeachballOptions';
 
 const testTag = 'testbeachballtag';
 const testName = 'testbeachballpackage';
@@ -51,7 +52,7 @@ describe('packagePublish', () => {
         defaultNpmTag: 'latest',
         disallowedChangeTypes: [],
       },
-      packageOptions: {} as any,
+      packageOptions: {} as PackageOptions,
     };
   }
 

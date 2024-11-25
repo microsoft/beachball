@@ -17,7 +17,7 @@ const acceptedKeys: (keyof PublishConfig)[] = [
 export function performPublishOverrides(packagesToPublish: string[], packageInfos: PackageInfos): void {
   for (const pkgName of packagesToPublish) {
     const info = packageInfos[pkgName];
-    const packageJson = fs.readJSONSync(info.packageJsonPath);
+    const packageJson = fs.readJSONSync(info.packageJsonPath) as PackageJson;
 
     performWorkspaceVersionOverrides(packageJson, packageInfos);
     performPublishConfigOverrides(packageJson);
@@ -32,7 +32,7 @@ function performPublishConfigOverrides(packageJson: PackageJson): void {
     for (const [k, value] of Object.entries(packageJson.publishConfig)) {
       const key = k as keyof Required<PackageJson>['publishConfig'];
       if (acceptedKeys.includes(key)) {
-        packageJson[key] = value;
+        packageJson[key] = value as any;
         delete packageJson.publishConfig[key];
       }
     }

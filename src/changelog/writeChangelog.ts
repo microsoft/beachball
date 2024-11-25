@@ -1,6 +1,5 @@
 import path from 'path';
 import fs from 'fs-extra';
-import _ from 'lodash';
 import { PackageInfo } from '../types/PackageInfo';
 import { getPackageChangelogs } from './getPackageChangelogs';
 import { renderChangelog } from './renderChangelog';
@@ -94,13 +93,13 @@ async function writeGroupedChangelog(
   }
 
   // Write each grouped changelog if it's not empty
-  for (const [changelogAbsDir, { masterPackage, changelogs }] of Object.entries(groupedChangelogs)) {
-    const groupedChangelog = mergeChangelogs(changelogs, masterPackage);
+  for (const [groupAbsDir, group] of Object.entries(groupedChangelogs)) {
+    const groupedChangelog = mergeChangelogs(group.changelogs, group.masterPackage);
     if (groupedChangelog) {
       await writeChangelogFiles({
         options,
         newVersionChangelog: groupedChangelog,
-        changelogAbsDir,
+        changelogAbsDir: groupAbsDir,
         isGrouped: true,
       });
     }
@@ -130,7 +129,9 @@ async function writeChangelogFiles(params: {
   // (changelogPaths.json will only be set if generateChangelog is true or 'json')
   if (changelogPaths.json) {
     try {
-      previousJson = fs.existsSync(changelogPaths.json) ? fs.readJSONSync(changelogPaths.json) : undefined;
+      previousJson = fs.existsSync(changelogPaths.json)
+        ? (fs.readJSONSync(changelogPaths.json) as ChangelogJson)
+        : undefined;
     } catch (e) {
       console.warn(`${changelogPaths.json} is invalid: ${e}`);
     }

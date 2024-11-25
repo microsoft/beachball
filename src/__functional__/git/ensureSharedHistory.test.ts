@@ -7,7 +7,7 @@ import { defaultBranchName, defaultRemoteBranchName, optsWithLang } from '../../
 
 // required for `jest.spyOn('workspace-tools', git)` to work
 jest.mock('workspace-tools', () => {
-  const original = jest.requireActual('workspace-tools') as typeof workspaceTools;
+  const original = jest.requireActual<typeof workspaceTools>('workspace-tools');
   return {
     ...original,
     git: jest.fn(original.git),
@@ -19,13 +19,13 @@ describe('ensureSharedHistory', () => {
   const logs = initMockLogs();
   const testBranch = 'test';
 
-  const realGit = (jest.requireActual('workspace-tools') as typeof workspaceTools).git;
+  const realGit = jest.requireActual<typeof workspaceTools>('workspace-tools').git;
   /**
    * Set this to override the git implementation for one test.
    * (Use this instead of `.mockImplementation()` to avoid interference with other mocks.)
    */
   let gitOverride: typeof workspaceTools.git | undefined;
-  let gitSpy = jest
+  const gitSpy = jest
     .spyOn(workspaceTools, 'git')
     // Attempt to force git to use English in logs, so we can check for absence of "warning" strings
     .mockImplementation((args, opts) => (gitOverride || realGit)(args, optsWithLang(opts)));
@@ -162,7 +162,8 @@ describe('ensureSharedHistory', () => {
     gitSpy.mockClear();
 
     // this simulates a network error or something
-    gitOverride = (...args) => (args[0][0] === 'fetch' ? ({ success: false } as any) : realGit(...args));
+    gitOverride = (...args) =>
+      args[0][0] === 'fetch' ? ({ success: false } as workspaceTools.GitProcessOutput) : realGit(...args);
 
     expect(() =>
       ensureSharedHistory({ path: repo.rootPath, verbose: true, branch: defaultRemoteBranchName, fetch: true })

@@ -43,7 +43,7 @@ export function getPackageGroups(
     console.error(
       `ERROR: Found package(s) belonging to multiple groups:\n` +
         Object.entries(errorPackages)
-          .map(([pkgName, groups]) => `- ${pkgName}: [${groups.map(g => g.name).join(', ')}]`)
+          .map(([pkgName, pkgGroups]) => `- ${pkgName}: [${pkgGroups.map(g => g.name).join(', ')}]`)
           .sort()
           .join('\n')
     );

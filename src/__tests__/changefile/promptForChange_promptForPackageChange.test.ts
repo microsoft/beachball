@@ -12,7 +12,7 @@ import { getQuestionsForPackage } from '../../changefile/getQuestionsForPackage'
 let stdin: MockStdin;
 let stdout: MockStdout;
 jest.mock('prompts', () => {
-  const realPrompts = jest.requireActual('prompts') as typeof prompts;
+  const realPrompts = jest.requireActual<typeof prompts>('prompts');
 
   return ((questions, options) => {
     const questionsArr = Array.isArray(questions) ? questions : [questions];

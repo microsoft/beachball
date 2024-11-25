@@ -1,6 +1,7 @@
 import execa from 'execa';
 
 export type PackageManagerResult = execa.ExecaReturnValue & { success: boolean };
+export type PackageManagerOptions = execa.Options & { cwd: string | undefined };
 
 /**
  * Run a package manager command. Returns the error result instead of throwing on failure.
@@ -12,8 +13,8 @@ export type PackageManagerResult = execa.ExecaReturnValue & { success: boolean }
 export async function packageManager(
   manager: 'npm' | 'yarn' | 'pnpm',
   args: string[],
-  options: execa.Options & { cwd: string | undefined }
-): Promise<execa.ExecaReturnValue & { success: boolean }> {
+  options: PackageManagerOptions
+): Promise<PackageManagerResult> {
   try {
     const result = await execa(manager, args, {
       ...options,

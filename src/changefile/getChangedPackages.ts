@@ -9,7 +9,7 @@ import { BeachballOptions } from '../types/BeachballOptions';
 import { PackageInfos, PackageInfo } from '../types/PackageInfo';
 import { ensureSharedHistory } from '../git/ensureSharedHistory';
 
-const count = (count: number, str: string) => `${count} ${str}${count === 1 ? '' : 's'}`;
+const count = (n: number, str: string) => `${n} ${str}${n === 1 ? '' : 's'}`;
 
 function getMatchingPackageInfo(
   file: string,
@@ -108,13 +108,14 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
   }
   for (const moddedFile of nonIgnoredChanges) {
     const packageInfo = getMatchingPackageInfo(moddedFile, cwd, packageInfosByPath);
+    if (!packageInfo) continue;
 
     const { isIncluded, reason } = isPackageIncluded(packageInfo, scopedPackages);
 
     if (!isIncluded) {
       logIgnored(moddedFile, reason);
     } else {
-      includedPackages.add(packageInfo!.name);
+      includedPackages.add(packageInfo.name);
       fileCount++;
       logIncluded(moddedFile);
     }
@@ -130,7 +131,7 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
 /**
  * Gets all the changed packages which do not already have a change file
  */
-export function getChangedPackages(options: BeachballOptions, packageInfos: PackageInfos) {
+export function getChangedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
   const { path: cwd, branch, changeDir } = options;
 
   const changePath = getChangePath(options);
@@ -154,7 +155,7 @@ export function getChangedPackages(options: BeachballOptions, packageInfos: Pack
   // Loop through the change files, building up a set of packages that we can skip
   for (const file of changeFiles) {
     try {
-      const changeInfo: ChangeFileInfo | ChangeInfoMultiple = fs.readJSONSync(path.join(cwd, file));
+      const changeInfo = fs.readJSONSync(path.join(cwd, file)) as ChangeFileInfo | ChangeInfoMultiple;
       const changes = (changeInfo as ChangeInfoMultiple).changes || [changeInfo];
 
       for (const change of changes) {

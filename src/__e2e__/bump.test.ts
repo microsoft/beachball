@@ -10,6 +10,7 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballOptions, HooksOptions } from '../types/BeachballOptions';
 import type { Repository } from '../__fixtures__/repository';
 import { getDefaultOptions } from '../options/getDefaultOptions';
+import type { PackageJson } from '../types/PackageInfo';
 
 describe('version bumping', () => {
   let repositoryFactory: RepositoryFactory | undefined;
@@ -277,7 +278,7 @@ describe('version bumping', () => {
 
   it('should not bump out-of-scope package even if package has change', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
-    const monorepo = repositoryFactory.fixture.folders!;
+    const monorepo = repositoryFactory.fixture.folders;
     repo = repositoryFactory.cloneRepository();
 
     const options = getOptions({
@@ -299,7 +300,7 @@ describe('version bumping', () => {
 
   it('should not bump out-of-scope package and its dependencies even if dependency of the package has change', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
-    const monorepo = repositoryFactory.fixture.folders!;
+    const monorepo = repositoryFactory.fixture.folders;
     repo = repositoryFactory.cloneRepository();
 
     const options = getOptions({
@@ -622,7 +623,7 @@ describe('version bumping', () => {
           expect(version).toBe('1.1.0');
 
           const jsonPath = path.join(packagePath, 'package.json');
-          expect(fs.readJSONSync(jsonPath).version).toBe('1.0.0');
+          expect((fs.readJSONSync(jsonPath) as PackageJson).version).toBe('1.0.0');
         }),
       },
     });
@@ -652,7 +653,7 @@ describe('version bumping', () => {
           expect(version).toBe('1.1.0');
 
           const jsonPath = path.join(packagePath, 'package.json');
-          expect((await fs.readJSON(jsonPath)).version).toBe('1.0.0');
+          expect(((await fs.readJSON(jsonPath)) as PackageJson).version).toBe('1.0.0');
         }),
       },
     });
@@ -677,7 +678,7 @@ describe('version bumping', () => {
       path: repo.rootPath,
       bumpDeps: false,
       hooks: {
-        prebump: async (_packagePath, _name, _version): Promise<void> => {
+        prebump: (): Promise<void> => {
           throw new Error('Foo');
         },
       },
@@ -708,7 +709,7 @@ describe('version bumping', () => {
           expect(version).toBe('1.1.0');
 
           const jsonPath = path.join(packagePath, 'package.json');
-          expect(fs.readJSONSync(jsonPath).version).toBe('1.1.0');
+          expect((fs.readJSONSync(jsonPath) as PackageJson).version).toBe('1.1.0');
         }),
       },
     });
@@ -738,7 +739,7 @@ describe('version bumping', () => {
           expect(version).toBe('1.1.0');
 
           const jsonPath = path.join(packagePath, 'package.json');
-          expect((await fs.readJSON(jsonPath)).version).toBe('1.1.0');
+          expect(((await fs.readJSON(jsonPath)) as PackageJson).version).toBe('1.1.0');
         }),
       },
     });
@@ -762,7 +763,7 @@ describe('version bumping', () => {
     const options = getOptions({
       bumpDeps: false,
       hooks: {
-        postbump: async (_packagePath, _name, _version): Promise<void> => {
+        postbump: (): Promise<void> => {
           throw new Error('Foo');
         },
       },

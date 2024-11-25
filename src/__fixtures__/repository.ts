@@ -1,7 +1,7 @@
 import path from 'path';
 import * as fs from 'fs-extra';
 import { tmpdir } from './tmpdir';
-import { git } from 'workspace-tools';
+import { git, type GitProcessOutput } from 'workspace-tools';
 import {
   defaultBranchName,
   defaultRemoteBranchName,
@@ -102,7 +102,7 @@ export class Repository {
    * cause flaky tests. (e.g. Mac temp files are under `/private/var` which is symlinked as `/var`,
    * and Windows can use either standard paths or short DOS paths.)
    */
-  pathTo(...segments: string[]) {
+  pathTo(...segments: string[]): string {
     const filename = path.join(...segments);
     if (path.isAbsolute(filename)) {
       throw new Error('Path must be relative: ' + filename);
@@ -116,7 +116,7 @@ export class Repository {
   }
 
   /** Git helper that throws on error */
-  git(args: string[], options?: Partial<Parameters<typeof git>[1]>) {
+  git(args: string[], options?: Partial<Parameters<typeof git>[1]>): GitProcessOutput {
     const gitResult = git(args, { cwd: this.rootPath, ...options });
     if (!gitResult.success) {
       throw new Error(`git command failed: git ${args.join(' ')}
@@ -130,7 +130,7 @@ ${gitResult.stderr.toString()}`);
    * Create (or update) and stage a file, creating the intermediate directories if necessary.
    * Automatically uses root path; do not pass absolute paths here.
    */
-  stageChange(newFilename: string, content?: string | object) {
+  stageChange(newFilename: string, content?: string | object): void {
     const filePath = this.pathTo(newFilename);
     fs.ensureDirSync(path.dirname(filePath));
     fs.ensureFileSync(filePath);
@@ -146,13 +146,13 @@ ${gitResult.stderr.toString()}`);
    * Commit a change, creating the intermediate directories if necessary.
    * Automatically uses root path; do not pass absolute paths here.
    */
-  commitChange(newFilename: string, content?: string | object) {
+  commitChange(newFilename: string, content?: string | object): void {
     this.stageChange(newFilename, content);
     this.git(['commit', '-m', `"${newFilename}"`]);
   }
 
   /** Commit all changes to tracked and untracked files. */
-  commitAll(message: string = 'Committing everything') {
+  commitAll(message: string = 'Committing everything'): void {
     this.git(['add', '-A']);
     this.git(['commit', '-m', message]);
   }
@@ -164,13 +164,13 @@ ${gitResult.stderr.toString()}`);
    * This is useful if you'd like to mostly use a built-in fixture but change one package,
    * such as making it private.
    */
-  updateJsonFile(filename: string, updates: {}) {
+  updateJsonFile(filename: string, updates: object): void {
     if (!filename.endsWith('.json')) {
       throw new Error('This method only works with json files');
     }
 
     const fullPath = this.pathTo(filename);
-    const oldContent = fs.readJSONSync(fullPath);
+    const oldContent = fs.readJSONSync(fullPath) as object;
     fs.writeJSONSync(fullPath, { ...oldContent, ...updates });
 
     this.git(['add', filename]);
@@ -178,40 +178,40 @@ ${gitResult.stderr.toString()}`);
   }
 
   /** Get the current HEAD sha1 */
-  getCurrentHash() {
+  getCurrentHash(): string {
     const result = this.git(['rev-parse', 'HEAD']);
     return result.stdout.trim();
   }
 
   /** Get tags pointing to the current HEAD commit */
-  getCurrentTags() {
+  getCurrentTags(): string[] {
     const tagsResult = this.git(['tag', '--points-at', 'HEAD']);
     const trimmedResult = tagsResult.stdout.trim();
     return trimmedResult ? trimmedResult.split('\n') : [];
   }
 
   /** Get status with `--porcelain` */
-  status() {
+  status(): string {
     return this.git(['status', '--porcelain']).stdout.trim();
   }
 
   /** Check out a branch. Args can be the name and/or any options. */
-  checkout(...args: string[]) {
+  checkout(...args: string[]): void {
     this.git(['checkout', ...args]);
   }
 
   /** Pull from the default remote and branch.  */
-  pull() {
+  pull(): void {
     this.git(['pull', defaultRemoteName, `HEAD:${defaultBranchName}`]);
   }
 
   /** Push to the default remote. */
-  push(branchName: string = defaultBranchName) {
+  push(branchName: string = defaultBranchName): void {
     this.git(['push', defaultRemoteName, `HEAD:${branchName}`]);
   }
 
   /** `git reset --hard <ref>` and `git clean -dfx` */
-  resetAndClean(ref: string = defaultRemoteBranchName) {
+  resetAndClean(ref: string = defaultRemoteBranchName): void {
     this.git(['reset', '--hard', ref]);
     this.git(['clean', '-dfx']);
   }
@@ -222,7 +222,7 @@ ${gitResult.stderr.toString()}`);
    * Doing this in CI is unnecessary because all the fixtures use unique temp directories (no collisions)
    * and the agents are wiped after each job, so manually deleting the files just slows things down.
    */
-  cleanUp() {
+  cleanUp(): void {
     try {
       // This occasionally throws on Windows with "resource busy"
       if (this.root && !env.isCI) {
@@ -230,7 +230,7 @@ ${gitResult.stderr.toString()}`);
       }
     } catch (err) {
       // This is non-fatal since the temp dir will eventually be cleaned up automatically
-      console.warn('Could not clean up repository: ' + err);
+      console.warn(`Could not clean up repository: ${err}`);
     }
     this.root = undefined;
   }

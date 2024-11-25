@@ -28,7 +28,7 @@ export function tmpdir(options?: tmp.DirOptions): string {
 }
 
 /** Remove the temp directory, ignoring errors */
-export function removeTempDir(dir: string) {
+export function removeTempDir(dir: string): void {
   try {
     fs.rmSync(dir, { force: true });
   } catch {

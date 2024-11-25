@@ -4,9 +4,10 @@ import { gitFailFast } from 'workspace-tools';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { tmpdir } from '../../__fixtures__/tmpdir';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
-import { PackageInfos } from '../../types/PackageInfo';
+import type { PackageInfos, PackageInfo } from '../../types/PackageInfo';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
+import type { PackageOptions } from '../../types/BeachballOptions';
 
 const defaultOptions = getDefaultOptions();
 
@@ -28,15 +29,15 @@ function cleanPackageInfos(root: string, packageInfos: PackageInfos) {
 
     // Remove beachball options which are defaulted
     for (const [key, value] of Object.entries(pkgInfo.combinedOptions)) {
-      if (value === (defaultOptions as any)[key]) {
-        delete (pkgInfo.combinedOptions as any)[key];
+      if (value === defaultOptions[key as keyof PackageOptions]) {
+        delete pkgInfo.combinedOptions[key as keyof PackageOptions];
       }
     }
 
     // Remove options set to undefined or empty object (keep null because it may be meaningful/interesting)
     for (const [key, value] of Object.entries(pkgInfo)) {
       if (value === undefined || (value && typeof value === 'object' && !Object.keys(value).length)) {
-        delete (pkgInfo as any)[key];
+        delete pkgInfo[key as keyof PackageInfo];
       }
     }
   }

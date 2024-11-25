@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import _ from 'lodash';
 import { _clearPackageVersionsCache } from '../../packageManager/listPackageVersions';
 import { getNewPackages } from '../../publish/getNewPackages';
 import { NpmOptions } from '../../types/NpmOptions';

@@ -151,7 +151,7 @@ describe('getPackageGraph', () => {
   });
 
   it('throws if package info is missing', async () => {
-    const packageInfos = {} as any as PackageInfos;
+    const packageInfos = {} as PackageInfos;
 
     await expect(async () => {
       await getPackageGraphPackageNames(['foo', 'bar'], packageInfos);

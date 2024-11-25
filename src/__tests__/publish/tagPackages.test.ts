@@ -79,7 +79,7 @@ describe('tagPackages', () => {
     expect(gitFailFast).toHaveBeenCalledTimes(1);
 
     // verify git is being called to create new auto tag for foo and bar
-    const newFooTag = generateTag('foo', oneTagBumpInfo.packageInfos!['foo'].version);
+    const newFooTag = generateTag('foo', oneTagBumpInfo.packageInfos['foo'].version);
     expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters(newFooTag, ''));
   });
 
@@ -91,7 +91,7 @@ describe('tagPackages', () => {
     expect(gitFailFast).toHaveBeenCalledTimes(1);
 
     // verify git is being called to create new auto tag for foo
-    const newFooTag = generateTag('foo', oneTagBumpInfo.packageInfos!['foo'].version);
+    const newFooTag = generateTag('foo', oneTagBumpInfo.packageInfos['foo'].version);
     expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters(newFooTag, ''));
   });
 

@@ -48,7 +48,7 @@ describe('performPublishOverrides', () => {
           return _.cloneDeep(packageJsons[pkg.name]);
         }
       }
-      throw new Error('not found: ' + path);
+      throw new Error(`not found: ${path as string}`);
     });
 
     return { packageInfos, packageJsons };

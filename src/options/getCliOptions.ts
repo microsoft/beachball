@@ -128,7 +128,7 @@ function getCliOptionsUncached(argv: string[]): CliOptions {
   let cwd: string;
   try {
     cwd = findProjectRoot(process.cwd());
-  } catch (err) {
+  } catch {
     cwd = process.cwd();
   }
 
@@ -142,14 +142,15 @@ function getCliOptionsUncached(argv: string[]): CliOptions {
     path: cwd,
   };
 
-  if (args.branch) {
+  const branchArg = args.branch as string | undefined;
+  if (branchArg) {
     // TODO: This logic assumes the first segment of any branch name with a slash must be the remote,
     // which is not necessarily accurate. Ideally we should check if a remote with that name exists,
     // and if not, perform the default remote lookup.
     cliOptions.branch =
-      args.branch.indexOf('/') > -1
-        ? args.branch
-        : getDefaultRemoteBranch({ branch: args.branch, verbose: args.verbose, cwd });
+      branchArg.indexOf('/') > -1
+        ? branchArg
+        : getDefaultRemoteBranch({ branch: branchArg, verbose: args.verbose as boolean | undefined, cwd });
   }
 
   if (cliOptions.command === 'canary') {
@@ -163,7 +164,7 @@ function getCliOptionsUncached(argv: string[]): CliOptions {
     } else if (typeof value === 'number' && isNaN(value)) {
       throw new Error(`Non-numeric value passed for numeric option "${key}"`);
     } else if (knownOptions.includes(key)) {
-      if (Array.isArray(value) && !arrayOptions.includes(key as any)) {
+      if (Array.isArray(value) && !arrayOptions.includes(key as (typeof arrayOptions)[number])) {
         throw new Error(`Option "${key}" only accepts a single value. Received: ${value.join(' ')}`);
       }
     } else if (value === 'true') {

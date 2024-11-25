@@ -6,7 +6,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jes
 import fs from 'fs-extra';
 import { NpmResult, npm } from '../packageManager/npm';
 import { PackageJson } from '../types/PackageInfo';
-import { initNpmMock, _makeRegistryData, _mockNpmPublish, _mockNpmShow } from './mockNpm';
+import { initNpmMock, _makeRegistryData, _mockNpmPublish, _mockNpmShow, type MockNpmResult } from './mockNpm';
 
 jest.mock('fs-extra');
 jest.mock('../packageManager/npm');
@@ -338,16 +338,16 @@ describe('mockNpm', () => {
   });
 
   it('respects mocked command', async () => {
-    const mockShow = jest.fn(() => 'hi');
-    npmMock.setCommandOverride('show', mockShow as any);
+    const mockShow = jest.fn(() => Promise.resolve('hi' as unknown as MockNpmResult));
+    npmMock.setCommandOverride('show', mockShow);
     const result = await npm(['show', 'foo'], { cwd: undefined });
     expect(result).toEqual('hi');
     expect(mockShow).toHaveBeenCalledWith(expect.any(Object), ['foo'], { cwd: undefined });
   });
 
   it("respects extra mocked command that's not normally supported", async () => {
-    const mockPack = jest.fn(() => 'hi');
-    npmMock.setCommandOverride('pack', mockPack as any);
+    const mockPack = jest.fn(() => Promise.resolve('hi' as unknown as MockNpmResult));
+    npmMock.setCommandOverride('pack', mockPack);
     const result = await npm(['pack'], { cwd: undefined });
     expect(result).toEqual('hi');
     expect(mockPack).toHaveBeenCalledWith(expect.any(Object), [], { cwd: undefined });

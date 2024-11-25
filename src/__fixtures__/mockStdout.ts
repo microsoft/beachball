@@ -34,23 +34,23 @@ export class MockStdout extends stream.Writable {
   }
 
   /** Gets non-empty output chunks that have been written to the stream, joined with newlines */
-  getOutput() {
+  getOutput(): string {
     return this.chunks.join('\n');
   }
 
   /** Gets the last non-empty output chunk written to the stream */
-  lastOutput() {
+  lastOutput(): string {
     return this.chunks.slice(-1)[0];
   }
 
   /** Clears the record of output to the stream */
-  clearOutput() {
+  clearOutput(): void {
     this.chunks = [];
   }
 
-  _write(chunk: any, encoding: string, callback: (error?: Error | null) => void) {
+  _write(chunk: unknown, encoding: string, callback: (error?: Error | null) => void): void {
     // Trim each line so that if it's used in a snapshot, there won't be trailing whitespace issues
-    let text = stripAnsi(chunk.toString())
+    let text = stripAnsi(String(chunk))
       .split('\n')
       .map(line => line.trimEnd())
       .join('\n')

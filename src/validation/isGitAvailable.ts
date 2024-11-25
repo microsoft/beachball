@@ -4,7 +4,7 @@ export function isGitAvailable(cwd: string): boolean {
   const result = git(['--version']);
   try {
     return result.success && !!findGitRoot(cwd);
-  } catch (err) {
+  } catch {
     return false;
   }
 }

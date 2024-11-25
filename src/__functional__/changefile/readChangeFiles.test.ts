@@ -137,7 +137,7 @@ describe('readChangeFiles', () => {
     expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
 
-  it('runs transform.changeFiles functions if provided', async () => {
+  it('runs transform.changeFiles functions if provided', () => {
     const editedComment: string = 'Edited comment for testing';
     repo = sharedMonoRepo;
 
