@@ -1,5 +1,4 @@
 import { describe, expect, it, jest, beforeEach, afterAll } from '@jest/globals';
-import type { Mock } from 'jest-mock';
 import { gitFailFast } from 'workspace-tools';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { tagPackages } from '../../publish/tagPackages';
@@ -62,7 +61,7 @@ describe('tagPackages', () => {
   initMockLogs();
 
   beforeEach(() => {
-    (gitFailFast as Mock).mockReset();
+    (gitFailFast as jest.Mock).mockReset();
   });
 
   afterAll(() => {

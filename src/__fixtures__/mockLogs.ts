@@ -1,5 +1,4 @@
 import { jest, afterEach, beforeAll, afterAll } from '@jest/globals';
-import type { SpyInstance } from 'jest-mock';
 
 /** Methods that will be mocked. More could be added later if needed. */
 type MockLogMethod = 'log' | 'warn' | 'error';
@@ -15,7 +14,7 @@ type MockLogsOptions = {
 
 export type MockLogs = {
   /** Mocked methods (to access calls etc) */
-  mocks: { [k in MockLogMethod]: SpyInstance<typeof console.log> };
+  mocks: { [k in MockLogMethod]: jest.SpiedFunction<typeof console.log> };
 
   /** Set override options for one test only */
   setOverrideOptions: (options: MockLogsOptions) => void;
