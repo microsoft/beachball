@@ -22,8 +22,6 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          # Fetch all history (required for publishing which looks at history)
-          fetch-depth: 0
           # Don't save creds in the git config (so it's easier to override later)
           persist-credentials: false
 
@@ -64,12 +62,44 @@ jobs:
           NPM_AUTHTOKEN: ${{ secrets.NPM_AUTHTOKEN }}
           REPO_PAT: ${{ secrets.REPO_PAT }}
 
+  # The docs have a separate installation using Node 20 due to needing newer dependencies
+  docs:
+    name: Update docs
+
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      # Needed by gh-pages publish
+      contents: write
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          # Don't save creds in the git config (so it's easier to override later)
+          persist-credentials: false
+
+      - name: Install Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          cache: yarn
+          node-version: 20
+
+      - run: yarn --immutable
+        working-directory: ./docs
+
+      - run: yarn docs:build
+        working-directory: ./docs
+
       - name: Update docs
         run: |
           # See previous step for explanation
           trap "git remote set-url origin '$(git remote get-url origin)'" EXIT
-          git remote set-url origin "https://$REPO_PAT@github.com/$GITHUB_REPOSITORY"
+          git remote set-url origin "https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git"
 
           yarn release:docs
         env:
-          REPO_PAT: ${{ secrets.REPO_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ./docs

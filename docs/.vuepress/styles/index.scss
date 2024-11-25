@@ -1,0 +1,38 @@
+// https://ecosystem.vuejs.press/themes/default/styles.html
+
+:root {
+  // link text
+  --vp-c-accent: #a17d08;
+  // homepage action
+  --vp-c-accent-bg: #cb9f0c;
+  // homepage action hover
+  --vp-c-accent-hover: #eab60b;
+
+  --graph-node-bg: #fff5cc;
+}
+
+[data-theme='dark'] {
+  --vp-c-accent: #ffd700;
+  --vp-c-accent-bg: #ffd700;
+
+  // fix mermaid colors in dark mode
+  .clusterLabel .nodeLabel {
+    color: var(--vp-c-text);
+  }
+
+  .label .nodeLabel,
+  .edgeLabel {
+    color: var(--vp-c-bg) !important;
+  }
+}
+
+p a code {
+  // make link text inside code visible
+  color: var(--vp-c-text);
+}
+
+.vp-sidebar a:hover,
+.vp-hero-action-button:hover {
+  // make sidebar and action links more obvious
+  text-decoration: underline;
+}
