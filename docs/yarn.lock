@@ -4172,9 +4172,9 @@ __metadata:
   linkType: hard
 
 "package-manager-detector@npm:^0.2.0":
-  version: 0.2.4
-  resolution: "package-manager-detector@npm:0.2.4"
-  checksum: 10c0/a777b8758afd9372874909becf7ba72616b1a8d568c48ab3dce6028e9937973f75f6d3af714090a3577693307318fe657035e0ecd12610b64fc99e02419db7b1
+  version: 0.2.5
+  resolution: "package-manager-detector@npm:0.2.5"
+  checksum: 10c0/73e6d2fc18d3f93f0eb677d3233fc700159d717e2531a59bdec65e5daab7ea0c0e0480416e738ace958378801bfa45351ce1d39ca46106913852ea71ff5b0a81
   languageName: node
   linkType: hard
 
