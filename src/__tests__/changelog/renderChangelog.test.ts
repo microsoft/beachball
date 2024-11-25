@@ -104,14 +104,14 @@ describe('renderChangelog', () => {
   it('merges default and custom renderers', async () => {
     const options = getOptions();
     options.changelogOptions.customRenderers = {
-      renderHeader: async renderInfo => {
+      renderHeader: renderInfo => {
         return [
           `## ${renderInfo.newVersionChangelog.version}`,
           renderInfo.newVersionChangelog.date.toUTCString(),
           `[Compare changes](http://real-github-compare-link)`,
         ].join('\n');
       },
-      renderEntry: async (entry, renderInfo) => `- ${entry.comment} (${entry.author}, PR #123)`,
+      renderEntry: entry => `- ${entry.comment} (${entry.author}, PR #123)`,
     };
 
     const result = await renderChangelog(options);
@@ -122,7 +122,7 @@ describe('renderChangelog', () => {
 
   it('uses full custom renderer', async () => {
     const options = getOptions();
-    options.changelogOptions.renderPackageChangelog = async renderInfo =>
+    options.changelogOptions.renderPackageChangelog = renderInfo =>
       `## ${renderInfo.newVersionChangelog.version}\n\nno notes for you`;
 
     const result = await renderChangelog(options);
@@ -147,10 +147,10 @@ describe('renderChangelog', () => {
       ],
     };
     options.changelogOptions.customRenderers = {
-      renderEntry: jest.fn(async (entry: ChangelogEntry) => `- ${entry.comment} ${entry.extra})`),
+      renderEntry: jest.fn((entry: ChangelogEntry) => `- ${entry.comment} ${entry.extra})`),
     };
     options.changelogOptions.renderMainHeader = jest.fn(
-      async (packageChangelog: PackageChangelog) => `Custom main header ${packageChangelog.name}`
+      (packageChangelog: PackageChangelog) => `Custom main header ${packageChangelog.name}`
     );
 
     const result = await renderChangelog(options);

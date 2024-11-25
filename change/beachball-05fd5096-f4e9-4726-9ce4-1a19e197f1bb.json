@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Allow changelog render functions to be synchronous",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

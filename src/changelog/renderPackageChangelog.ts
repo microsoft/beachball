@@ -41,7 +41,7 @@ export async function renderPackageChangelog(renderInfo: PackageChangelogRenderI
   return sections.join('\n\n');
 }
 
-async function _renderHeader(renderInfo: PackageChangelogRenderInfo): Promise<string> {
+function _renderHeader(renderInfo: PackageChangelogRenderInfo): string {
   return `## ${renderInfo.newVersionChangelog.version}\n\n${renderInfo.newVersionChangelog.date.toUTCString()}`;
 }
 
@@ -56,7 +56,7 @@ async function _renderChangeTypeSection(
     : '';
 }
 
-async function _renderChangeTypeHeader(changeType: ChangeType): Promise<string> {
+function _renderChangeTypeHeader(changeType: ChangeType): string {
   return `### ${groupNames[changeType]}`;
 }
 
@@ -94,7 +94,7 @@ async function _renderEntriesBasic(
   return results;
 }
 
-async function _renderEntry(entry: ChangelogEntry, renderInfo: PackageChangelogRenderInfo): Promise<string> {
+function _renderEntry(entry: ChangelogEntry): string {
   if (entry.author === 'beachball') {
     return `- ${entry.comment}`;
   }
