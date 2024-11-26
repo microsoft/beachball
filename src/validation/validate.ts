@@ -2,20 +2,24 @@ import { isGitAvailable } from './isGitAvailable';
 import { getUntrackedChanges } from 'workspace-tools';
 import { isValidAuthType } from './isValidAuthType';
 import { isValidChangeType } from './isValidChangeType';
-import { isChangeFileNeeded } from './isChangeFileNeeded';
 import { isValidGroupedPackageOptions, isValidGroupOptions } from './isValidGroupOptions';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { isValidChangelogOptions } from './isValidChangelogOptions';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { getPackageGroups } from '../monorepo/getPackageGroups';
+import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes';
 import { areChangeFilesDeleted } from './areChangeFilesDeleted';
 import { validatePackageDependencies } from '../publish/validatePackageDependencies';
-import { gatherBumpInfo } from '../bump/gatherBumpInfo';
+import { bumpInPlace } from '../bump/bumpInPlace';
 import { isValidDependentChangeType } from './isValidDependentChangeType';
 import { getPackagesToPublish } from '../publish/getPackagesToPublish';
 import { env } from '../env';
+import type { BumpInfo } from '../types/BumpInfo';
+import type { PackageGroups, PackageInfos } from '../types/PackageInfo';
+import type { ChangeSet } from '../types/ChangeInfo';
+import { getChangedPackages } from '../changefile/getChangedPackages';
 
 type ValidationOptions = {
   /**
@@ -26,15 +30,28 @@ type ValidationOptions = {
    * If true, don't error if change files are needed (just return isChangeNeeded true).
    */
   allowMissingChangeFiles?: boolean;
-  /**
-   * If true, validate that the dependencies of any packages with change files are valid
-   * (not private).
-   */
-  checkDependencies?: boolean;
 };
 
-export function validate(options: BeachballOptions, validateOptions?: ValidationOptions): { isChangeNeeded: boolean } {
-  const { allowMissingChangeFiles, checkChangeNeeded, checkDependencies } = validateOptions || {};
+/**
+ * Run validation of options, change files, and packages.
+ * (Use `validateWithBump` to also validate that dependencies of packages to be published are valid.)
+ * @returns Various info retrieved during validation which is also needed by other functions.
+ */
+export function validate(
+  options: BeachballOptions,
+  validateOptions?: ValidationOptions
+): {
+  isChangeNeeded: boolean;
+  /** Changed package names. This is only set if `options.checkChangeNeeded` is true or unset. */
+  changedPackages: string[] | undefined;
+  /** Original package infos (not the ones modified by bumping). */
+  packageInfos: PackageInfos;
+  packageGroups: PackageGroups;
+  changeFileChangeInfos: ChangeSet;
+  /** Package names that are in scope per the options */
+  scopedPackages: string[];
+} {
+  const { allowMissingChangeFiles, checkChangeNeeded } = validateOptions || {};
 
   console.log('\nValidating options and change files...');
 
@@ -114,9 +131,11 @@ export function validate(options: BeachballOptions, validateOptions?: Validation
     hasError = true; // the helper logs this
   }
 
-  const changeSet = readChangeFiles(options, packageInfos);
+  const scopedPackages = getScopedPackages(options, packageInfos);
 
-  for (const { changeFile, change } of changeSet) {
+  const changeFileChangeInfos = readChangeFiles(options, packageInfos, scopedPackages);
+
+  for (const { changeFile, change } of changeFileChangeInfos) {
     const disallowedChangeTypes = getDisallowedChangeTypes(change.packageName, packageInfos, packageGroups);
 
     if (!change.type) {
@@ -145,9 +164,21 @@ export function validate(options: BeachballOptions, validateOptions?: Validation
   }
 
   let isChangeNeeded = false;
+  let changedPackages: string[] | undefined;
 
   if (checkChangeNeeded) {
-    isChangeNeeded = isChangeFileNeeded(options, packageInfos);
+    console.log(`Checking for changes against "${options.branch}"`);
+
+    changedPackages = getChangedPackages(options, packageInfos);
+    if (changedPackages.length > 0) {
+      console.log(
+        `Found changes in the following packages: ${[...changedPackages]
+          .sort()
+          .map(pkg => `\n  ${pkg}`)
+          .join('')}`
+      );
+      isChangeNeeded = true;
+    }
 
     if (isChangeNeeded && !allowMissingChangeFiles) {
       logValidationError('Change files are needed!');
@@ -161,27 +192,47 @@ export function validate(options: BeachballOptions, validateOptions?: Validation
     }
   }
 
-  if (!isChangeNeeded && checkDependencies && changeSet.length) {
-    console.log('\nValidating package dependencies...');
-    // TODO: It would be preferable if this could be done without getting the full bump info,
-    // or at least if the bump info could be passed back out to other methods which currently
-    // duplicate the calculation (it can be expensive, especially in large repos).
-    const bumpInfo = gatherBumpInfo(options, packageInfos);
-    const packagesToPublish = getPackagesToPublish(bumpInfo, true /*validationMode*/);
-    if (!validatePackageDependencies(packagesToPublish, bumpInfo.packageInfos)) {
-      logValidationError(`One or more published packages depend on an unpublished package!
+  console.log();
+
+  return { isChangeNeeded, changedPackages, changeFileChangeInfos, packageGroups, packageInfos, scopedPackages };
+}
+
+/**
+ * Run validation of options, change files, and packages. This also does an in-memory bump
+ * based on the change files, then validates that in-repo dependencies of packages to be published
+ * are valid (use `validate()` to skip this).
+ * @returns Various info retrieved during validation which is also needed by other functions.
+ */
+export function validateWithBump(
+  options: BeachballOptions,
+  validateOptions?: Pick<ValidationOptions, 'checkChangeNeeded'>
+): {
+  bumpInfo: BumpInfo;
+  /** Original package infos (not the ones modified by bumping). */
+  packageInfos: PackageInfos;
+  packageGroups: PackageGroups;
+  changeFileChangeInfos: ChangeSet;
+  /** Package names that are in scope per the options */
+  scopedPackages: string[];
+} {
+  const { changeFileChangeInfos, packageGroups, packageInfos, scopedPackages } = validate(options, validateOptions);
+
+  // In theory, we could validate in-repo deps of all packages instead of doing this bump logic,
+  // but there's a risk that this could result in new checks/errors in existing repos
+  // (and might be more perf-intensive in large repos, but it's hard to say).
+  const bumpInfo = bumpInPlace({ packageGroups, packageInfos, scopedPackages, changeFileChangeInfos }, options);
+
+  const packagesToPublish = getPackagesToPublish(bumpInfo, true /*validationMode*/);
+
+  if (!validatePackageDependencies(packagesToPublish, bumpInfo.packageInfos)) {
+    console.error(`ERROR: One or more published packages depend on an unpublished package!
 
 Consider one of the following solutions:
 - If the unpublished package should be published, remove \`"private": true\` from its package.json.
 - If it should NOT be published, verify that it is only listed under devDependencies of published packages.
 `);
-      process.exit(1);
-    }
+    process.exit(1);
   }
 
-  console.log();
-
-  return {
-    isChangeNeeded,
-  };
+  return { bumpInfo, packageInfos, packageGroups, changeFileChangeInfos, scopedPackages };
 }

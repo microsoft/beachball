@@ -13,6 +13,7 @@ import { getDefaultOptions } from '../options/getDefaultOptions';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { _mockNpmPublish, initNpmMock } from '../__fixtures__/mockNpm';
 import type { PackageJson } from '../types/PackageInfo';
+import { mockProcessExit } from '../__fixtures__/mockProcessExit';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -29,6 +30,7 @@ describe('publish command (e2e)', () => {
 
   // show error logs for these tests
   const logs = initMockLogs({ alsoLog: ['error'] });
+  mockProcessExit();
 
   function getOptions(overrides?: Partial<BeachballOptions>): BeachballOptions {
     return {

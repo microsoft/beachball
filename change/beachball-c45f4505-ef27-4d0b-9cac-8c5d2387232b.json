@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Internal refactor: share the state that was calculated during validation with other commands. (This changes the behavior of some functions that were never intended to be public APIs, but were sometimes used.)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

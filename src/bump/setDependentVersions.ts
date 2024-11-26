@@ -14,7 +14,8 @@ export function setDependentVersions(
 ): BumpInfo['dependentChangedBy'] {
   const { packageInfos, scopedPackages } = bumpInfo;
   const { verbose } = options;
-  const dependentChangedBy: BumpInfo['dependentChangedBy'] = {};
+  // Map from package name to its internal dependency names that were bumped.
+  const dependentChangedBy: Record<string, Set<string>> = {};
 
   for (const [pkgName, info] of Object.entries(packageInfos)) {
     if (!scopedPackages.has(pkgName)) {
@@ -34,10 +35,11 @@ export function setDependentVersions(
         // TODO: dependent bumps in workspace:*/^/~ ranges will be missed
         // https://github.com/microsoft/beachball/issues/981
         if (existingVersionRange !== bumpedVersionRange) {
+          // Update the version range of the dependency if it changed due to bumps.
           deps[dep] = bumpedVersionRange;
 
-          dependentChangedBy[pkgName] ??= new Set<string>();
-          dependentChangedBy[pkgName].add(dep);
+          (dependentChangedBy[pkgName] ??= new Set()).add(dep);
+
           if (verbose) {
             console.log(
               `${pkgName} needs to be bumped because ${dep} ${existingVersionRange} -> ${bumpedVersionRange}`

@@ -20,6 +20,7 @@ import type { BumpInfo } from '../../types/BumpInfo';
 import { getMaxChangeType } from '../../changefile/changeTypes';
 import { getChangePath } from '../../paths';
 import { trimmedVersionsNote } from '../../changelog/renderChangelog';
+import { getScopedPackages } from '../../monorepo/getScopedPackages';
 
 describe('writeChangelog', () => {
   let repositoryFactory: RepositoryFactory;
@@ -48,7 +49,8 @@ describe('writeChangelog', () => {
   ) {
     const { options, dependentChangedBy = {} } = params;
     const packageInfos = getPackageInfos(repo!.rootPath);
-    const changeFileChangeInfos = readChangeFiles(options, packageInfos);
+    const scopedPackages = getScopedPackages(options, packageInfos);
+    const changeFileChangeInfos = readChangeFiles(options, packageInfos, scopedPackages);
 
     // Generate a basic best guess at calculatedChangeTypes
     const calculatedChangeTypes: BumpInfo['calculatedChangeTypes'] = {};

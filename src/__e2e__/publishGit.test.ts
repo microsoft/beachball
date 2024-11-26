@@ -7,11 +7,11 @@ import type { Repository } from '../__fixtures__/repository';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publish } from '../commands/publish';
-import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { ChangeFileInfo } from '../types/ChangeInfo';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { getDefaultOptions } from '../options/getDefaultOptions';
+import { mockProcessExit } from '../__fixtures__/mockProcessExit';
+import { validateWithBump } from '../validation/validate';
 import type { PackageJson } from '../types/PackageInfo';
 
 describe('publish command (git)', () => {
@@ -19,6 +19,7 @@ describe('publish command (git)', () => {
   let repo: Repository | undefined;
 
   initMockLogs();
+  mockProcessExit();
 
   function getOptions(overrides?: Partial<BeachballOptions>): BeachballOptions {
     return {
@@ -78,7 +79,7 @@ describe('publish command (git)', () => {
     const publishBranch = 'publish_test';
     repo1.checkout('-b', publishBranch);
 
-    const bumpInfo = gatherBumpInfo(options1, getPackageInfos(repo1.rootPath));
+    const { bumpInfo } = validateWithBump(options1);
 
     // 3. Meanwhile, in repo2, also create a new change file
     const repo2 = repositoryFactory.cloneRepository();

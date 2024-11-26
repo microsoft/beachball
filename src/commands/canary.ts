@@ -1,24 +1,31 @@
 import semver from 'semver';
-import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { performBump } from '../bump/performBump';
 import { setDependentVersions } from '../bump/setDependentVersions';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import type { BeachballOptions } from '../types/BeachballOptions';
+import { validateWithBump } from '../validation/validate';
 
 export async function canary(options: BeachballOptions): Promise<void> {
-  const oldPackageInfo = getPackageInfos(options.path);
+  const repoInfo = validateWithBump(options);
+  let { bumpInfo } = repoInfo;
 
-  const bumpInfo = gatherBumpInfo(options, oldPackageInfo);
+  // TODO: Before the shared validation/bump info change, the function did this:
+  //   const oldPackageInfo = getPackageInfos(options.path);
+  //   const bumpInfo = gatherBumpInfo(options, oldPackageInfo);
+  // Despite the "old" name, this was actually using bumped the bumped versions...
+  // If bumping based on the new versions is the intended behavior, the next line is fine.
+  // But if it was supposed to use the old versions, use repoInfo.packageInfos instead.
+  const oldPackageInfo = bumpInfo.packageInfos;
 
   options.keepChangeFiles = true;
   options.generateChangelog = false;
 
   if (options.all) {
-    for (const pkg of Object.keys(oldPackageInfo)) {
-      bumpInfo.modifiedPackages.add(pkg);
-    }
+    bumpInfo = {
+      ...bumpInfo,
+      modifiedPackages: new Set([...bumpInfo.modifiedPackages, ...Object.keys(bumpInfo.packageInfos)]),
+    };
   }
 
   const packageVersions = await listPackageVersions([...bumpInfo.modifiedPackages], options);

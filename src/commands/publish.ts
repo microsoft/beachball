@@ -1,23 +1,24 @@
-import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { gitFailFast, getBranchName, getCurrentHash, git } from 'workspace-tools';
 import prompts from 'prompts';
-import { readChangeFiles } from '../changefile/readChangeFiles';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import { getNewPackages } from '../publish/getNewPackages';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
 import type { PublishBumpInfo } from '../types/BumpInfo';
+import { validateWithBump } from '../validation/validate';
 
 export async function publish(options: BeachballOptions): Promise<void> {
+  const bumpInfo: PublishBumpInfo = validateWithBump(options).bumpInfo;
+
   console.log('\nPreparing to publish');
 
   const { path: cwd, branch, registry, tag } = options;
-  // First, validate that we have changes to publish
-  const oldPackageInfos = getPackageInfos(cwd);
-  const changes = readChangeFiles(options, oldPackageInfos);
 
-  if (!changes.length) {
+  // set a default publish message
+  options.message ??= 'applying package updates';
+
+  // First, validate that we have changes to publish
+  if (!bumpInfo.modifiedPackages.size) {
     console.log('Nothing to bump, skipping publish!');
     return;
   }
@@ -56,9 +57,6 @@ export async function publish(options: BeachballOptions): Promise<void> {
 
   console.log(`Creating temporary publish branch ${publishBranch}`);
   gitFailFast(['checkout', '-b', publishBranch], { cwd });
-
-  console.log(`\nGathering info ${options.bump ? 'to bump versions' : 'about versions and changes'}`);
-  const bumpInfo: PublishBumpInfo = gatherBumpInfo(options, oldPackageInfos);
 
   if (options.new) {
     // Publish newly created packages even if they don't have change files

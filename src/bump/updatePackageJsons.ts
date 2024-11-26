@@ -4,7 +4,7 @@ import { type PackageInfos, type PackageJson, consideredDependencies } from '../
 /**
  * Update package.json files for modified packages after bumping.
  */
-export function updatePackageJsons(modifiedPackages: Set<string>, packageInfos: PackageInfos): void {
+export function updatePackageJsons(modifiedPackages: ReadonlySet<string>, packageInfos: PackageInfos): void {
   for (const pkgName of modifiedPackages) {
     const info = packageInfos[pkgName];
     if (!fs.existsSync(info.packageJsonPath)) {

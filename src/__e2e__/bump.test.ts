@@ -11,12 +11,14 @@ import type { BeachballOptions, HooksOptions } from '../types/BeachballOptions';
 import type { Repository } from '../__fixtures__/repository';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import type { PackageJson } from '../types/PackageInfo';
+import { mockProcessExit } from '../__fixtures__/mockProcessExit';
 
 describe('version bumping', () => {
   let repositoryFactory: RepositoryFactory | undefined;
   let repo: Repository | undefined;
 
   initMockLogs();
+  mockProcessExit();
 
   function getOptions(options?: Partial<BeachballOptions>): BeachballOptions {
     return {
@@ -598,7 +600,7 @@ describe('version bumping', () => {
 
     const bumpInfo = await bump(options);
 
-    const modified = [...bumpInfo.modifiedPackages];
+    const modified = [...bumpInfo!.modifiedPackages];
     expect(modified).toContain('package1');
     expect(modified).toContain('package2');
 

@@ -10,6 +10,7 @@ import type { BeachballOptions } from '../../types/BeachballOptions';
 import type { Repository } from '../../__fixtures__/repository';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
 import type { ChangeInfo } from '../../types/ChangeInfo';
+import { getScopedPackages } from '../../monorepo/getScopedPackages';
 
 describe('readChangeFiles', () => {
   let repositoryFactory: RepositoryFactory;
@@ -57,7 +58,8 @@ describe('readChangeFiles', () => {
     generateChangeFiles(['foo'], options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
-    const changeSet = readChangeFiles(options, packageInfos);
+    const scopedPackages = getScopedPackages(options, packageInfos);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(changeSet).toHaveLength(1);
     expect(changeSet[0].change.commit).toBe(undefined);
   });
@@ -70,7 +72,8 @@ describe('readChangeFiles', () => {
     generateChangeFiles(['foo'], options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
-    const changeSet = readChangeFiles(options, packageInfos);
+    const scopedPackages = getScopedPackages(options, packageInfos);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(changeSet).toHaveLength(1);
   });
 
@@ -83,7 +86,8 @@ describe('readChangeFiles', () => {
     generateChangeFiles(['fake', 'bar', 'foo'], options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
-    const changeSet = readChangeFiles(options, packageInfos);
+    const scopedPackages = getScopedPackages(options, packageInfos);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(changeSet).toHaveLength(1);
 
     expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));
@@ -102,7 +106,8 @@ describe('readChangeFiles', () => {
     generateChangeFiles(['fake', 'bar', 'foo'], options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
-    const changeSet = readChangeFiles(options, packageInfos);
+    const scopedPackages = getScopedPackages(options, packageInfos);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(changeSet).toHaveLength(1);
 
     expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));
@@ -119,7 +124,8 @@ describe('readChangeFiles', () => {
     generateChangeFiles(['bar', 'foo'], options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
-    const changeSet = readChangeFiles(options, packageInfos);
+    const scopedPackages = getScopedPackages(options, packageInfos);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(changeSet).toHaveLength(1);
     expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
@@ -132,7 +138,8 @@ describe('readChangeFiles', () => {
     generateChangeFiles(['bar', 'foo'], options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
-    const changeSet = readChangeFiles(options, packageInfos);
+    const scopedPackages = getScopedPackages(options, packageInfos);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(changeSet).toHaveLength(1);
     expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
@@ -171,7 +178,8 @@ describe('readChangeFiles', () => {
     generateChangeFiles([{ packageName: 'bar', comment: 'comment 2' }], options);
 
     const packageInfos = getPackageInfos(repo.rootPath);
-    const changes = readChangeFiles(options, packageInfos);
+    const scopedPackages = getScopedPackages(options, packageInfos);
+    const changes = readChangeFiles(options, packageInfos, scopedPackages);
 
     // Verify that the comment of only the intended change file is changed
     for (const { change, changeFile } of changes) {

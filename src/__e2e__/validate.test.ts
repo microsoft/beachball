@@ -3,7 +3,7 @@ import { defaultBranchName } from '../__fixtures__/gitDefaults';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import { validate } from '../validation/validate';
+import { validate, validateWithBump } from '../validation/validate';
 import type { Repository } from '../__fixtures__/repository';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 
@@ -42,9 +42,10 @@ describe('validate', () => {
     repo = repositoryFactory.cloneRepository();
     repo.checkout('-b', 'test');
 
-    const result = validate(getOptions(), { checkChangeNeeded: true });
+    // This would call process.exit if there was an error.
+    // Use validateWithBump to do the full realistic validation.
+    validateWithBump(getOptions(), { checkChangeNeeded: true });
 
-    expect(result.isChangeNeeded).toBe(false);
     expect(logs.mocks.error).not.toHaveBeenCalled();
     // the success log for the "check" command is done in the main cli file, not validate()
   });
@@ -54,7 +55,8 @@ describe('validate', () => {
     repo.checkout('-b', 'test');
     repo.stageChange('packages/foo/test.js');
 
-    expect(() => validate(getOptions(), { checkChangeNeeded: true })).toThrowError(/process\.exit/);
+    // Use validateWithBump to do the full realistic validation.
+    expect(() => validateWithBump(getOptions(), { checkChangeNeeded: true })).toThrowError(/process\.exit/);
     expect(processExit).toHaveBeenCalledWith(1);
     expect(logs.mocks.error).toHaveBeenCalledWith('ERROR: Change files are needed!');
   });
@@ -64,6 +66,7 @@ describe('validate', () => {
     repo.checkout('-b', 'test');
     repo.stageChange('packages/foo/test.js');
 
+    // This is testing validation for change, which skips the bump/deps validation.
     const result = validate(getOptions(), { checkChangeNeeded: true, allowMissingChangeFiles: true });
     expect(result.isChangeNeeded).toBe(true);
     expect(logs.mocks.error).not.toHaveBeenCalled();

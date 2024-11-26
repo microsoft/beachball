@@ -1,4 +1,5 @@
 import type { ChangeSet, ChangeType } from '../types/ChangeInfo';
+import type { PackageInfos } from '../types/PackageInfo';
 
 /**
  * List of all change types from least to most significant.
@@ -29,12 +30,17 @@ const ChangeTypeWeights = Object.fromEntries(SortedChangeTypes.map((t, i) => [t,
  * Get initial package change types based on the greatest change type set for each package in any
  * change file, accounting for any disallowed change types or nonexistent packages.
  */
-export function initializePackageChangeTypes(changeSet: ChangeSet): { [pkgName: string]: ChangeType } {
+export function initializePackageChangeTypes(
+  changeSet: ChangeSet,
+  packageInfos: PackageInfos
+): { [pkgName: string]: ChangeType } {
   const pkgChangeTypes: { [pkgName: string]: ChangeType } = {};
 
   for (const { change } of changeSet) {
     const { packageName: pkg, type } = change;
-    pkgChangeTypes[pkg] = getMaxChangeType(type, pkgChangeTypes[pkg] || 'none', null);
+    if (packageInfos[pkg]) {
+      pkgChangeTypes[pkg] = getMaxChangeType(type, pkgChangeTypes[pkg] || 'none', null);
+    }
   }
 
   return pkgChangeTypes;
