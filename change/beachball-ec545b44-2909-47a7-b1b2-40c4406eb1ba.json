@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Simplify getRepoOptions logic",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

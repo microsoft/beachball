@@ -3,23 +3,26 @@ import { getDefaultRemoteBranch } from 'workspace-tools';
 import { env } from '../env';
 import type { RepoOptions, CliOptions, BeachballOptions } from '../types/BeachballOptions';
 
-const cachedRepoOptions = new Map<CliOptions, RepoOptions>();
+const cachedRepoOptions = new Map<CliOptions, Partial<RepoOptions>>();
 
-export function getRepoOptions(cliOptions: CliOptions): RepoOptions {
+export function getRepoOptions(cliOptions: CliOptions): Partial<RepoOptions> {
   const { configPath, path: cwd, branch } = cliOptions;
   if (!env.beachballDisableCache && cachedRepoOptions.has(cliOptions)) {
     return cachedRepoOptions.get(cliOptions)!;
   }
 
-  let repoOptions: RepoOptions | null;
+  let repoOptions: Partial<RepoOptions> | null | undefined;
+
+  const configExplorer = cosmiconfigSync('beachball', { cache: false });
+
   if (configPath) {
-    repoOptions = tryLoadConfig(configPath);
+    repoOptions = configExplorer.load(configPath)?.config as Partial<RepoOptions> | undefined;
     if (!repoOptions) {
       console.error(`Config file "${configPath}" could not be loaded`);
       process.exit(1);
     }
   } else {
-    repoOptions = trySearchConfig() || ({} as RepoOptions);
+    repoOptions = (configExplorer.search()?.config as Partial<RepoOptions> | undefined) || {};
   }
 
   // Only if the branch isn't specified in cliOptions (which takes precedence), fix it up or add it
@@ -40,16 +43,4 @@ export function getRepoOptions(cliOptions: CliOptions): RepoOptions {
   cachedRepoOptions.set(cliOptions, repoOptions);
 
   return repoOptions;
-}
-
-function tryLoadConfig(configPath: string): RepoOptions | null {
-  const configExplorer = cosmiconfigSync('beachball');
-  const loadResults = configExplorer.load(configPath);
-  return (loadResults?.config as RepoOptions) || null;
-}
-
-function trySearchConfig(): RepoOptions | null {
-  const configExplorer = cosmiconfigSync('beachball');
-  const searchResults = configExplorer.search();
-  return (searchResults?.config as RepoOptions) || null;
 }
