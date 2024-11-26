@@ -5,10 +5,11 @@ import {
   listAllTrackedFiles,
   findPackageRoot,
   findProjectRoot,
-  type WorkspaceInfo,
+  type PackageInfo as WSPackageInfo,
+  type PackageInfos as WSPackageInfos,
 } from 'workspace-tools';
-import type { PackageInfos, PackageJson } from '../types/PackageInfo';
-import { infoFromPackageJson } from './infoFromPackageJson';
+import type { PackageInfos } from '../types/PackageInfo';
+import { getPackageInfosWithOptions } from '../options/getPackageInfosWithOptions';
 
 /**
  * Get a mapping from package name to package info for all packages in the workspace
@@ -18,71 +19,56 @@ export function getPackageInfos(cwd: string): PackageInfos {
   const projectRoot = findProjectRoot(cwd);
   const packageRoot = findPackageRoot(cwd);
 
-  return (
-    (projectRoot && getPackageInfosFromWorkspace(projectRoot)) ||
-    (projectRoot && getPackageInfosFromNonWorkspaceMonorepo(projectRoot)) ||
-    (packageRoot && getPackageInfosFromSingleRepo(packageRoot)) ||
-    {}
-  );
+  let wsPackageInfos: WSPackageInfo[] | undefined;
+  if (projectRoot) {
+    wsPackageInfos = getPackageInfosFromWorkspace(projectRoot) || getPackageInfosFromNonWorkspaceMonorepo(projectRoot);
+  }
+  if (!wsPackageInfos && packageRoot) {
+    wsPackageInfos = [readWsPackageInfo(path.join(packageRoot, 'package.json'))];
+  }
+
+  return wsPackageInfos ? getPackageInfosWithOptions(wsPackageInfos) : {};
 }
 
-function getPackageInfosFromWorkspace(projectRoot: string): PackageInfos | undefined {
-  let workspacePackages: WorkspaceInfo | undefined;
+function getPackageInfosFromWorkspace(projectRoot: string): WSPackageInfo[] | undefined {
+  let workspacePackages: WSPackageInfo[] | undefined;
   try {
     // first try using the workspace provided packages (if available)
-    workspacePackages = getWorkspacePackages(projectRoot);
+    workspacePackages = getWorkspacePackages(projectRoot).map(pkg => pkg.packageJson);
   } catch {
     // not a recognized workspace from workspace-tools
   }
 
-  if (!workspacePackages?.length) {
-    return;
-  }
-
-  const packageInfos: PackageInfos = {};
-
-  for (const { path: packagePath, packageJson } of workspacePackages) {
-    const packageJsonPath = path.join(packagePath, 'package.json');
-
-    try {
-      packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonPath);
-    } catch (e) {
-      // Pass, the package.json is invalid
-      console.warn(`Problem processing ${packageJsonPath}: ${e}`);
-    }
-  }
-
-  return packageInfos;
+  return workspacePackages?.length ? workspacePackages : undefined;
 }
 
-function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string): PackageInfos | undefined {
+function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string): WSPackageInfo[] | undefined {
   const packageJsonFiles = listAllTrackedFiles(['**/package.json', 'package.json'], projectRoot);
   if (!packageJsonFiles.length) {
     return;
   }
 
-  const packageInfos: PackageInfos = {};
-
+  const wsPackageInfos: WSPackageInfos = {};
   let hasError = false;
 
-  for (const packageJsonPath of packageJsonFiles) {
+  for (const file of packageJsonFiles) {
     try {
-      const packageJsonFullPath = path.join(projectRoot, packageJsonPath);
-      const packageJson = fs.readJSONSync(packageJsonFullPath) as PackageJson;
-      if (!packageInfos[packageJson.name]) {
-        packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonFullPath);
+      const packageJson = readWsPackageInfo(path.join(projectRoot, file));
+
+      if (!wsPackageInfos[packageJson.name]) {
+        wsPackageInfos[packageJson.name] = packageJson;
       } else {
         console.error(
           `ERROR: Two packages have the same name "${packageJson.name}". Please rename one of these packages:\n` +
-            `- ${path.relative(projectRoot, packageInfos[packageJson.name].packageJsonPath)}\n` +
-            `- ${packageJsonPath}`
+            `- ${path.relative(projectRoot, wsPackageInfos[packageJson.name].packageJsonPath)}\n` +
+            `- ${path.relative(projectRoot, packageJson.packageJsonPath)}`
         );
         // Keep going so we can log all the errors
         hasError = true;
       }
     } catch (e) {
       // Pass, the package.json is invalid
-      console.warn(`Problem processing ${packageJsonPath}: ${e}`);
+      console.warn(`Problem processing ${file}: ${e}`);
     }
   }
 
@@ -90,13 +76,14 @@ function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string): PackageIn
     throw new Error('Duplicate package names found (see above for details)');
   }
 
-  return packageInfos;
+  return Object.values(wsPackageInfos);
 }
 
-function getPackageInfosFromSingleRepo(packageRoot: string): PackageInfos {
-  const packageInfos: PackageInfos = {};
-  const packageJsonFullPath = path.resolve(packageRoot, 'package.json');
-  const packageJson = fs.readJSONSync(packageJsonFullPath) as PackageJson;
-  packageInfos[packageJson.name] = infoFromPackageJson(packageJson, packageJsonFullPath);
-  return packageInfos;
+function readWsPackageInfo(packageJsonPath: string): WSPackageInfo {
+  return {
+    // this is actually the properties of WSPackageInfo except the packageJsonPath, but using omit
+    // messes things up due to the index signature...
+    ...(fs.readJSONSync(packageJsonPath) as WSPackageInfo),
+    packageJsonPath,
+  };
 }

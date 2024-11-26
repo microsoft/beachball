@@ -13,7 +13,7 @@ There are two types of configurations:
 1. repository config
 2. package config
 
-## Configuration files
+## Repository config
 
 `beachball` uses [`cosmiconfig`](https://github.com/davidtheclark/cosmiconfig) to read its configuration, so you can specify configuration in several ways (in addition to CLI arguments).
 
@@ -22,37 +22,48 @@ There are two types of configurations:
 - `.beachballrc.json`
 - `beachball.config.js` (CJS or ESM depending on your project setup; explicit `.cjs` or `.mjs` is also supported)
 
-### `beachball.config.js`
+It's most common to use a JavaScript file for the repo-level config, since it's the most flexible and allows comments. Usually this file is at the repo root.
 
-In many cases, you'll want to use a JavaScript config file, since this is the most flexible and allows comments. The example below uses JSDoc type annotations to enable intellisense in some editors (these are optional).
+The `beachball.config.js` example below uses JSDoc type annotations to enable intellisense in some editors (these are optional).
 
 ```js
 // @ts-check
 /** @type {import('beachball').BeachallConfig} */
 const config = {
-  key: value,
-  key2: value2
-  key3: value3
+  disallowedChangeTypes: ['major'],
+  changehint: 'Run "yarn change" to generate a change file',
+  groupChanges: true,
 };
 module.exports = config;
 ```
 
-Config files can be placed in either the root of a repo and/or within individual packages (package config overrides the repo config where applicable). For example:
+## Package config
+
+Package-level configuration is currently only supported under the `beachball` key in `package.json`.
+
+For example, suppose the repo config above is at `beachball.config.js` at the repo root, and there are these other files:
 
 ```
 packages/
   foo/
-    src/
     package.json
-    beachball.config.js
   bar/
-    src/
     package.json
-package.json
 beachball.config.js
+package.json
 ```
 
-It's also common to have a repo-level `beachball.config.js` and any individual package overrides (if they're simple) in the `"beachball"` key in the package's `package.json`.
+To change the `disallowedChangeTypes` for package `foo`, you could add the following to `packages/foo/package.json`:
+
+```json
+{
+  "name": "foo",
+  "version": "1.0.0",
+  "beachball": {
+    "disallowedChangeTypes": null
+  }
+}
+```
 
 ## Options
 

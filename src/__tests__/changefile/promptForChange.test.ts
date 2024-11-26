@@ -135,11 +135,8 @@ describe('promptForChange', () => {
     };
     const changeFilesPromise = promptForChange({
       ...defaultParams(),
+      options: { message: 'message', changeFilePrompt },
       changedPackages: ['foo', 'bar'],
-      packageInfos: makePackageInfos({
-        foo: { combinedOptions: { changeFilePrompt } },
-        bar: { combinedOptions: { changeFilePrompt } },
-      }),
     });
     await waitForPrompt();
 

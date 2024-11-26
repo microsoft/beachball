@@ -14,11 +14,10 @@ export function getQuestionsForPackage(params: {
   pkg: string;
   packageInfos: PackageInfos;
   packageGroups: PackageGroups;
-  options: Pick<BeachballOptions, 'message' | 'type'>;
+  options: Pick<BeachballOptions, 'message' | 'type' | 'changeFilePrompt'>;
   recentMessages: string[];
 }): prompts.PromptObject[] | undefined {
-  const { pkg, packageInfos, options, recentMessages } = params;
-  const packageInfo = packageInfos[pkg];
+  const { pkg, options, recentMessages } = params;
 
   const changeTypePrompt = getChangeTypePrompt(params);
   if (!changeTypePrompt) {
@@ -30,8 +29,7 @@ export function getQuestionsForPackage(params: {
     description: !options.message ? getDescriptionPrompt(recentMessages) : undefined,
   };
 
-  const questions =
-    packageInfo.combinedOptions.changeFilePrompt?.changePrompt?.(defaultPrompt, pkg) || Object.values(defaultPrompt);
+  const questions = options.changeFilePrompt?.changePrompt?.(defaultPrompt, pkg) || Object.values(defaultPrompt);
 
   return questions.filter((q): q is prompts.PromptObject => !!q);
 }

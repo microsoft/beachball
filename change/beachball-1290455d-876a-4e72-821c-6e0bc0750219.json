@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "getPackageInfos should only get repo and CLI options once. Also clarify in types and logic that changeFilePrompt can't be specified at package level.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

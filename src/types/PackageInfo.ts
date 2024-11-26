@@ -47,10 +47,10 @@ export interface PackageInfo {
   optionalDependencies?: PackageDeps;
   private: boolean;
 
-  /** options that are combined from the root configuration */
+  /** merged default, repo, package, and CLI options */
   combinedOptions: PackageOptions;
 
-  /** options that are SPECIFIC to the package from its configuration file (might be nothing) */
+  /** options that are SPECIFIC to the package from the `beachball` key in its package.json (might be nothing) */
   packageOptions: Partial<PackageOptions>;
 }
 

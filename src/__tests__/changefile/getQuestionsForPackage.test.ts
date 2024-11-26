@@ -150,7 +150,7 @@ describe('getQuestionsForPackage', () => {
 
     const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
-      packageInfos: makePackageInfos({ [pkg]: { combinedOptions: { changeFilePrompt: { changePrompt } } } }),
+      options: { ...defaultQuestionsParams.options, changeFilePrompt: { changePrompt } },
     });
 
     expect(questions).toEqual(customQuestions);

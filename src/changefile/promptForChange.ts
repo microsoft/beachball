@@ -17,7 +17,7 @@ export async function promptForChange(params: {
   packageGroups: PackageGroups;
   recentMessages: string[];
   email: string | null;
-  options: Pick<BeachballOptions, 'message' | 'type' | 'dependentChangeType'>;
+  options: Pick<BeachballOptions, 'message' | 'type' | 'dependentChangeType' | 'changeFilePrompt'>;
 }): Promise<ChangeFileInfo[] | undefined> {
   const { changedPackages, email, options } = params;
   if (!changedPackages.length) {

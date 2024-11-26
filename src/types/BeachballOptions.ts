@@ -200,7 +200,6 @@ export interface PackageOptions {
   disallowedChangeTypes: ChangeType[] | null;
   tag: string | null;
   defaultNpmTag: string;
-  changeFilePrompt?: ChangeFilePromptOptions;
   /**
    * Disable publishing a particular package.
    * (Does NOT work to enable publishing a package that wouldn't otherwise be published.)

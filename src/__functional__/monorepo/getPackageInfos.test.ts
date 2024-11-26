@@ -92,20 +92,18 @@ describe('getPackageInfos', () => {
     const repo = singleFactory.cloneRepository();
     let packageInfos = getPackageInfos(repo.rootPath);
     packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
-    expect(packageInfos).toMatchInlineSnapshot(`
-      {
-        "foo": {
-          "dependencies": {
-            "bar": "1.0.0",
-            "baz": "1.0.0",
-          },
-          "name": "foo",
-          "packageJsonPath": "package.json",
-          "private": false,
-          "version": "1.0.0",
+    expect(packageInfos).toEqual({
+      foo: {
+        dependencies: {
+          bar: '1.0.0',
+          baz: '1.0.0',
         },
-      }
-    `);
+        name: 'foo',
+        packageJsonPath: 'package.json',
+        private: false,
+        version: '1.0.0',
+      },
+    });
   });
 
   // both yarn and npm define "workspaces" in package.json
@@ -113,46 +111,44 @@ describe('getPackageInfos', () => {
     const repo = monorepoFactory.cloneRepository();
     let packageInfos = getPackageInfos(repo.rootPath);
     packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
-    expect(packageInfos).toMatchInlineSnapshot(`
-      {
-        "a": {
-          "name": "a",
-          "packageJsonPath": "packages/grouped/a/package.json",
-          "private": false,
-          "version": "3.1.2",
+    expect(packageInfos).toEqual({
+      a: {
+        name: 'a',
+        packageJsonPath: 'packages/grouped/a/package.json',
+        private: false,
+        version: '3.1.2',
+      },
+      b: {
+        name: 'b',
+        packageJsonPath: 'packages/grouped/b/package.json',
+        private: false,
+        version: '3.1.2',
+      },
+      bar: {
+        dependencies: {
+          baz: '^1.3.4',
         },
-        "b": {
-          "name": "b",
-          "packageJsonPath": "packages/grouped/b/package.json",
-          "private": false,
-          "version": "3.1.2",
+        name: 'bar',
+        packageJsonPath: 'packages/bar/package.json',
+        private: false,
+        version: '1.3.4',
+      },
+      baz: {
+        name: 'baz',
+        packageJsonPath: 'packages/baz/package.json',
+        private: false,
+        version: '1.3.4',
+      },
+      foo: {
+        dependencies: {
+          bar: '^1.3.4',
         },
-        "bar": {
-          "dependencies": {
-            "baz": "^1.3.4",
-          },
-          "name": "bar",
-          "packageJsonPath": "packages/bar/package.json",
-          "private": false,
-          "version": "1.3.4",
-        },
-        "baz": {
-          "name": "baz",
-          "packageJsonPath": "packages/baz/package.json",
-          "private": false,
-          "version": "1.3.4",
-        },
-        "foo": {
-          "dependencies": {
-            "bar": "^1.3.4",
-          },
-          "name": "foo",
-          "packageJsonPath": "packages/foo/package.json",
-          "private": false,
-          "version": "1.0.0",
-        },
-      }
-    `);
+        name: 'foo',
+        packageJsonPath: 'packages/foo/package.json',
+        private: false,
+        version: '1.0.0',
+      },
+    });
   });
 
   it('works in pnpm monorepo', () => {
@@ -162,16 +158,14 @@ describe('getPackageInfos', () => {
     fs.writeFileSync(repo.pathTo('pnpm-workspace.yaml'), 'packages: ["packages/*", "packages/grouped/*"]');
 
     const rootPackageInfos = getPackageInfos(repo.rootPath);
-    expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toMatchInlineSnapshot(`
-      {
-        "a": "packages/grouped/a/package.json",
-        "b": "packages/grouped/b/package.json",
-        "bar": "packages/bar/package.json",
-        "baz": "packages/baz/package.json",
-        "foo": "packages/foo/package.json",
-        "pnpm-monorepo": "package.json",
-      }
-    `);
+    expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
+      a: 'packages/grouped/a/package.json',
+      b: 'packages/grouped/b/package.json',
+      bar: 'packages/bar/package.json',
+      baz: 'packages/baz/package.json',
+      foo: 'packages/foo/package.json',
+      'pnpm-monorepo': 'package.json',
+    });
   });
 
   it('works in rush monorepo', () => {
@@ -182,16 +176,14 @@ describe('getPackageInfos', () => {
     });
 
     const rootPackageInfos = getPackageInfos(repo.rootPath);
-    expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toMatchInlineSnapshot(`
-      {
-        "a": "packages/grouped/a/package.json",
-        "b": "packages/grouped/b/package.json",
-        "bar": "packages/bar/package.json",
-        "baz": "packages/baz/package.json",
-        "foo": "packages/foo/package.json",
-        "rush-monorepo": "package.json",
-      }
-    `);
+    expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
+      a: 'packages/grouped/a/package.json',
+      b: 'packages/grouped/b/package.json',
+      bar: 'packages/bar/package.json',
+      baz: 'packages/baz/package.json',
+      foo: 'packages/foo/package.json',
+      'rush-monorepo': 'package.json',
+    });
   });
 
   it('works in lerna monorepo', () => {
@@ -200,15 +192,13 @@ describe('getPackageInfos', () => {
     fs.writeJSONSync(repo.pathTo('lerna.json'), { packages: ['packages/*', 'packages/grouped/*'] });
 
     const rootPackageInfos = getPackageInfos(repo.rootPath);
-    expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toMatchInlineSnapshot(`
-      {
-        "a": "packages/grouped/a/package.json",
-        "b": "packages/grouped/b/package.json",
-        "bar": "packages/bar/package.json",
-        "baz": "packages/baz/package.json",
-        "foo": "packages/foo/package.json",
-      }
-    `);
+    expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
+      a: 'packages/grouped/a/package.json',
+      b: 'packages/grouped/b/package.json',
+      bar: 'packages/bar/package.json',
+      baz: 'packages/baz/package.json',
+      foo: 'packages/foo/package.json',
+    });
   });
 
   it('works multi-workspace monorepo', () => {
@@ -216,46 +206,40 @@ describe('getPackageInfos', () => {
 
     // For this test, only snapshot the package names and paths
     const rootPackageInfos = getPackageInfos(repo.rootPath);
-    expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toMatchInlineSnapshot(`
-      {
-        "@workspace-a/a": "workspace-a/packages/grouped/a/package.json",
-        "@workspace-a/b": "workspace-a/packages/grouped/b/package.json",
-        "@workspace-a/bar": "workspace-a/packages/bar/package.json",
-        "@workspace-a/baz": "workspace-a/packages/baz/package.json",
-        "@workspace-a/foo": "workspace-a/packages/foo/package.json",
-        "@workspace-a/monorepo-fixture": "workspace-a/package.json",
-        "@workspace-b/a": "workspace-b/packages/grouped/a/package.json",
-        "@workspace-b/b": "workspace-b/packages/grouped/b/package.json",
-        "@workspace-b/bar": "workspace-b/packages/bar/package.json",
-        "@workspace-b/baz": "workspace-b/packages/baz/package.json",
-        "@workspace-b/foo": "workspace-b/packages/foo/package.json",
-        "@workspace-b/monorepo-fixture": "workspace-b/package.json",
-      }
-    `);
+    expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
+      '@workspace-a/a': 'workspace-a/packages/grouped/a/package.json',
+      '@workspace-a/b': 'workspace-a/packages/grouped/b/package.json',
+      '@workspace-a/bar': 'workspace-a/packages/bar/package.json',
+      '@workspace-a/baz': 'workspace-a/packages/baz/package.json',
+      '@workspace-a/foo': 'workspace-a/packages/foo/package.json',
+      '@workspace-a/monorepo-fixture': 'workspace-a/package.json',
+      '@workspace-b/a': 'workspace-b/packages/grouped/a/package.json',
+      '@workspace-b/b': 'workspace-b/packages/grouped/b/package.json',
+      '@workspace-b/bar': 'workspace-b/packages/bar/package.json',
+      '@workspace-b/baz': 'workspace-b/packages/baz/package.json',
+      '@workspace-b/foo': 'workspace-b/packages/foo/package.json',
+      '@workspace-b/monorepo-fixture': 'workspace-b/package.json',
+    });
 
     const workspaceARoot = repo.pathTo('workspace-a');
     const packageInfosA = getPackageInfos(workspaceARoot);
-    expect(getPackageNamesAndPaths(workspaceARoot, packageInfosA)).toMatchInlineSnapshot(`
-      {
-        "@workspace-a/a": "packages/grouped/a/package.json",
-        "@workspace-a/b": "packages/grouped/b/package.json",
-        "@workspace-a/bar": "packages/bar/package.json",
-        "@workspace-a/baz": "packages/baz/package.json",
-        "@workspace-a/foo": "packages/foo/package.json",
-      }
-    `);
+    expect(getPackageNamesAndPaths(workspaceARoot, packageInfosA)).toEqual({
+      '@workspace-a/a': 'packages/grouped/a/package.json',
+      '@workspace-a/b': 'packages/grouped/b/package.json',
+      '@workspace-a/bar': 'packages/bar/package.json',
+      '@workspace-a/baz': 'packages/baz/package.json',
+      '@workspace-a/foo': 'packages/foo/package.json',
+    });
 
     const workspaceBRoot = repo.pathTo('workspace-b');
     const packageInfosB = getPackageInfos(workspaceBRoot);
-    expect(getPackageNamesAndPaths(workspaceBRoot, packageInfosB)).toMatchInlineSnapshot(`
-      {
-        "@workspace-b/a": "packages/grouped/a/package.json",
-        "@workspace-b/b": "packages/grouped/b/package.json",
-        "@workspace-b/bar": "packages/bar/package.json",
-        "@workspace-b/baz": "packages/baz/package.json",
-        "@workspace-b/foo": "packages/foo/package.json",
-      }
-    `);
+    expect(getPackageNamesAndPaths(workspaceBRoot, packageInfosB)).toEqual({
+      '@workspace-b/a': 'packages/grouped/a/package.json',
+      '@workspace-b/b': 'packages/grouped/b/package.json',
+      '@workspace-b/bar': 'packages/bar/package.json',
+      '@workspace-b/baz': 'packages/baz/package.json',
+      '@workspace-b/foo': 'packages/foo/package.json',
+    });
   });
 
   it('throws if multiple packages have the same name in multi-workspace monorepo', () => {
