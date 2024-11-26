@@ -4,7 +4,7 @@ import execa from 'execa';
 import fs from 'fs-extra';
 import getPort from 'get-port';
 import path from 'path';
-import { tmpdir } from './tmpdir';
+import { removeTempDir, tmpdir } from './tmpdir';
 
 const verdaccioUser = {
   username: 'fake',
@@ -86,13 +86,8 @@ export class Registry {
 
   /** Delete the temp directory used for the config file. */
   public cleanUp(): void {
-    try {
-      this.tempRoot && fs.removeSync(this.tempRoot);
-      this.tempRoot = undefined;
-    } catch {
-      // This can fail on Windows with EBUSY (likely due to the server not being fully shut down
-      // or all handles released or something). Just ignore it.
-    }
+    this.tempRoot && removeTempDir(this.tempRoot);
+    this.tempRoot = undefined;
   }
 
   private async startWithPort(port: number): Promise<void> {

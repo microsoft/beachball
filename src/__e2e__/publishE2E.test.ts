@@ -483,7 +483,7 @@ describe('publish command (e2e)', () => {
     // All git results should still have previous information
     expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
     const manifestJson = fs.readFileSync(repo.pathTo('foo.txt'));
-    expect(manifestJson.toString()).toMatchInlineSnapshot(`"foo"`);
+    expect(manifestJson.toString()).toEqual('foo');
   });
 
   it('publishes multiple packages concurrently respecting the concurrency limit', async () => {

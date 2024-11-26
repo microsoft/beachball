@@ -8,5 +8,6 @@ import { getDefaultOptions } from './getDefaultOptions';
  */
 export function getOptions(argv: string[]): BeachballOptions {
   const cliOptions = getCliOptions(argv);
+  // TODO: proper recursive merging
   return { ...getDefaultOptions(), ...getRepoOptions(cliOptions), ...cliOptions };
 }

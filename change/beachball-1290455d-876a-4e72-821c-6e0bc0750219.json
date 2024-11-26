@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "getPackageInfos should only get repo and CLI options once",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
