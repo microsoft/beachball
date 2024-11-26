@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "bump command shouldn't check if change files are needed (+ clarify internal validation options)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
