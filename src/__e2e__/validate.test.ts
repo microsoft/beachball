@@ -41,7 +41,7 @@ describe('validate', () => {
     repo = repositoryFactory.cloneRepository();
     repo.checkout('-b', 'test');
 
-    const result = validate(getOptions());
+    const result = validate(getOptions(), { checkChangeNeeded: true });
 
     expect(result.isChangeNeeded).toBe(false);
     expect(logs.mocks.error).not.toHaveBeenCalled();
@@ -53,17 +53,17 @@ describe('validate', () => {
     repo.checkout('-b', 'test');
     repo.stageChange('packages/foo/test.js');
 
-    expect(() => validate(getOptions())).toThrowError(/process\.exit/);
+    expect(() => validate(getOptions(), { checkChangeNeeded: true })).toThrowError(/process\.exit/);
     expect(processExit).toHaveBeenCalledWith(1);
     expect(logs.mocks.error).toHaveBeenCalledWith('ERROR: Change files are needed!');
   });
 
-  it('returns an error if change files are needed and allowMissingChangeFiles is true', () => {
+  it('returns and does not log an error if change files are needed and allowMissingChangeFiles is true', () => {
     repo = repositoryFactory.cloneRepository();
     repo.checkout('-b', 'test');
     repo.stageChange('packages/foo/test.js');
 
-    const result = validate(getOptions(), { allowMissingChangeFiles: true });
+    const result = validate(getOptions(), { checkChangeNeeded: true, allowMissingChangeFiles: true });
     expect(result.isChangeNeeded).toBe(true);
     expect(logs.mocks.error).not.toHaveBeenCalled();
   });

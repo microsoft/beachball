@@ -25,12 +25,12 @@ import { validate } from './validation/validate';
   // Run the commands
   switch (options.command) {
     case 'check':
-      validate(options);
+      validate(options, { checkChangeNeeded: true, checkDependencies: true });
       console.log('No change files are needed');
       break;
 
     case 'publish':
-      validate(options, { allowFetching: false });
+      validate(options, { checkDependencies: true });
 
       // set a default publish message
       options.message = options.message || 'applying package updates';
@@ -38,12 +38,12 @@ import { validate } from './validation/validate';
       break;
 
     case 'bump':
-      validate(options);
+      validate(options, { checkDependencies: true });
       await bump(options);
       break;
 
     case 'canary':
-      validate(options, { allowFetching: false });
+      validate(options, { checkDependencies: true });
       await canary(options);
       break;
 
@@ -56,7 +56,7 @@ import { validate } from './validation/validate';
       break;
 
     case 'change': {
-      const { isChangeNeeded } = validate(options, { allowMissingChangeFiles: true });
+      const { isChangeNeeded } = validate(options, { checkChangeNeeded: true, allowMissingChangeFiles: true });
 
       if (!isChangeNeeded && !options.package) {
         console.log('No change files are needed');

@@ -19,21 +19,22 @@ import { env } from '../env';
 
 type ValidationOptions = {
   /**
-   * Defaults to true. If false, skip fetching the latest from the remote and don't check whether
-   * changes files are needed (or whether change files are deleted).
+   * If true, check whether change files are needed (and whether change files are deleted).
    */
-  allowFetching?: boolean;
+  checkChangeNeeded?: boolean;
   /**
-   * If true, skip checking whether change files are needed. Ignored if `allowFetching` is false.
+   * If true, don't error if change files are needed (just return isChangeNeeded true).
    */
   allowMissingChangeFiles?: boolean;
+  /**
+   * If true, validate that the dependencies of any packages with change files are valid
+   * (not private).
+   */
+  checkDependencies?: boolean;
 };
 
-export function validate(
-  options: BeachballOptions,
-  validateOptions?: Partial<ValidationOptions>
-): { isChangeNeeded: boolean } {
-  const { allowMissingChangeFiles = false, allowFetching = true } = validateOptions || {};
+export function validate(options: BeachballOptions, validateOptions?: ValidationOptions): { isChangeNeeded: boolean } {
+  const { allowMissingChangeFiles, checkChangeNeeded, checkDependencies } = validateOptions || {};
 
   console.log('\nValidating options and change files...');
 
@@ -145,8 +146,7 @@ export function validate(
 
   let isChangeNeeded = false;
 
-  if (allowFetching) {
-    // This has the side effect of fetching, so call it even if !allowMissingChangeFiles for now
+  if (checkChangeNeeded) {
     isChangeNeeded = isChangeFileNeeded(options, packageInfos);
 
     if (isChangeNeeded && !allowMissingChangeFiles) {
@@ -161,7 +161,7 @@ export function validate(
     }
   }
 
-  if (!isChangeNeeded) {
+  if (!isChangeNeeded && checkDependencies && changeSet.length) {
     console.log('\nValidating package dependencies...');
     // TODO: It would be preferable if this could be done without getting the full bump info,
     // or at least if the bump info could be passed back out to other methods which currently

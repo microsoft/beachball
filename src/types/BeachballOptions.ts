@@ -14,6 +14,7 @@ export interface CliOptions
     | 'bumpDeps'
     | 'changehint'
     | 'changeDir'
+    | 'concurrency'
     | 'depth'
     | 'disallowedChangeTypes'
     | 'fetch'
@@ -34,7 +35,6 @@ export interface CliOptions
   canaryName?: string | undefined;
   command: string;
   commit?: boolean;
-  concurrency: number;
   configPath?: string;
   dependentChangeType?: ChangeType;
   disallowDeletedChangeFiles?: boolean;
@@ -104,6 +104,12 @@ export interface RepoOptions {
   changeDir: string;
   /** Options for customizing changelog rendering */
   changelog?: ChangelogOptions;
+  /**
+   * Maximum concurrency.
+   * As of writing, concurrency only applies for calling hooks and publishing to npm.
+   * @default 1
+   */
+  concurrency: number;
   /**
    * The default dist-tag used for npm publish
    * @default 'latest'
