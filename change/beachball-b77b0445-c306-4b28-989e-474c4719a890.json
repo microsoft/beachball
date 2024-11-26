@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add more properties to RepoOptions instead of just CliOptions",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
