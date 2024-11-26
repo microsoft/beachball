@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Recursively merge repo and package options. This has a very slight chance of causing a change in behavior if anyone had both a repo-level config, and some package-level package.json \"beachball\" config that set nested object options (which was never intentionally supported).",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

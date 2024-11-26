@@ -5,6 +5,7 @@ import { getRepoOptions } from './getRepoOptions';
 import { getDefaultOptions } from './getDefaultOptions';
 import { env } from '../env';
 import type { PackageInfos } from '../types/PackageInfo';
+import { mergeOptions } from './getOptions';
 
 /**
  * Fill in options to convert `workspace-tools` `PackageInfos` to the format used in this repo,
@@ -34,13 +35,7 @@ export function getPackageInfosWithOptions(wsPackageInfos: WSPackageInfo[]): Pac
       peerDependencies: packageJson.peerDependencies,
       optionalDependencies: packageJson.optionalDependencies,
       private: packageJson.private !== undefined ? packageJson.private : false,
-      // TODO: proper recursive merging
-      combinedOptions: {
-        ...defaultOptions,
-        ...repoOptions,
-        ...packageOptions,
-        ...cliOptions,
-      },
+      combinedOptions: mergeOptions({ defaultOptions, repoOptions, cliOptions, packageOptions }),
       packageOptions,
     };
   }
