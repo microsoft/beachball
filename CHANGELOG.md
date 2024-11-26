@@ -1,8 +1,17 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Mon, 25 Nov 2024 08:04:31 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 26 Nov 2024 08:02:32 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.50.1
+
+Tue, 26 Nov 2024 08:02:32 GMT
+
+### Patches
+
+- getPackageInfos should only get repo and CLI options once. Also clarify in types and logic that changeFilePrompt can't be specified at package level. (elcraig@microsoft.com)
+- Update help message (elcraig@microsoft.com)
 
 ## 2.50.0
 

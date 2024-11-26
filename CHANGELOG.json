@@ -2,6 +2,27 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 26 Nov 2024 08:02:32 GMT",
+      "version": "2.50.1",
+      "tag": "beachball_v2.50.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "13d1843bb7b8eea355ad0e7c494be9f589db5306",
+            "comment": "getPackageInfos should only get repo and CLI options once. Also clarify in types and logic that changeFilePrompt can't be specified at package level."
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "13d1843bb7b8eea355ad0e7c494be9f589db5306",
+            "comment": "Update help message"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 25 Nov 2024 08:04:31 GMT",
       "version": "2.50.0",
       "tag": "beachball_v2.50.0",
