@@ -11,15 +11,23 @@ export interface CliOptions
     RepoOptions,
     | 'access'
     | 'branch'
+    | 'bump'
     | 'bumpDeps'
+    | 'canaryName'
     | 'changehint'
     | 'changeDir'
+    | 'commit'
     | 'concurrency'
     | 'depth'
     | 'disallowedChangeTypes'
+    | 'disallowDeletedChangeFiles'
     | 'fetch'
+    | 'fromRef'
     | 'gitTags'
+    | 'gitTimeout'
+    | 'keepChangeFiles'
     | 'message'
+    | 'new'
     | 'path'
     | 'prereleasePrefix'
     | 'publish'
@@ -28,46 +36,27 @@ export interface CliOptions
     | 'retries'
     | 'scope'
     | 'tag'
+    | 'timeout'
   > {
   all: boolean;
   authType: AuthType;
-  bump: boolean;
-  canaryName?: string | undefined;
   command: string;
-  commit?: boolean;
   configPath?: string;
   dependentChangeType?: ChangeType;
-  disallowDeletedChangeFiles?: boolean;
   /**
    * For sync: use the version from the registry even if it's older than local.
    */
   forceVersions?: boolean;
-  /**
-   * Consider change files since this git ref (branch name, commit SHA, etc).
-   */
-  fromRef?: string;
   help?: boolean;
-  keepChangeFiles?: boolean;
-  /**
-   * For publish: If true, publish all newly added packages in addition to modified packages.
-   * This is rarely needed since new packages *with change files* will always be published
-   * regardless of this option.
-   *
-   * (This has limited use unless you pushed new packages directly to the main branch, or
-   * your PR build doesn't run `beachball check`. Otherwise, `beachball check` will require
-   * change files to be created for the new packages.)
-   */
-  new: boolean;
   package?: string | string[];
-  /** Timeout for npm operations (other than install, which is expected to take longer) */
-  timeout?: number;
-  /** Timeout for `git push` operations */
-  gitTimeout?: number;
   token?: string;
   type?: ChangeType | null;
   verbose?: boolean;
   version?: boolean;
   yes: boolean;
+
+  // ONLY add new options here if they only make sense on the command line!
+  // Most options should be defined in RepoOptions and added to the Pick<...> above.
 }
 
 export interface RepoOptions {
@@ -86,10 +75,16 @@ export interface RepoOptions {
    */
   branch: string;
   /**
+   * Whether to bump versions during publish.
+   * @default true
+   */
+  bump: boolean;
+  /**
    * Bump dependent packages during publish: e.g. if B is bumped, and A depends on B, also bump A.
    * @default true
    */
   bumpDeps: boolean;
+  canaryName?: string;
   /** Options for customizing change file prompt. */
   changeFilePrompt?: ChangeFilePromptOptions;
   /**
@@ -105,6 +100,12 @@ export interface RepoOptions {
   /** Options for customizing changelog rendering */
   changelog?: ChangelogOptions;
   /**
+   * If true, commit change files automatically after `beachball change`.
+   * If false, only stage them.
+   * @default true
+   */
+  commit?: boolean;
+  /**
    * Maximum concurrency.
    * As of writing, concurrency only applies for calling hooks and publishing to npm.
    * @default 1
@@ -117,11 +118,16 @@ export interface RepoOptions {
   defaultNpmTag: string;
   /** What change types are disallowed */
   disallowedChangeTypes: ChangeType[] | null;
+  disallowDeletedChangeFiles?: boolean;
   /**
    * Fetch from remote before doing diff comparisons
    * @default true
    */
   fetch: boolean;
+  /**
+   * Consider change files since this git ref (branch name, commit SHA, etc).
+   */
+  fromRef?: string;
   /**
    * Whether to generate changelog files.
    * - `true` (default) to generate both CHANGELOG.md and CHANGELOG.json
@@ -144,6 +150,7 @@ export interface RepoOptions {
    * Patterns are relative to the repo root and must use forward slashes.
    */
   ignorePatterns?: string[];
+  keepChangeFiles?: boolean;
   /** For the `change` command, change message. For the `publish` command, commit message. */
   message: string;
   /**
@@ -193,12 +200,26 @@ export interface RepoOptions {
    * @default 'latest'
    */
   tag: string;
+  /** Timeout for npm operations (other than install, which is expected to take longer) */
+  timeout?: number;
+  /** Timeout for `git push` operations */
+  gitTimeout?: number;
   /** Transformations for change files */
   transform?: TransformOptions;
   /** Put multiple changes in a single changefile */
   groupChanges?: boolean;
   /** For shallow clones only: Depth of git history to consider when doing fetch */
   depth?: number;
+  /**
+   * For publish: If true, publish all newly added packages in addition to modified packages.
+   * This is rarely needed since new packages *with change files* will always be published
+   * regardless of this option.
+   *
+   * (This has limited use unless you pushed new packages directly to the main branch, or
+   * your PR build doesn't run `beachball check`. Otherwise, `beachball check` will require
+   * change files to be created for the new packages.)
+   */
+  new: boolean;
 }
 
 export interface PackageOptions {
