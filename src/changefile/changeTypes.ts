@@ -46,7 +46,7 @@ export function initializePackageChangeTypes(
   return pkgChangeTypes;
 }
 
-function getAllowedChangeType(changeType: ChangeType, disallowedChangeTypes: ChangeType[]): ChangeType {
+function getAllowedChangeType(changeType: ChangeType, disallowedChangeTypes: ReadonlyArray<ChangeType>): ChangeType {
   if (!changeType) {
     return 'none'; // this would be from invalid user input
   }
@@ -67,7 +67,7 @@ function getAllowedChangeType(changeType: ChangeType, disallowedChangeTypes: Cha
 export function getMaxChangeType(
   a: ChangeType | undefined,
   b: ChangeType | undefined,
-  disallowedChangeTypes?: ChangeType[] | null
+  disallowedChangeTypes?: ReadonlyArray<ChangeType> | null
 ): ChangeType {
   a ??= MinChangeType;
   b ??= MinChangeType;

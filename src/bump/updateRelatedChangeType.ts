@@ -1,4 +1,5 @@
 import { getMaxChangeType, MinChangeType } from '../changefile/changeTypes';
+import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes';
 import type { BumpInfo, PackageDependents } from '../types/BumpInfo';
 
 /**
@@ -66,7 +67,7 @@ export function updateRelatedChangeType(params: {
         continue;
       }
 
-      const disallowedChangeTypes = packageInfo.combinedOptions?.disallowedChangeTypes ?? [];
+      const disallowedChangeTypes = getDisallowedChangeTypes(subjectPackage, packageInfos, packageGroups) || [];
 
       if (subjectPackage !== entryPointPackageName) {
         calculatedChangeTypes[subjectPackage] = getMaxChangeType(
@@ -87,7 +88,8 @@ export function updateRelatedChangeType(params: {
       //       - set the version for all packages in the group in bumpPackageInfoVersion()
       //       - the main concern is how to capture the bump reason in grouped changelog
 
-      // Step 3. For group-linked packages, update the change type to the max(change file info's change type, propagated update change type)
+      // Step 3. For group-linked packages, update the change type to the max of the
+      // change file info's change type, or the propagated update change type.
       const group = Object.values(packageGroups).find(g => g.packageNames.includes(packageInfo.name));
 
       if (group) {
