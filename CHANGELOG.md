@@ -1,8 +1,21 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Tue, 26 Nov 2024 08:02:32 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 27 Nov 2024 08:02:35 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.51.0
+
+Wed, 27 Nov 2024 08:02:35 GMT
+
+### Minor changes
+
+- Add more properties to RepoOptions instead of just CliOptions (elcraig@microsoft.com)
+- bump command shouldn't check if change files are needed (+ clarify internal validation options) (elcraig@microsoft.com)
+
+### Patches
+
+- Simplify getRepoOptions logic (elcraig@microsoft.com)
 
 ## 2.50.1
 

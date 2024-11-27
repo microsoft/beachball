@@ -2,6 +2,35 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 27 Nov 2024 08:02:35 GMT",
+      "version": "2.51.0",
+      "tag": "beachball_v2.51.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "618fd13c41a99bdf631e95a97084dc2e9e4ed562",
+            "comment": "Add more properties to RepoOptions instead of just CliOptions"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "618fd13c41a99bdf631e95a97084dc2e9e4ed562",
+            "comment": "bump command shouldn't check if change files are needed (+ clarify internal validation options)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "618fd13c41a99bdf631e95a97084dc2e9e4ed562",
+            "comment": "Simplify getRepoOptions logic"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 26 Nov 2024 08:02:32 GMT",
       "version": "2.50.1",
       "tag": "beachball_v2.50.1",
