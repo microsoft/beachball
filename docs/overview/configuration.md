@@ -28,7 +28,7 @@ The `beachball.config.js` example below uses JSDoc type annotations to enable in
 
 ```js
 // @ts-check
-/** @type {import('beachball').BeachallConfig} */
+/** @type {import('beachball').BeachballConfig} */
 const config = {
   disallowedChangeTypes: ['major'],
   changehint: 'Run "yarn change" to generate a change file',
