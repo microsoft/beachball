@@ -23,17 +23,17 @@ For Azure DevOps repos publishing to a private registry, there are other possibl
 
 #### npm token
 
-If publishing to the public npm registry (`registry.npmjs.org`), [create a granular access token](https://docs.npmjs.com/creating-and-viewing-access-tokens#creating-granular-access-tokens-on-the-website) with write access to only the relevant package(s) and/or scope(s). Classic automation tokens are not recommended due to their overly broad permissions.
+If publishing to the public npm registry (`registry.npmjs.org`), [create a granular access token](https://docs.npmjs.com/creating-and-viewing-access-tokens#creating-granular-access-tokens-on-the-website) with write access to **only** the relevant package(s) and/or scope(s). Classic automation tokens are not recommended due to their overly broad permissions.
 
 #### GitHub token
 
-You should use [branch protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/managing-a-branch-protection-rule) for your `main`/`master` branch, but this creates some difficulties for pushing changes back during automated publishing.
+Since a repo's `main`/`master` branch should be protected, this creates some difficulties for pushing changes back during automated publishing.
 
-The main way to allow `beachball` to push back to a repo with branch protections is by using a [classic personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#personal-access-tokens-classic) with `repo` permissions. (If the repo is part of an organization that uses SAML single sign-on (SSO), be sure to [authorize the token for SSO access](https://docs.github.com/en/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on).) Since classic PATs have broad permissions, they must only be accessible to release builds—[instructions below](#storing-tokens).
+The main way to allow `beachball` to push back to a repo with branch protections is by using a [**fine-grained** personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) with write permissions for **only** the specific repo. (If the repo is in an org that doesn't allow persistent admin access, see [these instructions](https://github.com/microsoft/beachball/issues/1008).)
 
-An alternative approach is creating a classic PAT with a "machine user" account. Create a new account with an alternate email or [subaddress](https://en.wikipedia.org/wiki/Email_address#Subaddressing) (`+` address), give it contributor permissions to only this repo, and add it under "Restrict who can push to matching branches" in the branch protection rule.
+An alternative approach is creating a fine-grained PAT with a "machine user" account. Create a new account with an alternate email or [subaddress](https://en.wikipedia.org/wiki/Email_address#Subaddressing) (`+` address), give it contributor permissions to only this repo, and add it under "Restrict who can push to matching branches" in the branch protection rule.
 
-(It's unclear if/when branch policy bypass support will be added for [fine-grained PATs](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-fine-grained-personal-access-token); it's been [requested](https://github.com/community/community/discussions/36441?sort=top#discussioncomment-4602435) by users with no response and doesn't seem to be on the [public roadmap](https://github.com/orgs/github/projects/4247/views/1). The [built-in `GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication) won't work for the same reason.)
+(Note that the [built-in `GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication) won't work for publishing because that actor can't be given permission to bypass policies.)
 
 ### Storing tokens
 
@@ -96,9 +96,9 @@ Here's a sample setup for publishing from a GitHub repo using GitHub actions. Th
 
 This sample assumes the following:
 
-- An environment called `release` (set up [as described above](#secrets-github-actions)) with the following secrets:
-  - `REPO_PAT`: A GitHub classic personal access token with admin access ([as described above](#generating-a-github-token))
-  - `NPM_TOKEN`: An npm token with write access to the package(s) and/or scope(s), such as a [fine-grained token for public npm](#generating-an-npm-token)
+- An environment called `release` (set up [as described above](#storing-tokens)) with the following secrets:
+  - `REPO_PAT`: A GitHub fine-grained personal access token with write access ([as described above](#github-token))
+  - `NPM_TOKEN`: An npm token with write access to the package(s) and/or scope(s), such as a [fine-grained token for public npm](#npm-token)
 - A repo root `package.json` script `release` which runs `beachball publish`
 - The build is running on a Linux/Mac agent. (This could be easily adapted to a Windows agent with different syntax in the commands.)
 
@@ -153,8 +153,8 @@ Here's a sample setup for publishing from a GitHub repo using Azure Pipelines. T
 This sample assumes the following:
 
 - A variable group called `Beachball secrets` (set up [as described above](#secrets-azure-pipelines)) with the following secrets:
-  - `GITHUB_PAT`: A GitHub classic personal access token with admin access ([as described above](#generating-a-github-token))
-  - `NPM_TOKEN`: An npm token with write access to the package(s) and/or scope(s), such as a [fine-grained token for public npm](#generating-an-npm-token)
+  - `REPO_PAT`: A GitHub fine-grained personal access token with write access ([as described above](#github-token))
+  - `NPM_TOKEN`: An npm token with write access to the package(s) and/or scope(s), such as a [fine-grained token for public npm](#npm-token)
 - A repo root `package.json` script `release` which runs `beachball publish`
 - The build is running on a Linux/Mac agent. (This could be easily adapted to a Windows agent with different syntax in the commands.)
 
