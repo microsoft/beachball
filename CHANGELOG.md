@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Wed, 27 Nov 2024 08:02:35 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 25 Mar 2025 08:02:37 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.51.1
+
+Tue, 25 Mar 2025 08:02:37 GMT
+
+### Patches
+
+- Update workspace-tools to improve git rev-list performance (elcraig@microsoft.com)
 
 ## 2.51.0
 

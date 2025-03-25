@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 25 Mar 2025 08:02:37 GMT",
+      "version": "2.51.1",
+      "tag": "beachball_v2.51.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "211c42435468d34b03c9c2da7740cb21e00f30dd",
+            "comment": "Update workspace-tools to improve git rev-list performance"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 27 Nov 2024 08:02:35 GMT",
       "version": "2.51.0",
       "tag": "beachball_v2.51.0",

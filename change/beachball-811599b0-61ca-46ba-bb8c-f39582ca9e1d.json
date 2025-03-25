@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update workspace-tools to improve git rev-list performance",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
