@@ -11,6 +11,8 @@ on:
 env:
   npmVersion: 8
 
+permissions: {}
+
 jobs:
   build:
     runs-on: ubuntu-latest
