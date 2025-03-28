@@ -7,7 +7,7 @@ category: doc
 
 # Beachball CLI options
 
-For the latest full list of supported options, see `CliOptions` [in this file](https://github.com/microsoft/beachball/blob/master/src/types/BeachballOptions.ts).
+For the latest full list of supported options, see `CliOptions` [in this file](https://github.com/microsoft/beachball/blob/main/src/types/BeachballOptions.ts).
 
 **Most options can also be specified in the [configuration file](../overview/configuration)**, which is generally preferable as it's easier to read and maintain.
 
