@@ -69,9 +69,14 @@ export interface RepoOptions {
    * The target branch. In the repo or CLI config, this can be specified without a remote name
    * as long as `repository` is set in `package.json` to allow inferring the correct remote.
    *
+   * This defaults to the default branch of the default remote.
+   * - The default remote is the one matching `repository` in `package.json`, falling back to
+   *   `upstream` if defined, the first defined remote, or `origin`.
+   * - The default branch is the remote's default branch if defined, falling back to
+   *   `git config init.defaultBranch` or `master`.
+   *
    * (In the resolved config used internally, the remote name should *usually* be included,
    * unless neither a remote name nor `package.json` `repository` was specified.)
-   * @default 'origin/master'
    */
   branch: string;
   /**

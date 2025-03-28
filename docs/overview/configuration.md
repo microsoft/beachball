@@ -67,7 +67,7 @@ To change the `disallowedChangeTypes` for package `foo`, you could add the follo
 
 ## Options
 
-For the latest full list of supported options, see `RepoOptions` [in this file](https://github.com/microsoft/beachball/blob/master/src/types/BeachballOptions.ts).
+For the latest full list of supported options, see `RepoOptions` [in this file](https://github.com/microsoft/beachball/blob/main/src/types/BeachballOptions.ts).
 
 "Applies to" indicates where the settings can be specified: repo-level config or package-level config.
 
@@ -100,10 +100,10 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `tag`                   | `string`                       | `'latest'`     | repo, package | dist-tag for npm when published                                                                 |
 | `transform`             | [`TransformOptions`][4]        |                | repo          | transformations for change files                                                                |
 
-[1]: https://github.com/microsoft/beachball/blob/master/src/types/ChangeFilePrompt.ts
-[2]: https://github.com/microsoft/beachball/blob/master/src/types/ChangelogOptions.ts
+[1]: https://github.com/microsoft/beachball/blob/main/src/types/ChangeFilePrompt.ts
+[2]: https://github.com/microsoft/beachball/blob/main/src/types/ChangelogOptions.ts
 [3]: ../concepts/groups#version-groups
-[4]: https://github.com/microsoft/beachball/blob/master/src/types/BeachballOptions.ts
+[4]: https://github.com/microsoft/beachball/blob/main/src/types/BeachballOptions.ts
 [5]: #determining-the-target-branch-and-remote
 [6]: #glob-matching
 

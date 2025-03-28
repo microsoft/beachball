@@ -26,7 +26,7 @@ For cases where it's necessary to bump packages together, `beachball` also provi
 
 ### Configuring version groups
 
-Groups can be added to the [configuration file](../overview/configuration). See the [`VersionGroupOptions` source](https://github.com/microsoft/beachball/blob/master/src/types/ChangelogOptions.ts) for full details.
+Groups can be added to the [configuration file](../overview/configuration). See the [`VersionGroupOptions` source](https://github.com/microsoft/beachball/blob/main/src/types/ChangelogOptions.ts) for full details.
 
 | Name                    | Type                         | Description                                                                                                                                             |
 | ----------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -56,7 +56,7 @@ If you only want to publish or record changes for certain packages, you should u
 
 ## Grouped changelogs
 
-To show changes for multiple packages in one change file, use the `changelog.groups` option. See the [`ChangelogGroupOptions` source](https://github.com/microsoft/beachball/blob/master/src/types/ChangelogOptions.ts) for full details.
+To show changes for multiple packages in one change file, use the `changelog.groups` option. See the [`ChangelogGroupOptions` source](https://github.com/microsoft/beachball/blob/main/src/types/ChangelogOptions.ts) for full details.
 
 | Name                | Type                         | Description                                                                                                                                             |
 | ------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
