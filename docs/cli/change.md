@@ -59,7 +59,6 @@ If you have changes that are not committed yet (i.e. `git status` reports change
 
 ```
 $ beachball change
-Defaults to "origin/master"
 There are uncommitted changes in your repository. Please commit these files first:
 - a-new-file
 ```
