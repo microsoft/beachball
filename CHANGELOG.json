@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 29 Mar 2025 08:02:16 GMT",
+      "version": "2.51.1",
+      "tag": "beachball_v2.51.1",
+      "comments": {
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "3f62cbaced714abeddd841fbef3e7b4deeeeb51a",
+            "comment": "Update comments"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 25 Mar 2025 08:02:37 GMT",
       "version": "2.51.1",
       "tag": "beachball_v2.51.1",
