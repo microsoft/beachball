@@ -1,4 +1,5 @@
 import { getMaxChangeType, MinChangeType } from '../changefile/changeTypes';
+import { ChangeType } from '../types/ChangeInfo';
 import type { BumpInfo, PackageDependents } from '../types/BumpInfo';
 
 /**
@@ -20,84 +21,176 @@ import type { BumpInfo, PackageDependents } from '../types/BumpInfo';
  * - bumpInfo.calculatedChangeTypes: will not mutate the entryPoint `pkgName` change type
  */
 export function updateRelatedChangeType(params: {
-  changeFile: string;
+  changeFiles: string[];
   bumpInfo: Pick<BumpInfo, 'calculatedChangeTypes' | 'changeFileChangeInfos' | 'packageGroups' | 'packageInfos'>;
   dependents: PackageDependents;
   bumpDeps: boolean;
 }): void {
-  const { changeFile, bumpInfo, dependents, bumpDeps } = params;
+  const { changeFiles, bumpInfo, dependents, bumpDeps } = params;
   const { calculatedChangeTypes, changeFileChangeInfos, packageGroups, packageInfos } = bumpInfo;
 
+  const changeFileSet = new Set<string>(changeFiles);
+  const initialPackages = new Set<string>();
+
+  // This mapping of package name to the number of edges pointing to it is used
+  // to determine when a package has been fully processed. When the in-degree
+  // of a package is zero, it means that all of its dependencies have been
+  // processed, and we can safely finalize its change type.
+  const inDegree: Record<string, number> = {};
+
+  // This mapping of package name to the list of packages that depend on it is used
+  // to walk the dependency graph in reverse-topological order. This is how we know
+  // which packages depend on a package that is being processed.
+  const outEdges: Record<string, string[]> = {};
+
+  // The queue will be for BFS traversal during graph exploration and
+  // modifying inDegree and outEdges and initializing calculatedChangeTypes.
+  const queue: string[] = [];
+  const intermediateChangeTypes: Record<string, ChangeType> = {};
+
+  const pkgToGroup: Record<string, ReadonlyArray<string>> = {};
+  for (const group in packageGroups) {
+    const info = packageGroups[group];
+    for (const pkg of info.packageNames) {
+      pkgToGroup[pkg] = info.packageNames;
+    }
+  }
+
+  // Visited will be used to keep track of the packages that have
+  // already been processed during our forward walk.
+  const visited = new Set<string>();
+
+  // Go through the starting packages and update their values.
   for (const info of changeFileChangeInfos) {
-    if (info.changeFile !== changeFile) {
+    console.log(info);
+    if (!changeFileSet.has(info.changeFile)) {
       continue;
     }
 
     const {
-      change: { packageName: entryPointPackageName, dependentChangeType },
+      change: { packageName: pkg, dependentChangeType },
     } = info;
 
     // Do not do anything if packageInfo is not present: it means this was an invalid changefile that
     // somehow got checked in. (This should have already been caught by readChangeFiles, but just in case.)
-    if (!packageInfos[entryPointPackageName]) {
+    if (!packageInfos[pkg]) {
       continue;
     }
 
-    const updatedChangeType = getMaxChangeType(dependentChangeType, MinChangeType);
+    // In case the caller sent the same package multiple times, we need to make sure we only process it once.
+    if (visited.has(pkg)) {
+      continue;
+    }
 
-    const queue = [{ subjectPackage: entryPointPackageName, changeType: MinChangeType }];
+    initialPackages.add(pkg);
+    visited.add(pkg);
+    queue.push(pkg);
 
-    // visited is a set of package names that already has been seen by this algorithm - this allows the algo to scale
-    const visited = new Set<string>();
+    const disallowedChangeTypes = packageInfos[pkg].combinedOptions?.disallowedChangeTypes ?? [];
+    intermediateChangeTypes[pkg] = getMaxChangeType(dependentChangeType, MinChangeType, disallowedChangeTypes);
 
-    while (queue.length > 0) {
-      const { subjectPackage, changeType } = queue.shift()!;
+    inDegree[pkg] = 0;
+    outEdges[pkg] = [];
+  }
 
-      if (visited.has(subjectPackage)) {
-        continue;
-      }
+  // Walk the dependency graph to construct the DAG again and initialize the topo walk.
+  while (queue.length > 0) {
+    const subjectPackage = queue.shift()!;
+    const outEdgesForSubjectPackage = outEdges[subjectPackage] || [];
+    outEdges[subjectPackage] = outEdgesForSubjectPackage;
 
-      visited.add(subjectPackage);
+    const dependentPackages = dependents[subjectPackage];
 
-      // Step 1. Update change type of the subjectPackage according to the dependent change type propagation
-      const packageInfo = packageInfos[subjectPackage];
-      if (!packageInfo) {
-        continue;
-      }
-
-      const disallowedChangeTypes = packageInfo.combinedOptions?.disallowedChangeTypes ?? [];
-
-      if (subjectPackage !== entryPointPackageName) {
-        calculatedChangeTypes[subjectPackage] = getMaxChangeType(
-          calculatedChangeTypes[subjectPackage],
-          changeType,
-          disallowedChangeTypes
-        );
-      }
-
-      // Step 2. For all dependent packages of the current subjectPackage, place in queue to be updated at least to the "updatedChangeType"
-      const dependentPackages = dependents[subjectPackage];
-
-      if (bumpDeps && dependentPackages?.length) {
-        queue.push(...dependentPackages.map(pkg => ({ subjectPackage: pkg, changeType: updatedChangeType })));
-      }
-
-      // TODO: when we do "locked", or "lock step" versioning, we could simply skip this grouped traversal,
-      //       - set the version for all packages in the group in bumpPackageInfoVersion()
-      //       - the main concern is how to capture the bump reason in grouped changelog
-
-      // Step 3. For group-linked packages, update the change type to the max(change file info's change type, propagated update change type)
-      const group = Object.values(packageGroups).find(g => g.packageNames.includes(packageInfo.name));
-
-      if (group) {
-        for (const packageNameInGroup of group.packageNames) {
-          if (!group.disallowedChangeTypes?.includes(updatedChangeType)) {
-            queue.push({
-              subjectPackage: packageNameInGroup,
-              changeType: updatedChangeType,
-            });
-          }
+    if (bumpDeps && dependentPackages?.length) {
+      for (const dependentPackage of dependentPackages) {
+        if (!visited.has(dependentPackage)) {
+          visited.add(dependentPackage);
+          queue.push(dependentPackage);
         }
+        outEdgesForSubjectPackage.push(dependentPackage);
+        inDegree[dependentPackage] = (inDegree[dependentPackage] || 0) + 1;
+      }
+    }
+
+    // TODO: when we do "locked", or "lock step" versioning, we could simply skip this grouped traversal,
+    //       - set the version for all packages in the group in bumpPackageInfoVersion()
+    //       - the main concern is how to capture the bump reason in grouped changelog
+
+    const group = pkgToGroup[subjectPackage];
+
+    if (group) {
+      for (const packageNameInGroup of group) {
+        if (packageNameInGroup === subjectPackage) {
+          continue;
+        }
+        if (!visited.has(packageNameInGroup)) {
+          visited.add(packageNameInGroup);
+          queue.push(packageNameInGroup);
+        }
+      }
+    }
+  }
+
+  // Done with top-down BFS traversal. Time for the topo-order walk.
+
+  for (const pkg of visited) {
+    // If the package has no in-degrees, it means that all of its dependencies have been processed.
+    // We can safely finalize its change type.
+    if ((inDegree[pkg] ?? 0) === 0) {
+      queue.push(pkg);
+    }
+  }
+
+  while (queue.length > 0) {
+    const subjectPackage = queue.shift()!;
+
+    const group = pkgToGroup[subjectPackage];
+
+    // If we are part of a group, then we need to select the maximum from all
+    // of the packages in the group. This may overwrite the group multiple times
+    // if some packages in the group have not been fully explored yet.
+    if (group) {
+      var curMax = intermediateChangeTypes[subjectPackage];
+      for (const packageNameInGroup of group) {
+        if (packageNameInGroup === subjectPackage) {
+          continue;
+        }
+        const compare = intermediateChangeTypes[packageNameInGroup];
+        curMax = getMaxChangeType(curMax, compare, null);
+      }
+
+      for (const packageNameInGroup of group) {
+        const disallowedChangeTypes = packageInfos[packageNameInGroup].combinedOptions?.disallowedChangeTypes ?? [];
+        intermediateChangeTypes[packageNameInGroup] = getMaxChangeType(intermediateChangeTypes[packageNameInGroup], curMax, disallowedChangeTypes);
+
+        if (!initialPackages.has(packageNameInGroup)) {
+          calculatedChangeTypes[packageNameInGroup] = intermediateChangeTypes[packageNameInGroup];
+        }
+      }
+    }
+
+    const changeType = intermediateChangeTypes[subjectPackage] ?? MinChangeType;
+    if (!initialPackages.has(subjectPackage)) {
+      // If the package is not in the change file set, we need to update its change type
+      calculatedChangeTypes[subjectPackage] = changeType;
+    }
+
+    for (const pkg of outEdges[subjectPackage]) {
+      // Update the current maximum change type for this package.
+      const disallowedChangeTypes = packageInfos[pkg].combinedOptions?.disallowedChangeTypes ?? [];
+
+      intermediateChangeTypes[pkg] = getMaxChangeType(
+        intermediateChangeTypes[pkg],
+        changeType,
+        disallowedChangeTypes
+      );
+
+      // Lower the in-degree because this "edge" is processed.
+      inDegree[pkg] = inDegree[pkg] - 1;
+
+      // If that lowered it to zero, then add to the queue.
+      if (inDegree[pkg] === 0) {
+        queue.push(pkg);
       }
     }
   }

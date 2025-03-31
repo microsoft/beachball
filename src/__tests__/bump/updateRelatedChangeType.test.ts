@@ -56,7 +56,7 @@ describe('updateRelatedChangeType', () => {
       },
     });
 
-    updateRelatedChangeType({ changeFile: 'foo.json', bumpInfo, dependents, bumpDeps: true });
+    updateRelatedChangeType({ changeFiles: ['foo.json'], bumpInfo, dependents, bumpDeps: true });
 
     expect(bumpInfo.calculatedChangeTypes['foo']).toBe('minor');
     expect(bumpInfo.calculatedChangeTypes['bar']).toBe('patch');
@@ -76,7 +76,7 @@ describe('updateRelatedChangeType', () => {
       },
     });
 
-    updateRelatedChangeType({ changeFile: 'foo.json', bumpInfo, dependents, bumpDeps: true });
+    updateRelatedChangeType({ changeFiles: ['foo.json'], bumpInfo, dependents, bumpDeps: true });
 
     expect(bumpInfo.calculatedChangeTypes['foo']).toBe('patch');
     expect(bumpInfo.calculatedChangeTypes['bar']).toBe('minor');
@@ -108,8 +108,7 @@ describe('updateRelatedChangeType', () => {
       },
     });
 
-    updateRelatedChangeType({ changeFile: 'foo.json', bumpInfo, dependents, bumpDeps: true });
-    updateRelatedChangeType({ changeFile: 'bar.json', bumpInfo, dependents, bumpDeps: true });
+    updateRelatedChangeType({ changeFiles: ['foo.json', 'bar.json'], bumpInfo, dependents, bumpDeps: true });
 
     expect(bumpInfo.calculatedChangeTypes['foo']).toBe('patch');
     expect(bumpInfo.calculatedChangeTypes['bar']).toBe('major');
@@ -149,14 +148,14 @@ describe('updateRelatedChangeType', () => {
       },
     });
 
-    updateRelatedChangeType({ changeFile: 'foo.json', bumpInfo, dependents, bumpDeps: true });
+    updateRelatedChangeType({ changeFiles: ['foo.json'], bumpInfo, dependents, bumpDeps: true });
 
     expect(bumpInfo.calculatedChangeTypes['foo']).toBe('patch');
     expect(bumpInfo.calculatedChangeTypes['baz']).toBe('minor');
     expect(bumpInfo.calculatedChangeTypes['bar']).toBe('patch');
     expect(bumpInfo.calculatedChangeTypes['app']).toBe('patch');
 
-    updateRelatedChangeType({ changeFile: 'baz.json', bumpInfo, dependents, bumpDeps: true });
+    updateRelatedChangeType({ changeFiles: ['baz.json'], bumpInfo, dependents, bumpDeps: true });
 
     expect(bumpInfo.calculatedChangeTypes['bar']).toBe('minor');
   });
@@ -182,8 +181,7 @@ describe('updateRelatedChangeType', () => {
       },
     });
 
-    updateRelatedChangeType({ changeFile: 'foo.json', bumpInfo, dependents, bumpDeps: true });
-    updateRelatedChangeType({ changeFile: 'baz.json', bumpInfo, dependents, bumpDeps: true });
+    updateRelatedChangeType({ changeFiles: ['baz.json', 'foo.json'], bumpInfo, dependents, bumpDeps: true });
 
     expect(bumpInfo.calculatedChangeTypes['foo']).toBe('patch');
     expect(bumpInfo.calculatedChangeTypes['baz']).toBe('patch');
@@ -205,7 +203,7 @@ describe('updateRelatedChangeType', () => {
       ],
     });
 
-    updateRelatedChangeType({ changeFile: 'foo.json', bumpInfo, dependents: {}, bumpDeps: true });
+    updateRelatedChangeType({ changeFiles: ['foo.json'], bumpInfo, dependents: {}, bumpDeps: true });
 
     expect(bumpInfo.calculatedChangeTypes['bar']).toBe('minor');
     expect(bumpInfo.calculatedChangeTypes['unrelated']).toBeUndefined();
@@ -225,7 +223,7 @@ describe('updateRelatedChangeType', () => {
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
-    updateRelatedChangeType({ changeFile: 'foo.json', bumpInfo, dependents: {}, bumpDeps: true });
+    updateRelatedChangeType({ changeFiles: ['foo.json'], bumpInfo, dependents: {}, bumpDeps: true });
 
     expect(bumpInfo.calculatedChangeTypes['bar']).toBe('patch');
     expect(bumpInfo.calculatedChangeTypes['unrelated']).toBeUndefined();
@@ -245,7 +243,7 @@ describe('updateRelatedChangeType', () => {
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
-    updateRelatedChangeType({ changeFile: 'foo.json', bumpInfo, dependents: {}, bumpDeps: true });
+    updateRelatedChangeType({ changeFiles: ['foo.json'], bumpInfo, dependents: {}, bumpDeps: true });
 
     expect(bumpInfo.calculatedChangeTypes['bar']).toBe('none');
     expect(bumpInfo.calculatedChangeTypes['unrelated']).toBeUndefined();
@@ -265,7 +263,7 @@ describe('updateRelatedChangeType', () => {
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
-    updateRelatedChangeType({ changeFile: 'foo.json', bumpInfo, dependents, bumpDeps: true });
+    updateRelatedChangeType({ changeFiles: ['foo.json'], bumpInfo, dependents, bumpDeps: true });
 
     expect(bumpInfo.calculatedChangeTypes['bar']).toBe('none');
     expect(bumpInfo.calculatedChangeTypes['unrelated']).toBeUndefined();
@@ -291,7 +289,7 @@ describe('updateRelatedChangeType', () => {
       packageGroups: { grp: { packageNames: ['foo', 'bar'] } },
     });
 
-    updateRelatedChangeType({ changeFile: 'dep.json', bumpInfo, dependents, bumpDeps: true });
+    updateRelatedChangeType({ changeFiles: ['dep.json'], bumpInfo, dependents, bumpDeps: true });
 
     expect(bumpInfo.calculatedChangeTypes['foo']).toBe('minor');
     expect(bumpInfo.calculatedChangeTypes['bar']).toBe('minor');
@@ -322,7 +320,7 @@ describe('updateRelatedChangeType', () => {
       ],
     });
 
-    updateRelatedChangeType({ changeFile: 'dep.json', bumpInfo, dependents, bumpDeps: true });
+    updateRelatedChangeType({ changeFiles: ['dep.json'], bumpInfo, dependents, bumpDeps: true });
 
     expect(bumpInfo.calculatedChangeTypes['foo']).toBe('minor');
     expect(bumpInfo.calculatedChangeTypes['bar']).toBe('minor');
@@ -360,8 +358,7 @@ describe('updateRelatedChangeType', () => {
       ],
     });
 
-    updateRelatedChangeType({ changeFile: 'mergeStyles.json', bumpInfo, dependents, bumpDeps: true });
-    updateRelatedChangeType({ changeFile: 'datetimeUtils.json', bumpInfo, dependents, bumpDeps: true });
+    updateRelatedChangeType({ changeFiles: ['mergeStyles.json', 'datetimeUtils.json'], bumpInfo, dependents, bumpDeps: true });
 
     expect(bumpInfo.calculatedChangeTypes['foo']).toBe('minor');
     expect(bumpInfo.calculatedChangeTypes['bar']).toBe('minor');
@@ -381,7 +378,7 @@ describe('updateRelatedChangeType', () => {
       },
     });
 
-    updateRelatedChangeType({ changeFile: 'foo.json', bumpInfo, dependents: {}, bumpDeps: true });
+    updateRelatedChangeType({ changeFiles: ['foo.json'], bumpInfo, dependents: {}, bumpDeps: true });
 
     expect(bumpInfo.calculatedChangeTypes['foo']).toBeUndefined();
   });
