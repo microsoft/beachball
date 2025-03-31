@@ -62,11 +62,17 @@ export function updateRelatedChangeType(params: {
       const disallowedChangeTypes = packageInfo.combinedOptions?.disallowedChangeTypes ?? [];
 
       if (subjectPackage !== entryPointPackageName) {
+        const oldType = calculatedChangeTypes[subjectPackage];
         calculatedChangeTypes[subjectPackage] = getMaxChangeType(
-          calculatedChangeTypes[subjectPackage],
+          oldType,
           changeType,
           disallowedChangeTypes
         );
+
+        // We didn't change this type, so keep going.
+        if (calculatedChangeTypes[subjectPackage] === oldType) {
+          continue;
+        }
       }
 
       // Step 2. For all dependent packages of the current subjectPackage, place in queue to be updated at least to the "updatedChangeType"
