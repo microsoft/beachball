@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "updateRelatedChangeType: move quadratic performance to linear",
+  "packageName": "beachball",
+  "email": "dstolee@microsoft.com",
+  "dependentChangeType": "patch"
+}
