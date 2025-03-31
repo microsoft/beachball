@@ -53,12 +53,6 @@ export function updateRelatedChangeType(params: {
     while (queue.length > 0) {
       const { subjectPackage, changeType } = queue.shift()!;
 
-      if (visited.has(subjectPackage)) {
-        continue;
-      }
-
-      visited.add(subjectPackage);
-
       // Step 1. Update change type of the subjectPackage according to the dependent change type propagation
       const packageInfo = packageInfos[subjectPackage];
       if (!packageInfo) {
@@ -79,7 +73,14 @@ export function updateRelatedChangeType(params: {
       const dependentPackages = dependents[subjectPackage];
 
       if (bumpDeps && dependentPackages?.length) {
-        queue.push(...dependentPackages.map(pkg => ({ subjectPackage: pkg, changeType: updatedChangeType })));
+        for (const dependentPackage of dependentPackages) {
+          if (visited.has(dependentPackage)) {
+            continue;
+          }
+
+          visited.add(dependentPackage);
+          queue.push(({ subjectPackage: dependentPackage, changeType: updatedChangeType }));
+        }
       }
 
       // TODO: when we do "locked", or "lock step" versioning, we could simply skip this grouped traversal,
@@ -92,6 +93,11 @@ export function updateRelatedChangeType(params: {
       if (group) {
         for (const packageNameInGroup of group.packageNames) {
           if (!group.disallowedChangeTypes?.includes(updatedChangeType)) {
+            if (visited.has(packageNameInGroup)) {
+              continue;
+            }
+
+            visited.add(packageNameInGroup);
             queue.push({
               subjectPackage: packageNameInGroup,
               changeType: updatedChangeType,
