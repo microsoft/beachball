@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix cubic graph walk performance to quadratic",
+  "packageName": "beachball",
+  "email": "dstolee@microsoft.com",
+  "dependentChangeType": "patch"
+}
