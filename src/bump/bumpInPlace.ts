@@ -33,8 +33,8 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions): void
   }
 
   // Calculate change types for packages and dependencies
-  for (const { changeFile } of changeFileChangeInfos) {
-    updateRelatedChangeType({ changeFile, bumpInfo, dependents, bumpDeps });
+  for (const { change } of changeFileChangeInfos) {
+    updateRelatedChangeType({ change, bumpInfo, dependents, bumpDeps });
   }
 
   // pass 3: actually bump the packages in the bumpInfo in memory (no disk writes at this point)

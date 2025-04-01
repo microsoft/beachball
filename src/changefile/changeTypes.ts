@@ -1,9 +1,10 @@
+import { BumpInfo } from '../types/BumpInfo';
 import type { ChangeSet, ChangeType } from '../types/ChangeInfo';
 
 /**
  * List of all change types from least to most significant.
  */
-export const SortedChangeTypes: ChangeType[] = [
+export const SortedChangeTypes = [
   'none',
   'prerelease',
   'prepatch',
@@ -12,12 +13,10 @@ export const SortedChangeTypes: ChangeType[] = [
   'minor',
   'premajor',
   'major',
-];
+] as const satisfies readonly ChangeType[];
 
-/**
- * Change type with the smallest weight.
- */
-export const MinChangeType = SortedChangeTypes[0];
+/** `'none'` change type (smallest weight) */
+export const MinChangeType: ChangeType = 'none';
 
 /**
  * Change type weights.
@@ -28,13 +27,18 @@ const ChangeTypeWeights = Object.fromEntries(SortedChangeTypes.map((t, i) => [t,
 /**
  * Get initial package change types based on the greatest change type set for each package in any
  * change file, accounting for any disallowed change types or nonexistent packages.
+ * Anything with change type "none" will be ignored.
  */
-export function initializePackageChangeTypes(changeSet: ChangeSet): { [pkgName: string]: ChangeType } {
-  const pkgChangeTypes: { [pkgName: string]: ChangeType } = {};
+export function initializePackageChangeTypes(changeSet: ChangeSet): BumpInfo['calculatedChangeTypes'] {
+  const pkgChangeTypes: BumpInfo['calculatedChangeTypes'] = {};
 
   for (const { change } of changeSet) {
-    const { packageName: pkg, type } = change;
-    pkgChangeTypes[pkg] = getMaxChangeType(type, pkgChangeTypes[pkg] || 'none', null);
+    const { packageName: pkg } = change;
+    const changeType = getMaxChangeType(change.type, pkgChangeTypes[pkg]);
+    // It's best to totally ignore "none" changes to do a bit less processing.
+    if (changeType !== 'none') {
+      pkgChangeTypes[pkg] = changeType;
+    }
   }
 
   return pkgChangeTypes;
@@ -60,7 +64,7 @@ function getAllowedChangeType(changeType: ChangeType, disallowedChangeTypes: Rea
  */
 export function getMaxChangeType(
   a: ChangeType | undefined,
-  b: ChangeType | undefined,
+  b?: ChangeType,
   disallowedChangeTypes?: ReadonlyArray<ChangeType> | null
 ): ChangeType {
   if (disallowedChangeTypes?.length) {

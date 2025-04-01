@@ -60,12 +60,20 @@ describe('initializePackageChangeTypes', () => {
       { change: { packageName: 'bar', type: 'none' } },
       { change: { packageName: 'bar', type: 'minor' } },
       { change: { packageName: 'foo', type: 'patch' } },
-      { change: { packageName: 'baz', type: 'none' } },
     ] as ChangeSet;
+
     expect(initializePackageChangeTypes(changeSet)).toEqual({
       foo: 'minor',
       bar: 'minor',
-      baz: 'none',
     });
+  });
+
+  it('omits "none" change types', () => {
+    const changeSet = [
+      { change: { packageName: 'foo', type: 'none' } },
+      { change: { packageName: 'bar', type: 'patch' } },
+    ] as ChangeSet;
+
+    expect(initializePackageChangeTypes(changeSet)).toEqual({ bar: 'patch' });
   });
 });
