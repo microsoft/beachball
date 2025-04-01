@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Tue, 25 Mar 2025 08:02:37 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 01 Apr 2025 02:23:37 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.51.2
+
+Tue, 01 Apr 2025 02:23:37 GMT
+
+### Patches
+
+- Fix cubic graph walk performance to quadratic (dstolee@microsoft.com)
 
 ## 2.51.1
 
