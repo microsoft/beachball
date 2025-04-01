@@ -53,12 +53,6 @@ export function updateRelatedChangeType(params: {
     while (queue.length > 0) {
       const { subjectPackage, changeType } = queue.shift()!;
 
-      if (visited.has(subjectPackage)) {
-        continue;
-      }
-
-      visited.add(subjectPackage);
-
       // Step 1. Update change type of the subjectPackage according to the dependent change type propagation
       const packageInfo = packageInfos[subjectPackage];
       if (!packageInfo) {
@@ -68,18 +62,31 @@ export function updateRelatedChangeType(params: {
       const disallowedChangeTypes = packageInfo.combinedOptions?.disallowedChangeTypes ?? [];
 
       if (subjectPackage !== entryPointPackageName) {
+        const oldType = calculatedChangeTypes[subjectPackage];
         calculatedChangeTypes[subjectPackage] = getMaxChangeType(
-          calculatedChangeTypes[subjectPackage],
+          oldType,
           changeType,
           disallowedChangeTypes
         );
+
+        // We didn't change this type, so keep going.
+        if (calculatedChangeTypes[subjectPackage] === oldType) {
+          continue;
+        }
       }
 
       // Step 2. For all dependent packages of the current subjectPackage, place in queue to be updated at least to the "updatedChangeType"
       const dependentPackages = dependents[subjectPackage];
 
       if (bumpDeps && dependentPackages?.length) {
-        queue.push(...dependentPackages.map(pkg => ({ subjectPackage: pkg, changeType: updatedChangeType })));
+        for (const dependentPackage of dependentPackages) {
+          if (visited.has(dependentPackage)) {
+            continue;
+          }
+
+          visited.add(dependentPackage);
+          queue.push(({ subjectPackage: dependentPackage, changeType: updatedChangeType }));
+        }
       }
 
       // TODO: when we do "locked", or "lock step" versioning, we could simply skip this grouped traversal,
@@ -91,7 +98,8 @@ export function updateRelatedChangeType(params: {
 
       if (group) {
         for (const packageNameInGroup of group.packageNames) {
-          if (!group.disallowedChangeTypes?.includes(updatedChangeType)) {
+          if (!group.disallowedChangeTypes?.includes(updatedChangeType) && !visited.has(packageNameInGroup)) {
+            visited.add(packageNameInGroup);
             queue.push({
               subjectPackage: packageNameInGroup,
               changeType: updatedChangeType,
