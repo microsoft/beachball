@@ -5,6 +5,10 @@ import { getDefaultOptions } from '../options/getDefaultOptions';
 
 const defaultOptions = getDefaultOptions();
 
+export type PartialPackageInfos = {
+  [name: string]: Partial<Omit<PackageInfo, 'combinedOptions'>> & { combinedOptions?: Partial<BeachballOptions> };
+};
+
 /**
  * Makes a properly typed PackageInfos object from a partial object, filling in defaults:
  * ```
@@ -18,9 +22,7 @@ const defaultOptions = getDefaultOptions();
  * }
  * ```
  */
-export function makePackageInfos(packageInfos: {
-  [name: string]: Partial<Omit<PackageInfo, 'combinedOptions'>> & { combinedOptions?: Partial<BeachballOptions> };
-}): PackageInfos {
+export function makePackageInfos(packageInfos: PartialPackageInfos): PackageInfos {
   return _.mapValues(packageInfos, (info, name): PackageInfo => {
     const { combinedOptions, ...rest } = info;
     return {

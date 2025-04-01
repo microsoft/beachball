@@ -11,16 +11,10 @@ import { getPackageGroups } from '../monorepo/getPackageGroups';
  * Gather bump info and bump versions in memory.
  */
 export function gatherBumpInfo(options: BeachballOptions, packageInfos: PackageInfos): BumpInfo {
-  // Collate the changes per package
   const changes = readChangeFiles(options, packageInfos);
 
-  // Clear non-existent packages from changefiles infos
+  // Determine base change types for each package (not considering disallowedChangeTypes or groups)
   const calculatedChangeTypes = initializePackageChangeTypes(changes);
-  Object.keys(calculatedChangeTypes).forEach(packageName => {
-    if (!packageInfos[packageName]) {
-      delete calculatedChangeTypes[packageName];
-    }
-  });
 
   const bumpInfo: BumpInfo = {
     calculatedChangeTypes,

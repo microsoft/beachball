@@ -1,15 +1,18 @@
+import { SortedChangeTypes } from '../changefile/changeTypes';
 import { ChangeType } from '../types/ChangeInfo';
 
+/**
+ * Returns whether `dependentChangeType` is valid and not disallowed.
+ * Note that `'patch'` is always allowed.
+ */
 export function isValidDependentChangeType(
   dependentChangeType: ChangeType,
   disallowedChangeTypes: ChangeType[] | null
 ): boolean {
-  // patch is always allowed as a dependentChangeType
-  const disallowedDependentChangeTypes = (disallowedChangeTypes || []).filter(t => t !== 'patch');
+  if (dependentChangeType === 'patch') {
+    // patch is always allowed as a dependentChangeType
+    return true;
+  }
 
-  return (
-    ['patch', 'major', 'minor', 'prerelease', 'prepatch', 'praminor', 'premajor', 'none'].includes(
-      dependentChangeType
-    ) && !disallowedDependentChangeTypes.includes(dependentChangeType)
-  );
+  return SortedChangeTypes.includes(dependentChangeType) && !disallowedChangeTypes?.includes(dependentChangeType);
 }

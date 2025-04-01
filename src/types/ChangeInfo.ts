@@ -35,4 +35,11 @@ export interface ChangeInfoMultiple {
 /**
  * List of change file infos (not actually a set).
  */
-export type ChangeSet = { changeFile: string; change: ChangeFileInfo }[];
+export type ChangeSet = Array<{
+  change: ChangeFileInfo;
+  /**
+   * Filename the change came from (under `BeachballOptions.changeDir`).
+   * Multiple entries in the array might have come from the same file.
+   */
+  changeFile: string;
+}>;
