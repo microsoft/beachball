@@ -23,7 +23,7 @@ export const MinChangeType = SortedChangeTypes[0];
  * Change type weights.
  * Note: the order in which this is defined is IMPORTANT.
  */
-const ChangeTypeWeights = Object.fromEntries(SortedChangeTypes.map((t, i) => [t, i])) as { [t in ChangeType]: number };
+const ChangeTypeWeights = Object.fromEntries(SortedChangeTypes.map((t, i) => [t, i])) as Record<ChangeType, number>;
 
 /**
  * Get initial package change types based on the greatest change type set for each package in any
@@ -40,7 +40,7 @@ export function initializePackageChangeTypes(changeSet: ChangeSet): { [pkgName: 
   return pkgChangeTypes;
 }
 
-function getAllowedChangeType(changeType: ChangeType, disallowedChangeTypes: ChangeType[]): ChangeType {
+function getAllowedChangeType(changeType: ChangeType, disallowedChangeTypes: ReadonlyArray<ChangeType>): ChangeType {
   if (!changeType) {
     return 'none'; // this would be from invalid user input
   }
@@ -61,15 +61,12 @@ function getAllowedChangeType(changeType: ChangeType, disallowedChangeTypes: Cha
 export function getMaxChangeType(
   a: ChangeType | undefined,
   b: ChangeType | undefined,
-  disallowedChangeTypes?: ChangeType[] | null
+  disallowedChangeTypes?: ReadonlyArray<ChangeType> | null
 ): ChangeType {
-  a ??= MinChangeType;
-  b ??= MinChangeType;
-
-  if (disallowedChangeTypes) {
-    a = getAllowedChangeType(a, disallowedChangeTypes);
-    b = getAllowedChangeType(b, disallowedChangeTypes);
+  if (disallowedChangeTypes?.length) {
+    a = a && getAllowedChangeType(a, disallowedChangeTypes);
+    b = b && getAllowedChangeType(b, disallowedChangeTypes);
   }
 
-  return ChangeTypeWeights[a] > ChangeTypeWeights[b] ? a : b;
+  return a && b ? (ChangeTypeWeights[a] > ChangeTypeWeights[b] ? a : b) : a || b || 'none';
 }

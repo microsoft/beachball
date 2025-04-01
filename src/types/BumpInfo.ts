@@ -3,7 +3,10 @@ import type { DeepReadonly } from './DeepReadonly';
 import type { PackageInfos, PackageGroups } from './PackageInfo';
 
 export type BumpInfo = {
-  /** Changes coming from the change files */
+  /**
+   * Changes coming from the change files.
+   * `readChangeFiles` ensures that this will only contain changes for packages that exist.
+   */
   changeFileChangeInfos: DeepReadonly<ChangeSet>;
 
   /**
@@ -12,7 +15,12 @@ export type BumpInfo = {
    */
   packageInfos: PackageInfos;
 
-  /** Change types collated by the package names */
+  /**
+   * Mapping from package name to change type.
+   *
+   * Initially (after `gatherBumpInfo`), this just has change types based on the change files.
+   * It's updated by the early steps of `bumpInPlace` to consider groups and `disallowedChangeTypes`.
+   */
   calculatedChangeTypes: { [pkgName: string]: ChangeType };
 
   /** Package grouping */
