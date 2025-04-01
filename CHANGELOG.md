@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Tue, 01 Apr 2025 06:45:07 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 01 Apr 2025 15:28:04 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.52.0
+
+Tue, 01 Apr 2025 15:28:04 GMT
+
+### Minor changes
+
+- Remove redundant processing in updateRelatedChangeType, and other minor optimizations (elcraig@microsoft.com)
 
 ## 2.51.2
 

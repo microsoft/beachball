@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 01 Apr 2025 15:28:04 GMT",
+      "version": "2.52.0",
+      "tag": "beachball_v2.52.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "88e0be03ae439388feacb718b8b674219ce48f0c",
+            "comment": "Remove redundant processing in updateRelatedChangeType, and other minor optimizations"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 01 Apr 2025 06:45:07 GMT",
       "version": "2.51.2",
       "tag": "beachball_v2.51.2",

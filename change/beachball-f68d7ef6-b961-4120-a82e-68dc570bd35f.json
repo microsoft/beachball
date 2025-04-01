@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Remove redundant processing in updateRelatedChangeType, and other minor optimizations",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
