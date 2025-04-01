@@ -98,11 +98,7 @@ export function updateRelatedChangeType(params: {
 
       if (group) {
         for (const packageNameInGroup of group.packageNames) {
-          if (!group.disallowedChangeTypes?.includes(updatedChangeType)) {
-            if (visited.has(packageNameInGroup)) {
-              continue;
-            }
-
+          if (!group.disallowedChangeTypes?.includes(updatedChangeType) && !visited.has(packageNameInGroup)) {
             visited.add(packageNameInGroup);
             queue.push({
               subjectPackage: packageNameInGroup,
