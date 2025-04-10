@@ -1,9 +1,10 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { getPackageChangelogs } from '../../changelog/getPackageChangelogs';
 import type { BumpInfo } from '../../types/BumpInfo';
 import type { ChangeFileInfo, ChangeSet } from '../../types/ChangeInfo';
 import type { PackageInfos } from '../../types/PackageInfo';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import { getFileAddedHash } from 'workspace-tools';
 
 const commit = 'deadbeef';
 const author = 'something@something.com';
@@ -11,12 +12,12 @@ const author = 'something@something.com';
 // Mock the methods used from workspace-tools so we don't access the filesystem
 jest.mock('workspace-tools', () => ({
   findProjectRoot: () => '.',
-  getFileAddedHash: () => commit,
+  getFileAddedHash: jest.fn(() => commit),
 }));
 
-function makeChangeInfo(pkg: string, overrides?: Partial<ChangeFileInfo>): ChangeSet[number] {
+function makeChangeInfo(pkg: string, overrides?: Partial<ChangeFileInfo>, filename?: string): ChangeSet[number] {
   return {
-    changeFile: `${pkg}.json`,
+    changeFile: filename || `${pkg}.json`,
     change: {
       comment: `comment for ${pkg}`,
       dependentChangeType: 'patch',
@@ -28,12 +29,18 @@ function makeChangeInfo(pkg: string, overrides?: Partial<ChangeFileInfo>): Chang
   };
 }
 
-const options: Parameters<typeof getPackageChangelogs>[1] = {
+const options = {
   path: '.',
   changeDir: 'change',
 };
 
 describe('getPackageChangelogs', () => {
+  const getFileAddedHashMock = getFileAddedHash as jest.MockedFunction<typeof getFileAddedHash>;
+
+  afterEach(() => {
+    getFileAddedHashMock.mockClear();
+  });
+
   it('generates correct changelog entries for a single package', () => {
     const changeFileChangeInfos: ChangeSet = [
       makeChangeInfo('foo'),
@@ -60,7 +67,9 @@ describe('getPackageChangelogs', () => {
       tag: 'foo_v1.0.0',
       version: '1.0.0',
     });
-    expect(changelogs.foo.comments.patch).toHaveLength(1);
+
+    // the fake change files use the same default filename
+    expect(getFileAddedHashMock).toHaveBeenCalledTimes(1);
   });
 
   it('generates correct changelog entries for multiple packages', () => {
@@ -97,6 +106,8 @@ describe('getPackageChangelogs', () => {
       tag: 'bar_v2.0.0',
       version: '2.0.0',
     });
+
+    expect(getFileAddedHashMock).toHaveBeenCalledTimes(2);
   });
 
   it('preserves custom properties from change files', () => {
@@ -155,7 +166,7 @@ describe('getPackageChangelogs', () => {
       tag: 'bar_v2.0.0',
       version: '2.0.0',
     });
-    expect(Object.keys(changelogs.bar.comments.patch!)).toHaveLength(1);
+    expect(getFileAddedHashMock).toHaveBeenCalledTimes(1);
   });
 
   it('records multiple comment entries when a package has a change file AND was part of a dependent bump', () => {
@@ -219,5 +230,23 @@ describe('getPackageChangelogs', () => {
 
     expect(changelogs.bar).toBeTruthy();
     expect(changelogs['private-pkg']).toBeUndefined();
+  });
+
+  it('omits commit hashes if requested', () => {
+    const changeFileChangeInfos: ChangeSet = [makeChangeInfo('foo')];
+    const packageInfos = makePackageInfos({ foo: { version: '1.0.0' } });
+
+    const changelogs = getPackageChangelogs(
+      {
+        changeFileChangeInfos,
+        calculatedChangeTypes: { foo: 'patch' },
+        packageInfos,
+      },
+      { ...options, changelog: { includeCommitHashes: false } }
+    );
+
+    expect(changelogs.foo.comments.patch).toHaveLength(1);
+    expect(changelogs.foo.comments.patch![0].commit).toBeUndefined();
+    expect(getFileAddedHashMock).not.toHaveBeenCalled();
   });
 });

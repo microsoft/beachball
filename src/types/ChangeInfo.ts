@@ -22,7 +22,11 @@ export interface ChangeFileInfo {
  * Info saved in each change file, plus the commit hash.
  */
 export interface ChangeInfo extends ChangeFileInfo {
-  commit: string;
+  /**
+   * Commit hash where the change was made, if available.
+   * Will be undefined if `options.change.includeCommitHashes` is false.
+   */
+  commit?: string;
 }
 
 /**

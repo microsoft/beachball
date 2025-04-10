@@ -20,9 +20,10 @@ const commitNotAvailable = 'not available';
 export function getPackageChangelogs(
   bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'packageInfos'> &
     Partial<Pick<BumpInfo, 'dependentChangedBy'>>,
-  options: Pick<BeachballOptions, 'path' | 'changeDir'>
+  options: Pick<BeachballOptions, 'path' | 'changeDir' | 'changelog'>
 ): Record<string, PackageChangelog> {
   const { changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy = {}, packageInfos } = bumpInfo;
+  const includeCommitHashes = options.changelog?.includeCommitHashes !== false;
 
   const changelogs: Record<string, PackageChangelog> = {};
   const changeFileCommits: { [changeFile: string]: string } = {};
@@ -32,8 +33,10 @@ export function getPackageChangelogs(
     const { packageName, type: changeType, dependentChangeType, email, ...rest } = change;
     changelogs[packageName] ??= createPackageChangelog(packageInfos[packageName]);
 
-    changeFileCommits[changeFile] ??=
-      getFileAddedHash(path.join(changePath, changeFile), options.path) || commitNotAvailable;
+    if (includeCommitHashes) {
+      changeFileCommits[changeFile] ??=
+        getFileAddedHash(path.join(changePath, changeFile), options.path) || commitNotAvailable;
+    }
 
     changelogs[packageName].comments ??= {};
     changelogs[packageName].comments[changeType] ??= [];
@@ -71,7 +74,7 @@ export function getPackageChangelogs(
           // split publishing into two commits (one for bumps and one for changelog updates),
           // there's no way to know the hash yet. It's better to record nothing than incorrect info.
           // https://github.com/microsoft/beachball/issues/901
-          commit: commitNotAvailable,
+          ...(includeCommitHashes && { commit: commitNotAvailable }),
         });
       }
     }

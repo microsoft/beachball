@@ -53,6 +53,13 @@ export interface ChangelogOptions {
    * (If the md file is truncated, it will include a comment about referring to git for older entries.)
    */
   maxVersions?: number;
+
+  /**
+   * If true (the default), each `CHANGELOG.json` entry and `ChangeInfo` object will include the
+   * commit hash where the change was made. This can be disabled for performance reasons.
+   * @default true
+   */
+  includeCommitHashes?: boolean;
 }
 
 /**

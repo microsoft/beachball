@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add option to disable commit hashes in changelogs (`options.changelog.includeCommitHashes`, default true)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
