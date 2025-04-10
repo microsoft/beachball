@@ -25,8 +25,10 @@ export interface ChangelogEntry {
    *
    * Could also be `"not available"` for other commits if there was an issue determing the hash
    * at changelog generation time.
+   *
+   * Will be undefined if `options.change.includeCommitHashes` is false.
    */
-  commit: string;
+  commit?: string;
   /** Package name the change was in */
   package: string;
   /** Extra info added to the change file via custom prompts */
