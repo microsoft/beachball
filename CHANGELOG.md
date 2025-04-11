@@ -1,8 +1,20 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Tue, 01 Apr 2025 15:28:04 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 11 Apr 2025 23:22:55 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.53.0
+
+Fri, 11 Apr 2025 23:22:55 GMT
+
+### Minor changes
+
+- Add option to disable commit hashes in changelogs (`options.changelog.includeCommitHashes`, default true) (elcraig@microsoft.com)
+
+### Patches
+
+- Only request the necessary properties with npm show (elcraig@microsoft.com)
 
 ## 2.52.0
 

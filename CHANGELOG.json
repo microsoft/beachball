@@ -2,6 +2,29 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 11 Apr 2025 23:22:55 GMT",
+      "version": "2.53.0",
+      "tag": "beachball_v2.53.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "84c48ae905ef904a1bd65f5f30809e32174b7cc5",
+            "comment": "Only request the necessary properties with npm show"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "84c48ae905ef904a1bd65f5f30809e32174b7cc5",
+            "comment": "Add option to disable commit hashes in changelogs (`options.changelog.includeCommitHashes`, default true)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 01 Apr 2025 15:28:04 GMT",
       "version": "2.52.0",
       "tag": "beachball_v2.52.0",
