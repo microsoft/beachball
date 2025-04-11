@@ -7,7 +7,7 @@ import { getNpmAuthArgs } from './npmArgs';
 
 /**
  * Result returned by `npm show --json <package>`.
- * (More properties can be added as needed.)
+ * (Only includes the properties listed in `getNpmPackageInfo`.)
  */
 export type NpmShowResult = PackageJson & {
   /** All versions of a package */
@@ -20,6 +20,9 @@ let packageVersionsCache: { [pkgName: string]: NpmShowResult | false } = {};
 
 const NPM_CONCURRENCY = env.npmConcurrency ?? (env.isJest ? 2 : 5);
 
+/** Specific `npm show` properties requested by `listPackageVersions` */
+export const npmShowProperties = ['versions', 'dist-tags'];
+
 export function _clearPackageVersionsCache(): void {
   packageVersionsCache = {};
 }
@@ -29,7 +32,16 @@ async function getNpmPackageInfo(packageName: string, options: NpmOptions): Prom
 
   if (env.beachballDisableCache || !packageVersionsCache[packageName]) {
     const showResult = await npm(
-      ['show', '--registry', registry, '--json', packageName, ...getNpmAuthArgs(registry, token, authType)],
+      [
+        'show',
+        '--registry',
+        registry,
+        '--json',
+        ...getNpmAuthArgs(registry, token, authType),
+        packageName,
+        // Only fetch the properties we need
+        ...npmShowProperties,
+      ],
       { timeout, cwd: options.path }
     );
 

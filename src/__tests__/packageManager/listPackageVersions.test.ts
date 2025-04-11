@@ -4,6 +4,7 @@ import {
   listPackageVersions,
   listPackageVersionsByTag,
   _clearPackageVersionsCache,
+  npmShowProperties,
 } from '../../packageManager/listPackageVersions';
 import type { NpmOptions } from '../../types/NpmOptions';
 import { initNpmMock } from '../../__fixtures__/mockNpm';
@@ -15,6 +16,7 @@ describe('list npm versions', () => {
   /** Mock the `npm show` command for `npmAsync` calls. This also handles cleanup after each test. */
   const npmMock = initNpmMock();
   const npmOptions: NpmOptions = { registry: 'https://fake', path: undefined };
+  const commonArgs = ['show', '--registry', 'https://fake', '--json'];
 
   afterEach(() => {
     _clearPackageVersionsCache();
@@ -22,28 +24,25 @@ describe('list npm versions', () => {
 
   describe('listPackageVersions', () => {
     it('succeeds with nothing to do', async () => {
-      expect(await listPackageVersions([], npmOptions)).toEqual({});
+      const versions = await listPackageVersions([], npmOptions);
+      expect(versions).toEqual({});
       expect(npmMock.mock).not.toHaveBeenCalled();
     });
 
     it('returns versions for one package', async () => {
       npmMock.setRegistryData({ foo: { versions: ['1.0.0', '1.0.1'] } });
-      expect(await listPackageVersions(['foo'], npmOptions)).toEqual({ foo: ['1.0.0', '1.0.1'] });
+      const versions = await listPackageVersions(['foo'], npmOptions);
+      expect(versions).toEqual({ foo: ['1.0.0', '1.0.1'] });
       expect(npmMock.mock).toHaveBeenCalledTimes(1);
-      expect(npmMock.mock).toHaveBeenCalledWith(
-        ['show', '--registry', 'https://fake', '--json', 'foo'],
-        expect.anything()
-      );
+      expect(npmMock.mock).toHaveBeenCalledWith([...commonArgs, 'foo', ...npmShowProperties], expect.anything());
     });
 
     it('returns empty versions array for missing package', async () => {
       npmMock.setRegistryData({});
-      expect(await listPackageVersions(['foo'], npmOptions)).toEqual({ foo: [] });
+      const versions = await listPackageVersions(['foo'], npmOptions);
+      expect(versions).toEqual({ foo: [] });
       expect(npmMock.mock).toHaveBeenCalledTimes(1);
-      expect(npmMock.mock).toHaveBeenCalledWith(
-        ['show', '--registry', 'https://fake', '--json', 'foo'],
-        expect.anything()
-      );
+      expect(npmMock.mock).toHaveBeenCalledWith([...commonArgs, 'foo', ...npmShowProperties], expect.anything());
     });
 
     it('returns versions for multiple packages', async () => {
@@ -51,30 +50,34 @@ describe('list npm versions', () => {
       const showData = Object.fromEntries(packages.map((x, i) => [x, { versions: [`${i}.0.0`, `${i}.0.1`] }]));
       npmMock.setRegistryData(showData);
 
-      expect(await listPackageVersions(packages, npmOptions)).toEqual(_.mapValues(showData, x => x.versions));
+      const versions = await listPackageVersions(packages, npmOptions);
+      expect(versions).toEqual(_.mapValues(showData, x => x.versions));
       expect(npmMock.mock).toHaveBeenCalledTimes(packages.length);
     });
 
     it('returns versions for multiple packages with some missing', async () => {
       npmMock.setRegistryData({ foo: { versions: ['1.0.0', '1.0.1'] } });
-      expect(await listPackageVersions(['foo', 'bar'], npmOptions)).toEqual({ foo: ['1.0.0', '1.0.1'], bar: [] });
+      const versions = await listPackageVersions(['foo', 'bar'], npmOptions);
+      expect(versions).toEqual({ foo: ['1.0.0', '1.0.1'], bar: [] });
       expect(npmMock.mock).toHaveBeenCalledTimes(2);
     });
 
     it('respects password auth args', async () => {
-      npmMock.setRegistryData({});
-      await listPackageVersions(['foo'], { ...npmOptions, authType: 'password', token: 'pass' });
+      npmMock.setRegistryData({ foo: { versions: ['1.0.0', '1.0.1'] } });
+      const versions = await listPackageVersions(['foo'], { ...npmOptions, authType: 'password', token: 'pass' });
+      expect(versions).toEqual({ foo: ['1.0.0', '1.0.1'] });
       expect(npmMock.mock).toHaveBeenCalledWith(
-        ['show', '--registry', 'https://fake', '--json', 'foo', '--//fake:_password=pass'],
+        [...commonArgs, '--//fake:_password=pass', 'foo', ...npmShowProperties],
         expect.anything()
       );
     });
 
     it('respects token auth args', async () => {
-      npmMock.setRegistryData({});
-      await listPackageVersions(['foo'], { ...npmOptions, authType: 'authtoken', token: 'pass' });
+      npmMock.setRegistryData({ foo: { versions: ['1.0.0', '1.0.1'] } });
+      const versions = await listPackageVersions(['foo'], { ...npmOptions, authType: 'authtoken', token: 'pass' });
+      expect(versions).toEqual({ foo: ['1.0.0', '1.0.1'] });
       expect(npmMock.mock).toHaveBeenCalledWith(
-        ['show', '--registry', 'https://fake', '--json', 'foo', '--//fake:_authToken=pass'],
+        [...commonArgs, '--//fake:_authToken=pass', 'foo', ...npmShowProperties],
         expect.anything()
       );
     });
@@ -96,10 +99,7 @@ describe('list npm versions', () => {
       const versions = await listPackageVersionsByTag(packageInfos, 'beta', npmOptions);
       expect(versions).toEqual({ foo: '2.0.0-beta' });
       expect(npmMock.mock).toHaveBeenCalledTimes(1);
-      expect(npmMock.mock).toHaveBeenCalledWith(
-        ['show', '--registry', 'https://fake', '--json', 'foo'],
-        expect.anything()
-      );
+      expect(npmMock.mock).toHaveBeenCalledWith([...commonArgs, 'foo', ...npmShowProperties], expect.anything());
     });
 
     it('returns requested tag for multiple packages', async () => {
