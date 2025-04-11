@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Only request the necessary properties with npm show",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

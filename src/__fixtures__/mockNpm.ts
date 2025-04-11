@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import semver from 'semver';
-import type { NpmShowResult } from '../packageManager/listPackageVersions';
+import { npmShowProperties, type NpmShowResult } from '../packageManager/listPackageVersions';
 import { npm, NpmResult } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
 import type { PackageManagerOptions } from '../packageManager/packageManager';
@@ -146,8 +146,15 @@ export function _makeRegistryData(data: PartialRegistryData): MockNpmRegistry {
 
 /** (exported for testing) Mock npm show based on the registry data */
 export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
-  // Assumption: all beachball callers to "npm show" list the package name last
-  const packageSpec = args.slice(-1)[0];
+  // Assumption: all beachball callers to "npm show" list the package name
+  // as the last argument except for the properties to show.
+  let packageSpec = '';
+  for (let i = args.length - 1; i >= 0; i--) {
+    if (!npmShowProperties.includes(args[i])) {
+      packageSpec = args[i];
+      break;
+    }
+  }
 
   // The requested package may be only a name, or may include a version (either tag or semver).
   // Split at any @ later in the string (@ at the start is a scope) to see if there's a version,
