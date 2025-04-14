@@ -23,7 +23,7 @@ const booleanOptions = [
   'version',
   'yes',
 ] as const;
-const numberOptions = ['concurrency', 'depth', 'gitTimeout', 'retries', 'timeout'] as const;
+const numberOptions = ['concurrency', 'depth', 'npmReadConcurrency', 'gitTimeout', 'retries', 'timeout'] as const;
 const stringOptions = [
   'access',
   'authType',
