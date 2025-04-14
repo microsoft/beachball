@@ -12,7 +12,7 @@ describe('getNewPackages', () => {
   const logs = initMockLogs();
   /** Mock the `npm show` command for `npmAsync` calls. This also handles cleanup after each test. */
   const npmMock = initNpmMock();
-  const npmOptions = {} as NpmOptions;
+  const npmOptions: NpmOptions = { npmReadConcurrency: 2, path: undefined, registry: 'https://fake' };
 
   afterEach(() => {
     _clearPackageVersionsCache();

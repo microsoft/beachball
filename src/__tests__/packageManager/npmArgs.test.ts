@@ -25,7 +25,7 @@ describe('getNpmAuthArgs', () => {
 });
 
 describe('getNpmPublishArgs', () => {
-  const options: Omit<NpmOptions, 'path'> = { registry: 'https://testRegistry' };
+  const options: Omit<NpmOptions, 'path'> = { registry: 'https://testRegistry', npmReadConcurrency: 2 };
 
   const packageInfos = makePackageInfos({
     basic: {},

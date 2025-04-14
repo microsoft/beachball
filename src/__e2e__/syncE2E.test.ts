@@ -22,7 +22,12 @@ describe('sync command (e2e)', () => {
   const mockNpm = initNpmMock();
 
   let repositoryFactory: RepositoryFactory | undefined;
-  const publishOptions: Parameters<typeof packagePublish>[1] = { registry: 'fake', retries: 3, path: undefined };
+  const publishOptions: Parameters<typeof packagePublish>[1] = {
+    registry: 'fake',
+    retries: 3,
+    path: undefined,
+    npmReadConcurrency: 2,
+  };
   const tempDirs: string[] = [];
 
   initMockLogs();

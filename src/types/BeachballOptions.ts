@@ -28,6 +28,7 @@ export interface CliOptions
     | 'keepChangeFiles'
     | 'message'
     | 'new'
+    | 'npmReadConcurrency'
     | 'path'
     | 'prereleasePrefix'
     | 'publish'
@@ -111,11 +112,18 @@ export interface RepoOptions {
    */
   commit?: boolean;
   /**
-   * Maximum concurrency.
-   * As of writing, concurrency only applies for calling hooks and publishing to npm.
+   * Maximum concurrency for write operations.
+   * As of writing, this only applies for calling `hooks` and publishing to npm.
+   * (See also `npmReadConcurrency`.)
    * @default 1
    */
   concurrency: number;
+  /**
+   * Maximum concurrency for read-only `npm` operations (listing package versions/tags).
+   * (See also `concurrency`.)
+   * @default 5
+   */
+  npmReadConcurrency: number;
   /**
    * The default dist-tag used for npm publish
    * @default 'latest'

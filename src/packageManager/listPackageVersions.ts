@@ -18,8 +18,6 @@ export type NpmShowResult = PackageJson & {
 
 let packageVersionsCache: { [pkgName: string]: NpmShowResult | false } = {};
 
-const NPM_CONCURRENCY = env.npmConcurrency ?? (env.isJest ? 2 : 5);
-
 /** Specific `npm show` properties requested by `listPackageVersions` */
 export const npmShowProperties = ['versions', 'dist-tags'];
 
@@ -61,7 +59,7 @@ export async function listPackageVersionsByTag(
   tag: string | undefined,
   options: NpmOptions
 ): Promise<{ [pkg: string]: string }> {
-  const limit = pLimit(NPM_CONCURRENCY);
+  const limit = pLimit(options.npmReadConcurrency);
   const versions: { [pkg: string]: string } = {};
 
   await Promise.all(
@@ -86,7 +84,7 @@ export async function listPackageVersions(
   packageList: string[],
   options: NpmOptions
 ): Promise<{ [pkg: string]: string[] }> {
-  const limit = pLimit(NPM_CONCURRENCY);
+  const limit = pLimit(options.npmReadConcurrency);
   const versions: { [pkg: string]: string[] } = {};
 
   await Promise.all(

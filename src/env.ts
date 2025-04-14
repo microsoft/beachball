@@ -1,10 +1,11 @@
 const isAzurePipelines = !!process.env.TF_BUILD;
+const isJest = !!process.env.JEST_WORKER_ID;
 
 export const env = Object.freeze({
   // most everything but ADO sets process.env.CI by default
   isCI: !!process.env.CI || isAzurePipelines,
 
-  isJest: !!process.env.JEST_WORKER_ID,
+  isJest,
 
   /**
    * @deprecated This should likely be replaced with a different strategy (it's never set)
@@ -17,6 +18,7 @@ export const env = Object.freeze({
   // These are borrowed from workspace-tools
   workspaceToolsGitDebug: !!process.env.GIT_DEBUG,
   workspaceToolsGitMaxBuffer: (process.env.GIT_MAX_BUFFER && parseInt(process.env.GIT_MAX_BUFFER, 10)) || undefined,
-  // Override default NPM_CONCURRENCY
-  npmConcurrency: (process.env.NPM_CONCURRENCY && parseInt(process.env.NPM_CONCURRENCY)) || undefined,
+  /** @deprecated Use `options.npmReadConcurrency` */
+  // if this is removed, default logic should go to getDefaultOptions
+  npmConcurrency: (process.env.NPM_CONCURRENCY && parseInt(process.env.NPM_CONCURRENCY)) || (isJest ? 2 : 5),
 });

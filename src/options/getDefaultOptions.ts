@@ -27,6 +27,7 @@ export function getDefaultOptions(): BeachballOptions {
     gitTimeout: undefined,
     message: '',
     new: false,
+    npmReadConcurrency: env.npmConcurrency,
     path: '',
     publish: true,
     push: true,

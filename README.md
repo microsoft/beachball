@@ -93,7 +93,7 @@ $ beachball publish -r http://localhost:4873 -t beta
 
 ### Overriding concurrency
 
-In large monorepos, the Beachball sync process can be time-consuming due to the high number of packages. To optimize performance, you can override the default concurrency (typically 2 or 5) by setting the `NPM_CONCURRENCY` environment variable to a value that best suits your needs.
+In large monorepos, the process of fetching versions for sync or before publishing can be time-consuming due to the high number of packages. To optimize performance, you can override the concurrency for npm read operations by setting `options.npmReadConcurrency` (default: 5). You can also increase concurrency for hook calls and publish operations via `options.concurrency` (default: 1; respects topological order).
 
 ### API surface
 
