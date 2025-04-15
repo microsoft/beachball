@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Fri, 11 Apr 2025 23:22:55 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 15 Apr 2025 08:02:54 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.54.0
+
+Tue, 15 Apr 2025 08:02:54 GMT
+
+### Minor changes
+
+- Add npmReadConcurrency option (elcraig@microsoft.com)
 
 ## 2.53.0
 

@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 15 Apr 2025 08:02:54 GMT",
+      "version": "2.54.0",
+      "tag": "beachball_v2.54.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "d9a2b56f2c66500072a5b47368705646a08a4ca7",
+            "comment": "Add npmReadConcurrency option"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 11 Apr 2025 23:22:55 GMT",
       "version": "2.53.0",
       "tag": "beachball_v2.53.0",
