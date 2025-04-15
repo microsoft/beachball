@@ -700,11 +700,6 @@
   resolved "https://registry.yarnpkg.com/@types/tmp/-/tmp-0.2.6.tgz#d785ee90c52d7cc020e249c948c36f7b32d1e217"
   integrity sha512-chhaNf2oKHlRkDGt+tiKE2Z5aJ6qalm7Z9rlLdBwmOiAAf09YQvvoLXjWK4HWPF1xU/fqvMgfNfpVoBscA/tKA==
 
-"@types/toposort@^2.0.3":
-  version "2.0.7"
-  resolved "https://registry.yarnpkg.com/@types/toposort/-/toposort-2.0.7.tgz#dbf7efa6d81fe464283462a0fa93ce808b46d8bb"
-  integrity sha512-sQNk65vbC36+UixCkcky+dCr7MlflHcVILg1FVGqlUntsLFv9xd9ToWIVko/gTuin+cVe16t+2YubEFkhnSuPQ==
-
 "@types/yargs-parser@*", "@types/yargs-parser@^21.0.0":
   version "21.0.3"
   resolved "https://registry.yarnpkg.com/@types/yargs-parser/-/yargs-parser-21.0.3.tgz#815e30b786d2e8f0dcd85fd5bcf5e1a04d008f15"
@@ -4345,7 +4340,7 @@ wordwrap@^1.0.0:
   resolved "https://registry.yarnpkg.com/wordwrap/-/wordwrap-1.0.0.tgz#27584810891456a4171c8d0226441ade90cbcaeb"
   integrity sha512-gvVzJFlPycKc5dZN4yPkP8w7Dc37BtP1yczEneOb4uq34pXZcvrtRTmWV8W+Ume+XCxKgbjM+nevkyFPMybd4Q==
 
-workspace-tools@^0.38.2:
+workspace-tools@^0.38.3:
   version "0.38.4"
   resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.38.4.tgz#fe1010d5211d1d0555fca3155ff19f9779a3d949"
   integrity sha512-wCei5WNlhHswuU5tPjTYy4yVd7jnavtRUNbqpiHAmWRPOJtkvUpBQZExrrgFs3h9jdx6Qf6inCDSwjqnXhf+vQ==

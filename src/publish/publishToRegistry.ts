@@ -11,6 +11,22 @@ import { getPackagesToPublish } from './getPackagesToPublish';
 import { callHook } from '../bump/callHook';
 import { getPackageGraph } from '../monorepo/getPackageGraph';
 import type { PackageInfo } from '../types/PackageInfo';
+import { NpmResult } from '../packageManager/npm';
+
+class PublishError extends Error {
+  // TODO: this should use Error.cause once node version is updated
+  constructor(public packageName: string, public originalError?: unknown) {
+    const recoveryMessage = 'Refer to the previous logs for recovery instructions.';
+    super(
+      originalError
+        ? `Error thrown while publishing ${packageName}: ${originalError}\n${recoveryMessage}`
+        : `Error publishing ${packageName}! ${recoveryMessage}`
+    );
+    if (originalError instanceof Error) {
+      this.stack = originalError.stack;
+    }
+  }
+}
 
 /**
  * Publish all the bumped packages to the registry.
@@ -44,45 +60,65 @@ export async function publishToRegistry(originalBumpInfo: PublishBumpInfo, optio
   performPublishOverrides(packagesToPublish, bumpInfo.packageInfos);
 
   // if there is a prepublish hook perform a prepublish pass, calling the routine on each package
-  await callHook(options.hooks?.prepublish, packagesToPublish, bumpInfo.packageInfos, options.concurrency);
+  await callHook({
+    hooks: options.hooks,
+    hookName: 'prepublish',
+    affectedPackages: packagesToPublish,
+    packageInfos: bumpInfo.packageInfos,
+    concurrency: options.concurrency,
+  });
 
   // finally pass through doing the actual npm publish command
   const succeededPackages = new Set<string>();
 
   const packagePublishInternal = async (packageInfo: PackageInfo) => {
-    const result = await packagePublish(packageInfo, options);
+    let result: NpmResult;
+    try {
+      result = await packagePublish(packageInfo, options);
+    } catch (error) {
+      throw new PublishError(packageInfo.name, error);
+    }
+
     if (result.success) {
       succeededPackages.add(packageInfo.name);
     } else {
-      throw new Error('Error publishing! Refer to the previous logs for recovery instructions.');
+      throw new PublishError(packageInfo.name);
     }
   };
 
   try {
-    if (options.concurrency === 1) {
-      for (const pkg of packagesToPublish) {
-        await packagePublishInternal(bumpInfo.packageInfos[pkg]);
-      }
-    } else {
-      const packageGraph = getPackageGraph(packagesToPublish, bumpInfo.packageInfos, packagePublishInternal);
-      await packageGraph.run({
-        concurrency: options.concurrency,
-        // This option is set to true to ensure that all tasks that are started are awaited,
-        // this doesn't actually start tasks for packages of which dependencies have failed.
-        continue: true,
-      });
-    }
+    const packageGraph = getPackageGraph(packagesToPublish, bumpInfo.packageInfos, packagePublishInternal);
+    await packageGraph.run({
+      concurrency: options.concurrency,
+      // This option is set to true to ensure that all tasks that are started are awaited,
+      // this doesn't actually start tasks for packages of which dependencies have failed.
+      continue: true,
+    });
   } catch (error) {
     // p-graph will throw an array of errors if it fails to run all tasks
     let err = error;
     if (Array.isArray(error)) {
-      const errorSet = new Set(error);
-      err = new Error(Array.from(errorSet).join('\n'));
+      if (error.length === 1) {
+        // This should basically always be the case
+        err = error[0];
+      } else {
+        // Could get very verbose with all the stacks, but it really shouldn't happen
+        const message = error.map(e => (e as Error).stack || String(e)).join('\n\n');
+        err = new Error(`Multiple errors occurred while publishing:\n\n${message}`);
+        delete (err as Error).stack;
+      }
     }
+
     displayManualRecovery(bumpInfo, succeededPackages);
     throw err;
   }
 
   // if there is a postpublish hook perform a postpublish pass, calling the routine on each package
-  await callHook(options.hooks?.postpublish, packagesToPublish, bumpInfo.packageInfos, options.concurrency);
+  await callHook({
+    hooks: options.hooks,
+    hookName: 'postpublish',
+    affectedPackages: packagesToPublish,
+    packageInfos: bumpInfo.packageInfos,
+    concurrency: options.concurrency,
+  });
 }

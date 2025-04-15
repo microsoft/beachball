@@ -16,7 +16,7 @@ describe('version bumping', () => {
   let repositoryFactory: RepositoryFactory | undefined;
   let repo: Repository | undefined;
 
-  initMockLogs();
+  const logs = initMockLogs();
 
   function getOptions(options?: Partial<BeachballOptions>): BeachballOptions {
     return {
@@ -676,11 +676,8 @@ describe('version bumping', () => {
 
     const options = getOptions({
       path: repo.rootPath,
-      bumpDeps: false,
       hooks: {
-        prebump: (): Promise<void> => {
-          throw new Error('Foo');
-        },
+        prebump: () => Promise.reject(new Error('Foo')),
       },
     });
 
@@ -689,7 +686,10 @@ describe('version bumping', () => {
 
     const bumpResult = bump(options);
 
-    await expect(bumpResult).rejects.toThrow('Foo');
+    await expect(bumpResult).rejects.toThrow('Error running prebump hook (see above for details)');
+    expect(logs.mocks.error).toHaveBeenCalledWith(
+      expect.stringContaining('Error running prebump hook for package pkg-1:\nError: Foo')
+    );
   });
 
   it('calls sync postbump hook before packages are bumped', async () => {
@@ -761,11 +761,8 @@ describe('version bumping', () => {
     repo = repositoryFactory.cloneRepository();
 
     const options = getOptions({
-      bumpDeps: false,
       hooks: {
-        postbump: (): Promise<void> => {
-          throw new Error('Foo');
-        },
+        postbump: () => Promise.reject(new Error('Foo')),
       },
     });
 
@@ -774,6 +771,9 @@ describe('version bumping', () => {
 
     const bumpResult = bump(options);
 
-    await expect(bumpResult).rejects.toThrow('Foo');
+    await expect(bumpResult).rejects.toThrow('Error running postbump hook (see above for details)');
+    expect(logs.mocks.error).toHaveBeenCalledWith(
+      expect.stringContaining('Error running postbump hook for package pkg-1:\nError: Foo')
+    );
   });
 });

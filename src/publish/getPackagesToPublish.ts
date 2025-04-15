@@ -1,23 +1,18 @@
 import { formatList } from '../logging/format';
 import type { PublishBumpInfo } from '../types/BumpInfo';
-import { toposortPackages } from './toposortPackages';
 
 /**
  * Determine which of the modified/new packages in bump info should actually be published
  * (based only on the bump info, not the registry).
  *
- * Unless `validationMode` is true, the returned package names will also be topologically sorted
- * based on the dependency graph to ensure they're published in the correct order, and any
- * new/modified packages that will be skipped (and why) are logged to the console.
+ * (Note: previously this would toposort the packages, but now that's handle by p-graph
+ * concurrency orchestration.)
+ * @param validationMode - if true, don't log skipped packages
  */
 export function getPackagesToPublish(bumpInfo: PublishBumpInfo, validationMode?: boolean): string[] {
   const { modifiedPackages, newPackages, packageInfos, calculatedChangeTypes, scopedPackages } = bumpInfo;
 
-  let packages = [...modifiedPackages, ...(newPackages || [])];
-  if (!validationMode) {
-    // skip this step when called from `validate` since it's not needed and might be slow
-    packages = toposortPackages(packages, packageInfos);
-  }
+  const packages = [...modifiedPackages, ...(newPackages || [])];
   const packagesToPublish: string[] = [];
   const skippedPackageReasons: string[] = [];
 

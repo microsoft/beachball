@@ -576,7 +576,7 @@ describe('publish command (e2e)', () => {
     });
 
     await expect(publish(options)).rejects.toThrow(
-      'Error publishing! Refer to the previous logs for recovery instructions.'
+      'Error publishing pkg4! Refer to the previous logs for recovery instructions.'
     );
 
     for (const name of packageNames) {

@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Use p-graph concurrency and toposorting logic even when concurrency=1",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
