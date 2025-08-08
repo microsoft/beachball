@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 08 Aug 2025 08:03:00 GMT",
+      "version": "2.55.0",
+      "tag": "beachball_v2.55.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "efb97da52d07f1eb82e13ac23d8ec18751d32af6",
+            "comment": "Add ChangelogGroupOptions.mainPackageName and deprecate ChangelogGroupOptions.masterPackageName"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 15 Apr 2025 08:02:54 GMT",
       "version": "2.54.0",
       "tag": "beachball_v2.54.0",

@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Tue, 15 Apr 2025 08:02:54 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 08 Aug 2025 08:03:00 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.55.0
+
+Fri, 08 Aug 2025 08:03:00 GMT
+
+### Minor changes
+
+- Add ChangelogGroupOptions.mainPackageName and deprecate ChangelogGroupOptions.masterPackageName (elcraig@microsoft.com)
 
 ## 2.54.0
 
