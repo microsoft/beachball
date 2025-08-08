@@ -68,7 +68,7 @@ describe('getOptions', () => {
       publish: false,
       disallowedChangeTypes: null,
       changelog: {
-        groups: [{ masterPackageName: 'foo', include: ['foo'], changelogPath: '.' }],
+        groups: [{ mainPackageName: 'foo', include: ['foo'], changelogPath: '.' }],
       },
     };
     const config = inDirectory(repo.rootPath, () => {

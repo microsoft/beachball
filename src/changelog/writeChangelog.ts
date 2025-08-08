@@ -62,21 +62,23 @@ async function writeGroupedChangelog(
   const changelogs = getPackageChangelogs({ changeFileChangeInfos, calculatedChangeTypes, packageInfos }, options);
 
   const groupedChangelogs: {
-    [changelogAbsDir: string]: { changelogs: PackageChangelog[]; masterPackage: PackageInfo };
+    [changelogAbsDir: string]: { changelogs: PackageChangelog[]; mainPackage: PackageInfo };
   } = {};
 
   // Validate groups and initialize groupedChangelogs
-  for (const { masterPackageName, changelogAbsDir } of changelogGroups) {
-    const masterPackage = packageInfos[masterPackageName];
-    if (!masterPackage) {
-      console.warn(`master package ${masterPackageName} does not exist.`);
+  for (const group of changelogGroups) {
+    const { changelogAbsDir } = group;
+    const mainPackageName = 'mainPackageName' in group ? group.mainPackageName : group.masterPackageName;
+    const mainPackage = packageInfos[mainPackageName];
+    if (!mainPackage) {
+      console.warn(`main package ${mainPackageName} does not exist.`);
       continue;
     }
     if (!fs.existsSync(changelogAbsDir)) {
       console.warn(`changelog path ${changelogAbsDir} does not exist.`);
       continue;
     }
-    groupedChangelogs[changelogAbsDir] = { masterPackage, changelogs: [] };
+    groupedChangelogs[changelogAbsDir] = { mainPackage, changelogs: [] };
   }
 
   // Put changelogs into groups
@@ -94,7 +96,7 @@ async function writeGroupedChangelog(
 
   // Write each grouped changelog if it's not empty
   for (const [groupAbsDir, group] of Object.entries(groupedChangelogs)) {
-    const groupedChangelog = mergeChangelogs(group.changelogs, group.masterPackage);
+    const groupedChangelog = mergeChangelogs(group.changelogs, group.mainPackage);
     if (groupedChangelog) {
       await writeChangelogFiles({
         options,
