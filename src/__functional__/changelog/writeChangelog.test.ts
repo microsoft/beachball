@@ -283,7 +283,7 @@ describe('writeChangelog', () => {
       changelog: {
         groups: [
           {
-            masterPackageName: 'foo',
+            mainPackageName: 'foo',
             changelogPath: '.',
             include: ['packages/*'],
           },
@@ -354,7 +354,7 @@ describe('writeChangelog', () => {
       changelog: {
         groups: [
           {
-            masterPackageName: 'foo',
+            mainPackageName: 'foo',
             changelogPath: 'packages/foo',
             include: ['packages/foo', 'packages/bar'],
           },
@@ -380,7 +380,7 @@ describe('writeChangelog', () => {
     repo = sharedMonoRepo;
     const options = getOptions({
       changelog: {
-        groups: [{ masterPackageName: 'foo', changelogPath: '.', include: ['packages/foo', 'packages/baz'] }],
+        groups: [{ mainPackageName: 'foo', changelogPath: '.', include: ['packages/foo', 'packages/baz'] }],
       },
     });
 
@@ -402,7 +402,7 @@ describe('writeChangelog', () => {
       changelog: {
         groups: [
           // The grouped changelog overlaps with the changelog for packages/foo.
-          { masterPackageName: 'foo', changelogPath: 'packages/foo', include: ['packages/foo', 'packages/baz'] },
+          { mainPackageName: 'foo', changelogPath: 'packages/foo', include: ['packages/foo', 'packages/baz'] },
         ],
       },
     });

@@ -156,7 +156,7 @@ describe('readChangeFiles', () => {
       changelog: {
         groups: [
           {
-            masterPackageName: 'foo',
+            mainPackageName: 'foo',
             changelogPath: repo.pathTo('packages/foo'),
             include: ['packages/foo', 'packages/bar'],
           },

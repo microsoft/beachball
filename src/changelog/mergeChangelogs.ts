@@ -5,21 +5,21 @@ import type { ChangeType } from '../types/ChangeInfo';
 
 /**
  * Merge multiple package changelogs into one.
- * `name` and `version` will use the values from `primaryPackage`'s changelog.
+ * `name` and `version` will use the values from `mainPackage`'s changelog.
  * `comments` are merged. `date` will be now.
  */
 export function mergeChangelogs(
   changelogs: PackageChangelog[],
-  primaryPackage: PackageInfo
+  mainPackage: PackageInfo
 ): PackageChangelog | undefined {
-  if (changelogs.length < 1 || !primaryPackage) {
+  if (changelogs.length < 1 || !mainPackage) {
     return undefined;
   }
 
   const result: PackageChangelog = {
-    name: primaryPackage.name,
-    version: primaryPackage.version,
-    tag: generateTag(primaryPackage.name, primaryPackage.version),
+    name: mainPackage.name,
+    version: mainPackage.version,
+    tag: generateTag(mainPackage.name, mainPackage.version),
     date: new Date(),
     comments: {},
   };

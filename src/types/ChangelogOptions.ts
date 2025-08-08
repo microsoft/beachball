@@ -62,16 +62,7 @@ export interface ChangelogOptions {
   includeCommitHashes?: boolean;
 }
 
-/**
- * Options for generating a changelog for a group of packages.
- */
-export interface ChangelogGroupOptions {
-  /**
-   * The main package which a group of changes bubbles up to.
-   * All changes within the group are used to describe changes for the master package.
-   */
-  masterPackageName: string;
-
+interface ChangelogGroupOptionsBase {
   /**
    * minimatch pattern(s) for package paths to include in this group.
    * Patterns are relative to the repo root and must use forward slashes.
@@ -94,6 +85,23 @@ export interface ChangelogGroupOptions {
    */
   changelogPath: string;
 }
+
+/**
+ * Options for generating a changelog for a group of packages.
+ */
+export type ChangelogGroupOptions =
+  | (ChangelogGroupOptionsBase & {
+      /**
+       * The main package which a group of changes bubbles up to.
+       * All changes within the group are used to describe changes for the main package.
+       */
+      mainPackageName: string;
+    })
+  | (ChangelogGroupOptionsBase & {
+      /** @deprecated Use `mainPackageName` */
+      // Change the type back to a single interface once this is removed
+      masterPackageName: string;
+    });
 
 /**
  * Info used for rendering the changelog markdown for a particular package version.

@@ -6,11 +6,13 @@ export function isValidChangelogOptions(options: ChangelogOptions): boolean {
     return true;
   }
 
-  const badGroups = options.groups.filter(group => !group.changelogPath || !group.masterPackageName || !group.include);
+  const badGroups = options.groups.filter(
+    group => !group.changelogPath || !('masterPackageName' in group || 'mainPackageName' in group) || !group.include
+  );
 
   if (badGroups.length) {
     console.error(
-      'ERROR: "changelog.groups" entries must define "changelogPath", "masterPackageName", and "include". ' +
+      'ERROR: "changelog.groups" entries must define "changelogPath", "mainPackageName", and "include". ' +
         'Found invalid groups:\n' +
         badGroups.map(group => '  ' + singleLineStringify(group)).join('\n')
     );
