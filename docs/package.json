@@ -13,7 +13,7 @@
     "@vuepress/plugin-search": "^2.0.0-rc.61",
     "@vuepress/theme-default": "^2.0.0-rc",
     "gh-pages": "^6.0.0",
-    "mermaid": "^11.4.0",
+    "mermaid": "^11.10.0",
     "sass-embedded": "^1.81.0",
     "vuepress": "^2.0.0-rc",
     "vuepress-plugin-md-enhance": "^2.0.0-rc.59"
