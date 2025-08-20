@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "lock ts-jest dev dep version",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}
