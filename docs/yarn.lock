@@ -529,12 +529,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mermaid-js/parser@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@mermaid-js/parser@npm:0.3.0"
+"@mermaid-js/parser@npm:^0.6.2":
+  version: 0.6.2
+  resolution: "@mermaid-js/parser@npm:0.6.2"
   dependencies:
-    langium: "npm:3.0.0"
-  checksum: 10c0/88c08fb20256ce779fea2151500c017bffd8a970b8d2c6ead81b5ff14787877b16c75b43f503dd5365e4eb33d0b7d5a7d9fff852cff56eb67b3b6508f44576b7
+    langium: "npm:3.3.1"
+  checksum: 10c0/6059341a5dc3fdf56dd75c858843154e18c582e5cc41c3e73e9a076e218116c6bdbdba729d27154cef61430c900d87342423bbb81e37d8a9968c6c2fdd99e87a
   languageName: node
   linkType: hard
 
@@ -2694,15 +2694,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:^3.2.4":
-  version: 3.2.4
-  resolution: "dompurify@npm:3.2.4"
+"dompurify@npm:^3.2.5":
+  version: 3.2.6
+  resolution: "dompurify@npm:3.2.6"
   dependencies:
     "@types/trusted-types": "npm:^2.0.7"
   dependenciesMeta:
     "@types/trusted-types":
       optional: true
-  checksum: 10c0/6be56810fb7ad2776155c8fc2967af5056783c030094362c7d0cf1ad13f2129cf922d8eefab528a34bdebfb98e2f44b306a983ab93aefb9d6f24c18a3d027a05
+  checksum: 10c0/c8f8e5b0879a0d93c84a2e5e78649a47d0c057ed0f7850ca3d573d2cca64b84fb1ff85bd4b20980ade69c4e5b80ae73011340f1c2ff375c7ef98bb8268e1d13a
   languageName: node
   linkType: hard
 
@@ -3517,14 +3517,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"katex@npm:^0.16.9":
-  version: 0.16.21
-  resolution: "katex@npm:0.16.21"
+"katex@npm:^0.16.22":
+  version: 0.16.22
+  resolution: "katex@npm:0.16.22"
   dependencies:
     commander: "npm:^8.3.0"
   bin:
     katex: cli.js
-  checksum: 10c0/e2e4139ba72a13f2393308fbb2b4c5511611a19a40a6e39d956cf775e553af3517dbfd0a54477faaf401c923e4654e32296347846b8ff15dfa579f88ff8579bb
+  checksum: 10c0/07b8b1f07ae53171b5f1ea0cf6f18841d2055825c8b11cd81cfe039afcd3af2cfc84ad033531ee3875088329105195b039c267e0dd4b0c237807e3c3b2009913
   languageName: node
   linkType: hard
 
@@ -3549,16 +3549,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"langium@npm:3.0.0":
-  version: 3.0.0
-  resolution: "langium@npm:3.0.0"
+"langium@npm:3.3.1":
+  version: 3.3.1
+  resolution: "langium@npm:3.3.1"
   dependencies:
     chevrotain: "npm:~11.0.3"
     chevrotain-allstar: "npm:~0.3.0"
     vscode-languageserver: "npm:~9.0.1"
     vscode-languageserver-textdocument: "npm:~1.0.11"
     vscode-uri: "npm:~3.0.8"
-  checksum: 10c0/d1cb87de67024aae6a49f4762164461d678ccdda908b48e017556ff73f4838ff5cb74fda61b42e72d9795fbc1639927a2205add358752708d5f600dcbb3f512c
+  checksum: 10c0/0c54803068addb0f7c16a57fdb2db2e5d4d9a21259d477c3c7d0587c2c2f65a313f9eeef3c95ac1c2e41cd11d4f2eaf620d2c03fe839a3350ffee59d2b4c7647
   languageName: node
   linkType: hard
 
@@ -3706,12 +3706,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:^15.0.7":
-  version: 15.0.7
-  resolution: "marked@npm:15.0.7"
+"marked@npm:^16.0.0":
+  version: 16.2.0
+  resolution: "marked@npm:16.2.0"
   bin:
     marked: bin/marked.js
-  checksum: 10c0/0b9d07bace37bbf0548bae356c4184765afa4d2296ed0be4418aa4bb0ce703f323dc1a475125d536581f9fe264797e6265dd0b57499d97c0fe0f29bc6d016343
+  checksum: 10c0/aefc418370e916ffeb821d05a585f4311c529268880113ee3695857bfb335119b5b4cd202a5d198fc087f7f3c59f98170ba1994027b2a9b8a172b31e3047ca3a
   languageName: node
   linkType: hard
 
@@ -3737,12 +3737,12 @@ __metadata:
   linkType: hard
 
 "mermaid@npm:^11.4.0":
-  version: 11.5.0
-  resolution: "mermaid@npm:11.5.0"
+  version: 11.10.0
+  resolution: "mermaid@npm:11.10.0"
   dependencies:
     "@braintree/sanitize-url": "npm:^7.0.4"
     "@iconify/utils": "npm:^2.1.33"
-    "@mermaid-js/parser": "npm:^0.3.0"
+    "@mermaid-js/parser": "npm:^0.6.2"
     "@types/d3": "npm:^7.4.3"
     cytoscape: "npm:^3.29.3"
     cytoscape-cose-bilkent: "npm:^4.1.0"
@@ -3751,16 +3751,16 @@ __metadata:
     d3-sankey: "npm:^0.12.3"
     dagre-d3-es: "npm:7.0.11"
     dayjs: "npm:^1.11.13"
-    dompurify: "npm:^3.2.4"
-    katex: "npm:^0.16.9"
+    dompurify: "npm:^3.2.5"
+    katex: "npm:^0.16.22"
     khroma: "npm:^2.1.0"
     lodash-es: "npm:^4.17.21"
-    marked: "npm:^15.0.7"
+    marked: "npm:^16.0.0"
     roughjs: "npm:^4.6.6"
     stylis: "npm:^4.3.6"
     ts-dedent: "npm:^2.2.0"
     uuid: "npm:^11.1.0"
-  checksum: 10c0/659d96bc2df9d87dbdff24465cab22206b2c29be2cdf5fcadd5a1bbec6c9f3e58918f65ff585c460d458eabc912269ac58f082c5774f1273cf5c91f3fc123720
+  checksum: 10c0/0ba7cfcd29c0e7a7cf91e1ba0ba763e8d83ad28d844b3a6c3f114630c0846e2023a24975ed6986ed224bd538d048bd132e5acf495933356f1625706ae4b6474f
   languageName: node
   linkType: hard
 
