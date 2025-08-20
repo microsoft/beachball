@@ -1,9 +1,8 @@
-// @ts-check
 import { viteBundler } from '@vuepress/bundler-vite';
+import { markdownChartPlugin } from '@vuepress/plugin-markdown-chart';
 import { searchPlugin } from '@vuepress/plugin-search';
 import { defaultTheme } from '@vuepress/theme-default';
 import { defineUserConfig } from 'vuepress';
-import { mdEnhancePlugin } from 'vuepress-plugin-md-enhance';
 
 export default defineUserConfig({
   title: 'beachball',
@@ -40,7 +39,7 @@ export default defineUserConfig({
     ],
   }),
   plugins: [
-    mdEnhancePlugin({
+    markdownChartPlugin({
       mermaid: true,
     }),
     searchPlugin(),

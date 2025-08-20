@@ -1,6 +1,4 @@
-// @ts-check
-import { defineClientConfig } from 'vuepress/client';
-import { defineMermaidConfig } from 'vuepress-plugin-md-enhance/client';
+import { defineMermaidConfig } from '@vuepress/plugin-markdown-chart/client';
 
 defineMermaidConfig({
   // This can use a CSS variable because text is rendered in HTML tags
@@ -21,10 +19,4 @@ defineMermaidConfig({
     // clusterBorder: 'red', // sub-graph border
   },
   // some spacing options available under "flowchart"
-});
-
-export default defineClientConfig({
-  enhance: context => {
-    context.app.directive;
-  },
 });
