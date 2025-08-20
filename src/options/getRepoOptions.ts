@@ -1,7 +1,8 @@
 import { cosmiconfigSync } from 'cosmiconfig';
-import { getDefaultRemoteBranch } from 'workspace-tools';
+import { findGitRoot, getDefaultRemoteBranch } from 'workspace-tools';
 import { env } from '../env';
 import type { RepoOptions, CliOptions, BeachballOptions } from '../types/BeachballOptions';
+import path from 'path';
 
 const cachedRepoOptions = new Map<CliOptions, Partial<RepoOptions>>();
 
@@ -13,7 +14,21 @@ export function getRepoOptions(cliOptions: CliOptions): Partial<RepoOptions> {
 
   let repoOptions: Partial<RepoOptions> | null | undefined;
 
-  const configExplorer = cosmiconfigSync('beachball', { cache: false });
+  let rootDir: string;
+  try {
+    rootDir = findGitRoot(cwd);
+  } catch {
+    rootDir = path.parse(cwd).root;
+  }
+  const configExplorer = cosmiconfigSync('beachball', {
+    cache: false,
+    // cosmiconfig v9 doesn't search up by default. To preserve most of the old behavior plus
+    // some of the efficiency gains, search up to the git root (if available, since realistically
+    // this is the farthest up that a config file is likely to be) or fall back to searching up
+    // to the filesystem root (probably the old behavior).
+    stopDir: rootDir,
+    searchStrategy: 'global',
+  });
 
   if (configPath) {
     repoOptions = configExplorer.load(configPath)?.config as Partial<RepoOptions> | undefined;
