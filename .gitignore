@@ -9,4 +9,5 @@ package-lock.json
 docs/.vuepress/.cache
 docs/.vuepress/.temp
 docs/.yarn/*
+!docs/.yarn/patches/
 !docs/.yarn/releases/

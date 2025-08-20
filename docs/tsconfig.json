@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    "strict": true,
+    "lib": ["es2022", "dom"],
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "types": []
+  },
+  "include": ["./.vuepress/*.js"]
+}
