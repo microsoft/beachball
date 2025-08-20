@@ -2,6 +2,29 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 20 Aug 2025 08:02:30 GMT",
+      "version": "2.55.1",
+      "tag": "beachball_v2.55.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "409e3ca16bcf382835b13f196276ff5f1cf00c86",
+            "comment": "Update dependency cosmiconfig to v9"
+          }
+        ],
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "409e3ca16bcf382835b13f196276ff5f1cf00c86",
+            "comment": "lock ts-jest dev dep version"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 08 Aug 2025 08:03:00 GMT",
       "version": "2.55.0",
       "tag": "beachball_v2.55.0",

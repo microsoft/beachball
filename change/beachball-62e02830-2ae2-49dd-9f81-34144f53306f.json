@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update dependency cosmiconfig to v9",
-  "packageName": "beachball",
-  "email": "email not defined",
-  "dependentChangeType": "patch"
-}

@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Fri, 08 Aug 2025 08:03:00 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 20 Aug 2025 08:02:30 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.55.1
+
+Wed, 20 Aug 2025 08:02:30 GMT
+
+### Patches
+
+- Update dependency cosmiconfig to v9 (email not defined)
 
 ## 2.55.0
 
