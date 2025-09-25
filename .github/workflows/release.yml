@@ -1,11 +1,7 @@
 name: Release
 
+# Release on manual trigger only
 on:
-  # release daily
-  # https://crontab-generator.org/
-  schedule:
-    - cron: '0 8 * * *'
-  # or on manual trigger
   workflow_dispatch:
 
 env:
