@@ -1,4 +1,5 @@
 import { describe, expect, it, afterEach, jest } from '@jest/globals';
+import fs from 'fs';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
@@ -9,6 +10,7 @@ import { publish } from '../commands/publish';
 import { getDefaultOptions } from '../options/getDefaultOptions';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { initNpmMock } from '../__fixtures__/mockNpm';
+import { removeTempDir, tmpdir } from '../__fixtures__/tmpdir';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -22,11 +24,12 @@ describe('publish command (registry)', () => {
 
   let repositoryFactory: RepositoryFactory | undefined;
   let repo: Repository | undefined;
+  let packToPath: string | undefined;
 
   // show error logs for these tests
   const logs = initMockLogs({ alsoLog: ['error'] });
 
-  function getOptions(): BeachballOptions {
+  function getOptions(options?: Partial<BeachballOptions>): BeachballOptions {
     return {
       ...getDefaultOptions(),
       branch: defaultRemoteBranchName,
@@ -41,6 +44,7 @@ describe('publish command (registry)', () => {
       tag: 'latest',
       yes: true,
       access: 'public',
+      ...options,
     };
   }
 
@@ -48,6 +52,8 @@ describe('publish command (registry)', () => {
     repositoryFactory?.cleanUp();
     repositoryFactory = undefined;
     repo = undefined;
+    packToPath && removeTempDir(packToPath);
+    packToPath = undefined;
   });
 
   it('publishes single package', async () => {
@@ -64,6 +70,21 @@ describe('publish command (registry)', () => {
     const publishedPackage = (await npmShow('foo'))!;
     expect(publishedPackage.name).toEqual('foo');
     expect(publishedPackage.versions).toHaveLength(1);
+  });
+
+  it('packs single package', async () => {
+    repositoryFactory = new RepositoryFactory('single');
+    repo = repositoryFactory.cloneRepository();
+    packToPath = tmpdir({ prefix: 'beachball-pack-' });
+
+    const options = getOptions({ packToPath });
+    generateChangeFiles(['foo'], options);
+    repo.push();
+
+    await publish(options);
+
+    expect(fs.readdirSync(packToPath)).toEqual(['1-foo-1.1.0.tgz']);
+    await npmShow('foo', { shouldFail: true });
   });
 
   it('publishes in monorepo with mixed public and private packages', async () => {
@@ -113,6 +134,34 @@ describe('publish command (registry)', () => {
 
     const showBar = (await npmShow('barpkg'))!;
     expect(showBar['dist-tags'].latest).toEqual('1.1.0');
+  });
+
+  it('packs many packages', async () => {
+    const packageNames = Array.from({ length: 11 }, (_, i) => `pkg-${i + 1}`);
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: Object.fromEntries(
+          packageNames.map((name, i) => [
+            name,
+            // Each package depends on the next one, so they must be published in reverse alphabetical order
+            { version: '1.0.0', dependencies: { [packageNames[i + 1] || 'other']: '^1.0.0' } },
+          ])
+        ),
+      },
+    });
+    repo = repositoryFactory.cloneRepository();
+    packToPath = tmpdir({ prefix: 'beachball-pack-' });
+
+    const options = getOptions({ packToPath, groupChanges: true });
+    generateChangeFiles(packageNames, options);
+    repo.push();
+
+    await publish(options);
+
+    expect(fs.readdirSync(packToPath).sort()).toEqual(
+      [...packageNames].reverse().map((name, i) => `${String(i + 1).padStart(2, '0')}-${name}-1.1.0.tgz`)
+    );
+    await npmShow('pkg-1', { shouldFail: true });
   });
 
   it('succeeds even with a non-existent package listed in a change file', async () => {

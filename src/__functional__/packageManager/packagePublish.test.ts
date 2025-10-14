@@ -63,7 +63,6 @@ describe('packagePublish', () => {
 
   beforeAll(() => {
     registry = new Registry(__filename);
-    jest.setTimeout(30000);
 
     // Create a test package.json in a temporary location for use in tests.
     tempRoot = tmpdir();

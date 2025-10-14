@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeAll, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, expect, it, beforeEach, afterEach } from '@jest/globals';
 import fs from 'fs-extra';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
@@ -37,10 +37,6 @@ describe('publish command (git)', () => {
       ...overrides,
     };
   }
-
-  beforeAll(() => {
-    jest.setTimeout(30000);
-  });
 
   beforeEach(() => {
     repositoryFactory = new RepositoryFactory('single');

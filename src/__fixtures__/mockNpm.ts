@@ -81,6 +81,7 @@ export function initNpmMock(): NpmMock {
   const defaultMocks: Record<string, MockNpmCommand> = {
     show: _mockNpmShow,
     publish: _mockNpmPublish,
+    pack: _mockNpmPack,
   };
   let overrideMocks: Record<string, MockNpmCommand> = {};
   let registryData: MockNpmRegistry = {};
@@ -233,3 +234,29 @@ function mockPublishPackage(registryData: MockNpmRegistry, packageJson: PackageJ
 
   return `[fake] published ${name}@${version} with tag ${tag}`;
 }
+
+/**
+ * Return a .tgz filename following npm's naming scheme.
+ */
+export function getMockNpmPackName(packageJson: PackageJson) {
+  const { name, version } = packageJson;
+  // Note this may be less name sanitization than npm does, but it doesn't matter for tests.
+  const safeName = name.startsWith('@') ? name.slice(1).replace('/', '-') : name;
+  return `${safeName}-${version}.tgz`;
+}
+
+export const _mockNpmPack: MockNpmCommand = async (registryData, args, opts) => {
+  if (!opts?.cwd) {
+    throw new Error('cwd is required for mock npm pack');
+  }
+
+  // Read package.json from cwd to find the package name and version.
+  // (If this fails, let the exception propagate for easier debugging.)
+  const packageJson = fs.readJsonSync(path.join(opts.cwd, 'package.json')) as PackageJson;
+
+  // Create a fake ".tgz" file with npm's naming scheme (contents don't matter).
+  const packFileName = getMockNpmPackName(packageJson);
+  fs.writeFileSync(path.join(opts.cwd, packFileName), 'fake package contents');
+
+  return { stdout: packFileName, stderr: '', all: packFileName, success: true, failed: false };
+};

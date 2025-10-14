@@ -11,12 +11,17 @@ import { getPackagesToPublish } from './getPackagesToPublish';
 import { callHook } from '../bump/callHook';
 import { getPackageGraph } from '../monorepo/getPackageGraph';
 import type { PackageInfo } from '../types/PackageInfo';
+import { packPackage } from '../packageManager/packPackage';
 
 /**
- * Publish all the bumped packages to the registry.
+ * Publish all the bumped packages to the registry, OR if `packToPath` is specified,
+ * pack the packages to that path instead of publishing.
+ *
  * This will bump packages on the filesystem first if `options.bump` is true.
  */
 export async function publishToRegistry(originalBumpInfo: PublishBumpInfo, options: BeachballOptions): Promise<void> {
+  const verb = options.packToPath ? 'pack' : 'publish';
+
   const bumpInfo = _.cloneDeep(originalBumpInfo);
 
   if (options.bump) {
@@ -35,7 +40,7 @@ export async function publishToRegistry(originalBumpInfo: PublishBumpInfo, optio
   }
 
   if (invalid) {
-    console.error('No packages were published due to validation errors (see above for details).');
+    console.error(`No packages were ${verb}ed due to validation errors (see above for details).`);
     process.exit(1);
   }
 
@@ -48,13 +53,26 @@ export async function publishToRegistry(originalBumpInfo: PublishBumpInfo, optio
 
   // finally pass through doing the actual npm publish command
   const succeededPackages = new Set<string>();
+  let packIndex = 0;
 
   const packagePublishInternal = async (packageInfo: PackageInfo) => {
-    const result = await packagePublish(packageInfo, options);
-    if (result.success) {
+    let success: boolean;
+    const { packToPath, verbose } = options;
+    if (packToPath) {
+      success = await packPackage(packageInfo, {
+        packToPath,
+        verbose,
+        index: packIndex++,
+        total: packagesToPublish.length,
+      });
+    } else {
+      success = (await packagePublish(packageInfo, options)).success;
+    }
+
+    if (success) {
       succeededPackages.add(packageInfo.name);
     } else {
-      throw new Error('Error publishing! Refer to the previous logs for recovery instructions.');
+      throw new Error(`Error ${verb}ing! Refer to the previous logs for recovery instructions.`);
     }
   };
 
