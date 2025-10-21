@@ -2,6 +2,10 @@ import type { AuthType } from '../types/Auth';
 import type { NpmOptions } from '../types/NpmOptions';
 import type { PackageInfo } from '../types/PackageInfo';
 
+export function getNpmLogLevelArgs(verbose: boolean | undefined): string[] {
+  return ['--loglevel', verbose ? 'notice' : 'warn'];
+}
+
 export function getNpmPublishArgs(packageInfo: PackageInfo, options: Omit<NpmOptions, 'path'>): string[] {
   const { registry, token, authType, access } = options;
   const pkgCombinedOptions = packageInfo.combinedOptions;
@@ -11,8 +15,7 @@ export function getNpmPublishArgs(packageInfo: PackageInfo, options: Omit<NpmOpt
     registry,
     '--tag',
     pkgCombinedOptions.tag || pkgCombinedOptions.defaultNpmTag || 'latest',
-    '--loglevel',
-    options.verbose ? 'notice' : 'warn',
+    ...getNpmLogLevelArgs(options.verbose),
     ...getNpmAuthArgs(registry, token, authType),
   ];
 

@@ -6,7 +6,14 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jes
 import fs from 'fs-extra';
 import { type NpmResult, npm } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
-import { initNpmMock, _makeRegistryData, _mockNpmPublish, _mockNpmShow, type MockNpmResult } from './mockNpm';
+import {
+  initNpmMock,
+  _makeRegistryData,
+  _mockNpmPack,
+  _mockNpmPublish,
+  _mockNpmShow,
+  type MockNpmResult,
+} from './mockNpm';
 
 jest.mock('fs-extra');
 jest.mock('../packageManager/npm');
@@ -277,6 +284,69 @@ describe('_mockNpmPublish', () => {
   });
 });
 
+describe('_mockNpmPack', () => {
+  let packageJson: PackageJson | undefined;
+  let writtenFiles: (fs.PathLike | number)[] = [];
+
+  beforeAll(() => {
+    (fs.readJsonSync as jest.MockedFunction<typeof fs.readJsonSync>).mockImplementation(() => {
+      if (!packageJson) throw new Error('packageJson not set');
+      return packageJson;
+    });
+    (fs.writeFileSync as jest.MockedFunction<typeof fs.writeFileSync>).mockImplementation(filePath => {
+      writtenFiles.push(String(filePath).replace(/\\/g, '/'));
+    });
+  });
+
+  afterEach(() => {
+    packageJson = undefined;
+    writtenFiles = [];
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('throws if cwd is not specified', async () => {
+    await expect(() => _mockNpmPack({}, [], { cwd: undefined })).rejects.toThrow('cwd is required for mock npm pack');
+  });
+
+  it('errors if reading package.json fails', async () => {
+    // this error is from the fs.readJsonSync mock, but it's the same code path as if reading the file fails
+    await expect(() => _mockNpmPack({}, [], { cwd: 'fake' })).rejects.toThrow('packageJson not set');
+  });
+
+  it('packs unscoped package', async () => {
+    const registryData = {};
+    packageJson = { name: 'foo', version: '1.0.0' };
+    const result = await _mockNpmPack(registryData, [], { cwd: 'fake' });
+    expect(result).toEqual({
+      success: true,
+      failed: false,
+      all: 'foo-1.0.0.tgz',
+      stdout: 'foo-1.0.0.tgz',
+      stderr: '',
+    });
+    expect(writtenFiles).toEqual(['fake/foo-1.0.0.tgz']);
+    expect(registryData).toEqual({});
+  });
+
+  it('packs scoped package', async () => {
+    const registryData = {};
+    packageJson = { name: '@foo/bar', version: '2.0.0' };
+    const result = await _mockNpmPack(registryData, [], { cwd: 'fake' });
+    expect(result).toEqual({
+      success: true,
+      failed: false,
+      all: 'foo-bar-2.0.0.tgz',
+      stdout: 'foo-bar-2.0.0.tgz',
+      stderr: '',
+    });
+    expect(writtenFiles).toEqual(['fake/foo-bar-2.0.0.tgz']);
+    expect(registryData).toEqual({});
+  });
+});
+
 describe('mockNpm', () => {
   const npmMock = initNpmMock();
   let packageJson: PackageJson | undefined;
@@ -334,7 +404,7 @@ describe('mockNpm', () => {
   });
 
   it('throws on unsupported command', async () => {
-    await expect(() => npm(['pack'], { cwd: undefined })).rejects.toThrow('Command not supported by mock npm: pack');
+    await expect(() => npm(['foo'], { cwd: undefined })).rejects.toThrow('Command not supported by mock npm: foo');
   });
 
   it('respects mocked command', async () => {

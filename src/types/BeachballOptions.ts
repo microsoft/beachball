@@ -29,6 +29,7 @@ export interface CliOptions
     | 'message'
     | 'new'
     | 'npmReadConcurrency'
+    | 'packToPath'
     | 'path'
     | 'prereleasePrefix'
     | 'publish'
@@ -183,6 +184,11 @@ export interface RepoOptions {
    * @default true
    */
   publish: boolean;
+  /**
+   * If provided, pack packages to the specified path instead of publishing.
+   * Implies `publish: false`.
+   */
+  packToPath?: string;
   /**
    * Whether to push to the remote git branch when publishing
    * @default true

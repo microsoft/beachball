@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add option packToPath to pack packages instead of publishing",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
