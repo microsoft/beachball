@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Wed, 20 Aug 2025 08:02:30 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 23 Oct 2025 20:47:20 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.56.0
+
+Thu, 23 Oct 2025 20:47:20 GMT
+
+### Minor changes
+
+- Add option packToPath to pack packages instead of publishing (elcraig@microsoft.com)
 
 ## 2.55.1
 

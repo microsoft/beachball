@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 23 Oct 2025 20:47:20 GMT",
+      "version": "2.56.0",
+      "tag": "beachball_v2.56.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "5dcb7d1e01a650bc44f18a2b39c05a13d04c8b05",
+            "comment": "Add option packToPath to pack packages instead of publishing"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 20 Aug 2025 08:02:30 GMT",
       "version": "2.55.1",
       "tag": "beachball_v2.55.1",
