@@ -47,6 +47,7 @@ Options supported by all commands:
                               (can be specified multiple times)
     --all                   - generate change files for all packages
     --dependent-change-type - use this change type for dependent packages (default patch)
+    --fixup                 - update the most recently added change file and create a fixup commit
     --no-commit             - stage change files only
 
 'check' options:

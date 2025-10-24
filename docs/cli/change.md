@@ -22,6 +22,7 @@ Some [general options](./options) including `--branch` and `--scope` also apply 
 | ------------------------- | ----- | ------------------ | -------------------------------------------------------------------------- |
 | `--all`                   |       | false              | Generate change files for all packages                                     |
 | `--dependent-change-type` |       | `patch`            | use this change type for dependent packages                                |
+| `--fixup`                 |       | false              | Update the most recently added change file and create a fixup commit       |
 | `--message`               | `-m`  | (prompt)           | Description for all change files                                           |
 | `--no-commit`             |       | false              | Stage the change files rather than committing                              |
 | `--package`               |       | (changed packages) | Generate change files for these packages (can be specified multiple times) |
@@ -51,6 +52,12 @@ Generate change files for all packages, regardless of changes. This would most o
 
 ```
 beachball change --all --type patch --message 'update build output settings'
+```
+
+Update the most recently added change file with additional changes and create a fixup commit. This is useful when you want to amend the most recent change file instead of creating a new one.
+
+```
+beachball change --fixup --type minor --message 'additional change'
 ```
 
 ### Prompt walkthrough

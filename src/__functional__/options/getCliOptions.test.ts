@@ -199,6 +199,16 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, foo: ['bar', 'baz'] });
   });
 
+  it('parses fixup flag', () => {
+    const options = getCliOptionsTest(['change', '--fixup']);
+    expect(options).toEqual({ ...defaults, command: 'change', fixup: true });
+  });
+
+  it('parses negated fixup flag', () => {
+    const options = getCliOptionsTest(['change', '--no-fixup']);
+    expect(options).toEqual({ ...defaults, command: 'change', fixup: false });
+  });
+
   // documenting current behavior (doesn't have to stay this way)
   it('for additional options, does not handle multiple values as part of array', () => {
     // in this case the trailing value "baz" would be treated as the command since it's the first

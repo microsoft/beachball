@@ -46,6 +46,11 @@ export interface CliOptions
   configPath?: string;
   dependentChangeType?: ChangeType;
   /**
+   * For the change command: update the most recently added change file instead of creating a new one,
+   * and commit with git commit --fixup using the hash of the original commit that added the change file.
+   */
+  fixup?: boolean;
+  /**
    * For sync: use the version from the registry even if it's older than local.
    */
   forceVersions?: boolean;

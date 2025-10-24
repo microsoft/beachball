@@ -12,6 +12,7 @@ const booleanOptions = [
   'commit',
   'disallowDeletedChangeFiles',
   'fetch',
+  'fixup',
   'forceVersions',
   'gitTags',
   'help',
