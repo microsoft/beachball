@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "feat: Introduce --fixup to change subcommand",
+  "packageName": "beachball",
+  "email": "evancharlton@microsoft.com",
+  "dependentChangeType": "patch"
+}
