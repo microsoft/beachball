@@ -19,7 +19,7 @@ export async function sync(options: BeachballOptions, packageInfos?: PackageInfo
   const scopedPackages = new Set(getScopedPackages(options, packageInfos));
 
   const infos = new Map(Object.entries(packageInfos).filter(([pkg, info]) => !info.private && scopedPackages.has(pkg)));
-  const publishedVersions = await listPackageVersionsByTag([...infos.values()], options.tag, options);
+  const publishedVersions = await listPackageVersionsByTag([...infos.values()], options);
 
   const modifiedPackages = new Set<string>();
 

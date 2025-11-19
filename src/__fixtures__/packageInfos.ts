@@ -1,6 +1,6 @@
 import type { PackageInfo, PackageInfos } from '../types/PackageInfo';
 import { getPackageInfosWithOptions } from '../options/getPackageInfosWithOptions';
-import type { RepoOptions } from '../types/BeachballOptions';
+import type { CliOptions, RepoOptions } from '../types/BeachballOptions';
 import { defaultRemoteBranchName } from './gitDefaults';
 
 export type PartialPackageInfos = {
@@ -22,7 +22,11 @@ export type PartialPackageInfos = {
  * Other defaults and values are filled by the actual logic in `getPackageInfosWithOptions`,
  * including the overrides in `repoOptions` merged in realistic order.
  */
-export function makePackageInfos(packageInfos: PartialPackageInfos, repoOptions?: Partial<RepoOptions>): PackageInfos {
+export function makePackageInfos(
+  packageInfos: PartialPackageInfos,
+  repoOptions?: Partial<RepoOptions>,
+  cliOptions?: Partial<CliOptions>
+): PackageInfos {
   return getPackageInfosWithOptions(
     Object.entries(packageInfos).map(([name, info]) => {
       return {
@@ -36,7 +40,7 @@ export function makePackageInfos(packageInfos: PartialPackageInfos, repoOptions?
     }),
     {
       repoOptions: { branch: defaultRemoteBranchName, ...repoOptions },
-      cliOptions: { path: '', command: '' },
+      cliOptions: { path: '', command: '', ...cliOptions },
     }
   );
 }
