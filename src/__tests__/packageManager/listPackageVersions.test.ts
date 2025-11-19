@@ -93,7 +93,7 @@ describe('list npm versions', () => {
     it('returns requested tag for one package', async () => {
       npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
       const packageInfos = Object.values(
-        makePackageInfos({ foo: { combinedOptions: { tag: 'latest', defaultNpmTag: 'latest' } } })
+        makePackageInfos({ foo: { beachball: { tag: 'latest', defaultNpmTag: 'latest' } } })
       );
 
       const versions = await listPackageVersionsByTag(packageInfos, 'beta', npmOptions);
@@ -109,8 +109,8 @@ describe('list npm versions', () => {
       });
       const packageInfos = Object.values(
         makePackageInfos({
-          foo: { combinedOptions: { tag: 'latest' } },
-          bar: { combinedOptions: { tag: 'latest' } },
+          foo: { beachball: { tag: 'latest' } },
+          bar: { beachball: { tag: 'latest' } },
         })
       );
 
@@ -131,10 +131,10 @@ describe('list npm versions', () => {
       expect(npmMock.mock).toHaveBeenCalledTimes(packages.length);
     });
 
-    it('falls back to combinedOptions.tag', async () => {
+    it('falls back to beachball.tag', async () => {
       npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
       const packageInfos = Object.values(
-        makePackageInfos({ foo: { combinedOptions: { tag: 'beta', defaultNpmTag: 'latest' } } })
+        makePackageInfos({ foo: { beachball: { tag: 'beta', defaultNpmTag: 'latest' } } })
       );
 
       const versions = await listPackageVersionsByTag(packageInfos, undefined, npmOptions);
@@ -142,9 +142,9 @@ describe('list npm versions', () => {
       expect(npmMock.mock).toHaveBeenCalledTimes(1);
     });
 
-    it('falls back to combinedOptions.defaultNpmTag if combinedOptions.tag is unset', async () => {
+    it('falls back to beachball.defaultNpmTag if beachball.tag is unset', async () => {
       npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
-      const packageInfos = Object.values(makePackageInfos({ foo: { combinedOptions: { defaultNpmTag: 'beta' } } }));
+      const packageInfos = Object.values(makePackageInfos({ foo: { beachball: { defaultNpmTag: 'beta' } } }));
 
       const versions = await listPackageVersionsByTag(packageInfos, undefined, npmOptions);
       expect(versions).toEqual({ foo: '2.0.0-beta' });
@@ -176,8 +176,8 @@ describe('list npm versions', () => {
       });
       const packageInfos = Object.values(
         makePackageInfos({
-          foo: { combinedOptions: { defaultNpmTag: 'latest' } },
-          bar: { combinedOptions: { tag: 'beta', defaultNpmTag: 'latest' } },
+          foo: { beachball: { defaultNpmTag: 'latest' } },
+          bar: { beachball: { tag: 'beta', defaultNpmTag: 'latest' } },
         })
       );
 

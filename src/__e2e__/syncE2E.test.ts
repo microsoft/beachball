@@ -7,9 +7,9 @@ import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { sync } from '../commands/sync';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import type { packagePublish } from '../packageManager/packagePublish';
-import { getDefaultOptions } from '../options/getDefaultOptions';
-import type { BeachballOptions } from '../types/BeachballOptions';
+import type { RepoOptions } from '../types/BeachballOptions';
 import { initNpmMock } from '../__fixtures__/mockNpm';
+import { getParsedOptions } from '../options/getOptions';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -20,35 +20,38 @@ jest.mock('../packageManager/npm');
 
 describe('sync command (e2e)', () => {
   const mockNpm = initNpmMock();
+  initMockLogs();
 
+  const tempDirs: string[] = [];
   let repositoryFactory: RepositoryFactory | undefined;
+  let repo: Repository | undefined;
+
   const publishOptions: Parameters<typeof packagePublish>[1] = {
     registry: 'fake',
     retries: 3,
     path: undefined,
     npmReadConcurrency: 2,
   };
-  const tempDirs: string[] = [];
 
-  initMockLogs();
-
-  function getOptions(repo: Repository, overrides?: Partial<BeachballOptions>): BeachballOptions {
-    return {
-      ...getDefaultOptions(),
-      ...publishOptions,
-      branch: defaultRemoteBranchName,
-      path: repo.rootPath,
-      command: 'sync',
-      publish: false,
-      bumpDeps: false,
-      push: false,
-      gitTags: false,
-      yes: true,
-      access: 'public',
-      bump: false,
-      generateChangelog: false,
-      ...overrides,
-    };
+  function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, extraArgv: string[] = []) {
+    const parsedOptions = getParsedOptions({
+      cwd: repo!.rootPath,
+      argv: ['node', 'beachball', 'sync', ...extraArgv],
+      testRepoOptions: {
+        ...publishOptions,
+        branch: defaultRemoteBranchName,
+        publish: false,
+        bumpDeps: false,
+        push: false,
+        gitTags: false,
+        access: 'public',
+        bump: false,
+        generateChangelog: false,
+        ...repoOptions,
+      },
+    });
+    const originalPackageInfos = getPackageInfos(parsedOptions);
+    return { originalPackageInfos, options: parsedOptions.options, parsedOptions };
   }
 
   afterEach(() => {
@@ -70,7 +73,7 @@ describe('sync command (e2e)', () => {
         },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
     // publish initial package versions from the repo
     mockNpm.publishPackage(repositoryFactory.fixture.folders.packages.foopkg);
@@ -81,9 +84,10 @@ describe('sync command (e2e)', () => {
     mockNpm.publishPackage({ name: 'barpkg', version: '3.0.0' });
 
     // sync repo to published versions
-    await sync(getOptions(repo, { tag: '' }));
+    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages();
+    await sync(options, originalPackageInfos);
 
-    const packageInfosAfterSync = getPackageInfos(repo.rootPath);
+    const packageInfosAfterSync = getPackageInfos(parsedOptions);
 
     expect(packageInfosAfterSync['foopkg'].version).toEqual('1.2.0');
     expect(packageInfosAfterSync['barpkg'].version).toEqual('3.0.0');
@@ -100,7 +104,7 @@ describe('sync command (e2e)', () => {
         },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
     // publish initial package versions from the repo
     mockNpm.publishPackage(repositoryFactory.fixture.folders.packages.apkg);
@@ -110,9 +114,12 @@ describe('sync command (e2e)', () => {
     mockNpm.publishPackage({ name: 'apkg', version: '2.0.0' }, 'beta');
     mockNpm.publishPackage({ name: 'bpkg', version: '3.0.0' });
 
-    await sync(getOptions(repo, { tag: 'beta' }));
+    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+      tag: 'beta',
+    });
+    await sync(options, originalPackageInfos);
 
-    const packageInfosAfterSync = getPackageInfos(repo.rootPath);
+    const packageInfosAfterSync = getPackageInfos(parsedOptions);
 
     // apkg should be updated to the new beta tag; others should not be updated
     expect(packageInfosAfterSync['apkg'].version).toEqual('2.0.0');
@@ -130,7 +137,7 @@ describe('sync command (e2e)', () => {
         },
       },
     });
-    const repo = repositoryFactory.cloneRepository();
+    repo = repositoryFactory.cloneRepository();
 
     // publish initial package versions from the repo
     mockNpm.publishPackage(repositoryFactory.fixture.folders.packages.epkg);
@@ -140,9 +147,14 @@ describe('sync command (e2e)', () => {
     mockNpm.publishPackage({ name: 'epkg', version: '1.0.0-1' }, 'prerelease');
     mockNpm.publishPackage({ name: 'fpkg', version: '3.0.0' });
 
-    await sync(getOptions(repo, { tag: 'prerelease', forceVersions: true }));
+    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({}, [
+      '--tag',
+      'prerelease',
+      '--force',
+    ]);
+    await sync(options, originalPackageInfos);
 
-    const packageInfosAfterSync = getPackageInfos(repo.rootPath);
+    const packageInfosAfterSync = getPackageInfos(parsedOptions);
 
     expect(packageInfosAfterSync['epkg'].version).toEqual('1.0.0-1');
     expect(packageInfosAfterSync['fpkg'].version).toEqual('2.2.0');

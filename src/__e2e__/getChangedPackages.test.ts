@@ -1,28 +1,34 @@
 import { describe, expect, it, afterEach } from '@jest/globals';
-import { defaultBranchName } from '../__fixtures__/gitDefaults';
+import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import type { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions, RepoOptions } from '../types/BeachballOptions';
 import { getChangedPackages } from '../changefile/getChangedPackages';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import type { Repository } from '../__fixtures__/repository';
-import { getDefaultOptions } from '../options/getDefaultOptions';
+import { getParsedOptions } from '../options/getOptions';
 
 describe('getChangedPackages', () => {
   let repositoryFactory: RepositoryFactory | undefined;
   let repo: Repository | undefined;
   const logs = initMockLogs();
 
-  function getOptions(options?: Partial<BeachballOptions>): BeachballOptions {
-    return {
-      ...getDefaultOptions(),
-      // change to ?. if a future test uses a non-standard repo
-      path: repo!.rootPath,
-      branch: defaultBranchName,
-      fetch: false,
-      ...options,
-    };
+  function getOptionsAndPackages(
+    params: { repoOptions?: Partial<RepoOptions>; extraArgv?: string[]; cwd?: string } = {}
+  ) {
+    const { repoOptions, extraArgv = [], cwd = repo!.rootPath } = params;
+    const parsedOptions = getParsedOptions({
+      cwd,
+      argv: ['node', 'beachball', 'change', ...extraArgv],
+      testRepoOptions: {
+        branch: defaultRemoteBranchName,
+        fetch: false,
+        ...repoOptions,
+      },
+    });
+    const packageInfos = getPackageInfos(parsedOptions);
+    return { packageInfos, options: parsedOptions.options, parsedOptions };
   }
 
   afterEach(() => {
@@ -34,9 +40,7 @@ describe('getChangedPackages', () => {
   it('detects changed files in single repo', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
-    const packageInfos = getPackageInfos(repo.rootPath);
-
-    const options = getOptions();
+    const { packageInfos, options } = getOptionsAndPackages();
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
 
@@ -47,11 +51,10 @@ describe('getChangedPackages', () => {
   it('respects ignorePatterns option', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
-    const packageInfos = getPackageInfos(repo.rootPath);
 
-    const options = getOptions({
-      ignorePatterns: ['*.test.js', 'tests/**', 'yarn.lock'],
-      verbose: true,
+    const { packageInfos, options } = getOptionsAndPackages({
+      repoOptions: { ignorePatterns: ['*.test.js', 'tests/**', 'yarn.lock'] },
+      extraArgv: ['--verbose'],
     });
 
     repo.stageChange('src/foo.test.js');
@@ -62,7 +65,7 @@ describe('getChangedPackages', () => {
     const logLines = logs.getMockLines('all');
     expect(logLines).toMatch('ignored by pattern');
     expect(logLines).toMatchInlineSnapshot(`
-      "[log] Found 2 changed files in branch "master" (before filtering)
+      "[log] Found 2 changed files in branch "origin/master" (before filtering)
       [log]   - ~~src/foo.test.js~~ (ignored by pattern "*.test.js")
       [log]   - ~~tests/stuff.js~~ (ignored by pattern "tests/**")
       [log] All files were ignored"
@@ -72,9 +75,8 @@ describe('getChangedPackages', () => {
   it('detects changed files in monorepo', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
-    const packageInfos = getPackageInfos(repo.rootPath);
 
-    const options = getOptions();
+    const { packageInfos, options } = getOptionsAndPackages();
 
     expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
 
@@ -86,7 +88,7 @@ describe('getChangedPackages', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({ verbose: true });
+    const { packageInfos, options } = getOptionsAndPackages({ extraArgv: ['--verbose'] });
 
     // setup: create branch, change foo, create a change file, commit
     repo.checkout('-b', 'test');
@@ -94,14 +96,12 @@ describe('getChangedPackages', () => {
     generateChangeFiles(['foo'], options);
     logs.clear();
 
-    const packageInfos = getPackageInfos(repo.rootPath);
-
     // foo is not included in changed packages
     let changedPackages = getChangedPackages(options, packageInfos);
     const logLines = logs.getMockLines('all', true);
     expect(logLines).toMatch(/Your local repository already has change files for these packages:\s+foo/);
     expect(logLines).toMatchInlineSnapshot(`
-      "[log] Found 2 changed files in branch "master" (before filtering)
+      "[log] Found 2 changed files in branch "origin/master" (before filtering)
       [log]   - ~~change/foo-<guid>.json~~ (ignored by pattern "change/*.json")
       [log]   - packages/foo/test.js
       [log] Found 1 file in 1 package that should be published
@@ -115,7 +115,7 @@ describe('getChangedPackages', () => {
     repo.stageChange('packages/bar/test.js');
     changedPackages = getChangedPackages(options, packageInfos);
     expect(logs.getMockLines('all', true)).toMatchInlineSnapshot(`
-      "[log] Found 3 changed files in branch "master" (before filtering)
+      "[log] Found 3 changed files in branch "origin/master" (before filtering)
       [log]   - ~~change/foo-<guid>.json~~ (ignored by pattern "change/*.json")
       [log]   - packages/foo/test.js
       [log]   - packages/bar/test.js
@@ -147,12 +147,13 @@ describe('getChangedPackages', () => {
     repo.stageChange('packages/ignore-pkg/CHANGELOG.md');
     repo.stageChange('packages/publish-me/test.js');
 
-    const options = getOptions({
-      scope: ['!packages/out-of-scope'],
-      ignorePatterns: ['**/jest.config.js'],
-      verbose: true,
+    const { packageInfos, options } = getOptionsAndPackages({
+      repoOptions: {
+        scope: ['!packages/out-of-scope'],
+        ignorePatterns: ['**/jest.config.js'],
+      },
+      extraArgv: ['--verbose'],
     });
-    const packageInfos = getPackageInfos(repo.rootPath);
 
     const changedPackages = getChangedPackages(options, packageInfos);
     const logLines = logs.getMockLines('all');
@@ -164,7 +165,7 @@ describe('getChangedPackages', () => {
     expect(logLines).toMatch('ignored by pattern "CHANGELOG.{md,json}"');
     // and overall output
     expect(logLines).toMatchInlineSnapshot(`
-      "[log] Found 6 changed files in branch "master" (before filtering)
+      "[log] Found 6 changed files in branch "origin/master" (before filtering)
       [log]   - ~~packages/ignore-pkg/CHANGELOG.md~~ (ignored by pattern "CHANGELOG.{md,json}")
       [log]   - ~~packages/ignore-pkg/jest.config.js~~ (ignored by pattern "**/jest.config.js")
       [log]   - ~~packages/no-publish/test.js~~ (no-publish has beachball.shouldPublish=false)
@@ -177,28 +178,23 @@ describe('getChangedPackages', () => {
     expect(changedPackages).toStrictEqual(['publish-me']);
   });
 
-  it('detects changed files in multi-monorepo (multi-workspace) repo', () => {
+  it('detects changed files in multi-root monorepo repo', () => {
     repositoryFactory = new RepositoryFactory('multi-workspace');
     repo = repositoryFactory.cloneRepository();
-    const rootOptions = getOptions();
+    const { options: rootOptions, packageInfos: rootPackageInfos } = getOptionsAndPackages();
     expect(Object.keys(repositoryFactory.fixtures)).toEqual(['workspace-a', 'workspace-b']);
 
     const workspaceARoot = repo.pathTo('workspace-a');
     const workspaceBRoot = repo.pathTo('workspace-b');
-    const rootPackageInfos = getPackageInfos(repo.rootPath);
 
     expect(getChangedPackages(rootOptions, rootPackageInfos)).toStrictEqual([]);
 
     repo.stageChange('workspace-a/packages/foo/test.js');
 
-    const changedPackagesA = getChangedPackages(
-      { ...rootOptions, path: workspaceARoot },
-      getPackageInfos(workspaceARoot)
-    );
-    const changedPackagesB = getChangedPackages(
-      { ...rootOptions, path: workspaceBRoot },
-      getPackageInfos(workspaceBRoot)
-    );
+    const infoA = getOptionsAndPackages({ cwd: workspaceARoot });
+    const infoB = getOptionsAndPackages({ cwd: workspaceBRoot });
+    const changedPackagesA = getChangedPackages(infoA.options, infoA.packageInfos);
+    const changedPackagesB = getChangedPackages(infoB.options, infoB.packageInfos);
     const changedPackagesRoot = getChangedPackages(rootOptions, rootPackageInfos);
 
     expect(changedPackagesA).toStrictEqual(['@workspace-a/foo']);
@@ -209,9 +205,8 @@ describe('getChangedPackages', () => {
   it('returns all packages with --all option', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
-    const packageInfos = getPackageInfos(repo.rootPath);
 
-    const options = getOptions({ all: true });
+    const { packageInfos, options } = getOptionsAndPackages({ extraArgv: ['--all'] });
 
     expect(getChangedPackages(options, packageInfos).sort()).toStrictEqual(['a', 'b', 'bar', 'baz', 'foo']);
   });

@@ -1,7 +1,17 @@
 import parser from 'yargs-parser';
-import type { CliOptions } from '../types/BeachballOptions';
+import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
 import { getDefaultRemoteBranch, findProjectRoot } from 'workspace-tools';
 import { env } from '../env';
+
+export interface ProcessInfo {
+  /** Complete argv (node and script path aren't used but elements must be present) */
+  argv: string[];
+  /**
+   * Current directory (search for the project root from here). Usually this should be `process.cwd()`.
+   * It can be empty in tests that don't use the filesystem.
+   */
+  cwd: string;
+}
 
 // For camelCased options, yargs will automatically accept them with-dashes too.
 const arrayOptions = ['disallowedChangeTypes', 'package', 'scope'] as const;
@@ -105,40 +115,40 @@ const parserOptions: parser.Options = {
   },
 };
 
-let cachedCliOptions: CliOptions;
+/**
+ * Gets CLI options.
+ */
+export function getCliOptions(processInfo: ProcessInfo): ParsedOptions['cliOptions'];
+/** @deprecated Pass full process info */
+export function getCliOptions(argv: string[]): ParsedOptions['cliOptions'];
+export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOptions['cliOptions'] {
+  const processInfo = Array.isArray(processOrArgv)
+    ? { argv: processOrArgv, cwd: env.isJest ? '' : process.cwd() }
+    : processOrArgv;
 
-export function getCliOptions(argv: string[], disableCache?: boolean): CliOptions {
-  // Special case caching to process.argv which should be immutable
-  if (argv === process.argv) {
-    if (disableCache || env.beachballDisableCache || !cachedCliOptions) {
-      cachedCliOptions = getCliOptionsUncached(process.argv);
-    }
-    return cachedCliOptions;
-  } else {
-    return getCliOptionsUncached(argv);
-  }
-}
-
-function getCliOptionsUncached(argv: string[]): CliOptions {
   // Be careful not to mutate the input argv
-  const trimmedArgv = argv.slice(2);
+  const trimmedArgv = processInfo.argv.slice(2);
 
   const args = parser(trimmedArgv, parserOptions);
 
   const { _: positionalArgs, ...options } = args;
-  let cwd: string;
+  let cwd = processInfo.cwd;
   try {
-    cwd = findProjectRoot(process.cwd());
+    // If a non-empty cwd is provided, find the project root from there.
+    // Empty means this is a test without a filesystem.
+    if (cwd) {
+      cwd = findProjectRoot(processInfo.cwd);
+    }
   } catch {
-    cwd = process.cwd();
+    // use the provided cwd
   }
 
   if (positionalArgs.length > 1) {
     throw new Error(`Only one positional argument (the command) is allowed. Received: ${positionalArgs.join(' ')}`);
   }
 
-  const cliOptions = {
-    ...(options as CliOptions),
+  const cliOptions: ParsedOptions['cliOptions'] = {
+    ...options,
     command: positionalArgs.length ? String(positionalArgs[0]) : 'change',
     path: cwd,
   };

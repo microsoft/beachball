@@ -6,6 +6,16 @@ import type { PackageInfos } from './PackageInfo';
 
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
+/** Separate options objects, returned for reuse in `getPackageInfos`. */
+export interface ParsedOptions {
+  /** Only the specified repo options */
+  repoOptions: Partial<RepoOptions>;
+  /** Only the specified CLI options, plus the path and command */
+  cliOptions: Partial<CliOptions> & Pick<CliOptions, 'path' | 'command'>;
+  /** Merged repo-level options (includes repo, CLI, and defaults) */
+  options: BeachballOptions;
+}
+
 export interface CliOptions
   extends Pick<
     RepoOptions,
@@ -171,8 +181,10 @@ export interface RepoOptions {
   /** For the `change` command, change message. For the `publish` command, commit message. */
   message: string;
   /**
-   * The directory to run beachball in
-   * @default process.cwd()
+   * The directory to run beachball in.
+   *
+   * Except in tests, this will be the project root (monorepo manager root or package root),
+   * determined relative to `process.cwd()`.
    */
   path: string;
   /** Prerelease prefix for packages that are specified to receive a prerelease bump */

@@ -102,7 +102,7 @@ describe('promptForChange', () => {
       ...defaultParams(),
       packageInfos: makePackageInfos({
         foo: {},
-        bar: { combinedOptions: { disallowedChangeTypes: ['major', 'minor', 'patch', 'none'] } },
+        bar: { beachball: { disallowedChangeTypes: ['major', 'minor', 'patch', 'none'] } },
       }),
     });
 

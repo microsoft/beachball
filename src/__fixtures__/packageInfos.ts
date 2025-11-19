@@ -1,39 +1,42 @@
-import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfo, PackageInfos } from '../types/PackageInfo';
-import { getDefaultOptions } from '../options/getDefaultOptions';
-
-const defaultOptions = getDefaultOptions();
+import { getPackageInfosWithOptions } from '../options/getPackageInfosWithOptions';
+import type { RepoOptions } from '../types/BeachballOptions';
+import { defaultRemoteBranchName } from './gitDefaults';
 
 export type PartialPackageInfos = {
-  [name: string]: Partial<Omit<PackageInfo, 'combinedOptions'>> & { combinedOptions?: Partial<BeachballOptions> };
+  [name: string]: Omit<Partial<PackageInfo>, 'combinedOptions' | 'packageOptions'> & {
+    beachball?: PackageInfo['packageOptions'];
+  };
 };
 
 /**
  * Makes a properly typed PackageInfos object from a partial object, filling in defaults:
- * ```
+ * ```js
  * {
  *   name: '<key>',
  *   version: '1.0.0',
  *   private: false,
- *   combinedOptions: {},
- *   packageOptions: {},
  *   packageJsonPath: ''
  * }
  * ```
+ * Other defaults and values are filled by the actual logic in `getPackageInfosWithOptions`,
+ * including the overrides in `repoOptions` merged in realistic order.
  */
-export function makePackageInfos(packageInfos: PartialPackageInfos): PackageInfos {
-  const acc: PackageInfos = {};
-  for (const [name, info] of Object.entries(packageInfos)) {
-    const { combinedOptions, ...rest } = info;
-    acc[name] = {
-      name,
-      version: '1.0.0',
-      private: false,
-      combinedOptions: { ...defaultOptions, ...combinedOptions },
-      packageOptions: {},
-      packageJsonPath: '',
-      ...rest,
-    };
-  }
-  return acc;
+export function makePackageInfos(packageInfos: PartialPackageInfos, repoOptions?: Partial<RepoOptions>): PackageInfos {
+  return getPackageInfosWithOptions(
+    Object.entries(packageInfos).map(([name, info]) => {
+      return {
+        name,
+        version: '1.0.0',
+        private: false,
+        packageOptions: {},
+        packageJsonPath: '',
+        ...info,
+      };
+    }),
+    {
+      repoOptions: { branch: defaultRemoteBranchName, ...repoOptions },
+      cliOptions: { path: '', command: '' },
+    }
+  );
 }

@@ -13,13 +13,15 @@ import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { writeChangelog } from '../../changelog/writeChangelog';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { readChangeFiles } from '../../changefile/readChangeFiles';
-import type { BeachballOptions } from '../../types/BeachballOptions';
+import type { BeachballOptions, RepoOptions } from '../../types/BeachballOptions';
 import type { Repository } from '../../__fixtures__/repository';
-import { getDefaultOptions } from '../../options/getDefaultOptions';
 import type { BumpInfo } from '../../types/BumpInfo';
 import { getMaxChangeType } from '../../changefile/changeTypes';
 import { getChangePath } from '../../paths';
 import { trimmedVersionsNote } from '../../changelog/renderChangelog';
+import { getParsedOptions } from '../../options/getOptions';
+import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
+import type { PackageInfos } from '../../types/PackageInfo';
 
 describe('writeChangelog', () => {
   let repositoryFactory: RepositoryFactory;
@@ -29,6 +31,16 @@ describe('writeChangelog', () => {
   let sharedMonoRepo: Repository;
 
   initMockLogs();
+
+  function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, cwd?: string) {
+    const parsedOptions = getParsedOptions({
+      cwd: cwd || repo?.rootPath || '',
+      argv: [],
+      testRepoOptions: { branch: defaultRemoteBranchName, ...repoOptions },
+    });
+    const packageInfos = getPackageInfos(parsedOptions);
+    return { packageInfos, options: parsedOptions.options, parsedOptions };
+  }
 
   /**
    * Read package infos and change files, fill in default options, bump versions in package info,
@@ -43,11 +55,11 @@ describe('writeChangelog', () => {
    */
   async function writeChangelogWrapper(
     params: Partial<Pick<BumpInfo, 'dependentChangedBy'>> & {
+      packageInfos: PackageInfos;
       options: BeachballOptions;
     }
   ) {
-    const { options, dependentChangedBy = {} } = params;
-    const packageInfos = getPackageInfos(repo!.rootPath);
+    const { options, dependentChangedBy = {}, packageInfos } = params;
     const changeFileChangeInfos = readChangeFiles(options, packageInfos);
 
     // Generate a basic best guess at calculatedChangeTypes
@@ -69,15 +81,6 @@ describe('writeChangelog', () => {
     }
 
     await writeChangelog({ dependentChangedBy, calculatedChangeTypes, changeFileChangeInfos, packageInfos }, options);
-  }
-
-  function getOptions(options?: Partial<BeachballOptions>): BeachballOptions {
-    return {
-      ...getDefaultOptions(),
-      // change to ?. if a future test uses a non-standard repo var name
-      path: repo!.rootPath,
-      ...options,
-    };
   }
 
   beforeAll(() => {
@@ -102,9 +105,9 @@ describe('writeChangelog', () => {
 
   it('does not write changelogs if there are no changes', async () => {
     repo = sharedSingleRepo;
-    const options = getOptions();
+    const { options, packageInfos } = getOptionsAndPackages();
 
-    await writeChangelogWrapper({ options });
+    await writeChangelogWrapper({ options, packageInfos });
 
     expect(readChangelogMd(repo.rootPath)).toBeNull();
     expect(readChangelogJson(repo.rootPath)).toBeNull();
@@ -112,14 +115,14 @@ describe('writeChangelog', () => {
 
   it('generates basic changelog', async () => {
     repo = sharedSingleRepo;
-    const options = getOptions();
+    const { options, packageInfos } = getOptionsAndPackages();
 
     generateChangeFiles([getChange('foo', 'old minor comment')], options);
     generateChangeFiles([getChange('foo', 'patch comment', 'patch')], options);
     generateChangeFiles([getChange('foo', 'no comment', 'none')], options);
     generateChangeFiles([getChange('foo', 'new minor comment', 'minor')], options);
 
-    await writeChangelogWrapper({ options });
+    await writeChangelogWrapper({ options, packageInfos });
 
     const changelogMd = readChangelogMd(repo.rootPath);
     // Do some explicit tests since snapshot changes are too easy to ignore
@@ -159,13 +162,13 @@ describe('writeChangelog', () => {
   it('generates changelog with custom changeDir', async () => {
     repo = sharedSingleRepo;
     const changeDir = 'myChangeDir';
-    const options = getOptions({ changeDir });
+    const { options, packageInfos } = getOptionsAndPackages({ changeDir });
 
     generateChangeFiles([{ packageName: 'foo', comment: 'comment 1' }], options);
     // make sure the setup worked as expected
     expect(fs.readdirSync(repo.pathTo(changeDir))).toEqual([expect.stringMatching(/^foo-.*\.json$/)]);
 
-    await writeChangelogWrapper({ options });
+    await writeChangelogWrapper({ options, packageInfos });
 
     // Just check for a comment in the md to verify that the change file was found
     expect(readChangelogMd(repo.rootPath)).toContain('### Minor changes\n\n- comment 1');
@@ -173,13 +176,14 @@ describe('writeChangelog', () => {
 
   it('generates changelogs with dependent changes in monorepo', async () => {
     repo = sharedMonoRepo;
-    const options = getOptions();
+    const { options, packageInfos } = getOptionsAndPackages();
 
     generateChangeFiles([{ packageName: 'foo', comment: 'foo comment' }], options);
     generateChangeFiles([{ packageName: 'baz', comment: 'baz comment' }], options);
 
     await writeChangelogWrapper({
       options,
+      packageInfos,
       // Per the fixture, bar depends on baz (and is bumped), and foo depends on bar.
       // Note that the changelogs will only include dependent bump entries as specified here
       // (which may be different than what would actually be calculated while bumping), and
@@ -242,14 +246,14 @@ describe('writeChangelog', () => {
 
   it('generates changelog in monorepo with grouped change files (groupChanges)', async () => {
     repo = sharedMonoRepo;
-    const options = getOptions({ groupChanges: true });
+    const { options, packageInfos } = getOptionsAndPackages({ groupChanges: true });
 
     // these will be in one change file
     generateChangeFiles([getChange('foo', 'comment 2'), getChange('bar', 'bar comment')], options);
     // separate change file
     generateChangeFiles([getChange('foo', 'comment 1')], options);
 
-    await writeChangelogWrapper({ options, dependentChangedBy: { foo: new Set(['bar']) } });
+    await writeChangelogWrapper({ options, packageInfos, dependentChangedBy: { foo: new Set(['bar']) } });
 
     // check changelogs for both foo and bar
     const fooText = readChangelogMd(repo.pathTo('packages/foo'));
@@ -279,7 +283,7 @@ describe('writeChangelog', () => {
 
   it('generates grouped changelog in monorepo', async () => {
     repo = sharedMonoRepo;
-    const options = getOptions({
+    const { options, packageInfos } = getOptionsAndPackages({
       changelog: {
         groups: [
           {
@@ -298,6 +302,7 @@ describe('writeChangelog', () => {
 
     await writeChangelogWrapper({
       options,
+      packageInfos,
       // Per the fixture structure, bar will have a dependent change from baz, which changes foo
       dependentChangedBy: { bar: new Set(['baz']), foo: new Set(['bar']) },
     });
@@ -350,7 +355,7 @@ describe('writeChangelog', () => {
 
   it('generates grouped changelog when path overlaps with regular changelog', async () => {
     repo = sharedMonoRepo;
-    const options = getOptions({
+    const { options, packageInfos } = getOptionsAndPackages({
       changelog: {
         groups: [
           {
@@ -364,7 +369,7 @@ describe('writeChangelog', () => {
 
     generateChangeFiles(['foo', 'bar'], options);
 
-    await writeChangelogWrapper({ options, dependentChangedBy: { foo: new Set(['bar']) } });
+    await writeChangelogWrapper({ options, packageInfos, dependentChangedBy: { foo: new Set(['bar']) } });
 
     // packages/foo changelog should be grouped, not regular.
     // We can verify this by just looking for the bar entry.
@@ -378,7 +383,7 @@ describe('writeChangelog', () => {
 
   it('does not write grouped changelog if group would only have dependent bumps', async () => {
     repo = sharedMonoRepo;
-    const options = getOptions({
+    const { options, packageInfos } = getOptionsAndPackages({
       changelog: {
         groups: [{ mainPackageName: 'foo', changelogPath: '.', include: ['packages/foo', 'packages/baz'] }],
       },
@@ -386,7 +391,7 @@ describe('writeChangelog', () => {
 
     // bar is not in the group, but it causes a dependent change for foo
     generateChangeFiles(['bar'], options);
-    await writeChangelogWrapper({ options, dependentChangedBy: { foo: new Set(['bar']) } });
+    await writeChangelogWrapper({ options, packageInfos, dependentChangedBy: { foo: new Set(['bar']) } });
 
     // grouped changelog was not written
     expect(readChangelogMd(repo.rootPath)).toBeNull();
@@ -398,7 +403,7 @@ describe('writeChangelog', () => {
 
   it('does not write grouped changelog overlapping regular changelog if it would contain only dependent bumps', async () => {
     repo = sharedMonoRepo;
-    const options = getOptions({
+    const { options, packageInfos } = getOptionsAndPackages({
       changelog: {
         groups: [
           // The grouped changelog overlaps with the changelog for packages/foo.
@@ -410,7 +415,7 @@ describe('writeChangelog', () => {
     // bar is not in the group
     generateChangeFiles(['bar'], options);
     // but it causes a dependent change for foo (so normally foo's non-grouped changelog would be written)
-    await writeChangelogWrapper({ options, dependentChangedBy: { foo: new Set(['bar']) } });
+    await writeChangelogWrapper({ options, packageInfos, dependentChangedBy: { foo: new Set(['bar']) } });
 
     // Nothing was written (not the grouped changelog, and not a normal changelog for foo)
     expect(readChangelogMd(repo.pathTo('packages/foo'))).toBeNull();
@@ -419,7 +424,7 @@ describe('writeChangelog', () => {
 
   it('includes pre* changes', async () => {
     repo = sharedSingleRepo;
-    const options = getOptions();
+    const { options, packageInfos } = getOptionsAndPackages();
 
     generateChangeFiles(
       [
@@ -431,7 +436,7 @@ describe('writeChangelog', () => {
       options
     );
 
-    await writeChangelogWrapper({ options });
+    await writeChangelogWrapper({ options, packageInfos });
 
     const changelogMd = readChangelogMd(repo.rootPath);
     expect(changelogMd).toContain('### Major changes (pre-release)\n\n- comment 1');
@@ -442,7 +447,7 @@ describe('writeChangelog', () => {
 
   it('includes pre* changes', async () => {
     repo = repositoryFactory.cloneRepository();
-    const options = getOptions();
+    const { options, packageInfos } = getOptionsAndPackages();
 
     generateChangeFiles(
       [
@@ -453,7 +458,7 @@ describe('writeChangelog', () => {
       options
     );
 
-    await writeChangelogWrapper({ options });
+    await writeChangelogWrapper({ options, packageInfos });
 
     const changelogMd = readChangelogMd(repo.rootPath);
     expect(changelogMd).toContain('### Major changes (pre-release)\n\n- comment 1');
@@ -463,11 +468,11 @@ describe('writeChangelog', () => {
 
   it('writes only CHANGELOG.md if generateChangelog is "md"', async () => {
     repo = sharedSingleRepo;
-    const options = getOptions({ generateChangelog: 'md' });
+    const { options, packageInfos } = getOptionsAndPackages({ generateChangelog: 'md' });
 
     generateChangeFiles(['foo'], options);
 
-    await writeChangelogWrapper({ options });
+    await writeChangelogWrapper({ options, packageInfos });
 
     // CHANGELOG.md is written
     expect(readChangelogMd(repo.rootPath)).toContain('## 1.1.0');
@@ -478,11 +483,11 @@ describe('writeChangelog', () => {
 
   it('writes only CHANGELOG.json if generateChangelog is "json"', async () => {
     repo = sharedSingleRepo;
-    const options = getOptions({ generateChangelog: 'json' });
+    const { options, packageInfos } = getOptionsAndPackages({ generateChangelog: 'json' });
 
     generateChangeFiles(['foo'], options);
 
-    await writeChangelogWrapper({ options });
+    await writeChangelogWrapper({ options, packageInfos });
 
     // CHANGELOG.md is not written
     expect(readChangelogMd(repo.rootPath)).toBeNull();
@@ -497,11 +502,11 @@ describe('writeChangelog', () => {
     // Most of the previous content tests are handled by renderChangelog, but writeChangelog is
     // responsible for reading that content and passing it in.
     repo = sharedSingleRepo;
-    const options = getOptions();
+    const { options, packageInfos } = getOptionsAndPackages();
 
     // Write some changes and generate changelogs
     generateChangeFiles(['foo'], options);
-    await writeChangelogWrapper({ options });
+    await writeChangelogWrapper({ options, packageInfos });
 
     // Read and save the initial changelogs
     const firstChangelogMd = readChangelogMd(repo.rootPath);
@@ -512,7 +517,7 @@ describe('writeChangelog', () => {
     // Delete the change files, generate new ones, and re-generate changelogs
     fs.emptyDirSync(getChangePath(options));
     generateChangeFiles([getChange('foo', 'extra change')], options);
-    await writeChangelogWrapper({ options });
+    await writeChangelogWrapper({ options, packageInfos });
 
     // Read the changelogs again and verify that the previous content is still there
     const secondChangelogMd = readChangelogMd(repo.rootPath);
@@ -528,11 +533,11 @@ describe('writeChangelog', () => {
 
   it('appends to existing changelog when migrating from uniqueFilenames=false to true', async () => {
     repo = sharedSingleRepo;
-    const options = getOptions();
+    const { options, packageInfos } = getOptionsAndPackages();
 
     // Write some changes and generate changelogs
     generateChangeFiles(['foo'], options);
-    await writeChangelogWrapper({ options });
+    await writeChangelogWrapper({ options, packageInfos });
 
     // Read and save the initial changelogs
     const firstChangelogMd = readChangelogMd(repo.rootPath);
@@ -546,7 +551,7 @@ describe('writeChangelog', () => {
     // Change the options to used suffixed filenames, generate new change files, and re-generate changelogs
     options.changelog = { uniqueFilenames: true };
     generateChangeFiles([getChange('foo', 'extra change')], options);
-    await writeChangelogWrapper({ options });
+    await writeChangelogWrapper({ options, packageInfos });
 
     // Verify the old changelog is moved
     expect(readChangelogMd(repo.rootPath)).toBeNull();
@@ -566,13 +571,13 @@ describe('writeChangelog', () => {
 
   it('trims previous changelog entries over maxVersions', async () => {
     repo = sharedSingleRepo;
-    const options = getOptions({ changelog: { maxVersions: 2 } });
+    const { options, packageInfos } = getOptionsAndPackages({ changelog: { maxVersions: 2 } });
 
     // Bump and write three times
     for (let i = 1; i <= 3; i++) {
       fs.emptyDirSync(getChangePath(options));
       generateChangeFiles([{ packageName: 'foo', comment: `foo comment ${i}` }], options);
-      await writeChangelogWrapper({ options });
+      await writeChangelogWrapper({ options, packageInfos });
     }
 
     // Read the changelog md and verify that it only has the last two versions

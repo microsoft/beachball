@@ -5,11 +5,18 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { getRecentCommitMessages, getUserEmail } from 'workspace-tools';
 import { getChangedPackages } from '../changefile/getChangedPackages';
 import { getPackageGroups } from '../monorepo/getPackageGroups';
+import type { PackageInfos } from '../types/PackageInfo';
 
-export async function change(options: BeachballOptions): Promise<void> {
+/**
+ * Generate change files.
+ */
+export async function change(options: BeachballOptions, packageInfos: PackageInfos): Promise<void>;
+/** @deprecated Must provide the package infos */
+export async function change(options: BeachballOptions): Promise<void>;
+export async function change(options: BeachballOptions, packageInfos?: PackageInfos): Promise<void> {
   const { branch, path: cwd, package: specificPackage } = options;
 
-  const packageInfos = getPackageInfos(cwd);
+  packageInfos ||= getPackageInfos(cwd);
   const packageGroups = getPackageGroups(packageInfos, cwd, options.groups);
 
   const changedPackages =
