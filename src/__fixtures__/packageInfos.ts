@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfo, PackageInfos } from '../types/PackageInfo';
 import { getDefaultOptions } from '../options/getDefaultOptions';
@@ -23,9 +22,10 @@ export type PartialPackageInfos = {
  * ```
  */
 export function makePackageInfos(packageInfos: PartialPackageInfos): PackageInfos {
-  return _.mapValues(packageInfos, (info, name): PackageInfo => {
+  const acc: PackageInfos = {};
+  for (const [name, info] of Object.entries(packageInfos)) {
     const { combinedOptions, ...rest } = info;
-    return {
+    acc[name] = {
       name,
       version: '1.0.0',
       private: false,
@@ -34,5 +34,6 @@ export function makePackageInfos(packageInfos: PartialPackageInfos): PackageInfo
       packageJsonPath: '',
       ...rest,
     };
-  });
+  }
+  return acc;
 }

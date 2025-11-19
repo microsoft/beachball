@@ -1,6 +1,5 @@
 import { afterAll, afterEach, beforeAll, type jest } from '@jest/globals';
 import fs from 'fs-extra';
-import _ from 'lodash';
 import path from 'path';
 import semver from 'semver';
 import { npmShowProperties, type NpmShowResult } from '../packageManager/listPackageVersions';
@@ -122,7 +121,9 @@ export function initNpmMock(): NpmMock {
 
 /** (exported for testing) Make full registry data from partial data */
 export function _makeRegistryData(data: PartialRegistryData): MockNpmRegistry {
-  return _.mapValues(data, (pkg, name): MockNpmRegistryPackage => {
+  const registry: MockNpmRegistry = {};
+
+  for (const [name, pkg] of Object.entries(data)) {
     let versions = pkg.versions;
     let distTags = pkg['dist-tags'];
     if (!versions && !distTags) {
@@ -136,13 +137,15 @@ export function _makeRegistryData(data: PartialRegistryData): MockNpmRegistry {
     // Ensure "latest" is set
     distTags.latest ??= versions.slice(-1)[0];
 
-    return {
+    registry[name] = {
       versions,
       'dist-tags': distTags,
       // Fill in basic package.json data for each version
       versionData: Object.fromEntries(versions.map(version => [version, { name, version }])),
     };
-  });
+  }
+
+  return registry;
 }
 
 /** (exported for testing) Mock npm show based on the registry data */

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Remove lodash usage for minor perf improvement",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

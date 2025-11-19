@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { performBump } from '../bump/performBump';
 import type { PublishBumpInfo } from '../types/BumpInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
@@ -12,6 +11,7 @@ import { callHook } from '../bump/callHook';
 import { getPackageGraph } from '../monorepo/getPackageGraph';
 import type { PackageInfo } from '../types/PackageInfo';
 import { packPackage } from '../packageManager/packPackage';
+import { cloneBumpInfo } from './cloneBumpInfo';
 
 /**
  * Publish all the bumped packages to the registry, OR if `packToPath` is specified,
@@ -22,7 +22,7 @@ import { packPackage } from '../packageManager/packPackage';
 export async function publishToRegistry(originalBumpInfo: PublishBumpInfo, options: BeachballOptions): Promise<void> {
   const verb = options.packToPath ? 'pack' : 'publish';
 
-  const bumpInfo = _.cloneDeep(originalBumpInfo);
+  const bumpInfo = cloneBumpInfo(originalBumpInfo);
 
   if (options.bump) {
     await performBump(bumpInfo, options);
