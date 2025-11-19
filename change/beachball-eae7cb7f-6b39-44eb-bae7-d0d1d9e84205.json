@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Calculate options and PackageInfos once, and pass around between functions. This should significantly improve perf in large repos.",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

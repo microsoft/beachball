@@ -2,6 +2,41 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 19 Nov 2025 23:36:30 GMT",
+      "version": "2.58.0",
+      "tag": "beachball_v2.58.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "3d9fd4a121e7b564d9b92342f244b3c916026050",
+            "comment": "sync: fix precedence of tag options"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "4c7ba4785b457bba2e605f1f9b7a1cca0ad31d94",
+            "comment": "Remove lodash usage for minor perf improvement"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "d0bc43c708ac816fc2212b15810b4fd810da49d2",
+            "comment": "For version groups, use the max change type from the group, not the first one encountered"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "2d973dbab69a8c342128d6f4a744117fb9389695",
+            "comment": "Calculate options and PackageInfos once, and pass around between functions. This should significantly improve perf in large repos."
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 23 Oct 2025 20:47:20 GMT",
       "version": "2.56.0",
       "tag": "beachball_v2.56.0",

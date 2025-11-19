@@ -1,8 +1,22 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Thu, 23 Oct 2025 20:47:20 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 19 Nov 2025 23:36:30 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.58.0
+
+Wed, 19 Nov 2025 23:36:30 GMT
+
+### Minor changes
+
+- Calculate options and PackageInfos once, and pass around between functions. This should significantly improve perf in large repos. (elcraig@microsoft.com)
+
+### Patches
+
+- sync: fix precedence of tag options (elcraig@microsoft.com)
+- Remove lodash usage for minor perf improvement (elcraig@microsoft.com)
+- For version groups, use the max change type from the group, not the first one encountered (elcraig@microsoft.com)
 
 ## 2.56.0
 
