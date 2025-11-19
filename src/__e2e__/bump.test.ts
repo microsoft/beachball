@@ -236,6 +236,50 @@ describe('version bumping', () => {
     expect(changeFiles).toHaveLength(0);
   });
 
+  it('bumps all grouped packages to the greatest change type in the group, regardless of change file order', async () => {
+    repositoryFactory = new RepositoryFactory('monorepo');
+    repo = repositoryFactory.cloneRepository();
+
+    repo.commitChange('packages/commonlib/package.json', {
+      // The prefix z- here ensures commonlib's change file is loaded AFTER its dependents.
+      // This makes sure we set the group's version bumps based on ChangeType order and not in
+      // the sort order the filesystem gives us.
+      name: 'z-commonlib',
+      version: '1.0.0',
+    });
+    repo.commitChange('packages/pkg-1/package.json', {
+      name: 'pkg-1',
+      version: '1.0.0',
+      dependencies: {
+        'z-commonlib': '1.0.0',
+      },
+    });
+
+    const options = getOptions({
+      groups: [{ include: 'packages/*', disallowedChangeTypes: null, name: 'grp' }],
+      bumpDeps: true,
+      commit: true,
+    });
+    generateChangeFiles(
+      [
+        { packageName: 'z-commonlib', type: 'none', dependentChangeType: 'none' },
+        { packageName: 'pkg-1', type: 'minor', dependentChangeType: 'minor' },
+      ],
+      options
+    );
+    repo.push();
+
+    await bump(options);
+
+    const packageInfos = getPackageInfos(repo.rootPath);
+
+    expect(packageInfos['pkg-1'].version).toBe('1.1.0');
+    expect(packageInfos['z-commonlib'].version).toBe('1.1.0');
+
+    const changeFiles = getChangeFiles(options);
+    expect(changeFiles).toHaveLength(0);
+  });
+
   it('bumps all grouped AND dependent packages', async () => {
     const monorepo: RepoFixture['folders'] = {
       'packages/grp': {

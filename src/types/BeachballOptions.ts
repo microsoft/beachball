@@ -150,7 +150,10 @@ export interface RepoOptions {
    * - `'json'` to generate only CHANGELOG.json
    */
   generateChangelog: boolean | 'md' | 'json';
-  /** Options for bumping package versions together */
+  /**
+   * Options for bumping package versions together.
+   * (For changelog groups, use `BeachballOptions.changelog.groups`.)
+   */
   groups?: VersionGroupOptions[];
   /**
    * Whether to create git tags for published packages
@@ -255,6 +258,8 @@ export interface PackageOptions {
 
 /**
  * Options for bumping package versions together.
+ *
+ * For changelog groups, use `BeachballOptions.changelog.groups` (`ChangelogGroupOptions`).
  */
 export interface VersionGroupOptions {
   /** name of the version group */

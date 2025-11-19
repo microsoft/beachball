@@ -63,6 +63,9 @@ export interface PackageGroupsInfo {
   disallowedChangeTypes: ChangeType[] | null;
 }
 
+/**
+ * Package version groups (not changelog groups) derived from `BeachballOptions.groups` (`VersionGroupOptions`).
+ */
 export type PackageGroups = { [groupName: string]: PackageGroupsInfo };
 
 /** Types of dependencies to consider when bumping. */

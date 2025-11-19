@@ -9,7 +9,12 @@ import type { ChangeType } from './ChangeInfo';
  * to achieve the desired level of customization.
  */
 export interface ChangelogOptions {
-  /** Options for grouping packages together in a single changelog. */
+  /**
+   * Options for grouping packages together in a single changelog.
+   *
+   * Note that this only impacts changelogs, not version bumping.
+   * For version bumping, use `BeachballOptions.groups` (`VersionGroupOptions`).
+   */
   groups?: ChangelogGroupOptions[];
 
   /**
@@ -62,7 +67,13 @@ export interface ChangelogOptions {
   includeCommitHashes?: boolean;
 }
 
-interface ChangelogGroupOptionsBase {
+/**
+ * Options for generating a changelog for a group of packages.
+ *
+ * Note that this only impacts changelogs, not version bumping.
+ * For version bumping, use `BeachballOptions.groups` (`VersionGroupOptions`).
+ */
+export interface ChangelogGroupOptions {
   /**
    * minimatch pattern(s) for package paths to include in this group.
    * Patterns are relative to the repo root and must use forward slashes.
@@ -84,24 +95,16 @@ interface ChangelogGroupOptionsBase {
    * Can be relative to the root, or absolute.
    */
   changelogPath: string;
-}
 
-/**
- * Options for generating a changelog for a group of packages.
- */
-export type ChangelogGroupOptions =
-  | (ChangelogGroupOptionsBase & {
-      /**
-       * The main package which a group of changes bubbles up to.
-       * All changes within the group are used to describe changes for the main package.
-       */
-      mainPackageName: string;
-    })
-  | (ChangelogGroupOptionsBase & {
-      /** @deprecated Use `mainPackageName` */
-      // Change the type back to a single interface once this is removed
-      masterPackageName: string;
-    });
+  /**
+   * The main package which a group of changes bubbles up to.
+   * All changes within the group are used to describe changes for the main package.
+   */
+  mainPackageName: string;
+
+  /** @deprecated Use `mainPackageName` */
+  masterPackageName?: string;
+}
 
 /**
  * Info used for rendering the changelog markdown for a particular package version.
