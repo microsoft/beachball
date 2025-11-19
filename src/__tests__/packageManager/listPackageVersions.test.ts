@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import _ from 'lodash';
 import {
   listPackageVersions,
   listPackageVersionsByTag,
@@ -51,7 +50,8 @@ describe('list npm versions', () => {
       npmMock.setRegistryData(showData);
 
       const versions = await listPackageVersions(packages, npmOptions);
-      expect(versions).toEqual(_.mapValues(showData, x => x.versions));
+      const expectedVerions = Object.fromEntries(Object.entries(showData).map(([k, v]) => [k, v.versions]));
+      expect(versions).toEqual(expectedVerions);
       expect(npmMock.mock).toHaveBeenCalledTimes(packages.length);
     });
 
@@ -123,10 +123,10 @@ describe('list npm versions', () => {
       const packages = 'abcdefghij'.split('');
       const showData = Object.fromEntries(packages.map((x, i) => [x, { 'dist-tags': { latest: `${i}.0.0` } }]));
       npmMock.setRegistryData(showData);
-      const packageInfos = Object.values(makePackageInfos(_.mapValues(showData, () => ({}))));
+      const packageInfos = Object.values(makePackageInfos(Object.fromEntries(packages.map(x => [x, {}]))));
 
       expect(await listPackageVersionsByTag(packageInfos, 'latest', npmOptions)).toEqual(
-        _.mapValues(showData, x => x['dist-tags']?.latest)
+        Object.fromEntries(Object.entries(showData).map(([k, v]) => [k, v['dist-tags'].latest]))
       );
       expect(npmMock.mock).toHaveBeenCalledTimes(packages.length);
     });

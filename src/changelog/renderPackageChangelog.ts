@@ -1,5 +1,4 @@
 import type { ChangelogEntry } from '../types/ChangeLog';
-import _ from 'lodash';
 import type { PackageChangelogRenderInfo, ChangelogRenderers } from '../types/ChangelogOptions';
 import type { ChangeType } from '../types/ChangeInfo';
 import { SortedChangeTypes } from '../changefile/changeTypes';
@@ -67,11 +66,14 @@ async function _renderEntries(changeType: ChangeType, renderInfo: PackageChangel
   }
 
   if (renderInfo.isGrouped) {
-    const entriesByPackage = _.entries(_.groupBy(entries, entry => entry.package));
+    const entriesByPackage: Record<string, ChangelogEntry[]> = {};
+    for (const entry of entries) {
+      (entriesByPackage[entry.package] ??= []).push(entry);
+    }
 
     // Use a for loop here (not map) so that if renderEntry does network requests, we don't fire them all at once
     const packagesText: string[] = [];
-    for (const [pkgName, pkgEntries] of entriesByPackage) {
+    for (const [pkgName, pkgEntries] of Object.entries(entriesByPackage)) {
       const entriesText = (await _renderEntriesBasic(pkgEntries, renderInfo)).map(entry => `  ${entry}`).join('\n');
 
       packagesText.push(`- \`${pkgName}\`\n${entriesText}`);
