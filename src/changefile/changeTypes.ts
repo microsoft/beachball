@@ -34,7 +34,7 @@ export function initializePackageChangeTypes(changeSet: ChangeSet): BumpInfo['ca
 
   for (const { change } of changeSet) {
     const { packageName: pkg } = change;
-    const changeType = getMaxChangeType(change.type, pkgChangeTypes[pkg]);
+    const changeType = getMaxChangeType([change.type, pkgChangeTypes[pkg]]);
     // It's best to totally ignore "none" changes to do a bit less processing.
     if (changeType !== 'none') {
       pkgChangeTypes[pkg] = changeType;
@@ -58,19 +58,25 @@ function getAllowedChangeType(changeType: ChangeType, disallowedChangeTypes: Rea
 }
 
 /**
- * Get the max allowed change type based on `a` and `b`, accounting for disallowed change types:
- * e.g. if `a` is "major" and `b` is "patch", and "major" is disallowed, the result will be "minor"
+ * Get the max allowed change type out of `changeTypes`, accounting for disallowed change types:
+ * e.g. if `changeTypes` is `["major", "patch"]`, and `"major"` is disallowed, the result will be `"minor"`
  * (the greatest allowed change type).
  */
 export function getMaxChangeType(
-  a: ChangeType | undefined,
-  b?: ChangeType,
+  changeTypes: (ChangeType | undefined)[],
   disallowedChangeTypes?: ReadonlyArray<ChangeType> | null
 ): ChangeType {
-  if (disallowedChangeTypes?.length) {
-    a = a && getAllowedChangeType(a, disallowedChangeTypes);
-    b = b && getAllowedChangeType(b, disallowedChangeTypes);
+  let max: ChangeType = 'none';
+
+  for (let changeType of changeTypes) {
+    if (!changeType) {
+      continue;
+    }
+    if (disallowedChangeTypes?.length) {
+      changeType = getAllowedChangeType(changeType, disallowedChangeTypes);
+    }
+    max = ChangeTypeWeights[changeType] > ChangeTypeWeights[max] ? changeType : max;
   }
 
-  return a && b ? (ChangeTypeWeights[a] > ChangeTypeWeights[b] ? a : b) : a || b || 'none';
+  return max;
 }

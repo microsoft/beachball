@@ -54,10 +54,10 @@ describe('writeChangelog', () => {
     const calculatedChangeTypes: BumpInfo['calculatedChangeTypes'] = {};
     for (const { change } of changeFileChangeInfos) {
       const { packageName, type } = change;
-      calculatedChangeTypes[packageName] = getMaxChangeType(type, calculatedChangeTypes[packageName]);
+      calculatedChangeTypes[packageName] = getMaxChangeType([type, calculatedChangeTypes[packageName]]);
     }
     for (const pkgName of Object.keys(dependentChangedBy)) {
-      calculatedChangeTypes[pkgName] = getMaxChangeType('patch', calculatedChangeTypes[pkgName]);
+      calculatedChangeTypes[pkgName] = getMaxChangeType(['patch', calculatedChangeTypes[pkgName]]);
     }
 
     // Bump versions in package info and package.json for more realistic changelogs.

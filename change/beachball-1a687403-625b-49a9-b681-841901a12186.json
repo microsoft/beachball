@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "For version groups, use the max change type from the group, not the first one encountered",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

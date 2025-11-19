@@ -23,7 +23,9 @@ export type BumpInfo = {
    */
   calculatedChangeTypes: { [pkgName: string]: ChangeType };
 
-  /** Package grouping */
+  /**
+   * Package version groups (not changelog groups) derived from `BeachballOptions.groups` (`VersionGroupOptions`).
+   */
   packageGroups: DeepReadonly<PackageGroups>;
 
   /** Set of packages that had been modified */

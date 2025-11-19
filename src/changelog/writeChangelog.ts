@@ -68,7 +68,7 @@ async function writeGroupedChangelog(
   // Validate groups and initialize groupedChangelogs
   for (const group of changelogGroups) {
     const { changelogAbsDir } = group;
-    const mainPackageName = 'mainPackageName' in group ? group.mainPackageName : group.masterPackageName;
+    const mainPackageName = group.mainPackageName ?? group.masterPackageName!;
     const mainPackage = packageInfos[mainPackageName];
     if (!mainPackage) {
       console.warn(`main package ${mainPackageName} does not exist.`);
