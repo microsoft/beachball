@@ -9,11 +9,6 @@ jest.mock('workspace-tools', () => {
   };
 });
 
-/** test wrapper for `getCliOptions` which adds common args */
-function getCliOptionsTest(args: string[]) {
-  return getCliOptions(['node', 'beachball', ...args], true /*disableCache*/);
-}
-
 //
 // These tests cover a mix of built-in parser behavior, provided options, and custom overrides.
 // It's worth having tests for relevant built-in behaviors in case we change parsers in the future
@@ -26,6 +21,14 @@ describe('getCliOptions', () => {
   const projectRoot = 'fake-root';
   const mockFindProjectRoot = findProjectRoot as jest.MockedFunction<typeof findProjectRoot>;
   const defaults = { command: 'change', path: projectRoot };
+
+  /** test wrapper for `getCliOptions` which adds common args */
+  function getCliOptionsTest(args: string[], cwd?: string) {
+    return getCliOptions({
+      argv: ['node', 'beachball', ...args],
+      cwd: cwd || projectRoot,
+    });
+  }
 
   afterEach(() => {
     jest.clearAllMocks();
@@ -153,12 +156,12 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, command: 'publish', canaryName: 'foo', tag: 'bar' });
   });
 
-  it('falls back to process.cwd as path if findProjectRoot fails', () => {
+  it('falls back to given cwd as path if findProjectRoot fails', () => {
     mockFindProjectRoot.mockImplementationOnce(() => {
       throw new Error('nope');
     });
-    const options = getCliOptionsTest([]);
-    expect(options).toEqual({ ...defaults, path: process.cwd() });
+    const options = getCliOptionsTest([], 'somewhere');
+    expect(options).toEqual({ ...defaults, path: 'somewhere' });
   });
 
   it('uses provided branch if it contains a slash', () => {

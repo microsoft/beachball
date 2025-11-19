@@ -3,13 +3,13 @@ import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/glob
 import { generateChangeFiles } from '../../__fixtures__/changeFiles';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
-
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { readChangeFiles } from '../../changefile/readChangeFiles';
-import type { BeachballOptions } from '../../types/BeachballOptions';
+import type { RepoOptions } from '../../types/BeachballOptions';
 import type { Repository } from '../../__fixtures__/repository';
-import { getDefaultOptions } from '../../options/getDefaultOptions';
 import type { ChangeInfo } from '../../types/ChangeInfo';
+import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
+import { getParsedOptions } from '../../options/getOptions';
 
 describe('readChangeFiles', () => {
   let repositoryFactory: RepositoryFactory;
@@ -20,13 +20,14 @@ describe('readChangeFiles', () => {
 
   const logs = initMockLogs();
 
-  function getOptions(options?: Partial<BeachballOptions>): BeachballOptions {
-    return {
-      ...getDefaultOptions(),
-      // change to ?. if a future test uses a non-standard repo
-      path: repo!.rootPath,
-      ...options,
-    };
+  function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>) {
+    const parsedOptions = getParsedOptions({
+      cwd: repo!.rootPath,
+      argv: [],
+      testRepoOptions: { branch: defaultRemoteBranchName, ...repoOptions },
+    });
+    const packageInfos = getPackageInfos(parsedOptions);
+    return { packageInfos, options: parsedOptions.options, parsedOptions };
   }
 
   beforeAll(() => {
@@ -53,10 +54,9 @@ describe('readChangeFiles', () => {
     repo = sharedSingleRepo;
     repo.commitChange('foo');
 
-    const options = getOptions();
+    const { options, packageInfos } = getOptionsAndPackages();
     generateChangeFiles(['foo'], options);
 
-    const packageInfos = getPackageInfos(repo.rootPath);
     const changeSet = readChangeFiles(options, packageInfos);
     expect(changeSet).toHaveLength(1);
     expect(changeSet[0].change.commit).toBe(undefined);
@@ -66,10 +66,9 @@ describe('readChangeFiles', () => {
     repo = sharedSingleRepo;
     repo.commitChange('foo');
 
-    const options = getOptions({ changeDir: 'changeDir' });
+    const { options, packageInfos } = getOptionsAndPackages({ changeDir: 'changeDir' });
     generateChangeFiles(['foo'], options);
 
-    const packageInfos = getPackageInfos(repo.rootPath);
     const changeSet = readChangeFiles(options, packageInfos);
     expect(changeSet).toHaveLength(1);
   });
@@ -77,12 +76,11 @@ describe('readChangeFiles', () => {
   it('excludes invalid change files', () => {
     repo = sharedMonoRepo;
     repo.updateJsonFile('packages/bar/package.json', { private: true });
-    const options = getOptions();
+    const { options, packageInfos } = getOptionsAndPackages();
 
     // fake doesn't exist, bar is private, foo is okay
     generateChangeFiles(['fake', 'bar', 'foo'], options);
 
-    const packageInfos = getPackageInfos(repo.rootPath);
     const changeSet = readChangeFiles(options, packageInfos);
     expect(changeSet).toHaveLength(1);
 
@@ -96,12 +94,11 @@ describe('readChangeFiles', () => {
     repo = sharedMonoRepo;
     repo.updateJsonFile('packages/bar/package.json', { private: true });
 
-    const options = getOptions({ groupChanges: true });
+    const { options, packageInfos } = getOptionsAndPackages({ groupChanges: true });
 
     // fake doesn't exist, bar is private, foo is okay
     generateChangeFiles(['fake', 'bar', 'foo'], options);
 
-    const packageInfos = getPackageInfos(repo.rootPath);
     const changeSet = readChangeFiles(options, packageInfos);
     expect(changeSet).toHaveLength(1);
 
@@ -114,11 +111,10 @@ describe('readChangeFiles', () => {
   it('excludes out of scope change files in monorepo', () => {
     repo = sharedMonoRepo;
 
-    const options = getOptions({ scope: ['packages/foo'] });
+    const { options, packageInfos } = getOptionsAndPackages({ scope: ['packages/foo'] });
 
     generateChangeFiles(['bar', 'foo'], options);
 
-    const packageInfos = getPackageInfos(repo.rootPath);
     const changeSet = readChangeFiles(options, packageInfos);
     expect(changeSet).toHaveLength(1);
     expect(logs.mocks.warn).not.toHaveBeenCalled();
@@ -127,11 +123,10 @@ describe('readChangeFiles', () => {
   it('excludes out of scope changes from grouped change file in monorepo', () => {
     repo = sharedMonoRepo;
 
-    const options = getOptions({ scope: ['packages/foo'], groupChanges: true });
+    const { options, packageInfos } = getOptionsAndPackages({ scope: ['packages/foo'], groupChanges: true });
 
     generateChangeFiles(['bar', 'foo'], options);
 
-    const packageInfos = getPackageInfos(repo.rootPath);
     const changeSet = readChangeFiles(options, packageInfos);
     expect(changeSet).toHaveLength(1);
     expect(logs.mocks.warn).not.toHaveBeenCalled();
@@ -141,8 +136,7 @@ describe('readChangeFiles', () => {
     const editedComment: string = 'Edited comment for testing';
     repo = sharedMonoRepo;
 
-    const options = getOptions({
-      command: 'change',
+    const { options, packageInfos } = getOptionsAndPackages({
       transform: {
         changeFiles: (changeFile, changeFilePath, { command }) => {
           // For test, we will be changing the comment based on the package name
@@ -170,7 +164,6 @@ describe('readChangeFiles', () => {
     repo.commitChange('bar');
     generateChangeFiles([{ packageName: 'bar', comment: 'comment 2' }], options);
 
-    const packageInfos = getPackageInfos(repo.rootPath);
     const changes = readChangeFiles(options, packageInfos);
 
     // Verify that the comment of only the intended change file is changed

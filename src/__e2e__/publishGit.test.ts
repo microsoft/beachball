@@ -8,11 +8,10 @@ import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publish } from '../commands/publish';
 import { gatherBumpInfo } from '../bump/gatherBumpInfo';
-import type { BeachballOptions } from '../types/BeachballOptions';
 import type { ChangeFileInfo } from '../types/ChangeInfo';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { getDefaultOptions } from '../options/getDefaultOptions';
 import type { PackageJson } from '../types/PackageInfo';
+import { getParsedOptions } from '../options/getOptions';
 
 describe('publish command (git)', () => {
   let repositoryFactory: RepositoryFactory;
@@ -20,22 +19,23 @@ describe('publish command (git)', () => {
 
   initMockLogs();
 
-  function getOptions(overrides?: Partial<BeachballOptions>): BeachballOptions {
-    return {
-      ...getDefaultOptions(),
-      package: 'foo',
-      branch: defaultRemoteBranchName,
-      path: repo?.rootPath || '',
-      registry: 'http://localhost:99999/',
-      command: 'publish',
-      message: 'apply package updates',
-      publish: false,
-      bumpDeps: false,
-      tag: 'latest',
-      yes: true,
-      access: 'public',
-      ...overrides,
-    };
+  function getOptionsAndPackages(cwd?: string) {
+    cwd ??= repo!.rootPath;
+    const parsedOptions = getParsedOptions({
+      cwd,
+      argv: ['node', 'beachball', 'publish', '--yes', '--package', 'foo'],
+      testRepoOptions: {
+        branch: defaultRemoteBranchName,
+        registry: 'http://localhost:99999/',
+        message: 'apply package updates',
+        publish: false,
+        bumpDeps: false,
+        tag: 'latest',
+        access: 'public',
+      },
+    });
+    const packageInfos = getPackageInfos(parsedOptions);
+    return { packageInfos, options: parsedOptions.options, parsedOptions };
   }
 
   beforeEach(() => {
@@ -50,11 +50,11 @@ describe('publish command (git)', () => {
   it('can perform a successful git push', async () => {
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions();
+    const { options, packageInfos } = getOptionsAndPackages();
     generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(options);
+    await publish(options, packageInfos);
 
     const newRepo = repositoryFactory.cloneRepository();
 
@@ -66,7 +66,7 @@ describe('publish command (git)', () => {
   it('can handle a merge when there are change files present', async () => {
     // 1. clone a new repo1, write a change file in repo1
     const repo1 = repositoryFactory.cloneRepository();
-    const options1 = getOptions({ path: repo1.rootPath });
+    const { options: options1, packageInfos: packageInfos1 } = getOptionsAndPackages(repo1.rootPath);
     generateChangeFiles(['foo'], options1);
     repo1.push();
 
@@ -74,7 +74,7 @@ describe('publish command (git)', () => {
     const publishBranch = 'publish_test';
     repo1.checkout('-b', publishBranch);
 
-    const bumpInfo = gatherBumpInfo(options1, getPackageInfos(repo1.rootPath));
+    const bumpInfo = gatherBumpInfo(options1, packageInfos1);
 
     // 3. Meanwhile, in repo2, also create a new change file
     const repo2 = repositoryFactory.cloneRepository();

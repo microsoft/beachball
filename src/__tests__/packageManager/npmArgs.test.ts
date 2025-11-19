@@ -29,8 +29,8 @@ describe('getNpmPublishArgs', () => {
 
   const packageInfos = makePackageInfos({
     basic: {},
-    tag: { combinedOptions: { tag: 'testTag', defaultNpmTag: 'testDefaultTag' } },
-    defaultTag: { combinedOptions: { defaultNpmTag: 'testDefaultTag' } },
+    tag: { beachball: { tag: 'testTag', defaultNpmTag: 'testDefaultTag' } },
+    defaultTag: { beachball: { defaultNpmTag: 'testDefaultTag' } },
     '@scoped/foo': {},
   });
 

@@ -6,9 +6,13 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import type { BeachballOptions } from '../types/BeachballOptions';
+import type { PackageInfos } from '../types/PackageInfo';
 
-export async function canary(options: BeachballOptions): Promise<void> {
-  const oldPackageInfo = getPackageInfos(options.path);
+export async function canary(options: BeachballOptions, oldPackageInfo: PackageInfos): Promise<void>;
+/** @deprecated Must provide the package infos */
+export async function canary(options: BeachballOptions): Promise<void>;
+export async function canary(options: BeachballOptions, oldPackageInfo?: PackageInfos): Promise<void> {
+  oldPackageInfo = oldPackageInfo || getPackageInfos(options.path);
 
   const bumpInfo = gatherBumpInfo(options, oldPackageInfo);
 

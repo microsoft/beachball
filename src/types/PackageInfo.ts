@@ -1,4 +1,4 @@
-import type { PackageOptions, BeachballOptions } from './BeachballOptions';
+import type { PackageOptions, RepoOptions } from './BeachballOptions';
 import type { ChangeType } from './ChangeInfo';
 
 export interface PackageDeps {
@@ -32,7 +32,11 @@ export interface PackageJson {
   optionalDependencies?: PackageDeps;
   private?: boolean;
   scripts?: Record<string, string>;
-  beachball?: BeachballOptions;
+  /**
+   * At a monorepo repo root, this may contain any beachball config.
+   * For a single package, only package config is respected.
+   */
+  beachball?: Partial<PackageOptions> | Partial<RepoOptions>;
   /** Overrides applied during publishing */
   publishConfig?: PublishConfig;
 }

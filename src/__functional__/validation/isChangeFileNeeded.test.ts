@@ -6,21 +6,25 @@ import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { isChangeFileNeeded } from '../../validation/isChangeFileNeeded';
 import type { BeachballOptions } from '../../types/BeachballOptions';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
-import { getDefaultOptions } from '../../options/getDefaultOptions';
+import { getParsedOptions } from '../../options/getOptions';
 
 describe('isChangeFileNeeded', () => {
   let repositoryFactory: RepositoryFactory;
   let repository: Repository;
   initMockLogs();
 
-  function getOptions(options?: Partial<BeachballOptions>): BeachballOptions {
-    return {
-      ...getDefaultOptions(),
-      path: repository.rootPath,
-      fetch: false,
-      branch: defaultRemoteBranchName,
-      ...options,
-    };
+  function getOptionsAndPackages(options?: Partial<BeachballOptions>, cwd?: string) {
+    const parsedOptions = getParsedOptions({
+      cwd: cwd ?? repository.rootPath,
+      argv: [],
+      testRepoOptions: {
+        fetch: false,
+        branch: defaultRemoteBranchName,
+        ...options,
+      },
+    });
+    const packageInfos = getPackageInfos(parsedOptions);
+    return { packageInfos, options: parsedOptions.options };
   }
 
   beforeAll(() => {
@@ -36,21 +40,24 @@ describe('isChangeFileNeeded', () => {
   });
 
   it('is false when no changes have been made', () => {
-    const result = isChangeFileNeeded(getOptions(), getPackageInfos(repository.rootPath));
+    const { packageInfos, options } = getOptionsAndPackages();
+    const result = isChangeFileNeeded(options, packageInfos);
     expect(result).toBeFalsy();
   });
 
   it('is true when changes exist in a new branch', () => {
     repository.checkout('-b', 'feature-0');
     repository.commitChange('myFilename');
-    const result = isChangeFileNeeded(getOptions(), getPackageInfos(repository.rootPath));
+    const { packageInfos, options } = getOptionsAndPackages();
+    const result = isChangeFileNeeded(options, packageInfos);
     expect(result).toBeTruthy();
   });
 
   it('is false when changes are CHANGELOG files', () => {
     repository.checkout('-b', 'feature-0');
     repository.commitChange('CHANGELOG.md');
-    const result = isChangeFileNeeded(getOptions(), getPackageInfos(repository.rootPath));
+    const { packageInfos, options } = getOptionsAndPackages();
+    const result = isChangeFileNeeded(options, packageInfos);
     expect(result).toBeFalsy();
   });
 
@@ -61,8 +68,10 @@ describe('isChangeFileNeeded', () => {
     repo.checkout('-b', 'feature-0');
     repo.commitChange('fake.js');
 
+    const { packageInfos, options } = getOptionsAndPackages({ fetch: true }, repo.rootPath);
+
     expect(() => {
-      isChangeFileNeeded(getOptions({ path: repo.rootPath, fetch: true }), getPackageInfos(repo.rootPath));
+      isChangeFileNeeded(options, packageInfos);
     }).toThrow('Fetching branch "master" from remote "origin" failed');
   });
 });

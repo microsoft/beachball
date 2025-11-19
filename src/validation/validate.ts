@@ -16,6 +16,7 @@ import { gatherBumpInfo } from '../bump/gatherBumpInfo';
 import { isValidDependentChangeType } from './isValidDependentChangeType';
 import { getPackagesToPublish } from '../publish/getPackagesToPublish';
 import { env } from '../env';
+import type { PackageInfos } from '../types/PackageInfo';
 
 type ValidationOptions = {
   /**
@@ -33,7 +34,27 @@ type ValidationOptions = {
   checkDependencies?: boolean;
 };
 
-export function validate(options: BeachballOptions, validateOptions?: ValidationOptions): { isChangeNeeded: boolean } {
+type ValidationResult = {
+  /** True if change files are needed. Always false if `validateOptions.checkChangeNeeded` wasn't true. */
+  isChangeNeeded: boolean;
+};
+
+/**
+ * Validate configuration and exit 1 if it's invalid.
+ * If `validateOptions.checkChangeNeeded` is true, also check whether change files are needed.
+ */
+export function validate(
+  options: BeachballOptions,
+  validateOptions: ValidationOptions,
+  packageInfos: PackageInfos
+): ValidationResult;
+/** @deprecated Must provide the package infos */
+export function validate(options: BeachballOptions, validateOptions?: ValidationOptions): ValidationResult;
+export function validate(
+  options: BeachballOptions,
+  validateOptions?: ValidationOptions,
+  packageInfos?: PackageInfos
+): ValidationResult {
   const { allowMissingChangeFiles, checkChangeNeeded, checkDependencies } = validateOptions || {};
 
   console.log('\nValidating options and change files...');
@@ -59,7 +80,7 @@ export function validate(options: BeachballOptions, validateOptions?: Validation
     !env.isCI && console.warn('Changes in these files will not trigger a prompt for change descriptions');
   }
 
-  const packageInfos = getPackageInfos(options.path);
+  packageInfos ||= getPackageInfos(options.path);
 
   if (options.all && options.package) {
     logValidationError('Cannot specify both "all" and "package" options');
@@ -67,7 +88,7 @@ export function validate(options: BeachballOptions, validateOptions?: Validation
     logValidationError(`package "${options.package}" was not found`);
   } else {
     const invalidPackages = Array.isArray(options.package)
-      ? options.package.filter(pkg => !packageInfos[pkg])
+      ? options.package.filter(pkg => !packageInfos![pkg])
       : undefined;
     if (invalidPackages?.length) {
       logValidationError(`package(s) ${invalidPackages.map(pkg => `"${pkg}"`).join(', ')} were not found`);

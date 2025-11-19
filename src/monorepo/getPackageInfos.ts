@@ -10,13 +10,26 @@ import {
 } from 'workspace-tools';
 import type { PackageInfos } from '../types/PackageInfo';
 import { getPackageInfosWithOptions } from '../options/getPackageInfosWithOptions';
+import type { ParsedOptions } from '../types/BeachballOptions';
 
 /**
  * Get a mapping from package name to package info for all packages in the workspace
- * (reading from package.json files)
+ * (reading from package.json files).
+ *
+ * This looks for files relative to `parsedOptions.cliOptions.path` (the project root).
+ * The options objects are needed so they can be properly merged with the package options
+ * into `PackageInfo.combinedOptions`.
  */
-export function getPackageInfos(cwd: string): PackageInfos {
-  const projectRoot = findProjectRoot(cwd);
+export function getPackageInfos(parsedOptions: Pick<ParsedOptions, 'repoOptions' | 'cliOptions'>): PackageInfos;
+/** @deprecated Pass the pre-parsed options */
+export function getPackageInfos(cwd: string): PackageInfos;
+export function getPackageInfos(
+  optionsOrCwd: string | Pick<ParsedOptions, 'repoOptions' | 'cliOptions'>
+): PackageInfos {
+  const cwd = typeof optionsOrCwd === 'string' ? optionsOrCwd : optionsOrCwd.cliOptions.path;
+
+  // If cwd comes from parsed options, it's already the root
+  const projectRoot = typeof optionsOrCwd === 'string' ? findProjectRoot(cwd) : cwd;
   const packageRoot = findPackageRoot(cwd);
 
   let wsPackageInfos: WSPackageInfo[] | undefined;
@@ -27,7 +40,12 @@ export function getPackageInfos(cwd: string): PackageInfos {
     wsPackageInfos = [readWsPackageInfo(path.join(packageRoot, 'package.json'))];
   }
 
-  return wsPackageInfos ? getPackageInfosWithOptions(wsPackageInfos) : {};
+  if (wsPackageInfos) {
+    return typeof optionsOrCwd === 'string'
+      ? getPackageInfosWithOptions(wsPackageInfos)
+      : getPackageInfosWithOptions(wsPackageInfos, optionsOrCwd);
+  }
+  return {};
 }
 
 function getPackageInfosFromWorkspace(projectRoot: string): WSPackageInfo[] | undefined {

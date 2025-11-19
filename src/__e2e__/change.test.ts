@@ -5,13 +5,14 @@ import { getChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { type RepoFixture, RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { change } from '../commands/change';
-import type { BeachballOptions } from '../types/BeachballOptions';
-import { defaultBranchName } from '../__fixtures__/gitDefaults';
+import type { BeachballOptions, RepoOptions } from '../types/BeachballOptions';
+import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { MockStdout } from '../__fixtures__/mockStdout';
 import { MockStdin } from '../__fixtures__/mockStdin';
 import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import type { Repository } from '../__fixtures__/repository';
-import { getDefaultOptions } from '../options/getDefaultOptions';
+import { getParsedOptions } from '../options/getOptions';
+import { getPackageInfos } from '../monorepo/getPackageInfos';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
 // so instead we inject a custom mock stdout stream, as well as stdin for entering answers
@@ -63,14 +64,17 @@ describe('change command', () => {
 
   const logs = initMockLogs();
 
-  function getOptions(options?: Partial<BeachballOptions>): BeachballOptions {
-    return {
-      ...getDefaultOptions(),
-      // change to ?. if a future test uses a non-standard repo
-      path: repo!.rootPath,
-      branch: defaultBranchName,
-      ...options,
-    };
+  function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
+    const parsedOptions = getParsedOptions({
+      cwd: repo!.rootPath,
+      argv: ['node', 'beachball', 'change', ...(extraArgv ?? [])],
+      testRepoOptions: {
+        branch: defaultRemoteBranchName,
+        ...repoOptions,
+      },
+    });
+    const packageInfos = getPackageInfos(parsedOptions);
+    return { options: parsedOptions.options, packageInfos };
   }
 
   beforeEach(() => {
@@ -91,8 +95,8 @@ describe('change command', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions();
-    await change(options);
+    const { options, packageInfos } = getOptionsAndPackages();
+    await change(options, packageInfos);
 
     expect(getChangeFiles(options)).toHaveLength(0);
   });
@@ -104,8 +108,8 @@ describe('change command', () => {
     repo.checkout('-b', 'test');
     repo.commitChange('file.js');
 
-    const options = getOptions({ commit: false });
-    const changePromise = change(options);
+    const { options, packageInfos } = getOptionsAndPackages({ commit: false });
+    const changePromise = change(options, packageInfos);
     await waitForPrompt();
 
     // Use default change type and custom message
@@ -138,8 +142,8 @@ describe('change command', () => {
     repo.checkout('-b', 'test');
     repo.commitChange('file.js');
 
-    const options = getOptions();
-    const changePromise = change(options);
+    const { options, packageInfos } = getOptionsAndPackages();
+    const changePromise = change(options, packageInfos);
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
     await stdin.sendByChar('\n'); // default change type
@@ -167,10 +171,10 @@ describe('change command', () => {
     repo.checkout('-b', 'test');
     repo.commitChange('file.js');
 
-    const options = getOptions({
+    const { options, packageInfos } = getOptionsAndPackages({
       changeDir: testChangedir,
     });
-    const changePromise = change(options);
+    const changePromise = change(options, packageInfos);
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
     await stdin.sendByChar('\n'); // default change type
@@ -193,11 +197,12 @@ describe('change command', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({
-      package: repositoryFactory.fixture.rootPackage.name,
-      commit: false,
-    });
-    const changePromise = change(options);
+    const { options, packageInfos } = getOptionsAndPackages({}, [
+      '--package',
+      repositoryFactory.fixture.rootPackage.name,
+      '--no-commit',
+    ]);
+    const changePromise = change(options, packageInfos);
     await waitForPrompt();
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
@@ -216,8 +221,8 @@ describe('change command', () => {
     repo = repositoryFactory.cloneRepository();
     makeMonorepoChanges(repo);
 
-    const options = getOptions();
-    const changePromise = change(options);
+    const { options, packageInfos } = getOptionsAndPackages();
+    const changePromise = change(options, packageInfos);
 
     // use custom values for first package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
@@ -256,10 +261,10 @@ describe('change command', () => {
     repo = repositoryFactory.cloneRepository();
     makeMonorepoChanges(repo);
 
-    const options = getOptions({
+    const { options, packageInfos } = getOptionsAndPackages({
       groupChanges: true,
     });
-    const changePromise = change(options);
+    const changePromise = change(options, packageInfos);
 
     // use custom values for first package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
@@ -301,10 +306,10 @@ describe('change command', () => {
       },
     };
 
-    const options = getOptions({
+    const { options, packageInfos } = getOptionsAndPackages({
       groupChanges: true,
     });
-    const changePromise = change(options);
+    const changePromise = change(options, packageInfos);
     await waitForPrompt();
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');

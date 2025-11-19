@@ -6,9 +6,16 @@ import semver from 'semver';
 import { setDependentVersions } from '../bump/setDependentVersions';
 import { updateLockFile } from '../bump/updateLockFile';
 import { updatePackageJsons } from '../bump/updatePackageJsons';
+import type { PackageInfos } from '../types/PackageInfo';
 
-export async function sync(options: BeachballOptions): Promise<void> {
-  const packageInfos = getPackageInfos(options.path);
+/**
+ * Sync with the latest versions on the registry.
+ */
+export async function sync(options: BeachballOptions, packageInfos: PackageInfos): Promise<void>;
+/** @deprecated Must provide the package infos */
+export async function sync(options: BeachballOptions): Promise<void>;
+export async function sync(options: BeachballOptions, packageInfos?: PackageInfos): Promise<void> {
+  packageInfos ||= getPackageInfos(options.path);
   const scopedPackages = new Set(getScopedPackages(options, packageInfos));
 
   const infos = new Map(Object.entries(packageInfos).filter(([pkg, info]) => !info.private && scopedPackages.has(pkg)));
