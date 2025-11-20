@@ -5,7 +5,7 @@ import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { ensureSharedHistory } from '../../git/ensureSharedHistory';
 import { defaultBranchName, defaultRemoteBranchName, optsWithLang } from '../../__fixtures__/gitDefaults';
 
-// required for `jest.spyOn('workspace-tools', git)` to work
+// required for `jest.spyOn(workspaceTools, git)` to work
 jest.mock('workspace-tools', () => {
   const original = jest.requireActual<typeof workspaceTools>('workspace-tools');
   return {
@@ -133,12 +133,12 @@ describe('ensureSharedHistory', () => {
       "Target branch "origin/master" does not exist locally, and fetching is disabled.
 
       Some possible fixes:
-      - Fetch the branch manually:
-         git remote set-branches --add origin master && git fetch origin
-      - Omit the "--no-fetch" / "--fetch=false" option from the command line
-      - Remove "fetch: false" from the beachball config
-      - If this is a CI build, ensure that adequate history is being fetched
-        - For GitHub Actions (actions/checkout), add the option "fetch-depth: 0" in the checkout step"
+        • Fetch the branch manually:
+            git remote set-branches --add origin master && git fetch origin
+        • Omit the "--no-fetch" / "--fetch=false" option from the command line
+        • Remove "fetch: false" from the beachball config
+        • If this is a CI build, ensure that adequate history is being fetched
+          ▪ For GitHub Actions (actions/checkout), add the option "fetch-depth: 0" in the checkout step."
     `);
   });
 
@@ -219,12 +219,12 @@ describe('ensureSharedHistory', () => {
       "This repo is a shallow clone, fetching is disabled, and not enough history is available to connect HEAD to "origin/master".
 
       Some possible fixes:
-      - Verify that you're using the correct target branch
-      - Unshallow or deepen the clone manually
-      - Omit the "--no-fetch" / "--fetch=false" option from the command line
-      - Remove "fetch: false" from the beachball config
-      - If this is a CI build, ensure that adequate history is being fetched
-        - For GitHub Actions (actions/checkout), add the option "fetch-depth: 0" in the checkout step"
+        • Verify that you're using the correct target branch
+        • Unshallow or deepen the clone manually
+        • Omit the "--no-fetch" / "--fetch=false" option from the command line
+        • Remove "fetch: false" from the beachball config
+        • If this is a CI build, ensure that adequate history is being fetched
+          ▪ For GitHub Actions (actions/checkout), add the option "fetch-depth: 0" in the checkout step."
     `);
   });
 

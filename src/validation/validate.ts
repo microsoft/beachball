@@ -17,6 +17,7 @@ import { isValidDependentChangeType } from './isValidDependentChangeType';
 import { getPackagesToPublish } from '../publish/getPackagesToPublish';
 import { env } from '../env';
 import type { PackageInfos } from '../types/PackageInfo';
+import { bulletedList } from '../logging/bulletedList';
 
 type ValidationOptions = {
   /**
@@ -76,7 +77,7 @@ export function validate(
   const untracked = getUntrackedChanges(options.path);
 
   if (untracked.length) {
-    console.warn('WARN: There are untracked changes in your repository:\n' + untracked.join('\n- '));
+    console.warn('WARN: There are untracked changes in your repository:\n' + bulletedList(untracked));
     !env.isCI && console.warn('Changes in these files will not trigger a prompt for change descriptions');
   }
 

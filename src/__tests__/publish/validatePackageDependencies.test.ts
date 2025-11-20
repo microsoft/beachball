@@ -4,14 +4,30 @@ import { validatePackageDependencies } from '../../publish/validatePackageDepend
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 describe('validatePackageDependencies', () => {
-  initMockLogs();
+  const logs = initMockLogs();
 
-  it('invalid when dependencies contains private package', () => {
+  it.each(['dependencies', 'peerDependencies', 'optionalDependencies'] as const)(
+    'invalid when %s contains private package',
+    depType => {
+      const packageInfos = makePackageInfos({
+        foo: { private: true },
+        bar: { [depType]: { foo: '1.0.0' } },
+      });
+      expect(validatePackageDependencies(['foo', 'bar'], packageInfos)).toBeFalsy();
+
+      expect(logs.getMockLines('error')).toEqual(
+        'ERROR: Found private packages among published package dependencies:\n  • foo: used by bar'
+      );
+    }
+  );
+
+  it('valid when non-listed package depends on private package', () => {
     const packageInfos = makePackageInfos({
       foo: { private: true },
-      bar: { dependencies: { foo: '1.0.0' } },
+      bar: {},
+      baz: { dependencies: { foo: '1.0.0' } },
     });
-    expect(validatePackageDependencies(['foo', 'bar'], packageInfos)).toBeFalsy();
+    expect(validatePackageDependencies(['bar'], packageInfos)).toBeTruthy();
   });
 
   it('valid when devDependencies contains private package', () => {
