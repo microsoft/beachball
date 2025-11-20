@@ -33,7 +33,7 @@ describe('validatePackageVersions', () => {
       Validating new package versions...
       [log]
       Package versions are OK to publish:
-      - foo@1.0.1"
+        • foo@1.0.1"
     `);
   });
 
@@ -48,7 +48,7 @@ describe('validatePackageVersions', () => {
       Validating new package versions...
       [log]
       Package versions are OK to publish:
-      - foo@1.0.0"
+        • foo@1.0.0"
     `);
   });
 
@@ -60,7 +60,7 @@ describe('validatePackageVersions', () => {
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
     expect(logs.getMockLines('error')).toMatchInlineSnapshot(`
       "ERROR: Attempting to publish package versions that already exist in the registry:
-      - foo@1.0.0"
+        • foo@1.0.0"
     `);
   });
 
@@ -75,10 +75,10 @@ describe('validatePackageVersions', () => {
       Validating new package versions...
       [log]
       Package versions are OK to publish:
-      - bar@1.0.1
+        • bar@1.0.1
       [error]
       ERROR: Attempting to publish package versions that already exist in the registry:
-      - foo@1.0.0"
+        • foo@1.0.0"
     `);
   });
 });

@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Improve formatting of lists in CLI output. If you're parsing `beachball check` or `beachball publish` output for some reason, this could be a breaking change.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

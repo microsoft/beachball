@@ -2,6 +2,7 @@ import type { VersionGroupOptions } from '../types/BeachballOptions';
 import path from 'path';
 import type { PackageInfos, PackageGroups } from '../types/PackageInfo';
 import { isPathIncluded } from './isPathIncluded';
+import { bulletedList } from '../logging/bulletedList';
 
 export function getPackageGroups(
   packageInfos: PackageInfos,
@@ -42,10 +43,11 @@ export function getPackageGroups(
   if (errorPackages.length) {
     console.error(
       `ERROR: Found package(s) belonging to multiple groups:\n` +
-        Object.entries(errorPackages)
-          .map(([pkgName, pkgGroups]) => `- ${pkgName}: [${pkgGroups.map(g => g.name).join(', ')}]`)
-          .sort()
-          .join('\n')
+        bulletedList(
+          Object.entries(errorPackages)
+            .map(([pkgName, pkgGroups]) => `${pkgName}: [${pkgGroups.map(g => g.name).join(', ')}]`)
+            .sort()
+        )
     );
     // TODO: probably more appropriate to throw here and let the caller handle it?
     process.exit(1);

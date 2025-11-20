@@ -95,7 +95,7 @@ export async function publishToRegistry(originalBumpInfo: PublishBumpInfo, optio
     let err = error;
     if (Array.isArray(error)) {
       const errorSet = new Set(error);
-      err = new Error(Array.from(errorSet).join('\n'));
+      err = new Error(Array.from(errorSet).join('\n\n'));
     }
     displayManualRecovery(bumpInfo, succeededPackages);
     throw err;
