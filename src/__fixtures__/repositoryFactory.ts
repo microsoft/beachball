@@ -7,7 +7,7 @@ import { tmpdir } from './tmpdir';
 import { gitFailFast } from 'workspace-tools';
 import { setDefaultBranchName } from './gitDefaults';
 import { env } from '../env';
-import { _cloneObject } from '../publish/cloneBumpInfo';
+import { cloneObject } from '../object/cloneObject';
 
 /**
  * Standard fixture options. See {@link getSinglePackageFixture}, {@link getMonorepoFixture} and
@@ -177,7 +177,7 @@ export class RepositoryFactory {
             : fixtureParam === 'monorepo'
             ? getMonorepoFixture()
             : // Clone the user-provided fixture so it's safe to modify
-              _cloneObject(fixtureParam),
+              cloneObject(fixtureParam),
       };
     }
 

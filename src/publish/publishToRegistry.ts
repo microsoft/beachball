@@ -11,7 +11,7 @@ import { callHook } from '../bump/callHook';
 import { getPackageGraph } from '../monorepo/getPackageGraph';
 import type { PackageInfo } from '../types/PackageInfo';
 import { packPackage } from '../packageManager/packPackage';
-import { cloneBumpInfo } from './cloneBumpInfo';
+import { cloneObject } from '../object/cloneObject';
 
 /**
  * Publish all the bumped packages to the registry, OR if `packToPath` is specified,
@@ -22,7 +22,7 @@ import { cloneBumpInfo } from './cloneBumpInfo';
 export async function publishToRegistry(originalBumpInfo: PublishBumpInfo, options: BeachballOptions): Promise<void> {
   const verb = options.packToPath ? 'pack' : 'publish';
 
-  const bumpInfo = cloneBumpInfo(originalBumpInfo);
+  const bumpInfo = cloneObject(originalBumpInfo);
 
   if (options.bump) {
     await performBump(bumpInfo, options);
