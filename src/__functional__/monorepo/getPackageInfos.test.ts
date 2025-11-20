@@ -8,7 +8,7 @@ import type { PackageInfos, PackageInfo } from '../../types/PackageInfo';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import type { PackageOptions } from '../../types/BeachballOptions';
-import { _cloneObject } from '../../publish/cloneBumpInfo';
+import { cloneObject } from '../../object/cloneObject';
 import { getParsedOptions } from '../../options/getOptions';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 
@@ -24,7 +24,7 @@ function cleanPath(root: string, filePath: string) {
 function cleanPackageInfos(root: string, packageInfos: PackageInfos) {
   const cleanedInfos: PackageInfos = {};
   for (const [pkgName, originalInfo] of Object.entries(packageInfos)) {
-    const pkgInfo = (cleanedInfos[pkgName] = _cloneObject(originalInfo));
+    const pkgInfo = (cleanedInfos[pkgName] = cloneObject(originalInfo));
 
     // Remove absolute paths
     pkgInfo.packageJsonPath = cleanPath(root, pkgInfo.packageJsonPath);

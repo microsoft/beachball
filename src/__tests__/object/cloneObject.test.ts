@@ -1,10 +1,10 @@
 import { describe, it, expect } from '@jest/globals';
-import { _cloneObject, cloneBumpInfo } from '../../publish/cloneBumpInfo';
 import type { BumpInfo } from '../../types/BumpInfo';
+import { cloneObject } from '../../object/cloneObject';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { getChange } from '../../__fixtures__/changeFiles';
 
-describe('_cloneObject', () => {
+describe('cloneObject', () => {
   it.each<[string, object | unknown[]]>([
     ['empty object', {}],
     ['empty object with null prototype', Object.create(null)],
@@ -15,14 +15,14 @@ describe('_cloneObject', () => {
     ['set', new Set([1, 2, 3])],
     ['object of sets', { a: new Set([1, 2, 3]), b: new Set(['a', 'b', 'c']) }],
   ])('clones %s', (desc, val) => {
-    const cloned = _cloneObject(val);
+    const cloned = cloneObject(val);
     expect(cloned).toEqual(val);
     expect(cloned).not.toBe(val);
   });
 
   it('deeply clones nested object', () => {
     const orig = { a: { b: { c: 1 } } };
-    const cloned = _cloneObject(orig);
+    const cloned = cloneObject(orig);
     expect(cloned).toEqual(orig);
     expect(cloned).not.toBe(orig);
     expect(cloned.a).not.toBe(orig.a);
@@ -31,7 +31,7 @@ describe('_cloneObject', () => {
 
   it('deep clones array of objects and arrays', () => {
     const orig = [{ a: 1 }, [2, 3, 4]];
-    const cloned = _cloneObject(orig);
+    const cloned = cloneObject(orig);
     expect(cloned).toEqual(orig);
     expect(cloned).not.toBe(orig);
     expect(cloned[0]).not.toBe(orig[0]);
@@ -39,15 +39,13 @@ describe('_cloneObject', () => {
   });
 
   it('throws on other object types', () => {
-    expect(() => _cloneObject(new Date())).toThrow('Unsupported object type found while cloning bump info: Date');
-    expect(() => _cloneObject(/abc/)).toThrow('Unsupported object type found while cloning bump info: RegExp');
-    expect(() => _cloneObject(new Map())).toThrow('Unsupported object type found while cloning bump info: Map');
+    expect(() => cloneObject(new Date())).toThrow('Unsupported object type found while cloning bump info: Date');
+    expect(() => cloneObject(/abc/)).toThrow('Unsupported object type found while cloning bump info: RegExp');
+    expect(() => cloneObject(new Map())).toThrow('Unsupported object type found while cloning bump info: Map');
     class Foo {}
-    expect(() => _cloneObject(new Foo())).toThrow('Unsupported object type found while cloning bump info: Foo');
+    expect(() => cloneObject(new Foo())).toThrow('Unsupported object type found while cloning bump info: Foo');
   });
-});
 
-describe('cloneBumpInfo', () => {
   it('clones bump info structure', () => {
     const original: BumpInfo = {
       // There's no attempt at consistency because it doesn't matter here
@@ -63,7 +61,7 @@ describe('cloneBumpInfo', () => {
       scopedPackages: new Set(['a', 'b']),
     };
 
-    const cloned = cloneBumpInfo(original);
+    const cloned = cloneObject(original);
     expect(cloned).toEqual(original);
     expect(cloned).not.toBe(original);
     expect(cloned.packageInfos).not.toBe(original.packageInfos);
