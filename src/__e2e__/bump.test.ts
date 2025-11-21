@@ -393,17 +393,17 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const options = getOptions({
+    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
       bumpDeps: true,
       generateChangelog: true,
     });
-    generateChangeFiles(['pkg-1'], options);
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'minor' }], options);
 
     repo.push();
 
-    await bump(options);
+    await bump(options, originalPackageInfos);
 
-    const packageInfos = getPackageInfos(repo.rootPath);
+    const packageInfos = getPackageInfos(parsedOptions);
 
     const pkg1NewVersion = '1.1.0';
     expect(packageInfos['pkg-1'].version).toBe(pkg1NewVersion);
