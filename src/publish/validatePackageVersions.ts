@@ -1,6 +1,6 @@
 import { listPackageVersions } from '../packageManager/listPackageVersions';
 import type { NpmOptions } from '../types/NpmOptions';
-import { formatList } from '../logging/format';
+import { bulletedList } from '../logging/bulletedList';
 import type { PackageInfos } from '../types/PackageInfo';
 
 /**
@@ -30,12 +30,12 @@ export async function validatePackageVersions(
 
   if (okVersions.length) {
     // keep the original order here to show what order they'll be published in
-    console.log(`\nPackage versions are OK to publish:\n${formatList(okVersions)}`);
+    console.log(`\nPackage versions are OK to publish:\n${bulletedList(okVersions)}`);
   }
   if (errorVersions.length) {
     console.error(
       `\nERROR: Attempting to publish package versions that already exist in the registry:\n` +
-        formatList(errorVersions.sort())
+        bulletedList(errorVersions.sort())
     );
     return false;
   }

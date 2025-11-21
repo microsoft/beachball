@@ -8,13 +8,20 @@ import { publishToRegistry } from '../publish/publishToRegistry';
 import { getNewPackages } from '../publish/getNewPackages';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import type { PublishBumpInfo } from '../types/BumpInfo';
+import type { PackageInfos } from '../types/PackageInfo';
 
-export async function publish(options: BeachballOptions): Promise<void> {
+/**
+ * Potentially bump, publish, and push package changes depending on options.
+ */
+export async function publish(options: BeachballOptions, oldPackageInfos: PackageInfos): Promise<void>;
+/** @deprecated Must provide the package infos */
+export async function publish(options: BeachballOptions): Promise<void>;
+export async function publish(options: BeachballOptions, oldPackageInfos?: PackageInfos): Promise<void> {
   console.log('\nPreparing to publish');
 
   const { path: cwd, branch, registry, tag } = options;
   // First, validate that we have changes to publish
-  const oldPackageInfos = getPackageInfos(cwd);
+  oldPackageInfos ||= getPackageInfos(cwd);
   const changes = readChangeFiles(options, oldPackageInfos);
 
   if (!changes.length) {

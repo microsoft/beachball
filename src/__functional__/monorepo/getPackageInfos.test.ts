@@ -8,6 +8,9 @@ import type { PackageInfos, PackageInfo } from '../../types/PackageInfo';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import type { PackageOptions } from '../../types/BeachballOptions';
+import { cloneObject } from '../../object/cloneObject';
+import { getParsedOptions } from '../../options/getOptions';
+import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 
 const defaultOptions = getDefaultOptions();
 
@@ -21,8 +24,7 @@ function cleanPath(root: string, filePath: string) {
 function cleanPackageInfos(root: string, packageInfos: PackageInfos) {
   const cleanedInfos: PackageInfos = {};
   for (const [pkgName, originalInfo] of Object.entries(packageInfos)) {
-    // Make a copy deep enough to cover anything that will be modified
-    const pkgInfo = (cleanedInfos[pkgName] = { ...originalInfo, combinedOptions: { ...originalInfo.combinedOptions } });
+    const pkgInfo = (cleanedInfos[pkgName] = cloneObject(originalInfo));
 
     // Remove absolute paths
     pkgInfo.packageJsonPath = cleanPath(root, pkgInfo.packageJsonPath);
@@ -56,14 +58,22 @@ describe('getPackageInfos', () => {
   // factories can be reused between these tests because none of them push changes
   let singleFactory: RepositoryFactory;
   let monorepoFactory: RepositoryFactory;
-  let multiWorkspaceFactory: RepositoryFactory;
+  let multiMonorepoFactory: RepositoryFactory;
   let tempDir: string | undefined;
   const logs = initMockLogs();
+
+  function getOptions(cwd: string) {
+    return getParsedOptions({
+      cwd,
+      argv: [],
+      testRepoOptions: { branch: defaultRemoteBranchName }, // skip trying to read this from git
+    });
+  }
 
   beforeAll(() => {
     singleFactory = new RepositoryFactory('single');
     monorepoFactory = new RepositoryFactory('monorepo');
-    multiWorkspaceFactory = new RepositoryFactory('multi-workspace');
+    multiMonorepoFactory = new RepositoryFactory('multi-workspace');
   });
 
   afterEach(() => {
@@ -74,10 +84,12 @@ describe('getPackageInfos', () => {
   afterAll(() => {
     singleFactory.cleanUp();
     monorepoFactory.cleanUp();
-    multiWorkspaceFactory.cleanUp();
+    multiMonorepoFactory.cleanUp();
   });
 
-  it('throws if run outside a git repo', () => {
+  // This is irrelevant with the new signature because the exception would have been thrown when
+  // the options were being parsed.
+  it('throws if run outside a git repo (old signature)', () => {
     tempDir = tmpdir();
     expect(() => getPackageInfos(tempDir!)).toThrow(/not in a git repository/);
   });
@@ -86,9 +98,10 @@ describe('getPackageInfos', () => {
     tempDir = tmpdir();
     gitFailFast(['init'], { cwd: tempDir });
     expect(getPackageInfos(tempDir)).toEqual({});
+    expect(getPackageInfos({ cliOptions: { path: tempDir!, command: '' }, repoOptions: {} })).toEqual({});
   });
 
-  it('works in single-package repo', () => {
+  it('works in single-package repo (old signature)', () => {
     const repo = singleFactory.cloneRepository();
     let packageInfos = getPackageInfos(repo.rootPath);
     packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
@@ -106,49 +119,78 @@ describe('getPackageInfos', () => {
     });
   });
 
-  // both yarn and npm define "workspaces" in package.json
-  it('works in yarn/npm monorepo', () => {
-    const repo = monorepoFactory.cloneRepository();
-    let packageInfos = getPackageInfos(repo.rootPath);
+  it('works in single-package repo', () => {
+    const repo = singleFactory.cloneRepository();
+    const parsedOptions = getOptions(repo.rootPath);
+    let packageInfos = getPackageInfos(parsedOptions);
     packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
     expect(packageInfos).toEqual({
-      a: {
-        name: 'a',
-        packageJsonPath: 'packages/grouped/a/package.json',
-        private: false,
-        version: '3.1.2',
-      },
-      b: {
-        name: 'b',
-        packageJsonPath: 'packages/grouped/b/package.json',
-        private: false,
-        version: '3.1.2',
-      },
-      bar: {
-        dependencies: {
-          baz: '^1.3.4',
-        },
-        name: 'bar',
-        packageJsonPath: 'packages/bar/package.json',
-        private: false,
-        version: '1.3.4',
-      },
-      baz: {
-        name: 'baz',
-        packageJsonPath: 'packages/baz/package.json',
-        private: false,
-        version: '1.3.4',
-      },
       foo: {
         dependencies: {
-          bar: '^1.3.4',
+          bar: '1.0.0',
+          baz: '1.0.0',
         },
         name: 'foo',
-        packageJsonPath: 'packages/foo/package.json',
+        packageJsonPath: 'package.json',
         private: false,
         version: '1.0.0',
       },
     });
+  });
+
+  const expectedYarnPackages: Record<string, Partial<PackageInfo>> = {
+    a: {
+      name: 'a',
+      packageJsonPath: 'packages/grouped/a/package.json',
+      private: false,
+      version: '3.1.2',
+    },
+    b: {
+      name: 'b',
+      packageJsonPath: 'packages/grouped/b/package.json',
+      private: false,
+      version: '3.1.2',
+    },
+    bar: {
+      dependencies: {
+        baz: '^1.3.4',
+      },
+      name: 'bar',
+      packageJsonPath: 'packages/bar/package.json',
+      private: false,
+      version: '1.3.4',
+    },
+    baz: {
+      name: 'baz',
+      packageJsonPath: 'packages/baz/package.json',
+      private: false,
+      version: '1.3.4',
+    },
+    foo: {
+      dependencies: {
+        bar: '^1.3.4',
+      },
+      name: 'foo',
+      packageJsonPath: 'packages/foo/package.json',
+      private: false,
+      version: '1.0.0',
+    },
+  };
+
+  // both yarn and npm define "workspaces" in package.json
+  it('works in yarn/npm monorepo (old signature)', () => {
+    const repo = monorepoFactory.cloneRepository();
+    let packageInfos = getPackageInfos(repo.rootPath);
+    packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
+    expect(packageInfos).toEqual(expectedYarnPackages);
+  });
+
+  it('works in yarn/npm monorepo', () => {
+    const repo = monorepoFactory.cloneRepository();
+    const parsedOptions = getOptions(repo.rootPath);
+    let packageInfos = getPackageInfos(parsedOptions);
+    packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
+    expect(packageInfos).toEqual(expectedYarnPackages);
   });
 
   it('works in pnpm monorepo', () => {
@@ -156,8 +198,9 @@ describe('getPackageInfos', () => {
     fs.writeJSONSync(repo.pathTo('package.json'), { name: 'pnpm-monorepo', version: '1.0.0', private: true });
     fs.writeFileSync(repo.pathTo('pnpm-lock.yaml'), '');
     fs.writeFileSync(repo.pathTo('pnpm-workspace.yaml'), 'packages: ["packages/*", "packages/grouped/*"]');
+    const parsedOptions = getOptions(repo.rootPath);
 
-    const rootPackageInfos = getPackageInfos(repo.rootPath);
+    const rootPackageInfos = getPackageInfos(parsedOptions);
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
       a: 'packages/grouped/a/package.json',
       b: 'packages/grouped/b/package.json',
@@ -174,8 +217,9 @@ describe('getPackageInfos', () => {
     fs.writeJSONSync(repo.pathTo('rush.json'), {
       projects: [{ projectFolder: 'packages' }, { projectFolder: 'packages/grouped' }],
     });
+    const parsedOptions = getOptions(repo.rootPath);
 
-    const rootPackageInfos = getPackageInfos(repo.rootPath);
+    const rootPackageInfos = getPackageInfos(parsedOptions);
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
       a: 'packages/grouped/a/package.json',
       b: 'packages/grouped/b/package.json',
@@ -190,8 +234,9 @@ describe('getPackageInfos', () => {
     const repo = monorepoFactory.cloneRepository();
     fs.writeJSONSync(repo.pathTo('package.json'), { name: 'lerna-monorepo', version: '1.0.0', private: true });
     fs.writeJSONSync(repo.pathTo('lerna.json'), { packages: ['packages/*', 'packages/grouped/*'] });
+    const parsedOptions = getOptions(repo.rootPath);
 
-    const rootPackageInfos = getPackageInfos(repo.rootPath);
+    const rootPackageInfos = getPackageInfos(parsedOptions);
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
       a: 'packages/grouped/a/package.json',
       b: 'packages/grouped/b/package.json',
@@ -201,11 +246,12 @@ describe('getPackageInfos', () => {
     });
   });
 
-  it('works multi-workspace monorepo', () => {
-    const repo = multiWorkspaceFactory.cloneRepository();
+  it('works in multi-root monorepo', () => {
+    const repo = multiMonorepoFactory.cloneRepository();
 
     // For this test, only snapshot the package names and paths
-    const rootPackageInfos = getPackageInfos(repo.rootPath);
+    const rootOptions = getOptions(repo.rootPath);
+    const rootPackageInfos = getPackageInfos(rootOptions);
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
       '@workspace-a/a': 'workspace-a/packages/grouped/a/package.json',
       '@workspace-a/b': 'workspace-a/packages/grouped/b/package.json',
@@ -222,7 +268,8 @@ describe('getPackageInfos', () => {
     });
 
     const workspaceARoot = repo.pathTo('workspace-a');
-    const packageInfosA = getPackageInfos(workspaceARoot);
+    const workspaceAOptions = getOptions(workspaceARoot);
+    const packageInfosA = getPackageInfos(workspaceAOptions);
     expect(getPackageNamesAndPaths(workspaceARoot, packageInfosA)).toEqual({
       '@workspace-a/a': 'packages/grouped/a/package.json',
       '@workspace-a/b': 'packages/grouped/b/package.json',
@@ -232,7 +279,8 @@ describe('getPackageInfos', () => {
     });
 
     const workspaceBRoot = repo.pathTo('workspace-b');
-    const packageInfosB = getPackageInfos(workspaceBRoot);
+    const workspaceBOptions = getOptions(workspaceBRoot);
+    const packageInfosB = getPackageInfos(workspaceBOptions);
     expect(getPackageNamesAndPaths(workspaceBRoot, packageInfosB)).toEqual({
       '@workspace-b/a': 'packages/grouped/a/package.json',
       '@workspace-b/b': 'packages/grouped/b/package.json',
@@ -242,15 +290,15 @@ describe('getPackageInfos', () => {
     });
   });
 
-  it('throws if multiple packages have the same name in multi-workspace monorepo', () => {
+  it('throws if multiple packages have the same name in multi-root monorepo', () => {
     // If there are multiple workspaces in a monorepo, it's possible that two packages in different
     // workspaces could share the same name, which causes problems for beachball.
     // (This is only known to have been an issue with the test fixture, but is worth testing.)
-    const repo = multiWorkspaceFactory.cloneRepository();
+    const repo = multiMonorepoFactory.cloneRepository();
     repo.updateJsonFile('workspace-a/packages/foo/package.json', { name: 'foo' });
     repo.updateJsonFile('workspace-b/packages/foo/package.json', { name: 'foo' });
-
-    expect(() => getPackageInfos(repo.rootPath)).toThrow('Duplicate package names found (see above for details)');
+    const parsedOptions = getOptions(repo.rootPath);
+    expect(() => getPackageInfos(parsedOptions)).toThrow('Duplicate package names found (see above for details)');
 
     const allLogs = logs.getMockLines('all').replace(/\\/g, '/');
     expect(allLogs).toMatchInlineSnapshot(`

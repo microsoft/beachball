@@ -1,11 +1,11 @@
 import { describe, expect, it, afterAll, type jest, beforeAll, afterEach } from '@jest/globals';
-import { defaultBranchName } from '../__fixtures__/gitDefaults';
+import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
-import type { BeachballOptions } from '../types/BeachballOptions';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { validate } from '../validation/validate';
 import type { Repository } from '../__fixtures__/repository';
-import { getDefaultOptions } from '../options/getDefaultOptions';
+import { getParsedOptions } from '../options/getOptions';
+import { getPackageInfos } from '../monorepo/getPackageInfos';
 
 describe('validate', () => {
   let repositoryFactory: RepositoryFactory;
@@ -14,13 +14,16 @@ describe('validate', () => {
   // this is mocked in jestSetup
   const processExit = process.exit as jest.MockedFunction<typeof process.exit>;
 
-  function getOptions(): BeachballOptions {
-    return {
-      ...getDefaultOptions(),
-      // change to ?. if a future test uses a non-standard repo
-      path: repo!.rootPath,
-      branch: defaultBranchName,
-    };
+  function getOptionsAndPackages() {
+    const parsedOptions = getParsedOptions({
+      cwd: repo!.rootPath,
+      argv: [],
+      testRepoOptions: {
+        branch: defaultRemoteBranchName,
+      },
+    });
+    const packageInfos = getPackageInfos(parsedOptions);
+    return { packageInfos, options: parsedOptions.options, parsedOptions };
   }
 
   beforeAll(() => {
@@ -41,7 +44,8 @@ describe('validate', () => {
     repo = repositoryFactory.cloneRepository();
     repo.checkout('-b', 'test');
 
-    const result = validate(getOptions(), { checkChangeNeeded: true });
+    const { options, packageInfos } = getOptionsAndPackages();
+    const result = validate(options, { checkChangeNeeded: true }, packageInfos);
 
     expect(result.isChangeNeeded).toBe(false);
     expect(logs.mocks.error).not.toHaveBeenCalled();
@@ -53,7 +57,8 @@ describe('validate', () => {
     repo.checkout('-b', 'test');
     repo.stageChange('packages/foo/test.js');
 
-    expect(() => validate(getOptions(), { checkChangeNeeded: true })).toThrowError(/process\.exit/);
+    const { options, packageInfos } = getOptionsAndPackages();
+    expect(() => validate(options, { checkChangeNeeded: true }, packageInfos)).toThrowError(/process\.exit/);
     expect(processExit).toHaveBeenCalledWith(1);
     expect(logs.mocks.error).toHaveBeenCalledWith('ERROR: Change files are needed!');
   });
@@ -63,7 +68,8 @@ describe('validate', () => {
     repo.checkout('-b', 'test');
     repo.stageChange('packages/foo/test.js');
 
-    const result = validate(getOptions(), { checkChangeNeeded: true, allowMissingChangeFiles: true });
+    const { options, packageInfos } = getOptionsAndPackages();
+    const result = validate(options, { checkChangeNeeded: true, allowMissingChangeFiles: true }, packageInfos);
     expect(result.isChangeNeeded).toBe(true);
     expect(logs.mocks.error).not.toHaveBeenCalled();
   });

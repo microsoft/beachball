@@ -53,7 +53,7 @@ describe('getQuestionsForPackage', () => {
   it('errors if options.type is disallowed', () => {
     const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
-      packageInfos: makePackageInfos({ [pkg]: { combinedOptions: { disallowedChangeTypes: ['major'] } } }),
+      packageInfos: makePackageInfos({ [pkg]: { beachball: { disallowedChangeTypes: ['major'] } } }),
       options: { type: 'major', message: '' },
     });
     expect(questions).toBeUndefined();
@@ -64,7 +64,7 @@ describe('getQuestionsForPackage', () => {
     const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       packageInfos: makePackageInfos({
-        [pkg]: { combinedOptions: { disallowedChangeTypes: ['major', 'minor', 'patch', 'none'] } },
+        [pkg]: { beachball: { disallowedChangeTypes: ['major', 'minor', 'patch', 'none'] } },
       }),
     });
     expect(questions).toBeUndefined();
@@ -74,7 +74,7 @@ describe('getQuestionsForPackage', () => {
   it('respects disallowedChangeTypes', () => {
     const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
-      packageInfos: makePackageInfos({ [pkg]: { combinedOptions: { disallowedChangeTypes: ['major'] } } }),
+      packageInfos: makePackageInfos({ [pkg]: { beachball: { disallowedChangeTypes: ['major'] } } }),
     });
     const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value as ChangeType);
     expect(choices).toEqual(['patch', 'minor', 'none']);
@@ -94,7 +94,7 @@ describe('getQuestionsForPackage', () => {
     const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       packageInfos: makePackageInfos({
-        [pkg]: { version: '1.0.0-beta.1', combinedOptions: { disallowedChangeTypes: ['prerelease'] } },
+        [pkg]: { version: '1.0.0-beta.1', beachball: { disallowedChangeTypes: ['prerelease'] } },
       }),
     });
     const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value as ChangeType);
@@ -114,7 +114,7 @@ describe('getQuestionsForPackage', () => {
     const questions = getQuestionsForPackage({
       ...defaultQuestionsParams,
       packageInfos: makePackageInfos({
-        [pkg]: { combinedOptions: { disallowedChangeTypes: ['major', 'minor', 'none'] } },
+        [pkg]: { beachball: { disallowedChangeTypes: ['major', 'minor', 'none'] } },
       }),
     });
     expect(questions).toHaveLength(1);
@@ -127,7 +127,7 @@ describe('getQuestionsForPackage', () => {
       packageInfos: makePackageInfos({
         [pkg]: {
           version: '1.0.0-beta.1',
-          combinedOptions: { disallowedChangeTypes: ['major', 'minor', 'patch', 'none'] },
+          beachball: { disallowedChangeTypes: ['major', 'minor', 'patch', 'none'] },
         },
       }),
     });

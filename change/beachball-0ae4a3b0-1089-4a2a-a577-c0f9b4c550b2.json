@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Validate that there are no private packages among `peerDependencies` or `optionalDependencies` of published packages (not just `dependencies`). There's a slight chance this could be a breaking change.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

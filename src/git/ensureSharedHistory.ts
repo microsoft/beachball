@@ -1,6 +1,7 @@
 import { git, parseRemoteBranch } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { gitFetch } from './fetch';
+import { bulletedList, type BulletList } from '../logging/bulletedList';
 
 /**
  * Ensure that adequate history is available to check for changes between HEAD and `options.branch`.
@@ -142,35 +143,40 @@ function logError(
   remoteBranch: string
 ): void {
   let mainError: string;
-  let mitigationSteps: string;
+  let mitigationSteps: BulletList = [];
 
   switch (error) {
     case 'missing-branch':
       // Due to checks in the calling method, "remote" should be non-empty here
       mainError = `Target branch "${branch}" does not exist locally, and fetching is disabled.`;
-      mitigationSteps = `- Fetch the branch manually:\n   git remote set-branches --add ${remote} ${remoteBranch} && git fetch ${remote}`;
+      mitigationSteps = [
+        `Fetch the branch manually:\n  git remote set-branches --add ${remote} ${remoteBranch} && git fetch ${remote}`,
+      ];
       break;
     case 'shallow-clone':
       mainError =
         'This repo is a shallow clone, fetching is disabled, and not enough history is ' +
         `available to connect HEAD to "${branch}".`;
       mitigationSteps = [
-        "- Verify that you're using the correct target branch",
-        '- Unshallow or deepen the clone manually',
-      ].join('\n');
+        "Verify that you're using the correct target branch",
+        'Unshallow or deepen the clone manually',
+      ];
       break;
   }
+
+  mitigationSteps.push(
+    `Omit the "--no-fetch" / "--fetch=false" option from the command line`,
+    `Remove "fetch: false" from the beachball config`,
+    `If this is a CI build, ensure that adequate history is being fetched`,
+    [`For GitHub Actions (actions/checkout), add the option "fetch-depth: 0" in the checkout step.`]
+  );
 
   console.error(`
 
 ${mainError}
 
 Some possible fixes:
-${mitigationSteps}
-- Omit the "--no-fetch" / "--fetch=false" option from the command line
-- Remove "fetch: false" from the beachball config
-- If this is a CI build, ensure that adequate history is being fetched
-  - For GitHub Actions (actions/checkout), add the option "fetch-depth: 0" in the checkout step
+${bulletedList(mitigationSteps)}
 
 `);
 }

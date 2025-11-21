@@ -15,22 +15,19 @@ const createTagParameters = (tag: string, cwd: string) => {
 
 type TagBumpInfo = Parameters<typeof tagPackages>[0];
 
-/** foo and bar disable gitTags */
+/** repo options disable gitTags */
 const noTagBumpInfo: TagBumpInfo = {
   calculatedChangeTypes: {
     foo: 'minor',
     bar: 'major',
   },
-  packageInfos: makePackageInfos({
-    foo: {
-      version: '1.0.0',
-      combinedOptions: { gitTags: false },
+  packageInfos: makePackageInfos(
+    {
+      foo: { version: '1.0.0' },
+      bar: { version: '1.0.1' },
     },
-    bar: {
-      version: '1.0.1',
-      combinedOptions: { gitTags: false },
-    },
-  }),
+    { gitTags: false }
+  ),
   modifiedPackages: new Set(['foo', 'bar']),
   newPackages: [],
 };
@@ -41,11 +38,11 @@ const oneTagBumpInfo: TagBumpInfo = {
   packageInfos: makePackageInfos({
     foo: {
       version: '1.0.0',
-      combinedOptions: { gitTags: true },
+      beachball: { gitTags: true },
     },
     bar: {
       version: '1.0.1',
-      combinedOptions: { gitTags: false },
+      beachball: { gitTags: false },
     },
   }),
 };

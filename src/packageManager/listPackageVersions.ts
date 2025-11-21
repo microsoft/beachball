@@ -54,9 +54,11 @@ async function getNpmPackageInfo(packageName: string, options: NpmOptions): Prom
   return packageVersionsCache[packageName];
 }
 
+/**
+ * List versions matching the appropriate tag for each package (based on combined CLI, package, and repo options)
+ */
 export async function listPackageVersionsByTag(
   packageInfos: PackageInfo[],
-  tag: string | undefined,
   options: NpmOptions
 ): Promise<{ [pkg: string]: string }> {
   const limit = pLimit(options.npmReadConcurrency);
@@ -67,7 +69,7 @@ export async function listPackageVersionsByTag(
       limit(async () => {
         const info = await getNpmPackageInfo(pkg.name, options);
         if (info) {
-          const npmTag = tag || pkg.combinedOptions.tag || pkg.combinedOptions.defaultNpmTag;
+          const npmTag = pkg.combinedOptions.tag || pkg.combinedOptions.defaultNpmTag;
           const version = npmTag && info['dist-tags']?.[npmTag];
           if (version) {
             versions[pkg.name] = version;

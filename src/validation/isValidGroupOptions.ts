@@ -1,4 +1,5 @@
-import { formatList, singleLineStringify } from '../logging/format';
+import { bulletedList } from '../logging/bulletedList';
+import { singleLineStringify } from '../logging/singleLineStringify';
 import type { VersionGroupOptions } from '../types/BeachballOptions';
 import type { PackageGroups, PackageInfos } from '../types/PackageInfo';
 
@@ -15,7 +16,7 @@ export function isValidGroupOptions(groups: VersionGroupOptions[]): boolean {
   if (badGroups.length) {
     console.error(
       'ERROR: "groups" configuration entries must define "include" and "name". Found invalid groups:\n' +
-        badGroups.map(group => '  ' + singleLineStringify(group)).join('\n')
+        bulletedList(badGroups.map(group => singleLineStringify(group)))
     );
     return false;
   }
@@ -40,7 +41,7 @@ export function isValidGroupedPackageOptions(packageInfos: PackageInfos, package
     console.error(
       'ERROR: Found package configs that define disallowedChangeTypes and are also part of a group. ' +
         'Define disallowedChangeTypes in the group instead.\n' +
-        formatList(errorPackages.sort())
+        bulletedList(errorPackages.sort())
     );
     return false;
   }

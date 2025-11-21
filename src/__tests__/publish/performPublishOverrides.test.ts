@@ -1,9 +1,8 @@
 import { describe, expect, it, afterEach, jest } from '@jest/globals';
 import * as fs from 'fs-extra';
-import _ from 'lodash';
 import { performPublishOverrides } from '../../publish/performPublishOverrides';
 import type { PackageInfos, PackageJson, PublishConfig } from '../../types/PackageInfo';
-import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
 
 jest.mock('fs-extra', () => ({
   readJSONSync: jest.fn(),
@@ -23,21 +22,27 @@ describe('performPublishOverrides', () => {
     packageInfos: PackageInfos;
     packageJsons: Record<string, PackageJson>;
   } {
-    const packageInfos = makePackageInfos(
-      _.mapValues(partialPackageJsons, (json, name) => ({
+    const partialInfos: PartialPackageInfos = {};
+    for (const [name, json] of Object.entries(partialPackageJsons)) {
+      partialInfos[name] = {
         packageJsonPath: `packages/${name}/package.json`,
         version: json.version || '1.0.0',
         dependencies: json.dependencies || {},
-      }))
-    );
-    const packageJsons: Record<string, PackageJson> = _.mapValues(partialPackageJsons, (json, name) => ({
-      name,
-      version: packageInfos[name].version,
-      // these values can potentially be overridden by publishConfig
-      main: 'src/index.ts',
-      bin: 'src/foo-bin.ts',
-      ...json,
-    }));
+      };
+    }
+    const packageInfos = makePackageInfos(partialInfos);
+
+    const packageJsons: Record<string, PackageJson> = {};
+    for (const [name, json] of Object.entries(partialPackageJsons)) {
+      packageJsons[name] = {
+        name,
+        version: packageInfos[name].version,
+        // these values can potentially be overridden by publishConfig
+        main: 'src/index.ts',
+        bin: 'src/foo-bin.ts',
+        ...json,
+      };
+    }
 
     readJSONSync.mockImplementation(path => {
       for (const pkg of Object.values(packageInfos)) {
@@ -45,7 +50,7 @@ describe('performPublishOverrides', () => {
           // performPublishConfigOverrides mutates the packageJson, so we need to clone it to
           // simulate reading the file from the disk and avoid mutating original fixtures.
           // This is also just safer in general for tests that use this method for before/after comparisons.
-          return _.cloneDeep(packageJsons[pkg.name]);
+          return JSON.parse(JSON.stringify(packageJsons[pkg.name]));
         }
       }
       throw new Error(`not found: ${path as string}`);

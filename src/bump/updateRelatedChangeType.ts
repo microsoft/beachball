@@ -35,7 +35,7 @@ export function updateRelatedChangeType(params: {
   const { calculatedChangeTypes, packageGroups, packageInfos } = bumpInfo;
 
   // If dependentChangeType is none (or somehow unset), there's nothing to do.
-  const updatedChangeType = getMaxChangeType(change.dependentChangeType);
+  const updatedChangeType = getMaxChangeType([change.dependentChangeType]);
   if (updatedChangeType === 'none') {
     return;
   }
@@ -56,8 +56,7 @@ export function updateRelatedChangeType(params: {
     if (subjectPackage !== entryPointPackageName) {
       const oldType = calculatedChangeTypes[subjectPackage];
       calculatedChangeTypes[subjectPackage] = getMaxChangeType(
-        oldType,
-        changeType,
+        [oldType, changeType],
         packageInfos[subjectPackage]?.combinedOptions?.disallowedChangeTypes
       );
 

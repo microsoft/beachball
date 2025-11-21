@@ -14,7 +14,7 @@ describe('getDisallowedChangeTypes', () => {
 
   it('returns disallowedChangeTypes for package', () => {
     const packageInfos = makePackageInfos({
-      foo: { combinedOptions: { disallowedChangeTypes: ['major', 'minor'] } },
+      foo: { beachball: { disallowedChangeTypes: ['major', 'minor'] } },
     });
     expect(getDisallowedChangeTypes('foo', packageInfos, {})).toEqual(['major', 'minor']);
   });
@@ -29,7 +29,7 @@ describe('getDisallowedChangeTypes', () => {
 
   it('returns disallowedChangeTypes for package if not in a group', () => {
     const packageInfos = makePackageInfos({
-      foo: { combinedOptions: { disallowedChangeTypes: ['patch'] } },
+      foo: { beachball: { disallowedChangeTypes: ['patch'] } },
     });
     const packageGroups: PackageGroups = {
       group: { packageNames: ['bar'], disallowedChangeTypes: ['major', 'minor'] },
@@ -39,7 +39,7 @@ describe('getDisallowedChangeTypes', () => {
 
   it('prefers disallowedChangeTypes for group over package', () => {
     const packageInfos = makePackageInfos({
-      foo: { combinedOptions: { disallowedChangeTypes: ['patch'] } },
+      foo: { beachball: { disallowedChangeTypes: ['patch'] } },
     });
     const packageGroups: PackageGroups = {
       group: { packageNames: ['foo'], disallowedChangeTypes: ['major', 'minor'] },

@@ -6,11 +6,13 @@ import { publish } from './commands/publish';
 import { sync } from './commands/sync';
 
 import { showVersion, showHelp } from './help';
-import { getOptions } from './options/getOptions';
+import { getPackageInfos } from './monorepo/getPackageInfos';
+import { getParsedOptions } from './options/getOptions';
 import { validate } from './validation/validate';
 
 (async () => {
-  const options = getOptions(process.argv);
+  const parsedOptions = getParsedOptions({ cwd: process.cwd(), argv: process.argv });
+  const options = parsedOptions.options;
 
   if (options.help) {
     showHelp();
@@ -24,46 +26,60 @@ import { validate } from './validation/validate';
 
   // Run the commands
   switch (options.command) {
-    case 'check':
-      validate(options, { checkChangeNeeded: true, checkDependencies: true });
+    case 'check': {
+      validate(options, { checkChangeNeeded: true, checkDependencies: true }, getPackageInfos(parsedOptions));
       console.log('No change files are needed');
       break;
+    }
 
-    case 'publish':
-      validate(options, { checkDependencies: true });
+    case 'publish': {
+      const packageInfos = getPackageInfos(parsedOptions);
+      validate(options, { checkDependencies: true }, packageInfos);
 
       // set a default publish message
       options.message = options.message || 'applying package updates';
-      await publish(options);
+      await publish(options, packageInfos);
       break;
+    }
 
-    case 'bump':
-      validate(options, { checkDependencies: true });
-      await bump(options);
+    case 'bump': {
+      const packageInfos = getPackageInfos(parsedOptions);
+      validate(options, { checkDependencies: true }, packageInfos);
+      await bump(options, packageInfos);
       break;
+    }
 
-    case 'canary':
-      validate(options, { checkDependencies: true });
-      await canary(options);
+    case 'canary': {
+      const packageInfos = getPackageInfos(parsedOptions);
+      validate(options, { checkDependencies: true }, packageInfos);
+      await canary(options, packageInfos);
       break;
+    }
 
-    case 'init':
+    case 'init': {
       await init(options);
       break;
+    }
 
-    case 'sync':
-      await sync(options);
+    case 'sync': {
+      await sync(options, getPackageInfos(parsedOptions));
       break;
+    }
 
     case 'change': {
-      const { isChangeNeeded } = validate(options, { checkChangeNeeded: true, allowMissingChangeFiles: true });
+      const packageInfos = getPackageInfos(parsedOptions);
+      const { isChangeNeeded } = validate(
+        options,
+        { checkChangeNeeded: true, allowMissingChangeFiles: true },
+        packageInfos
+      );
 
       if (!isChangeNeeded && !options.package) {
         console.log('No change files are needed');
         return;
       }
 
-      await change(options);
+      await change(options, packageInfos);
 
       break;
     }

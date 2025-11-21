@@ -4,6 +4,8 @@ import { updateRelatedChangeType } from './updateRelatedChangeType';
 import { bumpPackageInfoVersion } from './bumpPackageInfoVersion';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { setDependentVersions } from './setDependentVersions';
+import { getMaxChangeType } from '../changefile/changeTypes';
+import { ChangeType } from '../types/ChangeInfo';
 
 /**
  * Updates BumpInfo according to change types, bump deps, and version groups
@@ -22,12 +24,21 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions): void
   //       - the main concern is how to capture the bump reason in grouped changelog
 
   // pass 2: initialize grouped calculatedChangeTypes together
-  for (const { change: changeInfo } of changeFileChangeInfos) {
-    const group = Object.values(bumpInfo.packageGroups).find(g => g.packageNames.includes(changeInfo.packageName));
+  for (const group of Object.values(bumpInfo.packageGroups)) {
+    // If any of the group's packages have a change, find the max change type out of any package in the group.
+    const seenTypes = new Set<ChangeType>();
+    for (const packageNameInGroup of group.packageNames) {
+      const changeType = calculatedChangeTypes[packageNameInGroup];
+      if (changeType) {
+        seenTypes.add(changeType);
+      }
+    }
 
-    if (group) {
+    if (seenTypes.size) {
+      // Set all packages in the group to the max change type.
+      const maxChangeInGroup = getMaxChangeType([...seenTypes], group.disallowedChangeTypes);
       for (const packageNameInGroup of group.packageNames) {
-        calculatedChangeTypes[packageNameInGroup] = changeInfo.type;
+        calculatedChangeTypes[packageNameInGroup] = maxChangeInGroup;
       }
     }
   }

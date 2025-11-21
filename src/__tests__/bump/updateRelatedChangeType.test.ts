@@ -227,7 +227,7 @@ describe('updateRelatedChangeType', () => {
         bar: {},
         foo: {
           dependencies: { bar: '1.0.0' },
-          combinedOptions: { disallowedChangeTypes: ['minor', 'major'] },
+          beachball: { disallowedChangeTypes: ['minor', 'major'] },
         },
       },
     });
