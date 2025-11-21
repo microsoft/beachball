@@ -2,7 +2,7 @@ import semver from 'semver';
 import { getWorkspaceRange } from '../packageManager/getWorkspaceRange';
 
 export function bumpMinSemverRange(minVersion: string, semverRange: string): string {
-  if (semverRange === '*') {
+  if (semverRange === '*' || semverRange.startsWith('file:')) {
     return semverRange;
   }
 

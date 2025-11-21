@@ -7,6 +7,16 @@ describe('bumpMinSemverRange', () => {
     expect(result).toBe('*');
   });
 
+  it('preserves file: protocol with relative path', () => {
+    const result = bumpMinSemverRange('1.0.0', 'file:../local-package');
+    expect(result).toBe('file:../local-package');
+  });
+
+  it('preserves file: protocol with absolute path', () => {
+    const result = bumpMinSemverRange('1.0.0', 'file:/absolute/path/to/package');
+    expect(result).toBe('file:/absolute/path/to/package');
+  });
+
   it('attaches ~ to semver range', () => {
     const result = bumpMinSemverRange('1.3.0', '~1.2.0');
     expect(result).toBe('~1.3.0');
