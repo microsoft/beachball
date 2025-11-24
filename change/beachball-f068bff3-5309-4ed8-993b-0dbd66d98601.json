@@ -1,0 +1,7 @@
+{
+  "comment": "Remove unnecessary findProjectRoot calls",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "ecraig12345@gmail.com",
+  "dependentChangeType": "patch"
+}
