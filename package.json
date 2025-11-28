@@ -56,7 +56,7 @@
     "prompts": "^2.4.2",
     "semver": "^7.0.0",
     "toposort": "^2.0.2",
-    "workspace-tools": "^0.38.2",
+    "workspace-tools": "^0.40.0",
     "yargs-parser": "^21.0.0"
   },
   "devDependencies": {

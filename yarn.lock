@@ -4345,10 +4345,10 @@ wordwrap@^1.0.0:
   resolved "https://registry.yarnpkg.com/wordwrap/-/wordwrap-1.0.0.tgz#27584810891456a4171c8d0226441ade90cbcaeb"
   integrity sha512-gvVzJFlPycKc5dZN4yPkP8w7Dc37BtP1yczEneOb4uq34pXZcvrtRTmWV8W+Ume+XCxKgbjM+nevkyFPMybd4Q==
 
-workspace-tools@^0.38.2:
-  version "0.38.4"
-  resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.38.4.tgz#fe1010d5211d1d0555fca3155ff19f9779a3d949"
-  integrity sha512-wCei5WNlhHswuU5tPjTYy4yVd7jnavtRUNbqpiHAmWRPOJtkvUpBQZExrrgFs3h9jdx6Qf6inCDSwjqnXhf+vQ==
+workspace-tools@^0.40.0:
+  version "0.40.0"
+  resolved "https://registry.yarnpkg.com/workspace-tools/-/workspace-tools-0.40.0.tgz#77a5f9b31006e016e44753e2d9d7202d427e9c23"
+  integrity sha512-OlhUc1gMVNUQnuKil3PilJbmYXycuFT/hmY7H9Nh/WBRf2GcR3ClzpKFIvloidutd6vgo/RLQms4ZmgFG7uHrA==
   dependencies:
     "@yarnpkg/lockfile" "^1.1.0"
     fast-glob "^3.3.1"
