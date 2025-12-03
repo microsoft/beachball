@@ -7,7 +7,7 @@ export function isValidGroupOptions(groups: VersionGroupOptions[]): boolean {
   // Values that violate types could happen in a user-provided object
   if (!Array.isArray(groups)) {
     console.error(
-      'ERROR: Expected "groups" configuration setting to be an array. Received:\n' + JSON.stringify(groups)
+      'ERROR: Expected "groups" configuration setting to be an array. Received:\n' + singleLineStringify(groups)
     );
     return false;
   }
@@ -20,6 +20,8 @@ export function isValidGroupOptions(groups: VersionGroupOptions[]): boolean {
     );
     return false;
   }
+
+  // TODO: validate disallowedChangeTypes? (they're not currently validated anywhere)
 
   return true;
 }

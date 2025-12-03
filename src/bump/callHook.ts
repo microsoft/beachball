@@ -26,6 +26,7 @@ export async function callHook(
       await callHookInternal(packageInfos[pkg]);
     }
   } else {
+    // TODO: reuse the graph across hooks if possible (depends on if internal state is used)
     const packageGraph = getPackageGraph(affectedPackages, packageInfos, callHookInternal);
 
     await packageGraph.run({

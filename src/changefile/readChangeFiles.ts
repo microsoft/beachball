@@ -45,15 +45,10 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
     filteredChangeFiles = allChangeFiles.filter(fileName => changeFilesSinceFromRef?.includes(fileName));
   }
 
-  try {
-    // sort the change files by modified time. Most recent modified file comes first.
-    filteredChangeFiles.sort(
-      (f1, f2) =>
-        fs.statSync(path.join(changePath, f2)).mtime.getTime() - fs.statSync(path.join(changePath, f1)).mtime.getTime()
-    );
-  } catch (err) {
-    console.warn('Failed to sort change files', err);
-  }
+  // sort the change files by modified time. Most recent modified file comes first.
+  filteredChangeFiles.sort(
+    (f1, f2) => getMtime({ changePath, changeFile: f2 }) - getMtime({ changePath, changeFile: f1 })
+  );
 
   const changeSet: ChangeSet = [];
 
@@ -110,4 +105,26 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
   }
 
   return changeSet;
+}
+
+const mtimeCache: Record<string, number> = {};
+
+/**
+ * Get a file's modification time with caching. (Usually the caching won't matter, but it might
+ * in large repos with many change files.)
+ */
+function getMtime(params: { changePath: string; changeFile: string }) {
+  const cached = mtimeCache[params.changeFile];
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  try {
+    const mtime = fs.statSync(path.join(params.changePath, params.changeFile)).mtime.getTime();
+    mtimeCache[params.changeFile] = mtime;
+    return mtime;
+  } catch (err) {
+    mtimeCache[params.changeFile] = 0;
+    return 0;
+  }
 }

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Improve perf of readChangeFiles, and improve object stringifying in errors",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

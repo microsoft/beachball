@@ -47,6 +47,7 @@ export function getPackageInfosWithOptions(
     // (just the "beachball" key in package.json).
     // If the package has no specific options (most common), reuse the pre-merged object for performance.
     const packageOptions = packageJson.beachball as Partial<PackageOptions> | undefined;
+    // TODO: merge group options too (group disallowedChangeTypes currently override package)
     const combinedOptions = packageOptions
       ? _mergePackageOptions({ defaultOptions, repoOptions, cliOptions, packageOptions })
       : { ...preMergedOptions };

@@ -4,7 +4,7 @@ import type { BeachballOptions } from '../types/BeachballOptions';
 
 /**
  * Bumps an individual package version based on the change type.
- * **This mutates `info.version`!**
+ * **This mutates `info.version` and `bumpInfo.modifiedPackages`!**
  */
 export function bumpPackageInfoVersion(
   pkgName: string,
@@ -23,10 +23,7 @@ export function bumpPackageInfoVersion(
     console.log(`Skipping bumping private package "${pkgName}"`);
   } else {
     // Ensure we can bump the correct versions
-    let bumpAsPrerelease = false;
-    if (options.prereleasePrefix && !['premajor', 'preminor', 'prepatch'].includes(changeType)) {
-      bumpAsPrerelease = true;
-    }
+    const bumpAsPrerelease = !!options.prereleasePrefix && !['premajor', 'preminor', 'prepatch'].includes(changeType);
 
     // Version should be updated
     info.version = semver.inc(
@@ -36,6 +33,7 @@ export function bumpPackageInfoVersion(
       options.prereleasePrefix || undefined,
       options.identifierBase
     ) as string;
+
     modifiedPackages.add(pkgName);
   }
 }
