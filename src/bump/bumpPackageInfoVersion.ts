@@ -32,6 +32,7 @@ export function bumpPackageInfoVersion(
     info.version = semver.inc(
       info.version,
       bumpAsPrerelease ? 'prerelease' : changeType,
+      undefined,
       options.prereleasePrefix || undefined,
       options.identifierBase
     ) as string;

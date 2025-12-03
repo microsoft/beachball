@@ -81,15 +81,17 @@
     "ts-jest": "29.2.6",
     "typescript": "~5.2.0",
     "verdaccio": "5.29.2",
-    "verdaccio-auth-memory": "^10.2.0",
-    "verdaccio-memory": "^10.3.0"
+    "verdaccio-auth-memory": "10.2.2",
+    "verdaccio-memory": "10.3.2"
   },
   "resolutions": {
     "@types/node": "^14.0.0"
   },
   "rationale": {
     "devDependencies": {
-      "ts-jest@29.2.6": "29.3.0 introduces type-fest v4 which requires node 16+"
+      "ts-jest@29.2.6": "29.3.0 introduces type-fest v4 which requires node 16+",
+      "verdaccio-auth-memory@10.2.2": "node 18 required by newer version",
+      "verdaccio-memory@10.3.2": "node 18 required by newer version"
     }
   }
 }
