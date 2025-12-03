@@ -5,7 +5,7 @@ export function displayManualRecovery(bumpInfo: BumpInfo, succeededPackages: Set
   const errorLines: string[] = [];
   const succeededLines: string[] = [];
 
-  bumpInfo.modifiedPackages.forEach(pkg => {
+  for (const pkg of bumpInfo.modifiedPackages) {
     const packageInfo = bumpInfo.packageInfos[pkg];
     const entry = `${packageInfo.name}@${packageInfo.version}`;
     if (succeededPackages.has(packageInfo.name)) {
@@ -13,7 +13,7 @@ export function displayManualRecovery(bumpInfo: BumpInfo, succeededPackages: Set
     } else {
       errorLines.push(entry);
     }
-  });
+  }
 
   console.error(
     'Something went wrong with publishing! Manually update these package and versions:\n' +

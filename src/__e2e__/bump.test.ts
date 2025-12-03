@@ -37,7 +37,7 @@ describe('version bumping', () => {
     repo = undefined;
   });
 
-  it('bumps only packages with change files', async () => {
+  it('bumps only packages with change files with bumpDeps: false', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
         'pkg-1': { version: '1.0.0' },

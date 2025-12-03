@@ -4,6 +4,7 @@ import type { ChangeFileInfo, ChangeInfo, ChangeType } from '../../types/ChangeI
 import { PartialPackageInfos, makePackageInfos } from '../../__fixtures__/packageInfos';
 import { PackageGroups } from '../../types/PackageInfo';
 import { getDependentsForPackages } from '../../bump/getDependentsForPackages';
+import type { BeachballOptions } from '../../types/BeachballOptions';
 
 type RelatedChangeTypeParams = Omit<Parameters<typeof updateRelatedChangeType>[0], 'change'>;
 
@@ -12,22 +13,24 @@ describe('updateRelatedChangeType', () => {
    * Call `updateRelatedChangeType` once for each of `changes`.
    * Returns the updated bump info.
    */
-  function callUpdateRelatedChangeType(options: {
-    changes: Array<Pick<ChangeInfo, 'packageName' | 'type' | 'dependentChangeType'>>;
-    /**
-     * All the packages used in this fixture.
-     * Must include any dependencies (all versions are 1.0.0).
-     */
-    packages: PartialPackageInfos;
-    /**
-     * Initial calculated change types before updates. This is **required** if `packageGroups`
-     * is specified (since the initial calculation is complex) but otherwise a default can be
-     * calculated from `changes`.
-     */
-    calculatedChangeTypes?: { [packageName: string]: ChangeType };
-    packageGroups?: PackageGroups;
-  }) {
-    const { packages, packageGroups } = options;
+  function callUpdateRelatedChangeType(
+    options: Partial<Pick<BeachballOptions, 'bumpDeps'>> & {
+      changes: Array<Pick<ChangeInfo, 'packageName' | 'type' | 'dependentChangeType'>>;
+      /**
+       * All the packages used in this fixture.
+       * Must include any dependencies (all versions are 1.0.0).
+       */
+      packages: PartialPackageInfos;
+      /**
+       * Initial calculated change types before updates. This is **required** if `packageGroups`
+       * is specified (since the initial calculation is complex) but otherwise a default can be
+       * calculated from `changes`.
+       */
+      calculatedChangeTypes?: { [packageName: string]: ChangeType };
+      packageGroups?: PackageGroups;
+    }
+  ) {
+    const { packages, packageGroups, bumpDeps = true } = options;
 
     if (packageGroups && !options.calculatedChangeTypes) {
       throw new Error('calculatedChangeTypes must be specified if packageGroups is used');
@@ -51,8 +54,9 @@ describe('updateRelatedChangeType', () => {
       },
       // Dependents are confusing to reason about directly (or specify in fixtures) since they're
       // backwards from dependencies, so just reuse the actual helper that calculates them
-      dependents: getDependentsForPackages({ packageInfos, scopedPackages: new Set(Object.keys(packageInfos)) }),
-      bumpDeps: true,
+      dependents: bumpDeps
+        ? getDependentsForPackages({ packageInfos, scopedPackages: new Set(Object.keys(packageInfos)) })
+        : undefined,
     };
 
     for (const change of changes) {
@@ -75,6 +79,19 @@ describe('updateRelatedChangeType', () => {
       foo: 'patch',
       bar: 'minor',
     });
+  });
+
+  it('does not bump dependents with bumpDeps: false', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      bumpDeps: false,
+      changes: [{ packageName: 'foo', type: 'patch', dependentChangeType: 'minor' }],
+      packages: {
+        bar: { dependencies: { foo: '1.0.0' } },
+        foo: {},
+      },
+    });
+
+    expect(bumpInfo.calculatedChangeTypes).toEqual({ foo: 'patch' });
   });
 
   it("respects bumped dependent package's own change type if higher than dependentChangeType", () => {

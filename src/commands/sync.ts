@@ -39,8 +39,8 @@ export async function sync(options: BeachballOptions, packageInfos?: PackageInfo
     }
   }
 
-  const dependentModifiedPackages = setDependentVersions({ packageInfos, scopedPackages }, options);
-  Object.keys(dependentModifiedPackages).forEach(pkg => modifiedPackages.add(pkg));
+  // Update modifiedPackages
+  setDependentVersions({ packageInfos, scopedPackages, modifiedPackages }, options);
 
   updatePackageJsons(modifiedPackages, packageInfos);
   await updateLockFile(options);

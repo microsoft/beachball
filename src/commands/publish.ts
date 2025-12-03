@@ -68,14 +68,16 @@ export async function publish(options: BeachballOptions, oldPackageInfos?: Packa
   console.log(`\nGathering info ${options.bump ? 'to bump versions' : 'about versions and changes'}`);
   const bumpInfo: PublishBumpInfo = gatherBumpInfo(options, oldPackageInfos);
 
+  // eslint-disable-next-line etc/no-deprecated
   if (options.new) {
     // Publish newly created packages even if they don't have change files
     // (this is unlikely unless the packages were pushed without a PR that runs "beachball check")
     console.log(
       '\nFetching all unmodified packages from the registry to check if there are any ' +
         "newly-added packages that didn't have a change file...\n" +
-        '(If your PR build runs `beachball check`, it should be safe to disable this step by ' +
-        'removing `new: true` from your config or removing `--new` from your publish command.)'
+        '(NOTE: If your PR build runs `beachball check`, this step is unnecessarily slowing down ' +
+        "your publish process. In that case, it's recommended to remove `new: true` from your " +
+        'config or remove `--new` from your publish command.)'
     );
     bumpInfo.newPackages = await getNewPackages(bumpInfo, options);
   }
