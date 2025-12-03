@@ -28,7 +28,12 @@ export type BumpInfo = {
    */
   packageGroups: DeepReadonly<PackageGroups>;
 
-  /** Set of packages that had been modified */
+  /**
+   * Set of packages that had been modified.
+   *
+   * For the bump command, this is primarily populated by `bumpPackageInfoVersion` (which considers
+   * dependent bumps and groups). If `bumpDeps` is false, it might be updated by `setDependentVersions`.
+   */
   modifiedPackages: Set<string>;
 
   /** Map from package name to its internal dependency names that were bumped. */
