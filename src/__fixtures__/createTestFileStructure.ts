@@ -18,3 +18,28 @@ export function createTestFileStructure(files: Record<string, string | object>):
 
   return testFolderPath.replace(/\\/g, '/');
 }
+
+/**
+ * Create a test file structure for a named fixture (similar to the ones in `RepositoryFactory`).
+ */
+export function createTestFileStructureType(type: 'monorepo'): string {
+  switch (type) {
+    case 'monorepo':
+      return createTestFileStructure({
+        'package.json': {
+          name: 'monorepo-fixture',
+          version: '1.0.0',
+          private: true,
+          workspaces: ['packages/*', 'packages/grouped/*'],
+        },
+        'packages/foo/package.json': { name: 'foo', version: '1.0.0', dependencies: { bar: '^1.3.4' } },
+        'packages/bar/package.json': { name: 'bar', version: '1.3.4', dependencies: { baz: '^1.3.4' } },
+        'packages/baz/package.json': { name: 'baz', version: '1.3.4' },
+        'packages/grouped/a/package.json': { name: 'a', version: '3.1.2' },
+        'packages/grouped/b/package.json': { name: 'b', version: '3.1.2' },
+        'yarn.lock': '',
+      });
+    default:
+      throw new Error(`Unknown test file structure type: ${type}`);
+  }
+}

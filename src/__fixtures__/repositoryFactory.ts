@@ -3,10 +3,9 @@ import path from 'path';
 import type { PackageJson } from '../types/PackageInfo';
 import { Repository, type RepositoryCloneOptions } from './repository';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import { tmpdir } from './tmpdir';
+import { removeTempDir, tmpdir } from './tmpdir';
 import { gitFailFast } from 'workspace-tools';
 import { setDefaultBranchName } from './gitDefaults';
-import { env } from '../env';
 import { cloneObject } from '../object/cloneObject';
 
 /**
@@ -262,16 +261,9 @@ export class RepositoryFactory {
   cleanUp(): void {
     if (!this.root) return;
 
-    try {
-      // This occasionally throws on Windows with "resource busy"
-      if (this.root && !env.isCI) {
-        fs.removeSync(this.root);
-      }
-    } catch (err) {
-      // This is non-fatal since the temp dir will eventually be cleaned up automatically
-      console.warn(`Could not clean up factory: ${err}`);
-    }
+    removeTempDir(this.root);
     this.root = undefined;
+
     for (const repo of this.childRepos) {
       repo.cleanUp();
     }

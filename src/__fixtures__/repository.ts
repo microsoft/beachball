@@ -1,6 +1,6 @@
 import path from 'path';
 import * as fs from 'fs-extra';
-import { tmpdir } from './tmpdir';
+import { removeTempDir, tmpdir } from './tmpdir';
 import { git, type GitProcessOutput } from 'workspace-tools';
 import {
   defaultBranchName,
@@ -9,7 +9,6 @@ import {
   optsWithLang,
   setDefaultBranchName,
 } from './gitDefaults';
-import { env } from '../env';
 
 /**
  * Clone options. See the docs for details on behavior and interaction of these options.
@@ -223,15 +222,7 @@ ${gitResult.stderr.toString()}`);
    * and the agents are wiped after each job, so manually deleting the files just slows things down.
    */
   cleanUp(): void {
-    try {
-      // This occasionally throws on Windows with "resource busy"
-      if (this.root && !env.isCI) {
-        fs.removeSync(this.root);
-      }
-    } catch (err) {
-      // This is non-fatal since the temp dir will eventually be cleaned up automatically
-      console.warn(`Could not clean up repository: ${err}`);
-    }
+    removeTempDir(this.root);
     this.root = undefined;
   }
 }

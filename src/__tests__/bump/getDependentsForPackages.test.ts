@@ -50,4 +50,21 @@ describe('getDependentsForPackages', () => {
       bar: ['foo'],
     });
   });
+
+  it('does not duplicate dependent names', () => {
+    const packages = makePackageInfos({
+      foo: {
+        dependencies: { baz: '1.0.0' },
+        devDependencies: { baz: '1.0.0' },
+      },
+      baz: {},
+    });
+    const dependents = getDependentsForPackages({
+      packageInfos: packages,
+      scopedPackages: new Set(Object.keys(packages)),
+    });
+    expect(dependents).toEqual({
+      baz: ['foo'],
+    });
+  });
 });

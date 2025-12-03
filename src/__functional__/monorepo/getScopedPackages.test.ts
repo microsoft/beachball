@@ -1,32 +1,30 @@
 import { describe, expect, it, beforeAll, afterAll } from '@jest/globals';
-import type { Repository } from '../../__fixtures__/repository';
-import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
 import type { PackageInfos } from '../../types/PackageInfo';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
+import { createTestFileStructureType } from '../../__fixtures__/createTestFileStructure';
+import { removeTempDir } from '../../__fixtures__/tmpdir';
 
 describe('getScopedPackages', () => {
-  let repoFactory: RepositoryFactory;
-  let repo: Repository;
+  let root: string;
   let packageInfos: PackageInfos;
 
   beforeAll(() => {
-    repoFactory = new RepositoryFactory('monorepo');
-    repo = repoFactory.cloneRepository();
+    root = createTestFileStructureType('monorepo');
     packageInfos = getPackageInfos({
-      cliOptions: { path: repo.rootPath, command: '' },
+      cliOptions: { path: root, command: '' },
       repoOptions: {},
     });
   });
 
   afterAll(() => {
-    repoFactory.cleanUp();
+    removeTempDir(root);
   });
 
   it('can scope packages', () => {
     const scopedPackages = getScopedPackages(
       {
-        path: repo.rootPath,
+        path: root,
         scope: ['packages/grouped/*'],
       },
       packageInfos
@@ -38,7 +36,7 @@ describe('getScopedPackages', () => {
   it('can scope with excluded packages', () => {
     const scopedPackages = getScopedPackages(
       {
-        path: repo.rootPath,
+        path: root,
         scope: ['!packages/grouped/*'],
       },
       packageInfos
@@ -50,7 +48,7 @@ describe('getScopedPackages', () => {
   it('can mix and match with excluded packages', () => {
     const scopedPackages = getScopedPackages(
       {
-        path: repo.rootPath,
+        path: root,
         scope: ['packages/b*', '!packages/grouped/*'],
       },
       packageInfos

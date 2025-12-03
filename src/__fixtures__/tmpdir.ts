@@ -3,6 +3,7 @@ import * as tmp from 'tmp';
 import { normalizedTmpdir } from 'normalized-tmpdir';
 // import console to ensure that warnings are always logged if needed (no mocking)
 import realConsole from 'console';
+import { env } from '../env';
 
 // tmp is supposed to be able to clean up automatically, but this doesn't always work within jest.
 // So we attempt to use its built-in cleanup mechanisms, but tests should ideally do their own cleanup too.
@@ -27,11 +28,20 @@ export function tmpdir(options?: tmp.DirOptions): string {
   }).name;
 }
 
-/** Remove the temp directory, ignoring errors */
-export function removeTempDir(dir: string): void {
+/**
+ * Clean up the folder if this is a local build.
+ *
+ * Doing this in CI is unnecessary because all the fixtures use unique temp directories (no collisions)
+ * and the agents are wiped after each job, so manually deleting the files just slows things down.
+ */
+export function removeTempDir(dir: string | undefined): void {
   try {
-    fs.rmSync(dir, { force: true });
-  } catch {
-    // ignore
+    // This occasionally throws on Windows with "resource busy"
+    if (dir && !env.isCI) {
+      fs.removeSync(dir);
+    }
+  } catch (err) {
+    // This is non-fatal since the temp dir will eventually be cleaned up automatically
+    console.warn(`Could not clean up temp folder ${dir}:\n${err}`);
   }
 }
