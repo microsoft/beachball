@@ -31,16 +31,16 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
   let filteredChangeFiles = allChangeFiles;
 
   if (fromRef) {
-    const changeFilesSinceFromRef = getChangesBetweenRefs(
+    const changeFilesSinceFromRef = getChangesBetweenRefs({
       fromRef,
-      'HEAD',
-      [
+      toRef: 'HEAD',
+      options: [
         '--diff-filter=d', // excluding deleted files from the diff.
         '--relative', // results will include path relative to the cwd, i.e. only file names.
       ],
-      '*.json',
-      changePath
-    );
+      pattern: '*.json',
+      cwd: changePath,
+    });
 
     filteredChangeFiles = allChangeFiles.filter(fileName => changeFilesSinceFromRef?.includes(fileName));
   }

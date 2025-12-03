@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update dependency workspace-tools to ^0.40.0. This may improve detection of remote branch names in certain cases. It also includes stricter error checking for git operations, which may surface some errors which were previously hidden.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

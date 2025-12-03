@@ -16,7 +16,7 @@ export function writeChangeFiles(
 ): string[] {
   const { path: cwd, groupChanges, commit: commitChangeFiles } = options;
   const changePath = getChangePath(options);
-  const branchName = getBranchName(cwd);
+  const branchName = getBranchName({ cwd });
 
   if (!(Object.keys(changes).length && branchName)) {
     return [];
@@ -43,11 +43,11 @@ export function writeChangeFiles(
     });
   }
 
-  stage(changeFiles, cwd);
+  stage({ patterns: changeFiles, cwd });
   if (commitChangeFiles) {
     // only commit change files, ignore other staged files/changes
     const commitOptions = ['--only', path.join(changePath, '*.json')];
-    commit('Change files', cwd, commitOptions);
+    commit({ message: 'Change files', cwd, options: commitOptions });
   }
 
   console.log(

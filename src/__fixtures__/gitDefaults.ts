@@ -1,4 +1,4 @@
-import { type git, gitFailFast } from 'workspace-tools';
+import { gitFailFast, type GitOptions } from 'workspace-tools';
 
 export const defaultBranchName = 'master';
 export const defaultRemoteName = 'origin';
@@ -26,6 +26,6 @@ export function setDefaultBranchName(cwd: string, isRemoteRepo?: boolean): void 
  * (This should NOT be used to make full snapshots of git logs, or as the primary means of testing.
  * But it can be useful for allowing backup checks for absence of strings like "warning" or "fatal".)
  */
-export function optsWithLang(opts?: Parameters<typeof git>[1]): Parameters<typeof git>[1] {
+export function optsWithLang(opts: GitOptions): GitOptions {
   return { ...opts, env: { ...opts?.env, LANG: 'en_US.UTF-8' } };
 }

@@ -17,7 +17,7 @@ export function ensureSharedHistory(
   // `branch` should *usually* include a remote, but it's not guaranteed (see doc comment).
   // `remote` is the remote name (e.g. "origin") or "" if `branch` was missing a remote.
   // `remoteBranch` is the comparison branch name (e.g. "main").
-  const { remote, remoteBranch } = parseRemoteBranch(branch);
+  const { remote, remoteBranch } = parseRemoteBranch({ branch, cwd });
 
   // Ensure the comparison branch ref exists
   if (!hasBranchRef(branch, cwd)) {

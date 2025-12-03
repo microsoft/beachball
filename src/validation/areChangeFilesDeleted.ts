@@ -9,15 +9,14 @@ export function areChangeFilesDeleted(options: Pick<BeachballOptions, 'branch' |
   const changePath = getChangePath(options);
 
   console.log(`Checking for deleted change files against "${branch}"`);
-  const changeFilesDeletedSinceRef = getChangesBetweenRefs(
-    branch,
-    'HEAD',
-    [
-      '--diff-filter=D', // showing only deleted files from the diff.
-    ],
-    `${changePath}/*.json`,
-    cwd
-  );
+  const changeFilesDeletedSinceRef = getChangesBetweenRefs({
+    fromRef: branch,
+    toRef: 'HEAD',
+    // showing only deleted files from the diff.
+    options: ['--diff-filter=D'],
+    pattern: `${changePath}/*.json`,
+    cwd,
+  });
 
   if (changeFilesDeletedSinceRef.length) {
     const changeFiles = changeFilesDeletedSinceRef.map(file => `- ${file}`);
