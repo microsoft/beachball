@@ -2,6 +2,79 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 03 Dec 2025 23:57:28 GMT",
+      "version": "2.60.0",
+      "tag": "beachball_v2.60.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "b7e301e8137c53cbc41dda915f2be94e29880c76",
+            "comment": "Update semver call signature"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "7a3e9df4380c6d269110483728bc76f40bac33cd",
+            "comment": "Move internal cloneObject helper"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "f873be148dd82d5a503da15fd9d81f0bd13d193e",
+            "comment": "Allow writeChangeFiles to work outside a git repo for testing"
+          },
+          {
+            "author": "ecraig12345@gmail.com",
+            "package": "beachball",
+            "commit": "4af7ddbee666f7b0a79fa261b00b61f0362195c4",
+            "comment": "Remove unnecessary findProjectRoot calls"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "f0cb8925a6202e33ea984ecea196c6f66926f069",
+            "comment": "Improve perf of readChangeFiles, and improve object stringifying in errors"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "beachball",
+            "commit": "fd1c5bd17c0516af49354b04cdaf1c609648767e",
+            "comment": "Fix bump logic for dependencies using file protocol"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "81623c4ccc6bf2c8bf8821db189f36ee006143df",
+            "comment": "Update dependency workspace-tools to ^0.40.0. This may improve detection of remote branch names in certain cases. It also includes stricter error checking for git operations, which may surface some errors which were previously hidden."
+          }
+        ],
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "69f0bbe86ffaf882798a8ed2b26aea3815422e5d",
+            "comment": "Refresh lock again"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "92a53f2b7dd47fddf1e58357502fe9dce10f86bd",
+            "comment": "Improve formatting of lists in CLI output. If you're parsing `beachball check` or `beachball publish` output for some reason, this could be a breaking change."
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "92a53f2b7dd47fddf1e58357502fe9dce10f86bd",
+            "comment": "Validate that there are no private packages among `peerDependencies` or `optionalDependencies` of published packages (not just `dependencies`). There's a slight chance this could be a breaking change."
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 19 Nov 2025 23:36:30 GMT",
       "version": "2.58.0",
       "tag": "beachball_v2.58.0",

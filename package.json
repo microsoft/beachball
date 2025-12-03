@@ -1,6 +1,6 @@
 {
   "name": "beachball",
-  "version": "2.58.0",
+  "version": "2.60.0",
   "description": "The Sunniest Semantic Version Bumper",
   "repository": {
     "type": "git",
@@ -23,6 +23,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "bump": "node ./lib/cli.js bump",
     "change": "node ./lib/cli.js change",
     "checkchange": "node ./lib/cli.js check",
     "docs": "echo \"Run this from the docs folder instead\" && exit 1",

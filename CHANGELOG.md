@@ -1,8 +1,27 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Wed, 19 Nov 2025 23:36:30 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 03 Dec 2025 23:57:28 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.60.0
+
+Wed, 03 Dec 2025 23:57:28 GMT
+
+### Minor changes
+
+- Improve formatting of lists in CLI output. If you're parsing `beachball check` or `beachball publish` output for some reason, this could be a breaking change. (elcraig@microsoft.com)
+- Validate that there are no private packages among `peerDependencies` or `optionalDependencies` of published packages (not just `dependencies`). There's a slight chance this could be a breaking change. (elcraig@microsoft.com)
+
+### Patches
+
+- Update semver call signature (elcraig@microsoft.com)
+- Move internal cloneObject helper (elcraig@microsoft.com)
+- Allow writeChangeFiles to work outside a git repo for testing (elcraig@microsoft.com)
+- Remove unnecessary findProjectRoot calls (ecraig12345@gmail.com)
+- Improve perf of readChangeFiles, and improve object stringifying in errors (elcraig@microsoft.com)
+- Fix bump logic for dependencies using file protocol (thomas.norling@microsoft.com)
+- Update dependency workspace-tools to ^0.40.0. This may improve detection of remote branch names in certain cases. It also includes stricter error checking for git operations, which may surface some errors which were previously hidden. (elcraig@microsoft.com)
 
 ## 2.58.0
 
