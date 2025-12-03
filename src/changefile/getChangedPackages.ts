@@ -3,7 +3,7 @@ import path from 'path';
 import minimatch from 'minimatch';
 import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
-import { getChanges, getStagedChanges, git } from 'workspace-tools';
+import { getBranchChanges, getStagedChanges, git } from 'workspace-tools';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfos, PackageInfo } from '../types/PackageInfo';
@@ -78,7 +78,7 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
       .map(pkg => pkg.name);
   }
 
-  const changes = [...(getChanges(branch, cwd) || []), ...(getStagedChanges(cwd) || [])];
+  const changes = [...(getBranchChanges({ branch, cwd }) || []), ...(getStagedChanges({ cwd }) || [])];
   verboseLog(`Found ${count(changes.length, 'changed file')} in branch "${branch}" (before filtering)`);
 
   if (!changes.length) {

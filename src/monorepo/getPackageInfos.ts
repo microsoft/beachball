@@ -61,7 +61,7 @@ function getPackageInfosFromWorkspace(projectRoot: string): WSPackageInfo[] | un
 }
 
 function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string): WSPackageInfo[] | undefined {
-  const packageJsonFiles = listAllTrackedFiles(['**/package.json', 'package.json'], projectRoot);
+  const packageJsonFiles = listAllTrackedFiles({ patterns: ['**/package.json', 'package.json'], cwd: projectRoot });
   if (!packageJsonFiles.length) {
     return;
   }

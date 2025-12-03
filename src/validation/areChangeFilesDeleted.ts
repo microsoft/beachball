@@ -1,24 +1,22 @@
 import { bulletedList } from '../logging/bulletedList';
 import { getChangePath } from '../paths';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import { getChangesBetweenRefs, findProjectRoot } from 'workspace-tools';
+import { getChangesBetweenRefs } from 'workspace-tools';
 
 export function areChangeFilesDeleted(options: Pick<BeachballOptions, 'branch' | 'path' | 'changeDir'>): boolean {
   const { branch, path: cwd } = options;
 
-  const root = findProjectRoot(cwd);
   const changePath = getChangePath(options);
 
   console.log(`Checking for deleted change files against "${branch}"`);
-  const changeFilesDeletedSinceRef = getChangesBetweenRefs(
-    branch,
-    'HEAD',
-    [
-      '--diff-filter=D', // showing only deleted files from the diff.
-    ],
-    `${changePath}/*.json`,
-    root
-  );
+  const changeFilesDeletedSinceRef = getChangesBetweenRefs({
+    fromRef: branch,
+    toRef: 'HEAD',
+    // showing only deleted files from the diff.
+    options: ['--diff-filter=D'],
+    pattern: `${changePath}/*.json`,
+    cwd,
+  });
 
   if (changeFilesDeletedSinceRef.length) {
     const changeFiles = changeFilesDeletedSinceRef.map(file => `- ${file}`);

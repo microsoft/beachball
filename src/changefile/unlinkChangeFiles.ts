@@ -2,33 +2,33 @@ import type { ChangeSet } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
 import fs from 'fs-extra';
 import path from 'path';
-import type { PackageInfos } from '../types/PackageInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { DeepReadonly } from '../types/DeepReadonly';
 
 /**
- * Unlink only change files that are specified in the changes param
+ * Unlink only change files that are specified in the `changeSet` param.
+ * Does nothing if `options.keepChangeFiles` is true.
  *
- * @param changes existing change files to be removed
+ * @param changeSet existing change files to be removed
  */
 export function unlinkChangeFiles(
   changeSet: DeepReadonly<ChangeSet>,
-  packageInfos: PackageInfos,
-  options: Pick<BeachballOptions, 'path' | 'changeDir'>
+  options: Pick<BeachballOptions, 'path' | 'changeDir' | 'keepChangeFiles'>
 ): void {
-  const changePath = getChangePath(options);
-  if (!changeSet?.length) {
+  if (!changeSet.length || options.keepChangeFiles) {
     return;
   }
+
   console.log('Removing change files:');
-  for (const { changeFile, change } of changeSet) {
-    if (changeFile && packageInfos[change.packageName] && !packageInfos[change.packageName].private) {
+  const changePath = getChangePath(options);
+  for (const { changeFile } of changeSet) {
+    if (changeFile) {
       console.log(`- ${changeFile}`);
       fs.removeSync(path.join(changePath, changeFile));
     }
   }
   if (fs.existsSync(changePath) && fs.readdirSync(changePath).length === 0) {
-    console.log('Removing change path');
+    console.log(`Removing empty ${options.changeDir} folder`);
     fs.removeSync(changePath);
   }
 }

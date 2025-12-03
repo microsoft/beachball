@@ -182,9 +182,10 @@ export interface RepoOptions {
   message: string;
   /**
    * The directory to run beachball in.
+   * This is assumed to be the project root (monorepo manager root or git root).
    *
-   * Except in tests, this will be the project root (monorepo manager root or package root),
-   * determined relative to `process.cwd()`.
+   * In real usage, this will be an absolute path determined relative to `process.cwd()`.
+   * In tests which don't use the filesystem, this may be an empty string or fake path.
    */
   path: string;
   /** Prerelease prefix for packages that are specified to receive a prerelease bump */

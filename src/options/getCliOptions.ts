@@ -8,7 +8,9 @@ export interface ProcessInfo {
   argv: string[];
   /**
    * Current directory (search for the project root from here). Usually this should be `process.cwd()`.
-   * It can be empty in tests that don't use the filesystem.
+   *
+   * In tests, this is assumed to be the project root (searching up is skipped).
+   * This can also be an empty string in tests that don't use the filesystem.
    */
   cwd: string;
 }
@@ -136,7 +138,7 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
   try {
     // If a non-empty cwd is provided, find the project root from there.
     // Empty means this is a test without a filesystem.
-    if (cwd) {
+    if (cwd && !env.isJest) {
       cwd = findProjectRoot(processInfo.cwd);
     }
   } catch {

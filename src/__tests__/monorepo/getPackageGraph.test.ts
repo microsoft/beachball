@@ -122,7 +122,7 @@ describe('getPackageGraph', () => {
     await expect(async () => {
       await getPackageGraphPackageNames(['foo', 'bar'], packageInfos);
     }).rejects.toThrow(
-      /We could not find a node in the graph with no dependencies, this likely means there is a cycle including all nodes/
+      /We could not find a node in the graph with no dependencies; this likely means there is a cycle including all nodes/
     );
   });
 
@@ -135,7 +135,7 @@ describe('getPackageGraph', () => {
     await expect(async () => {
       await getPackageGraphPackageNames(['foo', 'bar'], packageInfos);
     }).rejects.toThrow(
-      /We could not find a node in the graph with no dependencies, this likely means there is a cycle including all nodes/
+      /We could not find a node in the graph with no dependencies; this likely means there is a cycle including all nodes/
     );
   });
 

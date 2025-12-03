@@ -74,7 +74,7 @@ export function validate(
     process.exit(1);
   }
 
-  const untracked = getUntrackedChanges(options.path);
+  const untracked = getUntrackedChanges({ cwd: options.path });
 
   if (untracked.length) {
     console.warn('WARN: There are untracked changes in your repository:\n' + bulletedList(untracked));

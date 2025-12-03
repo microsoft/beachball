@@ -42,5 +42,5 @@ export async function sync(options: BeachballOptions, packageInfos?: PackageInfo
   Object.keys(dependentModifiedPackages).forEach(pkg => modifiedPackages.add(pkg));
 
   updatePackageJsons(modifiedPackages, packageInfos);
-  await updateLockFile(options.path);
+  await updateLockFile(options);
 }

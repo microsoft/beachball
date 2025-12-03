@@ -1,7 +1,7 @@
 import type { BeachballOptions } from '../types/BeachballOptions';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { findProjectRoot } from 'workspace-tools';
+import { findGitRoot } from 'workspace-tools';
 import { npm } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
 
@@ -14,15 +14,14 @@ function errorExit(message: string): void {
 }
 
 export async function init(options: Pick<BeachballOptions, 'path'>): Promise<void> {
-  let root: string;
   try {
-    root = findProjectRoot(options.path);
+    findGitRoot(options.path);
   } catch {
-    console.log('Please run this command on an existing repository root.');
-    return;
+    console.error('beachball only works in a git repository. Please initialize git and try again.');
+    process.exit(1);
   }
 
-  const packageJsonFilePath = path.join(root, 'package.json');
+  const packageJsonFilePath = path.join(options.path, 'package.json');
 
   if (!fs.existsSync(packageJsonFilePath)) {
     errorExit(`Cannot find package.json at ${packageJsonFilePath}`);

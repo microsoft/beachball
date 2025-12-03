@@ -16,17 +16,15 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
   await callHook(options.hooks?.prebump, modifiedPackages, packageInfos, options.concurrency);
 
   updatePackageJsons(modifiedPackages, packageInfos);
-  await updateLockFile(options.path);
+  await updateLockFile(options);
 
   if (options.generateChangelog) {
     // Generate changelog
     await writeChangelog(bumpInfo, options);
   }
 
-  if (!options.keepChangeFiles) {
-    // Unlink changelogs
-    unlinkChangeFiles(changeFileChangeInfos, packageInfos, options);
-  }
+  // Unlink changelogs
+  unlinkChangeFiles(changeFileChangeInfos, options);
 
   await callHook(options.hooks?.postbump, modifiedPackages, packageInfos, options.concurrency);
 

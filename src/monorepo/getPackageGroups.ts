@@ -40,13 +40,12 @@ export function getPackageGroups(
     }
   }
 
-  if (errorPackages.length) {
+  const errorEntries = Object.entries(errorPackages);
+  if (errorEntries.length) {
     console.error(
       `ERROR: Found package(s) belonging to multiple groups:\n` +
         bulletedList(
-          Object.entries(errorPackages)
-            .map(([pkgName, pkgGroups]) => `${pkgName}: [${pkgGroups.map(g => g.name).join(', ')}]`)
-            .sort()
+          errorEntries.map(([pkgName, pkgGroups]) => `${pkgName}: ${pkgGroups.map(g => g.name).join(', ')}`).sort()
         )
     );
     // TODO: probably more appropriate to throw here and let the caller handle it?
