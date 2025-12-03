@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Allow writeChangeFiles to work outside a git repo for testing",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

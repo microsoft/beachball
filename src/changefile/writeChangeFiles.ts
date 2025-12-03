@@ -18,7 +18,7 @@ export function writeChangeFiles(
   const changePath = getChangePath(options);
   const branchName = getBranchName({ cwd });
 
-  if (!(Object.keys(changes).length && branchName)) {
+  if (!Object.keys(changes).length) {
     return [];
   }
 
@@ -43,11 +43,15 @@ export function writeChangeFiles(
     });
   }
 
-  stage({ patterns: changeFiles, cwd });
-  if (commitChangeFiles) {
-    // only commit change files, ignore other staged files/changes
-    const commitOptions = ['--only', path.join(changePath, '*.json')];
-    commit({ message: 'Change files', cwd, options: commitOptions });
+  // Stage and maybe commit if in a git repo.
+  // The actual context should always be a git repo, but during testing it might not be.
+  if (branchName) {
+    stage({ patterns: changeFiles, cwd });
+    if (commitChangeFiles) {
+      // only commit change files, ignore other staged files/changes
+      const commitOptions = ['--only', path.join(changePath, '*.json')];
+      commit({ message: 'Change files', cwd, options: commitOptions });
+    }
   }
 
   console.log(

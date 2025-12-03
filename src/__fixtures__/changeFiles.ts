@@ -30,7 +30,7 @@ export function getChange(
 
 /**
  * Generates and writes change files for the given packages.
- * Also commits if `options.commit` is true.
+ * Also commits if `options.commit` is true and the context is a git repo.
  * @param changes Array of package names or partial change files (which must include `packageName`).
  * Default values:
  * - `type: 'minor'`

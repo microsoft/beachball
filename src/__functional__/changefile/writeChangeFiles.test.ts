@@ -44,7 +44,7 @@ describe('writeChangeFiles', () => {
   });
 
   afterEach(() => {
-    repo?.resetAndClean();
+    repo.resetAndClean();
   });
 
   afterAll(() => {
@@ -88,7 +88,7 @@ describe('writeChangeFiles', () => {
     expect(cleanChangeFilePaths(repo.rootPath, changeFiles)).toEqual(expectedFiles);
 
     // and tracked
-    const trackedFiles = listAllTrackedFiles([`${testChangeDir}/*`], repo.rootPath);
+    const trackedFiles = listAllTrackedFiles({ patterns: [`${testChangeDir}/*`], cwd: repo.rootPath });
     expect(cleanChangeFilePaths(repo.rootPath, trackedFiles)).toEqual(expectedFiles);
   });
 
@@ -106,7 +106,7 @@ describe('writeChangeFiles', () => {
     expect(cleanChangeFilePaths(repo.rootPath, changeFiles)).toEqual(expectedFiles);
 
     // and tracked
-    const trackedFiles = listAllTrackedFiles(['change/*'], repo.rootPath);
+    const trackedFiles = listAllTrackedFiles({ patterns: ['change/*'], cwd: repo.rootPath });
     expect(cleanChangeFilePaths(repo.rootPath, trackedFiles)).toEqual(expectedFiles);
 
     // but NOT committed
@@ -125,7 +125,7 @@ describe('writeChangeFiles', () => {
     const changeFiles = getChangeFiles(options);
     expect(cleanChangeFilePaths(repo.rootPath, changeFiles)).toEqual(expectedFile);
 
-    const trackedFiles = listAllTrackedFiles(['change/*'], repo.rootPath);
+    const trackedFiles = listAllTrackedFiles({ patterns: ['change/*'], cwd: repo.rootPath });
     expect(cleanChangeFilePaths(repo.rootPath, trackedFiles)).toEqual(expectedFile);
 
     const changeFileContents = fs.readJSONSync(changeFiles[0]) as ChangeInfoMultiple;
