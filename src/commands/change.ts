@@ -29,8 +29,8 @@ export async function change(options: BeachballOptions, packageInfos?: PackageIn
     return;
   }
 
-  const recentMessages = getRecentCommitMessages(branch, cwd);
-  const email = getUserEmail(cwd);
+  const recentMessages = getRecentCommitMessages({ branch, cwd });
+  const email = getUserEmail({ cwd });
 
   const changes = await promptForChange({
     changedPackages,

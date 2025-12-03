@@ -64,7 +64,7 @@ describe('writeChangeFiles', () => {
     expect(cleanChangeFilePaths(repo.rootPath, changeFiles)).toEqual(expectedFiles);
 
     // and tracked
-    const trackedFiles = listAllTrackedFiles(['change/*'], repo.rootPath);
+    const trackedFiles = listAllTrackedFiles({ patterns: ['change/*'], cwd: repo.rootPath });
     expect(cleanChangeFilePaths(repo.rootPath, trackedFiles)).toEqual(expectedFiles);
 
     // and committed

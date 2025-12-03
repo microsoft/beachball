@@ -29,8 +29,8 @@ export async function publish(options: BeachballOptions, oldPackageInfos?: Packa
     return;
   }
   // Collate the changes per package
-  const currentBranch = getBranchName(cwd);
-  const currentHash = getCurrentHash(cwd);
+  const currentBranch = getBranchName({ cwd });
+  const currentHash = getCurrentHash({ cwd });
 
   console.log(`\nPublishing with the following configuration:
 

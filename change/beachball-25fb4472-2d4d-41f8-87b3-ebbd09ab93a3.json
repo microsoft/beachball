@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update dependency workspace-tools to ^0.40.0",
-  "packageName": "beachball",
-  "email": "email not defined",
-  "dependentChangeType": "patch"
-}

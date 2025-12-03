@@ -28,7 +28,7 @@ describe('ensureSharedHistory', () => {
   const gitSpy = jest
     .spyOn(workspaceTools, 'git')
     // Attempt to force git to use English in logs, so we can check for absence of "warning" strings
-    .mockImplementation((args, opts) => (gitOverride || realGit)(args, optsWithLang(opts)));
+    .mockImplementation((args, opts) => (gitOverride || realGit)(args, opts && optsWithLang(opts)));
 
   /**
    * Get git spy calls, by default ignoring rev-parse (does ref exist/is shallow repo?)

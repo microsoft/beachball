@@ -35,7 +35,7 @@ export function getPackageChangelogs(
 
     if (includeCommitHashes) {
       changeFileCommits[changeFile] ??=
-        getFileAddedHash(path.join(changePath, changeFile), options.path) || commitNotAvailable;
+        getFileAddedHash({ filename: path.join(changePath, changeFile), cwd: options.path }) || commitNotAvailable;
     }
 
     changelogs[packageName].comments ??= {};

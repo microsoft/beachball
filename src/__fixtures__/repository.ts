@@ -70,7 +70,7 @@ export class Repository {
       // Git logs are localized, so attempt to force this operation to use English so that the
       // warning check below works consistently. (It's not a big issue if it doesn't work, because
       // the warning check is just intended to make local test development easier in uncommon cases.)
-      optsWithLang()
+      optsWithLang({ cwd: this.rootPath })
     );
 
     // If git clone gives any warnings besides "you appear to have cloned an empty repository"

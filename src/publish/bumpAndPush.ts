@@ -16,7 +16,7 @@ const verbose = true;
  */
 export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: BeachballOptions): Promise<void> {
   const { path: cwd, branch, depth, gitTimeout } = options;
-  const { remote, remoteBranch } = parseRemoteBranch(branch);
+  const { remote, remoteBranch } = parseRemoteBranch({ branch, cwd });
 
   let completed = false;
   let tryNumber = 0;
