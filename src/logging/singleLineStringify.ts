@@ -3,5 +3,8 @@
  * (similar to `JSON.stringify(obj, null, 2)` but without the line breaks).
  */
 export function singleLineStringify(obj: unknown): string {
-  return JSON.stringify(obj, null, 2).replace(/\n\s*/g, ' ');
+  return JSON.stringify(obj, null, 2)
+    .replace(/\n\s*/g, ' ')
+    .replace(/: \[ /g, ': [')
+    .replace(/ \]([ ,])/g, ']$1');
 }
