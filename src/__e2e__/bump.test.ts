@@ -374,6 +374,76 @@ describe('version bumping', () => {
     expect(changeFiles).toHaveLength(0);
   });
 
+  it('should not bump local package dependencies', async () => {
+    const monorepo: RepoFixture['folders'] = {
+      packages: {
+        'pkg-1': {
+          version: '1.0.0',
+          dependencies: { 'pkg-2': 'file:../pkg-2' },
+          devDependencies: { 'pkg-3': 'file:../pkg-3' },
+          peerDependencies: { 'pkg-4': 'file:../pkg-4' },
+          optionalDependencies: { 'pkg-5': 'file:../pkg-5' },
+        },
+        'pkg-2': { version: '1.0.0' },
+        'pkg-3': { version: '1.0.0' },
+        'pkg-4': { version: '1.0.0' },
+        'pkg-5': { version: '1.0.0' },
+      },
+    };
+    repositoryFactory = new RepositoryFactory({ folders: monorepo });
+    repo = repositoryFactory.cloneRepository();
+
+    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+      bumpDeps: true,
+      generateChangelog: true,
+    });
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'minor' }], options);
+
+    repo.push();
+
+    await bump(options, originalPackageInfos);
+
+    const packageInfos = getPackageInfos(parsedOptions);
+
+    const pkg1NewVersion = '1.1.0';
+    expect(packageInfos['pkg-1'].version).toBe(pkg1NewVersion);
+    expect(packageInfos['pkg-2'].version).toBe(monorepo['packages']['pkg-2'].version);
+    expect(packageInfos['pkg-3'].version).toBe(monorepo['packages']['pkg-3'].version);
+    expect(packageInfos['pkg-4'].version).toBe(monorepo['packages']['pkg-4'].version);
+    expect(packageInfos['pkg-5'].version).toBe(monorepo['packages']['pkg-5'].version);
+
+    expect(packageInfos['pkg-1'].dependencies!['pkg-2']).toBe(monorepo['packages']['pkg-1'].dependencies!['pkg-2']);
+    expect(packageInfos['pkg-1'].devDependencies!['pkg-3']).toBe(
+      monorepo['packages']['pkg-1'].devDependencies!['pkg-3']
+    );
+    expect(packageInfos['pkg-1'].peerDependencies!['pkg-4']).toBe(
+      monorepo['packages']['pkg-1'].peerDependencies!['pkg-4']
+    );
+    expect(packageInfos['pkg-1'].optionalDependencies!['pkg-5']).toBe(
+      monorepo['packages']['pkg-1'].optionalDependencies!['pkg-5']
+    );
+
+    const changeFiles = getChangeFiles(options);
+    expect(changeFiles).toHaveLength(0);
+
+    // Verify changelog doesn't include entries for file: dependencies
+    const changelogJson = readChangelogJson(repo.pathTo('packages/pkg-1'));
+    expect(changelogJson?.entries).toHaveLength(1);
+    const changelogComments = changelogJson?.entries[0].comments;
+    const allComments = [
+      ...(changelogComments?.major || []),
+      ...(changelogComments?.minor || []),
+      ...(changelogComments?.patch || []),
+      ...(changelogComments?.none || []),
+    ];
+    // Changelog should not mention pkg-2, pkg-3, pkg-4, or pkg-5 since they use file: protocol
+    const commentTexts = allComments.map(c => c.comment).join(' ');
+    expect(commentTexts).not.toContain('pkg-2');
+    expect(commentTexts).not.toContain('pkg-3');
+    expect(commentTexts).not.toContain('pkg-4');
+    expect(commentTexts).not.toContain('pkg-5');
+  });
+
   it('bumps all packages and keeps change files with `keep-change-files` flag', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
