@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix double bump issue",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

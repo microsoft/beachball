@@ -30,7 +30,7 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
     console.log('-'.repeat(80));
     console.log(`Bumping versions and pushing to git (attempt ${tryNumber}/${BUMP_PUSH_RETRIES})`);
     console.log('Reverting');
-    revertLocalChanges(cwd);
+    revertLocalChanges({ cwd });
 
     // pull in latest from origin branch
     if (options.fetch !== false) {
