@@ -250,9 +250,10 @@ export interface RepoOptions {
    * This is rarely needed since new packages *with change files* will always be published
    * regardless of this option.
    *
-   * (This has limited use unless you pushed new packages directly to the main branch, or
-   * your PR build doesn't run `beachball check`. Otherwise, `beachball check` will require
-   * change files to be created for the new packages.)
+   * @deprecated This option is not recommended because it will negatively impact perf (it requires
+   * checking the registry for ALL unmodified packages). It also has limited use unless you pushed
+   * new packages directly to the main branch, or your PR build doesn't run `beachball check`.
+   * Normally, `beachball check` will require change files to be created for the new packages.
    */
   new: boolean;
 }
