@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update semver call signature",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

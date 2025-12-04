@@ -6,11 +6,14 @@ import type { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import type { PackageInfos } from '../types/PackageInfo';
 import { getPackageGroups } from '../monorepo/getPackageGroups';
+import { cloneObject } from '../object/cloneObject';
 
 /**
  * Gather bump info and bump versions in memory.
+ * Does NOT mutate the given `originalPackageInfos`.
  */
-export function gatherBumpInfo(options: BeachballOptions, packageInfos: PackageInfos): BumpInfo {
+export function gatherBumpInfo(options: BeachballOptions, originalPackageInfos: PackageInfos): BumpInfo {
+  const packageInfos = cloneObject(originalPackageInfos);
   const changes = readChangeFiles(options, packageInfos);
 
   // Determine base change types for each package (not considering disallowedChangeTypes or groups)

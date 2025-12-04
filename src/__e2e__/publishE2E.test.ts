@@ -14,6 +14,7 @@ import { _mockNpmPublish, initNpmMock } from '../__fixtures__/mockNpm';
 import type { PackageJson } from '../types/PackageInfo';
 import { getParsedOptions } from '../options/getOptions';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
+import { validate } from '../validation/validate';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -60,10 +61,13 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, parsedOptions, packageInfos } = getOptionsAndPackages();
 
     generateChangeFiles(['foo'], options);
     repo.push();
+
+    // For this test, run validate first to simulate what the CLI does
+    validate(options, { checkDependencies: true }, packageInfos);
 
     await publish(options, packageInfos);
 
@@ -76,6 +80,10 @@ describe('publish command (e2e)', () => {
     repo.checkout(defaultBranchName);
     repo.pull();
     expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
+
+    // Also verify it's correct on disk
+    const newPackageInfos = getPackageInfos(parsedOptions);
+    expect(newPackageInfos.foo.version).toBe('1.1.0');
   });
 
   it('can perform a successful npm publish in detached HEAD', async () => {
@@ -139,13 +147,18 @@ describe('publish command (e2e)', () => {
 
     // this indicates 2 tries
     expect(fetchCount).toBe(2);
+
+    // TODO: this uses the modified version 1.0.2, which is wrong because the bumped version is newer.
+    // Needs further investigation...
+    // const newPackageInfos = getPackageInfos(parsedOptions);
+    // expect(newPackageInfos.foo.version).toBe('1.1.0');
   });
 
   it('can perform a successful npm publish from a race condition in the dependencies', async () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, parsedOptions, packageInfos } = getOptionsAndPackages();
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -184,16 +197,16 @@ describe('publish command (e2e)', () => {
     // this indicates 2 tries
     expect(fetchCount).toBe(2);
 
-    const packageJsonFile = repo.pathTo('package.json');
-    const contents = JSON.parse(fs.readFileSync(packageJsonFile, 'utf-8')) as PackageJson;
-    expect(contents.dependencies?.baz).toBeUndefined();
+    const newPackageInfos = getPackageInfos(parsedOptions);
+    expect(newPackageInfos.foo.version).toBe('1.1.0');
+    expect(newPackageInfos.foo.dependencies?.baz).toBeUndefined();
   });
 
   it('can perform a successful npm publish without bump', async () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages({ bump: false });
+    const { options, parsedOptions, packageInfos } = getOptionsAndPackages({ bump: false });
 
     generateChangeFiles(['foo'], options);
 
@@ -210,16 +223,22 @@ describe('publish command (e2e)', () => {
     repo.checkout(defaultBranchName);
     repo.pull();
     expect(repo.getCurrentTags()).toEqual([]);
+
+    const newPackageInfos = getPackageInfos(parsedOptions);
+    expect(newPackageInfos.foo.version).toBe('1.0.0');
   });
 
   it('publishes only changed packages in a monorepo', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, parsedOptions, packageInfos } = getOptionsAndPackages();
 
     generateChangeFiles(['foo'], options);
     repo.push();
+
+    // For this test, run validate first to simulate what the CLI does
+    validate(options, { checkDependencies: true }, packageInfos);
 
     await publish(options, packageInfos);
 
@@ -234,19 +253,25 @@ describe('publish command (e2e)', () => {
     repo.checkout(defaultBranchName);
     repo.pull();
     expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
+
+    const newPackageInfos = getPackageInfos(parsedOptions);
+    expect(newPackageInfos.foo.version).toBe('1.1.0');
   });
 
   it('publishes dependent packages in a monorepo', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, parsedOptions, packageInfos } = getOptionsAndPackages();
 
     // bump baz => dependent bump bar => dependent bump foo
     generateChangeFiles(['baz'], options);
     expect(repositoryFactory.fixture.folders.packages.foo.dependencies!.bar).toBeTruthy();
     expect(repositoryFactory.fixture.folders.packages.bar.dependencies!.baz).toBeTruthy();
     repo.push();
+
+    // For this test, run validate first to simulate what the CLI does
+    validate(options, { checkDependencies: true }, packageInfos);
 
     await publish(options, packageInfos);
 
@@ -273,6 +298,13 @@ describe('publish command (e2e)', () => {
     repo.checkout(defaultBranchName);
     repo.pull();
     expect(repo.getCurrentTags()).toEqual(['bar_v1.3.5', 'baz_v1.4.0', 'foo_v1.0.1']);
+
+    const newPackageInfos = getPackageInfos(parsedOptions);
+    expect(newPackageInfos.foo.version).toBe('1.0.1');
+    expect(newPackageInfos.foo.dependencies!.bar).toBe('^1.3.5');
+    expect(newPackageInfos.bar.version).toBe('1.3.5');
+    expect(newPackageInfos.bar.dependencies!.baz).toBe('^1.4.0');
+    expect(newPackageInfos.baz.version).toBe('1.4.0');
   });
 
   it('publishes new monorepo packages if requested', async () => {
@@ -305,7 +337,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages({ scope: ['!packages/foo'] });
+    const { options, parsedOptions, packageInfos } = getOptionsAndPackages({ scope: ['!packages/foo'] });
 
     generateChangeFiles(['foo'], options);
     generateChangeFiles(['bar'], options);
@@ -326,6 +358,10 @@ describe('publish command (e2e)', () => {
     repo.checkout(defaultBranchName);
     repo.pull();
     expect(repo.getCurrentTags()).toEqual(['bar_v1.4.0']);
+
+    const newPackageInfos = getPackageInfos(parsedOptions);
+    expect(newPackageInfos.bar.version).toBe('1.4.0');
+    expect(newPackageInfos.foo.version).toBe('1.0.0');
   });
 
   it('should respect prepublish hooks', async () => {
@@ -402,7 +438,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, parsedOptions, packageInfos } = getOptionsAndPackages({
       fetch: false,
     });
 
@@ -427,6 +463,11 @@ describe('publish command (e2e)', () => {
 
     // no fetch when flag set to false
     expect(fetchCount).toBe(0);
+
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    const newPackageInfos = getPackageInfos(parsedOptions);
+    expect(newPackageInfos.foo.version).toBe('1.1.0');
   });
 
   it('should specify fetch depth when depth param is defined', async () => {
@@ -484,8 +525,8 @@ describe('publish command (e2e)', () => {
 
     // All git results should still have previous information
     expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
-    const manifestJson = fs.readFileSync(repo.pathTo('foo.txt'));
-    expect(manifestJson.toString()).toEqual('foo');
+    const fooText = fs.readFileSync(repo.pathTo('foo.txt'), 'utf8');
+    expect(fooText).toEqual('foo');
   });
 
   it('publishes multiple packages concurrently respecting the concurrency limit', async () => {
