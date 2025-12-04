@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 04 Dec 2025 00:34:39 GMT",
+      "version": "2.60.1",
+      "tag": "beachball_v2.60.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "d5b84aed603448bc817d4d6f703d02754ceb11ea",
+            "comment": "Fix double bump issue"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 03 Dec 2025 23:57:28 GMT",
       "version": "2.60.0",
       "tag": "beachball_v2.60.0",

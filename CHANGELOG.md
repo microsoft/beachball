@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Wed, 03 Dec 2025 23:57:28 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 04 Dec 2025 00:34:39 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.60.1
+
+Thu, 04 Dec 2025 00:34:39 GMT
+
+### Patches
+
+- Fix double bump issue (elcraig@microsoft.com)
 
 ## 2.60.0
 
