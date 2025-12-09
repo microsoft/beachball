@@ -185,10 +185,12 @@ export function validate(
 
   if (!isChangeNeeded && checkDependencies && changeSet.length) {
     console.log('\nValidating package dependencies...');
+    // Clone to avoid mutating shared package info during validation.
+    const packageInfosForValidation = JSON.parse(JSON.stringify(packageInfos));
     // TODO: It would be preferable if this could be done without getting the full bump info,
     // or at least if the bump info could be passed back out to other methods which currently
     // duplicate the calculation (it can be expensive, especially in large repos).
-    const bumpInfo = gatherBumpInfo(options, packageInfos);
+    const bumpInfo = gatherBumpInfo(options, packageInfosForValidation);
     const packagesToPublish = getPackagesToPublish(bumpInfo, true /*validationMode*/);
     if (!validatePackageDependencies(packagesToPublish, bumpInfo.packageInfos)) {
       logValidationError(`One or more published packages depend on an unpublished package!
