@@ -1,5 +1,5 @@
 import { describe, expect, it, afterEach } from '@jest/globals';
-import fs from 'fs-extra';
+import fs from 'fs';
 import path from 'path';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import type { ChangeSet } from '../../types/ChangeInfo';
@@ -9,6 +9,7 @@ import type { BeachballOptions } from '../../types/BeachballOptions';
 import { getChangePath } from '../../paths';
 import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
 import { getChange } from '../../__fixtures__/changeFiles';
+import { writeJson } from '../../object/writeJson';
 
 describe('unlinkChangeFiles', () => {
   const logs = initMockLogs();
@@ -36,13 +37,13 @@ describe('unlinkChangeFiles', () => {
     };
 
     const changePath = getChangePath(options);
-    fs.mkdirpSync(changePath);
+    fs.mkdirSync(changePath, { recursive: true });
 
     const changeSet: ChangeSet = [];
     for (const changeFile of changeFileNames) {
       // The change content doesn't matter here
       const change = getChange('fake');
-      fs.writeJsonSync(path.join(changePath, changeFile), change);
+      writeJson(path.join(changePath, changeFile), change);
       if (inChangeSet.includes(changeFile)) {
         changeSet.push({ changeFile, change });
       }
@@ -123,8 +124,8 @@ describe('unlinkChangeFiles', () => {
     });
     // Also create the default change path to ensure it doesn't get deleted
     const defaultChangePath = getChangePath({ ...getDefaultOptions(), path: root });
-    fs.mkdirpSync(defaultChangePath);
-    fs.writeJsonSync(path.join(defaultChangePath, 'change1.json'), {});
+    fs.mkdirSync(defaultChangePath, { recursive: true });
+    writeJson(path.join(defaultChangePath, 'change1.json'), {});
 
     unlinkChangeFiles(changeSet, options);
 

@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs';
 import path from 'path';
 import minimatch from 'minimatch';
 import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
@@ -8,6 +8,7 @@ import { getScopedPackages } from '../monorepo/getScopedPackages';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfos, PackageInfo } from '../types/PackageInfo';
 import { ensureSharedHistory } from '../git/ensureSharedHistory';
+import { readJson } from '../object/readJson';
 
 const count = (n: number, str: string) => `${n} ${str}${n === 1 ? '' : 's'}`;
 
@@ -155,7 +156,7 @@ export function getChangedPackages(options: BeachballOptions, packageInfos: Pack
   // Loop through the change files, building up a set of packages that we can skip
   for (const file of changeFiles) {
     try {
-      const changeInfo = fs.readJSONSync(path.join(cwd, file)) as ChangeFileInfo | ChangeInfoMultiple;
+      const changeInfo = readJson<ChangeFileInfo | ChangeInfoMultiple>(path.join(cwd, file));
       const changes = (changeInfo as ChangeInfoMultiple).changes || [changeInfo];
 
       for (const change of changes) {

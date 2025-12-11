@@ -1,9 +1,10 @@
 import { describe, expect, it, beforeAll, afterAll, jest } from '@jest/globals';
-import fs from 'fs-extra';
+import fs from 'fs';
 import path from 'path';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { getOptions, getParsedOptions } from '../../options/getOptions';
 import type { RepoOptions } from '../../types/BeachballOptions';
+import { writeJson } from '../../object/writeJson';
 
 describe('getOptions (deprecated)', () => {
   let repositoryFactory: RepositoryFactory;
@@ -45,7 +46,7 @@ describe('getOptions (deprecated)', () => {
   it('reads config from package.json', () => {
     const repo = repositoryFactory.cloneRepository();
     const config = inDirectory(repo.rootPath, () => {
-      fs.writeJsonSync('package.json', { beachball: { branch: 'origin/foo' } });
+      writeJson('package.json', { beachball: { branch: 'origin/foo' } });
       // eslint-disable-next-line etc/no-deprecated
       return getOptions(baseArgv());
     });
@@ -55,7 +56,7 @@ describe('getOptions (deprecated)', () => {
   it('finds a .beachballrc.json file', () => {
     const repo = repositoryFactory.cloneRepository();
     const config = inDirectory(repo.rootPath, () => {
-      fs.writeJsonSync('.beachballrc.json', { branch: 'origin/foo' });
+      writeJson('.beachballrc.json', { branch: 'origin/foo' });
       // eslint-disable-next-line etc/no-deprecated
       return getOptions(baseArgv());
     });
@@ -135,7 +136,7 @@ describe('getParsedOptions', () => {
 
   it('reads config from package.json', () => {
     const repo = repositoryFactory.cloneRepository();
-    fs.writeJsonSync(path.join(repo.rootPath, 'package.json'), { beachball: { branch: 'origin/foo' } });
+    writeJson(path.join(repo.rootPath, 'package.json'), { beachball: { branch: 'origin/foo' } });
 
     const parsedOptions = getParsedOptions({ argv: baseArgv(), cwd: repo.rootPath });
     expect(parsedOptions).toEqual({
@@ -147,7 +148,7 @@ describe('getParsedOptions', () => {
 
   it('finds a .beachballrc.json file', () => {
     const repo = repositoryFactory.cloneRepository();
-    fs.writeJsonSync(path.join(repo.rootPath, '.beachballrc.json'), { branch: 'origin/foo' });
+    writeJson(path.join(repo.rootPath, '.beachballrc.json'), { branch: 'origin/foo' });
 
     const parsedOptions = getParsedOptions({ argv: baseArgv(), cwd: repo.rootPath });
     expect(parsedOptions.options.branch).toEqual('origin/foo');

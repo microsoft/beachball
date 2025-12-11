@@ -1,11 +1,12 @@
 import type { ChangeSet, ChangeInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
-import fs from 'fs-extra';
+import fs from 'fs';
 import path from 'path';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { getChangesBetweenRefs } from 'workspace-tools';
 import type { PackageInfos } from '../types/PackageInfo';
+import { readJson } from '../object/readJson';
 
 /**
  * Read change files, excluding any changes for packages that are:
@@ -58,7 +59,7 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
 
     let changeInfo: ChangeInfo | ChangeInfoMultiple;
     try {
-      changeInfo = fs.readJSONSync(changeFilePath) as ChangeInfo | ChangeInfoMultiple;
+      changeInfo = readJson<ChangeInfo | ChangeInfoMultiple>(changeFilePath);
     } catch (e) {
       console.warn(`Error reading or parsing change file ${changeFilePath}: ${e}`);
       continue;

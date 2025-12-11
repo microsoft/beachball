@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs';
 import { tmpdir } from './tmpdir';
 import path from 'path';
 
@@ -12,7 +12,7 @@ export function createTestFileStructure(files: Record<string, string | object>):
 
   for (const [filename, content] of Object.entries(files)) {
     const filePath = path.join(testFolderPath, filename);
-    fs.ensureDirSync(path.dirname(filePath));
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, typeof content === 'string' ? content : JSON.stringify(content));
   }
 

@@ -1,6 +1,6 @@
 import type { ChangeSet } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
-import fs from 'fs-extra';
+import fs from 'fs';
 import path from 'path';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { DeepReadonly } from '../types/DeepReadonly';
@@ -24,11 +24,11 @@ export function unlinkChangeFiles(
   for (const { changeFile } of changeSet) {
     if (changeFile) {
       console.log(`- ${changeFile}`);
-      fs.removeSync(path.join(changePath, changeFile));
+      fs.rmSync(path.join(changePath, changeFile), { force: true });
     }
   }
   if (fs.existsSync(changePath) && fs.readdirSync(changePath).length === 0) {
     console.log(`Removing empty ${options.changeDir} folder`);
-    fs.removeSync(changePath);
+    fs.rmSync(changePath, { recursive: true, force: true });
   }
 }

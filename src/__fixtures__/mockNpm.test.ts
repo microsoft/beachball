@@ -3,7 +3,7 @@
 // dependency on actual npm CLI calls and a fake registry (which are very slow).
 
 import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
-import fs from 'fs-extra';
+import fs from 'fs';
 import { type NpmResult, npm } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
 import {
@@ -14,8 +14,10 @@ import {
   _mockNpmShow,
   type MockNpmResult,
 } from './mockNpm';
+import * as readJsonModule from '../object/readJson';
 
-jest.mock('fs-extra');
+jest.mock('fs');
+jest.mock('../object/readJson');
 jest.mock('../packageManager/npm');
 
 describe('_makeRegistryData', () => {
@@ -193,10 +195,10 @@ describe('_mockNpmPublish', () => {
   let packageJson: PackageJson | undefined;
 
   beforeAll(() => {
-    (fs.readJsonSync as jest.MockedFunction<typeof fs.readJsonSync>).mockImplementation(() => {
+    (readJsonModule.readJson as jest.MockedFunction<typeof readJsonModule.readJson>).mockImplementation((() => {
       if (!packageJson) throw new Error('packageJson not set');
       return packageJson;
-    });
+    }) as typeof readJsonModule.readJson);
   });
 
   afterEach(() => {
@@ -289,10 +291,10 @@ describe('_mockNpmPack', () => {
   let writtenFiles: (fs.PathLike | number)[] = [];
 
   beforeAll(() => {
-    (fs.readJsonSync as jest.MockedFunction<typeof fs.readJsonSync>).mockImplementation(() => {
+    (readJsonModule.readJson as jest.MockedFunction<typeof readJsonModule.readJson>).mockImplementation((() => {
       if (!packageJson) throw new Error('packageJson not set');
       return packageJson;
-    });
+    }) as typeof readJsonModule.readJson);
     (fs.writeFileSync as jest.MockedFunction<typeof fs.writeFileSync>).mockImplementation(filePath => {
       writtenFiles.push(String(filePath).replace(/\\/g, '/'));
     });
@@ -352,10 +354,10 @@ describe('mockNpm', () => {
   let packageJson: PackageJson | undefined;
 
   beforeAll(() => {
-    (fs.readJsonSync as jest.MockedFunction<typeof fs.readJsonSync>).mockImplementation(() => {
+    (readJsonModule.readJson as jest.MockedFunction<typeof readJsonModule.readJson>).mockImplementation((() => {
       if (!packageJson) throw new Error('packageJson not set');
       return packageJson;
-    });
+    }) as typeof readJsonModule.readJson);
   });
 
   afterEach(() => {

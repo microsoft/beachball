@@ -1,5 +1,4 @@
 import { describe, expect, it, afterEach, jest } from '@jest/globals';
-import fs from 'fs-extra';
 import path from 'path';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { readChangelogJson } from '../__fixtures__/changelog';
@@ -12,6 +11,7 @@ import type { Repository } from '../__fixtures__/repository';
 import type { PackageJson } from '../types/PackageInfo';
 import { getParsedOptions } from '../options/getOptions';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
+import { readJson } from '../object/readJson';
 
 describe('version bumping', () => {
   let repositoryFactory: RepositoryFactory | undefined;
@@ -746,7 +746,7 @@ describe('version bumping', () => {
           expect(version).toBe('1.1.0');
 
           const jsonPath = path.join(packagePath, 'package.json');
-          expect((fs.readJSONSync(jsonPath) as PackageJson).version).toBe('1.0.0');
+          expect(readJson<PackageJson>(jsonPath).version).toBe('1.0.0');
         }),
       },
     });
@@ -776,7 +776,8 @@ describe('version bumping', () => {
           expect(version).toBe('1.1.0');
 
           const jsonPath = path.join(packagePath, 'package.json');
-          expect(((await fs.readJSON(jsonPath)) as PackageJson).version).toBe('1.0.0');
+          await new Promise(resolve => setTimeout(resolve, 0)); // simulate async work
+          expect(readJson<PackageJson>(jsonPath).version).toBe('1.0.0');
         }),
       },
     });
@@ -830,7 +831,7 @@ describe('version bumping', () => {
           expect(version).toBe('1.1.0');
 
           const jsonPath = path.join(packagePath, 'package.json');
-          expect((fs.readJSONSync(jsonPath) as PackageJson).version).toBe('1.1.0');
+          expect(readJson<PackageJson>(jsonPath).version).toBe('1.1.0');
         }),
       },
     });
@@ -860,7 +861,8 @@ describe('version bumping', () => {
           expect(version).toBe('1.1.0');
 
           const jsonPath = path.join(packagePath, 'package.json');
-          expect(((await fs.readJSON(jsonPath)) as PackageJson).version).toBe('1.1.0');
+          await new Promise(resolve => setTimeout(resolve, 0)); // simulate async work
+          expect(readJson<PackageJson>(jsonPath).version).toBe('1.1.0');
         }),
       },
     });

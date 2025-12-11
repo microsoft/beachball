@@ -1,5 +1,4 @@
 import { describe, expect, it, beforeEach, afterEach } from '@jest/globals';
-import fs from 'fs-extra';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
@@ -12,6 +11,7 @@ import type { ChangeFileInfo } from '../types/ChangeInfo';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import type { PackageJson } from '../types/PackageInfo';
 import { getParsedOptions } from '../options/getOptions';
+import { readJson } from '../object/readJson';
 
 describe('publish command (git)', () => {
   let repositoryFactory: RepositoryFactory;
@@ -58,7 +58,7 @@ describe('publish command (git)', () => {
 
     const newRepo = repositoryFactory.cloneRepository();
 
-    const packageJson = fs.readJSONSync(newRepo.pathTo('package.json')) as PackageJson;
+    const packageJson = readJson<PackageJson>(newRepo.pathTo('package.json'));
 
     expect(packageJson.version).toBe('1.1.0');
   });
@@ -88,7 +88,7 @@ describe('publish command (git)', () => {
     const newRepo = repositoryFactory.cloneRepository();
     const changeFiles = getChangeFiles({ ...options1, path: newRepo.rootPath });
     expect(changeFiles).toHaveLength(1);
-    const changeFileContent = fs.readJSONSync(changeFiles[0]) as ChangeFileInfo;
+    const changeFileContent = readJson<ChangeFileInfo>(changeFiles[0]);
     expect(changeFileContent.packageName).toBe('foo2');
   });
 });

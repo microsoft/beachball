@@ -1,4 +1,3 @@
-import fs from 'fs-extra';
 import path from 'path';
 import {
   getWorkspaces as getWorkspacePackages,
@@ -11,6 +10,7 @@ import {
 import type { PackageInfos } from '../types/PackageInfo';
 import { getPackageInfosWithOptions } from '../options/getPackageInfosWithOptions';
 import type { ParsedOptions } from '../types/BeachballOptions';
+import { readJson } from '../object/readJson';
 
 /**
  * Get a mapping from package name to package info for all packages in the workspace
@@ -102,7 +102,7 @@ function readWsPackageInfo(packageJsonPath: string): WSPackageInfo {
   return {
     // this is actually the properties of WSPackageInfo except the packageJsonPath, but using omit
     // messes things up due to the index signature...
-    ...(fs.readJSONSync(packageJsonPath) as WSPackageInfo),
+    ...readJson<WSPackageInfo>(packageJsonPath),
     packageJsonPath,
   };
 }

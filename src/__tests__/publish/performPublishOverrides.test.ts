@@ -1,17 +1,16 @@
 import { describe, expect, it, afterEach, jest } from '@jest/globals';
-import * as fs from 'fs-extra';
 import { performPublishOverrides } from '../../publish/performPublishOverrides';
 import type { PackageInfos, PackageJson, PublishConfig } from '../../types/PackageInfo';
 import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
+import * as readJsonModule from '../../object/readJson';
+import * as writeJsonModule from '../../object/writeJson';
 
-jest.mock('fs-extra', () => ({
-  readJSONSync: jest.fn(),
-  writeJSONSync: jest.fn(),
-}));
+jest.mock('../../object/readJson');
+jest.mock('../../object/writeJson');
 
 describe('performPublishOverrides', () => {
-  const readJSONSync = fs.readJSONSync as jest.MockedFunction<typeof fs.readJSONSync>;
-  const writeJSONSync = fs.writeJSONSync as jest.MockedFunction<typeof fs.writeJSONSync>;
+  const readJSONSync = readJsonModule.readJson as jest.MockedFunction<typeof readJsonModule.readJson>;
+  const writeJSONSync = writeJsonModule.writeJson as jest.MockedFunction<typeof writeJsonModule.writeJson>;
 
   afterEach(() => {
     // clear the implementations and calls for read/writeJSONSync
@@ -44,7 +43,7 @@ describe('performPublishOverrides', () => {
       };
     }
 
-    readJSONSync.mockImplementation(path => {
+    readJSONSync.mockImplementation((path => {
       for (const pkg of Object.values(packageInfos)) {
         if (path === pkg.packageJsonPath) {
           // performPublishConfigOverrides mutates the packageJson, so we need to clone it to
@@ -53,8 +52,8 @@ describe('performPublishOverrides', () => {
           return JSON.parse(JSON.stringify(packageJsons[pkg.name])) as PackageJson;
         }
       }
-      throw new Error(`not found: ${path as string}`);
-    });
+      throw new Error(`not found: ${path}`);
+    }) as typeof readJsonModule.readJson);
 
     return { packageInfos, packageJsons };
   }
@@ -82,9 +81,7 @@ describe('performPublishOverrides', () => {
         ...packageJsons.foo,
         ...publishConfig,
         publishConfig: {},
-      },
-      // JSON stringify options
-      expect.anything()
+      }
     );
   });
 
@@ -96,7 +93,7 @@ describe('performPublishOverrides', () => {
     performPublishOverrides(['foo'], packageInfos);
 
     expect(writeJSONSync).toHaveBeenCalledTimes(1);
-    expect(writeJSONSync).toHaveBeenCalledWith(packageInfos.foo.packageJsonPath, packageJsons.foo, expect.anything());
+    expect(writeJSONSync).toHaveBeenCalledWith(packageInfos.foo.packageJsonPath, packageJsons.foo);
   });
 
   it('performs publish overrides for multiple packages', () => {
@@ -112,24 +109,16 @@ describe('performPublishOverrides', () => {
     performPublishOverrides(['foo', 'bar'], packageInfos);
 
     expect(writeJSONSync).toHaveBeenCalledTimes(2);
-    expect(writeJSONSync).toHaveBeenCalledWith(
-      packageInfos.foo.packageJsonPath,
-      {
-        ...originalFoo,
-        ...originalFoo.publishConfig,
-        publishConfig: {},
-      },
-      expect.anything()
-    );
-    expect(writeJSONSync).toHaveBeenCalledWith(
-      packageInfos.bar.packageJsonPath,
-      {
-        ...originalBar,
-        ...originalBar.publishConfig,
-        publishConfig: {},
-      },
-      expect.anything()
-    );
+    expect(writeJSONSync).toHaveBeenCalledWith(packageInfos.foo.packageJsonPath, {
+      ...originalFoo,
+      ...originalFoo.publishConfig,
+      publishConfig: {},
+    });
+    expect(writeJSONSync).toHaveBeenCalledWith(packageInfos.bar.packageJsonPath, {
+      ...originalBar,
+      ...originalBar.publishConfig,
+      publishConfig: {},
+    });
   });
 
   it.each([
@@ -152,8 +141,7 @@ describe('performPublishOverrides', () => {
       packageInfos.bar.packageJsonPath,
       expect.objectContaining({
         dependencies: { foo: expectedPublishVersion },
-      }),
-      expect.anything()
+      })
     );
   });
 });

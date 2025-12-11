@@ -1,10 +1,10 @@
 import { describe, it, expect, jest, afterAll, afterEach, beforeAll, beforeEach } from '@jest/globals';
-import fs from 'fs-extra';
+import fs from 'fs';
 import path from 'path';
 import { updateLockFile } from '../../bump/updateLockFile';
 import { packageManager, type PackageManagerResult } from '../../packageManager/packageManager';
 
-jest.mock('fs-extra');
+jest.mock('fs');
 jest.mock('../../packageManager/packageManager');
 jest.mock('../../env', () => ({
   env: {

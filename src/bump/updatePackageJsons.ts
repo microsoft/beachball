@@ -1,5 +1,7 @@
-import fs from 'fs-extra';
+import fs from 'fs';
 import { type PackageInfos, type PackageJson, consideredDependencies } from '../types/PackageInfo';
+import { readJson } from '../object/readJson';
+import { writeJson } from '../object/writeJson';
 
 /**
  * Update package.json files for modified packages after bumping.
@@ -12,7 +14,7 @@ export function updatePackageJsons(modifiedPackages: Set<string>, packageInfos: 
       console.warn(`Skipping ${pkgName} since package.json does not exist`);
       continue;
     }
-    const packageJson = fs.readJSONSync(info.packageJsonPath) as PackageJson;
+    const packageJson = readJson<PackageJson>(info.packageJsonPath);
 
     if (!info.private) {
       packageJson.version = info.version;
@@ -33,6 +35,6 @@ export function updatePackageJsons(modifiedPackages: Set<string>, packageInfos: 
       }
     }
 
-    fs.writeJSONSync(info.packageJsonPath, packageJson, { spaces: 2 });
+    writeJson(info.packageJsonPath, packageJson);
   }
 }

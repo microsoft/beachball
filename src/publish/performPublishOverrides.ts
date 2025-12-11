@@ -1,6 +1,7 @@
-import * as fs from 'fs-extra';
 import { getWorkspaceRange } from '../packageManager/getWorkspaceRange';
 import { consideredDependencies, type PackageInfos, type PackageJson, type PublishConfig } from '../types/PackageInfo';
+import { readJson } from '../object/readJson';
+import { writeJson } from '../object/writeJson';
 
 const acceptedKeys: (keyof PublishConfig)[] = [
   'types',
@@ -17,12 +18,12 @@ const acceptedKeys: (keyof PublishConfig)[] = [
 export function performPublishOverrides(packagesToPublish: string[], packageInfos: PackageInfos): void {
   for (const pkgName of packagesToPublish) {
     const info = packageInfos[pkgName];
-    const packageJson = fs.readJSONSync(info.packageJsonPath) as PackageJson;
+    const packageJson = readJson<PackageJson>(info.packageJsonPath);
 
     performWorkspaceVersionOverrides(packageJson, packageInfos);
     performPublishConfigOverrides(packageJson);
 
-    fs.writeJSONSync(info.packageJsonPath, packageJson, { spaces: 2 });
+    writeJson(info.packageJsonPath, packageJson);
   }
 }
 

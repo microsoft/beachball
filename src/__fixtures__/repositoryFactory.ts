@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs';
 import path from 'path';
 import type { PackageJson } from '../types/PackageInfo';
 import { Repository, type RepositoryCloneOptions } from './repository';
@@ -7,6 +7,7 @@ import { removeTempDir, tmpdir } from './tmpdir';
 import { gitFailFast } from 'workspace-tools';
 import { setDefaultBranchName } from './gitDefaults';
 import { cloneObject } from '../object/cloneObject';
+import { writeJson } from '../object/writeJson';
 
 /**
  * Standard fixture options. See {@link getSinglePackageFixture}, {@link getMonorepoFixture} and
@@ -203,7 +204,7 @@ export class RepositoryFactory {
         throw new Error('`fixtures` must define `rootPackage` and/or `folders`');
       }
 
-      fs.ensureDirSync(tmpRepo.pathTo(parentFolder));
+      fs.mkdirSync(tmpRepo.pathTo(parentFolder), { recursive: true });
 
       // fill out the root package and an empty folders object if not provided
       const rootPackage = fixture.rootPackage || getMonorepoRootPackage();
@@ -218,7 +219,7 @@ export class RepositoryFactory {
         rootPackage.workspaces = folderNames.map(folder => `${folder}/*`);
       }
       // create the root package.json
-      fs.writeJSONSync(tmpRepo.pathTo(parentFolder, 'package.json'), rootPackage, { spaces: 2 });
+      writeJson(tmpRepo.pathTo(parentFolder, 'package.json'), rootPackage);
 
       // create the lock file
       // (an option could be added to disable or customize this in the future if needed)
@@ -230,8 +231,8 @@ export class RepositoryFactory {
           // save the name if not already set
           packageJson.name ??= name;
           const pkgFolder = tmpRepo.pathTo(parentFolder, folder, name);
-          fs.ensureDirSync(pkgFolder);
-          fs.writeJSONSync(path.join(pkgFolder, 'package.json'), packageJson, { spaces: 2 });
+          fs.mkdirSync(pkgFolder, { recursive: true });
+          writeJson(path.join(pkgFolder, 'package.json'), packageJson);
         }
       }
 

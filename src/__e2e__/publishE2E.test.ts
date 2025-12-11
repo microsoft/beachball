@@ -1,5 +1,5 @@
 import { describe, expect, it, afterEach, jest } from '@jest/globals';
-import fs from 'fs-extra';
+import fs from 'fs';
 import path from 'path';
 import { addGitObserver, clearGitObservers } from 'workspace-tools';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
@@ -15,6 +15,7 @@ import type { PackageJson } from '../types/PackageInfo';
 import { getParsedOptions } from '../options/getOptions';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { validate } from '../validation/validate';
+import { readJson } from '../object/readJson';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -172,7 +173,7 @@ describe('publish command (e2e)', () => {
           const anotherRepo = repositoryFactory!.cloneRepository();
           // inject a checkin
           const packageJsonFile = anotherRepo.pathTo('package.json');
-          const contents = fs.readJSONSync(packageJsonFile, 'utf-8') as PackageJson;
+          const contents = readJson<PackageJson>(packageJsonFile);
           delete contents.dependencies?.baz;
           anotherRepo.commitChange('package.json', JSON.stringify(contents, null, 2));
           anotherRepo.push();
@@ -374,7 +375,7 @@ describe('publish command (e2e)', () => {
       hooks: {
         prepublish: (packagePath: string) => {
           const packageJsonPath = path.join(packagePath, 'package.json');
-          const packageJson = fs.readJSONSync(packageJsonPath) as ExtraPackageJson;
+          const packageJson = readJson<ExtraPackageJson>(packageJsonPath);
           if (packageJson.onPublish) {
             Object.assign(packageJson, packageJson.onPublish);
             delete packageJson.onPublish;
@@ -400,7 +401,7 @@ describe('publish command (e2e)', () => {
 
     // All git results should still have previous information
     expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
-    const fooPackageJson = fs.readJSONSync(repo.pathTo('packages/foo/package.json')) as ExtraPackageJson;
+    const fooPackageJson = readJson<ExtraPackageJson>(repo.pathTo('packages/foo/package.json'));
     expect(fooPackageJson.main).toBe('src/index.ts');
     expect(fooPackageJson.onPublish?.main).toBe('lib/index.js');
   });
@@ -416,7 +417,7 @@ describe('publish command (e2e)', () => {
       hooks: {
         postpublish: packagePath => {
           const packageJsonPath = path.join(packagePath, 'package.json');
-          const packageJson = fs.readJSONSync(packageJsonPath) as ExtraPackageJson;
+          const packageJson = readJson<ExtraPackageJson>(packageJsonPath);
           if (packageJson.afterPublish) {
             notified = packageJson.afterPublish.notify;
           }
@@ -429,7 +430,7 @@ describe('publish command (e2e)', () => {
 
     await publish(options, packageInfos);
 
-    const fooPackageJson = fs.readJSONSync(repo.pathTo('packages/foo/package.json')) as ExtraPackageJson;
+    const fooPackageJson = readJson<ExtraPackageJson>(repo.pathTo('packages/foo/package.json'));
     expect(fooPackageJson.main).toBe('src/index.ts');
     expect(notified).toBe(fooPackageJson.afterPublish?.notify);
   });
@@ -671,7 +672,7 @@ describe('publish command (e2e)', () => {
           await simulateWait(100);
           const packageName = path.basename(packagePath);
           const packageJsonPath = path.join(packagePath, 'package.json');
-          const packageJson = fs.readJSONSync(packageJsonPath) as ExtraPackageJsonFixture;
+          const packageJson = readJson<ExtraPackageJsonFixture>(packageJsonPath);
           if (packageJson.afterPublish) {
             afterPublishStrings.push({
               packageName,
@@ -693,7 +694,7 @@ describe('publish command (e2e)', () => {
     expect(maxConcurrency).toBe(concurrency);
 
     for (const pkg of packagesToPublish) {
-      const packageJson = fs.readJSONSync(repo.pathTo(`packages/${pkg}/package.json`)) as ExtraPackageJsonFixture;
+      const packageJson = readJson<ExtraPackageJsonFixture>(repo.pathTo(`packages/${pkg}/package.json`));
       if (packageJson.afterPublish) {
         // Verify that all postpublish hooks were called
         expect(afterPublishStrings).toContainEqual({

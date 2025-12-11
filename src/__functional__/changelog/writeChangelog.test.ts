@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
-import fs from 'fs-extra';
+import fs from 'fs';
 import semver from 'semver';
 import { generateChangeFiles, getChange, fakeEmail as author } from '../../__fixtures__/changeFiles';
 import {
@@ -22,6 +22,7 @@ import { trimmedVersionsNote } from '../../changelog/renderChangelog';
 import { getParsedOptions } from '../../options/getOptions';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 import type { PackageInfos } from '../../types/PackageInfo';
+import { writeJson } from '../../object/writeJson';
 
 describe('writeChangelog', () => {
   let repositoryFactory: RepositoryFactory;
@@ -77,7 +78,7 @@ describe('writeChangelog', () => {
     for (const [pkgName, changeType] of Object.entries(calculatedChangeTypes)) {
       packageInfos[pkgName].version = semver.inc(packageInfos[pkgName].version, changeType as semver.ReleaseType)!;
       const { packageJsonPath, ...packageJson } = packageInfos[pkgName];
-      fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 2 });
+      writeJson(packageJsonPath, packageJson);
     }
 
     await writeChangelog({ dependentChangedBy, calculatedChangeTypes, changeFileChangeInfos, packageInfos }, options);
@@ -515,7 +516,7 @@ describe('writeChangelog', () => {
     expect(firstChangelogJson).toEqual({ name: 'foo', entries: [expect.anything()] });
 
     // Delete the change files, generate new ones, and re-generate changelogs
-    fs.emptyDirSync(getChangePath(options));
+    fs.rmSync(getChangePath(options), { recursive: true, force: true });
     generateChangeFiles([getChange('foo', 'extra change')], options);
     await writeChangelogWrapper({ options, packageInfos });
 
@@ -546,7 +547,7 @@ describe('writeChangelog', () => {
     expect(firstChangelogJson).toEqual({ name: 'foo', entries: [expect.anything()] });
 
     // Delete the initial change files
-    fs.emptyDirSync(getChangePath(options));
+    fs.rmSync(getChangePath(options), { recursive: true, force: true });
 
     // Change the options to used suffixed filenames, generate new change files, and re-generate changelogs
     options.changelog = { uniqueFilenames: true };
@@ -575,7 +576,7 @@ describe('writeChangelog', () => {
 
     // Bump and write three times
     for (let i = 1; i <= 3; i++) {
-      fs.emptyDirSync(getChangePath(options));
+      fs.rmSync(getChangePath(options), { recursive: true, force: true });
       generateChangeFiles([{ packageName: 'foo', comment: `foo comment ${i}` }], options);
       await writeChangelogWrapper({ options, packageInfos });
     }

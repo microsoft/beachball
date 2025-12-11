@@ -1,8 +1,8 @@
 import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
-import fs from 'fs-extra';
+import fs from 'fs';
 import { gitFailFast } from 'workspace-tools';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
-import { tmpdir } from '../../__fixtures__/tmpdir';
+import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import type { PackageInfos, PackageInfo } from '../../types/PackageInfo';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
@@ -11,6 +11,7 @@ import type { PackageOptions } from '../../types/BeachballOptions';
 import { cloneObject } from '../../object/cloneObject';
 import { getParsedOptions } from '../../options/getOptions';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
+import { writeJson } from '../../object/writeJson';
 
 const defaultOptions = getDefaultOptions();
 
@@ -77,7 +78,7 @@ describe('getPackageInfos', () => {
   });
 
   afterEach(() => {
-    tempDir && fs.removeSync(tempDir);
+    removeTempDir(tempDir);
     tempDir = undefined;
   });
 
@@ -199,7 +200,7 @@ describe('getPackageInfos', () => {
 
   it('works in pnpm monorepo', () => {
     const repo = monorepoFactory.cloneRepository();
-    fs.writeJSONSync(repo.pathTo('package.json'), { name: 'pnpm-monorepo', version: '1.0.0', private: true });
+    writeJson(repo.pathTo('package.json'), { name: 'pnpm-monorepo', version: '1.0.0', private: true });
     fs.writeFileSync(repo.pathTo('pnpm-lock.yaml'), '');
     fs.writeFileSync(repo.pathTo('pnpm-workspace.yaml'), 'packages: ["packages/*", "packages/grouped/*"]');
     const parsedOptions = getOptions(repo.rootPath);
@@ -217,8 +218,8 @@ describe('getPackageInfos', () => {
 
   it('works in rush monorepo', () => {
     const repo = monorepoFactory.cloneRepository();
-    fs.writeJSONSync(repo.pathTo('package.json'), { name: 'rush-monorepo', version: '1.0.0', private: true });
-    fs.writeJSONSync(repo.pathTo('rush.json'), {
+    writeJson(repo.pathTo('package.json'), { name: 'rush-monorepo', version: '1.0.0', private: true });
+    writeJson(repo.pathTo('rush.json'), {
       projects: [{ projectFolder: 'packages' }, { projectFolder: 'packages/grouped' }],
     });
     const parsedOptions = getOptions(repo.rootPath);
@@ -236,8 +237,8 @@ describe('getPackageInfos', () => {
 
   it('works in lerna monorepo', () => {
     const repo = monorepoFactory.cloneRepository();
-    fs.writeJSONSync(repo.pathTo('package.json'), { name: 'lerna-monorepo', version: '1.0.0', private: true });
-    fs.writeJSONSync(repo.pathTo('lerna.json'), { packages: ['packages/*', 'packages/grouped/*'] });
+    writeJson(repo.pathTo('package.json'), { name: 'lerna-monorepo', version: '1.0.0', private: true });
+    writeJson(repo.pathTo('lerna.json'), { packages: ['packages/*', 'packages/grouped/*'] });
     const parsedOptions = getOptions(repo.rootPath);
 
     const rootPackageInfos = getPackageInfos(parsedOptions);
