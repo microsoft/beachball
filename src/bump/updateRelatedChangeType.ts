@@ -50,6 +50,7 @@ export function updateRelatedChangeType(params: {
   const seen = new Set<string>();
 
   while (queue.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const { subjectPackage, changeType } = queue.shift()!;
 
     // Step 1. Update change type of the subjectPackage according to dependentChangeType if needed.

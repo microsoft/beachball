@@ -50,7 +50,7 @@ export class Repository {
    * Clone the given remote repo into a temp directory and configure settings that are needed
    * by certain tests (user name+email and default branch).
    */
-  constructor(clonePath: string, tempDescription: string = 'repository', options: RepositoryCloneOptions = {}) {
+  constructor(clonePath: string, tempDescription = 'repository', options: RepositoryCloneOptions = {}) {
     const { depth, branch, singleBranch } = options;
 
     this.root = tmpdir({ prefix: `beachball-${tempDescription}-cloned-` });
@@ -151,7 +151,7 @@ ${gitResult.stderr.toString()}`);
   }
 
   /** Commit all changes to tracked and untracked files. */
-  commitAll(message: string = 'Committing everything'): void {
+  commitAll(message = 'Committing everything'): void {
     this.git(['add', '-A']);
     this.git(['commit', '-m', message]);
   }

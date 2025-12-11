@@ -101,7 +101,6 @@ export class Registry {
     return new Promise((resolve, reject) => {
       let hasReturned = false;
       const rejectWrapper = (err: unknown) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
         !hasReturned && reject(err);
         hasReturned = true;
       };

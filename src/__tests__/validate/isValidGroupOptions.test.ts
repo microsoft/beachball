@@ -30,6 +30,7 @@ describe('isValidGroupOptions', () => {
 
   it('returns false when groups is not an array', () => {
     const groups = { name: 'group1', include: ['pkg1'] };
+    // eslint-disable-next-line
     expect(isValidGroupOptions(groups as any)).toBe(false);
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy.mock.calls[0].join(' ')).toMatchInlineSnapshot(`

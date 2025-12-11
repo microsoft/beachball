@@ -8,7 +8,7 @@ jest.mock('fs-extra');
 jest.mock('../../packageManager/packageManager');
 jest.mock('../../env', () => ({
   env: {
-    ...(jest.requireActual('../../env') as any).env,
+    ...jest.requireActual<typeof import('../../env')>('../../env').env,
     isJest: false,
   },
 }));

@@ -44,7 +44,7 @@ async function getNpmPackageInfo(packageName: string, options: NpmOptions): Prom
     );
 
     if (showResult.success && showResult.stdout !== '') {
-      const packageInfo = JSON.parse(showResult.stdout);
+      const packageInfo = JSON.parse(showResult.stdout) as NpmShowResult;
       packageVersionsCache[packageName] = packageInfo;
     } else {
       packageVersionsCache[packageName] = false;

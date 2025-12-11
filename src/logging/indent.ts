@@ -6,7 +6,7 @@
  * @param firstLineOffset Relative indent level for the first line (can be negative,
  * as long as `level + firstLineOffset` is 0 or greater)
  */
-export function indent(text: string, level: number, firstLineOffset: number = 0): string {
+export function indent(text: string, level: number, firstLineOffset = 0): string {
   if (level < 0) {
     throw new RangeError('Level must be 0 or greater');
   }

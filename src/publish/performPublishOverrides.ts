@@ -32,7 +32,8 @@ function performPublishConfigOverrides(packageJson: PackageJson): void {
     for (const [k, value] of Object.entries(packageJson.publishConfig)) {
       const key = k as keyof Required<PackageJson>['publishConfig'];
       if (acceptedKeys.includes(key)) {
-        packageJson[key] = value as any;
+        // eslint-disable-next-line
+        (packageJson as any)[key] = value;
         delete packageJson.publishConfig[key];
       }
     }

@@ -40,6 +40,8 @@ export function getRepoOptions(cliOptions: ParsedOptions['cliOptions']): Partial
     repoOptions = configExplorer.load(path.resolve(cwd, configPath))?.config as Partial<RepoOptions> | undefined;
     if (!repoOptions) {
       console.error(`Config file "${configPath}" could not be loaded`);
+      // TODO: consider throwing instead
+      // eslint-disable-next-line no-restricted-properties
       process.exit(1);
     }
   } else {

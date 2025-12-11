@@ -5,7 +5,7 @@ import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { getOptions, getParsedOptions } from '../../options/getOptions';
 import type { RepoOptions } from '../../types/BeachballOptions';
 
-describe('getOptions', () => {
+describe('getOptions (deprecated)', () => {
   let repositoryFactory: RepositoryFactory;
   // Don't reuse a repo in these tests! If multiple tests load beachball.config.js from the same path,
   // it will use the version from the require cache, which will have outdated contents.
@@ -36,6 +36,7 @@ describe('getOptions', () => {
     const repo = repositoryFactory.cloneRepository();
     const config = inDirectory(repo.rootPath, () => {
       fs.writeFileSync('beachball.config.js', 'module.exports = { branch: "origin/foo" };');
+      // eslint-disable-next-line etc/no-deprecated
       return getOptions(baseArgv());
     });
     expect(config.branch).toEqual('origin/foo');
@@ -45,6 +46,7 @@ describe('getOptions', () => {
     const repo = repositoryFactory.cloneRepository();
     const config = inDirectory(repo.rootPath, () => {
       fs.writeJsonSync('package.json', { beachball: { branch: 'origin/foo' } });
+      // eslint-disable-next-line etc/no-deprecated
       return getOptions(baseArgv());
     });
     expect(config.branch).toEqual('origin/foo');
@@ -54,6 +56,7 @@ describe('getOptions', () => {
     const repo = repositoryFactory.cloneRepository();
     const config = inDirectory(repo.rootPath, () => {
       fs.writeJsonSync('.beachballrc.json', { branch: 'origin/foo' });
+      // eslint-disable-next-line etc/no-deprecated
       return getOptions(baseArgv());
     });
     expect(config.branch).toEqual('origin/foo');
@@ -64,6 +67,7 @@ describe('getOptions', () => {
     const config = inDirectory(repo.rootPath, () => {
       fs.writeFileSync('beachball.config.js', 'module.exports = { branch: "origin/main" };');
       fs.writeFileSync('alternate.config.js', 'module.exports = { branch: "origin/foo" };');
+      // eslint-disable-next-line etc/no-deprecated
       return getOptions([...baseArgv(), '--config', 'alternate.config.js']);
     });
     expect(config.branch).toEqual('origin/foo');
@@ -83,6 +87,7 @@ describe('getOptions', () => {
     };
     const config = inDirectory(repo.rootPath, () => {
       fs.writeFileSync('beachball.config.js', `module.exports = ${JSON.stringify(repoOptions)};`);
+      // eslint-disable-next-line etc/no-deprecated
       return getOptions([...baseArgv(), '--disallowed-change-types', 'patch']);
     });
     expect(config).toMatchObject({

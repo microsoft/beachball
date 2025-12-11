@@ -88,5 +88,6 @@ export async function packagePublish(
     log(`Publishing ${packageSpec} failed${timedOutMessage}. ${output}`);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- loop will always execute at least once
   return result!;
 }

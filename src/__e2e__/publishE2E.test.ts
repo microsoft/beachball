@@ -482,7 +482,7 @@ describe('publish command (e2e)', () => {
 
     repo.push();
 
-    let fetchCommand: string = '';
+    let fetchCommand = '';
 
     addGitObserver(args => {
       if (args[0] === 'fetch') {

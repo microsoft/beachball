@@ -38,7 +38,7 @@ function cleanPackageInfos(root: string, packageInfos: PackageInfos) {
 
     // Remove options set to undefined or empty object (keep null because it may be meaningful/interesting)
     for (const [key, value] of Object.entries(pkgInfo)) {
-      if (value === undefined || (value && typeof value === 'object' && !Object.keys(value).length)) {
+      if (value === undefined || (value && typeof value === 'object' && !Object.keys(value as object).length)) {
         delete pkgInfo[key as keyof PackageInfo];
       }
     }
@@ -91,18 +91,21 @@ describe('getPackageInfos', () => {
   // the options were being parsed.
   it('throws if run outside a git repo (old signature)', () => {
     tempDir = tmpdir();
+    // eslint-disable-next-line etc/no-deprecated
     expect(() => getPackageInfos(tempDir!)).toThrow(/not in a git repository/);
   });
 
   it('returns empty object if no packages are found', () => {
     tempDir = tmpdir();
     gitFailFast(['init'], { cwd: tempDir });
+    // eslint-disable-next-line etc/no-deprecated
     expect(getPackageInfos(tempDir)).toEqual({});
-    expect(getPackageInfos({ cliOptions: { path: tempDir!, command: '' }, repoOptions: {} })).toEqual({});
+    expect(getPackageInfos({ cliOptions: { path: tempDir, command: '' }, repoOptions: {} })).toEqual({});
   });
 
   it('works in single-package repo (old signature)', () => {
     const repo = singleFactory.cloneRepository();
+    // eslint-disable-next-line etc/no-deprecated
     let packageInfos = getPackageInfos(repo.rootPath);
     packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
     expect(packageInfos).toEqual({
@@ -180,6 +183,7 @@ describe('getPackageInfos', () => {
   // both yarn and npm define "workspaces" in package.json
   it('works in yarn/npm monorepo (old signature)', () => {
     const repo = monorepoFactory.cloneRepository();
+    // eslint-disable-next-line etc/no-deprecated
     let packageInfos = getPackageInfos(repo.rootPath);
     packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
     expect(packageInfos).toEqual(expectedYarnPackages);

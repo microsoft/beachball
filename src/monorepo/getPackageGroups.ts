@@ -49,6 +49,7 @@ export function getPackageGroups(
         )
     );
     // TODO: probably more appropriate to throw here and let the caller handle it?
+    // eslint-disable-next-line no-restricted-properties
     process.exit(1);
   }
 

@@ -29,6 +29,7 @@ export function getPackageInfosWithOptions(
   let { repoOptions, cliOptions } = parsedOptions || {};
   if (!repoOptions || !cliOptions) {
     // Don't use options from process.argv or the beachball repo in tests
+    // eslint-disable-next-line etc/no-deprecated
     cliOptions = !env.isJest ? getCliOptions(process.argv) : { path: '', command: 'change' };
     repoOptions = cliOptions?.path ? getRepoOptions(cliOptions) : {};
   }
@@ -90,6 +91,7 @@ export function _mergePackageOptions(
   const { defaultOptions, repoOptions, cliOptions, packageOptions } = params;
   const mergedOptions = {} as PackageOptions;
   for (const key of packageKeys) {
+    // eslint-disable-next-line
     (mergedOptions as any)[key] =
       key in cliOptions
         ? cliOptions[key as keyof CliOptions]

@@ -2,7 +2,7 @@ import { jest, describe, it, expect, beforeEach, afterEach, beforeAll, afterAll 
 import fs from 'fs-extra';
 import { updatePackageJsons } from '../../bump/updatePackageJsons';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
-import { consideredDependencies, type PackageInfo } from '../../types/PackageInfo';
+import { consideredDependencies, PackageJson, type PackageInfo } from '../../types/PackageInfo';
 
 jest.mock('fs-extra');
 
@@ -16,7 +16,7 @@ describe('updatePackageJsons', () => {
   function getWriteJsonArgs(packageInfo: PackageInfo): Parameters<typeof mockFs.writeJSONSync> {
     const { packageJsonPath, combinedOptions: _a, packageOptions: _b, ...json } = packageInfo;
     // Parse/stringify as a shortcut to remove undefined keys
-    const cleanedJson = JSON.parse(JSON.stringify(json));
+    const cleanedJson = JSON.parse(JSON.stringify(json)) as PackageJson;
     if (cleanedJson.private === false) {
       delete cleanedJson.private;
     }

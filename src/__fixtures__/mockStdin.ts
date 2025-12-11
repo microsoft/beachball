@@ -109,7 +109,7 @@ export class MockStdin extends stream.Readable {
     return this;
   }
 
-  _read(size: number = Infinity): void {
+  _read(size = Infinity): void {
     let count = 0;
     let read = true;
     while (read && this._mockData.length && count < size) {

@@ -5,11 +5,13 @@ import { findGitRoot } from 'workspace-tools';
 import { npm } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
 
+// TODO: consider modifying this to propagate up
 function errorExit(message: string): void {
   console.error(message);
   console.log(
     'You can still set up beachball manually by following the instructions here: https://microsoft.github.io/beachball/overview/getting-started.html'
   );
+  // eslint-disable-next-line no-restricted-properties
   process.exit(1);
 }
 
@@ -18,6 +20,7 @@ export async function init(options: Pick<BeachballOptions, 'path'>): Promise<voi
     findGitRoot(options.path);
   } catch {
     console.error('beachball only works in a git repository. Please initialize git and try again.');
+    // eslint-disable-next-line no-restricted-properties
     process.exit(1);
   }
 

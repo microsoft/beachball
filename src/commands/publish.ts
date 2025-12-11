@@ -21,6 +21,7 @@ export async function publish(options: BeachballOptions, oldPackageInfos?: Packa
 
   const { path: cwd, branch, registry, tag } = options;
   // First, validate that we have changes to publish
+  // eslint-disable-next-line etc/no-deprecated
   oldPackageInfos ||= getPackageInfos(cwd);
   const changes = readChangeFiles(options, oldPackageInfos);
 

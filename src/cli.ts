@@ -11,16 +11,19 @@ import { getParsedOptions } from './options/getOptions';
 import { validate } from './validation/validate';
 
 (async () => {
+  // eslint-disable-next-line no-restricted-properties -- this is the top level
   const parsedOptions = getParsedOptions({ cwd: process.cwd(), argv: process.argv });
   const options = parsedOptions.options;
 
   if (options.help) {
     showHelp();
+    // eslint-disable-next-line no-restricted-properties -- this is the top level
     process.exit(0);
   }
 
   if (options.version) {
     showVersion();
+    // eslint-disable-next-line no-restricted-properties -- this is the top level
     process.exit(0);
   }
 
@@ -92,5 +95,6 @@ import { validate } from './validation/validate';
   console.error('An error has been detected while running beachball!');
   console.error((e as Error)?.stack || e);
 
+  // eslint-disable-next-line no-restricted-properties -- this is the top level
   process.exit(1);
 });

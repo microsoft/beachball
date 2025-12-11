@@ -149,6 +149,7 @@ export function _makeRegistryData(data: PartialRegistryData): MockNpmRegistry {
 }
 
 /** (exported for testing) Mock npm show based on the registry data */
+// eslint-disable-next-line @typescript-eslint/require-await -- required by signature
 export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
   // Assumption: all beachball callers to "npm show" list the package name
   // as the last argument except for the properties to show.
@@ -201,6 +202,7 @@ export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
 };
 
 /** (exported for testing) Mock npm publish to the registry data */
+// eslint-disable-next-line @typescript-eslint/require-await -- async required by signature
 export const _mockNpmPublish: MockNpmCommand = async (registryData, args, opts) => {
   if (!opts?.cwd) {
     throw new Error('cwd is required for mock npm publish');
@@ -241,13 +243,14 @@ function mockPublishPackage(registryData: MockNpmRegistry, packageJson: PackageJ
 /**
  * Return a .tgz filename following npm's naming scheme.
  */
-export function getMockNpmPackName(packageJson: PackageJson) {
+export function getMockNpmPackName(packageJson: PackageJson): string {
   const { name, version } = packageJson;
   // Note this may be less name sanitization than npm does, but it doesn't matter for tests.
   const safeName = name.startsWith('@') ? name.slice(1).replace('/', '-') : name;
   return `${safeName}-${version}.tgz`;
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await -- required by signature
 export const _mockNpmPack: MockNpmCommand = async (registryData, args, opts) => {
   if (!opts?.cwd) {
     throw new Error('cwd is required for mock npm pack');

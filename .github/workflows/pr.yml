@@ -55,6 +55,8 @@ jobs:
 
       - run: yarn checkchange --verbose
 
+      - run: yarn lint
+
       - run: yarn test:unit
 
       - run: yarn test:func

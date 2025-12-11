@@ -21,10 +21,10 @@ export interface PackageJson {
   module?: string;
   types?: string;
   typings?: string;
-  exports?: any;
-  repository?: any;
-  bin?: any;
-  browser?: any;
+  exports?: unknown;
+  repository?: unknown;
+  bin?: unknown;
+  browser?: unknown;
   files?: string[];
   dependencies?: PackageDeps;
   devDependencies?: PackageDeps;
