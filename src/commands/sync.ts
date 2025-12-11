@@ -15,6 +15,7 @@ export async function sync(options: BeachballOptions, packageInfos: PackageInfos
 /** @deprecated Must provide the package infos */
 export async function sync(options: BeachballOptions): Promise<void>;
 export async function sync(options: BeachballOptions, packageInfos?: PackageInfos): Promise<void> {
+  // eslint-disable-next-line etc/no-deprecated
   packageInfos ||= getPackageInfos(options.path);
   const scopedPackages = new Set(getScopedPackages(options, packageInfos));
 

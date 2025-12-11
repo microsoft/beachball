@@ -71,6 +71,8 @@ export function validate(
 
   if (!isGitAvailable(options.path)) {
     logValidationError('Please make sure git is installed and initialize the repository with "git init"');
+    // TODO: consider throwing instead
+    // eslint-disable-next-line no-restricted-properties
     process.exit(1);
   }
 
@@ -81,6 +83,7 @@ export function validate(
     !env.isCI && console.warn('Changes in these files will not trigger a prompt for change descriptions');
   }
 
+  // eslint-disable-next-line etc/no-deprecated
   packageInfos ||= getPackageInfos(options.path);
 
   if (options.all && options.package) {
@@ -89,7 +92,7 @@ export function validate(
     logValidationError(`package "${options.package}" was not found`);
   } else {
     const invalidPackages = Array.isArray(options.package)
-      ? options.package.filter(pkg => !packageInfos![pkg])
+      ? options.package.filter(pkg => !packageInfos?.[pkg])
       : undefined;
     if (invalidPackages?.length) {
       logValidationError(`package(s) ${invalidPackages.map(pkg => `"${pkg}"`).join(', ')} were not found`);
@@ -163,6 +166,8 @@ export function validate(
 
   if (hasError) {
     // If any of the above basic checks failed, it doesn't make sense to check if change files are needed
+    // TODO: consider throwing instead
+    // eslint-disable-next-line no-restricted-properties
     process.exit(1);
   }
 
@@ -174,11 +179,15 @@ export function validate(
     if (isChangeNeeded && !allowMissingChangeFiles) {
       logValidationError('Change files are needed!');
       console.log(options.changehint);
+      // TODO: consider throwing instead
+      // eslint-disable-next-line no-restricted-properties
       process.exit(1); // exit here (this is the main poin)
     }
 
     if (options.disallowDeletedChangeFiles && areChangeFilesDeleted(options)) {
       logValidationError('Change files must not be deleted!');
+      // TODO: consider throwing instead
+      // eslint-disable-next-line no-restricted-properties
       process.exit(1);
     }
   }
@@ -197,6 +206,8 @@ Consider one of the following solutions:
 - If the unpublished package should be published, remove \`"private": true\` from its package.json.
 - If it should NOT be published, verify that it is only listed under devDependencies of published packages.
 `);
+      // TODO: consider throwing instead
+      // eslint-disable-next-line no-restricted-properties
       process.exit(1);
     }
   }

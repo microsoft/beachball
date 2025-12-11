@@ -39,7 +39,7 @@ export async function packPackage(
     return false;
   }
 
-  const packFile = result.stdout.trim().split('\n').pop()!;
+  const packFile = result.stdout.trim().split('\n').pop() || '';
   const packFilePath = path.join(packageRoot, packFile);
   if (!packFile.endsWith('.tgz') || !fs.existsSync(packFilePath)) {
     console.error(`\nnpm pack output for ${packageSpec} (above) did not end with a filename that exists`);
@@ -59,7 +59,9 @@ export async function packPackage(
     try {
       // attempt to clean up the pack file (ignore any failures)
       fs.removeSync(packFilePath);
-    } catch {}
+    } catch {
+      // ignore
+    }
     return false;
   }
 

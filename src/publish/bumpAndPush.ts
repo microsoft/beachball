@@ -7,7 +7,7 @@ import { displayManualRecovery } from './displayManualRecovery';
 import { gitFetch } from '../git/fetch';
 import { gitAsync } from '../git/gitAsync';
 
-const BUMP_PUSH_RETRIES = 5;
+const bumpPushRetries = 5;
 /** Use verbose logging for these steps to make it easier to debug if something goes wrong */
 const verbose = true;
 
@@ -22,13 +22,13 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
   let tryNumber = 0;
 
   /** Log a warning which includes the attempt number */
-  const logRetryWarning = (text: string, details: string = '(see above for details)') =>
-    console.warn(`[WARN ${tryNumber}/${BUMP_PUSH_RETRIES}]: ${text} ${details}`);
+  const logRetryWarning = (text: string, details = '(see above for details)') =>
+    console.warn(`[WARN ${tryNumber}/${bumpPushRetries}]: ${text} ${details}`);
 
-  while (tryNumber < BUMP_PUSH_RETRIES && !completed) {
+  while (tryNumber < bumpPushRetries && !completed) {
     tryNumber++;
     console.log('-'.repeat(80));
-    console.log(`Bumping versions and pushing to git (attempt ${tryNumber}/${BUMP_PUSH_RETRIES})`);
+    console.log(`Bumping versions and pushing to git (attempt ${tryNumber}/${bumpPushRetries})`);
     console.log('Reverting');
     revertLocalChanges({ cwd });
 
@@ -81,6 +81,8 @@ export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, opt
 
   if (!completed) {
     displayManualRecovery(bumpInfo);
+    // TODO: consider throwing instead
+    // eslint-disable-next-line no-restricted-properties
     process.exit(1);
   }
 }

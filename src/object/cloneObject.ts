@@ -17,15 +17,18 @@ export function cloneObject<T extends object>(obj: T): T {
   if (Array.isArray(obj)) {
     const clone = [] as typeof obj;
     for (let i = 0; i < obj.length; i++) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const val = obj[i];
       // Skip the recursive call if not an object.
       // This check is repeatedly done inline on sub-properties for performance.
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       clone[i] = val && typeof val === 'object' ? cloneObject(val) : val;
     }
     return clone;
   }
 
   if (obj instanceof Set) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return new Set(Array.from(obj).map(item => (item && typeof item === 'object' ? cloneObject(item) : item))) as T;
   }
 
@@ -35,6 +38,7 @@ export function cloneObject<T extends object>(obj: T): T {
 
   const clone = {} as typeof obj;
   for (const [key, val] of Object.entries(obj)) {
+    // eslint-disable-next-line
     (clone as any)[key] = val && typeof val === 'object' ? cloneObject(val) : val;
   }
   return clone;

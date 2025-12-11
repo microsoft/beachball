@@ -50,7 +50,7 @@ describe('performPublishOverrides', () => {
           // performPublishConfigOverrides mutates the packageJson, so we need to clone it to
           // simulate reading the file from the disk and avoid mutating original fixtures.
           // This is also just safer in general for tests that use this method for before/after comparisons.
-          return JSON.parse(JSON.stringify(packageJsons[pkg.name]));
+          return JSON.parse(JSON.stringify(packageJsons[pkg.name])) as PackageJson;
         }
       }
       throw new Error(`not found: ${path as string}`);

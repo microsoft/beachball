@@ -41,6 +41,8 @@ export async function publishToRegistry(originalBumpInfo: PublishBumpInfo, optio
 
   if (invalid) {
     console.error(`No packages were ${verb}ed due to validation errors (see above for details).`);
+    // TODO: consider throwing instead
+    // eslint-disable-next-line no-restricted-properties
     process.exit(1);
   }
 

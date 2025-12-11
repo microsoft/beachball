@@ -42,7 +42,8 @@ export function getPackageInfos(
 
   if (wsPackageInfos) {
     return typeof optionsOrCwd === 'string'
-      ? getPackageInfosWithOptions(wsPackageInfos)
+      ? // eslint-disable-next-line etc/no-deprecated
+        getPackageInfosWithOptions(wsPackageInfos)
       : getPackageInfosWithOptions(wsPackageInfos, optionsOrCwd);
   }
   return {};

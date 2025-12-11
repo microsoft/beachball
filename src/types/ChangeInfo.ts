@@ -15,6 +15,7 @@ export interface ChangeFileInfo {
   /** How to bump packages that depend on this one */
   dependentChangeType: ChangeType;
   /** Extra info added to the change file via custom prompts */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [extraInfo: string]: any;
 }
 

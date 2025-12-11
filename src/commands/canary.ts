@@ -12,6 +12,7 @@ export async function canary(options: BeachballOptions, oldPackageInfo: PackageI
 /** @deprecated Must provide the package infos */
 export async function canary(options: BeachballOptions): Promise<void>;
 export async function canary(options: BeachballOptions, oldPackageInfo?: PackageInfos): Promise<void> {
+  // eslint-disable-next-line etc/no-deprecated
   oldPackageInfo = oldPackageInfo || getPackageInfos(options.path);
 
   const bumpInfo = gatherBumpInfo(options, oldPackageInfo);
@@ -31,6 +32,7 @@ export async function canary(options: BeachballOptions, oldPackageInfo?: Package
     let newVersion = oldPackageInfo[pkg].version;
 
     do {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       newVersion = semver.inc(newVersion, 'prerelease', options.canaryName || 'canary')!;
     } while (packageVersions[pkg].includes(newVersion));
 

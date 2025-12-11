@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
-import type * as npmModuleType from '../../packageManager/npm';
+import * as npmModuleType from '../../packageManager/npm';
 import type { NpmResult } from '../../packageManager/npm';
 import { packPackage } from '../../packageManager/packPackage';
 import { PackageInfo } from '../../types/PackageInfo';
@@ -13,7 +13,7 @@ import { getMockNpmPackName, initNpmMock } from '../../__fixtures__/mockNpm';
 // A couple tests also use the real npm command.
 jest.mock('../../packageManager/npm');
 
-const { npm: actualNpm } = jest.requireActual('../../packageManager/npm') as typeof npmModuleType;
+const { npm: actualNpm } = jest.requireActual<typeof npmModuleType>('../../packageManager/npm');
 
 describe('packPackage', () => {
   const npmMock = initNpmMock();
@@ -30,8 +30,8 @@ describe('packPackage', () => {
       ...json,
       packageJsonPath: tempPackageJsonPath,
       private: false,
-      combinedOptions: {} as any,
-      packageOptions: {} as any,
+      combinedOptions: {} as PackageInfo['combinedOptions'],
+      packageOptions: {} as PackageInfo['packageOptions'],
     };
     return {
       name,

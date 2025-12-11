@@ -16,6 +16,7 @@ export async function change(options: BeachballOptions): Promise<void>;
 export async function change(options: BeachballOptions, packageInfos?: PackageInfos): Promise<void> {
   const { branch, path: cwd, package: specificPackage } = options;
 
+  // eslint-disable-next-line etc/no-deprecated
   packageInfos ||= getPackageInfos(cwd);
   const packageGroups = getPackageGroups(packageInfos, cwd, options.groups);
 

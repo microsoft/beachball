@@ -32,6 +32,7 @@ export interface ChangelogEntry {
   /** Package name the change was in */
   package: string;
   /** Extra info added to the change file via custom prompts */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [extraInfo: string]: any;
 }
 

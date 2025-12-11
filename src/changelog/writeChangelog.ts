@@ -68,6 +68,7 @@ async function writeGroupedChangelog(
   // Validate groups and initialize groupedChangelogs
   for (const group of changelogGroups) {
     const { changelogAbsDir } = group;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, etc/no-deprecated
     const mainPackageName = group.mainPackageName ?? group.masterPackageName!;
     const mainPackage = packageInfos[mainPackageName];
     if (!mainPackage) {

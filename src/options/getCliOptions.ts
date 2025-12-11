@@ -60,6 +60,7 @@ type AtLeastOne<T> = [T, ...T[]];
 const allKeysOfType =
   <T extends string>() =>
   <L extends AtLeastOne<T>>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...x: L extends any ? (Exclude<T, L[number]> extends never ? L : Exclude<T, L[number]>[]) : never
   ) =>
     x;
@@ -125,7 +126,8 @@ export function getCliOptions(processInfo: ProcessInfo): ParsedOptions['cliOptio
 export function getCliOptions(argv: string[]): ParsedOptions['cliOptions'];
 export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOptions['cliOptions'] {
   const processInfo = Array.isArray(processOrArgv)
-    ? { argv: processOrArgv, cwd: env.isJest ? '' : process.cwd() }
+    ? // eslint-disable-next-line no-restricted-properties -- legacy API
+      { argv: processOrArgv, cwd: env.isJest ? '' : process.cwd() }
     : processOrArgv;
 
   // Be careful not to mutate the input argv
@@ -183,8 +185,10 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
     } else if (value === 'true') {
       // For unknown arguments like --foo=true or --bar=false, yargs will handle the value as a string.
       // Convert it to a boolean to avoid subtle bugs.
+      // eslint-disable-next-line
       (cliOptions as any)[key] = true;
     } else if (value === 'false') {
+      // eslint-disable-next-line
       (cliOptions as any)[key] = false;
     }
   }

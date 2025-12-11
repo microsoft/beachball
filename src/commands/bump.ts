@@ -12,6 +12,7 @@ export async function bump(options: BeachballOptions, packageInfos: PackageInfos
 /** @deprecated Must provide the package infos */
 export async function bump(options: BeachballOptions): Promise<BumpInfo>;
 export async function bump(options: BeachballOptions, packageInfos?: PackageInfos): Promise<BumpInfo> {
+  // eslint-disable-next-line etc/no-deprecated
   const bumpInfo = gatherBumpInfo(options, packageInfos || getPackageInfos(options.path));
   // The bumpInfo is returned for testing
   return performBump(bumpInfo, options);

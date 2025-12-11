@@ -1,6 +1,7 @@
 export type DeepReadonly<T> = T extends (infer R)[]
   ? DeepReadonlyArray<R>
-  : T extends Function
+  : // eslint-disable-next-line @typescript-eslint/ban-types
+  T extends Function
   ? T
   : T extends Set<infer V>
   ? ReadonlySet<DeepReadonly<V>>

@@ -1,7 +1,9 @@
+import fs from 'fs-extra';
+import path from 'path';
 import type { PackageJson } from './types/PackageInfo';
 
 export function showVersion(): void {
-  const packageJson = require('../package.json') as PackageJson;
+  const packageJson = fs.readJSONSync(path.resolve(__dirname, '../package.json')) as PackageJson;
   console.log(`beachball v${packageJson.version} - the sunniest version bumping tool`);
 }
 

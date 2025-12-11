@@ -34,7 +34,7 @@ describe('readChangeFiles', () => {
 
   function updateJsonFile(relativePath: string, json: Record<string, unknown>) {
     const fullPath = path.join(tempRoot!, relativePath);
-    const diskJson = fs.readJSONSync(fullPath);
+    const diskJson = fs.readJSONSync(fullPath) as Record<string, unknown>;
     Object.assign(diskJson, json);
     fs.writeJSONSync(fullPath, diskJson, { spaces: 2 });
   }
@@ -171,7 +171,7 @@ describe('readChangeFiles', () => {
   });
 
   it('runs transform.changeFiles functions if provided', () => {
-    const editedComment: string = 'Edited comment for testing';
+    const editedComment = 'Edited comment for testing';
     tempRoot = createTestFileStructureType('monorepo');
 
     const { options, packageInfos } = getOptionsAndPackages({

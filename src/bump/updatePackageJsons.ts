@@ -27,6 +27,7 @@ export function updatePackageJsons(modifiedPackages: Set<string>, packageInfos: 
       // would overwrite those incorrectly!
       for (const [dep, updatedVersion] of Object.entries(updatedDeps)) {
         if (modifiedPackages.has(dep) && packageJson[depKind]?.[dep]) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           packageJson[depKind]![dep] = updatedVersion;
         }
       }

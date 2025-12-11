@@ -16,7 +16,7 @@ export const fakeEmail = 'test@test.com';
  */
 export function getChange(
   packageName: string,
-  comment: string = `${packageName} comment`,
+  comment = `${packageName} comment`,
   type: ChangeType = 'minor'
 ): ChangeFileInfo {
   return {

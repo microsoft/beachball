@@ -3,6 +3,7 @@
   "editor.trimAutoWhitespace": true,
   "editor.insertSpaces": true,
   "editor.tabSize": 2,
+  "eslint.enable": true,
   "files.trimTrailingWhitespace": true,
   "javascript.preferences.quoteStyle": "single",
   "typescript.preferences.quoteStyle": "single",

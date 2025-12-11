@@ -35,6 +35,7 @@ const options = {
 };
 
 describe('getPackageChangelogs', () => {
+  // eslint-disable-next-line etc/no-deprecated
   const getFileAddedHashMock = getFileAddedHash as jest.MockedFunction<typeof getFileAddedHash>;
 
   afterEach(() => {
