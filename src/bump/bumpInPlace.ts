@@ -14,10 +14,9 @@ import { ChangeType } from '../types/ChangeInfo';
  */
 export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions): void {
   const { bumpDeps } = options;
-  const { calculatedChangeTypes, changeFileChangeInfos, modifiedPackages } = bumpInfo;
-
-  // pass 1: figure out all the change types for all the packages taking into account the bumpDeps option and version groups
-  const dependents = bumpDeps ? getDependentsForPackages(bumpInfo) : {};
+  // Precondition (pass 1): calculatedChangeTypes includes ONLY changes direct from the change files
+  // (no dependents or groups)
+  const { calculatedChangeTypes, changeFileChangeInfos } = bumpInfo;
 
   // TODO: when we do "locked", or "lock step" versioning, we could simply skip setting grouped change types
   //       - set the version for all packages in the group in (bumpPackageInfoVersion())
@@ -43,17 +42,19 @@ export function bumpInPlace(bumpInfo: BumpInfo, options: BeachballOptions): void
     }
   }
 
-  // Calculate change types for packages and dependencies
+  // Pass 3: Calculate change types for dependents and groups.
+  // TODO: fix weird behavior - https://github.com/microsoft/beachball/issues/620
+  const dependents = bumpDeps ? getDependentsForPackages(bumpInfo) : undefined;
   for (const { change } of changeFileChangeInfos) {
-    updateRelatedChangeType({ change, bumpInfo, dependents, bumpDeps });
+    updateRelatedChangeType({ change, bumpInfo, dependents });
   }
 
   // pass 3: actually bump the packages in the bumpInfo in memory (no disk writes at this point)
-  Object.keys(calculatedChangeTypes).forEach(pkgName => {
+  for (const pkgName of Object.keys(calculatedChangeTypes)) {
     bumpPackageInfoVersion(pkgName, bumpInfo, options);
-  });
+  }
 
-  // step 4: Bump all the dependencies packages
+  // step 4: Bump all the dependency version ranges and collect dependentChangedBy for the changelog
+  // (also add any modifiedPackages not previously detected--this should only happen if bumpDeps was false)
   bumpInfo.dependentChangedBy = setDependentVersions(bumpInfo, options);
-  Object.keys(bumpInfo.dependentChangedBy).forEach(pkg => modifiedPackages.add(pkg));
 }

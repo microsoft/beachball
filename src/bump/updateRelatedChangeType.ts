@@ -1,4 +1,4 @@
-import { MinChangeType, getMaxChangeType } from '../changefile/changeTypes';
+import { getMaxChangeType } from '../changefile/changeTypes';
 import type { BumpInfo, PackageDependents } from '../types/BumpInfo';
 import { ChangeFileInfo } from '../types/ChangeInfo';
 
@@ -17,9 +17,10 @@ import { ChangeFileInfo } from '../types/ChangeInfo';
  *   - For non-grouped packages that have changed, the highest change type from any change file
  *   - For each grouped package where anything in the group has changed, the highest change type
  *     from any change file in the group
+ * - `dependents` is undefined if `BeachballOptions.bumpDeps` was false
  *
  * What it mutates:
- * - `bumpInfo.calculatedChangeTypes`: updates dependents' change types
+ * - `bumpInfo.calculatedChangeTypes`: update change type for package and dependents
  * - all dependents' change types as part of a group update
  *
  * What it does not do:
@@ -28,39 +29,38 @@ import { ChangeFileInfo } from '../types/ChangeInfo';
 export function updateRelatedChangeType(params: {
   change: ChangeFileInfo;
   bumpInfo: Pick<BumpInfo, 'calculatedChangeTypes' | 'packageGroups' | 'packageInfos'>;
-  dependents: PackageDependents;
-  bumpDeps: boolean;
+  dependents: PackageDependents | undefined;
 }): void {
-  const { change, bumpInfo, dependents, bumpDeps } = params;
+  const { change, bumpInfo, dependents } = params;
   const { calculatedChangeTypes, packageGroups, packageInfos } = bumpInfo;
 
   // If dependentChangeType is none (or somehow unset), there's nothing to do.
-  const updatedChangeType = getMaxChangeType([change.dependentChangeType]);
-  if (updatedChangeType === 'none') {
+  const dependentChangeType = getMaxChangeType([change.dependentChangeType]);
+  if (dependentChangeType === 'none') {
     return;
   }
-
-  const entryPointPackageName = change.packageName;
 
   // Enqueue the first package.
   // This part of the bump algorithm is a performance bottleneck, so it's important to bail early
   // whenever possible, and to use `seen` to reduce queue insertion.
   // https://github.com/microsoft/beachball/pull/1042
-  const queue = [{ subjectPackage: entryPointPackageName, changeType: MinChangeType }];
+  const queue = [change.packageName];
   const seen = new Set<string>();
 
   while (queue.length > 0) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const { subjectPackage, changeType } = queue.shift()!;
+    const subjectPackage = queue.shift()!;
 
     // Step 1. Update change type of the subjectPackage according to dependentChangeType if needed.
-    if (subjectPackage !== entryPointPackageName) {
+    // (Skip for the initial package.)
+    if (subjectPackage !== change.packageName) {
       const oldType = calculatedChangeTypes[subjectPackage];
       calculatedChangeTypes[subjectPackage] = getMaxChangeType(
-        [oldType, changeType],
+        [oldType, dependentChangeType],
         packageInfos[subjectPackage]?.combinedOptions?.disallowedChangeTypes
       );
 
+      // TODO: what's the interaction with groups here?
       if (calculatedChangeTypes[subjectPackage] === oldType) {
         // We didn't change this type, so keep going.
         continue;
@@ -68,16 +68,17 @@ export function updateRelatedChangeType(params: {
     }
 
     // Step 2. For all dependent packages of the current subjectPackage, place in queue to be updated at least to the "updatedChangeType"
-    const dependentPackages = dependents[subjectPackage];
+    // (dependents will be undefined if bumpDeps was false)
+    const dependentPackages = dependents?.[subjectPackage];
 
-    if (bumpDeps && dependentPackages?.length) {
+    if (dependentPackages?.length) {
       for (const dependentPackage of dependentPackages) {
         if (seen.has(dependentPackage)) {
           continue;
         }
 
         seen.add(dependentPackage);
-        queue.push({ subjectPackage: dependentPackage, changeType: updatedChangeType });
+        queue.push(dependentPackage);
       }
     }
 
@@ -86,16 +87,14 @@ export function updateRelatedChangeType(params: {
     //       - the main concern is how to capture the bump reason in grouped changelog
 
     // Step 3. For group-linked packages, update the change type to the max(change file info's change type, propagated update change type)
+    // TODO: ensure this is consistent with other group handling, and whether it's necessary at all if bumpDeps is false
     const group = Object.values(packageGroups).find(g => g.packageNames.includes(subjectPackage));
 
-    if (group && !group.disallowedChangeTypes?.includes(updatedChangeType)) {
+    if (group && !group.disallowedChangeTypes?.includes(dependentChangeType)) {
       for (const packageNameInGroup of group.packageNames) {
         if (!seen.has(packageNameInGroup)) {
           seen.add(packageNameInGroup);
-          queue.push({
-            subjectPackage: packageNameInGroup,
-            changeType: updatedChangeType,
-          });
+          queue.push(packageNameInGroup);
         }
       }
     }
