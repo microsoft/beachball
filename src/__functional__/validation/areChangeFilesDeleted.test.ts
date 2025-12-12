@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeAll, beforeEach, afterAll } from '@jest/globals';
-import fs from 'fs-extra';
+import fs from 'fs';
 import { generateChangeFiles } from '../../__fixtures__/changeFiles';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
@@ -50,7 +50,7 @@ describe('areChangeFilesDeleted', () => {
 
     const options = getOptions();
     const changeDirPath = getChangePath(options);
-    fs.removeSync(changeDirPath);
+    fs.rmSync(changeDirPath, { recursive: true, force: true });
 
     repository.commitAll();
 
@@ -67,7 +67,7 @@ describe('areChangeFilesDeleted', () => {
     repository.checkout('-b', 'feature-0');
 
     const changeDirPath = getChangePath(options);
-    fs.removeSync(changeDirPath);
+    fs.rmSync(changeDirPath, { recursive: true, force: true });
 
     repository.commitAll();
 

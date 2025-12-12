@@ -1,7 +1,7 @@
 import { ConfigBuilder } from '@verdaccio/config';
 import { fork, type ChildProcess } from 'child_process';
 import execa from 'execa';
-import fs from 'fs-extra';
+import fs from 'fs';
 import getPort from 'get-port';
 import path from 'path';
 import { removeTempDir, tmpdir } from './tmpdir';
@@ -48,7 +48,7 @@ export class Registry {
       return this.startWithPort(this.port);
     }
 
-    // find-free-port will throw an error if none are free.
+    // get-port will throw an error if none are free.
     // If this is consistently having problems, probably it's best to increase portRange.
     const maxPort = this.startPort + portRange;
     console.log(`Looking for free ports in range ${this.startPort} to ${maxPort}`);

@@ -1,5 +1,5 @@
 import path from 'path';
-import fs from 'fs-extra';
+import fs from 'fs';
 import type { PackageInfo } from '../types/PackageInfo';
 import { getPackageChangelogs } from './getPackageChangelogs';
 import { renderChangelog } from './renderChangelog';
@@ -10,6 +10,8 @@ import { isPathIncluded } from '../monorepo/isPathIncluded';
 import type { PackageChangelog, ChangelogJson } from '../types/ChangeLog';
 import { mergeChangelogs } from './mergeChangelogs';
 import { prepareChangelogPaths } from './prepareChangelogPaths';
+import { readJson } from '../object/readJson';
+import { writeJson } from '../object/writeJson';
 
 export async function writeChangelog(
   bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'dependentChangedBy' | 'packageInfos'>,
@@ -132,9 +134,7 @@ async function writeChangelogFiles(params: {
   // (changelogPaths.json will only be set if generateChangelog is true or 'json')
   if (changelogPaths.json) {
     try {
-      previousJson = fs.existsSync(changelogPaths.json)
-        ? (fs.readJSONSync(changelogPaths.json) as ChangelogJson)
-        : undefined;
+      previousJson = fs.existsSync(changelogPaths.json) ? readJson<ChangelogJson>(changelogPaths.json) : undefined;
     } catch (e) {
       console.warn(`${changelogPaths.json} is invalid: ${e}`);
     }
@@ -144,7 +144,7 @@ async function writeChangelogFiles(params: {
         previousChangelog: previousJson,
         maxVersions: options.changelog?.maxVersions,
       });
-      fs.writeJSONSync(changelogPaths.json, nextJson, { spaces: 2 });
+      writeJson(changelogPaths.json, nextJson);
     } catch (e) {
       console.warn(`Problem writing to ${changelogPaths.json}: ${e}`);
     }

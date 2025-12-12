@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs';
 import path from 'path';
 import { PackageInfo } from '../types/PackageInfo';
 import { BeachballOptions } from '../types/BeachballOptions';
@@ -52,13 +52,16 @@ export async function packPackage(
   const packPrefix = String(index + 1).padStart(String(total).length, '0') + '-';
   const finalPackFilePath = path.join(packToPath, packPrefix + packFile);
   try {
-    fs.ensureDirSync(packToPath);
-    fs.moveSync(packFilePath, finalPackFilePath);
+    if (fs.existsSync(finalPackFilePath)) {
+      throw new Error('Target path already exists');
+    }
+    fs.mkdirSync(packToPath, { recursive: true });
+    fs.renameSync(packFilePath, finalPackFilePath);
   } catch (err) {
     console.error(`\nFailed to move ${packFilePath} to ${finalPackFilePath}: ${err}`);
     try {
       // attempt to clean up the pack file (ignore any failures)
-      fs.removeSync(packFilePath);
+      fs.rmSync(packFilePath);
     } catch {
       // ignore
     }

@@ -1,11 +1,12 @@
 import { afterAll, afterEach, beforeAll, type jest } from '@jest/globals';
-import fs from 'fs-extra';
+import fs from 'fs';
 import path from 'path';
 import semver from 'semver';
 import { npmShowProperties, type NpmShowResult } from '../packageManager/listPackageVersions';
 import { npm, NpmResult } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
 import type { PackageManagerOptions } from '../packageManager/packageManager';
+import { readJson } from '../object/readJson';
 
 /** Published versions and dist-tags for a package */
 type NpmPackageVersionsData = Pick<NpmShowResult, 'versions' | 'dist-tags'>;
@@ -210,7 +211,7 @@ export const _mockNpmPublish: MockNpmCommand = async (registryData, args, opts) 
 
   // Read package.json from cwd to find the published package name and version.
   // (If this fails, let the exception propagate for easier debugging.)
-  const packageJson = fs.readJsonSync(path.join(opts.cwd, 'package.json')) as PackageJson;
+  const packageJson = readJson<PackageJson>(path.join(opts.cwd, 'package.json'));
 
   const tag = args.includes('--tag') ? args[args.indexOf('--tag') + 1] : 'latest';
 
@@ -258,7 +259,7 @@ export const _mockNpmPack: MockNpmCommand = async (registryData, args, opts) => 
 
   // Read package.json from cwd to find the package name and version.
   // (If this fails, let the exception propagate for easier debugging.)
-  const packageJson = fs.readJsonSync(path.join(opts.cwd, 'package.json')) as PackageJson;
+  const packageJson = readJson<PackageJson>(path.join(opts.cwd, 'package.json'));
 
   // Create a fake ".tgz" file with npm's naming scheme (contents don't matter).
   const packFileName = getMockNpmPackName(packageJson);

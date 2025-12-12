@@ -1,5 +1,5 @@
 import path from 'path';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 import { removeTempDir, tmpdir } from './tmpdir';
 import { git, type GitProcessOutput } from 'workspace-tools';
 import {
@@ -9,6 +9,8 @@ import {
   optsWithLang,
   setDefaultBranchName,
 } from './gitDefaults';
+import { readJson } from '../object/readJson';
+import { writeJson } from '../object/writeJson';
 
 /**
  * Clone options. See the docs for details on behavior and interaction of these options.
@@ -129,14 +131,11 @@ ${gitResult.stderr.toString()}`);
    * Create (or update) and stage a file, creating the intermediate directories if necessary.
    * Automatically uses root path; do not pass absolute paths here.
    */
-  stageChange(newFilename: string, content?: string | object): void {
+  stageChange(newFilename: string, content: string | object = ''): void {
     const filePath = this.pathTo(newFilename);
-    fs.ensureDirSync(path.dirname(filePath));
-    fs.ensureFileSync(filePath);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
-    if (content) {
-      fs.writeFileSync(filePath, typeof content === 'string' ? content : JSON.stringify(content));
-    }
+    fs.writeFileSync(filePath, typeof content === 'string' ? content : JSON.stringify(content));
 
     this.git(['add', newFilename]);
   }
@@ -169,8 +168,8 @@ ${gitResult.stderr.toString()}`);
     }
 
     const fullPath = this.pathTo(filename);
-    const oldContent = fs.readJSONSync(fullPath) as object;
-    fs.writeJSONSync(fullPath, { ...oldContent, ...updates });
+    const oldContent = readJson<object>(fullPath);
+    writeJson(fullPath, { ...oldContent, ...updates });
 
     this.git(['add', filename]);
     this.git(['commit', '-m', `"${filename}"`]);

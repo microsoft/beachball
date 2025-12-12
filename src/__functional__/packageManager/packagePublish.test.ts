@@ -1,15 +1,15 @@
 import { describe, expect, it, beforeAll, afterAll, beforeEach, jest, afterEach } from '@jest/globals';
-import fs from 'fs-extra';
 import path from 'path';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { npmShow } from '../../__fixtures__/npmShow';
 import { Registry } from '../../__fixtures__/registry';
-import { tmpdir } from '../../__fixtures__/tmpdir';
+import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
 import * as npmModule from '../../packageManager/npm';
 import { packagePublish } from '../../packageManager/packagePublish';
 import type { PackageInfo } from '../../types/PackageInfo';
 import type { npm, NpmResult } from '../../packageManager/npm';
 import type { PackageOptions } from '../../types/BeachballOptions';
+import { writeJson } from '../../object/writeJson';
 
 const testTag = 'testbeachballtag';
 const testName = 'testbeachballpackage';
@@ -67,7 +67,7 @@ describe('packagePublish', () => {
     // Create a test package.json in a temporary location for use in tests.
     tempRoot = tmpdir();
     tempPackageJsonPath = path.join(tempRoot, 'package.json');
-    fs.writeJSONSync(tempPackageJsonPath, testPackage, { spaces: 2 });
+    writeJson(tempPackageJsonPath, testPackage);
   });
 
   beforeEach(() => {
@@ -81,7 +81,7 @@ describe('packagePublish', () => {
   afterAll(() => {
     registry.stop();
     registry.cleanUp();
-    fs.removeSync(tempRoot);
+    removeTempDir(tempRoot);
   });
 
   it('can publish', async () => {

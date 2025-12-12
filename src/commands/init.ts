@@ -1,9 +1,10 @@
 import type { BeachballOptions } from '../types/BeachballOptions';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 import * as path from 'path';
 import { findGitRoot } from 'workspace-tools';
 import { npm } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
+import { readJson } from '../object/readJson';
 
 // TODO: consider modifying this to propagate up
 function errorExit(message: string): void {
@@ -45,7 +46,7 @@ export async function init(options: Pick<BeachballOptions, 'path'>): Promise<voi
 
   let packageJson = {} as PackageJson;
   try {
-    packageJson = fs.readJSONSync(packageJsonFilePath, 'utf-8') as PackageJson;
+    packageJson = readJson<PackageJson>(packageJsonFilePath);
   } catch {
     errorExit(`Failed to read package.json at ${packageJsonFilePath}`);
   }

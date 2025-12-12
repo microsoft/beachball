@@ -1,4 +1,4 @@
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 import * as tmp from 'tmp';
 import { normalizedTmpdir } from 'normalized-tmpdir';
 // import console to ensure that warnings are always logged if needed (no mocking)
@@ -38,7 +38,7 @@ export function removeTempDir(dir: string | undefined): void {
   try {
     // This occasionally throws on Windows with "resource busy"
     if (dir && !env.isCI) {
-      fs.removeSync(dir);
+      fs.rmSync(dir, { recursive: true, force: true });
     }
   } catch (err) {
     // This is non-fatal since the temp dir will eventually be cleaned up automatically

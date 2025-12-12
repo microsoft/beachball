@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
-import fs from 'fs-extra';
+import fs from 'fs';
 import { generateChangeFiles, getChangeFiles } from '../../__fixtures__/changeFiles';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
@@ -13,6 +13,8 @@ import { getParsedOptions } from '../../options/getOptions';
 import { removeTempDir } from '../../__fixtures__/tmpdir';
 import path from 'path';
 import { createTestFileStructureType } from '../../__fixtures__/createTestFileStructure';
+import { readJson } from '../../object/readJson';
+import { writeJson } from '../../object/writeJson';
 
 describe('readChangeFiles', () => {
   /** Non-git temp directory root, for tests that don't need git */
@@ -34,9 +36,9 @@ describe('readChangeFiles', () => {
 
   function updateJsonFile(relativePath: string, json: Record<string, unknown>) {
     const fullPath = path.join(tempRoot!, relativePath);
-    const diskJson = fs.readJSONSync(fullPath) as Record<string, unknown>;
+    const diskJson = readJson<Record<string, unknown>>(fullPath);
     Object.assign(diskJson, json);
-    fs.writeJSONSync(fullPath, diskJson, { spaces: 2 });
+    writeJson(fullPath, diskJson);
   }
 
   afterEach(() => {

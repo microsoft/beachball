@@ -1,7 +1,8 @@
-import fs from 'fs-extra';
+import fs from 'fs';
 import path from 'path';
 import type { ChangelogJson } from '../types/ChangeLog';
 import { markerComment } from '../changelog/renderChangelog';
+import { readJson } from '../object/readJson';
 
 /** Placeholder commit as replaced by cleanChangelogJson */
 export const fakeCommit = '(sha1)';
@@ -38,7 +39,7 @@ export function readChangelogJson(packagePath: string, filename?: string, noClea
     return null;
   }
 
-  const changelog = fs.readJSONSync(changelogJsonFile, { encoding: 'utf-8' }) as ChangelogJson;
+  const changelog = readJson<ChangelogJson>(changelogJsonFile);
   if (noClean) {
     return changelog;
   }

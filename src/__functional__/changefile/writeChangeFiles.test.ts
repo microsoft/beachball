@@ -1,5 +1,4 @@
 import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
-import fs from 'fs-extra';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 
@@ -10,6 +9,7 @@ import { listAllTrackedFiles } from 'workspace-tools';
 import type { BeachballOptions } from '../../types/BeachballOptions';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
 import type { Repository } from '../../__fixtures__/repository';
+import { readJson } from '../../object/readJson';
 
 const uuidRegex = /[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}/;
 const uuidGeneric = '00000000-0000-0000-0000-000000000000';
@@ -71,7 +71,7 @@ describe('writeChangeFiles', () => {
     expect(repo.getCurrentHash()).not.toEqual(previousHead);
 
     // also verify contents of one file
-    const changeFileContents = fs.readJSONSync(changeFiles[0]) as ChangeFileInfo;
+    const changeFileContents = readJson<ChangeFileInfo>(changeFiles[0]);
     expect(changeFileContents).toEqual({ packageName: 'bar' });
   });
 
@@ -128,7 +128,7 @@ describe('writeChangeFiles', () => {
     const trackedFiles = listAllTrackedFiles({ patterns: ['change/*'], cwd: repo.rootPath });
     expect(cleanChangeFilePaths(repo.rootPath, trackedFiles)).toEqual(expectedFile);
 
-    const changeFileContents = fs.readJSONSync(changeFiles[0]) as ChangeInfoMultiple;
+    const changeFileContents = readJson<ChangeInfoMultiple>(changeFiles[0]);
     expect(changeFileContents).toEqual({
       changes: [{ packageName: 'foo' }, { packageName: 'bar' }],
     });

@@ -1,5 +1,4 @@
 import { describe, expect, it, afterEach, jest } from '@jest/globals';
-import fs from 'fs-extra';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import type { Repository } from '../__fixtures__/repository';
@@ -10,6 +9,7 @@ import type { packagePublish } from '../packageManager/packagePublish';
 import type { RepoOptions } from '../types/BeachballOptions';
 import { initNpmMock } from '../__fixtures__/mockNpm';
 import { getParsedOptions } from '../options/getOptions';
+import { removeTempDir } from '../__fixtures__/tmpdir';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -59,7 +59,7 @@ describe('sync command (e2e)', () => {
       repositoryFactory.cleanUp();
       repositoryFactory = undefined;
     }
-    tempDirs.forEach(dir => fs.removeSync(dir));
+    tempDirs.forEach(dir => removeTempDir(dir));
     tempDirs.splice(0, tempDirs.length);
   });
 

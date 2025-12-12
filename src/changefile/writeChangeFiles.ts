@@ -2,9 +2,10 @@ import type { ChangeFileInfo } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
 import { getBranchName, stage, commit } from 'workspace-tools';
 import crypto from 'crypto';
-import fs from 'fs-extra';
+import fs from 'fs';
 import path from 'path';
 import type { BeachballOptions } from '../types/BeachballOptions';
+import { writeJson } from '../object/writeJson';
 
 /**
  * Loops through the `changes` and writes out a list of change files
@@ -23,7 +24,7 @@ export function writeChangeFiles(
   }
 
   if (!fs.existsSync(changePath)) {
-    fs.mkdirpSync(changePath);
+    fs.mkdirSync(changePath, { recursive: true });
   }
 
   const getChangeFile = (prefix: string) => path.join(changePath, `${prefix}-${crypto.randomUUID()}.json`);
@@ -38,7 +39,7 @@ export function writeChangeFiles(
   } else {
     changeFiles = changes.map(change => {
       const changeFile = getChangeFile(change.packageName.replace(/[^\w@]/g, '-'));
-      fs.writeJSONSync(changeFile, change, { spaces: 2 });
+      writeJson(changeFile, change);
       return changeFile;
     });
   }
