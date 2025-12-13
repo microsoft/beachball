@@ -4,6 +4,7 @@ module.exports = {
   disallowedChangeTypes: ['major'],
   ignorePatterns: [
     '.*ignore',
+    '*.yml',
     '.github/**',
     '.prettierrc.json5',
     '.vscode/**',
