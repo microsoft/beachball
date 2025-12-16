@@ -1,5 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { _clearPackageVersionsCache } from '../../packageManager/listPackageVersions';
+import { describe, expect, it, jest } from '@jest/globals';
 import { validatePackageVersions } from '../../publish/validatePackageVersions';
 import type { NpmOptions } from '../../types/NpmOptions';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
@@ -7,16 +6,13 @@ import { initNpmMock } from '../../__fixtures__/mockNpm';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 jest.mock('../../packageManager/npm');
+jest.mock('npm-registry-fetch');
 
 describe('validatePackageVersions', () => {
   const logs = initMockLogs();
   /** Mock the `npm show` command. This also handles cleanup after each test. */
   const npmMock = initNpmMock();
   const npmOptions: NpmOptions = { npmReadConcurrency: 2, path: undefined, registry: 'https://fake' };
-
-  afterEach(() => {
-    _clearPackageVersionsCache();
-  });
 
   it('succeeds with nothing to validate', async () => {
     expect(await validatePackageVersions([], {}, npmOptions)).toBe(true);
@@ -27,7 +23,7 @@ describe('validatePackageVersions', () => {
     const packageInfos = makePackageInfos({ foo: { version: '1.0.1' } });
 
     expect(await validatePackageVersions(['foo'], packageInfos, npmOptions)).toBe(true);
-    expect(npmMock.mock).toHaveBeenCalledTimes(1);
+    expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[log]
       Validating new package versions...
@@ -42,7 +38,7 @@ describe('validatePackageVersions', () => {
     const packageInfos = makePackageInfos({ foo: { version: '1.0.0' } });
 
     expect(await validatePackageVersions(['foo'], packageInfos, npmOptions)).toBe(true);
-    expect(npmMock.mock).toHaveBeenCalledTimes(1);
+    expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[log]
       Validating new package versions...
@@ -57,7 +53,7 @@ describe('validatePackageVersions', () => {
     const packageInfos = makePackageInfos({ foo: { version: '1.0.0' } });
 
     expect(await validatePackageVersions(['foo'], packageInfos, npmOptions)).toBe(false);
-    expect(npmMock.mock).toHaveBeenCalledTimes(1);
+    expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
     expect(logs.getMockLines('error')).toMatchInlineSnapshot(`
       "ERROR: Attempting to publish package versions that already exist in the registry:
         • foo@1.0.0"
@@ -69,7 +65,7 @@ describe('validatePackageVersions', () => {
     const packageInfos = makePackageInfos({ foo: { version: '1.0.0' }, bar: { version: '1.0.1' } });
 
     expect(await validatePackageVersions(['foo', 'bar'], packageInfos, npmOptions)).toBe(false);
-    expect(npmMock.mock).toHaveBeenCalledTimes(2);
+    expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[log]
       Validating new package versions...

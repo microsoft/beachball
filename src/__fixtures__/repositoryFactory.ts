@@ -109,8 +109,6 @@ function getMonorepoFixture(parentFolder?: string): RepoFixture {
           version: '1.0.0',
           dependencies: { [`${scope}bar`]: '^1.3.4' },
           main: 'src/index.ts',
-          onPublish: { main: 'lib/index.js' },
-          afterPublish: { notify: 'message' },
         },
         bar: { name: `${scope}bar`, version: '1.3.4', dependencies: { [`${scope}baz`]: '^1.3.4' } },
         baz: { name: `${scope}baz`, version: '1.3.4' },
@@ -194,7 +192,7 @@ export class RepositoryFactory {
     // Initialize the repo contents by cloning the "origin" repo, committing the fixture files,
     // and pushing changes back.
     const tmpRepo = new Repository(this.root);
-    tmpRepo.commitChange('README');
+    fs.writeFileSync(tmpRepo.pathTo('README'), '');
 
     // Create the fixture files and save the full fixture objects.
     // The files are committed all together at the end to speed things up.
@@ -235,9 +233,8 @@ export class RepositoryFactory {
           writeJson(path.join(pkgFolder, 'package.json'), packageJson);
         }
       }
-
-      tmpRepo.commitAll(`committing fixture ${parentFolder}`);
     }
+    tmpRepo.commitAll(`committing fixture`);
 
     this.fixture = this.fixtures['.'] || Object.values(this.fixtures)[0];
 

@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Fetch package info directly from the registry, not with npm CLI. This should be a significant performance improvement when publishing or syncing many packages. The default `npmReadConcurrency` has been increased to 10 since this is a lighter-weight operation.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

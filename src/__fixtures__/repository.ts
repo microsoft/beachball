@@ -185,7 +185,7 @@ ${gitResult.stderr.toString()}`);
   getCurrentTags(): string[] {
     const tagsResult = this.git(['tag', '--points-at', 'HEAD']);
     const trimmedResult = tagsResult.stdout.trim();
-    return trimmedResult ? trimmedResult.split('\n') : [];
+    return trimmedResult ? trimmedResult.split('\n').sort() : [];
   }
 
   /** Get status with `--porcelain` */

@@ -20,5 +20,5 @@ export const env = Object.freeze({
   workspaceToolsGitMaxBuffer: (process.env.GIT_MAX_BUFFER && parseInt(process.env.GIT_MAX_BUFFER, 10)) || undefined,
   /** @deprecated Use `options.npmReadConcurrency` */
   // if this is removed, default logic should go to getDefaultOptions
-  npmConcurrency: (process.env.NPM_CONCURRENCY && parseInt(process.env.NPM_CONCURRENCY)) || (isJest ? 2 : 5),
+  npmConcurrency: (process.env.NPM_CONCURRENCY && parseInt(process.env.NPM_CONCURRENCY)) || (isJest ? 2 : 10),
 });
