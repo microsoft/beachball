@@ -12,6 +12,7 @@ import type { PackageJson } from '../types/PackageInfo';
 import { getParsedOptions } from '../options/getOptions';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { readJson } from '../object/readJson';
+import { validate } from '../validation/validate';
 
 describe('version bumping', () => {
   let repositoryFactory: RepositoryFactory | undefined;
@@ -56,7 +57,10 @@ describe('version bumping', () => {
     generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    // For this test, use validate() similar to the CLI to ensure it works
+    const { bumpInfo } = validate(options, { checkDependencies: true }, originalPackageInfos);
+
+    await bump(options, originalPackageInfos, bumpInfo);
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -191,7 +195,10 @@ describe('version bumping', () => {
     generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    // For this test, use validate() similar to the CLI to ensure it works
+    const { bumpInfo } = validate(options, { checkDependencies: true }, originalPackageInfos);
+
+    await bump(options, originalPackageInfos, bumpInfo);
 
     const packageInfos = getPackageInfos(parsedOptions);
 

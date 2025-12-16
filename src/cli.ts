@@ -37,25 +37,25 @@ import { validate } from './validation/validate';
 
     case 'publish': {
       const packageInfos = getPackageInfos(parsedOptions);
-      validate(options, { checkDependencies: true }, packageInfos);
+      const { bumpInfo } = validate(options, { checkDependencies: true }, packageInfos);
 
       // set a default publish message
       options.message = options.message || 'applying package updates';
-      await publish(options, packageInfos);
+      await publish(options, packageInfos, bumpInfo);
       break;
     }
 
     case 'bump': {
       const packageInfos = getPackageInfos(parsedOptions);
-      validate(options, { checkDependencies: true }, packageInfos);
-      await bump(options, packageInfos);
+      const { bumpInfo } = validate(options, { checkDependencies: true }, packageInfos);
+      await bump(options, packageInfos, bumpInfo);
       break;
     }
 
     case 'canary': {
       const packageInfos = getPackageInfos(parsedOptions);
-      validate(options, { checkDependencies: true }, packageInfos);
-      await canary(options, packageInfos);
+      const { bumpInfo } = validate(options, { checkDependencies: true }, packageInfos);
+      await canary(options, packageInfos, bumpInfo);
       break;
     }
 

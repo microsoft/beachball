@@ -6,7 +6,7 @@ import type { Repository } from '../__fixtures__/repository';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publish } from '../commands/publish';
-import { gatherBumpInfo } from '../bump/gatherBumpInfo';
+import { bumpInMemory } from '../bump/bumpInMemory';
 import type { ChangeFileInfo } from '../types/ChangeInfo';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import type { PackageJson } from '../types/PackageInfo';
@@ -54,7 +54,7 @@ describe('publish command (git)', () => {
     generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(options, packageInfos);
+    await publish(options, packageInfos, undefined);
 
     const newRepo = repositoryFactory.cloneRepository();
 
@@ -74,7 +74,7 @@ describe('publish command (git)', () => {
     const publishBranch = 'publish_test';
     repo1.checkout('-b', publishBranch);
 
-    const bumpInfo = gatherBumpInfo(options1, packageInfos1);
+    const bumpInfo = bumpInMemory(options1, packageInfos1);
 
     // 3. Meanwhile, in repo2, also create a new change file
     const repo2 = repositoryFactory.cloneRepository();

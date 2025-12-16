@@ -1,10 +1,11 @@
 // @ts-check
-/** @type {import('./src/types/BeachballOptions').RepoOptions}*/
-module.exports = {
+/** @type {Partial<import('./src/types/BeachballOptions').RepoOptions>}*/
+const config = {
   disallowedChangeTypes: ['major'],
   ignorePatterns: [
     '.*ignore',
     '*.yml',
+    '.eslintrc.js',
     '.github/**',
     '.prettierrc.json5',
     '.vscode/**',
@@ -18,3 +19,5 @@ module.exports = {
     'yarn.lock',
   ],
 };
+
+module.exports = config;

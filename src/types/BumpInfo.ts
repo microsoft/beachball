@@ -18,7 +18,7 @@ export type BumpInfo = {
   /**
    * Mapping from package name to change type.
    *
-   * Initially (after `gatherBumpInfo`), this just has change types based on the change files.
+   * Initially (after `bumpInMemory`), this just has change types based on the change files.
    * It's updated by the early steps of `bumpInPlace` to consider groups and `disallowedChangeTypes`.
    */
   calculatedChangeTypes: { [pkgName: string]: ChangeType };
@@ -36,7 +36,10 @@ export type BumpInfo = {
    */
   modifiedPackages: Set<string>;
 
-  /** Map from package name to its internal dependency names that were bumped. */
+  /**
+   * Map from package name to its internal dependency names that were bumped.
+   * This is just used for changelog generation.
+   */
   dependentChangedBy: { [pkgName: string]: Set<string> };
 
   /** Set of packages that are in scope for this bump */

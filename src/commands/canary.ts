@@ -1,5 +1,5 @@
 import semver from 'semver';
-import { gatherBumpInfo } from '../bump/gatherBumpInfo';
+import { bumpInMemory } from '../bump/bumpInMemory';
 import { performBump } from '../bump/performBump';
 import { setDependentVersions } from '../bump/setDependentVersions';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
@@ -7,15 +7,29 @@ import { listPackageVersions } from '../packageManager/listPackageVersions';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfos } from '../types/PackageInfo';
+import type { BumpInfo } from '../types/BumpInfo';
 
-export async function canary(options: BeachballOptions, oldPackageInfo: PackageInfos): Promise<void>;
+/**
+ * Bump and publish a "canary" prerelease version.
+ * @param oldPackageInfo Pre-read package info prior to version bumps
+ * @param bumpInfo Pre-calculated bump info from `validate()` (can be undefined for tests)
+ */
+export async function canary(
+  options: BeachballOptions,
+  oldPackageInfo: PackageInfos,
+  bumpInfo: BumpInfo | undefined
+): Promise<void>;
 /** @deprecated Must provide the package infos */
 export async function canary(options: BeachballOptions): Promise<void>;
-export async function canary(options: BeachballOptions, oldPackageInfo?: PackageInfos): Promise<void> {
+export async function canary(
+  options: BeachballOptions,
+  oldPackageInfo?: PackageInfos,
+  bumpInfo?: BumpInfo
+): Promise<void> {
   // eslint-disable-next-line etc/no-deprecated
   oldPackageInfo = oldPackageInfo || getPackageInfos(options.path);
 
-  const bumpInfo = gatherBumpInfo(options, oldPackageInfo);
+  bumpInfo ||= bumpInMemory(options, oldPackageInfo);
 
   options.keepChangeFiles = true;
   options.generateChangelog = false;
