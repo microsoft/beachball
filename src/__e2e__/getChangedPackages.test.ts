@@ -8,6 +8,7 @@ import { initMockLogs } from '../__fixtures__/mockLogs';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import type { Repository } from '../__fixtures__/repository';
 import { getParsedOptions } from '../options/getOptions';
+import { getScopedPackages } from '../monorepo/getScopedPackages';
 
 // These were formerly the isChangeFileNeeded tests.
 // They still cover some relevant cases and have a simpler/cheaper setup.
@@ -27,7 +28,8 @@ describe('getChangedPackages (basic)', () => {
       },
     });
     const packageInfos = getPackageInfos(parsedOptions);
-    return getChangedPackages(parsedOptions.options, packageInfos);
+    const scopedPackages = getScopedPackages(parsedOptions.options, packageInfos);
+    return getChangedPackages(parsedOptions.options, packageInfos, scopedPackages);
   }
 
   beforeAll(() => {
@@ -91,7 +93,8 @@ describe('getChangedPackages', () => {
       },
     });
     const packageInfos = getPackageInfos(parsedOptions);
-    return { packageInfos, options: parsedOptions.options, parsedOptions };
+    const scopedPackages = getScopedPackages(parsedOptions.options, packageInfos);
+    return { packageInfos, options: parsedOptions.options, parsedOptions, scopedPackages };
   }
 
   afterEach(() => {
@@ -103,19 +106,19 @@ describe('getChangedPackages', () => {
   it('detects changed files in single repo', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
-    const { packageInfos, options } = getOptionsAndPackages();
+    const { packageInfos, scopedPackages, options } = getOptionsAndPackages();
 
-    expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
+    expect(getChangedPackages(options, packageInfos, scopedPackages)).toStrictEqual([]);
 
     repo.stageChange('foo.js');
-    expect(getChangedPackages(options, packageInfos)).toStrictEqual(['foo']);
+    expect(getChangedPackages(options, packageInfos, scopedPackages)).toStrictEqual(['foo']);
   });
 
   it('respects ignorePatterns option', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { packageInfos, options } = getOptionsAndPackages({
+    const { packageInfos, scopedPackages, options } = getOptionsAndPackages({
       repoOptions: { ignorePatterns: ['*.test.js', 'tests/**', 'yarn.lock'] },
       extraArgv: ['--verbose'],
     });
@@ -124,7 +127,7 @@ describe('getChangedPackages', () => {
     repo.stageChange('tests/stuff.js');
     repo.stageChange('yarn.lock');
 
-    expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
+    expect(getChangedPackages(options, packageInfos, scopedPackages)).toStrictEqual([]);
     const logLines = logs.getMockLines('all');
     expect(logLines).toMatch('ignored by pattern');
     expect(logLines).toMatchInlineSnapshot(`
@@ -140,19 +143,19 @@ describe('getChangedPackages', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { packageInfos, options } = getOptionsAndPackages();
+    const { packageInfos, scopedPackages, options } = getOptionsAndPackages();
 
-    expect(getChangedPackages(options, packageInfos)).toStrictEqual([]);
+    expect(getChangedPackages(options, packageInfos, scopedPackages)).toStrictEqual([]);
 
     repo.stageChange('packages/foo/test.js');
-    expect(getChangedPackages(options, packageInfos)).toStrictEqual(['foo']);
+    expect(getChangedPackages(options, packageInfos, scopedPackages)).toStrictEqual(['foo']);
   });
 
   it('excludes packages that already have change files', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { packageInfos, options } = getOptionsAndPackages({ extraArgv: ['--verbose'] });
+    const { packageInfos, scopedPackages, options } = getOptionsAndPackages({ extraArgv: ['--verbose'] });
 
     // setup: create branch, change foo, create a change file, commit
     repo.checkout('-b', 'test');
@@ -161,7 +164,7 @@ describe('getChangedPackages', () => {
     logs.clear();
 
     // foo is not included in changed packages
-    let changedPackages = getChangedPackages(options, packageInfos);
+    let changedPackages = getChangedPackages(options, packageInfos, scopedPackages);
     const logLines = logs.getMockLines('all', true);
     expect(logLines).toMatch(/Your local repository already has change files for these packages:\s+foo/);
     expect(logLines).toMatchInlineSnapshot(`
@@ -178,7 +181,7 @@ describe('getChangedPackages', () => {
 
     // change bar => bar is the only changed package returned
     repo.stageChange('packages/bar/test.js');
-    changedPackages = getChangedPackages(options, packageInfos);
+    changedPackages = getChangedPackages(options, packageInfos, scopedPackages);
     expect(logs.getMockLines('all', true)).toMatchInlineSnapshot(`
       "[log] Checking for changes against "origin/master"
       [log] Found 3 changed files in branch "origin/master" (before filtering)
@@ -213,7 +216,7 @@ describe('getChangedPackages', () => {
     repo.stageChange('packages/ignore-pkg/CHANGELOG.md');
     repo.stageChange('packages/publish-me/test.js');
 
-    const { packageInfos, options } = getOptionsAndPackages({
+    const { packageInfos, scopedPackages, options } = getOptionsAndPackages({
       repoOptions: {
         scope: ['!packages/out-of-scope'],
         ignorePatterns: ['**/jest.config.js'],
@@ -221,7 +224,7 @@ describe('getChangedPackages', () => {
       extraArgv: ['--verbose'],
     });
 
-    const changedPackages = getChangedPackages(options, packageInfos);
+    const changedPackages = getChangedPackages(options, packageInfos, scopedPackages);
     const logLines = logs.getMockLines('all');
     // check individual cases
     expect(logLines).toMatch('private-pkg is private');
@@ -248,21 +251,25 @@ describe('getChangedPackages', () => {
   it('detects changed files in multi-root monorepo repo', () => {
     repositoryFactory = new RepositoryFactory('multi-workspace');
     repo = repositoryFactory.cloneRepository();
-    const { options: rootOptions, packageInfos: rootPackageInfos } = getOptionsAndPackages();
+    const {
+      options: rootOptions,
+      packageInfos: rootPackageInfos,
+      scopedPackages: rootScopedPackages,
+    } = getOptionsAndPackages();
     expect(Object.keys(repositoryFactory.fixtures)).toEqual(['workspace-a', 'workspace-b']);
 
     const workspaceARoot = repo.pathTo('workspace-a');
     const workspaceBRoot = repo.pathTo('workspace-b');
 
-    expect(getChangedPackages(rootOptions, rootPackageInfos)).toStrictEqual([]);
+    expect(getChangedPackages(rootOptions, rootPackageInfos, rootScopedPackages)).toStrictEqual([]);
 
     repo.stageChange('workspace-a/packages/foo/test.js');
 
     const infoA = getOptionsAndPackages({ cwd: workspaceARoot });
     const infoB = getOptionsAndPackages({ cwd: workspaceBRoot });
-    const changedPackagesA = getChangedPackages(infoA.options, infoA.packageInfos);
-    const changedPackagesB = getChangedPackages(infoB.options, infoB.packageInfos);
-    const changedPackagesRoot = getChangedPackages(rootOptions, rootPackageInfos);
+    const changedPackagesA = getChangedPackages(infoA.options, infoA.packageInfos, infoA.scopedPackages);
+    const changedPackagesB = getChangedPackages(infoB.options, infoB.packageInfos, infoB.scopedPackages);
+    const changedPackagesRoot = getChangedPackages(rootOptions, rootPackageInfos, rootScopedPackages);
 
     expect(changedPackagesA).toStrictEqual(['@workspace-a/foo']);
     expect(changedPackagesB).toStrictEqual([]);
@@ -273,8 +280,9 @@ describe('getChangedPackages', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { packageInfos, options } = getOptionsAndPackages({ extraArgv: ['--all'] });
+    const { packageInfos, scopedPackages, options } = getOptionsAndPackages({ extraArgv: ['--all'] });
 
-    expect(getChangedPackages(options, packageInfos).sort()).toStrictEqual(['a', 'b', 'bar', 'baz', 'foo']);
+    const result = getChangedPackages(options, packageInfos, scopedPackages);
+    expect(result.sort()).toStrictEqual(['a', 'b', 'bar', 'baz', 'foo']);
   });
 });

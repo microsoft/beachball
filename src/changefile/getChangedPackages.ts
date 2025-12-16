@@ -4,7 +4,6 @@ import minimatch from 'minimatch';
 import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
 import { getBranchChanges, getStagedChanges, git } from 'workspace-tools';
-import { getScopedPackages } from '../monorepo/getScopedPackages';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfos, PackageInfo, ScopedPackages } from '../types/PackageInfo';
 import { ensureSharedHistory } from '../git/ensureSharedHistory';
@@ -58,14 +57,16 @@ function isPackageIncluded(
  * Gets all the changed package names, regardless of the change files.
  * If `options.all` is set, returns all the packages in scope, regardless of whether they've changed.
  */
-function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
+function getAllChangedPackages(
+  options: BeachballOptions,
+  packageInfos: PackageInfos,
+  scopedPackages: ScopedPackages
+): string[] {
   const { branch, path: cwd, verbose, all, changeDir } = options;
 
   const verboseLog = (msg: string) => verbose && console.log(msg);
   const logIgnored = (file: string, reason: string) => verboseLog(`  - ~~${file}~~ (${reason})`);
   const logIncluded = (file: string) => verboseLog(`  - ${file}`);
-
-  const scopedPackages = getScopedPackages(options, packageInfos);
 
   // If --all is set, return all the packages in scope rather than looking at which files changed
   if (all) {
@@ -139,10 +140,14 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
  * If `options.all` is true, returns all the packages in scope (skipping all git operations),
  * regardless of whether they've changed.
  */
-export function getChangedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
+export function getChangedPackages(
+  options: BeachballOptions,
+  packageInfos: PackageInfos,
+  scopedPackages: ScopedPackages
+): string[] {
   const { path: cwd, branch, changeDir } = options;
 
-  const changedPackages = getAllChangedPackages(options, packageInfos);
+  const changedPackages = getAllChangedPackages(options, packageInfos, scopedPackages);
 
   const changePath = getChangePath(options);
   if (!fs.existsSync(changePath)) {

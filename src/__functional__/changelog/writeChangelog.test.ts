@@ -23,6 +23,7 @@ import { getParsedOptions } from '../../options/getOptions';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 import type { PackageInfos } from '../../types/PackageInfo';
 import { writeJson } from '../../object/writeJson';
+import { getScopedPackages } from '../../monorepo/getScopedPackages';
 
 describe('writeChangelog', () => {
   let repositoryFactory: RepositoryFactory;
@@ -61,7 +62,7 @@ describe('writeChangelog', () => {
     }
   ) {
     const { options, dependentChangedBy = {}, packageInfos } = params;
-    const changeFileChangeInfos = readChangeFiles(options, packageInfos);
+    const changeFileChangeInfos = readChangeFiles(options, packageInfos, getScopedPackages(options, packageInfos));
 
     // Generate a basic best guess at calculatedChangeTypes
     const calculatedChangeTypes: BumpInfo['calculatedChangeTypes'] = {};
