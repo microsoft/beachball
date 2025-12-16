@@ -1,8 +1,6 @@
-import { isGitAvailable } from './isGitAvailable';
 import { getUntrackedChanges } from 'workspace-tools';
 import { isValidAuthType } from './isValidAuthType';
 import { isValidChangeType } from './isValidChangeType';
-import { isChangeFileNeeded } from './isChangeFileNeeded';
 import { isValidGroupedPackageOptions, isValidGroupOptions } from './isValidGroupOptions';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { isValidChangelogOptions } from './isValidChangelogOptions';
@@ -19,6 +17,7 @@ import { env } from '../env';
 import type { PackageInfos } from '../types/PackageInfo';
 import { bulletedList } from '../logging/bulletedList';
 import type { BumpInfo } from '../types/BumpInfo';
+import { getChangedPackages } from '../changefile/getChangedPackages';
 
 type ValidationOptions = {
   /**
@@ -26,7 +25,8 @@ type ValidationOptions = {
    */
   checkChangeNeeded?: boolean;
   /**
-   * If true, don't error if change files are needed (just return isChangeNeeded true).
+   * If true, don't error if change files are needed (just return `isChangeNeeded` true).
+   * This is used by the `change` command.
    */
   allowMissingChangeFiles?: boolean;
   /**
@@ -71,13 +71,6 @@ export function validate(
     console.error(`ERROR: ${message}`);
     hasError = true;
   };
-
-  if (!isGitAvailable(options.path)) {
-    logValidationError('Please make sure git is installed and initialize the repository with "git init"');
-    // TODO: consider throwing instead
-    // eslint-disable-next-line no-restricted-properties
-    process.exit(1);
-  }
 
   const untracked = getUntrackedChanges({ cwd: options.path });
 
@@ -175,9 +168,23 @@ export function validate(
   }
 
   let isChangeNeeded = false;
+  let changedPackages: string[] | undefined;
 
   if (checkChangeNeeded) {
-    isChangeNeeded = isChangeFileNeeded(options, packageInfos);
+    if (options.package) {
+      // If specific packages were provided, we skip the git diff check and just assume changes are needed.
+      changedPackages = typeof options.package === 'string' ? [options.package] : options.package;
+      isChangeNeeded = true;
+    } else {
+      changedPackages = getChangedPackages(options, packageInfos);
+      isChangeNeeded = changedPackages.length > 0;
+      if (isChangeNeeded) {
+        const message = options.all
+          ? 'Considering the following packages due to --all'
+          : 'Found changes in the following packages';
+        console.log(`${message}:\n${bulletedList([...changedPackages].sort())}`);
+      }
+    }
 
     if (isChangeNeeded && !allowMissingChangeFiles) {
       logValidationError('Change files are needed!');

@@ -1,6 +1,6 @@
 import type { ChangeSet, ChangeType } from './ChangeInfo';
 import type { DeepReadonly } from './DeepReadonly';
-import type { PackageInfos, PackageGroups } from './PackageInfo';
+import type { PackageInfos, PackageGroups, ScopedPackages } from './PackageInfo';
 
 export type BumpInfo = {
   /**
@@ -43,7 +43,7 @@ export type BumpInfo = {
   dependentChangedBy: { [pkgName: string]: Set<string> };
 
   /** Set of packages that are in scope for this bump */
-  scopedPackages: ReadonlySet<string>;
+  scopedPackages: ScopedPackages;
 };
 
 /** Dependents cache (child points to parents): if A depends on B, then `{ B: [A] }` */

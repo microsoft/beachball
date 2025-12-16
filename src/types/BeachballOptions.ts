@@ -50,6 +50,7 @@ export interface CliOptions
     | 'tag'
     | 'timeout'
   > {
+  /** Consider all packages to have changed */
   all: boolean;
   authType: AuthType;
   command: string;
@@ -60,6 +61,7 @@ export interface CliOptions
    */
   forceVersions?: boolean;
   help?: boolean;
+  /** Force change files for these packages */
   package?: string | string[];
   token?: string;
   type?: ChangeType | null;
@@ -310,12 +312,13 @@ export interface HooksOptions {
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json
    * @param version The post-bump version of the package to be published
-   * @param packageInfos Metadata about other packages processed by Beachball. Computed post-bump. Readonly.
+   * @param packageInfos Metadata about other packages processed by Beachball after bumping. Readonly.
    */
   prepublish?: (
     packagePath: string,
     name: string,
     version: string,
+    // TODO: make all of these DeepReadonly
     packageInfos: Readonly<PackageInfos>
   ) => void | Promise<void>;
 
@@ -326,7 +329,7 @@ export interface HooksOptions {
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json
    * @param version The post-bump version of the package to be published
-   * @param packageInfos Metadata about other packages processed by Beachball. Computed post-bump. Readonly.
+   * @param packageInfos Metadata about other packages processed by Beachball after bumping. Readonly.
    */
   postpublish?: (
     packagePath: string,
@@ -352,7 +355,7 @@ export interface HooksOptions {
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json
    * @param version The post-bump version of the package to be published
-   * @param packageInfos Metadata about other packages processed by Beachball. Computed post-bump. Readonly.
+   * @param packageInfos Metadata about other packages processed by Beachball after bumping. Readonly.
    */
   postbump?: (
     packagePath: string,

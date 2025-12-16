@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Move git validation earlier in CLI flow",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

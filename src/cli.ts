@@ -1,3 +1,4 @@
+import { findGitRoot } from 'workspace-tools';
 import { bump } from './commands/bump';
 import { canary } from './commands/canary';
 import { change } from './commands/change';
@@ -11,20 +12,27 @@ import { getParsedOptions } from './options/getOptions';
 import { validate } from './validation/validate';
 
 (async () => {
+  try {
+    // eslint-disable-next-line no-restricted-properties -- top-level call
+    findGitRoot(process.cwd());
+  } catch {
+    console.error('beachball only works in a git repository. Please initialize git and try again.');
+    // eslint-disable-next-line no-restricted-properties
+    process.exit(1);
+  }
+
   // eslint-disable-next-line no-restricted-properties -- this is the top level
   const parsedOptions = getParsedOptions({ cwd: process.cwd(), argv: process.argv });
   const options = parsedOptions.options;
 
   if (options.help) {
     showHelp();
-    // eslint-disable-next-line no-restricted-properties -- this is the top level
-    process.exit(0);
+    return;
   }
 
   if (options.version) {
     showVersion();
-    // eslint-disable-next-line no-restricted-properties -- this is the top level
-    process.exit(0);
+    return;
   }
 
   // Run the commands

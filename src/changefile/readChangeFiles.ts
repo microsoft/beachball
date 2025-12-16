@@ -13,6 +13,7 @@ import { readJson } from '../object/readJson';
  * - out of scope (as defined in `options.scope`)
  * - private
  * - nonexistent
+ * - added before `options.fromRef` if set
  *
  * The changes will also be transformed if `options.transform.changeFiles` is provided.
  *
@@ -99,7 +100,7 @@ export function readChangeFiles(options: BeachballOptions, packageInfos: Package
       }
 
       // Add the change to the final list if it's valid and in scope
-      if (!warningType && scopedPackages.includes(change.packageName)) {
+      if (!warningType && (scopedPackages.allInScope || scopedPackages.has(change.packageName))) {
         changeSet.push({ changeFile, change });
       }
     }

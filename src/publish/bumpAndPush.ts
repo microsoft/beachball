@@ -13,8 +13,14 @@ const verbose = true;
 
 /**
  * Bump versions locally, commit, optionally tag, and push to git.
+ *
+ * This should NOT mutate `bumpInfo`.
  */
-export async function bumpAndPush(bumpInfo: BumpInfo, publishBranch: string, options: BeachballOptions): Promise<void> {
+export async function bumpAndPush(
+  bumpInfo: Readonly<BumpInfo>,
+  publishBranch: string,
+  options: BeachballOptions
+): Promise<void> {
   const { path: cwd, branch, depth, gitTimeout } = options;
   const { remote, remoteBranch } = parseRemoteBranch({ branch, cwd });
 

@@ -1,7 +1,6 @@
 import type { BeachballOptions } from '../types/BeachballOptions';
 import * as fs from 'fs';
 import * as path from 'path';
-import { findGitRoot } from 'workspace-tools';
 import { npm } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
 import { readJson } from '../object/readJson';
@@ -17,14 +16,6 @@ function errorExit(message: string): void {
 }
 
 export async function init(options: Pick<BeachballOptions, 'path'>): Promise<void> {
-  try {
-    findGitRoot(options.path);
-  } catch {
-    console.error('beachball only works in a git repository. Please initialize git and try again.');
-    // eslint-disable-next-line no-restricted-properties
-    process.exit(1);
-  }
-
   const packageJsonFilePath = path.join(options.path, 'package.json');
 
   if (!fs.existsSync(packageJsonFilePath)) {
