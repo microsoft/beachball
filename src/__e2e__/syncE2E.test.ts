@@ -17,6 +17,7 @@ import { removeTempDir } from '../__fixtures__/tmpdir';
 // If an issue is found in the future that could only be caught by this test using real npm,
 // a new test file with a real registry should be created to cover that specific scenario.
 jest.mock('../packageManager/npm');
+jest.mock('npm-registry-fetch');
 
 describe('sync command (e2e)', () => {
   const mockNpm = initNpmMock();

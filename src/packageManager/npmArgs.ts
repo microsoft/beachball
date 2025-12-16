@@ -1,14 +1,16 @@
-import type { AuthType } from '../types/Auth';
 import type { NpmOptions } from '../types/NpmOptions';
 import type { PackageInfo } from '../types/PackageInfo';
+
+export type NpmAuthOptions = Pick<NpmOptions, 'registry' | 'token' | 'authType'>;
 
 export function getNpmLogLevelArgs(verbose: boolean | undefined): string[] {
   return ['--loglevel', verbose ? 'notice' : 'warn'];
 }
 
 export function getNpmPublishArgs(packageInfo: PackageInfo, options: Omit<NpmOptions, 'path'>): string[] {
-  const { registry, token, authType, access } = options;
+  const { registry, access } = options;
   const pkgCombinedOptions = packageInfo.combinedOptions;
+  const authArgs = getNpmAuthArgs(options);
   const args = [
     'publish',
     '--registry',
@@ -16,7 +18,7 @@ export function getNpmPublishArgs(packageInfo: PackageInfo, options: Omit<NpmOpt
     '--tag',
     pkgCombinedOptions.tag || pkgCombinedOptions.defaultNpmTag || 'latest',
     ...getNpmLogLevelArgs(options.verbose),
-    ...getNpmAuthArgs(registry, token, authType),
+    ...(authArgs ? [`--${authArgs.key}=${authArgs.value}`] : []),
   ];
 
   if (access && packageInfo.name[0] === '@') {
@@ -26,12 +28,23 @@ export function getNpmPublishArgs(packageInfo: PackageInfo, options: Omit<NpmOpt
   return args;
 }
 
-export function getNpmAuthArgs(registry: string, token?: string, authType?: AuthType): string[] {
+/**
+ * Get the npm auth args for the given registry and token.
+ */
+export function getNpmAuthArgs(options: NpmAuthOptions):
+  | {
+      /** Like `//registry.npmjs.org/:_password` */
+      key: `//${string}:${'_authToken' | '_password'}`;
+      /** The token or password */
+      value: string;
+    }
+  | undefined {
+  const { registry, token, authType } = options;
   if (!token) {
-    return [];
+    return undefined;
   }
 
   const npmKeyword = authType === 'password' ? '_password' : '_authToken';
-  const shorthand = registry.substring(registry.indexOf('//'));
-  return [`--${shorthand}:${npmKeyword}=${token}`];
+  const shorthand = registry.substring(registry.indexOf('//')) as `//${string}`;
+  return { key: `${shorthand}:${npmKeyword}`, value: token };
 }

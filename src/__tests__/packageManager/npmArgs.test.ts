@@ -5,22 +5,36 @@ import type { NpmOptions } from '../../types/NpmOptions';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 describe('getNpmAuthArgs', () => {
-  type NpmAuthTest = { token?: string; authType?: AuthType; expected: string };
-
   const registry = 'https://testRegistry';
   const token = 'someToken';
 
-  it.each<NpmAuthTest>([
-    // no token
-    { expected: '' },
-    // no specified auth type
-    { token, expected: '--//testRegistry:_authToken=someToken' },
-    // different auth types
-    { token, authType: 'authtoken', expected: '--//testRegistry:_authToken=someToken' },
-    { token, authType: 'password', expected: '--//testRegistry:_password=someToken' },
-    { token, authType: 'invalidvalue' as AuthType, expected: '--//testRegistry:_authToken=someToken' },
-  ])('token = $token, authType = $authType', ({ token: tkn, authType, expected }) => {
-    expect(getNpmAuthArgs(registry, tkn, authType).join(' ')).toStrictEqual(expected);
+  it('returns undefined with no token regardless of authType', () => {
+    expect(getNpmAuthArgs({ registry })).toBeUndefined();
+    expect(getNpmAuthArgs({ registry, authType: 'password' })).toBeUndefined();
+    expect(getNpmAuthArgs({ registry, authType: 'authtoken' })).toBeUndefined();
+  });
+
+  it('ignores empty string as token', () => {
+    expect(getNpmAuthArgs({ registry, token: '' })).toBeUndefined();
+  });
+
+  it('defaults to _authToken when no authType specified but token is provided', () => {
+    expect(getNpmAuthArgs({ registry, token })).toEqual({ key: '//testRegistry:_authToken', value: token });
+  });
+
+  it('respects authType: authtoken', () => {
+    const result = getNpmAuthArgs({ registry, token, authType: 'authtoken' });
+    expect(result).toEqual({ key: '//testRegistry:_authToken', value: token });
+  });
+
+  it('respects authType: password', () => {
+    const result = getNpmAuthArgs({ registry, token, authType: 'password' });
+    expect(result).toEqual({ key: '//testRegistry:_password', value: token });
+  });
+
+  it('uses _authToken for invalid authType', () => {
+    const result = getNpmAuthArgs({ registry, token, authType: 'invalidvalue' as AuthType });
+    expect(result).toEqual({ key: '//testRegistry:_authToken', value: token });
   });
 });
 

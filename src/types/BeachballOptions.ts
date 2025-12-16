@@ -130,9 +130,10 @@ export interface RepoOptions {
    */
   concurrency: number;
   /**
-   * Maximum concurrency for read-only `npm` operations (listing package versions/tags).
-   * (See also `concurrency`.)
-   * @default 5
+   * Maximum concurrency for fetching package versions/tags from the registry.
+   * This should be a faster operation than publishing and can use a higher limit.
+   * (See `concurrency` for write operations.)
+   * @default 10
    */
   npmReadConcurrency: number;
   /**
@@ -362,6 +363,7 @@ export interface HooksOptions {
 
   /**
    * Runs once after all bumps to all packages before committing changes
+   * @param cwd The monorepo root path
    */
   precommit?: (cwd: string) => void | Promise<void>;
 }
