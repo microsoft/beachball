@@ -1,4 +1,4 @@
-import { gatherBumpInfo } from '../bump/gatherBumpInfo';
+import { bumpInMemory } from '../bump/bumpInMemory';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { gitFailFast, getBranchName, getCurrentHash, git } from 'workspace-tools';
 import prompts from 'prompts';
@@ -12,11 +12,21 @@ import type { PackageInfos } from '../types/PackageInfo';
 
 /**
  * Potentially bump, publish, and push package changes depending on options.
+ * @param oldPackageInfos Pre-read package info prior to version bumps
+ * @param bumpInfo Pre-calculated bump info from `validate()` (can be undefined for tests)
  */
-export async function publish(options: BeachballOptions, oldPackageInfos: PackageInfos): Promise<void>;
+export async function publish(
+  options: BeachballOptions,
+  oldPackageInfos: PackageInfos,
+  bumpInfo?: PublishBumpInfo
+): Promise<void>;
 /** @deprecated Must provide the package infos */
 export async function publish(options: BeachballOptions): Promise<void>;
-export async function publish(options: BeachballOptions, oldPackageInfos?: PackageInfos): Promise<void> {
+export async function publish(
+  options: BeachballOptions,
+  oldPackageInfos?: PackageInfos,
+  bumpInfo?: PublishBumpInfo
+): Promise<void> {
   console.log('\nPreparing to publish');
 
   const { path: cwd, branch, registry, tag } = options;
@@ -66,7 +76,7 @@ export async function publish(options: BeachballOptions, oldPackageInfos?: Packa
   gitFailFast(['checkout', '-b', publishBranch], { cwd });
 
   console.log(`\nGathering info ${options.bump ? 'to bump versions' : 'about versions and changes'}`);
-  const bumpInfo: PublishBumpInfo = gatherBumpInfo(options, oldPackageInfos);
+  bumpInfo ||= bumpInMemory(options, oldPackageInfos);
 
   // eslint-disable-next-line etc/no-deprecated
   if (options.new) {

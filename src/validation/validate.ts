@@ -12,12 +12,13 @@ import { getPackageGroups } from '../monorepo/getPackageGroups';
 import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes';
 import { areChangeFilesDeleted } from './areChangeFilesDeleted';
 import { validatePackageDependencies } from '../publish/validatePackageDependencies';
-import { gatherBumpInfo } from '../bump/gatherBumpInfo';
+import { bumpInMemory } from '../bump/bumpInMemory';
 import { isValidDependentChangeType } from './isValidDependentChangeType';
 import { getPackagesToPublish } from '../publish/getPackagesToPublish';
 import { env } from '../env';
 import type { PackageInfos } from '../types/PackageInfo';
 import { bulletedList } from '../logging/bulletedList';
+import type { BumpInfo } from '../types/BumpInfo';
 
 type ValidationOptions = {
   /**
@@ -38,6 +39,8 @@ type ValidationOptions = {
 type ValidationResult = {
   /** True if change files are needed. Always false if `validateOptions.checkChangeNeeded` wasn't true. */
   isChangeNeeded: boolean;
+  /** If `checkDependencies` was true, the bump info is returned for reuse by other methods. */
+  bumpInfo?: BumpInfo;
 };
 
 /**
@@ -192,12 +195,12 @@ export function validate(
     }
   }
 
+  let bumpInfo: BumpInfo | undefined;
   if (!isChangeNeeded && checkDependencies && changeSet.length) {
     console.log('\nValidating package dependencies...');
-    // TODO: It would be preferable if this could be done without getting the full bump info,
-    // or at least if the bump info could be passed back out to other methods which currently
-    // duplicate the calculation (it can be expensive, especially in large repos).
-    const bumpInfo = gatherBumpInfo(options, packageInfos);
+    // Unfortunately, to get full info about which dependents would be bumped, it's probably necessary
+    // to calculate the full bump info.
+    bumpInfo = bumpInMemory(options, packageInfos);
     const packagesToPublish = getPackagesToPublish(bumpInfo, true /*validationMode*/);
     if (!validatePackageDependencies(packagesToPublish, bumpInfo.packageInfos)) {
       logValidationError(`One or more published packages depend on an unpublished package!
@@ -214,7 +217,5 @@ Consider one of the following solutions:
 
   console.log();
 
-  return {
-    isChangeNeeded,
-  };
+  return { isChangeNeeded, bumpInfo };
 }
