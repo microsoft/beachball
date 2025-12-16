@@ -17,9 +17,13 @@ export async function sync(options: BeachballOptions): Promise<void>;
 export async function sync(options: BeachballOptions, packageInfos?: PackageInfos): Promise<void> {
   // eslint-disable-next-line etc/no-deprecated
   packageInfos ||= getPackageInfos(options.path);
-  const scopedPackages = new Set(getScopedPackages(options, packageInfos));
+  const scopedPackages = getScopedPackages(options, packageInfos);
 
-  const infos = new Map(Object.entries(packageInfos).filter(([pkg, info]) => !info.private && scopedPackages.has(pkg)));
+  const infos = new Map(
+    Object.entries(packageInfos).filter(
+      ([pkg, info]) => !info.private && (scopedPackages.allInScope || scopedPackages.has(pkg))
+    )
+  );
 
   console.log(`Getting versions from registry for ${infos.size} package(s)...`);
 

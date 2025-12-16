@@ -1,15 +1,20 @@
 import type { BeachballOptions } from '../types/BeachballOptions';
-import type { PackageInfos } from '../types/PackageInfo';
+import type { PackageInfos, ScopedPackages } from '../types/PackageInfo';
 import path from 'path';
 import { isPathIncluded } from './isPathIncluded';
 
+/**
+ * Get the set of in-scope package names.
+ */
 export function getScopedPackages(
   options: Pick<BeachballOptions, 'path' | 'scope'>,
   packageInfos: PackageInfos
-): string[] {
+): ScopedPackages {
   const { scope, path: cwd } = options;
   if (!scope) {
-    return Object.keys(packageInfos);
+    const result: ScopedPackages = new Set(Object.keys(packageInfos));
+    result.allInScope = true;
+    return result;
   }
 
   let includeScopes: string[] | true = scope.filter(s => !s.startsWith('!'));
@@ -18,9 +23,10 @@ export function getScopedPackages(
 
   const excludeScopes = scope.filter(s => s.startsWith('!'));
 
-  return Object.keys(packageInfos).filter(pkgName => {
+  const result = Object.keys(packageInfos).filter(pkgName => {
     const packagePath = path.dirname(packageInfos[pkgName].packageJsonPath);
 
     return isPathIncluded(path.relative(cwd, packagePath), includeScopes, excludeScopes);
   });
+  return new Set(result);
 }

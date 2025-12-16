@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Skip git operations when determining changed packages with --all or --package (and improve logging of changed packages). Internally use a Set everywhere for the scoped packages list, and add an `allInScope` property to short circuit if there's no scope.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

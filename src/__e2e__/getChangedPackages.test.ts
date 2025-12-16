@@ -1,5 +1,5 @@
-import { describe, expect, it, afterEach } from '@jest/globals';
-import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
+import { describe, expect, it, afterEach, beforeAll, beforeEach, afterAll } from '@jest/globals';
+import { defaultRemoteBranchName, defaultRemoteName } from '../__fixtures__/gitDefaults';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import type { BeachballOptions, RepoOptions } from '../types/BeachballOptions';
@@ -8,6 +8,69 @@ import { initMockLogs } from '../__fixtures__/mockLogs';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import type { Repository } from '../__fixtures__/repository';
 import { getParsedOptions } from '../options/getOptions';
+
+// These were formerly the isChangeFileNeeded tests.
+// They still cover some relevant cases and have a simpler/cheaper setup.
+describe('getChangedPackages (basic)', () => {
+  let repositoryFactory: RepositoryFactory;
+  let repository: Repository;
+  initMockLogs();
+
+  function getChangedPackagesWrapper(options?: Partial<BeachballOptions>, cwd?: string) {
+    const parsedOptions = getParsedOptions({
+      cwd: cwd ?? repository.rootPath,
+      argv: [],
+      testRepoOptions: {
+        fetch: false,
+        branch: defaultRemoteBranchName,
+        ...options,
+      },
+    });
+    const packageInfos = getPackageInfos(parsedOptions);
+    return getChangedPackages(parsedOptions.options, packageInfos);
+  }
+
+  beforeAll(() => {
+    repositoryFactory = new RepositoryFactory('single');
+  });
+
+  beforeEach(() => {
+    // We don't need to clean up the repo after each test since repositoryFactory.cleanUp() handles it
+    repository = repositoryFactory.cloneRepository();
+  });
+
+  afterAll(() => {
+    repositoryFactory.cleanUp();
+  });
+
+  it('returns empty list when no changes have been made', () => {
+    expect(getChangedPackagesWrapper()).toEqual([]);
+  });
+
+  it('returns package name when changes exist in a new branch', () => {
+    repository.checkout('-b', 'feature-0');
+    repository.commitChange('myFilename');
+    expect(getChangedPackagesWrapper()).toEqual(['foo']);
+  });
+
+  it('returns empty list when changes are CHANGELOG files', () => {
+    repository.checkout('-b', 'feature-0');
+    repository.commitChange('CHANGELOG.md');
+    expect(getChangedPackagesWrapper()).toEqual([]);
+  });
+
+  it('throws if the remote is invalid', () => {
+    // make a separate clone due to messing with the remote
+    const repo = repositoryFactory.cloneRepository();
+    repo.git(['remote', 'set-url', defaultRemoteName, 'file:///__nonexistent']);
+    repo.checkout('-b', 'feature-0');
+    repo.commitChange('fake.js');
+
+    expect(() => {
+      getChangedPackagesWrapper({ fetch: true }, repo.rootPath);
+    }).toThrow('Fetching branch "master" from remote "origin" failed');
+  });
+});
 
 describe('getChangedPackages', () => {
   let repositoryFactory: RepositoryFactory | undefined;
@@ -65,7 +128,8 @@ describe('getChangedPackages', () => {
     const logLines = logs.getMockLines('all');
     expect(logLines).toMatch('ignored by pattern');
     expect(logLines).toMatchInlineSnapshot(`
-      "[log] Found 2 changed files in branch "origin/master" (before filtering)
+      "[log] Checking for changes against "origin/master"
+      [log] Found 2 changed files in branch "origin/master" (before filtering)
       [log]   - ~~src/foo.test.js~~ (ignored by pattern "*.test.js")
       [log]   - ~~tests/stuff.js~~ (ignored by pattern "tests/**")
       [log] All files were ignored"
@@ -101,7 +165,8 @@ describe('getChangedPackages', () => {
     const logLines = logs.getMockLines('all', true);
     expect(logLines).toMatch(/Your local repository already has change files for these packages:\s+foo/);
     expect(logLines).toMatchInlineSnapshot(`
-      "[log] Found 2 changed files in branch "origin/master" (before filtering)
+      "[log] Checking for changes against "origin/master"
+      [log] Found 2 changed files in branch "origin/master" (before filtering)
       [log]   - ~~change/foo-<guid>.json~~ (ignored by pattern "change/*.json")
       [log]   - packages/foo/test.js
       [log] Found 1 file in 1 package that should be published
@@ -115,7 +180,8 @@ describe('getChangedPackages', () => {
     repo.stageChange('packages/bar/test.js');
     changedPackages = getChangedPackages(options, packageInfos);
     expect(logs.getMockLines('all', true)).toMatchInlineSnapshot(`
-      "[log] Found 3 changed files in branch "origin/master" (before filtering)
+      "[log] Checking for changes against "origin/master"
+      [log] Found 3 changed files in branch "origin/master" (before filtering)
       [log]   - ~~change/foo-<guid>.json~~ (ignored by pattern "change/*.json")
       [log]   - packages/foo/test.js
       [log]   - packages/bar/test.js
@@ -165,7 +231,8 @@ describe('getChangedPackages', () => {
     expect(logLines).toMatch('ignored by pattern "CHANGELOG.{md,json}"');
     // and overall output
     expect(logLines).toMatchInlineSnapshot(`
-      "[log] Found 6 changed files in branch "origin/master" (before filtering)
+      "[log] Checking for changes against "origin/master"
+      [log] Found 6 changed files in branch "origin/master" (before filtering)
       [log]   - ~~packages/ignore-pkg/CHANGELOG.md~~ (ignored by pattern "CHANGELOG.{md,json}")
       [log]   - ~~packages/ignore-pkg/jest.config.js~~ (ignored by pattern "**/jest.config.js")
       [log]   - ~~packages/no-publish/test.js~~ (no-publish has beachball.shouldPublish=false)

@@ -21,6 +21,12 @@ describe('getScopedPackages', () => {
     removeTempDir(root);
   });
 
+  it('returns true when no scope is provided', () => {
+    const scopedPackages = getScopedPackages({ path: root }, packageInfos);
+    expect(scopedPackages).toEqual(new Set(Object.keys(packageInfos)));
+    expect(scopedPackages.allInScope).toBe(true);
+  });
+
   it('can scope packages', () => {
     const scopedPackages = getScopedPackages(
       {
@@ -30,7 +36,8 @@ describe('getScopedPackages', () => {
       packageInfos
     );
 
-    expect(scopedPackages).toEqual(['a', 'b']);
+    expect(scopedPackages).toEqual(new Set(['a', 'b']));
+    expect(scopedPackages.allInScope).toBeUndefined();
   });
 
   it('can scope with excluded packages', () => {
@@ -42,7 +49,8 @@ describe('getScopedPackages', () => {
       packageInfos
     );
 
-    expect(scopedPackages).toEqual(['bar', 'baz', 'foo']);
+    expect(scopedPackages).toEqual(new Set(['bar', 'baz', 'foo']));
+    expect(scopedPackages.allInScope).toBeUndefined();
   });
 
   it('can mix and match with excluded packages', () => {
@@ -54,6 +62,7 @@ describe('getScopedPackages', () => {
       packageInfos
     );
 
-    expect(scopedPackages).toEqual(['bar', 'baz']);
+    expect(scopedPackages).toEqual(new Set(['bar', 'baz']));
+    expect(scopedPackages.allInScope).toBeUndefined();
   });
 });

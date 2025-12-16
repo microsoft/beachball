@@ -6,7 +6,7 @@ import { getChangePath } from '../paths';
 import { getBranchChanges, getStagedChanges, git } from 'workspace-tools';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import type { PackageInfos, PackageInfo } from '../types/PackageInfo';
+import type { PackageInfos, PackageInfo, ScopedPackages } from '../types/PackageInfo';
 import { ensureSharedHistory } from '../git/ensureSharedHistory';
 import { readJson } from '../object/readJson';
 
@@ -39,7 +39,7 @@ function getMatchingPackageInfo(
  */
 function isPackageIncluded(
   packageInfo: PackageInfo | undefined,
-  scopedPackages: string[]
+  scopedPackages: ScopedPackages
 ): { isIncluded: boolean; reason: string } {
   const reason = !packageInfo
     ? 'no corresponding package found'
@@ -47,7 +47,7 @@ function isPackageIncluded(
     ? `${packageInfo.name} is private`
     : packageInfo.combinedOptions.shouldPublish === false
     ? `${packageInfo.name} has beachball.shouldPublish=false`
-    : !scopedPackages.includes(packageInfo.name)
+    : !scopedPackages.allInScope && !scopedPackages.has(packageInfo.name)
     ? `${packageInfo.name} is out of scope`
     : ''; // not ignored
 
@@ -78,6 +78,10 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
       })
       .map(pkg => pkg.name);
   }
+
+  console.log(`Checking for changes against "${options.branch}"`);
+
+  ensureSharedHistory(options);
 
   const changes = [...(getBranchChanges({ branch, cwd }) || []), ...(getStagedChanges({ cwd }) || [])];
   verboseLog(`Found ${count(changes.length, 'changed file')} in branch "${branch}" (before filtering)`);
@@ -130,31 +134,34 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
 }
 
 /**
- * Gets all the changed packages which do not already have a change file
+ * Gets all the changed packages which do not already have a change file and are in scope.
+ *
+ * If `options.all` is true, returns all the packages in scope (skipping all git operations),
+ * regardless of whether they've changed.
  */
 export function getChangedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
   const { path: cwd, branch, changeDir } = options;
 
-  const changePath = getChangePath(options);
-
-  ensureSharedHistory(options);
-
   const changedPackages = getAllChangedPackages(options, packageInfos);
+
+  const changePath = getChangePath(options);
+  if (!fs.existsSync(changePath)) {
+    return changedPackages;
+  }
 
   const changedFilesResult = git(
     ['diff', '--name-only', '--relative', '--no-renames', '--diff-filter=A', `${branch}...`],
     { cwd }
   );
-
-  if (!fs.existsSync(changePath) || !changedFilesResult.success) {
+  if (!changedFilesResult.success) {
     return changedPackages;
   }
 
-  const changeFiles = changedFilesResult.stdout.split('\n').filter(name => path.dirname(name) === changeDir);
+  const changedFiles = changedFilesResult.stdout.split('\n').filter(name => path.dirname(name) === changeDir);
   const changeFilePackageSet = new Set<string>();
 
   // Loop through the change files, building up a set of packages that we can skip
-  for (const file of changeFiles) {
+  for (const file of changedFiles) {
     try {
       const changeInfo = readJson<ChangeFileInfo | ChangeInfoMultiple>(path.join(cwd, file));
       const changes = (changeInfo as ChangeInfoMultiple).changes || [changeInfo];

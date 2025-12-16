@@ -22,7 +22,7 @@ export function setDependentVersions(
   const dependentChangedBy: BumpInfo['dependentChangedBy'] = {};
 
   for (const [pkgName, info] of Object.entries(packageInfos)) {
-    if (!scopedPackages.has(pkgName)) {
+    if (!scopedPackages.allInScope && !scopedPackages.has(pkgName)) {
       continue; // out of scope
     }
 

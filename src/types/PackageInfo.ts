@@ -79,3 +79,12 @@ export const consideredDependencies = [
   'peerDependencies',
   'optionalDependencies',
 ] as const;
+
+/**
+ * In-scope package names, with an extra property if all packages are in scope.
+ */
+// This is a Set with an extra property to avoid compatibility issues with code using private APIs
+export type ScopedPackages = ReadonlySet<string> & {
+  /** No `scope` option was specified, so all packages are in scope. */
+  allInScope?: true;
+};
