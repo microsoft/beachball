@@ -2,6 +2,73 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 17 Dec 2025 00:58:29 GMT",
+      "version": "2.61.0",
+      "tag": "beachball_v2.61.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "712a3e062ac5be432519148af12f3b4acba8261c",
+            "comment": "Properly handle bumping more types of semver ranges"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "712a3e062ac5be432519148af12f3b4acba8261c",
+            "comment": "Share bump info between validate and actual commands. This should be a significant performance improvement in large repos."
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "712a3e062ac5be432519148af12f3b4acba8261c",
+            "comment": "Move git validation earlier in CLI flow"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "712a3e062ac5be432519148af12f3b4acba8261c",
+            "comment": "Remove fs-extra usage"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "712a3e062ac5be432519148af12f3b4acba8261c",
+            "comment": "Clarify some of the bumping logic"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "712a3e062ac5be432519148af12f3b4acba8261c",
+            "comment": "Minor changes for lint rules"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "712a3e062ac5be432519148af12f3b4acba8261c",
+            "comment": "Skip git operations when determining changed packages with --all or --package (and improve logging of changed packages). Internally use a Set everywhere for the scoped packages list, and add an `allInScope` property to short circuit if there's no scope."
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "712a3e062ac5be432519148af12f3b4acba8261c",
+            "comment": "Fetch package info directly from the registry, not with npm CLI. This should be a significant performance improvement when publishing or syncing many packages. The default `npmReadConcurrency` has been increased to 10 since this is a lighter-weight operation."
+          }
+        ],
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "712a3e062ac5be432519148af12f3b4acba8261c",
+            "comment": "Set up depcheck"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 04 Dec 2025 00:34:39 GMT",
       "version": "2.60.1",
       "tag": "beachball_v2.60.1",

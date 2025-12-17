@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Share bump info between validate and actual commands. This should be a significant performance improvement in large repos.",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

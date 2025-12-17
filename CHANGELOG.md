@@ -1,8 +1,26 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Thu, 04 Dec 2025 00:34:39 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 17 Dec 2025 00:58:29 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.61.0
+
+Wed, 17 Dec 2025 00:58:29 GMT
+
+### Minor changes
+
+- Skip git operations when determining changed packages with --all or --package (and improve logging of changed packages). Internally use a Set everywhere for the scoped packages list, and add an `allInScope` property to short circuit if there's no scope. (elcraig@microsoft.com)
+- Fetch package info directly from the registry, not with npm CLI. This should be a significant performance improvement when publishing or syncing many packages. The default `npmReadConcurrency` has been increased to 10 since this is a lighter-weight operation. (elcraig@microsoft.com)
+
+### Patches
+
+- Properly handle bumping more types of semver ranges (elcraig@microsoft.com)
+- Share bump info between validate and actual commands. This should be a significant performance improvement in large repos. (elcraig@microsoft.com)
+- Move git validation earlier in CLI flow (elcraig@microsoft.com)
+- Remove fs-extra usage (elcraig@microsoft.com)
+- Clarify some of the bumping logic (elcraig@microsoft.com)
+- Minor changes for lint rules (elcraig@microsoft.com)
 
 ## 2.60.1
 

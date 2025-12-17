@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Remove fs-extra usage",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

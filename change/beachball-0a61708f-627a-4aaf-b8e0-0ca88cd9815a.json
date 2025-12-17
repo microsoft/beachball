@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Properly handle bumping more types of semver ranges",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

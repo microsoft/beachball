@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Clarify some of the bumping logic",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
