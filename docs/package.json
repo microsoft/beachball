@@ -6,18 +6,20 @@
   "type": "module",
   "scripts": {
     "docs": "vuepress dev --host localhost",
-    "docs:build": "vuepress build",
-    "release:docs": "yarn docs:build && yarn gh-pages -d .vuepress/dist --dotfiles"
+    "docs:build": "vuepress build"
   },
   "devDependencies": {
+    "@types/node": "^22.0.0",
     "@vuepress/bundler-vite": "^2.0.0-rc.18",
     "@vuepress/plugin-markdown-chart": "^2.0.0-rc.109",
     "@vuepress/plugin-search": "^2.0.0-rc.61",
     "@vuepress/theme-default": "^2.0.0-rc",
-    "gh-pages": "^6.0.0",
     "mermaid": "^11.4.0",
     "sass-embedded": "^1.81.0",
     "vuepress": "^2.0.0-rc"
+  },
+  "resolutions": {
+    "@types/node@npm:*": "^22.0.0"
   },
   "engines": {
     "node": ">=22",
