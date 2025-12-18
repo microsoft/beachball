@@ -16,24 +16,43 @@ export function bumpPackageInfoVersion(
   const changeType = calculatedChangeTypes[pkgName];
 
   if (!info) {
-    console.log(`Unknown package named "${pkgName}" detected from change files, skipping!`);
+    console.warn(`Unknown package named "${pkgName}" detected from change files, skipping!`);
+  } else if (!changeType) {
+    console.warn(`No change type found when bumping "${pkgName}" (this may be a beachball bug)`);
   } else if (changeType === 'none') {
-    console.log(`"${pkgName}" has a "none" change type, no version bump is required.`);
+    console.log(`"${pkgName}" has a "none" change type, so no version bump is required.`);
   } else if (info.private) {
-    console.log(`Skipping bumping private package "${pkgName}"`);
+    console.warn(`Skipping bumping private package "${pkgName}"`);
   } else {
     // Ensure we can bump the correct versions
-    const bumpAsPrerelease = !!options.prereleasePrefix && !['premajor', 'preminor', 'prepatch'].includes(changeType);
+    const effectiveChangeType =
+      options.prereleasePrefix && !['premajor', 'preminor', 'prepatch'].includes(changeType)
+        ? 'prerelease'
+        : changeType;
 
-    // Version should be updated
-    info.version = semver.inc(
+    // Attempt to update the version
+    const newVersion = semver.inc(
       info.version,
-      bumpAsPrerelease ? 'prerelease' : changeType,
+      effectiveChangeType,
       undefined,
       options.prereleasePrefix || undefined,
       options.identifierBase
-    ) as string;
+    );
 
-    modifiedPackages.add(pkgName);
+    if (newVersion) {
+      info.version = newVersion;
+      modifiedPackages.add(pkgName);
+    } else {
+      let message = `Invalid version bump requested for "${pkgName}": from version "${info.version}", change type "${effectiveChangeType}"`;
+      if (effectiveChangeType.startsWith('pre')) {
+        if (options.prereleasePrefix) {
+          message += `, prerelease prefix "${options.prereleasePrefix}"`;
+        }
+        if (options.identifierBase) {
+          message += `, identifier base "${options.identifierBase}"`;
+        }
+      }
+      console.warn(message);
+    }
   }
 }
