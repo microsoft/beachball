@@ -54,11 +54,20 @@ describe('version bumping', () => {
     const { options, parsedOptions } = getOptions({
       bumpDeps: false,
     });
-    generateChangeFiles(['pkg-1'], options);
+    const comment = 'test comment for pkg-1';
+    generateChangeFiles([{ packageName: 'pkg-1', comment, type: 'minor' }], options);
     repo.push();
 
     // For this test, use validate() similar to the CLI to ensure it works
     const { context } = validate(parsedOptions, { checkDependencies: true });
+    const { bumpInfo } = context;
+
+    // Only pkg-1 actually gets bumped
+    expect(bumpInfo?.calculatedChangeTypes).toEqual({ 'pkg-1': 'minor' });
+    // But currently, pkg-2 ends up in the modified list and dependentChangedBy via setDependentVersions.
+    // It's debatable whether this is correct: https://github.com/microsoft/beachball/issues/620#issuecomment-3609264966
+    expect(bumpInfo?.modifiedPackages).toEqual(new Set(['pkg-1', 'pkg-2']));
+    expect(bumpInfo?.dependentChangedBy).toEqual({ 'pkg-2': new Set(['pkg-1']) });
 
     await bump(options, context);
 
@@ -66,9 +75,9 @@ describe('version bumping', () => {
 
     const pkg1NewVersion = '1.1.0';
     expect(packageInfos['pkg-1'].version).toBe(pkg1NewVersion);
-    expect(packageInfos['pkg-2'].version).toBe(monorepo['packages']['pkg-2'].version);
-    expect(packageInfos['pkg-3'].version).toBe(monorepo['packages']['pkg-3'].version);
-    expect(packageInfos['pkg-4'].version).toBe(monorepo['packages']['pkg-4'].version);
+    expect(packageInfos['pkg-2'].version).toBe('1.0.0');
+    expect(packageInfos['pkg-3'].version).toBe('1.0.0');
+    expect(packageInfos['pkg-4'].version).toBe('1.0.0');
 
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(pkg1NewVersion);
     expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(monorepo['packages']['pkg-2'].version);
@@ -77,38 +86,9 @@ describe('version bumping', () => {
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
-  });
 
-  it('correctly bumps packages with change files when changeDir is set', async () => {
-    const testChangedir = 'changeDir';
-
-    const monorepo: RepoFixture['folders'] = {
-      packages: {
-        'pkg-1': { version: '1.0.0' },
-        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
-      },
-    };
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    repo = repositoryFactory.cloneRepository();
-
-    const { options, parsedOptions } = getOptions({
-      bumpDeps: false,
-      changeDir: testChangedir,
-    });
-    generateChangeFiles(['pkg-1'], options);
-    repo.push();
-
-    await bump(options, createCommandContext(parsedOptions));
-
-    const packageInfos = getPackageInfos(parsedOptions);
-
-    const pkg1NewVersion = '1.1.0';
-    expect(packageInfos['pkg-1'].version).toBe(pkg1NewVersion);
-    expect(packageInfos['pkg-2'].version).toBe(monorepo['packages']['pkg-2'].version);
-    expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(pkg1NewVersion);
-
-    const changeFiles = getChangeFiles(options);
-    expect(changeFiles).toHaveLength(0);
+    const pkg1Changelog = readChangelogJson(repo.pathTo('packages/pkg-1'));
+    expect(pkg1Changelog!.entries[0].comments.minor![0].comment).toBe(comment);
   });
 
   it('for multi-root monorepo, only bumps packages in the current root', async () => {
@@ -140,7 +120,9 @@ describe('version bumping', () => {
     expect(changeFilesB).toHaveLength(1);
   });
 
-  it('bumps only packages with change files committed between specified ref and head using `since` flag', async () => {
+  // This is mostly covered by readChangeFiles and unlinkChangeFiles, but it might be good to
+  // ensure it works all-up.
+  it('bumps only packages with change files committed between specified ref and head using since/fromRef flag', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
         'pkg-1': { version: '1.0.0' },
@@ -176,7 +158,7 @@ describe('version bumping', () => {
     expect(changeFiles).toHaveLength(1);
   });
 
-  it('bumps all dependent packages with `bumpDeps` flag', async () => {
+  it('bumps all dependent packages with bumpDeps: true (default)', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
         'pkg-1': { version: '1.0.0' },
@@ -191,12 +173,16 @@ describe('version bumping', () => {
 
     const { options, parsedOptions } = getOptions({
       bumpDeps: true,
+      generateChangelog: true,
     });
-    generateChangeFiles(['pkg-1'], options);
+    const comment = 'test comment for pkg-1';
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'minor', comment }], options);
     repo.push();
 
     // For this test, use validate() similar to the CLI to ensure it works
     const { context } = validate(parsedOptions, { checkDependencies: true });
+    const { bumpInfo } = context;
+    expect(bumpInfo?.modifiedPackages).toEqual(new Set(['pkg-1', 'pkg-2', 'pkg-3', 'pkg-4', 'pkg-5']));
 
     await bump(options, context);
 
@@ -215,8 +201,16 @@ describe('version bumping', () => {
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
+
+    const pkg1Changelog = readChangelogJson(repo.pathTo('packages/pkg-1'));
+    expect(pkg1Changelog!.entries[0].comments.minor![0].comment).toBe(comment);
+    const pkg2Changelog = readChangelogJson(repo.pathTo('packages/pkg-2'));
+    expect(pkg2Changelog!.entries[0].comments.patch![0].comment).toBe(`Bump pkg-1 to v${pkg1NewVersion}`);
+    const pkg3Changelog = readChangelogJson(repo.pathTo('packages/pkg-3'));
+    expect(pkg3Changelog!.entries[0].comments.patch![0].comment).toBe(`Bump pkg-2 to v${dependentNewVersion}`);
   });
 
+  // TODO: move to bumpInMemory tests
   it('bumps all grouped packages', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
@@ -252,6 +246,7 @@ describe('version bumping', () => {
     expect(changeFiles).toHaveLength(0);
   });
 
+  // TODO: move to bumpInMemory tests
   it('bumps all grouped packages to the greatest change type in the group, regardless of change file order', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
@@ -334,8 +329,13 @@ describe('version bumping', () => {
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
+
+    // TODO check changelogs
   });
 
+  // Scope filtering of changes happens in readChangesFiles, not the actual bump logic,
+  // so we need an E2E test to make sure it all works together.
+  // (Scope filtering of dependents happens in the bump step.)
   it('should not bump out-of-scope package even if package has change', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     const monorepo = repositoryFactory.fixture.folders;
@@ -343,21 +343,23 @@ describe('version bumping', () => {
 
     const { options, parsedOptions } = getOptions({
       bumpDeps: true,
-      scope: ['!packages/foo'],
+      scope: ['!packages/bar'],
     });
-    generateChangeFiles(['foo'], options);
+    generateChangeFiles(['bar'], options);
     repo.push();
 
     await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
-    expect(packageInfos['foo'].version).toBe(monorepo['packages']['foo'].version);
     expect(packageInfos['bar'].version).toBe(monorepo['packages']['bar'].version);
+    expect(packageInfos['foo'].version).toBe(monorepo['packages']['foo'].version);
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
   });
 
+  // Scope filtering of dependents currently happens in the bump step and can be tested in bumpInMemory,
+  // but probably also good to have E2E coverage of this scenario in case that changes in the future.
   it('should not bump out-of-scope package and its dependencies even if dependency of the package has change', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     const monorepo = repositoryFactory.fixture.folders;
@@ -375,26 +377,23 @@ describe('version bumping', () => {
     const packageInfos = getPackageInfos(parsedOptions);
     expect(packageInfos['foo'].version).toBe(monorepo['packages']['foo'].version);
     expect(packageInfos['bar'].version).toBe('1.3.5');
+    // Since foo is out of scope, currently its dep on bar is not bumped.
+    // This is usually fine, but could be an issue if bar is bumped to an incompatible version.
+    // Somewhat related: https://github.com/microsoft/beachball/issues/620#issuecomment-3609264966
     expect(packageInfos['foo'].dependencies!['bar']).toBe(monorepo['packages']['foo'].dependencies!['bar']);
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
   });
 
-  it('should not bump local package dependencies', async () => {
+  // This is mostly covered by bumpInMemory.test.ts, but the current changelog behavior is probably
+  // worth documenting here.
+  it('bumps dependents with file: deps', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
-        'pkg-1': {
-          version: '1.0.0',
-          dependencies: { 'pkg-2': 'file:../pkg-2' },
-          devDependencies: { 'pkg-3': 'file:../pkg-3' },
-          peerDependencies: { 'pkg-4': 'file:../pkg-4' },
-          optionalDependencies: { 'pkg-5': 'file:../pkg-5' },
-        },
-        'pkg-2': { version: '1.0.0' },
-        'pkg-3': { version: '1.0.0' },
-        'pkg-4': { version: '1.0.0' },
-        'pkg-5': { version: '1.0.0' },
+        'pkg-1': { version: '1.0.0' },
+        'pkg-2': { version: '0.0.0', dependencies: { 'pkg-1': 'file:../pkg-1' } },
+        'pkg-3': { version: '0.0.0', devDependencies: { 'pkg-2': 'file:../pkg-2' } },
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
@@ -408,49 +407,31 @@ describe('version bumping', () => {
 
     repo.push();
 
-    await bump(options, createCommandContext(parsedOptions));
+    const context = createCommandContext(parsedOptions);
+    const { originalPackageInfos } = context;
+    await bump(options, context);
 
     const packageInfos = getPackageInfos(parsedOptions);
 
-    const pkg1NewVersion = '1.1.0';
-    expect(packageInfos['pkg-1'].version).toBe(pkg1NewVersion);
-    expect(packageInfos['pkg-2'].version).toBe(monorepo['packages']['pkg-2'].version);
-    expect(packageInfos['pkg-3'].version).toBe(monorepo['packages']['pkg-3'].version);
-    expect(packageInfos['pkg-4'].version).toBe(monorepo['packages']['pkg-4'].version);
-    expect(packageInfos['pkg-5'].version).toBe(monorepo['packages']['pkg-5'].version);
-
-    expect(packageInfos['pkg-1'].dependencies!['pkg-2']).toBe(monorepo['packages']['pkg-1'].dependencies!['pkg-2']);
-    expect(packageInfos['pkg-1'].devDependencies!['pkg-3']).toBe(
-      monorepo['packages']['pkg-1'].devDependencies!['pkg-3']
-    );
-    expect(packageInfos['pkg-1'].peerDependencies!['pkg-4']).toBe(
-      monorepo['packages']['pkg-1'].peerDependencies!['pkg-4']
-    );
-    expect(packageInfos['pkg-1'].optionalDependencies!['pkg-5']).toBe(
-      monorepo['packages']['pkg-1'].optionalDependencies!['pkg-5']
-    );
+    // All the packages are bumped despite the file: dep specs.
+    // The dep specs are not modified, but the dependent versions are bumped.
+    expect(packageInfos['pkg-1']).toEqual({ ...originalPackageInfos['pkg-1'], version: '1.1.0' });
+    expect(packageInfos['pkg-2']).toEqual({ ...originalPackageInfos['pkg-2'], version: '0.0.1' });
+    expect(packageInfos['pkg-3']).toEqual({ ...originalPackageInfos['pkg-3'], version: '0.0.1' });
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);
 
-    // Verify changelog doesn't include entries for file: dependencies
-    const changelogJson = readChangelogJson(repo.pathTo('packages/pkg-1'));
-    expect(changelogJson?.entries).toHaveLength(1);
-    const changelogComments = changelogJson?.entries[0].comments;
-    const allComments = [
-      ...(changelogComments?.major || []),
-      ...(changelogComments?.minor || []),
-      ...(changelogComments?.patch || []),
-      ...(changelogComments?.none || []),
-    ];
-    // Changelog should not mention pkg-2, pkg-3, pkg-4, or pkg-5 since they use file: protocol
-    const commentTexts = allComments.map(c => c.comment).join(' ');
-    expect(commentTexts).not.toContain('pkg-2');
-    expect(commentTexts).not.toContain('pkg-3');
-    expect(commentTexts).not.toContain('pkg-4');
-    expect(commentTexts).not.toContain('pkg-5');
+    // Current behavior: dependentChangedBy misses file: deps, so pkg-2 and pkg-3 don't have
+    // changelog entries for the pkg-1 bump.
+    // https://github.com/microsoft/beachball/issues/981
+    const changelogJson2 = readChangelogJson(repo.pathTo('packages/pkg-2'));
+    expect(changelogJson2).toBeNull();
+    const changelogJson3 = readChangelogJson(repo.pathTo('packages/pkg-3'));
+    expect(changelogJson3).toBeNull();
   });
 
+  // TODO: move to bumpInMemory tests
   it('bumps all packages and keeps change files with `keep-change-files` flag', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
@@ -492,6 +473,7 @@ describe('version bumping', () => {
     expect(changeFiles).toHaveLength(1);
   });
 
+  // TODO: move to bumpInMemory tests
   it('bumps all packages and uses prefix in the version with default identifier base', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
@@ -533,6 +515,7 @@ describe('version bumping', () => {
     expect(changeFiles).toHaveLength(0);
   });
 
+  // TODO: move to bumpInMemory tests
   it('bumps all packages and uses prefix in the version with the right identifier base', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
@@ -575,6 +558,7 @@ describe('version bumping', () => {
     expect(changeFiles).toHaveLength(0);
   });
 
+  // TODO: move to bumpInMemory tests
   it('bumps all packages and uses prefix in the version with no identifier base', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
@@ -617,7 +601,7 @@ describe('version bumping', () => {
     expect(changeFiles).toHaveLength(0);
   });
 
-  it('bumps all packages and uses prefixed versions in dependents', async () => {
+  it('bumps to prerelease and uses prerelease version for dependents', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
         'pkg-1': { version: '1.0.0' },
@@ -657,6 +641,7 @@ describe('version bumping', () => {
     expect(changeFiles).toHaveLength(0);
   });
 
+  // TODO: move to bumpInMemory tests
   it('bumps all packages and increments prefixed versions in dependents', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
@@ -698,45 +683,11 @@ describe('version bumping', () => {
     expect(changeFiles).toHaveLength(0);
   });
 
-  it('generates correct changelogs and modified packages when bumpDeps is true', async () => {
-    const monorepo: RepoFixture['folders'] = {
-      packages: {
-        package1: { version: '0.0.1' },
-        package2: { version: '0.0.1', dependencies: { package1: '^0.0.1' } },
-      },
-    };
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    repo = repositoryFactory.cloneRepository();
+  // TODO test workspace versions
 
-    const { options, parsedOptions } = getOptions({
-      bumpDeps: true,
-      keepChangeFiles: false,
-      generateChangelog: true,
-    });
-    generateChangeFiles(
-      [
-        {
-          type: 'patch',
-          comment: 'This package1 test comment should be absorbed into the changelog.',
-          packageName: 'package1',
-        },
-      ],
-      options
-    );
-
-    repo.push();
-
-    const bumpInfo = await bump(options, createCommandContext(parsedOptions));
-
-    const modified = [...bumpInfo.modifiedPackages];
-    expect(modified).toContain('package1');
-    expect(modified).toContain('package2');
-
-    const changelogJson = readChangelogJson(repo.pathTo('packages/package2'));
-    expect(changelogJson?.entries[0].comments.patch![0].comment).toBe('Bump package1 to v0.0.2');
-  });
-
-  it('calls sync prebump hook before packages are bumped', async () => {
+  // Explicit tests for sync/async hooks aren't necessary, especially since these are slow tests.
+  // Async is slightly trickier, so test that.
+  it('calls prebump/postbump hooks', async () => {
     repositoryFactory = new RepositoryFactory({
       folders: {
         packages: { 'pkg-1': { version: '1.0.0' } },
@@ -747,44 +698,23 @@ describe('version bumping', () => {
     const { options, parsedOptions } = getOptions({
       bumpDeps: false,
       hooks: {
-        prebump: jest.fn<Required<HooksOptions>['prebump']>((packagePath, name, version) => {
-          expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
+        prebump: jest.fn<NonNullable<HooksOptions['prebump']>>(async (packagePath, name, version) => {
+          expect(packagePath.endsWith('pkg-1')).toBeTruthy();
           expect(name).toBe('pkg-1');
           expect(version).toBe('1.1.0');
 
-          const jsonPath = path.join(packagePath, 'package.json');
-          expect(readJson<PackageJson>(jsonPath).version).toBe('1.0.0');
-        }),
-      },
-    });
-
-    generateChangeFiles(['pkg-1'], options);
-    repo.push();
-
-    await bump(options, createCommandContext(parsedOptions));
-
-    expect(options.hooks?.prebump).toHaveBeenCalled();
-  });
-
-  it('calls async prebump hook before packages are bumped', async () => {
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: { 'pkg-1': { version: '1.0.0' } },
-      },
-    });
-    repo = repositoryFactory.cloneRepository();
-
-    const { options, parsedOptions } = getOptions({
-      bumpDeps: false,
-      hooks: {
-        prebump: jest.fn<Required<HooksOptions>['prebump']>(async (packagePath, name, version) => {
-          expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
-          expect(name).toBe('pkg-1');
-          expect(version).toBe('1.1.0');
-
-          const jsonPath = path.join(packagePath, 'package.json');
           await new Promise(resolve => setTimeout(resolve, 0)); // simulate async work
+          const jsonPath = path.join(packagePath, 'package.json');
           expect(readJson<PackageJson>(jsonPath).version).toBe('1.0.0');
+        }),
+        postbump: jest.fn<NonNullable<HooksOptions['postbump']>>(async (packagePath, name, version) => {
+          expect(packagePath.endsWith('pkg-1')).toBeTruthy();
+          expect(name).toBe('pkg-1');
+          expect(version).toBe('1.1.0');
+
+          await new Promise(resolve => setTimeout(resolve, 0)); // simulate async work
+          const jsonPath = path.join(packagePath, 'package.json');
+          expect(readJson<PackageJson>(jsonPath).version).toBe('1.1.0');
         }),
       },
     });
@@ -795,8 +725,10 @@ describe('version bumping', () => {
     await bump(options, createCommandContext(parsedOptions));
 
     expect(options.hooks?.prebump).toHaveBeenCalled();
+    expect(options.hooks?.postbump).toHaveBeenCalled();
   });
 
+  // TODO: move to performBump test (no repo)
   it('propagates prebump hook exceptions', async () => {
     repositoryFactory = new RepositoryFactory({
       folders: {
@@ -821,67 +753,7 @@ describe('version bumping', () => {
     await expect(() => bump(options, createCommandContext(parsedOptions))).rejects.toThrow('Foo');
   });
 
-  it('calls sync postbump hook before packages are bumped', async () => {
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: { 'pkg-1': { version: '1.0.0' } },
-      },
-    });
-    repo = repositoryFactory.cloneRepository();
-
-    const { options, parsedOptions } = getOptions({
-      bumpDeps: false,
-      hooks: {
-        postbump: jest.fn<Required<HooksOptions>['postbump']>((packagePath, name, version) => {
-          expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
-          expect(name).toBe('pkg-1');
-          expect(version).toBe('1.1.0');
-
-          const jsonPath = path.join(packagePath, 'package.json');
-          expect(readJson<PackageJson>(jsonPath).version).toBe('1.1.0');
-        }),
-      },
-    });
-
-    generateChangeFiles(['pkg-1'], options);
-    repo.push();
-
-    await bump(options, createCommandContext(parsedOptions));
-
-    expect(options.hooks?.postbump).toHaveBeenCalled();
-  });
-
-  it('calls async postbump hook before packages are bumped', async () => {
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: { 'pkg-1': { version: '1.0.0' } },
-      },
-    });
-    repo = repositoryFactory.cloneRepository();
-
-    const { options, parsedOptions } = getOptions({
-      bumpDeps: false,
-      hooks: {
-        postbump: jest.fn<Required<HooksOptions>['postbump']>(async (packagePath, name, version) => {
-          expect(packagePath.endsWith(path.join('packages', 'pkg-1'))).toBeTruthy();
-          expect(name).toBe('pkg-1');
-          expect(version).toBe('1.1.0');
-
-          const jsonPath = path.join(packagePath, 'package.json');
-          await new Promise(resolve => setTimeout(resolve, 0)); // simulate async work
-          expect(readJson<PackageJson>(jsonPath).version).toBe('1.1.0');
-        }),
-      },
-    });
-
-    generateChangeFiles(['pkg-1'], options);
-    repo.push();
-
-    await bump(options, createCommandContext(parsedOptions));
-
-    expect(options.hooks?.postbump).toHaveBeenCalled();
-  });
-
+  // TODO: move to performBump test (no repo)
   it('propagates postbump hook exceptions', async () => {
     repositoryFactory = new RepositoryFactory({
       folders: {

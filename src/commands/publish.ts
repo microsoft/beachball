@@ -19,7 +19,7 @@ export async function publish(options: BeachballOptions): Promise<void>;
 export async function publish(options: BeachballOptions, context?: CommandContext): Promise<void> {
   console.log('\nPreparing to publish');
 
-  const { path: cwd, branch, registry, tag } = options;
+  const { path: cwd, branch, registry, tag, packToPath } = options;
   // eslint-disable-next-line etc/no-deprecated -- compat code
   context ??= createCommandContext(options);
 
@@ -30,9 +30,10 @@ export async function publish(options: BeachballOptions, context?: CommandContex
     console.log('Nothing to bump, skipping publish!');
     return;
   }
-  // Collate the changes per package
+
   const currentBranch = getBranchName({ cwd });
   const currentHash = getCurrentHash({ cwd });
+  const shouldBumpAndPush = !!(options.bump && options.push && branch);
 
   console.log(`\nPublishing with the following configuration:
 
@@ -41,11 +42,17 @@ export async function publish(options: BeachballOptions, context?: CommandContex
   current branch: ${currentBranch}
   current hash: ${currentHash}
   target branch: ${branch}
-  tag: ${tag}
+  npm dist-tag: ${tag}
 
-  bumps versions: ${options.bump ? 'yes' : 'no'}
-  publishes to npm registry: ${options.publish ? 'yes' : 'no'}
-  pushes to remote git repo: ${options.bump && options.push && options.branch ? 'yes' : 'no'}
+  bumps versions before ${packToPath ? 'packing' : 'publishing'}: ${options.bump ? 'yes' : 'no'}
+  ${
+    packToPath
+      ? `packs to path instead of publishing to npm registry: ${packToPath}`
+      : `publishes to npm registry: ${options.publish ? 'yes' : 'no'}`
+  }
+  pushes bumps${options.generateChangelog ? ' and changelogs' : ''} to remote git repo: ${
+    shouldBumpAndPush ? 'yes' : 'no'
+  }
 
 `);
 
@@ -53,7 +60,7 @@ export async function publish(options: BeachballOptions, context?: CommandContex
     const response = await prompts({
       type: 'confirm',
       name: 'yes',
-      message: 'Is everything correct (use the --yes or -y arg to skip this prompt)?',
+      message: 'Is everything correct? (use the --yes or -y arg to skip this prompt)',
     });
     if (!response.yes) {
       return;
@@ -88,10 +95,12 @@ export async function publish(options: BeachballOptions, context?: CommandContex
 
   // Step 1. Bump on disk + npm publish
   // npm / yarn publish
-  if (options.publish || options.packToPath) {
-    console.log(
-      `\nBumping versions and ${options.packToPath ? `packing packages to ${options.packToPath}` : 'publishing to npm'}`
-    );
+  if (options.publish || packToPath) {
+    const publishMessage = packToPath ? `packing packages to ${packToPath}` : 'publishing packages to npm registry';
+    const message = options.bump
+      ? `Bumping versions and ${publishMessage}`
+      : publishMessage[0].toUpperCase() + publishMessage.slice(1);
+    console.log(`\n${message}\n`);
     await publishToRegistry(bumpInfo, options);
     console.log();
   } else {
@@ -101,7 +110,7 @@ export async function publish(options: BeachballOptions, context?: CommandContex
   // Step 2.
   // - reset, fetch latest from origin/master (to ensure less chance of conflict),
   //   then bump on disk again + commit
-  if (options.bump && branch && options.push) {
+  if (shouldBumpAndPush) {
     // this does its own section logging
     await bumpAndPush(bumpInfo, publishBranch, options);
   } else {

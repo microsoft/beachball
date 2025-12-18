@@ -49,8 +49,9 @@ type ValidationResult = {
 };
 
 /**
- * Validate configuration and exit 1 if it's invalid.
+ * Run validation of options, change files, and packages. Exit 1 if it's invalid.
  * If `validateOptions.checkChangeNeeded` is true, also check whether change files are needed.
+ * @returns Various info retrieved during validation which is also needed by other functions.
  */
 export function validate(parsedOptions: ParsedOptions, validateOptions: ValidateOptions): ValidationResult;
 /** @deprecated Use other signature */
@@ -213,6 +214,7 @@ export function validate(
     // to calculate the full bump info.
     bumpInfo = bumpInMemory(options, { originalPackageInfos, packageGroups, changeSet, scopedPackages });
     const packagesToPublish = getPackagesToPublish(bumpInfo, true /*validationMode*/);
+
     if (!validatePackageDependencies(packagesToPublish, bumpInfo.packageInfos)) {
       logValidationError(`One or more published packages depend on an unpublished package!
 
