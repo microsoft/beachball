@@ -7,7 +7,7 @@ import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { readChangeFiles } from '../../changefile/readChangeFiles';
 import type { RepoOptions } from '../../types/BeachballOptions';
 import type { Repository } from '../../__fixtures__/repository';
-import type { ChangeInfo } from '../../types/ChangeInfo';
+import type { ChangeInfo, ChangeSet } from '../../types/ChangeInfo';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 import { getParsedOptions } from '../../options/getOptions';
 import { removeTempDir } from '../../__fixtures__/tmpdir';
@@ -16,7 +16,9 @@ import { createTestFileStructureType } from '../../__fixtures__/createTestFileSt
 import { readJson } from '../../object/readJson';
 import { writeJson } from '../../object/writeJson';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
+import { getChangePath } from '../../paths';
 
+// The tests for fromRef that use git are in a nested describe block
 describe('readChangeFiles', () => {
   /** Non-git temp directory root, for tests that don't need git */
   let tempRoot: string | undefined;
@@ -41,6 +43,11 @@ describe('readChangeFiles', () => {
     const diskJson = readJson<Record<string, unknown>>(fullPath);
     Object.assign(diskJson, json);
     writeJson(fullPath, diskJson);
+  }
+
+  /** Get the sorted package names from a list of changes */
+  function getPackages(changes: ChangeSet) {
+    return changes.map(changeEntry => changeEntry.change.packageName).sort();
   }
 
   afterEach(() => {
@@ -86,6 +93,7 @@ describe('readChangeFiles', () => {
         changeFile: expect.stringMatching(/^bar-[\w-]+\.json$/),
       },
     ]);
+    expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
 
   it('reads from a custom changeDir', () => {
@@ -95,7 +103,8 @@ describe('readChangeFiles', () => {
     expect(getChangeFiles(options)).toHaveLength(1);
 
     const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
-    expect(changeSet).toHaveLength(1);
+    expect(getPackages(changeSet)).toEqual(['foo']);
+    expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
 
   it('reads a grouped change file', () => {
@@ -106,10 +115,8 @@ describe('readChangeFiles', () => {
     expect(getChangeFiles(options)).toHaveLength(1);
 
     const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
-    expect(changeSet).toHaveLength(2);
-
-    const packageNames = changeSet.map(changeEntry => changeEntry.change.packageName).sort();
-    expect(packageNames).toEqual(['bar', 'foo']);
+    expect(getPackages(changeSet)).toEqual(['bar', 'foo']);
+    expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
 
   it('excludes invalid change files', () => {
@@ -120,15 +127,18 @@ describe('readChangeFiles', () => {
 
     // fake doesn't exist, bar is private, foo is okay
     generateChangeFiles(['fake', 'bar', 'foo'], options);
-    expect(getChangeFiles(options)).toHaveLength(3);
+    logs.clear();
+    fs.writeFileSync(path.join(getChangePath(options), 'not-change.json'), '{}');
+    expect(getChangeFiles(options)).toHaveLength(4);
 
     const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
-    expect(changeSet).toHaveLength(1);
+    expect(getPackages(changeSet)).toEqual(['foo']);
 
-    expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));
-    expect(logs.mocks.warn).toHaveBeenCalledWith(
-      expect.stringContaining('Change detected for nonexistent package fake')
-    );
+    expect(logs.getMockLines('warn', { root: tempRoot, guids: true, sort: true })).toMatchInlineSnapshot(`
+      "<root>/change/not-change.json does not appear to be a change file
+      Change detected for nonexistent package fake; delete this file: <root>/change/fake-<guid>.json
+      Change detected for private package bar; delete this file: <root>/change/bar-<guid>.json"
+    `);
   });
 
   it('excludes invalid changes from grouped change file in monorepo', () => {
@@ -142,12 +152,12 @@ describe('readChangeFiles', () => {
     expect(getChangeFiles(options)).toHaveLength(1);
 
     const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
-    expect(changeSet).toHaveLength(1);
+    expect(getPackages(changeSet)).toEqual(['foo']);
 
-    expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));
-    expect(logs.mocks.warn).toHaveBeenCalledWith(
-      expect.stringContaining('Change detected for nonexistent package fake')
-    );
+    expect(logs.getMockLines('warn', { root: tempRoot, guids: true, sort: true })).toMatchInlineSnapshot(`
+      "Change detected for nonexistent package fake; remove the entry from this file: <root>/change/change-<guid>.json
+      Change detected for private package bar; remove the entry from this file: <root>/change/change-<guid>.json"
+    `);
   });
 
   it('excludes out of scope change files in monorepo', () => {
@@ -158,7 +168,7 @@ describe('readChangeFiles', () => {
     expect(getChangeFiles(options)).toHaveLength(2);
 
     const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
-    expect(changeSet).toHaveLength(1);
+    expect(getPackages(changeSet)).toEqual(['foo']);
     expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
 
@@ -173,7 +183,7 @@ describe('readChangeFiles', () => {
     expect(getChangeFiles(options)).toHaveLength(1);
 
     const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
-    expect(changeSet).toHaveLength(1);
+    expect(getPackages(changeSet)).toEqual(['foo']);
     expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
 
@@ -207,6 +217,8 @@ describe('readChangeFiles', () => {
     generateChangeFiles([{ packageName: 'bar', comment: 'comment 2' }], options);
 
     const changes = readChangeFiles(options, packageInfos, scopedPackages);
+    expect(getPackages(changes)).toEqual(['bar', 'foo']);
+    expect(logs.mocks.warn).not.toHaveBeenCalled();
 
     // Verify that the comment of only the intended change file is changed
     for (const { change, changeFile } of changes) {
@@ -263,11 +275,10 @@ describe('readChangeFiles', () => {
         packageInfos,
         scopedPackages,
       } = getRepoOptionsAndPackages({ fromRef: firstCommit });
-      const changeSet = readChangeFiles(optionsFromRef, packageInfos, scopedPackages);
 
-      expect(changeSet).toHaveLength(2);
-      const packageNames = changeSet.map(changeEntry => changeEntry.change.packageName).sort();
-      expect(packageNames).toEqual(['bar', 'baz']);
+      const changeSet = readChangeFiles(optionsFromRef, packageInfos, scopedPackages);
+      expect(getPackages(changeSet)).toEqual(['bar', 'baz']);
+      expect(logs.mocks.warn).not.toHaveBeenCalled();
     });
 
     it('returns empty set when no change files exist since fromRef', () => {
@@ -283,9 +294,10 @@ describe('readChangeFiles', () => {
 
       // Read change files from after the change file commit
       const { options, packageInfos, scopedPackages } = getRepoOptionsAndPackages({ fromRef: changeCommit });
-      const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
 
-      expect(changeSet).toHaveLength(0);
+      const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
+      expect(getPackages(changeSet)).toEqual([]);
+      expect(logs.mocks.warn).not.toHaveBeenCalled();
     });
 
     it('excludes deleted change files when using fromRef', () => {
@@ -309,10 +321,10 @@ describe('readChangeFiles', () => {
 
       // Read change files with fromRef - should only include foo (bar was deleted)
       const { options, packageInfos, scopedPackages } = getRepoOptionsAndPackages({ fromRef: firstCommit });
-      const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
 
-      expect(changeSet).toHaveLength(1);
-      expect(changeSet[0].change.packageName).toBe('baz');
+      const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
+      expect(getPackages(changeSet)).toEqual(['baz']);
+      expect(logs.mocks.warn).not.toHaveBeenCalled();
     });
   });
 });

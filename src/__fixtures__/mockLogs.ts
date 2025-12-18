@@ -23,7 +23,17 @@ export type MockLogs = {
   clear: () => void;
 
   /** Get the lines logged to a particular method (or all methods) */
-  getMockLines: (method: MockLogMethod | 'all', sanitizeGuids?: boolean) => string;
+  getMockLines: (
+    method: MockLogMethod | 'all',
+    sanitize?: {
+      /** Replace this path with `<root>` and normalize slashes */
+      root?: string;
+      /** Replace GUIDs with `<guid>` */
+      guids?: boolean;
+      /** Sort lines alphabetically */
+      sort?: boolean;
+    }
+  ) => string;
 };
 
 /**
@@ -46,8 +56,8 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
       overrideOptions = undefined;
       Object.values(logs.mocks).forEach(mock => mock.mockClear());
     },
-    getMockLines: (method, sanitizeGuids) => {
-      const lines = (method === 'all' ? allLines : logs.mocks[method].mock.calls)
+    getMockLines: (method, sanitize = {}) => {
+      let lines = (method === 'all' ? allLines : logs.mocks[method].mock.calls)
         .map(args =>
           args
             .join(' ')
@@ -58,10 +68,18 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
         .join('\n')
         .trim();
 
-      return sanitizeGuids
-        ? // replace change file name GUIDs
-          lines.replace(/[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}/g, '<guid>')
-        : lines;
+      if (sanitize.root) {
+        // Normalize slashes first to ensure they're the same, then emulate replaceAll
+        lines = lines.replace(/\\/g, '/').split(sanitize.root.replace(/\\/g, '/')).join('<root>');
+      }
+      if (sanitize.guids) {
+        lines = lines.replace(/[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}/g, '<guid>');
+      }
+      if (sanitize.sort) {
+        lines = lines.split('\n').sort().join('\n');
+      }
+
+      return lines;
     },
   };
 
