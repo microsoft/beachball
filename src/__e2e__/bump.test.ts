@@ -13,6 +13,7 @@ import { getParsedOptions } from '../options/getOptions';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { readJson } from '../object/readJson';
 import { validate } from '../validation/validate';
+import { createCommandContext } from '../monorepo/createCommandContext';
 
 describe('version bumping', () => {
   let repositoryFactory: RepositoryFactory | undefined;
@@ -20,14 +21,13 @@ describe('version bumping', () => {
 
   initMockLogs();
 
-  function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, cwd?: string) {
+  function getOptions(repoOptions?: Partial<RepoOptions>, cwd?: string) {
     const parsedOptions = getParsedOptions({
       cwd: cwd || repo?.rootPath || '',
       argv: [],
       testRepoOptions: { branch: defaultRemoteBranchName, ...repoOptions },
     });
-    const originalPackageInfos = getPackageInfos(parsedOptions);
-    return { originalPackageInfos, options: parsedOptions.options, parsedOptions };
+    return { options: parsedOptions.options, parsedOptions };
   }
 
   afterEach(() => {
@@ -51,16 +51,16 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: false,
     });
     generateChangeFiles(['pkg-1'], options);
     repo.push();
 
     // For this test, use validate() similar to the CLI to ensure it works
-    const { bumpInfo } = validate(options, { checkDependencies: true }, originalPackageInfos);
+    const { context } = validate(parsedOptions, { checkDependencies: true });
 
-    await bump(options, originalPackageInfos, bumpInfo);
+    await bump(options, context);
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -91,14 +91,14 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: false,
       changeDir: testChangedir,
     });
     generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -118,16 +118,16 @@ describe('version bumping', () => {
 
     const workspaceARoot = repo.pathTo('workspace-a');
     const workspaceBRoot = repo.pathTo('workspace-b');
-    const infoA = getOptionsAndPackages({ bumpDeps: true }, workspaceARoot);
+    const infoA = getOptions({ bumpDeps: true }, workspaceARoot);
     const optionsA = infoA.options;
-    const infoB = getOptionsAndPackages({ bumpDeps: true }, workspaceBRoot);
+    const infoB = getOptions({ bumpDeps: true }, workspaceBRoot);
     const optionsB = infoB.options;
 
     generateChangeFiles([{ packageName: '@workspace-a/foo' }], optionsA);
     generateChangeFiles([{ packageName: '@workspace-a/foo', type: 'major' }], optionsB);
     repo.push();
 
-    await bump(optionsA, infoA.originalPackageInfos);
+    await bump(optionsA, createCommandContext(infoA.parsedOptions));
 
     const packageInfosA = getPackageInfos(infoA.parsedOptions);
     const packageInfosB = getPackageInfos(infoB.parsedOptions);
@@ -152,7 +152,7 @@ describe('version bumping', () => {
     repo = repositoryFactory.cloneRepository();
 
     // generate an initial set of change files
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: false,
     });
     generateChangeFiles(['pkg-1'], options);
@@ -163,7 +163,7 @@ describe('version bumping', () => {
     generateChangeFiles(['pkg-3'], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -189,16 +189,16 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: true,
     });
     generateChangeFiles(['pkg-1'], options);
     repo.push();
 
     // For this test, use validate() similar to the CLI to ensure it works
-    const { bumpInfo } = validate(options, { checkDependencies: true }, originalPackageInfos);
+    const { context } = validate(parsedOptions, { checkDependencies: true });
 
-    await bump(options, originalPackageInfos, bumpInfo);
+    await bump(options, context);
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -231,14 +231,14 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       groups: [{ include: 'packages/*', name: 'testgroup', disallowedChangeTypes: [] }],
     });
     generateChangeFiles(['pkg-1'], options);
 
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -271,7 +271,7 @@ describe('version bumping', () => {
       },
     });
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       groups: [{ include: 'packages/*', disallowedChangeTypes: null, name: 'grp' }],
       bumpDeps: true,
       commit: true,
@@ -285,7 +285,7 @@ describe('version bumping', () => {
     );
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -313,14 +313,14 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       groups: [{ include: 'packages/grp/*', name: 'grp', disallowedChangeTypes: [] }],
       bumpDeps: true,
     });
     generateChangeFiles([{ packageName: 'commonlib', dependentChangeType: 'minor' }], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -341,14 +341,14 @@ describe('version bumping', () => {
     const monorepo = repositoryFactory.fixture.folders;
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: true,
       scope: ['!packages/foo'],
     });
     generateChangeFiles(['foo'], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
     expect(packageInfos['foo'].version).toBe(monorepo['packages']['foo'].version);
@@ -363,14 +363,14 @@ describe('version bumping', () => {
     const monorepo = repositoryFactory.fixture.folders;
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: true,
       scope: ['!packages/foo'],
     });
     generateChangeFiles([{ packageName: 'bar', type: 'patch' }], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
     expect(packageInfos['foo'].version).toBe(monorepo['packages']['foo'].version);
@@ -400,7 +400,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: true,
       generateChangelog: true,
     });
@@ -408,7 +408,7 @@ describe('version bumping', () => {
 
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -464,7 +464,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: false,
       keepChangeFiles: true,
     });
@@ -472,7 +472,7 @@ describe('version bumping', () => {
 
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -505,7 +505,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: true,
       keepChangeFiles: false,
       prereleasePrefix: 'beta',
@@ -513,7 +513,7 @@ describe('version bumping', () => {
     generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -546,7 +546,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: true,
       keepChangeFiles: false,
       prereleasePrefix: 'beta',
@@ -555,7 +555,7 @@ describe('version bumping', () => {
     generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -588,7 +588,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: true,
       keepChangeFiles: false,
       prereleasePrefix: 'beta',
@@ -597,7 +597,7 @@ describe('version bumping', () => {
     generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease' }], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -630,7 +630,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: true,
       keepChangeFiles: false,
       prereleasePrefix: 'beta',
@@ -638,7 +638,7 @@ describe('version bumping', () => {
     generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease', dependentChangeType: 'prerelease' }], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -670,7 +670,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: true,
       keepChangeFiles: false,
       prereleasePrefix: 'beta',
@@ -678,7 +678,7 @@ describe('version bumping', () => {
     generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease', dependentChangeType: 'prerelease' }], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     const packageInfos = getPackageInfos(parsedOptions);
 
@@ -708,7 +708,7 @@ describe('version bumping', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: true,
       keepChangeFiles: false,
       generateChangelog: true,
@@ -726,7 +726,7 @@ describe('version bumping', () => {
 
     repo.push();
 
-    const bumpInfo = await bump(options, originalPackageInfos);
+    const bumpInfo = await bump(options, createCommandContext(parsedOptions));
 
     const modified = [...bumpInfo.modifiedPackages];
     expect(modified).toContain('package1');
@@ -744,7 +744,7 @@ describe('version bumping', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: false,
       hooks: {
         prebump: jest.fn<Required<HooksOptions>['prebump']>((packagePath, name, version) => {
@@ -761,7 +761,7 @@ describe('version bumping', () => {
     generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     expect(options.hooks?.prebump).toHaveBeenCalled();
   });
@@ -774,7 +774,7 @@ describe('version bumping', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: false,
       hooks: {
         prebump: jest.fn<Required<HooksOptions>['prebump']>(async (packagePath, name, version) => {
@@ -792,7 +792,7 @@ describe('version bumping', () => {
     generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     expect(options.hooks?.prebump).toHaveBeenCalled();
   });
@@ -805,7 +805,7 @@ describe('version bumping', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       path: repo.rootPath,
       bumpDeps: false,
       hooks: {
@@ -818,7 +818,7 @@ describe('version bumping', () => {
     generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    await expect(() => bump(options, originalPackageInfos)).rejects.toThrow('Foo');
+    await expect(() => bump(options, createCommandContext(parsedOptions))).rejects.toThrow('Foo');
   });
 
   it('calls sync postbump hook before packages are bumped', async () => {
@@ -829,7 +829,7 @@ describe('version bumping', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: false,
       hooks: {
         postbump: jest.fn<Required<HooksOptions>['postbump']>((packagePath, name, version) => {
@@ -846,7 +846,7 @@ describe('version bumping', () => {
     generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     expect(options.hooks?.postbump).toHaveBeenCalled();
   });
@@ -859,7 +859,7 @@ describe('version bumping', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: false,
       hooks: {
         postbump: jest.fn<Required<HooksOptions>['postbump']>(async (packagePath, name, version) => {
@@ -877,7 +877,7 @@ describe('version bumping', () => {
     generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    await bump(options, originalPackageInfos);
+    await bump(options, createCommandContext(parsedOptions));
 
     expect(options.hooks?.postbump).toHaveBeenCalled();
   });
@@ -890,7 +890,7 @@ describe('version bumping', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { originalPackageInfos, options } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       bumpDeps: false,
       hooks: {
         postbump: (): Promise<void> => {
@@ -902,6 +902,6 @@ describe('version bumping', () => {
     generateChangeFiles(['pkg-1'], options);
     repo.push();
 
-    await expect(() => bump(options, originalPackageInfos)).rejects.toThrow('Foo');
+    await expect(() => bump(options, createCommandContext(parsedOptions))).rejects.toThrow('Foo');
   });
 });

@@ -11,7 +11,6 @@ import { callHook } from '../bump/callHook';
 import { getPackageGraph } from '../monorepo/getPackageGraph';
 import type { PackageInfo } from '../types/PackageInfo';
 import { packPackage } from '../packageManager/packPackage';
-import { cloneObject } from '../object/cloneObject';
 
 /**
  * Publish all the bumped packages to the registry, OR if `packToPath` is specified,
@@ -19,10 +18,8 @@ import { cloneObject } from '../object/cloneObject';
  *
  * This will bump packages on the filesystem first if `options.bump` is true.
  */
-export async function publishToRegistry(originalBumpInfo: PublishBumpInfo, options: BeachballOptions): Promise<void> {
+export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: BeachballOptions): Promise<void> {
   const verb = options.packToPath ? 'pack' : 'publish';
-
-  const bumpInfo = cloneObject(originalBumpInfo);
 
   if (options.bump) {
     await performBump(bumpInfo, options);

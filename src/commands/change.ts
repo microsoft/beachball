@@ -1,31 +1,31 @@
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { promptForChange } from '../changefile/promptForChange';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { getRecentCommitMessages, getUserEmail } from 'workspace-tools';
 import { getChangedPackages } from '../changefile/getChangedPackages';
-import { getPackageGroups } from '../monorepo/getPackageGroups';
-import type { PackageInfos } from '../types/PackageInfo';
+import type { ChangeCommandContext } from '../types/CommandContext';
+import { createBasicCommandContext } from '../monorepo/createCommandContext';
 
 /**
  * Generate change files.
+ * @param context Command context from `validate()`. `changedPackages` may be undefined for tests.
  */
-export async function change(options: BeachballOptions, packageInfos: PackageInfos): Promise<void>;
-/** @deprecated Must provide the package infos */
+export async function change(options: BeachballOptions, context: ChangeCommandContext): Promise<void>;
+/** @deprecated Use other signature */
 export async function change(options: BeachballOptions): Promise<void>;
-export async function change(options: BeachballOptions, packageInfos?: PackageInfos): Promise<void> {
-  const { branch, path: cwd, package: specificPackage } = options;
+export async function change(options: BeachballOptions, context?: ChangeCommandContext): Promise<void> {
+  const { branch, path: cwd } = options;
 
-  // eslint-disable-next-line etc/no-deprecated
-  packageInfos ||= getPackageInfos(cwd);
-  const packageGroups = getPackageGroups(packageInfos, cwd, options.groups);
+  // eslint-disable-next-line etc/no-deprecated -- compat code
+  context ??= { ...createBasicCommandContext(options), changedPackages: undefined };
 
-  const changedPackages =
-    typeof specificPackage === 'string'
-      ? [specificPackage]
-      : Array.isArray(specificPackage)
-      ? specificPackage
-      : getChangedPackages(options, packageInfos);
+  const {
+    originalPackageInfos: packageInfos,
+    packageGroups,
+    // This considers --package and --all
+    changedPackages = getChangedPackages(options, packageInfos, context.scopedPackages),
+  } = context;
+
   if (!changedPackages.length) {
     return;
   }

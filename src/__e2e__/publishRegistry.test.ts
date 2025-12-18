@@ -9,8 +9,8 @@ import { publish } from '../commands/publish';
 import type { RepoOptions } from '../types/BeachballOptions';
 import { initNpmMock } from '../__fixtures__/mockNpm';
 import { removeTempDir, tmpdir } from '../__fixtures__/tmpdir';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { getParsedOptions } from '../options/getOptions';
+import { createCommandContext } from '../monorepo/createCommandContext';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -30,7 +30,7 @@ describe('publish command (registry)', () => {
   // show error logs for these tests
   const logs = initMockLogs({ alsoLog: ['error'] });
 
-  function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>) {
+  function getOptions(repoOptions?: Partial<RepoOptions>) {
     const parsedOptions = getParsedOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'publish', '--yes'],
@@ -46,8 +46,7 @@ describe('publish command (registry)', () => {
         ...repoOptions,
       },
     });
-    const packageInfos = getPackageInfos(parsedOptions);
-    return { packageInfos, options: parsedOptions.options, parsedOptions };
+    return { options: parsedOptions.options, parsedOptions };
   }
 
   afterEach(() => {
@@ -63,11 +62,11 @@ describe('publish command (registry)', () => {
     repo = repositoryFactory.cloneRepository();
     packToPath = tmpdir({ prefix: 'beachball-pack-' });
 
-    const { options, packageInfos } = getOptionsAndPackages({ packToPath });
+    const { options, parsedOptions } = getOptions({ packToPath });
     generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     expect(fs.readdirSync(packToPath)).toEqual(['1-foo-1.1.0.tgz']);
     expect(npmMock.getPublishedVersions('foo')).toBeUndefined();
@@ -84,12 +83,12 @@ describe('publish command (registry)', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, parsedOptions } = getOptions();
     generateChangeFiles(['foopkg'], options);
 
     repo.push();
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     expect(logs.mocks.log).toHaveBeenCalledWith('Nothing to bump, skipping publish!');
     expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package foopkg'));
@@ -108,12 +107,12 @@ describe('publish command (registry)', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, parsedOptions } = getOptions();
     generateChangeFiles(['foopkg', 'barpkg'], options);
 
     repo.push();
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     expect(npmMock.getPublishedPackage('foopkg')!.version).toEqual('1.1.0');
     expect(npmMock.getPublishedPackage('barpkg')!.version).toEqual('1.1.0');
@@ -135,11 +134,11 @@ describe('publish command (registry)', () => {
     repo = repositoryFactory.cloneRepository();
     packToPath = tmpdir({ prefix: 'beachball-pack-' });
 
-    const { options, packageInfos } = getOptionsAndPackages({ packToPath, groupChanges: true });
+    const { options, parsedOptions } = getOptions({ packToPath, groupChanges: true });
     generateChangeFiles(packageNames, options);
     repo.push();
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     expect(fs.readdirSync(packToPath).sort()).toEqual(
       [...packageNames].reverse().map((name, i) => `${String(i + 1).padStart(2, '0')}-${name}-1.1.0.tgz`)
@@ -153,12 +152,12 @@ describe('publish command (registry)', () => {
 
     repo.updateJsonFile('packages/bar/package.json', { private: true });
 
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, parsedOptions } = getOptions();
     generateChangeFiles(['bar', 'fake'], options);
 
     repo.push();
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     expect(logs.mocks.log).toHaveBeenCalledWith('Nothing to bump, skipping publish!');
     expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));

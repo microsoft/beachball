@@ -2,7 +2,7 @@ import { getUntrackedChanges } from 'workspace-tools';
 import { isValidAuthType } from './isValidAuthType';
 import { isValidChangeType } from './isValidChangeType';
 import { isValidGroupedPackageOptions, isValidGroupOptions } from './isValidGroupOptions';
-import type { BeachballOptions } from '../types/BeachballOptions';
+import type { BeachballOptions, ParsedOptions } from '../types/BeachballOptions';
 import { isValidChangelogOptions } from './isValidChangelogOptions';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
@@ -14,12 +14,13 @@ import { bumpInMemory } from '../bump/bumpInMemory';
 import { isValidDependentChangeType } from './isValidDependentChangeType';
 import { getPackagesToPublish } from '../publish/getPackagesToPublish';
 import { env } from '../env';
-import type { PackageInfos } from '../types/PackageInfo';
 import { bulletedList } from '../logging/bulletedList';
 import type { BumpInfo } from '../types/BumpInfo';
+import type { ChangeCommandContext, CommandContext } from '../types/CommandContext';
+import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { getChangedPackages } from '../changefile/getChangedPackages';
 
-type ValidationOptions = {
+export type ValidateOptions = {
   /**
    * If true, check whether change files are needed (and whether change files are deleted).
    */
@@ -39,26 +40,27 @@ type ValidationOptions = {
 type ValidationResult = {
   /** True if change files are needed. Always false if `validateOptions.checkChangeNeeded` wasn't true. */
   isChangeNeeded: boolean;
-  /** If `checkDependencies` was true, the bump info is returned for reuse by other methods. */
-  bumpInfo?: BumpInfo;
+  /**
+   * Context calculated during validation that can also be used by main command logic.
+   * `bumpInfo` will only be set if `checkDependencies` was true and no changes were needed.
+   * `changedPackages` will only be set if `checkChangeNeeded` was true.
+   */
+  context: CommandContext & ChangeCommandContext;
 };
 
 /**
  * Validate configuration and exit 1 if it's invalid.
  * If `validateOptions.checkChangeNeeded` is true, also check whether change files are needed.
  */
+export function validate(parsedOptions: ParsedOptions, validateOptions: ValidateOptions): ValidationResult;
+/** @deprecated Use other signature */
+export function validate(options: BeachballOptions, validateOptions?: ValidateOptions): ValidationResult;
 export function validate(
-  options: BeachballOptions,
-  validateOptions: ValidationOptions,
-  packageInfos: PackageInfos
-): ValidationResult;
-/** @deprecated Must provide the package infos */
-export function validate(options: BeachballOptions, validateOptions?: ValidationOptions): ValidationResult;
-export function validate(
-  options: BeachballOptions,
-  validateOptions?: ValidationOptions,
-  packageInfos?: PackageInfos
+  _options: BeachballOptions | ParsedOptions,
+  validateOptions?: ValidateOptions
 ): ValidationResult {
+  const options = 'options' in _options ? _options.options : _options;
+
   const { allowMissingChangeFiles, checkChangeNeeded, checkDependencies } = validateOptions || {};
 
   console.log('\nValidating options and change files...');
@@ -80,18 +82,23 @@ export function validate(
   }
 
   // eslint-disable-next-line etc/no-deprecated
-  packageInfos ||= getPackageInfos(options.path);
+  const originalPackageInfos = 'repoOptions' in _options ? getPackageInfos(_options) : getPackageInfos(options.path);
 
   if (options.all && options.package) {
     logValidationError('Cannot specify both "all" and "package" options');
-  } else if (typeof options.package === 'string' && !packageInfos[options.package]) {
-    logValidationError(`package "${options.package}" was not found`);
-  } else {
-    const invalidPackages = Array.isArray(options.package)
-      ? options.package.filter(pkg => !packageInfos?.[pkg])
-      : undefined;
-    if (invalidPackages?.length) {
-      logValidationError(`package(s) ${invalidPackages.map(pkg => `"${pkg}"`).join(', ')} were not found`);
+  } else if (options.package) {
+    // TODO: combine with other package validation logic, including in getChangedPackages
+    const packages = Array.isArray(options.package) ? options.package : [options.package];
+    const invalidReasons: string[] = [];
+    for (const pkg of packages) {
+      if (!originalPackageInfos[pkg]) {
+        invalidReasons.push(`"${pkg}" was not found`);
+      } else if (originalPackageInfos[pkg].private) {
+        invalidReasons.push(`"${pkg}" is marked as private`);
+      }
+    }
+    if (invalidReasons.length) {
+      logValidationError(`Invalid package(s) specified:\n${bulletedList(invalidReasons)}`);
     }
   }
 
@@ -129,16 +136,17 @@ export function validate(
   }
 
   // this exits the process if any package belongs to multiple groups
-  const packageGroups = getPackageGroups(packageInfos, options.path, options.groups);
+  const packageGroups = getPackageGroups(originalPackageInfos, options.path, options.groups);
 
-  if (options.groups && !isValidGroupedPackageOptions(packageInfos, packageGroups)) {
+  if (options.groups && !isValidGroupedPackageOptions(originalPackageInfos, packageGroups)) {
     hasError = true; // the helper logs this
   }
 
-  const changeSet = readChangeFiles(options, packageInfos);
+  const scopedPackages = getScopedPackages(options, originalPackageInfos);
+  const changeSet = readChangeFiles(options, originalPackageInfos, scopedPackages);
 
   for (const { changeFile, change } of changeSet) {
-    const disallowedChangeTypes = getDisallowedChangeTypes(change.packageName, packageInfos, packageGroups);
+    const disallowedChangeTypes = getDisallowedChangeTypes(change.packageName, originalPackageInfos, packageGroups);
 
     if (!change.type) {
       logValidationError(`Change type is missing in ${changeFile}`);
@@ -171,19 +179,15 @@ export function validate(
   let changedPackages: string[] | undefined;
 
   if (checkChangeNeeded) {
-    if (options.package) {
-      // If specific packages were provided, we skip the git diff check and just assume changes are needed.
-      changedPackages = typeof options.package === 'string' ? [options.package] : options.package;
-      isChangeNeeded = true;
-    } else {
-      changedPackages = getChangedPackages(options, packageInfos);
-      isChangeNeeded = changedPackages.length > 0;
-      if (isChangeNeeded) {
-        const message = options.all
-          ? 'Considering the following packages due to --all'
-          : 'Found changes in the following packages';
-        console.log(`${message}:\n${bulletedList([...changedPackages].sort())}`);
-      }
+    changedPackages = getChangedPackages(options, originalPackageInfos, scopedPackages);
+    isChangeNeeded = changedPackages.length > 0;
+    if (isChangeNeeded) {
+      const message = options.all
+        ? 'Considering the following packages due to --all'
+        : options.package
+        ? 'Considering the specific --package'
+        : 'Found changes in the following packages';
+      console.log(`${message}:\n${bulletedList([...changedPackages].sort())}`);
     }
 
     if (isChangeNeeded && !allowMissingChangeFiles) {
@@ -207,7 +211,7 @@ export function validate(
     console.log('\nValidating package dependencies...');
     // Unfortunately, to get full info about which dependents would be bumped, it's probably necessary
     // to calculate the full bump info.
-    bumpInfo = bumpInMemory(options, packageInfos);
+    bumpInfo = bumpInMemory(options, { originalPackageInfos, packageGroups, changeSet, scopedPackages });
     const packagesToPublish = getPackagesToPublish(bumpInfo, true /*validationMode*/);
     if (!validatePackageDependencies(packagesToPublish, bumpInfo.packageInfos)) {
       logValidationError(`One or more published packages depend on an unpublished package!
@@ -224,5 +228,8 @@ Consider one of the following solutions:
 
   console.log();
 
-  return { isChangeNeeded, bumpInfo };
+  return {
+    isChangeNeeded,
+    context: { originalPackageInfos, packageGroups, scopedPackages, changeSet, changedPackages, bumpInfo },
+  };
 }

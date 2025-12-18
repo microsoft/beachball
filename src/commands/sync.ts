@@ -6,18 +6,20 @@ import semver from 'semver';
 import { setDependentVersions } from '../bump/setDependentVersions';
 import { updateLockFile } from '../bump/updateLockFile';
 import { updatePackageJsons } from '../bump/updatePackageJsons';
-import type { PackageInfos } from '../types/PackageInfo';
+import type { BasicCommandContext } from '../types/CommandContext';
+
+export type SyncCommandContext = Pick<BasicCommandContext, 'originalPackageInfos' | 'scopedPackages'>;
 
 /**
  * Sync with the latest versions on the registry.
  */
-export async function sync(options: BeachballOptions, packageInfos: PackageInfos): Promise<void>;
-/** @deprecated Must provide the package infos */
+export async function sync(options: BeachballOptions, context: SyncCommandContext): Promise<void>;
+/** @deprecated Use other signature */
 export async function sync(options: BeachballOptions): Promise<void>;
-export async function sync(options: BeachballOptions, packageInfos?: PackageInfos): Promise<void> {
+export async function sync(options: BeachballOptions, context?: SyncCommandContext): Promise<void> {
   // eslint-disable-next-line etc/no-deprecated
-  packageInfos ||= getPackageInfos(options.path);
-  const scopedPackages = getScopedPackages(options, packageInfos);
+  const packageInfos = context?.originalPackageInfos ?? getPackageInfos(options.path);
+  const scopedPackages = context?.scopedPackages ?? getScopedPackages(options, packageInfos);
 
   const infos = new Map(
     Object.entries(packageInfos).filter(

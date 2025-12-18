@@ -2,38 +2,29 @@ import { bumpInMemory } from '../bump/bumpInMemory';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { gitFailFast, getBranchName, getCurrentHash, git } from 'workspace-tools';
 import prompts from 'prompts';
-import { readChangeFiles } from '../changefile/readChangeFiles';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import { getNewPackages } from '../publish/getNewPackages';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
+import type { CommandContext } from '../types/CommandContext';
+import { createCommandContext } from '../monorepo/createCommandContext';
 import type { PublishBumpInfo } from '../types/BumpInfo';
-import type { PackageInfos } from '../types/PackageInfo';
 
 /**
  * Potentially bump, publish, and push package changes depending on options.
- * @param oldPackageInfos Pre-read package info prior to version bumps
- * @param bumpInfo Pre-calculated bump info from `validate()` (can be undefined for tests)
+ * @param context Command context from `validate()`
  */
-export async function publish(
-  options: BeachballOptions,
-  oldPackageInfos: PackageInfos,
-  bumpInfo?: PublishBumpInfo
-): Promise<void>;
-/** @deprecated Must provide the package infos */
+export async function publish(options: BeachballOptions, context: CommandContext): Promise<void>;
+/** @deprecated Use other signature */
 export async function publish(options: BeachballOptions): Promise<void>;
-export async function publish(
-  options: BeachballOptions,
-  oldPackageInfos?: PackageInfos,
-  bumpInfo?: PublishBumpInfo
-): Promise<void> {
+export async function publish(options: BeachballOptions, context?: CommandContext): Promise<void> {
   console.log('\nPreparing to publish');
 
   const { path: cwd, branch, registry, tag } = options;
+  // eslint-disable-next-line etc/no-deprecated -- compat code
+  context ??= createCommandContext(options);
+
   // First, validate that we have changes to publish
-  // eslint-disable-next-line etc/no-deprecated
-  oldPackageInfos ||= getPackageInfos(cwd);
-  const changes = readChangeFiles(options, oldPackageInfos);
+  const { changeSet: changes } = context;
 
   if (!changes.length) {
     console.log('Nothing to bump, skipping publish!');
@@ -75,8 +66,11 @@ export async function publish(
   console.log(`Creating temporary publish branch ${publishBranch}`);
   gitFailFast(['checkout', '-b', publishBranch], { cwd });
 
-  console.log(`\nGathering info ${options.bump ? 'to bump versions' : 'about versions and changes'}`);
-  bumpInfo ||= bumpInMemory(options, oldPackageInfos);
+  if (!context.bumpInfo) {
+    console.log(`\nGathering info ${options.bump ? 'to bump versions' : 'about versions and changes'}`);
+    context.bumpInfo = bumpInMemory(options, context);
+  }
+  const bumpInfo: PublishBumpInfo = context.bumpInfo;
 
   // eslint-disable-next-line etc/no-deprecated
   if (options.new) {

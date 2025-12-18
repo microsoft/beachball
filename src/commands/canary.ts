@@ -2,40 +2,31 @@ import semver from 'semver';
 import { bumpInMemory } from '../bump/bumpInMemory';
 import { performBump } from '../bump/performBump';
 import { setDependentVersions } from '../bump/setDependentVersions';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import type { PackageInfos } from '../types/PackageInfo';
-import type { BumpInfo } from '../types/BumpInfo';
+import type { CommandContext } from '../types/CommandContext';
+import { createCommandContext } from '../monorepo/createCommandContext';
 
 /**
  * Bump and publish a "canary" prerelease version.
- * @param oldPackageInfo Pre-read package info prior to version bumps
- * @param bumpInfo Pre-calculated bump info from `validate()` (can be undefined for tests)
+ * @param context Command context from `validate()`
  */
-export async function canary(
-  options: BeachballOptions,
-  oldPackageInfo: PackageInfos,
-  bumpInfo: BumpInfo | undefined
-): Promise<void>;
-/** @deprecated Must provide the package infos */
+export async function canary(options: BeachballOptions, context: CommandContext): Promise<void>;
+/** @deprecated Use other signature */
 export async function canary(options: BeachballOptions): Promise<void>;
-export async function canary(
-  options: BeachballOptions,
-  oldPackageInfo?: PackageInfos,
-  bumpInfo?: BumpInfo
-): Promise<void> {
-  // eslint-disable-next-line etc/no-deprecated
-  oldPackageInfo = oldPackageInfo || getPackageInfos(options.path);
+export async function canary(options: BeachballOptions, context?: CommandContext): Promise<void> {
+  // eslint-disable-next-line etc/no-deprecated -- compat code
+  context ??= createCommandContext(options);
 
-  bumpInfo ||= bumpInMemory(options, oldPackageInfo);
+  const bumpInfo = context.bumpInfo || bumpInMemory(options, context);
+  const { originalPackageInfos } = context;
 
   options.keepChangeFiles = true;
   options.generateChangelog = false;
 
   if (options.all) {
-    for (const pkg of Object.keys(oldPackageInfo)) {
+    for (const pkg of Object.keys(originalPackageInfos)) {
       bumpInfo.modifiedPackages.add(pkg);
     }
   }
@@ -43,7 +34,7 @@ export async function canary(
   const packageVersions = await listPackageVersions([...bumpInfo.modifiedPackages], options);
 
   for (const pkg of bumpInfo.modifiedPackages) {
-    let newVersion = oldPackageInfo[pkg].version;
+    let newVersion = originalPackageInfos[pkg].version;
 
     do {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

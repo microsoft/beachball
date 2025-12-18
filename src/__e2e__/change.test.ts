@@ -1,18 +1,19 @@
-import { describe, expect, it, afterEach, jest, beforeEach } from '@jest/globals';
+import { describe, expect, it, afterEach, jest, beforeEach, beforeAll, afterAll } from '@jest/globals';
 import type prompts from 'prompts';
 import { getChangeFiles } from '../__fixtures__/changeFiles';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { type RepoFixture, RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { change } from '../commands/change';
 import type { BeachballOptions, RepoOptions } from '../types/BeachballOptions';
-import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
+import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { MockStdout } from '../__fixtures__/mockStdout';
 import { MockStdin } from '../__fixtures__/mockStdin';
 import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import type { Repository } from '../__fixtures__/repository';
 import { getParsedOptions } from '../options/getOptions';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { readJson } from '../object/readJson';
+import { createBasicCommandContext } from '../monorepo/createCommandContext';
+import type { ChangeCommandContext } from '../types/CommandContext';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
 // so instead we inject a custom mock stdout stream, as well as stdin for entering answers
@@ -58,13 +59,24 @@ function makeMonorepoChanges(repo: Repository) {
   repo.commitAll('commit 2');
 }
 
+/** Check out a branch with a unique name based on master */
+function checkOutTestBranch(repo: Repository) {
+  const branchName = expect.getState().currentTestName!.replace(/\W+/g, '-');
+  repo.checkout('-b', branchName, defaultBranchName);
+}
+
 describe('change command', () => {
-  let repositoryFactory: RepositoryFactory | undefined;
+  // These tests can reuse factories since they currently don't push to remote
+  let singleFactory: RepositoryFactory;
+  /** Custom monorepo factory using the `monorepo` fixture */
+  let monorepoFactory: RepositoryFactory;
+  /** Repo being used by this test */
   let repo: Repository | undefined;
 
   const logs = initMockLogs();
 
-  function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
+  /** Get options and context (`changedPackages` is not filled) */
+  function getOptionsAndContext(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
     const parsedOptions = getParsedOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'change', ...(extraArgv ?? [])],
@@ -73,9 +85,17 @@ describe('change command', () => {
         ...repoOptions,
       },
     });
-    const packageInfos = getPackageInfos(parsedOptions);
-    return { options: parsedOptions.options, packageInfos };
+    const context: ChangeCommandContext = {
+      ...createBasicCommandContext(parsedOptions),
+      changedPackages: undefined,
+    };
+    return { options: parsedOptions.options, context };
   }
+
+  beforeAll(() => {
+    singleFactory = new RepositoryFactory('single');
+    monorepoFactory = new RepositoryFactory({ folders: monorepo });
+  });
 
   beforeEach(() => {
     stdin = new MockStdin();
@@ -85,31 +105,32 @@ describe('change command', () => {
   afterEach(() => {
     stdin.destroy();
     stdout.destroy();
-    repositoryFactory?.cleanUp();
-    repositoryFactory = undefined;
     repo = undefined;
     mockBeachballOptions = undefined;
   });
 
-  it('does not create change files when there are no changes', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    repo = repositoryFactory.cloneRepository();
+  afterAll(() => {
+    singleFactory.cleanUp();
+    monorepoFactory.cleanUp();
+  });
 
-    const { options, packageInfos } = getOptionsAndPackages();
-    await change(options, packageInfos);
+  it('does not create change files when there are no changes', async () => {
+    repo = singleFactory.cloneRepository();
+    checkOutTestBranch(repo);
+
+    const { options, context } = getOptionsAndContext();
+    await change(options, context);
 
     expect(getChangeFiles(options)).toHaveLength(0);
   });
 
   it('creates and stages a change file', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    repo = repositoryFactory.cloneRepository();
-
-    repo.checkout('-b', 'test');
+    repo = singleFactory.cloneRepository();
+    checkOutTestBranch(repo);
     repo.commitChange('file.js');
 
-    const { options, packageInfos } = getOptionsAndPackages({ commit: false });
-    const changePromise = change(options, packageInfos);
+    const { options, context } = getOptionsAndContext({ commit: false });
+    const changePromise = change(options, context);
     await waitForPrompt();
 
     // Use default change type and custom message
@@ -136,14 +157,12 @@ describe('change command', () => {
   });
 
   it('creates and commits a change file', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    repo = repositoryFactory.cloneRepository();
-
-    repo.checkout('-b', 'test');
+    repo = singleFactory.cloneRepository();
+    checkOutTestBranch(repo);
     repo.commitChange('file.js');
 
-    const { options, packageInfos } = getOptionsAndPackages();
-    const changePromise = change(options, packageInfos);
+    const { options, context } = getOptionsAndContext();
+    const changePromise = change(options, context);
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
     await stdin.sendByChar('\n'); // default change type
@@ -163,18 +182,15 @@ describe('change command', () => {
   });
 
   it('creates and commits a change file with changeDir set', async () => {
-    const testChangedir = 'changeDir';
-
-    repositoryFactory = new RepositoryFactory('single');
-    repo = repositoryFactory.cloneRepository();
-
-    repo.checkout('-b', 'test');
+    repo = singleFactory.cloneRepository();
+    checkOutTestBranch(repo);
     repo.commitChange('file.js');
 
-    const { options, packageInfos } = getOptionsAndPackages({
+    const testChangedir = 'changeDir';
+    const { options, context } = getOptionsAndContext({
       changeDir: testChangedir,
     });
-    const changePromise = change(options, packageInfos);
+    const changePromise = change(options, context);
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
     await stdin.sendByChar('\n'); // default change type
@@ -194,15 +210,15 @@ describe('change command', () => {
   });
 
   it('creates a change file when there are no changes but package name is provided', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    repo = repositoryFactory.cloneRepository();
+    repo = singleFactory.cloneRepository();
+    checkOutTestBranch(repo);
 
-    const { options, packageInfos } = getOptionsAndPackages({}, [
+    const { options, context } = getOptionsAndContext({}, [
       '--package',
-      repositoryFactory.fixture.rootPackage.name,
+      singleFactory.fixture.rootPackage.name,
       '--no-commit',
     ]);
-    const changePromise = change(options, packageInfos);
+    const changePromise = change(options, context);
     await waitForPrompt();
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
@@ -217,12 +233,12 @@ describe('change command', () => {
   });
 
   it('creates and commits change files for multiple packages', async () => {
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    repo = repositoryFactory.cloneRepository();
+    repo = monorepoFactory.cloneRepository();
+    checkOutTestBranch(repo);
     makeMonorepoChanges(repo);
 
-    const { options, packageInfos } = getOptionsAndPackages();
-    const changePromise = change(options, packageInfos);
+    const { options, context } = getOptionsAndContext();
+    const changePromise = change(options, context);
 
     // use custom values for first package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
@@ -257,14 +273,14 @@ describe('change command', () => {
   });
 
   it('creates and commits grouped change file for multiple packages', async () => {
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    repo = repositoryFactory.cloneRepository();
+    repo = monorepoFactory.cloneRepository();
+    checkOutTestBranch(repo);
     makeMonorepoChanges(repo);
 
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, context } = getOptionsAndContext({
       groupChanges: true,
     });
-    const changePromise = change(options, packageInfos);
+    const changePromise = change(options, context);
 
     // use custom values for first package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
@@ -291,8 +307,8 @@ describe('change command', () => {
   });
 
   it('uses custom per-package prompt', async () => {
-    repositoryFactory = new RepositoryFactory({ folders: monorepo });
-    repo = repositoryFactory.cloneRepository();
+    repo = monorepoFactory.cloneRepository();
+    checkOutTestBranch(repo);
     makeMonorepoChanges(repo);
 
     mockBeachballOptions = {
@@ -306,10 +322,10 @@ describe('change command', () => {
       },
     };
 
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, context } = getOptionsAndContext({
       groupChanges: true,
     });
-    const changePromise = change(options, packageInfos);
+    const changePromise = change(options, context);
     await waitForPrompt();
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');

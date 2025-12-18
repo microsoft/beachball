@@ -8,10 +8,10 @@ import { bumpAndPush } from '../publish/bumpAndPush';
 import { publish } from '../commands/publish';
 import { bumpInMemory } from '../bump/bumpInMemory';
 import type { ChangeFileInfo } from '../types/ChangeInfo';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
 import type { PackageJson } from '../types/PackageInfo';
 import { getParsedOptions } from '../options/getOptions';
 import { readJson } from '../object/readJson';
+import { createCommandContext } from '../monorepo/createCommandContext';
 
 describe('publish command (git)', () => {
   let repositoryFactory: RepositoryFactory;
@@ -19,7 +19,7 @@ describe('publish command (git)', () => {
 
   initMockLogs();
 
-  function getOptionsAndPackages(cwd?: string) {
+  function getOptions(cwd?: string) {
     cwd ??= repo!.rootPath;
     const parsedOptions = getParsedOptions({
       cwd,
@@ -34,8 +34,7 @@ describe('publish command (git)', () => {
         access: 'public',
       },
     });
-    const packageInfos = getPackageInfos(parsedOptions);
-    return { packageInfos, options: parsedOptions.options, parsedOptions };
+    return { options: parsedOptions.options, parsedOptions };
   }
 
   beforeEach(() => {
@@ -50,11 +49,11 @@ describe('publish command (git)', () => {
   it('can perform a successful git push', async () => {
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, parsedOptions } = getOptions();
     generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(options, packageInfos, undefined);
+    await publish(options, createCommandContext(parsedOptions));
 
     const newRepo = repositoryFactory.cloneRepository();
 
@@ -66,7 +65,7 @@ describe('publish command (git)', () => {
   it('can handle a merge when there are change files present', async () => {
     // 1. clone a new repo1, write a change file in repo1
     const repo1 = repositoryFactory.cloneRepository();
-    const { options: options1, packageInfos: packageInfos1 } = getOptionsAndPackages(repo1.rootPath);
+    const { options: options1, parsedOptions: parsedOptions1 } = getOptions(repo1.rootPath);
     generateChangeFiles(['foo'], options1);
     repo1.push();
 
@@ -74,7 +73,7 @@ describe('publish command (git)', () => {
     const publishBranch = 'publish_test';
     repo1.checkout('-b', publishBranch);
 
-    const bumpInfo = bumpInMemory(options1, packageInfos1);
+    const bumpInfo = bumpInMemory(options1, createCommandContext(parsedOptions1));
 
     // 3. Meanwhile, in repo2, also create a new change file
     const repo2 = repositoryFactory.cloneRepository();
