@@ -3,7 +3,7 @@ import path from 'path';
 import minimatch from 'minimatch';
 import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
-import { getBranchChanges, getStagedChanges, git } from 'workspace-tools';
+import { getBranchChanges, getChangesBetweenRefs, getStagedChanges } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfos, PackageInfo, ScopedPackages } from '../types/PackageInfo';
 import { ensureSharedHistory } from '../git/ensureSharedHistory';
@@ -18,7 +18,7 @@ function getMatchingPackageInfo(
   packageInfosByPath: { [packageAbsNormalizedPath: string]: PackageInfo }
 ): PackageInfo | undefined {
   // Normalize all the paths before comparing (the packageInfosByPath entries should also be normalized)
-  // to ensure ensure that this doesn't break on Windows if any input paths have forward slashes
+  // to ensure that this doesn't break on Windows if any input paths have forward slashes
   cwd = path.normalize(cwd);
   const absFile = path.normalize(path.join(cwd, file));
   let absDir = '';
@@ -86,7 +86,7 @@ function getAllChangedPackages(
   ensureSharedHistory(options);
 
   const changes = [...(getBranchChanges({ branch, cwd }) || []), ...(getStagedChanges({ cwd }) || [])];
-  verboseLog(`Found ${count(changes.length, 'changed file')} in branch "${branch}" (before filtering)`);
+  verboseLog(`Found ${count(changes.length, 'changed file')} in current branch (before filtering)`);
 
   if (!changes.length) {
     return [];
@@ -161,16 +161,15 @@ export function getChangedPackages(
   }
 
   // TODO: this should probably reuse the result of readChangeFiles, but they use slightly different args...
-  const changeFilesResult = git(
-    ['diff', '--name-only', '--relative', '--no-renames', '--diff-filter=A', `${branch}...`],
+  const changeFiles = getChangesBetweenRefs({
+    fromRef: branch,
+    options: ['--no-renames', '--diff-filter=A'],
     // Only list files under the change folder for efficiency
-    { cwd: changePath }
-  );
-  if (!changeFilesResult.success) {
-    return changedPackages;
-  }
+    cwd: changePath,
+    pattern: '*.json',
+    throwOnError: false,
+  });
 
-  const changeFiles = changeFilesResult.stdout.split('\n');
   const changeFilePackageSet = new Set<string>();
 
   // Loop through the change files, building up a set of packages that we can skip
@@ -181,7 +180,9 @@ export function getChangedPackages(
       const changes = (changeInfo as ChangeInfoMultiple).changes || [changeInfo];
 
       for (const change of changes) {
-        changeFilePackageSet.add(change.packageName);
+        if (change.packageName) {
+          changeFilePackageSet.add(change.packageName);
+        }
       }
     } catch (e) {
       console.warn(`Error reading or parsing change file ${changeFilePath}: ${e}`);

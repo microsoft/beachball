@@ -63,6 +63,10 @@ export function readChangeFiles(
     let changeInfo: ChangeInfo | ChangeInfoMultiple;
     try {
       changeInfo = readJson<ChangeInfo | ChangeInfoMultiple>(changeFilePath);
+      if (!(changeInfo as ChangeInfo).packageName && !(changeInfo as ChangeInfoMultiple).changes) {
+        console.warn(`${changeFilePath} does not appear to be a change file`);
+        continue;
+      }
     } catch (e) {
       console.warn(`Error reading or parsing change file ${changeFilePath}: ${e}`);
       continue;
@@ -94,10 +98,7 @@ export function readChangeFiles(
       if (warningType) {
         const resolution = options.groupChanges ? 'remove the entry from this file' : 'delete this file';
         console.warn(
-          `Change detected for ${warningType} package ${change.packageName}; ${resolution}: "${path.resolve(
-            changePath,
-            changeFile
-          )}"`
+          `Change detected for ${warningType} package ${change.packageName}; ${resolution}: ${changeFilePath}`
         );
       }
 

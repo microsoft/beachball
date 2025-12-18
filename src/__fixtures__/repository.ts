@@ -128,25 +128,31 @@ ${gitResult.stderr.toString()}`);
   }
 
   /**
+   * Create (or update) a file, creating the intermediate directories if necessary.
+   * Automatically uses root path; do not pass absolute paths here.
+   */
+  writeFile(relativePath: string, content: string | object = ''): void {
+    const filePath = this.pathTo(relativePath);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, typeof content === 'string' ? content : JSON.stringify(content));
+  }
+
+  /**
    * Create (or update) and stage a file, creating the intermediate directories if necessary.
    * Automatically uses root path; do not pass absolute paths here.
    */
-  stageChange(newFilename: string, content: string | object = ''): void {
-    const filePath = this.pathTo(newFilename);
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-
-    fs.writeFileSync(filePath, typeof content === 'string' ? content : JSON.stringify(content));
-
-    this.git(['add', newFilename]);
+  stageChange(relativePath: string, content?: string | object): void {
+    this.writeFile(relativePath, content);
+    this.git(['add', relativePath]);
   }
 
   /**
    * Commit a change, creating the intermediate directories if necessary.
    * Automatically uses root path; do not pass absolute paths here.
    */
-  commitChange(newFilename: string, content?: string | object): void {
-    this.stageChange(newFilename, content);
-    this.git(['commit', '-m', `"${newFilename}"`]);
+  commitChange(relativePath: string, content?: string | object): void {
+    this.stageChange(relativePath, content);
+    this.git(['commit', '-m', `"${relativePath}"`]);
   }
 
   /** Commit all changes to tracked and untracked files. */
