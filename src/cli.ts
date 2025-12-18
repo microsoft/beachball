@@ -10,6 +10,7 @@ import { showVersion, showHelp } from './help';
 import { getPackageInfos } from './monorepo/getPackageInfos';
 import { getParsedOptions } from './options/getOptions';
 import { validate } from './validation/validate';
+import { getScopedPackages } from './monorepo/getScopedPackages';
 
 (async () => {
   try {
@@ -38,32 +39,29 @@ import { validate } from './validation/validate';
   // Run the commands
   switch (options.command) {
     case 'check': {
-      validate(options, { checkChangeNeeded: true, checkDependencies: true }, getPackageInfos(parsedOptions));
+      validate(parsedOptions, { checkChangeNeeded: true, checkDependencies: true });
       console.log('No change files are needed');
       break;
     }
 
     case 'publish': {
-      const packageInfos = getPackageInfos(parsedOptions);
-      const { bumpInfo } = validate(options, { checkDependencies: true }, packageInfos);
+      const { context } = validate(parsedOptions, { checkDependencies: true });
 
       // set a default publish message
       options.message = options.message || 'applying package updates';
-      await publish(options, packageInfos, bumpInfo);
+      await publish(options, context);
       break;
     }
 
     case 'bump': {
-      const packageInfos = getPackageInfos(parsedOptions);
-      const { bumpInfo } = validate(options, { checkDependencies: true }, packageInfos);
-      await bump(options, packageInfos, bumpInfo);
+      const { context } = validate(parsedOptions, { checkDependencies: true });
+      await bump(options, context);
       break;
     }
 
     case 'canary': {
-      const packageInfos = getPackageInfos(parsedOptions);
-      const { bumpInfo } = validate(options, { checkDependencies: true }, packageInfos);
-      await canary(options, packageInfos, bumpInfo);
+      const { context } = validate(parsedOptions, { checkDependencies: true });
+      await canary(options, context);
       break;
     }
 
@@ -73,24 +71,25 @@ import { validate } from './validation/validate';
     }
 
     case 'sync': {
-      await sync(options, getPackageInfos(parsedOptions));
+      // This one is a special case where it doesn't run validate, so calculate the context here
+      const originalPackageInfos = getPackageInfos(parsedOptions);
+      const scopedPackages = getScopedPackages(options, originalPackageInfos);
+      await sync(options, { originalPackageInfos, scopedPackages });
       break;
     }
 
     case 'change': {
-      const packageInfos = getPackageInfos(parsedOptions);
-      const { isChangeNeeded } = validate(
-        options,
-        { checkChangeNeeded: true, allowMissingChangeFiles: true },
-        packageInfos
-      );
+      const { isChangeNeeded, context } = validate(parsedOptions, {
+        checkChangeNeeded: true,
+        allowMissingChangeFiles: true,
+      });
 
       if (!isChangeNeeded && !options.package) {
         console.log('No change files are needed');
         return;
       }
 
-      await change(options, packageInfos);
+      await change(options, context);
 
       break;
     }

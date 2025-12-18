@@ -9,8 +9,10 @@ import { updateLockFile } from './updateLockFile';
 /**
  * Performs the bump and writes to the filesystem:
  * update package.json files, update lock file, write changelogs, and delete change files.
+ *
+ * This should NOT mutate `bumpInfo`.
  */
-export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions): Promise<BumpInfo> {
+export async function performBump(bumpInfo: Readonly<BumpInfo>, options: BeachballOptions): Promise<void> {
   const { modifiedPackages, packageInfos, changeFileChangeInfos } = bumpInfo;
 
   await callHook(options.hooks?.prebump, modifiedPackages, packageInfos, options.concurrency);
@@ -27,7 +29,4 @@ export async function performBump(bumpInfo: BumpInfo, options: BeachballOptions)
   unlinkChangeFiles(changeFileChangeInfos, options);
 
   await callHook(options.hooks?.postbump, modifiedPackages, packageInfos, options.concurrency);
-
-  // This is returned from bump() for testing
-  return bumpInfo;
 }

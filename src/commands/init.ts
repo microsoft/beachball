@@ -1,12 +1,12 @@
 import type { BeachballOptions } from '../types/BeachballOptions';
 import * as fs from 'fs';
 import * as path from 'path';
-import { npm } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
 import { readJson } from '../object/readJson';
+import { getNpmPackageInfo } from '../packageManager/getNpmPackageInfo';
 
 // TODO: consider modifying this to propagate up
-function errorExit(message: string): void {
+function errorExit(message: string): never {
   console.error(message);
   console.log(
     'You can still set up beachball manually by following the instructions here: https://microsoft.github.io/beachball/overview/getting-started.html'
@@ -15,25 +15,18 @@ function errorExit(message: string): void {
   process.exit(1);
 }
 
-export async function init(options: Pick<BeachballOptions, 'path'>): Promise<void> {
+export async function init(options: Pick<BeachballOptions, 'path' | 'registry'>): Promise<void> {
   const packageJsonFilePath = path.join(options.path, 'package.json');
 
   if (!fs.existsSync(packageJsonFilePath)) {
     errorExit(`Cannot find package.json at ${packageJsonFilePath}`);
   }
 
-  const npmResult = await npm(['info', 'beachball', '--json'], { cwd: undefined });
-  if (!npmResult.success) {
+  const beachballInfo = await getNpmPackageInfo('beachball', options);
+  if (!beachballInfo) {
     errorExit('Failed to retrieve beachball version from npm');
   }
-
-  let beachballVersion = '';
-  try {
-    const beachballInfo = JSON.parse(npmResult.stdout.toString()) as { 'dist-tags': { latest: string } };
-    beachballVersion = beachballInfo['dist-tags'].latest;
-  } catch {
-    errorExit("Couldn't parse beachball version from npm");
-  }
+  const beachballVersion = beachballInfo['dist-tags'].latest;
 
   let packageJson = {} as PackageJson;
   try {

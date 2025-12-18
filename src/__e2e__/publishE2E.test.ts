@@ -16,6 +16,7 @@ import { getParsedOptions } from '../options/getOptions';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { validate } from '../validation/validate';
 import { readJson } from '../object/readJson';
+import { createCommandContext } from '../monorepo/createCommandContext';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -34,7 +35,7 @@ describe('publish command (e2e)', () => {
   // show error logs for these tests
   const logs = initMockLogs({ alsoLog: ['error'] });
 
-  function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
+  function getOptions(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
     const parsedOptions = getParsedOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'publish', '--yes', ...(extraArgv || [])],
@@ -47,8 +48,7 @@ describe('publish command (e2e)', () => {
         ...repoOptions,
       },
     });
-    const packageInfos = getPackageInfos(parsedOptions);
-    return { packageInfos, options: parsedOptions.options, parsedOptions };
+    return { options: parsedOptions.options, parsedOptions };
   }
 
   afterEach(() => {
@@ -65,7 +65,7 @@ describe('publish command (e2e)', () => {
 
     // Using fetch: false in tests where it's irrelevant should be a bit faster.
     // Use a git observer to verify that no fetch occurs.
-    const { options, parsedOptions, packageInfos } = getOptionsAndPackages({ fetch: false });
+    const { options, parsedOptions } = getOptions({ fetch: false });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -77,9 +77,9 @@ describe('publish command (e2e)', () => {
 
     // For this test, run validate first to simulate what the CLI does.
     // This would catch double bump issues if the validate step's bump call mutated the original PackageInfos.
-    validate(options, { checkDependencies: true }, packageInfos);
+    const { context } = validate(parsedOptions, { checkDependencies: true });
 
-    await publish(options, packageInfos);
+    await publish(options, context);
 
     const publishedFoo = npmMock.getPublishedVersions('foo');
     expect(publishedFoo).toEqual({
@@ -103,7 +103,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       push: false,
     });
 
@@ -112,7 +112,7 @@ describe('publish command (e2e)', () => {
 
     repo.checkout('--detach');
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     expect(npmMock.getPublishedVersions('foo')).toEqual({
       versions: ['1.1.0'],
@@ -124,7 +124,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, parsedOptions } = getOptions();
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -145,7 +145,7 @@ describe('publish command (e2e)', () => {
       }
     });
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     expect(npmMock.getPublishedVersions('foo')).toEqual({
       versions: ['1.1.0'],
@@ -169,7 +169,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions, packageInfos } = getOptionsAndPackages();
+    const { options, parsedOptions } = getOptions();
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -193,7 +193,7 @@ describe('publish command (e2e)', () => {
       }
     });
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     expect(npmMock.getPublishedVersions('foo')).toEqual({
       versions: ['1.1.0'],
@@ -216,12 +216,12 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions, packageInfos } = getOptionsAndPackages({ bump: false, fetch: false });
+    const { options, parsedOptions } = getOptions({ bump: false, fetch: false });
 
     generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     expect(npmMock.getPublishedVersions('foo')).toEqual({
       versions: ['1.0.0'],
@@ -240,15 +240,15 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions, packageInfos } = getOptionsAndPackages({ fetch: false });
+    const { options, parsedOptions } = getOptions({ fetch: false });
 
     generateChangeFiles(['foo'], options);
     repo.push();
 
     // For this test, run validate first to simulate what the CLI does
-    validate(options, { checkDependencies: true }, packageInfos);
+    validate(parsedOptions, { checkDependencies: true });
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     expect(npmMock.getPublishedVersions('bar')).toBeUndefined();
 
@@ -269,7 +269,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions, packageInfos } = getOptionsAndPackages({ fetch: false });
+    const { options, parsedOptions } = getOptions({ fetch: false });
 
     // bump baz => dependent bump bar => dependent bump foo
     generateChangeFiles(['baz'], options);
@@ -278,9 +278,9 @@ describe('publish command (e2e)', () => {
     repo.push();
 
     // For this test, run validate first to simulate what the CLI does
-    validate(options, { checkDependencies: true }, packageInfos);
+    validate(parsedOptions, { checkDependencies: true });
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     expect(npmMock.getPublishedVersions('baz')).toEqual({ versions: ['1.4.0'], 'dist-tags': { latest: '1.4.0' } });
 
@@ -309,12 +309,12 @@ describe('publish command (e2e)', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages({ new: true, fetch: false });
+    const { options, parsedOptions } = getOptions({ new: true, fetch: false });
 
     generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     expect(npmMock.getPublishedVersions('foo')).toEqual({ versions: ['1.1.0'], 'dist-tags': { latest: '1.1.0' } });
     expect(npmMock.getPublishedVersions('bar')).toEqual({ versions: ['1.3.4'], 'dist-tags': { latest: '1.3.4' } });
@@ -328,7 +328,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions, packageInfos } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       scope: ['!packages/foo'],
       fetch: false,
     });
@@ -337,7 +337,7 @@ describe('publish command (e2e)', () => {
     expect(getChangeFiles(options)).toHaveLength(2);
     repo.push();
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     expect(npmMock.getPublishedVersions('foo')).toBeUndefined();
     expect(npmMock.getPublishedVersions('bar')).toEqual({
@@ -372,7 +372,7 @@ describe('publish command (e2e)', () => {
 
     let notified: string | undefined;
 
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       fetch: false,
       hooks: {
         prepublish: (packagePath: string) => {
@@ -397,7 +397,7 @@ describe('publish command (e2e)', () => {
     generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     // Query the information from package.json from the registry to see if it was successfully patched
     const publishedFooJson = npmMock.getPublishedPackage('foo')!;
@@ -420,7 +420,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       depth: 10,
     });
 
@@ -435,7 +435,7 @@ describe('publish command (e2e)', () => {
       }
     });
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     expect(npmMock.getPublishedVersions('foo')).toEqual({
       versions: ['1.1.0'],
@@ -449,7 +449,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       publish: false, // irrelevant to this test
       fetch: false,
       hooks: {
@@ -464,7 +464,7 @@ describe('publish command (e2e)', () => {
     generateChangeFiles(['foo', 'bar'], options);
     repo.push();
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
 
     // precommit was called (once for whole repo, not per package)
     expect(options.hooks?.precommit).toHaveBeenCalledTimes(1);
@@ -495,7 +495,7 @@ describe('publish command (e2e)', () => {
 
     // Skip fetching and pushing since it's slow and not important for this test
     const concurrency = 2;
-    const { options, packageInfos } = getOptionsAndPackages({ concurrency, fetch: false, push: false });
+    const { options, parsedOptions } = getOptions({ concurrency, fetch: false, push: false });
     generateChangeFiles(packagesToPublish, options);
 
     const simulateWait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -511,7 +511,7 @@ describe('publish command (e2e)', () => {
       return result;
     });
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
     // Verify that at most `concurrency` number of packages were published concurrently
     expect(maxConcurrency).toBe(concurrency);
 
@@ -540,7 +540,7 @@ describe('publish command (e2e)', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       concurrency: 3,
       // Skip fetching and pushing since it's slow and not important for this test
       fetch: false,
@@ -556,7 +556,7 @@ describe('publish command (e2e)', () => {
       return _mockNpmPublish(registryData, args, opts);
     });
 
-    await expect(publish(options, packageInfos)).rejects.toThrow(
+    await expect(publish(options, createCommandContext(parsedOptions))).rejects.toThrow(
       'Error publishing! Refer to the previous logs for recovery instructions.'
     );
 
@@ -600,7 +600,7 @@ describe('publish command (e2e)', () => {
     const concurrency = 2;
     let currentConcurrency = 0;
     let maxConcurrency = 0;
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, parsedOptions } = getOptions({
       hooks: {
         postpublish: async (packagePath, name) => {
           currentConcurrency++;
@@ -620,7 +620,7 @@ describe('publish command (e2e)', () => {
 
     generateChangeFiles(packagesToPublish, options);
 
-    await publish(options, packageInfos);
+    await publish(options, createCommandContext(parsedOptions));
     // Verify that at most `concurrency` number of postpublish hooks were running concurrently
     expect(maxConcurrency).toBe(concurrency);
 

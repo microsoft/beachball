@@ -1,29 +1,22 @@
 import { bumpInMemory } from '../bump/bumpInMemory';
 import { performBump } from '../bump/performBump';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
+import { createCommandContext } from '../monorepo/createCommandContext';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { BumpInfo } from '../types/BumpInfo';
-import type { PackageInfos } from '../types/PackageInfo';
+import type { CommandContext } from '../types/CommandContext';
 
 /**
  * Bump versions and update changelogs, but don't commit, push, or publish.
- * @param oldPackageInfo Pre-read package info prior to version bumps
- * @param bumpInfo Pre-calculated bump info from `validate()` (can be undefined for tests)
+ * @param context Command context from `validate()`
  */
-export async function bump(
-  options: BeachballOptions,
-  oldPackageInfo: PackageInfos,
-  bumpInfo?: BumpInfo
-): Promise<BumpInfo>;
-/** @deprecated Must provide the package infos */
+export async function bump(options: BeachballOptions, context: CommandContext): Promise<BumpInfo>;
+/** @deprecated Use other signature */
 export async function bump(options: BeachballOptions): Promise<BumpInfo>;
-export async function bump(
-  options: BeachballOptions,
-  oldPackageInfo?: PackageInfos,
-  bumpInfo?: BumpInfo
-): Promise<BumpInfo> {
-  // eslint-disable-next-line etc/no-deprecated
-  bumpInfo ||= bumpInMemory(options, oldPackageInfo || getPackageInfos(options.path));
+export async function bump(options: BeachballOptions, context?: CommandContext): Promise<BumpInfo> {
+  // eslint-disable-next-line etc/no-deprecated -- compat code
+  context ??= createCommandContext(options);
+  const bumpInfo = context.bumpInfo || bumpInMemory(options, context);
+  await performBump(bumpInfo, options);
   // The bumpInfo is returned for testing
-  return performBump(bumpInfo, options);
+  return bumpInfo;
 }

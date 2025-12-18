@@ -4,11 +4,11 @@ import minimatch from 'minimatch';
 import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
 import { getBranchChanges, getStagedChanges, git } from 'workspace-tools';
-import { getScopedPackages } from '../monorepo/getScopedPackages';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfos, PackageInfo, ScopedPackages } from '../types/PackageInfo';
 import { ensureSharedHistory } from '../git/ensureSharedHistory';
 import { readJson } from '../object/readJson';
+import { bulletedList } from '../logging/bulletedList';
 
 const count = (n: number, str: string) => `${n} ${str}${n === 1 ? '' : 's'}`;
 
@@ -58,14 +58,16 @@ function isPackageIncluded(
  * Gets all the changed package names, regardless of the change files.
  * If `options.all` is set, returns all the packages in scope, regardless of whether they've changed.
  */
-function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
+function getAllChangedPackages(
+  options: BeachballOptions,
+  packageInfos: PackageInfos,
+  scopedPackages: ScopedPackages
+): string[] {
   const { branch, path: cwd, verbose, all, changeDir } = options;
 
   const verboseLog = (msg: string) => verbose && console.log(msg);
   const logIgnored = (file: string, reason: string) => verboseLog(`  - ~~${file}~~ (${reason})`);
   const logIncluded = (file: string) => verboseLog(`  - ${file}`);
-
-  const scopedPackages = getScopedPackages(options, packageInfos);
 
   // If --all is set, return all the packages in scope rather than looking at which files changed
   if (all) {
@@ -135,52 +137,61 @@ function getAllChangedPackages(options: BeachballOptions, packageInfos: PackageI
 
 /**
  * Gets all the changed packages which do not already have a change file and are in scope.
- *
- * If `options.all` is true, returns all the packages in scope (skipping all git operations),
- * regardless of whether they've changed.
+ * Exceptions:
+ * - If `options.package` is provided, use that as-is (skipping all git operations).
+ * - If `options.all` is true, returns all the packages in scope (skipping all git operations),
+ *   regardless of whether they've changed.
  */
-export function getChangedPackages(options: BeachballOptions, packageInfos: PackageInfos): string[] {
-  const { path: cwd, branch, changeDir } = options;
+export function getChangedPackages(
+  options: BeachballOptions,
+  packageInfos: PackageInfos,
+  scopedPackages: ScopedPackages
+): string[] {
+  const { branch } = options;
 
-  const changedPackages = getAllChangedPackages(options, packageInfos);
+  if (options.package) {
+    return typeof options.package === 'string' ? [options.package] : [...options.package];
+  }
+
+  const changedPackages = getAllChangedPackages(options, packageInfos, scopedPackages);
 
   const changePath = getChangePath(options);
   if (!fs.existsSync(changePath)) {
     return changedPackages;
   }
 
-  const changedFilesResult = git(
+  // TODO: this should probably reuse the result of readChangeFiles, but they use slightly different args...
+  const changeFilesResult = git(
     ['diff', '--name-only', '--relative', '--no-renames', '--diff-filter=A', `${branch}...`],
-    { cwd }
+    // Only list files under the change folder for efficiency
+    { cwd: changePath }
   );
-  if (!changedFilesResult.success) {
+  if (!changeFilesResult.success) {
     return changedPackages;
   }
 
-  const changedFiles = changedFilesResult.stdout.split('\n').filter(name => path.dirname(name) === changeDir);
+  const changeFiles = changeFilesResult.stdout.split('\n');
   const changeFilePackageSet = new Set<string>();
 
   // Loop through the change files, building up a set of packages that we can skip
-  for (const file of changedFiles) {
+  for (const file of changeFiles) {
+    const changeFilePath = path.join(changePath, file);
     try {
-      const changeInfo = readJson<ChangeFileInfo | ChangeInfoMultiple>(path.join(cwd, file));
+      const changeInfo = readJson<ChangeFileInfo | ChangeInfoMultiple>(changeFilePath);
       const changes = (changeInfo as ChangeInfoMultiple).changes || [changeInfo];
 
       for (const change of changes) {
         changeFilePackageSet.add(change.packageName);
       }
     } catch (e) {
-      console.warn(`Error reading or parsing change file ${file}: ${e}`);
+      console.warn(`Error reading or parsing change file ${changeFilePath}: ${e}`);
     }
   }
 
   if (changeFilePackageSet.size > 0) {
     console.log(
-      'Your local repository already has change files for these packages:' +
-        [...changeFilePackageSet]
-          .sort()
-          .map(pkg => `\n  ${pkg}`)
-          .join('')
+      'Your local repository already has change files for these packages:\n' +
+        bulletedList([...changeFilePackageSet].sort())
     );
   }
 

@@ -1,3 +1,5 @@
+import type { ScopedPackages } from '../types/PackageInfo';
+
 /**
  * Clone an object, fast.
  * Currently only handles data types expected in `BumpInfo` but could be expanded if needed.
@@ -28,8 +30,15 @@ export function cloneObject<T extends object>(obj: T): T {
   }
 
   if (obj instanceof Set) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return new Set(Array.from(obj).map(item => (item && typeof item === 'object' ? cloneObject(item) : item))) as T;
+    const cloned = new Set(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      Array.from(obj).map(item => (item && typeof item === 'object' ? cloneObject(item) : item))
+    ) as T;
+    // special logic to clone a custom set property
+    if ((obj as ScopedPackages).allInScope) {
+      (cloned as ScopedPackages).allInScope = true;
+    }
+    return cloned;
   }
 
   if (obj.constructor?.name && obj.constructor.name !== 'Object') {

@@ -3,13 +3,14 @@ import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import type { Repository } from '../__fixtures__/repository';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
-import { sync } from '../commands/sync';
+import { sync, type SyncCommandContext } from '../commands/sync';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import type { packagePublish } from '../packageManager/packagePublish';
 import type { RepoOptions } from '../types/BeachballOptions';
 import { initNpmMock } from '../__fixtures__/mockNpm';
 import { getParsedOptions } from '../options/getOptions';
 import { removeTempDir } from '../__fixtures__/tmpdir';
+import { getScopedPackages } from '../monorepo/getScopedPackages';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -34,7 +35,7 @@ describe('sync command (e2e)', () => {
     npmReadConcurrency: 2,
   };
 
-  function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, extraArgv: string[] = []) {
+  function getOptionsAndContext(repoOptions?: Partial<RepoOptions>, extraArgv: string[] = []) {
     const parsedOptions = getParsedOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'sync', ...extraArgv],
@@ -52,7 +53,11 @@ describe('sync command (e2e)', () => {
       },
     });
     const originalPackageInfos = getPackageInfos(parsedOptions);
-    return { originalPackageInfos, options: parsedOptions.options, parsedOptions };
+    const context: SyncCommandContext = {
+      originalPackageInfos,
+      scopedPackages: getScopedPackages(parsedOptions.options, originalPackageInfos),
+    };
+    return { options: parsedOptions.options, parsedOptions, context };
   }
 
   afterEach(() => {
@@ -85,8 +90,8 @@ describe('sync command (e2e)', () => {
     mockNpm.publishPackage({ name: 'barpkg', version: '3.0.0' });
 
     // sync repo to published versions
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages();
-    await sync(options, originalPackageInfos);
+    const { options, parsedOptions, context } = getOptionsAndContext();
+    await sync(options, context);
 
     const packageInfosAfterSync = getPackageInfos(parsedOptions);
 
@@ -115,10 +120,10 @@ describe('sync command (e2e)', () => {
     mockNpm.publishPackage({ name: 'apkg', version: '2.0.0' }, 'beta');
     mockNpm.publishPackage({ name: 'bpkg', version: '3.0.0' });
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({
+    const { options, parsedOptions, context } = getOptionsAndContext({
       tag: 'beta',
     });
-    await sync(options, originalPackageInfos);
+    await sync(options, context);
 
     const packageInfosAfterSync = getPackageInfos(parsedOptions);
 
@@ -148,12 +153,8 @@ describe('sync command (e2e)', () => {
     mockNpm.publishPackage({ name: 'epkg', version: '1.0.0-1' }, 'prerelease');
     mockNpm.publishPackage({ name: 'fpkg', version: '3.0.0' });
 
-    const { originalPackageInfos, options, parsedOptions } = getOptionsAndPackages({}, [
-      '--tag',
-      'prerelease',
-      '--force',
-    ]);
-    await sync(options, originalPackageInfos);
+    const { options, parsedOptions, context } = getOptionsAndContext({}, ['--tag', 'prerelease', '--force']);
+    await sync(options, context);
 
     const packageInfosAfterSync = getPackageInfos(parsedOptions);
 

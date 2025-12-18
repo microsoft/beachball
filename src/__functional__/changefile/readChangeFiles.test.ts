@@ -15,6 +15,7 @@ import path from 'path';
 import { createTestFileStructureType } from '../../__fixtures__/createTestFileStructure';
 import { readJson } from '../../object/readJson';
 import { writeJson } from '../../object/writeJson';
+import { getScopedPackages } from '../../monorepo/getScopedPackages';
 
 describe('readChangeFiles', () => {
   /** Non-git temp directory root, for tests that don't need git */
@@ -31,7 +32,8 @@ describe('readChangeFiles', () => {
       testRepoOptions: { branch: defaultRemoteBranchName, ...repoOptions },
     });
     const packageInfos = getPackageInfos(parsedOptions);
-    return { packageInfos, options: parsedOptions.options, parsedOptions };
+    const scopedPackages = getScopedPackages(parsedOptions.options, packageInfos);
+    return { packageInfos, options: parsedOptions.options, parsedOptions, scopedPackages };
   }
 
   function updateJsonFile(relativePath: string, json: Record<string, unknown>) {
@@ -49,7 +51,7 @@ describe('readChangeFiles', () => {
   it('reads change files and returns in reverse chronological order', async () => {
     // this test doesn't need git
     tempRoot = createTestFileStructureType('monorepo');
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, packageInfos, scopedPackages } = getOptionsAndPackages();
 
     generateChangeFiles(['bar'], options);
     // Wait slightly to ensure the mtime is different for sorting
@@ -59,7 +61,7 @@ describe('readChangeFiles', () => {
     // Include a basic check reading from disk to verify generateChangeFiles worked
     expect(getChangeFiles(options)).toHaveLength(2);
 
-    const changeSet = readChangeFiles(options, packageInfos);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(changeSet).toHaveLength(2);
     expect(changeSet).toEqual([
       // foo will be first since it's newer
@@ -88,22 +90,22 @@ describe('readChangeFiles', () => {
 
   it('reads from a custom changeDir', () => {
     tempRoot = createTestFileStructureType('monorepo');
-    const { options, packageInfos } = getOptionsAndPackages({ changeDir: 'changeDir' });
+    const { options, packageInfos, scopedPackages } = getOptionsAndPackages({ changeDir: 'changeDir' });
     generateChangeFiles(['foo'], options);
     expect(getChangeFiles(options)).toHaveLength(1);
 
-    const changeSet = readChangeFiles(options, packageInfos);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(changeSet).toHaveLength(1);
   });
 
   it('reads a grouped change file', () => {
     tempRoot = createTestFileStructureType('monorepo');
-    const { options, packageInfos } = getOptionsAndPackages({ groupChanges: true });
+    const { options, packageInfos, scopedPackages } = getOptionsAndPackages({ groupChanges: true });
 
     generateChangeFiles(['foo', 'bar'], options);
     expect(getChangeFiles(options)).toHaveLength(1);
 
-    const changeSet = readChangeFiles(options, packageInfos);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(changeSet).toHaveLength(2);
 
     const packageNames = changeSet.map(changeEntry => changeEntry.change.packageName).sort();
@@ -114,13 +116,13 @@ describe('readChangeFiles', () => {
     tempRoot = createTestFileStructureType('monorepo');
     updateJsonFile('packages/bar/package.json', { private: true });
 
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, packageInfos, scopedPackages } = getOptionsAndPackages();
 
     // fake doesn't exist, bar is private, foo is okay
     generateChangeFiles(['fake', 'bar', 'foo'], options);
     expect(getChangeFiles(options)).toHaveLength(3);
 
-    const changeSet = readChangeFiles(options, packageInfos);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(changeSet).toHaveLength(1);
 
     expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));
@@ -133,13 +135,13 @@ describe('readChangeFiles', () => {
     tempRoot = createTestFileStructureType('monorepo');
     updateJsonFile('packages/bar/package.json', { private: true });
 
-    const { options, packageInfos } = getOptionsAndPackages({ groupChanges: true });
+    const { options, packageInfos, scopedPackages } = getOptionsAndPackages({ groupChanges: true });
 
     // fake doesn't exist, bar is private, foo is okay
     generateChangeFiles(['fake', 'bar', 'foo'], options);
     expect(getChangeFiles(options)).toHaveLength(1);
 
-    const changeSet = readChangeFiles(options, packageInfos);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(changeSet).toHaveLength(1);
 
     expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));
@@ -150,24 +152,27 @@ describe('readChangeFiles', () => {
 
   it('excludes out of scope change files in monorepo', () => {
     tempRoot = createTestFileStructureType('monorepo');
-    const { options, packageInfos } = getOptionsAndPackages({ scope: ['packages/foo'] });
+    const { options, packageInfos, scopedPackages } = getOptionsAndPackages({ scope: ['packages/foo'] });
 
     generateChangeFiles(['bar', 'foo'], options);
     expect(getChangeFiles(options)).toHaveLength(2);
 
-    const changeSet = readChangeFiles(options, packageInfos);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(changeSet).toHaveLength(1);
     expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
 
   it('excludes out of scope changes from grouped change file in monorepo', () => {
     tempRoot = createTestFileStructureType('monorepo');
-    const { options, packageInfos } = getOptionsAndPackages({ scope: ['packages/foo'], groupChanges: true });
+    const { options, packageInfos, scopedPackages } = getOptionsAndPackages({
+      scope: ['packages/foo'],
+      groupChanges: true,
+    });
 
     generateChangeFiles(['bar', 'foo'], options);
     expect(getChangeFiles(options)).toHaveLength(1);
 
-    const changeSet = readChangeFiles(options, packageInfos);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(changeSet).toHaveLength(1);
     expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
@@ -176,7 +181,7 @@ describe('readChangeFiles', () => {
     const editedComment = 'Edited comment for testing';
     tempRoot = createTestFileStructureType('monorepo');
 
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, packageInfos, scopedPackages } = getOptionsAndPackages({
       transform: {
         changeFiles: (changeFile, changeFilePath, { command }) => {
           // For test, we will be changing the comment based on the package name
@@ -201,7 +206,7 @@ describe('readChangeFiles', () => {
     generateChangeFiles([{ packageName: 'foo', comment: 'comment 1' }], options);
     generateChangeFiles([{ packageName: 'bar', comment: 'comment 2' }], options);
 
-    const changes = readChangeFiles(options, packageInfos);
+    const changes = readChangeFiles(options, packageInfos, scopedPackages);
 
     // Verify that the comment of only the intended change file is changed
     for (const { change, changeFile } of changes) {
@@ -253,8 +258,12 @@ describe('readChangeFiles', () => {
       expect(getChangeFiles(initialOptions)).toHaveLength(3);
 
       // Read change files with fromRef set to the first commit
-      const { options: optionsFromRef, packageInfos } = getRepoOptionsAndPackages({ fromRef: firstCommit });
-      const changeSet = readChangeFiles(optionsFromRef, packageInfos);
+      const {
+        options: optionsFromRef,
+        packageInfos,
+        scopedPackages,
+      } = getRepoOptionsAndPackages({ fromRef: firstCommit });
+      const changeSet = readChangeFiles(optionsFromRef, packageInfos, scopedPackages);
 
       expect(changeSet).toHaveLength(2);
       const packageNames = changeSet.map(changeEntry => changeEntry.change.packageName).sort();
@@ -273,8 +282,8 @@ describe('readChangeFiles', () => {
       repo.commitChange('file2');
 
       // Read change files from after the change file commit
-      const { options, packageInfos } = getRepoOptionsAndPackages({ fromRef: changeCommit });
-      const changeSet = readChangeFiles(options, packageInfos);
+      const { options, packageInfos, scopedPackages } = getRepoOptionsAndPackages({ fromRef: changeCommit });
+      const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
 
       expect(changeSet).toHaveLength(0);
     });
@@ -299,8 +308,8 @@ describe('readChangeFiles', () => {
       generateChangeFiles(['baz'], initialOptions);
 
       // Read change files with fromRef - should only include foo (bar was deleted)
-      const { options, packageInfos } = getRepoOptionsAndPackages({ fromRef: firstCommit });
-      const changeSet = readChangeFiles(options, packageInfos);
+      const { options, packageInfos, scopedPackages } = getRepoOptionsAndPackages({ fromRef: firstCommit });
+      const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
 
       expect(changeSet).toHaveLength(1);
       expect(changeSet[0].change.packageName).toBe('baz');

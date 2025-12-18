@@ -3,9 +3,8 @@ import { getChangePath } from '../paths';
 import fs from 'fs';
 import path from 'path';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { getChangesBetweenRefs } from 'workspace-tools';
-import type { PackageInfos } from '../types/PackageInfo';
+import type { PackageInfos, ScopedPackages } from '../types/PackageInfo';
 import { readJson } from '../object/readJson';
 
 /**
@@ -20,9 +19,12 @@ import { readJson } from '../object/readJson';
  * Changes from grouped change files will be flattened into individual entries in the returned array
  * (so it's possible that multiple entries will have the same filename).
  */
-export function readChangeFiles(options: BeachballOptions, packageInfos: PackageInfos): ChangeSet {
+export function readChangeFiles(
+  options: BeachballOptions,
+  packageInfos: PackageInfos,
+  scopedPackages: ScopedPackages
+): ChangeSet {
   const { fromRef, command } = options;
-  const scopedPackages = getScopedPackages(options, packageInfos);
   const changePath = getChangePath(options);
 
   if (!fs.existsSync(changePath)) {
