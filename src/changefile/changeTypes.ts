@@ -26,7 +26,9 @@ const ChangeTypeWeights = Object.fromEntries(SortedChangeTypes.map((t, i) => [t,
 
 /**
  * Get initial package change types based on the greatest change type set for each package in any
- * change file, accounting for any disallowed change types or nonexistent packages.
+ * change file, accounting for any disallowed change types. (Nonexistent or private packages were
+ * already filtered out by `readChangeFiles`.)
+ *
  * Anything with change type "none" will be ignored.
  */
 export function initializePackageChangeTypes(changeSet: ChangeSet): BumpInfo['calculatedChangeTypes'] {
