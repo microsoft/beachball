@@ -64,8 +64,7 @@ describe('version bumping', () => {
 
     // Only pkg-1 actually gets bumped
     expect(bumpInfo?.calculatedChangeTypes).toEqual({ 'pkg-1': 'minor' });
-    // But currently, pkg-2 ends up in the modified list and dependentChangedBy via setDependentVersions.
-    // It's debatable whether this is correct: https://github.com/microsoft/beachball/issues/620#issuecomment-3609264966
+    // Currently, pkg-2 ends up included due to https://github.com/microsoft/beachball/issues/1123
     expect(bumpInfo?.modifiedPackages).toEqual(new Set(['pkg-1', 'pkg-2']));
     expect(bumpInfo?.dependentChangedBy).toEqual({ 'pkg-2': new Set(['pkg-1']) });
 
@@ -89,6 +88,10 @@ describe('version bumping', () => {
 
     const pkg1Changelog = readChangelogJson(repo.pathTo('packages/pkg-1'));
     expect(pkg1Changelog!.entries[0].comments.minor![0].comment).toBe(comment);
+    // There's a check in writeChangeFiles to prevent writing changelogs for packages in
+    // dependentChangedBy with no changeType
+    const pkg2Changelog = readChangelogJson(repo.pathTo('packages/pkg-2'));
+    expect(pkg2Changelog).toBeNull();
   });
 
   it('for multi-root monorepo, only bumps packages in the current root', async () => {
