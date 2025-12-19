@@ -57,9 +57,14 @@ export function getPackageChangelogs(
       continue;
     }
 
-    changelogs[dependent] ??= createPackageChangelog(packageInfos[dependent]);
-
     const changeType = calculatedChangeTypes[dependent];
+    if (!changeType) {
+      // Either bumpDeps is false, or the dependent is out of scope, so skip writing changelogs.
+      // (Related issue for why the package ends up in dependentChangedBy at all: https://github.com/microsoft/beachball/issues/1123)
+      continue;
+    }
+
+    changelogs[dependent] ??= createPackageChangelog(packageInfos[dependent]);
 
     changelogs[dependent].comments ??= {};
     changelogs[dependent].comments[changeType] ??= [];
@@ -73,6 +78,7 @@ export function getPackageChangelogs(
           // This change will be made in the commit that is currently being created, so unless we
           // split publishing into two commits (one for bumps and one for changelog updates),
           // there's no way to know the hash yet. It's better to record nothing than incorrect info.
+          // TODO: switch to actually writing nothing at all
           // https://github.com/microsoft/beachball/issues/901
           ...(includeCommitHashes && { commit: commitNotAvailable }),
         });

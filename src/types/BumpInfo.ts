@@ -24,7 +24,8 @@ export type BumpInfo = {
   calculatedChangeTypes: { [pkgName: string]: ChangeType };
 
   /**
-   * Package version groups (not changelog groups) derived from `BeachballOptions.groups` (`VersionGroupOptions`).
+   * Package version groups (not changelog groups) derived from `BeachballOptions.groups`
+   * (`VersionGroupOptions`).
    */
   packageGroups: DeepReadonly<PackageGroups>;
 
@@ -39,6 +40,10 @@ export type BumpInfo = {
   /**
    * Map from package name to its internal dependency names that were bumped.
    * This is just used for changelog generation.
+   *
+   * Note: due to [this issue](https://github.com/microsoft/beachball/issues/1123), there may be
+   * packages here that don't have a `calculatedChangeTypes` entry, and those should be ignored
+   * when generating changelogs.
    */
   dependentChangedBy: { [pkgName: string]: Set<string> };
 

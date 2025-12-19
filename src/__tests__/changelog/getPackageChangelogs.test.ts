@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { getPackageChangelogs } from '../../changelog/getPackageChangelogs';
-import type { BumpInfo } from '../../types/BumpInfo';
 import type { ChangeFileInfo, ChangeSet } from '../../types/ChangeInfo';
-import type { PackageInfos } from '../../types/PackageInfo';
-import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
 import { getFileAddedHash } from 'workspace-tools';
+
+type PartialBumpInfo = Parameters<typeof getPackageChangelogs>[0];
 
 const commit = 'deadbeef';
 const author = 'something@something.com';
@@ -15,48 +15,58 @@ jest.mock('workspace-tools', () => ({
   getFileAddedHash: jest.fn(() => commit),
 }));
 
-function makeChangeInfo(pkg: string, overrides?: Partial<ChangeFileInfo>, filename?: string): ChangeSet[number] {
-  return {
-    changeFile: filename || `${pkg}.json`,
-    change: {
-      comment: `comment for ${pkg}`,
-      dependentChangeType: 'patch',
-      email: author,
-      packageName: pkg,
-      type: 'patch',
-      ...overrides,
-    },
-  };
-}
-
-const options = {
-  path: '.',
-  changeDir: 'change',
-};
-
 describe('getPackageChangelogs', () => {
   // eslint-disable-next-line etc/no-deprecated
   const getFileAddedHashMock = getFileAddedHash as jest.MockedFunction<typeof getFileAddedHash>;
+
+  /**
+   * Call `getPackageChangelogs` with filled in params. Defaults:
+   * - package version `1.0.0`
+   * - `author` and `commit` constants
+   * - `changeType: 'patch'`
+   */
+  function getPackageChangelogsWrapper(
+    bumpInfo: Pick<PartialBumpInfo, 'calculatedChangeTypes' | 'dependentChangedBy'> & {
+      packageInfos: PartialPackageInfos;
+      /** Changed package names or change file info (must include `packageName`) */
+      changes: (string | Partial<ChangeFileInfo>)[];
+    },
+    options?: Partial<Parameters<typeof getPackageChangelogs>[1]>
+  ) {
+    return getPackageChangelogs(
+      {
+        packageInfos: makePackageInfos(bumpInfo.packageInfos),
+        calculatedChangeTypes: bumpInfo.calculatedChangeTypes,
+        dependentChangedBy: bumpInfo.dependentChangedBy,
+        changeFileChangeInfos: bumpInfo.changes.map((change): ChangeSet[number] => {
+          const pkg = typeof change === 'string' ? change : change.packageName!;
+          return {
+            changeFile: `${pkg}.json`,
+            change: {
+              comment: `comment for ${pkg}`,
+              dependentChangeType: 'patch',
+              email: author,
+              packageName: pkg,
+              type: 'patch',
+              ...(typeof change === 'string' ? {} : change),
+            },
+          };
+        }),
+      },
+      { path: '.', changeDir: 'change', ...options }
+    );
+  }
 
   afterEach(() => {
     getFileAddedHashMock.mockClear();
   });
 
   it('generates correct changelog entries for a single package', () => {
-    const changeFileChangeInfos: ChangeSet = [
-      makeChangeInfo('foo'),
-      makeChangeInfo('foo', { type: 'minor', comment: 'other comment' }),
-    ];
-    const packageInfos = makePackageInfos({ foo: { version: '1.0.0' } });
-
-    const changelogs = getPackageChangelogs(
-      {
-        changeFileChangeInfos,
-        calculatedChangeTypes: { foo: 'patch' },
-        packageInfos,
-      },
-      options
-    );
+    const changelogs = getPackageChangelogsWrapper({
+      packageInfos: { foo: { version: '1.0.0' } },
+      calculatedChangeTypes: { foo: 'patch' },
+      changes: ['foo', { packageName: 'foo', type: 'minor', comment: 'other comment' }],
+    });
 
     expect(changelogs.foo).toEqual({
       comments: {
@@ -74,20 +84,14 @@ describe('getPackageChangelogs', () => {
   });
 
   it('generates correct changelog entries for multiple packages', () => {
-    const changeFileChangeInfos: ChangeSet = [makeChangeInfo('foo'), makeChangeInfo('bar')];
-    const packageInfos = makePackageInfos({
-      foo: { version: '1.0.0' },
-      bar: { version: '2.0.0' },
-    });
-
-    const changelogs = getPackageChangelogs(
-      {
-        changeFileChangeInfos,
-        calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
-        packageInfos,
+    const changelogs = getPackageChangelogsWrapper({
+      packageInfos: {
+        foo: { version: '1.0.0' },
+        bar: { version: '2.0.0' },
       },
-      options
-    );
+      calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
+      changes: ['foo', 'bar'],
+    });
 
     expect(changelogs.foo).toEqual({
       comments: {
@@ -112,54 +116,31 @@ describe('getPackageChangelogs', () => {
   });
 
   it('preserves custom properties from change files', () => {
-    const changeFileChangeInfos: ChangeSet = [makeChangeInfo('foo', { extra: 'prop' })];
-    const packageInfos: PackageInfos = makePackageInfos({ foo: { version: '1.0.0' } });
-
-    const changelogs = getPackageChangelogs(
-      {
-        changeFileChangeInfos,
-        calculatedChangeTypes: { foo: 'patch' },
-        packageInfos,
-      },
-      options
-    );
-
+    const changelogs = getPackageChangelogsWrapper({
+      packageInfos: { foo: { version: '1.0.0' } },
+      calculatedChangeTypes: { foo: 'patch' },
+      changes: [{ packageName: 'foo', extra: 'prop' }],
+    });
     expect(changelogs.foo.comments.patch![0]).toMatchObject({ extra: 'prop' });
   });
 
   it('records dependent bumps', () => {
-    const changeFileChangeInfos: ChangeSet = [makeChangeInfo('foo')];
-
-    const dependentChangedBy: BumpInfo['dependentChangedBy'] = {
-      bar: new Set(['foo']),
-    };
-
-    const packageInfos = makePackageInfos({
-      foo: { version: '1.0.0' },
-      bar: { version: '2.0.0', dependencies: { foo: '^1.0.0' } },
-    });
-
-    const changelogs = getPackageChangelogs(
-      {
-        changeFileChangeInfos,
-        calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
-        dependentChangedBy,
-        packageInfos,
+    const changelogs = getPackageChangelogsWrapper({
+      packageInfos: {
+        foo: { version: '1.0.0' },
+        bar: { version: '2.0.0', dependencies: { foo: '^1.0.0' } },
       },
-      options
-    );
+      calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
+      changes: ['foo'],
+      dependentChangedBy: { bar: new Set(['foo']) },
+    });
 
     expect(Object.keys(changelogs.foo.comments.patch!)).toHaveLength(1);
     expect(changelogs.bar).toEqual({
       comments: {
         patch: [
-          {
-            author: 'beachball',
-            package: 'bar',
-            comment: 'Bump foo to v1.0.0',
-            // IMPORTANT: this should not record an actual commit hash, because it will be incorrect
-            commit: 'not available',
-          },
+          // IMPORTANT: this should not record an actual commit hash, because it will be incorrect
+          { author: 'beachball', package: 'bar', comment: 'Bump foo to v1.0.0', commit: 'not available' },
         ],
       },
       date: expect.any(Date),
@@ -171,26 +152,15 @@ describe('getPackageChangelogs', () => {
   });
 
   it('records multiple comment entries when a package has a change file AND was part of a dependent bump', () => {
-    const changeFileChangeInfos: ChangeSet = [makeChangeInfo('foo'), makeChangeInfo('bar')];
-
-    const dependentChangedBy: BumpInfo['dependentChangedBy'] = {
-      bar: new Set(['foo']),
-    };
-
-    const packageInfos = makePackageInfos({
-      foo: { version: '1.0.0' },
-      bar: { version: '2.0.0', dependencies: { foo: '^1.0.0' } },
-    });
-
-    const changelogs = getPackageChangelogs(
-      {
-        changeFileChangeInfos,
-        calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
-        dependentChangedBy,
-        packageInfos,
+    const changelogs = getPackageChangelogsWrapper({
+      packageInfos: {
+        foo: { version: '1.0.0' },
+        bar: { version: '2.0.0', dependencies: { foo: '^1.0.0' } },
       },
-      options
-    );
+      calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
+      changes: ['foo', 'bar'],
+      dependentChangedBy: { bar: new Set(['foo']) },
+    });
 
     expect(changelogs.bar.comments).toEqual({
       patch: [
@@ -204,50 +174,50 @@ describe('getPackageChangelogs', () => {
   });
 
   it('does not generate changelogs for dependent bumps of private packages', () => {
-    const changeFileChangeInfos: ChangeSet = [makeChangeInfo('bar')];
-
-    const dependentChangedBy: BumpInfo['dependentChangedBy'] = {
-      'private-pkg': new Set(['bar']),
-    };
-
-    const packageInfos = makePackageInfos({
-      'private-pkg': {
-        version: '1.0.0',
-        private: true,
-        dependencies: { bar: '^1.0.0' },
+    const changelogs = getPackageChangelogsWrapper({
+      packageInfos: {
+        'private-pkg': { private: true, dependencies: { bar: '^1.0.0' } },
+        bar: {},
       },
-      bar: { version: '1.0.0' },
+      calculatedChangeTypes: { bar: 'patch', 'private-pkg': 'patch' },
+      changes: ['bar'],
+      dependentChangedBy: { 'private-pkg': new Set(['bar']) },
     });
-
-    const changelogs = getPackageChangelogs(
-      {
-        changeFileChangeInfos,
-        calculatedChangeTypes: { bar: 'patch', 'private-pkg': 'patch' },
-        dependentChangedBy,
-        packageInfos,
-      },
-      options
-    );
 
     expect(changelogs.bar).toBeTruthy();
     expect(changelogs['private-pkg']).toBeUndefined();
   });
 
   it('omits commit hashes if requested', () => {
-    const changeFileChangeInfos: ChangeSet = [makeChangeInfo('foo')];
-    const packageInfos = makePackageInfos({ foo: { version: '1.0.0' } });
-
-    const changelogs = getPackageChangelogs(
+    const changelogs = getPackageChangelogsWrapper(
       {
-        changeFileChangeInfos,
+        packageInfos: { foo: { version: '1.0.0' } },
         calculatedChangeTypes: { foo: 'patch' },
-        packageInfos,
+        changes: ['foo'],
       },
-      { ...options, changelog: { includeCommitHashes: false } }
+      { changelog: { includeCommitHashes: false } }
     );
 
     expect(changelogs.foo.comments.patch).toHaveLength(1);
     expect(changelogs.foo.comments.patch![0].commit).toBeUndefined();
     expect(getFileAddedHashMock).not.toHaveBeenCalled();
+  });
+
+  it('ignores dependent bumps for packages with no calculatedChangeType', () => {
+    // This happens when bumpDeps is false or the dependent is out of scope
+    // (Related issue for why the package ends up in dependentChangedBy at all: https://github.com/microsoft/beachball/issues/1123
+    // and this test could potentially be removed once the issue is fixed)
+    const changelogs = getPackageChangelogsWrapper({
+      packageInfos: {
+        foo: { version: '1.0.0' },
+        bar: { version: '2.0.0', dependencies: { foo: '^1.0.0' } },
+      },
+      calculatedChangeTypes: { foo: 'patch' },
+      changes: ['foo'],
+      dependentChangedBy: { bar: new Set(['foo']) },
+    });
+
+    expect(changelogs.foo).toBeDefined();
+    expect(changelogs.bar).toBeUndefined();
   });
 });
