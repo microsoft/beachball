@@ -28,7 +28,7 @@ describe('publish command (git)', () => {
     const cwd = repoOptions?.path || repo!.rootPath;
     const parsedOptions = getParsedOptions({
       cwd,
-      argv: ['node', 'beachball', 'publish', '--yes', '--package', 'foo'],
+      argv: ['node', 'beachball', 'publish', '--yes'],
       testRepoOptions: {
         branch: defaultRemoteBranchName,
         registry: 'http://localhost:99999/',
