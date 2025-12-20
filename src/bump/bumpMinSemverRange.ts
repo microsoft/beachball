@@ -1,4 +1,5 @@
 import semver from 'semver';
+import { isCatalogVersion } from 'workspace-tools';
 import { getWorkspaceRange } from '../packageManager/getWorkspaceRange';
 
 /**
@@ -7,8 +8,14 @@ import { getWorkspaceRange } from '../packageManager/getWorkspaceRange';
  * @param currentRange Current version range for the dependency.
  * @returns New semver range for the dependency
  */
-export function bumpMinSemverRange(newVersion: string, currentRange: string): string {
-  if (currentRange === '*' || currentRange.startsWith('file:') || currentRange.startsWith('catalog:')) {
+export function bumpMinSemverRange(params: {
+  /** The new version of the package */
+  newVersion: string;
+  /** Current semver range specified for the dependency */
+  currentRange: string;
+}): string {
+  const { newVersion, currentRange } = params;
+  if (currentRange === '*' || currentRange.startsWith('file:') || isCatalogVersion(currentRange)) {
     return currentRange;
   }
 

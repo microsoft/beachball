@@ -1,12 +1,12 @@
 import { describe, expect, it, afterEach, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
-import { addGitObserver, clearGitObservers } from 'workspace-tools';
+import { addGitObserver, catalogsToYaml, clearGitObservers, type Catalogs } from 'workspace-tools';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import type { Repository } from '../__fixtures__/repository';
-import { type PackageJsonFixture, RepositoryFactory } from '../__fixtures__/repositoryFactory';
+import { type PackageJsonFixture, type RepoFixture, RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { publish } from '../commands/publish';
 import type { ParsedOptions, RepoOptions } from '../types/BeachballOptions';
 import { _mockNpmPublish, initNpmMock } from '../__fixtures__/mockNpm';
@@ -62,6 +62,7 @@ describe('publish command (e2e)', () => {
     deepFreezeProperties(context.bumpInfo);
     deepFreezeProperties(context.originalPackageInfos);
     await publish(parsedOptions.options, context);
+    return context;
   }
 
   afterEach(() => {
@@ -334,6 +335,72 @@ describe('publish command (e2e)', () => {
     expect(newPackageInfos.foo.version).toBe('1.0.0');
   });
 
+  // Combine workspace/catalog/file cases since these tests are slow
+  it('publishes packages with workspace: and catalog: deps and replaces versions', async () => {
+    const monorepo: RepoFixture['folders'] = {
+      packages: {
+        'pkg-1': { version: '1.0.0' },
+        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': 'workspace:~', react: 'catalog:react18' } },
+        'pkg-3': { version: '1.0.0', dependencies: { 'pkg-2': 'workspace:^1.0.0' } },
+        'pkg-4': {
+          version: '1.0.0',
+          dependencies: { 'pkg-1': 'catalog:' },
+          devDependencies: { 'pkg-2': 'file:../pkg-2' },
+        },
+      },
+    };
+    const catalogs: Catalogs = {
+      default: { 'pkg-1': 'workspace:~' }, // only yarn supports workspace: inside catalog
+      named: { react18: { react: '^18.0.0' } },
+    };
+    repositoryFactory = new RepositoryFactory({
+      folders: monorepo,
+      extraFiles: { '.yarnrc.yml': catalogsToYaml(catalogs) },
+    });
+    repo = repositoryFactory.cloneRepository();
+
+    const { options, parsedOptions } = getOptions({ bumpDeps: true, fetch: false });
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'minor' }], options);
+    repo.push();
+
+    const { originalPackageInfos } = await publishWrapper(parsedOptions);
+    repo.checkout(defaultBranchName);
+    repo.pull();
+
+    expect(repo.getCurrentTags()).toEqual(['pkg-1_v1.1.0', 'pkg-2_v1.0.1', 'pkg-3_v1.0.1', 'pkg-4_v1.0.1']);
+
+    // All the dependent packages are bumped despite the workspace: dep specs.
+    // The literal workspace: specs are preserved in git.
+    const packageInfos = getPackageInfos(parsedOptions);
+    expect(packageInfos['pkg-1'].version).toBe('1.1.0');
+    // workspace:~ and catalog: ranges aren't changed
+    expect(packageInfos['pkg-2']).toEqual({ ...originalPackageInfos['pkg-2'], version: '1.0.1' });
+    expect(packageInfos['pkg-2'].version).toBe('1.0.1');
+    // workspace: range with number is updated
+    expect(packageInfos['pkg-3'].dependencies).toEqual({ 'pkg-2': 'workspace:^1.0.1' });
+    // catalog: range isn't changed
+    expect(packageInfos['pkg-4']).toEqual({ ...originalPackageInfos['pkg-4'], version: '1.0.1' });
+
+    // The changelogs are adequately covered by the similar bump test.
+
+    // Verify that the published packages have the actual resolved versions
+    expect(npmMock.getPublishedPackage('pkg-1')).toMatchObject({ version: '1.1.0' });
+    expect(npmMock.getPublishedPackage('pkg-2')).toMatchObject({
+      version: '1.0.1',
+      dependencies: { 'pkg-1': '~1.1.0', react: '^18.0.0' },
+    });
+    expect(npmMock.getPublishedPackage('pkg-3')).toMatchObject({
+      version: '1.0.1',
+      dependencies: { 'pkg-2': '^1.0.1' },
+    });
+    expect(npmMock.getPublishedPackage('pkg-4')).toMatchObject({
+      version: '1.0.1',
+      dependencies: { 'pkg-1': '~1.1.0' },
+      // file: deps aren't currently replaced (definitely fine for dev deps, questionable for prod)
+      devDependencies: { 'pkg-2': 'file:../pkg-2' },
+    });
+  });
+
   // These tests are slow, so combine pre and post hooks
   it('respects prepublish/postpublish hooks', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
@@ -499,6 +566,7 @@ describe('publish command (e2e)', () => {
   });
 
   // Just test postpublish (prepublish should have the same logic)
+  // TODO: possibly move to in-memory test
   it('respects concurrency limit for publish hooks', async () => {
     const packagesToPublish = ['pkg1', 'pkg2', 'pkg3', 'pkg4'];
     type ExtraPackageJsonFixture = PackageJsonFixture & { customAfterPublish?: { notify: string } };
