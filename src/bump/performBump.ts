@@ -7,10 +7,11 @@ import { updatePackageJsons } from './updatePackageJsons';
 import { updateLockFile } from './updateLockFile';
 
 /**
- * Performs the bump and writes to the filesystem:
+ * Write the bump results to the filesystem:
  * update package.json files, update lock file, write changelogs, and delete change files.
  *
  * This should NOT mutate `bumpInfo`.
+ * @param bumpInfo Bump info produced by `bumpInMemory` which already reflects in-memory bumps
  */
 export async function performBump(bumpInfo: Readonly<BumpInfo>, options: BeachballOptions): Promise<void> {
   const { modifiedPackages, packageInfos, changeFileChangeInfos } = bumpInfo;

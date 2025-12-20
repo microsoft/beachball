@@ -21,14 +21,18 @@ import { packPackage } from '../packageManager/packPackage';
 export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: BeachballOptions): Promise<void> {
   const verb = options.packToPath ? 'pack' : 'publish';
 
+  // bumpInfo already reflects in-memory bumps, but they're only written to disk if bump=true
   if (options.bump) {
     await performBump(bumpInfo, options);
   }
 
   // get the packages to publish, reducing the set by packages that don't need publishing
-  const packagesToPublish = getPackagesToPublish(bumpInfo);
+  const packagesToPublish = getPackagesToPublish(bumpInfo, { toposort: true, logSkipped: true });
 
   let invalid = false;
+  // TODO: for bump=false, this should validate the on-disk versions, not in-memory bumped versions
+  // (or maybe bumpInMemory logic should calculate changes but skip in-memory bumps when bump=false?)
+  // https://github.com/microsoft/beachball/issues/1125
   if (!(await validatePackageVersions(packagesToPublish, bumpInfo.packageInfos, options))) {
     displayManualRecovery(bumpInfo);
     invalid = true;

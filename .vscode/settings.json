@@ -8,6 +8,7 @@
   "javascript.preferences.quoteStyle": "single",
   "typescript.preferences.quoteStyle": "single",
   "typescript.tsdk": "node_modules/typescript/lib",
+  "jest.runMode": "on-demand",
   "search.exclude": {
     "**/node_modules": true,
     "**/lib": true,

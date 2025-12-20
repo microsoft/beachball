@@ -213,7 +213,7 @@ export function validate(
     // Unfortunately, to get full info about which dependents would be bumped, it's probably necessary
     // to calculate the full bump info.
     bumpInfo = bumpInMemory(options, { originalPackageInfos, packageGroups, changeSet, scopedPackages });
-    const packagesToPublish = getPackagesToPublish(bumpInfo, true /*validationMode*/);
+    const packagesToPublish = getPackagesToPublish(bumpInfo);
 
     if (!validatePackageDependencies(packagesToPublish, bumpInfo.packageInfos)) {
       logValidationError(`One or more published packages depend on an unpublished package!

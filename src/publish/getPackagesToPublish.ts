@@ -5,17 +5,23 @@ import { toposortPackages } from './toposortPackages';
 /**
  * Determine which of the modified/new packages in bump info should actually be published
  * (based only on the bump info, not the registry).
- *
- * Unless `validationMode` is true, the returned package names will also be topologically sorted
- * based on the dependency graph to ensure they're published in the correct order, and any
- * new/modified packages that will be skipped (and why) are logged to the console.
  */
-export function getPackagesToPublish(bumpInfo: PublishBumpInfo, validationMode?: boolean): string[] {
+export function getPackagesToPublish(
+  bumpInfo: Pick<
+    PublishBumpInfo,
+    'modifiedPackages' | 'newPackages' | 'packageInfos' | 'calculatedChangeTypes' | 'scopedPackages'
+  >,
+  params?: {
+    /** If true, topologically sort the package names based on the dependency graph (may be slow) */
+    toposort?: boolean;
+    /** If true, log skipped packages and reasons */
+    logSkipped?: boolean;
+  }
+): string[] {
   const { modifiedPackages, newPackages, packageInfos, calculatedChangeTypes, scopedPackages } = bumpInfo;
 
   let packages = [...modifiedPackages, ...(newPackages || [])];
-  if (!validationMode) {
-    // skip this step when called from `validate` since it's not needed and might be slow
+  if (params?.toposort) {
     packages = toposortPackages(packages, packageInfos);
   }
   const packagesToPublish: string[] = [];
@@ -30,8 +36,10 @@ export function getPackagesToPublish(bumpInfo: PublishBumpInfo, validationMode?:
       skipReason = 'has change type none';
     } else if (packageInfo.private) {
       skipReason = 'is private';
-    } else if (!scopedPackages.has(pkg)) {
+    } else if (!scopedPackages.allInScope && !scopedPackages.has(pkg)) {
       skipReason = 'is out-of-scope';
+    } else if (!changeType && !newPackages?.includes(pkg)) {
+      skipReason = 'is not bumped (no calculated change type)';
     }
 
     if (skipReason) {
@@ -42,7 +50,7 @@ export function getPackagesToPublish(bumpInfo: PublishBumpInfo, validationMode?:
   }
 
   // this log is not helpful when called from `validate`
-  if (skippedPackageReasons.length && !validationMode) {
+  if (skippedPackageReasons.length && params?.logSkipped) {
     console.log(`\nSkipping publishing the following packages:\n${bulletedList(skippedPackageReasons.sort())}`);
   }
 
