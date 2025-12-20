@@ -18,24 +18,10 @@ describe('validatePackageVersions', () => {
     expect(await validatePackageVersions([], {}, npmOptions)).toBe(true);
   });
 
-  it('succeeds with a valid new version', async () => {
-    npmMock.setRegistryData({ foo: { versions: ['0.1.0', '1.0.0', '2.0.0'] } });
-    const packageInfos = makePackageInfos({ foo: { version: '1.0.1' } });
-
-    expect(await validatePackageVersions(['foo'], packageInfos, npmOptions)).toBe(true);
-    expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
-    expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
-      "[log]
-      Validating new package versions...
-      [log]
-      Package versions are OK to publish:
-        • foo@1.0.1"
-    `);
-  });
-
   it('succeeds if package has no versions in the registry', async () => {
-    npmMock.setRegistryData({});
-    const packageInfos = makePackageInfos({ foo: { version: '1.0.0' } });
+    // bar already exists in the registry, but that's fine since it isn't published
+    npmMock.setRegistryData({ bar: { versions: ['1.0.0'] } });
+    const packageInfos = makePackageInfos({ foo: {}, bar: {} });
 
     expect(await validatePackageVersions(['foo'], packageInfos, npmOptions)).toBe(true);
     expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
@@ -48,32 +34,44 @@ describe('validatePackageVersions', () => {
     `);
   });
 
-  it('fails with a duplicate version', async () => {
-    npmMock.setRegistryData({ foo: { versions: ['0.1.0', '1.0.0'] } });
-    const packageInfos = makePackageInfos({ foo: { version: '1.0.0' } });
+  it('succeeds with valid new versions', async () => {
+    // foo already exists in registry
+    npmMock.setRegistryData({ foo: { versions: ['0.1.0', '1.0.0', '2.0.0'] } });
+    // bar and baz aren't in registry
+    const packageInfos = makePackageInfos({ foo: { version: '1.0.1' }, bar: {}, baz: {} });
 
-    expect(await validatePackageVersions(['foo'], packageInfos, npmOptions)).toBe(false);
-    expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
-    expect(logs.getMockLines('error')).toMatchInlineSnapshot(`
-      "ERROR: Attempting to publish package versions that already exist in the registry:
-        • foo@1.0.0"
-    `);
-  });
-
-  it('fails with useful output if both valid and invalid versions are present', async () => {
-    npmMock.setRegistryData({ foo: { versions: ['1.0.0'] }, bar: { versions: ['1.0.0'] } });
-    const packageInfos = makePackageInfos({ foo: { version: '1.0.0' }, bar: { version: '1.0.1' } });
-
-    expect(await validatePackageVersions(['foo', 'bar'], packageInfos, npmOptions)).toBe(false);
+    // only foo and bar are being published
+    expect(await validatePackageVersions(['foo', 'bar'], packageInfos, npmOptions)).toBe(true);
     expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[log]
       Validating new package versions...
       [log]
       Package versions are OK to publish:
-        • bar@1.0.1
+        • foo@1.0.1
+        • bar@1.0.0"
+    `);
+  });
+
+  it('fails with duplicate versions', async () => {
+    // foo and bar versions already exist in registry (though bar version is not latest)
+    npmMock.setRegistryData({ foo: { versions: ['0.1.0', '1.0.0'] }, bar: { versions: ['1.0.0', '1.1.0'] } });
+    // baz and qux aren't in registry
+    const packageInfos = makePackageInfos({ foo: {}, bar: {}, baz: {}, qux: {} });
+
+    // foo, bar, baz are attempting publishing
+    expect(await validatePackageVersions(['foo', 'bar', 'baz'], packageInfos, npmOptions)).toBe(false);
+    expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(3);
+    // Multiple error packages are logged, along with the valid package
+    expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
+      "[log]
+      Validating new package versions...
+      [log]
+      Package versions are OK to publish:
+        • baz@1.0.0
       [error]
       ERROR: Attempting to publish package versions that already exist in the registry:
+        • bar@1.0.0
         • foo@1.0.0"
     `);
   });

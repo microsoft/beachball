@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add validation of package names in callHook. Update internal handling of dependent modified packages (behavior is the same).",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -48,8 +48,11 @@ export async function sync(options: BeachballOptions, context?: SyncCommandConte
     }
   }
 
-  // Update modifiedPackages
-  setDependentVersions({ packageInfos, scopedPackages, modifiedPackages }, options);
+  // Update dependencies on the packages with updated versions
+  const dependentModifiedPackages = setDependentVersions({ packageInfos, scopedPackages, modifiedPackages }, options);
+  // Add the dependent modified packages to the list that needs to be updated on disk
+  // (this is a different purpose than other use of modifiedPackages)
+  Object.keys(dependentModifiedPackages).forEach(pkg => modifiedPackages.add(pkg));
 
   updatePackageJsons(modifiedPackages, packageInfos);
   await updateLockFile(options);

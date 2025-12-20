@@ -215,7 +215,7 @@ describe('getChangedPackages', () => {
 
     // foo is not included in changed packages
     let changedPackages = getChangedPackages(options, packageInfos, scopedPackages);
-    const logLines = logs.getMockLines('all', { guids: true });
+    const logLines = logs.getMockLines('all', { sanitize: true });
     expect(logLines).toMatch(/Your local repository already has change files for these packages:\s+• foo/);
     expect(logLines).toMatchInlineSnapshot(`
       "[log] Checking for changes against "origin/master"
@@ -232,7 +232,7 @@ describe('getChangedPackages', () => {
     // change bar => bar is the only changed package returned
     repo.stageChange('packages/bar/test.js');
     changedPackages = getChangedPackages(options, packageInfos, scopedPackages);
-    expect(logs.getMockLines('all', { guids: true })).toMatchInlineSnapshot(`
+    expect(logs.getMockLines('all', { sanitize: true })).toMatchInlineSnapshot(`
       "[log] Checking for changes against "origin/master"
       [log] Found 3 changed files in current branch (before filtering)
       [log]   - ~~change/foo-<guid>.json~~ (ignored by pattern "change/*.json")
@@ -266,7 +266,7 @@ describe('getChangedPackages', () => {
 
     const changedPackages = getChangedPackages(options, packageInfos, scopedPackages);
     expect(changedPackages).toStrictEqual(['foo']);
-    expect(logs.getMockLines('all', { guids: true })).toMatchInlineSnapshot(`
+    expect(logs.getMockLines('all', { sanitize: true })).toMatchInlineSnapshot(`
       "[log] Checking for changes against "origin/master"
       [log] Found 2 changed files in current branch (before filtering)
       [log]   - test.js

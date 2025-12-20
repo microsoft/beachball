@@ -6,7 +6,7 @@ import { getPackageDependencyGraph } from './getPackageDependencyGraph';
 type PGraph = ReturnType<typeof pGraph>;
 
 export function getPackageGraph(
-  affectedPackages: Iterable<string>,
+  affectedPackages: string[],
   packageInfos: PackageInfos,
   runHook: (packageInfo: PackageInfo) => Promise<void>
 ): PGraph {
@@ -17,10 +17,7 @@ export function getPackageGraph(
     });
   }
 
-  const dependencyGraph: [string | undefined, string][] = getPackageDependencyGraph(
-    Array.from(affectedPackages),
-    packageInfos
-  );
+  const dependencyGraph: [string | undefined, string][] = getPackageDependencyGraph(affectedPackages, packageInfos);
   const filteredDependencyGraph = filterDependencyGraph(dependencyGraph);
   return pGraph(nodeMap, filteredDependencyGraph);
 }

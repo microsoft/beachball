@@ -11,6 +11,8 @@ import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
 import { getChange } from '../../__fixtures__/changeFiles';
 import { writeJson } from '../../object/writeJson';
 
+// These tests could be done with filesystem method mocks, but it's pretty complicated,
+// and testing with the filesystem is fast since it doesn't use git.
 describe('unlinkChangeFiles', () => {
   const logs = initMockLogs();
   let root = '';
@@ -156,5 +158,22 @@ describe('unlinkChangeFiles', () => {
       Removing empty change folder"
     `);
     expect(fs.existsSync(changePath)).toBe(false);
+  });
+
+  it('leaves extra files not in the changeSet', () => {
+    const { changeSet, options, changePath } = makeFixture({
+      changeFileNames: ['change1.json', 'extra.json'],
+      inChangeSet: ['change1.json'],
+    });
+
+    unlinkChangeFiles(changeSet, options);
+
+    expect(logs.getMockLines('log')).toMatchInlineSnapshot(`
+      "Removing change files:
+      - change1.json"
+    `);
+    expect(fs.existsSync(changePath)).toBe(true);
+    const remainingFiles = fs.readdirSync(changePath);
+    expect(remainingFiles).toEqual(['extra.json']);
   });
 });

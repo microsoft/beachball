@@ -8,11 +8,17 @@ import { getPackageGraph } from '../monorepo/getPackageGraph';
  */
 export async function callHook(
   hook: HooksOptions['prebump' | 'postbump' | 'prepublish' | 'postpublish'],
-  affectedPackages: Iterable<string>,
+  affectedPackages: string[] | Set<string>,
   packageInfos: PackageInfos,
   concurrency: number
 ): Promise<void> {
   if (!hook) {
+    return;
+  }
+
+  // Filter out nonexistent packages in case of theoretical race conditions or something
+  affectedPackages = [...affectedPackages].filter(pkgName => pkgName in packageInfos);
+  if (!affectedPackages.length) {
     return;
   }
 

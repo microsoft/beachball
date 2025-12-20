@@ -16,6 +16,7 @@ import { updateLockFile } from './updateLockFile';
 export async function performBump(bumpInfo: Readonly<BumpInfo>, options: BeachballOptions): Promise<void> {
   const { modifiedPackages, packageInfos, changeFileChangeInfos } = bumpInfo;
 
+  // TODO: this uses the wrong version https://github.com/microsoft/beachball/issues/1116
   await callHook(options.hooks?.prebump, modifiedPackages, packageInfos, options.concurrency);
 
   updatePackageJsons(modifiedPackages, packageInfos);

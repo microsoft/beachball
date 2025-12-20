@@ -134,7 +134,7 @@ describe('readChangeFiles', () => {
     const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(getPackages(changeSet)).toEqual(['foo']);
 
-    expect(logs.getMockLines('warn', { root: tempRoot, guids: true, sort: true })).toMatchInlineSnapshot(`
+    expect(logs.getMockLines('warn', { root: tempRoot, sanitize: true, sort: true })).toMatchInlineSnapshot(`
       "<root>/change/not-change.json does not appear to be a change file
       Change detected for nonexistent package fake; delete this file: <root>/change/fake-<guid>.json
       Change detected for private package bar; delete this file: <root>/change/bar-<guid>.json"
@@ -154,7 +154,7 @@ describe('readChangeFiles', () => {
     const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
     expect(getPackages(changeSet)).toEqual(['foo']);
 
-    expect(logs.getMockLines('warn', { root: tempRoot, guids: true, sort: true })).toMatchInlineSnapshot(`
+    expect(logs.getMockLines('warn', { root: tempRoot, sanitize: true, sort: true })).toMatchInlineSnapshot(`
       "Change detected for nonexistent package fake; remove the entry from this file: <root>/change/change-<guid>.json
       Change detected for private package bar; remove the entry from this file: <root>/change/change-<guid>.json"
     `);

@@ -9,7 +9,7 @@ describe('getPackageGraph', () => {
    * @returns all package names in the package graph
    */
   async function getPackageGraphPackageNames(
-    affectedPackages: Iterable<string>,
+    affectedPackages: string[],
     packageInfos: PackageInfos,
     runHook?: (packageInfo: PackageInfo) => Promise<void>
   ): Promise<string[]> {

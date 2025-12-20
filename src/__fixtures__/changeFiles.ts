@@ -37,21 +37,36 @@ export function getChange(
  * - `dependentChangeType: 'patch'`
  * - `comment: '<packageName> comment'`
  * - `email: 'test@test.com'`
+ *
+ * @param changes Array of package names or partial change files (which must include `packageName`).
+ */
+export function generateChanges(changes: (string | PartialChangeFile)[]): ChangeFileInfo[] {
+  return changes.map(change => {
+    change = typeof change === 'string' ? { packageName: change } : change;
+    return {
+      ...getChange(change.packageName, undefined, 'minor'),
+      ...change,
+    };
+  });
+}
+
+/**
+ * Generates and writes change files for the given packages.
+ * Also commits if `options.commit` is true.
+ *
+ * Default change info values:
+ * - `type: 'minor'`
+ * - `dependentChangeType: 'patch'`
+ * - `comment: '<packageName> comment'`
+ * - `email: 'test@test.com'`
+ *
+ * @param changes Array of package names or partial change files (which must include `packageName`).
  */
 export function generateChangeFiles(
   changes: (string | PartialChangeFile)[],
   options: Parameters<typeof writeChangeFiles>[1]
 ): void {
-  writeChangeFiles(
-    changes.map(change => {
-      change = typeof change === 'string' ? { packageName: change } : change;
-      return {
-        ...getChange(change.packageName, undefined, 'minor'),
-        ...change,
-      };
-    }),
-    options
-  );
+  writeChangeFiles(generateChanges(changes), options);
 }
 
 /** Get full paths to existing change files under `cwd` */
