@@ -27,7 +27,7 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
   }
 
   // get the packages to publish, reducing the set by packages that don't need publishing
-  const packagesToPublish = getPackagesToPublish(bumpInfo, options, { toposort: true, logSkipped: true });
+  const packagesToPublish = getPackagesToPublish(bumpInfo, { toposort: true, logSkipped: true });
 
   let invalid = false;
   // TODO: for bump=false, this should validate the on-disk versions, not in-memory bumped versions

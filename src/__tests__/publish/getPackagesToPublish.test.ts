@@ -2,7 +2,6 @@ import { describe, it, expect } from '@jest/globals';
 import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
 import { getPackagesToPublish } from '../../publish/getPackagesToPublish';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import type { BeachballOptions } from '../../types/BeachballOptions';
 
 type PartialBumpInfo = Parameters<typeof getPackagesToPublish>[0];
 
@@ -14,12 +13,10 @@ describe('getPackagesToPublish', () => {
    * - all packages are in scope and modified
    * - all modified packages have changeType: 'patch'
    * - logging enabled
-   * - `bump: true`
    */
   function getPackagesToPublishWrapper(
     partialBumpInfo: { packageInfos: PartialPackageInfos } & Partial<Omit<PartialBumpInfo, 'packageInfos'>>,
-    options?: Pick<BeachballOptions, 'bump'>,
-    params?: Parameters<typeof getPackagesToPublish>[2]
+    params?: Parameters<typeof getPackagesToPublish>[1]
   ) {
     const { packageInfos, modifiedPackages = new Set(Object.keys(packageInfos)), ...rest } = partialBumpInfo;
     const bumpInfo: PartialBumpInfo = {
@@ -29,7 +26,7 @@ describe('getPackagesToPublish', () => {
       calculatedChangeTypes: Object.fromEntries([...modifiedPackages].map(pkg => [pkg, 'patch'])),
       ...rest,
     };
-    return getPackagesToPublish(bumpInfo, { bump: true, ...options }, { logSkipped: true, ...params });
+    return getPackagesToPublish(bumpInfo, { logSkipped: true, ...params });
   }
 
   it('returns empty if no modified packages', () => {
@@ -113,7 +110,7 @@ describe('getPackagesToPublish', () => {
   });
 
   // This happens for reasons outlined in https://github.com/microsoft/beachball/issues/1123
-  it('excludes packages without calculated change type with bump: true (default)', () => {
+  it('excludes packages without calculated change type', () => {
     const result = getPackagesToPublishWrapper({
       packageInfos: { 'pkg-a': {}, 'pkg-b': {} },
       modifiedPackages: new Set(['pkg-a', 'pkg-b']),
@@ -126,21 +123,6 @@ describe('getPackagesToPublish', () => {
     `);
   });
 
-  // This might change later if bump: false is actually thought through...
-  // https://github.com/microsoft/beachball/issues/1125
-  it('includes packages without calculated change type with bump: false', () => {
-    const result = getPackagesToPublishWrapper(
-      {
-        packageInfos: { 'pkg-a': {}, 'pkg-b': {} },
-        modifiedPackages: new Set(['pkg-a', 'pkg-b']),
-        calculatedChangeTypes: { 'pkg-a': 'patch' },
-      },
-      { bump: false }
-    );
-    expect(result).toEqual(['pkg-a', 'pkg-b']);
-    expect(logs.mocks.log).not.toHaveBeenCalled();
-  });
-
   it('returns packages in topological order if requested', () => {
     // Sorting is tested in toposortPackages, so just use a simple graph here
     const result = getPackagesToPublishWrapper(
@@ -151,7 +133,6 @@ describe('getPackagesToPublish', () => {
           'pkg-c': {},
         },
       },
-      undefined,
       { toposort: true }
     );
     expect(result).toEqual(['pkg-c', 'pkg-b', 'pkg-a']);

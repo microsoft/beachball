@@ -1,5 +1,4 @@
 import { bulletedList } from '../logging/bulletedList';
-import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PublishBumpInfo } from '../types/BumpInfo';
 import { toposortPackages } from './toposortPackages';
 
@@ -12,7 +11,6 @@ export function getPackagesToPublish(
     PublishBumpInfo,
     'modifiedPackages' | 'newPackages' | 'packageInfos' | 'calculatedChangeTypes' | 'scopedPackages'
   >,
-  options: Pick<BeachballOptions, 'bump'>,
   params?: {
     /** If true, topologically sort the package names based on the dependency graph (may be slow) */
     toposort?: boolean;
@@ -40,10 +38,7 @@ export function getPackagesToPublish(
       skipReason = 'is private';
     } else if (!scopedPackages.allInScope && !scopedPackages.has(pkg)) {
       skipReason = 'is out-of-scope';
-    } else if (options.bump && !changeType && !newPackages?.includes(pkg)) {
-      // bump=false is the only time when this might be valid, but that behavior needs more thought...
-      // TODO: remove `options.bump` exception and/or figure out how it should actually be handled
-      // https://github.com/microsoft/beachball/issues/1125
+    } else if (!changeType && !newPackages?.includes(pkg)) {
       skipReason = 'is not bumped (no calculated change type)';
     }
 
