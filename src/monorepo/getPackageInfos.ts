@@ -18,7 +18,8 @@ import { readJson } from '../object/readJson';
  *
  * This looks for files relative to `parsedOptions.cliOptions.path` (the project root).
  * The options objects are needed so they can be properly merged with the package options
- * into `PackageInfo.combinedOptions`.
+ * into `PackageInfo.combinedOptions` without going back through the whole process of
+ * getting CLI and repo options.
  */
 export function getPackageInfos(parsedOptions: Pick<ParsedOptions, 'repoOptions' | 'cliOptions'>): PackageInfos;
 /** @deprecated Pass the pre-parsed options */

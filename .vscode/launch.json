@@ -26,6 +26,28 @@
       "processId": "${command:PickProcess}",
       "sourceMaps": true,
       "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      // Debug configuration for Jest extension
+      "name": "vscode-jest-tests.v2",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "cwd": "${workspaceFolder}",
+      "runtimeArgs": ["run-script", "test"],
+      "args": [
+        "--",
+        "--runInBand",
+        "--watch",
+        "--testTimeout=1000000",
+        "--no-coverage",
+        "--testNamePattern",
+        "${jest.testNamePattern}",
+        "--runTestsByPath",
+        "${jest.testFile}"
+      ],
+      "console": "integratedTerminal",
+      "runtimeVersion": "14"
     }
   ]
 }

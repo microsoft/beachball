@@ -70,8 +70,10 @@ export function bumpInMemory(options: BeachballOptions, context: Omit<CommandCon
   }
 
   // step 5: Bump all the dependency version ranges and collect dependentChangedBy for the changelog.
-  // (also add any modifiedPackages not previously detected--this should only happen if bumpDeps was false)
   const dependentChangedBy = setDependentVersions(bumpInfo, options);
+  // For now, add any modifiedPackages not previously detected (due to bumpDeps: false or scopes).
+  // TODO: Rethink all of this... https://github.com/microsoft/beachball/issues/1123
+  Object.keys(dependentChangedBy).forEach(pkg => bumpInfo.modifiedPackages.add(pkg));
 
   return {
     ...bumpInfo,

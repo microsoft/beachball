@@ -25,11 +25,17 @@ export type MockLogs = {
   /** Get the lines logged to a particular method (or all methods) */
   getMockLines: (
     method: MockLogMethod | 'all',
-    sanitize?: {
+    opts?: {
       /** Replace this path with `<root>` and normalize slashes */
       root?: string;
-      /** Replace GUIDs with `<guid>` */
-      guids?: boolean;
+      /**
+       * Sanitize GUIDs, full commit hashes, and publish branch timestamps.
+       *
+       * NOTE: For output that lists change files, you may also want `sort` or other careful
+       * handling to ensure returned log order can't vary due to limited filesystem timestamp
+       * resolution or other reasons.
+       */
+      sanitize?: boolean;
       /** Sort lines alphabetically */
       sort?: boolean;
     }
@@ -56,7 +62,7 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
       overrideOptions = undefined;
       Object.values(logs.mocks).forEach(mock => mock.mockClear());
     },
-    getMockLines: (method, sanitize = {}) => {
+    getMockLines: (method, opts = {}) => {
       let lines = (method === 'all' ? allLines : logs.mocks[method].mock.calls)
         .map(args =>
           args
@@ -68,14 +74,20 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
         .join('\n')
         .trim();
 
-      if (sanitize.root) {
+      if (opts.root) {
         // Normalize slashes first to ensure they're the same, then emulate replaceAll
-        lines = lines.replace(/\\/g, '/').split(sanitize.root.replace(/\\/g, '/')).join('<root>');
+        lines = lines.replace(/\\/g, '/').split(opts.root.replace(/\\/g, '/')).join('<root>');
       }
-      if (sanitize.guids) {
-        lines = lines.replace(/[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}/g, '<guid>');
+      if (opts.sanitize) {
+        lines = lines
+          // Replace GUIDs with <guid>
+          .replace(/[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}/g, '<guid>')
+          // Replace publish branch names with publish_<timestamp>
+          .replace(/publish_\d+/g, 'publish_<timestamp>')
+          // Replace full git hashes with <commit>
+          .replace(/\b[0-9a-f]{40}\b/g, '<commit>');
       }
-      if (sanitize.sort) {
+      if (opts.sort) {
         lines = lines.split('\n').sort().join('\n');
       }
 

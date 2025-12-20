@@ -8,6 +8,8 @@ export function deepFreeze<T>(obj: T): Readonly<T> {
 }
 
 export function deepFreezeProperties<T>(obj: T): T {
+  if (!obj || typeof obj !== 'object') return obj;
+
   Object.getOwnPropertyNames(obj).forEach(prop => {
     // eslint-disable-next-line
     const value = (obj as any)[prop];

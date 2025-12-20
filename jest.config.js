@@ -18,6 +18,14 @@ const commonOptions = {
 const config = {
   reporters: ['default', 'github-actions'],
   testTimeout: 60000,
+  // Enable to locally test with coverage info (will only work properly with `yarn test`, not
+  // `test:all` or individual projects). This would be tricky to enable in CI due to the multiple
+  // test projects that run in sequence. Coverage also doesn't alone capture tricky scenarios.
+  // collectCoverage: true,
+  coveragePathIgnorePatterns: ['/node_modules/', '__fixtures__'],
+  coverageThreshold: {
+    global: { branches: 80, functions: 100, lines: 90, statements: 90 },
+  },
   projects: [
     {
       displayName: 'unit',

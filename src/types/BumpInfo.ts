@@ -30,10 +30,12 @@ export type BumpInfo = {
   packageGroups: DeepReadonly<PackageGroups>;
 
   /**
-   * Set of packages that had been modified.
+   * Set of packages that have been modified.
    *
-   * For the bump command, this is primarily populated by `bumpPackageInfoVersion` (which considers
-   * dependent bumps and groups). If `bumpDeps` is false, it might be updated by `setDependentVersions`.
+   * For bump/publish, this is primarily populated by `bumpInMemory -> bumpPackageInfoVersion`
+   * (which considers dependent bumps, groups, and scopes). Currently it's also updated with any
+   * new dependent packages from `bumpInMemory -> setDependentVersions` (if `bumpDeps: false` or
+   * certain other circumstances), but there are some [related issues](https://github.com/microsoft/beachball/issues/1123).
    */
   modifiedPackages: Set<string>;
 
