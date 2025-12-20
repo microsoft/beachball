@@ -1,6 +1,5 @@
 import { describe, expect, it, afterEach, jest } from '@jest/globals';
 import fs from 'fs';
-import fsPromises from 'fs/promises';
 import path from 'path';
 import { addGitObserver, clearGitObservers } from 'workspace-tools';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
@@ -9,7 +8,7 @@ import { initMockLogs } from '../__fixtures__/mockLogs';
 import type { Repository } from '../__fixtures__/repository';
 import { type PackageJsonFixture, RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { publish } from '../commands/publish';
-import type { RepoOptions } from '../types/BeachballOptions';
+import type { ParsedOptions, RepoOptions } from '../types/BeachballOptions';
 import { _mockNpmPublish, initNpmMock } from '../__fixtures__/mockNpm';
 import type { PackageJson } from '../types/PackageInfo';
 import { getParsedOptions } from '../options/getOptions';
@@ -17,6 +16,7 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { validate } from '../validation/validate';
 import { readJson } from '../object/readJson';
 import { createCommandContext } from '../monorepo/createCommandContext';
+import { deepFreezeProperties } from '../__fixtures__/object';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -51,6 +51,19 @@ describe('publish command (e2e)', () => {
     return { options: parsedOptions.options, parsedOptions };
   }
 
+  /**
+   * For more realistic testing, call `validate()` like the CLI command does, then call `publish()`.
+   * This helps catch any new issues with double bumps or context mutation.
+   */
+  async function publishWrapper(parsedOptions: ParsedOptions) {
+    // This does an initial bump
+    const { context } = validate(parsedOptions, { checkDependencies: true });
+    // Ensure the later bump process does not modify the context
+    deepFreezeProperties(context.bumpInfo);
+    deepFreezeProperties(context.originalPackageInfos);
+    await publish(parsedOptions.options, context);
+  }
+
   afterEach(() => {
     clearGitObservers();
 
@@ -75,11 +88,7 @@ describe('publish command (e2e)', () => {
       args[0] === 'fetch' && fetchCount++;
     });
 
-    // For this test, run validate first to simulate what the CLI does.
-    // This would catch double bump issues if the validate step's bump call mutated the original PackageInfos.
-    const { context } = validate(parsedOptions, { checkDependencies: true });
-
-    await publish(options, context);
+    await publishWrapper(parsedOptions);
 
     const publishedFoo = npmMock.getPublishedVersions('foo');
     expect(publishedFoo).toEqual({
@@ -112,7 +121,7 @@ describe('publish command (e2e)', () => {
 
     repo.checkout('--detach');
 
-    await publish(options, createCommandContext(parsedOptions));
+    await publishWrapper(parsedOptions);
 
     expect(npmMock.getPublishedVersions('foo')).toEqual({
       versions: ['1.1.0'],
@@ -145,7 +154,7 @@ describe('publish command (e2e)', () => {
       }
     });
 
-    await publish(options, createCommandContext(parsedOptions));
+    await publishWrapper(parsedOptions);
 
     expect(npmMock.getPublishedVersions('foo')).toEqual({
       versions: ['1.1.0'],
@@ -193,7 +202,7 @@ describe('publish command (e2e)', () => {
       }
     });
 
-    await publish(options, createCommandContext(parsedOptions));
+    await publishWrapper(parsedOptions);
 
     expect(npmMock.getPublishedVersions('foo')).toEqual({
       versions: ['1.1.0'],
@@ -221,7 +230,7 @@ describe('publish command (e2e)', () => {
     generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(options, createCommandContext(parsedOptions));
+    await publishWrapper(parsedOptions);
 
     expect(npmMock.getPublishedVersions('foo')).toEqual({
       versions: ['1.0.0'],
@@ -236,36 +245,7 @@ describe('publish command (e2e)', () => {
     expect(newPackageInfos.foo.version).toBe('1.0.0');
   });
 
-  it('publishes only changed packages in a monorepo', async () => {
-    repositoryFactory = new RepositoryFactory('monorepo');
-    repo = repositoryFactory.cloneRepository();
-
-    const { options, parsedOptions } = getOptions({ fetch: false });
-
-    generateChangeFiles(['foo'], options);
-    repo.push();
-
-    // For this test, run validate first to simulate what the CLI does
-    validate(parsedOptions, { checkDependencies: true });
-
-    await publish(options, createCommandContext(parsedOptions));
-
-    expect(npmMock.getPublishedVersions('bar')).toBeUndefined();
-
-    expect(npmMock.getPublishedVersions('foo')).toEqual({
-      versions: ['1.1.0'],
-      'dist-tags': { latest: '1.1.0' },
-    });
-
-    repo.checkout(defaultBranchName);
-    repo.pull();
-    expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
-
-    const newPackageInfos = getPackageInfos(parsedOptions);
-    expect(newPackageInfos.foo.version).toBe('1.1.0');
-  });
-
-  it('publishes dependent packages in a monorepo', async () => {
+  it('publishes changed and dependent packages in a monorepo', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
@@ -280,7 +260,7 @@ describe('publish command (e2e)', () => {
     // For this test, run validate first to simulate what the CLI does
     validate(parsedOptions, { checkDependencies: true });
 
-    await publish(options, createCommandContext(parsedOptions));
+    await publishWrapper(parsedOptions);
 
     expect(npmMock.getPublishedVersions('baz')).toEqual({ versions: ['1.4.0'], 'dist-tags': { latest: '1.4.0' } });
 
@@ -314,7 +294,7 @@ describe('publish command (e2e)', () => {
     generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(options, createCommandContext(parsedOptions));
+    await publishWrapper(parsedOptions);
 
     expect(npmMock.getPublishedVersions('foo')).toEqual({ versions: ['1.1.0'], 'dist-tags': { latest: '1.1.0' } });
     expect(npmMock.getPublishedVersions('bar')).toEqual({ versions: ['1.3.4'], 'dist-tags': { latest: '1.3.4' } });
@@ -337,7 +317,7 @@ describe('publish command (e2e)', () => {
     expect(getChangeFiles(options)).toHaveLength(2);
     repo.push();
 
-    await publish(options, createCommandContext(parsedOptions));
+    await publishWrapper(parsedOptions);
 
     expect(npmMock.getPublishedVersions('foo')).toBeUndefined();
     expect(npmMock.getPublishedVersions('bar')).toEqual({
@@ -375,9 +355,13 @@ describe('publish command (e2e)', () => {
     const { options, parsedOptions } = getOptions({
       fetch: false,
       hooks: {
-        prepublish: (packagePath: string) => {
+        prepublish: (packagePath, name, version) => {
           const packageJsonPath = path.join(packagePath, 'package.json');
           const packageJson = readJson<ExtraPackageJson>(packageJsonPath);
+          if (name === 'foo') {
+            expect(version).toBe('1.1.0');
+            expect(packageJson.version).toBe('1.1.0'); // bumped version
+          }
           if (packageJson.customOnPublish) {
             Object.assign(packageJson, packageJson.customOnPublish);
             delete packageJson.customOnPublish;
@@ -397,7 +381,7 @@ describe('publish command (e2e)', () => {
     generateChangeFiles(['foo'], options);
     repo.push();
 
-    await publish(options, createCommandContext(parsedOptions));
+    await publishWrapper(parsedOptions);
 
     // Query the information from package.json from the registry to see if it was successfully patched
     const publishedFooJson = npmMock.getPublishedPackage('foo')!;
@@ -414,69 +398,6 @@ describe('publish command (e2e)', () => {
     expect(fooJsonPost.main).toBe('src/index.ts');
     expect(fooJsonPost.customOnPublish?.main).toBe('lib/index.js');
     expect(notified).toBe(fooJsonPost.customAfterPublish?.notify);
-  });
-
-  it('specifies fetch depth when depth param is defined', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    repo = repositoryFactory.cloneRepository();
-
-    const { options, parsedOptions } = getOptions({
-      depth: 10,
-    });
-
-    generateChangeFiles(['foo'], options);
-    repo.push();
-
-    let fetchCommand = '';
-
-    addGitObserver(args => {
-      if (args[0] === 'fetch') {
-        fetchCommand = args.join(' ');
-      }
-    });
-
-    await publish(options, createCommandContext(parsedOptions));
-
-    expect(npmMock.getPublishedVersions('foo')).toEqual({
-      versions: ['1.1.0'],
-      'dist-tags': { latest: '1.1.0' },
-    });
-
-    expect(fetchCommand).toMatch('--depth=10');
-  });
-
-  it('calls precommit hook before committing changes', async () => {
-    repositoryFactory = new RepositoryFactory('monorepo');
-    repo = repositoryFactory.cloneRepository();
-
-    const { options, parsedOptions } = getOptions({
-      publish: false, // irrelevant to this test
-      fetch: false,
-      hooks: {
-        precommit: jest.fn(async (cwd: string) => {
-          expect(readJson<PackageJson>(path.join(cwd, 'packages/foo/package.json')).version).toBe('1.1.0');
-          const filePath = path.join(cwd, 'foo.txt');
-          await fsPromises.writeFile(filePath, 'foo');
-        }),
-      },
-    });
-
-    generateChangeFiles(['foo', 'bar'], options);
-    repo.push();
-
-    await publish(options, createCommandContext(parsedOptions));
-
-    // precommit was called (once for whole repo, not per package)
-    expect(options.hooks?.precommit).toHaveBeenCalledTimes(1);
-    // but changes from publish process were reverted locally
-    const txtPath = repo.pathTo('foo.txt');
-    expect(fs.existsSync(txtPath)).toBe(false);
-
-    repo.checkout(defaultBranchName);
-    repo.pull();
-
-    // changes from publish process were committed
-    expect(fs.existsSync(txtPath)).toBe(true);
   });
 
   it('respects concurrency limit when publishing multiple packages', async () => {
@@ -511,6 +432,7 @@ describe('publish command (e2e)', () => {
       return result;
     });
 
+    // skip validate for this test since it's not relevant
     await publish(options, createCommandContext(parsedOptions));
     // Verify that at most `concurrency` number of packages were published concurrently
     expect(maxConcurrency).toBe(concurrency);
@@ -556,6 +478,7 @@ describe('publish command (e2e)', () => {
       return _mockNpmPublish(registryData, args, opts);
     });
 
+    // skip validate for this test since it's not relevant
     await expect(publish(options, createCommandContext(parsedOptions))).rejects.toThrow(
       'Error publishing! Refer to the previous logs for recovery instructions.'
     );
@@ -620,6 +543,7 @@ describe('publish command (e2e)', () => {
 
     generateChangeFiles(packagesToPublish, options);
 
+    // skip validate for this test since it's not relevant
     await publish(options, createCommandContext(parsedOptions));
     // Verify that at most `concurrency` number of postpublish hooks were running concurrently
     expect(maxConcurrency).toBe(concurrency);

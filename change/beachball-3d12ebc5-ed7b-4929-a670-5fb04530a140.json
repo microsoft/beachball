@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Ensure packages that aren't being bumped (and aren't new) aren't published",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
