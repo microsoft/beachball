@@ -141,7 +141,7 @@ describe('getChangedPackages', () => {
   beforeAll(() => {
     singleFactory = new RepositoryFactory('single');
     monorepoFactory = new RepositoryFactory('monorepo');
-    multiFactory = new RepositoryFactory('multi-workspace');
+    multiFactory = new RepositoryFactory('multi-project');
   });
 
   afterEach(() => {
@@ -336,23 +336,23 @@ describe('getChangedPackages', () => {
       packageInfos: rootPackageInfos,
       scopedPackages: rootScopedPackages,
     } = getOptionsAndPackages();
-    expect(Object.keys(multiFactory.fixtures)).toEqual(['workspace-a', 'workspace-b']);
+    expect(Object.keys(multiFactory.fixtures)).toEqual(['project-a', 'project-b']);
 
-    const workspaceARoot = repo.pathTo('workspace-a');
-    const workspaceBRoot = repo.pathTo('workspace-b');
+    const projectARoot = repo.pathTo('project-a');
+    const projectBRoot = repo.pathTo('project-b');
 
     expect(getChangedPackages(rootOptions, rootPackageInfos, rootScopedPackages)).toStrictEqual([]);
 
-    repo.stageChange('workspace-a/packages/foo/test.js');
+    repo.stageChange('project-a/packages/foo/test.js');
 
-    const infoA = getOptionsAndPackages({ cwd: workspaceARoot });
-    const infoB = getOptionsAndPackages({ cwd: workspaceBRoot });
+    const infoA = getOptionsAndPackages({ cwd: projectARoot });
+    const infoB = getOptionsAndPackages({ cwd: projectBRoot });
     const changedPackagesA = getChangedPackages(infoA.options, infoA.packageInfos, infoA.scopedPackages);
     const changedPackagesB = getChangedPackages(infoB.options, infoB.packageInfos, infoB.scopedPackages);
     const changedPackagesRoot = getChangedPackages(rootOptions, rootPackageInfos, rootScopedPackages);
 
-    expect(changedPackagesA).toStrictEqual(['@workspace-a/foo']);
+    expect(changedPackagesA).toStrictEqual(['@project-a/foo']);
     expect(changedPackagesB).toStrictEqual([]);
-    expect(changedPackagesRoot).toStrictEqual(['@workspace-a/foo']);
+    expect(changedPackagesRoot).toStrictEqual(['@project-a/foo']);
   });
 });

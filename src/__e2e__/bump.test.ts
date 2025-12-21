@@ -113,27 +113,27 @@ describe('bump command', () => {
   });
 
   it('for multi-root monorepo, only bumps packages in the current root', async () => {
-    repositoryFactory = new RepositoryFactory('multi-workspace');
-    expect(Object.keys(repositoryFactory.fixtures)).toEqual(['workspace-a', 'workspace-b']);
+    repositoryFactory = new RepositoryFactory('multi-project');
+    expect(Object.keys(repositoryFactory.fixtures)).toEqual(['project-a', 'project-b']);
     repo = repositoryFactory.cloneRepository();
 
-    const workspaceARoot = repo.pathTo('workspace-a');
-    const workspaceBRoot = repo.pathTo('workspace-b');
-    const infoA = getOptions({ bumpDeps: true }, workspaceARoot);
+    const projectARoot = repo.pathTo('project-a');
+    const projectBRoot = repo.pathTo('project-b');
+    const infoA = getOptions({ bumpDeps: true }, projectARoot);
     const optionsA = infoA.options;
-    const infoB = getOptions({ bumpDeps: true }, workspaceBRoot);
+    const infoB = getOptions({ bumpDeps: true }, projectBRoot);
     const optionsB = infoB.options;
 
-    generateChangeFiles([{ packageName: '@workspace-a/foo' }], optionsA);
-    generateChangeFiles([{ packageName: '@workspace-a/foo', type: 'major' }], optionsB);
+    generateChangeFiles([{ packageName: '@project-a/foo' }], optionsA);
+    generateChangeFiles([{ packageName: '@project-a/foo', type: 'major' }], optionsB);
     repo.push();
 
     await bumpWrapper(infoA.parsedOptions);
 
     const packageInfosA = getPackageInfos(infoA.parsedOptions);
     const packageInfosB = getPackageInfos(infoB.parsedOptions);
-    expect(packageInfosA['@workspace-a/foo'].version).toBe('1.1.0');
-    expect(packageInfosB['@workspace-b/foo'].version).toBe('1.0.0');
+    expect(packageInfosA['@project-a/foo'].version).toBe('1.1.0');
+    expect(packageInfosB['@project-b/foo'].version).toBe('1.0.0');
 
     const changeFilesA = getChangeFiles(optionsA);
     const changeFilesB = getChangeFiles(optionsB);

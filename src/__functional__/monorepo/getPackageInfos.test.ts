@@ -15,10 +15,11 @@ import { writeJson } from '../../object/writeJson';
 
 const defaultOptions = getDefaultOptions();
 
-/** Strip the root path from the file path and normalize slashes */
+/** Replace the root path with `<root>` and normalize slashes */
 function cleanPath(root: string, filePath: string) {
+  // Using a <root> token verifies the paths are absolute
   root = root.replace(/\\/g, '/');
-  return filePath.replace(/\\/g, '/').replace(root, '').slice(1);
+  return filePath.replace(/\\/g, '/').replace(root, '<root>');
 }
 
 /** Strip unneeded info from the result of `getPackageInfos` before taking snapshots */
@@ -59,7 +60,7 @@ describe('getPackageInfos', () => {
   // factories can be reused between these tests because none of them push changes
   let singleFactory: RepositoryFactory;
   let monorepoFactory: RepositoryFactory;
-  let multiMonorepoFactory: RepositoryFactory;
+  let multiProjectFactory: RepositoryFactory;
   let tempDir: string | undefined;
   const logs = initMockLogs();
 
@@ -74,7 +75,7 @@ describe('getPackageInfos', () => {
   beforeAll(() => {
     singleFactory = new RepositoryFactory('single');
     monorepoFactory = new RepositoryFactory('monorepo');
-    multiMonorepoFactory = new RepositoryFactory('multi-workspace');
+    multiProjectFactory = new RepositoryFactory('multi-project');
   });
 
   afterEach(() => {
@@ -85,7 +86,7 @@ describe('getPackageInfos', () => {
   afterAll(() => {
     singleFactory.cleanUp();
     monorepoFactory.cleanUp();
-    multiMonorepoFactory.cleanUp();
+    multiProjectFactory.cleanUp();
   });
 
   // This is irrelevant with the new signature because the exception would have been thrown when
@@ -111,12 +112,9 @@ describe('getPackageInfos', () => {
     packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
     expect(packageInfos).toEqual({
       foo: {
-        dependencies: {
-          bar: '1.0.0',
-          baz: '1.0.0',
-        },
+        dependencies: { bar: '1.0.0', baz: '1.0.0' },
         name: 'foo',
-        packageJsonPath: 'package.json',
+        packageJsonPath: '<root>/package.json',
         private: false,
         version: '1.0.0',
       },
@@ -130,12 +128,9 @@ describe('getPackageInfos', () => {
     packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
     expect(packageInfos).toEqual({
       foo: {
-        dependencies: {
-          bar: '1.0.0',
-          baz: '1.0.0',
-        },
+        dependencies: { bar: '1.0.0', baz: '1.0.0' },
         name: 'foo',
-        packageJsonPath: 'package.json',
+        packageJsonPath: '<root>/package.json',
         private: false,
         version: '1.0.0',
       },
@@ -143,41 +138,22 @@ describe('getPackageInfos', () => {
   });
 
   const expectedYarnPackages: Record<string, Partial<PackageInfo>> = {
-    a: {
-      name: 'a',
-      packageJsonPath: 'packages/grouped/a/package.json',
-      private: false,
-      version: '3.1.2',
-    },
-    b: {
-      name: 'b',
-      packageJsonPath: 'packages/grouped/b/package.json',
-      private: false,
-      version: '3.1.2',
-    },
+    a: { name: 'a', version: '3.1.2', private: false, packageJsonPath: '<root>/packages/grouped/a/package.json' },
+    b: { name: 'b', version: '3.1.2', private: false, packageJsonPath: '<root>/packages/grouped/b/package.json' },
     bar: {
-      dependencies: {
-        baz: '^1.3.4',
-      },
+      dependencies: { baz: '^1.3.4' },
       name: 'bar',
-      packageJsonPath: 'packages/bar/package.json',
+      packageJsonPath: '<root>/packages/bar/package.json',
       private: false,
       version: '1.3.4',
     },
-    baz: {
-      name: 'baz',
-      packageJsonPath: 'packages/baz/package.json',
-      private: false,
-      version: '1.3.4',
-    },
+    baz: { name: 'baz', version: '1.3.4', private: false, packageJsonPath: '<root>/packages/baz/package.json' },
     foo: {
-      dependencies: {
-        bar: '^1.3.4',
-      },
       name: 'foo',
-      packageJsonPath: 'packages/foo/package.json',
-      private: false,
       version: '1.0.0',
+      private: false,
+      dependencies: { bar: '^1.3.4' },
+      packageJsonPath: '<root>/packages/foo/package.json',
     },
   };
 
@@ -207,12 +183,12 @@ describe('getPackageInfos', () => {
 
     const rootPackageInfos = getPackageInfos(parsedOptions);
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
-      a: 'packages/grouped/a/package.json',
-      b: 'packages/grouped/b/package.json',
-      bar: 'packages/bar/package.json',
-      baz: 'packages/baz/package.json',
-      foo: 'packages/foo/package.json',
-      'pnpm-monorepo': 'package.json',
+      a: '<root>/packages/grouped/a/package.json',
+      b: '<root>/packages/grouped/b/package.json',
+      bar: '<root>/packages/bar/package.json',
+      baz: '<root>/packages/baz/package.json',
+      foo: '<root>/packages/foo/package.json',
+      'pnpm-monorepo': '<root>/package.json',
     });
   });
 
@@ -226,12 +202,12 @@ describe('getPackageInfos', () => {
 
     const rootPackageInfos = getPackageInfos(parsedOptions);
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
-      a: 'packages/grouped/a/package.json',
-      b: 'packages/grouped/b/package.json',
-      bar: 'packages/bar/package.json',
-      baz: 'packages/baz/package.json',
-      foo: 'packages/foo/package.json',
-      'rush-monorepo': 'package.json',
+      a: '<root>/packages/grouped/a/package.json',
+      b: '<root>/packages/grouped/b/package.json',
+      bar: '<root>/packages/bar/package.json',
+      baz: '<root>/packages/baz/package.json',
+      foo: '<root>/packages/foo/package.json',
+      'rush-monorepo': '<root>/package.json',
     });
   });
 
@@ -243,73 +219,73 @@ describe('getPackageInfos', () => {
 
     const rootPackageInfos = getPackageInfos(parsedOptions);
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
-      a: 'packages/grouped/a/package.json',
-      b: 'packages/grouped/b/package.json',
-      bar: 'packages/bar/package.json',
-      baz: 'packages/baz/package.json',
-      foo: 'packages/foo/package.json',
+      a: '<root>/packages/grouped/a/package.json',
+      b: '<root>/packages/grouped/b/package.json',
+      bar: '<root>/packages/bar/package.json',
+      baz: '<root>/packages/baz/package.json',
+      foo: '<root>/packages/foo/package.json',
     });
   });
 
-  it('works in multi-root monorepo', () => {
-    const repo = multiMonorepoFactory.cloneRepository();
+  it('works in multi-project monorepo', () => {
+    const repo = multiProjectFactory.cloneRepository();
 
     // For this test, only snapshot the package names and paths
     const rootOptions = getOptions(repo.rootPath);
     const rootPackageInfos = getPackageInfos(rootOptions);
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
-      '@workspace-a/a': 'workspace-a/packages/grouped/a/package.json',
-      '@workspace-a/b': 'workspace-a/packages/grouped/b/package.json',
-      '@workspace-a/bar': 'workspace-a/packages/bar/package.json',
-      '@workspace-a/baz': 'workspace-a/packages/baz/package.json',
-      '@workspace-a/foo': 'workspace-a/packages/foo/package.json',
-      '@workspace-a/monorepo-fixture': 'workspace-a/package.json',
-      '@workspace-b/a': 'workspace-b/packages/grouped/a/package.json',
-      '@workspace-b/b': 'workspace-b/packages/grouped/b/package.json',
-      '@workspace-b/bar': 'workspace-b/packages/bar/package.json',
-      '@workspace-b/baz': 'workspace-b/packages/baz/package.json',
-      '@workspace-b/foo': 'workspace-b/packages/foo/package.json',
-      '@workspace-b/monorepo-fixture': 'workspace-b/package.json',
+      '@project-a/a': '<root>/project-a/packages/grouped/a/package.json',
+      '@project-a/b': '<root>/project-a/packages/grouped/b/package.json',
+      '@project-a/bar': '<root>/project-a/packages/bar/package.json',
+      '@project-a/baz': '<root>/project-a/packages/baz/package.json',
+      '@project-a/foo': '<root>/project-a/packages/foo/package.json',
+      '@project-a/monorepo-fixture': '<root>/project-a/package.json',
+      '@project-b/a': '<root>/project-b/packages/grouped/a/package.json',
+      '@project-b/b': '<root>/project-b/packages/grouped/b/package.json',
+      '@project-b/bar': '<root>/project-b/packages/bar/package.json',
+      '@project-b/baz': '<root>/project-b/packages/baz/package.json',
+      '@project-b/foo': '<root>/project-b/packages/foo/package.json',
+      '@project-b/monorepo-fixture': '<root>/project-b/package.json',
     });
 
-    const workspaceARoot = repo.pathTo('workspace-a');
-    const workspaceAOptions = getOptions(workspaceARoot);
-    const packageInfosA = getPackageInfos(workspaceAOptions);
-    expect(getPackageNamesAndPaths(workspaceARoot, packageInfosA)).toEqual({
-      '@workspace-a/a': 'packages/grouped/a/package.json',
-      '@workspace-a/b': 'packages/grouped/b/package.json',
-      '@workspace-a/bar': 'packages/bar/package.json',
-      '@workspace-a/baz': 'packages/baz/package.json',
-      '@workspace-a/foo': 'packages/foo/package.json',
+    const projectARoot = repo.pathTo('project-a');
+    const projectAOptions = getOptions(projectARoot);
+    const packageInfosA = getPackageInfos(projectAOptions);
+    expect(getPackageNamesAndPaths(projectARoot, packageInfosA)).toEqual({
+      '@project-a/a': '<root>/packages/grouped/a/package.json',
+      '@project-a/b': '<root>/packages/grouped/b/package.json',
+      '@project-a/bar': '<root>/packages/bar/package.json',
+      '@project-a/baz': '<root>/packages/baz/package.json',
+      '@project-a/foo': '<root>/packages/foo/package.json',
     });
 
-    const workspaceBRoot = repo.pathTo('workspace-b');
-    const workspaceBOptions = getOptions(workspaceBRoot);
-    const packageInfosB = getPackageInfos(workspaceBOptions);
-    expect(getPackageNamesAndPaths(workspaceBRoot, packageInfosB)).toEqual({
-      '@workspace-b/a': 'packages/grouped/a/package.json',
-      '@workspace-b/b': 'packages/grouped/b/package.json',
-      '@workspace-b/bar': 'packages/bar/package.json',
-      '@workspace-b/baz': 'packages/baz/package.json',
-      '@workspace-b/foo': 'packages/foo/package.json',
+    const projectBRoot = repo.pathTo('project-b');
+    const projectBOptions = getOptions(projectBRoot);
+    const packageInfosB = getPackageInfos(projectBOptions);
+    expect(getPackageNamesAndPaths(projectBRoot, packageInfosB)).toEqual({
+      '@project-b/a': '<root>/packages/grouped/a/package.json',
+      '@project-b/b': '<root>/packages/grouped/b/package.json',
+      '@project-b/bar': '<root>/packages/bar/package.json',
+      '@project-b/baz': '<root>/packages/baz/package.json',
+      '@project-b/foo': '<root>/packages/foo/package.json',
     });
   });
 
-  it('throws if multiple packages have the same name in multi-root monorepo', () => {
-    // If there are multiple workspaces in a monorepo, it's possible that two packages in different
-    // workspaces could share the same name, which causes problems for beachball.
+  it('throws if multiple packages have the same name in multi-project monorepo', () => {
+    // If there are multiple projects in a monorepo, it's possible that two packages in different
+    // projects could share the same name, which causes problems for beachball.
     // (This is only known to have been an issue with the test fixture, but is worth testing.)
-    const repo = multiMonorepoFactory.cloneRepository();
-    repo.updateJsonFile('workspace-a/packages/foo/package.json', { name: 'foo' });
-    repo.updateJsonFile('workspace-b/packages/foo/package.json', { name: 'foo' });
+    const repo = multiProjectFactory.cloneRepository();
+    repo.updateJsonFile('project-a/packages/foo/package.json', { name: 'foo' });
+    repo.updateJsonFile('project-b/packages/foo/package.json', { name: 'foo' });
     const parsedOptions = getOptions(repo.rootPath);
     expect(() => getPackageInfos(parsedOptions)).toThrow('Duplicate package names found (see above for details)');
 
-    const allLogs = logs.getMockLines('all').replace(/\\/g, '/');
+    const allLogs = logs.getMockLines('all', { root: repo.rootPath }); // normalizes slashes too
     expect(allLogs).toMatchInlineSnapshot(`
       "[error] ERROR: Two packages have the same name "foo". Please rename one of these packages:
-      - workspace-a/packages/foo/package.json
-      - workspace-b/packages/foo/package.json"
+      - project-a/packages/foo/package.json
+      - project-b/packages/foo/package.json"
     `);
   });
 });
