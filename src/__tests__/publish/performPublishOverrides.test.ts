@@ -228,40 +228,21 @@ describe('performPublishOverrides', () => {
           return cloneObject(packageJsons[pkg.name]);
         }
       }
-      throw new Error(`not found: ${path}`);
+      throw new Error(`Path not mocked for readJson: ${path}`);
     }) as typeof _readJson);
 
     return { packageInfos, packageJsons };
   }
 
-  it('overrides accepted publishConfig keys and preserves values not specified', () => {
-    const publishConfig: PublishConfig = {
-      main: 'lib/index.js',
-      types: 'lib/index.d.ts',
-    };
-    const { packageInfos, packageJsons } = createFullFixture({ foo: { publishConfig } });
-    expect(packageJsons.foo).not.toMatchObject(publishConfig);
+  it('does not write package.json if no overrides needed', () => {
+    const { packageInfos } = createFullFixture({ foo: {} });
 
     performPublishOverrides(['foo'], packageInfos, undefined);
 
-    expect(mockWriteJson).toHaveBeenCalledTimes(1);
-    expect(publishConfig).toEqual({
-      main: 'lib/index.js',
-      types: 'lib/index.d.ts',
-    });
-    expect(mockWriteJson).toHaveBeenCalledWith(
-      packageInfos.foo.packageJsonPath,
-      // package.json data with publishConfig values promoted to root,
-      // and any original values not specified in publishConfig preserved
-      {
-        ...packageJsons.foo,
-        ...publishConfig,
-        publishConfig: {},
-      }
-    );
+    expect(mockWriteJson).not.toHaveBeenCalled();
   });
 
-  it('does not override non-accepted publishConfig keys', () => {
+  it('does not write package.json if publishConfig has only non-accepted keys', () => {
     const publishConfig = { version: '1.2.3', extra: 'nope' } as unknown as PublishConfig;
     const { packageInfos, packageJsons } = createFullFixture({ foo: { publishConfig } });
     expect(packageJsons.foo).not.toMatchObject(publishConfig);
@@ -271,23 +252,27 @@ describe('performPublishOverrides', () => {
     expect(mockWriteJson).not.toHaveBeenCalled();
   });
 
-  it('performs overrides for multiple packages', () => {
+  it('writes package.json for multiple packages with publishConfig overrides', () => {
+    const unsupportedConfig = { version: '1.2.3', extra: 'nope' } as unknown as PublishConfig;
     const { packageInfos, packageJsons } = createFullFixture({
-      foo: { publishConfig: { main: 'lib/index.js' } },
+      foo: { bin: './bin.js', publishConfig: { main: 'lib/index.js', ...unsupportedConfig } },
       bar: { publishConfig: { types: 'lib/index.d.ts' } },
+      baz: {},
     });
-    const originalFoo = packageJsons.foo;
-    const originalBar = packageJsons.bar;
+    const { foo: originalFoo, bar: originalBar } = packageJsons;
     expect(originalFoo).not.toMatchObject(originalFoo.publishConfig!);
     expect(originalBar).not.toMatchObject(originalBar.publishConfig!);
 
-    performPublishOverrides(['foo', 'bar'], packageInfos, undefined);
+    performPublishOverrides(['foo', 'bar', 'baz'], packageInfos, undefined);
 
+    // only called for packages that need updates, not baz
     expect(mockWriteJson).toHaveBeenCalledTimes(2);
     expect(mockWriteJson).toHaveBeenCalledWith(packageInfos.foo.packageJsonPath, {
+      // package.json data with publishConfig values promoted to root,
+      // and any original values not specified in publishConfig preserved
       ...originalFoo,
-      ...originalFoo.publishConfig,
-      publishConfig: {},
+      main: 'lib/index.js',
+      publishConfig: unsupportedConfig, // unsupported keys remain in publishConfig
     });
     expect(mockWriteJson).toHaveBeenCalledWith(packageInfos.bar.packageJsonPath, {
       ...originalBar,
@@ -296,18 +281,15 @@ describe('performPublishOverrides', () => {
     });
   });
 
-  it.each([
+  it.each<[string, string]>([
     ['workspace:*', '1.0.0'],
-    ['workspace:~', '~1.0.0'],
-    ['workspace:^', '^1.0.0'],
-    ['workspace:~1.0.0', '~1.0.0'],
     ['workspace:^1.0.0', '^1.0.0'],
-  ])('overrides %s dependency versions', (dependencyVersion, expectedPublishVersion) => {
+  ])('writes package.json with %s dependency version updates', (depVersion, expectedVersion) => {
     const { packageInfos, packageJsons } = createFullFixture({
       foo: { version: '1.0.0' },
-      bar: { version: '2.0.0', dependencies: { foo: dependencyVersion } },
+      bar: { version: '2.0.0', dependencies: { foo: depVersion } },
     });
-    expect(packageJsons.bar.dependencies!.foo).toBe(dependencyVersion);
+    expect(packageJsons.bar.dependencies!.foo).toBe(depVersion);
 
     performPublishOverrides(['bar'], packageInfos, undefined);
 
@@ -315,7 +297,28 @@ describe('performPublishOverrides', () => {
     expect(mockWriteJson).toHaveBeenCalledWith(
       packageInfos.bar.packageJsonPath,
       expect.objectContaining({
-        dependencies: { foo: expectedPublishVersion },
+        dependencies: { foo: expectedVersion },
+      })
+    );
+  });
+
+  it('writes package.json with catalog dependency version updates', () => {
+    const { packageInfos, packageJsons } = createFullFixture({
+      foo: { version: '1.0.0' },
+      bar: { version: '2.0.0', dependencies: { foo: 'catalog:', react: 'catalog:', extra: '~1.2.3' } },
+    });
+    expect(packageJsons.bar.dependencies!.react).toBe('catalog:');
+    const catalogs: Catalogs = {
+      default: { foo: 'workspace:^', react: '^18.0.0' },
+    };
+
+    performPublishOverrides(['bar'], packageInfos, catalogs);
+
+    expect(mockWriteJson).toHaveBeenCalledTimes(1);
+    expect(mockWriteJson).toHaveBeenCalledWith(
+      packageInfos.bar.packageJsonPath,
+      expect.objectContaining({
+        dependencies: { foo: '^1.0.0', react: '^18.0.0', extra: '~1.2.3' },
       })
     );
   });

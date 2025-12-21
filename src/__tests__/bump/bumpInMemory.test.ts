@@ -289,9 +289,9 @@ describe('bumpInMemory', () => {
     const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({
       packageFolders: {
         'pkg-1': { version: '1.0.0' },
-        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': 'workspace:~' } },
+        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': 'workspace:~', extra: '~1.2.3' } },
         // this workspace version will be updated
-        'pkg-3': { version: '1.0.0', dependencies: { 'pkg-2': 'workspace:^1.0.0' } },
+        'pkg-3': { version: '1.0.0', dependencies: { 'pkg-2': 'workspace:^1.0.0', other: 'npm:lodash' } },
       },
       repoOptions: { bumpDeps: true },
       changes: ['pkg-1'],
@@ -313,7 +313,7 @@ describe('bumpInMemory', () => {
     // workspace:~ range isn't changed
     expect(packageInfos['pkg-2']).toEqual({ ...originalPackageInfos['pkg-2'], version: '1.0.1' });
     // workspace: range with number is updated
-    expect(packageInfos['pkg-3'].dependencies).toEqual({ 'pkg-2': 'workspace:^1.0.1' });
+    expect(packageInfos['pkg-3'].dependencies).toEqual({ 'pkg-2': 'workspace:^1.0.1', other: 'npm:lodash' });
   });
 
   it('bumps dependents with catalog: deps', () => {

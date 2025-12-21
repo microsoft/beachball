@@ -24,6 +24,16 @@ describe('resolveSpecialVersion', () => {
       });
       expect(result).toBeUndefined();
     });
+
+    it('returns undefined for regular version of package not in repo', () => {
+      const result = resolveSpecialVersion({
+        depName: 'bar', // different package
+        depVersion: '^1.0.0',
+        catalogs: undefined,
+        packageInfos: emptyPackageInfos,
+      });
+      expect(result).toBeUndefined();
+    });
   });
 
   describe('workspace protocol', () => {

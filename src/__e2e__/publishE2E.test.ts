@@ -339,9 +339,10 @@ describe('publish command (e2e)', () => {
   it('publishes packages with workspace: and catalog: deps and replaces versions', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
-        'pkg-1': { version: '1.0.0' },
+        // Include some external deps to make sure nothing weird happens there
+        'pkg-1': { version: '1.0.0', dependencies: { extra: '~1.2.3' } },
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': 'workspace:~', react: 'catalog:react18' } },
-        'pkg-3': { version: '1.0.0', dependencies: { 'pkg-2': 'workspace:^1.0.0' } },
+        'pkg-3': { version: '1.0.0', dependencies: { 'pkg-2': 'workspace:^1.0.0', other: 'npm:lodash' } },
         'pkg-4': {
           version: '1.0.0',
           dependencies: { 'pkg-1': 'catalog:' },
@@ -372,12 +373,16 @@ describe('publish command (e2e)', () => {
     // All the dependent packages are bumped despite the workspace: dep specs.
     // The literal workspace: specs are preserved in git.
     const packageInfos = getPackageInfos(parsedOptions);
-    expect(packageInfos['pkg-1'].version).toBe('1.1.0');
+    expect(packageInfos['pkg-1']).toEqual({ ...originalPackageInfos['pkg-1'], version: '1.1.0' });
     // workspace:~ and catalog: ranges aren't changed
     expect(packageInfos['pkg-2']).toEqual({ ...originalPackageInfos['pkg-2'], version: '1.0.1' });
     expect(packageInfos['pkg-2'].version).toBe('1.0.1');
     // workspace: range with number is updated
-    expect(packageInfos['pkg-3'].dependencies).toEqual({ 'pkg-2': 'workspace:^1.0.1' });
+    expect(packageInfos['pkg-3']).toEqual({
+      ...originalPackageInfos['pkg-3'],
+      version: '1.0.1',
+      dependencies: { 'pkg-2': 'workspace:^1.0.1', other: 'npm:lodash' },
+    });
     // catalog: range isn't changed
     expect(packageInfos['pkg-4']).toEqual({ ...originalPackageInfos['pkg-4'], version: '1.0.1' });
 
@@ -391,7 +396,7 @@ describe('publish command (e2e)', () => {
     });
     expect(npmMock.getPublishedPackage('pkg-3')).toMatchObject({
       version: '1.0.1',
-      dependencies: { 'pkg-2': '^1.0.1' },
+      dependencies: { 'pkg-2': '^1.0.1', other: 'npm:lodash' },
     });
     expect(npmMock.getPublishedPackage('pkg-4')).toMatchObject({
       version: '1.0.1',

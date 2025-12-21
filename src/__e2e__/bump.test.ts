@@ -447,10 +447,11 @@ describe('bump command', () => {
   it('bumps dependents with workspace: deps', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
-        'pkg-1': { version: '1.0.0' },
+        // Include some external deps to make sure nothing weird happens there
+        'pkg-1': { version: '1.0.0', dependencies: { extra: '~1.2.3' } },
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': 'workspace:~' } },
         // this workspace version will be updated
-        'pkg-3': { version: '1.0.0', dependencies: { 'pkg-2': 'workspace:^1.0.0' } },
+        'pkg-3': { version: '1.0.0', dependencies: { 'pkg-2': 'workspace:^1.0.0', other: 'npm:lodash' } },
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
@@ -468,12 +469,15 @@ describe('bump command', () => {
     const packageInfos = getPackageInfos(parsedOptions);
 
     // All the dependent packages are bumped despite the workspace: dep specs
-    expect(packageInfos['pkg-1'].version).toBe('1.1.0');
+    expect(packageInfos['pkg-1']).toEqual({ ...originalPackageInfos['pkg-1'], version: '1.1.0' });
     // workspace:~ range isn't changed
     expect(packageInfos['pkg-2']).toEqual({ ...originalPackageInfos['pkg-2'], version: '1.0.1' });
-    expect(packageInfos['pkg-2'].version).toBe('1.0.1');
     // workspace: range with number is updated
-    expect(packageInfos['pkg-3'].dependencies).toEqual({ 'pkg-2': 'workspace:^1.0.1' });
+    expect(packageInfos['pkg-3']).toEqual({
+      ...originalPackageInfos['pkg-3'],
+      version: '1.0.1',
+      dependencies: { 'pkg-2': 'workspace:^1.0.1', other: 'npm:lodash' },
+    });
 
     expect(readChangelogJson(repo.pathTo('packages/pkg-1'))).not.toBeNull();
     const pkg3Changelog = readChangelogJson(repo.pathTo('packages/pkg-3'));

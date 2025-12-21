@@ -26,24 +26,25 @@ export function resolveSpecialVersion(params: {
     }
   }
 
-  // If the dependency comes from within the repo, check if the version is specified with workspace:
-  const packageInfo = packageInfos[depName];
-  if (packageInfo) {
-    // Check for a workspace: version (there's a slight chance one could be nested inside a catalog)
-    const workspaceRange =
-      getWorkspaceRange(depVersion) || (versionFromCatalog && getWorkspaceRange(versionFromCatalog));
-    if (workspaceRange) {
-      // Resolve to actual version per specs
-      // https://pnpm.io/workspaces#workspace-protocol-workspace
-      // https://yarnpkg.com/features/workspaces#publishing-workspaces
-      return workspaceRange === '*'
-        ? packageInfo.version
-        : workspaceRange === '^' || workspaceRange === '~'
-        ? `${workspaceRange}${packageInfo.version}`
-        : workspaceRange;
+  // Check for a workspace: version (there's a slight chance one could be nested inside a catalog)
+  const workspaceRange = getWorkspaceRange(depVersion) || (versionFromCatalog && getWorkspaceRange(versionFromCatalog));
+  if (workspaceRange) {
+    const packageInfo = packageInfos[depName];
+    if (!packageInfo) {
+      // workspace: version referenced a package that isn't in the repo
+      const referenceVersion = versionFromCatalog ? `"${depVersion}" -> "${versionFromCatalog}"` : `"${depVersion}"`;
+      throw new Error(
+        `Package "${depName}" (referenced by version ${referenceVersion}) not found in workspace packages`
+      );
     }
-  } else {
-    const referenceVersion = versionFromCatalog ? `"${depVersion}" -> "${versionFromCatalog}"` : `"${depVersion}"`;
-    throw new Error(`Package "${depName}" (referenced by version ${referenceVersion}) not found in workspace packages`);
+
+    // Resolve to actual version per specs
+    // https://pnpm.io/workspaces#workspace-protocol-workspace
+    // https://yarnpkg.com/features/workspaces#publishing-workspaces
+    return workspaceRange === '*'
+      ? packageInfo.version
+      : workspaceRange === '^' || workspaceRange === '~'
+      ? `${workspaceRange}${packageInfo.version}`
+      : workspaceRange;
   }
 }
