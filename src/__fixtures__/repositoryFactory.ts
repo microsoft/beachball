@@ -51,6 +51,12 @@ export type RepoFixture = {
 
   /** Description to include in the temp folder name */
   tempDescription?: string;
+
+  /**
+   * Mapping from extra file relative path to contents.
+   * (A `yarn.lock` file is written automatically.)
+   */
+  extraFiles?: Record<string, string>;
 };
 
 /** Repo fixture with all required props filled out */
@@ -231,6 +237,14 @@ export class RepositoryFactory {
           const pkgFolder = tmpRepo.pathTo(parentFolder, folder, name);
           fs.mkdirSync(pkgFolder, { recursive: true });
           writeJson(path.join(pkgFolder, 'package.json'), packageJson);
+        }
+      }
+
+      if (fixture.extraFiles) {
+        for (const [relativePath, contents] of Object.entries(fixture.extraFiles)) {
+          const fullPath = tmpRepo.pathTo(parentFolder, relativePath);
+          fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+          fs.writeFileSync(fullPath, contents);
         }
       }
     }

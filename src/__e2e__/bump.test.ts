@@ -17,6 +17,7 @@ import { createCommandContext } from '../monorepo/createCommandContext';
 import type { CommandContext } from '../types/CommandContext';
 import type { BumpInfo } from '../types/BumpInfo';
 import { deepFreeze } from '../__fixtures__/object';
+import { catalogsToYaml, type Catalogs } from 'workspace-tools';
 
 //
 // These tests use git repos and are slow, so besides a few basic scenarios, this file should
@@ -446,10 +447,11 @@ describe('bump command', () => {
   it('bumps dependents with workspace: deps', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
-        'pkg-1': { version: '1.0.0' },
+        // Include some external deps to make sure nothing weird happens there
+        'pkg-1': { version: '1.0.0', dependencies: { extra: '~1.2.3' } },
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': 'workspace:~' } },
         // this workspace version will be updated
-        'pkg-3': { version: '1.0.0', dependencies: { 'pkg-2': 'workspace:^1.0.0' } },
+        'pkg-3': { version: '1.0.0', dependencies: { 'pkg-2': 'workspace:^1.0.0', other: 'npm:lodash' } },
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
@@ -467,12 +469,15 @@ describe('bump command', () => {
     const packageInfos = getPackageInfos(parsedOptions);
 
     // All the dependent packages are bumped despite the workspace: dep specs
-    expect(packageInfos['pkg-1'].version).toBe('1.1.0');
+    expect(packageInfos['pkg-1']).toEqual({ ...originalPackageInfos['pkg-1'], version: '1.1.0' });
     // workspace:~ range isn't changed
     expect(packageInfos['pkg-2']).toEqual({ ...originalPackageInfos['pkg-2'], version: '1.0.1' });
-    expect(packageInfos['pkg-2'].version).toBe('1.0.1');
     // workspace: range with number is updated
-    expect(packageInfos['pkg-3'].dependencies).toEqual({ 'pkg-2': 'workspace:^1.0.1' });
+    expect(packageInfos['pkg-3']).toEqual({
+      ...originalPackageInfos['pkg-3'],
+      version: '1.0.1',
+      dependencies: { 'pkg-2': 'workspace:^1.0.1', other: 'npm:lodash' },
+    });
 
     expect(readChangelogJson(repo.pathTo('packages/pkg-1'))).not.toBeNull();
     const pkg3Changelog = readChangelogJson(repo.pathTo('packages/pkg-3'));
@@ -483,6 +488,48 @@ describe('bump command', () => {
     // so the bump of pkg-1 will be missing from pkg-2's changelog.
     // https://github.com/microsoft/beachball/issues/981
     expect(readChangelogJson(repo.pathTo('packages/pkg-2'))).toBeNull();
+  });
+
+  it('bumps dependents with catalog: deps', async () => {
+    const monorepo: RepoFixture['folders'] = {
+      packages: {
+        'pkg-1': { version: '1.0.0' },
+        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': 'catalog:' } },
+        'pkg-3': { version: '1.0.0', dependencies: { 'pkg-2': 'catalog:' } },
+      },
+    };
+    const catalogs: Catalogs = {
+      default: { 'pkg-1': 'workspace:~', 'pkg-2': 'workspace:^1.0.0' },
+    };
+    repositoryFactory = new RepositoryFactory({
+      folders: monorepo,
+      // This isn't currently read by bump() but should be present for completeness
+      extraFiles: { '.yarnrc.yml': catalogsToYaml(catalogs) },
+    });
+    repo = repositoryFactory.cloneRepository();
+
+    const { options, parsedOptions } = getOptions({
+      bumpDeps: true,
+    });
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'minor' }], options);
+    repo.push();
+
+    // The bumpInfo object is covered by the similar test in bumpInMemory.test.ts
+    const { originalPackageInfos } = await bumpWrapper(parsedOptions);
+
+    const packageInfos = getPackageInfos(parsedOptions);
+
+    // All the dependent packages are bumped despite the catalog: dep specs
+    expect(packageInfos['pkg-1'].version).toBe('1.1.0');
+    // catalog: ranges aren't changed
+    expect(packageInfos['pkg-2']).toEqual({ ...originalPackageInfos['pkg-2'], version: '1.0.1' });
+    expect(packageInfos['pkg-3']).toEqual({ ...originalPackageInfos['pkg-3'], version: '1.0.1' });
+
+    expect(readChangelogJson(repo.pathTo('packages/pkg-1'))).not.toBeNull();
+    // Current behavior: dependentChangedBy misses catalog: deps, so there are no changelog entries
+    // https://github.com/microsoft/beachball/issues/981
+    expect(readChangelogJson(repo.pathTo('packages/pkg-2'))).toBeNull();
+    expect(readChangelogJson(repo.pathTo('packages/pkg-3'))).toBeNull();
   });
 
   // Explicit tests for sync/async hooks aren't necessary, especially since these are slow tests.

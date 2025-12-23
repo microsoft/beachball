@@ -172,4 +172,23 @@ describe('setDependentVersions', () => {
     expect(bumpInfo.packageInfos['pkg-b'].dependencies!['pkg-a']).toBe('workspace:*');
     expect(result).toEqual({}); // should have pkg-b depending on pkg-a
   });
+
+  // Documenting this issue
+  // https://github.com/microsoft/beachball/issues/981
+  it('currently misses bumps of catalog: ranges', () => {
+    const bumpInfo = makeBumpInfo({
+      packageInfos: {
+        'pkg-a': { version: '1.1.0' },
+        // Assume there's a catalog like this:
+        // catalog:
+        //   pkg-a: ^1.1.0
+        'pkg-b': { version: '1.0.1', dependencies: { 'pkg-a': 'catalog:' } },
+      },
+    });
+
+    const result = setDependentVersions(bumpInfo, {});
+
+    expect(bumpInfo.packageInfos['pkg-b'].dependencies!['pkg-a']).toBe('catalog:');
+    expect(result).toEqual({}); // should have pkg-b depending on pkg-a
+  });
 });

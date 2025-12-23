@@ -11,6 +11,7 @@ import { callHook } from '../bump/callHook';
 import { getPackageGraph } from '../monorepo/getPackageGraph';
 import type { PackageInfo } from '../types/PackageInfo';
 import { packPackage } from '../packageManager/packPackage';
+import { getCatalogs } from 'workspace-tools';
 
 /**
  * Publish all the bumped packages to the registry, OR if `packToPath` is specified,
@@ -49,7 +50,8 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
 
   // performing publishConfig and workspace version overrides requires this procedure to
   // ONLY be run right before npm publish, but NOT in the git push
-  performPublishOverrides(packagesToPublish, bumpInfo.packageInfos);
+  const catalogs = getCatalogs(options.path);
+  performPublishOverrides(packagesToPublish, bumpInfo.packageInfos, catalogs);
 
   // if there is a prepublish hook perform a prepublish pass, calling the routine on each package
   await callHook(options.hooks?.prepublish, packagesToPublish, bumpInfo.packageInfos, options.concurrency);

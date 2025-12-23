@@ -34,8 +34,11 @@ export function setDependentVersions(
           continue;
         }
 
-        const bumpedVersionRange = bumpMinSemverRange(depPackage.version, existingVersionRange);
-        // TODO: dependent bumps in workspace:*/^/~ ranges will be missed https://github.com/microsoft/beachball/issues/981
+        const bumpedVersionRange = bumpMinSemverRange({
+          newVersion: depPackage.version,
+          currentRange: existingVersionRange,
+        });
+        // TODO: dependent bumps in workspace:*/^/~ and catalog: ranges will be missed https://github.com/microsoft/beachball/issues/981
         // And all this logic is questionable with bumpDeps: false or scopes... https://github.com/microsoft/beachball/issues/1123
         // see also https://github.com/microsoft/beachball/issues/620 and https://github.com/microsoft/beachball/issues/1033
         if (existingVersionRange !== bumpedVersionRange) {

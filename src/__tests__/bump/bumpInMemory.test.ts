@@ -289,9 +289,9 @@ describe('bumpInMemory', () => {
     const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({
       packageFolders: {
         'pkg-1': { version: '1.0.0' },
-        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': 'workspace:~' } },
+        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': 'workspace:~', extra: '~1.2.3' } },
         // this workspace version will be updated
-        'pkg-3': { version: '1.0.0', dependencies: { 'pkg-2': 'workspace:^1.0.0' } },
+        'pkg-3': { version: '1.0.0', dependencies: { 'pkg-2': 'workspace:^1.0.0', other: 'npm:lodash' } },
       },
       repoOptions: { bumpDeps: true },
       changes: ['pkg-1'],
@@ -312,9 +312,41 @@ describe('bumpInMemory', () => {
     expect(packageInfos['pkg-1'].version).toBe('1.1.0');
     // workspace:~ range isn't changed
     expect(packageInfos['pkg-2']).toEqual({ ...originalPackageInfos['pkg-2'], version: '1.0.1' });
-    expect(packageInfos['pkg-2'].version).toBe('1.0.1');
     // workspace: range with number is updated
-    expect(packageInfos['pkg-3'].dependencies).toEqual({ 'pkg-2': 'workspace:^1.0.1' });
+    expect(packageInfos['pkg-3'].dependencies).toEqual({ 'pkg-2': 'workspace:^1.0.1', other: 'npm:lodash' });
+  });
+
+  it('bumps dependents with catalog: deps', () => {
+    const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({
+      // Say there's a catalog like this:
+      // catalog:
+      //   pkg-1: workspace:~
+      //   pkg-2: workspace:^1.0.0
+      packageFolders: {
+        'pkg-1': { version: '1.0.0' },
+        // both of these are detected as dependent bumps but currently missed from changelog
+        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': 'catalog:' } },
+        'pkg-3': { version: '1.0.0', dependencies: { 'pkg-2': 'catalog:' } },
+      },
+      repoOptions: { bumpDeps: true },
+      changes: ['pkg-1'],
+    });
+
+    const { packageInfos, modifiedPackages, calculatedChangeTypes, dependentChangedBy } = bumpInfo;
+    expect(modifiedPackages).toEqual(new Set(['pkg-1', 'pkg-2', 'pkg-3']));
+    expect(calculatedChangeTypes).toEqual({ 'pkg-1': 'minor', 'pkg-2': 'patch', 'pkg-3': 'patch' });
+    expect(dependentChangedBy).toEqual({
+      // Current behavior: dependentChangedBy misses all catalog: deps pointing to workspace: versions
+      // https://github.com/microsoft/beachball/issues/981
+      // 'pkg-2': new Set(['pkg-1']),
+      // 'pkg-3': new Set(['pkg-2']),
+    });
+
+    // All the dependent packages are bumped despite the catalog: dep specs
+    expect(packageInfos['pkg-1'].version).toBe('1.1.0');
+    // catalog: ranges aren't changed
+    expect(packageInfos['pkg-2']).toEqual({ ...originalPackageInfos['pkg-2'], version: '1.0.1' });
+    expect(packageInfos['pkg-3']).toEqual({ ...originalPackageInfos['pkg-3'], version: '1.0.1' });
   });
 
   it('bumps to prerelease using prefix, and uses prerelease version for dependents', () => {

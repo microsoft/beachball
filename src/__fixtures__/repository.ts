@@ -187,7 +187,7 @@ ${gitResult.stderr.toString()}`);
     return result.stdout.trim();
   }
 
-  /** Get tags pointing to the current HEAD commit */
+  /** Get sorted list of tags pointing to the current HEAD commit */
   getCurrentTags(): string[] {
     const tagsResult = this.git(['tag', '--points-at', 'HEAD']);
     const trimmedResult = tagsResult.stdout.trim();
