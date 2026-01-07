@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "When determining which packages to tag in git, reuse the logic for determining which packages should be published (don't tag packages with no change type or out of scope)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

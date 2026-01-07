@@ -4,7 +4,8 @@ import { toposortPackages } from './toposortPackages';
 
 /**
  * Determine which of the modified/new packages in bump info should actually be published
- * (based only on the bump info, not the registry).
+ * (based only on the bump info, not the registry). Removes packages that are private,
+ * out of scope, have change type "none", or have no calculated change type (unless they're new).
  */
 export function getPackagesToPublish(
   bumpInfo: Pick<
