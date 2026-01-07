@@ -7,7 +7,14 @@ import fs from 'fs';
 import fetch from 'npm-registry-fetch';
 import { type NpmResult, npm } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
-import { initNpmMock, _makeRegistryData, _mockNpmPack, _mockNpmPublish, type MockNpmResult } from './mockNpm';
+import {
+  initNpmMock,
+  _makeRegistryData,
+  _mockNpmPack,
+  _mockNpmPublish,
+  type MockNpmResult,
+  MockNpmCommand,
+} from './mockNpm';
 import * as readJsonModule from '../object/readJson';
 
 jest.mock('fs');
@@ -407,7 +414,7 @@ describe('mockNpm', () => {
     const fakePublishResult = 'hi';
 
     it('respects mocked command override', async () => {
-      const mockPublish = jest.fn(() => Promise.resolve(fakePublishResult as unknown as MockNpmResult));
+      const mockPublish = jest.fn<MockNpmCommand>(() => Promise.resolve(fakePublishResult as unknown as MockNpmResult));
       npmMock.setCommandOverride('publish', mockPublish);
       const result = await npm(['publish', 'foo'], { cwd: undefined });
       expect(result).toEqual(fakePublishResult);
@@ -415,7 +422,7 @@ describe('mockNpm', () => {
     });
 
     it("respects extra mocked command that's not normally supported", async () => {
-      const mockFoo = jest.fn(() => Promise.resolve('hi' as unknown as MockNpmResult));
+      const mockFoo = jest.fn<MockNpmCommand>(() => Promise.resolve('hi' as unknown as MockNpmResult));
       npmMock.setCommandOverride('foo', mockFoo);
       const result = await npm(['foo'], { cwd: undefined });
       expect(result).toEqual('hi');

@@ -63,7 +63,7 @@
     "yargs-parser": "^21.0.0"
   },
   "devDependencies": {
-    "@jest/globals": "^29.0.0",
+    "@jest/globals": "^30.0.0",
     "@types/minimatch": "^5.0.0",
     "@types/node": "^20.0.0",
     "@types/npm-registry-fetch": "^8.0.9",
@@ -85,7 +85,7 @@
     "eslint-plugin-etc": "^2.0.3",
     "get-port": "^5.0.0",
     "husky": "^8.0.0",
-    "jest": "^29.0.0",
+    "jest": "^30.0.0",
     "lint-staged": "^12.0.0",
     "mermaid": "^11.4.0",
     "normalized-tmpdir": "^1.0.1",
@@ -93,8 +93,8 @@
     "sass-embedded": "^1.81.0",
     "strip-ansi": "^6.0.1",
     "tmp": "^0.2.1",
-    "ts-jest": "29.2.6",
-    "typescript": "~5.2.0",
+    "ts-jest": "^29.4.0",
+    "typescript": "~5.9.0",
     "verdaccio": "5.29.2",
     "verdaccio-auth-memory": "10.2.2",
     "verdaccio-memory": "10.3.2",
@@ -106,9 +106,6 @@
     "validator@npm:13.11.0": "^13.11.0"
   },
   "rationale": {
-    "devDependencies": {
-      "ts-jest@29.2.6": "29.3.0 introduces type-fest v4 which requires node 16+"
-    },
     "resolutions": {
       "js-yaml@npm:4.1.0": "Unpin verdaccio's js-yaml due to security issue",
       "validator@npm:13.11.0": "Unpin verdaccio's validator due to security issue"

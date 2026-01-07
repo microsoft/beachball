@@ -10,7 +10,7 @@ jest.mock('workspace-tools', () => ({
 }));
 
 const createTagParameters = (tag: string) => {
-  return [['tag', '-a', '-f', tag, '-m', tag], { cwd: '' }];
+  return [['tag', '-a', '-f', tag, '-m', tag], { cwd: '' }] as [string[], { cwd: string }];
 };
 
 type TagBumpInfo = Parameters<typeof tagPackages>[0];
@@ -121,7 +121,7 @@ describe('tagPackages', () => {
 
   it('creates overall git tag for non-"latest" dist tag', () => {
     tagPackages(emptyBumpInfo, { path: '', gitTags: true, tag: 'abc' });
-    expect(gitFailFast).toBeCalledTimes(1);
+    expect(gitFailFast).toHaveBeenCalledTimes(1);
     expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters('abc'));
   });
 });
