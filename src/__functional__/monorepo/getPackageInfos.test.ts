@@ -203,6 +203,22 @@ describe('getPackageInfos', () => {
       bar: '<root>/packages/bar/package.json',
       baz: '<root>/packages/baz/package.json',
       foo: '<root>/packages/foo/package.json',
+      // In this case it should include the root for reasons explained in getPackageInfos
+      monorepo: '<root>/package.json',
+    });
+  });
+
+  it('works in beachball-like repo', () => {
+    // The beachball repo is a single package with a separately-managed "docs" folder
+    const repo = singleFactory.cloneRepository();
+    repo.writeFile('docs/package.json', { name: 'docs', version: '1.0.0', private: true });
+    repo.writeFile('docs/yarn.lock', '');
+    repo.commitAll('add docs folder');
+
+    const rootPackageInfos = getPackageInfos({ path: repo.rootPath });
+    expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
+      docs: '<root>/docs/package.json',
+      foo: '<root>/package.json',
     });
   });
 
