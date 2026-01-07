@@ -13,7 +13,7 @@ import { writeJson } from '../object/writeJson';
  * Standard fixture options. See {@link getSinglePackageFixture}, {@link getMonorepoFixture} and
  * {@link getMultiWorkspaceFixture} for details about the structure and included files.
  */
-export type FixtureType = 'single' | 'monorepo' | 'multi-workspace';
+export type FixtureType = 'single' | 'monorepo' | 'multi-project';
 
 export type RootPackageJsonFixture = PackageJson & {
   /** Monorepo workspaces. These will be automatically filled in if `RepoFixture.folders` is provided. */
@@ -129,26 +129,26 @@ function getMonorepoFixture(parentFolder?: string): RepoFixture {
 
 /**
  * Get a fixture for a repo containing multiple workspaces ("monorepos").
- * The two workspaces are under subfolders `workspace-a` and `workspace-b`, and the packages in each
- * workspace use scoped names `@workspace-a/*` and `@workspace-b/*`.
+ * The two workspaces are under subfolders `project-a` and `project-b`, and the packages in each
+ * workspace use scoped names `@project-a/*` and `@project-b/*`.
  */
-function getMultiWorkspaceFixture(): { 'workspace-a': RepoFixture; 'workspace-b': RepoFixture } {
+function getMultiWorkspaceFixture(): { 'project-a': RepoFixture; 'project-b': RepoFixture } {
   return {
-    'workspace-a': getMonorepoFixture('workspace-a'),
-    'workspace-b': getMonorepoFixture('workspace-b'),
+    'project-a': getMonorepoFixture('project-a'),
+    'project-b': getMonorepoFixture('project-b'),
   };
 }
 
 /** Provides setup, cloning, and teardown for repository factories */
 export class RepositoryFactory {
   /**
-   * Primary fixture for the test *(do not use for multi-workspace)*.
+   * Primary fixture for the test *(do not use for multi-project)*.
    * This is public to potentially reduce hardcoded values (such as versions) in tests.
    */
   public readonly fixture: FullRepoFixture;
 
   /**
-   * Mapping from parent folder to fixture repo (only relevant for multi-workspace).
+   * Mapping from parent folder to fixture repo (only relevant for multi-project).
    * Paths within each fixture will be relative to `parentFolder`.
    * For a single-repo or single monorepo fixture, its `parentFolder` will be `'.'`.
    */
@@ -166,12 +166,12 @@ export class RepositoryFactory {
    * Create the "origin" repo and create+commit fixture files.
    * If `fixture` is a string, the corresponding default fixture is used.
    *
-   * (Note that there's currently no way to create a custom multi-workspace fixture,
+   * (Note that there's currently no way to create a custom multi-project fixture,
    * because that hasn't been needed so far.)
    */
   constructor(fixtureParam: FixtureType | RepoFixture) {
     let initialFixtures: { [parentFolder: string]: RepoFixture };
-    if (fixtureParam === 'multi-workspace') {
+    if (fixtureParam === 'multi-project') {
       initialFixtures = getMultiWorkspaceFixture();
     } else {
       initialFixtures = {
