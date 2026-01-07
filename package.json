@@ -75,6 +75,7 @@
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "@typescript-eslint/utils": "^5.0.0",
+    "@verdaccio/types": "^10.8.0",
     "@vuepress/bundler-vite": "^2.0.0-rc.18",
     "@vuepress/plugin-markdown-chart": "^2.0.0-rc.109",
     "@vuepress/plugin-search": "^2.0.0-rc.61",
@@ -95,9 +96,9 @@
     "tmp": "^0.2.1",
     "ts-jest": "^29.4.0",
     "typescript": "~5.9.0",
-    "verdaccio": "5.29.2",
-    "verdaccio-auth-memory": "10.2.2",
-    "verdaccio-memory": "10.3.2",
+    "verdaccio": "^6.0.0",
+    "verdaccio-auth-memory": "^10.2.0",
+    "verdaccio-memory": "^10.3.0",
     "vuepress": "^2.0.0-rc"
   },
   "resolutions": {
