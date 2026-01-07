@@ -4,6 +4,7 @@ import type { ChangeFilePromptOptions } from './ChangeFilePrompt';
 import type { ChangelogOptions } from './ChangelogOptions';
 import type { PackageInfos } from './PackageInfo';
 
+// TODO: this shouldn't include PackageOptions
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
 /** Separate options objects, returned for reuse in `getPackageInfos`. */
@@ -20,6 +21,7 @@ export interface CliOptions
   extends Pick<
     RepoOptions,
     | 'access'
+    | 'authType'
     | 'branch'
     | 'bump'
     | 'bumpDeps'
@@ -52,7 +54,6 @@ export interface CliOptions
   > {
   /** Consider all packages to have changed */
   all: boolean;
-  authType: AuthType;
   command: string;
   configPath?: string;
   dependentChangeType?: ChangeType;
@@ -79,6 +80,7 @@ export interface RepoOptions {
    * @default 'restricted'
    */
   access: 'public' | 'restricted';
+  authType: AuthType;
   /**
    * The target branch. In the repo or CLI config, this can be specified without a remote name
    * as long as `repository` is set in `package.json` to allow inferring the correct remote.
@@ -139,7 +141,7 @@ export interface RepoOptions {
    */
   npmReadConcurrency: number;
   /**
-   * The default dist-tag used for npm publish
+   * The default dist-tag used for npm publish, if no other `tag` is specified.
    * @default 'latest'
    */
   defaultNpmTag: string;
@@ -235,8 +237,8 @@ export interface RepoOptions {
    */
   scope?: string[] | null;
   /**
-   * npm dist-tag when publishing
-   * @default 'latest'
+   * npm dist-tag when publishing.
+   * If not specified, uses `defaultNpmTag` (which defaults to `'latest'`).
    */
   tag: string;
   /** Timeout for npm operations (other than install, which is expected to take longer) */
@@ -271,7 +273,7 @@ export interface PackageOptions {
    * Disable publishing a particular package.
    * (Does NOT work to enable publishing a package that wouldn't otherwise be published.)
    */
-  shouldPublish?: false | undefined;
+  shouldPublish?: false;
 }
 
 /**
@@ -299,6 +301,10 @@ export interface VersionGroupOptions {
    */
   exclude?: string | string[];
 
+  /**
+   * Disallowed change types for the group.
+   * (If a package is in a group, it can't specify its own `disallowedChangeTypes`.)
+   */
   disallowedChangeTypes: ChangeType[] | null;
 }
 

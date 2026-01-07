@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { tmpdir } from './tmpdir';
 import path from 'path';
+import type { RepoOptions } from '../types/BeachballOptions';
 
 /**
  * For each key in `files`, create a test folder and write a file of that filename, where the
@@ -21,9 +22,23 @@ export function createTestFileStructure(files: Record<string, string | object>):
 
 /**
  * Create a test file structure for a named fixture (similar to the ones in `RepositoryFactory`).
+ *
+ * multi-project isn't supported since those scenarios tend to rely on git.
  */
-export function createTestFileStructureType(type: 'monorepo'): string {
+export function createTestFileStructureType(type: 'single' | 'monorepo'): string {
+  const beachballOptions: Partial<RepoOptions> = {
+    groups: [{ disallowedChangeTypes: null, name: 'grouped', include: 'group*' }],
+  };
+
   switch (type) {
+    case 'single':
+      return createTestFileStructure({
+        'package.json': {
+          name: 'foo',
+          version: '1.0.0',
+          dependencies: { bar: '1.0.0', baz: '1.0.0' },
+        },
+      });
     case 'monorepo':
       return createTestFileStructure({
         'package.json': {
@@ -31,6 +46,7 @@ export function createTestFileStructureType(type: 'monorepo'): string {
           version: '1.0.0',
           private: true,
           workspaces: ['packages/*', 'packages/grouped/*'],
+          beachball: beachballOptions,
         },
         'packages/foo/package.json': { name: 'foo', version: '1.0.0', dependencies: { bar: '^1.3.4' } },
         'packages/bar/package.json': { name: 'bar', version: '1.3.4', dependencies: { baz: '^1.3.4' } },
@@ -39,7 +55,5 @@ export function createTestFileStructureType(type: 'monorepo'): string {
         'packages/grouped/b/package.json': { name: 'b', version: '3.1.2' },
         'yarn.lock': '',
       });
-    default:
-      throw new Error(`Unknown test file structure type: ${type}`);
   }
 }
