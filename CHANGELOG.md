@@ -10,17 +10,17 @@ Wed, 07 Jan 2026 01:55:03 GMT
 
 ### Minor changes
 
-- Share calculated info between validation and main commands. This should significantly improve performance in large repos. (elcraig@microsoft.com)
+- Share calculated info between validation and main commands. This should significantly improve performance in large repos. ([#1119](https://github.com/microsoft/beachball/pull/1119), elcraig@microsoft.com)
 
 ### Patches
 
-- Add validation of package names in callHook. Update internal handling of dependent modified packages (behavior is the same). (elcraig@microsoft.com)
-- Ensure packages that aren't being bumped (and aren't new) aren't published (elcraig@microsoft.com)
-- Improve validation when bumping semver (elcraig@microsoft.com)
-- Skip adding changelog entries for packages without a calculated change type (elcraig@microsoft.com)
-- Improve approach and error handling for getting changed packages (elcraig@microsoft.com)
-- Improve pre-publish logging (especially with packToPath), and internally consolidate bump logic (elcraig@microsoft.com)
-- Support catalog versions (elcraig@microsoft.com)
+- Add validation of package names in callHook. Update internal handling of dependent modified packages (behavior is the same). ([#1127](https://github.com/microsoft/beachball/pull/1127), elcraig@microsoft.com)
+- Ensure packages that aren't being bumped (and aren't new) aren't published ([#1126](https://github.com/microsoft/beachball/pull/1126), elcraig@microsoft.com)
+- Improve validation when bumping semver ([#1122](https://github.com/microsoft/beachball/pull/1122), elcraig@microsoft.com)
+- Skip adding changelog entries for packages without a calculated change type ([#1124](https://github.com/microsoft/beachball/pull/1124), elcraig@microsoft.com)
+- Improve approach and error handling for getting changed packages ([#1120](https://github.com/microsoft/beachball/pull/1120), elcraig@microsoft.com)
+- Improve pre-publish logging (especially with packToPath), and internally consolidate bump logic ([#1121](https://github.com/microsoft/beachball/pull/1121), elcraig@microsoft.com)
+- Support catalog versions ([#1128](https://github.com/microsoft/beachball/pull/1128), elcraig@microsoft.com)
 
 ## 2.61.0
 
@@ -28,17 +28,17 @@ Wed, 17 Dec 2025 00:58:29 GMT
 
 ### Minor changes
 
-- Skip git operations when determining changed packages with --all or --package (and improve logging of changed packages). Internally use a Set everywhere for the scoped packages list, and add an `allInScope` property to short circuit if there's no scope. (elcraig@microsoft.com)
-- Fetch package info directly from the registry, not with npm CLI. This should be a significant performance improvement when publishing or syncing many packages. The default `npmReadConcurrency` has been increased to 10 since this is a lighter-weight operation. (elcraig@microsoft.com)
+- Skip git operations when determining changed packages with --all or --package (and improve logging of changed packages). Internally use a Set everywhere for the scoped packages list, and add an `allInScope` property to short circuit if there's no scope. ([#1117](https://github.com/microsoft/beachball/pull/1117), elcraig@microsoft.com)
+- Fetch package info directly from the registry, not with npm CLI. This should be a significant performance improvement when publishing or syncing many packages. The default `npmReadConcurrency` has been increased to 10 since this is a lighter-weight operation. ([#1114](https://github.com/microsoft/beachball/pull/1114), elcraig@microsoft.com)
 
 ### Patches
 
-- Properly handle bumping more types of semver ranges (elcraig@microsoft.com)
-- Share bump info between validate and actual commands. This should be a significant performance improvement in large repos. (elcraig@microsoft.com)
-- Move git validation earlier in CLI flow (elcraig@microsoft.com)
-- Remove fs-extra usage (elcraig@microsoft.com)
-- Clarify some of the bumping logic (elcraig@microsoft.com)
-- Minor changes for lint rules (elcraig@microsoft.com)
+- Properly handle bumping more types of semver ranges ([#1110](https://github.com/microsoft/beachball/pull/1110), elcraig@microsoft.com)
+- Share bump info between validate and actual commands. This should be a significant performance improvement in large repos. ([#1115](https://github.com/microsoft/beachball/pull/1115), elcraig@microsoft.com)
+- Move git validation earlier in CLI flow ([#1117](https://github.com/microsoft/beachball/pull/1117), elcraig@microsoft.com)
+- Remove fs-extra usage ([#1107](https://github.com/microsoft/beachball/pull/1107), elcraig@microsoft.com)
+- Clarify some of the bumping logic ([#1101](https://github.com/microsoft/beachball/pull/1101), elcraig@microsoft.com)
+- Minor changes for lint rules ([#1106](https://github.com/microsoft/beachball/pull/1106), elcraig@microsoft.com)
 
 ## 2.60.1
 
@@ -46,7 +46,7 @@ Thu, 04 Dec 2025 00:34:39 GMT
 
 ### Patches
 
-- Fix double bump issue (elcraig@microsoft.com)
+- Fix double bump issue ([#1102](https://github.com/microsoft/beachball/pull/1102), elcraig@microsoft.com)
 
 ## 2.60.0
 
@@ -54,18 +54,18 @@ Wed, 03 Dec 2025 23:57:28 GMT
 
 ### Minor changes
 
-- Improve formatting of lists in CLI output. If you're parsing `beachball check` or `beachball publish` output for some reason, this could be a breaking change. (elcraig@microsoft.com)
-- Validate that there are no private packages among `peerDependencies` or `optionalDependencies` of published packages (not just `dependencies`). There's a slight chance this could be a breaking change. (elcraig@microsoft.com)
+- Improve formatting of lists in CLI output. If you're parsing `beachball check` or `beachball publish` output for some reason, this could be a breaking change. ([#1089](https://github.com/microsoft/beachball/pull/1089), elcraig@microsoft.com)
+- Validate that there are no private packages among `peerDependencies` or `optionalDependencies` of published packages (not just `dependencies`). There's a slight chance this could be a breaking change. ([#1089](https://github.com/microsoft/beachball/pull/1089), elcraig@microsoft.com)
 
 ### Patches
 
-- Update semver call signature (elcraig@microsoft.com)
-- Move internal cloneObject helper (elcraig@microsoft.com)
-- Allow writeChangeFiles to work outside a git repo for testing (elcraig@microsoft.com)
-- Remove unnecessary findProjectRoot calls (ecraig12345@gmail.com)
-- Improve perf of readChangeFiles, and improve object stringifying in errors (elcraig@microsoft.com)
-- Fix bump logic for dependencies using file protocol (thomas.norling@microsoft.com)
-- Update dependency workspace-tools to ^0.40.0. This may improve detection of remote branch names in certain cases. It also includes stricter error checking for git operations, which may surface some errors which were previously hidden. (elcraig@microsoft.com)
+- Update semver call signature ([#1077](https://github.com/microsoft/beachball/pull/1077), elcraig@microsoft.com)
+- Move internal cloneObject helper ([#1088](https://github.com/microsoft/beachball/pull/1088), elcraig@microsoft.com)
+- Allow writeChangeFiles to work outside a git repo for testing ([#1100](https://github.com/microsoft/beachball/pull/1100), elcraig@microsoft.com)
+- Remove unnecessary findProjectRoot calls ([#1093](https://github.com/microsoft/beachball/pull/1093), elcraig@microsoft.com)
+- Improve perf of readChangeFiles, and improve object stringifying in errors ([#1099](https://github.com/microsoft/beachball/pull/1099), elcraig@microsoft.com)
+- Fix bump logic for dependencies using file protocol ([#1080](https://github.com/microsoft/beachball/pull/1080), thomas.norling@microsoft.com)
+- Update dependency workspace-tools to ^0.40.0. This may improve detection of remote branch names in certain cases. It also includes stricter error checking for git operations, which may surface some errors which were previously hidden. ([#1094](https://github.com/microsoft/beachball/pull/1094), elcraig@microsoft.com)
 
 ## 2.58.0
 
@@ -73,13 +73,13 @@ Wed, 19 Nov 2025 23:36:30 GMT
 
 ### Minor changes
 
-- Calculate options and PackageInfos once, and pass around between functions. This should significantly improve perf in large repos. (elcraig@microsoft.com)
+- Calculate options and PackageInfos once, and pass around between functions. This should significantly improve perf in large repos. ([#1087](https://github.com/microsoft/beachball/pull/1087), elcraig@microsoft.com)
 
 ### Patches
 
-- sync: fix precedence of tag options (elcraig@microsoft.com)
-- Remove lodash usage for minor perf improvement (elcraig@microsoft.com)
-- For version groups, use the max change type from the group, not the first one encountered (elcraig@microsoft.com)
+- sync: fix precedence of tag options ([#557](https://github.com/microsoft/beachball/pull/557), elcraig@microsoft.com)
+- Remove lodash usage for minor perf improvement ([#1086](https://github.com/microsoft/beachball/pull/1086), elcraig@microsoft.com)
+- For version groups, use the max change type from the group, not the first one encountered ([#1083](https://github.com/microsoft/beachball/pull/1083), elcraig@microsoft.com)
 
 ## 2.56.0
 

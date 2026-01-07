@@ -2,7 +2,7 @@ import { jest, describe, it, expect, beforeEach, afterEach, beforeAll, afterAll 
 import fs from 'fs';
 import { updatePackageJsons } from '../../bump/updatePackageJsons';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
-import { consideredDependencies, PackageJson, type PackageInfo } from '../../types/PackageInfo';
+import { consideredDependencies, type PackageInfo } from '../../types/PackageInfo';
 import * as readJsonModule from '../../object/readJson';
 import * as writeJsonModule from '../../object/writeJson';
 
@@ -17,16 +17,11 @@ describe('updatePackageJsons', () => {
   let consoleWarnSpy: jest.SpiedFunction<typeof console.warn>;
 
   /**
-   * Get `writeJson` args for a package, with beachball-specific and undefined keys removed.
+   * Get `writeJson` args for a package, with beachball-specific keys removed.
    */
   function getWriteJsonArgs(packageInfo: PackageInfo): Parameters<typeof writeJsonModule.writeJson> {
-    const { packageJsonPath, combinedOptions: _a, packageOptions: _b, ...json } = packageInfo;
-    // Parse/stringify as a shortcut to remove undefined keys
-    const cleanedJson = JSON.parse(JSON.stringify(json)) as PackageJson;
-    if (cleanedJson.private === false) {
-      delete cleanedJson.private;
-    }
-    return [packageJsonPath, cleanedJson];
+    const { packageJsonPath, ...json } = packageInfo;
+    return [packageJsonPath, json];
   }
 
   beforeAll(() => {

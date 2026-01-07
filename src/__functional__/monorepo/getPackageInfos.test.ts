@@ -1,19 +1,15 @@
-import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from '@jest/globals';
 import fs from 'fs';
-import { gitFailFast } from 'workspace-tools';
+import path from 'path';
+import { getWorkspaceManagerRoot, gitFailFast } from 'workspace-tools';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
-import type { PackageInfos, PackageInfo } from '../../types/PackageInfo';
-import { getDefaultOptions } from '../../options/getDefaultOptions';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
-import type { PackageOptions } from '../../types/BeachballOptions';
 import { cloneObject } from '../../object/cloneObject';
-import { getParsedOptions } from '../../options/getOptions';
-import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 import { writeJson } from '../../object/writeJson';
-
-const defaultOptions = getDefaultOptions();
+import type { PackageInfo, PackageInfos } from '../../types/PackageInfo';
+import { createTestFileStructureType } from '../../__fixtures__/createTestFileStructure';
 
 /** Replace the root path with `<root>` and normalize slashes */
 function cleanPath(root: string, filePath: string) {
@@ -22,34 +18,19 @@ function cleanPath(root: string, filePath: string) {
   return filePath.replace(/\\/g, '/').replace(root, '<root>');
 }
 
-/** Strip unneeded info from the result of `getPackageInfos` before taking snapshots */
-function cleanPackageInfos(root: string, packageInfos: PackageInfos) {
+/** Sanitize paths in the result of `getPackageInfos` */
+function cleanPaths(root: string, packageInfos: PackageInfos) {
   const cleanedInfos: PackageInfos = {};
   for (const [pkgName, originalInfo] of Object.entries(packageInfos)) {
-    const pkgInfo = (cleanedInfos[pkgName] = cloneObject(originalInfo));
-
-    // Remove absolute paths
-    pkgInfo.packageJsonPath = cleanPath(root, pkgInfo.packageJsonPath);
-
-    // Remove beachball options which are defaulted
-    for (const [key, value] of Object.entries(pkgInfo.combinedOptions)) {
-      if (value === defaultOptions[key as keyof PackageOptions]) {
-        delete pkgInfo.combinedOptions[key as keyof PackageOptions];
-      }
-    }
-
-    // Remove options set to undefined or empty object (keep null because it may be meaningful/interesting)
-    for (const [key, value] of Object.entries(pkgInfo)) {
-      if (value === undefined || (value && typeof value === 'object' && !Object.keys(value as object).length)) {
-        delete pkgInfo[key as keyof PackageInfo];
-      }
-    }
+    cleanedInfos[pkgName] = {
+      ...cloneObject(originalInfo),
+      packageJsonPath: cleanPath(root, originalInfo.packageJsonPath),
+    };
   }
-
   return cleanedInfos;
 }
 
-/** Return an object mapping package names to package.json paths */
+/** Return an object mapping package names to sanitized package.json paths */
 function getPackageNamesAndPaths(root: string, packageInfos: PackageInfos) {
   return Object.fromEntries(
     Object.entries(packageInfos).map(([name, pkg]) => [name, cleanPath(root, pkg.packageJsonPath)])
@@ -63,14 +44,6 @@ describe('getPackageInfos', () => {
   let multiProjectFactory: RepositoryFactory;
   let tempDir: string | undefined;
   const logs = initMockLogs();
-
-  function getOptions(cwd: string) {
-    return getParsedOptions({
-      cwd,
-      argv: [],
-      testRepoOptions: { branch: defaultRemoteBranchName }, // skip trying to read this from git
-    });
-  }
 
   beforeAll(() => {
     singleFactory = new RepositoryFactory('single');
@@ -91,7 +64,7 @@ describe('getPackageInfos', () => {
 
   // This is irrelevant with the new signature because the exception would have been thrown when
   // the options were being parsed.
-  it('throws if run outside a git repo (old signature)', () => {
+  it('throws if neither project root nor git repo found (old signature)', () => {
     tempDir = tmpdir();
     // eslint-disable-next-line etc/no-deprecated
     expect(() => getPackageInfos(tempDir!)).toThrow(/not in a git repository/);
@@ -102,137 +75,160 @@ describe('getPackageInfos', () => {
     gitFailFast(['init'], { cwd: tempDir });
     // eslint-disable-next-line etc/no-deprecated
     expect(getPackageInfos(tempDir)).toEqual({});
-    expect(getPackageInfos({ cliOptions: { path: tempDir, command: '' }, repoOptions: {} })).toEqual({});
+    expect(getPackageInfos({ path: tempDir })).toEqual({});
   });
 
   it('works in single-package repo (old signature)', () => {
     const repo = singleFactory.cloneRepository();
     // eslint-disable-next-line etc/no-deprecated
-    let packageInfos = getPackageInfos(repo.rootPath);
-    packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
+    const packageInfos = getPackageInfos(repo.rootPath);
+    // Verify all the properties for this case
     expect(packageInfos).toEqual({
       foo: {
-        dependencies: { bar: '1.0.0', baz: '1.0.0' },
         name: 'foo',
-        packageJsonPath: '<root>/package.json',
-        private: false,
         version: '1.0.0',
+        dependencies: { bar: '1.0.0', baz: '1.0.0' },
+        packageJsonPath: path.join(repo.rootPath, 'package.json'),
       },
     });
   });
 
   it('works in single-package repo', () => {
-    const repo = singleFactory.cloneRepository();
-    const parsedOptions = getOptions(repo.rootPath);
-    let packageInfos = getPackageInfos(parsedOptions);
-    packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
+    // With the new signature, path is assumed to be the root, so git isn't needed
+    tempDir = createTestFileStructureType('single');
+    const packageInfos = getPackageInfos({ path: tempDir });
     expect(packageInfos).toEqual({
       foo: {
-        dependencies: { bar: '1.0.0', baz: '1.0.0' },
         name: 'foo',
-        packageJsonPath: '<root>/package.json',
-        private: false,
         version: '1.0.0',
+        dependencies: { bar: '1.0.0', baz: '1.0.0' },
+        packageJsonPath: path.join(tempDir, 'package.json'),
       },
     });
   });
 
   const expectedYarnPackages: Record<string, Partial<PackageInfo>> = {
-    a: { name: 'a', version: '3.1.2', private: false, packageJsonPath: '<root>/packages/grouped/a/package.json' },
-    b: { name: 'b', version: '3.1.2', private: false, packageJsonPath: '<root>/packages/grouped/b/package.json' },
-    bar: {
-      dependencies: { baz: '^1.3.4' },
-      name: 'bar',
-      packageJsonPath: '<root>/packages/bar/package.json',
-      private: false,
-      version: '1.3.4',
-    },
-    baz: { name: 'baz', version: '1.3.4', private: false, packageJsonPath: '<root>/packages/baz/package.json' },
-    foo: {
-      name: 'foo',
-      version: '1.0.0',
-      private: false,
-      dependencies: { bar: '^1.3.4' },
-      packageJsonPath: '<root>/packages/foo/package.json',
-    },
+    a: { name: 'a', version: '3.1.2', packageJsonPath: '<root>/packages/grouped/a/package.json' },
+    b: { name: 'b', version: '3.1.2', packageJsonPath: '<root>/packages/grouped/b/package.json' },
+    // prettier-ignore
+    bar: { name: 'bar', version: '1.3.4',  dependencies: { baz: '^1.3.4' }, packageJsonPath: '<root>/packages/bar/package.json' },
+    baz: { name: 'baz', version: '1.3.4', packageJsonPath: '<root>/packages/baz/package.json' },
+    // prettier-ignore
+    foo: { name: 'foo', version: '1.0.0',  dependencies: { bar: '^1.3.4' }, packageJsonPath: '<root>/packages/foo/package.json' },
   };
 
   // both yarn and npm define "workspaces" in package.json
   it('works in yarn/npm monorepo (old signature)', () => {
     const repo = monorepoFactory.cloneRepository();
+    // Start from another cwd to make sure it works
     // eslint-disable-next-line etc/no-deprecated
-    let packageInfos = getPackageInfos(repo.rootPath);
-    packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
-    expect(packageInfos).toEqual(expectedYarnPackages);
+    const packageInfos = getPackageInfos(repo.pathTo('packages/foo'));
+    expect(cleanPaths(repo.rootPath, packageInfos)).toEqual(expectedYarnPackages);
   });
 
   it('works in yarn/npm monorepo', () => {
-    const repo = monorepoFactory.cloneRepository();
-    const parsedOptions = getOptions(repo.rootPath);
-    let packageInfos = getPackageInfos(parsedOptions);
-    packageInfos = cleanPackageInfos(repo.rootPath, packageInfos);
-    expect(packageInfos).toEqual(expectedYarnPackages);
+    // With the new signature, path is assumed to be the root, so git isn't needed
+    tempDir = createTestFileStructureType('monorepo');
+    // The new signature assumes options where the root was already found
+    const packageInfos = getPackageInfos({ path: tempDir });
+    expect(cleanPaths(tempDir, packageInfos)).toEqual(expectedYarnPackages);
   });
 
   it('works in pnpm monorepo', () => {
-    const repo = monorepoFactory.cloneRepository();
-    writeJson(repo.pathTo('package.json'), { name: 'pnpm-monorepo', version: '1.0.0', private: true });
-    fs.writeFileSync(repo.pathTo('pnpm-lock.yaml'), '');
-    fs.writeFileSync(repo.pathTo('pnpm-workspace.yaml'), 'packages: ["packages/*", "packages/grouped/*"]');
-    const parsedOptions = getOptions(repo.rootPath);
+    tempDir = createTestFileStructureType('monorepo');
+    writeJson(path.join(tempDir, 'package.json'), { name: 'pnpm-monorepo', version: '1.0.0', private: true });
+    fs.writeFileSync(path.join(tempDir, 'pnpm-lock.yaml'), '');
+    // In this test, omit the grouped packages to ensure it's using the provided globs
+    fs.writeFileSync(path.join(tempDir, 'pnpm-workspace.yaml'), 'packages: ["packages/*"]');
+    fs.rmSync(path.join(tempDir, 'yarn.lock'), { force: true });
+    // Verify manager is detected
+    expect(getWorkspaceManagerRoot(path.join(tempDir, 'packages/foo'))).toEqual(tempDir);
 
-    const rootPackageInfos = getPackageInfos(parsedOptions);
-    expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
-      a: '<root>/packages/grouped/a/package.json',
-      b: '<root>/packages/grouped/b/package.json',
+    const rootPackageInfos = getPackageInfos({ path: tempDir });
+    expect(getPackageNamesAndPaths(tempDir, rootPackageInfos)).toEqual({
       bar: '<root>/packages/bar/package.json',
       baz: '<root>/packages/baz/package.json',
       foo: '<root>/packages/foo/package.json',
-      'pnpm-monorepo': '<root>/package.json',
     });
   });
 
   it('works in rush monorepo', () => {
-    const repo = monorepoFactory.cloneRepository();
-    writeJson(repo.pathTo('package.json'), { name: 'rush-monorepo', version: '1.0.0', private: true });
-    writeJson(repo.pathTo('rush.json'), {
-      projects: [{ projectFolder: 'packages' }, { projectFolder: 'packages/grouped' }],
+    tempDir = createTestFileStructureType('monorepo');
+    writeJson(path.join(tempDir, 'package.json'), { name: 'rush-monorepo', version: '1.0.0', private: true });
+    writeJson(path.join(tempDir, 'rush.json'), {
+      // In this test, only use certain packages (rush doesn't support globs)
+      projects: [{ projectFolder: 'packages/foo' }, { projectFolder: 'packages/bar' }],
     });
-    const parsedOptions = getOptions(repo.rootPath);
+    fs.rmSync(path.join(tempDir, 'yarn.lock'), { force: true });
+    // Verify manager is detected
+    expect(getWorkspaceManagerRoot(path.join(tempDir, 'packages/foo'))).toEqual(tempDir);
 
-    const rootPackageInfos = getPackageInfos(parsedOptions);
-    expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
-      a: '<root>/packages/grouped/a/package.json',
-      b: '<root>/packages/grouped/b/package.json',
+    const rootPackageInfos = getPackageInfos({ path: tempDir });
+    expect(getPackageNamesAndPaths(tempDir, rootPackageInfos)).toEqual({
       bar: '<root>/packages/bar/package.json',
-      baz: '<root>/packages/baz/package.json',
       foo: '<root>/packages/foo/package.json',
-      'rush-monorepo': '<root>/package.json',
     });
   });
 
   it('works in lerna monorepo', () => {
-    const repo = monorepoFactory.cloneRepository();
-    writeJson(repo.pathTo('package.json'), { name: 'lerna-monorepo', version: '1.0.0', private: true });
-    writeJson(repo.pathTo('lerna.json'), { packages: ['packages/*', 'packages/grouped/*'] });
-    const parsedOptions = getOptions(repo.rootPath);
+    tempDir = createTestFileStructureType('monorepo');
+    writeJson(path.join(tempDir, 'package.json'), { name: 'lerna-monorepo', version: '1.0.0', private: true });
+    // In this test, omit the grouped packages to ensure it's using the provided config
+    writeJson(path.join(tempDir, 'lerna.json'), { packages: ['packages/*'] });
+    fs.rmSync(path.join(tempDir, 'yarn.lock'), { force: true });
+    // Verify manager is detected
+    expect(getWorkspaceManagerRoot(path.join(tempDir, 'packages/foo'))).toEqual(tempDir);
 
-    const rootPackageInfos = getPackageInfos(parsedOptions);
-    expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
-      a: '<root>/packages/grouped/a/package.json',
-      b: '<root>/packages/grouped/b/package.json',
+    const rootPackageInfos = getPackageInfos({ path: tempDir });
+    expect(getPackageNamesAndPaths(tempDir, rootPackageInfos)).toEqual({
       bar: '<root>/packages/bar/package.json',
       baz: '<root>/packages/baz/package.json',
       foo: '<root>/packages/foo/package.json',
     });
   });
 
+  it('works in non-workspace monorepo', () => {
+    // This one needs git so it can use git ls-files to find packages
+    const repo = monorepoFactory.cloneRepository();
+    // Remove workspace config to simulate a non-workspace monorepo
+    writeJson(path.join(repo.rootPath, 'package.json'), { name: 'monorepo', version: '1.0.0', private: true });
+    fs.rmSync(path.join(repo.rootPath, 'yarn.lock'), { force: true });
+    // Verify no manager is detected
+    expect(getWorkspaceManagerRoot(path.join(repo.rootPath, 'packages/foo'))).toBeUndefined();
+
+    const rootPackageInfos = getPackageInfos({ path: repo.rootPath });
+    expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
+      a: '<root>/packages/grouped/a/package.json',
+      b: '<root>/packages/grouped/b/package.json',
+      bar: '<root>/packages/bar/package.json',
+      baz: '<root>/packages/baz/package.json',
+      foo: '<root>/packages/foo/package.json',
+      // In this case it should include the root for reasons explained in getPackageInfos
+      monorepo: '<root>/package.json',
+    });
+  });
+
+  it('works in beachball-like repo', () => {
+    // The beachball repo is a single package with a separately-managed "docs" folder
+    const repo = singleFactory.cloneRepository();
+    repo.writeFile('docs/package.json', { name: 'docs', version: '1.0.0', private: true });
+    repo.writeFile('docs/yarn.lock', '');
+    repo.commitAll('add docs folder');
+
+    const rootPackageInfos = getPackageInfos({ path: repo.rootPath });
+    expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
+      docs: '<root>/docs/package.json',
+      foo: '<root>/package.json',
+    });
+  });
+
   it('works in multi-project monorepo', () => {
+    // The first part of the multi-monorepo test needs git since the fallback to find package.jsons
+    // is using git ls-files
     const repo = multiProjectFactory.cloneRepository();
 
     // For this test, only snapshot the package names and paths
-    const rootOptions = getOptions(repo.rootPath);
-    const rootPackageInfos = getPackageInfos(rootOptions);
+    const rootPackageInfos = getPackageInfos({ path: repo.rootPath });
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
       '@project-a/a': '<root>/project-a/packages/grouped/a/package.json',
       '@project-a/b': '<root>/project-a/packages/grouped/b/package.json',
@@ -249,8 +245,7 @@ describe('getPackageInfos', () => {
     });
 
     const projectARoot = repo.pathTo('project-a');
-    const projectAOptions = getOptions(projectARoot);
-    const packageInfosA = getPackageInfos(projectAOptions);
+    const packageInfosA = getPackageInfos({ path: projectARoot });
     expect(getPackageNamesAndPaths(projectARoot, packageInfosA)).toEqual({
       '@project-a/a': '<root>/packages/grouped/a/package.json',
       '@project-a/b': '<root>/packages/grouped/b/package.json',
@@ -260,8 +255,7 @@ describe('getPackageInfos', () => {
     });
 
     const projectBRoot = repo.pathTo('project-b');
-    const projectBOptions = getOptions(projectBRoot);
-    const packageInfosB = getPackageInfos(projectBOptions);
+    const packageInfosB = getPackageInfos({ path: projectBRoot });
     expect(getPackageNamesAndPaths(projectBRoot, packageInfosB)).toEqual({
       '@project-b/a': '<root>/packages/grouped/a/package.json',
       '@project-b/b': '<root>/packages/grouped/b/package.json',
@@ -278,8 +272,9 @@ describe('getPackageInfos', () => {
     const repo = multiProjectFactory.cloneRepository();
     repo.updateJsonFile('project-a/packages/foo/package.json', { name: 'foo' });
     repo.updateJsonFile('project-b/packages/foo/package.json', { name: 'foo' });
-    const parsedOptions = getOptions(repo.rootPath);
-    expect(() => getPackageInfos(parsedOptions)).toThrow('Duplicate package names found (see above for details)');
+    expect(() => getPackageInfos({ path: repo.rootPath })).toThrow(
+      'Duplicate package names found (see above for details)'
+    );
 
     const allLogs = logs.getMockLines('all', { root: repo.rootPath }); // normalizes slashes too
     expect(allLogs).toMatchInlineSnapshot(`

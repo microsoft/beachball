@@ -129,7 +129,6 @@ describe('getParsedOptions', () => {
     const parsedOptions = getParsedOptions({ argv: baseArgv(), cwd: repo.rootPath });
     expect(parsedOptions).toEqual({
       options: expect.objectContaining({ branch: 'origin/foo' }),
-      repoOptions: { branch: 'origin/foo' },
       cliOptions: { path: repo.rootPath, command: 'stuff' },
     });
   });
@@ -141,7 +140,6 @@ describe('getParsedOptions', () => {
     const parsedOptions = getParsedOptions({ argv: baseArgv(), cwd: repo.rootPath });
     expect(parsedOptions).toEqual({
       options: expect.objectContaining({ branch: 'origin/foo' }),
-      repoOptions: { branch: 'origin/foo' },
       cliOptions: { path: repo.rootPath, command: 'stuff' },
     });
   });
@@ -180,7 +178,6 @@ describe('getParsedOptions', () => {
     });
     expect(parsedOptions).toEqual({
       options: expect.objectContaining({ branch: 'origin/bar' }),
-      repoOptions: { branch: 'origin/foo' },
       cliOptions: { path: repo.rootPath, command: 'stuff', branch: 'origin/bar' },
     });
   });

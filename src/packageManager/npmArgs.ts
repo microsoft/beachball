@@ -1,3 +1,4 @@
+import { getPackageOption } from '../options/getPackageOption';
 import type { NpmOptions } from '../types/NpmOptions';
 import type { PackageInfo } from '../types/PackageInfo';
 
@@ -9,14 +10,17 @@ export function getNpmLogLevelArgs(verbose: boolean | undefined): string[] {
 
 export function getNpmPublishArgs(packageInfo: PackageInfo, options: Omit<NpmOptions, 'path'>): string[] {
   const { registry, access } = options;
-  const pkgCombinedOptions = packageInfo.combinedOptions;
   const authArgs = getNpmAuthArgs(options);
   const args = [
     'publish',
     '--registry',
     registry,
     '--tag',
-    pkgCombinedOptions.tag || pkgCombinedOptions.defaultNpmTag || 'latest',
+    // TODO: unclear what tag=null in PackageOptions was originally supposed to do
+    // (most recent logic prior to this also used || which ignores null)
+    getPackageOption('tag', packageInfo, options) ||
+      getPackageOption('defaultNpmTag', packageInfo, options) ||
+      'latest',
     ...getNpmLogLevelArgs(options.verbose),
     ...(authArgs ? [`--${authArgs.key}=${authArgs.value}`] : []),
   ];

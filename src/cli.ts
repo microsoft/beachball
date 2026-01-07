@@ -72,7 +72,7 @@ import { getScopedPackages } from './monorepo/getScopedPackages';
 
     case 'sync': {
       // This one is a special case where it doesn't run validate, so calculate the context here
-      const originalPackageInfos = getPackageInfos(parsedOptions);
+      const originalPackageInfos = getPackageInfos(parsedOptions.cliOptions);
       const scopedPackages = getScopedPackages(options, originalPackageInfos);
       await sync(options, { originalPackageInfos, scopedPackages });
       break;

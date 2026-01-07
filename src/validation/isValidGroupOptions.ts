@@ -33,7 +33,7 @@ export function isValidGroupedPackageOptions(packageInfos: PackageInfos, package
   // make sure no disallowed change type options exist inside an individual package
   for (const [groupName, { packageNames }] of Object.entries(packageGroups)) {
     for (const pkgName of packageNames) {
-      if (packageInfos[pkgName].packageOptions.disallowedChangeTypes) {
+      if (packageInfos[pkgName].packageOptions?.disallowedChangeTypes) {
         errorPackages.push(`${pkgName} in group "${groupName}"`);
       }
     }

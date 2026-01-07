@@ -36,7 +36,7 @@ export interface PackageJson {
    * At a monorepo repo root, this may contain any beachball config.
    * For a single package, only package config is respected.
    */
-  beachball?: Partial<PackageOptions> | Partial<RepoOptions>;
+  beachball?: PackageOptions | Partial<RepoOptions>;
   /** Overrides applied during publishing */
   publishConfig?: PublishConfig;
 }
@@ -49,13 +49,22 @@ export interface PackageInfo {
   devDependencies?: PackageDeps;
   peerDependencies?: PackageDeps;
   optionalDependencies?: PackageDeps;
-  private: boolean;
+  private?: boolean;
 
-  /** merged default, repo, package, and CLI options */
-  combinedOptions: PackageOptions;
+  /**
+   * @deprecated No longer populated (accessing properties will throw). Get package-specific options
+   * (plus any CLI overrides) using `getPackageOption`, or other values via main merged options.
+   */
+  combinedOptions?: undefined;
 
-  /** options that are SPECIFIC to the package from the `beachball` key in its package.json (might be nothing) */
-  packageOptions: Partial<PackageOptions>;
+  /**
+   * Options from this package's `beachball` key in its package.json.
+   * If the package specifies an option which was overridden by the CLI, this will reflect the
+   * **CLI override** instead of the package's original option (to simplify later merging logic).
+   *
+   * To get the effective value of an option that could be package-specific, use `getPackageOption`.
+   */
+  packageOptions?: PackageOptions;
 }
 
 export interface PackageInfos {
@@ -64,6 +73,11 @@ export interface PackageInfos {
 
 export interface PackageGroupsInfo {
   packageNames: string[];
+  /**
+   * Disallowed change types for the group. (Package `disallowedChangeTypes` are invalid with groups.)
+   *
+   * TODO: with current implementation, this also overrides the CLI option...
+   */
   disallowedChangeTypes: ChangeType[] | null;
 }
 

@@ -21,6 +21,16 @@
     },
     {
       "type": "node",
+      "request": "launch",
+      "name": "Debug beachball change (MUST BUILD FIRST)",
+      "cwd": "${workspaceFolder}",
+      "runtimeArgs": ["bin/beachball.js", "change"],
+      "sourceMaps": true,
+      "outputCapture": "std",
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
       "request": "attach",
       "name": "Attach by Process ID",
       "processId": "${command:PickProcess}",

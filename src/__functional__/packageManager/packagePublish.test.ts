@@ -7,7 +7,6 @@ import * as npmModule from '../../packageManager/npm';
 import { packagePublish } from '../../packageManager/packagePublish';
 import type { PackageInfo } from '../../types/PackageInfo';
 import type { npm, NpmResult } from '../../packageManager/npm';
-import type { PackageOptions } from '../../types/BeachballOptions';
 import { writeJson } from '../../object/writeJson';
 import { getNpmPackageInfo, type NpmPackageVersionsData } from '../../packageManager/getNpmPackageInfo';
 import { env } from '../../env';
@@ -51,14 +50,7 @@ describe('packagePublish', () => {
     return {
       ...testPackage,
       packageJsonPath: tempPackageJsonPath,
-      private: false,
-      combinedOptions: {
-        gitTags: true,
-        tag: testTag,
-        defaultNpmTag: 'latest',
-        disallowedChangeTypes: [],
-      },
-      packageOptions: {} as PackageOptions,
+      packageOptions: { tag: testTag },
     };
   }
 

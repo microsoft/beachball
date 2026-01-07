@@ -2,6 +2,7 @@ import { generateTag } from '../git/generateTag';
 import { gitFailFast } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { getPackagesToPublish } from './getPackagesToPublish';
+import { getPackageOption } from '../options/getPackageOption';
 
 function createTag(tag: string, cwd: string): void {
   gitFailFast(['tag', '-a', '-f', tag, '-m', tag], { cwd });
@@ -21,8 +22,8 @@ export function tagPackages(
 
   // Reuse the getPackagesToPublish filtering logic to remove private or unchanged packages,
   // and also exclude packages with git tags disabled
-  const filteredPackages = getPackagesToPublish(bumpInfo, { toposort: false }).filter(
-    pkg => packageInfos[pkg].combinedOptions.gitTags
+  const filteredPackages = getPackagesToPublish(bumpInfo, { toposort: false }).filter(pkg =>
+    getPackageOption('gitTags', packageInfos[pkg], options)
   );
 
   for (const pkg of filteredPackages) {

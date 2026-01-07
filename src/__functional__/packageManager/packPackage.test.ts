@@ -30,9 +30,6 @@ describe('packPackage', () => {
     const info: PackageInfo = {
       ...json,
       packageJsonPath: tempPackageJsonPath,
-      private: false,
-      combinedOptions: {} as PackageInfo['combinedOptions'],
-      packageOptions: {} as PackageInfo['packageOptions'],
     };
     return {
       name,

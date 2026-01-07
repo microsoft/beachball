@@ -75,7 +75,7 @@ describe('performBump', () => {
       testRepoOptions: { branch: defaultRemoteBranchName, ...params.repoOptions },
     });
 
-    packageInfos = makePackageInfos(params.packageInfos, opts.repoOptions, opts.cliOptions);
+    packageInfos = makePackageInfos(params.packageInfos, opts.cliOptions);
 
     return performBump(
       {

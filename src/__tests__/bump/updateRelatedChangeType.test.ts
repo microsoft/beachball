@@ -17,10 +17,12 @@ describe('updateRelatedChangeType', () => {
     options: Partial<Pick<BeachballOptions, 'bumpDeps'>> & {
       changes: Array<Pick<ChangeInfo, 'packageName' | 'type' | 'dependentChangeType'>>;
       /**
-       * All the packages used in this fixture.
+       * All the packages used in this fixture, including any per-package beachball options.
        * Must include any dependencies (all versions are 1.0.0).
        */
       packages: PartialPackageInfos;
+      /** Repo disallowed change types */
+      options?: Pick<BeachballOptions, 'disallowedChangeTypes'>;
       /**
        * Initial calculated change types before updates. This is **required** if `packageGroups`
        * is specified (since the initial calculation is complex) but otherwise a default can be
@@ -52,6 +54,7 @@ describe('updateRelatedChangeType', () => {
         packageInfos,
         packageGroups: packageGroups || {},
       },
+      options: { disallowedChangeTypes: null, ...options.options },
       // Dependents are confusing to reason about directly (or specify in fixtures) since they're
       // backwards from dependencies, so just reuse the actual helper that calculates them
       dependents: bumpDeps
@@ -237,7 +240,27 @@ describe('updateRelatedChangeType', () => {
     });
   });
 
-  it('should respect disallowed change type', () => {
+  it('respects repo disallowed change type', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'bar', type: 'major', dependentChangeType: 'minor' }],
+      packages: {
+        bar: {},
+        foo: { dependencies: { bar: '1.0.0' } },
+      },
+      options: { disallowedChangeTypes: ['major', 'minor'] },
+    });
+
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      bar: 'major',
+      // This points out an interesting artifact of the new pre* support that should probably be
+      // better rationalized... (prior to that change, this would have been 'patch', which is
+      // more likely the expected behavior in general)
+      // https://github.com/microsoft/beachball/issues/947
+      foo: 'preminor',
+    });
+  });
+
+  it('respects package disallowed change type', () => {
     const bumpInfo = callUpdateRelatedChangeType({
       changes: [{ packageName: 'bar', type: 'major', dependentChangeType: 'minor' }],
       packages: {
@@ -254,6 +277,7 @@ describe('updateRelatedChangeType', () => {
       // This points out an interesting artifact of the new pre* support that should probably be
       // better rationalized... (prior to that change, this would have been 'patch', which is
       // more likely the expected behavior in general)
+      // https://github.com/microsoft/beachball/issues/947
       foo: 'preminor',
     });
   });

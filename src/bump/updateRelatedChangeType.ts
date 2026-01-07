@@ -1,4 +1,6 @@
 import { getMaxChangeType } from '../changefile/changeTypes';
+import { getPackageOption } from '../options/getPackageOption';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import type { BumpInfo, PackageDependents } from '../types/BumpInfo';
 import { ChangeFileInfo } from '../types/ChangeInfo';
 
@@ -30,6 +32,7 @@ export function updateRelatedChangeType(params: {
   change: ChangeFileInfo;
   bumpInfo: Pick<BumpInfo, 'calculatedChangeTypes' | 'packageGroups' | 'packageInfos'>;
   dependents: PackageDependents | undefined;
+  options: Pick<BeachballOptions, 'disallowedChangeTypes'>;
 }): void {
   const { change, bumpInfo, dependents } = params;
   const { calculatedChangeTypes, packageGroups, packageInfos } = bumpInfo;
@@ -57,7 +60,7 @@ export function updateRelatedChangeType(params: {
       const oldType = calculatedChangeTypes[subjectPackage];
       calculatedChangeTypes[subjectPackage] = getMaxChangeType(
         [oldType, dependentChangeType],
-        packageInfos[subjectPackage]?.combinedOptions?.disallowedChangeTypes
+        getPackageOption('disallowedChangeTypes', packageInfos[subjectPackage], params.options)
       );
 
       // TODO: what's the interaction with groups here?

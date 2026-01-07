@@ -1,70 +1,67 @@
 import type { PackageInfo as WSPackageInfo } from 'workspace-tools';
-import type {
-  ParsedOptions,
-  PackageOptions,
-  BeachballOptions,
-  CliOptions,
-  RepoOptions,
-} from '../types/BeachballOptions';
+import type { PackageOptions, CliOptions } from '../types/BeachballOptions';
 import { getCliOptions } from './getCliOptions';
-import { getRepoOptions } from './getRepoOptions';
-import { getDefaultOptions } from './getDefaultOptions';
 import { env } from '../env';
-import type { PackageInfos } from '../types/PackageInfo';
+import { consideredDependencies, type PackageInfo, type PackageInfos } from '../types/PackageInfo';
 
 /**
  * Fill in options to convert `workspace-tools` `PackageInfos` to the format used in this repo,
- * which includes merged beachball options.
+ * including any package-specific options merged with CLI overrides.
+ * @param cliOptions Parsed CLI options. Can be null in tests to indicate no CLI options.
+ * @param enableCombinedOptionsForTests For testing only: usually in tests, the combinedOptions
+ * getter is not added to prevent jest exceptions when checking equality of objects.
+ * Use this to force adding the getter for testing its behavior.
  */
 export function getPackageInfosWithOptions(
   wsPackageInfos: WSPackageInfo[],
-  parsedOptions: Pick<ParsedOptions, 'repoOptions' | 'cliOptions'>
+  cliOptions: Partial<CliOptions> | null,
+  enableCombinedOptionsForTests?: boolean
 ): PackageInfos;
 /** @deprecated Provide the pre-parsed options */
 export function getPackageInfosWithOptions(wsPackageInfos: WSPackageInfo[]): PackageInfos;
 export function getPackageInfosWithOptions(
   wsPackageInfos: WSPackageInfo[],
-  parsedOptions?: Pick<ParsedOptions, 'repoOptions' | 'cliOptions'>
+  cliOptions?: Partial<CliOptions> | null,
+  enableCombinedOptionsForTests?: boolean
 ): PackageInfos {
-  let { repoOptions, cliOptions } = parsedOptions || {};
-  if (!repoOptions || !cliOptions) {
+  if (cliOptions === undefined) {
     // Don't use options from process.argv or the beachball repo in tests
     // eslint-disable-next-line etc/no-deprecated
-    cliOptions = !env.isJest ? getCliOptions(process.argv) : { path: '', command: 'change' };
-    repoOptions = cliOptions?.path ? getRepoOptions(cliOptions) : {};
+    cliOptions = env.isJest ? null : getCliOptions(process.argv);
   }
-  const defaultOptions = getDefaultOptions();
-  const preMergedOptions = _mergePackageOptions({
-    defaultOptions,
-    repoOptions,
-    cliOptions,
-    packageOptions: {},
-  });
 
   const packageInfos: PackageInfos = {};
 
   for (const packageJson of wsPackageInfos) {
-    // Package-level JS config files aren't currently supported - https://github.com/microsoft/beachball/issues/1021
-    // (just the "beachball" key in package.json).
-    // If the package has no specific options (most common), reuse the pre-merged object for performance.
-    const packageOptions = packageJson.beachball as Partial<PackageOptions> | undefined;
-    // TODO: merge group options too (group disallowedChangeTypes currently override package)
-    const combinedOptions = packageOptions
-      ? _mergePackageOptions({ defaultOptions, repoOptions, cliOptions, packageOptions })
-      : { ...preMergedOptions };
-
-    packageInfos[packageJson.name] = {
+    const newPackageInfo: PackageInfo = {
       name: packageJson.name,
       version: packageJson.version,
       packageJsonPath: packageJson.packageJsonPath,
-      dependencies: packageJson.dependencies,
-      devDependencies: packageJson.devDependencies,
-      peerDependencies: packageJson.peerDependencies,
-      optionalDependencies: packageJson.optionalDependencies,
-      private: packageJson.private ?? false,
-      combinedOptions,
-      packageOptions: packageOptions || {},
     };
+    packageJson.private === true && (newPackageInfo.private = true);
+
+    // Only copy dep types that are present to avoid creating/storing tons of undefined keys
+    for (const depType of consideredDependencies) {
+      const deps = packageJson[depType];
+      deps && (newPackageInfo[depType] = deps);
+    }
+
+    if (!env.isJest || enableCombinedOptionsForTests) {
+      // Use a non-enumerable property (won't be JSON.stringified) to throw on explicit combinedOptions access
+      Object.defineProperty(newPackageInfo, 'combinedOptions', {
+        enumerable: false,
+        configurable: false,
+        get: throwCombinedOptionsError,
+      });
+    }
+
+    // Check for package-specific options in the "beachball" key of package.json and
+    // merge any overrides from CLI options
+    // TODO: merge group options too (group disallowedChangeTypes currently override package)
+    const packageOptions = mergePackageOptions(packageJson.beachball as PackageOptions | undefined, cliOptions);
+    packageOptions && (newPackageInfo.packageOptions = packageOptions);
+
+    packageInfos[packageJson.name] = newPackageInfo;
   }
 
   return packageInfos;
@@ -79,27 +76,38 @@ const packageKeys = Object.keys({
 } satisfies Record<keyof PackageOptions, true>) as (keyof PackageOptions)[];
 
 /**
- * Merge ONLY the relevant package-level options into `combinedOptions`.
- * In giant repos, this should improve performance.
+ * Merge package-specific options (`beachball` field in package.json) with any CLI overrides.
+ * @returns Merged options, or undefined if no package-specific options were set
  */
-export function _mergePackageOptions(
-  params: Pick<ParsedOptions, 'repoOptions' | 'cliOptions'> & {
-    packageOptions: Partial<PackageOptions>;
-    defaultOptions: BeachballOptions;
-  }
-): PackageOptions {
-  const { defaultOptions, repoOptions, cliOptions, packageOptions } = params;
+function mergePackageOptions(
+  packageOptions: PackageOptions | undefined,
+  cliOptions: Partial<CliOptions> | null
+): PackageOptions | undefined {
+  if (!packageOptions) return undefined;
+
   const mergedOptions = {} as PackageOptions;
+  let hasOptions = false;
   for (const key of packageKeys) {
-    // eslint-disable-next-line
-    (mergedOptions as any)[key] =
-      key in cliOptions
-        ? cliOptions[key as keyof CliOptions]
-        : key in packageOptions
-        ? packageOptions[key]
-        : key in repoOptions
-        ? repoOptions[key as keyof RepoOptions]
-        : defaultOptions[key];
+    // We only care about possible CLI overrides if the package option was set
+    // (otherwise the standard merged option can be used)
+    if (packageOptions[key] !== undefined) {
+      // Prefer the CLI value if present, or fall back to package value
+      // (cliOptions keys should never be null or undefined, so we can use ?? )
+      // eslint-disable-next-line
+      (mergedOptions as any)[key] = (cliOptions as any)?.[key] ?? packageOptions[key];
+      hasOptions = true;
+    }
   }
-  return mergedOptions;
+  return hasOptions ? mergedOptions : undefined;
+}
+
+/**
+ * Shared helper to throw on `combinedOptions` access (one function without method scope
+ * for all instances).
+ */
+function throwCombinedOptionsError() {
+  throw new Error(
+    'combinedOptions is no longer supported. Get package-specific options ' +
+      '(plus any CLI overrides) via packageOptions, or other values via main options.'
+  );
 }
