@@ -29,6 +29,7 @@ export class Registry {
   private startPort: number;
   private testName: string;
   private tempRoot: string | undefined;
+  private isLoggedIn = false;
 
   constructor(filename: string) {
     this.testName = path.basename(filename, '.test.ts');
@@ -38,6 +39,9 @@ export class Registry {
     this.startPort = 4873 + knownTests.indexOf(this.testName) * portRange;
   }
 
+  /**
+   * Start the server and log in as the fake user if not already logged in.
+   */
   public async start(): Promise<unknown> {
     if (this.server) {
       throw new Error('Server already started');
@@ -60,6 +64,10 @@ export class Registry {
     this.port = tryPort;
 
     // Something about npm 8 makes publishing fail with anonymous access, so log in with a fake user
+    if (this.isLoggedIn) {
+      console.log('already logged in');
+      return;
+    }
     try {
       const registry = this.getUrl();
       console.log(`logging in to ${registry}`);
@@ -77,10 +85,23 @@ export class Registry {
       });
       await npm;
       console.log('logged in');
+      this.isLoggedIn = true;
     } catch (err) {
       throw new Error(
         `Error logging in to registry: ${(err as Error).stack || err}\n${(err as execa.ExecaError).stderr}`
       );
+    }
+  }
+
+  /** Run `npm logout` on the fake registry */
+  public async logout(): Promise<void> {
+    // Conservatively set to false even if it fails partway (logging in again is harmless)
+    this.isLoggedIn = false;
+    try {
+      const registry = this.getUrl();
+      await execa('npm', ['logout', '--registry', registry]);
+    } catch {
+      console.warn('Logging out of registry failed');
     }
   }
 
@@ -194,6 +215,7 @@ export class Registry {
         type: 'file',
         level: 'trace',
         format: 'file',
+        // @ts-expect-error -- this is missing from the types?
         path: path.join(process.cwd(), `verdaccio-${Date.now()}.log`),
       });
     }
