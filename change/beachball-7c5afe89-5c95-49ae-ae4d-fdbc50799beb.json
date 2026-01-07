@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Remove most calculated/default info from `PackageInfo` to reduce the memory footprint. This includes removing `combinedOptions` (see [#1131](https://github.com/microsoft/beachball/pull/1131) for details).",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
