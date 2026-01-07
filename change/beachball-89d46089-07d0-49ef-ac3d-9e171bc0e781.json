@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Improve approach and error handling for getting changed packages",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

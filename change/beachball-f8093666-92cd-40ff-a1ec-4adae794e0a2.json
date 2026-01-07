@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Support catalog versions",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

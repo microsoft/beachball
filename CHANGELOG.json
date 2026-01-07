@@ -2,6 +2,65 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 07 Jan 2026 01:55:03 GMT",
+      "version": "2.62.0",
+      "tag": "beachball_v2.62.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e4e65fb0bc860112e0493bdf034daacdf9bcda2c",
+            "comment": "Add validation of package names in callHook. Update internal handling of dependent modified packages (behavior is the same)."
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e4e65fb0bc860112e0493bdf034daacdf9bcda2c",
+            "comment": "Ensure packages that aren't being bumped (and aren't new) aren't published"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e4e65fb0bc860112e0493bdf034daacdf9bcda2c",
+            "comment": "Improve validation when bumping semver"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e4e65fb0bc860112e0493bdf034daacdf9bcda2c",
+            "comment": "Skip adding changelog entries for packages without a calculated change type"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e4e65fb0bc860112e0493bdf034daacdf9bcda2c",
+            "comment": "Improve approach and error handling for getting changed packages"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e4e65fb0bc860112e0493bdf034daacdf9bcda2c",
+            "comment": "Improve pre-publish logging (especially with packToPath), and internally consolidate bump logic"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e4e65fb0bc860112e0493bdf034daacdf9bcda2c",
+            "comment": "Support catalog versions"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e4e65fb0bc860112e0493bdf034daacdf9bcda2c",
+            "comment": "Share calculated info between validation and main commands. This should significantly improve performance in large repos."
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 17 Dec 2025 00:58:29 GMT",
       "version": "2.61.0",
       "tag": "beachball_v2.61.0",

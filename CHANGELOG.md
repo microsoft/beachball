@@ -1,8 +1,26 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Wed, 17 Dec 2025 00:58:29 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 07 Jan 2026 01:55:03 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.62.0
+
+Wed, 07 Jan 2026 01:55:03 GMT
+
+### Minor changes
+
+- Share calculated info between validation and main commands. This should significantly improve performance in large repos. (elcraig@microsoft.com)
+
+### Patches
+
+- Add validation of package names in callHook. Update internal handling of dependent modified packages (behavior is the same). (elcraig@microsoft.com)
+- Ensure packages that aren't being bumped (and aren't new) aren't published (elcraig@microsoft.com)
+- Improve validation when bumping semver (elcraig@microsoft.com)
+- Skip adding changelog entries for packages without a calculated change type (elcraig@microsoft.com)
+- Improve approach and error handling for getting changed packages (elcraig@microsoft.com)
+- Improve pre-publish logging (especially with packToPath), and internally consolidate bump logic (elcraig@microsoft.com)
+- Support catalog versions (elcraig@microsoft.com)
 
 ## 2.61.0
 

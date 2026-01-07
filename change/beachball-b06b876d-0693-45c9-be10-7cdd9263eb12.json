@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Share calculated info between validation and main commands. This should significantly improve performance in large repos.",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

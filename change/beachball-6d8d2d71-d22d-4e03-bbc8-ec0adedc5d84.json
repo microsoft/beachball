@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Improve validation when bumping semver",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

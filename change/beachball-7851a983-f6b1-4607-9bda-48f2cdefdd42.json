@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Skip adding changelog entries for packages without a calculated change type",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

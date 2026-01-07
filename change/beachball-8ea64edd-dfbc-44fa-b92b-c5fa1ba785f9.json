@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Improve pre-publish logging (especially with packToPath), and internally consolidate bump logic",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
