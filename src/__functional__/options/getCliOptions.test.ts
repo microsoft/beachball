@@ -175,8 +175,8 @@ describe('getCliOptions', () => {
   it('adds default remote to branch without slash', () => {
     const options = getCliOptionsTest(['--branch', 'foo']);
     expect(options).toEqual({ ...defaults, branch: 'origin/foo' });
-    // eslint-disable-next-line etc/no-deprecated
-    expect(getDefaultRemoteBranch).toHaveBeenCalledWith({ branch: 'foo', verbose: undefined, cwd: projectRoot });
+    // eslint-disable-next-line etc/no-deprecated, @typescript-eslint/no-explicit-any
+    expect(getDefaultRemoteBranch).toHaveBeenCalledWith({ branch: 'foo', verbose: undefined, cwd: projectRoot } as any);
   });
 
   it('preserves additional string options', () => {
