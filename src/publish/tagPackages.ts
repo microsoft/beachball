@@ -1,8 +1,7 @@
-import type { PublishBumpInfo } from '../types/BumpInfo';
 import { generateTag } from '../git/generateTag';
 import { gitFailFast } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import type { DeepReadonly } from '../types/DeepReadonly';
+import { getPackagesToPublish } from './getPackagesToPublish';
 
 function createTag(tag: string, cwd: string): void {
   gitFailFast(['tag', '-a', '-f', tag, '-m', tag], { cwd });
@@ -14,22 +13,20 @@ function createTag(tag: string, cwd: string): void {
  * non-default value (not "latest"), create a git tag for the dist-tag.
  */
 export function tagPackages(
-  bumpInfo: Pick<
-    DeepReadonly<PublishBumpInfo>,
-    'modifiedPackages' | 'newPackages' | 'packageInfos' | 'calculatedChangeTypes'
-  >,
+  bumpInfo: Parameters<typeof getPackagesToPublish>[0],
   options: Pick<BeachballOptions, 'gitTags' | 'path' | 'tag'>
 ): void {
   const { gitTags, tag: distTag, path: cwd } = options;
-  const { modifiedPackages, newPackages, packageInfos, calculatedChangeTypes } = bumpInfo;
+  const { packageInfos } = bumpInfo;
 
-  for (const pkg of [...modifiedPackages, ...(newPackages || [])]) {
+  // Reuse the getPackagesToPublish filtering logic to remove private or unchanged packages,
+  // and also exclude packages with git tags disabled
+  const filteredPackages = getPackagesToPublish(bumpInfo, { toposort: false }).filter(
+    pkg => packageInfos[pkg].combinedOptions.gitTags
+  );
+
+  for (const pkg of filteredPackages) {
     const packageInfo = packageInfos[pkg];
-    const changeType = calculatedChangeTypes[pkg];
-    // Do not tag change type of "none", private packages, or packages opting out of tagging
-    if (changeType === 'none' || packageInfo.private || !packageInfo.combinedOptions.gitTags) {
-      continue;
-    }
     console.log(`Tagging - ${packageInfo.name}@${packageInfo.version}`);
     const generatedTag = generateTag(packageInfo.name, packageInfo.version);
     createTag(generatedTag, cwd);

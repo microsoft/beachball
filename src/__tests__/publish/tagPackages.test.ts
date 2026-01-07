@@ -9,8 +9,8 @@ jest.mock('workspace-tools', () => ({
   gitFailFast: jest.fn(),
 }));
 
-const createTagParameters = (tag: string, cwd: string) => {
-  return [['tag', '-a', '-f', tag, '-m', tag], { cwd }];
+const createTagParameters = (tag: string) => {
+  return [['tag', '-a', '-f', tag, '-m', tag], { cwd: '' }];
 };
 
 type TagBumpInfo = Parameters<typeof tagPackages>[0];
@@ -29,10 +29,11 @@ const noTagBumpInfo: TagBumpInfo = {
     { gitTags: false }
   ),
   modifiedPackages: new Set(['foo', 'bar']),
+  scopedPackages: new Set(['foo', 'bar']),
   newPackages: [],
 };
 
-/** foo enables gitTags, bar disables it */
+/** foo enables gitTags, bar disables it, repo disables it */
 const oneTagBumpInfo: TagBumpInfo = {
   ...noTagBumpInfo,
   packageInfos: makePackageInfos({
@@ -52,6 +53,7 @@ const emptyBumpInfo: TagBumpInfo = {
   packageInfos: {},
   modifiedPackages: new Set(),
   newPackages: [],
+  scopedPackages: new Set(),
 };
 
 describe('tagPackages', () => {
@@ -77,7 +79,7 @@ describe('tagPackages', () => {
 
     // verify git is being called to create new auto tag for foo and bar
     const newFooTag = generateTag('foo', oneTagBumpInfo.packageInfos['foo'].version);
-    expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters(newFooTag, ''));
+    expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters(newFooTag));
   });
 
   it('creates package tag for new packages with gitTags=true', () => {
@@ -89,11 +91,21 @@ describe('tagPackages', () => {
 
     // verify git is being called to create new auto tag for foo
     const newFooTag = generateTag('foo', oneTagBumpInfo.packageInfos['foo'].version);
-    expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters(newFooTag, ''));
+    expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters(newFooTag));
   });
 
   it('does not create package tag for packages with changeType none', () => {
     tagPackages({ ...oneTagBumpInfo, calculatedChangeTypes: { foo: 'none' } }, { path: '', gitTags: false, tag: '' });
+    expect(gitFailFast).not.toHaveBeenCalled();
+  });
+
+  it('does not create package tag for packages with no changeType', () => {
+    tagPackages({ ...oneTagBumpInfo, calculatedChangeTypes: {} }, { path: '', gitTags: false, tag: '' });
+    expect(gitFailFast).not.toHaveBeenCalled();
+  });
+
+  it('does not create package tag for out of scope package', () => {
+    tagPackages({ ...oneTagBumpInfo, scopedPackages: new Set(['bar']) }, { path: '', gitTags: false, tag: '' });
     expect(gitFailFast).not.toHaveBeenCalled();
   });
 
@@ -110,6 +122,6 @@ describe('tagPackages', () => {
   it('creates overall git tag for non-"latest" dist tag', () => {
     tagPackages(emptyBumpInfo, { path: '', gitTags: true, tag: 'abc' });
     expect(gitFailFast).toBeCalledTimes(1);
-    expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters('abc', ''));
+    expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters('abc'));
   });
 });
