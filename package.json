@@ -75,6 +75,7 @@
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "@typescript-eslint/utils": "^5.0.0",
+    "@verdaccio/types": "^10.8.0",
     "depcheck": "^1.4.7",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^10.1.8",
@@ -89,28 +90,21 @@
     "tmp": "^0.2.1",
     "ts-jest": "^29.4.0",
     "typescript": "~5.9.0",
-    "verdaccio": "5.29.2",
-    "verdaccio-auth-memory": "10.2.2",
-    "verdaccio-memory": "10.3.2"
+    "verdaccio": "^6.0.0",
+    "verdaccio-auth-memory": "^10.2.0",
+    "verdaccio-memory": "^10.3.0"
   },
   "resolutions": {
     "@types/node@npm:*": "^22.0.0",
     "handlebars@4.7.8": "^4.7.9",
-    "js-yaml@npm:4.1.0": "^4.1.1",
     "lodash@npm:4.17.21": "^4.18.1",
-    "minimatch@npm:7.4.6": "^7.4.9",
-    "qs@npm:6.10.4": "^6.15.0",
-    "qs@npm:6.11.0": "^6.15.0",
-    "validator@npm:13.11.0": "^13.11.0"
+    "minimatch@npm:7.4.6": "^7.4.9"
   },
   "rationale": {
     "resolutions": {
       "handlebars": "unpin due to security issue",
-      "js-yaml": "unpin due to security issue",
       "lodash": "unpin due to security issue",
-      "minimatch": "unpin due to security issue",
-      "qs": "unpin due to security issue",
-      "validator": "unpin due to security issue"
+      "minimatch": "unpin due to security issue"
     }
   }
 }
