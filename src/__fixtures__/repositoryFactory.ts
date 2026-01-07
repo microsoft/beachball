@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import type { PackageJson } from '../types/PackageInfo';
 import { Repository, type RepositoryCloneOptions } from './repository';
-import type { BeachballOptions } from '../types/BeachballOptions';
+import type { RepoOptions } from '../types/BeachballOptions';
 import { removeTempDir, tmpdir } from './tmpdir';
 import { gitFailFast } from 'workspace-tools';
 import { setDefaultBranchName } from './gitDefaults';
@@ -97,7 +97,7 @@ function getMonorepoRootPackage(name = 'monorepo-fixture'): RootPackageJsonFixtu
 function getMonorepoFixture(parentFolder?: string): RepoFixture {
   const scope = parentFolder ? `@${parentFolder}/` : '';
 
-  const beachballOptions: Partial<BeachballOptions> = {
+  const beachballOptions: Partial<RepoOptions> = {
     groups: [{ disallowedChangeTypes: null, name: 'grouped', include: 'group*' }],
   };
 
@@ -105,7 +105,7 @@ function getMonorepoFixture(parentFolder?: string): RepoFixture {
     tempDescription: parentFolder ? 'multimonorepo' : 'monorepo',
     rootPackage: {
       ...getMonorepoRootPackage(`${scope}monorepo-fixture`),
-      beachball: beachballOptions as BeachballOptions,
+      beachball: beachballOptions,
       // workspaces will be added automatically later
     },
     folders: {

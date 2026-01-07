@@ -21,6 +21,19 @@
     },
     {
       "type": "node",
+      "request": "launch",
+      "name": "Debug beachball change (MUST BUILD FIRST)",
+      "cwd": "${workspaceFolder}",
+      "runtimeArgs": ["bin/beachball.js", "change"],
+      "sourceMaps": true,
+      "outputCapture": "std",
+      "console": "integratedTerminal"
+      // Debug with Node 14 via nvm.
+      // On Windows, you might have to change this to a specific version.
+      // "runtimeVersion": "14"
+    },
+    {
+      "type": "node",
       "request": "attach",
       "name": "Attach by Process ID",
       "processId": "${command:PickProcess}",

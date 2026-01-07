@@ -2,6 +2,7 @@ import pLimit from 'p-limit';
 import type { PackageInfo } from '../types/PackageInfo';
 import type { NpmOptions } from '../types/NpmOptions';
 import { getNpmPackageInfo } from './getNpmPackageInfo';
+import { getPackageOption } from '../options/getPackageOption';
 
 /**
  * List versions matching the appropriate tag for each package (based on combined CLI, package, and repo options).
@@ -14,16 +15,23 @@ export async function listPackageVersionsByTag(
   const limit = pLimit(options.npmReadConcurrency);
   const versions: { [pkg: string]: string } = {};
 
+  const packageTags = packageInfos
+    .map(pkg => ({
+      name: pkg.name,
+      // TODO: what was tag=null in packageOptions originally supposed to do?
+      // (most recent logic prior to this also used || which ignores null)
+      tag: getPackageOption('tag', pkg, options) || getPackageOption('defaultNpmTag', pkg, options),
+    }))
+    // Use !! to filter out empty strings as well
+    .filter(pkg => !!pkg.tag) as { name: string; tag: string }[];
+
   await Promise.all(
-    packageInfos.map(pkg =>
+    packageTags.map(({ name, tag }) =>
       limit(async () => {
-        const npmTag = pkg.combinedOptions.tag || pkg.combinedOptions.defaultNpmTag;
-        const info = await getNpmPackageInfo(pkg.name, options);
-        if (info) {
-          const version = npmTag && info['dist-tags']?.[npmTag];
-          if (version) {
-            versions[pkg.name] = version;
-          }
+        const info = await getNpmPackageInfo(name, options);
+        const version = info?.['dist-tags']?.[tag];
+        if (version) {
+          versions[name] = version;
         }
       })
     )

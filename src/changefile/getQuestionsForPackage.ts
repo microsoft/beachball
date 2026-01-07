@@ -14,7 +14,7 @@ export function getQuestionsForPackage(params: {
   pkg: string;
   packageInfos: PackageInfos;
   packageGroups: PackageGroups;
-  options: Pick<BeachballOptions, 'message' | 'type' | 'changeFilePrompt'>;
+  options: Pick<BeachballOptions, 'message' | 'type' | 'changeFilePrompt' | 'disallowedChangeTypes'>;
   recentMessages: string[];
 }): prompts.PromptObject[] | undefined {
   const { pkg, options, recentMessages } = params;
@@ -38,12 +38,12 @@ function getChangeTypePrompt(params: {
   pkg: string;
   packageInfos: PackageInfos;
   packageGroups: PackageGroups;
-  options: Pick<BeachballOptions, 'type'>;
+  options: Pick<BeachballOptions, 'type' | 'disallowedChangeTypes'>;
 }): (prompts.PromptObject & Required<Pick<prompts.PromptObject, 'choices'>>) | undefined {
   const { pkg, packageInfos, packageGroups, options } = params;
   const packageInfo = packageInfos[pkg];
 
-  const disallowedChangeTypes = getDisallowedChangeTypes(pkg, packageInfos, packageGroups) || [];
+  const disallowedChangeTypes = getDisallowedChangeTypes(pkg, packageInfos, packageGroups, options) || [];
 
   if (options.type && disallowedChangeTypes.includes(options.type)) {
     console.error(`Change type "${options.type}" is not allowed for package "${pkg}"`);

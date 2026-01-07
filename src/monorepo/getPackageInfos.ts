@@ -9,27 +9,28 @@ import {
 } from 'workspace-tools';
 import type { PackageInfos } from '../types/PackageInfo';
 import { getPackageInfosWithOptions } from '../options/getPackageInfosWithOptions';
-import type { ParsedOptions } from '../types/BeachballOptions';
+import type { CliOptions } from '../types/BeachballOptions';
 import { readJson } from '../object/readJson';
+
+/** CLI options subset used by `getPackageInfos` */
+export type PackageInfosCliOptions = Partial<CliOptions> & Pick<CliOptions, 'path'>;
 
 /**
  * Get a mapping from package name to package info for all packages in the workspace
  * (reading from package.json files).
  *
- * This looks for files relative to `parsedOptions.cliOptions.path` (the project root).
- * The options objects are needed so they can be properly merged with the package options
- * into `PackageInfo.combinedOptions` without going back through the whole process of
- * getting CLI and repo options.
+ * This looks for files relative to `cliOptions.path` (the project root).
+ * The CLI options are needed so they can be properly merged with the package options
+ * into `PackageInfo.packageOptions` without going back through the whole process of
+ * getting CLI options.
  */
-export function getPackageInfos(parsedOptions: Pick<ParsedOptions, 'repoOptions' | 'cliOptions'>): PackageInfos;
+export function getPackageInfos(cliOptions: PackageInfosCliOptions): PackageInfos;
 /** @deprecated Pass the pre-parsed options */
 export function getPackageInfos(cwd: string): PackageInfos;
-export function getPackageInfos(
-  optionsOrCwd: string | Pick<ParsedOptions, 'repoOptions' | 'cliOptions'>
-): PackageInfos {
-  const cwd = typeof optionsOrCwd === 'string' ? optionsOrCwd : optionsOrCwd.cliOptions.path;
+export function getPackageInfos(optionsOrCwd: string | PackageInfosCliOptions): PackageInfos {
+  const cwd = typeof optionsOrCwd === 'string' ? optionsOrCwd : optionsOrCwd.path;
 
-  // If cwd comes from parsed options, it's already the root
+  // If cwd comes from processed CLI options, it's already the root
   const projectRoot = typeof optionsOrCwd === 'string' ? findProjectRoot(cwd) : cwd;
   const packageRoot = findPackageRoot(cwd);
 
@@ -63,7 +64,15 @@ function getPackageInfosFromWorkspace(projectRoot: string): WSPackageInfo[] | un
 }
 
 function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string): WSPackageInfo[] | undefined {
-  const packageJsonFiles = listAllTrackedFiles({ patterns: ['**/package.json', 'package.json'], cwd: projectRoot });
+  const packageJsonFiles = listAllTrackedFiles({
+    // Include both the root package.json and nested ones. This preserves existing behavior, which
+    // turns out to be important for the beachball repo itself. (The root package.json is the real
+    // package, but there's also a separately-managed "docs" folder with its own package.json. Any
+    // extra folders like that should be marked as private: true to be ignored.)
+    patterns: ['**/package.json', 'package.json'],
+    cwd: projectRoot,
+    throwOnError: false, // mainly happens in tests if it's not a git repo
+  });
   if (!packageJsonFiles.length) {
     return;
   }

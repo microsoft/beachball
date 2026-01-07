@@ -61,7 +61,7 @@ export function bumpInMemory(options: BeachballOptions, context: Omit<CommandCon
   // TODO: fix weird behavior - https://github.com/microsoft/beachball/issues/620
   const dependents = bumpDeps ? getDependentsForPackages(bumpInfo) : undefined;
   for (const { change } of context.changeSet) {
-    updateRelatedChangeType({ change, bumpInfo, dependents });
+    updateRelatedChangeType({ change, bumpInfo, dependents, options });
   }
 
   // pass 4: actually bump the packages in the bumpInfo in memory (no disk writes at this point)

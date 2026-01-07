@@ -82,8 +82,9 @@ export function validate(
     !env.isCI && console.warn('Changes in these files will not trigger a prompt for change descriptions');
   }
 
-  // eslint-disable-next-line etc/no-deprecated
-  const originalPackageInfos = 'repoOptions' in _options ? getPackageInfos(_options) : getPackageInfos(options.path);
+  const originalPackageInfos =
+    // eslint-disable-next-line etc/no-deprecated
+    'cliOptions' in _options ? getPackageInfos(_options.cliOptions) : getPackageInfos(options.path);
 
   if (options.all && options.package) {
     logValidationError('Cannot specify both "all" and "package" options');
@@ -147,7 +148,12 @@ export function validate(
   const changeSet = readChangeFiles(options, originalPackageInfos, scopedPackages);
 
   for (const { changeFile, change } of changeSet) {
-    const disallowedChangeTypes = getDisallowedChangeTypes(change.packageName, originalPackageInfos, packageGroups);
+    const disallowedChangeTypes = getDisallowedChangeTypes(
+      change.packageName,
+      originalPackageInfos,
+      packageGroups,
+      options
+    );
 
     if (!change.type) {
       logValidationError(`Change type is missing in ${changeFile}`);

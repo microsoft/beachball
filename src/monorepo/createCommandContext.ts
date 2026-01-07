@@ -21,9 +21,10 @@ export function createBasicCommandContext(
   _options: BeachballOptions | ParsedOptions,
   originalPackageInfos?: PackageInfos
 ): BasicCommandContext {
-  const options = 'repoOptions' in _options ? _options.options : _options;
-  // eslint-disable-next-line etc/no-deprecated -- this is a compat helper
-  originalPackageInfos ??= 'repoOptions' in _options ? getPackageInfos(_options) : getPackageInfos(options.path);
+  const options = 'cliOptions' in _options ? _options.options : _options;
+  originalPackageInfos ??=
+    // eslint-disable-next-line etc/no-deprecated -- this is a compat helper
+    'cliOptions' in _options ? getPackageInfos(_options.cliOptions) : getPackageInfos(options.path);
   const scopedPackages = getScopedPackages(options, originalPackageInfos);
   return {
     originalPackageInfos,
@@ -45,11 +46,11 @@ export function createCommandContext(
   originalPackageInfos?: PackageInfos
 ): CommandContext {
   const context =
-    'repoOptions' in _options
+    'cliOptions' in _options
       ? createBasicCommandContext(_options)
       : // eslint-disable-next-line etc/no-deprecated
         createBasicCommandContext(_options, originalPackageInfos);
-  const options = 'repoOptions' in _options ? _options.options : _options;
+  const options = 'cliOptions' in _options ? _options.options : _options;
   return {
     ...context,
     changeSet: readChangeFiles(options, context.originalPackageInfos, context.scopedPackages),

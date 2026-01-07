@@ -26,14 +26,15 @@ export function getParsedOptions(params: ProcessInfo & { testRepoOptions?: Parti
   const cliOptions = getCliOptions(processInfo);
   const repoOptions = testRepoOptions || getRepoOptions(cliOptions);
   return {
-    repoOptions,
     cliOptions,
     options: mergeRepoOptions({ repoOptions, cliOptions }),
   };
 }
 
 /** Merge repo-wide options in the proper order. */
-function mergeRepoOptions(params: Pick<ParsedOptions, 'repoOptions' | 'cliOptions'>): BeachballOptions {
+function mergeRepoOptions(
+  params: Pick<ParsedOptions, 'cliOptions'> & { repoOptions: Partial<RepoOptions> }
+): BeachballOptions {
   const { repoOptions, cliOptions } = params;
   // TODO: proper recursive merging
   // (right now it's not important because no nested objects are expected outside of repoOptions)

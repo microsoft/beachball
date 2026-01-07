@@ -2,8 +2,7 @@ import path from 'path';
 import type { PackageInfo as WSPackageInfo } from 'workspace-tools';
 import type { PackageInfo, PackageInfos } from '../types/PackageInfo';
 import { getPackageInfosWithOptions } from '../options/getPackageInfosWithOptions';
-import type { CliOptions, RepoOptions } from '../types/BeachballOptions';
-import { defaultRemoteBranchName } from './gitDefaults';
+import type { CliOptions } from '../types/BeachballOptions';
 
 export type PartialPackageInfo = Omit<Partial<PackageInfo>, 'combinedOptions' | 'packageOptions'> & {
   beachball?: PackageInfo['packageOptions'];
@@ -24,30 +23,21 @@ export type PartialPackageInfos = {
  * }
  * ```
  * Other defaults and values are filled by the actual logic in `getPackageInfosWithOptions`,
- * including the overrides in `repoOptions` merged in realistic order.
- * @param repoOptions Extra repo options. A `branch` option is included automatically (to prevent lookup).
+ * including merging the CLI options where they override package-specific options.
  * @param cliOptions CLI options. Use `path` to specify the CWD.
  */
-export function makePackageInfos(
-  packageInfos: PartialPackageInfos,
-  repoOptions?: Partial<RepoOptions>,
-  cliOptions?: Partial<CliOptions>
-): PackageInfos {
+export function makePackageInfos(packageInfos: PartialPackageInfos, cliOptions?: Partial<CliOptions>): PackageInfos {
   const cwd = cliOptions?.path || '';
   return getPackageInfosWithOptions(
     Object.entries(packageInfos).map(
       ([name, info]): WSPackageInfo => ({
         name,
         version: '1.0.0',
-        private: false,
         packageJsonPath: path.join(cwd, 'packages', path.basename(name), 'package.json'),
         ...info,
       })
     ),
-    {
-      repoOptions: { branch: defaultRemoteBranchName, ...repoOptions },
-      cliOptions: { path: cwd, command: '', ...cliOptions },
-    }
+    { path: cwd, ...cliOptions }
   );
 }
 
@@ -62,17 +52,15 @@ export function makePackageInfos(
  * }
  * ```
  * Other defaults and values are filled by the actual logic in `getPackageInfosWithOptions`,
- * including the overrides in `repoOptions` merged in realistic order.
+ * including merging the CLI options where they override package-specific options.
  */
 export function makePackageInfosByFolder(params: {
   packages: { [folder: string]: PartialPackageInfo };
   cwd: string;
-  /** Extra repo options. A `branch` option is included automatically (to prevent lookup). */
-  repoOptions?: Partial<RepoOptions>;
   /** Extra CLI options */
   cliOptions?: Partial<Omit<CliOptions, 'path'>>;
 }): PackageInfos {
-  const { packages, cwd, repoOptions, cliOptions } = params;
+  const { packages, cwd, cliOptions } = params;
   return makePackageInfos(
     Object.fromEntries(
       Object.entries(packages).map(([folder, info]) => [
@@ -83,7 +71,6 @@ export function makePackageInfosByFolder(params: {
         },
       ])
     ),
-    repoOptions,
     { ...cliOptions, path: cwd }
   );
 }

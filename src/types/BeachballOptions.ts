@@ -9,8 +9,6 @@ export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
 /** Separate options objects, returned for reuse in `getPackageInfos`. */
 export interface ParsedOptions {
-  /** Only the specified repo options */
-  repoOptions: Partial<RepoOptions>;
   /** Only the specified CLI options, plus the path and command */
   cliOptions: Partial<CliOptions> & Pick<CliOptions, 'path' | 'command'>;
   /** Merged repo-level options (includes repo, CLI, and defaults) */
@@ -264,11 +262,9 @@ export interface RepoOptions {
   new: boolean;
 }
 
-export interface PackageOptions {
-  gitTags: boolean;
-  disallowedChangeTypes: ChangeType[] | null;
-  tag: string | null;
-  defaultNpmTag: string;
+export interface PackageOptions
+  extends Partial<Pick<RepoOptions, 'gitTags' | 'disallowedChangeTypes' | 'defaultNpmTag'>> {
+  tag?: string | null;
   /**
    * Disable publishing a particular package.
    * (Does NOT work to enable publishing a package that wouldn't otherwise be published.)

@@ -2,7 +2,9 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { listPackageVersions, listPackageVersionsByTag } from '../../packageManager/listPackageVersions';
 import type { NpmOptions } from '../../types/NpmOptions';
 import { initNpmMock } from '../../__fixtures__/mockNpm';
-import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
+import type { RepoOptions } from '../../types/BeachballOptions';
+import { getParsedOptions } from '../../options/getOptions';
 
 jest.mock('../../packageManager/npm');
 jest.mock('npm-registry-fetch');
@@ -16,10 +18,16 @@ describe('list npm versions', () => {
   const npmMock = initNpmMock();
   const registry = 'https://fake';
   const timeout = 1500;
-  const npmOptions: NpmOptions = { registry, timeout, path: undefined, npmReadConcurrency: 2 };
   const commonOptions = { registry, timeout };
 
   describe('listPackageVersions', () => {
+    const npmOptions: NpmOptions = {
+      registry,
+      timeout,
+      path: undefined,
+      npmReadConcurrency: 2,
+    };
+
     it('succeeds with nothing to do', async () => {
       const versions = await listPackageVersions([], npmOptions);
       expect(versions).toEqual({});
@@ -86,141 +94,267 @@ describe('list npm versions', () => {
   });
 
   describe('listPackageVersionsByTag', () => {
-    it('succeeds with nothing to do', async () => {
-      expect(await listPackageVersionsByTag([], npmOptions)).toEqual({});
-      expect(npmMock.mock).not.toHaveBeenCalled();
-      expect(npmMock.mockFetchJson).not.toHaveBeenCalled();
-    });
-
-    it('returns requested tag for one package', async () => {
-      npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
-      const packageInfos = makePackageInfos(
-        { foo: {} },
-        // The merging order is actually handled by getPackageInfosWithOptions, but having a test
-        // like this is good documentation.
-        { tag: 'latest', defaultNpmTag: 'latest' },
-        { tag: 'beta' } // CLI args should take precedence
-      );
-
-      const versions = await listPackageVersionsByTag(Object.values(packageInfos), npmOptions);
-      expect(versions).toEqual({ foo: '2.0.0-beta' });
-      expect(npmMock.mock).not.toHaveBeenCalled();
-      expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
-      expect(npmMock.mockFetchJson).toHaveBeenCalledWith('/foo', expect.objectContaining(commonOptions));
-    });
-
-    it('respects token auth args', async () => {
-      npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
-      const packageInfos = makePackageInfos({ foo: {} });
-
-      const versions = await listPackageVersionsByTag(Object.values(packageInfos), {
-        ...npmOptions,
-        authType: 'authtoken',
-        token: 'pass',
+    function getOptionsAndPackages(params: {
+      packages: PartialPackageInfos;
+      /** CLI options which override any package-specific options */
+      extraArgv?: string[];
+      /** Options to override the defaults */
+      repoOptions?: Partial<RepoOptions>;
+    }) {
+      const parsedOptions = getParsedOptions({
+        argv: ['node', 'beachball', ...(params.extraArgv || [])],
+        cwd: '',
+        testRepoOptions: {
+          registry,
+          timeout,
+          npmReadConcurrency: 2,
+          ...params.repoOptions,
+        },
       });
-      expect(versions).toEqual({ foo: '1.0.0' });
-      expect(npmMock.mockFetchJson).toHaveBeenCalledWith(
-        '/foo',
-        expect.objectContaining({ ...commonOptions, '//fake:_authToken': 'pass' })
-      );
-    });
+      const packageInfos = makePackageInfos(params.packages, parsedOptions.cliOptions);
 
-    it('returns requested tag for multiple packages', async () => {
-      npmMock.setRegistryData({
-        foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } },
-        bar: { 'dist-tags': { latest: '1.0.0', beta: '3.0.0-beta' } },
+      return { options: parsedOptions.options, packages: Object.values(packageInfos) };
+    }
+
+    describe('defaults and repo options', () => {
+      it('succeeds with no packages', async () => {
+        const { packages, options } = getOptionsAndPackages({ packages: {} });
+        expect(await listPackageVersionsByTag(packages, options)).toEqual({});
+        expect(npmMock.mockFetchJson).not.toHaveBeenCalled();
       });
-      const packageInfos = makePackageInfos(
-        { foo: {}, bar: {} },
-        { tag: 'latest' }, // repo
-        { tag: 'beta' } // cli
-      );
 
-      const versions = await listPackageVersionsByTag(Object.values(packageInfos), npmOptions);
-      expect(versions).toEqual({ foo: '2.0.0-beta', bar: '3.0.0-beta' });
-      expect(npmMock.mock).not.toHaveBeenCalled();
-      expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
-      expect(npmMock.mockFetchJson).toHaveBeenCalledWith('/foo', expect.objectContaining(commonOptions));
-      expect(npmMock.mockFetchJson).toHaveBeenCalledWith('/bar', expect.objectContaining(commonOptions));
-    });
+      it('returns latest tag by default', async () => {
+        npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
+        const { packages, options } = getOptionsAndPackages({
+          packages: { foo: {} },
+        });
+        // currently this is how the default to "latest" works in realistic scenarios
+        expect(options).toMatchObject({ tag: '', defaultNpmTag: 'latest' });
 
-    it('returns versions for many packages', async () => {
-      const packages = 'abcdefghij'.split('');
-      const showData = Object.fromEntries(packages.map((x, i) => [x, { 'dist-tags': { latest: `${i}.0.0` } }]));
-      npmMock.setRegistryData(showData);
-      const packageInfos = makePackageInfos(Object.fromEntries(packages.map(x => [x, {}])), { tag: 'latest' });
-
-      expect(await listPackageVersionsByTag(Object.values(packageInfos), npmOptions)).toEqual(
-        Object.fromEntries(Object.entries(showData).map(([k, v]) => [k, v['dist-tags'].latest]))
-      );
-      expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(packages.length);
-    });
-
-    it('falls back to beachball.tag', async () => {
-      npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
-      const packageInfos = Object.values(
-        makePackageInfos({ foo: { beachball: { tag: 'beta', defaultNpmTag: 'latest' } } })
-      );
-
-      const versions = await listPackageVersionsByTag(packageInfos, npmOptions);
-      expect(versions).toEqual({ foo: '2.0.0-beta' });
-      expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
-    });
-
-    it('falls back to defaultNpmTag if tag is unset', async () => {
-      npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
-      const packageInfos = Object.values(makePackageInfos({ foo: { beachball: { defaultNpmTag: 'beta' } } }));
-
-      const versions = await listPackageVersionsByTag(packageInfos, npmOptions);
-      expect(versions).toEqual({ foo: '2.0.0-beta' });
-      expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
-    });
-
-    it('returns empty if no dist-tags available', async () => {
-      npmMock.setRegistryData({});
-      const packageInfos = Object.values(makePackageInfos({ foo: {} }));
-
-      const versions = await listPackageVersionsByTag(packageInfos, npmOptions);
-      expect(versions).toEqual({});
-      expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
-    });
-
-    it('returns empty if no matching dist-tags available', async () => {
-      npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
-      const packageInfos = Object.values(makePackageInfos({ foo: {} }, { tag: 'missing' }));
-
-      const versions = await listPackageVersionsByTag(packageInfos, npmOptions);
-      expect(versions).toEqual({});
-      expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
-    });
-
-    it('uses per-package tag option', async () => {
-      npmMock.setRegistryData({
-        foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } },
-        bar: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } },
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({ foo: '1.0.0' });
+        expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
+        expect(npmMock.mockFetchJson).toHaveBeenCalledWith('/foo', expect.objectContaining(commonOptions));
+        // should not use npm CLI wrapper
+        expect(npmMock.mock).not.toHaveBeenCalled();
       });
-      const packageInfos = Object.values(
-        makePackageInfos(
-          {
-            foo: {},
-            bar: { beachball: { tag: 'beta' } },
+
+      it('returns requested tag from repo options', async () => {
+        npmMock.setRegistryData({
+          foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } },
+          bar: { 'dist-tags': { latest: '1.0.0', beta: '3.0.0-beta' } },
+        });
+        const { packages, options } = getOptionsAndPackages({
+          packages: { foo: {}, bar: {} },
+          repoOptions: { tag: 'beta' },
+        });
+
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({ foo: '2.0.0-beta', bar: '3.0.0-beta' });
+        expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
+        expect(npmMock.mockFetchJson).toHaveBeenCalledWith('/foo', expect.objectContaining(commonOptions));
+        expect(npmMock.mockFetchJson).toHaveBeenCalledWith('/bar', expect.objectContaining(commonOptions));
+      });
+
+      it('returns versions for many packages', async () => {
+        const packages = 'abcdefghij'.split('');
+        const showData = Object.fromEntries(packages.map((x, i) => [x, { 'dist-tags': { latest: `${i}.0.0` } }]));
+        npmMock.setRegistryData(showData);
+        const { packages: packageInfos, options } = getOptionsAndPackages({
+          packages: Object.fromEntries(packages.map(x => [x, {}])),
+          repoOptions: { tag: 'latest' },
+        });
+
+        expect(await listPackageVersionsByTag(packageInfos, options)).toEqual(
+          Object.fromEntries(Object.entries(showData).map(([k, v]) => [k, v['dist-tags'].latest]))
+        );
+        expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(packages.length);
+      });
+
+      it('returns empty if no dist-tags available', async () => {
+        npmMock.setRegistryData({});
+        const { packages, options } = getOptionsAndPackages({
+          packages: { foo: {} },
+        });
+
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({});
+        expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
+      });
+
+      it('returns empty if no matching dist-tags available', async () => {
+        npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
+        const { packages, options } = getOptionsAndPackages({
+          packages: { foo: {} },
+          repoOptions: { tag: 'missing' },
+        });
+
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({});
+        expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
+      });
+
+      it("omits packages that don't exist in registry", async () => {
+        npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0' } } });
+        const { packages, options } = getOptionsAndPackages({
+          packages: { foo: {}, bar: {} },
+        });
+
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({ foo: '1.0.0' });
+        expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
+      });
+
+      it('does nothing if both tag and defaultNpmTag are empty', async () => {
+        const { packages, options } = getOptionsAndPackages({
+          packages: { foo: {} },
+          repoOptions: { tag: '', defaultNpmTag: '' },
+        });
+
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({});
+        expect(npmMock.mockFetchJson).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('package options', () => {
+      it('uses per-package tag option', async () => {
+        npmMock.setRegistryData({
+          foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } },
+          bar: { 'dist-tags': { latest: '1.0.0', beta: '3.0.0-beta' } },
+        });
+        const { packages, options } = getOptionsAndPackages({
+          packages: {
+            foo: { beachball: { tag: 'beta', defaultNpmTag: 'nope' } },
+            bar: {},
           },
-          { defaultNpmTag: 'latest' }
-        )
-      );
+        });
 
-      const versions = await listPackageVersionsByTag(packageInfos, npmOptions);
-      expect(versions).toEqual({ foo: '1.0.0', bar: '2.0.0-beta' });
-      expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({ foo: '2.0.0-beta', bar: '1.0.0' });
+        expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
+      });
+
+      it('falls back to package defaultNpmTag if tag is unset', async () => {
+        npmMock.setRegistryData({
+          foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } },
+          bar: { 'dist-tags': { latest: '1.0.0', beta: '3.0.0-beta' } },
+        });
+        const { packages, options } = getOptionsAndPackages({
+          packages: { foo: { beachball: { defaultNpmTag: 'beta' } }, bar: {} },
+        });
+
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({ foo: '2.0.0-beta', bar: '1.0.0' });
+        expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
+      });
+
+      it('does nothing if package override tag and defaultNpmTag are empty', async () => {
+        const { packages, options } = getOptionsAndPackages({
+          packages: { foo: { beachball: { tag: '', defaultNpmTag: '' } } },
+          repoOptions: { tag: 'latest', defaultNpmTag: 'latest' },
+        });
+
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({});
+        expect(npmMock.mockFetchJson).not.toHaveBeenCalled();
+      });
     });
 
-    it('returns versions for multiple packages with some missing', async () => {
-      npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0' } } });
-      const packageInfos = Object.values(makePackageInfos({ foo: {}, bar: {} }));
+    describe('CLI options override', () => {
+      // it's expected that token is only specified as a CLI arg
+      it('respects token auth args', async () => {
+        npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
+        const { packages, options } = getOptionsAndPackages({
+          packages: { foo: {} },
+          extraArgv: ['--token', 'pass'],
+        });
+        // authtoken is the default auth type
+        expect(options).toMatchObject({ authType: 'authtoken', token: 'pass' });
 
-      const versions = await listPackageVersionsByTag(packageInfos, npmOptions);
-      expect(versions).toEqual({ foo: '1.0.0' });
-      expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({ foo: '1.0.0' });
+        expect(npmMock.mockFetchJson).toHaveBeenCalledWith(
+          '/foo',
+          expect.objectContaining({ ...commonOptions, '//fake:_authToken': 'pass' })
+        );
+      });
+
+      it('respects password auth args', async () => {
+        npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
+        const { packages, options } = getOptionsAndPackages({
+          packages: { foo: {} },
+          extraArgv: ['--authType', 'password', '--token', 'pass'],
+        });
+        expect(options).toMatchObject({ authType: 'password', token: 'pass' });
+
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({ foo: '1.0.0' });
+        expect(npmMock.mockFetchJson).toHaveBeenCalledWith(
+          '/foo',
+          expect.objectContaining({ ...commonOptions, '//fake:_password': 'pass' })
+        );
+      });
+
+      // This full scenario uses code outside listPackageVersionsByTag, but it's good to cover realistically
+      it('overrides repo tag with CLI tag', async () => {
+        npmMock.setRegistryData({
+          foo: { 'dist-tags': { latest: '1.0.0', alpha: '1.5.0-alpha', beta: '2.0.0-beta' } },
+        });
+        const { packages, options } = getOptionsAndPackages({
+          packages: { foo: {} },
+          repoOptions: { tag: 'alpha' },
+          extraArgv: ['--tag', 'beta'],
+        });
+
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({ foo: '2.0.0-beta' });
+        expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
+      });
+
+      it('overrides package tag with CLI tag', async () => {
+        npmMock.setRegistryData({
+          foo: { 'dist-tags': { latest: '1.0.0', alpha: '1.5.0-alpha', beta: '2.0.0-beta' } },
+        });
+        const { packages, options } = getOptionsAndPackages({
+          packages: { foo: { beachball: { tag: 'alpha' } } },
+          extraArgv: ['--tag', 'beta'], // CLI args should take precedence
+        });
+
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({ foo: '2.0.0-beta' });
+        expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
+      });
+
+      it('overrides package tag with CLI tag', async () => {
+        npmMock.setRegistryData({
+          foo: { 'dist-tags': { latest: '1.0.0', alpha: '1.5.0-alpha', beta: '2.0.0-beta' } },
+          bar: { 'dist-tags': { latest: '1.0.0', beta: '3.0.0-beta' } },
+        });
+        const { packages, options } = getOptionsAndPackages({
+          packages: { foo: { beachball: { tag: 'alpha' } }, bar: {} },
+          extraArgv: ['--tag', 'beta'], // CLI args should take precedence
+        });
+
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({ foo: '2.0.0-beta', bar: '3.0.0-beta' });
+        expect(npmMock.mock).not.toHaveBeenCalled();
+        expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
+      });
+
+      it('overrides empty package tag and defaultNpmTag with CLI tag', async () => {
+        npmMock.setRegistryData({
+          foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } },
+        });
+        const { packages, options } = getOptionsAndPackages({
+          packages: { foo: { beachball: { tag: '', defaultNpmTag: '' } } },
+          extraArgv: ['--tag', 'beta'],
+        });
+
+        const versions = await listPackageVersionsByTag(packages, options);
+        expect(versions).toEqual({ foo: '2.0.0-beta' });
+        expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

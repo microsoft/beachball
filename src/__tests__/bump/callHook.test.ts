@@ -18,7 +18,6 @@ describe('callHook', () => {
       pkg4: { optionalDependencies: { pkg5: '*' } },
       pkg5: {},
     },
-    undefined,
     { path: root }
   );
 

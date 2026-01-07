@@ -20,7 +20,7 @@ describe('bumpInMemory', () => {
     repoOptions?: Partial<RepoOptions>;
     changes: (string | PartialChangeFile)[];
   }) {
-    const { cliOptions, repoOptions, options } = getParsedOptions({
+    const { cliOptions, options } = getParsedOptions({
       cwd,
       argv: [],
       testRepoOptions: params.repoOptions,
@@ -28,7 +28,6 @@ describe('bumpInMemory', () => {
     const originalPackageInfos = makePackageInfosByFolder({
       packages: params.packageFolders,
       cwd,
-      repoOptions,
       cliOptions,
     });
     const changeSet: ChangeSet = generateChanges(params.changes).map((change, i) => ({

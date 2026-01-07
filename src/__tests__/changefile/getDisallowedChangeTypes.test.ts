@@ -5,18 +5,23 @@ import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 describe('getDisallowedChangeTypes', () => {
   it('returns null for unknown package', () => {
-    expect(getDisallowedChangeTypes('foo', {}, {})).toBeNull();
+    expect(getDisallowedChangeTypes('foo', {}, {}, { disallowedChangeTypes: [] })).toBeNull();
   });
 
-  it('returns null for package without disallowedChangeTypes', () => {
-    expect(getDisallowedChangeTypes('foo', makePackageInfos({ foo: {} }), {})).toBeNull();
+  it('falls back to main option for package without disallowedChangeTypes', () => {
+    expect(
+      getDisallowedChangeTypes('foo', makePackageInfos({ foo: {} }), {}, { disallowedChangeTypes: ['major'] })
+    ).toEqual(['major']);
   });
 
   it('returns disallowedChangeTypes for package', () => {
     const packageInfos = makePackageInfos({
       foo: { beachball: { disallowedChangeTypes: ['major', 'minor'] } },
     });
-    expect(getDisallowedChangeTypes('foo', packageInfos, {})).toEqual(['major', 'minor']);
+    expect(getDisallowedChangeTypes('foo', packageInfos, {}, { disallowedChangeTypes: [] })).toEqual([
+      'major',
+      'minor',
+    ]);
   });
 
   it('returns disallowedChangeTypes for package group', () => {
@@ -24,7 +29,10 @@ describe('getDisallowedChangeTypes', () => {
     const packageGroups: PackageGroups = {
       group: { packageNames: ['foo'], disallowedChangeTypes: ['major', 'minor'] },
     };
-    expect(getDisallowedChangeTypes('foo', packageInfos, packageGroups)).toEqual(['major', 'minor']);
+    expect(getDisallowedChangeTypes('foo', packageInfos, packageGroups, { disallowedChangeTypes: [] })).toEqual([
+      'major',
+      'minor',
+    ]);
   });
 
   it('returns disallowedChangeTypes for package if not in a group', () => {
@@ -34,7 +42,9 @@ describe('getDisallowedChangeTypes', () => {
     const packageGroups: PackageGroups = {
       group: { packageNames: ['bar'], disallowedChangeTypes: ['major', 'minor'] },
     };
-    expect(getDisallowedChangeTypes('foo', packageInfos, packageGroups)).toEqual(['patch']);
+    expect(getDisallowedChangeTypes('foo', packageInfos, packageGroups, { disallowedChangeTypes: [] })).toEqual([
+      'patch',
+    ]);
   });
 
   it('prefers disallowedChangeTypes for group over package', () => {
@@ -44,6 +54,9 @@ describe('getDisallowedChangeTypes', () => {
     const packageGroups: PackageGroups = {
       group: { packageNames: ['foo'], disallowedChangeTypes: ['major', 'minor'] },
     };
-    expect(getDisallowedChangeTypes('foo', packageInfos, packageGroups)).toEqual(['major', 'minor']);
+    expect(getDisallowedChangeTypes('foo', packageInfos, packageGroups, { disallowedChangeTypes: [] })).toEqual([
+      'major',
+      'minor',
+    ]);
   });
 });

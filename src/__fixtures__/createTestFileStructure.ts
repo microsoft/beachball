@@ -6,7 +6,7 @@ import type { RepoOptions } from '../types/BeachballOptions';
 /**
  * For each key in `files`, create a test folder and write a file of that filename, where the
  * content is the value (and create any intermediate folders).
- * @returns path to the test folder with **forward slashes**
+ * @returns path to the test folder
  */
 export function createTestFileStructure(files: Record<string, string | object>): string {
   const testFolderPath = tmpdir();
@@ -17,7 +17,7 @@ export function createTestFileStructure(files: Record<string, string | object>):
     fs.writeFileSync(filePath, typeof content === 'string' ? content : JSON.stringify(content));
   }
 
-  return testFolderPath.replace(/\\/g, '/');
+  return testFolderPath;
 }
 
 /**

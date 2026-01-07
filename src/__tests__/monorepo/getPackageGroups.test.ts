@@ -1,11 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import path from 'path';
-import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { mockProcessExit } from '../../__fixtures__/mockProcessExit';
 import { makePackageInfosByFolder, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
 import { getPackageGroups } from '../../monorepo/getPackageGroups';
-import { getParsedOptions } from '../../options/getOptions';
 import type { RepoOptions } from '../../types/BeachballOptions';
 
 describe('getPackageGroups', () => {
@@ -16,18 +14,11 @@ describe('getPackageGroups', () => {
     packageFolders: PartialPackageInfos;
     repoOptions?: Partial<RepoOptions>;
   }) {
-    const parsedOptions = getParsedOptions({
-      cwd: root,
-      argv: [],
-      testRepoOptions: { branch: defaultRemoteBranchName, ...params.repoOptions },
-    });
     const packageInfos = makePackageInfosByFolder({
       packages: params.packageFolders,
-      repoOptions: parsedOptions.repoOptions,
       cwd: root,
     });
-
-    return getPackageGroups(packageInfos, root, parsedOptions.options.groups);
+    return getPackageGroups(packageInfos, root, params.repoOptions?.groups);
   }
 
   beforeAll(() => {

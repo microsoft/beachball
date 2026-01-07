@@ -42,7 +42,7 @@ describe('promptForChange', () => {
     changedPackages: ['foo', 'bar'],
     packageInfos: makePackageInfos({ foo: {}, bar: {}, baz: {} }),
     packageGroups: {},
-    options: { message: '' },
+    options: { message: '', disallowedChangeTypes: null },
     recentMessages: ['commit 2', 'commit 1'],
     email: null,
   });
@@ -65,7 +65,7 @@ describe('promptForChange', () => {
   it('does not prompt if options.type and options.message are provided', async () => {
     const changeFiles = await promptForChange({
       ...defaultParams(),
-      options: { type: 'minor', message: 'message' },
+      options: { type: 'minor', message: 'message', disallowedChangeTypes: null },
     });
     expect(changeFiles).toEqual([
       expect.objectContaining({ type: 'minor', comment: 'message', packageName: 'foo' }),
@@ -135,7 +135,7 @@ describe('promptForChange', () => {
     };
     const changeFilesPromise = promptForChange({
       ...defaultParams(),
-      options: { message: 'message', changeFilePrompt },
+      options: { message: 'message', changeFilePrompt, disallowedChangeTypes: null },
       changedPackages: ['foo', 'bar'],
     });
     await waitForPrompt();

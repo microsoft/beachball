@@ -11,10 +11,7 @@ describe('getScopedPackages', () => {
 
   beforeAll(() => {
     root = createTestFileStructureType('monorepo');
-    packageInfos = getPackageInfos({
-      cliOptions: { path: root, command: '' },
-      repoOptions: {},
-    });
+    packageInfos = getPackageInfos({ path: root, command: '' });
   });
 
   afterAll(() => {
