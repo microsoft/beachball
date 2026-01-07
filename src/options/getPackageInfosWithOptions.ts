@@ -4,32 +4,13 @@ import { getCliOptions } from './getCliOptions';
 import { env } from '../env';
 import { consideredDependencies, type PackageInfo, type PackageInfos } from '../types/PackageInfo';
 
-// Weird workaround in case anybody was using combinedOptions in a hook or something, since it was
-// removed in a minor version: set combinedOptions to a non-enumerable property pointing to this proxy,
-// which makes explicit sub-property access throw... (can't use a combinedOptions getter that throws
-// because even if it's non-enumerable, it breaks some things in tests)
-const combinedOptionsProxy = new Proxy(
-  {},
-  {
-    get() {
-      throw new Error(
-        'combinedOptions is no longer supported. Get package-specific options ' +
-          '(plus any CLI overrides) via packageOptions, or other values via main options.'
-      );
-    },
-    set() {
-      throw new Error('combinedOptions is no longer supported.');
-    },
-  }
-);
-
 /**
  * Fill in options to convert `workspace-tools` `PackageInfos` to the format used in this repo,
  * including any package-specific options merged with CLI overrides.
  * @param cliOptions Parsed CLI options. Can be null in tests to indicate no CLI options.
  * @param enableCombinedOptionsForTests For testing only: usually in tests, the combinedOptions
- * proxy is not added to prevent jest exceptions when checking equality of objects.
- * Use this to force adding the proxy for testing its behavior.
+ * getter is not added to prevent jest exceptions when checking equality of objects.
+ * Use this to force adding the getter for testing its behavior.
  */
 export function getPackageInfosWithOptions(
   wsPackageInfos: WSPackageInfo[],
@@ -65,12 +46,12 @@ export function getPackageInfosWithOptions(
       deps && (newPackageInfo[depType] = deps);
     }
 
-    // Use a non-enumerable property (won't be JSON.stringified) for the combinedOptions proxy
     if (!env.isJest || enableCombinedOptionsForTests) {
+      // Use a non-enumerable property (won't be JSON.stringified) to throw on explicit combinedOptions access
       Object.defineProperty(newPackageInfo, 'combinedOptions', {
         enumerable: false,
         configurable: false,
-        value: combinedOptionsProxy,
+        get: throwCombinedOptionsError,
       });
     }
 
@@ -118,4 +99,15 @@ function mergePackageOptions(
     }
   }
   return hasOptions ? mergedOptions : undefined;
+}
+
+/**
+ * Shared helper to throw on `combinedOptions` access (one function without method scope
+ * for all instances).
+ */
+function throwCombinedOptionsError() {
+  throw new Error(
+    'combinedOptions is no longer supported. Get package-specific options ' +
+      '(plus any CLI overrides) via packageOptions, or other values via main options.'
+  );
 }

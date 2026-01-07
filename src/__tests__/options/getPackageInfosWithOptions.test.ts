@@ -83,26 +83,16 @@ describe('getPackageInfosWithOptions', () => {
     });
   });
 
-  describe('combinedOptions proxy', () => {
+  describe('combinedOptions property', () => {
     it('adds non-enumerable combinedOptions property', () => {
       const result = getPackageInfosWithOptions([baseWsPackage], null, true);
       const pkg = result['test-package'];
 
       // Should exist but not be enumerable
       // eslint-disable-next-line etc/no-deprecated
-      expect(pkg.combinedOptions).toBeDefined();
+      expect(() => pkg.combinedOptions).toThrow('combinedOptions is no longer supported');
       expect(Object.keys(pkg)).not.toContain('combinedOptions');
       expect(JSON.stringify(pkg)).not.toContain('combinedOptions');
-    });
-
-    it('throws when getting or setting combinedOptions properties', () => {
-      const result = getPackageInfosWithOptions([baseWsPackage], null, true);
-      const pkg = result['test-package'];
-
-      // eslint-disable-next-line
-      expect(() => (pkg.combinedOptions as any).tag).toThrow('combinedOptions is no longer supported');
-      // eslint-disable-next-line
-      expect(() => ((pkg.combinedOptions as any).tag = 'test')).toThrow('combinedOptions is no longer supported');
     });
   });
 
