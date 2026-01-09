@@ -44,7 +44,7 @@ export function getPackageInfos(optionsOrCwd: string | PackageInfosCliOptions): 
 
   if (wsPackageInfos) {
     return typeof optionsOrCwd === 'string'
-      ? // eslint-disable-next-line etc/no-deprecated
+      ? // eslint-disable-next-line beachball/no-deprecated
         getPackageInfosWithOptions(wsPackageInfos)
       : getPackageInfosWithOptions(wsPackageInfos, optionsOrCwd);
   }

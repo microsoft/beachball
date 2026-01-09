@@ -20,7 +20,7 @@ export async function publish(options: BeachballOptions, context?: CommandContex
   console.log('\nPreparing to publish');
 
   const { path: cwd, branch, registry, tag, packToPath } = options;
-  // eslint-disable-next-line etc/no-deprecated -- compat code
+  // eslint-disable-next-line beachball/no-deprecated -- compat code
   context ??= createCommandContext(options);
 
   // First, validate that we have changes to publish
@@ -79,7 +79,7 @@ export async function publish(options: BeachballOptions, context?: CommandContex
   }
   const bumpInfo: PublishBumpInfo = context.bumpInfo;
 
-  // eslint-disable-next-line etc/no-deprecated
+  // eslint-disable-next-line beachball/no-deprecated
   if (options.new) {
     // Publish newly created packages even if they don't have change files
     // (this is unlikely unless the packages were pushed without a PR that runs "beachball check")

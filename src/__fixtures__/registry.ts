@@ -122,7 +122,7 @@ export class Registry {
     return new Promise((resolve, reject) => {
       let hasReturned = false;
       const rejectWrapper = (err: unknown) => {
-        !hasReturned && reject(err);
+        !hasReturned && reject(err instanceof Error ? err : new Error(String(err)));
         hasReturned = true;
       };
 

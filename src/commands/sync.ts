@@ -17,7 +17,7 @@ export async function sync(options: BeachballOptions, context: SyncCommandContex
 /** @deprecated Use other signature */
 export async function sync(options: BeachballOptions): Promise<void>;
 export async function sync(options: BeachballOptions, context?: SyncCommandContext): Promise<void> {
-  // eslint-disable-next-line etc/no-deprecated
+  // eslint-disable-next-line beachball/no-deprecated
   const packageInfos = context?.originalPackageInfos ?? getPackageInfos(options.path);
   const scopedPackages = context?.scopedPackages ?? getScopedPackages(options, packageInfos);
 

@@ -168,14 +168,13 @@ describe('getCliOptions', () => {
     const options = getCliOptionsTest(['--branch', 'someremote/foo']);
     expect(options).toEqual({ ...defaults, branch: 'someremote/foo' });
     // this is mocked at the top of the file
-    // eslint-disable-next-line etc/no-deprecated
     expect(getDefaultRemoteBranch).not.toHaveBeenCalled();
   });
 
   it('adds default remote to branch without slash', () => {
     const options = getCliOptionsTest(['--branch', 'foo']);
     expect(options).toEqual({ ...defaults, branch: 'origin/foo' });
-    // eslint-disable-next-line etc/no-deprecated, @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line -- variadic signature issues (incorrect deprecated flag and incorrect jest inference)
     expect(getDefaultRemoteBranch).toHaveBeenCalledWith({ branch: 'foo', verbose: undefined, cwd: projectRoot } as any);
   });
 

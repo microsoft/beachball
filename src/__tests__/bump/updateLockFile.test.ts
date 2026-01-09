@@ -8,7 +8,6 @@ jest.mock('fs');
 jest.mock('../../packageManager/packageManager');
 jest.mock('../../env', () => ({
   env: {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     ...jest.requireActual<typeof import('../../env')>('../../env').env,
     isJest: false,
   },
