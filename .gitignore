@@ -6,11 +6,14 @@ node_modules/
 .DS_Store
 lib/
 package-lock.json
-# ignore when switching between yarn 1/4 branches
-.yarn
 
 docs/.vuepress/.cache
 docs/.vuepress/.temp
 docs/.yarn/*
-!docs/.yarn/patches/
-!docs/.yarn/releases/
+docs/.yarn
+
+.yarn/*
+!.yarn/patches/
+!.yarn/releases/
+# Ignore this in case a local .npmrc is added with a token for publishing
+.npmrc

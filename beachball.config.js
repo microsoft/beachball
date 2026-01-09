@@ -1,14 +1,10 @@
 // @ts-check
-/** @type {Partial<import('./src/types/BeachballOptions').RepoOptions>}*/
+/** @type {Partial<import('./src/types/BeachballOptions').RepoOptions>} */
 const config = {
-  disallowedChangeTypes: ['major'],
   ignorePatterns: [
-    '.*ignore',
+    '.*',
+    '.*/**',
     '*.yml',
-    '.eslintrc.js',
-    '.github/**',
-    '.prettierrc.json5',
-    '.vscode/**',
     'docs/**',
     'docs/.vuepress/**',
     'jest.*.js',
@@ -18,6 +14,13 @@ const config = {
     // This one is especially important (otherwise dependabot would be blocked by change file requirements)
     'yarn.lock',
   ],
+
+  // TODO (release): change back to 'major'
+  disallowedChangeTypes: ['prerelease', 'premajor', 'preminor', 'prepatch'],
+  // TODO (release): remove these
+  branch: 'next',
+  defaultNpmTag: 'next',
+  gitTags: false,
 };
 
 module.exports = config;

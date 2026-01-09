@@ -15,7 +15,7 @@
     "github>microsoft/m365-renovate-config:groupMore",
     "github>microsoft/m365-renovate-config:groupTypes",
     "github>microsoft/m365-renovate-config:keepFresh",
-    "github>microsoft/m365-renovate-config:restrictNode(14)"
+    "github>microsoft/m365-renovate-config:restrictNode(20)"
   ],
 
   "gitAuthor": "Renovate Bot <renovate@whitesourcesoftware.com>",

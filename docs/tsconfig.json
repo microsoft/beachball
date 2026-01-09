@@ -1,11 +1,12 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "noEmit": true,
-    "strict": true,
-    "lib": ["es2022", "dom"],
-    "module": "es2022",
-    "moduleResolution": "bundler",
-    "types": ["node"]
+    // Workaround for ESM/CJS interop issues: the root tsconfig.json currently transpiles to CJS,
+    // but config.ts imports ESM dependencies. So let TS know it doesn't need to worry about module
+    // format compat issues (since the docs are actually built with Vite).
+    "module": "preserve",
+    "moduleResolution": "bundler"
   },
   "include": ["./.vuepress/*"]
 }

@@ -75,8 +75,8 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
         .trim();
 
       if (opts.root) {
-        // Normalize slashes first to ensure they're the same, then emulate replaceAll
-        lines = lines.replace(/\\/g, '/').split(opts.root.replace(/\\/g, '/')).join('<root>');
+        // Normalize slashes then replace the root path
+        lines = lines.replace(/\\/g, '/').replaceAll(opts.root.replace(/\\/g, '/'), '<root>');
       }
       if (opts.sanitize) {
         lines = lines
