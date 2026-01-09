@@ -1,5 +1,5 @@
 import { SortedChangeTypes } from '../changefile/changeTypes';
-import { ChangeType } from '../types/ChangeInfo';
+import type { ChangeType } from '../types/ChangeInfo';
 
 /**
  * Returns whether `dependentChangeType` is valid and not disallowed.

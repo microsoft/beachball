@@ -6,7 +6,7 @@ import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
 import * as npmModule from '../../packageManager/npm';
 import { packagePublish } from '../../packageManager/packagePublish';
 import type { PackageInfo } from '../../types/PackageInfo';
-import { npm, NpmResult } from '../../packageManager/npm';
+import type { npm, NpmResult } from '../../packageManager/npm';
 import { writeJson } from '../../object/writeJson';
 import { getNpmPackageInfo, type NpmPackageVersionsData } from '../../packageManager/getNpmPackageInfo';
 import { env } from '../../env';

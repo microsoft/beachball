@@ -1,4 +1,4 @@
-import { BumpInfo } from '../types/BumpInfo';
+import type { BumpInfo } from '../types/BumpInfo';
 import type { ChangeSet, ChangeType } from '../types/ChangeInfo';
 
 /**

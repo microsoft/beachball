@@ -1,9 +1,10 @@
-import { afterAll, afterEach, beforeAll, jest } from '@jest/globals';
+import type { jest } from '@jest/globals';
+import { afterAll, afterEach, beforeAll } from '@jest/globals';
 import fs from 'fs';
 import fetch from 'npm-registry-fetch';
 import path from 'path';
 import semver from 'semver';
-import { npm, NpmResult } from '../packageManager/npm';
+import { npm, type NpmResult } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
 import type { PackageManagerOptions } from '../packageManager/packageManager';
 import { readJson } from '../object/readJson';

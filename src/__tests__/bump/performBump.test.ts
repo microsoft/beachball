@@ -7,7 +7,7 @@ import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/p
 import type { BumpInfo } from '../../types/BumpInfo';
 import { getParsedOptions } from '../../options/getOptions';
 import { performBump } from '../../bump/performBump';
-import { ChangeSet, type ChangeFileInfo } from '../../types/ChangeInfo';
+import type { ChangeSet, ChangeFileInfo } from '../../types/ChangeInfo';
 import { consideredDependencies, type PackageInfos, type PackageJson } from '../../types/PackageInfo';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { updateLockFile as _updateLockFile } from '../../bump/updateLockFile';

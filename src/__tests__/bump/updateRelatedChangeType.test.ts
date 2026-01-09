@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 import { updateRelatedChangeType } from '../../bump/updateRelatedChangeType';
 import type { ChangeFileInfo, ChangeInfo, ChangeType } from '../../types/ChangeInfo';
-import { PartialPackageInfos, makePackageInfos } from '../../__fixtures__/packageInfos';
-import { PackageGroups } from '../../types/PackageInfo';
+import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
+import type { PackageGroups } from '../../types/PackageInfo';
 import { getDependentsForPackages } from '../../bump/getDependentsForPackages';
 import type { BeachballOptions } from '../../types/BeachballOptions';
 
