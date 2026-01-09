@@ -17,7 +17,8 @@
       "console": "integratedTerminal",
       // Debug with Node 14 via nvm.
       // On Windows, you might have to change this to a specific version.
-      "runtimeVersion": "14"
+      "runtimeVersion": "14",
+      "env": { "VERDACCIO_LOG": "1" }
     },
     {
       "type": "node",

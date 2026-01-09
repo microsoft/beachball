@@ -149,20 +149,23 @@ describe('packagePublish', () => {
       expect(logs2ndTry).toMatch(`${testSpec} already exists in the registry`);
     });
 
-    it('handles auth error and does not retry', async () => {
-      await registry.logout();
+    // TODO: enable this once node version is upgraded (it doesn't work with npm 6 because that
+    // version seems to allow truly anonymous publishing with verdaccio, and there's not a
+    // straightforward way to detect the npm version while accounting for nvm)
+    // it('handles auth error and does not retry', async () => {
+    //   await registry.logout();
 
-      const testPackageInfo = getTestPackageInfo();
-      const publishResult = await packagePublish(testPackageInfo, {
-        ...defaultOptions,
-        registry: registry.getUrl(),
-        path: tempRoot,
-      });
-      expect(publishResult).toEqual(failedResult);
-      // `retries` should be ignored with an auth error
-      expect(npmSpy).toHaveBeenCalledTimes(1);
-      expect(logs.getMockLines('error')).toMatch(`Publishing ${testSpec} failed due to an auth error. Output:`);
-    });
+    //   const testPackageInfo = getTestPackageInfo();
+    //   const publishResult = await packagePublish(testPackageInfo, {
+    //     ...defaultOptions,
+    //     registry: registry.getUrl(),
+    //     path: tempRoot,
+    //   });
+    //   expect(publishResult).toEqual(failedResult);
+    //   // `retries` should be ignored with an auth error
+    //   expect(npmSpy).toHaveBeenCalledTimes(1);
+    //   expect(logs.getMockLines('error')).toMatch(`Publishing ${testSpec} failed due to an auth error. Output:`);
+    // });
   });
 
   describe('with mocked npm', () => {
@@ -212,6 +215,24 @@ describe('packagePublish', () => {
       expect(allLogs).toMatch('Retrying... (2/3)');
       expect(allLogs).toMatch('Retrying... (3/3)');
       expect(allLogs).toMatch(`[error] Publishing ${testSpec} failed. Output:\n\nsome errors`);
+    });
+
+    it('does not retry on auth error (mock)', async () => {
+      // Mock an auth error
+      const testPackageInfo = getTestPackageInfo();
+      npmSpy.mockImplementation(() => Promise.resolve({ success: false, all: 'ERR! code ENEEDAUTH' } as NpmResult));
+
+      const publishResult = await packagePublish(testPackageInfo, {
+        ...defaultOptions,
+        registry: 'fake',
+        path: tempRoot,
+      });
+      expect(publishResult).toEqual(failedResult);
+      expect(npmSpy).toHaveBeenCalledTimes(1);
+
+      expect(logs.getMockLines('error')).toMatch(
+        `Publishing ${testSpec} failed due to an auth error. Output:\n\nERR! code ENEEDAUTH`
+      );
     });
 
     it('does not retry on E404', async () => {
