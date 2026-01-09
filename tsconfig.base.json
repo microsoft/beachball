@@ -1,0 +1,14 @@
+// Base config for main project and docs
+{
+  "compilerOptions": {
+    // compatible with node 20 (could probably do ES2023)
+    "target": "ES2022",
+    "strict": true,
+    "noUnusedLocals": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "lib": ["ES2022"],
+    "types": ["node"]
+  }
+}

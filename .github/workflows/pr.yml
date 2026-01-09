@@ -5,9 +5,12 @@ name: PR
 
 on:
   pull_request:
-    branches: [main]
+    branches: [master, next, next2]
   push:
-    branches: [main]
+    branches: [master, next, next2]
+
+env:
+  npmVersion: 10
 
 concurrency:
   # For PRs, use the ref (branch) in the concurrency group so that new pushes cancel any old runs.
@@ -23,15 +26,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        npm: [8]
-        include:
-          - os: ubuntu-latest
-            # npm 6 and 8 have slightly different behavior with verdaccio in publishing tests.
-            # It's unclear if this translates to meaningful differences in behavior in actual scenarios,
-            # but test against both versions to be safe. (Only do this on the ubuntu build for speed.)
-            npm: 6
 
-    name: build (${{ matrix.os }}, npm ${{ matrix.npm }})
+    name: build (${{ matrix.os }})
 
     runs-on: ${{ matrix.os }}
 
@@ -45,15 +41,17 @@ jobs:
           cache: yarn
           node-version-file: .nvmrc
 
-      # Guarantee a predictable version of npm for the first round of tests
-      - name: Install npm@${{ matrix.npm }}
-        run: npm install --global npm@${{ matrix.npm }}
+      # Guarantee a predictable version of npm
+      - name: Install npm@${{ env.npmVersion }}
+        run: npm install --global npm@${{ env.npmVersion }}
 
-      - run: yarn --frozen-lockfile
+      - run: yarn --immutable
 
       - run: yarn build
 
       - run: yarn checkchange --verbose
+
+      - run: yarn docs:build
 
       - run: yarn lint
 
@@ -61,26 +59,5 @@ jobs:
 
       - run: yarn test:func
 
-      - run: yarn test:e2e
-
-  # The docs have a separate installation using Node 22 due to needing newer dependencies
-  docs:
-    name: build docs
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-
-      - name: Install Node.js 22
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          cache: yarn
-          node-version: 22
-
-      - run: yarn --immutable
-        working-directory: ./docs
-
-      - run: yarn docs:build
-        working-directory: ./docs
+      - name: yarn test:e2e (npm ${{ env.npmVersion }})
+        run: yarn test:e2e
