@@ -66,21 +66,21 @@ describe('getPackageInfos', () => {
   // the options were being parsed.
   it('throws if neither project root nor git repo found (old signature)', () => {
     tempDir = tmpdir();
-    // eslint-disable-next-line etc/no-deprecated
+    // eslint-disable-next-line beachball/no-deprecated
     expect(() => getPackageInfos(tempDir!)).toThrow(/not in a git repository/);
   });
 
   it('returns empty object if no packages are found', () => {
     tempDir = tmpdir();
     gitFailFast(['init'], { cwd: tempDir });
-    // eslint-disable-next-line etc/no-deprecated
+    // eslint-disable-next-line beachball/no-deprecated
     expect(getPackageInfos(tempDir)).toEqual({});
     expect(getPackageInfos({ path: tempDir })).toEqual({});
   });
 
   it('works in single-package repo (old signature)', () => {
     const repo = singleFactory.cloneRepository();
-    // eslint-disable-next-line etc/no-deprecated
+    // eslint-disable-next-line beachball/no-deprecated
     const packageInfos = getPackageInfos(repo.rootPath);
     // Verify all the properties for this case
     expect(packageInfos).toEqual({
@@ -121,7 +121,7 @@ describe('getPackageInfos', () => {
   it('works in yarn/npm monorepo (old signature)', () => {
     const repo = monorepoFactory.cloneRepository();
     // Start from another cwd to make sure it works
-    // eslint-disable-next-line etc/no-deprecated
+    // eslint-disable-next-line beachball/no-deprecated
     const packageInfos = getPackageInfos(repo.pathTo('packages/foo'));
     expect(cleanPaths(repo.rootPath, packageInfos)).toEqual(expectedYarnPackages);
   });

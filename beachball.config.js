@@ -7,6 +7,7 @@ const config = {
     '*.yml',
     'docs/**',
     'docs/.vuepress/**',
+    'eslint.config.*',
     'jest.*.js',
     'renovate.json5',
     'scripts/**',
