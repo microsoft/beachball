@@ -17,6 +17,8 @@ const config = {
   rules: {
     '@typescript-eslint/consistent-generic-constructors': 'error',
     '@typescript-eslint/consistent-type-assertions': 'error',
+    '@typescript-eslint/consistent-type-imports': 'error',
+    '@typescript-eslint/consistent-type-exports': 'error',
     '@typescript-eslint/explicit-module-boundary-types': 'error',
     '@typescript-eslint/naming-convention': [
       'error',

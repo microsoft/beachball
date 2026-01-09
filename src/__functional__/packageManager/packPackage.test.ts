@@ -3,10 +3,10 @@ import fs from 'fs';
 import path from 'path';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
-import * as npmModuleType from '../../packageManager/npm';
+import type * as npmModuleType from '../../packageManager/npm';
 import type { NpmResult } from '../../packageManager/npm';
 import { packPackage } from '../../packageManager/packPackage';
-import { PackageInfo } from '../../types/PackageInfo';
+import type { PackageInfo } from '../../types/PackageInfo';
 import { getMockNpmPackName, initNpmMock } from '../../__fixtures__/mockNpm';
 import { writeJson } from '../../object/writeJson';
 

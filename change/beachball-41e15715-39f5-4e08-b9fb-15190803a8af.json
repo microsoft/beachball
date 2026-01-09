@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use `import type` internally",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

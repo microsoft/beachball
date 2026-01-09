@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { PackageInfo } from '../types/PackageInfo';
-import { BeachballOptions } from '../types/BeachballOptions';
+import type { PackageInfo } from '../types/PackageInfo';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import { npm } from './npm';
 import { getNpmLogLevelArgs } from './npmArgs';
 

@@ -2,7 +2,7 @@ import { getMaxChangeType } from '../changefile/changeTypes';
 import { getPackageOption } from '../options/getPackageOption';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { BumpInfo, PackageDependents } from '../types/BumpInfo';
-import { ChangeFileInfo } from '../types/ChangeInfo';
+import type { ChangeFileInfo } from '../types/ChangeInfo';
 
 /**
  * This is the core of the `bumpInfo` dependency bumping logic - done once per change info.
