@@ -6,6 +6,8 @@ node_modules/
 .DS_Store
 lib/
 package-lock.json
+# ignore when switching between yarn 1/4 branches
+.yarn
 
 docs/.vuepress/.cache
 docs/.vuepress/.temp
