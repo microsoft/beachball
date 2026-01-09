@@ -84,7 +84,7 @@ export function validate(
   }
 
   const originalPackageInfos =
-    // eslint-disable-next-line etc/no-deprecated
+    // eslint-disable-next-line beachball/no-deprecated
     'cliOptions' in _options ? getPackageInfos(_options) : getPackageInfos(options.path);
 
   if (options.all && options.package) {

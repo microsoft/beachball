@@ -13,7 +13,7 @@ import {
   _mockNpmPack,
   _mockNpmPublish,
   type MockNpmResult,
-  MockNpmCommand,
+  type MockNpmCommand,
 } from './mockNpm';
 import * as readJsonModule from '../object/readJson';
 

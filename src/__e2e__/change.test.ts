@@ -38,7 +38,6 @@ let mockBeachballOptions: Partial<BeachballOptions> | undefined;
 jest.mock('../options/getDefaultOptions', () => ({
   getDefaultOptions: () => ({
     ...jest
-      // eslint-disable-next-line @typescript-eslint/consistent-type-imports
       .requireActual<typeof import('../options/getDefaultOptions')>('../options/getDefaultOptions')
       .getDefaultOptions(),
     ...mockBeachballOptions,

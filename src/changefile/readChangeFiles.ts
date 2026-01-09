@@ -128,7 +128,7 @@ function getMtime(params: { changePath: string; changeFile: string }) {
     const mtime = fs.statSync(path.join(params.changePath, params.changeFile)).mtime.getTime();
     mtimeCache[params.changeFile] = mtime;
     return mtime;
-  } catch (err) {
+  } catch {
     mtimeCache[params.changeFile] = 0;
     return 0;
   }

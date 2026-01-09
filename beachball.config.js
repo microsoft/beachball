@@ -25,6 +25,7 @@ const config = {
     'docs/**',
     'docs/.*/**',
     'docs/.*',
+    'eslint.config.*',
     'jest.*.js',
     'renovate.json5',
     'scripts/**',
