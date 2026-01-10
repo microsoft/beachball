@@ -11,22 +11,32 @@ export function getScopedPackages(
   packageInfos: PackageInfos
 ): ScopedPackages {
   const { scope, path: cwd } = options;
-  if (!scope) {
-    const result: ScopedPackages = new Set(Object.keys(packageInfos));
-    result.allInScope = true;
-    return result;
+
+  const packageNames = Object.keys(packageInfos);
+  let result: Set<string>;
+
+  if (scope) {
+    let includeScopes: string[] | true = scope.filter(s => !s.startsWith('!'));
+    // If there were no include scopes, include all paths by default
+    includeScopes = includeScopes.length ? includeScopes : true;
+
+    const excludeScopes = scope.filter(s => s.startsWith('!'));
+
+    result = new Set(
+      packageNames.filter(pkgName => {
+        const packagePath = path.dirname(packageInfos[pkgName].packageJsonPath);
+
+        return isPathIncluded(path.relative(cwd, packagePath), includeScopes, excludeScopes);
+      })
+    );
+  } else {
+    result = new Set(packageNames);
   }
 
-  let includeScopes: string[] | true = scope.filter(s => !s.startsWith('!'));
-  // If there were no include scopes, include all paths by default
-  includeScopes = includeScopes.length ? includeScopes : true;
+  if (result.size === packageNames.length) {
+    // Override .has() to always return true unless the package doesn't exist
+    result.has = packageName => !!packageInfos[packageName];
+  }
 
-  const excludeScopes = scope.filter(s => s.startsWith('!'));
-
-  const result = Object.keys(packageInfos).filter(pkgName => {
-    const packagePath = path.dirname(packageInfos[pkgName].packageJsonPath);
-
-    return isPathIncluded(path.relative(cwd, packagePath), includeScopes, excludeScopes);
-  });
-  return new Set(result);
+  return result;
 }

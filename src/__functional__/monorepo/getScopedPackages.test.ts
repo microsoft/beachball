@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { describe, expect, it, beforeAll, afterAll } from '@jest/globals';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
 import type { PackageInfos } from '../../types/PackageInfo';
@@ -18,10 +19,33 @@ describe('getScopedPackages', () => {
     removeTempDir(root);
   });
 
-  it('returns true when no scope is provided', () => {
+  it('short circuits when no scope is provided', () => {
     const scopedPackages = getScopedPackages({ path: root }, packageInfos);
     expect(scopedPackages).toEqual(new Set(Object.keys(packageInfos)));
-    expect(scopedPackages.allInScope).toBe(true);
+
+    // If all are in scope, the returned Set's `has` method is overridden to short circuit.
+    expect(scopedPackages.has).not.toBe(Set.prototype.has);
+    expect(scopedPackages.has('foo')).toBe(true);
+    // But it still returns false if the package doesn't exist
+    expect(scopedPackages.has('nonexistent')).toBe(false);
+  });
+
+  it('short circuits if all in scope', () => {
+    const scopedPackages = getScopedPackages(
+      {
+        path: root,
+        scope: ['packages/**/*'],
+      },
+      packageInfos
+    );
+
+    expect(scopedPackages).toEqual(new Set(Object.keys(packageInfos)));
+
+    // If all are in scope, the returned Set's `has` method is overridden to short circuit.
+    expect(scopedPackages.has).not.toBe(Set.prototype.has);
+    expect(scopedPackages.has('foo')).toBe(true);
+    // But it still returns false if the package doesn't exist
+    expect(scopedPackages.has('nonexistent')).toBe(false);
   });
 
   it('can scope packages', () => {
@@ -34,7 +58,7 @@ describe('getScopedPackages', () => {
     );
 
     expect(scopedPackages).toEqual(new Set(['a', 'b']));
-    expect(scopedPackages.allInScope).toBeUndefined();
+    expect(scopedPackages.has).toBe(Set.prototype.has);
   });
 
   it('can scope with excluded packages', () => {
@@ -47,7 +71,7 @@ describe('getScopedPackages', () => {
     );
 
     expect(scopedPackages).toEqual(new Set(['bar', 'baz', 'foo']));
-    expect(scopedPackages.allInScope).toBeUndefined();
+    expect(scopedPackages.has).toBe(Set.prototype.has);
   });
 
   it('can mix and match with excluded packages', () => {
@@ -60,6 +84,6 @@ describe('getScopedPackages', () => {
     );
 
     expect(scopedPackages).toEqual(new Set(['bar', 'baz']));
-    expect(scopedPackages.allInScope).toBeUndefined();
+    expect(scopedPackages.has).toBe(Set.prototype.has);
   });
 });

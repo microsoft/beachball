@@ -37,7 +37,7 @@ export function getPackagesToPublish(
       skipReason = 'has change type none';
     } else if (packageInfo.private) {
       skipReason = 'is private';
-    } else if (!scopedPackages.allInScope && !scopedPackages.has(pkg)) {
+    } else if (!scopedPackages.has(pkg)) {
       skipReason = 'is out-of-scope';
     } else if (!changeType && !newPackages?.includes(pkg)) {
       skipReason = 'is not bumped (no calculated change type)';

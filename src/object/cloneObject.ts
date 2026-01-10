@@ -1,8 +1,6 @@
-import type { ScopedPackages } from '../types/PackageInfo';
-
 /**
- * Clone an object, fast.
- * Currently only handles data types expected in `BumpInfo` but could be expanded if needed.
+ * Clone an object, fast. Currently only handles JSON-like objects (not class instances)
+ * but could be expanded if needed.
  *
  * This is decently faster than `structuredClone` or `JSON.parse(JSON.stringify())` on a
  * very large object (bump info can be huge in certain repos). https://jsperf.app/rugosa/5
@@ -27,18 +25,6 @@ export function cloneObject<T extends object>(obj: T): T {
       clone[i] = val && typeof val === 'object' ? cloneObject(val) : val;
     }
     return clone;
-  }
-
-  if (obj instanceof Set) {
-    const cloned = new Set(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      Array.from(obj).map(item => (item && typeof item === 'object' ? cloneObject(item) : item))
-    ) as T;
-    // special logic to clone a custom set property
-    if ((obj as ScopedPackages).allInScope) {
-      (cloned as ScopedPackages).allInScope = true;
-    }
-    return cloned;
   }
 
   if (obj.constructor?.name && obj.constructor.name !== 'Object') {
