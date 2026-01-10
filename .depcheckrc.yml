@@ -14,3 +14,5 @@ ignores:
   - '@vuepress/*'
   - mermaid
   - sass-embedded
+  # not detected in script
+  - cross-env

@@ -501,6 +501,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@epic-web/invariant@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@epic-web/invariant@npm:1.0.0"
+  checksum: 10c0/72dbeb026e4e4eb3bc9c65739b91408ca77ab7d603a2494fa2eff3790ec22892c4caba751cffdf30f5ccf0e7ba79c1e9c96cf0a357404b9432bf1365baac23ca
+  languageName: node
+  linkType: hard
+
 "@esbuild/aix-ppc64@npm:0.25.12":
   version: 0.25.12
   resolution: "@esbuild/aix-ppc64@npm:0.25.12"
@@ -4126,10 +4133,10 @@ __metadata:
     "@vuepress/plugin-search": "npm:^2.0.0-rc.61"
     "@vuepress/theme-default": "npm:^2.0.0-rc"
     cosmiconfig: "npm:^9.0.0"
+    cross-env: "npm:^10.1.0"
     depcheck: "npm:^1.4.7"
     eslint: "npm:^9.0.0"
     eslint-config-prettier: "npm:^10.1.8"
-    execa: "npm:^5.0.0"
     get-port: "npm:^5.0.0"
     globals: "npm:^17.0.0"
     husky: "npm:^9.0.0"
@@ -4137,6 +4144,7 @@ __metadata:
     lint-staged: "npm:^16.0.0"
     mermaid: "npm:^11.4.0"
     minimatch: "npm:^3.0.4"
+    nano-spawn: "npm:^2.0.0"
     normalized-tmpdir: "npm:^1.0.1"
     npm-registry-fetch: "npm:^14.0.0"
     p-graph: "npm:^1.1.2"
@@ -4870,6 +4878,19 @@ __metadata:
     typescript:
       optional: true
   checksum: 10c0/1c1703be4f02a250b1d6ca3267e408ce16abfe8364193891afc94c2d5c060b69611fdc8d97af74b7e6d5d1aac0ab2fb94d6b079573146bc2d756c2484ce5f0ee
+  languageName: node
+  linkType: hard
+
+"cross-env@npm:^10.1.0":
+  version: 10.1.0
+  resolution: "cross-env@npm:10.1.0"
+  dependencies:
+    "@epic-web/invariant": "npm:^1.0.0"
+    cross-spawn: "npm:^7.0.6"
+  bin:
+    cross-env: dist/bin/cross-env.js
+    cross-env-shell: dist/bin/cross-env-shell.js
+  checksum: 10c0/834a862db456ba1fedf6c6da43436b123ae38f514fa286d6f0937c14fa83f13469f77f70f2812db041ae2d84f82bac627040b8686030aca27fbdf113dfa38b63
   languageName: node
   linkType: hard
 
@@ -6113,7 +6134,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"execa@npm:^5.0.0, execa@npm:^5.1.1":
+"execa@npm:^5.1.1":
   version: 5.1.1
   resolution: "execa@npm:5.1.1"
   dependencies:
