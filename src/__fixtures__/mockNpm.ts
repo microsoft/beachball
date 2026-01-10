@@ -6,9 +6,9 @@ import path from 'path';
 import semver from 'semver';
 import { npm, type NpmResult } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
-import type { PackageManagerOptions } from '../packageManager/packageManager';
 import { readJson } from '../object/readJson';
 import type { NpmPackageVersionsData, NpmRegistryFetchJson } from '../packageManager/getNpmPackageInfo';
+import type { SpawnOptions } from '../process/spawn';
 
 /** Mapping from package name to registry data */
 type MockNpmRegistry = Record<string, NpmRegistryFetchJson>;
@@ -16,7 +16,7 @@ type MockNpmRegistry = Record<string, NpmRegistryFetchJson>;
 /** Mapping from package name to partial registry data (easier to specify in tests) */
 type PartialRegistryData = Record<string, Partial<NpmPackageVersionsData>>;
 
-export type MockNpmResult = Pick<NpmResult, 'stdout' | 'stderr' | 'all' | 'success' | 'failed'>;
+export type MockNpmResult = Pick<NpmResult, 'stdout' | 'stderr' | 'output' | 'success'>;
 
 /**
  * Mock implementation of an npm command.
@@ -27,7 +27,7 @@ export type MockNpmResult = Pick<NpmResult, 'stdout' | 'stderr' | 'all' | 'succe
 export type MockNpmCommand = (
   registryData: MockNpmRegistry,
   args: string[],
-  opts: PackageManagerOptions
+  opts: SpawnOptions
 ) => Promise<MockNpmResult>;
 
 export type NpmMock = {
@@ -222,10 +222,10 @@ export const _mockNpmPublish: MockNpmCommand = async (registryData, args, opts) 
 
   try {
     const stdout = mockPublishPackage(registryData, packageJson, tag);
-    return { stdout, stderr: '', all: stdout, success: true, failed: false };
+    return { stdout, stderr: '', output: stdout, success: true };
   } catch (err) {
     const stderr = (err as Error).message;
-    return { stdout: '', stderr, all: stderr, success: false, failed: true };
+    return { stdout: '', stderr, output: stderr, success: false };
   }
 };
 
@@ -270,5 +270,5 @@ export const _mockNpmPack: MockNpmCommand = async (registryData, args, opts) => 
   const packFileName = getMockNpmPackName(packageJson);
   fs.writeFileSync(path.join(opts.cwd, packFileName), 'fake package contents');
 
-  return { stdout: packFileName, stderr: '', all: packFileName, success: true, failed: false };
+  return { stdout: packFileName, stderr: '', output: packFileName, success: true };
 };

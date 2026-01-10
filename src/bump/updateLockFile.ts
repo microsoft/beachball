@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { packageManager } from '../packageManager/packageManager';
+import { spawn } from '../process/spawn';
 import { env } from '../env';
 import type { BeachballOptions } from '../types/BeachballOptions';
 
@@ -25,7 +25,7 @@ export async function updateLockFile(options: Pick<BeachballOptions, 'path'>): P
     updateFile = 'pnpm-lock.yaml';
     updateCommand = ['pnpm', 'install', '--lockfile-only', '--ignore-scripts'];
   } else if (fs.existsSync(path.join(root, 'yarn.lock'))) {
-    const version = await packageManager('yarn', ['--version'], { cwd: root });
+    const version = await spawn('yarn', ['--version'], { cwd: root });
     if (version.success) {
       // For yarn v1, local versions aren't recorded in the lock file, so we don't need an update.
       // yarn v2+ records these versions and may require an update.
@@ -41,7 +41,7 @@ export async function updateLockFile(options: Pick<BeachballOptions, 'path'>): P
   if (updateFile && updateCommand) {
     console.log(`Updating ${updateFile} after bumping packages`);
 
-    const res = await packageManager(updateCommand[0], updateCommand.slice(1), { stdio: 'inherit', cwd: root });
+    const res = await spawn(updateCommand[0], updateCommand.slice(1), { stdio: 'inherit', cwd: root });
 
     if (!res.success) {
       console.warn(`Updating ${updateFile} failed. Continuing...`);

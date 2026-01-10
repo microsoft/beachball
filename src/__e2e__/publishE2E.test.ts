@@ -545,7 +545,7 @@ describe('publish command (e2e)', () => {
     npmMock.setCommandOverride('publish', async (registryData, args, opts) => {
       if (opts.cwd?.endsWith(packageToFail)) {
         const stderr = 'Failed to publish package';
-        return { failed: true, stderr, stdout: '', success: false, all: stderr };
+        return { stderr, stdout: '', success: false, output: stderr };
       }
       return _mockNpmPublish(registryData, args, opts);
     });
