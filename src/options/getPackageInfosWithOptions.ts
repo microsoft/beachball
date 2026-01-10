@@ -26,7 +26,7 @@ export function getPackageInfosWithOptions(
 ): PackageInfos {
   if (cliOptions === undefined) {
     // Don't use options from process.argv or the beachball repo in tests
-    // eslint-disable-next-line etc/no-deprecated
+    // eslint-disable-next-line beachball/no-deprecated
     cliOptions = env.isJest ? null : getCliOptions(process.argv);
   }
 

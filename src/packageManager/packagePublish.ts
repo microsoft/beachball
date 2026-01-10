@@ -36,7 +36,6 @@ export async function packagePublish(
       // Run npm publish in the package directory
       cwd: packageRoot,
       timeout: options.timeout,
-      all: true,
     });
 
     if (result.success) {
@@ -45,20 +44,20 @@ export async function packagePublish(
     }
 
     console.log();
-    const output = `Output:\n\n${result.all}\n`;
+    const output = `Output:\n\n${result.output}\n`;
 
     // First check the output for specific cases where retries are unlikely to help.
     // NOTE: much of npm's output is localized, so it's best to only check for error codes.
     // (but in later versions, the error codes unfortunately are omitted...)
     if (
-      result.all?.includes('EPUBLISHCONFLICT') ||
-      result.all?.includes('E409') ||
-      result.all?.includes('previously published')
+      result.output?.includes('EPUBLISHCONFLICT') ||
+      result.output?.includes('E409') ||
+      result.output?.includes('previously published')
     ) {
       console.error(`${packageSpec} already exists in the registry. ${output}`);
       break;
     }
-    if (result.all?.includes('code E403')) {
+    if (result.output?.includes('code E403')) {
       // This is apparently a less common variant of trying to publish over an existing version
       // (not sure when this error is used vs. EPUBLISHCONFLICT). Keep the message generic since
       // there may be other possible causes for 403 errors.
@@ -70,12 +69,12 @@ export async function packagePublish(
       console.error(`Publishing ${packageSpec} failed due to a 403 error. ${output}`);
       break;
     }
-    if (result.all?.includes('ENEEDAUTH')) {
+    if (result.output?.includes('ENEEDAUTH')) {
       // ENEEDAUTH only happens if no auth was attempted (no token/password provided).
       console.error(`Publishing ${packageSpec} failed due to an auth error. ${output}`);
       break;
     }
-    if (result.all?.includes('code E404')) {
+    if (result.output?.includes('code E404')) {
       // All types of invalid credentials appear to cause E404.
       // validate() already checks for the most common ways invalid variable names might show up,
       // so log a slightly more generic message instead of details about the token.

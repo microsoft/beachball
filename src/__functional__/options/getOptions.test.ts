@@ -37,7 +37,7 @@ describe('getOptions (deprecated)', () => {
     const repo = repositoryFactory.cloneRepository();
     const config = inDirectory(repo.rootPath, () => {
       fs.writeFileSync('beachball.config.js', 'module.exports = { branch: "origin/foo" };');
-      // eslint-disable-next-line etc/no-deprecated
+      // eslint-disable-next-line beachball/no-deprecated
       return getOptions(baseArgv());
     });
     expect(config.branch).toEqual('origin/foo');
@@ -47,7 +47,7 @@ describe('getOptions (deprecated)', () => {
     const repo = repositoryFactory.cloneRepository();
     const config = inDirectory(repo.rootPath, () => {
       writeJson('package.json', { beachball: { branch: 'origin/foo' } });
-      // eslint-disable-next-line etc/no-deprecated
+      // eslint-disable-next-line beachball/no-deprecated
       return getOptions(baseArgv());
     });
     expect(config.branch).toEqual('origin/foo');
@@ -57,7 +57,7 @@ describe('getOptions (deprecated)', () => {
     const repo = repositoryFactory.cloneRepository();
     const config = inDirectory(repo.rootPath, () => {
       writeJson('.beachballrc.json', { branch: 'origin/foo' });
-      // eslint-disable-next-line etc/no-deprecated
+      // eslint-disable-next-line beachball/no-deprecated
       return getOptions(baseArgv());
     });
     expect(config.branch).toEqual('origin/foo');
@@ -68,7 +68,7 @@ describe('getOptions (deprecated)', () => {
     const config = inDirectory(repo.rootPath, () => {
       fs.writeFileSync('beachball.config.js', 'module.exports = { branch: "origin/main" };');
       fs.writeFileSync('alternate.config.js', 'module.exports = { branch: "origin/foo" };');
-      // eslint-disable-next-line etc/no-deprecated
+      // eslint-disable-next-line beachball/no-deprecated
       return getOptions([...baseArgv(), '--config', 'alternate.config.js']);
     });
     expect(config.branch).toEqual('origin/foo');
@@ -88,7 +88,7 @@ describe('getOptions (deprecated)', () => {
     };
     const config = inDirectory(repo.rootPath, () => {
       fs.writeFileSync('beachball.config.js', `module.exports = ${JSON.stringify(repoOptions)};`);
-      // eslint-disable-next-line etc/no-deprecated
+      // eslint-disable-next-line beachball/no-deprecated
       return getOptions([...baseArgv(), '--disallowed-change-types', 'patch']);
     });
     expect(config).toMatchObject({

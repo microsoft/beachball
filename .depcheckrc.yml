@@ -8,7 +8,11 @@ ignores:
   - verdaccio-memory
   # ok with using implicit dev dep for now (part of verdaccio)
   - '@verdaccio/config'
-
-ignore-patterns:
-  # managed separately
-  - docs
+  # needed for type references from verdaccio (not listed in deps)
+  - '@verdaccio/types'
+  # not detected under .vuepress? or implicit peers?
+  - '@vuepress/*'
+  - mermaid
+  - sass-embedded
+  # not detected in script
+  - cross-env

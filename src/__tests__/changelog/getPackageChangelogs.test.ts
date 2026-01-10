@@ -16,7 +16,7 @@ jest.mock('workspace-tools', () => ({
 }));
 
 describe('getPackageChangelogs', () => {
-  // eslint-disable-next-line etc/no-deprecated
+  // eslint-disable-next-line beachball/no-deprecated
   const getFileAddedHashMock = getFileAddedHash as jest.MockedFunction<typeof getFileAddedHash>;
 
   /**

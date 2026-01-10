@@ -10,14 +10,20 @@
       "name": "Debug current open test",
       "runtimeExecutable": "npm",
       "cwd": "${workspaceFolder}",
-      "runtimeArgs": ["run-script", "test"],
+      // In a CJS project ("type": "module" absent from package.json), Jest must be run with
+      // --experimental-vm-modules to allow dynamic imports of ESM packages.
+      // When running from the CLI we provide this with cross-env in the "test" script, but that
+      // approach causes problems with debugging (VS Code sets node options for debugging, which
+      // must be preserved). So here we use a script that runs jest directly and passes extra
+      // options via environment variable.
+      "runtimeArgs": ["run-script", "test:vscode"],
       "args": ["--", "--runInBand", "--watch", "--testTimeout=1000000", "${fileBasenameNoExtension}"],
       "sourceMaps": true,
       "outputCapture": "std",
       "console": "integratedTerminal",
-      // Debug with Node 14 via nvm.
-      // On Windows, you might have to change this to a specific version.
-      "runtimeVersion": "14"
+      "env": {
+        "NODE_OPTIONS": "--experimental-vm-modules"
+      }
     },
     {
       "type": "node",
@@ -57,7 +63,9 @@
         "${jest.testFile}"
       ],
       "console": "integratedTerminal",
-      "runtimeVersion": "14"
+      "env": {
+        "NODE_OPTIONS": "--experimental-vm-modules"
+      }
     }
   ]
 }

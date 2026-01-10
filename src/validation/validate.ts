@@ -83,7 +83,7 @@ export function validate(
   }
 
   const originalPackageInfos =
-    // eslint-disable-next-line etc/no-deprecated
+    // eslint-disable-next-line beachball/no-deprecated
     'cliOptions' in _options ? getPackageInfos(_options.cliOptions) : getPackageInfos(options.path);
 
   if (options.all && options.package) {
@@ -192,8 +192,8 @@ export function validate(
       const message = options.all
         ? 'Considering the following packages due to --all'
         : options.package
-        ? 'Considering the specific --package'
-        : 'Found changes in the following packages';
+          ? 'Considering the specific --package'
+          : 'Found changes in the following packages';
       console.log(`${message}:\n${bulletedList([...changedPackages].sort())}`);
     }
 

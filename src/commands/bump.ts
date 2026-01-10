@@ -13,7 +13,7 @@ export async function bump(options: BeachballOptions, context: CommandContext): 
 /** @deprecated Use other signature */
 export async function bump(options: BeachballOptions): Promise<BumpInfo>;
 export async function bump(options: BeachballOptions, context?: CommandContext): Promise<BumpInfo> {
-  // eslint-disable-next-line etc/no-deprecated -- compat code
+  // eslint-disable-next-line beachball/no-deprecated -- compat code
   context ??= createCommandContext(options);
   const bumpInfo = context.bumpInfo || bumpInMemory(options, context);
   await performBump(bumpInfo, options);

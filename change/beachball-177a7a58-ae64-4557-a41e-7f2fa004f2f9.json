@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "[breaking?] Use `nano-spawn` instead of `execa`. This requires Node 20 (and introduces a dynamic import since nano-spawn is ESM).",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

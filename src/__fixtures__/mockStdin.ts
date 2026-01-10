@@ -17,7 +17,7 @@ export class MockStdin extends stream.Readable {
   };
   // This is a private property of the parent class. As of TS ES2022 output, it's necessary to use
   // `declare` to prevent TS from emitting an unset property which overwrites the one from the parent.
-  protected declare _readableState?: {
+  declare protected _readableState?: {
     length: number;
     ended: boolean;
     endEmitted: boolean;
@@ -162,7 +162,10 @@ class MockData {
   pos = 0;
   done = false;
 
-  constructor(private data: Buffer | string | null, public encoding?: BufferEncoding) {}
+  constructor(
+    private data: Buffer | string | null,
+    public encoding?: BufferEncoding
+  ) {}
 
   get length() {
     if (Buffer.isBuffer(this.data)) {

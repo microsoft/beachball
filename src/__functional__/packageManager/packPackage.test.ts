@@ -116,7 +116,7 @@ describe('packPackage', () => {
     const testPkg = getTestPackage('testpkg');
     // It's difficult to simulate actual error conditions, so mock an npm call failure.
     npmMock.setCommandOverride('pack', () =>
-      Promise.resolve({ success: false, stdout: 'oh no', all: 'oh no' } as NpmResult)
+      Promise.resolve({ success: false, stdout: 'oh no', output: 'oh no' } as NpmResult)
     );
 
     const packResult = await packPackage(testPkg.info, { packToPath: tempPackPath, index: 0, total: 1 });
@@ -133,7 +133,7 @@ describe('packPackage', () => {
   it('handles if filename is missing from output', async () => {
     const testPkg = getTestPackage('testpkg');
     npmMock.setCommandOverride('pack', () =>
-      Promise.resolve({ success: true, stdout: 'not a file', all: 'not a file' } as NpmResult)
+      Promise.resolve({ success: true, stdout: 'not a file', output: 'not a file' } as NpmResult)
     );
 
     const packResult = await packPackage(testPkg.info, { packToPath: tempPackPath, index: 0, total: 1 });
@@ -150,7 +150,7 @@ describe('packPackage', () => {
   it('handles if filename in output does not exist', async () => {
     const testPkg = getTestPackage('testpkg');
     npmMock.setCommandOverride('pack', () =>
-      Promise.resolve({ success: true, stdout: 'nope.tgz', all: 'nope.tgz' } as NpmResult)
+      Promise.resolve({ success: true, stdout: 'nope.tgz', output: 'nope.tgz' } as NpmResult)
     );
 
     const packResult = await packPackage(testPkg.info, { packToPath: tempPackPath, index: 0, total: 1 });

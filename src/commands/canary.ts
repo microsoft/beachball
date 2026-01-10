@@ -16,7 +16,7 @@ export async function canary(options: BeachballOptions, context: CommandContext)
 /** @deprecated Use other signature */
 export async function canary(options: BeachballOptions): Promise<void>;
 export async function canary(options: BeachballOptions, context?: CommandContext): Promise<void> {
-  // eslint-disable-next-line etc/no-deprecated -- compat code
+  // eslint-disable-next-line beachball/no-deprecated -- compat code
   context ??= createCommandContext(options);
 
   const bumpInfo = context.bumpInfo || bumpInMemory(options, context);

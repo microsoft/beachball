@@ -16,7 +16,7 @@ export async function change(options: BeachballOptions): Promise<void>;
 export async function change(options: BeachballOptions, context?: ChangeCommandContext): Promise<void> {
   const { branch, path: cwd } = options;
 
-  // eslint-disable-next-line etc/no-deprecated -- compat code
+  // eslint-disable-next-line beachball/no-deprecated -- compat code
   context ??= { ...createBasicCommandContext(options), changedPackages: undefined };
 
   const {

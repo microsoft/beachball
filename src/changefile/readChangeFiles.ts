@@ -93,8 +93,8 @@ export function readChangeFiles(
       const warningType = !packageInfos[change.packageName]
         ? 'nonexistent'
         : packageInfos[change.packageName].private
-        ? 'private'
-        : undefined;
+          ? 'private'
+          : undefined;
       if (warningType) {
         const resolution = options.groupChanges ? 'remove the entry from this file' : 'delete this file';
         console.warn(
@@ -128,7 +128,7 @@ function getMtime(params: { changePath: string; changeFile: string }) {
     const mtime = fs.statSync(path.join(params.changePath, params.changeFile)).mtime.getTime();
     mtimeCache[params.changeFile] = mtime;
     return mtime;
-  } catch (err) {
+  } catch {
     mtimeCache[params.changeFile] = 0;
     return 0;
   }

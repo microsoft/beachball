@@ -22,7 +22,7 @@ export function getDefaultOptions(): BeachballOptions {
     depth: undefined,
     disallowedChangeTypes: null,
     fetch: true,
-    generateChangelog: true,
+    generateChangelog: 'md',
     gitTags: true,
     gitTimeout: undefined,
     message: '',

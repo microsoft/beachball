@@ -54,7 +54,7 @@ describe('validate', () => {
     repo.checkout('-b', 'test');
     repo.stageChange('packages/foo/test.js');
 
-    expect(() => validateWrapper({ checkChangeNeeded: true })).toThrowError(/process\.exit/);
+    expect(() => validateWrapper({ checkChangeNeeded: true })).toThrow(/process\.exit/);
     expect(processExit).toHaveBeenCalledWith(1);
     expect(logs.mocks.error).toHaveBeenCalledWith('ERROR: Change files are needed!');
   });

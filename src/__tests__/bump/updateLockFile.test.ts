@@ -2,13 +2,15 @@ import { describe, it, expect, jest, afterAll, afterEach, beforeAll, beforeEach 
 import fs from 'fs';
 import path from 'path';
 import { updateLockFile } from '../../bump/updateLockFile';
-import { packageManager, type PackageManagerResult } from '../../packageManager/packageManager';
+import { spawn, type SpawnResult } from '../../process/spawn';
+
+// Preserve old alias
+type PackageManagerResult = SpawnResult;
 
 jest.mock('fs');
-jest.mock('../../packageManager/packageManager');
+jest.mock('../../process/spawn');
 jest.mock('../../env', () => ({
   env: {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     ...jest.requireActual<typeof import('../../env')>('../../env').env,
     isJest: false,
   },
@@ -17,7 +19,7 @@ jest.mock('../../env', () => ({
 describe('updateLockFile', () => {
   const mockRoot = path.resolve('/mock/root');
   const mockFs = fs as jest.Mocked<typeof fs>;
-  const mockPackageManager = packageManager as jest.MockedFunction<typeof packageManager>;
+  const mockPackageManager = spawn as jest.MockedFunction<typeof spawn>;
   let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
   let consoleWarnSpy: jest.SpiedFunction<typeof console.warn>;
 
