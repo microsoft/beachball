@@ -38,9 +38,9 @@ export async function packPackage(
   console.log(`  (cwd: ${packageRoot})\n`);
 
   // Run npm pack in the package directory
-  const result = await npm(packArgs, { cwd: packageRoot, all: true });
+  const result = await npm(packArgs, { cwd: packageRoot });
   // log afterwards instead of piping because we need to access the output to get the filename
-  console.log((result.all || '') + '\n');
+  console.log((result.output || '') + '\n');
 
   if (!result.success) {
     console.error(`Packing ${packageSpec} failed (see above for details)\n`);

@@ -101,9 +101,8 @@ describe('_mockNpmPublish', () => {
     return {
       stdout,
       stderr: error || '',
-      all: stdout || error,
+      output: stdout || error,
       success: !error,
-      failed: !!error,
     } as NpmResult;
   }
 
@@ -234,8 +233,7 @@ describe('_mockNpmPack', () => {
     const result = await _mockNpmPack(registryData, [], { cwd: 'fake' });
     expect(result).toEqual({
       success: true,
-      failed: false,
-      all: 'foo-1.0.0.tgz',
+      output: 'foo-1.0.0.tgz',
       stdout: 'foo-1.0.0.tgz',
       stderr: '',
     });
@@ -249,8 +247,7 @@ describe('_mockNpmPack', () => {
     const result = await _mockNpmPack(registryData, [], { cwd: 'fake' });
     expect(result).toEqual({
       success: true,
-      failed: false,
-      all: 'foo-bar-2.0.0.tgz',
+      output: 'foo-bar-2.0.0.tgz',
       stdout: 'foo-bar-2.0.0.tgz',
       stderr: '',
     });
@@ -382,8 +379,7 @@ describe('mockNpm', () => {
       const result = await npm(['pack'], { cwd: 'fake' });
       expect(result).toEqual({
         success: true,
-        failed: false,
-        all: 'foo-2.0.0.tgz',
+        output: 'foo-2.0.0.tgz',
         stdout: 'foo-2.0.0.tgz',
         stderr: '',
       });

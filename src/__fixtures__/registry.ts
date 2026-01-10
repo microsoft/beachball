@@ -1,10 +1,10 @@
 import { ConfigBuilder } from '@verdaccio/config';
 import { fork, type ChildProcess } from 'child_process';
-import execa from 'execa';
 import fs from 'fs';
 import getPort from 'get-port';
 import path from 'path';
 import { removeTempDir, tmpdir } from './tmpdir';
+import { spawn, importNanoSpawn, type SpawnError } from '../process/spawn';
 
 const verdaccioUser = {
   username: 'fake',
@@ -68,28 +68,33 @@ export class Registry {
       console.log('already logged in');
       return;
     }
+
+    const registry = this.getUrl();
+    console.log(`logging in to ${registry}`);
+
     try {
-      const registry = this.getUrl();
-      console.log(`logging in to ${registry}`);
-      const npm = execa('npm', ['adduser', '--registry', registry]);
+      // Use nano-spawn directly here for sending stdin lines (nano-spawn also supports async
+      // iteration over output lines, but that seems to interfere with sending stdin to the
+      // node child process, so just use the old approach)
+      const nanoSpawn = await importNanoSpawn();
+      const npm = nanoSpawn('npm', ['adduser', '--registry', registry], { cwd: process.cwd() });
       // for some reason there's no way to supply the username, password, and email besides stdin
-      npm.stdout?.on('data', chunk => {
+      const npmProcess = await npm.nodeChildProcess;
+      npmProcess.stdout?.on('data', chunk => {
         const chunkStr = String(chunk);
         if (chunkStr.includes('Username:')) {
-          npm.stdin?.write(verdaccioUser.username + '\r\n');
+          npmProcess.stdin?.write(verdaccioUser.username + '\r\n');
         } else if (chunkStr.includes('Password:')) {
-          npm.stdin?.write(verdaccioUser.password + '\r\n');
+          npmProcess.stdin?.write(verdaccioUser.password + '\r\n');
         } else if (chunkStr.includes('Email:')) {
-          npm.stdin?.write('fake@example.com\r\n');
+          npmProcess.stdin?.write('fake@example.com\r\n');
         }
       });
       await npm;
       console.log('logged in');
       this.isLoggedIn = true;
     } catch (err) {
-      throw new Error(
-        `Error logging in to registry: ${(err as Error).stack || err}\n${(err as execa.ExecaError).stderr}`
-      );
+      throw new Error(`Error logging in to registry: ${(err as Error).stack || err}\n${(err as SpawnError).stderr}`);
     }
   }
 
@@ -99,7 +104,7 @@ export class Registry {
     this.isLoggedIn = false;
     try {
       const registry = this.getUrl();
-      await execa('npm', ['logout', '--registry', registry]);
+      await spawn('npm', ['logout', '--registry', registry], { cwd: process.cwd() });
     } catch {
       console.warn('Logging out of registry failed');
     }

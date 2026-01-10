@@ -174,7 +174,7 @@ describe('publishToRegistry', () => {
 
     // Make the publish command fail
     npmMock.setCommandOverride('publish', () =>
-      Promise.resolve({ success: false, stdout: '', stderr: 'network error', all: 'network error', failed: true })
+      Promise.resolve({ success: false, stdout: '', stderr: 'network error', output: 'network error', failed: true })
     );
 
     await expect(publishToRegistry(bumpInfo, defaultOptions)).rejects.toThrow('Error publishing');
@@ -342,7 +342,7 @@ describe('publishToRegistry', () => {
       npmMock.setCommandOverride('publish', async (registryData, args, opts) => {
         const packageName = path.basename(opts.cwd!);
         if (packageName === 'pkg2' || packageName === 'pkg5') {
-          return { success: false, stdout: '', stderr: 'oh no', all: 'oh no', failed: true };
+          return { success: false, stdout: '', stderr: 'oh no', output: 'oh no', failed: true };
         }
         // Use a small delay to verify that the started tasks are awaited even if others fail
         await new Promise(resolve => setTimeout(resolve, 20));
@@ -408,7 +408,7 @@ describe('publishToRegistry', () => {
       const bumpInfo = makeBumpInfo({ foo: {} });
 
       npmMock.setCommandOverride('pack', () =>
-        Promise.resolve({ success: false, stdout: '', stderr: 'pack error', all: 'pack error', failed: true })
+        Promise.resolve({ success: false, stdout: '', stderr: 'pack error', output: 'pack error', failed: true })
       );
 
       await expect(publishToRegistry(bumpInfo, { ...defaultOptions, packToPath })).rejects.toThrow('Error packing');
