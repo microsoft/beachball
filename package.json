@@ -54,7 +54,7 @@
     "cosmiconfig": "^9.0.0",
     "minimatch": "^3.0.4",
     "nano-spawn": "^2.0.0",
-    "npm-registry-fetch": "^14.0.0",
+    "npm-registry-fetch": "^19.0.0",
     "p-graph": "^1.1.2",
     "p-limit": "^3.0.2",
     "prompts": "^2.4.2",
