@@ -4108,7 +4108,7 @@ __metadata:
     depcheck: "npm:^1.4.7"
     eslint: "npm:^9.0.0"
     eslint-config-prettier: "npm:^10.1.8"
-    get-port: "npm:^5.0.0"
+    get-port: "npm:^7.0.0"
     globals: "npm:^17.0.0"
     husky: "npm:^9.0.0"
     jest: "npm:^30.0.0"
@@ -6558,10 +6558,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-port@npm:^5.0.0":
-  version: 5.1.1
-  resolution: "get-port@npm:5.1.1"
-  checksum: 10c0/2873877a469b24e6d5e0be490724a17edb39fafc795d1d662e7bea951ca649713b4a50117a473f9d162312cb0e946597bd0e049ed2f866e79e576e8e213d3d1c
+"get-port@npm:^7.0.0":
+  version: 7.1.0
+  resolution: "get-port@npm:7.1.0"
+  checksum: 10c0/896051fea0fd3df58c050566754ab91f46406e898ce0c708414739d908a5ac03ffef3eca7a494ea9cc1914439e8caccd2218010d1eeabdde914b9ff920fa28fc
   languageName: node
   linkType: hard
 
