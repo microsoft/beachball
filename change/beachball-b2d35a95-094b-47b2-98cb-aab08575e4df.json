@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "[breaking?] Update npm-registry-fetch to v19 (requires Node 20)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
