@@ -103,7 +103,7 @@ export function readChangeFiles(
       }
 
       // Add the change to the final list if it's valid and in scope
-      if (!warningType && (scopedPackages.allInScope || scopedPackages.has(change.packageName))) {
+      if (!warningType && scopedPackages.has(change.packageName)) {
         changeSet.push({ changeFile, change });
       }
     }

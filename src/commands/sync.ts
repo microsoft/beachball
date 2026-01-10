@@ -21,11 +21,7 @@ export async function sync(options: BeachballOptions, context?: SyncCommandConte
   const packageInfos = context?.originalPackageInfos ?? getPackageInfos(options.path);
   const scopedPackages = context?.scopedPackages ?? getScopedPackages(options, packageInfos);
 
-  const infos = new Map(
-    Object.entries(packageInfos).filter(
-      ([pkg, info]) => !info.private && (scopedPackages.allInScope || scopedPackages.has(pkg))
-    )
-  );
+  const infos = new Map(Object.entries(packageInfos).filter(([pkg, info]) => !info.private && scopedPackages.has(pkg)));
 
   console.log(`Getting versions from registry for ${infos.size} package(s)...`);
 

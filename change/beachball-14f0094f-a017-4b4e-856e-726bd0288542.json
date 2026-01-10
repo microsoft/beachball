@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Simplify internal handling of determining in-scope packages",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

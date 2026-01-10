@@ -95,10 +95,7 @@ export const consideredDependencies = [
 ] as const;
 
 /**
- * In-scope package names, with an extra property if all packages are in scope.
+ * In-scope package names. If returned by `getScopedPackages`, this has extra logic to return true
+ * without a full lookup when all packages are in scope. (A plain `Set<string>` works for tests.)
  */
-// This is a Set with an extra property to avoid compatibility issues with code using private APIs
-export type ScopedPackages = ReadonlySet<string> & {
-  /** No `scope` option was specified, so all packages are in scope. */
-  allInScope?: true;
-};
+export type ScopedPackages = ReadonlySet<string>;
