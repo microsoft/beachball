@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "updateRelatedChangeType respects group disallowed change types",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

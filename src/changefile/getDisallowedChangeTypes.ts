@@ -1,6 +1,7 @@
 import { getPackageOption } from '../options/getPackageOption';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { ChangeType } from '../types/ChangeInfo';
+import type { DeepReadonly } from '../types/DeepReadonly';
 import type { PackageGroups, PackageInfos } from '../types/PackageInfo';
 
 /**
@@ -11,9 +12,9 @@ import type { PackageGroups, PackageInfos } from '../types/PackageInfo';
 export function getDisallowedChangeTypes(
   packageName: string,
   packageInfos: PackageInfos,
-  packageGroups: PackageGroups,
+  packageGroups: DeepReadonly<PackageGroups>,
   options: Pick<BeachballOptions, 'disallowedChangeTypes'>
-): ChangeType[] | null {
+): ReadonlyArray<ChangeType> | null {
   for (const group of Object.values(packageGroups)) {
     if (group.packageNames.includes(packageName)) {
       return group.disallowedChangeTypes || null;

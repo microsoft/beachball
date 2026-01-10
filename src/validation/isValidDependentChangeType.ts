@@ -7,7 +7,7 @@ import type { ChangeType } from '../types/ChangeInfo';
  */
 export function isValidDependentChangeType(
   dependentChangeType: ChangeType,
-  disallowedChangeTypes: ChangeType[] | null
+  disallowedChangeTypes: ReadonlyArray<ChangeType> | null
 ): boolean {
   if (dependentChangeType === 'patch') {
     // patch is always allowed as a dependentChangeType

@@ -1,5 +1,5 @@
 import { getMaxChangeType } from '../changefile/changeTypes';
-import { getPackageOption } from '../options/getPackageOption';
+import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { BumpInfo, PackageDependents } from '../types/BumpInfo';
 import type { ChangeFileInfo } from '../types/ChangeInfo';
@@ -57,11 +57,10 @@ export function updateRelatedChangeType(params: {
     // Step 1. Update change type of the subjectPackage according to dependentChangeType if needed.
     // (Skip for the initial package.)
     if (subjectPackage !== change.packageName) {
+      const disallowedChangeTypes =
+        getDisallowedChangeTypes(subjectPackage, packageInfos, packageGroups, params.options) || [];
       const oldType = calculatedChangeTypes[subjectPackage];
-      calculatedChangeTypes[subjectPackage] = getMaxChangeType(
-        [oldType, dependentChangeType],
-        getPackageOption('disallowedChangeTypes', packageInfos[subjectPackage], params.options)
-      );
+      calculatedChangeTypes[subjectPackage] = getMaxChangeType([oldType, dependentChangeType], disallowedChangeTypes);
 
       // TODO: what's the interaction with groups here?
       if (calculatedChangeTypes[subjectPackage] === oldType) {
