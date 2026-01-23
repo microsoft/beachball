@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update republish error detection for newer npm",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,8 +1,24 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Wed, 07 Jan 2026 01:55:03 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 23 Jan 2026 05:19:48 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.63.0
+
+Fri, 23 Jan 2026 05:19:48 GMT
+
+### Minor changes
+
+- Remove most calculated/default info from `PackageInfo` to reduce the memory footprint. This includes removing `combinedOptions` (see [#1131](https://github.com/microsoft/beachball/pull/1131) for details). (elcraig@microsoft.com)
+- Revert to using npm CLI for fetching package info due to vulnerability in older `npm-registry-fetch`'s old `tar` dependency (updating would require a major change to bump beachball's minimum Node version) (elcraig@microsoft.com)
+
+### Patches
+
+- Use `import type` internally (elcraig@microsoft.com)
+- Update republish error detection for newer npm (elcraig@microsoft.com)
+- Simplify internal handling of determining in-scope packages (elcraig@microsoft.com)
+- When determining which packages to tag in git, reuse the logic for determining which packages should be published (don't tag packages with no change type or out of scope) (elcraig@microsoft.com)
 
 ## 2.62.0
 

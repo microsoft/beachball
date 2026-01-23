@@ -2,6 +2,53 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 23 Jan 2026 05:19:48 GMT",
+      "version": "2.63.0",
+      "tag": "beachball_v2.63.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "f666c1e4ba5b7497ccbb5d72271f80ad955f8c36",
+            "comment": "Use `import type` internally"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "f666c1e4ba5b7497ccbb5d72271f80ad955f8c36",
+            "comment": "Update republish error detection for newer npm"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "f666c1e4ba5b7497ccbb5d72271f80ad955f8c36",
+            "comment": "Simplify internal handling of determining in-scope packages"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "f666c1e4ba5b7497ccbb5d72271f80ad955f8c36",
+            "comment": "When determining which packages to tag in git, reuse the logic for determining which packages should be published (don't tag packages with no change type or out of scope)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "f666c1e4ba5b7497ccbb5d72271f80ad955f8c36",
+            "comment": "Remove most calculated/default info from `PackageInfo` to reduce the memory footprint. This includes removing `combinedOptions` (see [#1131](https://github.com/microsoft/beachball/pull/1131) for details)."
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "f666c1e4ba5b7497ccbb5d72271f80ad955f8c36",
+            "comment": "Revert to using npm CLI for fetching package info due to vulnerability in older `npm-registry-fetch`'s old `tar` dependency (updating would require a major change to bump beachball's minimum Node version)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 07 Jan 2026 01:55:03 GMT",
       "version": "2.62.0",
       "tag": "beachball_v2.62.0",
