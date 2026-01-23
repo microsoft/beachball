@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "[BREAKING] Require Node 20, and use ES2022 syntax in output",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

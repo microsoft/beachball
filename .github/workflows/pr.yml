@@ -5,9 +5,12 @@ name: PR
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, next]
   push:
-    branches: [main]
+    branches: [main, next]
+
+env:
+  npmVersion: 10
 
 concurrency:
   # For PRs, use the ref (branch) in the concurrency group so that new pushes cancel any old runs.
@@ -23,15 +26,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        npm: [8]
-        include:
-          - os: ubuntu-latest
-            # npm 6 and 8 have slightly different behavior with verdaccio in publishing tests.
-            # It's unclear if this translates to meaningful differences in behavior in actual scenarios,
-            # but test against both versions to be safe. (Only do this on the ubuntu build for speed.)
-            npm: 6
 
-    name: build (${{ matrix.os }}, npm ${{ matrix.npm }})
+    name: build (${{ matrix.os }})
 
     runs-on: ${{ matrix.os }}
 
@@ -45,11 +41,11 @@ jobs:
           cache: yarn
           node-version-file: .nvmrc
 
-      # Guarantee a predictable version of npm for the first round of tests
-      - name: Install npm@${{ matrix.npm }}
-        run: npm install --global npm@${{ matrix.npm }}
+      # Guarantee a predictable version of npm
+      - name: Install npm@${{ env.npmVersion }}
+        run: npm install --global npm@${{ env.npmVersion }}
 
-      - run: yarn --frozen-lockfile
+      - run: yarn --immutable
 
       - run: yarn build
 
@@ -64,9 +60,10 @@ jobs:
 
       - run: yarn test:func
 
-      - run: yarn test:e2e
+      - name: yarn test:e2e (npm ${{ env.npmVersion }})
+        run: yarn test:e2e
 
-  # The docs have a separate installation using Node 22 due to needing newer dependencies
+  # The docs have a separate installation using Node 22
   docs:
     name: build docs
 
@@ -76,11 +73,11 @@ jobs:
       - name: Check out code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Install Node.js 22
+      - name: Install Node.js
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           cache: yarn
-          node-version: 24
+          node-version-file: .nvmrc
 
       - run: yarn --immutable
         working-directory: ./docs

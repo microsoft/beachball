@@ -1,11 +1,19 @@
 // @ts-check
-/** @type {Partial<import('./src/types/BeachballOptions').RepoOptions>}*/
+/** @type {Partial<import('./src/types/BeachballOptions').RepoOptions>} */
 const config = {
-  branch: 'main',
+  // TODO (release): change back to 'main'
+  branch: 'next',
   commit: false,
-  disallowedChangeTypes: ['major'],
+  // TODO (release): change back to 'major'
+  disallowedChangeTypes: ['prerelease', 'premajor', 'preminor', 'prepatch'],
+
+  // TODO (release): remove these
+  defaultNpmTag: 'next',
+  gitTags: false,
+
   ignorePatterns: [
-    '.*ignore',
+    '.*',
+    '.*/**',
     '*.yml',
     'CLAUDE.md',
     '.claude/**',

@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  npmVersion: 8
+  npmVersion: 10
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -31,11 +31,11 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      # Guarantee a predictable version of npm (the PR build tests against both 6 and 8)
-      - name: Install package managers
-        run: npm install --global npm@${{ env.npmVersion }} yarn@1
+      # Guarantee a predictable version of npm
+      - name: Install npm@${{ env.npmVersion }}
+        run: npm install --global npm@${{ env.npmVersion }}
 
-      - run: yarn --frozen-lockfile
+      - run: yarn --immutable
 
       - run: yarn build
 

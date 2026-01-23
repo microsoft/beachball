@@ -10,11 +10,9 @@
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "bin": {
-    "beachball": "./bin/beachball.js"
-  },
+  "bin": "./bin/beachball.js",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=22.18.0"
   },
   "files": [
     "bin",
@@ -33,13 +31,12 @@
     "format:check": "prettier --check .",
     "prepare": "husky install",
     "lint": "yarn lint:deps && yarn lint:marketplace && yarn lint:code",
-    "lint:code": "eslint --color --max-warnings=0 src",
+    "lint:code": "eslint --color --max-warnings=0 src && echo 'eslint succeeded'",
     "lint:deps": "depcheck .",
     "lint:marketplace": "node scripts/lint-marketplace.js",
     "pub": "yarn beachball publish",
     "release": "yarn beachball publish -y",
     "release:docs": "echo \"Run this from the docs folder instead\" && exit 1",
-    "start": "tsc -w --preserveWatchOutput",
     "test": "jest",
     "test:all": "yarn test:unit && yarn test:func && yarn test:e2e",
     "test:e2e": "jest --selectProjects e2e",
@@ -68,7 +65,7 @@
   "devDependencies": {
     "@jest/globals": "^29.0.0",
     "@types/minimatch": "^3.0.0",
-    "@types/node": "^14.0.0",
+    "@types/node": "^22.0.0",
     "@types/prompts": "^2.4.2",
     "@types/semver": "^7.3.13",
     "@types/tmp": "^0.2.3",
@@ -95,33 +92,26 @@
     "verdaccio-memory": "10.3.2"
   },
   "resolutions": {
-    "@types/node": "^14.0.0",
-    "**/depcheck/minimatch": "^7.4.9",
-    "**/lodash": "4.18.1",
-    "**/body-parser/qs": "^6.14.2",
-    "**/express/qs": "^6.14.2",
-    "**/@cypress/request/qs": "^6.14.2",
-    "**/verdaccio/handlebars": "^4.7.9",
-    "**/verdaccio/minimatch": "^7.4.9",
-    "**/verdaccio/js-yaml": "^4.1.0",
-    "**/verdaccio/validator": "^13.15.22",
-    "**/@verdaccio/config/js-yaml": "^4.1.0",
-    "**/@verdaccio/config/minimatch": "^7.4.9",
-    "**/@verdaccio/url/validator": "^13.15.22",
-    "**/@verdaccio/utils/minimatch": "^7.4.9"
+    "@types/node@npm:*": "^22.0.0",
+    "handlebars@4.7.8": "^4.7.9",
+    "js-yaml@npm:4.1.0": "^4.1.1",
+    "lodash@npm:4.17.21": "^4.18.1",
+    "minimatch@npm:7.4.6": "^7.4.9",
+    "qs@npm:6.10.4": "^6.15.0",
+    "qs@npm:6.11.0": "^6.15.0",
+    "validator@npm:13.11.0": "^13.11.0"
   },
   "rationale": {
     "devDependencies": {
-      "ts-jest@29.2.6": "29.3.0 introduces type-fest v4 which requires node 16+",
-      "verdaccio-auth-memory@10.2.2": "node 18 required by newer version",
-      "verdaccio-memory@10.3.2": "node 18 required by newer version"
+      "ts-jest@29.2.6": "29.3.0 introduces type-fest v4 which requires node 16+"
     },
     "resolutions": {
-      "**/lodash": "Unpin due to security issue",
-      "**/*/qs": "Unpin due to security issue",
-      "**/verdaccio/*": "Unpin due to security issues",
-      "**/@verdaccio/*/*": "Unpin due to security issues",
-      "**/minimatch": "Unpin minimatch v7 due to security issues"
+      "handlebars": "unpin due to security issue",
+      "js-yaml": "unpin due to security issue",
+      "lodash": "unpin due to security issue",
+      "minimatch": "unpin due to security issue",
+      "qs": "unpin due to security issue",
+      "validator": "unpin due to security issue"
     }
   }
 }

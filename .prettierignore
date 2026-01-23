@@ -1,3 +1,4 @@
+.yarn/
 *.log
 *.snap
 *.styl
