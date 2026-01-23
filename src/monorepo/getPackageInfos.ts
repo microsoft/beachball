@@ -1,6 +1,7 @@
 import path from 'path';
 import {
-  getWorkspaces as getWorkspacePackages,
+  getWorkspaceInfos,
+  getPackageInfo as getWSPackageInfo,
   listAllTrackedFiles,
   findPackageRoot,
   findProjectRoot,
@@ -9,11 +10,13 @@ import {
 } from 'workspace-tools';
 import type { PackageInfos } from '../types/PackageInfo';
 import { getPackageInfosWithOptions } from '../options/getPackageInfosWithOptions';
-import type { CliOptions } from '../types/BeachballOptions';
-import { readJson } from '../object/readJson';
+import type { BeachballOptions, ParsedOptions } from '../types/BeachballOptions';
+import { filterIgnoredFiles } from './filterIgnoredFiles';
 
-/** CLI options subset used by `getPackageInfos` */
-export type PackageInfosCliOptions = Partial<CliOptions> & Pick<CliOptions, 'path'>;
+/** Options subset used by `getPackageInfos` */
+type PackageInfosOptions = Pick<ParsedOptions, 'cliOptions'> & {
+  options: Pick<BeachballOptions, 'ignorePatterns' | 'path'>;
+};
 
 /**
  * Get a mapping from package name to package info for all packages in the workspace
@@ -24,11 +27,12 @@ export type PackageInfosCliOptions = Partial<CliOptions> & Pick<CliOptions, 'pat
  * into `PackageInfo.packageOptions` without going back through the whole process of
  * getting CLI options.
  */
-export function getPackageInfos(cliOptions: PackageInfosCliOptions): PackageInfos;
+export function getPackageInfos(cliOptions: PackageInfosOptions): PackageInfos;
 /** @deprecated Pass the pre-parsed options */
 export function getPackageInfos(cwd: string): PackageInfos;
-export function getPackageInfos(optionsOrCwd: string | PackageInfosCliOptions): PackageInfos {
-  const cwd = typeof optionsOrCwd === 'string' ? optionsOrCwd : optionsOrCwd.path;
+export function getPackageInfos(optionsOrCwd: string | PackageInfosOptions): PackageInfos {
+  const parsedOptions = typeof optionsOrCwd === 'string' ? undefined : optionsOrCwd;
+  const cwd = parsedOptions?.options.path || (optionsOrCwd as string);
 
   // If cwd comes from processed CLI options, it's already the root
   const projectRoot = typeof optionsOrCwd === 'string' ? findProjectRoot(cwd) : cwd;
@@ -36,35 +40,39 @@ export function getPackageInfos(optionsOrCwd: string | PackageInfosCliOptions): 
 
   let wsPackageInfos: WSPackageInfo[] | undefined;
   if (projectRoot) {
-    wsPackageInfos = getPackageInfosFromWorkspace(projectRoot) || getPackageInfosFromNonWorkspaceMonorepo(projectRoot);
+    wsPackageInfos =
+      getPackageInfosFromMonorepoManager(projectRoot) ||
+      getPackageInfosFromOtherMonorepo(projectRoot, parsedOptions?.options);
   }
-  if (!wsPackageInfos && packageRoot) {
-    wsPackageInfos = [readWsPackageInfo(path.join(packageRoot, 'package.json'))];
+
+  if (!wsPackageInfos?.length && packageRoot) {
+    const singlePackage = getWSPackageInfo(packageRoot);
+    if (singlePackage) {
+      wsPackageInfos = [singlePackage];
+    }
   }
 
   if (wsPackageInfos) {
-    return typeof optionsOrCwd === 'string'
-      ? // eslint-disable-next-line etc/no-deprecated
-        getPackageInfosWithOptions(wsPackageInfos)
-      : getPackageInfosWithOptions(wsPackageInfos, optionsOrCwd);
+    return parsedOptions
+      ? getPackageInfosWithOptions(wsPackageInfos, parsedOptions.cliOptions)
+      : // eslint-disable-next-line etc/no-deprecated
+        getPackageInfosWithOptions(wsPackageInfos);
   }
   return {};
 }
 
-function getPackageInfosFromWorkspace(projectRoot: string): WSPackageInfo[] | undefined {
-  let workspacePackages: WSPackageInfo[] | undefined;
-  try {
-    // first try using the workspace provided packages (if available)
-    workspacePackages = getWorkspacePackages(projectRoot).map(pkg => pkg.packageJson);
-  } catch {
-    // not a recognized workspace from workspace-tools
-  }
-
-  return workspacePackages?.length ? workspacePackages : undefined;
+/** Try to find packages from a monorepo manager */
+function getPackageInfosFromMonorepoManager(projectRoot: string): WSPackageInfo[] | undefined {
+  const wsPackageInfos = getWorkspaceInfos(projectRoot)?.map(({ packageJson }) => packageJson);
+  return wsPackageInfos?.length ? wsPackageInfos : undefined;
 }
 
-function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string): WSPackageInfo[] | undefined {
-  const packageJsonFiles = listAllTrackedFiles({
+/** Glob for `package.json` files under the current folder */
+function getPackageInfosFromOtherMonorepo(
+  projectRoot: string,
+  options: Pick<BeachballOptions, 'ignorePatterns'> | undefined
+): WSPackageInfo[] | undefined {
+  const allPackageJsons = listAllTrackedFiles({
     // Include both the root package.json and nested ones. This preserves existing behavior, which
     // turns out to be important for the beachball repo itself. (The root package.json is the real
     // package, but there's also a separately-managed "docs" folder with its own package.json. Any
@@ -73,6 +81,12 @@ function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string): WSPackage
     cwd: projectRoot,
     throwOnError: false, // mainly happens in tests if it's not a git repo
   });
+
+  const packageJsonFiles = filterIgnoredFiles({
+    filePaths: allPackageJsons,
+    ignorePatterns: options?.ignorePatterns,
+  });
+
   if (!packageJsonFiles.length) {
     return;
   }
@@ -81,38 +95,29 @@ function getPackageInfosFromNonWorkspaceMonorepo(projectRoot: string): WSPackage
   let hasError = false;
 
   for (const file of packageJsonFiles) {
-    try {
-      const packageJson = readWsPackageInfo(path.join(projectRoot, file));
+    const packageJson = getWSPackageInfo(path.join(projectRoot, path.dirname(file)));
+    if (!packageJson) continue;
 
-      if (!wsPackageInfos[packageJson.name]) {
-        wsPackageInfos[packageJson.name] = packageJson;
-      } else {
-        console.error(
-          `ERROR: Two packages have the same name "${packageJson.name}". Please rename one of these packages:\n` +
-            `- ${path.relative(projectRoot, wsPackageInfos[packageJson.name].packageJsonPath)}\n` +
-            `- ${path.relative(projectRoot, packageJson.packageJsonPath)}`
-        );
-        // Keep going so we can log all the errors
-        hasError = true;
-      }
-    } catch (e) {
-      // Pass, the package.json is invalid
-      console.warn(`Problem processing ${file}: ${e}`);
+    if (!wsPackageInfos[packageJson.name]) {
+      wsPackageInfos[packageJson.name] = packageJson;
+    } else {
+      console.error(
+        `ERROR: Two packages have the same name "${packageJson.name}". Please rename one of these packages:\n` +
+          `- ${path.relative(projectRoot, wsPackageInfos[packageJson.name].packageJsonPath)}\n` +
+          `- ${path.relative(projectRoot, packageJson.packageJsonPath)}`
+      );
+      // Keep going so we can log all the errors
+      hasError = true;
     }
   }
 
   if (hasError) {
-    throw new Error('Duplicate package names found (see above for details)');
+    throw new Error(
+      'Duplicate package names found (see above for details).\n' +
+        "If you're getting this error due to test fixtures or other unexpected files, add the " +
+        'paths to ignorePatterns in the beachball config.'
+    );
   }
 
   return Object.values(wsPackageInfos);
-}
-
-function readWsPackageInfo(packageJsonPath: string): WSPackageInfo {
-  return {
-    // this is actually the properties of WSPackageInfo except the packageJsonPath, but using omit
-    // messes things up due to the index signature...
-    ...readJson<WSPackageInfo>(packageJsonPath),
-    packageJsonPath,
-  };
 }

@@ -37,7 +37,7 @@ describe('getChangedPackages (basic)', () => {
         ...options,
       },
     });
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
     const scopedPackages = getScopedPackages(parsedOptions.options, packageInfos);
     gitObserver.mockClear();
     return getChangedPackages(parsedOptions.options, packageInfos, scopedPackages);
@@ -133,7 +133,7 @@ describe('getChangedPackages', () => {
         ...repoOptions,
       },
     });
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
     const scopedPackages = getScopedPackages(parsedOptions.options, packageInfos);
     return { packageInfos, options: parsedOptions.options, parsedOptions, scopedPackages };
   }

@@ -24,7 +24,7 @@ export function createBasicCommandContext(
   const options = 'cliOptions' in _options ? _options.options : _options;
   originalPackageInfos ??=
     // eslint-disable-next-line etc/no-deprecated -- this is a compat helper
-    'cliOptions' in _options ? getPackageInfos(_options.cliOptions) : getPackageInfos(options.path);
+    'cliOptions' in _options ? getPackageInfos(_options) : getPackageInfos(options.path);
   const scopedPackages = getScopedPackages(options, originalPackageInfos);
   return {
     originalPackageInfos,

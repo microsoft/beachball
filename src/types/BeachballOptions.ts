@@ -9,8 +9,8 @@ export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
 /** Separate options objects, returned for reuse in `getPackageInfos`. */
 export interface ParsedOptions {
-  /** Only the specified CLI options, plus the path and command */
-  cliOptions: Partial<CliOptions> & Pick<CliOptions, 'path' | 'command'>;
+  /** Only the specified CLI options */
+  cliOptions: Partial<CliOptions>;
   /** Merged repo-level options (includes repo, CLI, and defaults) */
   options: BeachballOptions;
 }
@@ -179,6 +179,12 @@ export interface RepoOptions {
   /**
    * Ignore changes in these files (minimatch patterns; negations not supported).
    * Patterns are relative to the repo root and must use forward slashes.
+   *
+   * In repos that don't use a supported monorepo manager (npm/yarn/pnpm workspaces, rush, lerna),
+   * this is also applied to `package.json` paths when globbing for packages. The most common case
+   * for this is a repo that's actually a single package, but it has test fixtures checked in
+   * which also contain `package.json` files, and those fake packages should be ignored.
+   * (To ignore "real" packages, you should use the `scope` option or set `"private": true` instead.)
    */
   ignorePatterns?: string[];
   keepChangeFiles?: boolean;
@@ -322,7 +328,6 @@ export interface HooksOptions {
     packagePath: string,
     name: string,
     version: string,
-    // TODO: make all of these DeepReadonly
     packageInfos: Readonly<PackageInfos>
   ) => void | Promise<void>;
 

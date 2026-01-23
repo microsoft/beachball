@@ -1,7 +1,10 @@
 import { bulletedList } from '../logging/bulletedList';
 import type { BumpInfo } from '../types/BumpInfo';
 
-export function displayManualRecovery(bumpInfo: BumpInfo, succeededPackages: Set<string> = new Set<string>()): void {
+export function displayManualRecovery(
+  bumpInfo: Pick<BumpInfo, 'modifiedPackages' | 'packageInfos'>,
+  succeededPackages: Set<string> = new Set<string>()
+): void {
   const errorLines: string[] = [];
   const succeededLines: string[] = [];
 

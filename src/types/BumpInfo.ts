@@ -1,5 +1,4 @@
 import type { ChangeSet, ChangeType } from './ChangeInfo';
-import type { DeepReadonly } from './DeepReadonly';
 import type { PackageInfos, PackageGroups, ScopedPackages } from './PackageInfo';
 
 export type BumpInfo = {
@@ -7,7 +6,7 @@ export type BumpInfo = {
    * Changes coming from the change files.
    * `readChangeFiles` ensures that this will only contain changes for packages that exist.
    */
-  changeFileChangeInfos: DeepReadonly<ChangeSet>;
+  changeFileChangeInfos: Readonly<ChangeSet>;
 
   /**
    * Cached version of package info (e.g. package.json, package path).
@@ -27,7 +26,7 @@ export type BumpInfo = {
    * Package version groups (not changelog groups) derived from `BeachballOptions.groups`
    * (`VersionGroupOptions`).
    */
-  packageGroups: DeepReadonly<PackageGroups>;
+  packageGroups: Readonly<PackageGroups>;
 
   /**
    * Set of packages that have been modified.
