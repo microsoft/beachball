@@ -77,6 +77,7 @@ describe('packagePublish', () => {
         registry: registry.getUrl(),
         // Probably less important now that this is a fetch not a shell command, but just in case
         timeout: env.isCI && process.platform === 'win32' ? 4500 : 1500,
+        path: tempRoot,
       });
     }
 

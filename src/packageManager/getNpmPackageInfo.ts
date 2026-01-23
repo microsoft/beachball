@@ -1,7 +1,8 @@
-import fetch from 'npm-registry-fetch';
+// import fetch from 'npm-registry-fetch';
 import type { NpmOptions } from '../types/NpmOptions';
 import { getNpmAuthArgs, type NpmAuthOptions } from './npmArgs';
 import type { PackageJson } from '../types/PackageInfo';
+import { npm } from './npm';
 
 /** Published versions and dist-tags for a package */
 export interface NpmPackageVersionsData {
@@ -39,34 +40,57 @@ export interface NpmRegistryFetchJson {
  */
 export const _packageContentTypeAccept = 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*';
 
+// TODO remove after https://github.com/microsoft/beachball/issues/1143
+export const _npmShowProperties = ['versions', 'dist-tags'];
+
 /**
  * Get package versions and tags using `npm-registry-fetch`.
  * @returns Data about the package, or undefined if there was some issue
  */
 export async function getNpmPackageInfo(
   packageName: string,
-  options: NpmAuthOptions & Pick<NpmOptions, 'registry' | 'timeout' | 'verbose'>
+  // TODO remove path after https://github.com/microsoft/beachball/issues/1143
+  options: NpmAuthOptions & Pick<NpmOptions, 'registry' | 'timeout' | 'verbose' | 'path'>
 ): Promise<NpmPackageVersionsData | undefined> {
   const authArgs = getNpmAuthArgs(options);
   try {
     options.verbose && console.log(`Fetching info about "${packageName}" from ${options.registry}`);
 
-    const result = (await fetch.json(`/${encodeURIComponent(packageName)}`, {
-      registry: options.registry,
-      timeout: options.timeout,
-      ...(authArgs && {
-        alwaysAuth: true,
-        [authArgs.key]: authArgs.value,
-      }),
-      headers: {
-        accept: _packageContentTypeAccept,
-      },
-    })) as unknown as NpmRegistryFetchJson;
+    const showResult = await npm(
+      [
+        'show',
+        '--registry',
+        options.registry,
+        '--json',
+        ...(authArgs ? [`--${authArgs.key}=${authArgs.value}`] : []),
+        packageName,
+        // Only output the properties we need (npm show fetches everything internally)
+        ..._npmShowProperties,
+      ],
+      { timeout: options.timeout, cwd: options.path, all: true }
+    );
 
-    return {
-      versions: Object.keys(result.versions || {}),
-      'dist-tags': result['dist-tags'] || {},
-    };
+    if (showResult.success && showResult.stdout !== '') {
+      return JSON.parse(showResult.stdout) as NpmPackageVersionsData;
+    }
+    throw new Error(showResult.all ? `Output:\n${showResult.all}` : 'unknown error');
+
+    // const result = (await fetch.json(`/${encodeURIComponent(packageName)}`, {
+    //   registry: options.registry,
+    //   timeout: options.timeout,
+    //   ...(authArgs && {
+    //     alwaysAuth: true,
+    //     [authArgs.key]: authArgs.value,
+    //   }),
+    //   headers: {
+    //     accept: _packageContentTypeAccept,
+    //   },
+    // })) as unknown as NpmRegistryFetchJson;
+
+    // return {
+    //   versions: Object.keys(result.versions || {}),
+    //   'dist-tags': result['dist-tags'] || {},
+    // };
   } catch (err) {
     options.verbose && console.warn(`Failed to get or parse npm info for ${packageName}: ${String(err)}`);
     return undefined;

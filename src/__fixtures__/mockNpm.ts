@@ -1,14 +1,17 @@
-import type { jest } from '@jest/globals';
-import { afterAll, afterEach, beforeAll } from '@jest/globals';
+import { afterAll, afterEach, beforeAll, jest } from '@jest/globals';
 import fs from 'fs';
-import fetch from 'npm-registry-fetch';
+// import fetch from 'npm-registry-fetch';
 import path from 'path';
 import semver from 'semver';
 import { npm, type NpmResult } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
 import type { PackageManagerOptions } from '../packageManager/packageManager';
 import { readJson } from '../object/readJson';
-import type { NpmPackageVersionsData, NpmRegistryFetchJson } from '../packageManager/getNpmPackageInfo';
+import {
+  _npmShowProperties,
+  type NpmPackageVersionsData,
+  type NpmRegistryFetchJson,
+} from '../packageManager/getNpmPackageInfo';
 
 /** Mapping from package name to registry data */
 type MockNpmRegistry = Record<string, NpmRegistryFetchJson>;
@@ -35,10 +38,10 @@ export type NpmMock = {
    * Mocked `npm()` function.
    */
   mock: jest.MockedFunction<typeof npm>;
-  /**
-   * Mocked `fetch.json()` function.
-   */
-  mockFetchJson: jest.MockedFunction<typeof fetch.json>;
+  // /**
+  //  * Mocked `fetch.json()` function.
+  //  */
+  // mockFetchJson: jest.MockedFunction<typeof fetch.json>;
   /**
    * Publish this package version to the mock registry (without needing to read from the filesystem
    * or properly structure the data for `setRegistryData`). This will throw on error.
@@ -67,17 +70,17 @@ export type NpmMock = {
   getPublishedPackage: (packageName: string, versionOrTag?: string) => PackageJson | undefined;
 };
 
-/** This sort of follows the non-exported errors from `npm-registry-fetch` */
-class MockRegistryFetchError extends Error {
-  statusCode: number;
-  code: string;
-  constructor(message: string, code: number) {
-    super(message);
-    this.name = 'MockRegistryFetchError';
-    this.statusCode = code;
-    this.code = `E${code}`;
-  }
-}
+// /** This sort of follows the non-exported errors from `npm-registry-fetch` */
+// class MockRegistryFetchError extends Error {
+//   statusCode: number;
+//   code: string;
+//   constructor(message: string, code: number) {
+//     super(message);
+//     this.name = 'MockRegistryFetchError';
+//     this.statusCode = code;
+//     this.code = `E${code}`;
+//   }
+// }
 
 /** Generic modified date for packages (not currently used) */
 const modified = '2025-12-13T08:26:17.647Z';
@@ -99,16 +102,19 @@ export function initNpmMock(): NpmMock {
       "npm() is not currently mocked. You must call jest.mock('<relativePathTo>/packageManager/npm') at the top of your test."
     );
   }
-  const fetchMock = fetch as jest.MockedFunction<typeof fetch>;
-  if (!fetchMock.mock) {
-    throw new Error(
-      "npm-registry-fetch is not currently mocked. You must call jest.mock('npm-registry-fetch') at the top of your test."
-    );
-  }
+  const fetchMock = { json: jest.fn() };
+  // const fetchMock = fetch as jest.MockedFunction<typeof fetch>;
+  // if (!fetchMock.mock) {
+  //   throw new Error(
+  //     "npm-registry-fetch is not currently mocked. You must call jest.mock('npm-registry-fetch') at the top of your test."
+  //   );
+  // }
 
   const defaultMocks: Record<string, MockNpmCommand> = {
     publish: _mockNpmPublish,
     pack: _mockNpmPack,
+    // TODO remove show after https://github.com/microsoft/beachball/issues/1143
+    show: _mockNpmShow,
   };
   let overrideMocks: Record<string, MockNpmCommand> = {};
   let registryData: MockNpmRegistry = {};
@@ -122,16 +128,16 @@ export function initNpmMock(): NpmMock {
       return (await func(registryData, args, opts)) as NpmResult;
     });
 
-    const fetchJson = (url: string): Promise<NpmRegistryFetchJson> => {
-      const packageName = decodeURIComponent(url).replace(/^\//, '');
-      const pkgData = registryData[packageName];
-      if (!pkgData) {
-        throw new MockRegistryFetchError(`404 Not Found - GET ${url}`, 404);
-      }
-      return Promise.resolve(pkgData);
-    };
-    // We skipped the fetch.json.stream property since it's not used
-    fetchMock.json.mockImplementation(fetchJson as unknown as typeof fetch.json);
+    // const fetchJson = (url: string): Promise<NpmRegistryFetchJson> => {
+    //   const packageName = decodeURIComponent(url).replace(/^\//, '');
+    //   const pkgData = registryData[packageName];
+    //   if (!pkgData) {
+    //     throw new MockRegistryFetchError(`404 Not Found - GET ${url}`, 404);
+    //   }
+    //   return Promise.resolve(pkgData);
+    // };
+    // // We skipped the fetch.json.stream property since it's not used
+    // fetchMock.json.mockImplementation(fetchJson as unknown as typeof fetch.json);
   });
 
   afterEach(() => {
@@ -148,7 +154,7 @@ export function initNpmMock(): NpmMock {
 
   return {
     mock: npmMock,
-    mockFetchJson: fetchMock.json,
+    // mockFetchJson: fetchMock.json,
     publishPackage: (packageJson, tag = 'latest') => {
       mockPublishPackage(registryData, packageJson, tag);
     },
@@ -205,6 +211,59 @@ export function _makeRegistryData(data: PartialRegistryData): MockNpmRegistry {
 
   return registry;
 }
+
+// TODO remove show after https://github.com/microsoft/beachball/issues/1143
+/** (exported for testing) Mock npm show based on the registry data */
+// eslint-disable-next-line @typescript-eslint/require-await -- required by signature
+export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
+  // Assumption: all beachball callers to "npm show" list the package name
+  // as the last argument except for the properties to show.
+  let packageSpec = '';
+  for (let i = args.length - 1; i >= 0; i--) {
+    if (!_npmShowProperties.includes(args[i])) {
+      packageSpec = args[i];
+      break;
+    }
+  }
+
+  // The requested package may be only a name, or may include a version (either tag or semver).
+  // Split at any @ later in the string (@ at the start is a scope) to see if there's a version,
+  // or default to latest if no version is specified.
+  const [name, version = 'latest'] = packageSpec.split(/(?!^)@/);
+  const pkgData = registryData[name];
+
+  if (!pkgData) {
+    const stderr = `[fake] code E404 - ${name} - not found`;
+    return { stdout: '', stderr, all: stderr, success: false, failed: true } as NpmResult;
+  }
+
+  let finalVersion: string | undefined;
+  if (semver.valid(version)) {
+    // syntactically valid single version
+    finalVersion = version;
+  } else if (semver.validRange(version)) {
+    // syntactically valid range: could be implemented but no test is using it
+    throw new Error('Ranges are not currently supported by mock npm');
+  } else {
+    // try it as a dist-tag
+    finalVersion = pkgData['dist-tags'][version];
+  }
+
+  const versionData = finalVersion ? pkgData.versions[finalVersion] : undefined;
+  if (!versionData) {
+    // Some versions for this package exist, but the specified version or tag doesn't
+    // (note that "E404" matches the actual npm output, but the rest of the message is different)
+    const stderr = `[fake] code E404 - ${name}@${version} - not found`;
+    return { stdout: '', stderr, all: stderr, success: false, failed: true } as NpmResult;
+  }
+
+  const stdout = JSON.stringify({
+    ...versionData,
+    'dist-tags': pkgData['dist-tags'],
+    versions: Object.keys(pkgData.versions),
+  });
+  return { stdout, stderr: '', all: stdout, success: true, failed: false } as NpmResult;
+};
 
 /** (exported for testing) Mock npm publish to the registry data */
 // eslint-disable-next-line @typescript-eslint/require-await -- async required by signature

@@ -20,7 +20,7 @@ import { deepFreezeProperties } from '../__fixtures__/object';
 // If an issue is found in the future that could only be caught by this test using real npm,
 // a new test file with a real registry should be created to cover that specific scenario.
 jest.mock('../packageManager/npm');
-jest.mock('npm-registry-fetch');
+// jest.mock('npm-registry-fetch');
 
 describe('publish command (registry)', () => {
   const npmMock = initNpmMock();
@@ -188,7 +188,8 @@ describe('publish command (registry)', () => {
 
     expect(npmMock.getPublishedPackage('foo')!.version).toEqual('1.1.0');
     expect(npmMock.getPublishedPackage('bar')!.version).toEqual('1.4.0');
-    expect(npmMock.mock).toHaveBeenCalledTimes(2);
+    expect(npmMock.mock).toHaveBeenCalledTimes(4);
+    // expect(npmMock.mock).toHaveBeenCalledTimes(2);
     expect(logs.mocks.error).not.toHaveBeenCalled();
   });
 

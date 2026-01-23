@@ -6,7 +6,7 @@ import { initNpmMock } from '../../__fixtures__/mockNpm';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 jest.mock('../../packageManager/npm');
-jest.mock('npm-registry-fetch');
+// jest.mock('npm-registry-fetch');
 
 describe('validatePackageVersions', () => {
   const logs = initMockLogs();
@@ -24,7 +24,8 @@ describe('validatePackageVersions', () => {
     const packageInfos = makePackageInfos({ foo: {}, bar: {} });
 
     expect(await validatePackageVersions(['foo'], packageInfos, npmOptions)).toBe(true);
-    expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
+    expect(npmMock.mock).toHaveBeenCalledTimes(1);
+    // expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[log]
       Validating new package versions...
@@ -42,7 +43,8 @@ describe('validatePackageVersions', () => {
 
     // only foo and bar are being published
     expect(await validatePackageVersions(['foo', 'bar'], packageInfos, npmOptions)).toBe(true);
-    expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
+    expect(npmMock.mock).toHaveBeenCalledTimes(2);
+    // expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[log]
       Validating new package versions...
@@ -61,7 +63,8 @@ describe('validatePackageVersions', () => {
 
     // foo, bar, baz are attempting publishing
     expect(await validatePackageVersions(['foo', 'bar', 'baz'], packageInfos, npmOptions)).toBe(false);
-    expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(3);
+    expect(npmMock.mock).toHaveBeenCalledTimes(3);
+    // expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(3);
     // Multiple error packages are logged, along with the valid package
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[log]

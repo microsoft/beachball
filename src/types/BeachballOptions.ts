@@ -135,8 +135,9 @@ export interface RepoOptions {
    * Maximum concurrency for fetching package versions/tags from the registry.
    * This should be a faster operation than publishing and can use a higher limit.
    * (See `concurrency` for write operations.)
-   * @default 10
+   * @default 5
    */
+  // TODO change back to 10 after https://github.com/microsoft/beachball/issues/1143
   npmReadConcurrency: number;
   /**
    * The default dist-tag used for npm publish, if no other `tag` is specified.
