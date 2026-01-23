@@ -11,7 +11,7 @@ import {
 import type { PackageInfos } from '../types/PackageInfo';
 import { getPackageInfosWithOptions } from '../options/getPackageInfosWithOptions';
 import type { BeachballOptions, ParsedOptions } from '../types/BeachballOptions';
-import { filterIgnoredFiles, isFileIgnored } from './filterIgnoredFiles';
+import { filterIgnoredFiles } from './filterIgnoredFiles';
 
 /** Options subset used by `getPackageInfos` */
 type PackageInfosOptions = Pick<ParsedOptions, 'cliOptions'> & {
@@ -41,7 +41,7 @@ export function getPackageInfos(optionsOrCwd: string | PackageInfosOptions): Pac
   let wsPackageInfos: WSPackageInfo[] | undefined;
   if (projectRoot) {
     wsPackageInfos =
-      getPackageInfosFromMonorepoManager(projectRoot, parsedOptions?.options) ||
+      getPackageInfosFromMonorepoManager(projectRoot) ||
       getPackageInfosFromOtherMonorepo(projectRoot, parsedOptions?.options);
   }
 
@@ -62,22 +62,8 @@ export function getPackageInfos(optionsOrCwd: string | PackageInfosOptions): Pac
 }
 
 /** Try to find packages from a monorepo manager */
-function getPackageInfosFromMonorepoManager(
-  projectRoot: string,
-  options: Pick<BeachballOptions, 'ignorePatterns'> | undefined
-): WSPackageInfo[] | undefined {
-  const { ignorePatterns } = options || {};
-
-  // First try to find the packages from a monorepo manager, if a recognized one is in use
+function getPackageInfosFromMonorepoManager(projectRoot: string): WSPackageInfo[] | undefined {
   const wsPackageInfos = getWorkspaceInfos(projectRoot)?.map(({ packageJson }) => packageJson);
-
-  if (wsPackageInfos?.length && ignorePatterns?.length) {
-    // Apply ignore patterns to package.json paths
-    return wsPackageInfos.filter(
-      pkg => !isFileIgnored({ filePath: path.relative(projectRoot, pkg.packageJsonPath), ignorePatterns })
-    );
-  }
-
   return wsPackageInfos?.length ? wsPackageInfos : undefined;
 }
 

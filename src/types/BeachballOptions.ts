@@ -180,10 +180,11 @@ export interface RepoOptions {
    * Ignore changes in these files (minimatch patterns; negations not supported).
    * Patterns are relative to the repo root and must use forward slashes.
    *
-   * This is also respected when getting info about packages from disk, and can be used to exclude
-   * test fixture packages or similar. Note the globs will be applied to the package's `package.json`
-   * in that case. (For "real" packages that shouldn't have change files or be published, it's
-   * preferred to mark them as `"private": true` in their package.json instead.)
+   * In repos that don't use a supported monorepo manager (npm/yarn/pnpm workspaces, rush, lerna),
+   * this is also applied to `package.json` paths when globbing for packages. The most common case
+   * for this is a repo that's actually a single package, but it has test fixtures checked in
+   * which also contain `package.json` files, and those fake packages should be ignored.
+   * (To ignore "real" packages, you should use the `scope` option or set `"private": true` instead.)
    */
   ignorePatterns?: string[];
   keepChangeFiles?: boolean;

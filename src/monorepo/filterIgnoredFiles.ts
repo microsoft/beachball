@@ -25,20 +25,3 @@ export function filterIgnoredFiles(
     return !ignorePattern;
   });
 }
-
-/**
- * Check if a file is ignored based on the provided ignore patterns.
- */
-export function isFileIgnored(
-  params: Pick<BeachballOptions, 'ignorePatterns'> & {
-    /** Relative file path */
-    filePath: string;
-  }
-): boolean {
-  const { filePath, ignorePatterns } = params;
-  if (!ignorePatterns?.length) {
-    return false;
-  }
-
-  return ignorePatterns.some(pattern => minimatch(filePath, pattern, minimatchOptions));
-}

@@ -19,7 +19,7 @@ function cleanPath(root: string, filePath: string) {
 }
 
 /** Sanitize paths in the result of `getPackageInfos` */
-function cleanPaths(root: string, packageInfos: PackageInfos) {
+function cleanPaths(root: string, packageInfos: PackageInfos): PackageInfos {
   const cleanedInfos: PackageInfos = {};
   for (const [pkgName, originalInfo] of Object.entries(packageInfos)) {
     cleanedInfos[pkgName] = {
@@ -31,7 +31,7 @@ function cleanPaths(root: string, packageInfos: PackageInfos) {
 }
 
 /** Return an object mapping package names to sanitized package.json paths */
-function getPackageNamesAndPaths(root: string, packageInfos: PackageInfos) {
+function getPackageNamesAndPaths(root: string, packageInfos: PackageInfos): Record<string, string> {
   return Object.fromEntries(
     Object.entries(packageInfos).map(([name, pkg]) => [name, cleanPath(root, pkg.packageJsonPath)])
   );
@@ -187,20 +187,6 @@ describe('getPackageInfos', () => {
     });
   });
 
-  it('respects ignorePatterns in regular monorepo', () => {
-    tempDir = createTestFileStructureType('monorepo');
-
-    const rootPackageInfos = getPackageInfos({
-      cliOptions: {},
-      options: { path: tempDir, ignorePatterns: ['packages/b*/**'] },
-    });
-    expect(getPackageNamesAndPaths(tempDir, rootPackageInfos)).toEqual({
-      a: '<root>/packages/grouped/a/package.json',
-      b: '<root>/packages/grouped/b/package.json',
-      foo: '<root>/packages/foo/package.json',
-    });
-  });
-
   it('works in non-managed monorepo (and respects ignorePatterns)', () => {
     // This one needs git so it can use git ls-files to find packages
     const repo = monorepoFactory.cloneRepository();
@@ -238,6 +224,16 @@ describe('getPackageInfos', () => {
     expect(getPackageNamesAndPaths(repo.rootPath, rootPackageInfos)).toEqual({
       foo: '<root>/package.json',
     });
+  });
+
+  it('does NOT respect ignorePatterns in monorepo with recognized manager', () => {
+    tempDir = createTestFileStructureType('monorepo');
+
+    const rootPackageInfos = getPackageInfos({
+      cliOptions: {},
+      options: { path: tempDir, ignorePatterns: ['packages/**/*'] },
+    });
+    expect(cleanPaths(tempDir, rootPackageInfos)).toEqual(expectedYarnPackages);
   });
 
   it('works in multi-project monorepo', () => {

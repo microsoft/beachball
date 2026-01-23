@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Respect ignorePatterns when finding packages. Also update workspace-tools to 0.40.4.",
+  "comment": "Respect `ignorePatterns` when finding packages **only** in repos that don't use a supported monorepo manager. Also update workspace-tools to 0.40.4.",
   "packageName": "beachball",
   "email": "elcraig@microsoft.com",
   "dependentChangeType": "patch"
