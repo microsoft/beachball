@@ -71,7 +71,12 @@ export async function getNpmPackageInfo(
     );
 
     if (showResult.success && showResult.stdout !== '') {
-      return JSON.parse(showResult.stdout) as NpmPackageVersionsData;
+      const data = JSON.parse(showResult.stdout) as NpmPackageVersionsData;
+      // Weird thing showing up in tests only with npm 8: sometimes `versions` is a single string?
+      if (typeof data.versions === 'string') {
+        data.versions = [data.versions];
+      }
+      return data;
     }
     throw new Error(showResult.all ? `Output:\n${showResult.all}` : 'unknown error');
 
