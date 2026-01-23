@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Respect ignorePatterns when finding packages. Also update workspace-tools to 0.40.4.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

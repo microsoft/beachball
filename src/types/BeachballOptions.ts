@@ -9,8 +9,8 @@ export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 
 /** Separate options objects, returned for reuse in `getPackageInfos`. */
 export interface ParsedOptions {
-  /** Only the specified CLI options, plus the path and command */
-  cliOptions: Partial<CliOptions> & Pick<CliOptions, 'path' | 'command'>;
+  /** Only the specified CLI options */
+  cliOptions: Partial<CliOptions>;
   /** Merged repo-level options (includes repo, CLI, and defaults) */
   options: BeachballOptions;
 }
@@ -179,6 +179,11 @@ export interface RepoOptions {
   /**
    * Ignore changes in these files (minimatch patterns; negations not supported).
    * Patterns are relative to the repo root and must use forward slashes.
+   *
+   * This is also respected when getting info about packages from disk, and can be used to exclude
+   * test fixture packages or similar. Note the globs will be applied to the package's `package.json`
+   * in that case. (For "real" packages that shouldn't have change files or be published, it's
+   * preferred to mark them as `"private": true` in their package.json instead.)
    */
   ignorePatterns?: string[];
   keepChangeFiles?: boolean;
@@ -322,7 +327,6 @@ export interface HooksOptions {
     packagePath: string,
     name: string,
     version: string,
-    // TODO: make all of these DeepReadonly
     packageInfos: Readonly<PackageInfos>
   ) => void | Promise<void>;
 

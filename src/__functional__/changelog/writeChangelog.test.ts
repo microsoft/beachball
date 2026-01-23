@@ -40,7 +40,7 @@ describe('writeChangelog', () => {
       argv: [],
       testRepoOptions: { branch: defaultRemoteBranchName, ...repoOptions },
     });
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
     return { packageInfos, options: parsedOptions.options, parsedOptions };
   }
 

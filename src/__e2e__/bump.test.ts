@@ -91,7 +91,7 @@ describe('bump command', () => {
     expect(bumpInfo?.modifiedPackages).toEqual(new Set(['pkg-1', 'pkg-2']));
     expect(bumpInfo?.dependentChangedBy).toEqual({ 'pkg-2': new Set(['pkg-1']) });
 
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
 
     const pkg1NewVersion = '1.1.0';
     expect(packageInfos['pkg-1'].version).toBe(pkg1NewVersion);
@@ -130,8 +130,8 @@ describe('bump command', () => {
 
     await bumpWrapper(infoA.parsedOptions);
 
-    const packageInfosA = getPackageInfos(infoA.parsedOptions.cliOptions);
-    const packageInfosB = getPackageInfos(infoB.parsedOptions.cliOptions);
+    const packageInfosA = getPackageInfos(infoA.parsedOptions);
+    const packageInfosB = getPackageInfos(infoB.parsedOptions);
     expect(packageInfosA['@project-a/foo'].version).toBe('1.1.0');
     expect(packageInfosB['@project-b/foo'].version).toBe('1.0.0');
 
@@ -173,7 +173,7 @@ describe('bump command', () => {
     expect(bumpInfo.calculatedChangeTypes).toEqual({ 'pkg-3': 'minor' });
     expect(bumpInfo.modifiedPackages).toEqual(new Set(['pkg-3']));
 
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
 
     expect(packageInfos['pkg-1']).toEqual(originalPackageInfos['pkg-1']);
     expect(packageInfos['pkg-2']).toEqual(originalPackageInfos['pkg-2']);
@@ -213,7 +213,7 @@ describe('bump command', () => {
 
     expect(bumpInfo.modifiedPackages).toEqual(new Set(['pkg-1', 'pkg-2', 'pkg-3', 'pkg-4', 'pkg-5']));
 
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
 
     const pkg1NewVersion = '1.1.0';
     const dependentNewVersion = '1.0.1';
@@ -269,7 +269,7 @@ describe('bump command', () => {
     const { originalPackageInfos } = await bumpWrapper(parsedOptions);
 
     // This scenario is also covered in bumpInMemory, so focus on the filesystem parts
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
 
     const groupNewVersion = '1.1.0';
     expect(packageInfos['pkg-1'].version).toBe(groupNewVersion);
@@ -319,7 +319,7 @@ describe('bump command', () => {
     expect(bumpInfo.changeFileChangeInfos).toHaveLength(1);
     expect(bumpInfo.changeFileChangeInfos[0].change.packageName).toBe('baz');
 
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
     expect(packageInfos['bar']).toEqual(originalPackageInfos['bar']);
     expect(packageInfos['foo']).toEqual(originalPackageInfos['foo']);
     expect(packageInfos['baz'].version).toBe('1.4.0');
@@ -347,7 +347,7 @@ describe('bump command', () => {
     // bumpInMemory already tests the in-memory part of this scenario
     const { originalPackageInfos } = await bumpWrapper(parsedOptions);
 
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
     expect(packageInfos['bar'].version).toBe('1.3.5');
     // Since foo is out of scope, currently its dep on bar is not bumped.
     // This is usually fine, but could be an issue if bar is bumped to an incompatible version.
@@ -384,7 +384,7 @@ describe('bump command', () => {
 
     const { originalPackageInfos } = await bumpWrapper(parsedOptions);
 
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
 
     // All the packages are bumped despite the file: dep specs.
     // The dep specs are not modified, but the dependent versions are bumped.
@@ -427,7 +427,7 @@ describe('bump command', () => {
 
     await bumpWrapper(parsedOptions);
 
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
 
     const newVersion = '1.0.1-beta.0';
     expect(packageInfos['pkg-1'].version).toBe(newVersion);
@@ -466,7 +466,7 @@ describe('bump command', () => {
     // The bumpInfo object is covered by the similar test in bumpInMemory.test.ts
     const { originalPackageInfos } = await bumpWrapper(parsedOptions);
 
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
 
     // All the dependent packages are bumped despite the workspace: dep specs
     expect(packageInfos['pkg-1']).toEqual({ ...originalPackageInfos['pkg-1'], version: '1.1.0' });
@@ -517,7 +517,7 @@ describe('bump command', () => {
     // The bumpInfo object is covered by the similar test in bumpInMemory.test.ts
     const { originalPackageInfos } = await bumpWrapper(parsedOptions);
 
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
 
     // All the dependent packages are bumped despite the catalog: dep specs
     expect(packageInfos['pkg-1'].version).toBe('1.1.0');

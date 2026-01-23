@@ -12,7 +12,7 @@ describe('getScopedPackages', () => {
 
   beforeAll(() => {
     root = createTestFileStructureType('monorepo');
-    packageInfos = getPackageInfos({ path: root, command: '' });
+    packageInfos = getPackageInfos({ cliOptions: {}, options: { path: root } });
   });
 
   afterAll(() => {

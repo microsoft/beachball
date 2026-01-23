@@ -105,7 +105,7 @@ describe('publish command (e2e)', () => {
     expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
 
     // Also verify it's correct on disk
-    const newPackageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const newPackageInfos = getPackageInfos(parsedOptions);
     expect(newPackageInfos.foo.version).toBe('1.1.0');
   });
 
@@ -171,7 +171,7 @@ describe('publish command (e2e)', () => {
 
     // TODO: this uses the modified version 1.0.2, which is wrong because the bumped version is newer.
     // Needs further investigation...
-    // const newPackageInfos = getPackageInfos(parsedOptions.cliOptions);
+    // const newPackageInfos = getPackageInfos(parsedOptions);
     // expect(newPackageInfos.foo.version).toBe('1.1.0');
   });
 
@@ -217,7 +217,7 @@ describe('publish command (e2e)', () => {
     // this indicates 2 tries
     expect(fetchCount).toBe(2);
 
-    const newPackageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const newPackageInfos = getPackageInfos(parsedOptions);
     expect(newPackageInfos.foo.version).toBe('1.1.0');
     expect(newPackageInfos.foo.dependencies?.baz).toBeUndefined();
   });
@@ -242,7 +242,7 @@ describe('publish command (e2e)', () => {
     repo.pull();
     expect(repo.getCurrentTags()).toEqual([]);
 
-    const newPackageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const newPackageInfos = getPackageInfos(parsedOptions);
     expect(newPackageInfos.foo.version).toBe('1.0.0');
   });
 
@@ -275,7 +275,7 @@ describe('publish command (e2e)', () => {
     repo.pull();
     expect(repo.getCurrentTags()).toEqual(['bar_v1.3.5', 'baz_v1.4.0', 'foo_v1.0.1']);
 
-    const newPackageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const newPackageInfos = getPackageInfos(parsedOptions);
     expect(newPackageInfos.foo).toMatchObject({ version: '1.0.1', dependencies: { bar: '^1.3.5' } });
     expect(newPackageInfos.bar).toMatchObject({ version: '1.3.5', dependencies: { baz: '^1.4.0' } });
     expect(newPackageInfos.baz.version).toBe('1.4.0');
@@ -330,7 +330,7 @@ describe('publish command (e2e)', () => {
     repo.pull();
     expect(repo.getCurrentTags()).toEqual(['bar_v1.4.0']);
 
-    const newPackageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const newPackageInfos = getPackageInfos(parsedOptions);
     expect(newPackageInfos.bar.version).toBe('1.4.0');
     expect(newPackageInfos.foo.version).toBe('1.0.0');
   });
@@ -372,7 +372,7 @@ describe('publish command (e2e)', () => {
 
     // All the dependent packages are bumped despite the workspace: dep specs.
     // The literal workspace: specs are preserved in git.
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
     expect(packageInfos['pkg-1']).toEqual({ ...originalPackageInfos['pkg-1'], version: '1.1.0' });
     // workspace:~ and catalog: ranges aren't changed
     expect(packageInfos['pkg-2']).toEqual({ ...originalPackageInfos['pkg-2'], version: '1.0.1' });

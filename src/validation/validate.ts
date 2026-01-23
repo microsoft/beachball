@@ -84,7 +84,7 @@ export function validate(
 
   const originalPackageInfos =
     // eslint-disable-next-line etc/no-deprecated
-    'cliOptions' in _options ? getPackageInfos(_options.cliOptions) : getPackageInfos(options.path);
+    'cliOptions' in _options ? getPackageInfos(_options) : getPackageInfos(options.path);
 
   if (options.all && options.package) {
     logValidationError('Cannot specify both "all" and "package" options');

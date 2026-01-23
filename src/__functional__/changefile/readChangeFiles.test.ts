@@ -33,7 +33,7 @@ describe('readChangeFiles', () => {
       argv: [],
       testRepoOptions: { branch: defaultRemoteBranchName, ...repoOptions },
     });
-    const packageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfos = getPackageInfos(parsedOptions);
     const scopedPackages = getScopedPackages(parsedOptions.options, packageInfos);
     return { packageInfos, options: parsedOptions.options, parsedOptions, scopedPackages };
   }

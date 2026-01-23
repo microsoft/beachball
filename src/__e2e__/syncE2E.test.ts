@@ -52,7 +52,7 @@ describe('sync command (e2e)', () => {
         ...repoOptions,
       },
     });
-    const originalPackageInfos = getPackageInfos(parsedOptions.cliOptions);
+    const originalPackageInfos = getPackageInfos(parsedOptions);
     const context: SyncCommandContext = {
       originalPackageInfos,
       scopedPackages: getScopedPackages(parsedOptions.options, originalPackageInfos),
@@ -93,7 +93,7 @@ describe('sync command (e2e)', () => {
     const { options, parsedOptions, context } = getOptionsAndContext();
     await sync(options, context);
 
-    const packageInfosAfterSync = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfosAfterSync = getPackageInfos(parsedOptions);
 
     expect(packageInfosAfterSync['foopkg'].version).toEqual('1.2.0');
     expect(packageInfosAfterSync['barpkg'].version).toEqual('3.0.0');
@@ -125,7 +125,7 @@ describe('sync command (e2e)', () => {
     });
     await sync(options, context);
 
-    const packageInfosAfterSync = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfosAfterSync = getPackageInfos(parsedOptions);
 
     // apkg should be updated to the new beta tag; others should not be updated
     expect(packageInfosAfterSync['apkg'].version).toEqual('2.0.0');
@@ -156,7 +156,7 @@ describe('sync command (e2e)', () => {
     const { options, parsedOptions, context } = getOptionsAndContext({}, ['--tag', 'prerelease', '--force']);
     await sync(options, context);
 
-    const packageInfosAfterSync = getPackageInfos(parsedOptions.cliOptions);
+    const packageInfosAfterSync = getPackageInfos(parsedOptions);
 
     expect(packageInfosAfterSync['epkg'].version).toEqual('1.0.0-1');
     expect(packageInfosAfterSync['fpkg'].version).toEqual('2.2.0');
