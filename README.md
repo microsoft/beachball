@@ -93,7 +93,7 @@ $ beachball publish -r http://localhost:4873 -t beta
 
 ### Overriding concurrency
 
-In large monorepos, the process of fetching versions for sync or before publishing can be time-consuming due to the high number of packages. To optimize performance, you can override the concurrency for fetching from the registry by setting `options.npmReadConcurrency` (default: 10). You can also increase concurrency for hook calls and publish operations via `options.concurrency` (default: 1; respects topological order).
+In large monorepos, the process of fetching versions for sync or before publishing can be time-consuming due to the high number of packages. To optimize performance, you can override the concurrency for fetching from the registry by setting `options.npmReadConcurrency` (default: 5). You can also increase concurrency for hook calls and publish operations via `options.concurrency` (default: 1; respects topological order).
 
 ### API surface
 

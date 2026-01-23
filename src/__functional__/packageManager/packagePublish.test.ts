@@ -8,7 +8,7 @@ import { packagePublish } from '../../packageManager/packagePublish';
 import type { PackageInfo } from '../../types/PackageInfo';
 import type { npm, NpmResult } from '../../packageManager/npm';
 import { writeJson } from '../../object/writeJson';
-import { getNpmPackageInfo, type NpmPackageVersionsData } from '../../packageManager/getNpmPackageInfo';
+import { getNpmPackageInfo } from '../../packageManager/getNpmPackageInfo';
 import { env } from '../../env';
 
 type PackagePublishOptions = Parameters<typeof packagePublish>[1];
@@ -72,14 +72,6 @@ describe('packagePublish', () => {
   describe('with real local registry', () => {
     let registry: Registry;
 
-    function getRealNpmPackageInfo(packageName: string): Promise<NpmPackageVersionsData | undefined> {
-      return getNpmPackageInfo(packageName, {
-        registry: registry.getUrl(),
-        // Probably less important now that this is a fetch not a shell command, but just in case
-        timeout: env.isCI && process.platform === 'win32' ? 4500 : 1500,
-      });
-    }
-
     beforeAll(() => {
       registry = new Registry(__filename);
 
@@ -90,7 +82,6 @@ describe('packagePublish', () => {
     });
 
     beforeEach(async () => {
-      npmSpy = jest.spyOn(npmModule, 'npm');
       await registry.start();
     });
 
@@ -120,7 +111,13 @@ describe('packagePublish', () => {
       expect(allLogs).toMatch('publish command:');
       expect(allLogs).toMatch(`[log] Published!`);
 
-      expect(await getRealNpmPackageInfo(testName)).toEqual({
+      const realPackage = await getNpmPackageInfo(testPackageInfo.name, {
+        registry: registry.getUrl(),
+        // Probably less important now that this is a fetch not a shell command, but just in case
+        timeout: env.isCI && process.platform === 'win32' ? 4500 : 1500,
+        path: tempRoot,
+      });
+      expect(realPackage).toEqual({
         versions: [testVersion],
         // This will publish the test tag as well as "latest" because it's a new package
         'dist-tags': { [testTag]: testVersion, latest: testVersion },

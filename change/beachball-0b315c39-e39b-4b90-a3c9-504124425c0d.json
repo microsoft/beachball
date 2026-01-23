@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Revert to using npm CLI for fetching package info due to vulnerability in older `npm-registry-fetch`'s old `tar` dependency (updating would require a major change to bump beachball's minimum Node version)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
