@@ -19,7 +19,13 @@
     "vuepress": "^2.0.0-rc"
   },
   "resolutions": {
-    "@types/node@npm:*": "^22.0.0"
+    "@types/node@npm:*": "^22.0.0",
+    "lodash-es@npm:4.17.21": "^4.17.21"
+  },
+  "rationale": {
+    "resolutions": {
+      "lodash-es": "Unpin due to security issue"
+    }
   },
   "engines": {
     "node": ">=22",
