@@ -1,4 +1,4 @@
-import { getPackageDependencies } from 'workspace-tools/lib/graph/getPackageDependencies';
+import { getPackageDependencies } from 'workspace-tools';
 import type { PackageInfos } from '../types/PackageInfo';
 
 /**
