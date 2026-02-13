@@ -32,6 +32,7 @@ describe('changelog renderers -', () => {
       },
       previousJson: {} as ChangelogJson,
       renderers: { ...defaultRenderers }, // copy in case of modification
+      defaultRenderers: { ...defaultRenderers },
     };
   }
 

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Pass default changelog renderers through to custom renders",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

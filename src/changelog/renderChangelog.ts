@@ -2,7 +2,8 @@ import { renderPackageChangelog, defaultRenderers } from './renderPackageChangel
 import type { ChangelogOptions, PackageChangelogRenderInfo } from '../types/ChangelogOptions';
 import type { PackageChangelog } from '../types/ChangeLog';
 
-export interface MarkdownChangelogRenderOptions extends Omit<PackageChangelogRenderInfo, 'renderers'> {
+export interface MarkdownChangelogRenderOptions
+  extends Omit<PackageChangelogRenderInfo, 'renderers' | 'defaultRenderers'> {
   previousContent: string;
   changelogOptions: ChangelogOptions;
 }
@@ -56,6 +57,7 @@ export async function renderChangelog(renderOptions: MarkdownChangelogRenderOpti
         ...defaultRenderers,
         ...customRenderers,
       },
+      defaultRenderers: { ...defaultRenderers },
     };
 
     const packageChangelog = await (customRenderPackageChangelog || renderPackageChangelog)(renderInfo);
