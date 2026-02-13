@@ -97,9 +97,16 @@ async function _renderEntriesBasic(
 }
 
 function _renderEntry(entry: ChangelogEntry): string {
-  if (entry.author === 'beachball') {
-    return `- ${entry.comment}`;
+  let comment = `- ${entry.comment}`;
+
+  if (comment.includes('<') && !/`[^`]*?</.test(comment)) {
+    // If the comment includes a < which definitely isn't inside a code block, escape it.
+    // (Not bothering with full backtick matching since it's generally low-consequence if wrong.)
+    // Full HTML escaping will be handled by the final markdown renderer; we just want to prevent
+    // comment contents that were likely not intended as HTML from breaking rendering.
+    // e.g. "Add --config <file> option"
+    comment = comment.replace(/</g, '\\<');
   }
 
-  return `- ${entry.comment} (${entry.author})`;
+  return entry.author === 'beachball' ? comment : `${comment} (${entry.author})`;
 }

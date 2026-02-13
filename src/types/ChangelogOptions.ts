@@ -125,6 +125,11 @@ export interface PackageChangelogRenderInfo {
    * Default renderers will be included in cases where a custom option wasn't provided.
    */
   renderers: Required<ChangelogRenderers>;
+
+  /**
+   * Default renderers for each element of the changelog.
+   */
+  defaultRenderers: Required<ChangelogRenderers>;
 }
 
 export interface ChangelogRenderers {
