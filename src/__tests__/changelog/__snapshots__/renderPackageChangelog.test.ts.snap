@@ -1,53 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`changelog renderers - renderChangeTypeHeader has correct grouped output 1`] = `"### Minor changes"`;
-
-exports[`changelog renderers - renderChangeTypeHeader has correct output 1`] = `"### Minor changes"`;
-
-exports[`changelog renderers - renderChangeTypeSection has correct grouped output 1`] = `
-"### Minor changes
-
-- \`bar\`
-  - Awesome change (user1@example.com)
-- \`foo\`
-  - Boring change (user2@example.com)"
-`;
-
-exports[`changelog renderers - renderChangeTypeSection has correct output 1`] = `
-"### Minor changes
-
-- Awesome change (user1@example.com)
-- Boring change (user2@example.com)"
-`;
-
-exports[`changelog renderers - renderEntries has correct grouped output 1`] = `
-"- \`bar\`
-  - Awesome change (user1@example.com)
-- \`foo\`
-  - Boring change (user2@example.com)"
-`;
-
-exports[`changelog renderers - renderEntries has correct output 1`] = `
-"- Awesome change (user1@example.com)
-- Boring change (user2@example.com)"
-`;
-
-exports[`changelog renderers - renderEntry has correct grouped output 1`] = `"- Awesome change (user1@example.com)"`;
-
-exports[`changelog renderers - renderEntry has correct output 1`] = `"- Awesome change (user1@example.com)"`;
-
-exports[`changelog renderers - renderHeader has correct grouped output 1`] = `
-"## 1.2.3
-
-Thu, 22 Aug 2019 21:20:40 GMT"
-`;
-
-exports[`changelog renderers - renderHeader has correct output 1`] = `
-"## 1.2.3
-
-Thu, 22 Aug 2019 21:20:40 GMT"
-`;
-
 exports[`changelog renderers - renderPackageChangelog has correct grouped output 1`] = `
 "## 1.2.3
 
@@ -66,22 +18,6 @@ Thu, 22 Aug 2019 21:20:40 GMT
   - Fix (user1@example.com)
 - \`bar\`
   - stuff (user2@example.com)"
-`;
-
-exports[`changelog renderers - renderPackageChangelog has correct output 1`] = `
-"## 1.2.3
-
-Thu, 22 Aug 2019 21:20:40 GMT
-
-### Minor changes
-
-- Awesome change (user1@example.com)
-- Boring change (user2@example.com)
-
-### Patches
-
-- Fix (user1@example.com)
-- stuff (user2@example.com)"
 `;
 
 exports[`changelog renderers - renderPackageChangelog includes all change types 1`] = `

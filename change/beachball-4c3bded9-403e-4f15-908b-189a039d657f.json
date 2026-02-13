@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Pass default changelog renderers through to custom renders",
+  "comment": "Pass default changelog renderers through to custom renders. Also escape the character `<` in changelog entries when rendering if it's definitely not inside a code block.",
   "packageName": "beachball",
   "email": "elcraig@microsoft.com",
   "dependentChangeType": "patch"

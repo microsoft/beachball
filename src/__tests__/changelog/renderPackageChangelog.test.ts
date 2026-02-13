@@ -6,8 +6,7 @@ import { SortedChangeTypes } from '../../changefile/changeTypes';
 
 const { renderEntry, renderEntries, renderChangeTypeHeader, renderChangeTypeSection, renderHeader } = defaultRenderers;
 
-const leadingNewlineRegex = /^\n/;
-const trailingNewlineRegex = /\n$/;
+const leadingTrailingNewlineRegex = /^\n|\n$/;
 
 describe('changelog renderers -', () => {
   function getRenderInfo(): PackageChangelogRenderInfo {
@@ -32,7 +31,7 @@ describe('changelog renderers -', () => {
       },
       previousJson: {} as ChangelogJson,
       renderers: { ...defaultRenderers }, // copy in case of modification
-      defaultRenderers: { ...defaultRenderers },
+      defaultRenderers,
     };
   }
 
@@ -54,23 +53,33 @@ describe('changelog renderers -', () => {
     return renderInfo;
   }
 
-  function doBasicTests(result: string) {
-    expect(result).not.toMatch(leadingNewlineRegex);
-    expect(result).not.toMatch(trailingNewlineRegex);
-    expect(result).toMatchSnapshot();
-  }
-
   describe('renderEntry', () => {
     it('has correct output', async () => {
       const renderInfo = getRenderInfo();
       const result = await renderEntry(renderInfo.newVersionChangelog.comments.minor![0], renderInfo);
-      doBasicTests(result);
+      expect(result).not.toMatch(leadingTrailingNewlineRegex);
+      expect(result).toMatchInlineSnapshot(`"- Awesome change (user1@example.com)"`);
     });
 
     it('has correct grouped output', async () => {
       const renderInfo = getGroupedRenderInfo();
       const result = await renderEntry(renderInfo.newVersionChangelog.comments.minor![0], renderInfo);
-      doBasicTests(result);
+      expect(result).not.toMatch(leadingTrailingNewlineRegex);
+      expect(result).toMatchInlineSnapshot(`"- Awesome change (user1@example.com)"`);
+    });
+
+    it('escapes < outside of code blocks', async () => {
+      const renderInfo = getRenderInfo();
+      renderInfo.newVersionChangelog.comments.minor![0].comment = 'Add --config <file>';
+      const result = await renderEntry(renderInfo.newVersionChangelog.comments.minor![0], renderInfo);
+      expect(result).toMatchInlineSnapshot(`"- Add --config \\<file> (user1@example.com)"`);
+    });
+
+    it('does not escape < inside code blocks', async () => {
+      const renderInfo = getRenderInfo();
+      renderInfo.newVersionChangelog.comments.minor![0].comment = 'Add `--config <file>`';
+      const result = await renderEntry(renderInfo.newVersionChangelog.comments.minor![0], renderInfo);
+      expect(result).toMatchInlineSnapshot(`"- Add \`--config <file>\` (user1@example.com)"`);
     });
   });
 
@@ -78,13 +87,23 @@ describe('changelog renderers -', () => {
     it('has correct output', async () => {
       const renderInfo = getRenderInfo();
       const result = await renderEntries('minor', renderInfo);
-      doBasicTests(result);
+      expect(result).not.toMatch(leadingTrailingNewlineRegex);
+      expect(result).toMatchInlineSnapshot(`
+        "- Awesome change (user1@example.com)
+        - Boring change (user2@example.com)"
+      `);
     });
 
     it('has correct grouped output', async () => {
       const renderInfo = getGroupedRenderInfo();
       const result = await renderEntries('minor', renderInfo);
-      doBasicTests(result);
+      expect(result).not.toMatch(leadingTrailingNewlineRegex);
+      expect(result).toMatchInlineSnapshot(`
+        "- \`bar\`
+          - Awesome change (user1@example.com)
+        - \`foo\`
+          - Boring change (user2@example.com)"
+      `);
     });
   });
 
@@ -92,13 +111,15 @@ describe('changelog renderers -', () => {
     it('has correct output', async () => {
       const renderInfo = getRenderInfo();
       const result = await renderChangeTypeHeader('minor', renderInfo);
-      doBasicTests(result);
+      expect(result).not.toMatch(leadingTrailingNewlineRegex);
+      expect(result).toMatchInlineSnapshot(`"### Minor changes"`);
     });
 
     it('has correct grouped output', async () => {
       const renderInfo = getGroupedRenderInfo();
       const result = await renderChangeTypeHeader('minor', renderInfo);
-      doBasicTests(result);
+      expect(result).not.toMatch(leadingTrailingNewlineRegex);
+      expect(result).toMatchInlineSnapshot(`"### Minor changes"`);
     });
   });
 
@@ -106,13 +127,27 @@ describe('changelog renderers -', () => {
     it('has correct output', async () => {
       const renderInfo = getRenderInfo();
       const result = await renderChangeTypeSection('minor', renderInfo);
-      doBasicTests(result);
+      expect(result).not.toMatch(leadingTrailingNewlineRegex);
+      expect(result).toMatchInlineSnapshot(`
+        "### Minor changes
+
+        - Awesome change (user1@example.com)
+        - Boring change (user2@example.com)"
+      `);
     });
 
     it('has correct grouped output', async () => {
       const renderInfo = getGroupedRenderInfo();
       const result = await renderChangeTypeSection('minor', renderInfo);
-      doBasicTests(result);
+      expect(result).not.toMatch(leadingTrailingNewlineRegex);
+      expect(result).toMatchInlineSnapshot(`
+        "### Minor changes
+
+        - \`bar\`
+          - Awesome change (user1@example.com)
+        - \`foo\`
+          - Boring change (user2@example.com)"
+      `);
     });
   });
 
@@ -120,13 +155,23 @@ describe('changelog renderers -', () => {
     it('has correct output', async () => {
       const renderInfo = getRenderInfo();
       const result = await renderHeader(renderInfo);
-      doBasicTests(result);
+      expect(result).not.toMatch(leadingTrailingNewlineRegex);
+      expect(result).toMatchInlineSnapshot(`
+        "## 1.2.3
+
+        Thu, 22 Aug 2019 21:20:40 GMT"
+      `);
     });
 
     it('has correct grouped output', async () => {
       const renderInfo = getGroupedRenderInfo();
       const result = await renderHeader(renderInfo);
-      doBasicTests(result);
+      expect(result).not.toMatch(leadingTrailingNewlineRegex);
+      expect(result).toMatchInlineSnapshot(`
+        "## 1.2.3
+
+        Thu, 22 Aug 2019 21:20:40 GMT"
+      `);
     });
   });
 
@@ -134,7 +179,24 @@ describe('changelog renderers -', () => {
     it('has correct output', async () => {
       const renderInfo = getRenderInfo();
       const result = await renderPackageChangelog(renderInfo);
-      doBasicTests(result);
+      expect(result).not.toMatch(leadingTrailingNewlineRegex);
+      // Most of the package output snapshots go in a snapshot file since they're longer,
+      // but include one inline to help as a sanity check.
+      expect(result).toMatchInlineSnapshot(`
+        "## 1.2.3
+
+        Thu, 22 Aug 2019 21:20:40 GMT
+
+        ### Minor changes
+
+        - Awesome change (user1@example.com)
+        - Boring change (user2@example.com)
+
+        ### Patches
+
+        - Fix (user1@example.com)
+        - stuff (user2@example.com)"
+      `);
     });
 
     it('includes all change types', async () => {
@@ -150,13 +212,15 @@ describe('changelog renderers -', () => {
           expect(result).toContain(`${type} change`);
         }
       }
-      doBasicTests(result);
+      expect(result).not.toMatch(leadingTrailingNewlineRegex);
+      expect(result).toMatchSnapshot();
     });
 
     it('has correct grouped output', async () => {
       const renderInfo = getGroupedRenderInfo();
       const result = await renderPackageChangelog(renderInfo);
-      doBasicTests(result);
+      expect(result).not.toMatch(leadingTrailingNewlineRegex);
+      expect(result).toMatchSnapshot();
     });
 
     it('uses custom renderEntry', async () => {
