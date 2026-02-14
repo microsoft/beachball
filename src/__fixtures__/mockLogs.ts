@@ -28,6 +28,8 @@ export type MockLogs = {
     opts?: {
       /** Replace this path with `<root>` and normalize slashes */
       root?: string;
+      /** Mapping from path to placeholder text, e.g. `{ [packToPath]: '<packPath>' }` */
+      replacePaths?: Record<string, string>;
       /**
        * Sanitize GUIDs, full commit hashes, and publish branch timestamps.
        *
@@ -74,10 +76,15 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
         .join('\n')
         .trim();
 
-      if (opts.root) {
+      if (opts.root || opts.replacePaths) {
+        const replacePaths = { ...opts.replacePaths, ...(opts.root && { [opts.root]: '<root>' }) };
         // Normalize slashes first to ensure they're the same, then emulate replaceAll
-        lines = lines.replace(/\\/g, '/').split(opts.root.replace(/\\/g, '/')).join('<root>');
+        lines = lines.replace(/\\/g, '/');
+        for (const [key, value] of Object.entries(replacePaths)) {
+          lines = lines.split(key.replace(/\\/g, '/')).join(value);
+        }
       }
+
       if (opts.sanitize) {
         lines = lines
           // Replace GUIDs with <guid>

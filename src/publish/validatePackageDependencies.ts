@@ -29,8 +29,9 @@ export function validatePackageDependencies(packagesToValidate: string[], packag
   const errorDeps = Object.keys(prodDeps).filter(dep => packageInfos[dep]?.private);
   if (errorDeps.length) {
     console.error(
-      `ERROR: Found private packages among published package dependencies:\n` +
-        bulletedList(errorDeps.map(dep => `${dep}: used by ${prodDeps[dep].join(', ')}`).sort())
+      `\nERROR: Found private packages among published package dependencies:\n` +
+        bulletedList(errorDeps.map(dep => `${dep}: used by ${prodDeps[dep].join(', ')}`).sort()) +
+        '\n'
     );
     return false;
   }

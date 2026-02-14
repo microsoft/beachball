@@ -1,19 +1,22 @@
-import { describe, expect, it, afterEach, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs';
-import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
+import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
+import { initNpmMock } from '../__fixtures__/mockNpm';
+import { deepFreezeProperties } from '../__fixtures__/object';
 import type { Repository } from '../__fixtures__/repository';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
-import { publish } from '../commands/publish';
-import type { ParsedOptions, RepoOptions } from '../types/BeachballOptions';
-import { initNpmMock } from '../__fixtures__/mockNpm';
 import { removeTempDir, tmpdir } from '../__fixtures__/tmpdir';
-import { getParsedOptions } from '../options/getOptions';
+import { publish } from '../commands/publish';
 import { createCommandContext } from '../monorepo/createCommandContext';
+import { getParsedOptions } from '../options/getOptions';
+import type { ParsedOptions, RepoOptions } from '../types/BeachballOptions';
 import { validate } from '../validation/validate';
-import { deepFreezeProperties } from '../__fixtures__/object';
 
+// These are E2E tests for publish() relating specifically to the npm parts.
+// (Lower-level tests for publishToRegistry() are in __functional__/publish/publishToRegistry.test.ts.)
+//
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
 //
@@ -76,6 +79,7 @@ describe('publish command (registry)', () => {
     packToPath = undefined;
   });
 
+  // One little sanity check for packToPath (it's mostly covered by lower-level tests)
   it('packs single package', async () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
@@ -151,19 +155,20 @@ describe('publish command (registry)', () => {
 
       [log] Removing change files:
       [log] - publicpkg-<guid>.json
-      [log]
-      Validating new package versions...
-      [log]
-      Package versions are OK to publish:
+      [log] Validating new package versions...
+
+      [log] Package versions are OK to publish:
         • publicpkg@1.1.0
+
       [log] Validating no private package among package dependencies
       [log]   OK!
 
-      [log]
-      Publishing - publicpkg@1.1.0 with tag latest
+      [log] Publishing - publicpkg@1.1.0 with tag latest
       [log]   publish command: publish --registry fake --tag latest --loglevel warn
       [log]   (cwd: <root>/packages/publicpkg)
+
       [log] Published! - publicpkg@1.1.0
+
       [log]
       [log] Skipping git push and tagging
       [log]
@@ -193,34 +198,6 @@ describe('publish command (registry)', () => {
     expect(logs.mocks.error).not.toHaveBeenCalled();
   });
 
-  it('packs many packages', async () => {
-    const packageNames = Array.from({ length: 11 }, (_, i) => `pkg-${i + 1}`);
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: Object.fromEntries(
-          packageNames.map((name, i) => [
-            name,
-            // Each package depends on the next one, so they must be published in reverse alphabetical order
-            { version: '1.0.0', dependencies: { [packageNames[i + 1] || 'other']: '^1.0.0' } },
-          ])
-        ),
-      },
-    });
-    repo = repositoryFactory.cloneRepository();
-    packToPath = tmpdir({ prefix: 'beachball-pack-' });
-
-    const { options, parsedOptions } = getOptions({ packToPath, groupChanges: true });
-    generateChangeFiles(packageNames, options);
-    // initial validate() isn't relevant here
-    await publish(options, createCommandContext(parsedOptions));
-
-    expect(fs.readdirSync(packToPath).sort()).toEqual(
-      [...packageNames].reverse().map((name, i) => `${String(i + 1).padStart(2, '0')}-${name}-1.1.0.tgz`)
-    );
-    expect(npmMock.getPublishedVersions('pkg-1')).toBeUndefined();
-    expect(logs.mocks.error).not.toHaveBeenCalled();
-  });
-
   it('exits publishing early if only invalid change files exist', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
@@ -241,32 +218,5 @@ describe('publish command (registry)', () => {
     expect(logs.mocks.error).not.toHaveBeenCalled();
 
     expect(npmMock.getPublishedVersions('foo')).toBeUndefined();
-  });
-
-  it('errors if version already exists in registry', async () => {
-    repositoryFactory = new RepositoryFactory('monorepo');
-    repo = repositoryFactory.cloneRepository();
-    // Simulate the current package versions already existing to test validatePackageVersions
-    npmMock.publishPackage(repositoryFactory.fixture.folders.packages.foo);
-    npmMock.publishPackage(repositoryFactory.fixture.folders.packages.bar);
-    npmMock.publishPackage(repositoryFactory.fixture.folders.packages.baz);
-    // also say the bumped version of foo and bar already exist (baz is fine)
-    npmMock.publishPackage({ ...repositoryFactory.fixture.folders.packages.foo, version: '1.1.0' });
-    npmMock.publishPackage({ ...repositoryFactory.fixture.folders.packages.bar, version: '1.4.0' });
-
-    const { options, parsedOptions } = getOptions();
-    generateChangeFiles(['foo', 'bar', 'baz'], options);
-    await expect(() => publishWrapper(parsedOptions)).rejects.toThrow('process.exit');
-
-    expect(logs.getMockLines('error')).toMatchInlineSnapshot(`
-      "ERROR: Attempting to publish package versions that already exist in the registry:
-        • bar@1.4.0
-        • foo@1.1.0
-      Something went wrong with publishing! Manually update these package and versions:
-        • bar@1.4.0
-        • baz@1.4.0
-        • foo@1.1.0
-      No packages were published due to validation errors (see above for details)."
-    `);
   });
 });
