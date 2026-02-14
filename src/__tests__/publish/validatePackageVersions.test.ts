@@ -27,10 +27,9 @@ describe('validatePackageVersions', () => {
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
     // expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(1);
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
-      "[log]
-      Validating new package versions...
-      [log]
-      Package versions are OK to publish:
+      "[log] Validating new package versions...
+
+      [log] Package versions are OK to publish:
         • foo@1.0.0"
     `);
   });
@@ -46,10 +45,9 @@ describe('validatePackageVersions', () => {
     expect(npmMock.mock).toHaveBeenCalledTimes(2);
     // expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
-      "[log]
-      Validating new package versions...
-      [log]
-      Package versions are OK to publish:
+      "[log] Validating new package versions...
+
+      [log] Package versions are OK to publish:
         • foo@1.0.1
         • bar@1.0.0"
     `);
@@ -67,13 +65,12 @@ describe('validatePackageVersions', () => {
     // expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(3);
     // Multiple error packages are logged, along with the valid package
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
-      "[log]
-      Validating new package versions...
-      [log]
-      Package versions are OK to publish:
+      "[log] Validating new package versions...
+
+      [log] Package versions are OK to publish:
         • baz@1.0.0
-      [error]
-      ERROR: Attempting to publish package versions that already exist in the registry:
+
+      [error] ERROR: Attempting to publish package versions that already exist in the registry:
         • bar@1.0.0
         • foo@1.0.0"
     `);

@@ -1,23 +1,27 @@
-import { describe, expect, it, afterEach, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
 import { addGitObserver, catalogsToYaml, clearGitObservers, type Catalogs } from 'workspace-tools';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
-import type { Repository } from '../__fixtures__/repository';
-import { type PackageJsonFixture, type RepoFixture, RepositoryFactory } from '../__fixtures__/repositoryFactory';
-import { publish } from '../commands/publish';
-import type { ParsedOptions, RepoOptions } from '../types/BeachballOptions';
 import { _mockNpmPublish, initNpmMock } from '../__fixtures__/mockNpm';
-import type { PackageJson } from '../types/PackageInfo';
-import { getParsedOptions } from '../options/getOptions';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { validate } from '../validation/validate';
-import { readJson } from '../object/readJson';
-import { createCommandContext } from '../monorepo/createCommandContext';
 import { deepFreezeProperties } from '../__fixtures__/object';
+import type { Repository } from '../__fixtures__/repository';
+import { RepositoryFactory, type RepoFixture } from '../__fixtures__/repositoryFactory';
+import { publish } from '../commands/publish';
+import { getPackageInfos } from '../monorepo/getPackageInfos';
+import { readJson } from '../object/readJson';
+import { getParsedOptions } from '../options/getOptions';
+import type { ParsedOptions, RepoOptions } from '../types/BeachballOptions';
+import type { PackageJson } from '../types/PackageInfo';
+import { validate } from '../validation/validate';
 
+// These tests are slow, so they should only cover E2E publishing scenarios that can't be fully
+// covered by lower-level tests (such as publishToRegistry or bumping functional tests), and a
+// few all-up scenarios as sanity checks. Tests specific to git or npm scenarios should
+// potentially go in publishGit.test.ts or publishRegistry.test.ts instead.
+//
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
 //
@@ -33,7 +37,7 @@ describe('publish command (e2e)', () => {
   let repo: Repository | undefined;
 
   // show error logs for these tests
-  const logs = initMockLogs({ alsoLog: ['error'] });
+  initMockLogs({ alsoLog: ['error'] });
 
   function getOptions(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
     const parsedOptions = getParsedOptions({
@@ -406,7 +410,8 @@ describe('publish command (e2e)', () => {
     });
   });
 
-  // These tests are slow, so combine pre and post hooks
+  // These tests are slow, so combine pre and post hooks.
+  // This needs to be an E2E test to verify the versions etc passed through are correct.
   it('respects prepublish/postpublish hooks', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
@@ -470,163 +475,5 @@ describe('publish command (e2e)', () => {
     expect(fooJsonPost.main).toBe('src/index.ts');
     expect(fooJsonPost.customOnPublish?.main).toBe('lib/index.js');
     expect(notified).toBe(fooJsonPost.customAfterPublish?.notify);
-  });
-
-  it('respects concurrency limit when publishing multiple packages', async () => {
-    const packagesToPublish = ['pkg1', 'pkg2', 'pkg3', 'pkg4', 'pkg5'];
-    const packages: { [packageName: string]: PackageJsonFixture } = {};
-    for (const name of packagesToPublish) {
-      packages[name] = { version: '1.0.0' };
-    }
-
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: packages,
-      },
-    });
-    repo = repositoryFactory.cloneRepository();
-
-    // Skip fetching and pushing since it's slow and not important for this test
-    const concurrency = 2;
-    const { options, parsedOptions } = getOptions({ concurrency, fetch: false, push: false });
-    generateChangeFiles(packagesToPublish, options);
-
-    const simulateWait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-    let currentConcurrency = 0;
-    let maxConcurrency = 0;
-    npmMock.setCommandOverride('publish', async (registryData, args, opts) => {
-      currentConcurrency++;
-      await simulateWait(100);
-      const result = await _mockNpmPublish(registryData, args, opts);
-      maxConcurrency = Math.max(maxConcurrency, currentConcurrency);
-      currentConcurrency--;
-      return result;
-    });
-
-    // skip validate for this test since it's not relevant
-    await publish(options, createCommandContext(parsedOptions));
-    // Verify that at most `concurrency` number of packages were published concurrently
-    expect(maxConcurrency).toBe(concurrency);
-
-    // Verify all packages were published
-    for (const pkg of packagesToPublish) {
-      expect(npmMock.getPublishedVersions(pkg)).toEqual({
-        versions: ['1.1.0'],
-        'dist-tags': { latest: '1.1.0' },
-      });
-    }
-  });
-
-  it('handles errors correctly when one package fails during concurrent publishing', async () => {
-    logs.setOverrideOptions({ alsoLog: [] });
-    const packageNames = ['pkg1', 'pkg2', 'pkg3', 'pkg4', 'pkg5'];
-    const packages: { [packageName: string]: PackageJsonFixture } = {};
-    const packageToFail = 'pkg3';
-    for (const name of packageNames) {
-      packages[name] = { version: '1.0.0' };
-    }
-    packages['pkg1'].dependencies = { [packageToFail]: '1.0.0' };
-    packages['pkg2'].dependencies = { [packageToFail]: '1.0.0' };
-
-    repositoryFactory = new RepositoryFactory({
-      folders: { packages },
-    });
-    repo = repositoryFactory.cloneRepository();
-
-    const { options, parsedOptions } = getOptions({
-      concurrency: 3,
-      // Skip fetching and pushing since it's slow and not important for this test
-      fetch: false,
-      push: false,
-    });
-    generateChangeFiles(packageNames, options);
-
-    npmMock.setCommandOverride('publish', async (registryData, args, opts) => {
-      if (opts.cwd?.endsWith(packageToFail)) {
-        const stderr = 'Failed to publish package';
-        return { failed: true, stderr, stdout: '', success: false, all: stderr };
-      }
-      return _mockNpmPublish(registryData, args, opts);
-    });
-
-    // skip validate for this test since it's not relevant
-    await expect(publish(options, createCommandContext(parsedOptions))).rejects.toThrow(
-      'Error publishing! Refer to the previous logs for recovery instructions.'
-    );
-
-    for (const name of packageNames) {
-      if (['pkg1', 'pkg2', packageToFail].includes(name)) {
-        // Verify that the packages that failed to publish are not published.
-        // pkg1 and pkg2 are not published because they depend on pkg3, which failed to publish.
-        expect(npmMock.getPublishedVersions(name)).toBeUndefined();
-      } else {
-        // Verify that the packages that did not fail to publish are published
-        expect(npmMock.getPublishedVersions(name)).toEqual({
-          versions: ['1.1.0'],
-          'dist-tags': { latest: '1.1.0' },
-        });
-      }
-    }
-  });
-
-  // Just test postpublish (prepublish should have the same logic)
-  // TODO: possibly move to in-memory test
-  it('respects concurrency limit for publish hooks', async () => {
-    const packagesToPublish = ['pkg1', 'pkg2', 'pkg3', 'pkg4'];
-    type ExtraPackageJsonFixture = PackageJsonFixture & { customAfterPublish?: { notify: string } };
-    const packages: { [packageName: string]: ExtraPackageJsonFixture } = {};
-    for (const name of packagesToPublish) {
-      packages[name] = {
-        version: '1.0.0',
-        customAfterPublish: {
-          notify: `message-${name}`,
-        },
-      };
-    }
-
-    repositoryFactory = new RepositoryFactory({
-      folders: { packages },
-    });
-    repo = repositoryFactory.cloneRepository();
-
-    const simulateWait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-    const afterPublishStrings: Record<string, string | undefined> = {};
-    const concurrency = 2;
-    let currentConcurrency = 0;
-    let maxConcurrency = 0;
-    const { options, parsedOptions } = getOptions({
-      hooks: {
-        postpublish: async (packagePath, name) => {
-          currentConcurrency++;
-          await simulateWait(100);
-          const packageJsonPath = path.join(packagePath, 'package.json');
-          const packageJson = readJson<ExtraPackageJsonFixture>(packageJsonPath);
-          afterPublishStrings[name] = packageJson.customAfterPublish?.notify;
-          maxConcurrency = Math.max(maxConcurrency, currentConcurrency);
-          currentConcurrency--;
-        },
-      },
-      concurrency,
-      // Skip fetching and pushing since it's slow and not important for this test
-      fetch: false,
-      push: false,
-    });
-
-    generateChangeFiles(packagesToPublish, options);
-
-    // skip validate for this test since it's not relevant
-    await publish(options, createCommandContext(parsedOptions));
-    // Verify that at most `concurrency` number of postpublish hooks were running concurrently
-    expect(maxConcurrency).toBe(concurrency);
-
-    for (const pkg of packagesToPublish) {
-      const packageJson = readJson<ExtraPackageJsonFixture>(repo.pathTo(`packages/${pkg}/package.json`));
-      if (packageJson.customAfterPublish) {
-        // Verify that all postpublish hooks were called
-        expect(afterPublishStrings[pkg]).toEqual(packageJson.customAfterPublish.notify);
-      }
-    }
   });
 });

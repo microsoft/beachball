@@ -64,12 +64,12 @@ describe('packPackage', () => {
       expect.objectContaining({ cwd: tempRoot })
     );
     // file is moved to correct location (not the package folder)
-    expect(fs.existsSync(path.join(tempPackPath, '1-' + testPkg.packName))).toBe(true);
+    expect(fs.readdirSync(tempPackPath)).toEqual([`1-${testPkg.packName}`]);
     expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
 
     const allLogs = logs.getMockLines('all');
     expect(allLogs).toMatch(`Packing - ${testPkg.spec}`);
-    expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${path.join(tempPackPath, '1-' + testPkg.packName)}`);
+    expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${path.join(tempPackPath, `1-${testPkg.packName}`)}`);
   });
 
   it('packs scoped package', async () => {
@@ -84,12 +84,12 @@ describe('packPackage', () => {
       expect.objectContaining({ cwd: tempRoot })
     );
     // file is moved to correct location (not the package folder)
-    expect(fs.existsSync(path.join(tempPackPath, '1-' + testPkg.packName))).toBe(true);
+    expect(fs.readdirSync(tempPackPath)).toEqual([`1-${testPkg.packName}`]);
     expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
 
     const allLogs = logs.getMockLines('all');
     expect(allLogs).toMatch(`Packing - ${testPkg.spec}`);
-    expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${path.join(tempPackPath, '1-' + testPkg.packName)}`);
+    expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${path.join(tempPackPath, `1-${testPkg.packName}`)}`);
   });
 
   it('packs package with correct longer prefix', async () => {
@@ -104,12 +104,12 @@ describe('packPackage', () => {
       ['pack', '--loglevel', 'warn'],
       expect.objectContaining({ cwd: tempRoot })
     );
-    expect(fs.existsSync(path.join(tempPackPath, '002-' + testPkg.packName))).toBe(true);
+    expect(fs.readdirSync(tempPackPath)).toEqual([`002-${testPkg.packName}`]);
     expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
 
     const allLogs = logs.getMockLines('all');
     expect(allLogs).toMatch(`Packing - ${testPkg.spec}`);
-    expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${path.join(tempPackPath, '002-' + testPkg.packName)}`);
+    expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${path.join(tempPackPath, `002-${testPkg.packName}`)}`);
   });
 
   it('handles failure packing', async () => {
@@ -122,8 +122,8 @@ describe('packPackage', () => {
     const packResult = await packPackage(testPkg.info, { packToPath: tempPackPath, index: 0, total: 1 });
     expect(packResult).toEqual(false);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
+    expect(fs.readdirSync(tempPackPath)).toEqual([]);
     expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
-    expect(fs.existsSync(path.join(tempPackPath, testPkg.packName))).toBe(false);
 
     const allLogs = logs.getMockLines('all');
     expect(allLogs).toMatch(`Packing - ${testPkg.spec}`);
@@ -140,7 +140,7 @@ describe('packPackage', () => {
     expect(packResult).toEqual(false);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
     expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
-    expect(fs.existsSync(path.join(tempPackPath, testPkg.packName))).toBe(false);
+    expect(fs.readdirSync(tempPackPath)).toEqual([]);
 
     const allLogs = logs.getMockLines('all');
     expect(allLogs).toMatch(`Packing - ${testPkg.spec}`);
@@ -157,7 +157,7 @@ describe('packPackage', () => {
     expect(packResult).toEqual(false);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
     expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
-    expect(fs.existsSync(path.join(tempPackPath, testPkg.packName))).toBe(false);
+    expect(fs.readdirSync(tempPackPath)).toEqual([]);
 
     const allLogs = logs.getMockLines('all');
     expect(allLogs).toMatch(`Packing - ${testPkg.spec}`);
@@ -168,7 +168,9 @@ describe('packPackage', () => {
     const testPkg = getTestPackage('testpkg');
     writeJson(tempPackageJsonPath, testPkg.json);
 
-    fs.writeFileSync(path.join(tempPackPath, '1-' + testPkg.packName), 'other content');
+    const destPath = path.join(tempPackPath, `1-${testPkg.packName}`);
+    fs.writeFileSync(destPath, 'other content');
+    const origPath = path.join(tempRoot, testPkg.packName);
 
     const packResult = await packPackage(testPkg.info, { packToPath: tempPackPath, index: 0, total: 1 });
     expect(packResult).toEqual(false);
@@ -176,15 +178,10 @@ describe('packPackage', () => {
 
     const allLogs = logs.getMockLines('all');
     expect(allLogs).toMatch(`Packing - ${testPkg.spec}`);
-    expect(allLogs).toMatch(
-      `Failed to move ${path.join(tempRoot, testPkg.packName)} to ${path.join(
-        tempPackPath,
-        '1-' + testPkg.packName
-      )}: Error:`
-    );
+    expect(allLogs).toMatch(`Failed to move ${origPath} to ${destPath}: Error:`);
 
     // tgz file is cleaned up
-    expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
+    expect(fs.existsSync(origPath)).toBe(false);
   });
 
   // These tests are slow, so only cover minimal cases
@@ -207,12 +204,12 @@ describe('packPackage', () => {
         expect.objectContaining({ cwd: tempRoot })
       );
       // file is moved to correct location (not the package folder)
-      expect(fs.existsSync(path.join(tempPackPath, '1-' + testPkg.packName))).toBe(true);
+      expect(fs.readdirSync(tempPackPath)).toEqual([`1-${testPkg.packName}`]);
       expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
 
       const allLogs = logs.getMockLines('all');
       expect(allLogs).toMatch(`Packing - ${testPkg.spec}`);
-      expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${path.join(tempPackPath, '1-' + testPkg.packName)}`);
+      expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${path.join(tempPackPath, `1-${testPkg.packName}`)}`);
     });
   });
 });

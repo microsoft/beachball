@@ -20,7 +20,8 @@ import { getCatalogs } from 'workspace-tools';
  * This will bump packages on the filesystem first if `options.bump` is true.
  */
 export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: BeachballOptions): Promise<void> {
-  const verb = options.packToPath ? 'pack' : 'publish';
+  const { packToPath, verbose } = options;
+  const verb = packToPath ? 'pack' : 'publish';
 
   // bumpInfo already reflects in-memory bumps, but they're only written to disk if bump=true
   if (options.bump) {
@@ -29,6 +30,10 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
 
   // get the packages to publish, reducing the set by packages that don't need publishing
   const packagesToPublish = getPackagesToPublish(bumpInfo, { toposort: true, logSkipped: true });
+  if (!packagesToPublish.length) {
+    console.log('Nothing to publish');
+    return;
+  }
 
   let invalid = false;
   // TODO: for bump=false, this should validate the on-disk versions, not in-memory bumped versions
@@ -42,7 +47,7 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
   }
 
   if (invalid) {
-    console.error(`No packages were ${verb}ed due to validation errors (see above for details).`);
+    // Don't log anything since the validate functions already did it
     // TODO: consider throwing instead
     // eslint-disable-next-line no-restricted-properties
     process.exit(1);
@@ -62,7 +67,6 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
 
   const packagePublishInternal = async (packageInfo: PackageInfo) => {
     let success: boolean;
-    const { packToPath, verbose } = options;
     if (packToPath) {
       success = await packPackage(packageInfo, {
         packToPath,
@@ -99,10 +103,19 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
     // p-graph will throw an array of errors if it fails to run all tasks
     let err = error;
     if (Array.isArray(error)) {
-      const errorSet = new Set(error);
+      // Dedupe the error messages since they'll usually be the same ("Error publishing! ...")
+      const errorSet = new Set(error.map(e => (e as Error).message || String(e)));
       err = new Error(Array.from(errorSet).join('\n\n'));
     }
-    displayManualRecovery(bumpInfo, succeededPackages);
+
+    if (packToPath) {
+      // The regular recovery message is mostly irrelevant for packing, since nothing was published
+      console.error(
+        'Something went wrong with packing packages! No packages were published, so you can address the issue and try again.'
+      );
+    } else {
+      displayManualRecovery(bumpInfo, succeededPackages);
+    }
     throw err;
   }
 

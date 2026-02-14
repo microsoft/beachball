@@ -18,10 +18,10 @@ export async function packagePublish(
   const packageRoot = path.dirname(packageInfo.packageJsonPath);
   const publishTag = publishArgs[publishArgs.indexOf('--tag') + 1];
   const packageSpec = `${packageInfo.name}@${packageInfo.version}`;
-  console.log(`\nPublishing - ${packageSpec} with tag ${publishTag}`);
+  console.log(`Publishing - ${packageSpec} with tag ${publishTag}`);
 
   console.log(`  publish command: ${publishArgs.join(' ')}`);
-  console.log(`  (cwd: ${packageRoot})`);
+  console.log(`  (cwd: ${packageRoot})\n`);
 
   let result: NpmResult;
 
@@ -40,11 +40,10 @@ export async function packagePublish(
     });
 
     if (result.success) {
-      console.log(`Published! - ${packageSpec}`);
+      console.log(`Published! - ${packageSpec}\n`);
       return result;
     }
 
-    console.log();
     const output = `Output:\n\n${result.all}\n`;
 
     // First check the output for specific cases where retries are unlikely to help.

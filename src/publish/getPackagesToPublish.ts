@@ -52,7 +52,7 @@ export function getPackagesToPublish(
 
   // this log is not helpful when called from `validate`
   if (skippedPackageReasons.length && params?.logSkipped) {
-    console.log(`\nSkipping publishing the following packages:\n${bulletedList(skippedPackageReasons.sort())}`);
+    console.log(`Skipping publishing the following packages:\n${bulletedList(skippedPackageReasons.sort())}\n`);
   }
 
   return packagesToPublish;
