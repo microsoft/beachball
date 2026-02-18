@@ -2,7 +2,22 @@ import { getPackageDependencies } from 'workspace-tools';
 import type { PackageInfos } from '../types/PackageInfo';
 
 /**
- * @returns Each element is a tuple of [dependency, dependent] where `dependent` depends on `dependency`.
+ * Call {@link getPackageDependencies} with consistent options: ignore dev deps,
+ * include deps of all other types if included in `packageSet`.
+ */
+export function getPackageDependenciesWrapper(packageInfo: PackageInfos[string], packageSet: Set<string>): string[] {
+  return getPackageDependencies(packageInfo, packageSet, {
+    withDevDependencies: false,
+    withPeerDependencies: true,
+    withOptionalDependencies: true,
+  });
+}
+
+/**
+ * Get the graph of non-dev dependencies within the repo.
+ * Dev dependencies can be omitted since they don't impact publishing or installation.
+ *
+ * @returns Each element is a tuple of `[dependency, dependent]` where `dependent` depends on `dependency`.
  * These are the edges of the dependency graph.
  */
 export function getPackageDependencyGraph(
@@ -18,11 +33,7 @@ export function getPackageDependencyGraph(
       throw new Error(`Package info is missing for ${pkgName}.`);
     }
 
-    const allDeps = getPackageDependencies(info, packageSet, {
-      withDevDependencies: true,
-      withPeerDependencies: true,
-      withOptionalDependencies: true,
-    });
+    const allDeps = getPackageDependenciesWrapper(info, packageSet);
     if (allDeps.length > 0) {
       for (const depPkgName of allDeps) {
         dependencyGraph.push([depPkgName, pkgName]);

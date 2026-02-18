@@ -1,13 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import path from 'path';
-import { generateChanges, type PartialChangeFile } from '../../__fixtures__/changeFiles';
+import { generateChangeSet, type PartialChangeFile } from '../../__fixtures__/changeFiles';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { mockProcessExit } from '../../__fixtures__/mockProcessExit';
 import { makePackageInfosByFolder, type PartialPackageInfo } from '../../__fixtures__/packageInfos';
 import { bumpInMemory } from '../../bump/bumpInMemory';
 import { getParsedOptions } from '../../options/getOptions';
 import type { RepoOptions } from '../../types/BeachballOptions';
-import type { ChangeSet } from '../../types/ChangeInfo';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
 import { getPackageGroups } from '../../monorepo/getPackageGroups';
 
@@ -30,10 +29,7 @@ describe('bumpInMemory', () => {
       cwd,
       cliOptions,
     });
-    const changeSet: ChangeSet = generateChanges(params.changes).map((change, i) => ({
-      change,
-      changeFile: `change${i}.json`,
-    }));
+    const changeSet = generateChangeSet(params.changes);
     const scopedPackages = getScopedPackages(options, originalPackageInfos);
     const packageGroups = getPackageGroups(originalPackageInfos, cwd, options.groups);
 

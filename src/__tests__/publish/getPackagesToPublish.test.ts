@@ -122,19 +122,4 @@ describe('getPackagesToPublish', () => {
         • pkg-b is not bumped (no calculated change type)"
     `);
   });
-
-  it('returns packages in topological order if requested', () => {
-    // Sorting is tested in toposortPackages, so just use a simple graph here
-    const result = getPackagesToPublishWrapper(
-      {
-        packageInfos: {
-          'pkg-a': { dependencies: { 'pkg-b': '^1.0.0' } },
-          'pkg-b': { dependencies: { 'pkg-c': '^1.0.0' } },
-          'pkg-c': {},
-        },
-      },
-      { toposort: true }
-    );
-    expect(result).toEqual(['pkg-c', 'pkg-b', 'pkg-a']);
-  });
 });

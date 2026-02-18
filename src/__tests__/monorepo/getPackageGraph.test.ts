@@ -1,52 +1,52 @@
 import { describe, expect, it } from '@jest/globals';
-import { toposortPackages } from '../../publish/toposortPackages';
-import type { PackageInfo, PackageInfos } from '../../types/PackageInfo';
+import type { PackageInfos } from '../../types/PackageInfo';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { getPackageGraph } from '../../monorepo/getPackageGraph';
+import { getPackageGraphLayers } from '../../publish/getPackageGraphLayers';
+import { generateChangeSet } from '../../__fixtures__/changeFiles';
 
 describe('getPackageGraph', () => {
   /**
-   * @returns all package names in the package graph
+   * Run the PGraph returned by `getPackageGraph`, and return the package names in the order that
+   * they were visited.
    */
   async function getPackageGraphPackageNames(
     affectedPackages: string[],
-    packageInfos: PackageInfos,
-    runHook?: (packageInfo: PackageInfo) => Promise<void>
+    packageInfos: PackageInfos
   ): Promise<string[]> {
     const visitedPackages: string[] = [];
-    const packageGraph = getPackageGraph(affectedPackages, packageInfos, async (packageInfo: PackageInfo) => {
+    const packageGraph = getPackageGraph(affectedPackages, packageInfos, packageInfo => {
       visitedPackages.push(packageInfo.name);
-      if (runHook) {
-        await runHook(packageInfo);
-      }
     });
-    await packageGraph.run({
-      concurrency: 1,
-      continue: false,
-    });
+    await packageGraph.run({ concurrency: 1 });
 
     return visitedPackages;
   }
 
   /**
-   * Ensure that both `toposortPackages` and `getPackageGraph` are running the same logic for sorting packages.
+   * Ensure that both `getPackageGraph` and `getPackageGraphLayers` return a valid ordering of packages,
+   * considering the same dependency types.
    */
-  async function validateToposortPackagesAndPackageGraph(
+  async function validateOrdering(
     inputPackages: string[],
     packageInfos: PackageInfos,
     possibleSolutions: string[][]
   ): Promise<void> {
-    const toposortPackagesOutput = toposortPackages(inputPackages, packageInfos);
+    const getPackageGraphLayersOutput = getPackageGraphLayers({
+      packagesToPublish: inputPackages,
+      bumpInfo: { packageInfos, changeFileChangeInfos: generateChangeSet(inputPackages) },
+      options: { bumpDeps: true, scope: null },
+    }).flat();
     const getPackageGraphPackageNamesOutput = await getPackageGraphPackageNames(inputPackages, packageInfos);
 
-    expect(possibleSolutions).toContainEqual(toposortPackagesOutput);
+    expect(possibleSolutions).toContainEqual(getPackageGraphLayersOutput);
     expect(possibleSolutions).toContainEqual(getPackageGraphPackageNamesOutput);
   }
 
   it('sort packages which none of them has dependency', async () => {
     const packageInfos: PackageInfos = makePackageInfos({ foo: {}, bar: {} });
 
-    await validateToposortPackagesAndPackageGraph(['foo', 'bar'], packageInfos, [
+    await validateOrdering(['foo', 'bar'], packageInfos, [
       ['foo', 'bar'],
       ['bar', 'foo'],
     ]);
@@ -61,33 +61,43 @@ describe('getPackageGraph', () => {
       foo2: {},
     });
 
-    await validateToposortPackagesAndPackageGraph(['foo', 'foo2', 'foo3'], packageInfos, [['foo2', 'foo3', 'foo']]);
+    await validateOrdering(['foo', 'foo2', 'foo3'], packageInfos, [['foo2', 'foo3', 'foo']]);
+  });
+
+  it.each(['dependencies', 'peerDependencies', 'optionalDependencies'] as const)(
+    'considers %s for ordering',
+    async dependencyType => {
+      const packageInfos = makePackageInfos({
+        foo: { [dependencyType]: { foo3: '1.0.0' } },
+        foo2: {},
+        foo3: { dependencies: { foo2: '1.0.0' } },
+      });
+
+      await validateOrdering(['foo', 'foo2', 'foo3'], packageInfos, [['foo2', 'foo3', 'foo']]);
+    }
+  );
+
+  it('does not consider devDependencies', async () => {
+    const packageInfos = makePackageInfos({
+      foo: { devDependencies: { foo3: '1.0.0' } },
+      foo2: {},
+      foo3: { dependencies: { foo2: '1.0.0' } },
+    });
+
+    await validateOrdering(['foo', 'foo2', 'foo3'], packageInfos, [['foo', 'foo2', 'foo3']]);
   });
 
   it('sort packages with different kinds of dependencies', async () => {
     const packageInfos = makePackageInfos({
       foo: { dependencies: { foo3: '1.0.0' }, peerDependencies: { foo4: '1.0.0', bar: '1.0.0' } },
-      foo2: { dependencies: {} },
+      foo2: {},
       foo3: { dependencies: { foo2: '1.0.0' } },
-      foo4: { devDependencies: { foo2: '1.0.0' } },
+      foo4: {},
     });
 
-    await validateToposortPackagesAndPackageGraph(['foo', 'foo2', 'foo3', 'foo4'], packageInfos, [
+    await validateOrdering(['foo', 'foo2', 'foo3', 'foo4'], packageInfos, [
       ['foo2', 'foo3', 'foo4', 'foo'],
       ['foo2', 'foo4', 'foo3', 'foo'],
-    ]);
-  });
-
-  it('sort packages with all different kinds of dependencies', async () => {
-    const packageInfos = makePackageInfos({
-      foo: { dependencies: { foo3: '1.0.0' }, peerDependencies: { foo4: '1.0.0', bar: '1.0.0' } },
-      foo2: { dependencies: {} },
-      foo3: { optionalDependencies: { foo2: '1.0.0' } },
-      foo4: { devDependencies: { foo2: '1.0.0' } },
-    });
-
-    await validateToposortPackagesAndPackageGraph(['foo', 'foo2', 'foo3', 'foo4'], packageInfos, [
-      ['foo2', 'foo3', 'foo4', 'foo'],
     ]);
   });
 
@@ -98,7 +108,7 @@ describe('getPackageGraph', () => {
       foo3: { dependencies: { foo2: '1.0.0' } },
     });
 
-    await validateToposortPackagesAndPackageGraph(['foo', 'foo3'], packageInfos, [['foo3', 'foo']]);
+    await validateOrdering(['foo', 'foo3'], packageInfos, [['foo3', 'foo']]);
   });
 
   it('do not sort packages if it is not included harder scenario', async () => {
@@ -106,11 +116,11 @@ describe('getPackageGraph', () => {
       foo: { dependencies: { foo3: '1.0.0', bar: '1.0.0' } },
       foo2: { dependencies: { foo4: '1.0.0' } },
       foo3: { dependencies: { foo2: '1.0.0' } },
-      foo4: { dependencies: {} },
+      foo4: {},
       bar: { dependencies: { foo: '1.0.0' } },
     });
 
-    await validateToposortPackagesAndPackageGraph(['foo', 'foo3'], packageInfos, [['foo3', 'foo']]);
+    await validateOrdering(['foo', 'foo3'], packageInfos, [['foo3', 'foo']]);
   });
 
   it('throws if contains circular dependencies inside affected packages', async () => {
@@ -141,8 +151,8 @@ describe('getPackageGraph', () => {
 
   it(`doesn't throws if graph contains circular dependencies outside affected packages`, async () => {
     const packageInfos = makePackageInfos({
-      foo: { dependencies: {} },
-      bar: { dependencies: {} },
+      foo: {},
+      bar: {},
       bar2: { dependencies: { bar3: '1.0.0' } },
       bar3: { dependencies: { bar2: '1.0.0', bar: '1.0.0' } },
     });
