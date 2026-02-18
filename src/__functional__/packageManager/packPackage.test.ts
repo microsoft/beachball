@@ -56,7 +56,10 @@ describe('packPackage', () => {
     const testPkg = getTestPackage('testpkg');
     writeJson(tempPackageJsonPath, testPkg.json);
 
-    const packResult = await packPackage(testPkg.info, { packToPath: tempPackPath, index: 0, total: 1 });
+    const packResult = await packPackage(testPkg.info, {
+      packToPath: tempPackPath,
+      packInfo: { index: 0, total: 1 },
+    });
     expect(packResult).toEqual(true);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
     expect(npmMock.mock).toHaveBeenCalledWith(
@@ -76,7 +79,10 @@ describe('packPackage', () => {
     const testPkg = getTestPackage('@foo/bar');
     writeJson(tempPackageJsonPath, testPkg.json);
 
-    const packResult = await packPackage(testPkg.info, { packToPath: tempPackPath, index: 0, total: 1 });
+    const packResult = await packPackage(testPkg.info, {
+      packToPath: tempPackPath,
+      packInfo: { index: 0, total: 1 },
+    });
     expect(packResult).toEqual(true);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
     expect(npmMock.mock).toHaveBeenCalledWith(
@@ -97,7 +103,10 @@ describe('packPackage', () => {
     writeJson(tempPackageJsonPath, testPkg.json);
 
     // There are 100 packages to pack, so index 1 should be prefixed with "002-"
-    const packResult = await packPackage(testPkg.info, { packToPath: tempPackPath, index: 1, total: 100 });
+    const packResult = await packPackage(testPkg.info, {
+      packToPath: tempPackPath,
+      packInfo: { index: 1, total: 100 },
+    });
     expect(packResult).toEqual(true);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
     expect(npmMock.mock).toHaveBeenCalledWith(
@@ -112,6 +121,32 @@ describe('packPackage', () => {
     expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${path.join(tempPackPath, `002-${testPkg.packName}`)}`);
   });
 
+  it('packs package with packMode: "pancake"', async () => {
+    const testPkg = getTestPackage('testpkg');
+    writeJson(tempPackageJsonPath, testPkg.json);
+
+    const pancakes = Array.from({ length: 10 }, () => [] as string[]);
+    pancakes[2].push(testPkg.name);
+
+    const packResult = await packPackage(testPkg.info, {
+      packToPath: tempPackPath,
+      packInfo: { pancakes },
+    });
+    expect(packResult).toEqual(true);
+    expect(npmMock.mock).toHaveBeenCalledTimes(1);
+    expect(npmMock.mock).toHaveBeenCalledWith(
+      ['pack', '--loglevel', 'warn'],
+      expect.objectContaining({ cwd: tempRoot })
+    );
+    const outFile = path.join(tempPackPath, '03', testPkg.packName);
+    expect(fs.existsSync(outFile)).toBe(true);
+    expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
+
+    const allLogs = logs.getMockLines('all');
+    expect(allLogs).toMatch(`Packing - ${testPkg.spec}`);
+    expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${outFile}`);
+  });
+
   it('handles failure packing', async () => {
     const testPkg = getTestPackage('testpkg');
     // It's difficult to simulate actual error conditions, so mock an npm call failure.
@@ -119,7 +154,10 @@ describe('packPackage', () => {
       Promise.resolve({ success: false, stdout: 'oh no', all: 'oh no' } as NpmResult)
     );
 
-    const packResult = await packPackage(testPkg.info, { packToPath: tempPackPath, index: 0, total: 1 });
+    const packResult = await packPackage(testPkg.info, {
+      packToPath: tempPackPath,
+      packInfo: { index: 0, total: 1 },
+    });
     expect(packResult).toEqual(false);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
     expect(fs.readdirSync(tempPackPath)).toEqual([]);
@@ -136,7 +174,10 @@ describe('packPackage', () => {
       Promise.resolve({ success: true, stdout: 'not a file', all: 'not a file' } as NpmResult)
     );
 
-    const packResult = await packPackage(testPkg.info, { packToPath: tempPackPath, index: 0, total: 1 });
+    const packResult = await packPackage(testPkg.info, {
+      packToPath: tempPackPath,
+      packInfo: { index: 0, total: 1 },
+    });
     expect(packResult).toEqual(false);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
     expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
@@ -153,7 +194,10 @@ describe('packPackage', () => {
       Promise.resolve({ success: true, stdout: 'nope.tgz', all: 'nope.tgz' } as NpmResult)
     );
 
-    const packResult = await packPackage(testPkg.info, { packToPath: tempPackPath, index: 0, total: 1 });
+    const packResult = await packPackage(testPkg.info, {
+      packToPath: tempPackPath,
+      packInfo: { index: 0, total: 1 },
+    });
     expect(packResult).toEqual(false);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
     expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
@@ -172,7 +216,10 @@ describe('packPackage', () => {
     fs.writeFileSync(destPath, 'other content');
     const origPath = path.join(tempRoot, testPkg.packName);
 
-    const packResult = await packPackage(testPkg.info, { packToPath: tempPackPath, index: 0, total: 1 });
+    const packResult = await packPackage(testPkg.info, {
+      packToPath: tempPackPath,
+      packInfo: { index: 0, total: 1 },
+    });
     expect(packResult).toEqual(false);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
 
@@ -196,7 +243,10 @@ describe('packPackage', () => {
       const testPkg = getTestPackage('@foo/bar');
       writeJson(tempPackageJsonPath, testPkg.json);
 
-      const packResult = await packPackage(testPkg.info, { packToPath: tempPackPath, index: 0, total: 1 });
+      const packResult = await packPackage(testPkg.info, {
+        packToPath: tempPackPath,
+        packInfo: { index: 0, total: 1 },
+      });
       expect(packResult).toEqual(true);
       expect(npmMock.mock).toHaveBeenCalledTimes(1);
       expect(npmMock.mock).toHaveBeenCalledWith(
