@@ -58,7 +58,7 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
   let pancakes: string[][] | undefined;
   if (packToPath && options.packStyle === 'pancake') {
     // If packing in pancake style, get that ordering instead of toposorting
-    pancakes = getPancakes({ packagesToPublish, packageInfos: bumpInfo.packageInfos });
+    pancakes = getPancakes({ packagesToPublish, bumpInfo, options });
   } else if (options.concurrency === 1) {
     // Otherwise, unless publishing concurrently, toposort the packages in case publishing fails
     // partway through. (Concurrent pubishing uses p-graph which also handles ordering.)

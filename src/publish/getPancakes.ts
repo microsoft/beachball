@@ -1,5 +1,6 @@
 import { getPackageDependencies } from 'workspace-tools';
-import type { PackageInfos } from '../types/PackageInfo';
+import type { BeachballOptions } from '../types/BeachballOptions';
+import type { PublishBumpInfo } from '../types/BumpInfo';
 
 /**
  * Given the packages to publish and the full map of packages in the repo, organize the packages into
@@ -7,9 +8,14 @@ import type { PackageInfos } from '../types/PackageInfo';
  * The first pancake will be the leaf packages with no dependencies, and the last pancake will be
  * the root packages that depend on all others.
  *
- * Layers are computed over the full dependency graph (from `packageInfos`), then filtered to
- * `packagesToPublish`. This means a package's layer accounts for transitive dependencies through
- * packages that aren't being published, to be safe.
+ * If possible, layers are computed based on only the set of published packages. This should be safe
+ * with beachball's default behaviors, but layers will be computed over the full graph under any of
+ * the following conditions which might cause missing edges. (Not 100% sure this is necessary, but
+ * not sure how to disprove it either...)
+ * - `bumpDeps` is false
+ * - `scope` is set
+ * - There are `newPackages`
+ * - Any change has `dependentChangeType` set to "none"
  *
  * Currently, there's only VERY basic cycle handling: all cycles are grouped together on a final
  * layer, regardless of any interdependencies. The `toposort` package already used by beachball
@@ -19,23 +25,34 @@ import type { PackageInfos } from '../types/PackageInfo';
  * @returns An array of layers, where each layer is an array of package names that can be
  * published in parallel.
  */
-export function getPancakes(params: { packagesToPublish: string[]; packageInfos: PackageInfos }): string[][] {
-  const { packagesToPublish, packageInfos } = params;
+export function getPancakes(params: {
+  packagesToPublish: string[];
+  bumpInfo: Pick<PublishBumpInfo, 'changeFileChangeInfos' | 'packageInfos' | 'newPackages'>;
+  options: Pick<BeachballOptions, 'bumpDeps' | 'scope'>;
+}): string[][] {
+  const { packagesToPublish, bumpInfo, options } = params;
+  const { packageInfos, changeFileChangeInfos } = bumpInfo;
   if (packagesToPublish.length === 0) {
     return [];
   }
 
-  const allPackages = Object.keys(packageInfos);
-  const allPackageSet = new Set(allPackages);
-  const publishSet = new Set(packagesToPublish);
+  // See function comment for explanation
+  const canConsiderPublishedOnly =
+    options.bumpDeps &&
+    !options.scope &&
+    !bumpInfo.newPackages?.length &&
+    !changeFileChangeInfos.some(change => change.change.dependentChangeType === 'none');
+  const packagesToConsider = canConsiderPublishedOnly ? packagesToPublish : Object.keys(packageInfos);
+  const packagesToConsiderSet = new Set(packagesToConsider);
 
-  // Build dependency graph for all packages in the repo (ignoring devDependencies, since they're
-  // not installed by consumers and can't cause ordering issues)
+  // Build internal dependency graph for packagesToConsider
   const dependentsOf = new Map<string, string[]>();
   const inDegree = new Map<string, number>();
 
-  for (const pkgName of allPackages) {
-    const deps = getPackageDependencies(packageInfos[pkgName], allPackageSet, {
+  for (const pkgName of packagesToConsider) {
+    // Get dependencies of this package, filtered to packagesToConsiderSet.
+    // Ignore dev deps since they're not installed by consumers and can't cause ordering issues.
+    const deps = getPackageDependencies(packageInfos[pkgName], packagesToConsiderSet, {
       withDevDependencies: false,
       withPeerDependencies: true,
       withOptionalDependencies: true,
@@ -57,11 +74,13 @@ export function getPancakes(params: { packagesToPublish: string[]; packageInfos:
   const pancakes: string[][] = [];
 
   // Seed with all packages that have no in-repo dependencies
-  let currentLayer = allPackages.filter(pkg => (inDegree.get(pkg) ?? 0) === 0);
+  let currentLayer = packagesToConsider.filter(pkg => (inDegree.get(pkg) ?? 0) === 0);
 
   while (currentLayer.length > 0) {
     // Filter this layer to only packages being published
-    const publishLayer = currentLayer.filter(pkg => publishSet.has(pkg));
+    const publishLayer = canConsiderPublishedOnly
+      ? currentLayer
+      : currentLayer.filter(pkg => packagesToPublish.includes(pkg));
     if (publishLayer.length > 0) {
       pancakes.push(publishLayer);
     }
