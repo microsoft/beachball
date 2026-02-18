@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Implement \"layer\" pack style",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

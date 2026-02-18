@@ -14,7 +14,7 @@ describe('callHook', () => {
       // This graph only has one possible ordering
       pkg1: { dependencies: { pkg2: '*' } },
       pkg2: { version: '2.0.0', peerDependencies: { pkg3: '*', pkg4: '*' } },
-      pkg3: { devDependencies: { pkg4: '*' } },
+      pkg3: { dependencies: { pkg4: '*' } },
       pkg4: { optionalDependencies: { pkg5: '*' } },
       pkg5: {},
     },

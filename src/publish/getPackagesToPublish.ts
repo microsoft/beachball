@@ -1,6 +1,5 @@
 import { bulletedList } from '../logging/bulletedList';
 import type { PublishBumpInfo } from '../types/BumpInfo';
-import { toposortPackages } from './toposortPackages';
 
 /**
  * Determine which of the modified/new packages in bump info should actually be published
@@ -13,18 +12,13 @@ export function getPackagesToPublish(
     'modifiedPackages' | 'newPackages' | 'packageInfos' | 'calculatedChangeTypes' | 'scopedPackages'
   >,
   params?: {
-    /** If true, topologically sort the package names based on the dependency graph (may be slow) */
-    toposort?: boolean;
     /** If true, log skipped packages and reasons */
     logSkipped?: boolean;
   }
 ): string[] {
   const { modifiedPackages, newPackages, packageInfos, calculatedChangeTypes, scopedPackages } = bumpInfo;
 
-  let packages = [...modifiedPackages, ...(newPackages || [])];
-  if (params?.toposort) {
-    packages = toposortPackages(packages, packageInfos);
-  }
+  const packages = [...modifiedPackages, ...(newPackages || [])];
   const packagesToPublish: string[] = [];
   const skippedPackageReasons: string[] = [];
 

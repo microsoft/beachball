@@ -311,7 +311,7 @@ describe('publishToRegistry', () => {
       removeTempDir(packToPath);
     });
 
-    it('packs packages', async () => {
+    it('packs packages sequentially by default', async () => {
       const bumpInfo = makeBumpInfo({
         app: { dependencies: { lib: '1.0.0' } },
         lib: {},
@@ -345,6 +345,34 @@ describe('publishToRegistry', () => {
       await expect(publishToRegistry(bumpInfo, { ...defaultOptions, packToPath })).rejects.toThrow('Error packing');
 
       expect(logs.getMockLines('error')).toMatch('Something went wrong with packing packages!');
+
+      expect(
+        logs.getMockLines('all', { replacePaths: { [tempRoot]: '<root>', [packToPath]: '<packPath>' } })
+      ).toMatchSnapshot();
+    });
+
+    it('packs packages into layer folders', async () => {
+      const bumpInfo = makeBumpInfo({
+        app: { dependencies: { lib: '1.0.0' } },
+        other: { dependencies: { lib: '1.0.0' } },
+        lib: {},
+      });
+
+      await publishToRegistry(bumpInfo, { ...defaultOptions, packToPath, packStyle: 'layer' });
+
+      // Nothing should be published to the registry
+      expect(npmMock.getPublishedVersions('lib')).toBeUndefined();
+      expect(npmMock.getPublishedVersions('app')).toBeUndefined();
+
+      // Tgz files should be in numbered subdirectories by layer
+      // lib has no deps → layer 0 (folder "1"), app and other depend on lib → layer 1 (folder "2")
+      const layer1 = fs.readdirSync(path.join(packToPath, '1'));
+      const layer2 = fs.readdirSync(path.join(packToPath, '2'));
+      expect(layer1).toEqual([getMockNpmPackName(bumpInfo.packageInfos.lib)]);
+      expect(layer2.sort()).toEqual([
+        getMockNpmPackName(bumpInfo.packageInfos.app),
+        getMockNpmPackName(bumpInfo.packageInfos.other),
+      ]);
 
       expect(
         logs.getMockLines('all', { replacePaths: { [tempRoot]: '<root>', [packToPath]: '<packPath>' } })
