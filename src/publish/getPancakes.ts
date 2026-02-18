@@ -1,6 +1,7 @@
-import { getPackageDependencies } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PublishBumpInfo } from '../types/BumpInfo';
+import { getPackageDependenciesWrapper } from '../monorepo/getPackageDependencyGraph';
+import { bulletedList } from '../logging/bulletedList';
 
 /**
  * Given the packages to publish and the full map of packages in the repo, organize the packages into
@@ -18,7 +19,7 @@ import type { PublishBumpInfo } from '../types/BumpInfo';
  * - Any change has `dependentChangeType` set to "none"
  *
  * Currently, there's only VERY basic cycle handling: all cycles are grouped together on a final
- * layer, regardless of any interdependencies. The `toposort` package already used by beachball
+ * layer, regardless of any interdependencies. The `toposort` package previously used by beachball
  * doesn't handle cycles at all, so this should be fine for now. (Tarjan's strongly connected
  * components algorithm could be used to break cycles into more layers if needed in the future.)
  *
@@ -52,11 +53,7 @@ export function getPancakes(params: {
   for (const pkgName of packagesToConsider) {
     // Get dependencies of this package, filtered to packagesToConsiderSet.
     // Ignore dev deps since they're not installed by consumers and can't cause ordering issues.
-    const deps = getPackageDependencies(packageInfos[pkgName], packagesToConsiderSet, {
-      withDevDependencies: false,
-      withPeerDependencies: true,
-      withOptionalDependencies: true,
-    });
+    const deps = getPackageDependenciesWrapper(packageInfos[pkgName], packagesToConsiderSet);
     inDegree.set(pkgName, deps.length);
 
     for (const dep of deps) {
@@ -103,6 +100,14 @@ export function getPancakes(params: {
   // Handle cycles: any remaining packages not yet placed
   const cyclic = packagesToPublish.filter(pkg => !placed.has(pkg));
   if (cyclic.length > 0) {
+    console.warn(
+      [
+        'Circular dependencies detected among the following packages:',
+        bulletedList(cyclic),
+        'If these packages have any interdependencies, publishing order MAY BE INCORRECT.',
+        '',
+      ].join('\n')
+    );
     pancakes.push(cyclic);
   }
 

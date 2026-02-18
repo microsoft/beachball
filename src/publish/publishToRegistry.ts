@@ -12,7 +12,6 @@ import { getPackageGraph } from '../monorepo/getPackageGraph';
 import type { PackageInfo } from '../types/PackageInfo';
 import { packPackage } from '../packageManager/packPackage';
 import { getCatalogs } from 'workspace-tools';
-import { toposortPackages } from './toposortPackages';
 import { getPancakes } from './getPancakes';
 
 /**
@@ -61,8 +60,9 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
     pancakes = getPancakes({ packagesToPublish, bumpInfo, options });
   } else if (options.concurrency === 1) {
     // Otherwise, unless publishing concurrently, toposort the packages in case publishing fails
-    // partway through. (Concurrent pubishing uses p-graph which also handles ordering.)
-    packagesToPublish = toposortPackages(packagesToPublish, bumpInfo.packageInfos);
+    // partway through. We can reuse the pancake logic for this. (Skip for concurrent publishing
+    // since p-graph handles ordering.)
+    packagesToPublish = getPancakes({ packagesToPublish, bumpInfo, options }).flat();
   }
 
   // performing publishConfig and workspace version overrides requires this procedure to

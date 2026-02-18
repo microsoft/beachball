@@ -4,6 +4,7 @@ import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/p
 import { getPancakes } from '../../publish/getPancakes';
 import type { BeachballOptions } from '../../types/BeachballOptions';
 import { getPackageDependencies } from 'workspace-tools';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 jest.mock('workspace-tools', () => {
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -12,6 +13,7 @@ jest.mock('workspace-tools', () => {
 });
 
 describe('getPancakes', () => {
+  const logs = initMockLogs();
   const getPackageDependenciesSpy = getPackageDependencies as jest.MockedFunction<typeof getPackageDependencies>;
   const anything = expect.anything();
 
@@ -197,6 +199,13 @@ describe('getPancakes', () => {
       packagesToPublish: ['a', 'b', 'c'],
     });
     expect(result).toEqual([['c'], ['a', 'b']]);
+
+    expect(logs.getMockLines('warn')).toMatchInlineSnapshot(`
+      "Circular dependencies detected among the following packages:
+        • a
+        • b
+      If these packages have any interdependencies, publishing order MAY BE INCORRECT."
+    `);
   });
 
   it('handles cycle with non-cyclic dependents', () => {
@@ -213,5 +222,13 @@ describe('getPancakes', () => {
     // c is layer 0; a, b, and d are all stuck (d can't be placed until a is, but a is cyclic)
     // so they all end up in the final cycle-remainder layer
     expect(result).toEqual([['c'], ['a', 'b', 'd']]);
+
+    expect(logs.getMockLines('warn')).toMatchInlineSnapshot(`
+      "Circular dependencies detected among the following packages:
+        • a
+        • b
+        • d
+      If these packages have any interdependencies, publishing order MAY BE INCORRECT."
+    `);
   });
 });

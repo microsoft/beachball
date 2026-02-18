@@ -8,7 +8,7 @@ type PGraph = ReturnType<typeof pGraph>;
 export function getPackageGraph(
   affectedPackages: string[],
   packageInfos: PackageInfos,
-  runHook: (packageInfo: PackageInfo) => Promise<void>
+  runHook: (packageInfo: PackageInfo) => void | Promise<void>
 ): PGraph {
   const nodeMap: PGraphNodeMap = new Map();
   for (const packageToBump of affectedPackages) {
@@ -17,11 +17,6 @@ export function getPackageGraph(
     });
   }
 
-  const dependencyGraph: [string | undefined, string][] = getPackageDependencyGraph(affectedPackages, packageInfos);
-  const filteredDependencyGraph = filterDependencyGraph(dependencyGraph);
-  return pGraph(nodeMap, filteredDependencyGraph);
-}
-
-function filterDependencyGraph(dependencyGraph: [string | undefined, string][]): [string, string][] {
-  return dependencyGraph.filter(([dep]) => dep !== undefined) as [string, string][];
+  const dependencyGraph = getPackageDependencyGraph(affectedPackages, packageInfos).filter(([dep]) => !!dep);
+  return pGraph(nodeMap, dependencyGraph as [string, string][]);
 }
