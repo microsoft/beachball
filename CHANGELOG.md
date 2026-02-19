@@ -1,8 +1,21 @@
 # Change Log - p-graph
 
-<!-- This log was last generated on Thu, 19 Feb 2026 05:38:35 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 19 Feb 2026 06:15:23 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.0.0
+
+Thu, 19 Feb 2026 06:15:23 GMT
+
+### Major changes
+
+- If a task fails, `run()` will reject with a single `PGraphError` instead of an array of errors. The original errors are available under `pGraphError.taskErrors`. (Note a regular `Error` may also be thrown if initial validation fails. `PGraphError` is exported for `instanceof` checks.) (elcraig@microsoft.com)
+- The default export function and the `pGraph` function have been removed. Use `new PGraph()` instead. (elcraig@microsoft.com)
+
+### Minor changes
+
+- As an alternative to specifying a `run()` function for each node, there's now an option to specify a single `run` function: `pGraph.run({ run: () => {...} })`. This allows reusing the same graph setup for multiple operations. (elcraig@microsoft.com)
 
 ## 1.3.0
 
