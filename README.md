@@ -16,16 +16,18 @@ The p-graph library takes in a map of of nodes and a list of dependencies. The k
 
 The return value of pGraph is a class with a `run()` function. Calling the `run()` function will return a promise that resolves after all the tasks in the graph have finished completed. Tasks are run in dependency order.
 
-```js
-const { pGraph } = require("p-graph"); // ES6 import also works: import pGraph from 'p-graph';
+```ts
+import { pGraph, type DependencyList, type PGraphNodeRecord } from "p-graph";
 
-const nodeMap = new Map([
-  ["putOnShirt", { run:  () => Promise.resolve("put on your shirt") })],
-  ["putOnShorts", { run: () => Promise.resolve("put on your shorts")})],
-  ["putOnJacket", { run: () => Promise.resolve("put on your jacket")})],
-  ["putOnShoes", { run: () => Promise.resolve("put on your shoes")}],
-  ["tieShoes", { run: () => Promise.resolve("tie your shoes")}],
-]);
+// This can be either an object or map (PGraphNodeMap).
+// Functions can be sync or async.
+const nodeMap: PGraphNodeRecord = {
+  putOnShirt: { run: () => console.log("put on your shirt") },
+  putOnShorts: { run: () => console.log("put on your shorts") },
+  putOnJacket: { run: () => console.log("put on your jacket") },
+  putOnShoes: { run: () => console.log("put on your shoes") },
+  tieShoes: { run: () => console.log("tie your shoes") },
+};
 
 const dependencies: DependencyList = [
   // You need to put your shoes on before you tie them!
@@ -38,7 +40,7 @@ const dependencies: DependencyList = [
 await pGraph(nodeMap, dependencies).run();
 ```
 
-## Concurrency Limiter
+### Concurrency
 
 There are some contexts where you may want to limit the number of functions running concurrently. One example would be to prevent overloading the CPU with too many parallel tasks. The concurrency argument to `run` will limit the number of functions that start running at a given time. If no concurrency option is set, the concurrency is not limited and tasks are run as soon as they are unblocked.
 
@@ -46,20 +48,14 @@ There are some contexts where you may want to limit the number of functions runn
 await pGraph(graph).run({ concurrency: 3 });
 ```
 
-## Priority
+### Priority
 
-There are situations where task runner must pick a subset of the currently unblocked tasks to put on the queue. By default, tasks are considered to all be equally important and equally likely to be picked to run once all the tasks they depend on are complete. If you wish to control the ordering of tasks, consider using the priority option when defining a task node. When the task scheduler is picking tasks to run, it will favor tasks with a higher priority over tasks with a lower priority. Tasks will always execute in dependency order.
+By default, tasks are considered to all be equally important, so they're equally likely to be picked to run once all the tasks they depend on are complete. To control the ordering of tasks, use the `priority` option when defining a task node. Tasks will always execute in dependency order, but unblocked tasks with a higher priority will be favored over those with a lower priority.
 
-# Contributing
-
-This project welcomes contributions and suggestions. Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
-
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+```js
+const nodeMap: PGraphNodeRecord = {
+  highPri: { run: () => Promise.resolve(), priority: 10 },
+  lowPri: { run: () => Promise.resolve(), priority: 1 },
+  unspecified: { run: () => Promise.resolve() } // treated as 0
+}
+```

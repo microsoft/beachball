@@ -1,7 +1,0 @@
-.*
-*.config.js
-CODE_OF_CONDUCT.md
-lib/__tests__
-src
-tsconfig.json
-yarn.lock

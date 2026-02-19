@@ -11,8 +11,11 @@
       "runtimeArgs": [
         "--inspect-brk",
         "${workspaceRoot}/node_modules/jest/bin/jest.js",
-        "--runInBand"
+        "--runInBand",
+        "--watch",
+        "${relativeFile}"
       ],
+      "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     }

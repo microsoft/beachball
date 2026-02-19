@@ -1,35 +1,26 @@
 interface PriorityQueueItem<T> {
   item: T;
-
   priority: number;
 }
 
 export class PriorityQueue<T> {
-  private array: PriorityQueueItem<T>[] = [];
+  /** @internal public for testing */
+  public readonly array: PriorityQueueItem<T>[] = [];
 
-  private swapElements(firstIndex: number, secondIndex: number) {
-    const firstItem = this.array[firstIndex];
-    const secondItem = this.array[secondIndex];
-
-    this.array[firstIndex] = secondItem;
-    this.array[secondIndex] = firstItem;
-  }
-
-  public isEmpty() {
+  public isEmpty(): boolean {
     return this.array.length === 0;
   }
 
-  public insert(item: T, priority: number) {
-    // The index to check to ensure the max heap property is preserved
-    let indexToCheck = this.array.length;
-
+  public insert(item: T, priority: number): void {
     this.array.push({ item, priority });
 
+    // Heapify up
+    let indexToCheck = this.array.length - 1;
     while (indexToCheck > 0) {
       const parentIndex = Math.floor((indexToCheck - 1) / 2);
 
       if (this.array[indexToCheck].priority > this.array[parentIndex].priority) {
-        this.swapElements(indexToCheck, parentIndex);
+        this.#swap(indexToCheck, parentIndex);
         indexToCheck = parentIndex;
       } else {
         break;
@@ -38,25 +29,55 @@ export class PriorityQueue<T> {
   }
 
   public removeMax(): T | undefined {
-    const result = this.array.shift();
+    if (this.array.length === 0) {
+      return undefined;
+    }
 
-    let indexToCheck = 0;
+    const max = this.array[0];
 
-    while (indexToCheck < this.array.length) {
-      const leftChildIndex = indexToCheck * 2 + 1;
-      const rightChildIndex = indexToCheck * 2 + 2;
+    const last = this.array.pop()!;
+    if (this.array.length > 0) {
+      this.array[0] = last;
+      this.#heapifyDown();
+    }
 
-      const biggerIndex =
-        this.array[leftChildIndex] > this.array[rightChildIndex] ? leftChildIndex : rightChildIndex;
+    return max.item;
+  }
 
-      if (this.array[biggerIndex] > this.array[indexToCheck]) {
-        this.swapElements(indexToCheck, biggerIndex);
-        indexToCheck = biggerIndex;
+  #heapifyDown(): void {
+    let index = 0;
+
+    while (true) {
+      const leftIndex = 2 * index + 1;
+      const rightIndex = 2 * index + 2;
+      let largest = index;
+
+      if (
+        leftIndex < this.array.length &&
+        this.array[leftIndex].priority > this.array[largest].priority
+      ) {
+        largest = leftIndex;
+      }
+
+      if (
+        rightIndex < this.array.length &&
+        this.array[rightIndex].priority > this.array[largest].priority
+      ) {
+        largest = rightIndex;
+      }
+
+      if (largest !== index) {
+        this.#swap(index, largest);
+        index = largest;
       } else {
         break;
       }
     }
+  }
 
-    return result?.item;
+  #swap(i: number, j: number): void {
+    const temp = this.array[i];
+    this.array[i] = this.array[j];
+    this.array[j] = temp;
   }
 }

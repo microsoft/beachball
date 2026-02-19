@@ -2,3 +2,4 @@ node_modules
 lib
 *.log
 .idea
+.claude/settings.local.json

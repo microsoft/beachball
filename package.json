@@ -30,11 +30,16 @@
     "ignorePatterns": [
       ".*ignore",
       ".github/**/*",
+      "src/__tests__/**/*",
       "jest.config.js",
       "yarn.lock"
     ]
   },
   "prettier": {
     "printWidth": 100
-  }
+  },
+  "files": [
+    "lib/!(__*)",
+    "lib/!(__*)/**"
+  ]
 }
