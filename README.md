@@ -59,7 +59,7 @@ If a task fails, the graph will throw a `PGraphError` wrapping the original erro
 
 ### Concurrency
 
-There are some contexts where you may want to limit the number of functions running concurrently. One example would be to prevent overloading the CPU with too many parallel tasks. The concurrency argument to `run` will limit the number of functions that start running at a given time. If no concurrency option is set, the concurrency is not limited and tasks are run as soon as they are unblocked.
+There are some contexts where you may want to limit the number of functions running concurrently. One example would be to prevent overloading the CPU with too many parallel tasks. The `concurrency` argument to `run` will limit the number of functions that start running at a given time. If no `concurrency` option is set, the concurrency is not limited and tasks are run as soon as they are unblocked.
 
 ```js
 await pGraph(graph).run({ concurrency: 3 });
@@ -67,7 +67,7 @@ await pGraph(graph).run({ concurrency: 3 });
 
 ### Priority
 
-By default, tasks are considered to all be equally important, so they're equally likely to be picked to run once all the tasks they depend on are complete. To control the ordering of tasks, use the `priority` option when defining a task node. Tasks will always execute in dependency order, but unblocked tasks with a higher priority will be favored over those with a lower priority.
+By default, all tasks are considered to be equally important, so they're equally likely to be picked to run once the tasks they depend on are complete. To control the ordering of tasks, use the `priority` option when defining a task node. Tasks will always execute in dependency order, but unblocked tasks with a higher priority will be favored over those with a lower priority.
 
 ```js
 const nodeMap: PGraphNodeRecord = {
