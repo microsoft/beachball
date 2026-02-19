@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Rewrite the graph algorithms to be more efficient. Fix priority queue ordering bug. Directly export the `PGraph` class, and add more docs.",
-  "packageName": "p-graph",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

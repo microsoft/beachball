@@ -1,8 +1,18 @@
 # Change Log - p-graph
 
-<!-- This log was last generated on Wed, 20 Aug 2025 03:56:20 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 19 Feb 2026 05:38:35 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 1.3.0
+
+Thu, 19 Feb 2026 05:38:35 GMT
+
+### Minor changes
+
+- Directly export the `PGraph` class, and add more docs.
+- Rewrite the graph algorithms to be more efficient.
+- Fix priority queue ordering bug.
 
 ## 1.2.0
 
