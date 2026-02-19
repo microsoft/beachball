@@ -1,0 +1,7 @@
+{
+  "comment": "If a task fails, `run()` will reject with a single `PGraphError` instead of an array of errors. The original errors are available under `pGraphError.taskErrors`. (Note a regular `Error` may also be thrown if initial validation fails. `PGraphError` is exported for `instanceof` checks.)",
+  "type": "major",
+  "packageName": "p-graph",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

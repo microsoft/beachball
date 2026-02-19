@@ -2,10 +2,9 @@ import { findCycle } from "./findCycle";
 import type { PGraphNodeWithDependencies } from "./types";
 
 /**
- * Returns a JS map that has the "cumulative" priority for each node, which is defined as the
- * priority of the current node plus the maximum cumulative priority amongst all children.
- * This is helpful for identifying which nodes to schedule first in order to get to higher
- * priority nodes more quickly.
+ * Calculates the "cumulative" priority for each node: the priority of the current node plus the
+ * maximum cumulative priority amongst all children. This is helpful for identifying which nodes
+ * to schedule first in order to get to higher priority nodes more quickly.
  *
  * Uses a reverse Kahn's algorithm (BFS from leaves to roots) to calculate priorities in a single pass.
  * Throws if a cycle is detected.

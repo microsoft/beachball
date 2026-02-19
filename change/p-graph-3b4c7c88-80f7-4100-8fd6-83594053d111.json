@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "The default export function and the `pGraph` function have been removed. Use `new PGraph()` instead.",
+  "packageName": "p-graph",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

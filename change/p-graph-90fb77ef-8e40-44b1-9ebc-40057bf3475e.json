@@ -1,0 +1,7 @@
+{
+  "comment": "As an alternative to specifying a `run()` function for each node, there's now an option to specify a single `run` function: `pGraph.run({ run: () => {...} })`. This allows reusing the same graph setup for multiple operations.",
+  "type": "minor",
+  "packageName": "p-graph",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

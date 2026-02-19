@@ -1,6 +1,7 @@
 import type { DependencyList, PGraphNodeMap, PGraphNodeRecord } from "../types";
 import { FunctionScheduler } from "./FunctionScheduler";
 import { PGraph } from "../PGraph";
+import { PGraphError } from "../PGraphError";
 
 describe("PGraph", () => {
   /** Make a map with the given keys and no-op runner functions (`jest.fn()`) */
@@ -278,8 +279,7 @@ describe("PGraph", () => {
   });
 
   describe("error handling", () => {
-    // TODO combine?
-    it("throws a single error if a task fails when continue is unset/false", async () => {
+    it("throws if a task fails when continue is unset/false", async () => {
       const nodeMap = makeNoOpMap(["A", "B"]);
       nodeMap.set("C", { run: () => Promise.reject("C rejected") });
 
@@ -290,8 +290,14 @@ describe("PGraph", () => {
         ["A", "C"],
       ];
 
-      // This would be toThrow() if it was an Error, but the example in this case is a string
-      await expect(new PGraph(nodeMap, dependencies).run()).rejects.toEqual("C rejected");
+      const error = (await new PGraph(nodeMap, dependencies).run().catch((e) => e)) as PGraphError;
+      expect(error).toBeInstanceOf(PGraphError);
+      expect(error.taskErrors.map((e) => String(e))).toEqual(["C rejected"]);
+      // Check the message format here
+      expect(error.message).toMatchInlineSnapshot(`
+       "Error(s) occurred during task execution:
+       - C rejected"
+      `);
     });
 
     it("if continue is true and a task fails, continues to run other tasks and throws at end", async () => {
@@ -307,17 +313,20 @@ describe("PGraph", () => {
         ["E", "F"],
       ];
 
-      await expect(
-        new PGraph(nodeMap, dependencies).run({ concurrency: 1, continue: true }),
-      ).rejects.toEqual(["C rejected"]);
+      const error = (await new PGraph(nodeMap, dependencies)
+        .run({ concurrency: 1, continue: true })
+        .catch((e) => e)) as PGraphError;
+      expect(error).toBeInstanceOf(PGraphError);
+      expect(error.taskErrors.map((e) => String(e))).toEqual(["C rejected"]);
+
       expect(nodeMap.get("E")!.run).toHaveBeenCalled();
       expect(nodeMap.get("F")!.run).toHaveBeenCalled();
       expect(nodeMap.get("D")!.run).not.toHaveBeenCalled();
     });
 
-    it("if continue is true, returns multiple independent failures", async () => {
+    it("if continue is true, throws at end for multiple independent failures", async () => {
       const nodeMap = makeNoOpMap(["A", "D", "F", "G"]);
-      nodeMap.set("B", { run: () => Promise.reject("B rejected") });
+      nodeMap.set("B", { run: () => Promise.reject(new Error("B rejected")) });
       nodeMap.set("C", { run: () => Promise.reject("C rejected") });
       nodeMap.set("E", { run: () => Promise.reject("E rejected") });
       //      A
@@ -334,9 +343,18 @@ describe("PGraph", () => {
       ];
 
       // Only B and C should fail (E is skipped because C failed)
-      await expect(
-        new PGraph(nodeMap, dependencies).run({ concurrency: 2, continue: true }),
-      ).rejects.toEqual(["B rejected", "C rejected"]);
+      const error = (await new PGraph(nodeMap, dependencies)
+        .run({ concurrency: 2, continue: true })
+        .catch((e) => e)) as PGraphError;
+      expect(error).toBeInstanceOf(PGraphError);
+      // Check the message formatting. It converts the original errors to strings, so a thrown
+      // Error will have a prefix, but a thrown string won't.
+      expect(error.message).toMatchInlineSnapshot(`
+        "Error(s) occurred during task execution:
+        - Error: B rejected
+        - C rejected"
+        `);
+      expect(error.taskErrors.map((e) => String(e))).toEqual(["Error: B rejected", "C rejected"]);
 
       // Independent successful paths should still execute
       expect(nodeMap.get("A")!.run).toHaveBeenCalled();
@@ -361,9 +379,11 @@ describe("PGraph", () => {
         ["A", "E"],
       ];
 
-      await expect(
-        new PGraph(scheduler.nodeMap, dependencies).run({ continue: true, concurrency: 10 }),
-      ).rejects.toContain("B rejected");
+      const error = (await new PGraph(scheduler.nodeMap, dependencies)
+        .run({ concurrency: 10, continue: true })
+        .catch((e) => e)) as PGraphError;
+      expect(error).toBeInstanceOf(PGraphError);
+      expect(error.taskErrors).toEqual(["B rejected"]);
 
       // All non-failing tasks should execute
       expect(scheduler.didCompleteTask("C")).toBe(true);
@@ -386,9 +406,12 @@ describe("PGraph", () => {
         ["A", "C"],
       ];
 
-      await expect(new PGraph(nodeMap, dependencies).run({ continue: true })).rejects.toEqual([
-        new Error("B threw synchronously"),
-      ]);
+      const error = (await new PGraph(nodeMap, dependencies)
+        .run({ continue: true })
+        .catch((e) => e)) as PGraphError;
+      expect(error).toBeInstanceOf(PGraphError);
+      expect(error.taskErrors.map((e) => String(e))).toEqual(["Error: B threw synchronously"]);
+
       expect(nodeMap.get("C")!.run).toHaveBeenCalled();
     });
   });

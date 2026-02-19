@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    // Node 14 for now (https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping)
+    "target": "ES2020",
     "declaration": true,
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "node16",
     "esModuleInterop": true,
-    "lib": ["ES2017"],
+    "lib": ["ES2020"],
     "outDir": "lib",
     "noUnusedLocals": true,
     "strict": true,

@@ -7,6 +7,7 @@ import type {
 } from "./types";
 import { PriorityQueue } from "./PriorityQueue";
 import { getNodeCumulativePriorities } from "./getNodeCumulativePriorities";
+import { PGraphError } from "./PGraphError";
 
 export class PGraph {
   /** Original dependency map for the graph */
@@ -18,6 +19,7 @@ export class PGraph {
    */
   readonly #nodesWithNoDependencies: ReadonlyArray<string>;
 
+  /** Cumulative priority for each node (its priority, plus max cumulative priority of children) */
   readonly #nodeCumulativePriorities: Readonly<Record<string, number>>;
 
   /**
@@ -84,24 +86,35 @@ export class PGraph {
    * Runs all the tasks in the promise graph in dependency order.
    * The graph can be run multiple times.
    *
+   * If one or more tasks fail, it throws a `PGraphError` containing the original error(s).
+   * (It could also throw a regular `Error` on initial validation failure.)
+   *
    * Failure behavior:
+   * - Throws an `Error` on initial validation failure
    * - If `continue` is false or unset and a task fails, the promise will reject immediately with
-   *   a **single error**.
+   *   a `PGraphError` containing the original error.
    * - If `continue` is true and a task fails, any tasks not dependent on the failed task will
-   *   continue running, and an **array of errors** will be thrown at the end.
+   *   continue running, and a `PGraphError` containing all original errors will be thrown at the end.
    */
   run(options?: RunOptions): Promise<void> {
     // Copy the dependency map so the graph can be reused
-    const dependencyMap = new Map(
+    const dependencyMap: Map<string, PGraphNodeWithDependencies> = new Map(
       [...this.#dependencyMap.entries()].map(([key, node]) => [
         key,
-        { ...node, dependsOn: new Set(node.dependsOn), dependedOnBy: new Set(node.dependedOnBy) },
+        {
+          ...node,
+          // Use the override run function if provided, or fall back to the original
+          run: options?.run?.bind(null, key) || node.run,
+          dependsOn: new Set(node.dependsOn),
+          dependedOnBy: new Set(node.dependedOnBy),
+        },
       ]),
     );
 
+    const nodeCumulativePriorities = this.#nodeCumulativePriorities;
     const concurrency = options?.concurrency;
 
-    if (concurrency !== undefined && concurrency < 0) {
+    if (concurrency !== undefined && concurrency < 1) {
       throw new Error(
         `concurrency must be either undefined or a positive integer; received ${options?.concurrency}`,
       );
@@ -110,7 +123,7 @@ export class PGraph {
     const priorityQueue = new PriorityQueue<string>();
 
     for (const itemId of this.#nodesWithNoDependencies) {
-      priorityQueue.insert(itemId, this.#nodeCumulativePriorities[itemId]);
+      priorityQueue.insert(itemId, nodeCumulativePriorities[itemId]);
     }
 
     let currentlyRunningTaskCount = 0;
@@ -127,7 +140,7 @@ export class PGraph {
         currentlyRunningTaskCount += 1;
 
         if (!taskToRun.failed) {
-          await taskToRun.run();
+          await taskToRun.run?.();
         }
       } catch (e) {
         // mark node and its children to be "failed" in the case of continue, we'll traverse, but not run the nodes
@@ -156,7 +169,7 @@ export class PGraph {
             // If the task that just completed was the last remaining dependency for a node,
             // add it to the set of unblocked nodes
             if (dependentNode.dependsOn.size === 0) {
-              priorityQueue.insert(dependentId, this.#nodeCumulativePriorities[dependentId]);
+              priorityQueue.insert(dependentId, nodeCumulativePriorities[dependentId]);
             }
           }
         }
@@ -172,7 +185,7 @@ export class PGraph {
           if (errors.length === 0) {
             resolve();
           } else {
-            reject(errors);
+            reject(new PGraphError(errors));
           }
           return;
         }
@@ -192,7 +205,7 @@ export class PGraph {
                 trySchedulingTasks();
               } else {
                 // immediately reject, if not using "continue" option
-                reject(e);
+                reject(new PGraphError([e]));
               }
             });
         }

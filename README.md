@@ -8,19 +8,19 @@ Run a promise graph with concurrency control.
 $ npm install p-graph
 ```
 
-`p-graph` does not have a strict Node version requirement, but the syntax used is currently intended to remain compatible with Node 12+.
+`p-graph` does not have a strict Node version requirement, but the syntax used is currently intended to remain compatible with Node 14+.
 
 ## Usage
 
-The p-graph library takes in a map of of nodes and a list of dependencies. The keys in the map are unique string identifiers for each node in the graph. The value of the map is the definition of the task, including the function that should be executed by that task in it's run argument. The dependencies list is an array of tuples, each tuple contains the two values that must correspond to ids in the node map. The run function corresponding to the first item in the tuple must complete before the second item in the tuple can begin.
-
-The return value of pGraph is a class with a `run()` function. Calling the `run()` function will return a promise that resolves after all the tasks in the graph have finished completed. Tasks are run in dependency order.
+The `PGraph` class takes in a map (or record) of nodes and a list of dependencies.
 
 ```ts
-import { pGraph, type DependencyList, type PGraphNodeRecord } from "p-graph";
+import { PGraph, type DependencyList, type PGraphNodeRecord } from "p-graph";
 
-// This can be either an object or map (PGraphNodeMap).
-// Functions can be sync or async.
+// Mapping from node IDs to definitions (can be either an object or map).
+// `run` functions can be sync or async. Nodes can optionally define a `priority`.
+// (Alternatively, you can omit the `run` functions here and specify a single
+// function to `pGraph.run()`.)
 const nodeMap: PGraphNodeRecord = {
   putOnShirt: { run: () => console.log("put on your shirt") },
   putOnShorts: { run: () => console.log("put on your shorts") },
@@ -29,6 +29,8 @@ const nodeMap: PGraphNodeRecord = {
   tieShoes: { run: () => console.log("tie your shoes") },
 };
 
+// List of tuples describing dependencies (edges) between node IDs:
+// the first task must complete before the second one begins.
 const dependencies: DependencyList = [
   // You need to put your shoes on before you tie them!
   ["putOnShoes", "tieShoes"],
@@ -37,8 +39,23 @@ const dependencies: DependencyList = [
   ["putOnShorts", "putOnShoes"],
 ];
 
-await pGraph(nodeMap, dependencies).run();
+// Run the tasks (log to console) in dependency order
+await new PGraph(nodeMap, dependencies).run();
+
+// Alternative API: reuse a single run() function
+const simpleNodeMap: PGraphNodeRecord = {
+  putOnShirt: {},
+  putOnShorts: {},
+  putOnJacket: {},
+  putOnShoes: {},
+  tieShoes: {},
+};
+await new PGraph(simpleNodeMap, dependencies).run({
+  run: (taskId) => console.log(taskId),
+});
 ```
+
+If a task fails, the graph will throw a `PGraphError` wrapping the original error(s). See `run()` comments for more details.
 
 ### Concurrency
 
@@ -59,3 +76,8 @@ const nodeMap: PGraphNodeRecord = {
   unspecified: { run: () => Promise.resolve() } // treated as 0
 }
 ```
+
+## Breaking changes in v2
+
+- The default export function and the `pGraph` function have been removed. Use `new PGraph()` instead.
+- If a task fails, `run()` will reject with a single `PGraphError` instead of an array of errors. The original errors are available under `pGraphError.taskErrors`. (Note a regular `Error` may also be thrown if initial validation fails. `PGraphError` is exported for `instanceof` checks.)

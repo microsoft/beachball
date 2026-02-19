@@ -2,8 +2,13 @@
  * A description of a node in p-graph
  */
 export interface PGraphNode {
-  /** The function that will be executed for this graph node */
-  run: () => unknown | Promise<unknown>;
+  /**
+   * The function that will be executed for this graph node.
+   *
+   * This is optional when creating the graph in case a shared runner function is passed
+   * to `PGraph.run`.
+   */
+  run?: () => unknown | Promise<unknown>;
 
   /**
    * A priority to help the scheduler decide which tasks to pick when many are available to run.
@@ -13,12 +18,14 @@ export interface PGraphNode {
 }
 
 /**
- * Defines the set of p-graph nodes, with each key in this map representing a unique identifier for the node
+ * Mapping from node ID to function and priority.
+ * The function is optional in case a shared runner function is passed to `PGraph.run`.
  */
 export type PGraphNodeMap = Map<string, PGraphNode>;
 
 /**
- * Defines the set of p-graph nodes, with each key in this map representing a unique identifier for the node
+ * Mapping from node ID to function and priority.
+ * The function is optional in case a shared runner function is passed to `PGraph.run`.
  */
 export type PGraphNodeRecord = Record<string, PGraphNode>;
 
@@ -33,15 +40,24 @@ export type DependencyList = [string, string][];
  */
 export interface RunOptions {
   /**
-   * The maximum amount of promises that can be executing at the same time.
+   * Instead of providing a `run` function for each node, you can optionally provide a single
+   * runner function here which receives the node ID. This is useful for reusing the same
+   * `PGraph` initialization to run different functions.
+   *
+   * If provided, this overrides the `run()` function provided with any individual node.
+   */
+  run?: (nodeId: string) => unknown | Promise<unknown>;
+
+  /**
+   * The maximum number of promises that can be executing at the same time.
    * When not provided, we do not limit the number of concurrent tasks and run tasks
    * as soon as they are unblocked.
    */
   concurrency?: number;
 
   /**
-   * If true, continue running the graph even if a task fails. Tasks dependent on the failed
-   * task will be skipped, and an **array of errors** will be thrown at the end.
+   * If true, continue running the graph even if a task fails. Tasks dependent on the failed task
+   * will be skipped, and a `PGraphError` containing all original errors will be thrown at the end.
    */
   continue?: boolean;
 }
