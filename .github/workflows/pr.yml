@@ -51,6 +51,9 @@ jobs:
 
       - run: yarn --frozen-lockfile
 
+      - run: yarn format:check
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+
       - run: yarn build
 
       - run: yarn checkchange --verbose
@@ -115,6 +118,7 @@ jobs:
       - name: Format
         run: cargo fmt --check
         working-directory: ./rust
+        if: ${{ matrix.os == 'ubuntu-latest' }}
 
       - name: Lint
         run: cargo clippy --all-targets -- -D warnings
@@ -148,9 +152,15 @@ jobs:
           cache-dependency-path: go/go.sum
 
       - name: Format
-        run: test -z "$(gofmt -l .)"
-        shell: bash
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "The following files need formatting (run 'gofmt -w .'):"
+            echo "$unformatted"
+            exit 1
+          fi
         working-directory: ./go
+        if: ${{ matrix.os == 'ubuntu-latest' }}
 
       - name: Lint
         run: go vet ./...

@@ -8,6 +8,7 @@
 .nojekyll
 .nvmrc
 docs/.vuepress/dist/
+**/.yarn
 /change/
 /CHANGELOG.*
 /lib/
