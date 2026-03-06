@@ -9,12 +9,17 @@ fn make_info(name: &str) -> PackageInfo {
         name: name.to_string(),
         package_json_path: format!("/fake/{name}/package.json"),
         version: "1.0.0".to_string(),
-        private: false,
-        package_options: None,
-        dependencies: None,
-        dev_dependencies: None,
-        peer_dependencies: None,
-        optional_dependencies: None,
+        ..Default::default()
+    }
+}
+
+fn make_info_with_disallowed(name: &str, disallowed: Vec<ChangeType>) -> PackageInfo {
+    PackageInfo {
+        package_options: Some(PackageOptions {
+            disallowed_change_types: Some(disallowed),
+            ..Default::default()
+        }),
+        ..make_info(name)
     }
 }
 
@@ -40,15 +45,10 @@ fn falls_back_to_repo_option() {
 #[test]
 fn returns_package_level_disallowed() {
     let mut infos = PackageInfos::new();
-    let mut info = make_info("foo");
-    info.package_options = Some(PackageOptions {
-        disallowed_change_types: Some(vec![ChangeType::Major, ChangeType::Minor]),
-        tag: None,
-        default_npm_tag: None,
-        git_tags: None,
-        should_publish: None,
-    });
-    infos.insert("foo".to_string(), info);
+    infos.insert(
+        "foo".to_string(),
+        make_info_with_disallowed("foo", vec![ChangeType::Major, ChangeType::Minor]),
+    );
     let groups = PackageGroups::new();
 
     let result = get_disallowed_change_types("foo", &infos, &groups, &None);
@@ -76,15 +76,10 @@ fn returns_group_level_disallowed() {
 #[test]
 fn returns_package_level_if_not_in_group() {
     let mut infos = PackageInfos::new();
-    let mut info = make_info("foo");
-    info.package_options = Some(PackageOptions {
-        disallowed_change_types: Some(vec![ChangeType::Minor]),
-        tag: None,
-        default_npm_tag: None,
-        git_tags: None,
-        should_publish: None,
-    });
-    infos.insert("foo".to_string(), info);
+    infos.insert(
+        "foo".to_string(),
+        make_info_with_disallowed("foo", vec![ChangeType::Minor]),
+    );
 
     let mut groups = PackageGroups::new();
     groups.insert(
@@ -102,15 +97,10 @@ fn returns_package_level_if_not_in_group() {
 #[test]
 fn prefers_group_over_package() {
     let mut infos = PackageInfos::new();
-    let mut info = make_info("foo");
-    info.package_options = Some(PackageOptions {
-        disallowed_change_types: Some(vec![ChangeType::Minor]),
-        tag: None,
-        default_npm_tag: None,
-        git_tags: None,
-        should_publish: None,
-    });
-    infos.insert("foo".to_string(), info);
+    infos.insert(
+        "foo".to_string(),
+        make_info_with_disallowed("foo", vec![ChangeType::Minor]),
+    );
 
     let mut groups = PackageGroups::new();
     groups.insert(

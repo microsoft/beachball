@@ -3,27 +3,20 @@ mod common;
 use beachball::options::get_options::get_parsed_options_for_test;
 use beachball::types::options::{BeachballOptions, CliOptions};
 use beachball::validation::validate::{ValidateOptions, ValidationError, validate};
+use common::DEFAULT_REMOTE_BRANCH;
 use common::repository::Repository;
 use common::repository_factory::RepositoryFactory;
-
-const DEFAULT_REMOTE_BRANCH: &str = "origin/master";
-
-fn make_test_options() -> (CliOptions, BeachballOptions) {
-    let cli = CliOptions::default();
-    let repo_opts = BeachballOptions {
-        branch: DEFAULT_REMOTE_BRANCH.to_string(),
-        fetch: false,
-        ..Default::default()
-    };
-    (cli, repo_opts)
-}
 
 fn validate_wrapper(
     repo: &Repository,
     validate_options: ValidateOptions,
 ) -> Result<beachball::validation::validate::ValidationResult, anyhow::Error> {
-    let (cli, repo_opts) = make_test_options();
-    let parsed = get_parsed_options_for_test(repo.root_path(), cli, repo_opts);
+    let repo_opts = BeachballOptions {
+        branch: DEFAULT_REMOTE_BRANCH.to_string(),
+        fetch: false,
+        ..Default::default()
+    };
+    let parsed = get_parsed_options_for_test(repo.root_path(), CliOptions::default(), repo_opts);
     validate(&parsed, &validate_options)
 }
 
@@ -42,8 +35,7 @@ fn succeeds_with_no_changes() {
     );
 
     assert!(result.is_ok());
-    let result = result.unwrap();
-    assert!(!result.is_change_needed);
+    assert!(!result.unwrap().is_change_needed);
 }
 
 #[test]
@@ -82,6 +74,5 @@ fn returns_without_error_if_allow_missing_change_files() {
     );
 
     assert!(result.is_ok());
-    let result = result.unwrap();
-    assert!(result.is_change_needed);
+    assert!(result.unwrap().is_change_needed);
 }

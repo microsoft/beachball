@@ -2,24 +2,18 @@ use beachball::monorepo::package_groups::get_package_groups;
 use beachball::types::options::{VersionGroupInclude, VersionGroupOptions};
 use beachball::types::package_info::{PackageInfo, PackageInfos};
 
-fn make_info(name: &str, root: &str, folder: &str) -> PackageInfo {
-    PackageInfo {
-        name: name.to_string(),
-        package_json_path: format!("{}/{}/package.json", root, folder),
-        version: "1.0.0".to_string(),
-        private: false,
-        package_options: None,
-        dependencies: None,
-        dev_dependencies: None,
-        peer_dependencies: None,
-        optional_dependencies: None,
-    }
-}
-
 fn make_infos(packages: &[(&str, &str)], root: &str) -> PackageInfos {
     let mut infos = PackageInfos::new();
     for (name, folder) in packages {
-        infos.insert(name.to_string(), make_info(name, root, folder));
+        infos.insert(
+            name.to_string(),
+            PackageInfo {
+                name: name.to_string(),
+                package_json_path: format!("{root}/{folder}/package.json"),
+                version: "1.0.0".to_string(),
+                ..Default::default()
+            },
+        );
     }
     infos
 }
@@ -233,6 +227,5 @@ fn omits_empty_groups() {
     }]);
 
     let result = get_package_groups(&infos, ROOT, &groups).unwrap();
-    // The group exists but has no packages
     assert!(result["empty"].package_names.is_empty());
 }

@@ -45,7 +45,7 @@ pub struct PackageOptions {
 }
 
 /// Internal representation of a package.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct PackageInfo {
     pub name: String,
     pub package_json_path: String,

@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use super::fixtures;
 use super::repository::Repository;
+use super::run_git;
 
 /// Creates a bare "origin" repo and provides cloning for tests.
 pub struct RepositoryFactory {
@@ -220,21 +220,4 @@ fn set_default_branch(bare_repo_path: &Path) {
         &["symbolic-ref", "HEAD", "refs/heads/master"],
         bare_repo_path.to_str().unwrap(),
     );
-}
-
-fn run_git(args: &[&str], cwd: &str) -> String {
-    let output = Command::new("git")
-        .args(args)
-        .current_dir(cwd)
-        .output()
-        .unwrap_or_else(|e| panic!("Failed to run git {}: {e}", args.join(" ")));
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        if !stderr.contains("already exists") && !stderr.contains("nothing to commit") {
-            panic!("git {} failed in {cwd}: {}", args.join(" "), stderr);
-        }
-    }
-
-    String::from_utf8_lossy(&output.stdout).trim().to_string()
 }

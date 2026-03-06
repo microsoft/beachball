@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
-use std::process::Command;
+
+use super::run_git;
 
 /// A test git repository (cloned from a bare origin).
 pub struct Repository {
@@ -104,22 +105,4 @@ impl Drop for Repository {
     fn drop(&mut self) {
         self.clean_up();
     }
-}
-
-fn run_git(args: &[&str], cwd: &str) -> String {
-    let output = Command::new("git")
-        .args(args)
-        .current_dir(cwd)
-        .output()
-        .unwrap_or_else(|e| panic!("Failed to run git {}: {e}", args.join(" ")));
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        // Don't panic on expected failures
-        if !stderr.contains("already exists") && !stderr.contains("nothing to commit") {
-            panic!("git {} failed in {cwd}: {}", args.join(" "), stderr);
-        }
-    }
-
-    String::from_utf8_lossy(&output.stdout).trim().to_string()
 }

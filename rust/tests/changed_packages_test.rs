@@ -6,15 +6,13 @@ use beachball::monorepo::scoped_packages::get_scoped_packages;
 use beachball::options::get_options::get_parsed_options_for_test;
 use beachball::types::options::{BeachballOptions, CliOptions};
 use common::change_files::generate_change_files;
-use common::repository::Repository;
 use common::repository_factory::RepositoryFactory;
+use common::{DEFAULT_BRANCH, DEFAULT_REMOTE_BRANCH};
+use serde_json::json;
 use std::collections::HashMap;
 
-const DEFAULT_BRANCH: &str = "master";
-const DEFAULT_REMOTE_BRANCH: &str = "origin/master";
-
 fn get_options_and_packages(
-    repo: &Repository,
+    repo: &common::repository::Repository,
     overrides: Option<BeachballOptions>,
     extra_cli: Option<CliOptions>,
 ) -> (
@@ -33,7 +31,7 @@ fn get_options_and_packages(
     (parsed.options, package_infos, scoped_packages)
 }
 
-fn check_out_test_branch(repo: &Repository, name: &str) {
+fn check_out_test_branch(repo: &common::repository::Repository, name: &str) {
     let branch_name = name.replace(|c: char| !c.is_alphanumeric(), "-");
     repo.checkout(&["-b", &branch_name, DEFAULT_BRANCH]);
 }
@@ -204,40 +202,28 @@ fn excludes_packages_with_existing_change_files() {
 
 #[test]
 fn ignores_package_changes_as_appropriate() {
-    use serde_json::json;
-
-    let mut packages: HashMap<String, serde_json::Value> = HashMap::new();
-    packages.insert(
-        "private-pkg".to_string(),
-        json!({
-            "name": "private-pkg", "version": "1.0.0", "private": true
-        }),
-    );
-    packages.insert(
-        "no-publish".to_string(),
-        json!({
-            "name": "no-publish", "version": "1.0.0",
-            "beachball": { "shouldPublish": false }
-        }),
-    );
-    packages.insert(
-        "out-of-scope".to_string(),
-        json!({
-            "name": "out-of-scope", "version": "1.0.0"
-        }),
-    );
-    packages.insert(
-        "ignore-pkg".to_string(),
-        json!({
-            "name": "ignore-pkg", "version": "1.0.0"
-        }),
-    );
-    packages.insert(
-        "publish-me".to_string(),
-        json!({
-            "name": "publish-me", "version": "1.0.0"
-        }),
-    );
+    let packages = HashMap::from([
+        (
+            "private-pkg".to_string(),
+            json!({"name": "private-pkg", "version": "1.0.0", "private": true}),
+        ),
+        (
+            "no-publish".to_string(),
+            json!({"name": "no-publish", "version": "1.0.0", "beachball": {"shouldPublish": false}}),
+        ),
+        (
+            "out-of-scope".to_string(),
+            json!({"name": "out-of-scope", "version": "1.0.0"}),
+        ),
+        (
+            "ignore-pkg".to_string(),
+            json!({"name": "ignore-pkg", "version": "1.0.0"}),
+        ),
+        (
+            "publish-me".to_string(),
+            json!({"name": "publish-me", "version": "1.0.0"}),
+        ),
+    ]);
 
     let root = json!({
         "name": "test-monorepo",
