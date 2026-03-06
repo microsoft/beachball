@@ -29,8 +29,8 @@ pub fn get_package_infos(options: &BeachballOptions) -> Result<PackageInfos> {
 
             for entry in entries.flatten() {
                 let pkg_json_path = entry.join("package.json");
-                if pkg_json_path.exists() {
-                    if let Ok(info) = read_package_info(&pkg_json_path) {
+                if pkg_json_path.exists()
+                    && let Ok(info) = read_package_info(&pkg_json_path) {
                         if infos.contains_key(&info.name) {
                             bail!(
                                 "Duplicate package name \"{}\" found at {} and {}",
@@ -42,7 +42,6 @@ pub fn get_package_infos(options: &BeachballOptions) -> Result<PackageInfos> {
                         let name = info.name.clone();
                         infos.insert(name, info);
                     }
-                }
             }
         }
     } else {

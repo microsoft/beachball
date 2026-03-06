@@ -56,17 +56,13 @@ pub fn find_project_root(cwd: &str) -> Result<String> {
 
     loop {
         let pkg_json = dir.join("package.json");
-        if pkg_json.exists() {
-            if let Ok(contents) = std::fs::read_to_string(&pkg_json) {
-                if let Ok(pkg) =
+        if pkg_json.exists()
+            && let Ok(contents) = std::fs::read_to_string(&pkg_json)
+                && let Ok(pkg) =
                     serde_json::from_str::<crate::types::package_info::PackageJson>(&contents)
-                {
-                    if pkg.workspaces.is_some() {
+                    && pkg.workspaces.is_some() {
                         return Ok(dir.to_string_lossy().to_string());
                     }
-                }
-            }
-        }
 
         if dir == git_root_path {
             break;
@@ -235,8 +231,8 @@ pub fn get_default_remote_branch(cwd: &str) -> Result<String> {
 
     // Try to get the default branch from remote
     let result = git(&["remote", "show", remote], cwd);
-    if let Ok(r) = result {
-        if r.success {
+    if let Ok(r) = result
+        && r.success {
             for line in r.stdout.lines() {
                 let trimmed = line.trim();
                 if trimmed.starts_with("HEAD branch:") {
@@ -245,7 +241,6 @@ pub fn get_default_remote_branch(cwd: &str) -> Result<String> {
                 }
             }
         }
-    }
 
     // Fallback: try git config init.defaultBranch
     if let Ok(default_branch) = git_stdout(&["config", "init.defaultBranch"], cwd) {

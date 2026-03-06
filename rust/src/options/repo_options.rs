@@ -60,20 +60,18 @@ fn search_for_config(cwd: &str) -> Result<Option<RawRepoConfig>> {
     loop {
         // Check for .beachballrc.json
         let rc_path = dir.join(".beachballrc.json");
-        if rc_path.exists() {
-            if let Ok(config) = load_json_config(rc_path.to_str().unwrap_or_default()) {
+        if rc_path.exists()
+            && let Ok(config) = load_json_config(rc_path.to_str().unwrap_or_default()) {
                 return Ok(config);
             }
-        }
 
         // Check for package.json "beachball" field
         let pkg_path = dir.join("package.json");
-        if pkg_path.exists() {
-            if let Ok(Some(config)) = load_from_package_json(pkg_path.to_str().unwrap_or_default())
+        if pkg_path.exists()
+            && let Ok(Some(config)) = load_from_package_json(pkg_path.to_str().unwrap_or_default())
             {
                 return Ok(Some(config));
             }
-        }
 
         // Stop at git root
         if dir == git_root_path {

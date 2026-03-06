@@ -20,21 +20,19 @@ pub fn get_disallowed_change_types(
 ) -> Option<Vec<ChangeType>> {
     // Check if the package is in a group (group disallowedChangeTypes take precedence)
     for group_info in package_groups.values() {
-        if group_info.package_names.contains(&package_name.to_string()) {
-            if group_info.disallowed_change_types.is_some() {
-                return group_info.disallowed_change_types.clone();
-            }
+        if group_info.package_names.contains(&package_name.to_string())
+            && group_info.disallowed_change_types.is_some()
+        {
+            return group_info.disallowed_change_types.clone();
         }
     }
 
     // Check package-level options
-    if let Some(info) = package_infos.get(package_name) {
-        if let Some(ref opts) = info.package_options {
-            if opts.disallowed_change_types.is_some() {
+    if let Some(info) = package_infos.get(package_name)
+        && let Some(ref opts) = info.package_options
+            && opts.disallowed_change_types.is_some() {
                 return opts.disallowed_change_types.clone();
             }
-        }
-    }
 
     // Fall back to repo-level
     repo_disallowed.clone()

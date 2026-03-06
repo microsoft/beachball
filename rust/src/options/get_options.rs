@@ -17,15 +17,12 @@ pub fn get_parsed_options(cwd: &str, cli: CliOptions) -> Result<ParsedOptions> {
     merged.path = cwd.to_string();
 
     // If branch doesn't contain '/', resolve the remote
-    if let Some(ref branch) = cli.branch {
-        if !branch.contains('/') {
-            if let Ok(default) = commands::get_default_remote_branch(cwd) {
-                if let Some((remote, _)) = commands::parse_remote_branch(&default) {
+    if let Some(ref branch) = cli.branch
+        && !branch.contains('/')
+            && let Ok(default) = commands::get_default_remote_branch(cwd)
+                && let Some((remote, _)) = commands::parse_remote_branch(&default) {
                     merged.branch = format!("{remote}/{branch}");
                 }
-            }
-        }
-    }
 
     Ok(ParsedOptions {
         cli_options: cli,

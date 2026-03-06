@@ -39,19 +39,7 @@ func getOptionsAndPackages(t *testing.T, repo *testutil.Repository, overrides *t
 }
 
 func checkOutTestBranch(repo *testutil.Repository, name string) {
-	repo.Checkout("-b", sanitizeBranchName(name), defaultBranch)
-}
-
-func sanitizeBranchName(name string) string {
-	result := make([]byte, 0, len(name))
-	for _, c := range name {
-		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') {
-			result = append(result, byte(c))
-		} else {
-			result = append(result, '-')
-		}
-	}
-	return string(result)
+	repo.Checkout("-b", name, defaultBranch)
 }
 
 // ===== Basic tests =====
