@@ -18,14 +18,18 @@ fn does_not_create_change_files_when_no_changes() {
     let branch_name = "no-changes-test";
     repo.checkout(&["-b", branch_name, DEFAULT_BRANCH]);
 
-    let mut repo_opts = BeachballOptions::default();
-    repo_opts.branch = DEFAULT_REMOTE_BRANCH.to_string();
-    repo_opts.fetch = false;
+    let repo_opts = BeachballOptions {
+        branch: DEFAULT_REMOTE_BRANCH.to_string(),
+        fetch: false,
+        ..Default::default()
+    };
 
-    let mut cli = CliOptions::default();
-    cli.command = Some("change".to_string());
-    cli.message = Some("test change".to_string());
-    cli.change_type = Some(ChangeType::Patch);
+    let cli = CliOptions {
+        command: Some("change".to_string()),
+        message: Some("test change".to_string()),
+        change_type: Some(ChangeType::Patch),
+        ..Default::default()
+    };
 
     let parsed = get_parsed_options_for_test(repo.root_path(), cli, repo_opts);
     let result = change(&parsed);
@@ -44,16 +48,20 @@ fn creates_change_file_with_type_and_message() {
     repo.checkout(&["-b", branch_name, DEFAULT_BRANCH]);
     repo.commit_change("file.js");
 
-    let mut repo_opts = BeachballOptions::default();
-    repo_opts.branch = DEFAULT_REMOTE_BRANCH.to_string();
-    repo_opts.fetch = false;
-    repo_opts.commit = false;
+    let repo_opts = BeachballOptions {
+        branch: DEFAULT_REMOTE_BRANCH.to_string(),
+        fetch: false,
+        commit: false,
+        ..Default::default()
+    };
 
-    let mut cli = CliOptions::default();
-    cli.command = Some("change".to_string());
-    cli.message = Some("test description".to_string());
-    cli.change_type = Some(ChangeType::Patch);
-    cli.commit = Some(false);
+    let cli = CliOptions {
+        command: Some("change".to_string()),
+        message: Some("test description".to_string()),
+        change_type: Some(ChangeType::Patch),
+        commit: Some(false),
+        ..Default::default()
+    };
 
     let parsed = get_parsed_options_for_test(repo.root_path(), cli, repo_opts);
     let result = change(&parsed);

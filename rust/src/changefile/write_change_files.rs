@@ -41,7 +41,9 @@ pub fn write_change_files(
     } else {
         // Write each change to its own file
         for change in changes {
-            let sanitized_name = change.package_name.replace(|c: char| !c.is_alphanumeric() && c != '@', "-");
+            let sanitized_name = change
+                .package_name
+                .replace(|c: char| !c.is_alphanumeric() && c != '@', "-");
             let uuid = uuid::Uuid::new_v4();
             let file_path = Path::new(&change_path)
                 .join(format!("{sanitized_name}-{uuid}.json"))
@@ -70,7 +72,11 @@ pub fn write_change_files(
 
     println!(
         "git {} these change files:{}",
-        if options.commit { "committed" } else { "staged" },
+        if options.commit {
+            "committed"
+        } else {
+            "staged"
+        },
         change_files
             .iter()
             .map(|f| format!("\n - {f}"))

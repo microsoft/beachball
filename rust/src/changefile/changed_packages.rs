@@ -20,11 +20,7 @@ fn is_package_included(
         None => (false, "no corresponding package found".to_string()),
         Some(info) if info.private => (false, format!("{} is private", info.name)),
         Some(info)
-            if info
-                .package_options
-                .as_ref()
-                .and_then(|o| o.should_publish)
-                == Some(false) =>
+            if info.package_options.as_ref().and_then(|o| o.should_publish) == Some(false) =>
         {
             (
                 false,

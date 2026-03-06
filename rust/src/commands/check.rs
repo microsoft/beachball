@@ -1,7 +1,7 @@
 use anyhow::Result;
 
 use crate::types::options::ParsedOptions;
-use crate::validation::validate::{validate, ValidateOptions};
+use crate::validation::validate::{ValidateOptions, validate};
 
 /// Run the check command: validate that change files are present where needed.
 pub fn check(parsed: &ParsedOptions) -> Result<()> {

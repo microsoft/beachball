@@ -19,10 +19,11 @@ pub fn get_parsed_options(cwd: &str, cli: CliOptions) -> Result<ParsedOptions> {
     // If branch doesn't contain '/', resolve the remote
     if let Some(ref branch) = cli.branch
         && !branch.contains('/')
-            && let Ok(default) = commands::get_default_remote_branch(cwd)
-                && let Some((remote, _)) = commands::parse_remote_branch(&default) {
-                    merged.branch = format!("{remote}/{branch}");
-                }
+        && let Ok(default) = commands::get_default_remote_branch(cwd)
+        && let Some((remote, _)) = commands::parse_remote_branch(&default)
+    {
+        merged.branch = format!("{remote}/{branch}");
+    }
 
     Ok(ParsedOptions {
         cli_options: cli,
@@ -79,11 +80,11 @@ fn merge_options(base: BeachballOptions, overlay: BeachballOptions) -> Beachball
         package: overlay.package.or(base.package),
         scope: overlay.scope.or(base.scope),
         ignore_patterns: overlay.ignore_patterns.or(base.ignore_patterns),
-        disallowed_change_types: overlay.disallowed_change_types.or(base.disallowed_change_types),
+        disallowed_change_types: overlay
+            .disallowed_change_types
+            .or(base.disallowed_change_types),
         groups: overlay.groups.or(base.groups),
-        changehint: if overlay.changehint
-            != "Run \"beachball change\" to create a change file"
-        {
+        changehint: if overlay.changehint != "Run \"beachball change\" to create a change file" {
             overlay.changehint
         } else {
             base.changehint

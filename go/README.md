@@ -14,6 +14,26 @@ go build ./...
 go build -o beachball ./cmd/beachball
 ```
 
+## Formatting
+
+```bash
+gofmt -w .
+```
+
+To check without modifying (as CI does):
+
+```bash
+gofmt -l .
+```
+
+If any files are listed, they need formatting.
+
+## Linting
+
+```bash
+go vet ./...
+```
+
 ## Testing
 
 ```bash

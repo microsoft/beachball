@@ -1,4 +1,4 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use std::path::Path;
 use std::process::Command;
 
@@ -58,11 +58,12 @@ pub fn find_project_root(cwd: &str) -> Result<String> {
         let pkg_json = dir.join("package.json");
         if pkg_json.exists()
             && let Ok(contents) = std::fs::read_to_string(&pkg_json)
-                && let Ok(pkg) =
-                    serde_json::from_str::<crate::types::package_info::PackageJson>(&contents)
-                    && pkg.workspaces.is_some() {
-                        return Ok(dir.to_string_lossy().to_string());
-                    }
+            && let Ok(pkg) =
+                serde_json::from_str::<crate::types::package_info::PackageJson>(&contents)
+            && pkg.workspaces.is_some()
+        {
+            return Ok(dir.to_string_lossy().to_string());
+        }
 
         if dir == git_root_path {
             break;
@@ -94,7 +95,14 @@ pub fn get_user_email(cwd: &str) -> Option<String> {
 /// Get files changed between the current branch and the target branch.
 pub fn get_branch_changes(branch: &str, cwd: &str) -> Result<Vec<String>> {
     let result = git(
-        &["--no-pager", "diff", "--name-only", "--relative", "--no-renames", &format!("{branch}...")],
+        &[
+            "--no-pager",
+            "diff",
+            "--name-only",
+            "--relative",
+            "--no-renames",
+            &format!("{branch}..."),
+        ],
         cwd,
     )?;
     if !result.success {
@@ -110,7 +118,17 @@ pub fn get_branch_changes(branch: &str, cwd: &str) -> Result<Vec<String>> {
 
 /// Get staged changes.
 pub fn get_staged_changes(cwd: &str) -> Result<Vec<String>> {
-    let result = git(&["--no-pager", "diff", "--cached", "--name-only", "--relative", "--no-renames"], cwd)?;
+    let result = git(
+        &[
+            "--no-pager",
+            "diff",
+            "--cached",
+            "--name-only",
+            "--relative",
+            "--no-renames",
+        ],
+        cwd,
+    )?;
     if !result.success {
         return Ok(vec![]);
     }
@@ -131,7 +149,13 @@ pub fn get_changes_between_refs(
 ) -> Result<Vec<String>> {
     let diff_flag = diff_filter.map(|f| format!("--diff-filter={f}"));
     let range = format!("{from_ref}...");
-    let mut args: Vec<&str> = vec!["--no-pager", "diff", "--name-only", "--relative", "--no-renames"];
+    let mut args: Vec<&str> = vec![
+        "--no-pager",
+        "diff",
+        "--name-only",
+        "--relative",
+        "--no-renames",
+    ];
     if let Some(ref flag) = diff_flag {
         args.push(flag);
     }
@@ -232,15 +256,16 @@ pub fn get_default_remote_branch(cwd: &str) -> Result<String> {
     // Try to get the default branch from remote
     let result = git(&["remote", "show", remote], cwd);
     if let Ok(r) = result
-        && r.success {
-            for line in r.stdout.lines() {
-                let trimmed = line.trim();
-                if trimmed.starts_with("HEAD branch:") {
-                    let branch = trimmed.trim_start_matches("HEAD branch:").trim();
-                    return Ok(format!("{remote}/{branch}"));
-                }
+        && r.success
+    {
+        for line in r.stdout.lines() {
+            let trimmed = line.trim();
+            if trimmed.starts_with("HEAD branch:") {
+                let branch = trimmed.trim_start_matches("HEAD branch:").trim();
+                return Ok(format!("{remote}/{branch}"));
             }
         }
+    }
 
     // Fallback: try git config init.defaultBranch
     if let Ok(default_branch) = git_stdout(&["config", "init.defaultBranch"], cwd) {

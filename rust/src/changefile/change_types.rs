@@ -30,9 +30,10 @@ pub fn get_disallowed_change_types(
     // Check package-level options
     if let Some(info) = package_infos.get(package_name)
         && let Some(ref opts) = info.package_options
-            && opts.disallowed_change_types.is_some() {
-                return opts.disallowed_change_types.clone();
-            }
+        && opts.disallowed_change_types.is_some()
+    {
+        return opts.disallowed_change_types.clone();
+    }
 
     // Fall back to repo-level
     repo_disallowed.clone()

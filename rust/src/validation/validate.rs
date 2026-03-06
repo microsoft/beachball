@@ -107,36 +107,40 @@ pub fn validate(
 
     // Validate auth type
     if let Some(ref auth_type) = options.auth_type
-        && !is_valid_auth_type(auth_type) {
-            log_validation_error(
-                &format!("authType \"{auth_type}\" is not valid"),
-                &mut has_error,
-            );
-        }
+        && !is_valid_auth_type(auth_type)
+    {
+        log_validation_error(
+            &format!("authType \"{auth_type}\" is not valid"),
+            &mut has_error,
+        );
+    }
 
     // Validate dependent change type
     if let Some(dct) = options.dependent_change_type
-        && !is_valid_change_type_value(dct) {
-            log_validation_error(
-                &format!("dependentChangeType \"{dct}\" is not valid"),
-                &mut has_error,
-            );
-        }
+        && !is_valid_change_type_value(dct)
+    {
+        log_validation_error(
+            &format!("dependentChangeType \"{dct}\" is not valid"),
+            &mut has_error,
+        );
+    }
 
     // Validate change type
     if let Some(ct) = options.change_type
-        && !is_valid_change_type_value(ct) {
-            log_validation_error(
-                &format!("Change type \"{ct}\" is not valid"),
-                &mut has_error,
-            );
-        }
+        && !is_valid_change_type_value(ct)
+    {
+        log_validation_error(
+            &format!("Change type \"{ct}\" is not valid"),
+            &mut has_error,
+        );
+    }
 
     // Validate group options
     if let Some(ref groups) = options.groups
-        && !is_valid_group_options(groups) {
-            has_error = true;
-        }
+        && !is_valid_group_options(groups)
+    {
+        has_error = true;
+    }
 
     // Get package groups
     let package_groups = get_package_groups(&package_infos, &options.path, &options.groups)?;
@@ -170,15 +174,16 @@ pub fn validate(
                 &mut has_error,
             );
         } else if let Some(ref disallowed) = disallowed
-            && disallowed.contains(&entry.change.change_type) {
-                log_validation_error(
-                    &format!(
-                        "Disallowed change type detected in {}: \"{}\"",
-                        entry.change_file, ct_str
-                    ),
-                    &mut has_error,
-                );
-            }
+            && disallowed.contains(&entry.change.change_type)
+        {
+            log_validation_error(
+                &format!(
+                    "Disallowed change type detected in {}: \"{}\"",
+                    entry.change_file, ct_str
+                ),
+                &mut has_error,
+            );
+        }
 
         let dct_str = entry.change.dependent_change_type.to_string();
         if !is_valid_dependent_change_type(entry.change.dependent_change_type, &disallowed) {
@@ -244,12 +249,12 @@ pub fn validate(
     }
 
     // Skip checkDependencies / bumpInMemory (not implemented)
-    if validate_options.check_dependencies && !is_change_needed && !change_set.is_empty()
+    if validate_options.check_dependencies
+        && !is_change_needed
+        && !change_set.is_empty()
         && options.verbose
     {
-        println!(
-            "(Skipping package dependency validation — not implemented in Rust port)"
-        );
+        println!("(Skipping package dependency validation — not implemented in Rust port)");
     }
 
     println!();

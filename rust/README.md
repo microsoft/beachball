@@ -14,6 +14,32 @@ cargo build
 cargo build --release
 ```
 
+## Formatting
+
+```bash
+cargo fmt
+```
+
+To check without modifying (as CI does):
+
+```bash
+cargo fmt --check
+```
+
+## Linting
+
+```bash
+cargo clippy --all-targets
+```
+
+To treat warnings as errors (as CI does):
+
+```bash
+cargo clippy --all-targets -- -D warnings
+```
+
+**Note:** If VS Code shows stale warnings after fixing lint issues, run "Rust Analyzer: Restart Server" from the command palette (`Cmd+Shift+P` / `Ctrl+Shift+P`).
+
 ## Testing
 
 ```bash

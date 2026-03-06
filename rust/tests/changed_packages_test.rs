@@ -17,7 +17,11 @@ fn get_options_and_packages(
     repo: &Repository,
     overrides: Option<BeachballOptions>,
     extra_cli: Option<CliOptions>,
-) -> (BeachballOptions, beachball::types::package_info::PackageInfos, beachball::types::package_info::ScopedPackages) {
+) -> (
+    BeachballOptions,
+    beachball::types::package_info::PackageInfos,
+    beachball::types::package_info::ScopedPackages,
+) {
     let cli = extra_cli.unwrap_or_default();
     let mut repo_opts = overrides.unwrap_or_default();
     repo_opts.branch = DEFAULT_REMOTE_BRANCH.to_string();
@@ -75,14 +79,22 @@ fn returns_given_package_names_as_is() {
     let factory = RepositoryFactory::new("monorepo");
     let repo = factory.clone_repository();
 
-    let mut cli = CliOptions::default();
-    cli.package = Some(vec!["foo".to_string()]);
+    let cli = CliOptions {
+        package: Some(vec!["foo".to_string()]),
+        ..Default::default()
+    };
     let (options, infos, scoped) = get_options_and_packages(&repo, None, Some(cli));
     let result = get_changed_packages(&options, &infos, &scoped).unwrap();
     assert_eq!(result, vec!["foo"]);
 
-    let mut cli2 = CliOptions::default();
-    cli2.package = Some(vec!["foo".to_string(), "bar".to_string(), "nope".to_string()]);
+    let cli2 = CliOptions {
+        package: Some(vec![
+            "foo".to_string(),
+            "bar".to_string(),
+            "nope".to_string(),
+        ]),
+        ..Default::default()
+    };
     let (options2, infos2, scoped2) = get_options_and_packages(&repo, None, Some(cli2));
     let result2 = get_changed_packages(&options2, &infos2, &scoped2).unwrap();
     assert_eq!(result2, vec!["foo", "bar", "nope"]);
@@ -93,8 +105,10 @@ fn returns_all_packages_with_all_true() {
     let factory = RepositoryFactory::new("monorepo");
     let repo = factory.clone_repository();
 
-    let mut opts = BeachballOptions::default();
-    opts.all = true;
+    let opts = BeachballOptions {
+        all: true,
+        ..Default::default()
+    };
     let (options, infos, scoped) = get_options_and_packages(&repo, Some(opts), None);
     let mut result = get_changed_packages(&options, &infos, &scoped).unwrap();
     result.sort();
@@ -109,7 +123,11 @@ fn detects_changed_files_in_single_package_repo() {
     let repo = factory.clone_repository();
 
     let (options, infos, scoped) = get_options_and_packages(&repo, None, None);
-    assert!(get_changed_packages(&options, &infos, &scoped).unwrap().is_empty());
+    assert!(
+        get_changed_packages(&options, &infos, &scoped)
+            .unwrap()
+            .is_empty()
+    );
 
     repo.stage_change("foo.js");
     let result = get_changed_packages(&options, &infos, &scoped).unwrap();
@@ -121,13 +139,15 @@ fn respects_ignore_patterns() {
     let factory = RepositoryFactory::new("single");
     let repo = factory.clone_repository();
 
-    let mut opts = BeachballOptions::default();
-    opts.ignore_patterns = Some(vec![
-        "*.test.js".to_string(),
-        "tests/**".to_string(),
-        "yarn.lock".to_string(),
-    ]);
-    opts.verbose = true;
+    let opts = BeachballOptions {
+        ignore_patterns: Some(vec![
+            "*.test.js".to_string(),
+            "tests/**".to_string(),
+            "yarn.lock".to_string(),
+        ]),
+        verbose: true,
+        ..Default::default()
+    };
 
     let (options, infos, scoped) = get_options_and_packages(&repo, Some(opts), None);
 
@@ -148,7 +168,11 @@ fn detects_changed_files_in_monorepo() {
     let repo = factory.clone_repository();
 
     let (options, infos, scoped) = get_options_and_packages(&repo, None, None);
-    assert!(get_changed_packages(&options, &infos, &scoped).unwrap().is_empty());
+    assert!(
+        get_changed_packages(&options, &infos, &scoped)
+            .unwrap()
+            .is_empty()
+    );
 
     repo.stage_change("packages/foo/test.js");
     let result = get_changed_packages(&options, &infos, &scoped).unwrap();
@@ -162,8 +186,10 @@ fn excludes_packages_with_existing_change_files() {
     repo.checkout(&["-b", "test"]);
     repo.commit_change("packages/foo/test.js");
 
-    let mut opts = BeachballOptions::default();
-    opts.verbose = true;
+    let opts = BeachballOptions {
+        verbose: true,
+        ..Default::default()
+    };
     let (options, infos, scoped) = get_options_and_packages(&repo, Some(opts), None);
     generate_change_files(&["foo"], &options, &repo);
 
@@ -181,22 +207,37 @@ fn ignores_package_changes_as_appropriate() {
     use serde_json::json;
 
     let mut packages: HashMap<String, serde_json::Value> = HashMap::new();
-    packages.insert("private-pkg".to_string(), json!({
-        "name": "private-pkg", "version": "1.0.0", "private": true
-    }));
-    packages.insert("no-publish".to_string(), json!({
-        "name": "no-publish", "version": "1.0.0",
-        "beachball": { "shouldPublish": false }
-    }));
-    packages.insert("out-of-scope".to_string(), json!({
-        "name": "out-of-scope", "version": "1.0.0"
-    }));
-    packages.insert("ignore-pkg".to_string(), json!({
-        "name": "ignore-pkg", "version": "1.0.0"
-    }));
-    packages.insert("publish-me".to_string(), json!({
-        "name": "publish-me", "version": "1.0.0"
-    }));
+    packages.insert(
+        "private-pkg".to_string(),
+        json!({
+            "name": "private-pkg", "version": "1.0.0", "private": true
+        }),
+    );
+    packages.insert(
+        "no-publish".to_string(),
+        json!({
+            "name": "no-publish", "version": "1.0.0",
+            "beachball": { "shouldPublish": false }
+        }),
+    );
+    packages.insert(
+        "out-of-scope".to_string(),
+        json!({
+            "name": "out-of-scope", "version": "1.0.0"
+        }),
+    );
+    packages.insert(
+        "ignore-pkg".to_string(),
+        json!({
+            "name": "ignore-pkg", "version": "1.0.0"
+        }),
+    );
+    packages.insert(
+        "publish-me".to_string(),
+        json!({
+            "name": "publish-me", "version": "1.0.0"
+        }),
+    );
 
     let root = json!({
         "name": "test-monorepo",
@@ -215,10 +256,12 @@ fn ignores_package_changes_as_appropriate() {
     repo.stage_change("packages/ignore-pkg/CHANGELOG.md");
     repo.stage_change("packages/publish-me/test.js");
 
-    let mut opts = BeachballOptions::default();
-    opts.scope = Some(vec!["!packages/out-of-scope".to_string()]);
-    opts.ignore_patterns = Some(vec!["**/jest.config.js".to_string()]);
-    opts.verbose = true;
+    let opts = BeachballOptions {
+        scope: Some(vec!["!packages/out-of-scope".to_string()]),
+        ignore_patterns: Some(vec!["**/jest.config.js".to_string()]),
+        verbose: true,
+        ..Default::default()
+    };
 
     let (options, infos, scoped) = get_options_and_packages(&repo, Some(opts), None);
     let result = get_changed_packages(&options, &infos, &scoped).unwrap();
@@ -234,16 +277,14 @@ fn detects_changed_files_in_multi_root_monorepo() {
 
     // Test from project-a root
     let path_a = repo.path_to(&["project-a"]).to_string_lossy().to_string();
-    let mut opts_a = BeachballOptions::default();
-    opts_a.path = path_a.clone();
-    opts_a.branch = DEFAULT_REMOTE_BRANCH.to_string();
-    opts_a.fetch = false;
+    let opts_a = BeachballOptions {
+        path: path_a.clone(),
+        branch: DEFAULT_REMOTE_BRANCH.to_string(),
+        fetch: false,
+        ..Default::default()
+    };
 
-    let parsed_a = get_parsed_options_for_test(
-        &path_a,
-        CliOptions::default(),
-        opts_a,
-    );
+    let parsed_a = get_parsed_options_for_test(&path_a, CliOptions::default(), opts_a);
     let infos_a = get_package_infos(&parsed_a.options).unwrap();
     let scoped_a = get_scoped_packages(&parsed_a.options, &infos_a);
     let result_a = get_changed_packages(&parsed_a.options, &infos_a, &scoped_a).unwrap();
@@ -251,16 +292,14 @@ fn detects_changed_files_in_multi_root_monorepo() {
 
     // Test from project-b root
     let path_b = repo.path_to(&["project-b"]).to_string_lossy().to_string();
-    let mut opts_b = BeachballOptions::default();
-    opts_b.path = path_b.clone();
-    opts_b.branch = DEFAULT_REMOTE_BRANCH.to_string();
-    opts_b.fetch = false;
+    let opts_b = BeachballOptions {
+        path: path_b.clone(),
+        branch: DEFAULT_REMOTE_BRANCH.to_string(),
+        fetch: false,
+        ..Default::default()
+    };
 
-    let parsed_b = get_parsed_options_for_test(
-        &path_b,
-        CliOptions::default(),
-        opts_b,
-    );
+    let parsed_b = get_parsed_options_for_test(&path_b, CliOptions::default(), opts_b);
     let infos_b = get_package_infos(&parsed_b.options).unwrap();
     let scoped_b = get_scoped_packages(&parsed_b.options, &infos_b);
     let result_b = get_changed_packages(&parsed_b.options, &infos_b, &scoped_b).unwrap();

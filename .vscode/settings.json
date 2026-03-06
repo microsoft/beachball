@@ -15,6 +15,14 @@
     "**/*.svg": true,
     "**/.yarn": true
   },
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.formatOnSave": true
+  },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.formatOnSave": true
+  },
   "files.associations": {
     // VS Code doesn't have json5 support, so handle .json5 files as jsonc.
     // Note that Prettier must also be configured to format *.json5 as jsonc

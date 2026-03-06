@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 
 /// A test git repository (cloned from a bare origin).
@@ -15,7 +15,7 @@ impl Repository {
             .tempdir()
             .expect("failed to create temp dir");
 
-        let root = tmp.into_path();
+        let root = tmp.keep();
 
         // Clone
         run_git(&["clone", bare_repo, root.to_str().unwrap()], ".");
@@ -94,7 +94,7 @@ impl Repository {
     }
 
     pub fn clean_up(&self) {
-        if !std::env::var("CI").is_ok() {
+        if std::env::var("CI").is_err() {
             let _ = fs::remove_dir_all(&self.root);
         }
     }
@@ -116,14 +116,8 @@ fn run_git(args: &[&str], cwd: &str) -> String {
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         // Don't panic on expected failures
-        if !stderr.contains("already exists")
-            && !stderr.contains("nothing to commit")
-        {
-            panic!(
-                "git {} failed in {cwd}: {}",
-                args.join(" "),
-                stderr
-            );
+        if !stderr.contains("already exists") && !stderr.contains("nothing to commit") {
+            panic!("git {} failed in {cwd}: {}", args.join(" "), stderr);
         }
     }
 

@@ -12,9 +12,9 @@ type PackageJson struct {
 
 // PackageOptions represents beachball-specific options in package.json.
 type PackageOptions struct {
-	ShouldPublish        *bool    `json:"shouldPublish,omitempty"`
-	DisallowedChangeTypes []string `json:"disallowedChangeTypes,omitempty"`
-	DefaultNearestBumpType string  `json:"defaultNearestBumpType,omitempty"`
+	ShouldPublish          *bool    `json:"shouldPublish,omitempty"`
+	DisallowedChangeTypes  []string `json:"disallowedChangeTypes,omitempty"`
+	DefaultNearestBumpType string   `json:"defaultNearestBumpType,omitempty"`
 }
 
 // PackageInfo holds information about a single package.
@@ -34,8 +34,8 @@ type ScopedPackages map[string]bool
 
 // PackageGroup represents a version group.
 type PackageGroup struct {
-	Name             string
-	Packages         []string
+	Name                  string
+	Packages              []string
 	DisallowedChangeTypes []string
 }
 

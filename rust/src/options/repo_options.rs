@@ -61,17 +61,18 @@ fn search_for_config(cwd: &str) -> Result<Option<RawRepoConfig>> {
         // Check for .beachballrc.json
         let rc_path = dir.join(".beachballrc.json");
         if rc_path.exists()
-            && let Ok(config) = load_json_config(rc_path.to_str().unwrap_or_default()) {
-                return Ok(config);
-            }
+            && let Ok(config) = load_json_config(rc_path.to_str().unwrap_or_default())
+        {
+            return Ok(config);
+        }
 
         // Check for package.json "beachball" field
         let pkg_path = dir.join("package.json");
         if pkg_path.exists()
             && let Ok(Some(config)) = load_from_package_json(pkg_path.to_str().unwrap_or_default())
-            {
-                return Ok(Some(config));
-            }
+        {
+            return Ok(Some(config));
+        }
 
         // Stop at git root
         if dir == git_root_path {
@@ -158,9 +159,7 @@ fn apply_raw_config(opts: &mut BeachballOptions, raw: RawRepoConfig, cwd: &str) 
             .map(|g| {
                 let include = match &g.include {
                     serde_json::Value::Bool(true) => VersionGroupInclude::All,
-                    serde_json::Value::String(s) => {
-                        VersionGroupInclude::Patterns(vec![s.clone()])
-                    }
+                    serde_json::Value::String(s) => VersionGroupInclude::Patterns(vec![s.clone()]),
                     serde_json::Value::Array(arr) => VersionGroupInclude::Patterns(
                         arr.iter()
                             .filter_map(|v| v.as_str().map(|s| s.to_string()))

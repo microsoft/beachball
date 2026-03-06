@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use std::path::{Path, PathBuf};
 
 use crate::types::options::BeachballOptions;
@@ -13,8 +13,7 @@ pub fn get_package_infos(options: &BeachballOptions) -> Result<PackageInfos> {
         bail!("No package.json found at {cwd}");
     }
 
-    let root_pkg: PackageJson =
-        serde_json::from_str(&std::fs::read_to_string(&root_pkg_path)?)?;
+    let root_pkg: PackageJson = serde_json::from_str(&std::fs::read_to_string(&root_pkg_path)?)?;
 
     let mut infos = PackageInfos::new();
 
@@ -30,18 +29,19 @@ pub fn get_package_infos(options: &BeachballOptions) -> Result<PackageInfos> {
             for entry in entries.flatten() {
                 let pkg_json_path = entry.join("package.json");
                 if pkg_json_path.exists()
-                    && let Ok(info) = read_package_info(&pkg_json_path) {
-                        if infos.contains_key(&info.name) {
-                            bail!(
-                                "Duplicate package name \"{}\" found at {} and {}",
-                                info.name,
-                                infos[&info.name].package_json_path,
-                                info.package_json_path
-                            );
-                        }
-                        let name = info.name.clone();
-                        infos.insert(name, info);
+                    && let Ok(info) = read_package_info(&pkg_json_path)
+                {
+                    if infos.contains_key(&info.name) {
+                        bail!(
+                            "Duplicate package name \"{}\" found at {} and {}",
+                            info.name,
+                            infos[&info.name].package_json_path,
+                            info.package_json_path
+                        );
                     }
+                    let name = info.name.clone();
+                    infos.insert(name, info);
+                }
             }
         }
     } else {
@@ -61,9 +61,10 @@ fn read_package_info(pkg_json_path: &PathBuf) -> Result<PackageInfo> {
     let contents = std::fs::read_to_string(pkg_json_path)?;
     let pkg: PackageJson = serde_json::from_str(&contents)?;
 
-    let package_options = pkg.beachball.as_ref().and_then(|bb| {
-        serde_json::from_value::<PackageOptions>(bb.clone()).ok()
-    });
+    let package_options = pkg
+        .beachball
+        .as_ref()
+        .and_then(|bb| serde_json::from_value::<PackageOptions>(bb.clone()).ok());
 
     Ok(PackageInfo {
         name: pkg.name.clone(),

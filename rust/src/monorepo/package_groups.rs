@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 
 use crate::types::options::VersionGroupInclude;
 use crate::types::package_info::{PackageGroupInfo, PackageGroups, PackageInfos};
@@ -39,9 +39,10 @@ pub fn get_package_groups(
 
             // Check exclude patterns
             if let Some(ref exclude) = group.exclude
-                && !is_path_included(&rel_path, exclude) {
-                    continue;
-                }
+                && !is_path_included(&rel_path, exclude)
+            {
+                continue;
+            }
 
             // Check for multi-group membership
             if let Some(existing_group) = package_to_group.get(&info.name) {

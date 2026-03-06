@@ -1,6 +1,12 @@
 use serde_json::json;
 use std::collections::HashMap;
 
+/// Return type for fixture functions: (root package.json, Vec of (folder, package map)).
+pub type FixtureResult = (
+    serde_json::Value,
+    Vec<(String, HashMap<String, serde_json::Value>)>,
+);
+
 /// Package definition for a fixture.
 pub struct PackageFixture {
     pub name: Option<String>,
@@ -28,11 +34,11 @@ impl PackageFixture {
         if let Some(ref bb) = self.beachball {
             obj.insert("beachball".to_string(), bb.clone());
         }
-        if let Some(ref other) = self.other {
-            if let serde_json::Value::Object(map) = other {
-                for (k, v) in map {
-                    obj.insert(k.clone(), v.clone());
-                }
+        if let Some(ref other) = self.other
+            && let serde_json::Value::Object(map) = other
+        {
+            for (k, v) in map {
+                obj.insert(k.clone(), v.clone());
             }
         }
         serde_json::Value::Object(obj)
@@ -40,7 +46,7 @@ impl PackageFixture {
 }
 
 /// Fixture for a single-package repo.
-pub fn single_package_fixture() -> (serde_json::Value, Vec<(String, HashMap<String, serde_json::Value>)>) {
+pub fn single_package_fixture() -> FixtureResult {
     let root = json!({
         "name": "foo",
         "version": "1.0.0",
@@ -53,7 +59,7 @@ pub fn single_package_fixture() -> (serde_json::Value, Vec<(String, HashMap<Stri
 }
 
 /// Fixture for a monorepo.
-pub fn monorepo_fixture() -> (serde_json::Value, Vec<(String, HashMap<String, serde_json::Value>)>) {
+pub fn monorepo_fixture() -> FixtureResult {
     let root = json!({
         "name": "monorepo-fixture",
         "version": "1.0.0",
@@ -69,42 +75,60 @@ pub fn monorepo_fixture() -> (serde_json::Value, Vec<(String, HashMap<String, se
     });
 
     let packages: HashMap<String, serde_json::Value> = HashMap::from([
-        ("foo".to_string(), json!({
-            "name": "foo",
-            "version": "1.0.0",
-            "dependencies": { "bar": "^1.3.4" },
-            "main": "src/index.ts"
-        })),
-        ("bar".to_string(), json!({
-            "name": "bar",
-            "version": "1.3.4",
-            "dependencies": { "baz": "^1.3.4" }
-        })),
-        ("baz".to_string(), json!({
-            "name": "baz",
-            "version": "1.3.4"
-        })),
+        (
+            "foo".to_string(),
+            json!({
+                "name": "foo",
+                "version": "1.0.0",
+                "dependencies": { "bar": "^1.3.4" },
+                "main": "src/index.ts"
+            }),
+        ),
+        (
+            "bar".to_string(),
+            json!({
+                "name": "bar",
+                "version": "1.3.4",
+                "dependencies": { "baz": "^1.3.4" }
+            }),
+        ),
+        (
+            "baz".to_string(),
+            json!({
+                "name": "baz",
+                "version": "1.3.4"
+            }),
+        ),
     ]);
 
     let grouped: HashMap<String, serde_json::Value> = HashMap::from([
-        ("a".to_string(), json!({
-            "name": "a",
-            "version": "3.1.2"
-        })),
-        ("b".to_string(), json!({
-            "name": "b",
-            "version": "3.1.2"
-        })),
+        (
+            "a".to_string(),
+            json!({
+                "name": "a",
+                "version": "3.1.2"
+            }),
+        ),
+        (
+            "b".to_string(),
+            json!({
+                "name": "b",
+                "version": "3.1.2"
+            }),
+        ),
     ]);
 
-    (root, vec![
-        ("packages".to_string(), packages),
-        ("packages/grouped".to_string(), grouped),
-    ])
+    (
+        root,
+        vec![
+            ("packages".to_string(), packages),
+            ("packages/grouped".to_string(), grouped),
+        ],
+    )
 }
 
 /// Fixture for a monorepo with a scope prefix (used in multi-project).
-pub fn scoped_monorepo_fixture(scope: &str) -> (serde_json::Value, Vec<(String, HashMap<String, serde_json::Value>)>) {
+pub fn scoped_monorepo_fixture(scope: &str) -> FixtureResult {
     let root = json!({
         "name": format!("@{scope}/monorepo-fixture"),
         "version": "1.0.0",
@@ -120,36 +144,54 @@ pub fn scoped_monorepo_fixture(scope: &str) -> (serde_json::Value, Vec<(String, 
     });
 
     let packages: HashMap<String, serde_json::Value> = HashMap::from([
-        ("foo".to_string(), json!({
-            "name": format!("@{scope}/foo"),
-            "version": "1.0.0",
-            "dependencies": { format!("@{scope}/bar"): "^1.3.4" },
-            "main": "src/index.ts"
-        })),
-        ("bar".to_string(), json!({
-            "name": format!("@{scope}/bar"),
-            "version": "1.3.4",
-            "dependencies": { format!("@{scope}/baz"): "^1.3.4" }
-        })),
-        ("baz".to_string(), json!({
-            "name": format!("@{scope}/baz"),
-            "version": "1.3.4"
-        })),
+        (
+            "foo".to_string(),
+            json!({
+                "name": format!("@{scope}/foo"),
+                "version": "1.0.0",
+                "dependencies": { format!("@{scope}/bar"): "^1.3.4" },
+                "main": "src/index.ts"
+            }),
+        ),
+        (
+            "bar".to_string(),
+            json!({
+                "name": format!("@{scope}/bar"),
+                "version": "1.3.4",
+                "dependencies": { format!("@{scope}/baz"): "^1.3.4" }
+            }),
+        ),
+        (
+            "baz".to_string(),
+            json!({
+                "name": format!("@{scope}/baz"),
+                "version": "1.3.4"
+            }),
+        ),
     ]);
 
     let grouped: HashMap<String, serde_json::Value> = HashMap::from([
-        ("a".to_string(), json!({
-            "name": format!("@{scope}/a"),
-            "version": "3.1.2"
-        })),
-        ("b".to_string(), json!({
-            "name": format!("@{scope}/b"),
-            "version": "3.1.2"
-        })),
+        (
+            "a".to_string(),
+            json!({
+                "name": format!("@{scope}/a"),
+                "version": "3.1.2"
+            }),
+        ),
+        (
+            "b".to_string(),
+            json!({
+                "name": format!("@{scope}/b"),
+                "version": "3.1.2"
+            }),
+        ),
     ]);
 
-    (root, vec![
-        ("packages".to_string(), packages),
-        ("packages/grouped".to_string(), grouped),
-    ])
+    (
+        root,
+        vec![
+            ("packages".to_string(), packages),
+            ("packages/grouped".to_string(), grouped),
+        ],
+    )
 }

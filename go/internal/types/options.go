@@ -2,36 +2,36 @@ package types
 
 // BeachballOptions holds all beachball configuration.
 type BeachballOptions struct {
-	All                      bool
-	Branch                   string
-	Command                  string
-	ChangeDir                string
-	ChangeHint               string
-	Commit                   bool
-	DependentChangeType      string
+	All                        bool
+	Branch                     string
+	Command                    string
+	ChangeDir                  string
+	ChangeHint                 string
+	Commit                     bool
+	DependentChangeType        string
 	DisallowDeletedChangeFiles bool
-	Fetch                    bool
-	GroupChanges             bool
-	IgnorePatterns           []string
-	Message                  string
-	Package                  []string
-	Path                     string
-	Scope                    []string
-	Type                     string
-	Token                    string
-	AuthType                 string
-	Verbose                  bool
-	Groups                   []VersionGroupOptions
+	Fetch                      bool
+	GroupChanges               bool
+	IgnorePatterns             []string
+	Message                    string
+	Package                    []string
+	Path                       string
+	Scope                      []string
+	Type                       string
+	Token                      string
+	AuthType                   string
+	Verbose                    bool
+	Groups                     []VersionGroupOptions
 }
 
 // DefaultOptions returns BeachballOptions with sensible defaults.
 func DefaultOptions() BeachballOptions {
 	return BeachballOptions{
-		Branch:    "origin/master",
-		ChangeDir: "change",
+		Branch:     "origin/master",
+		ChangeDir:  "change",
 		ChangeHint: "Run 'beachball change' to create a change file",
-		Commit:    true,
-		Fetch:     true,
+		Commit:     true,
+		Fetch:      true,
 	}
 }
 

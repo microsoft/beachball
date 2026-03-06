@@ -100,6 +100,8 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
 
       - name: Cache cargo
         uses: actions/cache@v4
@@ -109,6 +111,14 @@ jobs:
             ~/.cargo/git
             rust/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('rust/Cargo.lock') }}
+
+      - name: Format
+        run: cargo fmt --check
+        working-directory: ./rust
+
+      - name: Lint
+        run: cargo clippy --all-targets -- -D warnings
+        working-directory: ./rust
 
       - name: Build
         run: cargo build
@@ -136,6 +146,14 @@ jobs:
         with:
           go-version-file: go/go.mod
           cache-dependency-path: go/go.sum
+
+      - name: Format
+        run: test -z "$(gofmt -l .)"
+        working-directory: ./go
+
+      - name: Lint
+        run: go vet ./...
+        working-directory: ./go
 
       - name: Build
         run: go build ./...

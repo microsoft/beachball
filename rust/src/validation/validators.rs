@@ -26,9 +26,10 @@ pub fn is_valid_dependent_change_type(
         return false;
     }
     if let Some(disallowed) = disallowed
-        && disallowed.contains(&ct) {
-            return false;
-        }
+        && disallowed.contains(&ct)
+    {
+        return false;
+    }
     true
 }
 
@@ -54,13 +55,14 @@ pub fn is_valid_grouped_package_options(
         for pkg_name in &group_info.package_names {
             if let Some(info) = package_infos.get(pkg_name)
                 && let Some(ref opts) = info.package_options
-                    && opts.disallowed_change_types.is_some() {
-                        eprintln!(
-                            "ERROR: Package \"{pkg_name}\" has disallowedChangeTypes but is in a group. \
+                && opts.disallowed_change_types.is_some()
+            {
+                eprintln!(
+                    "ERROR: Package \"{pkg_name}\" has disallowedChangeTypes but is in a group. \
                              Group-level disallowedChangeTypes take precedence."
-                        );
-                        valid = false;
-                    }
+                );
+                valid = false;
+            }
         }
     }
     valid

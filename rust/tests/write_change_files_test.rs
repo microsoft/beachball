@@ -72,8 +72,10 @@ fn respects_change_dir_option() {
     let repo = factory.clone_repository();
     repo.checkout(&["-b", "test", DEFAULT_BRANCH]);
 
-    let mut custom_opts = BeachballOptions::default();
-    custom_opts.change_dir = "customChangeDir".to_string();
+    let custom_opts = BeachballOptions {
+        change_dir: "customChangeDir".to_string(),
+        ..Default::default()
+    };
 
     let options = make_options(repo.root_path(), Some(custom_opts));
     let changes = make_changes();
@@ -103,8 +105,10 @@ fn respects_commit_false() {
     // Get current HEAD hash before writing
     let hash_before = repo.git(&["rev-parse", "HEAD"]);
 
-    let mut no_commit_opts = BeachballOptions::default();
-    no_commit_opts.commit = false;
+    let no_commit_opts = BeachballOptions {
+        commit: false,
+        ..Default::default()
+    };
 
     let options = make_options(repo.root_path(), Some(no_commit_opts));
     let changes = make_changes();

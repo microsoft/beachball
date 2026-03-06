@@ -5,7 +5,10 @@ use super::package_infos::get_package_rel_path;
 use super::path_included::is_path_included;
 
 /// Get the set of packages that are in scope based on scope patterns.
-pub fn get_scoped_packages(options: &BeachballOptions, package_infos: &PackageInfos) -> ScopedPackages {
+pub fn get_scoped_packages(
+    options: &BeachballOptions,
+    package_infos: &PackageInfos,
+) -> ScopedPackages {
     let scope = match &options.scope {
         Some(s) if !s.is_empty() => s,
         _ => {

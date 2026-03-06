@@ -63,8 +63,10 @@ fn works_with_custom_change_dir() {
     let factory = RepositoryFactory::new("monorepo");
     let repo = factory.clone_repository();
 
-    let mut custom_opts = BeachballOptions::default();
-    custom_opts.change_dir = "changeDir".to_string();
+    let custom_opts = BeachballOptions {
+        change_dir: "changeDir".to_string(),
+        ..Default::default()
+    };
 
     let options = make_options(repo.root_path(), Some(custom_opts.clone()));
     generate_change_files(&["foo"], &options, &repo);

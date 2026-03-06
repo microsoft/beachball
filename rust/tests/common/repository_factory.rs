@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use super::fixtures;
@@ -51,7 +51,7 @@ impl RepositoryFactory {
             .prefix(&format!("beachball-{description}-origin-"))
             .tempdir()
             .expect("failed to create temp dir");
-        let root = tmp.into_path();
+        let root = tmp.keep();
 
         // Init bare repo
         run_git(&["init", "--bare"], root.to_str().unwrap());
@@ -65,7 +65,11 @@ impl RepositoryFactory {
         let clone_path = tmp_clone.path();
 
         run_git(
-            &["clone", root.to_str().unwrap(), clone_path.to_str().unwrap()],
+            &[
+                "clone",
+                root.to_str().unwrap(),
+                clone_path.to_str().unwrap(),
+            ],
             ".",
         );
 
@@ -124,7 +128,7 @@ impl RepositoryFactory {
             .prefix("beachball-multi-origin-")
             .tempdir()
             .expect("failed to create temp dir");
-        let root = tmp.into_path();
+        let root = tmp.keep();
 
         // Init bare repo
         run_git(&["init", "--bare"], root.to_str().unwrap());
@@ -138,7 +142,11 @@ impl RepositoryFactory {
         let clone_path = tmp_clone.path();
 
         run_git(
-            &["clone", root.to_str().unwrap(), clone_path.to_str().unwrap()],
+            &[
+                "clone",
+                root.to_str().unwrap(),
+                clone_path.to_str().unwrap(),
+            ],
             ".",
         );
 
@@ -172,7 +180,7 @@ impl RepositoryFactory {
     }
 
     pub fn clean_up(&self) {
-        if !std::env::var("CI").is_ok() {
+        if std::env::var("CI").is_err() {
             let _ = fs::remove_dir_all(&self.root);
         }
     }
@@ -207,7 +215,7 @@ fn write_project_fixture(
     }
 }
 
-fn set_default_branch(bare_repo_path: &PathBuf) {
+fn set_default_branch(bare_repo_path: &Path) {
     run_git(
         &["symbolic-ref", "HEAD", "refs/heads/master"],
         bare_repo_path.to_str().unwrap(),
@@ -224,11 +232,7 @@ fn run_git(args: &[&str], cwd: &str) -> String {
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         if !stderr.contains("already exists") && !stderr.contains("nothing to commit") {
-            panic!(
-                "git {} failed in {cwd}: {}",
-                args.join(" "),
-                stderr
-            );
+            panic!("git {} failed in {cwd}: {}", args.join(" "), stderr);
         }
     }
 
