@@ -98,31 +98,31 @@ exports[`publishToRegistry with concurrency > 1 publishes independent packages i
 [log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
 [log]   (cwd: <root>/packages/foo)
 
-[log] Publishing - bar@1.0.0 with tag latest
+[log] Publishing - quux@1.0.0 with tag latest
 [log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
-[log]   (cwd: <root>/packages/bar)
-
-[log] Publishing - baz@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
-[log]   (cwd: <root>/packages/baz)
-
-[log] Published! - foo@1.0.0
+[log]   (cwd: <root>/packages/quux)
 
 [log] Publishing - qux@1.0.0 with tag latest
 [log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
 [log]   (cwd: <root>/packages/qux)
 
-[log] Published! - bar@1.0.0
+[log] Published! - foo@1.0.0
 
-[log] Publishing - quux@1.0.0 with tag latest
+[log] Publishing - baz@1.0.0 with tag latest
 [log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
-[log]   (cwd: <root>/packages/quux)
+[log]   (cwd: <root>/packages/baz)
 
-[log] Published! - baz@1.0.0
+[log] Published! - quux@1.0.0
+
+[log] Publishing - bar@1.0.0 with tag latest
+[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
+[log]   (cwd: <root>/packages/bar)
 
 [log] Published! - qux@1.0.0
 
-[log] Published! - quux@1.0.0"
+[log] Published! - baz@1.0.0
+
+[log] Published! - bar@1.0.0"
 `;
 
 exports[`publishToRegistry with concurrency > 1 throws and shows recovery info on failure 2`] = `
@@ -142,13 +142,13 @@ exports[`publishToRegistry with concurrency > 1 throws and shows recovery info o
 [log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
 [log]   (cwd: <root>/packages/pkg3)
 
-[log] Publishing - pkg4@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
-[log]   (cwd: <root>/packages/pkg4)
-
 [log] Publishing - pkg5@1.0.0 with tag latest
 [log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
 [log]   (cwd: <root>/packages/pkg5)
+
+[log] Publishing - pkg4@1.0.0 with tag latest
+[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
+[log]   (cwd: <root>/packages/pkg4)
 
 [warn] Publishing pkg5@1.0.0 failed. Output:
 
