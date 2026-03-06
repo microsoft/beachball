@@ -23,6 +23,8 @@ func GetPackageGroups(packageInfos types.PackageInfos, rootPath string, groups [
 			if err != nil {
 				continue
 			}
+			// Normalize to forward slashes for cross-platform glob matching
+			relPath = filepath.ToSlash(relPath)
 
 			included := false
 			for _, pattern := range g.Include {
