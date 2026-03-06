@@ -8,9 +8,12 @@ lib/
 package-lock.json
 # ignore when switching between yarn 1/4 branches
 /.yarn
+rust/target
+.claude/settings.local.json
 
 docs/.vuepress/.cache
 docs/.vuepress/.temp
 docs/.yarn/*
 !docs/.yarn/patches/
 !docs/.yarn/releases/
+

@@ -15,3 +15,5 @@ LICENSE
 node_modules/
 SECURITY.md
 yarn.lock
+rust/
+go/

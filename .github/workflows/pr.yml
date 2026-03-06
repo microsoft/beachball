@@ -84,3 +84,63 @@ jobs:
 
       - run: yarn docs:build
         working-directory: ./docs
+
+  rust:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    name: build rust (${{ matrix.os }})
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            rust/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('rust/Cargo.lock') }}
+
+      - name: Build
+        run: cargo build
+        working-directory: ./rust
+
+      - name: Test
+        run: cargo test
+        working-directory: ./rust
+
+  go:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    name: build go (${{ matrix.os }})
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+
+      - name: Build
+        run: go build ./...
+        working-directory: ./go
+
+      - name: Test
+        run: go test ./...
+        working-directory: ./go
