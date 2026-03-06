@@ -81,6 +81,9 @@ func GetParsedOptionsForTest(cwd string, cli types.CliOptions, repoOpts types.Be
 	if repoOpts.Groups != nil {
 		opts.Groups = repoOpts.Groups
 	}
+	if repoOpts.GroupChanges {
+		opts.GroupChanges = true
+	}
 
 	// Apply CLI overrides
 	applyCliOptions(&opts, &cli)

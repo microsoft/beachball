@@ -54,6 +54,13 @@ func main() {
 	}
 	changeCmd.Flags().StringVarP(&cli.ChangeType, "type", "t", "", "change type (patch, minor, major, etc.)")
 	changeCmd.Flags().StringVarP(&cli.Message, "message", "m", "", "change description")
+	changeCmd.Flags().StringSliceVar(&cli.Package, "package", nil, "specific package(s) to create change files for")
+
+	var noCommitFlag bool
+	changeCmd.Flags().BoolVar(&noCommitFlag, "no-commit", false, "don't commit change files")
+
+	var noFetchFlag bool
+	rootCmd.PersistentFlags().BoolVar(&noFetchFlag, "no-fetch", false, "don't fetch remote branch")
 
 	var allFlag, verboseFlag bool
 	rootCmd.PersistentFlags().BoolVar(&allFlag, "all", false, "include all packages")
@@ -65,6 +72,12 @@ func main() {
 		}
 		if rootCmd.PersistentFlags().Changed("verbose") {
 			cli.Verbose = boolPtr(verboseFlag)
+		}
+		if rootCmd.PersistentFlags().Changed("no-fetch") {
+			cli.Fetch = boolPtr(!noFetchFlag)
+		}
+		if changeCmd.Flags().Changed("no-commit") {
+			cli.Commit = boolPtr(!noCommitFlag)
 		}
 	})
 

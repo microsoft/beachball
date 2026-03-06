@@ -23,15 +23,16 @@ func WriteChangeFiles(options *types.BeachballOptions, changes []types.ChangeFil
 
 	var filePaths []string
 
-	for _, change := range changes {
+	if options.GroupChanges {
+		// Write all changes to a single grouped file
 		id := uuid.New().String()
-		sanitized := nonAlphanumRe.ReplaceAllString(change.PackageName, "-")
-		filename := fmt.Sprintf("%s-%s.json", sanitized, id)
+		filename := fmt.Sprintf("change-%s.json", id)
 		filePath := filepath.Join(changePath, filename)
 
-		data, err := json.MarshalIndent(change, "", "  ")
+		grouped := types.ChangeInfoMultiple{Changes: changes}
+		data, err := json.MarshalIndent(grouped, "", "  ")
 		if err != nil {
-			return fmt.Errorf("failed to marshal change: %w", err)
+			return fmt.Errorf("failed to marshal grouped changes: %w", err)
 		}
 
 		if err := os.WriteFile(filePath, append(data, '\n'), 0o644); err != nil {
@@ -40,6 +41,25 @@ func WriteChangeFiles(options *types.BeachballOptions, changes []types.ChangeFil
 
 		filePaths = append(filePaths, filePath)
 		fmt.Printf("Wrote change file: %s\n", filename)
+	} else {
+		for _, change := range changes {
+			id := uuid.New().String()
+			sanitized := nonAlphanumRe.ReplaceAllString(change.PackageName, "-")
+			filename := fmt.Sprintf("%s-%s.json", sanitized, id)
+			filePath := filepath.Join(changePath, filename)
+
+			data, err := json.MarshalIndent(change, "", "  ")
+			if err != nil {
+				return fmt.Errorf("failed to marshal change: %w", err)
+			}
+
+			if err := os.WriteFile(filePath, append(data, '\n'), 0o644); err != nil {
+				return fmt.Errorf("failed to write change file: %w", err)
+			}
+
+			filePaths = append(filePaths, filePath)
+			fmt.Printf("Wrote change file: %s\n", filename)
+		}
 	}
 
 	if len(filePaths) > 0 {

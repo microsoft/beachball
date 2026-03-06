@@ -149,6 +149,7 @@ jobs:
 
       - name: Format
         run: test -z "$(gofmt -l .)"
+        shell: bash
         working-directory: ./go
 
       - name: Lint

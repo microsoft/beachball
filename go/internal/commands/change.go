@@ -19,7 +19,7 @@ func Change(parsed types.ParsedOptions) error {
 		return err
 	}
 
-	if !result.IsChangeNeeded {
+	if !result.IsChangeNeeded && len(parsed.Options.Package) == 0 {
 		fmt.Println("No changes detected; no change files are needed.")
 		return nil
 	}
@@ -46,8 +46,17 @@ func Change(parsed types.ParsedOptions) error {
 		}
 	}
 
+	changedPackages := result.ChangedPackages
+	if len(changedPackages) == 0 && len(options.Package) > 0 {
+		changedPackages = options.Package
+	}
+
+	if len(changedPackages) == 0 {
+		return nil
+	}
+
 	var changes []types.ChangeFileInfo
-	for _, pkg := range result.ChangedPackages {
+	for _, pkg := range changedPackages {
 		changes = append(changes, types.ChangeFileInfo{
 			Type:                changeType,
 			Comment:             message,
