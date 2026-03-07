@@ -1,5 +1,6 @@
 use anyhow::Result;
 
+use crate::{log_error, log_info, log_warn};
 use crate::changefile::change_types::get_disallowed_change_types;
 use crate::changefile::changed_packages::get_changed_packages;
 use crate::changefile::read_change_files::read_change_files;
@@ -47,7 +48,7 @@ impl std::error::Error for ValidationError {}
 
 /// Log a validation error and set the flag.
 fn log_validation_error(msg: &str, has_error: &mut bool) {
-    eprintln!("ERROR: {msg}");
+    log_error!("{msg}");
     *has_error = true;
 }
 
@@ -58,15 +59,15 @@ pub fn validate(
 ) -> Result<ValidationResult> {
     let options = &parsed.options;
 
-    println!("\nValidating options and change files...");
+    log_info!("\nValidating options and change files...");
 
     let mut has_error = false;
 
     // Check for untracked changes
     let untracked = get_untracked_changes(&options.path).unwrap_or_default();
     if !untracked.is_empty() {
-        eprintln!(
-            "WARN: There are untracked changes in your repository:\n{}",
+        log_warn!(
+            "There are untracked changes in your repository:\n{}",
             bulleted_list(&untracked.iter().map(|s| s.as_str()).collect::<Vec<_>>())
         );
     }
@@ -222,15 +223,15 @@ pub fn validate(
             };
             let mut sorted = pkgs.clone();
             sorted.sort();
-            println!(
+            log_info!(
                 "{message}:\n{}",
                 bulleted_list(&sorted.iter().map(|s| s.as_str()).collect::<Vec<_>>())
             );
         }
 
         if is_change_needed && !validate_options.allow_missing_change_files {
-            eprintln!("ERROR: Change files are needed!");
-            println!("{}", options.changehint);
+            log_error!("Change files are needed!");
+            log_info!("{}", options.changehint);
             return Err(ValidationError {
                 message: "Change files are needed".to_string(),
             }
@@ -238,7 +239,7 @@ pub fn validate(
         }
 
         if options.disallow_deleted_change_files && are_change_files_deleted(options) {
-            eprintln!("ERROR: Change files must not be deleted!");
+            log_error!("Change files must not be deleted!");
             return Err(ValidationError {
                 message: "Change files must not be deleted".to_string(),
             }
@@ -254,10 +255,10 @@ pub fn validate(
         && !change_set.is_empty()
         && options.verbose
     {
-        println!("(Skipping package dependency validation — not implemented in Rust port)");
+        log_info!("(Skipping package dependency validation — not implemented in Rust port)");
     }
 
-    println!();
+    log_info!();
 
     Ok(ValidationResult {
         is_change_needed,

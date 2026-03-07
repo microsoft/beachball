@@ -1,6 +1,7 @@
 use anyhow::Result;
 use std::path::Path;
 
+use crate::log_info;
 use crate::git::commands;
 use crate::types::change_info::ChangeFileInfo;
 use crate::types::options::BeachballOptions;
@@ -70,7 +71,7 @@ pub fn write_change_files(
         }
     }
 
-    println!(
+    log_info!(
         "git {} these change files:{}",
         if options.commit {
             "committed"

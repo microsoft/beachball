@@ -2,6 +2,7 @@ use anyhow::Result;
 use std::collections::HashSet;
 use std::path::Path;
 
+use crate::log_info;
 use crate::git::commands;
 use crate::git::ensure_shared_history::ensure_shared_history;
 use crate::monorepo::filter_ignored::filter_ignored_files;
@@ -69,7 +70,7 @@ fn get_all_changed_packages(
     // If --all, return all in-scope non-private packages
     if options.all {
         if verbose {
-            eprintln!(
+            log_info!(
                 "--all option was provided, so including all packages that are in scope (regardless of changes)"
             );
         }
@@ -84,7 +85,7 @@ fn get_all_changed_packages(
         return Ok(result);
     }
 
-    println!("Checking for changes against \"{}\"", options.branch);
+    log_info!("Checking for changes against \"{}\"", options.branch);
 
     ensure_shared_history(options)?;
 
@@ -101,7 +102,7 @@ fn get_all_changed_packages(
 
     if verbose {
         let count = changes.len();
-        println!(
+        log_info!(
             "Found {} changed file{} in current branch (before filtering)",
             count,
             if count == 1 { "" } else { "s" }
@@ -142,7 +143,7 @@ fn get_all_changed_packages(
 
     if non_ignored.is_empty() {
         if verbose {
-            eprintln!("All files were ignored");
+            log_info!("All files were ignored");
         }
         return Ok(vec![]);
     }
@@ -170,20 +171,20 @@ fn get_all_changed_packages(
 
         if !included {
             if verbose {
-                eprintln!("  - ~~{file}~~ ({reason})");
+                log_info!("  - ~~{file}~~ ({reason})");
             }
         } else {
             included_packages.insert(pkg_info.unwrap().name.clone());
             file_count += 1;
             if verbose {
-                eprintln!("  - {file}");
+                log_info!("  - {file}");
             }
         }
     }
 
     if verbose {
         let pkg_count = included_packages.len();
-        println!(
+        log_info!(
             "Found {} file{} in {} package{} that should be published",
             file_count,
             if file_count == 1 { "" } else { "s" },
@@ -242,7 +243,7 @@ pub fn get_changed_packages(
     if !existing_packages.is_empty() {
         let mut sorted: Vec<&String> = existing_packages.iter().collect();
         sorted.sort();
-        println!(
+        log_info!(
             "Your local repository already has change files for these packages:\n{}",
             crate::logging::bulleted_list(&sorted.iter().map(|s| s.as_str()).collect::<Vec<_>>())
         );

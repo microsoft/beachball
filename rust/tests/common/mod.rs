@@ -14,6 +14,24 @@ use beachball::options::get_options::get_parsed_options_for_test;
 use beachball::types::options::{BeachballOptions, CliOptions};
 use beachball::types::package_info::{PackageInfo, PackageInfos};
 
+/// Start capturing log output for the current test thread.
+#[allow(dead_code)]
+pub fn capture_logging() {
+    beachball::logging::set_output();
+}
+
+/// Get captured log output as a string.
+#[allow(dead_code)]
+pub fn get_log_output() -> String {
+    beachball::logging::get_output()
+}
+
+/// Reset logging to default stdout/stderr.
+#[allow(dead_code)]
+pub fn reset_logging() {
+    beachball::logging::reset();
+}
+
 #[allow(dead_code)]
 pub const DEFAULT_BRANCH: &str = "master";
 #[allow(dead_code)]

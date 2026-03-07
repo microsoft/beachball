@@ -1,3 +1,4 @@
+use crate::log_info;
 use super::path_included::match_with_base;
 
 /// Filter out file paths that match any of the ignore patterns.
@@ -13,7 +14,7 @@ pub fn filter_ignored_files(
             for pattern in ignore_patterns {
                 if match_with_base(path, pattern) {
                     if verbose {
-                        eprintln!("  - ~~{path}~~ (ignored by pattern \"{pattern}\")");
+                        log_info!("  - ~~{path}~~ (ignored by pattern \"{pattern}\")");
                     }
                     return false;
                 }

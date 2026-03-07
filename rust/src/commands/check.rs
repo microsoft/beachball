@@ -1,5 +1,6 @@
 use anyhow::Result;
 
+use crate::log_info;
 use crate::types::options::ParsedOptions;
 use crate::validation::validate::{ValidateOptions, validate};
 
@@ -13,6 +14,6 @@ pub fn check(parsed: &ParsedOptions) -> Result<()> {
             ..Default::default()
         },
     )?;
-    println!("No change files are needed");
+    log_info!("No change files are needed");
     Ok(())
 }

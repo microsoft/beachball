@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use crate::log_warn;
 use crate::types::change_info::{ChangeFileInfo, ChangeInfoMultiple, ChangeSet, ChangeSetEntry};
 use crate::types::options::BeachballOptions;
 use crate::types::package_info::{PackageInfos, ScopedPackages};
@@ -55,7 +56,7 @@ pub fn read_change_files(
         let contents = match std::fs::read_to_string(&file_path) {
             Ok(c) => c,
             Err(e) => {
-                eprintln!("WARN: Error reading change file {filename}: {e}");
+                log_warn!("Error reading change file {filename}: {e}");
                 continue;
             }
         };
@@ -67,7 +68,7 @@ pub fn read_change_files(
             } else if let Ok(single) = serde_json::from_str::<ChangeFileInfo>(&contents) {
                 vec![single]
             } else {
-                eprintln!("WARN: Could not parse change file {filename}");
+                log_warn!("Could not parse change file {filename}");
                 continue;
             };
 

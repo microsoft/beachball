@@ -1,5 +1,6 @@
 use anyhow::{Result, bail};
 
+use crate::log_info;
 use crate::types::options::BeachballOptions;
 
 use super::commands;
@@ -30,7 +31,7 @@ pub fn ensure_shared_history(options: &BeachballOptions) -> Result<()> {
 
     // Fetch the branch
     if options.verbose {
-        eprintln!("Fetching {branch_name} from {remote}...");
+        log_info!("Fetching {branch_name} from {remote}...");
     }
     commands::fetch(&remote, &branch_name, cwd, options.depth)?;
 
@@ -43,7 +44,7 @@ pub fn ensure_shared_history(options: &BeachballOptions) -> Result<()> {
             }
             current_depth *= 2;
             if options.verbose {
-                eprintln!("Deepening fetch to {current_depth}...");
+                log_info!("Deepening fetch to {current_depth}...");
             }
             commands::fetch(&remote, &branch_name, cwd, Some(current_depth))?;
         }

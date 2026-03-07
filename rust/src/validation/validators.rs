@@ -1,3 +1,4 @@
+use crate::log_error;
 use crate::types::change_info::ChangeType;
 use crate::types::options::VersionGroupOptions;
 use crate::types::package_info::{PackageGroups, PackageInfos};
@@ -38,7 +39,7 @@ pub fn is_valid_group_options(groups: &[VersionGroupOptions]) -> bool {
     let mut valid = true;
     for group in groups {
         if group.name.is_empty() {
-            eprintln!("ERROR: Group option is missing 'name'");
+            log_error!("Group option is missing 'name'");
             valid = false;
         }
     }
@@ -57,8 +58,8 @@ pub fn is_valid_grouped_package_options(
                 && let Some(ref opts) = info.package_options
                 && opts.disallowed_change_types.is_some()
             {
-                eprintln!(
-                    "ERROR: Package \"{pkg_name}\" has disallowedChangeTypes but is in a group. \
+                log_error!(
+                    "Package \"{pkg_name}\" has disallowedChangeTypes but is in a group. \
                              Group-level disallowedChangeTypes take precedence."
                 );
                 valid = false;

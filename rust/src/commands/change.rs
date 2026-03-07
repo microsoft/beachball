@@ -1,5 +1,6 @@
 use anyhow::{Result, bail};
 
+use crate::log_info;
 use crate::changefile::changed_packages::get_changed_packages;
 use crate::changefile::write_change_files::write_change_files;
 use crate::git::commands::get_user_email;
@@ -28,7 +29,7 @@ pub fn change(parsed: &ParsedOptions) -> Result<()> {
     )?;
 
     if !is_change_needed && options.package.is_none() {
-        println!("No change files are needed");
+        log_info!("No change files are needed");
         return Ok(());
     }
 
