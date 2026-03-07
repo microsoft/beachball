@@ -1,38 +1,28 @@
 package monorepo_test
 
 import (
-	"path/filepath"
 	"sort"
 	"testing"
 
 	"github.com/microsoft/beachball/internal/monorepo"
+	"github.com/microsoft/beachball/internal/testutil"
 	"github.com/microsoft/beachball/internal/types"
 )
 
-func makeInfos(root string, folders map[string]string) types.PackageInfos {
-	infos := make(types.PackageInfos)
-	for folder, name := range folders {
-		infos[name] = &types.PackageInfo{
-			Name:            name,
-			Version:         "1.0.0",
-			PackageJSONPath: filepath.Join(root, folder, "package.json"),
-		}
-	}
-	return infos
-}
+var root = testutil.FakeRoot()
 
 func TestGetPackageGroups_ReturnsEmptyIfNoGroups(t *testing.T) {
-	infos := makeInfos("/repo", map[string]string{
+	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/foo": "foo",
 	})
-	result := monorepo.GetPackageGroups(infos, "/repo", nil)
+	result := monorepo.GetPackageGroups(infos, root, nil)
 	if len(result) != 0 {
 		t.Fatalf("expected empty map, got: %v", result)
 	}
 }
 
 func TestGetPackageGroups_ReturnsGroupsBasedOnSpecificFolders(t *testing.T) {
-	infos := makeInfos("/repo", map[string]string{
+	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/foo": "foo",
 		"packages/bar": "bar",
 		"packages/baz": "baz",
@@ -43,7 +33,7 @@ func TestGetPackageGroups_ReturnsGroupsBasedOnSpecificFolders(t *testing.T) {
 			Include: []string{"packages/foo", "packages/bar"},
 		},
 	}
-	result := monorepo.GetPackageGroups(infos, "/repo", groups)
+	result := monorepo.GetPackageGroups(infos, root, groups)
 	if len(result) != 1 {
 		t.Fatalf("expected 1 group, got %d", len(result))
 	}
@@ -61,7 +51,7 @@ func TestGetPackageGroups_ReturnsGroupsBasedOnSpecificFolders(t *testing.T) {
 }
 
 func TestGetPackageGroups_HandlesSingleLevelGlobs(t *testing.T) {
-	infos := makeInfos("/repo", map[string]string{
+	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/ui-button":  "ui-button",
 		"packages/ui-input":   "ui-input",
 		"packages/core-utils": "core-utils",
@@ -72,7 +62,7 @@ func TestGetPackageGroups_HandlesSingleLevelGlobs(t *testing.T) {
 			Include: []string{"packages/ui-*"},
 		},
 	}
-	result := monorepo.GetPackageGroups(infos, "/repo", groups)
+	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["ui"]
 	if grp == nil {
 		t.Fatal("expected ui group to exist")
@@ -87,7 +77,7 @@ func TestGetPackageGroups_HandlesSingleLevelGlobs(t *testing.T) {
 }
 
 func TestGetPackageGroups_HandlesMultiLevelGlobs(t *testing.T) {
-	infos := makeInfos("/repo", map[string]string{
+	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/ui/button": "ui-button",
 		"packages/ui/input":  "ui-input",
 		"packages/core":      "core",
@@ -98,7 +88,7 @@ func TestGetPackageGroups_HandlesMultiLevelGlobs(t *testing.T) {
 			Include: []string{"packages/ui/**"},
 		},
 	}
-	result := monorepo.GetPackageGroups(infos, "/repo", groups)
+	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["ui"]
 	if grp == nil {
 		t.Fatal("expected ui group to exist")
@@ -113,7 +103,7 @@ func TestGetPackageGroups_HandlesMultiLevelGlobs(t *testing.T) {
 }
 
 func TestGetPackageGroups_HandlesMultipleIncludePatterns(t *testing.T) {
-	infos := makeInfos("/repo", map[string]string{
+	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/foo": "foo",
 		"libs/bar":     "bar",
 		"other/baz":    "baz",
@@ -124,7 +114,7 @@ func TestGetPackageGroups_HandlesMultipleIncludePatterns(t *testing.T) {
 			Include: []string{"packages/*", "libs/*"},
 		},
 	}
-	result := monorepo.GetPackageGroups(infos, "/repo", groups)
+	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["mixed"]
 	if grp == nil {
 		t.Fatal("expected mixed group to exist")
@@ -139,7 +129,7 @@ func TestGetPackageGroups_HandlesMultipleIncludePatterns(t *testing.T) {
 }
 
 func TestGetPackageGroups_HandlesExcludePatterns(t *testing.T) {
-	infos := makeInfos("/repo", map[string]string{
+	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/foo":      "foo",
 		"packages/bar":      "bar",
 		"packages/internal": "internal",
@@ -151,7 +141,7 @@ func TestGetPackageGroups_HandlesExcludePatterns(t *testing.T) {
 			Exclude: []string{"packages/internal"},
 		},
 	}
-	result := monorepo.GetPackageGroups(infos, "/repo", groups)
+	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["public"]
 	if grp == nil {
 		t.Fatal("expected public group to exist")
@@ -166,7 +156,7 @@ func TestGetPackageGroups_HandlesExcludePatterns(t *testing.T) {
 }
 
 func TestGetPackageGroups_HandlesGlobExclude(t *testing.T) {
-	infos := makeInfos("/repo", map[string]string{
+	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/ui/button":  "ui-button",
 		"packages/ui/input":   "ui-input",
 		"packages/core/utils": "core-utils",
@@ -178,7 +168,7 @@ func TestGetPackageGroups_HandlesGlobExclude(t *testing.T) {
 			Exclude: []string{"packages/core/*"},
 		},
 	}
-	result := monorepo.GetPackageGroups(infos, "/repo", groups)
+	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["non-core"]
 	if grp == nil {
 		t.Fatal("expected non-core group to exist")
@@ -193,7 +183,7 @@ func TestGetPackageGroups_HandlesGlobExclude(t *testing.T) {
 }
 
 func TestGetPackageGroups_OmitsEmptyGroups(t *testing.T) {
-	infos := makeInfos("/repo", map[string]string{
+	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/foo": "foo",
 	})
 	groups := []types.VersionGroupOptions{
@@ -202,7 +192,7 @@ func TestGetPackageGroups_OmitsEmptyGroups(t *testing.T) {
 			Include: []string{"nonexistent/*"},
 		},
 	}
-	result := monorepo.GetPackageGroups(infos, "/repo", groups)
+	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["empty"]
 	if grp == nil {
 		t.Fatal("expected empty group key to exist")

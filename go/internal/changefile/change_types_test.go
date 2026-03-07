@@ -4,8 +4,11 @@ import (
 	"testing"
 
 	"github.com/microsoft/beachball/internal/changefile"
+	"github.com/microsoft/beachball/internal/testutil"
 	"github.com/microsoft/beachball/internal/types"
 )
+
+var testRoot = testutil.FakeRoot()
 
 func TestGetDisallowedChangeTypes_ReturnsNilForUnknownPackage(t *testing.T) {
 	infos := types.PackageInfos{}
@@ -19,12 +22,7 @@ func TestGetDisallowedChangeTypes_ReturnsNilForUnknownPackage(t *testing.T) {
 }
 
 func TestGetDisallowedChangeTypes_ReturnsNilWhenNoSettings(t *testing.T) {
-	infos := types.PackageInfos{
-		"foo": &types.PackageInfo{
-			Name:    "foo",
-			Version: "1.0.0",
-		},
-	}
+	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
 	groups := types.PackageGroups{}
 	opts := &types.BeachballOptions{}
 
@@ -35,14 +33,9 @@ func TestGetDisallowedChangeTypes_ReturnsNilWhenNoSettings(t *testing.T) {
 }
 
 func TestGetDisallowedChangeTypes_ReturnsPackageLevelDisallowedTypes(t *testing.T) {
-	infos := types.PackageInfos{
-		"foo": &types.PackageInfo{
-			Name:    "foo",
-			Version: "1.0.0",
-			PackageOptions: &types.PackageOptions{
-				DisallowedChangeTypes: []string{"major"},
-			},
-		},
+	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
+	infos["foo"].PackageOptions = &types.PackageOptions{
+		DisallowedChangeTypes: []string{"major"},
 	}
 	groups := types.PackageGroups{}
 	opts := &types.BeachballOptions{}
@@ -54,12 +47,7 @@ func TestGetDisallowedChangeTypes_ReturnsPackageLevelDisallowedTypes(t *testing.
 }
 
 func TestGetDisallowedChangeTypes_ReturnsGroupLevelDisallowedTypes(t *testing.T) {
-	infos := types.PackageInfos{
-		"foo": &types.PackageInfo{
-			Name:    "foo",
-			Version: "1.0.0",
-		},
-	}
+	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
 	groups := types.PackageGroups{
 		"grp1": &types.PackageGroup{
 			Name:                  "grp1",
@@ -76,12 +64,7 @@ func TestGetDisallowedChangeTypes_ReturnsGroupLevelDisallowedTypes(t *testing.T)
 }
 
 func TestGetDisallowedChangeTypes_ReturnsNilIfNotInGroup(t *testing.T) {
-	infos := types.PackageInfos{
-		"bar": &types.PackageInfo{
-			Name:    "bar",
-			Version: "1.0.0",
-		},
-	}
+	infos := testutil.MakePackageInfosSimple(testRoot, "bar")
 	groups := types.PackageGroups{
 		"grp1": &types.PackageGroup{
 			Name:                  "grp1",
@@ -98,14 +81,9 @@ func TestGetDisallowedChangeTypes_ReturnsNilIfNotInGroup(t *testing.T) {
 }
 
 func TestGetDisallowedChangeTypes_PrefersPackageOverGroup(t *testing.T) {
-	infos := types.PackageInfos{
-		"foo": &types.PackageInfo{
-			Name:    "foo",
-			Version: "1.0.0",
-			PackageOptions: &types.PackageOptions{
-				DisallowedChangeTypes: []string{"major"},
-			},
-		},
+	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
+	infos["foo"].PackageOptions = &types.PackageOptions{
+		DisallowedChangeTypes: []string{"major"},
 	}
 	groups := types.PackageGroups{
 		"grp1": &types.PackageGroup{

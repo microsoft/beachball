@@ -1,26 +1,23 @@
+mod common;
+
 use beachball::changefile::change_types::get_disallowed_change_types;
 use beachball::types::change_info::ChangeType;
 use beachball::types::package_info::{
-    PackageGroupInfo, PackageGroups, PackageInfo, PackageInfos, PackageOptions,
+    PackageGroupInfo, PackageGroups, PackageInfos, PackageOptions,
 };
+use common::{fake_root, make_package_infos_simple};
 
-fn make_info(name: &str) -> PackageInfo {
-    PackageInfo {
-        name: name.to_string(),
-        package_json_path: format!("/fake/{name}/package.json"),
-        version: "1.0.0".to_string(),
-        ..Default::default()
-    }
+fn make_infos(name: &str) -> PackageInfos {
+    make_package_infos_simple(&[name], &fake_root())
 }
 
-fn make_info_with_disallowed(name: &str, disallowed: Vec<ChangeType>) -> PackageInfo {
-    PackageInfo {
-        package_options: Some(PackageOptions {
-            disallowed_change_types: Some(disallowed),
-            ..Default::default()
-        }),
-        ..make_info(name)
-    }
+fn make_infos_with_disallowed(name: &str, disallowed: Vec<ChangeType>) -> PackageInfos {
+    let mut infos = make_infos(name);
+    infos.get_mut(name).unwrap().package_options = Some(PackageOptions {
+        disallowed_change_types: Some(disallowed),
+        ..Default::default()
+    });
+    infos
 }
 
 #[test]
@@ -33,8 +30,7 @@ fn returns_none_for_unknown_package() {
 
 #[test]
 fn falls_back_to_repo_option() {
-    let mut infos = PackageInfos::new();
-    infos.insert("foo".to_string(), make_info("foo"));
+    let infos = make_infos("foo");
     let groups = PackageGroups::new();
     let repo_disallowed = Some(vec![ChangeType::Major]);
 
@@ -44,11 +40,7 @@ fn falls_back_to_repo_option() {
 
 #[test]
 fn returns_package_level_disallowed() {
-    let mut infos = PackageInfos::new();
-    infos.insert(
-        "foo".to_string(),
-        make_info_with_disallowed("foo", vec![ChangeType::Major, ChangeType::Minor]),
-    );
+    let infos = make_infos_with_disallowed("foo", vec![ChangeType::Major, ChangeType::Minor]);
     let groups = PackageGroups::new();
 
     let result = get_disallowed_change_types("foo", &infos, &groups, &None);
@@ -57,8 +49,7 @@ fn returns_package_level_disallowed() {
 
 #[test]
 fn returns_group_level_disallowed() {
-    let mut infos = PackageInfos::new();
-    infos.insert("foo".to_string(), make_info("foo"));
+    let infos = make_infos("foo");
 
     let mut groups = PackageGroups::new();
     groups.insert(
@@ -75,11 +66,7 @@ fn returns_group_level_disallowed() {
 
 #[test]
 fn returns_package_level_if_not_in_group() {
-    let mut infos = PackageInfos::new();
-    infos.insert(
-        "foo".to_string(),
-        make_info_with_disallowed("foo", vec![ChangeType::Minor]),
-    );
+    let infos = make_infos_with_disallowed("foo", vec![ChangeType::Minor]);
 
     let mut groups = PackageGroups::new();
     groups.insert(
@@ -96,11 +83,7 @@ fn returns_package_level_if_not_in_group() {
 
 #[test]
 fn prefers_group_over_package() {
-    let mut infos = PackageInfos::new();
-    infos.insert(
-        "foo".to_string(),
-        make_info_with_disallowed("foo", vec![ChangeType::Minor]),
-    );
+    let infos = make_infos_with_disallowed("foo", vec![ChangeType::Minor]);
 
     let mut groups = PackageGroups::new();
     groups.insert(
