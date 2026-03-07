@@ -57,7 +57,7 @@ func getAllChangedPackages(options *types.BeachballOptions, packageInfos types.P
 
 	if options.All {
 		if verbose {
-			fmt.Fprintln(os.Stderr, "--all option was provided, so including all packages that are in scope (regardless of changes)")
+			logging.Info.Println("--all option was provided, so including all packages that are in scope (regardless of changes)")
 		}
 		var result []string
 		for _, pkg := range packageInfos {
@@ -69,7 +69,7 @@ func getAllChangedPackages(options *types.BeachballOptions, packageInfos types.P
 		return result, nil
 	}
 
-	fmt.Printf("Checking for changes against %q\n", options.Branch)
+	logging.Info.Printf("Checking for changes against %q", options.Branch)
 
 	if err := git.EnsureSharedHistory(options); err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func getAllChangedPackages(options *types.BeachballOptions, packageInfos types.P
 		if count == 1 {
 			s = ""
 		}
-		fmt.Printf("Found %d changed file%s in current branch (before filtering)\n", count, s)
+		logging.Info.Printf("Found %d changed file%s in current branch (before filtering)", count, s)
 	}
 
 	if len(changes) == 0 {
@@ -113,7 +113,7 @@ func getAllChangedPackages(options *types.BeachballOptions, packageInfos types.P
 
 	if len(nonIgnored) == 0 {
 		if verbose {
-			fmt.Fprintln(os.Stderr, "All files were ignored")
+			logging.Info.Println("All files were ignored")
 		}
 		return nil, nil
 	}
@@ -138,13 +138,13 @@ func getAllChangedPackages(options *types.BeachballOptions, packageInfos types.P
 
 		if !included {
 			if verbose {
-				fmt.Fprintf(os.Stderr, "  - ~~%s~~ (%s)\n", file, reason)
+				logging.Info.Printf("  - ~~%s~~ (%s)", file, reason)
 			}
 		} else {
 			includedPackages[pkgInfo.Name] = true
 			fileCount++
 			if verbose {
-				fmt.Fprintf(os.Stderr, "  - %s\n", file)
+				logging.Info.Printf("  - %s", file)
 			}
 		}
 	}
@@ -159,7 +159,7 @@ func getAllChangedPackages(options *types.BeachballOptions, packageInfos types.P
 		if pkgCount == 1 {
 			ps = ""
 		}
-		fmt.Printf("Found %d file%s in %d package%s that should be published\n", fileCount, fs, pkgCount, ps)
+		logging.Info.Printf("Found %d file%s in %d package%s that should be published", fileCount, fs, pkgCount, ps)
 	}
 
 	var result []string
@@ -220,7 +220,7 @@ func GetChangedPackages(options *types.BeachballOptions, packageInfos types.Pack
 		for name := range existingPackages {
 			sorted = append(sorted, name)
 		}
-		fmt.Printf("Your local repository already has change files for these packages:\n%s\n",
+		logging.Info.Printf("Your local repository already has change files for these packages:\n%s",
 			logging.BulletedList(sorted))
 	}
 

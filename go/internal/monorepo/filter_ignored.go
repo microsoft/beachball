@@ -1,10 +1,10 @@
 package monorepo
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/bmatcuk/doublestar/v4"
+	"github.com/microsoft/beachball/internal/logging"
 )
 
 // FilterIgnoredFiles filters out files that match ignore patterns.
@@ -27,7 +27,7 @@ func FilterIgnoredFiles(files []string, patterns []string, verbose bool) []strin
 
 		if ignored {
 			if verbose {
-				fmt.Printf("  - ~~%s~~ (ignored by pattern %q)\n", file, matchedPattern)
+				logging.Info.Printf("  - ~~%s~~ (ignored by pattern %q)", file, matchedPattern)
 			}
 		} else {
 			result = append(result, file)

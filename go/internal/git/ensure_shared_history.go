@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/microsoft/beachball/internal/logging"
 	"github.com/microsoft/beachball/internal/types"
 )
 
@@ -24,14 +25,14 @@ func EnsureSharedHistory(options *types.BeachballOptions) error {
 			return fmt.Errorf("invalid branch format: %s", options.Branch)
 		}
 
-		fmt.Printf("Fetching %s from %s...\n", parts[1], parts[0])
+		logging.Info.Printf("Fetching %s from %s...", parts[1], parts[0])
 		if err := Fetch(options.Branch, cwd); err != nil {
 			return fmt.Errorf("failed to fetch: %w", err)
 		}
 	}
 
 	if IsShallowClone(cwd) {
-		fmt.Println("Shallow clone detected, deepening...")
+		logging.Info.Println("Shallow clone detected, deepening...")
 		if err := Deepen(100, cwd); err != nil {
 			return fmt.Errorf("failed to deepen: %w", err)
 		}

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/microsoft/beachball/internal/commands"
+	"github.com/microsoft/beachball/internal/logging"
 	"github.com/microsoft/beachball/internal/options"
 	"github.com/microsoft/beachball/internal/types"
 	"github.com/spf13/cobra"
@@ -84,7 +84,7 @@ func main() {
 	rootCmd.AddCommand(checkCmd, changeCmd)
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		logging.Error.Println(err)
 		os.Exit(1)
 	}
 }

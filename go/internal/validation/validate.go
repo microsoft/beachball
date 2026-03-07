@@ -2,7 +2,6 @@ package validation
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 
@@ -35,16 +34,16 @@ func Validate(parsed types.ParsedOptions, validateOpts ValidateOptions) (*Valida
 	hasError := false
 
 	logError := func(msg string) {
-		fmt.Fprintf(os.Stderr, "ERROR: %s\n", msg)
+		logging.Error.Println(msg)
 		hasError = true
 	}
 
-	fmt.Println("\nValidating options and change files...")
+	logging.Info.Println("\nValidating options and change files...")
 
 	// Check for untracked changes
 	untracked, _ := git.GetUntrackedChanges(options.Path)
 	if len(untracked) > 0 {
-		fmt.Fprintf(os.Stderr, "WARN: There are untracked changes in your repository:\n%s\n",
+		logging.Warn.Printf("There are untracked changes in your repository:\n%s\n",
 			logging.BulletedList(untracked))
 	}
 
@@ -148,12 +147,12 @@ func Validate(parsed types.ParsedOptions, validateOpts ValidateOptions) (*Valida
 			sorted := make([]string, len(changedPackages))
 			copy(sorted, changedPackages)
 			sort.Strings(sorted)
-			fmt.Printf("%s:\n%s\n", msg, logging.BulletedList(sorted))
+			logging.Info.Printf("%s:\n%s\n", msg, logging.BulletedList(sorted))
 		}
 
 		if result.IsChangeNeeded && !validateOpts.AllowMissingChangeFiles {
 			logError("Change files are needed!")
-			fmt.Println(options.ChangeHint)
+			logging.Info.Println(options.ChangeHint)
 			return nil, fmt.Errorf("change files needed")
 		}
 
@@ -163,7 +162,7 @@ func Validate(parsed types.ParsedOptions, validateOpts ValidateOptions) (*Valida
 		}
 	}
 
-	fmt.Println()
+	logging.Info.Println()
 
 	return result, nil
 }

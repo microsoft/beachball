@@ -1,8 +1,7 @@
 package commands
 
 import (
-	"fmt"
-
+	"github.com/microsoft/beachball/internal/logging"
 	"github.com/microsoft/beachball/internal/types"
 	"github.com/microsoft/beachball/internal/validation"
 )
@@ -16,6 +15,6 @@ func Check(parsed types.ParsedOptions) error {
 		return err
 	}
 
-	fmt.Println("No change files are needed!")
+	logging.Info.Println("No change files are needed!")
 	return nil
 }

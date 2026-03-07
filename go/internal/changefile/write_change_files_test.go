@@ -16,11 +16,11 @@ import (
 func TestWriteChangeFiles_WritesIndividualChangeFiles(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
-	repo.Checkout("-b", "write-test", defaultBranch)
+	repo.Checkout("-b", "write-test", testutil.DefaultBranch)
 
 	opts := types.DefaultOptions()
 	opts.Path = repo.RootPath()
-	opts.Branch = defaultRemoteBranch
+	opts.Branch = testutil.DefaultRemoteBranch
 	opts.Fetch = false
 
 	changes := []types.ChangeFileInfo{
@@ -78,11 +78,11 @@ func TestWriteChangeFiles_WritesIndividualChangeFiles(t *testing.T) {
 func TestWriteChangeFiles_RespectsChangeDirOption(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
-	repo.Checkout("-b", "custom-dir-test", defaultBranch)
+	repo.Checkout("-b", "custom-dir-test", testutil.DefaultBranch)
 
 	opts := types.DefaultOptions()
 	opts.Path = repo.RootPath()
-	opts.Branch = defaultRemoteBranch
+	opts.Branch = testutil.DefaultRemoteBranch
 	opts.Fetch = false
 	opts.ChangeDir = "my-changes"
 
@@ -120,14 +120,14 @@ func TestWriteChangeFiles_RespectsChangeDirOption(t *testing.T) {
 func TestWriteChangeFiles_RespectsCommitFalse(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
-	repo.Checkout("-b", "no-commit-test", defaultBranch)
+	repo.Checkout("-b", "no-commit-test", testutil.DefaultBranch)
 
 	// Get the current HEAD hash before writing
 	headBefore := repo.Git([]string{"rev-parse", "HEAD"})
 
 	opts := types.DefaultOptions()
 	opts.Path = repo.RootPath()
-	opts.Branch = defaultRemoteBranch
+	opts.Branch = testutil.DefaultRemoteBranch
 	opts.Fetch = false
 	opts.Commit = false
 

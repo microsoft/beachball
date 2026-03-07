@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/microsoft/beachball/internal/git"
+	"github.com/microsoft/beachball/internal/logging"
 	"github.com/microsoft/beachball/internal/types"
 )
 
@@ -40,7 +41,7 @@ func WriteChangeFiles(options *types.BeachballOptions, changes []types.ChangeFil
 		}
 
 		filePaths = append(filePaths, filePath)
-		fmt.Printf("Wrote change file: %s\n", filename)
+		logging.Info.Printf("Wrote change file: %s", filename)
 	} else {
 		for _, change := range changes {
 			id := uuid.New().String()
@@ -58,7 +59,7 @@ func WriteChangeFiles(options *types.BeachballOptions, changes []types.ChangeFil
 			}
 
 			filePaths = append(filePaths, filePath)
-			fmt.Printf("Wrote change file: %s\n", filename)
+			logging.Info.Printf("Wrote change file: %s", filename)
 		}
 	}
 
@@ -72,7 +73,7 @@ func WriteChangeFiles(options *types.BeachballOptions, changes []types.ChangeFil
 			if err := git.Commit(msg, options.Path); err != nil {
 				return fmt.Errorf("failed to commit change files: %w", err)
 			}
-			fmt.Println("Committed change files")
+			logging.Info.Println("Committed change files")
 		}
 	}
 

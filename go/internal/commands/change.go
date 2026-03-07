@@ -5,6 +5,7 @@ import (
 
 	"github.com/microsoft/beachball/internal/changefile"
 	"github.com/microsoft/beachball/internal/git"
+	"github.com/microsoft/beachball/internal/logging"
 	"github.com/microsoft/beachball/internal/types"
 	"github.com/microsoft/beachball/internal/validation"
 )
@@ -20,7 +21,7 @@ func Change(parsed types.ParsedOptions) error {
 	}
 
 	if !result.IsChangeNeeded && len(parsed.Options.Package) == 0 {
-		fmt.Println("No changes detected; no change files are needed.")
+		logging.Info.Println("No changes detected; no change files are needed.")
 		return nil
 	}
 
