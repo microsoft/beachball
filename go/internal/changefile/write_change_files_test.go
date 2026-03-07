@@ -9,6 +9,8 @@ import (
 	"github.com/microsoft/beachball/internal/changefile"
 	"github.com/microsoft/beachball/internal/testutil"
 	"github.com/microsoft/beachball/internal/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestWriteChangeFiles_WritesIndividualChangeFiles(t *testing.T) {
@@ -39,57 +41,38 @@ func TestWriteChangeFiles_WritesIndividualChangeFiles(t *testing.T) {
 	}
 
 	err := changefile.WriteChangeFiles(&opts, changes)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	require.NoError(t, err)
 
 	files := testutil.GetChangeFiles(&opts)
-	if len(files) != 2 {
-		t.Fatalf("expected 2 change files, got %d", len(files))
-	}
+	require.Len(t, files, 2)
 
 	// Verify file contents
 	foundFoo := false
 	foundBar := false
 	for _, f := range files {
 		data, err := os.ReadFile(f)
-		if err != nil {
-			t.Fatalf("failed to read %s: %v", f, err)
-		}
+		require.NoError(t, err, "failed to read %s", f)
 		var change types.ChangeFileInfo
-		if err := json.Unmarshal(data, &change); err != nil {
-			t.Fatalf("failed to parse %s: %v", f, err)
-		}
+		require.NoError(t, json.Unmarshal(data, &change), "failed to parse %s", f)
 		switch change.PackageName {
 		case "foo":
 			foundFoo = true
-			if change.Type != types.ChangeTypePatch {
-				t.Fatalf("expected patch for foo, got %s", change.Type)
-			}
-			if change.Comment != "fix foo" {
-				t.Fatalf("expected 'fix foo', got %q", change.Comment)
-			}
+			assert.Equal(t, types.ChangeTypePatch, change.Type)
+			assert.Equal(t, "fix foo", change.Comment)
 		case "bar":
 			foundBar = true
-			if change.Type != types.ChangeTypeMinor {
-				t.Fatalf("expected minor for bar, got %s", change.Type)
-			}
-			if change.Comment != "add bar feature" {
-				t.Fatalf("expected 'add bar feature', got %q", change.Comment)
-			}
+			assert.Equal(t, types.ChangeTypeMinor, change.Type)
+			assert.Equal(t, "add bar feature", change.Comment)
 		default:
 			t.Fatalf("unexpected package: %s", change.PackageName)
 		}
 	}
-	if !foundFoo || !foundBar {
-		t.Fatalf("expected both foo and bar change files, foundFoo=%v foundBar=%v", foundFoo, foundBar)
-	}
+	assert.True(t, foundFoo, "expected foo change file")
+	assert.True(t, foundBar, "expected bar change file")
 
 	// Verify files are committed (default Commit=true)
 	status := repo.Status()
-	if status != "" {
-		t.Fatalf("expected clean working tree after commit, got: %s", status)
-	}
+	assert.Empty(t, status, "expected clean working tree after commit")
 }
 
 func TestWriteChangeFiles_RespectsChangeDirOption(t *testing.T) {
@@ -114,31 +97,24 @@ func TestWriteChangeFiles_RespectsChangeDirOption(t *testing.T) {
 	}
 
 	err := changefile.WriteChangeFiles(&opts, changes)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	require.NoError(t, err)
 
 	// Verify the custom directory was used
 	customPath := filepath.Join(repo.RootPath(), "my-changes")
 	entries, err := os.ReadDir(customPath)
-	if err != nil {
-		t.Fatalf("failed to read custom change dir: %v", err)
-	}
+	require.NoError(t, err, "failed to read custom change dir")
 	jsonCount := 0
 	for _, e := range entries {
 		if filepath.Ext(e.Name()) == ".json" {
 			jsonCount++
 		}
 	}
-	if jsonCount != 1 {
-		t.Fatalf("expected 1 json file in my-changes, got %d", jsonCount)
-	}
+	assert.Equal(t, 1, jsonCount)
 
 	// Default change dir should not exist
 	defaultPath := filepath.Join(repo.RootPath(), "change")
-	if _, err := os.Stat(defaultPath); err == nil {
-		t.Fatal("expected default change dir to not exist")
-	}
+	_, err = os.Stat(defaultPath)
+	assert.True(t, os.IsNotExist(err), "expected default change dir to not exist")
 }
 
 func TestWriteChangeFiles_RespectsCommitFalse(t *testing.T) {
@@ -166,19 +142,13 @@ func TestWriteChangeFiles_RespectsCommitFalse(t *testing.T) {
 	}
 
 	err := changefile.WriteChangeFiles(&opts, changes)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	require.NoError(t, err)
 
 	// Verify files exist
 	files := testutil.GetChangeFiles(&opts)
-	if len(files) != 1 {
-		t.Fatalf("expected 1 change file, got %d", len(files))
-	}
+	assert.Len(t, files, 1)
 
 	// Verify HEAD hash is unchanged (no commit was made)
 	headAfter := repo.Git([]string{"rev-parse", "HEAD"})
-	if headBefore != headAfter {
-		t.Fatalf("expected HEAD to be unchanged, before=%s after=%s", headBefore, headAfter)
-	}
+	assert.Equal(t, headBefore, headAfter, "expected HEAD to be unchanged")
 }

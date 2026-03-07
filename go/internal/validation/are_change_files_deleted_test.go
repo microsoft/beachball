@@ -8,6 +8,7 @@ import (
 	"github.com/microsoft/beachball/internal/testutil"
 	"github.com/microsoft/beachball/internal/types"
 	"github.com/microsoft/beachball/internal/validation"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAreChangeFilesDeleted_FalseWhenNoChangeFilesDeleted(t *testing.T) {
@@ -27,9 +28,7 @@ func TestAreChangeFilesDeleted_FalseWhenNoChangeFilesDeleted(t *testing.T) {
 	repo.Checkout("-b", "test-no-delete", defaultBranch)
 
 	result := validation.AreChangeFilesDeleted(&opts)
-	if result {
-		t.Fatal("expected false when no change files are deleted")
-	}
+	assert.False(t, result)
 }
 
 func TestAreChangeFilesDeleted_TrueWhenChangeFilesDeleted(t *testing.T) {
@@ -56,9 +55,7 @@ func TestAreChangeFilesDeleted_TrueWhenChangeFilesDeleted(t *testing.T) {
 	os.MkdirAll(changePath, 0o755)
 
 	result := validation.AreChangeFilesDeleted(&opts)
-	if !result {
-		t.Fatal("expected true when change files are deleted")
-	}
+	assert.True(t, result)
 }
 
 func TestAreChangeFilesDeleted_WorksWithCustomChangeDir(t *testing.T) {
@@ -84,7 +81,5 @@ func TestAreChangeFilesDeleted_WorksWithCustomChangeDir(t *testing.T) {
 	os.MkdirAll(changePath, 0o755)
 
 	result := validation.AreChangeFilesDeleted(&opts)
-	if !result {
-		t.Fatal("expected true when custom change files are deleted")
-	}
+	assert.True(t, result)
 }

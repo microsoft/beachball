@@ -10,6 +10,8 @@ import (
 	"github.com/microsoft/beachball/internal/options"
 	"github.com/microsoft/beachball/internal/testutil"
 	"github.com/microsoft/beachball/internal/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const defaultBranch = "master"
@@ -32,14 +34,10 @@ func TestDoesNotCreateChangeFilesWhenNoChanges(t *testing.T) {
 
 	parsed := options.GetParsedOptionsForTest(repo.RootPath(), cli, repoOpts)
 	err := commands.Change(parsed)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	require.NoError(t, err)
 
 	files := testutil.GetChangeFiles(&parsed.Options)
-	if len(files) != 0 {
-		t.Fatalf("expected no change files, got %d", len(files))
-	}
+	assert.Empty(t, files)
 }
 
 func TestCreatesChangeFileWithTypeAndMessage(t *testing.T) {
@@ -63,37 +61,21 @@ func TestCreatesChangeFileWithTypeAndMessage(t *testing.T) {
 
 	parsed := options.GetParsedOptionsForTest(repo.RootPath(), cli, repoOpts)
 	err := commands.Change(parsed)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	require.NoError(t, err)
 
 	files := testutil.GetChangeFiles(&parsed.Options)
-	if len(files) != 1 {
-		t.Fatalf("expected 1 change file, got %d", len(files))
-	}
+	require.Len(t, files, 1)
 
 	data, err := os.ReadFile(files[0])
-	if err != nil {
-		t.Fatalf("failed to read change file: %v", err)
-	}
+	require.NoError(t, err)
 
 	var change types.ChangeFileInfo
-	if err := json.Unmarshal(data, &change); err != nil {
-		t.Fatalf("failed to parse change file: %v", err)
-	}
+	require.NoError(t, json.Unmarshal(data, &change))
 
-	if change.Type != types.ChangeTypePatch {
-		t.Fatalf("expected patch, got %s", change.Type)
-	}
-	if change.Comment != "test description" {
-		t.Fatalf("expected 'test description', got %q", change.Comment)
-	}
-	if change.PackageName != "foo" {
-		t.Fatalf("expected 'foo', got %q", change.PackageName)
-	}
-	if change.DependentChangeType != types.ChangeTypePatch {
-		t.Fatalf("expected patch dependent type, got %s", change.DependentChangeType)
-	}
+	assert.Equal(t, types.ChangeTypePatch, change.Type)
+	assert.Equal(t, "test description", change.Comment)
+	assert.Equal(t, "foo", change.PackageName)
+	assert.Equal(t, types.ChangeTypePatch, change.DependentChangeType)
 }
 
 func TestCreatesAndStagesChangeFile(t *testing.T) {
@@ -116,30 +98,21 @@ func TestCreatesAndStagesChangeFile(t *testing.T) {
 	}
 
 	parsed := options.GetParsedOptionsForTest(repo.RootPath(), cli, repoOpts)
-	if err := commands.Change(parsed); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	err := commands.Change(parsed)
+	require.NoError(t, err)
 
 	// Verify file is staged (git status shows "A ")
 	status := repo.Status()
-	if !strings.Contains(status, "A ") {
-		t.Fatalf("expected staged file (A prefix), got status: %q", status)
-	}
+	assert.Contains(t, status, "A ")
 
 	files := testutil.GetChangeFiles(&parsed.Options)
-	if len(files) != 1 {
-		t.Fatalf("expected 1 change file, got %d", len(files))
-	}
+	require.Len(t, files, 1)
 
 	data, _ := os.ReadFile(files[0])
 	var change types.ChangeFileInfo
 	json.Unmarshal(data, &change)
-	if change.Comment != "stage me please" {
-		t.Fatalf("expected 'stage me please', got %q", change.Comment)
-	}
-	if change.PackageName != "foo" {
-		t.Fatalf("expected 'foo', got %q", change.PackageName)
-	}
+	assert.Equal(t, "stage me please", change.Comment)
+	assert.Equal(t, "foo", change.PackageName)
 }
 
 func TestCreatesAndCommitsChangeFile(t *testing.T) {
@@ -159,27 +132,20 @@ func TestCreatesAndCommitsChangeFile(t *testing.T) {
 	}
 
 	parsed := options.GetParsedOptionsForTest(repo.RootPath(), cli, repoOpts)
-	if err := commands.Change(parsed); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	err := commands.Change(parsed)
+	require.NoError(t, err)
 
 	// Verify clean git status (committed)
 	status := repo.Status()
-	if status != "" {
-		t.Fatalf("expected clean status after commit, got: %q", status)
-	}
+	assert.Empty(t, status)
 
 	files := testutil.GetChangeFiles(&parsed.Options)
-	if len(files) != 1 {
-		t.Fatalf("expected 1 change file, got %d", len(files))
-	}
+	require.Len(t, files, 1)
 
 	data, _ := os.ReadFile(files[0])
 	var change types.ChangeFileInfo
 	json.Unmarshal(data, &change)
-	if change.Comment != "commit me please" {
-		t.Fatalf("expected 'commit me please', got %q", change.Comment)
-	}
+	assert.Equal(t, "commit me please", change.Comment)
 }
 
 func TestCreatesAndCommitsChangeFileWithChangeDir(t *testing.T) {
@@ -200,31 +166,22 @@ func TestCreatesAndCommitsChangeFileWithChangeDir(t *testing.T) {
 	}
 
 	parsed := options.GetParsedOptionsForTest(repo.RootPath(), cli, repoOpts)
-	if err := commands.Change(parsed); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	err := commands.Change(parsed)
+	require.NoError(t, err)
 
 	status := repo.Status()
-	if status != "" {
-		t.Fatalf("expected clean status after commit, got: %q", status)
-	}
+	assert.Empty(t, status)
 
 	files := testutil.GetChangeFiles(&parsed.Options)
-	if len(files) != 1 {
-		t.Fatalf("expected 1 change file, got %d", len(files))
-	}
+	require.Len(t, files, 1)
 
 	// Verify file is in custom directory
-	if !strings.Contains(files[0], "changeDir") {
-		t.Fatalf("expected file in changeDir, got: %s", files[0])
-	}
+	assert.True(t, strings.Contains(files[0], "changeDir"), "expected file in changeDir, got: %s", files[0])
 
 	data, _ := os.ReadFile(files[0])
 	var change types.ChangeFileInfo
 	json.Unmarshal(data, &change)
-	if change.Comment != "commit me please" {
-		t.Fatalf("expected 'commit me please', got %q", change.Comment)
-	}
+	assert.Equal(t, "commit me please", change.Comment)
 }
 
 func TestCreatesChangeFileWhenNoChangesButPackageProvided(t *testing.T) {
@@ -247,21 +204,16 @@ func TestCreatesChangeFileWhenNoChangesButPackageProvided(t *testing.T) {
 	}
 
 	parsed := options.GetParsedOptionsForTest(repo.RootPath(), cli, repoOpts)
-	if err := commands.Change(parsed); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	err := commands.Change(parsed)
+	require.NoError(t, err)
 
 	files := testutil.GetChangeFiles(&parsed.Options)
-	if len(files) != 1 {
-		t.Fatalf("expected 1 change file, got %d", len(files))
-	}
+	require.Len(t, files, 1)
 
 	data, _ := os.ReadFile(files[0])
 	var change types.ChangeFileInfo
 	json.Unmarshal(data, &change)
-	if change.PackageName != "foo" {
-		t.Fatalf("expected 'foo', got %q", change.PackageName)
-	}
+	assert.Equal(t, "foo", change.PackageName)
 }
 
 func TestCreatesAndCommitsChangeFilesForMultiplePackages(t *testing.T) {
@@ -282,19 +234,14 @@ func TestCreatesAndCommitsChangeFilesForMultiplePackages(t *testing.T) {
 	}
 
 	parsed := options.GetParsedOptionsForTest(repo.RootPath(), cli, repoOpts)
-	if err := commands.Change(parsed); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	err := commands.Change(parsed)
+	require.NoError(t, err)
 
 	status := repo.Status()
-	if status != "" {
-		t.Fatalf("expected clean status, got: %q", status)
-	}
+	assert.Empty(t, status)
 
 	files := testutil.GetChangeFiles(&parsed.Options)
-	if len(files) != 2 {
-		t.Fatalf("expected 2 change files, got %d", len(files))
-	}
+	require.Len(t, files, 2)
 
 	packageNames := map[string]bool{}
 	for _, f := range files {
@@ -302,17 +249,12 @@ func TestCreatesAndCommitsChangeFilesForMultiplePackages(t *testing.T) {
 		var change types.ChangeFileInfo
 		json.Unmarshal(data, &change)
 		packageNames[change.PackageName] = true
-		if change.Type != types.ChangeTypeMinor {
-			t.Fatalf("expected minor, got %s for %s", change.Type, change.PackageName)
-		}
-		if change.Comment != "multi-package change" {
-			t.Fatalf("expected 'multi-package change', got %q", change.Comment)
-		}
+		assert.Equal(t, types.ChangeTypeMinor, change.Type)
+		assert.Equal(t, "multi-package change", change.Comment)
 	}
 
-	if !packageNames["foo"] || !packageNames["bar"] {
-		t.Fatalf("expected foo and bar, got %v", packageNames)
-	}
+	assert.True(t, packageNames["foo"], "expected foo")
+	assert.True(t, packageNames["bar"], "expected bar")
 }
 
 func TestCreatesAndCommitsGroupedChangeFile(t *testing.T) {
@@ -334,42 +276,28 @@ func TestCreatesAndCommitsGroupedChangeFile(t *testing.T) {
 	}
 
 	parsed := options.GetParsedOptionsForTest(repo.RootPath(), cli, repoOpts)
-	if err := commands.Change(parsed); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	err := commands.Change(parsed)
+	require.NoError(t, err)
 
 	status := repo.Status()
-	if status != "" {
-		t.Fatalf("expected clean status, got: %q", status)
-	}
+	assert.Empty(t, status)
 
 	files := testutil.GetChangeFiles(&parsed.Options)
-	if len(files) != 1 {
-		t.Fatalf("expected 1 grouped change file, got %d", len(files))
-	}
+	require.Len(t, files, 1)
 
 	data, _ := os.ReadFile(files[0])
 	var grouped types.ChangeInfoMultiple
-	if err := json.Unmarshal(data, &grouped); err != nil {
-		t.Fatalf("failed to parse grouped change file: %v", err)
-	}
+	require.NoError(t, json.Unmarshal(data, &grouped))
 
-	if len(grouped.Changes) != 2 {
-		t.Fatalf("expected 2 changes in grouped file, got %d", len(grouped.Changes))
-	}
+	assert.Len(t, grouped.Changes, 2)
 
 	packageNames := map[string]bool{}
 	for _, change := range grouped.Changes {
 		packageNames[change.PackageName] = true
-		if change.Type != types.ChangeTypeMinor {
-			t.Fatalf("expected minor, got %s for %s", change.Type, change.PackageName)
-		}
-		if change.Comment != "grouped change" {
-			t.Fatalf("expected 'grouped change', got %q", change.Comment)
-		}
+		assert.Equal(t, types.ChangeTypeMinor, change.Type)
+		assert.Equal(t, "grouped change", change.Comment)
 	}
 
-	if !packageNames["foo"] || !packageNames["bar"] {
-		t.Fatalf("expected foo and bar, got %v", packageNames)
-	}
+	assert.True(t, packageNames["foo"], "expected foo")
+	assert.True(t, packageNames["bar"], "expected bar")
 }

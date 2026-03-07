@@ -6,6 +6,7 @@ import (
 	"github.com/microsoft/beachball/internal/changefile"
 	"github.com/microsoft/beachball/internal/testutil"
 	"github.com/microsoft/beachball/internal/types"
+	"github.com/stretchr/testify/assert"
 )
 
 var testRoot = testutil.FakeRoot()
@@ -16,9 +17,7 @@ func TestGetDisallowedChangeTypes_ReturnsNilForUnknownPackage(t *testing.T) {
 	opts := &types.BeachballOptions{}
 
 	result := changefile.GetDisallowedChangeTypes("unknown-pkg", infos, groups, opts)
-	if result != nil {
-		t.Fatalf("expected nil, got: %v", result)
-	}
+	assert.Nil(t, result)
 }
 
 func TestGetDisallowedChangeTypes_ReturnsNilWhenNoSettings(t *testing.T) {
@@ -27,9 +26,7 @@ func TestGetDisallowedChangeTypes_ReturnsNilWhenNoSettings(t *testing.T) {
 	opts := &types.BeachballOptions{}
 
 	result := changefile.GetDisallowedChangeTypes("foo", infos, groups, opts)
-	if result != nil {
-		t.Fatalf("expected nil, got: %v", result)
-	}
+	assert.Nil(t, result)
 }
 
 func TestGetDisallowedChangeTypes_ReturnsPackageLevelDisallowedTypes(t *testing.T) {
@@ -41,9 +38,7 @@ func TestGetDisallowedChangeTypes_ReturnsPackageLevelDisallowedTypes(t *testing.
 	opts := &types.BeachballOptions{}
 
 	result := changefile.GetDisallowedChangeTypes("foo", infos, groups, opts)
-	if len(result) != 1 || result[0] != "major" {
-		t.Fatalf("expected [major], got: %v", result)
-	}
+	assert.Equal(t, []string{"major"}, result)
 }
 
 func TestGetDisallowedChangeTypes_ReturnsGroupLevelDisallowedTypes(t *testing.T) {
@@ -58,9 +53,7 @@ func TestGetDisallowedChangeTypes_ReturnsGroupLevelDisallowedTypes(t *testing.T)
 	opts := &types.BeachballOptions{}
 
 	result := changefile.GetDisallowedChangeTypes("foo", infos, groups, opts)
-	if len(result) != 2 || result[0] != "major" || result[1] != "minor" {
-		t.Fatalf("expected [major minor], got: %v", result)
-	}
+	assert.Equal(t, []string{"major", "minor"}, result)
 }
 
 func TestGetDisallowedChangeTypes_ReturnsNilIfNotInGroup(t *testing.T) {
@@ -75,9 +68,7 @@ func TestGetDisallowedChangeTypes_ReturnsNilIfNotInGroup(t *testing.T) {
 	opts := &types.BeachballOptions{}
 
 	result := changefile.GetDisallowedChangeTypes("bar", infos, groups, opts)
-	if result != nil {
-		t.Fatalf("expected nil, got: %v", result)
-	}
+	assert.Nil(t, result)
 }
 
 func TestGetDisallowedChangeTypes_PrefersPackageOverGroup(t *testing.T) {
@@ -96,7 +87,5 @@ func TestGetDisallowedChangeTypes_PrefersPackageOverGroup(t *testing.T) {
 
 	// The implementation checks package-level first, so it should return "major"
 	result := changefile.GetDisallowedChangeTypes("foo", infos, groups, opts)
-	if len(result) != 1 || result[0] != "major" {
-		t.Fatalf("expected [major], got: %v", result)
-	}
+	assert.Equal(t, []string{"major"}, result)
 }

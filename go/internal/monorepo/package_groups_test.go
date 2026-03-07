@@ -7,6 +7,7 @@ import (
 	"github.com/microsoft/beachball/internal/monorepo"
 	"github.com/microsoft/beachball/internal/testutil"
 	"github.com/microsoft/beachball/internal/types"
+	"github.com/stretchr/testify/assert"
 )
 
 var root = testutil.FakeRoot()
@@ -16,9 +17,7 @@ func TestGetPackageGroups_ReturnsEmptyIfNoGroups(t *testing.T) {
 		"packages/foo": "foo",
 	})
 	result := monorepo.GetPackageGroups(infos, root, nil)
-	if len(result) != 0 {
-		t.Fatalf("expected empty map, got: %v", result)
-	}
+	assert.Empty(t, result)
 }
 
 func TestGetPackageGroups_ReturnsGroupsBasedOnSpecificFolders(t *testing.T) {
@@ -34,20 +33,11 @@ func TestGetPackageGroups_ReturnsGroupsBasedOnSpecificFolders(t *testing.T) {
 		},
 	}
 	result := monorepo.GetPackageGroups(infos, root, groups)
-	if len(result) != 1 {
-		t.Fatalf("expected 1 group, got %d", len(result))
-	}
+	assert.Len(t, result, 1)
 	grp := result["grp1"]
-	if grp == nil {
-		t.Fatal("expected grp1 to exist")
-	}
+	assert.NotNil(t, grp)
 	sort.Strings(grp.Packages)
-	if len(grp.Packages) != 2 {
-		t.Fatalf("expected 2 packages, got %d: %v", len(grp.Packages), grp.Packages)
-	}
-	if grp.Packages[0] != "bar" || grp.Packages[1] != "foo" {
-		t.Fatalf("expected [bar foo], got: %v", grp.Packages)
-	}
+	assert.Equal(t, []string{"bar", "foo"}, grp.Packages)
 }
 
 func TestGetPackageGroups_HandlesSingleLevelGlobs(t *testing.T) {
@@ -64,16 +54,9 @@ func TestGetPackageGroups_HandlesSingleLevelGlobs(t *testing.T) {
 	}
 	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["ui"]
-	if grp == nil {
-		t.Fatal("expected ui group to exist")
-	}
+	assert.NotNil(t, grp)
 	sort.Strings(grp.Packages)
-	if len(grp.Packages) != 2 {
-		t.Fatalf("expected 2 packages, got %d: %v", len(grp.Packages), grp.Packages)
-	}
-	if grp.Packages[0] != "ui-button" || grp.Packages[1] != "ui-input" {
-		t.Fatalf("expected [ui-button ui-input], got: %v", grp.Packages)
-	}
+	assert.Equal(t, []string{"ui-button", "ui-input"}, grp.Packages)
 }
 
 func TestGetPackageGroups_HandlesMultiLevelGlobs(t *testing.T) {
@@ -90,16 +73,9 @@ func TestGetPackageGroups_HandlesMultiLevelGlobs(t *testing.T) {
 	}
 	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["ui"]
-	if grp == nil {
-		t.Fatal("expected ui group to exist")
-	}
+	assert.NotNil(t, grp)
 	sort.Strings(grp.Packages)
-	if len(grp.Packages) != 2 {
-		t.Fatalf("expected 2 packages, got %d: %v", len(grp.Packages), grp.Packages)
-	}
-	if grp.Packages[0] != "ui-button" || grp.Packages[1] != "ui-input" {
-		t.Fatalf("expected [ui-button ui-input], got: %v", grp.Packages)
-	}
+	assert.Equal(t, []string{"ui-button", "ui-input"}, grp.Packages)
 }
 
 func TestGetPackageGroups_HandlesMultipleIncludePatterns(t *testing.T) {
@@ -116,16 +92,9 @@ func TestGetPackageGroups_HandlesMultipleIncludePatterns(t *testing.T) {
 	}
 	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["mixed"]
-	if grp == nil {
-		t.Fatal("expected mixed group to exist")
-	}
+	assert.NotNil(t, grp)
 	sort.Strings(grp.Packages)
-	if len(grp.Packages) != 2 {
-		t.Fatalf("expected 2 packages, got %d: %v", len(grp.Packages), grp.Packages)
-	}
-	if grp.Packages[0] != "bar" || grp.Packages[1] != "foo" {
-		t.Fatalf("expected [bar foo], got: %v", grp.Packages)
-	}
+	assert.Equal(t, []string{"bar", "foo"}, grp.Packages)
 }
 
 func TestGetPackageGroups_HandlesExcludePatterns(t *testing.T) {
@@ -143,16 +112,9 @@ func TestGetPackageGroups_HandlesExcludePatterns(t *testing.T) {
 	}
 	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["public"]
-	if grp == nil {
-		t.Fatal("expected public group to exist")
-	}
+	assert.NotNil(t, grp)
 	sort.Strings(grp.Packages)
-	if len(grp.Packages) != 2 {
-		t.Fatalf("expected 2 packages, got %d: %v", len(grp.Packages), grp.Packages)
-	}
-	if grp.Packages[0] != "bar" || grp.Packages[1] != "foo" {
-		t.Fatalf("expected [bar foo], got: %v", grp.Packages)
-	}
+	assert.Equal(t, []string{"bar", "foo"}, grp.Packages)
 }
 
 func TestGetPackageGroups_HandlesGlobExclude(t *testing.T) {
@@ -170,16 +132,9 @@ func TestGetPackageGroups_HandlesGlobExclude(t *testing.T) {
 	}
 	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["non-core"]
-	if grp == nil {
-		t.Fatal("expected non-core group to exist")
-	}
+	assert.NotNil(t, grp)
 	sort.Strings(grp.Packages)
-	if len(grp.Packages) != 2 {
-		t.Fatalf("expected 2 packages, got %d: %v", len(grp.Packages), grp.Packages)
-	}
-	if grp.Packages[0] != "ui-button" || grp.Packages[1] != "ui-input" {
-		t.Fatalf("expected [ui-button ui-input], got: %v", grp.Packages)
-	}
+	assert.Equal(t, []string{"ui-button", "ui-input"}, grp.Packages)
 }
 
 func TestGetPackageGroups_OmitsEmptyGroups(t *testing.T) {
@@ -194,10 +149,6 @@ func TestGetPackageGroups_OmitsEmptyGroups(t *testing.T) {
 	}
 	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["empty"]
-	if grp == nil {
-		t.Fatal("expected empty group key to exist")
-	}
-	if len(grp.Packages) != 0 {
-		t.Fatalf("expected 0 packages, got %d: %v", len(grp.Packages), grp.Packages)
-	}
+	assert.NotNil(t, grp)
+	assert.Empty(t, grp.Packages)
 }

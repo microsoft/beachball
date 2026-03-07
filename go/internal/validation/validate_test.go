@@ -7,6 +7,8 @@ import (
 	"github.com/microsoft/beachball/internal/testutil"
 	"github.com/microsoft/beachball/internal/types"
 	"github.com/microsoft/beachball/internal/validation"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const defaultBranch = "master"
@@ -25,12 +27,8 @@ func TestSucceedsWithNoChanges(t *testing.T) {
 	result, err := validation.Validate(parsed, validation.ValidateOptions{
 		CheckChangeNeeded: true,
 	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if result.IsChangeNeeded {
-		t.Fatal("expected no change needed")
-	}
+	require.NoError(t, err)
+	assert.False(t, result.IsChangeNeeded)
 }
 
 func TestExitsWithErrorIfChangeFilesNeeded(t *testing.T) {
@@ -47,9 +45,7 @@ func TestExitsWithErrorIfChangeFilesNeeded(t *testing.T) {
 	_, err := validation.Validate(parsed, validation.ValidateOptions{
 		CheckChangeNeeded: true,
 	})
-	if err == nil {
-		t.Fatal("expected error but got nil")
-	}
+	assert.Error(t, err)
 }
 
 func TestReturnsWithoutErrorIfAllowMissingChangeFiles(t *testing.T) {
@@ -67,10 +63,6 @@ func TestReturnsWithoutErrorIfAllowMissingChangeFiles(t *testing.T) {
 		CheckChangeNeeded:       true,
 		AllowMissingChangeFiles: true,
 	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !result.IsChangeNeeded {
-		t.Fatal("expected change needed")
-	}
+	require.NoError(t, err)
+	assert.True(t, result.IsChangeNeeded)
 }

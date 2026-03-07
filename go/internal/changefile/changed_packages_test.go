@@ -9,6 +9,8 @@ import (
 	"github.com/microsoft/beachball/internal/options"
 	"github.com/microsoft/beachball/internal/testutil"
 	"github.com/microsoft/beachball/internal/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const defaultBranch = "master"
@@ -31,9 +33,7 @@ func getOptionsAndPackages(t *testing.T, repo *testutil.Repository, overrides *t
 
 	parsed := options.GetParsedOptionsForTest(repo.RootPath(), cli, repoOpts)
 	packageInfos, err := monorepo.GetPackageInfos(&parsed.Options)
-	if err != nil {
-		t.Fatalf("failed to get package infos: %v", err)
-	}
+	require.NoError(t, err, "failed to get package infos")
 	scopedPackages := monorepo.GetScopedPackages(&parsed.Options, packageInfos)
 	return parsed.Options, packageInfos, scopedPackages
 }
@@ -50,12 +50,8 @@ func TestReturnsEmptyListWhenNoChanges(t *testing.T) {
 
 	opts, infos, scoped := getOptionsAndPackages(t, repo, nil, nil)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result) != 0 {
-		t.Fatalf("expected empty list, got: %v", result)
-	}
+	require.NoError(t, err)
+	assert.Empty(t, result)
 }
 
 func TestReturnsPackageNameWhenChangesInBranch(t *testing.T) {
@@ -66,12 +62,8 @@ func TestReturnsPackageNameWhenChangesInBranch(t *testing.T) {
 
 	opts, infos, scoped := getOptionsAndPackages(t, repo, nil, nil)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result) != 1 || result[0] != "foo" {
-		t.Fatalf("expected [foo], got: %v", result)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, []string{"foo"}, result)
 }
 
 func TestReturnsEmptyListForChangelogChanges(t *testing.T) {
@@ -82,12 +74,8 @@ func TestReturnsEmptyListForChangelogChanges(t *testing.T) {
 
 	opts, infos, scoped := getOptionsAndPackages(t, repo, nil, nil)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result) != 0 {
-		t.Fatalf("expected empty list, got: %v", result)
-	}
+	require.NoError(t, err)
+	assert.Empty(t, result)
 }
 
 func TestReturnsGivenPackageNamesAsIs(t *testing.T) {
@@ -97,28 +85,14 @@ func TestReturnsGivenPackageNamesAsIs(t *testing.T) {
 	cli := types.CliOptions{Package: []string{"foo"}}
 	opts, infos, scoped := getOptionsAndPackages(t, repo, nil, &cli)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result) != 1 || result[0] != "foo" {
-		t.Fatalf("expected [foo], got: %v", result)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, []string{"foo"}, result)
 
 	cli2 := types.CliOptions{Package: []string{"foo", "bar", "nope"}}
 	opts2, infos2, scoped2 := getOptionsAndPackages(t, repo, nil, &cli2)
 	result2, err := changefile.GetChangedPackages(&opts2, infos2, scoped2)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	expected := []string{"foo", "bar", "nope"}
-	if len(result2) != len(expected) {
-		t.Fatalf("expected %v, got: %v", expected, result2)
-	}
-	for i, v := range expected {
-		if result2[i] != v {
-			t.Fatalf("expected %v, got: %v", expected, result2)
-		}
-	}
+	require.NoError(t, err)
+	assert.Equal(t, []string{"foo", "bar", "nope"}, result2)
 }
 
 func TestReturnsAllPackagesWithAllTrue(t *testing.T) {
@@ -129,19 +103,9 @@ func TestReturnsAllPackagesWithAllTrue(t *testing.T) {
 	overrides.All = true
 	opts, infos, scoped := getOptionsAndPackages(t, repo, &overrides, nil)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	require.NoError(t, err)
 	sort.Strings(result)
-	expected := []string{"a", "b", "bar", "baz", "foo"}
-	if len(result) != len(expected) {
-		t.Fatalf("expected %v, got: %v", expected, result)
-	}
-	for i, v := range expected {
-		if result[i] != v {
-			t.Fatalf("expected %v, got: %v", expected, result)
-		}
-	}
+	assert.Equal(t, []string{"a", "b", "bar", "baz", "foo"}, result)
 }
 
 // ===== Single package tests =====
@@ -152,21 +116,13 @@ func TestDetectsChangedFilesInSinglePackageRepo(t *testing.T) {
 
 	opts, infos, scoped := getOptionsAndPackages(t, repo, nil, nil)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result) != 0 {
-		t.Fatalf("expected empty, got: %v", result)
-	}
+	require.NoError(t, err)
+	assert.Empty(t, result)
 
 	repo.StageChange("foo.js")
 	result2, err := changefile.GetChangedPackages(&opts, infos, scoped)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result2) != 1 || result2[0] != "foo" {
-		t.Fatalf("expected [foo], got: %v", result2)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, []string{"foo"}, result2)
 }
 
 func TestRespectsIgnorePatterns(t *testing.T) {
@@ -185,12 +141,8 @@ func TestRespectsIgnorePatterns(t *testing.T) {
 	repo.Git([]string{"add", "-A"})
 
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result) != 0 {
-		t.Fatalf("expected empty, got: %v", result)
-	}
+	require.NoError(t, err)
+	assert.Empty(t, result)
 }
 
 // ===== Monorepo tests =====
@@ -201,21 +153,13 @@ func TestDetectsChangedFilesInMonorepo(t *testing.T) {
 
 	opts, infos, scoped := getOptionsAndPackages(t, repo, nil, nil)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result) != 0 {
-		t.Fatalf("expected empty, got: %v", result)
-	}
+	require.NoError(t, err)
+	assert.Empty(t, result)
 
 	repo.StageChange("packages/foo/test.js")
 	result2, err := changefile.GetChangedPackages(&opts, infos, scoped)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result2) != 1 || result2[0] != "foo" {
-		t.Fatalf("expected [foo], got: %v", result2)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, []string{"foo"}, result2)
 }
 
 func TestExcludesPackagesWithExistingChangeFiles(t *testing.T) {
@@ -230,22 +174,14 @@ func TestExcludesPackagesWithExistingChangeFiles(t *testing.T) {
 	testutil.GenerateChangeFiles(t, []string{"foo"}, &opts, repo)
 
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result) != 0 {
-		t.Fatalf("expected empty but got: %v", result)
-	}
+	require.NoError(t, err)
+	assert.Empty(t, result)
 
 	// Change bar => bar is the only changed package returned
 	repo.StageChange("packages/bar/test.js")
 	result2, err := changefile.GetChangedPackages(&opts, infos, scoped)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result2) != 1 || result2[0] != "bar" {
-		t.Fatalf("expected [bar], got: %v", result2)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, []string{"bar"}, result2)
 }
 
 func TestIgnoresPackageChangesAsAppropriate(t *testing.T) {
@@ -288,12 +224,8 @@ func TestIgnoresPackageChangesAsAppropriate(t *testing.T) {
 
 	opts, infos, scoped := getOptionsAndPackages(t, repo, &overrides, nil)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result) != 1 || result[0] != "publish-me" {
-		t.Fatalf("expected [publish-me], got: %v", result)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, []string{"publish-me"}, result)
 }
 
 func TestDetectsChangedFilesInMultiRootMonorepo(t *testing.T) {
@@ -311,17 +243,11 @@ func TestDetectsChangedFilesInMultiRootMonorepo(t *testing.T) {
 
 	parsedA := options.GetParsedOptionsForTest(pathA, types.CliOptions{}, optsA)
 	infosA, err := monorepo.GetPackageInfos(&parsedA.Options)
-	if err != nil {
-		t.Fatalf("failed to get package infos: %v", err)
-	}
+	require.NoError(t, err, "failed to get package infos")
 	scopedA := monorepo.GetScopedPackages(&parsedA.Options, infosA)
 	resultA, err := changefile.GetChangedPackages(&parsedA.Options, infosA, scopedA)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(resultA) != 1 || resultA[0] != "@project-a/foo" {
-		t.Fatalf("expected [@project-a/foo], got: %v", resultA)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, []string{"@project-a/foo"}, resultA)
 
 	// Test from project-b root
 	pathB := repo.PathTo("project-b")
@@ -332,15 +258,9 @@ func TestDetectsChangedFilesInMultiRootMonorepo(t *testing.T) {
 
 	parsedB := options.GetParsedOptionsForTest(pathB, types.CliOptions{}, optsB)
 	infosB, err := monorepo.GetPackageInfos(&parsedB.Options)
-	if err != nil {
-		t.Fatalf("failed to get package infos: %v", err)
-	}
+	require.NoError(t, err, "failed to get package infos")
 	scopedB := monorepo.GetScopedPackages(&parsedB.Options, infosB)
 	resultB, err := changefile.GetChangedPackages(&parsedB.Options, infosB, scopedB)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(resultB) != 0 {
-		t.Fatalf("expected empty, got: %v", resultB)
-	}
+	require.NoError(t, err)
+	assert.Empty(t, resultB)
 }
