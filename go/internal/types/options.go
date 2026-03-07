@@ -25,6 +25,7 @@ type BeachballOptions struct {
 }
 
 // DefaultOptions returns BeachballOptions with sensible defaults.
+// TODO: better default path value, or require path passed?
 func DefaultOptions() BeachballOptions {
 	return BeachballOptions{
 		Branch:     "origin/master",

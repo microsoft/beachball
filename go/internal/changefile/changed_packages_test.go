@@ -13,8 +13,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const defaultBranch = "master"
-const defaultRemoteBranch = "origin/master"
+// get default options for this file (fetch disabled)
+func getDefaultOptions() types.BeachballOptions {
+	defaultOptions := types.DefaultOptions()
+	defaultOptions.Branch = testutil.DefaultRemoteBranch
+	defaultOptions.Fetch = false
+
+	return defaultOptions
+}
 
 func getOptionsAndPackages(t *testing.T, repo *testutil.Repository, overrides *types.BeachballOptions, extraCli *types.CliOptions) (types.BeachballOptions, types.PackageInfos, types.ScopedPackages) {
 	t.Helper()
@@ -24,12 +30,10 @@ func getOptionsAndPackages(t *testing.T, repo *testutil.Repository, overrides *t
 		cli = *extraCli
 	}
 
-	repoOpts := types.DefaultOptions()
+	repoOpts := getDefaultOptions()
 	if overrides != nil {
 		repoOpts = *overrides
 	}
-	repoOpts.Branch = defaultRemoteBranch
-	repoOpts.Fetch = false
 
 	parsed := options.GetParsedOptionsForTest(repo.RootPath(), cli, repoOpts)
 	packageInfos, err := monorepo.GetPackageInfos(&parsed.Options)
@@ -39,7 +43,7 @@ func getOptionsAndPackages(t *testing.T, repo *testutil.Repository, overrides *t
 }
 
 func checkOutTestBranch(repo *testutil.Repository, name string) {
-	repo.Checkout("-b", name, defaultBranch)
+	repo.Checkout("-b", name, testutil.DefaultBranch)
 }
 
 // ===== Basic tests =====
@@ -99,7 +103,7 @@ func TestReturnsAllPackagesWithAllTrue(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
 
-	overrides := types.DefaultOptions()
+	overrides := getDefaultOptions()
 	overrides.All = true
 	opts, infos, scoped := getOptionsAndPackages(t, repo, &overrides, nil)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
@@ -129,7 +133,7 @@ func TestRespectsIgnorePatterns(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
 
-	overrides := types.DefaultOptions()
+	overrides := getDefaultOptions()
 	overrides.IgnorePatterns = []string{"*.test.js", "tests/**", "yarn.lock"}
 	overrides.Verbose = true
 
@@ -168,7 +172,7 @@ func TestExcludesPackagesWithExistingChangeFiles(t *testing.T) {
 	repo.Checkout("-b", "test")
 	repo.CommitChange("packages/foo/test.js")
 
-	overrides := types.DefaultOptions()
+	overrides := getDefaultOptions()
 	overrides.Verbose = true
 	opts, infos, scoped := getOptionsAndPackages(t, repo, &overrides, nil)
 	testutil.GenerateChangeFiles(t, []string{"foo"}, &opts, repo)
@@ -217,7 +221,7 @@ func TestIgnoresPackageChangesAsAppropriate(t *testing.T) {
 	repo.StageChange("packages/ignore-pkg/CHANGELOG.md")
 	repo.StageChange("packages/publish-me/test.js")
 
-	overrides := types.DefaultOptions()
+	overrides := getDefaultOptions()
 	overrides.Scope = []string{"!packages/out-of-scope"}
 	overrides.IgnorePatterns = []string{"**/jest.config.js"}
 	overrides.Verbose = true
@@ -236,10 +240,8 @@ func TestDetectsChangedFilesInMultiRootMonorepo(t *testing.T) {
 
 	// Test from project-a root
 	pathA := repo.PathTo("project-a")
-	optsA := types.DefaultOptions()
+	optsA := getDefaultOptions()
 	optsA.Path = pathA
-	optsA.Branch = defaultRemoteBranch
-	optsA.Fetch = false
 
 	parsedA := options.GetParsedOptionsForTest(pathA, types.CliOptions{}, optsA)
 	infosA, err := monorepo.GetPackageInfos(&parsedA.Options)
@@ -251,10 +253,8 @@ func TestDetectsChangedFilesInMultiRootMonorepo(t *testing.T) {
 
 	// Test from project-b root
 	pathB := repo.PathTo("project-b")
-	optsB := types.DefaultOptions()
+	optsB := getDefaultOptions()
 	optsB.Path = pathB
-	optsB.Branch = defaultRemoteBranch
-	optsB.Fetch = false
 
 	parsedB := options.GetParsedOptionsForTest(pathB, types.CliOptions{}, optsB)
 	infosB, err := monorepo.GetPackageInfos(&parsedB.Options)

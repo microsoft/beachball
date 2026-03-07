@@ -2,19 +2,9 @@ package testutil
 
 import (
 	"path/filepath"
-	"runtime"
 
 	"github.com/microsoft/beachball/internal/types"
 )
-
-// FakeRoot returns a fake root path appropriate for the current OS
-// (e.g. "/fake-root" on Unix, `C:\fake-root` on Windows).
-func FakeRoot() string {
-	if runtime.GOOS == "windows" {
-		return `C:\fake-root`
-	}
-	return "/fake-root"
-}
 
 // MakePackageInfos builds PackageInfos from a map of folder->name, with root prefix.
 func MakePackageInfos(root string, folders map[string]string) types.PackageInfos {

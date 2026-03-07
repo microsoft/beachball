@@ -11,21 +11,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// get default options with a specified root path (fetch disabled)
+func getDefaultOptionsWithPath(rootPath string) types.BeachballOptions {
+	defaultOptions := types.DefaultOptions()
+	defaultOptions.Branch = testutil.DefaultRemoteBranch
+	defaultOptions.Fetch = false
+	defaultOptions.Path = rootPath
+
+	return defaultOptions
+}
+
 func TestAreChangeFilesDeleted_FalseWhenNoChangeFilesDeleted(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
 
 	// Create a change file on master and push it
-	opts := types.DefaultOptions()
-	opts.Path = repo.RootPath()
-	opts.Branch = defaultRemoteBranch
-	opts.Fetch = false
+	opts := getDefaultOptionsWithPath(repo.RootPath())
 
 	testutil.GenerateChangeFiles(t, []string{"foo"}, &opts, repo)
 	repo.Push()
 
 	// Checkout a new branch — no deletions
-	repo.Checkout("-b", "test-no-delete", defaultBranch)
+	repo.Checkout("-b", "test-no-delete", testutil.DefaultBranch)
 
 	result := validation.AreChangeFilesDeleted(&opts)
 	assert.False(t, result)
@@ -36,16 +43,13 @@ func TestAreChangeFilesDeleted_TrueWhenChangeFilesDeleted(t *testing.T) {
 	repo := factory.CloneRepository()
 
 	// Create a change file on master and push it
-	opts := types.DefaultOptions()
-	opts.Path = repo.RootPath()
-	opts.Branch = defaultRemoteBranch
-	opts.Fetch = false
+	opts := getDefaultOptionsWithPath(repo.RootPath())
 
 	testutil.GenerateChangeFiles(t, []string{"foo"}, &opts, repo)
 	repo.Push()
 
 	// Checkout a new branch and delete the change files using git rm
-	repo.Checkout("-b", "test-delete", defaultBranch)
+	repo.Checkout("-b", "test-delete", testutil.DefaultBranch)
 
 	changePath := filepath.Join(repo.RootPath(), opts.ChangeDir)
 	repo.Git([]string{"rm", "-r", changePath})
@@ -62,16 +66,13 @@ func TestAreChangeFilesDeleted_WorksWithCustomChangeDir(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
 
-	opts := types.DefaultOptions()
-	opts.Path = repo.RootPath()
-	opts.Branch = defaultRemoteBranch
-	opts.Fetch = false
+	opts := getDefaultOptionsWithPath(repo.RootPath())
 	opts.ChangeDir = "custom-changes"
 
 	testutil.GenerateChangeFiles(t, []string{"foo"}, &opts, repo)
 	repo.Push()
 
-	repo.Checkout("-b", "test-custom-delete", defaultBranch)
+	repo.Checkout("-b", "test-custom-delete", testutil.DefaultBranch)
 
 	changePath := filepath.Join(repo.RootPath(), opts.ChangeDir)
 	repo.Git([]string{"rm", "-r", changePath})

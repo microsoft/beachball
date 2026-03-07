@@ -11,17 +11,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const defaultBranch = "master"
-const defaultRemoteBranch = "origin/master"
+// get default options for this file (fetch disabled)
+func getDefaultOptions() types.BeachballOptions {
+	defaultOptions := types.DefaultOptions()
+	defaultOptions.Branch = testutil.DefaultRemoteBranch
+	defaultOptions.Fetch = false
+
+	return defaultOptions
+}
 
 func TestSucceedsWithNoChanges(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
-	repo.Checkout("-b", "test", defaultBranch)
+	repo.Checkout("-b", "test", testutil.DefaultBranch)
 
-	repoOpts := types.DefaultOptions()
-	repoOpts.Branch = defaultRemoteBranch
-	repoOpts.Fetch = false
+	repoOpts := getDefaultOptions()
 
 	parsed := options.GetParsedOptionsForTest(repo.RootPath(), types.CliOptions{}, repoOpts)
 	result, err := validation.Validate(parsed, validation.ValidateOptions{
@@ -34,12 +38,10 @@ func TestSucceedsWithNoChanges(t *testing.T) {
 func TestExitsWithErrorIfChangeFilesNeeded(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
-	repo.Checkout("-b", "test", defaultBranch)
+	repo.Checkout("-b", "test", testutil.DefaultBranch)
 	repo.CommitChange("packages/foo/test.js")
 
-	repoOpts := types.DefaultOptions()
-	repoOpts.Branch = defaultRemoteBranch
-	repoOpts.Fetch = false
+	repoOpts := getDefaultOptions()
 
 	parsed := options.GetParsedOptionsForTest(repo.RootPath(), types.CliOptions{}, repoOpts)
 	_, err := validation.Validate(parsed, validation.ValidateOptions{
@@ -51,12 +53,10 @@ func TestExitsWithErrorIfChangeFilesNeeded(t *testing.T) {
 func TestReturnsWithoutErrorIfAllowMissingChangeFiles(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
-	repo.Checkout("-b", "test", defaultBranch)
+	repo.Checkout("-b", "test", testutil.DefaultBranch)
 	repo.CommitChange("packages/foo/test.js")
 
-	repoOpts := types.DefaultOptions()
-	repoOpts.Branch = defaultRemoteBranch
-	repoOpts.Fetch = false
+	repoOpts := getDefaultOptions()
 
 	parsed := options.GetParsedOptionsForTest(repo.RootPath(), types.CliOptions{}, repoOpts)
 	result, err := validation.Validate(parsed, validation.ValidateOptions{

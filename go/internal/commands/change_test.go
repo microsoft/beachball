@@ -14,17 +14,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const defaultBranch = "master"
-const defaultRemoteBranch = "origin/master"
+// get default options for this file (fetch disabled)
+func getDefaultOptions() types.BeachballOptions {
+	defaultOptions := types.DefaultOptions()
+	defaultOptions.Branch = testutil.DefaultRemoteBranch
+	defaultOptions.Fetch = false
+
+	return defaultOptions
+}
 
 func TestDoesNotCreateChangeFilesWhenNoChanges(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
-	repo.Checkout("-b", "no-changes-test", defaultBranch)
+	repo.Checkout("-b", "no-changes-test", testutil.DefaultBranch)
 
-	repoOpts := types.DefaultOptions()
-	repoOpts.Branch = defaultRemoteBranch
-	repoOpts.Fetch = false
+	repoOpts := getDefaultOptions()
 
 	cli := types.CliOptions{
 		Command:    "change",
@@ -43,12 +47,10 @@ func TestDoesNotCreateChangeFilesWhenNoChanges(t *testing.T) {
 func TestCreatesChangeFileWithTypeAndMessage(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
-	repo.Checkout("-b", "creates-change-test", defaultBranch)
+	repo.Checkout("-b", "creates-change-test", testutil.DefaultBranch)
 	repo.CommitChange("file.js")
 
-	repoOpts := types.DefaultOptions()
-	repoOpts.Branch = defaultRemoteBranch
-	repoOpts.Fetch = false
+	repoOpts := getDefaultOptions()
 	repoOpts.Commit = false
 
 	commitFalse := false
@@ -81,12 +83,10 @@ func TestCreatesChangeFileWithTypeAndMessage(t *testing.T) {
 func TestCreatesAndStagesChangeFile(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
-	repo.Checkout("-b", "stages-change-test", defaultBranch)
+	repo.Checkout("-b", "stages-change-test", testutil.DefaultBranch)
 	repo.CommitChange("file.js")
 
-	repoOpts := types.DefaultOptions()
-	repoOpts.Branch = defaultRemoteBranch
-	repoOpts.Fetch = false
+	repoOpts := getDefaultOptions()
 	repoOpts.Commit = false
 
 	commitFalse := false
@@ -118,12 +118,10 @@ func TestCreatesAndStagesChangeFile(t *testing.T) {
 func TestCreatesAndCommitsChangeFile(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
-	repo.Checkout("-b", "commits-change-test", defaultBranch)
+	repo.Checkout("-b", "commits-change-test", testutil.DefaultBranch)
 	repo.CommitChange("file.js")
 
-	repoOpts := types.DefaultOptions()
-	repoOpts.Branch = defaultRemoteBranch
-	repoOpts.Fetch = false
+	repoOpts := getDefaultOptions()
 
 	cli := types.CliOptions{
 		Command:    "change",
@@ -151,12 +149,10 @@ func TestCreatesAndCommitsChangeFile(t *testing.T) {
 func TestCreatesAndCommitsChangeFileWithChangeDir(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
-	repo.Checkout("-b", "changedir-test", defaultBranch)
+	repo.Checkout("-b", "changedir-test", testutil.DefaultBranch)
 	repo.CommitChange("file.js")
 
-	repoOpts := types.DefaultOptions()
-	repoOpts.Branch = defaultRemoteBranch
-	repoOpts.Fetch = false
+	repoOpts := getDefaultOptions()
 	repoOpts.ChangeDir = "changeDir"
 
 	cli := types.CliOptions{
@@ -187,11 +183,9 @@ func TestCreatesAndCommitsChangeFileWithChangeDir(t *testing.T) {
 func TestCreatesChangeFileWhenNoChangesButPackageProvided(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
-	repo.Checkout("-b", "package-flag-test", defaultBranch)
+	repo.Checkout("-b", "package-flag-test", testutil.DefaultBranch)
 
-	repoOpts := types.DefaultOptions()
-	repoOpts.Branch = defaultRemoteBranch
-	repoOpts.Fetch = false
+	repoOpts := getDefaultOptions()
 	repoOpts.Commit = false
 
 	commitFalse := false
@@ -219,13 +213,11 @@ func TestCreatesChangeFileWhenNoChangesButPackageProvided(t *testing.T) {
 func TestCreatesAndCommitsChangeFilesForMultiplePackages(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
-	repo.Checkout("-b", "multi-pkg-test", defaultBranch)
+	repo.Checkout("-b", "multi-pkg-test", testutil.DefaultBranch)
 	repo.CommitChange("packages/foo/file.js")
 	repo.CommitChange("packages/bar/file.js")
 
-	repoOpts := types.DefaultOptions()
-	repoOpts.Branch = defaultRemoteBranch
-	repoOpts.Fetch = false
+	repoOpts := getDefaultOptions()
 
 	cli := types.CliOptions{
 		Command:    "change",
@@ -260,13 +252,11 @@ func TestCreatesAndCommitsChangeFilesForMultiplePackages(t *testing.T) {
 func TestCreatesAndCommitsGroupedChangeFile(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
-	repo.Checkout("-b", "grouped-test", defaultBranch)
+	repo.Checkout("-b", "grouped-test", testutil.DefaultBranch)
 	repo.CommitChange("packages/foo/file.js")
 	repo.CommitChange("packages/bar/file.js")
 
-	repoOpts := types.DefaultOptions()
-	repoOpts.Branch = defaultRemoteBranch
-	repoOpts.Fetch = false
+	repoOpts := getDefaultOptions()
 	repoOpts.GroupChanges = true
 
 	cli := types.CliOptions{
