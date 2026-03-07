@@ -172,6 +172,7 @@ Five-pass algorithm that calculates version changes:
 - E2E tests: `__e2e__/` directories
 - Uses Jest projects to separate test types
 - Verdaccio (local npm registry) used for e2e testing
+- Many of the tests cover log output since the logs are Beachball's UI, so we need to verify its correctness and readability
 
 ## Configuration
 
@@ -196,7 +197,7 @@ The repo uses `beachball.config.js` with:
 - Package manager is auto-detected (supports npm, yarn, pnpm)
 - Pre/post hooks available: `prebump`, `postbump`, `prepublish`, `postpublish`, `precommit`
 
-## Rust and Go Implementations
+## Experimental: Rust and Go Implementations
 
 The `rust/` and `go/` directories contain parallel re-implementations of beachball's `check` and `change` commands. Both pass 16 tests covering changed package detection, validation, and change file creation.
 

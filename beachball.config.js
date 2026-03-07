@@ -5,10 +5,12 @@ const config = {
   ignorePatterns: [
     '.*ignore',
     '*.yml',
+    '.claude/**/*',
     '.eslintrc.js',
     '.github/**',
     '.prettierrc.json5',
     '.vscode/**',
+    'CLAUDE.md',
     'docs/**',
     'docs/.vuepress/**',
     'jest.*.js',
