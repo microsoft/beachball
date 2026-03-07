@@ -17,6 +17,8 @@ const config = {
     'src/__*/**',
     // This one is especially important (otherwise dependabot would be blocked by change file requirements)
     'yarn.lock',
+    'rust/**/*',
+    'go/**/*',
   ],
 };
 
