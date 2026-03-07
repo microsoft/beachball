@@ -38,6 +38,8 @@ func GetScopedPackages(options *types.BeachballOptions, packageInfos types.Packa
 			if err != nil {
 				continue
 			}
+			// Normalize to forward slashes for cross-platform glob matching
+			relPath = filepath.ToSlash(relPath)
 
 			matched, _ := doublestar.PathMatch(cleanPattern, relPath)
 			if !matched {
