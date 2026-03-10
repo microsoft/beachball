@@ -1,10 +1,10 @@
-import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import path from 'path';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { mockProcessExit } from '../../__fixtures__/mockProcessExit';
 import { makePackageInfosByFolder, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
 import { getPackageGroups } from '../../monorepo/getPackageGroups';
 import type { RepoOptions } from '../../types/BeachballOptions';
+import { BeachballError } from '../../types/BeachballError';
 
 describe('getPackageGroups', () => {
   const root = path.resolve('/fake-root');
@@ -20,14 +20,6 @@ describe('getPackageGroups', () => {
     });
     return getPackageGroups(packageInfos, root, params.repoOptions?.groups);
   }
-
-  beforeAll(() => {
-    mockProcessExit(logs);
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
-  });
 
   it('returns empty object if no groups are defined', () => {
     const groups = getPackageGroupsWrapper({
@@ -173,7 +165,7 @@ describe('getPackageGroups', () => {
           ],
         },
       })
-    ).toThrow('process.exit(1) called');
+    ).toThrow(BeachballError);
 
     expect(logs.getMockLines('error')).toMatchInlineSnapshot(`
       "ERROR: Found package(s) belonging to multiple groups:

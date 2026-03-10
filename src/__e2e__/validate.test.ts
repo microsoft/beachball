@@ -5,13 +5,12 @@ import { initMockLogs } from '../__fixtures__/mockLogs';
 import { validate, type ValidateOptions } from '../validation/validate';
 import type { Repository } from '../__fixtures__/repository';
 import { getParsedOptions } from '../options/getOptions';
-import { mockProcessExit } from '../__fixtures__/mockProcessExit';
+import { BeachballError } from '../types/BeachballError';
 
 describe('validate', () => {
   let repositoryFactory: RepositoryFactory;
   let repo: Repository | undefined;
   const logs = initMockLogs();
-  const processExit = mockProcessExit(logs);
 
   function validateWrapper(validateOptions?: ValidateOptions) {
     const parsedOptions = getParsedOptions({
@@ -30,7 +29,6 @@ describe('validate', () => {
   });
 
   afterEach(() => {
-    processExit.mockClear();
     repo = undefined;
   });
 
@@ -54,8 +52,7 @@ describe('validate', () => {
     repo.checkout('-b', 'test');
     repo.stageChange('packages/foo/test.js');
 
-    expect(() => validateWrapper({ checkChangeNeeded: true })).toThrowError(/process\.exit/);
-    expect(processExit).toHaveBeenCalledWith(1);
+    expect(() => validateWrapper({ checkChangeNeeded: true })).toThrow(BeachballError);
     expect(logs.mocks.error).toHaveBeenCalledWith('ERROR: Change files are needed!');
   });
 

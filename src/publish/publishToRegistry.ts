@@ -12,6 +12,7 @@ import { getPackageGraph } from '../monorepo/getPackageGraph';
 import type { PackageInfo } from '../types/PackageInfo';
 import { packPackage } from '../packageManager/packPackage';
 import { getCatalogs } from 'workspace-tools';
+import { BeachballError } from '../types/BeachballError';
 
 /**
  * Publish all the bumped packages to the registry, OR if `packToPath` is specified,
@@ -48,9 +49,7 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
 
   if (invalid) {
     // Don't log anything since the validate functions already did it
-    // TODO: consider throwing instead
-    // eslint-disable-next-line no-restricted-properties
-    process.exit(1);
+    throw new BeachballError('Pre-publish validation failed', { alreadyLogged: true });
   }
 
   // performing publishConfig and workspace version overrides requires this procedure to

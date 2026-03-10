@@ -158,8 +158,7 @@ describe('publishToRegistry', () => {
     // Pre-populate registry so version 1.0.0 already exists
     npmMock.setRegistryData({ foo: { versions: ['1.0.0'] } });
 
-    // process.exit is mocked in jestSetup.js to throw
-    await expect(publishToRegistry(bumpInfo, defaultOptions)).rejects.toThrow('process.exit called with code 1');
+    await expect(publishToRegistry(bumpInfo, defaultOptions)).rejects.toThrow('Pre-publish validation failed');
 
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[log] Validating new package versions...

@@ -2,6 +2,7 @@ import { cosmiconfigSync } from 'cosmiconfig';
 import { findGitRoot, getDefaultRemoteBranch } from 'workspace-tools';
 import type { RepoOptions, BeachballOptions, ParsedOptions } from '../types/BeachballOptions';
 import path from 'path';
+import { BeachballError } from '../types/BeachballError';
 
 /**
  * Find the beachball config file and return the repo options.
@@ -39,10 +40,7 @@ export function getRepoOptions(cliOptions: ParsedOptions['cliOptions']): Partial
   if (configPath) {
     repoOptions = configExplorer.load(path.resolve(cwd, configPath))?.config as Partial<RepoOptions> | undefined;
     if (!repoOptions) {
-      console.error(`Config file "${configPath}" could not be loaded`);
-      // TODO: consider throwing instead
-      // eslint-disable-next-line no-restricted-properties
-      process.exit(1);
+      throw new BeachballError(`Config file "${configPath}" could not be loaded`);
     }
   } else {
     repoOptions = (configExplorer.search(cwd)?.config as Partial<RepoOptions> | undefined) || {};
