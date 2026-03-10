@@ -21,7 +21,7 @@ func Change(parsed types.ParsedOptions) error {
 	}
 
 	if !result.IsChangeNeeded && len(parsed.Options.Package) == 0 {
-		logging.Info.Println("No changes detected; no change files are needed.")
+		logging.Info.Println("No change files are needed")
 		return nil
 	}
 

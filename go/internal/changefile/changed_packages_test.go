@@ -64,10 +64,14 @@ func TestReturnsPackageNameWhenChangesInBranch(t *testing.T) {
 	checkOutTestBranch(repo, "changes_in_branch")
 	repo.CommitChange("packages/foo/myFilename")
 
-	opts, infos, scoped := getOptionsAndPackages(t, repo, nil, nil)
+	buf := testutil.CaptureLogging(t)
+	overrides := getDefaultOptions()
+	overrides.Verbose = true
+	opts, infos, scoped := getOptionsAndPackages(t, repo, &overrides, nil)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"foo"}, result)
+	assert.Contains(t, buf.String(), "Checking for changes against")
 }
 
 func TestReturnsEmptyListForChangelogChanges(t *testing.T) {
@@ -144,9 +148,11 @@ func TestRespectsIgnorePatterns(t *testing.T) {
 	repo.WriteFileContent("yarn.lock", "changed")
 	repo.Git([]string{"add", "-A"})
 
+	buf := testutil.CaptureLogging(t)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
 	require.NoError(t, err)
 	assert.Empty(t, result)
+	assert.Contains(t, buf.String(), "ignored by pattern")
 }
 
 // ===== Monorepo tests =====
@@ -177,9 +183,11 @@ func TestExcludesPackagesWithExistingChangeFiles(t *testing.T) {
 	opts, infos, scoped := getOptionsAndPackages(t, repo, &overrides, nil)
 	testutil.GenerateChangeFiles(t, []string{"foo"}, &opts, repo)
 
+	buf := testutil.CaptureLogging(t)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
 	require.NoError(t, err)
 	assert.Empty(t, result)
+	assert.Contains(t, buf.String(), "already has change files for these packages")
 
 	// Change bar => bar is the only changed package returned
 	repo.StageChange("packages/bar/test.js")
@@ -226,10 +234,13 @@ func TestIgnoresPackageChangesAsAppropriate(t *testing.T) {
 	overrides.IgnorePatterns = []string{"**/jest.config.js"}
 	overrides.Verbose = true
 
+	buf := testutil.CaptureLogging(t)
 	opts, infos, scoped := getOptionsAndPackages(t, repo, &overrides, nil)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"publish-me"}, result)
+	assert.Contains(t, buf.String(), "is private")
+	assert.Contains(t, buf.String(), "is out of scope")
 }
 
 func TestDetectsChangedFilesInMultiRootMonorepo(t *testing.T) {

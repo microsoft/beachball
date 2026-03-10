@@ -15,6 +15,6 @@ func Check(parsed types.ParsedOptions) error {
 		return err
 	}
 
-	logging.Info.Println("No change files are needed!")
+	logging.Info.Println("No change files are needed")
 	return nil
 }

@@ -28,6 +28,7 @@ func TestDoesNotCreateChangeFilesWhenNoChanges(t *testing.T) {
 	repo := factory.CloneRepository()
 	repo.Checkout("-b", "no-changes-test", testutil.DefaultBranch)
 
+	buf := testutil.CaptureLogging(t)
 	repoOpts := getDefaultOptions()
 
 	cli := types.CliOptions{
@@ -42,6 +43,7 @@ func TestDoesNotCreateChangeFilesWhenNoChanges(t *testing.T) {
 
 	files := testutil.GetChangeFiles(&parsed.Options)
 	assert.Empty(t, files)
+	assert.Contains(t, buf.String(), "No change files are needed")
 }
 
 func TestCreatesChangeFileWithTypeAndMessage(t *testing.T) {
@@ -121,6 +123,7 @@ func TestCreatesAndCommitsChangeFile(t *testing.T) {
 	repo.Checkout("-b", "commits-change-test", testutil.DefaultBranch)
 	repo.CommitChange("file.js")
 
+	buf := testutil.CaptureLogging(t)
 	repoOpts := getDefaultOptions()
 
 	cli := types.CliOptions{
@@ -144,6 +147,7 @@ func TestCreatesAndCommitsChangeFile(t *testing.T) {
 	var change types.ChangeFileInfo
 	json.Unmarshal(data, &change)
 	assert.Equal(t, "commit me please", change.Comment)
+	assert.Contains(t, buf.String(), "git committed these change files:")
 }
 
 func TestCreatesAndCommitsChangeFileWithChangeDir(t *testing.T) {

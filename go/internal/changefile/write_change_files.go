@@ -41,7 +41,6 @@ func WriteChangeFiles(options *types.BeachballOptions, changes []types.ChangeFil
 		}
 
 		filePaths = append(filePaths, filePath)
-		logging.Info.Printf("Wrote change file: %s", filename)
 	} else {
 		for _, change := range changes {
 			id := uuid.New().String()
@@ -59,7 +58,6 @@ func WriteChangeFiles(options *types.BeachballOptions, changes []types.ChangeFil
 			}
 
 			filePaths = append(filePaths, filePath)
-			logging.Info.Printf("Wrote change file: %s", filename)
 		}
 	}
 
@@ -73,8 +71,17 @@ func WriteChangeFiles(options *types.BeachballOptions, changes []types.ChangeFil
 			if err := git.Commit(msg, options.Path); err != nil {
 				return fmt.Errorf("failed to commit change files: %w", err)
 			}
-			logging.Info.Println("Committed change files")
 		}
+
+		action := "staged"
+		if options.Commit {
+			action = "committed"
+		}
+		fileList := ""
+		for _, f := range filePaths {
+			fileList += fmt.Sprintf("\n - %s", f)
+		}
+		logging.Info.Printf("git %s these change files:%s", action, fileList)
 	}
 
 	return nil
