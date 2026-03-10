@@ -2,9 +2,9 @@ use anyhow::Result;
 use std::collections::HashSet;
 use std::path::Path;
 
-use crate::log_info;
 use crate::git::commands;
 use crate::git::ensure_shared_history::ensure_shared_history;
+use crate::log_info;
 use crate::monorepo::filter_ignored::filter_ignored_files;
 use crate::types::change_info::{ChangeFileInfo, ChangeInfoMultiple};
 use crate::types::options::BeachballOptions;

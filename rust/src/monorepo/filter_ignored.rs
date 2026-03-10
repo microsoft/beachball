@@ -1,5 +1,5 @@
-use crate::log_info;
 use super::path_included::match_with_base;
+use crate::log_info;
 
 /// Filter out file paths that match any of the ignore patterns.
 /// Uses matchBase: true behavior (patterns without '/' match against basename).

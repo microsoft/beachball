@@ -6,6 +6,7 @@ use beachball::validation::validate::{ValidateOptions, ValidationError, validate
 use common::DEFAULT_REMOTE_BRANCH;
 use common::repository::Repository;
 use common::repository_factory::RepositoryFactory;
+use common::{capture_logging, get_log_output, reset_logging};
 
 fn validate_wrapper(
     repo: &Repository,
@@ -26,6 +27,7 @@ fn succeeds_with_no_changes() {
     let repo = factory.clone_repository();
     repo.checkout(&["-b", "test"]);
 
+    capture_logging();
     let result = validate_wrapper(
         &repo,
         ValidateOptions {
@@ -33,9 +35,12 @@ fn succeeds_with_no_changes() {
             ..Default::default()
         },
     );
+    let output = get_log_output();
+    reset_logging();
 
     assert!(result.is_ok());
     assert!(!result.unwrap().is_change_needed);
+    assert!(output.contains("Validating options and change files..."));
 }
 
 #[test]
@@ -45,6 +50,7 @@ fn exits_with_error_if_change_files_needed() {
     repo.checkout(&["-b", "test"]);
     repo.stage_change("packages/foo/test.js");
 
+    capture_logging();
     let result = validate_wrapper(
         &repo,
         ValidateOptions {
@@ -52,9 +58,13 @@ fn exits_with_error_if_change_files_needed() {
             ..Default::default()
         },
     );
+    let output = get_log_output();
+    reset_logging();
 
     let err = result.expect_err("expected validation to fail");
     assert!(err.downcast_ref::<ValidationError>().is_some());
+    assert!(output.contains("ERROR: Change files are needed!"));
+    assert!(output.contains("Found changes in the following packages"));
 }
 
 #[test]
@@ -64,6 +74,7 @@ fn returns_without_error_if_allow_missing_change_files() {
     repo.checkout(&["-b", "test"]);
     repo.stage_change("packages/foo/test.js");
 
+    capture_logging();
     let result = validate_wrapper(
         &repo,
         ValidateOptions {
@@ -72,7 +83,10 @@ fn returns_without_error_if_allow_missing_change_files() {
             ..Default::default()
         },
     );
+    let output = get_log_output();
+    reset_logging();
 
     assert!(result.is_ok());
     assert!(result.unwrap().is_change_needed);
+    assert!(!output.contains("ERROR:"));
 }

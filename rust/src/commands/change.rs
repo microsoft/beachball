@@ -1,9 +1,9 @@
 use anyhow::{Result, bail};
 
-use crate::log_info;
 use crate::changefile::changed_packages::get_changed_packages;
 use crate::changefile::write_change_files::write_change_files;
 use crate::git::commands::get_user_email;
+use crate::log_info;
 use crate::types::change_info::{ChangeFileInfo, ChangeType};
 use crate::types::options::ParsedOptions;
 use crate::validation::validate::{ValidateOptions, ValidationResult, validate};

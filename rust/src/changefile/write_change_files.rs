@@ -1,8 +1,8 @@
 use anyhow::Result;
 use std::path::Path;
 
-use crate::log_info;
 use crate::git::commands;
+use crate::log_info;
 use crate::types::change_info::ChangeFileInfo;
 use crate::types::options::BeachballOptions;
 

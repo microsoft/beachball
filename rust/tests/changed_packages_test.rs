@@ -7,7 +7,9 @@ use beachball::options::get_options::get_parsed_options_for_test;
 use beachball::types::options::{BeachballOptions, CliOptions};
 use common::change_files::generate_change_files;
 use common::repository_factory::RepositoryFactory;
-use common::{DEFAULT_BRANCH, DEFAULT_REMOTE_BRANCH};
+use common::{
+    DEFAULT_BRANCH, DEFAULT_REMOTE_BRANCH, capture_logging, get_log_output, reset_logging,
+};
 use serde_json::json;
 use std::collections::HashMap;
 
@@ -55,9 +57,18 @@ fn returns_package_name_when_changes_in_branch() {
     check_out_test_branch(&repo, "changes_in_branch");
     repo.commit_change("packages/foo/myFilename");
 
-    let (options, infos, scoped) = get_options_and_packages(&repo, None, None);
+    let opts = BeachballOptions {
+        verbose: true,
+        ..Default::default()
+    };
+    capture_logging();
+    let (options, infos, scoped) = get_options_and_packages(&repo, Some(opts), None);
     let result = get_changed_packages(&options, &infos, &scoped).unwrap();
+    let output = get_log_output();
+    reset_logging();
+
     assert_eq!(result, vec!["foo"]);
+    assert!(output.contains("Checking for changes against"));
 }
 
 #[test]
@@ -154,8 +165,13 @@ fn respects_ignore_patterns() {
     repo.write_file_content("yarn.lock", "changed");
     repo.git(&["add", "-A"]);
 
+    capture_logging();
     let result = get_changed_packages(&options, &infos, &scoped).unwrap();
+    let output = get_log_output();
+    reset_logging();
+
     assert!(result.is_empty());
+    assert!(output.contains("ignored by pattern"));
 }
 
 // ===== Monorepo tests =====
@@ -191,8 +207,13 @@ fn excludes_packages_with_existing_change_files() {
     let (options, infos, scoped) = get_options_and_packages(&repo, Some(opts), None);
     generate_change_files(&["foo"], &options, &repo);
 
+    capture_logging();
     let result = get_changed_packages(&options, &infos, &scoped).unwrap();
+    let output = get_log_output();
+    reset_logging();
+
     assert!(result.is_empty(), "Expected empty but got: {result:?}");
+    assert!(output.contains("already has change files for these packages"));
 
     // Change bar => bar is the only changed package returned
     repo.stage_change("packages/bar/test.js");
@@ -249,9 +270,15 @@ fn ignores_package_changes_as_appropriate() {
         ..Default::default()
     };
 
+    capture_logging();
     let (options, infos, scoped) = get_options_and_packages(&repo, Some(opts), None);
     let result = get_changed_packages(&options, &infos, &scoped).unwrap();
+    let output = get_log_output();
+    reset_logging();
+
     assert_eq!(result, vec!["publish-me"]);
+    assert!(output.contains("is private"));
+    assert!(output.contains("is out of scope"));
 }
 
 #[test]

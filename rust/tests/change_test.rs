@@ -6,7 +6,9 @@ use beachball::types::change_info::{ChangeFileInfo, ChangeInfoMultiple, ChangeTy
 use beachball::types::options::{BeachballOptions, CliOptions};
 use common::change_files::get_change_files;
 use common::repository_factory::RepositoryFactory;
-use common::{DEFAULT_BRANCH, DEFAULT_REMOTE_BRANCH};
+use common::{
+    DEFAULT_BRANCH, DEFAULT_REMOTE_BRANCH, capture_logging, get_log_output, reset_logging,
+};
 
 fn make_cli(message: &str, change_type: ChangeType) -> CliOptions {
     CliOptions {
@@ -31,10 +33,15 @@ fn does_not_create_change_files_when_no_changes() {
     let repo = factory.clone_repository();
     repo.checkout(&["-b", "no-changes-test", DEFAULT_BRANCH]);
 
+    capture_logging();
     let cli = make_cli("test change", ChangeType::Patch);
     let parsed = get_parsed_options_for_test(repo.root_path(), cli, make_repo_opts());
     assert!(change(&parsed).is_ok());
+    let output = get_log_output();
+    reset_logging();
+
     assert!(get_change_files(&parsed.options).is_empty());
+    assert!(output.contains("No change files are needed"));
 }
 
 #[test]
@@ -83,8 +90,11 @@ fn creates_and_stages_a_change_file() {
         ..make_cli("stage me please", ChangeType::Patch)
     };
 
+    capture_logging();
     let parsed = get_parsed_options_for_test(repo.root_path(), cli, repo_opts);
     assert!(change(&parsed).is_ok());
+    let output = get_log_output();
+    reset_logging();
 
     // Verify file is staged (git status shows "A ")
     let status = repo.status();
@@ -100,6 +110,7 @@ fn creates_and_stages_a_change_file() {
     let change: ChangeFileInfo = serde_json::from_str(&contents).unwrap();
     assert_eq!(change.comment, "stage me please");
     assert_eq!(change.package_name, "foo");
+    assert!(output.contains("git staged these change files:"));
 }
 
 #[test]
@@ -109,9 +120,12 @@ fn creates_and_commits_a_change_file() {
     repo.checkout(&["-b", "commits-change-test", DEFAULT_BRANCH]);
     repo.commit_change("file.js");
 
+    capture_logging();
     let cli = make_cli("commit me please", ChangeType::Patch);
     let parsed = get_parsed_options_for_test(repo.root_path(), cli, make_repo_opts());
     assert!(change(&parsed).is_ok());
+    let output = get_log_output();
+    reset_logging();
 
     // Verify clean git status (committed)
     let status = repo.status();
@@ -123,6 +137,7 @@ fn creates_and_commits_a_change_file() {
     let contents = std::fs::read_to_string(&files[0]).unwrap();
     let change: ChangeFileInfo = serde_json::from_str(&contents).unwrap();
     assert_eq!(change.comment, "commit me please");
+    assert!(output.contains("git committed these change files:"));
 }
 
 #[test]

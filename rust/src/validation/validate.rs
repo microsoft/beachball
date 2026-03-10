@@ -1,6 +1,5 @@
 use anyhow::Result;
 
-use crate::{log_error, log_info, log_warn};
 use crate::changefile::change_types::get_disallowed_change_types;
 use crate::changefile::changed_packages::get_changed_packages;
 use crate::changefile::read_change_files::read_change_files;
@@ -14,6 +13,7 @@ use crate::types::options::ParsedOptions;
 use crate::types::package_info::{PackageGroups, PackageInfos, ScopedPackages};
 use crate::validation::are_change_files_deleted::are_change_files_deleted;
 use crate::validation::validators::*;
+use crate::{log_error, log_info, log_warn};
 
 #[derive(Default)]
 pub struct ValidateOptions {
