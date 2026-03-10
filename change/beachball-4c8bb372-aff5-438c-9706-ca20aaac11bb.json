@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Centralize error handling instead of calling process.exit() throughout the code",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

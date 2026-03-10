@@ -2,6 +2,53 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 10 Mar 2026 23:45:19 GMT",
+      "version": "2.63.1",
+      "tag": "beachball_v2.63.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "49f20553364dee724f5ba309da06247fa56fe3a4",
+            "comment": "Pass default changelog renderers through to custom renders. Also escape the character `<` in changelog entries when rendering if it's definitely not inside a code block."
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "49f20553364dee724f5ba309da06247fa56fe3a4",
+            "comment": "Centralize error handling instead of calling process.exit() throughout the code"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "49f20553364dee724f5ba309da06247fa56fe3a4",
+            "comment": "Improve publish logging"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "49f20553364dee724f5ba309da06247fa56fe3a4",
+            "comment": "Update workspace-tools to 0.41.0"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "49f20553364dee724f5ba309da06247fa56fe3a4",
+            "comment": "Respect `ignorePatterns` when finding packages **only** in repos that don't use a supported monorepo manager. Also update workspace-tools to 0.40.4."
+          }
+        ],
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "49f20553364dee724f5ba309da06247fa56fe3a4",
+            "comment": "Unpin lodash dev deps due to security issues"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 23 Jan 2026 05:19:48 GMT",
       "version": "2.63.0",
       "tag": "beachball_v2.63.0",

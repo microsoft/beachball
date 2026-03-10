@@ -1,8 +1,20 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Fri, 23 Jan 2026 05:19:48 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 10 Mar 2026 23:45:19 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.63.1
+
+Tue, 10 Mar 2026 23:45:19 GMT
+
+### Patches
+
+- Pass default changelog renderers through to custom renders. Also escape the character `<` in changelog entries when rendering if it's definitely not inside a code block. (elcraig@microsoft.com)
+- Centralize error handling instead of calling process.exit() throughout the code (elcraig@microsoft.com)
+- Improve publish logging (elcraig@microsoft.com)
+- Update workspace-tools to 0.41.0 (elcraig@microsoft.com)
+- Respect `ignorePatterns` when finding packages **only** in repos that don't use a supported monorepo manager. Also update workspace-tools to 0.40.4. (elcraig@microsoft.com)
 
 ## 2.63.0
 

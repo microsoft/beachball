@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Unpin lodash dev deps due to security issues",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}
