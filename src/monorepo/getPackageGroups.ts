@@ -3,6 +3,7 @@ import path from 'path';
 import type { PackageInfos, PackageGroups } from '../types/PackageInfo';
 import { isPathIncluded } from './isPathIncluded';
 import { bulletedList } from '../logging/bulletedList';
+import { BeachballError } from '../types/BeachballError';
 
 export function getPackageGroups(
   packageInfos: PackageInfos,
@@ -48,9 +49,7 @@ export function getPackageGroups(
           errorEntries.map(([pkgName, pkgGroups]) => `${pkgName}: ${pkgGroups.map(g => g.name).join(', ')}`).sort()
         )
     );
-    // TODO: probably more appropriate to throw here and let the caller handle it?
-    // eslint-disable-next-line no-restricted-properties
-    process.exit(1);
+    throw new BeachballError('Found package(s) belonging to multiple groups', { alreadyLogged: true });
   }
 
   return packageGroups;

@@ -1,4 +1,4 @@
-import { describe, expect, it, jest, beforeEach, afterAll } from '@jest/globals';
+import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { gitFailFast } from 'workspace-tools';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { tagPackages } from '../../publish/tagPackages';
@@ -61,10 +61,6 @@ describe('tagPackages', () => {
 
   beforeEach(() => {
     (gitFailFast as jest.Mock).mockReset();
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
   });
 
   it('does not create package tag for packages with gitTags=false', () => {

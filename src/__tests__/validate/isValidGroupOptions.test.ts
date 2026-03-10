@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import { isValidGroupOptions, isValidGroupedPackageOptions } from '../../validation/isValidGroupOptions';
 import type { VersionGroupOptions } from '../../types/BeachballOptions';
 import type { PackageGroups } from '../../types/PackageInfo';
@@ -13,10 +13,6 @@ describe('isValidGroupOptions', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
   });
 
   it('returns true for valid groups', () => {
@@ -81,10 +77,6 @@ describe('isValidGroupedPackageOptions', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
   });
 
   it('returns true when no packages have disallowedChangeTypes', () => {

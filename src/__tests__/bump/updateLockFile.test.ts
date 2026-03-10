@@ -1,4 +1,4 @@
-import { describe, it, expect, jest, afterAll, afterEach, beforeAll, beforeEach } from '@jest/globals';
+import { describe, it, expect, jest, afterEach, beforeAll, beforeEach } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
 import { updateLockFile } from '../../bump/updateLockFile';
@@ -33,10 +33,6 @@ describe('updateLockFile', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
   });
 
   it('updates package-lock.json when it exists', async () => {

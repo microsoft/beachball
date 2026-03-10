@@ -11,15 +11,14 @@ import { getPackageInfos } from './monorepo/getPackageInfos';
 import { getParsedOptions } from './options/getOptions';
 import { validate } from './validation/validate';
 import { getScopedPackages } from './monorepo/getScopedPackages';
+import { BeachballError } from './types/BeachballError';
 
 (async () => {
   try {
     // eslint-disable-next-line no-restricted-properties -- top-level call
     findGitRoot(process.cwd());
   } catch {
-    console.error('beachball only works in a git repository. Please initialize git and try again.');
-    // eslint-disable-next-line no-restricted-properties
-    process.exit(1);
+    throw new BeachballError('beachball only works in a git repository. Please initialize git and try again.');
   }
 
   // eslint-disable-next-line no-restricted-properties -- this is the top level
@@ -98,10 +97,18 @@ import { getScopedPackages } from './monorepo/getScopedPackages';
       throw new Error('Invalid command: ' + options.command);
   }
 })().catch(e => {
-  showVersion();
-  console.error('An error has been detected while running beachball!');
-  console.error((e as Error)?.stack || e);
+  if (e instanceof BeachballError && e.alreadyLogged) {
+    // Error details were already printed -- just exit
+  } else if (e instanceof BeachballError) {
+    // Expected error, not yet logged -- print the message (no stack trace)
+    console.error(e.message);
+  } else {
+    // Unexpected error -- print full details including stack
+    showVersion();
+    console.error('Unexpected error while running beachball!');
+    console.error((e as Error)?.stack || e);
+  }
 
-  // eslint-disable-next-line no-restricted-properties -- this is the top level
+  // eslint-disable-next-line no-restricted-properties -- this is the only place that should call process.exit
   process.exit(1);
 });

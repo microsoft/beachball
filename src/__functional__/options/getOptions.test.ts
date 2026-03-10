@@ -30,7 +30,6 @@ describe('getOptions (deprecated)', () => {
 
   afterAll(() => {
     repositoryFactory.cleanUp();
-    jest.restoreAllMocks();
   });
 
   it('uses the branch name defined in beachball.config.js', () => {
@@ -115,7 +114,6 @@ describe('getParsedOptions', () => {
 
   afterAll(() => {
     repositoryFactory.cleanUp();
-    jest.restoreAllMocks();
   });
 
   it('uses the branch name defined in beachball.config.js', () => {

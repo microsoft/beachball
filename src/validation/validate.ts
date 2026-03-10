@@ -15,6 +15,7 @@ import { isValidDependentChangeType } from './isValidDependentChangeType';
 import { getPackagesToPublish } from '../publish/getPackagesToPublish';
 import { env } from '../env';
 import { bulletedList } from '../logging/bulletedList';
+import { BeachballError } from '../types/BeachballError';
 import type { BumpInfo } from '../types/BumpInfo';
 import type { ChangeCommandContext, CommandContext } from '../types/CommandContext';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
@@ -49,7 +50,7 @@ type ValidationResult = {
 };
 
 /**
- * Run validation of options, change files, and packages. Exit 1 if it's invalid.
+ * Run validation of options, change files, and packages. Throws `BeachballError` if invalid.
  * If `validateOptions.checkChangeNeeded` is true, also check whether change files are needed.
  * @returns Various info retrieved during validation which is also needed by other functions.
  */
@@ -177,9 +178,7 @@ export function validate(
 
   if (hasError) {
     // If any of the above basic checks failed, it doesn't make sense to check if change files are needed
-    // TODO: consider throwing instead
-    // eslint-disable-next-line no-restricted-properties
-    process.exit(1);
+    throw new BeachballError('Validation failed', { alreadyLogged: true });
   }
 
   let isChangeNeeded = false;
@@ -200,16 +199,12 @@ export function validate(
     if (isChangeNeeded && !allowMissingChangeFiles) {
       logValidationError('Change files are needed!');
       console.log(options.changehint);
-      // TODO: consider throwing instead
-      // eslint-disable-next-line no-restricted-properties
-      process.exit(1); // exit here (this is the main poin)
+      throw new BeachballError('Validation failed: change files are needed', { alreadyLogged: true });
     }
 
     if (options.disallowDeletedChangeFiles && areChangeFilesDeleted(options)) {
       logValidationError('Change files must not be deleted!');
-      // TODO: consider throwing instead
-      // eslint-disable-next-line no-restricted-properties
-      process.exit(1);
+      throw new BeachballError('Validation failed: change files were deleted', { alreadyLogged: true });
     }
   }
 
@@ -228,9 +223,7 @@ Consider one of the following solutions:
 - If the unpublished package should be published, remove \`"private": true\` from its package.json.
 - If it should NOT be published, verify that it is only listed under devDependencies of published packages.
 `);
-      // TODO: consider throwing instead
-      // eslint-disable-next-line no-restricted-properties
-      process.exit(1);
+      throw new BeachballError('Validation failed: invalid package dependencies', { alreadyLogged: true });
     }
   }
 

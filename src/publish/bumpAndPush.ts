@@ -6,6 +6,7 @@ import { tagPackages } from './tagPackages';
 import { displayManualRecovery } from './displayManualRecovery';
 import { gitFetch } from '../git/fetch';
 import { gitAsync } from '../git/gitAsync';
+import { BeachballError } from '../types/BeachballError';
 
 const bumpPushRetries = 5;
 /** Use verbose logging for these steps to make it easier to debug if something goes wrong */
@@ -87,9 +88,9 @@ export async function bumpAndPush(
 
   if (!completed) {
     displayManualRecovery(bumpInfo);
-    // TODO: consider throwing instead
-    // eslint-disable-next-line no-restricted-properties
-    process.exit(1);
+    throw new BeachballError(`Failed to bump and push after ${bumpPushRetries} attempts`, {
+      alreadyLogged: true,
+    });
   }
 }
 

@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { getCliOptions } from '../../options/getCliOptions';
 import { findProjectRoot, getDefaultRemoteBranch } from 'workspace-tools';
 
@@ -32,10 +32,6 @@ describe('getCliOptions', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
   });
 
   // start by making sure nothing went wrong with the mock

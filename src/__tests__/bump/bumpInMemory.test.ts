@@ -1,8 +1,7 @@
-import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import path from 'path';
 import { generateChanges, type PartialChangeFile } from '../../__fixtures__/changeFiles';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { mockProcessExit } from '../../__fixtures__/mockProcessExit';
 import { makePackageInfosByFolder, type PartialPackageInfo } from '../../__fixtures__/packageInfos';
 import { bumpInMemory } from '../../bump/bumpInMemory';
 import { getParsedOptions } from '../../options/getOptions';
@@ -12,7 +11,7 @@ import { getScopedPackages } from '../../monorepo/getScopedPackages';
 import { getPackageGroups } from '../../monorepo/getPackageGroups';
 
 describe('bumpInMemory', () => {
-  const logs = initMockLogs();
+  initMockLogs();
   const cwd = path.resolve('/fake-root');
 
   function gatherBumpInfoWrapper(params: {
@@ -41,15 +40,6 @@ describe('bumpInMemory', () => {
 
     return { bumpInfo, options, originalPackageInfos };
   }
-
-  beforeAll(() => {
-    // getPackageGroups currently can call process.exit
-    mockProcessExit(logs);
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
-  });
 
   it('bumps only packages with change files with bumpDeps: false', () => {
     const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({

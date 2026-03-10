@@ -4,27 +4,26 @@ import * as path from 'path';
 import type { PackageJson } from '../types/PackageInfo';
 import { readJson } from '../object/readJson';
 import { getNpmPackageInfo } from '../packageManager/getNpmPackageInfo';
+import { BeachballError } from '../types/BeachballError';
 
-// TODO: consider modifying this to propagate up
-function errorExit(message: string): never {
+function throwInitError(message: string): never {
   console.error(message);
   console.log(
     'You can still set up beachball manually by following the instructions here: https://microsoft.github.io/beachball/overview/getting-started.html'
   );
-  // eslint-disable-next-line no-restricted-properties
-  process.exit(1);
+  throw new BeachballError(message, { alreadyLogged: true });
 }
 
 export async function init(options: Pick<BeachballOptions, 'path' | 'registry'>): Promise<void> {
   const packageJsonFilePath = path.join(options.path, 'package.json');
 
   if (!fs.existsSync(packageJsonFilePath)) {
-    errorExit(`Cannot find package.json at ${packageJsonFilePath}`);
+    throwInitError(`Cannot find package.json at ${packageJsonFilePath}`);
   }
 
   const beachballInfo = await getNpmPackageInfo('beachball', options);
   if (!beachballInfo) {
-    errorExit('Failed to retrieve beachball version from npm');
+    throwInitError('Failed to retrieve beachball version from npm');
   }
   const beachballVersion = beachballInfo['dist-tags'].latest;
 
@@ -32,7 +31,7 @@ export async function init(options: Pick<BeachballOptions, 'path' | 'registry'>)
   try {
     packageJson = readJson<PackageJson>(packageJsonFilePath);
   } catch {
-    errorExit(`Failed to read package.json at ${packageJsonFilePath}`);
+    throwInitError(`Failed to read package.json at ${packageJsonFilePath}`);
   }
 
   packageJson.devDependencies ??= {};
