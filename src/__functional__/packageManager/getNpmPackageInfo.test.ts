@@ -1,4 +1,4 @@
-import { describe, expect, it, afterAll, beforeEach, jest } from '@jest/globals';
+import { describe, expect, it, beforeEach, jest } from '@jest/globals';
 // import fetch from 'npm-registry-fetch';
 import {
   _npmShowProperties,
@@ -22,10 +22,6 @@ describe('getNpmPackageInfo', () => {
   beforeEach(() => {
     npmSpy.mockClear();
     // fetchJsonSpy.mockClear();
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
   });
 
   it.each<{ desc: string; name: string; knownVersion: string }>([

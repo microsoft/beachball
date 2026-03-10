@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import { isValidChangelogOptions } from '../../validation/isValidChangelogOptions';
 import type { ChangelogGroupOptions, ChangelogOptions } from '../../types/ChangelogOptions';
 
@@ -11,10 +11,6 @@ describe('isValidChangelogOptions', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
   });
 
   it('returns true when options have no groups', () => {

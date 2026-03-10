@@ -2,7 +2,7 @@
 // But this added complexity greatly speeds up the other npm-related tests by removing the
 // dependency on actual npm CLI calls and a fake registry (which are very slow).
 
-import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs';
 // import fetch from 'npm-registry-fetch';
 import { type NpmResult, npm } from '../packageManager/npm';
@@ -208,10 +208,6 @@ describe('_mockNpmPublish', () => {
     packageJson = undefined;
   });
 
-  afterAll(() => {
-    jest.restoreAllMocks();
-  });
-
   it('throws if cwd is not specified', async () => {
     await expect(() => _mockNpmPublish({}, [], { cwd: undefined })).rejects.toThrow(
       'cwd is required for mock npm publish'
@@ -311,10 +307,6 @@ describe('_mockNpmPack', () => {
     writtenFiles = [];
   });
 
-  afterAll(() => {
-    jest.restoreAllMocks();
-  });
-
   it('throws if cwd is not specified', async () => {
     await expect(() => _mockNpmPack({}, [], { cwd: undefined })).rejects.toThrow('cwd is required for mock npm pack');
   });
@@ -368,10 +360,6 @@ describe('mockNpm', () => {
 
   afterEach(() => {
     packageJson = undefined;
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
   });
 
   // describe('mockFetchJson', () => {

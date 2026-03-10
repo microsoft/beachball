@@ -1,4 +1,4 @@
-import { jest, describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from '@jest/globals';
+import { jest, describe, it, expect, beforeEach, afterEach, beforeAll } from '@jest/globals';
 import fs from 'fs';
 import { updatePackageJsons } from '../../bump/updatePackageJsons';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
@@ -39,10 +39,6 @@ describe('updatePackageJsons', () => {
   afterEach(() => {
     jest.clearAllMocks();
     jest.resetAllMocks();
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
   });
 
   it('updates version for non-private packages', () => {

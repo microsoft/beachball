@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, jest, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, afterEach, jest, beforeAll } from '@jest/globals';
 import { setDependentVersions } from '../../bump/setDependentVersions';
 import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
 import { consideredDependencies } from '../../types/PackageInfo';
@@ -33,10 +33,6 @@ describe('setDependentVersions', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
   });
 
   it('returns empty object when no packages are in scope', () => {
