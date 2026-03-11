@@ -1,48 +1,65 @@
 package testutil
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
-	"regexp"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/microsoft/beachball/internal/types"
 )
 
-var nonAlphanumRe = regexp.MustCompile(`[^a-zA-Z0-9@]`)
+const FakeEmail = "test@test.com"
 
-// GenerateChangeFiles creates change files for the given packages and commits them.
+// WriteChangeFilesFn is the function used by GenerateChangeFiles to write change files.
+// Tests must set this to changefile.WriteChangeFiles to break the import cycle.
+// Example: testutil.WriteChangeFilesFn = changefile.WriteChangeFiles
+var WriteChangeFilesFn func(options *types.BeachballOptions, changes []types.ChangeFileInfo) error
+
+// GetChange creates a ChangeFileInfo with sensible defaults.
+// Mirrors the TS getChange fixture helper.
+func GetChange(packageName string, comment string, changeType types.ChangeType) types.ChangeFileInfo {
+	if comment == "" {
+		comment = packageName + " comment"
+	}
+	if changeType == "" {
+		changeType = types.ChangeTypeMinor
+	}
+	return types.ChangeFileInfo{
+		Type:                changeType,
+		Comment:             comment,
+		PackageName:         packageName,
+		Email:               FakeEmail,
+		DependentChangeType: types.ChangeTypePatch,
+	}
+}
+
+// GenerateChanges creates ChangeFileInfo entries from package names with defaults.
+// Mirrors the TS generateChanges fixture helper.
+func GenerateChanges(packages []string) []types.ChangeFileInfo {
+	changes := make([]types.ChangeFileInfo, len(packages))
+	for i, pkg := range packages {
+		changes[i] = GetChange(pkg, "", "")
+	}
+	return changes
+}
+
+// GenerateChangeFiles creates change files for the given packages using the real
+// WriteChangeFiles implementation. Mirrors the TS generateChangeFiles fixture helper.
+// WriteChangeFilesFn must be set before calling this function.
 func GenerateChangeFiles(t *testing.T, packages []string, options *types.BeachballOptions, repo *Repository) {
 	t.Helper()
 
-	changePath := filepath.Join(options.Path, options.ChangeDir)
-	os.MkdirAll(changePath, 0o755)
-
-	for _, pkg := range packages {
-		id := uuid.New().String()
-		sanitized := nonAlphanumRe.ReplaceAllString(pkg, "-")
-		filename := sanitized + "-" + id + ".json"
-		filePath := filepath.Join(changePath, filename)
-
-		change := types.ChangeFileInfo{
-			Type:                types.ChangeTypePatch,
-			Comment:             "test change",
-			PackageName:         pkg,
-			Email:               "test@test.com",
-			DependentChangeType: types.ChangeTypePatch,
-		}
-
-		data, _ := json.MarshalIndent(change, "", "  ")
-		if err := os.WriteFile(filePath, data, 0o644); err != nil {
-			t.Fatalf("failed to write change file: %v", err)
-		}
+	if WriteChangeFilesFn == nil {
+		t.Fatal("testutil.WriteChangeFilesFn must be set (e.g. testutil.WriteChangeFilesFn = changefile.WriteChangeFiles)")
 	}
 
-	repo.Git([]string{"add", "-A"})
-	if options.Commit {
-		repo.Git([]string{"commit", "-m", "Change files"})
+	changes := make([]types.ChangeFileInfo, len(packages))
+	for i, pkg := range packages {
+		changes[i] = GetChange(pkg, "test change", types.ChangeTypePatch)
+	}
+
+	if err := WriteChangeFilesFn(options, changes); err != nil {
+		t.Fatalf("failed to write change files: %v", err)
 	}
 }
 

@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -83,4 +84,26 @@ func (r *Repository) Push() {
 // Status returns git status.
 func (r *Repository) Status() string {
 	return r.Git([]string{"status", "--short"})
+}
+
+// UpdatePackageJson reads a package.json, applies updates, writes it back, and commits.
+func (r *Repository) UpdatePackageJson(relPkgJsonPath string, updates map[string]any) {
+	fullPath := filepath.Join(r.rootDir, relPkgJsonPath)
+	data, err := os.ReadFile(fullPath)
+	if err != nil {
+		r.t.Fatalf("failed to read %s: %v", relPkgJsonPath, err)
+	}
+	var pkg map[string]any
+	if err := json.Unmarshal(data, &pkg); err != nil {
+		r.t.Fatalf("failed to parse %s: %v", relPkgJsonPath, err)
+	}
+	for k, v := range updates {
+		pkg[k] = v
+	}
+	data, _ = json.MarshalIndent(pkg, "", "  ")
+	if err := os.WriteFile(fullPath, data, 0o644); err != nil {
+		r.t.Fatalf("failed to write %s: %v", relPkgJsonPath, err)
+	}
+	r.Git([]string{"add", relPkgJsonPath})
+	r.Git([]string{"commit", "-m", "Update " + relPkgJsonPath})
 }

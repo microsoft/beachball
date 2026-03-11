@@ -1,7 +1,6 @@
 package changefile_test
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"slices"
@@ -80,19 +79,7 @@ func TestReadChangeFiles_ReadsGroupedChangeFile(t *testing.T) {
 	overrides.GroupChanges = true
 	opts, infos, scoped := getReadTestOptionsAndPackages(t, repo, &overrides)
 
-	// Write a grouped change file manually
-	changePath := changefile.GetChangePath(&opts)
-	os.MkdirAll(changePath, 0o755)
-	grouped := types.ChangeInfoMultiple{
-		Changes: []types.ChangeFileInfo{
-			{Type: types.ChangeTypeMinor, Comment: "foo change", PackageName: "foo", Email: "test@test.com", DependentChangeType: types.ChangeTypePatch},
-			{Type: types.ChangeTypeMinor, Comment: "bar change", PackageName: "bar", Email: "test@test.com", DependentChangeType: types.ChangeTypePatch},
-		},
-	}
-	data, _ := json.MarshalIndent(grouped, "", "  ")
-	os.WriteFile(filepath.Join(changePath, "change-grouped.json"), data, 0o644)
-	repo.Git([]string{"add", "-A"})
-	repo.Git([]string{"commit", "-m", "grouped change file"})
+	testutil.GenerateChangeFiles(t, []string{"foo", "bar"}, &opts, repo)
 
 	changeSet := changefile.ReadChangeFiles(&opts, infos, scoped)
 	assert.Equal(t, []string{"bar", "foo"}, getPackageNames(changeSet))
@@ -104,17 +91,7 @@ func TestReadChangeFiles_ExcludesInvalidChangeFiles(t *testing.T) {
 	repo := factory.CloneRepository()
 	repo.Checkout("-b", "test", testutil.DefaultBranch)
 	repo.CommitChange("packages/foo/file.js")
-
-	// Make bar private
-	barPkgPath := filepath.Join(repo.RootPath(), "packages", "bar", "package.json")
-	barData, _ := os.ReadFile(barPkgPath)
-	var barPkg map[string]any
-	json.Unmarshal(barData, &barPkg)
-	barPkg["private"] = true
-	barData, _ = json.MarshalIndent(barPkg, "", "  ")
-	os.WriteFile(barPkgPath, barData, 0o644)
-	repo.Git([]string{"add", "-A"})
-	repo.Git([]string{"commit", "-m", "make bar private"})
+	repo.UpdatePackageJson("packages/bar/package.json", map[string]any{"private": true})
 
 	opts, infos, scoped := getReadTestOptionsAndPackages(t, repo, nil)
 
@@ -143,36 +120,13 @@ func TestReadChangeFiles_ExcludesInvalidChangesFromGroupedFile(t *testing.T) {
 	repo := factory.CloneRepository()
 	repo.Checkout("-b", "test", testutil.DefaultBranch)
 	repo.CommitChange("packages/foo/file.js")
-
-	// Make bar private
-	barPkgPath := filepath.Join(repo.RootPath(), "packages", "bar", "package.json")
-	barData, _ := os.ReadFile(barPkgPath)
-	var barPkg map[string]any
-	json.Unmarshal(barData, &barPkg)
-	barPkg["private"] = true
-	barData, _ = json.MarshalIndent(barPkg, "", "  ")
-	os.WriteFile(barPkgPath, barData, 0o644)
-	repo.Git([]string{"add", "-A"})
-	repo.Git([]string{"commit", "-m", "make bar private"})
+	repo.UpdatePackageJson("packages/bar/package.json", map[string]any{"private": true})
 
 	overrides := getDefaultOptions()
 	overrides.GroupChanges = true
 	opts, infos, scoped := getReadTestOptionsAndPackages(t, repo, &overrides)
 
-	// Write a grouped change file with invalid entries
-	changePath := changefile.GetChangePath(&opts)
-	os.MkdirAll(changePath, 0o755)
-	grouped := types.ChangeInfoMultiple{
-		Changes: []types.ChangeFileInfo{
-			{Type: types.ChangeTypeMinor, Comment: "fake change", PackageName: "fake", Email: "test@test.com", DependentChangeType: types.ChangeTypePatch},
-			{Type: types.ChangeTypeMinor, Comment: "bar change", PackageName: "bar", Email: "test@test.com", DependentChangeType: types.ChangeTypePatch},
-			{Type: types.ChangeTypeMinor, Comment: "foo change", PackageName: "foo", Email: "test@test.com", DependentChangeType: types.ChangeTypePatch},
-		},
-	}
-	data, _ := json.MarshalIndent(grouped, "", "  ")
-	os.WriteFile(filepath.Join(changePath, "change-grouped.json"), data, 0o644)
-	repo.Git([]string{"add", "-A"})
-	repo.Git([]string{"commit", "-m", "grouped change file"})
+	testutil.GenerateChangeFiles(t, []string{"fake", "bar", "foo"}, &opts, repo)
 
 	buf := testutil.CaptureLogging(t)
 	changeSet := changefile.ReadChangeFiles(&opts, infos, scoped)
@@ -212,19 +166,7 @@ func TestReadChangeFiles_ExcludesOutOfScopeChangesFromGroupedFile(t *testing.T) 
 	overrides.GroupChanges = true
 	opts, infos, scoped := getReadTestOptionsAndPackages(t, repo, &overrides)
 
-	// Write a grouped change file with bar+foo
-	changePath := changefile.GetChangePath(&opts)
-	os.MkdirAll(changePath, 0o755)
-	grouped := types.ChangeInfoMultiple{
-		Changes: []types.ChangeFileInfo{
-			{Type: types.ChangeTypeMinor, Comment: "bar change", PackageName: "bar", Email: "test@test.com", DependentChangeType: types.ChangeTypePatch},
-			{Type: types.ChangeTypeMinor, Comment: "foo change", PackageName: "foo", Email: "test@test.com", DependentChangeType: types.ChangeTypePatch},
-		},
-	}
-	data, _ := json.MarshalIndent(grouped, "", "  ")
-	os.WriteFile(filepath.Join(changePath, "change-grouped.json"), data, 0o644)
-	repo.Git([]string{"add", "-A"})
-	repo.Git([]string{"commit", "-m", "grouped change file"})
+	testutil.GenerateChangeFiles(t, []string{"bar", "foo"}, &opts, repo)
 
 	changeSet := changefile.ReadChangeFiles(&opts, infos, scoped)
 	assert.Equal(t, []string{"foo"}, getPackageNames(changeSet))

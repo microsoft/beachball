@@ -25,20 +25,8 @@ func TestWriteChangeFiles_WritesIndividualChangeFiles(t *testing.T) {
 	opts.Fetch = false
 
 	changes := []types.ChangeFileInfo{
-		{
-			Type:                types.ChangeTypePatch,
-			Comment:             "fix foo",
-			PackageName:         "foo",
-			Email:               "test@test.com",
-			DependentChangeType: types.ChangeTypePatch,
-		},
-		{
-			Type:                types.ChangeTypeMinor,
-			Comment:             "add bar feature",
-			PackageName:         "bar",
-			Email:               "test@test.com",
-			DependentChangeType: types.ChangeTypePatch,
-		},
+		testutil.GetChange("foo", "fix foo", types.ChangeTypePatch),
+		testutil.GetChange("bar", "add bar feature", types.ChangeTypeMinor),
 	}
 
 	err := changefile.WriteChangeFiles(&opts, changes)
@@ -89,13 +77,7 @@ func TestWriteChangeFiles_RespectsChangeDirOption(t *testing.T) {
 	opts.ChangeDir = "my-changes"
 
 	changes := []types.ChangeFileInfo{
-		{
-			Type:                types.ChangeTypePatch,
-			Comment:             "test change",
-			PackageName:         "foo",
-			Email:               "test@test.com",
-			DependentChangeType: types.ChangeTypePatch,
-		},
+		testutil.GetChange("foo", "test change", types.ChangeTypePatch),
 	}
 
 	err := changefile.WriteChangeFiles(&opts, changes)
@@ -135,13 +117,7 @@ func TestWriteChangeFiles_RespectsCommitFalse(t *testing.T) {
 	opts.Commit = false
 
 	changes := []types.ChangeFileInfo{
-		{
-			Type:                types.ChangeTypePatch,
-			Comment:             "uncommitted change",
-			PackageName:         "foo",
-			Email:               "test@test.com",
-			DependentChangeType: types.ChangeTypePatch,
-		},
+		testutil.GetChange("foo", "uncommitted change", types.ChangeTypePatch),
 	}
 
 	err := changefile.WriteChangeFiles(&opts, changes)
@@ -169,20 +145,8 @@ func TestWriteChangeFiles_WritesGroupedChangeFiles(t *testing.T) {
 	opts.GroupChanges = true
 
 	changes := []types.ChangeFileInfo{
-		{
-			Type:                types.ChangeTypePatch,
-			Comment:             "fix foo",
-			PackageName:         "foo",
-			Email:               "test@test.com",
-			DependentChangeType: types.ChangeTypePatch,
-		},
-		{
-			Type:                types.ChangeTypeMinor,
-			Comment:             "add bar feature",
-			PackageName:         "bar",
-			Email:               "test@test.com",
-			DependentChangeType: types.ChangeTypePatch,
-		},
+		testutil.GetChange("foo", "fix foo", types.ChangeTypePatch),
+		testutil.GetChange("bar", "add bar feature", types.ChangeTypeMinor),
 	}
 
 	err := changefile.WriteChangeFiles(&opts, changes)
