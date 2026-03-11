@@ -46,8 +46,13 @@ func GetParsedOptions(cwd string, cli types.CliOptions) (types.ParsedOptions, er
 
 // GetParsedOptionsForTest creates parsed options for testing with explicit overrides.
 // opts is the repo options as if from the beachball config file.
+// cwd is used as opts.Path if opts.Path is empty.
 // NOTE: Properties of opts currently are not deep-copied (only matters for slices).
 func GetParsedOptionsForTest(cwd string, cli types.CliOptions, opts types.BeachballOptions) types.ParsedOptions {
+	if opts.Path == "" {
+		opts.Path = cwd
+	}
+
 	// Apply CLI overrides
 	applyCliOptions(&opts, &cli)
 
