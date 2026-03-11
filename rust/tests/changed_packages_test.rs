@@ -8,7 +8,7 @@ use beachball::types::options::{BeachballOptions, CliOptions};
 use common::change_files::generate_change_files;
 use common::repository_factory::RepositoryFactory;
 use common::{
-    DEFAULT_BRANCH, DEFAULT_REMOTE_BRANCH, capture_logging, get_log_output, reset_logging,
+    DEFAULT_BRANCH, DEFAULT_REMOTE_BRANCH, capture_verbose_logging, get_log_output, reset_logging,
 };
 use serde_json::json;
 use std::collections::HashMap;
@@ -89,7 +89,7 @@ fn returns_package_name_when_changes_in_branch() {
         verbose: true,
         ..Default::default()
     };
-    capture_logging();
+    capture_verbose_logging();
     let (options, infos, scoped) = get_options_and_packages(&repo, Some(opts), None);
     let result = get_changed_packages(&options, &infos, &scoped).unwrap();
     let output = get_log_output();
@@ -198,13 +198,14 @@ fn respects_ignore_patterns() {
     repo.write_file_content("yarn.lock", "changed");
     repo.git(&["add", "-A"]);
 
-    capture_logging();
+    capture_verbose_logging();
     let result = get_changed_packages(&options, &infos, &scoped).unwrap();
     let output = get_log_output();
     reset_logging();
 
     assert!(result.is_empty());
     assert!(output.contains("ignored by pattern"));
+    assert!(output.contains("All files were ignored"));
 }
 
 // ===== Monorepo tests =====
@@ -242,13 +243,14 @@ fn excludes_packages_with_existing_change_files() {
     let (options, infos, scoped) = get_options_and_packages(&repo, Some(opts), None);
     generate_change_files(&["foo"], &options, &repo);
 
-    capture_logging();
+    capture_verbose_logging();
     let result = get_changed_packages(&options, &infos, &scoped).unwrap();
     let output = get_log_output();
     reset_logging();
 
     assert!(result.is_empty(), "Expected empty but got: {result:?}");
     assert!(output.contains("already has change files for these packages"));
+    assert!(output.contains("Found 1 file in 1 package that should be published"));
 
     // Change bar => bar is the only changed package returned
     repo.stage_change("packages/bar/test.js");
@@ -309,7 +311,7 @@ fn ignores_package_changes_as_appropriate() {
         ..Default::default()
     };
 
-    capture_logging();
+    capture_verbose_logging();
     let (options, infos, scoped) = get_options_and_packages(&repo, Some(opts), None);
     let result = get_changed_packages(&options, &infos, &scoped).unwrap();
     let output = get_log_output();

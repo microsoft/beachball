@@ -14,10 +14,16 @@ use beachball::options::get_options::get_parsed_options_for_test;
 use beachball::types::options::{BeachballOptions, CliOptions};
 use beachball::types::package_info::{PackageInfo, PackageInfos};
 
-/// Start capturing log output for the current test thread.
+/// Start capturing log output for the current test thread (verbose disabled).
 #[allow(dead_code)]
 pub fn capture_logging() {
     beachball::logging::set_output();
+}
+
+/// Start capturing log output with verbose enabled.
+#[allow(dead_code)]
+pub fn capture_verbose_logging() {
+    beachball::logging::set_output_verbose();
 }
 
 /// Get captured log output as a string.

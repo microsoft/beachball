@@ -5,6 +5,7 @@ use std::path::Path;
 use crate::git::commands;
 use crate::git::ensure_shared_history::ensure_shared_history;
 use crate::log_info;
+use crate::log_verbose;
 use crate::monorepo::filter_ignored::filter_ignored_files;
 use crate::types::change_info::{ChangeFileInfo, ChangeInfoMultiple};
 use crate::types::options::BeachballOptions;
@@ -65,23 +66,23 @@ fn get_all_changed_packages(
     scoped_packages: &ScopedPackages,
 ) -> Result<Vec<String>> {
     let cwd = &options.path;
-    let verbose = options.verbose;
 
     // If --all, return all in-scope non-private packages
     if options.all {
-        if verbose {
-            log_info!(
-                "--all option was provided, so including all packages that are in scope (regardless of changes)"
-            );
+        log_verbose!(
+            "--all option was provided, so including all packages that are in scope (regardless of changes)"
+        );
+        let mut result: Vec<String> = Vec::new();
+        for pkg in package_infos.values() {
+            let (included, reason) = is_package_included(Some(pkg), scoped_packages);
+            if included {
+                log_verbose!("  - {}", pkg.name);
+                result.push(pkg.name.clone());
+            } else {
+                let short_reason = reason.strip_prefix(&format!("{} ", pkg.name)).unwrap_or(&reason);
+                log_verbose!("  - ~~{}~~ ({})", pkg.name, short_reason);
+            }
         }
-        let result: Vec<String> = package_infos
-            .values()
-            .filter(|pkg| {
-                let (included, _reason) = is_package_included(Some(pkg), scoped_packages);
-                included
-            })
-            .map(|pkg| pkg.name.clone())
-            .collect();
         return Ok(result);
     }
 
@@ -100,9 +101,9 @@ fn get_all_changed_packages(
     let staged = commands::get_staged_changes(cwd)?;
     changes.extend(staged);
 
-    if verbose {
+    {
         let count = changes.len();
-        log_info!(
+        log_verbose!(
             "Found {} changed file{} in current branch (before filtering)",
             count,
             if count == 1 { "" } else { "s" }
@@ -139,12 +140,10 @@ fn get_all_changed_packages(
         })
         .collect();
 
-    let non_ignored = filter_ignored_files(&changes, &expanded_patterns, verbose);
+    let non_ignored = filter_ignored_files(&changes, &expanded_patterns);
 
     if non_ignored.is_empty() {
-        if verbose {
-            log_info!("All files were ignored");
-        }
+        log_verbose!("All files were ignored");
         return Ok(vec![]);
     }
 
@@ -170,21 +169,17 @@ fn get_all_changed_packages(
         let (included, reason) = is_package_included(pkg_info, scoped_packages);
 
         if !included {
-            if verbose {
-                log_info!("  - ~~{file}~~ ({reason})");
-            }
+            log_verbose!("  - ~~{file}~~ ({reason})");
         } else {
             included_packages.insert(pkg_info.unwrap().name.clone());
             file_count += 1;
-            if verbose {
-                log_info!("  - {file}");
-            }
+            log_verbose!("  - {file}");
         }
     }
 
-    if verbose {
+    {
         let pkg_count = included_packages.len();
-        log_info!(
+        log_verbose!(
             "Found {} file{} in {} package{} that should be published",
             file_count,
             if file_count == 1 { "" } else { "s" },

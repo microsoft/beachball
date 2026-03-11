@@ -1,5 +1,6 @@
 use anyhow::{Result, bail};
 
+use crate::log_error;
 use crate::types::options::VersionGroupInclude;
 use crate::types::package_info::{PackageGroupInfo, PackageGroups, PackageInfos};
 
@@ -46,6 +47,12 @@ pub fn get_package_groups(
 
             // Check for multi-group membership
             if let Some(existing_group) = package_to_group.get(&info.name) {
+                log_error!(
+                    "Found package(s) belonging to multiple groups:\n - {}: {}, {}",
+                    info.name,
+                    existing_group,
+                    group.name
+                );
                 bail!(
                     "Package \"{}\" belongs to multiple groups: \"{}\" and \"{}\"",
                     info.name,

@@ -68,19 +68,36 @@ pub fn read_change_files(
             } else if let Ok(single) = serde_json::from_str::<ChangeFileInfo>(&contents) {
                 vec![single]
             } else {
-                log_warn!("Could not parse change file {filename}");
+                log_warn!("{} does not appear to be a change file", file_path.display());
                 continue;
             };
 
         for change in changes {
-            // Filter: package must exist, not be private, and be in scope
-            if !package_infos.contains_key(&change.package_name) {
+            // Warn about nonexistent/private packages
+            let warning_type = if !package_infos.contains_key(&change.package_name) {
+                Some("nonexistent")
+            } else if package_infos[&change.package_name].private {
+                Some("private")
+            } else {
+                None
+            };
+
+            if let Some(wt) = warning_type {
+                let resolution = if options.group_changes {
+                    "remove the entry from this file"
+                } else {
+                    "delete this file"
+                };
+                log_warn!(
+                    "Change detected for {} package {}; {}: {}",
+                    wt,
+                    change.package_name,
+                    resolution,
+                    file_path.display()
+                );
                 continue;
             }
-            let info = &package_infos[&change.package_name];
-            if info.private {
-                continue;
-            }
+
             if !scoped_packages.contains(&change.package_name) {
                 continue;
             }

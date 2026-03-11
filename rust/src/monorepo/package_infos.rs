@@ -1,6 +1,7 @@
 use anyhow::{Result, bail};
 use std::path::{Path, PathBuf};
 
+use crate::log_error;
 use crate::monorepo::workspace_manager::{detect_workspace_manager, get_workspace_patterns};
 use crate::types::options::BeachballOptions;
 use crate::types::package_info::{PackageInfo, PackageInfos, PackageJson, PackageOptions};
@@ -75,6 +76,14 @@ pub fn get_package_infos(options: &BeachballOptions) -> Result<PackageInfos> {
 fn add_package_info(infos: &mut PackageInfos, pkg_json_path: &PathBuf) -> Result<()> {
     if let Ok(info) = read_package_info(pkg_json_path) {
         if infos.contains_key(&info.name) {
+            log_error!(
+                "Two packages have the same name \"{}\". Please rename one of these packages:\n{}",
+                info.name,
+                crate::logging::bulleted_list(&[
+                    &infos[&info.name].package_json_path,
+                    &info.package_json_path,
+                ])
+            );
             bail!(
                 "Duplicate package name \"{}\" found at {} and {}",
                 info.name,

@@ -4,7 +4,9 @@ use beachball::types::options::BeachballOptions;
 use beachball::validation::are_change_files_deleted::are_change_files_deleted;
 use common::change_files::generate_change_files;
 use common::repository_factory::RepositoryFactory;
-use common::{DEFAULT_BRANCH, make_test_options};
+use common::{
+    DEFAULT_BRANCH, capture_logging, get_log_output, make_test_options, reset_logging,
+};
 
 // TS: "is false when no change files are deleted"
 #[test]
@@ -43,8 +45,12 @@ fn is_true_when_change_files_are_deleted() {
     repo.git(&["add", "-A"]);
     repo.git(&["commit", "-m", "delete change files"]);
 
+    capture_logging();
     let options = make_test_options(repo.root_path(), None);
     assert!(are_change_files_deleted(&options));
+    let output = get_log_output();
+    reset_logging();
+    assert!(output.contains("The following change files were deleted"));
 }
 
 // TS: "deletes change files when changeDir option is specified"
