@@ -2,6 +2,7 @@ package git
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -60,30 +61,32 @@ func FindGitRoot(cwd string) (string, error) {
 	return gitStdout([]string{"rev-parse", "--show-toplevel"}, cwd)
 }
 
-// FindProjectRoot walks up from cwd looking for a package.json with workspaces.
-// Falls back to git root.
-func FindProjectRoot(cwd string) (string, error) {
-	gitRoot, err := FindGitRoot(cwd)
-	if err != nil {
-		return "", err
-	}
+// managerFiles are workspace/monorepo manager config files, in precedence order.
+// Matches the workspace-tools detection order.
+var ManagerFiles = []string{
+	"lerna.json",
+	"rush.json",
+	"yarn.lock",
+	"pnpm-workspace.yaml",
+	"package-lock.json",
+}
 
+// SearchUp walks up the directory tree from cwd looking for any of the given files.
+// Returns the full path of the first match, or "" if none found.
+func SearchUp(files []string, cwd string) string {
 	absPath, err := filepath.Abs(cwd)
 	if err != nil {
-		return gitRoot, nil
+		return ""
 	}
-	gitRootAbs, _ := filepath.Abs(gitRoot)
+	root := filepath.VolumeName(absPath) + string(filepath.Separator)
 
 	dir := absPath
-	for {
-		pkgJSON := filepath.Join(dir, "package.json")
-		if data, err := readFileIfExists(pkgJSON); err == nil && data != nil {
-			if hasWorkspaces(data) {
-				return dir, nil
+	for dir != root {
+		for _, f := range files {
+			candidate := filepath.Join(dir, f)
+			if _, err := os.Stat(candidate); err == nil {
+				return candidate
 			}
-		}
-		if dir == gitRootAbs {
-			break
 		}
 		parent := filepath.Dir(dir)
 		if parent == dir {
@@ -91,8 +94,16 @@ func FindProjectRoot(cwd string) (string, error) {
 		}
 		dir = parent
 	}
+	return ""
+}
 
-	return gitRoot, nil
+// FindProjectRoot searches up from cwd for a workspace manager root,
+// falling back to the git root. Matches workspace-tools findProjectRoot.
+func FindProjectRoot(cwd string) (string, error) {
+	if found := SearchUp(ManagerFiles, cwd); found != "" {
+		return filepath.Dir(found), nil
+	}
+	return FindGitRoot(cwd)
 }
 
 // GetBranchName returns the current branch name.
