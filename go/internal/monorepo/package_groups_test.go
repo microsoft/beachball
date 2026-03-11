@@ -1,7 +1,7 @@
 package monorepo_test
 
 import (
-	"sort"
+	"slices"
 	"testing"
 
 	"github.com/microsoft/beachball/internal/monorepo"
@@ -36,7 +36,7 @@ func TestGetPackageGroups_ReturnsGroupsBasedOnSpecificFolders(t *testing.T) {
 	assert.Len(t, result, 1)
 	grp := result["grp1"]
 	assert.NotNil(t, grp)
-	sort.Strings(grp.Packages)
+	slices.Sort(grp.Packages)
 	assert.Equal(t, []string{"bar", "foo"}, grp.Packages)
 }
 
@@ -55,7 +55,7 @@ func TestGetPackageGroups_HandlesSingleLevelGlobs(t *testing.T) {
 	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["ui"]
 	assert.NotNil(t, grp)
-	sort.Strings(grp.Packages)
+	slices.Sort(grp.Packages)
 	assert.Equal(t, []string{"ui-button", "ui-input"}, grp.Packages)
 }
 
@@ -74,7 +74,7 @@ func TestGetPackageGroups_HandlesMultiLevelGlobs(t *testing.T) {
 	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["ui"]
 	assert.NotNil(t, grp)
-	sort.Strings(grp.Packages)
+	slices.Sort(grp.Packages)
 	assert.Equal(t, []string{"ui-button", "ui-input"}, grp.Packages)
 }
 
@@ -93,7 +93,7 @@ func TestGetPackageGroups_HandlesMultipleIncludePatterns(t *testing.T) {
 	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["mixed"]
 	assert.NotNil(t, grp)
-	sort.Strings(grp.Packages)
+	slices.Sort(grp.Packages)
 	assert.Equal(t, []string{"bar", "foo"}, grp.Packages)
 }
 
@@ -113,7 +113,7 @@ func TestGetPackageGroups_HandlesExcludePatterns(t *testing.T) {
 	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["public"]
 	assert.NotNil(t, grp)
-	sort.Strings(grp.Packages)
+	slices.Sort(grp.Packages)
 	assert.Equal(t, []string{"bar", "foo"}, grp.Packages)
 }
 
@@ -133,7 +133,7 @@ func TestGetPackageGroups_HandlesGlobExclude(t *testing.T) {
 	result := monorepo.GetPackageGroups(infos, root, groups)
 	grp := result["non-core"]
 	assert.NotNil(t, grp)
-	sort.Strings(grp.Packages)
+	slices.Sort(grp.Packages)
 	assert.Equal(t, []string{"ui-button", "ui-input"}, grp.Packages)
 }
 

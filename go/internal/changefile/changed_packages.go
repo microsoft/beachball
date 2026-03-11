@@ -3,8 +3,10 @@ package changefile
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/microsoft/beachball/internal/git"
 	"github.com/microsoft/beachball/internal/logging"
@@ -216,10 +218,7 @@ func GetChangedPackages(options *types.BeachballOptions, packageInfos types.Pack
 	}
 
 	if len(existingPackages) > 0 {
-		var sorted []string
-		for name := range existingPackages {
-			sorted = append(sorted, name)
-		}
+		sorted := slices.Sorted(maps.Keys(existingPackages))
 		logging.Info.Printf("Your local repository already has change files for these packages:\n%s",
 			logging.BulletedList(sorted))
 	}

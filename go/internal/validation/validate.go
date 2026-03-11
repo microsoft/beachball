@@ -3,7 +3,6 @@ package validation
 import (
 	"fmt"
 	"slices"
-	"sort"
 	"strings"
 
 	"github.com/microsoft/beachball/internal/changefile"
@@ -142,9 +141,7 @@ func Validate(parsed types.ParsedOptions, validateOpts ValidateOptions) (*Valida
 			} else if len(options.Package) > 0 {
 				msg = "Considering the specific --package"
 			}
-			sorted := make([]string, len(changedPackages))
-			copy(sorted, changedPackages)
-			sort.Strings(sorted)
+			sorted := slices.Sorted(slices.Values(changedPackages))
 			logging.Info.Printf("%s:\n%s\n", msg, logging.BulletedList(sorted))
 		}
 

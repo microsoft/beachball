@@ -1,7 +1,7 @@
 package changefile_test
 
 import (
-	"sort"
+	"slices"
 	"testing"
 
 	"github.com/microsoft/beachball/internal/changefile"
@@ -112,7 +112,7 @@ func TestReturnsAllPackagesWithAllTrue(t *testing.T) {
 	opts, infos, scoped := getOptionsAndPackages(t, repo, &overrides, nil)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
 	require.NoError(t, err)
-	sort.Strings(result)
+	slices.Sort(result)
 	assert.Equal(t, []string{"a", "b", "bar", "baz", "foo"}, result)
 }
 
