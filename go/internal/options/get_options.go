@@ -45,51 +45,9 @@ func GetParsedOptions(cwd string, cli types.CliOptions) (types.ParsedOptions, er
 }
 
 // GetParsedOptionsForTest creates parsed options for testing with explicit overrides.
-func GetParsedOptionsForTest(cwd string, cli types.CliOptions, repoOpts types.BeachballOptions) types.ParsedOptions {
-	opts := types.DefaultOptions()
-	opts.Path = cwd
-
-	// Apply repo overrides
-	if repoOpts.Branch != "" {
-		opts.Branch = repoOpts.Branch
-	}
-	if !repoOpts.Fetch {
-		opts.Fetch = false
-	}
-	if repoOpts.All {
-		opts.All = true
-	}
-	if repoOpts.Verbose {
-		opts.Verbose = true
-	}
-	if repoOpts.Commit {
-		opts.Commit = repoOpts.Commit
-	}
-	if !repoOpts.Commit {
-		opts.Commit = false
-	}
-	if repoOpts.ChangeDir != "" {
-		opts.ChangeDir = repoOpts.ChangeDir
-	}
-	if repoOpts.IgnorePatterns != nil {
-		opts.IgnorePatterns = repoOpts.IgnorePatterns
-	}
-	if repoOpts.Scope != nil {
-		opts.Scope = repoOpts.Scope
-	}
-	if repoOpts.Path != "" {
-		opts.Path = repoOpts.Path
-	}
-	if repoOpts.DisallowDeletedChangeFiles {
-		opts.DisallowDeletedChangeFiles = true
-	}
-	if repoOpts.Groups != nil {
-		opts.Groups = repoOpts.Groups
-	}
-	if repoOpts.GroupChanges {
-		opts.GroupChanges = true
-	}
-
+// opts is the repo options as if from the beachball config file.
+// NOTE: Properties of opts currently are not deep-copied (only matters for slices).
+func GetParsedOptionsForTest(cwd string, cli types.CliOptions, opts types.BeachballOptions) types.ParsedOptions {
 	// Apply CLI overrides
 	applyCliOptions(&opts, &cli)
 
@@ -97,6 +55,9 @@ func GetParsedOptionsForTest(cwd string, cli types.CliOptions, repoOpts types.Be
 }
 
 func applyRepoConfig(opts *types.BeachballOptions, cfg *RepoConfig) {
+	if cfg.AuthType != "" {
+		opts.AuthType = types.AuthType(cfg.AuthType)
+	}
 	if cfg.Branch != "" {
 		opts.Branch = cfg.Branch
 	}

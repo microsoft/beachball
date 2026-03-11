@@ -11,6 +11,7 @@ import (
 
 // RepoConfig represents beachball config found in a JSON file or package.json.
 type RepoConfig struct {
+	AuthType                   string                      `json:"authType,omitempty"`
 	Branch                     string                      `json:"branch,omitempty"`
 	ChangeDir                  string                      `json:"changeDir,omitempty"`
 	ChangeHint                 string                      `json:"changehint,omitempty"`
