@@ -105,10 +105,14 @@ func applyRepoConfig(opts *types.BeachballOptions, cfg *RepoConfig) {
 		opts.Commit = *cfg.Commit
 	}
 	if cfg.DependentChangeType != "" {
-		opts.DependentChangeType = cfg.DependentChangeType
+		opts.DependentChangeType = types.ChangeType(cfg.DependentChangeType)
 	}
 	if cfg.DisallowedChangeTypes != nil {
-		opts.DisallowedChangeTypes = cfg.DisallowedChangeTypes
+		dct := make([]types.ChangeType, len(cfg.DisallowedChangeTypes))
+		for i, s := range cfg.DisallowedChangeTypes {
+			dct[i] = types.ChangeType(s)
+		}
+		opts.DisallowedChangeTypes = dct
 	}
 	if cfg.DisallowDeletedChangeFiles != nil {
 		opts.DisallowDeletedChangeFiles = *cfg.DisallowDeletedChangeFiles
@@ -141,13 +145,13 @@ func applyCliOptions(opts *types.BeachballOptions, cli *types.CliOptions) {
 		opts.Command = cli.Command
 	}
 	if cli.ChangeType != "" {
-		opts.Type = cli.ChangeType
+		opts.Type = types.ChangeType(cli.ChangeType)
 	}
 	if cli.Commit != nil {
 		opts.Commit = *cli.Commit
 	}
 	if cli.DependentChangeType != "" {
-		opts.DependentChangeType = cli.DependentChangeType
+		opts.DependentChangeType = types.ChangeType(cli.DependentChangeType)
 	}
 	if cli.Fetch != nil {
 		opts.Fetch = *cli.Fetch

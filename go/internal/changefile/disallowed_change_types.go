@@ -13,7 +13,7 @@ func GetDisallowedChangeTypes(
 	packageInfos types.PackageInfos,
 	packageGroups types.PackageGroups,
 	opts *types.BeachballOptions,
-) []string {
+) []types.ChangeType {
 	// Check group-level disallowed types first (group takes priority)
 	for _, group := range packageGroups {
 		if group.DisallowedChangeTypes != nil && slices.Contains(group.Packages, pkgName) {

@@ -1,17 +1,25 @@
 package types
 
+// AuthType represents the authentication type for npm registry.
+type AuthType string
+
+const (
+	AuthTypeAuthToken AuthType = "authtoken"
+	AuthTypePassword  AuthType = "password"
+)
+
 // BeachballOptions holds all beachball configuration.
 // TODO: this mixes RepoOptions and merged options
 type BeachballOptions struct {
 	All                        bool
-	AuthType                   string
+	AuthType                   AuthType
 	Branch                     string
 	ChangeDir                  string
 	ChangeHint                 string
 	Command                    string
 	Commit                     bool
-	DependentChangeType        string
-	DisallowedChangeTypes      []string
+	DependentChangeType        ChangeType
+	DisallowedChangeTypes      []ChangeType
 	DisallowDeletedChangeFiles bool
 	Fetch                      bool
 	GroupChanges               bool
@@ -22,7 +30,7 @@ type BeachballOptions struct {
 	Path                       string
 	Scope                      []string
 	Token                      string
-	Type                       string
+	Type                       ChangeType
 	Verbose                    bool
 }
 
@@ -30,7 +38,7 @@ type BeachballOptions struct {
 // TODO: better default path value, or require path passed?
 func DefaultOptions() BeachballOptions {
 	return BeachballOptions{
-		AuthType:   "authtoken",
+		AuthType:   AuthTypeAuthToken,
 		Branch:     "origin/master",
 		ChangeDir:  "change",
 		ChangeHint: "Run 'beachball change' to create a change file",
@@ -42,17 +50,17 @@ func DefaultOptions() BeachballOptions {
 
 // PackageOptions represents beachball-specific options in package.json.
 type PackageOptions struct {
-	ShouldPublish          *bool    `json:"shouldPublish,omitempty"`
-	DisallowedChangeTypes  []string `json:"disallowedChangeTypes,omitempty"`
-	DefaultNearestBumpType string   `json:"defaultNearestBumpType,omitempty"`
+	ShouldPublish          *bool        `json:"shouldPublish,omitempty"`
+	DisallowedChangeTypes  []ChangeType `json:"disallowedChangeTypes,omitempty"`
+	DefaultNearestBumpType string       `json:"defaultNearestBumpType,omitempty"`
 }
 
 // VersionGroupOptions configures version groups.
 type VersionGroupOptions struct {
-	Name                  string   `json:"name"`
-	Include               []string `json:"include"`
-	Exclude               []string `json:"exclude,omitempty"`
-	DisallowedChangeTypes []string `json:"disallowedChangeTypes,omitempty"`
+	Name                  string       `json:"name"`
+	Include               []string     `json:"include"`
+	Exclude               []string     `json:"exclude,omitempty"`
+	DisallowedChangeTypes []ChangeType `json:"disallowedChangeTypes,omitempty"`
 }
 
 // CliOptions holds CLI-specific options that override config.

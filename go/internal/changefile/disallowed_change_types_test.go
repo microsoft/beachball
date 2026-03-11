@@ -26,23 +26,23 @@ func TestGetDisallowedChangeTypes_FallsBackToMainOption(t *testing.T) {
 	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
 	groups := types.PackageGroups{}
 	opts := &types.BeachballOptions{}
-	opts.DisallowedChangeTypes = []string{"major"}
+	opts.DisallowedChangeTypes = []types.ChangeType{types.ChangeTypeMajor}
 
 	result := changefile.GetDisallowedChangeTypes("foo", infos, groups, opts)
-	assert.Equal(t, []string{"major"}, result)
+	assert.Equal(t, []types.ChangeType{types.ChangeTypeMajor}, result)
 }
 
 // returns disallowedChangeTypes for package
 func TestGetDisallowedChangeTypes_ReturnsPackageLevelDisallowedTypes(t *testing.T) {
 	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
 	infos["foo"].PackageOptions = &types.PackageOptions{
-		DisallowedChangeTypes: []string{"major", "minor"},
+		DisallowedChangeTypes: []types.ChangeType{types.ChangeTypeMajor, types.ChangeTypeMinor},
 	}
 	groups := types.PackageGroups{}
 	opts := &types.BeachballOptions{}
 
 	result := changefile.GetDisallowedChangeTypes("foo", infos, groups, opts)
-	assert.Equal(t, []string{"major", "minor"}, result)
+	assert.Equal(t, []types.ChangeType{types.ChangeTypeMajor, types.ChangeTypeMinor}, result)
 }
 
 // Not possible (Go doesn't distinguish between null and unset):
@@ -52,13 +52,13 @@ func TestGetDisallowedChangeTypes_ReturnsPackageLevelDisallowedTypes(t *testing.
 func TestGetDisallowedChangeTypes_ReturnsEmptyArrayForEmptyPackageDisallowedTypes(t *testing.T) {
 	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
 	infos["foo"].PackageOptions = &types.PackageOptions{
-		DisallowedChangeTypes: []string{},
+		DisallowedChangeTypes: []types.ChangeType{},
 	}
 	groups := types.PackageGroups{}
 	opts := &types.BeachballOptions{}
 
 	result := changefile.GetDisallowedChangeTypes("foo", infos, groups, opts)
-	assert.Equal(t, []string{}, result)
+	assert.Equal(t, []types.ChangeType{}, result)
 }
 
 // returns disallowedChangeTypes for package group
@@ -68,13 +68,13 @@ func TestGetDisallowedChangeTypes_ReturnsGroupLevelDisallowedTypes(t *testing.T)
 		"grp1": &types.PackageGroup{
 			Name:                  "grp1",
 			Packages:              []string{"foo"},
-			DisallowedChangeTypes: []string{"major", "minor"},
+			DisallowedChangeTypes: []types.ChangeType{types.ChangeTypeMajor, types.ChangeTypeMinor},
 		},
 	}
 	opts := &types.BeachballOptions{}
 
 	result := changefile.GetDisallowedChangeTypes("foo", infos, groups, opts)
-	assert.Equal(t, []string{"major", "minor"}, result)
+	assert.Equal(t, []types.ChangeType{types.ChangeTypeMajor, types.ChangeTypeMinor}, result)
 }
 
 // Not possible (Go doesn't distinguish between null and unset):
@@ -87,49 +87,49 @@ func TestGetDisallowedChangeTypes_ReturnsEmptyArrayForEmptyGroupDisallowedTypes(
 		"grp1": &types.PackageGroup{
 			Name:                  "grp1",
 			Packages:              []string{"foo"},
-			DisallowedChangeTypes: []string{},
+			DisallowedChangeTypes: []types.ChangeType{},
 		},
 	}
 	opts := &types.BeachballOptions{}
 
 	result := changefile.GetDisallowedChangeTypes("foo", infos, groups, opts)
-	assert.Equal(t, []string{}, result)
+	assert.Equal(t, []types.ChangeType{}, result)
 }
 
 // returns disallowedChangeTypes for package if not in a group
 func TestGetDisallowedChangeTypes_ReturnsPackageDisallowedTypesIfNotInGroup(t *testing.T) {
 	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
 	infos["foo"].PackageOptions = &types.PackageOptions{
-		DisallowedChangeTypes: []string{"patch"},
+		DisallowedChangeTypes: []types.ChangeType{types.ChangeTypePatch},
 	}
 	groups := types.PackageGroups{
 		"grp1": &types.PackageGroup{
 			Name:                  "grp1",
 			Packages:              []string{"bar"},
-			DisallowedChangeTypes: []string{"major", "minor"},
+			DisallowedChangeTypes: []types.ChangeType{types.ChangeTypeMajor, types.ChangeTypeMinor},
 		},
 	}
 	opts := &types.BeachballOptions{}
 
 	result := changefile.GetDisallowedChangeTypes("foo", infos, groups, opts)
-	assert.Equal(t, []string{"patch"}, result)
+	assert.Equal(t, []types.ChangeType{types.ChangeTypePatch}, result)
 }
 
 // prefers disallowedChangeTypes for group over package
 func TestGetDisallowedChangeTypes_PrefersGroupOverPackage(t *testing.T) {
 	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
 	infos["foo"].PackageOptions = &types.PackageOptions{
-		DisallowedChangeTypes: []string{"patch"},
+		DisallowedChangeTypes: []types.ChangeType{types.ChangeTypePatch},
 	}
 	groups := types.PackageGroups{
 		"grp1": &types.PackageGroup{
 			Name:                  "grp1",
 			Packages:              []string{"foo"},
-			DisallowedChangeTypes: []string{"major", "minor"},
+			DisallowedChangeTypes: []types.ChangeType{types.ChangeTypeMajor, types.ChangeTypeMinor},
 		},
 	}
 	opts := &types.BeachballOptions{}
 
 	result := changefile.GetDisallowedChangeTypes("foo", infos, groups, opts)
-	assert.Equal(t, []string{"major", "minor"}, result)
+	assert.Equal(t, []types.ChangeType{types.ChangeTypeMajor, types.ChangeTypeMinor}, result)
 }

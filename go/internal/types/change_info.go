@@ -6,57 +6,45 @@ import (
 )
 
 // ChangeType represents the type of version bump.
-type ChangeType int
+type ChangeType string
 
 const (
-	ChangeTypeNone ChangeType = iota
-	ChangeTypePrerelease
-	ChangeTypePrepatch
-	ChangeTypePatch
-	ChangeTypePreminor
-	ChangeTypeMinor
-	ChangeTypePremajor
-	ChangeTypeMajor
+	ChangeTypeNone       ChangeType = "none"
+	ChangeTypePrerelease ChangeType = "prerelease"
+	ChangeTypePrepatch   ChangeType = "prepatch"
+	ChangeTypePatch      ChangeType = "patch"
+	ChangeTypePreminor   ChangeType = "preminor"
+	ChangeTypeMinor      ChangeType = "minor"
+	ChangeTypePremajor   ChangeType = "premajor"
+	ChangeTypeMajor      ChangeType = "major"
 )
 
-var changeTypeStrings = map[ChangeType]string{
-	ChangeTypeNone:       "none",
-	ChangeTypePrerelease: "prerelease",
-	ChangeTypePrepatch:   "prepatch",
-	ChangeTypePatch:      "patch",
-	ChangeTypePreminor:   "preminor",
-	ChangeTypeMinor:      "minor",
-	ChangeTypePremajor:   "premajor",
-	ChangeTypeMajor:      "major",
-}
-
-var stringToChangeType = map[string]ChangeType{
-	"none":       ChangeTypeNone,
-	"prerelease": ChangeTypePrerelease,
-	"prepatch":   ChangeTypePrepatch,
-	"patch":      ChangeTypePatch,
-	"preminor":   ChangeTypePreminor,
-	"minor":      ChangeTypeMinor,
-	"premajor":   ChangeTypePremajor,
-	"major":      ChangeTypeMajor,
+var validChangeTypes = map[ChangeType]bool{
+	ChangeTypeNone:       true,
+	ChangeTypePrerelease: true,
+	ChangeTypePrepatch:   true,
+	ChangeTypePatch:      true,
+	ChangeTypePreminor:   true,
+	ChangeTypeMinor:      true,
+	ChangeTypePremajor:   true,
+	ChangeTypeMajor:      true,
 }
 
 func (c ChangeType) String() string {
-	if s, ok := changeTypeStrings[c]; ok {
-		return s
-	}
-	return "unknown"
+	return string(c)
 }
 
+// ParseChangeType validates and returns a ChangeType from a string.
 func ParseChangeType(s string) (ChangeType, error) {
-	if ct, ok := stringToChangeType[s]; ok {
+	ct := ChangeType(s)
+	if validChangeTypes[ct] {
 		return ct, nil
 	}
-	return ChangeTypeNone, fmt.Errorf("invalid change type: %q", s)
+	return "", fmt.Errorf("invalid change type: %q", s)
 }
 
 func (c ChangeType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.String())
+	return json.Marshal(string(c))
 }
 
 func (c *ChangeType) UnmarshalJSON(data []byte) error {
@@ -74,8 +62,7 @@ func (c *ChangeType) UnmarshalJSON(data []byte) error {
 
 // IsValidChangeType checks if a string is a valid change type.
 func IsValidChangeType(s string) bool {
-	_, ok := stringToChangeType[s]
-	return ok
+	return validChangeTypes[ChangeType(s)]
 }
 
 // ChangeFileInfo is the info saved in each change file.

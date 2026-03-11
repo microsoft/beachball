@@ -76,7 +76,7 @@ func Validate(parsed types.ParsedOptions, validateOpts ValidateOptions) (*Valida
 	if options.Command == "publish" && options.Token != "" {
 		if options.Token == "" {
 			logError("token should not be an empty string")
-		} else if strings.HasPrefix(options.Token, "$") && options.AuthType != "password" {
+		} else if strings.HasPrefix(options.Token, "$") && options.AuthType != types.AuthTypePassword {
 			logError(fmt.Sprintf("token appears to be a variable reference: %q", options.Token))
 		}
 	}
@@ -96,25 +96,25 @@ func Validate(parsed types.ParsedOptions, validateOpts ValidateOptions) (*Valida
 	for _, entry := range changeSet {
 		disallowed := changefile.GetDisallowedChangeTypes(entry.Change.PackageName, packageInfos, packageGroups, options)
 
-		changeTypeStr := entry.Change.Type.String()
-		if changeTypeStr == "" {
+		changeType := entry.Change.Type
+		if changeType == "" {
 			logError(fmt.Sprintf("Change type is missing in %s", entry.ChangeFile))
-		} else if !IsValidChangeType(changeTypeStr) {
-			logError(fmt.Sprintf("Invalid change type detected in %s: %q", entry.ChangeFile, changeTypeStr))
+		} else if !IsValidChangeType(changeType) {
+			logError(fmt.Sprintf("Invalid change type detected in %s: %q", entry.ChangeFile, changeType))
 		} else {
 			for _, d := range disallowed {
-				if changeTypeStr == d {
-					logError(fmt.Sprintf("Disallowed change type detected in %s: %q", entry.ChangeFile, changeTypeStr))
+				if changeType == d {
+					logError(fmt.Sprintf("Disallowed change type detected in %s: %q", entry.ChangeFile, changeType))
 					break
 				}
 			}
 		}
 
-		depTypeStr := entry.Change.DependentChangeType.String()
-		if depTypeStr == "" {
+		depType := entry.Change.DependentChangeType
+		if depType == "" {
 			logError(fmt.Sprintf("dependentChangeType is missing in %s", entry.ChangeFile))
-		} else if !IsValidDependentChangeType(depTypeStr, disallowed) {
-			logError(fmt.Sprintf("Invalid dependentChangeType detected in %s: %q", entry.ChangeFile, depTypeStr))
+		} else if !IsValidDependentChangeType(depType, disallowed) {
+			logError(fmt.Sprintf("Invalid dependentChangeType detected in %s: %q", entry.ChangeFile, depType))
 		}
 	}
 

@@ -27,9 +27,9 @@ func Change(parsed types.ParsedOptions) error {
 
 	options := &parsed.Options
 
-	changeType, err := types.ParseChangeType(options.Type)
-	if err != nil {
-		return fmt.Errorf("invalid change type %q: %w", options.Type, err)
+	changeType := options.Type
+	if changeType == "" {
+		return fmt.Errorf("--type is required for non-interactive change")
 	}
 
 	message := options.Message
@@ -41,10 +41,7 @@ func Change(parsed types.ParsedOptions) error {
 
 	depChangeType := changeType
 	if options.DependentChangeType != "" {
-		depChangeType, err = types.ParseChangeType(options.DependentChangeType)
-		if err != nil {
-			return fmt.Errorf("invalid dependent change type: %w", err)
-		}
+		depChangeType = options.DependentChangeType
 	}
 
 	changedPackages := result.ChangedPackages

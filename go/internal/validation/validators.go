@@ -1,31 +1,30 @@
 package validation
 
-import "github.com/microsoft/beachball/internal/types"
+import (
+	"slices"
 
-var validAuthTypes = map[string]bool{
-	"authtoken": true,
-	"password":  true,
+	"github.com/microsoft/beachball/internal/types"
+)
+
+var validAuthTypes = map[types.AuthType]bool{
+	types.AuthTypeAuthToken: true,
+	types.AuthTypePassword:  true,
 }
 
 // IsValidAuthType checks if the auth type is valid.
-func IsValidAuthType(authType string) bool {
+func IsValidAuthType(authType types.AuthType) bool {
 	return validAuthTypes[authType]
 }
 
-// IsValidChangeType checks if a change type string is valid.
-func IsValidChangeType(s string) bool {
-	return types.IsValidChangeType(s)
+// IsValidChangeType checks if a change type is valid.
+func IsValidChangeType(ct types.ChangeType) bool {
+	return types.IsValidChangeType(string(ct))
 }
 
 // IsValidDependentChangeType checks if a dependent change type is valid.
-func IsValidDependentChangeType(s string, disallowed []string) bool {
-	if !types.IsValidChangeType(s) {
+func IsValidDependentChangeType(ct types.ChangeType, disallowed []types.ChangeType) bool {
+	if !types.IsValidChangeType(string(ct)) {
 		return false
 	}
-	for _, d := range disallowed {
-		if s == d {
-			return false
-		}
-	}
-	return true
+	return !slices.Contains(disallowed, ct)
 }

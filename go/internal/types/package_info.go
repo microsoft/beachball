@@ -29,7 +29,7 @@ type ScopedPackages map[string]bool
 type PackageGroup struct {
 	Name                  string
 	Packages              []string
-	DisallowedChangeTypes []string
+	DisallowedChangeTypes []ChangeType
 }
 
 // PackageGroups maps group name to group info.
