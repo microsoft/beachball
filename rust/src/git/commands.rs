@@ -1,5 +1,5 @@
 use anyhow::{Context, Result, bail};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 /// Result of running a git command.
@@ -46,35 +46,46 @@ pub fn find_git_root(cwd: &str) -> Result<String> {
     git_stdout(&["rev-parse", "--show-toplevel"], cwd)
 }
 
-/// Find the project root (directory with package.json containing "workspaces", or git root).
-pub fn find_project_root(cwd: &str) -> Result<String> {
-    let git_root = find_git_root(cwd)?;
+/// Workspace/monorepo manager config files, in precedence order matching workspace-tools.
+pub const MANAGER_FILES: &[&str] = &[
+    "lerna.json",
+    "rush.json",
+    "yarn.lock",
+    "pnpm-workspace.yaml",
+    "package-lock.json",
+];
 
-    // Walk from cwd up to git root looking for package.json with workspaces
+/// Walk up the directory tree from `cwd` looking for any of the given files.
+/// Returns the full path of the first match, or None if not found.
+pub fn search_up(files: &[&str], cwd: &str) -> Option<PathBuf> {
     let mut dir = Path::new(cwd).to_path_buf();
-    let git_root_path = Path::new(&git_root);
+    if let Ok(abs) = std::fs::canonicalize(&dir) {
+        dir = abs;
+    }
 
     loop {
-        let pkg_json = dir.join("package.json");
-        if pkg_json.exists()
-            && let Ok(contents) = std::fs::read_to_string(&pkg_json)
-            && let Ok(pkg) =
-                serde_json::from_str::<crate::types::package_info::PackageJson>(&contents)
-            && pkg.workspaces.is_some()
-        {
-            return Ok(dir.to_string_lossy().to_string());
-        }
-
-        if dir == git_root_path {
-            break;
+        for f in files {
+            let candidate = dir.join(f);
+            if candidate.exists() {
+                return Some(candidate);
+            }
         }
         if !dir.pop() {
             break;
         }
     }
+    None
+}
 
-    // Fall back to git root
-    Ok(git_root)
+/// Find the project root by searching up for workspace manager config files,
+/// falling back to the git root. Matches workspace-tools findProjectRoot.
+pub fn find_project_root(cwd: &str) -> Result<String> {
+    if let Some(found) = search_up(MANAGER_FILES, cwd) {
+        if let Some(parent) = found.parent() {
+            return Ok(parent.to_string_lossy().to_string());
+        }
+    }
+    find_git_root(cwd)
 }
 
 /// Get the current branch name.

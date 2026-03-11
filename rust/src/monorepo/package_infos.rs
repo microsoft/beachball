@@ -1,26 +1,53 @@
 use anyhow::{Result, bail};
 use std::path::{Path, PathBuf};
 
+use crate::monorepo::workspace_manager::{detect_workspace_manager, get_workspace_patterns};
 use crate::types::options::BeachballOptions;
 use crate::types::package_info::{PackageInfo, PackageInfos, PackageJson, PackageOptions};
 
 /// Get package infos for all packages in the project.
 pub fn get_package_infos(options: &BeachballOptions) -> Result<PackageInfos> {
     let cwd = &options.path;
-    let root_pkg_path = Path::new(cwd).join("package.json");
-
-    if !root_pkg_path.exists() {
-        bail!("No package.json found at {cwd}");
-    }
-
-    let root_pkg: PackageJson = serde_json::from_str(&std::fs::read_to_string(&root_pkg_path)?)?;
-
     let mut infos = PackageInfos::new();
 
-    if let Some(ref workspaces) = root_pkg.workspaces {
-        // Monorepo: glob each workspace pattern
-        for ws_pattern in workspaces {
-            let full_pattern = Path::new(cwd).join(ws_pattern);
+    let manager = detect_workspace_manager(cwd);
+    let (patterns, literal) = get_workspace_patterns(cwd, manager);
+
+    if patterns.is_empty() {
+        // Single package repo
+        let root_pkg_path = Path::new(cwd).join("package.json");
+        if !root_pkg_path.exists() {
+            bail!("No package.json found at {cwd}");
+        }
+        let info = read_package_info(&root_pkg_path)?;
+        let name = info.name.clone();
+        infos.insert(name, info);
+        return Ok(infos);
+    }
+
+    // Monorepo: add root package if it exists
+    let root_pkg_path = Path::new(cwd).join("package.json");
+    if root_pkg_path.exists() {
+        if let Ok(info) = read_package_info(&root_pkg_path) {
+            if !info.name.is_empty() {
+                let name = info.name.clone();
+                infos.insert(name, info);
+            }
+        }
+    }
+
+    if literal {
+        // Rush: patterns are literal paths
+        for p in &patterns {
+            let pkg_json_path = Path::new(cwd).join(p).join("package.json");
+            if pkg_json_path.exists() {
+                add_package_info(&mut infos, &pkg_json_path)?;
+            }
+        }
+    } else {
+        // Glob-based managers (npm, yarn, pnpm, lerna)
+        for pattern in &patterns {
+            let full_pattern = Path::new(cwd).join(pattern);
             let pattern_str = full_pattern.to_string_lossy().to_string();
 
             let entries = glob::glob(&pattern_str)
@@ -28,33 +55,37 @@ pub fn get_package_infos(options: &BeachballOptions) -> Result<PackageInfos> {
 
             for entry in entries.flatten() {
                 let pkg_json_path = entry.join("package.json");
-                if pkg_json_path.exists()
-                    && let Ok(info) = read_package_info(&pkg_json_path)
-                {
-                    if infos.contains_key(&info.name) {
-                        bail!(
-                            "Duplicate package name \"{}\" found at {} and {}",
-                            info.name,
-                            infos[&info.name].package_json_path,
-                            info.package_json_path
-                        );
-                    }
-                    let name = info.name.clone();
-                    infos.insert(name, info);
+                let path_str = pkg_json_path.to_string_lossy();
+                if path_str.contains("node_modules") || path_str.contains("__fixtures__") {
+                    continue;
+                }
+                if pkg_json_path.exists() {
+                    add_package_info(&mut infos, &pkg_json_path)?;
                 }
             }
         }
-    } else {
-        // Single package repo
-        let info = read_package_info(&root_pkg_path)?;
-        let name = info.name.clone();
-        infos.insert(name, info);
     }
 
     // Apply package-level options from CLI if needed
     apply_package_options(&mut infos, options);
 
     Ok(infos)
+}
+
+fn add_package_info(infos: &mut PackageInfos, pkg_json_path: &PathBuf) -> Result<()> {
+    if let Ok(info) = read_package_info(pkg_json_path) {
+        if infos.contains_key(&info.name) {
+            bail!(
+                "Duplicate package name \"{}\" found at {} and {}",
+                info.name,
+                infos[&info.name].package_json_path,
+                info.package_json_path
+            );
+        }
+        let name = info.name.clone();
+        infos.insert(name, info);
+    }
+    Ok(())
 }
 
 fn read_package_info(pkg_json_path: &PathBuf) -> Result<PackageInfo> {
