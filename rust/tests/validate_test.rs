@@ -21,6 +21,7 @@ fn validate_wrapper(
     validate(&parsed, &validate_options)
 }
 
+// TS: "succeeds with no changes"
 #[test]
 fn succeeds_with_no_changes() {
     let factory = RepositoryFactory::new("monorepo");
@@ -43,6 +44,7 @@ fn succeeds_with_no_changes() {
     assert!(output.contains("Validating options and change files..."));
 }
 
+// TS: "exits with error by default if change files are needed"
 #[test]
 fn exits_with_error_if_change_files_needed() {
     let factory = RepositoryFactory::new("monorepo");
@@ -67,6 +69,7 @@ fn exits_with_error_if_change_files_needed() {
     assert!(output.contains("Found changes in the following packages"));
 }
 
+// TS: "returns and does not log an error if change files are needed and allowMissingChangeFiles is true"
 #[test]
 fn returns_without_error_if_allow_missing_change_files() {
     let factory = RepositoryFactory::new("monorepo");

@@ -27,6 +27,7 @@ fn make_repo_opts() -> BeachballOptions {
     }
 }
 
+// TS: "does not create change files when there are no changes"
 #[test]
 fn does_not_create_change_files_when_no_changes() {
     let factory = RepositoryFactory::new("single");
@@ -44,6 +45,7 @@ fn does_not_create_change_files_when_no_changes() {
     assert!(output.contains("No change files are needed"));
 }
 
+// TS: "creates and commits a change file" (non-interactive equivalent)
 #[test]
 fn creates_change_file_with_type_and_message() {
     let factory = RepositoryFactory::new("single");
@@ -74,6 +76,7 @@ fn creates_change_file_with_type_and_message() {
     assert_eq!(change.dependent_change_type, ChangeType::Patch);
 }
 
+// TS: "creates and stages a change file"
 #[test]
 fn creates_and_stages_a_change_file() {
     let factory = RepositoryFactory::new("single");
@@ -113,6 +116,7 @@ fn creates_and_stages_a_change_file() {
     assert!(output.contains("git staged these change files:"));
 }
 
+// TS: "creates and commits a change file"
 #[test]
 fn creates_and_commits_a_change_file() {
     let factory = RepositoryFactory::new("single");
@@ -140,6 +144,7 @@ fn creates_and_commits_a_change_file() {
     assert!(output.contains("git committed these change files:"));
 }
 
+// TS: "creates and commits a change file with changeDir set"
 #[test]
 fn creates_and_commits_a_change_file_with_change_dir() {
     let factory = RepositoryFactory::new("single");
@@ -172,6 +177,7 @@ fn creates_and_commits_a_change_file_with_change_dir() {
     assert_eq!(change.comment, "commit me please");
 }
 
+// TS: "creates a change file when there are no changes but package name is provided"
 #[test]
 fn creates_change_file_when_no_changes_but_package_provided() {
     let factory = RepositoryFactory::new("single");
@@ -199,6 +205,7 @@ fn creates_change_file_when_no_changes_but_package_provided() {
     assert_eq!(change.package_name, "foo");
 }
 
+// TS: "creates and commits change files for multiple packages"
 #[test]
 fn creates_and_commits_change_files_for_multiple_packages() {
     let factory = RepositoryFactory::new("monorepo");
@@ -229,6 +236,10 @@ fn creates_and_commits_change_files_for_multiple_packages() {
     assert_eq!(package_names, vec!["bar", "foo"]);
 }
 
+// Skipped TS tests:
+// - "uses custom per-package prompt" — interactive prompts not implemented
+
+// TS: "creates and commits grouped change file for multiple packages"
 #[test]
 fn creates_and_commits_grouped_change_file() {
     let factory = RepositoryFactory::new("monorepo");

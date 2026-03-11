@@ -4,6 +4,7 @@ use beachball::monorepo::package_groups::get_package_groups;
 use beachball::types::options::{VersionGroupInclude, VersionGroupOptions};
 use common::{fake_root, make_package_infos};
 
+// TS: "returns empty object if no groups are defined"
 #[test]
 fn returns_empty_if_no_groups_defined() {
     let root = fake_root();
@@ -12,6 +13,7 @@ fn returns_empty_if_no_groups_defined() {
     assert!(result.is_empty());
 }
 
+// TS: "returns groups based on specific folders"
 #[test]
 fn returns_groups_based_on_specific_folders() {
     let root = fake_root();
@@ -52,6 +54,7 @@ fn returns_groups_based_on_specific_folders() {
     assert_eq!(grp2_pkgs, vec!["pkg-c", "pkg-d"]);
 }
 
+// TS: "handles single-level globs"
 #[test]
 fn handles_single_level_globs() {
     let root = fake_root();
@@ -77,6 +80,7 @@ fn handles_single_level_globs() {
     assert_eq!(ui_pkgs, vec!["ui-pkg-1", "ui-pkg-2"]);
 }
 
+// TS: "handles multi-level globs"
 #[test]
 fn handles_multi_level_globs() {
     let root = fake_root();
@@ -102,6 +106,7 @@ fn handles_multi_level_globs() {
     assert_eq!(ui_pkgs, vec!["nested-a", "nested-b"]);
 }
 
+// TS: "handles multiple include patterns in a single group"
 #[test]
 fn handles_multiple_include_patterns() {
     let root = fake_root();
@@ -130,6 +135,7 @@ fn handles_multiple_include_patterns() {
     assert_eq!(pkgs, vec!["comp-b", "ui-a"]);
 }
 
+// TS: "handles specific exclude patterns"
 #[test]
 fn handles_specific_exclude_patterns() {
     let root = fake_root();
@@ -155,6 +161,7 @@ fn handles_specific_exclude_patterns() {
     assert_eq!(pkgs, vec!["pkg-a", "pkg-b"]);
 }
 
+// TS: "handles glob exclude patterns"
 #[test]
 fn handles_glob_exclude_patterns() {
     let root = fake_root();
@@ -178,6 +185,7 @@ fn handles_glob_exclude_patterns() {
     assert_eq!(result["non-core"].package_names, vec!["ui-a"]);
 }
 
+// TS: "exits with error if package belongs to multiple groups"
 #[test]
 fn errors_if_package_in_multiple_groups() {
     let root = fake_root();
@@ -207,6 +215,7 @@ fn errors_if_package_in_multiple_groups() {
     assert!(err_msg.contains("multiple groups"));
 }
 
+// TS: "omits empty groups"
 #[test]
 fn omits_empty_groups() {
     let root = fake_root();

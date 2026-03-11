@@ -20,6 +20,13 @@ fn make_infos_with_disallowed(name: &str, disallowed: Vec<ChangeType>) -> Packag
     infos
 }
 
+// Skipped TS tests (Rust uses Option<Vec> so null vs empty is handled differently):
+// - "returns null if package disallowedChangeTypes is set to null"
+// - "returns empty array if package disallowedChangeTypes is set to empty array"
+// - "returns null if package group disallowedChangeTypes is set to null"
+// - "returns empty array if package group disallowedChangeTypes is set to empty array"
+
+// TS: "returns null for unknown package"
 #[test]
 fn returns_none_for_unknown_package() {
     let infos = PackageInfos::new();
@@ -28,6 +35,7 @@ fn returns_none_for_unknown_package() {
     assert_eq!(result, None);
 }
 
+// TS: "falls back to main option for package without disallowedChangeTypes"
 #[test]
 fn falls_back_to_repo_option() {
     let infos = make_infos("foo");
@@ -38,6 +46,7 @@ fn falls_back_to_repo_option() {
     assert_eq!(result, Some(vec![ChangeType::Major]));
 }
 
+// TS: "returns disallowedChangeTypes for package"
 #[test]
 fn returns_package_level_disallowed() {
     let infos = make_infos_with_disallowed("foo", vec![ChangeType::Major, ChangeType::Minor]);
@@ -47,6 +56,7 @@ fn returns_package_level_disallowed() {
     assert_eq!(result, Some(vec![ChangeType::Major, ChangeType::Minor]));
 }
 
+// TS: "returns disallowedChangeTypes for package group"
 #[test]
 fn returns_group_level_disallowed() {
     let infos = make_infos("foo");
@@ -64,6 +74,7 @@ fn returns_group_level_disallowed() {
     assert_eq!(result, Some(vec![ChangeType::Major]));
 }
 
+// TS: "returns disallowedChangeTypes for package if not in a group"
 #[test]
 fn returns_package_level_if_not_in_group() {
     let infos = make_infos_with_disallowed("foo", vec![ChangeType::Minor]);
@@ -81,6 +92,7 @@ fn returns_package_level_if_not_in_group() {
     assert_eq!(result, Some(vec![ChangeType::Minor]));
 }
 
+// TS: "prefers disallowedChangeTypes for group over package"
 #[test]
 fn prefers_group_over_package() {
     let infos = make_infos_with_disallowed("foo", vec![ChangeType::Minor]);

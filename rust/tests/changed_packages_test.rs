@@ -38,8 +38,35 @@ fn check_out_test_branch(repo: &common::repository::Repository, name: &str) {
     repo.checkout(&["-b", &branch_name, DEFAULT_BRANCH]);
 }
 
-// ===== Basic tests =====
+// ===== Basic tests (TS: getChangedPackages (basic)) =====
 
+// TS: "throws if the remote is invalid"
+#[test]
+fn throws_if_the_remote_is_invalid() {
+    let factory = RepositoryFactory::new("monorepo");
+    let repo = factory.clone_repository();
+    repo.git(&["remote", "add", "foo", "file:///__nonexistent"]);
+    check_out_test_branch(&repo, "invalid-remote");
+    repo.commit_change("fake.js");
+
+    let opts = BeachballOptions {
+        fetch: true,
+        branch: "foo/master".to_string(),
+        ..Default::default()
+    };
+    let parsed = get_parsed_options_for_test(repo.root_path(), CliOptions::default(), opts);
+    let infos = get_package_infos(&parsed.options).unwrap();
+    let scoped = get_scoped_packages(&parsed.options, &infos);
+    let result = get_changed_packages(&parsed.options, &infos, &scoped);
+    assert!(result.is_err());
+    let err_msg = result.unwrap_err().to_string();
+    assert!(
+        err_msg.contains("Fetching branch") && err_msg.contains("failed"),
+        "expected fetch error, got: {err_msg}"
+    );
+}
+
+// TS: "returns empty list when no changes have been made"
 #[test]
 fn returns_empty_list_when_no_changes() {
     let factory = RepositoryFactory::new("monorepo");
@@ -50,6 +77,7 @@ fn returns_empty_list_when_no_changes() {
     assert!(result.is_empty());
 }
 
+// TS: "returns package name when changes exist in a new branch"
 #[test]
 fn returns_package_name_when_changes_in_branch() {
     let factory = RepositoryFactory::new("monorepo");
@@ -71,6 +99,7 @@ fn returns_package_name_when_changes_in_branch() {
     assert!(output.contains("Checking for changes against"));
 }
 
+// TS: "returns empty list when changes are CHANGELOG files"
 #[test]
 fn returns_empty_list_for_changelog_changes() {
     let factory = RepositoryFactory::new("monorepo");
@@ -83,6 +112,7 @@ fn returns_empty_list_for_changelog_changes() {
     assert!(result.is_empty());
 }
 
+// TS: "returns the given package name(s) as-is"
 #[test]
 fn returns_given_package_names_as_is() {
     let factory = RepositoryFactory::new("monorepo");
@@ -109,6 +139,7 @@ fn returns_given_package_names_as_is() {
     assert_eq!(result2, vec!["foo", "bar", "nope"]);
 }
 
+// TS: "returns all packages with all: true"
 #[test]
 fn returns_all_packages_with_all_true() {
     let factory = RepositoryFactory::new("monorepo");
@@ -124,8 +155,9 @@ fn returns_all_packages_with_all_true() {
     assert_eq!(result, vec!["a", "b", "bar", "baz", "foo"]);
 }
 
-// ===== Single package tests =====
+// ===== Single package tests (TS: getChangedPackages) =====
 
+// TS: "detects changed files in single-package repo"
 #[test]
 fn detects_changed_files_in_single_package_repo() {
     let factory = RepositoryFactory::new("single");
@@ -143,6 +175,7 @@ fn detects_changed_files_in_single_package_repo() {
     assert_eq!(result, vec!["foo"]);
 }
 
+// TS: "respects ignorePatterns option"
 #[test]
 fn respects_ignore_patterns() {
     let factory = RepositoryFactory::new("single");
@@ -176,6 +209,7 @@ fn respects_ignore_patterns() {
 
 // ===== Monorepo tests =====
 
+// TS: "detects changed files in monorepo"
 #[test]
 fn detects_changed_files_in_monorepo() {
     let factory = RepositoryFactory::new("monorepo");
@@ -193,6 +227,7 @@ fn detects_changed_files_in_monorepo() {
     assert_eq!(result, vec!["foo"]);
 }
 
+// TS: "excludes packages that already have change files"
 #[test]
 fn excludes_packages_with_existing_change_files() {
     let factory = RepositoryFactory::new("monorepo");
@@ -221,6 +256,10 @@ fn excludes_packages_with_existing_change_files() {
     assert_eq!(result2, vec!["bar"]);
 }
 
+// Skipped TS tests:
+// - "ignores change files that exist in target remote branch" — not yet implemented
+
+// TS: "ignores package changes as appropriate"
 #[test]
 fn ignores_package_changes_as_appropriate() {
     let packages = HashMap::from([
@@ -281,6 +320,7 @@ fn ignores_package_changes_as_appropriate() {
     assert!(output.contains("is out of scope"));
 }
 
+// TS: "detects changed files in multi-root monorepo repo"
 #[test]
 fn detects_changed_files_in_multi_root_monorepo() {
     let factory = RepositoryFactory::new("multi-project");

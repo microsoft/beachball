@@ -25,6 +25,10 @@ fn make_changes() -> Vec<ChangeFileInfo> {
     ]
 }
 
+// Skipped TS tests:
+// - "writes grouped change files" — not yet implemented
+
+// TS: "writes individual change files"
 #[test]
 fn writes_individual_change_files() {
     let factory = RepositoryFactory::new("monorepo");
@@ -52,6 +56,7 @@ fn writes_individual_change_files() {
     );
 }
 
+// TS: "respects changeDir option"
 #[test]
 fn respects_change_dir_option() {
     let factory = RepositoryFactory::new("monorepo");
@@ -81,6 +86,7 @@ fn respects_change_dir_option() {
     }
 }
 
+// TS: "respects commit=false"
 #[test]
 fn respects_commit_false() {
     let factory = RepositoryFactory::new("monorepo");
