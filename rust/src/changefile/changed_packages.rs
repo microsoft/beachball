@@ -72,7 +72,7 @@ fn get_all_changed_packages(
         log_verbose!(
             "--all option was provided, so including all packages that are in scope (regardless of changes)"
         );
-        let mut result: Vec<String> = Vec::new();
+        let mut result: Vec<String> = vec![];
         for pkg in package_infos.values() {
             let (included, reason) = is_package_included(Some(pkg), scoped_packages);
             if included {

@@ -26,7 +26,7 @@ pub fn write_change_files(
         std::fs::create_dir_all(&change_path)?;
     }
 
-    let mut change_files: Vec<String> = Vec::new();
+    let mut change_files: Vec<String> = vec![];
 
     if options.group_changes {
         // Write all changes to a single grouped file

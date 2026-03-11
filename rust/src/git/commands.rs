@@ -123,7 +123,7 @@ pub fn get_branch_changes(branch: &str, cwd: &str) -> Result<Vec<String>> {
         .stdout
         .lines()
         .filter(|l| !l.is_empty())
-        .map(|l| l.to_string())
+        .map(str::to_string)
         .collect())
 }
 
@@ -147,7 +147,7 @@ pub fn get_staged_changes(cwd: &str) -> Result<Vec<String>> {
         .stdout
         .lines()
         .filter(|l| !l.is_empty())
-        .map(|l| l.to_string())
+        .map(str::to_string)
         .collect())
 }
 
@@ -184,7 +184,7 @@ pub fn get_changes_between_refs(
         .stdout
         .lines()
         .filter(|l| !l.is_empty())
-        .map(|l| l.to_string())
+        .map(str::to_string)
         .collect())
 }
 
@@ -195,7 +195,7 @@ pub fn get_untracked_changes(cwd: &str) -> Result<Vec<String>> {
         .stdout
         .lines()
         .filter(|l| !l.is_empty())
-        .map(|l| l.to_string())
+        .map(str::to_string)
         .collect())
 }
 
@@ -293,7 +293,7 @@ pub fn list_tracked_files(pattern: &str, cwd: &str) -> Result<Vec<String>> {
         .stdout
         .lines()
         .filter(|l| !l.is_empty())
-        .map(|l| l.to_string())
+        .map(str::to_string)
         .collect())
 }
 

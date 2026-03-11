@@ -26,7 +26,7 @@ pub fn read_change_files(
         return vec![];
     }
 
-    let mut entries: Vec<(String, std::time::SystemTime)> = Vec::new();
+    let mut entries: Vec<(String, std::time::SystemTime)> = vec![];
 
     if let Ok(dir_entries) = std::fs::read_dir(change_dir) {
         for entry in dir_entries.flatten() {

@@ -82,7 +82,7 @@ pub fn validate(
             &mut has_error,
         );
     } else if let Some(ref packages) = options.package {
-        let mut invalid_reasons: Vec<String> = Vec::new();
+        let mut invalid_reasons = vec![];
         for pkg in packages {
             if !package_infos.contains_key(pkg) {
                 invalid_reasons.push(format!("\"{pkg}\" was not found"));

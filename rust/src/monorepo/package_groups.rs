@@ -24,7 +24,7 @@ pub fn get_package_groups(
         std::collections::HashMap::new();
 
     for group in groups {
-        let mut package_names = Vec::new();
+        let mut package_names = vec![];
 
         for info in package_infos.values() {
             let rel_path = get_package_rel_path(info, root);

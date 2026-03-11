@@ -50,7 +50,7 @@ pub fn get_output() -> String {
     LOG_CAPTURE.with(|c| {
         let borrow = c.borrow();
         match &*borrow {
-            Some(buf) => String::from_utf8_lossy(buf).to_string(),
+            Some(buf) => String::from_utf8_lossy(buf).into_owned(),
             None => String::new(),
         }
     })
