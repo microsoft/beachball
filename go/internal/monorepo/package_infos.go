@@ -2,11 +2,13 @@ package monorepo
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
+	"github.com/microsoft/beachball/internal/logging"
 	"github.com/microsoft/beachball/internal/types"
 )
 
@@ -60,6 +62,13 @@ func GetPackageInfos(options *types.BeachballOptions) (types.PackageInfos, error
 			}
 			absMatch, _ := filepath.Abs(match)
 			info := packageInfoFromJSON(&pkg, absMatch)
+			if existing, ok := infos[info.Name]; ok {
+				rootRel1, _ := filepath.Rel(rootPath, existing.PackageJSONPath)
+				rootRel2, _ := filepath.Rel(rootPath, absMatch)
+				logging.Error.Printf("Two packages have the same name %q. Please rename one of these packages:\n%s",
+					info.Name, logging.BulletedList([]string{rootRel1, rootRel2}))
+				return nil, fmt.Errorf("duplicate package name: %s", info.Name)
+			}
 			infos[info.Name] = info
 		}
 	}

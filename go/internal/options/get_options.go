@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 
 	"github.com/microsoft/beachball/internal/git"
+	"github.com/microsoft/beachball/internal/logging"
 	"github.com/microsoft/beachball/internal/types"
 )
 
@@ -35,6 +36,10 @@ func GetParsedOptions(cwd string, cli types.CliOptions) (types.ParsedOptions, er
 
 	// Apply CLI overrides
 	applyCliOptions(&opts, &cli)
+
+	if opts.Verbose {
+		logging.EnableVerbose()
+	}
 
 	return types.ParsedOptions{Options: opts, CliOptions: cli}, nil
 }

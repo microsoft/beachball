@@ -88,6 +88,7 @@ func TestCreatesAndStagesChangeFile(t *testing.T) {
 	repo.Checkout("-b", "stages-change-test", testutil.DefaultBranch)
 	repo.CommitChange("file.js")
 
+	buf := testutil.CaptureLogging(t)
 	repoOpts := getDefaultOptions()
 	repoOpts.Commit = false
 
@@ -115,6 +116,7 @@ func TestCreatesAndStagesChangeFile(t *testing.T) {
 	json.Unmarshal(data, &change)
 	assert.Equal(t, "stage me please", change.Comment)
 	assert.Equal(t, "foo", change.PackageName)
+	assert.Contains(t, buf.String(), "git staged these change files:")
 }
 
 func TestCreatesAndCommitsChangeFile(t *testing.T) {
@@ -156,6 +158,7 @@ func TestCreatesAndCommitsChangeFileWithChangeDir(t *testing.T) {
 	repo.Checkout("-b", "changedir-test", testutil.DefaultBranch)
 	repo.CommitChange("file.js")
 
+	buf := testutil.CaptureLogging(t)
 	repoOpts := getDefaultOptions()
 	repoOpts.ChangeDir = "changeDir"
 
@@ -182,6 +185,7 @@ func TestCreatesAndCommitsChangeFileWithChangeDir(t *testing.T) {
 	var change types.ChangeFileInfo
 	json.Unmarshal(data, &change)
 	assert.Equal(t, "commit me please", change.Comment)
+	assert.Contains(t, buf.String(), "git committed these change files:")
 }
 
 func TestCreatesChangeFileWhenNoChangesButPackageProvided(t *testing.T) {
@@ -189,6 +193,7 @@ func TestCreatesChangeFileWhenNoChangesButPackageProvided(t *testing.T) {
 	repo := factory.CloneRepository()
 	repo.Checkout("-b", "package-flag-test", testutil.DefaultBranch)
 
+	buf := testutil.CaptureLogging(t)
 	repoOpts := getDefaultOptions()
 	repoOpts.Commit = false
 
@@ -212,6 +217,7 @@ func TestCreatesChangeFileWhenNoChangesButPackageProvided(t *testing.T) {
 	var change types.ChangeFileInfo
 	json.Unmarshal(data, &change)
 	assert.Equal(t, "foo", change.PackageName)
+	assert.Contains(t, buf.String(), "git staged these change files:")
 }
 
 func TestCreatesAndCommitsChangeFilesForMultiplePackages(t *testing.T) {
@@ -221,6 +227,7 @@ func TestCreatesAndCommitsChangeFilesForMultiplePackages(t *testing.T) {
 	repo.CommitChange("packages/foo/file.js")
 	repo.CommitChange("packages/bar/file.js")
 
+	buf := testutil.CaptureLogging(t)
 	repoOpts := getDefaultOptions()
 
 	cli := types.CliOptions{
@@ -251,6 +258,7 @@ func TestCreatesAndCommitsChangeFilesForMultiplePackages(t *testing.T) {
 
 	assert.True(t, packageNames["foo"], "expected foo")
 	assert.True(t, packageNames["bar"], "expected bar")
+	assert.Contains(t, buf.String(), "git committed these change files:")
 }
 
 func TestCreatesAndCommitsGroupedChangeFile(t *testing.T) {
@@ -260,6 +268,7 @@ func TestCreatesAndCommitsGroupedChangeFile(t *testing.T) {
 	repo.CommitChange("packages/foo/file.js")
 	repo.CommitChange("packages/bar/file.js")
 
+	buf := testutil.CaptureLogging(t)
 	repoOpts := getDefaultOptions()
 	repoOpts.GroupChanges = true
 
@@ -294,4 +303,5 @@ func TestCreatesAndCommitsGroupedChangeFile(t *testing.T) {
 
 	assert.True(t, packageNames["foo"], "expected foo")
 	assert.True(t, packageNames["bar"], "expected bar")
+	assert.Contains(t, buf.String(), "git committed these change files:")
 }

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/microsoft/beachball/internal/git"
 	"github.com/microsoft/beachball/internal/logging"
@@ -55,17 +56,17 @@ func getMatchingPackage(file, cwd string, packagesByPath map[string]*types.Packa
 // getAllChangedPackages returns all changed packages regardless of existing change files.
 func getAllChangedPackages(options *types.BeachballOptions, packageInfos types.PackageInfos, scopedPackages types.ScopedPackages) ([]string, error) {
 	cwd := options.Path
-	verbose := options.Verbose
 
 	if options.All {
-		if verbose {
-			logging.Info.Println("--all option was provided, so including all packages that are in scope (regardless of changes)")
-		}
+		logging.Verbose.Println("--all option was provided, so including all packages that are in scope (regardless of changes)")
 		var result []string
 		for _, pkg := range packageInfos {
-			included, _ := isPackageIncluded(pkg, scopedPackages)
+			included, reason := isPackageIncluded(pkg, scopedPackages)
 			if included {
+				logging.Verbose.Printf("  - %s", pkg.Name)
 				result = append(result, pkg.Name)
+			} else {
+				logging.Verbose.Printf("  - ~~%s~~ (%s)", pkg.Name, strings.TrimPrefix(reason, pkg.Name+" "))
 			}
 		}
 		return result, nil
@@ -93,14 +94,7 @@ func getAllChangedPackages(options *types.BeachballOptions, packageInfos types.P
 	}
 	changes = append(changes, staged...)
 
-	if verbose {
-		count := len(changes)
-		s := "s"
-		if count == 1 {
-			s = ""
-		}
-		logging.Info.Printf("Found %d changed file%s in current branch (before filtering)", count, s)
-	}
+	logging.Verbose.Printf("Found %s in current branch (before filtering)", logging.Count(len(changes), "changed file"))
 
 	if len(changes) == 0 {
 		return nil, nil
@@ -111,12 +105,10 @@ func getAllChangedPackages(options *types.BeachballOptions, packageInfos types.P
 	ignorePatterns = append(ignorePatterns, fmt.Sprintf("%s/*.json", options.ChangeDir))
 	ignorePatterns = append(ignorePatterns, "CHANGELOG.md", "CHANGELOG.json")
 
-	nonIgnored := monorepo.FilterIgnoredFiles(changes, ignorePatterns, verbose)
+	nonIgnored := monorepo.FilterIgnoredFiles(changes, ignorePatterns)
 
 	if len(nonIgnored) == 0 {
-		if verbose {
-			logging.Info.Println("All files were ignored")
-		}
+		logging.Verbose.Println("All files were ignored")
 		return nil, nil
 	}
 
@@ -139,30 +131,16 @@ func getAllChangedPackages(options *types.BeachballOptions, packageInfos types.P
 		included, reason := isPackageIncluded(pkgInfo, scopedPackages)
 
 		if !included {
-			if verbose {
-				logging.Info.Printf("  - ~~%s~~ (%s)", file, reason)
-			}
+			logging.Verbose.Printf("  - ~~%s~~ (%s)", file, reason)
 		} else {
 			includedPackages[pkgInfo.Name] = true
 			fileCount++
-			if verbose {
-				logging.Info.Printf("  - %s", file)
-			}
+			logging.Verbose.Printf("  - %s", file)
 		}
 	}
 
-	if verbose {
-		pkgCount := len(includedPackages)
-		fs := "s"
-		if fileCount == 1 {
-			fs = ""
-		}
-		ps := "s"
-		if pkgCount == 1 {
-			ps = ""
-		}
-		logging.Info.Printf("Found %d file%s in %d package%s that should be published", fileCount, fs, pkgCount, ps)
-	}
+	logging.Verbose.Printf("Found %s in %s that should be published",
+		logging.Count(fileCount, "file"), logging.Count(len(includedPackages), "package"))
 
 	var result []string
 	for name := range includedPackages {
@@ -214,6 +192,8 @@ func GetChangedPackages(options *types.BeachballOptions, packageInfos types.Pack
 		var single types.ChangeFileInfo
 		if err := json.Unmarshal(data, &single); err == nil && single.PackageName != "" {
 			existingPackages[single.PackageName] = true
+		} else if err != nil {
+			logging.Warn.Printf("Error reading or parsing change file %s: %v", filePath, err)
 		}
 	}
 

@@ -9,23 +9,43 @@ import (
 )
 
 var (
-	Info  = log.New(os.Stdout, "", 0)
-	Warn  = log.New(os.Stderr, "WARN: ", 0)
-	Error = log.New(os.Stderr, "ERROR: ", 0)
+	Verbose = log.New(io.Discard, "", 0)
+	Info    = log.New(os.Stdout, "", 0)
+	Warn    = log.New(os.Stderr, "WARN: ", 0)
+	Error   = log.New(os.Stderr, "ERROR: ", 0)
 )
 
 // SetOutput redirects all loggers to the given writer (for testing).
-func SetOutput(w io.Writer) {
+func SetOutput(w io.Writer, verboseEnabled bool) {
 	Info.SetOutput(w)
 	Warn.SetOutput(w)
 	Error.SetOutput(w)
+
+	if verboseEnabled {
+		Verbose.SetOutput(w)
+	} else {
+		Verbose.SetOutput(io.Discard)
+	}
 }
 
-// Reset restores loggers to their default outputs.
+func EnableVerbose() {
+	Verbose.SetOutput(os.Stdout)
+}
+
+// Reset restores loggers to their default outputs, and verbose to no output.
 func Reset() {
 	Info.SetOutput(os.Stdout)
 	Warn.SetOutput(os.Stderr)
 	Error.SetOutput(os.Stderr)
+	Verbose.SetOutput(io.Discard)
+}
+
+// Count returns "N thing" or "N things" with proper pluralization.
+func Count(n int, thing string) string {
+	if n == 1 {
+		return fmt.Sprintf("%d %s", n, thing)
+	}
+	return fmt.Sprintf("%d %ss", n, thing)
 }
 
 // BulletedList formats a list of strings as a bulleted list.

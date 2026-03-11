@@ -11,7 +11,15 @@ import (
 func CaptureLogging(t *testing.T) *bytes.Buffer {
 	t.Helper()
 	var buf bytes.Buffer
-	logging.SetOutput(&buf)
+	logging.SetOutput(&buf, false)
+	t.Cleanup(logging.Reset)
+	return &buf
+}
+
+func CaptureVerboseLogging(t *testing.T) *bytes.Buffer {
+	t.Helper()
+	var buf bytes.Buffer
+	logging.SetOutput(&buf, true)
 	t.Cleanup(logging.Reset)
 	return &buf
 }

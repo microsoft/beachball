@@ -46,8 +46,9 @@ func checkOutTestBranch(repo *testutil.Repository, name string) {
 	repo.Checkout("-b", name, testutil.DefaultBranch)
 }
 
-// ===== Basic tests =====
+// ===== Basic tests (TS: getChangedPackages (basic)) =====
 
+// TS: "returns empty list when no changes have been made"
 func TestReturnsEmptyListWhenNoChanges(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -58,6 +59,7 @@ func TestReturnsEmptyListWhenNoChanges(t *testing.T) {
 	assert.Empty(t, result)
 }
 
+// TS: "returns package name when changes exist in a new branch"
 func TestReturnsPackageNameWhenChangesInBranch(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -74,6 +76,7 @@ func TestReturnsPackageNameWhenChangesInBranch(t *testing.T) {
 	assert.Contains(t, buf.String(), "Checking for changes against")
 }
 
+// TS: "returns empty list when changes are CHANGELOG files"
 func TestReturnsEmptyListForChangelogChanges(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -86,6 +89,7 @@ func TestReturnsEmptyListForChangelogChanges(t *testing.T) {
 	assert.Empty(t, result)
 }
 
+// TS: "returns the given package name(s) as-is"
 func TestReturnsGivenPackageNamesAsIs(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -103,6 +107,7 @@ func TestReturnsGivenPackageNamesAsIs(t *testing.T) {
 	assert.Equal(t, []string{"foo", "bar", "nope"}, result2)
 }
 
+// TS: "returns all packages with all: true"
 func TestReturnsAllPackagesWithAllTrue(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -116,8 +121,9 @@ func TestReturnsAllPackagesWithAllTrue(t *testing.T) {
 	assert.Equal(t, []string{"a", "b", "bar", "baz", "foo"}, result)
 }
 
-// ===== Single package tests =====
+// ===== Single package tests (TS: getChangedPackages) =====
 
+// TS: "detects changed files in single-package repo"
 func TestDetectsChangedFilesInSinglePackageRepo(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
@@ -133,6 +139,7 @@ func TestDetectsChangedFilesInSinglePackageRepo(t *testing.T) {
 	assert.Equal(t, []string{"foo"}, result2)
 }
 
+// TS: "respects ignorePatterns option"
 func TestRespectsIgnorePatterns(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
@@ -148,15 +155,18 @@ func TestRespectsIgnorePatterns(t *testing.T) {
 	repo.WriteFileContent("yarn.lock", "changed")
 	repo.Git([]string{"add", "-A"})
 
-	buf := testutil.CaptureLogging(t)
+	buf := testutil.CaptureVerboseLogging(t)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
 	require.NoError(t, err)
 	assert.Empty(t, result)
-	assert.Contains(t, buf.String(), "ignored by pattern")
+	output := buf.String()
+	assert.Contains(t, output, "ignored by pattern")
+	assert.Contains(t, output, "All files were ignored")
 }
 
 // ===== Monorepo tests =====
 
+// TS: "detects changed files in monorepo"
 func TestDetectsChangedFilesInMonorepo(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -172,6 +182,7 @@ func TestDetectsChangedFilesInMonorepo(t *testing.T) {
 	assert.Equal(t, []string{"foo"}, result2)
 }
 
+// TS: "excludes packages that already have change files"
 func TestExcludesPackagesWithExistingChangeFiles(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -183,11 +194,13 @@ func TestExcludesPackagesWithExistingChangeFiles(t *testing.T) {
 	opts, infos, scoped := getOptionsAndPackages(t, repo, &overrides, nil)
 	testutil.GenerateChangeFiles(t, []string{"foo"}, &opts, repo)
 
-	buf := testutil.CaptureLogging(t)
+	buf := testutil.CaptureVerboseLogging(t)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
 	require.NoError(t, err)
 	assert.Empty(t, result)
-	assert.Contains(t, buf.String(), "already has change files for these packages")
+	output := buf.String()
+	assert.Contains(t, output, "already has change files for these packages")
+	assert.Contains(t, output, "Found 1 file in 1 package that should be published")
 
 	// Change bar => bar is the only changed package returned
 	repo.StageChange("packages/bar/test.js")
@@ -196,6 +209,32 @@ func TestExcludesPackagesWithExistingChangeFiles(t *testing.T) {
 	assert.Equal(t, []string{"bar"}, result2)
 }
 
+// TS: "ignores change files that exist in target remote branch"
+func TestIgnoresChangeFilesThatExistInTargetRemoteBranch(t *testing.T) {
+	factory := testutil.NewRepositoryFactory(t, "single")
+	repo := factory.CloneRepository()
+
+	overrides := getDefaultOptions()
+	overrides.Verbose = true
+	opts, infos, scoped := getOptionsAndPackages(t, repo, &overrides, nil)
+
+	// create and push a change file in master
+	testutil.GenerateChangeFiles(t, []string{"foo"}, &opts, repo)
+	repo.Push()
+
+	// create a new branch and stage a new file
+	repo.Checkout("-b", "test")
+	repo.StageChange("test.js")
+
+	buf := testutil.CaptureVerboseLogging(t)
+	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"foo"}, result)
+	// The change file from master should not appear in the exclusion list
+	assert.NotContains(t, buf.String(), "already has change files")
+}
+
+// TS: "ignores package changes as appropriate"
 func TestIgnoresPackageChangesAsAppropriate(t *testing.T) {
 	rootPkg := map[string]any{
 		"name":       "test-monorepo",
@@ -234,15 +273,19 @@ func TestIgnoresPackageChangesAsAppropriate(t *testing.T) {
 	overrides.IgnorePatterns = []string{"**/jest.config.js"}
 	overrides.Verbose = true
 
-	buf := testutil.CaptureLogging(t)
+	buf := testutil.CaptureVerboseLogging(t)
 	opts, infos, scoped := getOptionsAndPackages(t, repo, &overrides, nil)
 	result, err := changefile.GetChangedPackages(&opts, infos, scoped)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"publish-me"}, result)
-	assert.Contains(t, buf.String(), "is private")
-	assert.Contains(t, buf.String(), "is out of scope")
+	output := buf.String()
+	assert.Contains(t, output, "private-pkg is private")
+	assert.Contains(t, output, "no-publish has beachball.shouldPublish=false")
+	assert.Contains(t, output, "out-of-scope is out of scope")
+	assert.Contains(t, output, "ignored by pattern")
 }
 
+// TS: "detects changed files in multi-root monorepo repo"
 func TestDetectsChangedFilesInMultiRootMonorepo(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "multi-project")
 	repo := factory.CloneRepository()

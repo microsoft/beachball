@@ -9,7 +9,7 @@ import (
 
 // FilterIgnoredFiles filters out files that match ignore patterns.
 // Uses matchBase behavior: patterns without path separators match against the basename.
-func FilterIgnoredFiles(files []string, patterns []string, verbose bool) []string {
+func FilterIgnoredFiles(files []string, patterns []string) []string {
 	var result []string
 
 	for _, file := range files {
@@ -26,9 +26,7 @@ func FilterIgnoredFiles(files []string, patterns []string, verbose bool) []strin
 		}
 
 		if ignored {
-			if verbose {
-				logging.Info.Printf("  - ~~%s~~ (ignored by pattern %q)", file, matchedPattern)
-			}
+			logging.Verbose.Printf("  - ~~%s~~ (ignored by pattern %q)", file, matchedPattern)
 		} else {
 			result = append(result, file)
 		}

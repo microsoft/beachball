@@ -1,9 +1,12 @@
 package monorepo
 
 import (
+	"fmt"
 	"path/filepath"
+	"slices"
 
 	"github.com/bmatcuk/doublestar/v4"
+	"github.com/microsoft/beachball/internal/logging"
 	"github.com/microsoft/beachball/internal/types"
 )
 
@@ -52,6 +55,27 @@ func GetPackageGroups(packageInfos types.PackageInfos, rootPath string, groups [
 		}
 
 		result[g.Name] = group
+	}
+
+	// Check for packages belonging to multiple groups
+	packageToGroups := make(map[string][]string)
+	for _, group := range result {
+		for _, pkg := range group.Packages {
+			packageToGroups[pkg] = append(packageToGroups[pkg], group.Name)
+		}
+	}
+
+	var errorItems []string
+	for pkg, groups := range packageToGroups {
+		if len(groups) > 1 {
+			slices.Sort(groups)
+			errorItems = append(errorItems, fmt.Sprintf("%s: %s", pkg, groups))
+		}
+	}
+	if len(errorItems) > 0 {
+		slices.Sort(errorItems)
+		logging.Error.Printf("Found package(s) belonging to multiple groups:\n%s",
+			logging.BulletedList(errorItems))
 	}
 
 	return result
