@@ -20,6 +20,7 @@ func getDefaultOptions() types.BeachballOptions {
 	return defaultOptions
 }
 
+// TS: "succeeds with no changes"
 func TestSucceedsWithNoChanges(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -37,6 +38,7 @@ func TestSucceedsWithNoChanges(t *testing.T) {
 	assert.Contains(t, buf.String(), "Validating options and change files...")
 }
 
+// TS: "exits with error by default if change files are needed"
 func TestExitsWithErrorIfChangeFilesNeeded(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -55,6 +57,7 @@ func TestExitsWithErrorIfChangeFilesNeeded(t *testing.T) {
 	assert.Contains(t, buf.String(), "Found changes in the following packages")
 }
 
+// TS: "returns and does not log an error if change files are needed and allowMissingChangeFiles is true"
 func TestReturnsWithoutErrorIfAllowMissingChangeFiles(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()

@@ -23,6 +23,7 @@ func getDefaultOptions() types.BeachballOptions {
 	return defaultOptions
 }
 
+// TS: "does not create change files when there are no changes"
 func TestDoesNotCreateChangeFilesWhenNoChanges(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
@@ -46,6 +47,7 @@ func TestDoesNotCreateChangeFilesWhenNoChanges(t *testing.T) {
 	assert.Contains(t, buf.String(), "No change files are needed")
 }
 
+// TS: "creates and commits a change file" (non-interactive equivalent)
 func TestCreatesChangeFileWithTypeAndMessage(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
@@ -82,6 +84,7 @@ func TestCreatesChangeFileWithTypeAndMessage(t *testing.T) {
 	assert.Equal(t, types.ChangeTypePatch, change.DependentChangeType)
 }
 
+// TS: "creates and stages a change file"
 func TestCreatesAndStagesChangeFile(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
@@ -119,6 +122,7 @@ func TestCreatesAndStagesChangeFile(t *testing.T) {
 	assert.Contains(t, buf.String(), "git staged these change files:")
 }
 
+// TS: "creates and commits a change file"
 func TestCreatesAndCommitsChangeFile(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
@@ -152,6 +156,7 @@ func TestCreatesAndCommitsChangeFile(t *testing.T) {
 	assert.Contains(t, buf.String(), "git committed these change files:")
 }
 
+// TS: "creates and commits a change file with changeDir set"
 func TestCreatesAndCommitsChangeFileWithChangeDir(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
@@ -188,6 +193,7 @@ func TestCreatesAndCommitsChangeFileWithChangeDir(t *testing.T) {
 	assert.Contains(t, buf.String(), "git committed these change files:")
 }
 
+// TS: "creates a change file when there are no changes but package name is provided"
 func TestCreatesChangeFileWhenNoChangesButPackageProvided(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "single")
 	repo := factory.CloneRepository()
@@ -220,6 +226,7 @@ func TestCreatesChangeFileWhenNoChangesButPackageProvided(t *testing.T) {
 	assert.Contains(t, buf.String(), "git staged these change files:")
 }
 
+// TS: "creates and commits change files for multiple packages"
 func TestCreatesAndCommitsChangeFilesForMultiplePackages(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -261,6 +268,7 @@ func TestCreatesAndCommitsChangeFilesForMultiplePackages(t *testing.T) {
 	assert.Contains(t, buf.String(), "git committed these change files:")
 }
 
+// TS: "creates and commits grouped change file for multiple packages"
 func TestCreatesAndCommitsGroupedChangeFile(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()

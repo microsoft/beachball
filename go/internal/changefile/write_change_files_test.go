@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TS: "writes individual change files"
 func TestWriteChangeFiles_WritesIndividualChangeFiles(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -75,6 +76,7 @@ func TestWriteChangeFiles_WritesIndividualChangeFiles(t *testing.T) {
 	assert.Empty(t, status, "expected clean working tree after commit")
 }
 
+// TS: "respects changeDir option"
 func TestWriteChangeFiles_RespectsChangeDirOption(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -117,6 +119,7 @@ func TestWriteChangeFiles_RespectsChangeDirOption(t *testing.T) {
 	assert.True(t, os.IsNotExist(err), "expected default change dir to not exist")
 }
 
+// TS: "respects commit=false"
 func TestWriteChangeFiles_RespectsCommitFalse(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -151,4 +154,59 @@ func TestWriteChangeFiles_RespectsCommitFalse(t *testing.T) {
 	// Verify HEAD hash is unchanged (no commit was made)
 	headAfter := repo.Git([]string{"rev-parse", "HEAD"})
 	assert.Equal(t, headBefore, headAfter, "expected HEAD to be unchanged")
+}
+
+// TS: "writes grouped change files"
+func TestWriteChangeFiles_WritesGroupedChangeFiles(t *testing.T) {
+	factory := testutil.NewRepositoryFactory(t, "monorepo")
+	repo := factory.CloneRepository()
+	repo.Checkout("-b", "grouped-write-test", testutil.DefaultBranch)
+
+	opts := types.DefaultOptions()
+	opts.Path = repo.RootPath()
+	opts.Branch = testutil.DefaultRemoteBranch
+	opts.Fetch = false
+	opts.GroupChanges = true
+
+	changes := []types.ChangeFileInfo{
+		{
+			Type:                types.ChangeTypePatch,
+			Comment:             "fix foo",
+			PackageName:         "foo",
+			Email:               "test@test.com",
+			DependentChangeType: types.ChangeTypePatch,
+		},
+		{
+			Type:                types.ChangeTypeMinor,
+			Comment:             "add bar feature",
+			PackageName:         "bar",
+			Email:               "test@test.com",
+			DependentChangeType: types.ChangeTypePatch,
+		},
+	}
+
+	err := changefile.WriteChangeFiles(&opts, changes)
+	require.NoError(t, err)
+
+	// Should be a single grouped file
+	files := testutil.GetChangeFiles(&opts)
+	require.Len(t, files, 1)
+
+	// Verify it's a grouped format
+	data, err := os.ReadFile(files[0])
+	require.NoError(t, err)
+	var grouped types.ChangeInfoMultiple
+	require.NoError(t, json.Unmarshal(data, &grouped))
+
+	assert.Len(t, grouped.Changes, 2)
+	packageNames := map[string]bool{}
+	for _, change := range grouped.Changes {
+		packageNames[change.PackageName] = true
+	}
+	assert.True(t, packageNames["foo"], "expected foo")
+	assert.True(t, packageNames["bar"], "expected bar")
+
+	// Verify committed
+	status := repo.Status()
+	assert.Empty(t, status, "expected clean working tree after commit")
 }

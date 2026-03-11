@@ -199,3 +199,33 @@ func TestReadChangeFiles_ExcludesOutOfScopeChangeFiles(t *testing.T) {
 	changeSet := changefile.ReadChangeFiles(&opts, infos, scoped)
 	assert.Equal(t, []string{"foo"}, getPackageNames(changeSet))
 }
+
+// TS: "excludes out of scope changes from grouped change file in monorepo"
+func TestReadChangeFiles_ExcludesOutOfScopeChangesFromGroupedFile(t *testing.T) {
+	factory := testutil.NewRepositoryFactory(t, "monorepo")
+	repo := factory.CloneRepository()
+	repo.Checkout("-b", "test", testutil.DefaultBranch)
+	repo.CommitChange("packages/foo/file.js")
+
+	overrides := getDefaultOptions()
+	overrides.Scope = []string{"packages/foo"}
+	overrides.GroupChanges = true
+	opts, infos, scoped := getReadTestOptionsAndPackages(t, repo, &overrides)
+
+	// Write a grouped change file with bar+foo
+	changePath := changefile.GetChangePath(&opts)
+	os.MkdirAll(changePath, 0o755)
+	grouped := types.ChangeInfoMultiple{
+		Changes: []types.ChangeFileInfo{
+			{Type: types.ChangeTypeMinor, Comment: "bar change", PackageName: "bar", Email: "test@test.com", DependentChangeType: types.ChangeTypePatch},
+			{Type: types.ChangeTypeMinor, Comment: "foo change", PackageName: "foo", Email: "test@test.com", DependentChangeType: types.ChangeTypePatch},
+		},
+	}
+	data, _ := json.MarshalIndent(grouped, "", "  ")
+	os.WriteFile(filepath.Join(changePath, "change-grouped.json"), data, 0o644)
+	repo.Git([]string{"add", "-A"})
+	repo.Git([]string{"commit", "-m", "grouped change file"})
+
+	changeSet := changefile.ReadChangeFiles(&opts, infos, scoped)
+	assert.Equal(t, []string{"foo"}, getPackageNames(changeSet))
+}

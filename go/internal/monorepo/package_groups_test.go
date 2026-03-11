@@ -12,6 +12,7 @@ import (
 
 var root = testutil.FakeRoot()
 
+// TS: "returns empty object if no groups are defined"
 func TestGetPackageGroups_ReturnsEmptyIfNoGroups(t *testing.T) {
 	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/foo": "foo",
@@ -20,6 +21,7 @@ func TestGetPackageGroups_ReturnsEmptyIfNoGroups(t *testing.T) {
 	assert.Empty(t, result)
 }
 
+// TS: "returns groups based on specific folders"
 func TestGetPackageGroups_ReturnsGroupsBasedOnSpecificFolders(t *testing.T) {
 	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/foo": "foo",
@@ -40,6 +42,7 @@ func TestGetPackageGroups_ReturnsGroupsBasedOnSpecificFolders(t *testing.T) {
 	assert.Equal(t, []string{"bar", "foo"}, grp.Packages)
 }
 
+// TS: "handles single-level globs"
 func TestGetPackageGroups_HandlesSingleLevelGlobs(t *testing.T) {
 	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/ui-button":  "ui-button",
@@ -59,6 +62,7 @@ func TestGetPackageGroups_HandlesSingleLevelGlobs(t *testing.T) {
 	assert.Equal(t, []string{"ui-button", "ui-input"}, grp.Packages)
 }
 
+// TS: "handles multi-level globs"
 func TestGetPackageGroups_HandlesMultiLevelGlobs(t *testing.T) {
 	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/ui/button": "ui-button",
@@ -78,6 +82,7 @@ func TestGetPackageGroups_HandlesMultiLevelGlobs(t *testing.T) {
 	assert.Equal(t, []string{"ui-button", "ui-input"}, grp.Packages)
 }
 
+// TS: "handles multiple include patterns in a single group"
 func TestGetPackageGroups_HandlesMultipleIncludePatterns(t *testing.T) {
 	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/foo": "foo",
@@ -97,6 +102,7 @@ func TestGetPackageGroups_HandlesMultipleIncludePatterns(t *testing.T) {
 	assert.Equal(t, []string{"bar", "foo"}, grp.Packages)
 }
 
+// TS: "handles specific exclude patterns"
 func TestGetPackageGroups_HandlesExcludePatterns(t *testing.T) {
 	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/foo":      "foo",
@@ -117,6 +123,7 @@ func TestGetPackageGroups_HandlesExcludePatterns(t *testing.T) {
 	assert.Equal(t, []string{"bar", "foo"}, grp.Packages)
 }
 
+// TS: "handles glob exclude patterns"
 func TestGetPackageGroups_HandlesGlobExclude(t *testing.T) {
 	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/ui/button":  "ui-button",
@@ -137,6 +144,30 @@ func TestGetPackageGroups_HandlesGlobExclude(t *testing.T) {
 	assert.Equal(t, []string{"ui-button", "ui-input"}, grp.Packages)
 }
 
+// TS: "exits with error if package belongs to multiple groups"
+func TestGetPackageGroups_ErrorsIfPackageBelongsToMultipleGroups(t *testing.T) {
+	infos := testutil.MakePackageInfos(root, map[string]string{
+		"packages/shared": "shared",
+		"packages/foo":    "foo",
+	})
+	groups := []types.VersionGroupOptions{
+		{
+			Name:    "group1",
+			Include: []string{"packages/*"},
+		},
+		{
+			Name:    "group2",
+			Include: []string{"packages/shared"},
+		},
+	}
+
+	buf := testutil.CaptureLogging(t)
+	monorepo.GetPackageGroups(infos, root, groups)
+	assert.Contains(t, buf.String(), "Found package(s) belonging to multiple groups")
+	assert.Contains(t, buf.String(), "shared")
+}
+
+// TS: "omits empty groups"
 func TestGetPackageGroups_OmitsEmptyGroups(t *testing.T) {
 	infos := testutil.MakePackageInfos(root, map[string]string{
 		"packages/foo": "foo",

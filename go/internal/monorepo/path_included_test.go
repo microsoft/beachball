@@ -1,5 +1,9 @@
 package monorepo_test
 
+// Note: Go tests FilterIgnoredFiles (used for ignorePatterns filtering),
+// not TS's isPathIncluded (used for scope include/exclude).
+// These are related but different functions.
+
 import (
 	"testing"
 

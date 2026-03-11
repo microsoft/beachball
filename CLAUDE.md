@@ -227,6 +227,8 @@ When porting tests, add a comment by each Rust/Go test with the name of the corr
 
 Use syntax and helpers from the newest version of the language where it makes sense. If a particular scenario is most commonly handled in this language by some external library, and the library would meaningfully simplify the code, ask the user about adding the library as a dependency.
 
+When trying to understand existing code, attempt to use the LSP rather than grep if relevant.
+
 ### Structure
 
 - **Rust**: `src/` with nested modules (`types/`, `options/`, `git/`, `monorepo/`, `changefile/`, `validation/`, `commands/`), integration tests in `tests/` with shared helpers in `tests/common/`

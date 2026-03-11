@@ -21,6 +21,7 @@ func getDefaultOptionsWithPath(rootPath string) types.BeachballOptions {
 	return defaultOptions
 }
 
+// TS: "is false when no change files are deleted"
 func TestAreChangeFilesDeleted_FalseWhenNoChangeFilesDeleted(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -38,6 +39,7 @@ func TestAreChangeFilesDeleted_FalseWhenNoChangeFilesDeleted(t *testing.T) {
 	assert.False(t, result)
 }
 
+// TS: "is true when change files are deleted"
 func TestAreChangeFilesDeleted_TrueWhenChangeFilesDeleted(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()
@@ -62,6 +64,7 @@ func TestAreChangeFilesDeleted_TrueWhenChangeFilesDeleted(t *testing.T) {
 	assert.True(t, result)
 }
 
+// TS: "deletes change files when changeDir option is specified"
 func TestAreChangeFilesDeleted_WorksWithCustomChangeDir(t *testing.T) {
 	factory := testutil.NewRepositoryFactory(t, "monorepo")
 	repo := factory.CloneRepository()

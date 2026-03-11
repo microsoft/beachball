@@ -11,7 +11,7 @@ import (
 
 var testRoot = testutil.FakeRoot()
 
-// returns null for unknown package
+// TS: "returns null for unknown package"
 func TestGetDisallowedChangeTypes_ReturnsNilForUnknownPackage(t *testing.T) {
 	infos := types.PackageInfos{}
 	groups := types.PackageGroups{}
@@ -21,7 +21,7 @@ func TestGetDisallowedChangeTypes_ReturnsNilForUnknownPackage(t *testing.T) {
 	assert.Nil(t, result)
 }
 
-// falls back to main option for package without disallowedChangeTypes
+// TS: "falls back to main option for package without disallowedChangeTypes"
 func TestGetDisallowedChangeTypes_FallsBackToMainOption(t *testing.T) {
 	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
 	groups := types.PackageGroups{}
@@ -32,7 +32,7 @@ func TestGetDisallowedChangeTypes_FallsBackToMainOption(t *testing.T) {
 	assert.Equal(t, []types.ChangeType{types.ChangeTypeMajor}, result)
 }
 
-// returns disallowedChangeTypes for package
+// TS: "returns disallowedChangeTypes for package"
 func TestGetDisallowedChangeTypes_ReturnsPackageLevelDisallowedTypes(t *testing.T) {
 	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
 	infos["foo"].PackageOptions = &types.PackageOptions{
@@ -48,7 +48,7 @@ func TestGetDisallowedChangeTypes_ReturnsPackageLevelDisallowedTypes(t *testing.
 // Not possible (Go doesn't distinguish between null and unset):
 // returns null if package disallowedChangeTypes is set to null
 
-// returns empty array if package disallowedChangeTypes is set to empty array
+// TS: "returns empty array if package disallowedChangeTypes is set to empty array"
 func TestGetDisallowedChangeTypes_ReturnsEmptyArrayForEmptyPackageDisallowedTypes(t *testing.T) {
 	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
 	infos["foo"].PackageOptions = &types.PackageOptions{
@@ -61,7 +61,7 @@ func TestGetDisallowedChangeTypes_ReturnsEmptyArrayForEmptyPackageDisallowedType
 	assert.Equal(t, []types.ChangeType{}, result)
 }
 
-// returns disallowedChangeTypes for package group
+// TS: "returns disallowedChangeTypes for package group"
 func TestGetDisallowedChangeTypes_ReturnsGroupLevelDisallowedTypes(t *testing.T) {
 	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
 	groups := types.PackageGroups{
@@ -80,7 +80,7 @@ func TestGetDisallowedChangeTypes_ReturnsGroupLevelDisallowedTypes(t *testing.T)
 // Not possible (Go doesn't distinguish between null and unset):
 // returns null if package group disallowedChangeTypes is set to null
 
-// returns empty array if package group disallowedChangeTypes is set to empty array
+// TS: "returns empty array if package group disallowedChangeTypes is set to empty array"
 func TestGetDisallowedChangeTypes_ReturnsEmptyArrayForEmptyGroupDisallowedTypes(t *testing.T) {
 	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
 	groups := types.PackageGroups{
@@ -96,7 +96,7 @@ func TestGetDisallowedChangeTypes_ReturnsEmptyArrayForEmptyGroupDisallowedTypes(
 	assert.Equal(t, []types.ChangeType{}, result)
 }
 
-// returns disallowedChangeTypes for package if not in a group
+// TS: "returns disallowedChangeTypes for package if not in a group"
 func TestGetDisallowedChangeTypes_ReturnsPackageDisallowedTypesIfNotInGroup(t *testing.T) {
 	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
 	infos["foo"].PackageOptions = &types.PackageOptions{
@@ -115,7 +115,7 @@ func TestGetDisallowedChangeTypes_ReturnsPackageDisallowedTypesIfNotInGroup(t *t
 	assert.Equal(t, []types.ChangeType{types.ChangeTypePatch}, result)
 }
 
-// prefers disallowedChangeTypes for group over package
+// TS: "prefers disallowedChangeTypes for group over package"
 func TestGetDisallowedChangeTypes_PrefersGroupOverPackage(t *testing.T) {
 	infos := testutil.MakePackageInfosSimple(testRoot, "foo")
 	infos["foo"].PackageOptions = &types.PackageOptions{
