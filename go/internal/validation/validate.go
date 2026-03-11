@@ -2,6 +2,7 @@ package validation
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -102,11 +103,8 @@ func Validate(parsed types.ParsedOptions, validateOpts ValidateOptions) (*Valida
 		} else if !IsValidChangeType(changeType) {
 			logError(fmt.Sprintf("Invalid change type detected in %s: %q", entry.ChangeFile, changeType))
 		} else {
-			for _, d := range disallowed {
-				if changeType == d {
-					logError(fmt.Sprintf("Disallowed change type detected in %s: %q", entry.ChangeFile, changeType))
-					break
-				}
+			if slices.Contains(disallowed, changeType) {
+				logError(fmt.Sprintf("Disallowed change type detected in %s: %q", entry.ChangeFile, changeType))
 			}
 		}
 

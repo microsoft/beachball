@@ -13,8 +13,8 @@ type RepositoryFactory struct {
 	t            *testing.T
 	bareDir      string
 	fixtureType  string
-	customRoot   map[string]interface{}
-	customGroups map[string]map[string]map[string]interface{}
+	customRoot   map[string]any
+	customGroups map[string]map[string]map[string]any
 }
 
 // NewRepositoryFactory creates a factory for the given fixture type.
@@ -38,7 +38,7 @@ func NewRepositoryFactory(t *testing.T, fixtureType string) *RepositoryFactory {
 }
 
 // NewCustomRepositoryFactory creates a factory with custom package definitions.
-func NewCustomRepositoryFactory(t *testing.T, rootPkg map[string]interface{}, groups map[string]map[string]map[string]interface{}) *RepositoryFactory {
+func NewCustomRepositoryFactory(t *testing.T, rootPkg map[string]any, groups map[string]map[string]map[string]any) *RepositoryFactory {
 	t.Helper()
 
 	bareDir, err := os.MkdirTemp("", "beachball-bare-*")

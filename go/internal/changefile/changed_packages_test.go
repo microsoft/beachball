@@ -197,25 +197,25 @@ func TestExcludesPackagesWithExistingChangeFiles(t *testing.T) {
 }
 
 func TestIgnoresPackageChangesAsAppropriate(t *testing.T) {
-	rootPkg := map[string]interface{}{
+	rootPkg := map[string]any{
 		"name":       "test-monorepo",
 		"version":    "1.0.0",
 		"private":    true,
 		"workspaces": []string{"packages/*"},
 	}
 
-	packages := map[string]map[string]interface{}{
+	packages := map[string]map[string]any{
 		"private-pkg": {"name": "private-pkg", "version": "1.0.0", "private": true},
 		"no-publish": {
 			"name": "no-publish", "version": "1.0.0",
-			"beachball": map[string]interface{}{"shouldPublish": false},
+			"beachball": map[string]any{"shouldPublish": false},
 		},
 		"out-of-scope": {"name": "out-of-scope", "version": "1.0.0"},
 		"ignore-pkg":   {"name": "ignore-pkg", "version": "1.0.0"},
 		"publish-me":   {"name": "publish-me", "version": "1.0.0"},
 	}
 
-	groups := map[string]map[string]map[string]interface{}{
+	groups := map[string]map[string]map[string]any{
 		"packages": packages,
 	}
 

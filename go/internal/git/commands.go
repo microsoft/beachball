@@ -226,7 +226,7 @@ func splitLines(s string) []string {
 		return nil
 	}
 	var lines []string
-	for _, line := range strings.Split(s, "\n") {
+	for line := range strings.SplitSeq(s, "\n") {
 		if line != "" {
 			lines = append(lines, line)
 		}

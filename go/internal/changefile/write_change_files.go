@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/microsoft/beachball/internal/git"
@@ -77,11 +78,11 @@ func WriteChangeFiles(options *types.BeachballOptions, changes []types.ChangeFil
 		if options.Commit {
 			action = "committed"
 		}
-		fileList := ""
+		var fileList strings.Builder
 		for _, f := range filePaths {
-			fileList += fmt.Sprintf("\n - %s", f)
+			fmt.Fprintf(&fileList, "\n - %s", f)
 		}
-		logging.Info.Printf("git %s these change files:%s", action, fileList)
+		logging.Info.Printf("git %s these change files:%s", action, fileList.String())
 	}
 
 	return nil
