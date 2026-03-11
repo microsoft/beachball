@@ -16,6 +16,7 @@ type RepoConfig struct {
 	ChangeHint                 string                      `json:"changehint,omitempty"`
 	Commit                     *bool                       `json:"commit,omitempty"`
 	DependentChangeType        string                      `json:"dependentChangeType,omitempty"`
+	DisallowedChangeTypes      []string                    `json:"disallowedChangeTypes,omitempty"`
 	DisallowDeletedChangeFiles *bool                       `json:"disallowDeletedChangeFiles,omitempty"`
 	Fetch                      *bool                       `json:"fetch,omitempty"`
 	GroupChanges               *bool                       `json:"groupChanges,omitempty"`

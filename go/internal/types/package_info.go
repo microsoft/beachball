@@ -10,13 +10,6 @@ type PackageJson struct {
 	Beachball    *PackageOptions   `json:"beachball,omitempty"`
 }
 
-// PackageOptions represents beachball-specific options in package.json.
-type PackageOptions struct {
-	ShouldPublish          *bool    `json:"shouldPublish,omitempty"`
-	DisallowedChangeTypes  []string `json:"disallowedChangeTypes,omitempty"`
-	DefaultNearestBumpType string   `json:"defaultNearestBumpType,omitempty"`
-}
-
 // PackageInfo holds information about a single package.
 type PackageInfo struct {
 	Name            string

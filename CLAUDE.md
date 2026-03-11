@@ -219,6 +219,12 @@ Both implement: CLI parsing, JSON config loading (`.beachballrc.json` and `packa
 
 Not implemented: JS config files, interactive prompts, `bumpInMemory`, publish/bump/changelog, pnpm/rush/lerna workspaces.
 
+### Requirements
+
+The behavior and tests as specified in the TypeScript code must be matched exactly in the Go/Rust code. Do not change behavior or remove tests, unless it's exclusively related to features which you've been asked not to implement yet. If a different pattern would be more idiomatic in the target language, or it's not possible to implement the exact same behavior in the target language, ask the user before implementing it.
+
+When porting tests, add a comment by each Rust/Go test with the name of the corresponding TS test. If any TS tests have been omitted or combined, add a comment indicating which tests and why.
+
 ### Structure
 
 - **Rust**: `src/` with nested modules (`types/`, `options/`, `git/`, `monorepo/`, `changefile/`, `validation/`, `commands/`), integration tests in `tests/` with shared helpers in `tests/common/`

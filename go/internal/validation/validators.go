@@ -3,7 +3,7 @@ package validation
 import "github.com/microsoft/beachball/internal/types"
 
 var validAuthTypes = map[string]bool{
-	"authToken": true,
+	"authtoken": true,
 	"password":  true,
 }
 

@@ -24,6 +24,20 @@ describe('getDisallowedChangeTypes', () => {
     ]);
   });
 
+  it('returns null if package disallowedChangeTypes is set to null', () => {
+    const packageInfos = makePackageInfos({
+      foo: { beachball: { disallowedChangeTypes: null } },
+    });
+    expect(getDisallowedChangeTypes('foo', packageInfos, {}, { disallowedChangeTypes: ['major'] })).toBeNull();
+  });
+
+  it('returns empty array if package disallowedChangeTypes is set to empty array', () => {
+    const packageInfos = makePackageInfos({
+      foo: { beachball: { disallowedChangeTypes: [] } },
+    });
+    expect(getDisallowedChangeTypes('foo', packageInfos, {}, { disallowedChangeTypes: ['major'] })).toEqual([]);
+  });
+
   it('returns disallowedChangeTypes for package group', () => {
     const packageInfos = makePackageInfos({ foo: {} });
     const packageGroups: PackageGroups = {
@@ -33,6 +47,26 @@ describe('getDisallowedChangeTypes', () => {
       'major',
       'minor',
     ]);
+  });
+
+  it('returns null if package group disallowedChangeTypes is set to null', () => {
+    const packageInfos = makePackageInfos({ foo: {} });
+    const packageGroups: PackageGroups = {
+      group: { packageNames: ['foo'], disallowedChangeTypes: null },
+    };
+    expect(
+      getDisallowedChangeTypes('foo', packageInfos, packageGroups, { disallowedChangeTypes: ['major'] })
+    ).toBeNull();
+  });
+
+  it('returns empty array if package group disallowedChangeTypes is set to empty array', () => {
+    const packageInfos = makePackageInfos({ foo: {} });
+    const packageGroups: PackageGroups = {
+      group: { packageNames: ['foo'], disallowedChangeTypes: [] },
+    };
+    expect(getDisallowedChangeTypes('foo', packageInfos, packageGroups, { disallowedChangeTypes: ['major'] })).toEqual(
+      []
+    );
   });
 
   it('returns disallowedChangeTypes for package if not in a group', () => {
