@@ -4,9 +4,7 @@ use beachball::types::options::BeachballOptions;
 use beachball::validation::are_change_files_deleted::are_change_files_deleted;
 use common::change_files::generate_change_files;
 use common::repository_factory::RepositoryFactory;
-use common::{
-    DEFAULT_BRANCH, capture_logging, get_log_output, make_test_options, reset_logging,
-};
+use common::{DEFAULT_BRANCH, capture_logging, get_log_output, make_test_options, reset_logging};
 
 // TS: "is false when no change files are deleted"
 #[test]

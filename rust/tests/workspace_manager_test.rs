@@ -3,8 +3,8 @@ mod common;
 use beachball::monorepo::package_infos::get_package_infos;
 use beachball::options::get_options::get_parsed_options_for_test;
 use beachball::types::options::{BeachballOptions, CliOptions};
-use common::repository_factory::RepositoryFactory;
 use common::DEFAULT_REMOTE_BRANCH;
+use common::repository_factory::RepositoryFactory;
 use serde_json::json;
 use std::collections::HashMap;
 
@@ -24,8 +24,14 @@ fn pnpm_workspace_detection() {
         "private": true
     });
     let packages = HashMap::from([
-        ("foo".to_string(), json!({"name": "foo", "version": "1.0.0"})),
-        ("bar".to_string(), json!({"name": "bar", "version": "1.0.0"})),
+        (
+            "foo".to_string(),
+            json!({"name": "foo", "version": "1.0.0"}),
+        ),
+        (
+            "bar".to_string(),
+            json!({"name": "bar", "version": "1.0.0"}),
+        ),
     ]);
     let factory = RepositoryFactory::new_custom(root, vec![("packages".to_string(), packages)]);
     let repo = factory.clone_repository();
@@ -51,8 +57,14 @@ fn lerna_workspace_detection() {
         "private": true
     });
     let packages = HashMap::from([
-        ("foo".to_string(), json!({"name": "foo", "version": "1.0.0"})),
-        ("bar".to_string(), json!({"name": "bar", "version": "1.0.0"})),
+        (
+            "foo".to_string(),
+            json!({"name": "foo", "version": "1.0.0"}),
+        ),
+        (
+            "bar".to_string(),
+            json!({"name": "bar", "version": "1.0.0"}),
+        ),
     ]);
     let factory = RepositoryFactory::new_custom(root, vec![("packages".to_string(), packages)]);
     let repo = factory.clone_repository();
@@ -77,20 +89,29 @@ fn rush_workspace_detection() {
         "private": true
     });
     let packages = HashMap::from([
-        ("foo".to_string(), json!({"name": "foo", "version": "1.0.0"})),
-        ("bar".to_string(), json!({"name": "bar", "version": "1.0.0"})),
+        (
+            "foo".to_string(),
+            json!({"name": "foo", "version": "1.0.0"}),
+        ),
+        (
+            "bar".to_string(),
+            json!({"name": "bar", "version": "1.0.0"}),
+        ),
     ]);
     let factory = RepositoryFactory::new_custom(root, vec![("packages".to_string(), packages)]);
     let repo = factory.clone_repository();
 
     // Remove yarn.lock (added by factory) and add rush.json
     repo.git(&["rm", "yarn.lock"]);
-    repo.write_file_content("rush.json", r#"{
+    repo.write_file_content(
+        "rush.json",
+        r#"{
         "projects": [
             {"packageName": "foo", "projectFolder": "packages/foo"},
             {"packageName": "bar", "projectFolder": "packages/bar"}
         ]
-    }"#);
+    }"#,
+    );
     repo.git(&["add", "-A"]);
     repo.git(&["commit", "-m", "add rush config"]);
 

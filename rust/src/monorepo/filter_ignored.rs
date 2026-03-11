@@ -3,10 +3,7 @@ use crate::log_verbose;
 
 /// Filter out file paths that match any of the ignore patterns.
 /// Uses matchBase: true behavior (patterns without '/' match against basename).
-pub fn filter_ignored_files(
-    file_paths: &[String],
-    ignore_patterns: &[String],
-) -> Vec<String> {
+pub fn filter_ignored_files(file_paths: &[String], ignore_patterns: &[String]) -> Vec<String> {
     file_paths
         .iter()
         .filter(|path| {

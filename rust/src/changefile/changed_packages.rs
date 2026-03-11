@@ -79,7 +79,9 @@ fn get_all_changed_packages(
                 log_verbose!("  - {}", pkg.name);
                 result.push(pkg.name.clone());
             } else {
-                let short_reason = reason.strip_prefix(&format!("{} ", pkg.name)).unwrap_or(&reason);
+                let short_reason = reason
+                    .strip_prefix(&format!("{} ", pkg.name))
+                    .unwrap_or(&reason);
                 log_verbose!("  - ~~{}~~ ({})", pkg.name, short_reason);
             }
         }

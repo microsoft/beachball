@@ -68,7 +68,10 @@ pub fn read_change_files(
             } else if let Ok(single) = serde_json::from_str::<ChangeFileInfo>(&contents) {
                 vec![single]
             } else {
-                log_warn!("{} does not appear to be a change file", file_path.display());
+                log_warn!(
+                    "{} does not appear to be a change file",
+                    file_path.display()
+                );
                 continue;
             };
 

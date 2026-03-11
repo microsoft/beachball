@@ -23,11 +23,11 @@ const (
 // managerByFile maps config file names to their manager, in precedence order
 // matching workspace-tools.
 var managerByFile = map[string]WorkspaceManager{
-	"lerna.json":           ManagerLerna,
-	"rush.json":            ManagerRush,
-	"yarn.lock":            ManagerYarn,
-	"pnpm-workspace.yaml":  ManagerPnpm,
-	"package-lock.json":    ManagerNpm,
+	"lerna.json":          ManagerLerna,
+	"rush.json":           ManagerRush,
+	"yarn.lock":           ManagerYarn,
+	"pnpm-workspace.yaml": ManagerPnpm,
+	"package-lock.json":   ManagerNpm,
 }
 
 // DetectWorkspaceManager determines the workspace manager for the given root directory.
