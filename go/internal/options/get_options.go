@@ -41,6 +41,16 @@ func GetParsedOptions(cwd string, cli types.CliOptions) (types.ParsedOptions, er
 		logging.EnableVerbose()
 	}
 
+	// Only resolve the branch from git if CLI didn't specify one (matching TS getRepoOptions).
+	// This avoids unnecessary git operations and potential log noise when --branch is explicit.
+	if opts.Branch == "" {
+		// No branch specified at all — detect default remote and branch
+		opts.Branch = git.GetDefaultRemoteBranch(projectRoot, "")
+	} else {
+		// Config branch without remote prefix — add the default remote
+		opts.Branch = git.GetDefaultRemoteBranch(projectRoot, opts.Branch)
+	}
+
 	return types.ParsedOptions{Options: opts, CliOptions: cli}, nil
 }
 

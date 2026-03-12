@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/microsoft/beachball/internal/git"
 	"github.com/microsoft/beachball/internal/types"
 )
 
@@ -26,45 +25,25 @@ type RepoConfig struct {
 	Groups                     []types.VersionGroupOptions `json:"groups,omitempty"`
 }
 
-// LoadRepoConfig searches for beachball config starting from cwd up to the git root.
-func LoadRepoConfig(cwd string, configPath string) (*RepoConfig, error) {
+// LoadRepoConfig reads the beachball config from projectRoot (absolute path).
+// configPath is from an optional CLI arg and may be relative or absolute.
+// If configPath is not specified, looks for .beachballrc.json or package.json
+// "beachball" field. Returns nil if no config is found.
+func LoadRepoConfig(projectRoot string, configPath string) (*RepoConfig, error) {
 	if configPath != "" {
-		return loadConfigFile(configPath)
+		return loadConfigFile(filepath.Join(projectRoot, configPath))
 	}
 
-	gitRoot, err := git.FindGitRoot(cwd)
-	if err != nil {
-		gitRoot = cwd
+	// Try .beachballrc.json
+	rcPath := filepath.Join(projectRoot, ".beachballrc.json")
+	if cfg, err := loadConfigFile(rcPath); err == nil {
+		return cfg, nil
 	}
 
-	absPath, err := filepath.Abs(cwd)
-	if err != nil {
-		absPath = cwd
-	}
-	gitRootAbs, _ := filepath.Abs(gitRoot)
-
-	dir := absPath
-	for {
-		// Try .beachballrc.json
-		rcPath := filepath.Join(dir, ".beachballrc.json")
-		if cfg, err := loadConfigFile(rcPath); err == nil {
-			return cfg, nil
-		}
-
-		// Try package.json "beachball" field
-		pkgPath := filepath.Join(dir, "package.json")
-		if cfg, err := loadFromPackageJSON(pkgPath); err == nil && cfg != nil {
-			return cfg, nil
-		}
-
-		if dir == gitRootAbs {
-			break
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			break
-		}
-		dir = parent
+	// Try package.json "beachball" field
+	pkgPath := filepath.Join(projectRoot, "package.json")
+	if cfg, err := loadFromPackageJSON(pkgPath); err == nil && cfg != nil {
+		return cfg, nil
 	}
 
 	return nil, nil

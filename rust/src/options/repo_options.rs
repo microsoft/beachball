@@ -1,7 +1,7 @@
 use anyhow::Result;
 use std::path::Path;
 
-use crate::git::commands::{find_git_root, get_default_remote_branch};
+use crate::git::commands::get_default_remote_branch_for;
 use crate::types::change_info::ChangeType;
 use crate::types::options::{BeachballOptions, VersionGroupInclude, VersionGroupOptions};
 
@@ -34,56 +34,38 @@ struct RawVersionGroupOptions {
     disallowed_change_types: Option<Vec<ChangeType>>,
 }
 
-/// Search for and load repo-level beachball config.
-/// Searches from `cwd` up to the git root for .beachballrc.json or package.json "beachball" field.
-pub fn get_repo_options(cwd: &str, config_path: Option<&str>) -> Result<BeachballOptions> {
+/// Load repo-level beachball config from project_root (absolute path).
+/// config_path is from an optional CLI arg and may be relative or absolute.
+/// If config_path is not specified, looks for .beachballrc.json or package.json
+/// "beachball" field.
+pub fn get_repo_options(project_root: &str, config_path: Option<&str>) -> Result<BeachballOptions> {
     let mut opts = BeachballOptions::default();
 
     let raw = if let Some(path) = config_path {
-        load_json_config(path)?
+        let resolved = Path::new(project_root).join(path);
+        load_json_config(resolved.to_str().unwrap_or_default())?
     } else {
-        search_for_config(cwd)?
+        let root = Path::new(project_root);
+        // Check for .beachballrc.json
+        let rc_path = root.join(".beachballrc.json");
+        if rc_path.exists() {
+            load_json_config(rc_path.to_str().unwrap_or_default())?
+        } else {
+            // Check for package.json "beachball" field
+            let pkg_path = root.join("package.json");
+            if pkg_path.exists() {
+                load_from_package_json(pkg_path.to_str().unwrap_or_default())?
+            } else {
+                None
+            }
+        }
     };
 
     if let Some(raw) = raw {
-        apply_raw_config(&mut opts, raw, cwd)?;
+        apply_raw_config(&mut opts, raw, project_root)?;
     }
 
     Ok(opts)
-}
-
-fn search_for_config(cwd: &str) -> Result<Option<RawRepoConfig>> {
-    let git_root = find_git_root(cwd).unwrap_or_else(|_| cwd.to_string());
-    let git_root_path = Path::new(&git_root);
-    let mut dir = Path::new(cwd).to_path_buf();
-
-    loop {
-        // Check for .beachballrc.json
-        let rc_path = dir.join(".beachballrc.json");
-        if rc_path.exists()
-            && let Ok(config) = load_json_config(rc_path.to_str().unwrap_or_default())
-        {
-            return Ok(config);
-        }
-
-        // Check for package.json "beachball" field
-        let pkg_path = dir.join("package.json");
-        if pkg_path.exists()
-            && let Ok(Some(config)) = load_from_package_json(pkg_path.to_str().unwrap_or_default())
-        {
-            return Ok(Some(config));
-        }
-
-        // Stop at git root
-        if dir == git_root_path {
-            break;
-        }
-        if !dir.pop() {
-            break;
-        }
-    }
-
-    Ok(None)
 }
 
 fn load_json_config(path: &str) -> Result<Option<RawRepoConfig>> {
@@ -108,12 +90,7 @@ fn apply_raw_config(opts: &mut BeachballOptions, raw: RawRepoConfig, cwd: &str) 
         if branch.contains('/') {
             opts.branch = branch;
         } else {
-            let default = get_default_remote_branch(cwd)?;
-            if let Some((remote, _)) = super::super::git::commands::parse_remote_branch(&default) {
-                opts.branch = format!("{remote}/{branch}");
-            } else {
-                opts.branch = format!("origin/{branch}");
-            }
+            opts.branch = get_default_remote_branch_for(cwd, &branch);
         }
     }
 
