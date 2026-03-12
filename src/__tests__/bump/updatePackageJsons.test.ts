@@ -1,10 +1,11 @@
-import { jest, describe, it, expect, beforeEach, afterEach, beforeAll } from '@jest/globals';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import fs from 'fs';
 import { updatePackageJsons } from '../../bump/updatePackageJsons';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { consideredDependencies, type PackageInfo } from '../../types/PackageInfo';
 import * as readJsonModule from '../../object/readJson';
 import * as writeJsonModule from '../../object/writeJson';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 jest.mock('fs');
 jest.mock('../../object/readJson');
@@ -14,7 +15,7 @@ describe('updatePackageJsons', () => {
   const mockFs = fs as jest.Mocked<typeof fs>;
   const mockReadJson = readJsonModule as jest.Mocked<typeof readJsonModule>;
   const mockWriteJson = writeJsonModule as jest.Mocked<typeof writeJsonModule>;
-  let consoleWarnSpy: jest.SpiedFunction<typeof console.warn>;
+  const logs = initMockLogs({ alsoLog: ['error'] });
 
   /**
    * Get `writeJson` args for a package, with beachball-specific keys removed.
@@ -23,10 +24,6 @@ describe('updatePackageJsons', () => {
     const { packageJsonPath, ...json } = packageInfo;
     return [packageJsonPath, json];
   }
-
-  beforeAll(() => {
-    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-  });
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -80,7 +77,7 @@ describe('updatePackageJsons', () => {
 
     updatePackageJsons(modifiedPackages, packageInfos);
 
-    expect(consoleWarnSpy).toHaveBeenCalledWith('Skipping pkg-a since package.json does not exist');
+    expect(logs.mocks.warn).toHaveBeenCalledWith('Skipping pkg-a since package.json does not exist');
     expect(mockReadJson.readJson).not.toHaveBeenCalled();
     expect(mockWriteJson.writeJson).not.toHaveBeenCalled();
   });

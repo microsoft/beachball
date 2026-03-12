@@ -1,19 +1,12 @@
-import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import { isValidGroupOptions, isValidGroupedPackageOptions } from '../../validation/isValidGroupOptions';
 import type { VersionGroupOptions } from '../../types/BeachballOptions';
 import type { PackageGroups } from '../../types/PackageInfo';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 describe('isValidGroupOptions', () => {
-  let consoleErrorSpy: jest.SpiedFunction<typeof console.error>;
-
-  beforeAll(() => {
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  const logs = initMockLogs();
 
   it('returns true for valid groups', () => {
     const groups: VersionGroupOptions[] = [
@@ -21,15 +14,15 @@ describe('isValidGroupOptions', () => {
       { name: 'group2', include: ['pkg3'], disallowedChangeTypes: null },
     ];
     expect(isValidGroupOptions(groups)).toBe(true);
-    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(logs.mocks.error).not.toHaveBeenCalled();
   });
 
   it('returns false when groups is not an array', () => {
     const groups = { name: 'group1', include: ['pkg1'] };
     // eslint-disable-next-line
     expect(isValidGroupOptions(groups as any)).toBe(false);
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy.mock.calls[0].join(' ')).toMatchInlineSnapshot(`
+    expect(logs.mocks.error).toHaveBeenCalledTimes(1);
+    expect(logs.mocks.error.mock.calls[0].join(' ')).toMatchInlineSnapshot(`
       "ERROR: Expected "groups" configuration setting to be an array. Received:
       { "name": "group1", "include": ["pkg1"] }"
     `);
@@ -38,8 +31,8 @@ describe('isValidGroupOptions', () => {
   it('returns false when a group is missing name', () => {
     const groups = [{ include: ['pkg1'] }] as VersionGroupOptions[];
     expect(isValidGroupOptions(groups)).toBe(false);
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy.mock.calls[0].join(' ')).toMatchInlineSnapshot(`
+    expect(logs.mocks.error).toHaveBeenCalledTimes(1);
+    expect(logs.mocks.error.mock.calls[0].join(' ')).toMatchInlineSnapshot(`
       "ERROR: "groups" configuration entries must define "include" and "name". Found invalid groups:
         • { "include": ["pkg1"] }"
     `);
@@ -48,7 +41,7 @@ describe('isValidGroupOptions', () => {
   it('returns false when a group is missing include', () => {
     const groups = [{ name: 'group1' }] as VersionGroupOptions[];
     expect(isValidGroupOptions(groups)).toBe(false);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('must define "include" and "name"'));
+    expect(logs.mocks.error).toHaveBeenCalledWith(expect.stringContaining('must define "include" and "name"'));
   });
 
   it('returns false when multiple groups are invalid', () => {
@@ -59,8 +52,8 @@ describe('isValidGroupOptions', () => {
       { name: 'ok2', include: ['pkg3'], disallowedChangeTypes: null },
     ];
     expect(isValidGroupOptions(groups)).toBe(false);
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy.mock.calls[0].join(' ')).toMatchInlineSnapshot(`
+    expect(logs.mocks.error).toHaveBeenCalledTimes(1);
+    expect(logs.mocks.error.mock.calls[0].join(' ')).toMatchInlineSnapshot(`
       "ERROR: "groups" configuration entries must define "include" and "name". Found invalid groups:
         • { "name": "group1" }
         • { "include": ["pkg1"] }"
@@ -69,15 +62,7 @@ describe('isValidGroupOptions', () => {
 });
 
 describe('isValidGroupedPackageOptions', () => {
-  let consoleErrorSpy: jest.SpiedFunction<typeof console.error>;
-
-  beforeAll(() => {
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  const logs = initMockLogs();
 
   it('returns true when no packages have disallowedChangeTypes', () => {
     const packageInfos = makePackageInfos({ pkg1: {}, pkg2: {} });
@@ -85,7 +70,7 @@ describe('isValidGroupedPackageOptions', () => {
       group1: { packageNames: ['pkg1', 'pkg2'], disallowedChangeTypes: null },
     };
     expect(isValidGroupedPackageOptions(packageInfos, packageGroups)).toBe(true);
-    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(logs.mocks.error).not.toHaveBeenCalled();
   });
 
   it('returns false when a grouped package has disallowedChangeTypes', () => {
@@ -97,8 +82,8 @@ describe('isValidGroupedPackageOptions', () => {
       group1: { packageNames: ['pkg1', 'pkg2'], disallowedChangeTypes: null },
     };
     expect(isValidGroupedPackageOptions(packageInfos, packageGroups)).toBe(false);
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy.mock.calls[0].join(' ')).toMatchInlineSnapshot(`
+    expect(logs.mocks.error).toHaveBeenCalledTimes(1);
+    expect(logs.mocks.error.mock.calls[0].join(' ')).toMatchInlineSnapshot(`
       "ERROR: Found package configs that define disallowedChangeTypes and are also part of a group. Define disallowedChangeTypes in the group instead.
         • pkg1 in group "group1""
     `);
@@ -114,8 +99,8 @@ describe('isValidGroupedPackageOptions', () => {
       group1: { packageNames: ['pkg1', 'pkg2', 'pkg3'], disallowedChangeTypes: null },
     };
     expect(isValidGroupedPackageOptions(packageInfos, packageGroups)).toBe(false);
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy.mock.calls[0].join(' ')).toMatchInlineSnapshot(`
+    expect(logs.mocks.error).toHaveBeenCalledTimes(1);
+    expect(logs.mocks.error.mock.calls[0].join(' ')).toMatchInlineSnapshot(`
       "ERROR: Found package configs that define disallowedChangeTypes and are also part of a group. Define disallowedChangeTypes in the group instead.
         • pkg1 in group "group1"
         • pkg2 in group "group1""
@@ -135,8 +120,8 @@ describe('isValidGroupedPackageOptions', () => {
       group3: { packageNames: ['pkg4'], disallowedChangeTypes: null },
     };
     expect(isValidGroupedPackageOptions(packageInfos, packageGroups)).toBe(false);
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy.mock.calls[0].join(' ')).toMatchInlineSnapshot(`
+    expect(logs.mocks.error).toHaveBeenCalledTimes(1);
+    expect(logs.mocks.error.mock.calls[0].join(' ')).toMatchInlineSnapshot(`
       "ERROR: Found package configs that define disallowedChangeTypes and are also part of a group. Define disallowedChangeTypes in the group instead.
         • pkg1 in group "group1""
     `);

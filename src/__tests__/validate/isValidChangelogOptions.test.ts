@@ -1,22 +1,15 @@
-import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import { isValidChangelogOptions } from '../../validation/isValidChangelogOptions';
 import type { ChangelogGroupOptions, ChangelogOptions } from '../../types/ChangelogOptions';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 describe('isValidChangelogOptions', () => {
-  let consoleErrorSpy: jest.SpiedFunction<typeof console.error>;
-
-  beforeAll(() => {
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  const logs = initMockLogs();
 
   it('returns true when options have no groups', () => {
     const options: ChangelogOptions = {};
     expect(isValidChangelogOptions(options)).toBe(true);
-    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(logs.mocks.error).not.toHaveBeenCalled();
   });
 
   it('returns true when groups are valid with masterPackageName', () => {
@@ -30,7 +23,7 @@ describe('isValidChangelogOptions', () => {
       ],
     } as ChangelogOptions;
     expect(isValidChangelogOptions(options)).toBe(true);
-    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(logs.mocks.error).not.toHaveBeenCalled();
   });
 
   it('returns true when groups are valid with mainPackageName', () => {
@@ -44,7 +37,7 @@ describe('isValidChangelogOptions', () => {
       ],
     };
     expect(isValidChangelogOptions(options)).toBe(true);
-    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(logs.mocks.error).not.toHaveBeenCalled();
   });
 
   it('returns false when group is missing changelogPath', () => {
@@ -57,7 +50,7 @@ describe('isValidChangelogOptions', () => {
       ],
     } as ChangelogOptions;
     expect(isValidChangelogOptions(options)).toBe(false);
-    expect(consoleErrorSpy).toHaveBeenCalled();
+    expect(logs.mocks.error).toHaveBeenCalled();
   });
 
   it('returns false when group is missing mainPackageName and masterPackageName', () => {
@@ -70,7 +63,7 @@ describe('isValidChangelogOptions', () => {
       ],
     } as ChangelogOptions;
     expect(isValidChangelogOptions(options)).toBe(false);
-    expect(consoleErrorSpy).toHaveBeenCalled();
+    expect(logs.mocks.error).toHaveBeenCalled();
   });
 
   it('returns false when group is missing include', () => {
@@ -83,7 +76,7 @@ describe('isValidChangelogOptions', () => {
       ],
     } as ChangelogOptions;
     expect(isValidChangelogOptions(options)).toBe(false);
-    expect(consoleErrorSpy).toHaveBeenCalled();
+    expect(logs.mocks.error).toHaveBeenCalled();
   });
 
   it('returns false when multiple groups are invalid', () => {
@@ -98,7 +91,7 @@ describe('isValidChangelogOptions', () => {
       ],
     };
     expect(isValidChangelogOptions(options)).toBe(false);
-    expect(consoleErrorSpy).toHaveBeenCalled();
+    expect(logs.mocks.error).toHaveBeenCalled();
   });
 
   it('returns false for a mix of valid and invalid groups', () => {
@@ -115,6 +108,6 @@ describe('isValidChangelogOptions', () => {
       ],
     };
     expect(isValidChangelogOptions(options)).toBe(false);
-    expect(consoleErrorSpy).toHaveBeenCalled();
+    expect(logs.mocks.error).toHaveBeenCalled();
   });
 });
