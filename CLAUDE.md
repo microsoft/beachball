@@ -211,6 +211,8 @@ Use syntax and helpers from the newest version of the language where it makes se
 
 Where possible, use the LSP instead of grep to understand the code. Also use the LSP to check for errors after making changes.
 
+After making changes, run the commands to build, test, lint, and format.
+
 ### Structure
 
 - **Rust**: `src/` with nested modules, integration tests in `tests/` with shared helpers in `tests/common/`

@@ -243,9 +243,33 @@ fn test_get_default_remote_prefers_upstream() {
     let cwd = dir.path().to_str().unwrap();
     write_package_json(dir.path(), None);
 
-    must_git(cwd, &["remote", "add", "first", "https://github.com/kenotron/workspace-tools.git"]);
-    must_git(cwd, &["remote", "add", "origin", "https://github.com/ecraig12345/workspace-tools.git"]);
-    must_git(cwd, &["remote", "add", "upstream", "https://github.com/microsoft/workspace-tools.git"]);
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "first",
+            "https://github.com/kenotron/workspace-tools.git",
+        ],
+    );
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "origin",
+            "https://github.com/ecraig12345/workspace-tools.git",
+        ],
+    );
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "upstream",
+            "https://github.com/microsoft/workspace-tools.git",
+        ],
+    );
 
     assert_eq!(get_default_remote(cwd), "upstream");
 }
@@ -257,8 +281,24 @@ fn test_get_default_remote_prefers_origin_over_other() {
     let cwd = dir.path().to_str().unwrap();
     write_package_json(dir.path(), None);
 
-    must_git(cwd, &["remote", "add", "first", "https://github.com/kenotron/workspace-tools.git"]);
-    must_git(cwd, &["remote", "add", "origin", "https://github.com/microsoft/workspace-tools.git"]);
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "first",
+            "https://github.com/kenotron/workspace-tools.git",
+        ],
+    );
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "origin",
+            "https://github.com/microsoft/workspace-tools.git",
+        ],
+    );
 
     assert_eq!(get_default_remote(cwd), "origin");
 }
@@ -270,8 +310,24 @@ fn test_get_default_remote_falls_back_to_first() {
     let cwd = dir.path().to_str().unwrap();
     write_package_json(dir.path(), None);
 
-    must_git(cwd, &["remote", "add", "first", "https://github.com/kenotron/workspace-tools.git"]);
-    must_git(cwd, &["remote", "add", "second", "https://github.com/microsoft/workspace-tools.git"]);
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "first",
+            "https://github.com/kenotron/workspace-tools.git",
+        ],
+    );
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "second",
+            "https://github.com/microsoft/workspace-tools.git",
+        ],
+    );
 
     assert_eq!(get_default_remote(cwd), "first");
 }
@@ -288,8 +344,24 @@ fn test_get_default_remote_matches_repository_string() {
         })),
     );
 
-    must_git(cwd, &["remote", "add", "first", "https://github.com/kenotron/workspace-tools.git"]);
-    must_git(cwd, &["remote", "add", "second", "https://github.com/microsoft/workspace-tools.git"]);
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "first",
+            "https://github.com/kenotron/workspace-tools.git",
+        ],
+    );
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "second",
+            "https://github.com/microsoft/workspace-tools.git",
+        ],
+    );
 
     assert_eq!(get_default_remote(cwd), "second");
 }
@@ -306,8 +378,24 @@ fn test_get_default_remote_matches_repository_object() {
         })),
     );
 
-    must_git(cwd, &["remote", "add", "first", "https://github.com/kenotron/workspace-tools.git"]);
-    must_git(cwd, &["remote", "add", "second", "https://github.com/microsoft/workspace-tools.git"]);
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "first",
+            "https://github.com/kenotron/workspace-tools.git",
+        ],
+    );
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "second",
+            "https://github.com/microsoft/workspace-tools.git",
+        ],
+    );
 
     assert_eq!(get_default_remote(cwd), "second");
 }
@@ -324,8 +412,24 @@ fn test_get_default_remote_ssh_remote_format() {
         })),
     );
 
-    must_git(cwd, &["remote", "add", "first", "git@github.com:kenotron/workspace-tools.git"]);
-    must_git(cwd, &["remote", "add", "second", "git@github.com:microsoft/workspace-tools.git"]);
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "first",
+            "git@github.com:kenotron/workspace-tools.git",
+        ],
+    );
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "second",
+            "git@github.com:microsoft/workspace-tools.git",
+        ],
+    );
 
     assert_eq!(get_default_remote(cwd), "second");
 }
@@ -342,8 +446,24 @@ fn test_get_default_remote_shorthand_format() {
         })),
     );
 
-    must_git(cwd, &["remote", "add", "first", "https://github.com/kenotron/workspace-tools.git"]);
-    must_git(cwd, &["remote", "add", "second", "https://github.com/microsoft/workspace-tools.git"]);
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "first",
+            "https://github.com/kenotron/workspace-tools.git",
+        ],
+    );
+    must_git(
+        cwd,
+        &[
+            "remote",
+            "add",
+            "second",
+            "https://github.com/microsoft/workspace-tools.git",
+        ],
+    );
 
     assert_eq!(get_default_remote(cwd), "second");
 }
