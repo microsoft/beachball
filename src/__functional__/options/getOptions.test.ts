@@ -1,12 +1,15 @@
-import { describe, expect, it, beforeAll, afterAll, jest } from '@jest/globals';
+import { describe, expect, it, beforeAll, afterAll } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { getOptions, getParsedOptions } from '../../options/getOptions';
 import type { RepoOptions } from '../../types/BeachballOptions';
 import { writeJson } from '../../object/writeJson';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 describe('getOptions (deprecated)', () => {
+  initMockLogs({ alsoLog: ['error', 'warn'] });
+
   let repositoryFactory: RepositoryFactory;
   // Don't reuse a repo in these tests! If multiple tests load beachball.config.js from the same path,
   // it will use the version from the require cache, which will have outdated contents.
@@ -25,7 +28,6 @@ describe('getOptions (deprecated)', () => {
 
   beforeAll(() => {
     repositoryFactory = new RepositoryFactory('single');
-    jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterAll(() => {
@@ -109,7 +111,6 @@ describe('getParsedOptions', () => {
 
   beforeAll(() => {
     repositoryFactory = new RepositoryFactory('single');
-    jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterAll(() => {

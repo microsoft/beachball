@@ -1,12 +1,13 @@
-import { describe, it, expect, afterEach, jest, beforeAll } from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 import { setDependentVersions } from '../../bump/setDependentVersions';
 import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
 import { consideredDependencies } from '../../types/PackageInfo';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 type PartialBumpInfo = Parameters<typeof setDependentVersions>[0];
 
 describe('setDependentVersions', () => {
-  let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
+  const logs = initMockLogs({ alsoLog: ['warn', 'error'] });
 
   /**
    * Make the bump info. Package versions should reflect any bumps applied.
@@ -25,15 +26,6 @@ describe('setDependentVersions', () => {
       ...rest,
     };
   }
-
-  beforeAll(() => {
-    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
-    jest.spyOn(console, 'info').mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
 
   it('returns empty object when no packages are in scope', () => {
     const bumpInfo = makeBumpInfo({
@@ -107,7 +99,7 @@ describe('setDependentVersions', () => {
     expect(result).toEqual({ 'pkg-b': new Set(['pkg-a']) });
 
     // doesn't log by default
-    expect(consoleLogSpy).not.toHaveBeenCalled();
+    expect(logs.mocks.log).not.toHaveBeenCalled();
   });
 
   it('handles (ignores) external dependencies', () => {
@@ -149,7 +141,7 @@ describe('setDependentVersions', () => {
 
     setDependentVersions(bumpInfo, { verbose: true });
 
-    expect(consoleLogSpy).toHaveBeenCalledWith('pkg-b needs to be bumped because pkg-a ^1.0.0 -> ^2.0.0');
+    expect(logs.mocks.log).toHaveBeenCalledWith('pkg-b needs to be bumped because pkg-a ^1.0.0 -> ^2.0.0');
   });
 
   // Documenting this issue

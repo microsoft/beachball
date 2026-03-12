@@ -1,8 +1,9 @@
-import { describe, it, expect, jest, afterEach, beforeAll, beforeEach } from '@jest/globals';
+import { describe, it, expect, jest, afterEach, beforeEach } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
 import { updateLockFile } from '../../bump/updateLockFile';
 import { packageManager, type PackageManagerResult } from '../../packageManager/packageManager';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 jest.mock('fs');
 jest.mock('../../packageManager/packageManager');
@@ -15,16 +16,10 @@ jest.mock('../../env', () => ({
 }));
 
 describe('updateLockFile', () => {
+  const logs = initMockLogs({ alsoLog: ['error'] });
   const mockRoot = path.resolve('/mock/root');
   const mockFs = fs as jest.Mocked<typeof fs>;
   const mockPackageManager = packageManager as jest.MockedFunction<typeof packageManager>;
-  let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
-  let consoleWarnSpy: jest.SpiedFunction<typeof console.warn>;
-
-  beforeAll(() => {
-    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
-    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-  });
 
   beforeEach(() => {
     mockPackageManager.mockResolvedValue({ success: true } as PackageManagerResult);
@@ -40,7 +35,7 @@ describe('updateLockFile', () => {
 
     await updateLockFile({ path: mockRoot });
 
-    expect(consoleLogSpy).toHaveBeenCalledWith('Updating package-lock.json after bumping packages');
+    expect(logs.mocks.log).toHaveBeenCalledWith('Updating package-lock.json after bumping packages');
     expect(mockPackageManager).toHaveBeenCalledWith('npm', ['install', '--package-lock-only', '--ignore-scripts'], {
       stdio: 'inherit',
       cwd: mockRoot,
@@ -52,7 +47,7 @@ describe('updateLockFile', () => {
 
     await updateLockFile({ path: mockRoot });
 
-    expect(consoleLogSpy).toHaveBeenCalledWith('Updating pnpm-lock.yaml after bumping packages');
+    expect(logs.mocks.log).toHaveBeenCalledWith('Updating pnpm-lock.yaml after bumping packages');
     expect(mockPackageManager).toHaveBeenCalledWith('pnpm', ['install', '--lockfile-only', '--ignore-scripts'], {
       stdio: 'inherit',
       cwd: mockRoot,
@@ -72,7 +67,7 @@ describe('updateLockFile', () => {
       stdio: 'inherit',
       cwd: mockRoot,
     });
-    expect(consoleLogSpy).toHaveBeenCalledWith('Updating yarn.lock after bumping packages');
+    expect(logs.mocks.log).toHaveBeenCalledWith('Updating yarn.lock after bumping packages');
   });
 
   it('skips yarn.lock update for yarn v1', async () => {
@@ -83,8 +78,8 @@ describe('updateLockFile', () => {
 
     expect(mockPackageManager).toHaveBeenCalledWith('yarn', ['--version'], { cwd: mockRoot });
     expect(mockPackageManager).toHaveBeenCalledTimes(1);
-    expect(consoleLogSpy).not.toHaveBeenCalled();
-    expect(consoleWarnSpy).not.toHaveBeenCalled();
+    expect(logs.mocks.log).not.toHaveBeenCalled();
+    expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
 
   it('warns when yarn version check fails', async () => {
@@ -93,7 +88,7 @@ describe('updateLockFile', () => {
 
     await updateLockFile({ path: mockRoot });
 
-    expect(consoleWarnSpy).toHaveBeenCalledWith('Failed to get yarn version. Continuing...');
+    expect(logs.mocks.warn).toHaveBeenCalledWith('Failed to get yarn version. Continuing...');
   });
 
   it('warns when lock file update fails', async () => {
@@ -102,7 +97,7 @@ describe('updateLockFile', () => {
 
     await updateLockFile({ path: mockRoot });
 
-    expect(consoleWarnSpy).toHaveBeenCalledWith('Updating package-lock.json failed. Continuing...');
+    expect(logs.mocks.warn).toHaveBeenCalledWith('Updating package-lock.json failed. Continuing...');
   });
 
   it('does nothing when no lock file exists', async () => {
@@ -111,6 +106,6 @@ describe('updateLockFile', () => {
     await updateLockFile({ path: mockRoot });
 
     expect(mockPackageManager).not.toHaveBeenCalled();
-    expect(consoleLogSpy).not.toHaveBeenCalled();
+    expect(logs.mocks.log).not.toHaveBeenCalled();
   });
 });

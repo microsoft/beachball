@@ -1,12 +1,14 @@
-import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
 import { removeTempDir } from '../../__fixtures__/tmpdir';
 import { prepareChangelogPaths } from '../../changelog/prepareChangelogPaths';
 import { createTestFileStructure } from '../../__fixtures__/createTestFileStructure';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 describe('prepareChangelogPaths', () => {
-  let consoleLogMock: jest.SpiedFunction<typeof console.log>;
+  // there will be a bunch of ignorable warnings because /faketmpdir doesn't exist
+  const logs = initMockLogs({ alsoLog: ['error'] });
   let tempDir: string | undefined;
 
   const fakeDir = path.resolve('/faketmpdir');
@@ -14,14 +16,7 @@ describe('prepareChangelogPaths', () => {
   /** This is the beginning of the md5 hash digest of "test" */
   const testHash = '098f6bcd';
 
-  beforeAll(() => {
-    consoleLogMock = jest.spyOn(console, 'log').mockImplementation(() => {});
-    // there will be a bunch of ignorable warnings because /faketmpdir doesn't exist
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
-  });
-
   afterEach(() => {
-    consoleLogMock.mockClear();
     tempDir && removeTempDir(tempDir);
     tempDir = undefined;
   });
@@ -138,8 +133,8 @@ describe('prepareChangelogPaths', () => {
     expect(fs.existsSync(path.join(tempDir, 'CHANGELOG.json'))).toBe(false);
     expect(fs.readFileSync(paths.json!, 'utf8')).toBe('{}');
 
-    expect(consoleLogMock).toHaveBeenCalledWith(expect.stringContaining('Renamed existing changelog file'));
-    expect(consoleLogMock).toHaveBeenCalledTimes(2);
+    expect(logs.mocks.log).toHaveBeenCalledWith(expect.stringContaining('Renamed existing changelog file'));
+    expect(logs.mocks.log).toHaveBeenCalledTimes(2);
   });
 
   it('migrates existing path with hash to non-hash path (uniqueFilenames true to false)', () => {
@@ -166,8 +161,8 @@ describe('prepareChangelogPaths', () => {
     expect(fs.existsSync(path.join(tempDir, `${oldName}.json`))).toBe(false);
     expect(fs.readFileSync(paths.json!, 'utf8')).toBe('{}');
 
-    expect(consoleLogMock).toHaveBeenCalledWith(expect.stringContaining('Renamed existing changelog file'));
-    expect(consoleLogMock).toHaveBeenCalledTimes(2);
+    expect(logs.mocks.log).toHaveBeenCalledWith(expect.stringContaining('Renamed existing changelog file'));
+    expect(logs.mocks.log).toHaveBeenCalledTimes(2);
   });
 
   it('renames newest file if uniqueFilenames is true and there are multiple files with hashes', async () => {
@@ -198,8 +193,8 @@ describe('prepareChangelogPaths', () => {
     expect(fs.existsSync(path.join(tempDir, `CHANGELOG-${lastHash}.md`))).toBe(false);
     expect(fs.readFileSync(paths.md!, 'utf8')).toBe('last md');
 
-    expect(consoleLogMock).toHaveBeenCalledWith(expect.stringContaining('Renamed existing changelog file'));
-    expect(consoleLogMock).toHaveBeenCalledTimes(1);
+    expect(logs.mocks.log).toHaveBeenCalledWith(expect.stringContaining('Renamed existing changelog file'));
+    expect(logs.mocks.log).toHaveBeenCalledTimes(1);
 
     // The other files are untouched
     expect(fs.readFileSync(path.join(tempDir, file1), 'utf8')).toBe('md 1');
