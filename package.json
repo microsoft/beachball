@@ -58,7 +58,6 @@
     "p-limit": "^3.0.2",
     "prompts": "^2.4.2",
     "semver": "^7.0.0",
-    "toposort": "^2.0.2",
     "workspace-tools": "^0.41.0",
     "yargs-parser": "^21.0.0"
   },
@@ -69,7 +68,6 @@
     "@types/prompts": "^2.4.2",
     "@types/semver": "^7.3.13",
     "@types/tmp": "^0.2.3",
-    "@types/toposort": "^2.0.3",
     "@types/yargs-parser": "^21.0.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",

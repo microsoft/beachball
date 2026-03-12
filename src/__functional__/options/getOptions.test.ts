@@ -102,6 +102,8 @@ describe('getOptions (deprecated)', () => {
 });
 
 describe('getParsedOptions', () => {
+  initMockLogs({ alsoLog: ['error', 'warn'] });
+
   let repositoryFactory: RepositoryFactory;
   // Don't reuse a repo in these tests! If multiple tests load beachball.config.js from the same path,
   // it will use the version from the require cache, which will have outdated contents.

@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Implement \"layer\" pack style. Also handle all topological package sorting internally, and update the logic to ignore devDependencies since they can't cause breakages.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
