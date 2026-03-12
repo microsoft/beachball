@@ -1,10 +1,9 @@
 package options
 
 import (
-	"encoding/json"
-	"os"
 	"path/filepath"
 
+	"github.com/microsoft/beachball/internal/jsonutil"
 	"github.com/microsoft/beachball/internal/types"
 )
 
@@ -50,26 +49,19 @@ func LoadRepoConfig(projectRoot string, configPath string) (*RepoConfig, error) 
 }
 
 func loadConfigFile(path string) (*RepoConfig, error) {
-	data, err := os.ReadFile(path)
+	cfg, err := jsonutil.ReadJSON[RepoConfig](path)
 	if err != nil {
-		return nil, err
-	}
-	var cfg RepoConfig
-	if err := json.Unmarshal(data, &cfg); err != nil {
 		return nil, err
 	}
 	return &cfg, nil
 }
 
 func loadFromPackageJSON(path string) (*RepoConfig, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	var pkg struct {
+	type pkgWithBeachball struct {
 		Beachball *RepoConfig `json:"beachball"`
 	}
-	if err := json.Unmarshal(data, &pkg); err != nil {
+	pkg, err := jsonutil.ReadJSON[pkgWithBeachball](path)
+	if err != nil {
 		return nil, err
 	}
 	return pkg.Beachball, nil

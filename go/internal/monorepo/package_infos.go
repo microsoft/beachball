@@ -1,13 +1,12 @@
 package monorepo
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
+	"github.com/microsoft/beachball/internal/jsonutil"
 	"github.com/microsoft/beachball/internal/logging"
 	"github.com/microsoft/beachball/internal/types"
 )
@@ -23,12 +22,8 @@ func GetPackageInfos(options *types.BeachballOptions) (types.PackageInfos, error
 	if len(patterns) == 0 {
 		// Single package repo: read the root package.json directly
 		rootPkgPath := filepath.Join(rootPath, "package.json")
-		data, err := os.ReadFile(rootPkgPath)
+		rootPkg, err := jsonutil.ReadJSON[types.PackageJson](rootPkgPath)
 		if err != nil {
-			return nil, err
-		}
-		var rootPkg types.PackageJson
-		if err := json.Unmarshal(data, &rootPkg); err != nil {
 			return nil, err
 		}
 		info := packageInfoFromJSON(&rootPkg, rootPkgPath)
@@ -38,12 +33,9 @@ func GetPackageInfos(options *types.BeachballOptions) (types.PackageInfos, error
 
 	// Monorepo: add root package if it exists
 	rootPkgPath := filepath.Join(rootPath, "package.json")
-	if data, err := os.ReadFile(rootPkgPath); err == nil {
-		var rootPkg types.PackageJson
-		if err := json.Unmarshal(data, &rootPkg); err == nil && rootPkg.Name != "" {
-			rootInfo := packageInfoFromJSON(&rootPkg, rootPkgPath)
-			infos[rootInfo.Name] = rootInfo
-		}
+	if rootPkg, err := jsonutil.ReadJSON[types.PackageJson](rootPkgPath); err == nil && rootPkg.Name != "" {
+		rootInfo := packageInfoFromJSON(&rootPkg, rootPkgPath)
+		infos[rootInfo.Name] = rootInfo
 	}
 
 	if literal {
@@ -78,13 +70,9 @@ func GetPackageInfos(options *types.BeachballOptions) (types.PackageInfos, error
 
 // addPackageInfo reads a package.json and adds it to infos. Returns error on duplicate names.
 func addPackageInfo(infos types.PackageInfos, pkgJsonPath string, rootPath string) error {
-	pkgData, err := os.ReadFile(pkgJsonPath)
+	pkg, err := jsonutil.ReadJSON[types.PackageJson](pkgJsonPath)
 	if err != nil {
-		return nil // skip missing files silently
-	}
-	var pkg types.PackageJson
-	if err := json.Unmarshal(pkgData, &pkg); err != nil {
-		return nil // skip unparseable files silently
+		return nil // skip missing or unparseable files silently
 	}
 	absMatch, _ := filepath.Abs(pkgJsonPath)
 	info := packageInfoFromJSON(&pkg, absMatch)

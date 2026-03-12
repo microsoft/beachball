@@ -16,6 +16,11 @@ var (
 )
 
 // SetOutput redirects all loggers to the given writer (for testing).
+//
+// Note: This mutates package-level globals, so it is NOT safe for use with t.Parallel().
+// Tests within a package run sequentially by default, which is fine for now. If parallel
+// test execution is needed in the future, switch to injecting a per-test writer (e.g. via
+// context or a Loggers struct) instead of mutating shared state.
 func SetOutput(w io.Writer, verboseEnabled bool) {
 	Info.SetOutput(w)
 	Warn.SetOutput(w)

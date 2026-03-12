@@ -1,12 +1,11 @@
 package commands_test
 
 import (
-	"encoding/json"
-	"os"
 	"strings"
 	"testing"
 
 	"github.com/microsoft/beachball/internal/commands"
+	"github.com/microsoft/beachball/internal/jsonutil"
 	"github.com/microsoft/beachball/internal/options"
 	"github.com/microsoft/beachball/internal/testutil"
 	"github.com/microsoft/beachball/internal/types"
@@ -72,11 +71,8 @@ func TestCreatesChangeFileWithTypeAndMessage(t *testing.T) {
 	files := testutil.GetChangeFiles(&parsed.Options)
 	require.Len(t, files, 1)
 
-	data, err := os.ReadFile(files[0])
+	change, err := jsonutil.ReadJSON[types.ChangeFileInfo](files[0])
 	require.NoError(t, err)
-
-	var change types.ChangeFileInfo
-	require.NoError(t, json.Unmarshal(data, &change))
 
 	assert.Equal(t, types.ChangeTypePatch, change.Type)
 	assert.Equal(t, "test description", change.Comment)
@@ -114,9 +110,7 @@ func TestCreatesAndStagesChangeFile(t *testing.T) {
 	files := testutil.GetChangeFiles(&parsed.Options)
 	require.Len(t, files, 1)
 
-	data, _ := os.ReadFile(files[0])
-	var change types.ChangeFileInfo
-	json.Unmarshal(data, &change)
+	change, _ := jsonutil.ReadJSON[types.ChangeFileInfo](files[0])
 	assert.Equal(t, "stage me please", change.Comment)
 	assert.Equal(t, "foo", change.PackageName)
 	assert.Contains(t, buf.String(), "git staged these change files:")
@@ -149,9 +143,7 @@ func TestCreatesAndCommitsChangeFile(t *testing.T) {
 	files := testutil.GetChangeFiles(&parsed.Options)
 	require.Len(t, files, 1)
 
-	data, _ := os.ReadFile(files[0])
-	var change types.ChangeFileInfo
-	json.Unmarshal(data, &change)
+	change, _ := jsonutil.ReadJSON[types.ChangeFileInfo](files[0])
 	assert.Equal(t, "commit me please", change.Comment)
 	assert.Contains(t, buf.String(), "git committed these change files:")
 }
@@ -186,9 +178,7 @@ func TestCreatesAndCommitsChangeFileWithChangeDir(t *testing.T) {
 	// Verify file is in custom directory
 	assert.True(t, strings.Contains(files[0], "changeDir"), "expected file in changeDir, got: %s", files[0])
 
-	data, _ := os.ReadFile(files[0])
-	var change types.ChangeFileInfo
-	json.Unmarshal(data, &change)
+	change, _ := jsonutil.ReadJSON[types.ChangeFileInfo](files[0])
 	assert.Equal(t, "commit me please", change.Comment)
 	assert.Contains(t, buf.String(), "git committed these change files:")
 }
@@ -219,9 +209,7 @@ func TestCreatesChangeFileWhenNoChangesButPackageProvided(t *testing.T) {
 	files := testutil.GetChangeFiles(&parsed.Options)
 	require.Len(t, files, 1)
 
-	data, _ := os.ReadFile(files[0])
-	var change types.ChangeFileInfo
-	json.Unmarshal(data, &change)
+	change, _ := jsonutil.ReadJSON[types.ChangeFileInfo](files[0])
 	assert.Equal(t, "foo", change.PackageName)
 	assert.Contains(t, buf.String(), "git staged these change files:")
 }
@@ -255,9 +243,7 @@ func TestCreatesAndCommitsChangeFilesForMultiplePackages(t *testing.T) {
 
 	packageNames := map[string]bool{}
 	for _, f := range files {
-		data, _ := os.ReadFile(f)
-		var change types.ChangeFileInfo
-		json.Unmarshal(data, &change)
+		change, _ := jsonutil.ReadJSON[types.ChangeFileInfo](f)
 		packageNames[change.PackageName] = true
 		assert.Equal(t, types.ChangeTypeMinor, change.Type)
 		assert.Equal(t, "multi-package change", change.Comment)
@@ -296,9 +282,8 @@ func TestCreatesAndCommitsGroupedChangeFile(t *testing.T) {
 	files := testutil.GetChangeFiles(&parsed.Options)
 	require.Len(t, files, 1)
 
-	data, _ := os.ReadFile(files[0])
-	var grouped types.ChangeInfoMultiple
-	require.NoError(t, json.Unmarshal(data, &grouped))
+	grouped, err := jsonutil.ReadJSON[types.ChangeInfoMultiple](files[0])
+	require.NoError(t, err)
 
 	assert.Len(t, grouped.Changes, 2)
 

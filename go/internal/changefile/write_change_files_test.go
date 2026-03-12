@@ -1,12 +1,12 @@
 package changefile_test
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/microsoft/beachball/internal/changefile"
+	"github.com/microsoft/beachball/internal/jsonutil"
 	"github.com/microsoft/beachball/internal/testutil"
 	"github.com/microsoft/beachball/internal/types"
 	"github.com/stretchr/testify/assert"
@@ -39,10 +39,8 @@ func TestWriteChangeFiles_WritesIndividualChangeFiles(t *testing.T) {
 	foundFoo := false
 	foundBar := false
 	for _, f := range files {
-		data, err := os.ReadFile(f)
-		require.NoError(t, err, "failed to read %s", f)
-		var change types.ChangeFileInfo
-		require.NoError(t, json.Unmarshal(data, &change), "failed to parse %s", f)
+		change, err := jsonutil.ReadJSON[types.ChangeFileInfo](f)
+		require.NoError(t, err, "failed to read/parse %s", f)
 		switch change.PackageName {
 		case "foo":
 			foundFoo = true
@@ -157,10 +155,8 @@ func TestWriteChangeFiles_WritesGroupedChangeFiles(t *testing.T) {
 	require.Len(t, files, 1)
 
 	// Verify it's a grouped format
-	data, err := os.ReadFile(files[0])
+	grouped, err := jsonutil.ReadJSON[types.ChangeInfoMultiple](files[0])
 	require.NoError(t, err)
-	var grouped types.ChangeInfoMultiple
-	require.NoError(t, json.Unmarshal(data, &grouped))
 
 	assert.Len(t, grouped.Changes, 2)
 	packageNames := map[string]bool{}
