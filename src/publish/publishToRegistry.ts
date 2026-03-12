@@ -13,6 +13,7 @@ import type { PackageInfo } from '../types/PackageInfo';
 import { packPackage } from '../packageManager/packPackage';
 import { getCatalogs } from 'workspace-tools';
 import { BeachballError } from '../types/BeachballError';
+import { getPackageGraphLayers } from './getPackageGraphLayers';
 
 /**
  * Publish all the bumped packages to the registry, OR if `packToPath` is specified,
@@ -30,7 +31,7 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
   }
 
   // get the packages to publish, reducing the set by packages that don't need publishing
-  const packagesToPublish = getPackagesToPublish(bumpInfo, { toposort: true, logSkipped: true });
+  let packagesToPublish = getPackagesToPublish(bumpInfo, { logSkipped: true });
   if (!packagesToPublish.length) {
     console.log('Nothing to publish');
     return;
@@ -52,6 +53,17 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
     throw new BeachballError('Pre-publish validation failed', { alreadyLogged: true });
   }
 
+  let layers: string[][] | undefined;
+  if (packToPath && options.packStyle === 'layer') {
+    // If packing in layer style, get that ordering instead of toposorting
+    layers = getPackageGraphLayers({ packagesToPublish, bumpInfo, options });
+  } else if (options.concurrency === 1) {
+    // Otherwise, unless publishing concurrently, toposort the packages in case publishing fails
+    // partway through. We can reuse the layer logic for this. (Skip for concurrent publishing
+    // since p-graph handles ordering.)
+    packagesToPublish = getPackageGraphLayers({ packagesToPublish, bumpInfo, options }).flat();
+  }
+
   // performing publishConfig and workspace version overrides requires this procedure to
   // ONLY be run right before npm publish, but NOT in the git push
   const catalogs = getCatalogs(options.path);
@@ -70,8 +82,7 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
       success = await packPackage(packageInfo, {
         packToPath,
         verbose,
-        index: packIndex++,
-        total: packagesToPublish.length,
+        packInfo: layers ? { layers } : { index: packIndex++, total: packagesToPublish.length },
       });
     } else {
       success = (await packagePublish(packageInfo, options)).success;

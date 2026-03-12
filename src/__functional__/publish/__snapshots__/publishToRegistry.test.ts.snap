@@ -4,8 +4,8 @@ exports[`publishToRegistry publishes multiple packages in dependency order 1`] =
 "[log] Validating new package versions...
 
 [log] Package versions are OK to publish:
-  • lib@1.0.0
   • app@1.0.0
+  • lib@1.0.0
 
 [log] Validating no private package among package dependencies
 [log]   OK!
@@ -129,9 +129,9 @@ exports[`publishToRegistry with concurrency > 1 throws and shows recovery info o
 "[log] Validating new package versions...
 
 [log] Package versions are OK to publish:
-  • pkg3@1.0.0
-  • pkg2@1.0.0
   • pkg1@1.0.0
+  • pkg2@1.0.0
+  • pkg3@1.0.0
   • pkg4@1.0.0
   • pkg5@1.0.0
 
@@ -214,12 +214,43 @@ oh no
 To recover from this, run "beachball sync" to synchronize local package.json files with the registry."
 `;
 
-exports[`publishToRegistry with packToPath packs packages 1`] = `
+exports[`publishToRegistry with packToPath packs packages into layer folders 1`] = `
 "[log] Validating new package versions...
 
 [log] Package versions are OK to publish:
-  • lib@1.0.0
   • app@1.0.0
+  • other@1.0.0
+  • lib@1.0.0
+
+[log] Validating no private package among package dependencies
+[log]   OK!
+
+[log] Packing - app@1.0.0
+[log]   (cwd: <root>/packages/app)
+
+[log] app-1.0.0.tgz
+
+[log] Packed app@1.0.0 to <packPath>/2/app-1.0.0.tgz
+[log] Packing - other@1.0.0
+[log]   (cwd: <root>/packages/other)
+
+[log] other-1.0.0.tgz
+
+[log] Packed other@1.0.0 to <packPath>/2/other-1.0.0.tgz
+[log] Packing - lib@1.0.0
+[log]   (cwd: <root>/packages/lib)
+
+[log] lib-1.0.0.tgz
+
+[log] Packed lib@1.0.0 to <packPath>/1/lib-1.0.0.tgz"
+`;
+
+exports[`publishToRegistry with packToPath packs packages sequentially by default 1`] = `
+"[log] Validating new package versions...
+
+[log] Package versions are OK to publish:
+  • app@1.0.0
+  • lib@1.0.0
 
 [log] Validating no private package among package dependencies
 [log]   OK!

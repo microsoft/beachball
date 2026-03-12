@@ -217,6 +217,13 @@ export interface RepoOptions {
    */
   packToPath?: string;
   /**
+   * With `packToPath`, how to organize the tgz files:
+   * - `'sequential'` uses numeric prefixes to ensure topological order
+   * - `'layer'` groups the packages into numbered subfolders based on dependency tree layers
+   * @default 'sequential'
+   */
+  packStyle?: 'sequential' | 'layer';
+  /**
    * Whether to push to the remote git branch when publishing
    * @default true
    */
