@@ -1,4 +1,5 @@
 import path from 'path';
+import { logger } from '../logging/logger';
 import {
   getWorkspaceInfos,
   getPackageInfo as getWSPackageInfo,
@@ -101,7 +102,7 @@ function getPackageInfosFromOtherMonorepo(
     if (!wsPackageInfos[packageJson.name]) {
       wsPackageInfos[packageJson.name] = packageJson;
     } else {
-      console.error(
+      logger.error(
         `ERROR: Two packages have the same name "${packageJson.name}". Please rename one of these packages:\n` +
           `- ${path.relative(projectRoot, wsPackageInfos[packageJson.name].packageJsonPath)}\n` +
           `- ${path.relative(projectRoot, packageJson.packageJsonPath)}`

@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import { logger } from '../logging/logger';
 import type { PackageInfo } from '../types/PackageInfo';
 import { getPackageChangelogs } from './getPackageChangelogs';
 import { renderChangelog } from './renderChangelog';
@@ -74,11 +75,11 @@ async function writeGroupedChangelog(
     const mainPackageName = group.mainPackageName ?? group.masterPackageName!;
     const mainPackage = packageInfos[mainPackageName];
     if (!mainPackage) {
-      console.warn(`main package ${mainPackageName} does not exist.`);
+      logger.warn(`main package ${mainPackageName} does not exist.`);
       continue;
     }
     if (!fs.existsSync(changelogAbsDir)) {
-      console.warn(`changelog path ${changelogAbsDir} does not exist.`);
+      logger.warn(`changelog path ${changelogAbsDir} does not exist.`);
       continue;
     }
     groupedChangelogs[changelogAbsDir] = { mainPackage, changelogs: [] };
@@ -136,7 +137,7 @@ async function writeChangelogFiles(params: {
     try {
       previousJson = fs.existsSync(changelogPaths.json) ? readJson<ChangelogJson>(changelogPaths.json) : undefined;
     } catch (e) {
-      console.warn(`${changelogPaths.json} is invalid: ${e}`);
+      logger.warn(`${changelogPaths.json} is invalid: ${e}`);
     }
     try {
       const nextJson = renderJsonChangelog({
@@ -146,7 +147,7 @@ async function writeChangelogFiles(params: {
       });
       writeJson(changelogPaths.json, nextJson);
     } catch (e) {
-      console.warn(`Problem writing to ${changelogPaths.json}: ${e}`);
+      logger.warn(`Problem writing to ${changelogPaths.json}: ${e}`);
     }
   }
 

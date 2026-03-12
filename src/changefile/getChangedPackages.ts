@@ -8,6 +8,7 @@ import type { PackageInfos, PackageInfo, ScopedPackages } from '../types/Package
 import { ensureSharedHistory } from '../git/ensureSharedHistory';
 import { readJson } from '../object/readJson';
 import { bulletedList } from '../logging/bulletedList';
+import { logger } from '../logging/logger';
 import { filterIgnoredFiles } from '../monorepo/filterIgnoredFiles';
 
 const count = (n: number, str: string) => `${n} ${str}${n === 1 ? '' : 's'}`;
@@ -66,7 +67,7 @@ function getAllChangedPackages(
 ): string[] {
   const { branch, path: cwd, verbose, all, changeDir } = options;
 
-  const verboseLog = (msg: string) => verbose && console.log(msg);
+  const verboseLog = (msg: string) => verbose && logger.log(msg);
   const logIgnored = (file: string, reason: string) => verboseLog(`  - ~~${file}~~ (${reason})`);
   const logIncluded = (file: string) => verboseLog(`  - ${file}`);
 
@@ -82,7 +83,7 @@ function getAllChangedPackages(
       .map(pkg => pkg.name);
   }
 
-  console.log(`Checking for changes against "${options.branch}"`);
+  logger.log(`Checking for changes against "${options.branch}"`);
 
   ensureSharedHistory(options);
 
@@ -185,12 +186,12 @@ export function getChangedPackages(
         }
       }
     } catch (e) {
-      console.warn(`Error reading or parsing change file ${changeFilePath}: ${e}`);
+      logger.warn(`Error reading or parsing change file ${changeFilePath}: ${e}`);
     }
   }
 
   if (changeFilePackageSet.size > 0) {
-    console.log(
+    logger.log(
       'Your local repository already has change files for these packages:\n' +
         bulletedList([...changeFilePackageSet].sort())
     );

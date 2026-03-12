@@ -15,6 +15,7 @@ import { isValidDependentChangeType } from './isValidDependentChangeType';
 import { getPackagesToPublish } from '../publish/getPackagesToPublish';
 import { env } from '../env';
 import { bulletedList } from '../logging/bulletedList';
+import { logger } from '../logging/logger';
 import { BeachballError } from '../types/BeachballError';
 import type { BumpInfo } from '../types/BumpInfo';
 import type { ChangeCommandContext, CommandContext } from '../types/CommandContext';
@@ -65,22 +66,22 @@ export function validate(
 
   const { allowMissingChangeFiles, checkChangeNeeded, checkDependencies } = validateOptions || {};
 
-  console.log('\nValidating options and change files...');
+  logger.log('\nValidating options and change files...');
 
   // Run the validation checks in stages and wait to exit until the end of the stage.
   // This provides more potentially useful info the user rather than hiding errors.
   let hasError = false;
 
   const logValidationError = (message: string) => {
-    console.error(`ERROR: ${message}`);
+    logger.error(`ERROR: ${message}`);
     hasError = true;
   };
 
   const untracked = getUntrackedChanges({ cwd: options.path });
 
   if (untracked.length) {
-    console.warn('WARN: There are untracked changes in your repository:\n' + bulletedList(untracked));
-    !env.isCI && console.warn('Changes in these files will not trigger a prompt for change descriptions');
+    logger.warn('WARN: There are untracked changes in your repository:\n' + bulletedList(untracked));
+    !env.isCI && logger.warn('Changes in these files will not trigger a prompt for change descriptions');
   }
 
   const originalPackageInfos =
@@ -193,12 +194,12 @@ export function validate(
         : options.package
         ? 'Considering the specific --package'
         : 'Found changes in the following packages';
-      console.log(`${message}:\n${bulletedList([...changedPackages].sort())}`);
+      logger.log(`${message}:\n${bulletedList([...changedPackages].sort())}`);
     }
 
     if (isChangeNeeded && !allowMissingChangeFiles) {
       logValidationError('Change files are needed!');
-      console.log(options.changehint);
+      logger.log(options.changehint);
       throw new BeachballError('Validation failed: change files are needed', { alreadyLogged: true });
     }
 
@@ -210,7 +211,7 @@ export function validate(
 
   let bumpInfo: BumpInfo | undefined;
   if (!isChangeNeeded && checkDependencies && changeSet.length) {
-    console.log('\nValidating package dependencies...');
+    logger.log('\nValidating package dependencies...');
     // Unfortunately, to get full info about which dependents would be bumped, it's probably necessary
     // to calculate the full bump info.
     bumpInfo = bumpInMemory(options, { originalPackageInfos, packageGroups, changeSet, scopedPackages });
@@ -227,7 +228,7 @@ Consider one of the following solutions:
     }
   }
 
-  console.log();
+  logger.log();
 
   return {
     isChangeNeeded,

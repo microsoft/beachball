@@ -2,6 +2,7 @@ import type { ChangeSet } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
 import fs from 'fs';
 import path from 'path';
+import { logger } from '../logging/logger';
 import type { BeachballOptions } from '../types/BeachballOptions';
 
 /**
@@ -18,16 +19,16 @@ export function unlinkChangeFiles(
     return;
   }
 
-  console.log('Removing change files:');
+  logger.log('Removing change files:');
   const changePath = getChangePath(options);
   for (const { changeFile } of changeSet) {
     if (changeFile) {
-      console.log(`- ${changeFile}`);
+      logger.log(`- ${changeFile}`);
       fs.rmSync(path.join(changePath, changeFile), { force: true });
     }
   }
   if (fs.existsSync(changePath) && fs.readdirSync(changePath).length === 0) {
-    console.log(`Removing empty ${options.changeDir} folder`);
+    logger.log(`Removing empty ${options.changeDir} folder`);
     fs.rmSync(changePath, { recursive: true, force: true });
   }
 }

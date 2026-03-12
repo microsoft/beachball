@@ -1,4 +1,5 @@
 import { renderPackageChangelog, defaultRenderers } from './renderPackageChangelog';
+import { logger } from '../logging/logger';
 import type { ChangelogOptions, PackageChangelogRenderInfo } from '../types/ChangelogOptions';
 import type { PackageChangelog } from '../types/ChangeLog';
 
@@ -45,7 +46,7 @@ export async function renderChangelog(renderOptions: MarkdownChangelogRenderOpti
 
   try {
     if (customRenderPackageChangelog || customRenderers) {
-      !loggedCustomRender && console.log('Using custom renderer for package version changelog.');
+      !loggedCustomRender && logger.log('Using custom renderer for package version changelog.');
       loggedCustomRender = true;
     }
 
@@ -78,7 +79,7 @@ export async function renderChangelog(renderOptions: MarkdownChangelogRenderOpti
         .trim() + '\n'
     );
   } catch (err) {
-    console.log('Error occurred rendering package version changelog:', err);
+    logger.log('Error occurred rendering package version changelog:', err);
     return '';
   }
 }
@@ -99,7 +100,7 @@ export function _trimPreviousLog(params: {
   const headerPrefix = packageChangelog.match(/^#+ /m)?.[0];
   if (!headerPrefix) {
     // This could happen if someone has a custom renderer that doesn't start entries with a markdown header
-    console.warn(
+    logger.warn(
       `Changelog truncation to ${maxVersions} entries was requested, but the header format is not recognized.`
     );
     return previousLogEntries;

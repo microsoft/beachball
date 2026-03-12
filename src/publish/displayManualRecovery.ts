@@ -1,4 +1,5 @@
 import { bulletedList } from '../logging/bulletedList';
+import { logger } from '../logging/logger';
 import type { BumpInfo } from '../types/BumpInfo';
 
 export function displayManualRecovery(
@@ -18,7 +19,7 @@ export function displayManualRecovery(
     }
   }
 
-  console.error(
+  logger.error(
     'Something went wrong with publishing (see above for details). The following packages were NOT published:\n' +
       bulletedList(errorLines.sort()) +
       '\n'
@@ -27,7 +28,7 @@ export function displayManualRecovery(
   if (succeededLines.length) {
     // Previously this warned about invalid packages on the registry (referencing unpublished versions),
     // but that should be impossible since packages are now published in topological order
-    console.warn(
+    logger.warn(
       'These packages and versions were successfully published, but will NOT be reflected in your local package.json files:\n' +
         bulletedList(succeededLines.sort()) +
         '\n\nTo recover from this, run "beachball sync" to synchronize local package.json files with the registry.\n'

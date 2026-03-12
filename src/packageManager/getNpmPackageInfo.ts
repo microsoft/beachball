@@ -1,4 +1,5 @@
 // import fetch from 'npm-registry-fetch';
+import { logger } from '../logging/logger';
 import type { NpmOptions } from '../types/NpmOptions';
 import { getNpmAuthArgs, type NpmAuthOptions } from './npmArgs';
 import type { PackageJson } from '../types/PackageInfo';
@@ -54,7 +55,7 @@ export async function getNpmPackageInfo(
 ): Promise<NpmPackageVersionsData | undefined> {
   const authArgs = getNpmAuthArgs(options);
   try {
-    options.verbose && console.log(`Fetching info about "${packageName}" from ${options.registry}`);
+    options.verbose && logger.log(`Fetching info about "${packageName}" from ${options.registry}`);
 
     const showResult = await npm(
       [
@@ -97,7 +98,7 @@ export async function getNpmPackageInfo(
     //   'dist-tags': result['dist-tags'] || {},
     // };
   } catch (err) {
-    options.verbose && console.warn(`Failed to get or parse npm info for ${packageName}: ${String(err)}`);
+    options.verbose && logger.warn(`Failed to get or parse npm info for ${packageName}: ${String(err)}`);
     return undefined;
   }
 }

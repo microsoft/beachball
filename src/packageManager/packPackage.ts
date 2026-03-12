@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { logger } from '../logging/logger';
 import type { PackageInfo } from '../types/PackageInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { npm } from './npm';
@@ -26,23 +27,23 @@ export async function packPackage(
 
   const packageRoot = path.dirname(packageInfo.packageJsonPath);
   const packageSpec = `${packageInfo.name}@${packageInfo.version}`;
-  console.log(`Packing - ${packageSpec}`);
-  console.log(`  (cwd: ${packageRoot})\n`);
+  logger.log(`Packing - ${packageSpec}`);
+  logger.log(`  (cwd: ${packageRoot})\n`);
 
   // Run npm pack in the package directory
   const result = await npm(packArgs, { cwd: packageRoot, all: true });
   // log afterwards instead of piping because we need to access the output to get the filename
-  console.log((result.all || '') + '\n');
+  logger.log((result.all || '') + '\n');
 
   if (!result.success) {
-    console.error(`Packing ${packageSpec} failed (see above for details)\n`);
+    logger.error(`Packing ${packageSpec} failed (see above for details)\n`);
     return false;
   }
 
   const packFile = result.stdout.trim().split('\n').pop() || '';
   const packFilePath = path.join(packageRoot, packFile);
   if (!packFile.endsWith('.tgz') || !fs.existsSync(packFilePath)) {
-    console.error(`npm pack output for ${packageSpec} (above) did not end with a filename that exists\n`);
+    logger.error(`npm pack output for ${packageSpec} (above) did not end with a filename that exists\n`);
     return false;
   }
 
@@ -58,7 +59,7 @@ export async function packPackage(
     fs.mkdirSync(packToPath, { recursive: true });
     fs.renameSync(packFilePath, finalPackFilePath);
   } catch (err) {
-    console.error(`Failed to move ${packFilePath} to ${finalPackFilePath}: ${err}\n`);
+    logger.error(`Failed to move ${packFilePath} to ${finalPackFilePath}: ${err}\n`);
     try {
       // attempt to clean up the pack file (ignore any failures)
       fs.rmSync(packFilePath);
@@ -68,6 +69,6 @@ export async function packPackage(
     return false;
   }
 
-  console.log(`Packed ${packageSpec} to ${finalPackFilePath}`);
+  logger.log(`Packed ${packageSpec} to ${finalPackFilePath}`);
   return true;
 }

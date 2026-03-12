@@ -7,6 +7,7 @@ import { displayManualRecovery } from './displayManualRecovery';
 import { gitFetch } from '../git/fetch';
 import { gitAsync } from '../git/gitAsync';
 import { BeachballError } from '../types/BeachballError';
+import { logger } from '../logging/logger';
 
 const bumpPushRetries = 5;
 /** Use verbose logging for these steps to make it easier to debug if something goes wrong */
@@ -30,18 +31,18 @@ export async function bumpAndPush(
 
   /** Log a warning which includes the attempt number */
   const logRetryWarning = (text: string, details = '(see above for details)') =>
-    console.warn(`[WARN ${tryNumber}/${bumpPushRetries}]: ${text} ${details}`);
+    logger.warn(`[WARN ${tryNumber}/${bumpPushRetries}]: ${text} ${details}`);
 
   while (tryNumber < bumpPushRetries && !completed) {
     tryNumber++;
-    console.log('-'.repeat(80));
-    console.log(`Bumping versions and pushing to git (attempt ${tryNumber}/${bumpPushRetries})`);
-    console.log('Reverting');
+    logger.log('-'.repeat(80));
+    logger.log(`Bumping versions and pushing to git (attempt ${tryNumber}/${bumpPushRetries})`);
+    logger.log('Reverting');
     revertLocalChanges({ cwd });
 
     // pull in latest from origin branch
     if (options.fetch !== false) {
-      console.log();
+      logger.log();
       const fetchResult = gitFetch({ remote, branch: remoteBranch, depth, cwd, verbose });
       if (!fetchResult.success) {
         logRetryWarning(`Fetching from ${branch} has failed!`);
@@ -49,7 +50,7 @@ export async function bumpAndPush(
       }
     }
 
-    console.log(`\nMerging with ${branch}...`);
+    logger.log(`\nMerging with ${branch}...`);
     const mergeResult = await gitAsync(['merge', '-X', 'theirs', branch], { cwd, verbose });
     if (!mergeResult.success) {
       logRetryWarning(`Merging with latest ${branch} has failed!`);
@@ -57,7 +58,7 @@ export async function bumpAndPush(
     }
 
     // bump the version
-    console.log('\nBumping versions locally (and writing changelogs if requested)');
+    logger.log('\nBumping versions locally (and writing changelogs if requested)');
     await performBump(bumpInfo, options);
 
     // checkin
@@ -67,11 +68,11 @@ export async function bumpAndPush(
     }
 
     // create git tags
-    console.log('\nCreating git tags for new versions...');
+    logger.log('\nCreating git tags for new versions...');
     tagPackages(bumpInfo, options);
 
     // push
-    console.log(`\nPushing to ${branch}...`);
+    logger.log(`\nPushing to ${branch}...`);
 
     const pushResult = await gitAsync(
       ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`],
@@ -100,7 +101,7 @@ async function mergePublishBranch(
 ): Promise<boolean> {
   await options.hooks?.precommit?.(options.path);
 
-  console.log(`\nMerging ${publishBranch} into ${options.branch}...`);
+  logger.log(`\nMerging ${publishBranch} into ${options.branch}...`);
   const mergeSteps = [
     ['add', '.'],
     ['commit', '-m', options.message],

@@ -13,6 +13,7 @@ import type { PackageInfo } from '../types/PackageInfo';
 import { packPackage } from '../packageManager/packPackage';
 import { getCatalogs } from 'workspace-tools';
 import { BeachballError } from '../types/BeachballError';
+import { logger } from '../logging/logger';
 
 /**
  * Publish all the bumped packages to the registry, OR if `packToPath` is specified,
@@ -32,7 +33,7 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
   // get the packages to publish, reducing the set by packages that don't need publishing
   const packagesToPublish = getPackagesToPublish(bumpInfo, { toposort: true, logSkipped: true });
   if (!packagesToPublish.length) {
-    console.log('Nothing to publish');
+    logger.log('Nothing to publish');
     return;
   }
 
@@ -109,7 +110,7 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
 
     if (packToPath) {
       // The regular recovery message is mostly irrelevant for packing, since nothing was published
-      console.error(
+      logger.error(
         'Something went wrong with packing packages! No packages were published, so you can address the issue and try again.'
       );
     } else {

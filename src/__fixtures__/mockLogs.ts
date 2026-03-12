@@ -1,20 +1,25 @@
 import { jest, afterEach, beforeAll, afterAll } from '@jest/globals';
+import { setTransports, restoreTransports } from '../logging/logger';
+import type { LogLevel, LogTransport } from '../logging/logger';
 
 /** Methods that will be mocked. More could be added later if needed. */
-type MockLogMethod = 'log' | 'warn' | 'error';
-const mockedMethods: MockLogMethod[] = ['log', 'warn', 'error'];
+const mockedMethods: Record<LogLevel, true> = {
+  log: true,
+  warn: true,
+  error: true,
+};
 
 type MockLogsOptions = {
   /**
    * Whether to also log to the real console (or subset of methods to log to the console).
    * All logging can be enabled by setting the VERBOSE env var.
    */
-  alsoLog?: boolean | MockLogMethod[];
+  alsoLog?: boolean | LogLevel[];
 };
 
 export type MockLogs = {
   /** Mocked methods (to access calls etc) */
-  mocks: { [k in MockLogMethod]: jest.SpiedFunction<typeof console.log> };
+  mocks: { [k in LogLevel]: jest.Mock<(...args: unknown[]) => void> };
 
   /** Set override options for one test only */
   setOverrideOptions: (options: MockLogsOptions) => void;
@@ -24,7 +29,7 @@ export type MockLogs = {
 
   /** Get the lines logged to a particular method (or all methods) */
   getMockLines: (
-    method: MockLogMethod | 'all',
+    method: LogLevel | 'all',
     opts?: {
       /** Replace this path with `<root>` and normalize slashes */
       root?: string;
@@ -52,10 +57,24 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
   const { alsoLog } = options;
   let allLines: unknown[][] = [];
   let overrideOptions: MockLogsOptions | undefined;
-  const jestConsole = { ...console };
+
+  const mocks = Object.fromEntries(
+    Object.keys(mockedMethods).map(m => [m, jest.fn<(...args: unknown[]) => void>()])
+  ) as MockLogs['mocks'];
+
+  const capturingTransport: LogTransport = (level, args) => {
+    mocks[level](...args);
+    allLines.push([`[${level}]`, ...args]);
+
+    const currentAlsoLog = overrideOptions?.alsoLog ?? alsoLog;
+    if (process.env.VERBOSE || shouldLog(level, currentAlsoLog)) {
+      const consoleMethod = level === 'log' ? 'log' : level;
+      console[consoleMethod](...args);
+    }
+  };
 
   const logs: MockLogs = {
-    mocks: {} as MockLogs['mocks'],
+    mocks,
     setOverrideOptions: opt => {
       overrideOptions = opt;
     },
@@ -103,18 +122,7 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
   };
 
   beforeAll(() => {
-    for (const method of mockedMethods) {
-      const mainShouldLog = shouldLog(method, alsoLog);
-
-      logs.mocks[method] = jest.spyOn(console, method).mockImplementation((...args) => {
-        const currentShouldLog =
-          overrideOptions === undefined ? mainShouldLog : shouldLog(method, overrideOptions.alsoLog);
-        allLines.push([`[${method}]`, ...args]);
-        if (process.env.VERBOSE || currentShouldLog) {
-          jestConsole[method](...args);
-        }
-      });
-    }
+    setTransports([capturingTransport]);
   });
 
   afterEach(() => {
@@ -122,12 +130,12 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
   });
 
   afterAll(() => {
-    Object.values(logs.mocks).forEach(mock => mock.mockRestore());
+    restoreTransports();
   });
 
   return logs;
 }
 
-function shouldLog(method: MockLogMethod, alsoLog: boolean | MockLogMethod[] | undefined) {
+function shouldLog(method: LogLevel, alsoLog: boolean | LogLevel[] | undefined) {
   return typeof alsoLog === 'boolean' ? alsoLog : alsoLog?.includes(method);
 }

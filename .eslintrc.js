@@ -80,6 +80,21 @@ const config = {
         property: 'exit',
         message: 'Errors should be propagated to the top level and handled there.',
       },
+      {
+        object: 'console',
+        property: 'log',
+        message: 'Use logger.log() from src/logging/logger instead.',
+      },
+      {
+        object: 'console',
+        property: 'warn',
+        message: 'Use logger.warn() from src/logging/logger instead.',
+      },
+      {
+        object: 'console',
+        property: 'error',
+        message: 'Use logger.error() from src/logging/logger instead.',
+      },
     ],
 
     // Downgrade these rules to warnings because they cause excessive/unhelpful noise when

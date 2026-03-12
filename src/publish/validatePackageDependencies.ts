@@ -1,5 +1,6 @@
 import { consideredDependencies, type PackageInfos } from '../types/PackageInfo';
 import { bulletedList } from '../logging/bulletedList';
+import { logger } from '../logging/logger';
 
 const prodDepTypes = consideredDependencies.filter(t => t !== 'devDependencies');
 
@@ -20,7 +21,7 @@ export function validatePackageDependencies(packagesToValidate: string[], packag
     }
   }
 
-  console.log(`Validating no private package among package dependencies`);
+  logger.log(`Validating no private package among package dependencies`);
 
   // This makes the assumption that any dep matching a monorepo package name refers to the
   // in-repo version. If there's an issue because that's not the case, extra logic could be added
@@ -28,13 +29,13 @@ export function validatePackageDependencies(packagesToValidate: string[], packag
   // logic for catalog versions).
   const errorDeps = Object.keys(prodDeps).filter(dep => packageInfos[dep]?.private);
   if (errorDeps.length) {
-    console.error(
+    logger.error(
       `\nERROR: Found private packages among published package dependencies:\n` +
         bulletedList(errorDeps.map(dep => `${dep}: used by ${prodDeps[dep].join(', ')}`).sort()) +
         '\n'
     );
     return false;
   }
-  console.log('  OK!\n');
+  logger.log('  OK!\n');
   return true;
 }

@@ -3,6 +3,7 @@ import { gitFailFast } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { getPackagesToPublish } from './getPackagesToPublish';
 import { getPackageOption } from '../options/getPackageOption';
+import { logger } from '../logging/logger';
 
 function createTag(tag: string, cwd: string): void {
   gitFailFast(['tag', '-a', '-f', tag, '-m', tag], { cwd });
@@ -28,13 +29,13 @@ export function tagPackages(
 
   for (const pkg of filteredPackages) {
     const packageInfo = packageInfos[pkg];
-    console.log(`Tagging - ${packageInfo.name}@${packageInfo.version}`);
+    logger.log(`Tagging - ${packageInfo.name}@${packageInfo.version}`);
     const generatedTag = generateTag(packageInfo.name, packageInfo.version);
     createTag(generatedTag, cwd);
   }
 
   if (gitTags && distTag && distTag !== 'latest') {
-    console.log(`Tagging - ${distTag}`);
+    logger.log(`Tagging - ${distTag}`);
     createTag(distTag, cwd);
   }
 }

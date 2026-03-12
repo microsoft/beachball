@@ -1,4 +1,5 @@
 import { bulletedList } from '../logging/bulletedList';
+import { logger } from '../logging/logger';
 import { singleLineStringify } from '../logging/singleLineStringify';
 import type { VersionGroupOptions } from '../types/BeachballOptions';
 import type { PackageGroups, PackageInfos } from '../types/PackageInfo';
@@ -6,7 +7,7 @@ import type { PackageGroups, PackageInfos } from '../types/PackageInfo';
 export function isValidGroupOptions(groups: VersionGroupOptions[]): boolean {
   // Values that violate types could happen in a user-provided object
   if (!Array.isArray(groups)) {
-    console.error(
+    logger.error(
       'ERROR: Expected "groups" configuration setting to be an array. Received:\n' + singleLineStringify(groups)
     );
     return false;
@@ -14,7 +15,7 @@ export function isValidGroupOptions(groups: VersionGroupOptions[]): boolean {
 
   const badGroups = groups.filter(group => !group.include || !group.name);
   if (badGroups.length) {
-    console.error(
+    logger.error(
       'ERROR: "groups" configuration entries must define "include" and "name". Found invalid groups:\n' +
         bulletedList(badGroups.map(group => singleLineStringify(group)))
     );
@@ -40,7 +41,7 @@ export function isValidGroupedPackageOptions(packageInfos: PackageInfos, package
   }
 
   if (errorPackages.length) {
-    console.error(
+    logger.error(
       'ERROR: Found package configs that define disallowedChangeTypes and are also part of a group. ' +
         'Define disallowedChangeTypes in the group instead.\n' +
         bulletedList(errorPackages.sort())

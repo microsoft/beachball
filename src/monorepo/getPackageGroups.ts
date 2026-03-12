@@ -3,6 +3,7 @@ import path from 'path';
 import type { PackageInfos, PackageGroups } from '../types/PackageInfo';
 import { isPathIncluded } from './isPathIncluded';
 import { bulletedList } from '../logging/bulletedList';
+import { logger } from '../logging/logger';
 import { BeachballError } from '../types/BeachballError';
 
 export function getPackageGroups(
@@ -43,7 +44,7 @@ export function getPackageGroups(
 
   const errorEntries = Object.entries(errorPackages);
   if (errorEntries.length) {
-    console.error(
+    logger.error(
       `ERROR: Found package(s) belonging to multiple groups:\n` +
         bulletedList(
           errorEntries.map(([pkgName, pkgGroups]) => `${pkgName}: ${pkgGroups.map(g => g.name).join(', ')}`).sort()

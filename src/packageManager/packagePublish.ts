@@ -1,5 +1,6 @@
 import type { PackageInfo } from '../types/PackageInfo';
 import path from 'path';
+import { logger } from '../logging/logger';
 import { npm, type NpmResult } from './npm';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { getNpmPublishArgs } from './npmArgs';
@@ -18,10 +19,10 @@ export async function packagePublish(
   const packageRoot = path.dirname(packageInfo.packageJsonPath);
   const publishTag = publishArgs[publishArgs.indexOf('--tag') + 1];
   const packageSpec = `${packageInfo.name}@${packageInfo.version}`;
-  console.log(`Publishing - ${packageSpec} with tag ${publishTag}`);
+  logger.log(`Publishing - ${packageSpec} with tag ${publishTag}`);
 
-  console.log(`  publish command: ${publishArgs.join(' ')}`);
-  console.log(`  (cwd: ${packageRoot})\n`);
+  logger.log(`  publish command: ${publishArgs.join(' ')}`);
+  logger.log(`  (cwd: ${packageRoot})\n`);
 
   let result: NpmResult;
 
@@ -29,7 +30,7 @@ export async function packagePublish(
   // It was previously implemented as the latter, so keep that for now.
   for (let retries = 0; retries <= options.retries; retries++) {
     if (retries > 0) {
-      console.log(`Retrying... (${retries}/${options.retries})\n`);
+      logger.log(`Retrying... (${retries}/${options.retries})\n`);
     }
 
     result = await npm(publishArgs, {
@@ -40,7 +41,7 @@ export async function packagePublish(
     });
 
     if (result.success) {
-      console.log(`Published! - ${packageSpec}\n`);
+      logger.log(`Published! - ${packageSpec}\n`);
       return result;
     }
 
@@ -54,7 +55,7 @@ export async function packagePublish(
       result.all?.includes('E409') ||
       result.all?.includes('previously published')
     ) {
-      console.error(`${packageSpec} already exists in the registry. ${output}`);
+      logger.error(`${packageSpec} already exists in the registry. ${output}`);
       break;
     }
     if (result.all?.includes('code E403')) {
@@ -66,29 +67,30 @@ export async function packagePublish(
       //   npm ERR! 403 In most cases, you or one of your dependencies are requesting
       //   npm ERR! 403 a package version that is forbidden by your security policy, or
       //   npm ERR! 403 on a server you do not have access to.
-      console.error(`Publishing ${packageSpec} failed due to a 403 error. ${output}`);
+      logger.error(`Publishing ${packageSpec} failed due to a 403 error. ${output}`);
       break;
     }
     if (result.all?.includes('ENEEDAUTH')) {
       // ENEEDAUTH only happens if no auth was attempted (no token/password provided).
-      console.error(`Publishing ${packageSpec} failed due to an auth error. ${output}`);
+      logger.error(`Publishing ${packageSpec} failed due to an auth error. ${output}`);
       break;
     }
     if (result.all?.includes('code E404')) {
       // All types of invalid credentials appear to cause E404.
       // validate() already checks for the most common ways invalid variable names might show up,
       // so log a slightly more generic message instead of details about the token.
-      console.error(
+      logger.error(
         `Publishing ${packageSpec} failed with E404. Contrary to the output, this usually indicates an issue ` +
           'with an auth token (expired, improper scopes, or incorrect variable name).'
       );
       // demote the output on this one due to the misleading message
-      console.log(output);
+      logger.log(output);
       break;
     }
 
     const timedOutMessage = result.timedOut ? ' (timed out)' : '';
-    const log = retries < options.retries ? console.warn : console.error;
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const log = retries < options.retries ? logger.warn : logger.error;
     log(`Publishing ${packageSpec} failed${timedOutMessage}. ${output}`);
   }
 

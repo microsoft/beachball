@@ -4,6 +4,7 @@ import { getBranchName, stage, commit } from 'workspace-tools';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { logger } from '../logging/logger';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { writeJson } from '../object/writeJson';
 
@@ -55,7 +56,7 @@ export function writeChangeFiles(
     }
   }
 
-  console.log(
+  logger.log(
     `git ${commitChangeFiles ? 'committed' : 'staged'} these change files: ${changeFiles
       .map(f => `\n - ${f}`)
       .join('')}`

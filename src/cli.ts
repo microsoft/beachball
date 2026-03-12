@@ -12,6 +12,7 @@ import { getParsedOptions } from './options/getOptions';
 import { validate } from './validation/validate';
 import { getScopedPackages } from './monorepo/getScopedPackages';
 import { BeachballError } from './types/BeachballError';
+import { logger } from './logging/logger';
 
 (async () => {
   try {
@@ -39,7 +40,7 @@ import { BeachballError } from './types/BeachballError';
   switch (options.command) {
     case 'check': {
       validate(parsedOptions, { checkChangeNeeded: true, checkDependencies: true });
-      console.log('No change files are needed');
+      logger.log('No change files are needed');
       break;
     }
 
@@ -84,7 +85,7 @@ import { BeachballError } from './types/BeachballError';
       });
 
       if (!isChangeNeeded && !options.package) {
-        console.log('No change files are needed');
+        logger.log('No change files are needed');
         return;
       }
 
@@ -101,12 +102,12 @@ import { BeachballError } from './types/BeachballError';
     // Error details were already printed -- just exit
   } else if (e instanceof BeachballError) {
     // Expected error, not yet logged -- print the message (no stack trace)
-    console.error(e.message);
+    logger.error(e.message);
   } else {
     // Unexpected error -- print full details including stack
     showVersion();
-    console.error('Unexpected error while running beachball!');
-    console.error((e as Error)?.stack || e);
+    logger.error('Unexpected error while running beachball!');
+    logger.error((e as Error)?.stack || e);
   }
 
   // eslint-disable-next-line no-restricted-properties -- this is the only place that should call process.exit

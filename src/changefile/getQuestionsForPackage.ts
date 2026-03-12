@@ -2,6 +2,7 @@ import type prompts from 'prompts';
 import semver from 'semver';
 import type { ChangeType } from '../types/ChangeInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
+import { logger } from '../logging/logger';
 import type { DefaultPrompt } from '../types/ChangeFilePrompt';
 import { getDisallowedChangeTypes } from './getDisallowedChangeTypes';
 import type { PackageGroups, PackageInfos } from '../types/PackageInfo';
@@ -46,7 +47,7 @@ function getChangeTypePrompt(params: {
   const disallowedChangeTypes = getDisallowedChangeTypes(pkg, packageInfos, packageGroups, options) || [];
 
   if (options.type && disallowedChangeTypes.includes(options.type)) {
-    console.error(`Change type "${options.type}" is not allowed for package "${pkg}"`);
+    logger.error(`Change type "${options.type}" is not allowed for package "${pkg}"`);
     return;
   }
 
@@ -63,7 +64,7 @@ function getChangeTypePrompt(params: {
   ].filter(choice => !disallowedChangeTypes?.includes(choice.value as ChangeType));
 
   if (!changeTypeChoices.length) {
-    console.error(`No valid change types available for package "${pkg}"`);
+    logger.error(`No valid change types available for package "${pkg}"`);
     return;
   }
 

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { logger } from '../logging/logger';
 import { packageManager } from '../packageManager/packageManager';
 import { env } from '../env';
 import type { BeachballOptions } from '../types/BeachballOptions';
@@ -34,17 +35,17 @@ export async function updateLockFile(options: Pick<BeachballOptions, 'path'>): P
         updateCommand = ['yarn', 'install', '--mode', 'update-lockfile'];
       }
     } else {
-      console.warn('Failed to get yarn version. Continuing...');
+      logger.warn('Failed to get yarn version. Continuing...');
     }
   }
 
   if (updateFile && updateCommand) {
-    console.log(`Updating ${updateFile} after bumping packages`);
+    logger.log(`Updating ${updateFile} after bumping packages`);
 
     const res = await packageManager(updateCommand[0], updateCommand.slice(1), { stdio: 'inherit', cwd: root });
 
     if (!res.success) {
-      console.warn(`Updating ${updateFile} failed. Continuing...`);
+      logger.warn(`Updating ${updateFile} failed. Continuing...`);
     }
   }
 }

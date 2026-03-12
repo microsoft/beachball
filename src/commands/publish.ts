@@ -8,6 +8,7 @@ import { getNewPackages } from '../publish/getNewPackages';
 import type { CommandContext } from '../types/CommandContext';
 import { createCommandContext } from '../monorepo/createCommandContext';
 import type { PublishBumpInfo } from '../types/BumpInfo';
+import { logger } from '../logging/logger';
 
 /**
  * Potentially bump, publish, and push package changes depending on options.
@@ -17,7 +18,7 @@ export async function publish(options: BeachballOptions, context: CommandContext
 /** @deprecated Use other signature */
 export async function publish(options: BeachballOptions): Promise<void>;
 export async function publish(options: BeachballOptions, context?: CommandContext): Promise<void> {
-  console.log('\nPreparing to publish');
+  logger.log('\nPreparing to publish');
 
   const { path: cwd, branch, registry, tag, packToPath } = options;
   // eslint-disable-next-line etc/no-deprecated -- compat code
@@ -27,7 +28,7 @@ export async function publish(options: BeachballOptions, context?: CommandContex
   const { changeSet: changes } = context;
 
   if (!changes.length) {
-    console.log('Nothing to bump, skipping publish!');
+    logger.log('Nothing to bump, skipping publish!');
     return;
   }
 
@@ -35,7 +36,7 @@ export async function publish(options: BeachballOptions, context?: CommandContex
   const currentHash = getCurrentHash({ cwd });
   const shouldBumpAndPush = !!(options.bump && options.push && branch);
 
-  console.log(`\nPublishing with the following configuration:
+  logger.log(`\nPublishing with the following configuration:
 
   registry: ${registry}
 
@@ -70,11 +71,11 @@ export async function publish(options: BeachballOptions, context?: CommandContex
   // checkout publish branch
   const publishBranch = 'publish_' + String(new Date().getTime());
 
-  console.log(`Creating temporary publish branch ${publishBranch}`);
+  logger.log(`Creating temporary publish branch ${publishBranch}`);
   gitFailFast(['checkout', '-b', publishBranch], { cwd });
 
   if (!context.bumpInfo) {
-    console.log(`\nGathering info ${options.bump ? 'to bump versions' : 'about versions and changes'}`);
+    logger.log(`\nGathering info ${options.bump ? 'to bump versions' : 'about versions and changes'}`);
     context.bumpInfo = bumpInMemory(options, context);
   }
   const bumpInfo: PublishBumpInfo = context.bumpInfo;
@@ -83,7 +84,7 @@ export async function publish(options: BeachballOptions, context?: CommandContex
   if (options.new) {
     // Publish newly created packages even if they don't have change files
     // (this is unlikely unless the packages were pushed without a PR that runs "beachball check")
-    console.log(
+    logger.log(
       '\nFetching all unmodified packages from the registry to check if there are any ' +
         "newly-added packages that didn't have a change file...\n" +
         '(NOTE: If your PR build runs `beachball check`, this step is unnecessarily slowing down ' +
@@ -100,11 +101,11 @@ export async function publish(options: BeachballOptions, context?: CommandContex
     const message = options.bump
       ? `Bumping versions and ${publishMessage}`
       : publishMessage[0].toUpperCase() + publishMessage.slice(1);
-    console.log(`\n${message}\n`);
+    logger.log(`\n${message}\n`);
     await publishToRegistry(bumpInfo, options);
-    console.log();
+    logger.log();
   } else {
-    console.log('Skipping publish');
+    logger.log('Skipping publish');
   }
 
   // Step 2.
@@ -114,28 +115,28 @@ export async function publish(options: BeachballOptions, context?: CommandContex
     // this does its own section logging
     await bumpAndPush(bumpInfo, publishBranch, options);
   } else {
-    console.log('Skipping git push and tagging');
+    logger.log('Skipping git push and tagging');
   }
 
   // Step 3.
   // Clean up: switch back to current branch, delete publish branch
-  console.log('\nCleaning up');
+  logger.log('\nCleaning up');
 
   const revParseSuccessful = currentBranch || currentHash;
   if (currentBranch && currentBranch !== 'HEAD') {
-    console.log(`git checkout ${currentBranch}`);
+    logger.log(`git checkout ${currentBranch}`);
     gitFailFast(['checkout', currentBranch], { cwd });
   } else if (currentHash) {
-    console.log(`Looks like the repo was detached from a branch`);
-    console.log(`git checkout ${currentHash}`);
+    logger.log(`Looks like the repo was detached from a branch`);
+    logger.log(`git checkout ${currentHash}`);
     gitFailFast(['checkout', currentHash], { cwd });
   }
 
   if (revParseSuccessful) {
-    console.log(`deleting temporary publish branch ${publishBranch}`);
+    logger.log(`deleting temporary publish branch ${publishBranch}`);
     const deletionResult = git(['branch', '-D', publishBranch], { cwd });
     if (!deletionResult.success) {
-      console.warn(`[WARN]: deletion of publish branch ${publishBranch} has failed!\n${deletionResult.stderr}`);
+      logger.warn(`[WARN]: deletion of publish branch ${publishBranch} has failed!\n${deletionResult.stderr}`);
     }
   }
 }

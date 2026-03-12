@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { logger } from '../logging/logger';
 import type { BeachballOptions } from '../types/BeachballOptions';
 
 interface ChangelogPaths {
@@ -90,7 +91,7 @@ function getExistingHashedPath(params: { cwd: string; ext: 'md' | 'json' }): str
     }
     return newestFile ? path.join(cwd, newestFile) : undefined;
   } catch (e) {
-    console.warn(`Error getting changelog file info in ${cwd}: ${e}`);
+    logger.warn(`Error getting changelog file info in ${cwd}: ${e}`);
   }
 }
 
@@ -99,11 +100,11 @@ function renameIfPresent(params: { oldPath: string; newPath: string }): boolean 
   try {
     if (fs.existsSync(oldPath)) {
       fs.renameSync(oldPath, newPath);
-      console.log(`Renamed existing changelog file ${oldPath} to ${path.basename(newPath)}`);
+      logger.log(`Renamed existing changelog file ${oldPath} to ${path.basename(newPath)}`);
       return true;
     }
   } catch (e) {
-    console.warn(`Error renaming changelog file ${oldPath} to ${path.basename(newPath)}: ${e}`);
+    logger.warn(`Error renaming changelog file ${oldPath} to ${path.basename(newPath)}: ${e}`);
   }
   return false;
 }

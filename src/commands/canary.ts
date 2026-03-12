@@ -7,6 +7,7 @@ import { publishToRegistry } from '../publish/publishToRegistry';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { CommandContext } from '../types/CommandContext';
 import { createCommandContext } from '../monorepo/createCommandContext';
+import { logger } from '../logging/logger';
 
 /**
  * Bump and publish a "canary" prerelease version.
@@ -51,6 +52,6 @@ export async function canary(options: BeachballOptions, context?: CommandContext
   if (options.publish || options.packToPath) {
     await publishToRegistry(bumpInfo, options);
   } else {
-    console.log('Skipping publish');
+    logger.log('Skipping publish');
   }
 }

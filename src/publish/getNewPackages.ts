@@ -1,6 +1,7 @@
 import type { BumpInfo } from '../types/BumpInfo';
 import { listPackageVersions } from '../packageManager/listPackageVersions';
 import type { NpmOptions } from '../types/NpmOptions';
+import { logger } from '../logging/logger';
 
 /**
  * Get package versions from the registry to determine if there are any new packages that didn't
@@ -21,7 +22,7 @@ export async function getNewPackages(
 
   return maybeNewPackages.filter(pkg => {
     if (!publishedVersions[pkg]?.length) {
-      console.log(`New package detected: ${pkg}`);
+      logger.log(`New package detected: ${pkg}`);
       return true;
     }
     return false;

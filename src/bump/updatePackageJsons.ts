@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { type PackageInfos, type PackageJson, consideredDependencies } from '../types/PackageInfo';
+import { logger } from '../logging/logger';
 import { readJson } from '../object/readJson';
 import { writeJson } from '../object/writeJson';
 
@@ -11,7 +12,7 @@ export function updatePackageJsons(modifiedPackages: ReadonlySet<string>, packag
     const info = packageInfos[pkgName];
     if (!fs.existsSync(info.packageJsonPath)) {
       // rare case in highly active monorepos where a package might have been deleted in main
-      console.warn(`Skipping ${pkgName} since package.json does not exist`);
+      logger.warn(`Skipping ${pkgName} since package.json does not exist`);
       continue;
     }
     const packageJson = readJson<PackageJson>(info.packageJsonPath);

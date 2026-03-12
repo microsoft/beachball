@@ -2,6 +2,7 @@ import { git, parseRemoteBranch } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { gitFetch } from './fetch';
 import { bulletedList, type BulletList } from '../logging/bulletedList';
+import { logger } from '../logging/logger';
 
 /**
  * Ensure that adequate history is available to check for changes between HEAD and `options.branch`.
@@ -42,7 +43,7 @@ export function ensureSharedHistory(
     // it can be fetched in the next step. Otherwise the ref <remote>/<remoteBranch> won't exist locally.
     const fetchConfig = git(['config', '--get-all', `remote.${remote}.fetch`], { cwd }).stdout.trim();
     if (!fetchConfig.includes(`${remote}/*`) && !fetchConfig.includes(branch)) {
-      console.log(`Adding branch "${remoteBranch}" to fetch config for remote "${remote}"`);
+      logger.log(`Adding branch "${remoteBranch}" to fetch config for remote "${remote}"`);
       const result = git(['remote', 'set-branches', '--add', remote, remoteBranch], { cwd });
       if (!result.success) {
         throw new Error(
@@ -106,12 +107,12 @@ function deepenHistory(params: {
   const { remote, remoteBranch, branch, cwd, verbose } = params;
   const depth = params.depth || 100;
 
-  console.log(`This is a shallow clone. Deepening to check for changes...`);
+  logger.log(`This is a shallow clone. Deepening to check for changes...`);
 
   // Iteratively deepen the history
   const maxAttempts = 3;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    console.log(`Deepening by ${depth} more commits (attempt ${attempt}/${maxAttempts})...`);
+    logger.log(`Deepening by ${depth} more commits (attempt ${attempt}/${maxAttempts})...`);
     const result = gitFetch({ remote, branch: remoteBranch, deepen: depth, cwd, verbose });
     if (!result.success) {
       throw new Error(`Failed to fetch more history (see above for details)`);
@@ -127,7 +128,7 @@ function deepenHistory(params: {
   }
 
   // No common commit was found and the repo is still shallow, so fully unshallow it
-  console.log(`Still didn't find a common commit after deepening by ${depth * maxAttempts}. Unshallowing...`);
+  logger.log(`Still didn't find a common commit after deepening by ${depth * maxAttempts}. Unshallowing...`);
   const result = gitFetch({ remote, branch: remoteBranch, unshallow: true, cwd, verbose });
   if (!result.success) {
     throw new Error(`Failed to unshallow repo (see above for details)`);
@@ -171,7 +172,7 @@ function logError(
     [`For GitHub Actions (actions/checkout), add the option "fetch-depth: 0" in the checkout step.`]
   );
 
-  console.error(`
+  logger.error(`
 
 ${mainError}
 

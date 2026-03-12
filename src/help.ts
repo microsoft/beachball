@@ -1,16 +1,17 @@
 import path from 'path';
 import type { PackageJson } from './types/PackageInfo';
 import { readJson } from './object/readJson';
+import { logger } from './logging/logger';
 
 export function showVersion(): void {
   const packageJson = readJson<PackageJson>(path.resolve(__dirname, '../package.json'));
-  console.log(`beachball v${packageJson.version} - the sunniest version bumping tool`);
+  logger.log(`beachball v${packageJson.version} - the sunniest version bumping tool`);
 }
 
 export function showHelp(): void {
   showVersion();
 
-  console.log(`Usage:
+  logger.log(`Usage:
 
   beachball [command] [options]
 

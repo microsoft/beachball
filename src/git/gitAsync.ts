@@ -1,5 +1,6 @@
 import execa from 'execa';
 import { env } from '../env';
+import { logger } from '../logging/logger';
 
 // cwd is required here
 // stdio behavior is overridden
@@ -31,7 +32,7 @@ export async function gitAsync(args: string[], options: GitAsyncOptions): Promis
 
   const gitCmd = `git ${args.join(' ')}`;
 
-  shouldLog && console.log(`Running: ${gitCmd}`);
+  shouldLog && logger.log(`Running: ${gitCmd}`);
 
   const child = execa('git', args, {
     maxBuffer,
@@ -49,7 +50,8 @@ export async function gitAsync(args: string[], options: GitAsyncOptions): Promis
   const execaResult = await child;
   const result = { ...execaResult, success: !execaResult.failed } as GitAsyncResult;
 
-  const log = result.success ? console.log : console.warn;
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const log = result.success ? logger.log : logger.warn;
 
   if (shouldLog === 'end') {
     // do the jest logging all at once in a way that can be captured by mocks

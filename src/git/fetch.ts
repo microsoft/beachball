@@ -1,4 +1,5 @@
 import { git, type GitProcessOutput } from 'workspace-tools';
+import { logger } from '../logging/logger';
 import { getGitEnv } from './gitAsync';
 
 type GitFetchParams = {
@@ -39,7 +40,7 @@ export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMess
     description += ` (with ${extraArgs.join(' ')})`;
   }
 
-  shouldLog && console.log(description + '...');
+  shouldLog && logger.log(description + '...');
 
   const result: ReturnType<typeof gitFetch> = git(
     [
@@ -51,11 +52,12 @@ export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMess
     { cwd, stdio: shouldLog === 'live' ? 'inherit' : 'pipe' }
   );
 
-  const log = result.success ? console.log : console.warn;
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const log = result.success ? logger.log : logger.warn;
 
   // do the jest logging all at once in a way that can be captured by mocks (jest can't mock process.stdout/err)
   if (shouldLog === 'end') {
-    result.stdout && console.log(result.stdout);
+    result.stdout && logger.log(result.stdout);
     result.stderr && log(result.stderr);
   }
 

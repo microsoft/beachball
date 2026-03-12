@@ -1,4 +1,5 @@
 import type { BumpInfo } from '../types/BumpInfo';
+import { logger } from '../logging/logger';
 import semver from 'semver';
 import type { BeachballOptions } from '../types/BeachballOptions';
 
@@ -16,13 +17,13 @@ export function bumpPackageInfoVersion(
   const changeType = calculatedChangeTypes[pkgName];
 
   if (!info) {
-    console.warn(`Unknown package named "${pkgName}" detected from change files, skipping!`);
+    logger.warn(`Unknown package named "${pkgName}" detected from change files, skipping!`);
   } else if (!changeType) {
-    console.warn(`No change type found when bumping "${pkgName}" (this may be a beachball bug)`);
+    logger.warn(`No change type found when bumping "${pkgName}" (this may be a beachball bug)`);
   } else if (changeType === 'none') {
-    console.log(`"${pkgName}" has a "none" change type, so no version bump is required.`);
+    logger.log(`"${pkgName}" has a "none" change type, so no version bump is required.`);
   } else if (info.private) {
-    console.warn(`Skipping bumping private package "${pkgName}"`);
+    logger.warn(`Skipping bumping private package "${pkgName}"`);
   } else {
     // Ensure we can bump the correct versions
     const effectiveChangeType =
@@ -52,7 +53,7 @@ export function bumpPackageInfoVersion(
           message += `, identifier base "${options.identifierBase}"`;
         }
       }
-      console.warn(message);
+      logger.warn(message);
     }
   }
 }

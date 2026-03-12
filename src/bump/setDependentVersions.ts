@@ -1,5 +1,6 @@
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { BumpInfo } from '../types/BumpInfo';
+import { logger } from '../logging/logger';
 import { consideredDependencies } from '../types/PackageInfo';
 import { bumpMinSemverRange } from './bumpMinSemverRange';
 
@@ -49,9 +50,7 @@ export function setDependentVersions(
           dependentChangedBy[pkgName].add(dep);
 
           if (verbose) {
-            console.log(
-              `${pkgName} needs to be bumped because ${dep} ${existingVersionRange} -> ${bumpedVersionRange}`
-            );
+            logger.log(`${pkgName} needs to be bumped because ${dep} ${existingVersionRange} -> ${bumpedVersionRange}`);
           }
         }
       }

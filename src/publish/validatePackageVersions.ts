@@ -2,6 +2,7 @@ import { listPackageVersions } from '../packageManager/listPackageVersions';
 import type { NpmOptions } from '../types/NpmOptions';
 import { bulletedList } from '../logging/bulletedList';
 import type { PackageInfos } from '../types/PackageInfo';
+import { logger } from '../logging/logger';
 
 /**
  * Validate each package version being published doesn't already exist in the registry.
@@ -11,7 +12,7 @@ export async function validatePackageVersions(
   packageInfos: PackageInfos,
   options: NpmOptions
 ): Promise<boolean> {
-  console.log('Validating new package versions...\n');
+  logger.log('Validating new package versions...\n');
 
   const publishedVersions = await listPackageVersions(packagesToValidate, options);
 
@@ -30,10 +31,10 @@ export async function validatePackageVersions(
 
   if (okVersions.length) {
     // keep the original order here to show what order they'll be published in
-    console.log(`Package versions are OK to publish:\n${bulletedList(okVersions)}\n`);
+    logger.log(`Package versions are OK to publish:\n${bulletedList(okVersions)}\n`);
   }
   if (errorVersions.length) {
-    console.error(
+    logger.error(
       `ERROR: Attempting to publish package versions that already exist in the registry:\n` +
         bulletedList(errorVersions.sort()) +
         '\n'

@@ -1,4 +1,5 @@
 import { bulletedList } from '../logging/bulletedList';
+import { logger } from '../logging/logger';
 import { singleLineStringify } from '../logging/singleLineStringify';
 import type { ChangelogOptions } from '../types/ChangelogOptions';
 
@@ -12,7 +13,7 @@ export function isValidChangelogOptions(options: ChangelogOptions): boolean {
   );
 
   if (badGroups.length) {
-    console.error(
+    logger.error(
       'ERROR: "changelog.groups" entries must define "changelogPath", "mainPackageName", and "include". ' +
         'Found invalid groups:\n' +
         bulletedList(badGroups.map(group => singleLineStringify(group)))

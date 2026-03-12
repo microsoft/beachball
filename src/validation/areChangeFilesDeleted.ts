@@ -1,4 +1,5 @@
 import { bulletedList } from '../logging/bulletedList';
+import { logger } from '../logging/logger';
 import { getChangePath } from '../paths';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { getChangesBetweenRefs } from 'workspace-tools';
@@ -8,7 +9,7 @@ export function areChangeFilesDeleted(options: Pick<BeachballOptions, 'branch' |
 
   const changePath = getChangePath(options);
 
-  console.log(`Checking for deleted change files against "${branch}"`);
+  logger.log(`Checking for deleted change files against "${branch}"`);
   const changeFilesDeletedSinceRef = getChangesBetweenRefs({
     fromRef: branch,
     toRef: 'HEAD',
@@ -20,7 +21,7 @@ export function areChangeFilesDeleted(options: Pick<BeachballOptions, 'branch' |
 
   if (changeFilesDeletedSinceRef.length) {
     const changeFiles = changeFilesDeletedSinceRef.map(file => `- ${file}`);
-    console.error(`ERROR: The following change files were deleted:\n${bulletedList(changeFiles)}\n`);
+    logger.error(`ERROR: The following change files were deleted:\n${bulletedList(changeFiles)}\n`);
     return true;
   }
 

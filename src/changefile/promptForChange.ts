@@ -1,6 +1,7 @@
 import prompts from 'prompts';
 import type { ChangeFileInfo, ChangeType } from '../types/ChangeInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
+import { logger } from '../logging/logger';
 import { isValidChangeType } from '../validation/isValidChangeType';
 import type { PackageGroups, PackageInfos } from '../types/PackageInfo';
 import { getQuestionsForPackage } from './getQuestionsForPackage';
@@ -69,8 +70,8 @@ export async function _promptForPackageChange(
     return {};
   }
 
-  console.log('');
-  console.log(`Please describe the changes for: ${pkg}`);
+  logger.log('');
+  logger.log(`Please describe the changes for: ${pkg}`);
 
   let isCancelled = false;
   const onCancel = () => {
@@ -79,7 +80,7 @@ export async function _promptForPackageChange(
   const response: ChangePromptResponse = await prompts(questions, { onCancel });
 
   if (isCancelled) {
-    console.log('Cancelled, no change files are written');
+    logger.log('Cancelled, no change files are written');
   } else {
     return response;
   }
@@ -107,8 +108,8 @@ export function _getChangeFileInfoFromResponse(params: {
   //    so set the type to 'none'
   if (!response.type) {
     if (!options.type) {
-      console.log("WARN: change type 'none' assumed by default");
-      console.log('(Not what you intended? Check the repo-level and package-level beachball configs.)');
+      logger.log("WARN: change type 'none' assumed by default");
+      logger.log('(Not what you intended? Check the repo-level and package-level beachball configs.)');
     }
     response = { ...response, type: options.type || 'none' };
   }
@@ -120,7 +121,7 @@ export function _getChangeFileInfoFromResponse(params: {
 
   // prevent invalid change types from being entered via custom prompts
   if (!response.type || !isValidChangeType(response.type)) {
-    console.error(`Prompt response contains invalid change type "${response.type}"`);
+    logger.error(`Prompt response contains invalid change type "${response.type}"`);
     return;
   }
 

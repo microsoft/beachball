@@ -2,6 +2,7 @@ import type { ChangeSet, ChangeInfo, ChangeInfoMultiple } from '../types/ChangeI
 import { getChangePath } from '../paths';
 import fs from 'fs';
 import path from 'path';
+import { logger } from '../logging/logger';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { getChangesBetweenRefs } from 'workspace-tools';
 import type { PackageInfos, ScopedPackages } from '../types/PackageInfo';
@@ -64,11 +65,11 @@ export function readChangeFiles(
     try {
       changeInfo = readJson<ChangeInfo | ChangeInfoMultiple>(changeFilePath);
       if (!(changeInfo as ChangeInfo).packageName && !(changeInfo as ChangeInfoMultiple).changes) {
-        console.warn(`${changeFilePath} does not appear to be a change file`);
+        logger.warn(`${changeFilePath} does not appear to be a change file`);
         continue;
       }
     } catch (e) {
-      console.warn(`Error reading or parsing change file ${changeFilePath}: ${e}`);
+      logger.warn(`Error reading or parsing change file ${changeFilePath}: ${e}`);
       continue;
     }
 
@@ -79,7 +80,7 @@ export function readChangeFiles(
           command,
         });
       } catch (e) {
-        console.warn(`Error transforming ${changeFilePath}: ${e}`);
+        logger.warn(`Error transforming ${changeFilePath}: ${e}`);
         continue;
       }
     }
@@ -97,7 +98,7 @@ export function readChangeFiles(
         : undefined;
       if (warningType) {
         const resolution = options.groupChanges ? 'remove the entry from this file' : 'delete this file';
-        console.warn(
+        logger.warn(
           `Change detected for ${warningType} package ${change.packageName}; ${resolution}: ${changeFilePath}`
         );
       }

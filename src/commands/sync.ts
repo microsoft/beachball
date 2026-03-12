@@ -7,6 +7,7 @@ import { setDependentVersions } from '../bump/setDependentVersions';
 import { updateLockFile } from '../bump/updateLockFile';
 import { updatePackageJsons } from '../bump/updatePackageJsons';
 import type { BasicCommandContext } from '../types/CommandContext';
+import { logger } from '../logging/logger';
 
 export type SyncCommandContext = Pick<BasicCommandContext, 'originalPackageInfos' | 'scopedPackages'>;
 
@@ -23,7 +24,7 @@ export async function sync(options: BeachballOptions, context?: SyncCommandConte
 
   const infos = new Map(Object.entries(packageInfos).filter(([pkg, info]) => !info.private && scopedPackages.has(pkg)));
 
-  console.log(`Getting versions from registry for ${infos.size} package(s)...`);
+  logger.log(`Getting versions from registry for ${infos.size} package(s)...`);
 
   const publishedVersions = await listPackageVersionsByTag([...infos.values()], options);
 
@@ -34,7 +35,7 @@ export async function sync(options: BeachballOptions, context?: SyncCommandConte
       const publishedVersion = publishedVersions[pkg];
 
       if (publishedVersion && (options.forceVersions || semver.lt(info.version, publishedVersion))) {
-        console.log(
+        logger.log(
           `There is a newer version of "${pkg}@${info.version}". Syncing to the published version ${publishedVersion}`
         );
 

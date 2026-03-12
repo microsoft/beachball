@@ -1,4 +1,5 @@
 import { bulletedList } from '../logging/bulletedList';
+import { logger } from '../logging/logger';
 import type { PublishBumpInfo } from '../types/BumpInfo';
 import { toposortPackages } from './toposortPackages';
 
@@ -52,7 +53,7 @@ export function getPackagesToPublish(
 
   // this log is not helpful when called from `validate`
   if (skippedPackageReasons.length && params?.logSkipped) {
-    console.log(`Skipping publishing the following packages:\n${bulletedList(skippedPackageReasons.sort())}\n`);
+    logger.log(`Skipping publishing the following packages:\n${bulletedList(skippedPackageReasons.sort())}\n`);
   }
 
   return packagesToPublish;

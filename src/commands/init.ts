@@ -5,10 +5,11 @@ import type { PackageJson } from '../types/PackageInfo';
 import { readJson } from '../object/readJson';
 import { getNpmPackageInfo } from '../packageManager/getNpmPackageInfo';
 import { BeachballError } from '../types/BeachballError';
+import { logger } from '../logging/logger';
 
 function throwInitError(message: string): never {
-  console.error(message);
-  console.log(
+  logger.error(message);
+  logger.log(
     'You can still set up beachball manually by following the instructions here: https://microsoft.github.io/beachball/overview/getting-started.html'
   );
   throw new BeachballError(message, { alreadyLogged: true });
@@ -44,11 +45,11 @@ export async function init(options: Pick<BeachballOptions, 'path' | 'registry'>)
   fs.writeFileSync(packageJsonFilePath, JSON.stringify(packageJson, null, 2));
 
   if (!packageJson.repository) {
-    console.warn(
+    logger.warn(
       'Please add a "repository" field to your repo root package.json so beachball always ' +
         'knows which remote to use when checking for changes.'
     );
   }
 
-  console.log('beachball has been initialized! Please run `yarn` or `npm install` to install beachball in your repo.');
+  logger.log('beachball has been initialized! Please run `yarn` or `npm install` to install beachball in your repo.');
 }
