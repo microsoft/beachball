@@ -1,5 +1,6 @@
 logs
 *.log
+*.pptx
 coverage/
 dist
 node_modules/
