@@ -59,12 +59,11 @@ fn get_npm_yarn_patterns(root: &str) -> Vec<String> {
     struct ArrayFormat {
         workspaces: Option<Vec<String>>,
     }
-    if let Ok(parsed) = serde_json::from_str::<ArrayFormat>(&data) {
-        if let Some(ws) = parsed.workspaces {
-            if !ws.is_empty() {
-                return ws;
-            }
-        }
+    if let Ok(parsed) = serde_json::from_str::<ArrayFormat>(&data)
+        && let Some(ws) = parsed.workspaces
+        && !ws.is_empty()
+    {
+        return ws;
     }
 
     // Try object format: "workspaces": {"packages": ["packages/*"]}
@@ -76,14 +75,12 @@ fn get_npm_yarn_patterns(root: &str) -> Vec<String> {
     struct WorkspacesObject {
         packages: Option<Vec<String>>,
     }
-    if let Ok(parsed) = serde_json::from_str::<ObjectFormat>(&data) {
-        if let Some(ws) = parsed.workspaces {
-            if let Some(pkgs) = ws.packages {
-                if !pkgs.is_empty() {
-                    return pkgs;
-                }
-            }
-        }
+    if let Ok(parsed) = serde_json::from_str::<ObjectFormat>(&data)
+        && let Some(ws) = parsed.workspaces
+        && let Some(pkgs) = ws.packages
+        && !pkgs.is_empty()
+    {
+        return pkgs;
     }
 
     vec![]
@@ -116,12 +113,11 @@ fn get_lerna_patterns(root: &str) -> Vec<String> {
         struct LernaConfig {
             packages: Option<Vec<String>>,
         }
-        if let Ok(config) = serde_json::from_str::<LernaConfig>(&data) {
-            if let Some(pkgs) = config.packages {
-                if !pkgs.is_empty() {
-                    return pkgs;
-                }
-            }
+        if let Ok(config) = serde_json::from_str::<LernaConfig>(&data)
+            && let Some(pkgs) = config.packages
+            && !pkgs.is_empty()
+        {
+            return pkgs;
         }
     }
 

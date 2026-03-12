@@ -80,10 +80,10 @@ pub fn search_up(files: &[&str], cwd: &str) -> Option<PathBuf> {
 /// Find the project root by searching up for workspace manager config files,
 /// falling back to the git root. Matches workspace-tools findProjectRoot.
 pub fn find_project_root(cwd: &str) -> Result<String> {
-    if let Some(found) = search_up(MANAGER_FILES, cwd) {
-        if let Some(parent) = found.parent() {
-            return Ok(parent.to_string_lossy().to_string());
-        }
+    if let Some(found) = search_up(MANAGER_FILES, cwd)
+        && let Some(parent) = found.parent()
+    {
+        return Ok(parent.to_string_lossy().to_string());
     }
     find_git_root(cwd)
 }
@@ -304,10 +304,10 @@ pub fn get_default_remote(cwd: &str) -> String {
     }
 
     // 1. Match by repository name from package.json
-    if !repository_name.is_empty() {
-        if let Some(matched) = remotes_by_repo_name.get(&repository_name) {
-            return matched.clone();
-        }
+    if !repository_name.is_empty()
+        && let Some(matched) = remotes_by_repo_name.get(&repository_name)
+    {
+        return matched.clone();
     }
 
     // 2-4. Fall back to upstream > origin > first
@@ -335,13 +335,14 @@ pub fn get_repository_name(raw_url: &str) -> String {
     }
 
     // SSH format: git@github.com:owner/repo.git or user@host:path
-    if let Some(colon_pos) = raw_url.find(':') {
-        if raw_url[..colon_pos].contains('@') && !raw_url[..colon_pos].contains('/') {
-            let path = &raw_url[colon_pos + 1..];
-            // Skip if path starts with / (would be ssh://user@host/path, not SCP syntax)
-            if !path.starts_with('/') {
-                return path.trim_end_matches(".git").to_string();
-            }
+    if let Some(colon_pos) = raw_url.find(':')
+        && raw_url[..colon_pos].contains('@')
+        && !raw_url[..colon_pos].contains('/')
+    {
+        let path = &raw_url[colon_pos + 1..];
+        // Skip if path starts with / (would be ssh://user@host/path, not SCP syntax)
+        if !path.starts_with('/') {
+            return path.trim_end_matches(".git").to_string();
         }
     }
 
@@ -381,14 +382,14 @@ pub fn get_default_remote_branch(cwd: &str) -> Result<String> {
     let remote = get_default_remote(cwd);
 
     // Try to detect HEAD branch from remote
-    if let Ok(r) = git(&["remote", "show", &remote], cwd) {
-        if r.success {
-            for line in r.stdout.lines() {
-                let trimmed = line.trim();
-                if let Some(rest) = trimmed.strip_prefix("HEAD branch:") {
-                    let branch = rest.trim();
-                    return Ok(format!("{remote}/{branch}"));
-                }
+    if let Ok(r) = git(&["remote", "show", &remote], cwd)
+        && r.success
+    {
+        for line in r.stdout.lines() {
+            let trimmed = line.trim();
+            if let Some(rest) = trimmed.strip_prefix("HEAD branch:") {
+                let branch = rest.trim();
+                return Ok(format!("{remote}/{branch}"));
             }
         }
     }

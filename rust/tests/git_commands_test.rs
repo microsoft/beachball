@@ -34,11 +34,11 @@ fn write_package_json(dir: &Path, extra_fields: Option<serde_json::Value>) {
         "name": "test-pkg",
         "version": "1.0.0"
     });
-    if let Some(extra) = extra_fields {
-        if let (Some(base), Some(extra_map)) = (pkg.as_object_mut(), extra.as_object()) {
-            for (k, v) in extra_map {
-                base.insert(k.clone(), v.clone());
-            }
+    if let Some(extra) = extra_fields
+        && let (Some(base), Some(extra_map)) = (pkg.as_object_mut(), extra.as_object())
+    {
+        for (k, v) in extra_map {
+            base.insert(k.clone(), v.clone());
         }
     }
     let data = serde_json::to_string_pretty(&pkg).unwrap();

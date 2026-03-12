@@ -28,13 +28,12 @@ pub fn get_package_infos(options: &BeachballOptions) -> Result<PackageInfos> {
 
     // Monorepo: add root package if it exists
     let root_pkg_path = Path::new(cwd).join("package.json");
-    if root_pkg_path.exists() {
-        if let Ok(info) = read_package_info(&root_pkg_path) {
-            if !info.name.is_empty() {
-                let name = info.name.clone();
-                infos.insert(name, info);
-            }
-        }
+    if root_pkg_path.exists()
+        && let Ok(info) = read_package_info(&root_pkg_path)
+        && !info.name.is_empty()
+    {
+        let name = info.name.clone();
+        infos.insert(name, info);
     }
 
     if literal {

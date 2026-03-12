@@ -9,6 +9,7 @@ package-lock.json
 # ignore when switching between yarn 1/4 branches
 /.yarn
 rust/target
+go/beachball
 .claude/settings.local.json
 
 docs/.vuepress/.cache

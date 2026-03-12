@@ -16,5 +16,7 @@ LICENSE
 node_modules/
 SECURITY.md
 yarn.lock
-rust/
-go/
+rust/**
+!rust/README.md
+go/**
+!go/README.md

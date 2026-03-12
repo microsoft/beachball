@@ -120,12 +120,12 @@ jobs:
         working-directory: ./rust
         if: ${{ matrix.os == 'ubuntu-latest' }}
 
-      - name: Lint
-        run: cargo clippy --all-targets -- -D warnings
-        working-directory: ./rust
-
       - name: Build
         run: cargo build
+        working-directory: ./rust
+
+      - name: Lint
+        run: cargo clippy --all-targets -- -D warnings
         working-directory: ./rust
 
       - name: Test
@@ -162,12 +162,12 @@ jobs:
         working-directory: ./go
         if: ${{ matrix.os == 'ubuntu-latest' }}
 
-      - name: Lint
-        run: go vet ./...
-        working-directory: ./go
-
       - name: Build
         run: go build ./...
+        working-directory: ./go
+
+      - name: Lint
+        run: go vet ./...
         working-directory: ./go
 
       - name: Test

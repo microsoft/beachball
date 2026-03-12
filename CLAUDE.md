@@ -87,15 +87,13 @@ Multi-pass algorithm that calculates version bumps. See comments in file.
 
 - Change files stored in `change/` directory track intended version changes
 - See `src/types/ChangeInfo.ts` `ChangeFileInfo` for the info stored in each change file. For grouped change files (config has `groupChanges: true`), the type will be `ChangeInfoMultiple`.
-- `readChangeFiles()` - Loads and validates from disk
-- `writeChangeFiles()` - Persists new change files
-- `unlinkChangeFiles()` - Deletes after consumption during bump
+- Folder contains helper to read, write, and unlink change files
 
 **Publishing** (`src/publish/`):
 
 - `publishToRegistry()` - Validates, applies publishConfig, runs hooks, publishes (respects dependency order)
 - `bumpAndPush()` - Git operations: creates temp `publish_*` branch, fetches, merges, bumps, commits, tags, pushes
-- Pre/post hooks available: `prebump`, `postbump`, `prepublish`, `postpublish`, `precommit`
+- Pre/post hooks available (see `HooksOptions` in `src/types/BeachballOptions.ts`)
 
 **Context Passing:**
 `CommandContext` aggregates reusable data (packages, version groups, change files, and more) to avoid repeated calculations. See source in `src/types/CommandContext.ts`.
@@ -143,7 +141,7 @@ Multi-pass algorithm that calculates version bumps. See comments in file.
 
 **Testing Structure:**
 
-- Fixtures: `__fixtures__` directory
+- Fixtures and helpers: `__fixtures__/` directory
 - Unit tests: `__tests__/` directory
 - Functional tests: `__functional__/` directory
 - E2E tests: `__e2e__/` directory
@@ -164,69 +162,4 @@ Multi-pass algorithm that calculates version bumps. See comments in file.
 
 ## Experimental: Rust and Go Implementations
 
-The `rust/` and `go/` directories contain parallel re-implementations of beachball's `check` and `change` commands and the corresponding tests.
-
-### Building and Testing
-
-```bash
-# Rust (from rust/ directory)
-cargo build
-cargo test
-
-# Go (from go/ directory)
-go build ./...
-go test ./...
-```
-
-### Scope
-
-Both implement:
-
-- CLI args (as relevant for supported commands)
-- JSON config loading (`.beachballrc.json` and `package.json` `"beachball"` field)
-- workspaces detection (npm, yarn, pnpm, rush, lerna)
-- `getChangedPackages` (git diff + file-to-package mapping + change file dedup)
-- `validate()` (minus `bumpInMemory`/dependency validation)
-- non-interactive `change` command (`--type` + `--message`)
-- `check` command.
-
-Not implemented:
-
-- JS config files
-- interactive prompts
-- all bumping and publishing operations
-- sync
-
-### Implementation requirements
-
-The behavior, log messages, and tests as specified in the TypeScript code MUST BE MATCHED in the Go/Rust code.
-
-- Do not change behavior or logs or remove tests, unless it's exclusively related to features which you've been asked not to implement yet.
-- If a different pattern would be more idiomatic in the target language, or it's not possible to implement the exact same behavior in the target language, ask the user before changing anything.
-- Don't make assumptions about the implementation of functions from `workspace-tools`. Check the JS implementation in `node_modules` and exactly follow that.
-
-When porting tests, add a comment by each Rust/Go test with the name of the corresponding TS test. If any TS tests have been omitted or combined, add a comment indicating which tests and why.
-
-Use syntax and helpers from the newest version of the language where it makes sense. If a particular scenario is most commonly handled in this language by some external library, and the library would meaningfully simplify the code, ask the user about adding the library as a dependency.
-
-Where possible, use the LSP instead of grep to understand the code. Also use the LSP to check for errors after making changes.
-
-After making changes, run the commands to build, test, lint, and format.
-
-### Structure
-
-- **Rust**: `src/` with nested modules, integration tests in `tests/` with shared helpers in `tests/common/`
-- **Go**: `cmd/beachball/` CLI entry, `internal/` packages, test helpers in `internal/testutil/`, tests alongside source (`_test.go`)
-
-### Key Implementation Details
-
-**Git commands**: Both shell out to `git` (matching the TS approach via workspace-tools). The git flags used should exactly match the workspace-tools code. Three-dot range (`branch...`) is used for diffs.
-
-**Config loading**: Searches `.beachballrc.json` then `package.json` `"beachball"` field, walking up from cwd but stopping at git root.
-
-**Glob matching**: Two modes matching the TS behavior — `matchBase` (patterns without `/` match basename) for `ignorePatterns`, full path matching for `scope`/`groups`.
-
-### Known Gotchas
-
-- **macOS `/tmp` symlink**: `/tmp` is a symlink to `/private/tmp`. `git rev-parse --show-toplevel` resolves symlinks but `tempfile`/`os.MkdirTemp` does not. Both implementations canonicalize paths (`std::fs::canonicalize` in Rust, `filepath.EvalSymlinks` in Go) when comparing git-returned paths with filesystem paths.
-- **Default branch name**: Modern git defaults to `main`. Test fixtures use `--initial-branch=master` for bare repo init to match the `origin/master` refs used in tests.
+The `rust/` and `go/` directories contain experimental parallel re-implementations. See the `go-impl` and `rust-impl` custom skills as relevant.
