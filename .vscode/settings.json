@@ -13,7 +13,16 @@
     "**/node_modules": true,
     "**/lib": true,
     "**/*.svg": true,
-    "**/.yarn": true
+    "**/.yarn": true,
+    "**/target": true
+  },
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.formatOnSave": true
+  },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.formatOnSave": true
   },
   "files.associations": {
     // VS Code doesn't have json5 support, so handle .json5 files as jsonc.

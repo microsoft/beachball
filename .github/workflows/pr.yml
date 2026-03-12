@@ -51,6 +51,9 @@ jobs:
 
       - run: yarn --frozen-lockfile
 
+      - run: yarn format:check
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+
       - run: yarn build
 
       - run: yarn checkchange --verbose
@@ -84,3 +87,89 @@ jobs:
 
       - run: yarn docs:build
         working-directory: ./docs
+
+  rust:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    name: build rust (${{ matrix.os }})
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            rust/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('rust/Cargo.lock') }}
+
+      - name: Format
+        run: cargo fmt --check
+        working-directory: ./rust
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+
+      - name: Build
+        run: cargo build
+        working-directory: ./rust
+
+      - name: Lint
+        run: cargo clippy --all-targets -- -D warnings
+        working-directory: ./rust
+
+      - name: Test
+        run: cargo test
+        working-directory: ./rust
+
+  go:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    name: build go (${{ matrix.os }})
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+
+      - name: Format
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "The following files need formatting (run 'gofmt -w .'):"
+            echo "$unformatted"
+            exit 1
+          fi
+        working-directory: ./go
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+
+      - name: Build
+        run: go build ./...
+        working-directory: ./go
+
+      - name: Lint
+        run: go vet ./...
+        working-directory: ./go
+
+      - name: Test
+        run: go test ./...
+        working-directory: ./go

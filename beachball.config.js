@@ -5,10 +5,12 @@ const config = {
   ignorePatterns: [
     '.*ignore',
     '*.yml',
+    '.claude/**/*',
     '.eslintrc.js',
     '.github/**',
     '.prettierrc.json5',
     '.vscode/**',
+    'CLAUDE.md',
     'docs/**',
     'docs/.vuepress/**',
     'jest.*.js',
@@ -17,6 +19,8 @@ const config = {
     'src/__*/**',
     // This one is especially important (otherwise dependabot would be blocked by change file requirements)
     'yarn.lock',
+    'rust/**/*',
+    'go/**/*',
   ],
 };
 

@@ -28,7 +28,8 @@
     "checkchange": "node ./lib/cli.js check",
     "docs": "echo \"Run this from the docs folder instead\" && exit 1",
     "docs:build": "echo \"Run this from the docs folder instead\" && exit 1",
-    "format": "prettier --write '**/*'",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "prepare": "husky install",
     "lint": "yarn lint:deps && yarn lint:code",
     "lint:code": "eslint --color --max-warnings=0 src",
@@ -46,9 +47,9 @@
     "update-snapshots": "yarn test:unit -u && yarn test:func -u && yarn test:e2e -u"
   },
   "lint-staged": {
-    "*": [
-      "prettier --write"
-    ]
+    "*.rs": "cd rust && rustfmt",
+    "*.go": "cd go && gofmt -w",
+    "*": "prettier --write"
   },
   "dependencies": {
     "cosmiconfig": "^9.0.0",
