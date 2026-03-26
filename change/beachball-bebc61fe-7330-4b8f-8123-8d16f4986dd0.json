@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Detect non-interactive context in `change` command and throw a helpful error with guidance on CLI flags",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

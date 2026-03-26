@@ -1,9 +1,11 @@
 import prompts from 'prompts';
+import { determineAgent } from '@vercel/detect-agent';
 import type { ChangeFileInfo, ChangeType } from '../types/ChangeInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { isValidChangeType } from '../validation/isValidChangeType';
 import type { PackageGroups, PackageInfos } from '../types/PackageInfo';
 import { getQuestionsForPackage } from './getQuestionsForPackage';
+import { BeachballError } from '../types/BeachballError';
 
 export type ChangePromptResponse = { type?: ChangeType; comment?: string };
 
@@ -35,6 +37,31 @@ export async function promptForChange(params: {
       return; // validation issue
     }
     packageQuestions[pkg] = questions;
+  }
+
+  // If running non-interactively and there are questions that need interactive input, exit with an error
+  const hasInteractiveQuestions = Object.values(packageQuestions).some(q => q.length > 0);
+  if (hasInteractiveQuestions && !process.stdin.isTTY) {
+    const lines = [
+      'The "change" command is running in a non-interactive context (stdin is not a TTY) but needs to prompt for input.',
+      '',
+      'To create change files non-interactively, provide --type and --message:',
+      '  beachball change --type patch --message "description of changes"',
+      '',
+      'Note: The specified type and message will be applied to ALL changed packages.',
+      'If different values are needed per package, you can either:',
+      '  - Edit the generated change files after creation',
+      '  - Run "beachball change" multiple times with the --package argument',
+    ];
+    if ((await determineAgent()).isAgent) {
+      lines.push(
+        '',
+        'For AI agents, you can ask the user to add the "beachball-change-files" skill from ' +
+          'https://github.com/microsoft/beachball/blob/main/.claude/skills/beachball-change-file/SKILL.md ' +
+          'for better manual instructions about creating change files.'
+      );
+    }
+    throw new BeachballError(lines.join('\n'));
   }
 
   // Now prompt for each package

@@ -51,6 +51,7 @@
     ]
   },
   "dependencies": {
+    "@vercel/detect-agent": "^1.2.1",
     "cosmiconfig": "^9.0.0",
     "execa": "^5.0.0",
     "minimatch": "^3.0.4",

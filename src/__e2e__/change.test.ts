@@ -66,6 +66,9 @@ function checkOutTestBranch(repo: Repository) {
   repo.checkout('-b', branchName, defaultBranchName);
 }
 
+// Save and restore process.stdin.isTTY since promptForChange checks it for non-interactive detection
+const originalIsTTY = process.stdin.isTTY;
+
 describe('change command', () => {
   // These tests can reuse factories since they currently don't push to remote
   let singleFactory: RepositoryFactory;
@@ -101,6 +104,8 @@ describe('change command', () => {
   beforeEach(() => {
     stdin = new MockStdin();
     stdout = new MockStdout({ replace: 'prompts' });
+    // Simulate interactive TTY so prompts-based tests work regardless of the actual environment
+    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
   });
 
   afterEach(() => {
@@ -108,6 +113,12 @@ describe('change command', () => {
     stdout.destroy();
     repo = undefined;
     mockBeachballOptions = undefined;
+    // Restore the original isTTY value
+    if (originalIsTTY === undefined) {
+      delete (process.stdin as unknown as Record<string, unknown>).isTTY;
+    } else {
+      Object.defineProperty(process.stdin, 'isTTY', { value: originalIsTTY, configurable: true });
+    }
   });
 
   afterAll(() => {
