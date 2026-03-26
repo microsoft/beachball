@@ -17,7 +17,6 @@ Beachball normally uses a CLI with an interactive prompt to create change files,
   - The examples below assume `scripts` called `change` and `checkchange` respectively, but substitute the appropriate script names if found.
   - Using `scripts` if defined is preferred since they may add extra arguments, but it's possible to run the commands directly: `yarn beachball change` and `yarn beachball check` (substituting appropriate command runner)
 - Use `beachball config get` to check the following settings (this reads from the beachball config and returns the resolved value):
-  - `yarn beachball config get disallowedChangeTypes`: modifies the allowed `type` values in the change file (may vary by package)
   - `yarn beachball config get changeDir`: where to put the change files
   - `yarn beachball config get branch`: target branch
 
@@ -90,16 +89,37 @@ Each grouped change file is located under `<changeDir>/change-<guid>.json`. It h
 Each package's entry has the following values:
 
 - `packageName`: The name of the changed package, e.g. `just-task`
-- `type`: The semantic versioning change type for the package, determined based on the diff content of changed files in that package. There are different options depending on whether the package's current version contains a prerelease suffix or not:
-  - If the package's current version does NOT have a prerelease suffix, choose `<patch|minor|major|none>` (omit any options banned by the beachball config's `disallowedChangeTypes` setting):
-    - **`"patch"`**: Bug fixes or other changes that don't impact exported API signatures.
-    - **`"minor"`**: New exported APIs, non-breaking signature changes to exported APIs, or more significant changes to internal logic. (If the package has a `<package path>/etc/*.api.md` file, checking its diff is the easiest way to see exported API changes.)
-    - **`"major"`**: Breaking changes to exported APIs (removals or breaking signature changes), critical dependency updates, or behavior changes that might be breaking for the consumer. You MUST confirm with the user before choosing `"major"`.
-    - **`"none"`**: None of the changes will impact consumers of the package (e.g. the changes are only to non-exported test-specific files or documentation). If you're not certain, prefer `"patch"`.
-  - ONLY if the package's current version includes a prerelease suffix, choose `<prerelease|none>`:
-    - **`"prerelease"`**: Any changes that impact consumers of the package
-    - **`"none"`**: None of the changes will impact consumers of the package (e.g. the changes are only to non-exported test-specific files or documentation). If you're not certain, prefer `"prerelease"`.
-  - If not certain about the change type, ask the user to choose one of the options above based on the diff content.
+- `type`: The semantic versioning change type for the package. See "Determining the change type" below.
 - `dependentChangeType`: Change type for packages that depend on this package. If `type` is `"none"`, this should be `"none"`. Otherwise, this should be `"patch"` (beachball internally handles this for the special case of prerelease packages).
 - `comment` (`--message` CLI arg): A concise description of the changes made to the package. This will go in the changelog, so it should focus on user-facing changes rather than implementation details. This field accepts markdown formatting.
 - `email`: User's email from `git config user.email`, or `"email not defined"` if not available. Do NOT invent an email.
+
+#### Determining the change type
+
+The `type` field is the semantic versioning change type for the package, determined based on the diff content of changed files in that package. There are different options depending on whether the package's current version contains a prerelease suffix or not, and the `disallowedChangeTypes` setting may modify which change types are allowed.
+
+If you're still uncertain about the change type after following the instructions below, ask the user to choose.
+
+For each package, start by checking:
+
+- Whether the current `version` in `package.json` contains a prerelease suffix
+- `disallowedChangeTypes` for the specific package: `yarn beachball config get disallowedChangeTypes --package <packageName>`
+- Whether the package has a file `<package path>/etc/*.api.md`. If so, the diff of this file will show whether any public API signatures changed.
+
+##### Option 1: Package is NOT prerelease
+
+If the package's current version does NOT have a prerelease suffix, the typical options are `<patch|minor|major|none>` (but you MUST respect `disallowedChangeTypes`):
+
+- **`"patch"`**: Bug fixes or other changes that don't impact exported API signatures.
+- **`"minor"`**: New exported APIs, non-breaking signature changes to exported APIs, or more significant changes to internal logic. (If the package has a `<package path>/etc/*.api.md` file, checking its diff is the easiest way to see exported API changes.)
+- **`"major"`**: Breaking changes to exported APIs (removals or breaking signature changes), critical dependency updates, or behavior changes that might be breaking for the consumer. You MUST confirm with the user before choosing `"major"`.
+- **`"none"`**: None of the changes will impact consumers of the package (e.g. the changes are only to non-exported test-specific files or documentation). If you're not certain, prefer `"patch"`.
+- There are additional options `prerelease|premajor|preminor|prepatch`, but you should only use one of these if explicitly requested by the user.
+
+##### Option 2: Package IS prerelease
+
+ONLY if the package's current version includes a prerelease suffix, the typical options are `<prerelease|none>` (but you MUST respect `disallowedChangeTypes`):
+
+- **`"prerelease"`**: Any changes that impact consumers of the package
+- **`"none"`**: None of the changes will impact consumers of the package (e.g. the changes are only to non-exported test-specific files or documentation). If you're not certain, prefer `"prerelease"`.
+- There are additional options `premajor|preminor|prepatch`, but you should only use one of these if explicitly requested by the user or all other change types are disallowed.

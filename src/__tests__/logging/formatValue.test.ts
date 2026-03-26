@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { formatValue } from '../../logging/formatValue';
+import { BeachballError } from '../../types/BeachballError';
 
 describe('formatValue', () => {
   describe('basic values', () => {
@@ -16,8 +17,14 @@ describe('formatValue', () => {
       expect(formatValue(input)).toBe(expected);
     });
 
-    it('formats function', () => {
-      expect(formatValue(() => {})).toBe('[Function]');
+    it('generically formats function', () => {
+      expect(formatValue(() => {})).toBe('(Function)');
+    });
+
+    it('generically formats class instances', () => {
+      expect(formatValue(new Date())).toBe('(Date)');
+      expect(formatValue(/regex/)).toBe('(RegExp)');
+      expect(formatValue(new BeachballError('hi'))).toBe('(BeachballError)');
     });
   });
 
@@ -27,22 +34,36 @@ describe('formatValue', () => {
     });
 
     it('formats short array on single line', () => {
-      expect(formatValue(['a', 'b'])).toBe('["a", "b"]');
+      expect(formatValue(['a', 'b', undefined, 1, 2])).toBe('["a", "b", undefined, 1, 2]');
     });
 
-    it('formats long array on multiple lines', () => {
-      expect(formatValue(['a-long-value', 'another-long-value', 'yet-another'], { widthLimit: 40 }))
-        .toMatchInlineSnapshot(`
-        "[
-          "a-long-value",
-          "another-long-value",
-          "yet-another"
-        ]"
+    it('formats long array with YAML-like list syntax', () => {
+      const formatted = formatValue(['a-long-value', 'another-long-value', 'yet-another'], { maxWidth: 40 });
+      // No leading whitespace or newline at level 0 (previous bug)
+      expect(formatted).not.toMatch(/^\s/);
+      expect(formatted).toMatchInlineSnapshot(`
+        "- "a-long-value"
+        - "another-long-value"
+        - "yet-another""
       `);
     });
 
-    it('formats array of numbers on single line', () => {
-      expect(formatValue([1, 2, 3])).toBe('[1, 2, 3]');
+    it('formats array of objects', () => {
+      const groups = [
+        { name: 'group-a', someArray: ['major'] },
+        { name: 'group-b', someArray: ['major', 'minor'] },
+      ];
+      const formatted = formatValue(groups);
+      const lines = formatted.split('\n');
+      // Explicitly check indentation (previous bug)
+      expect(lines[0]).toMatch(/^- name:/);
+      expect(lines[1]).toMatch(/^  someArray:/);
+      expect(formatValue(groups)).toMatchInlineSnapshot(`
+        "- name: "group-a"
+          someArray: ["major"]
+        - name: "group-b"
+          someArray: ["major", "minor"]"
+      `);
     });
   });
 
@@ -51,110 +72,126 @@ describe('formatValue', () => {
       expect(formatValue({})).toBe('{}');
     });
 
-    it('formats short object on single line', () => {
-      expect(formatValue({ a: 1, b: 'two' })).toBe('{ a: 1, b: "two" }');
-    });
-
-    it('formats long object on multiple lines', () => {
-      expect(formatValue({ longKeyName: 'long-value', anotherKey: 'another-value' }, { widthLimit: 40 }))
-        .toMatchInlineSnapshot(`
-        "{
-          longKeyName: "long-value",
-          anotherKey: "another-value"
-        }"
+    it('formats object with YAML-like key: value lines', () => {
+      const formatted = formatValue({ a: 1, b: 'two' });
+      const lines = formatted.split('\n');
+      // No leading whitespace (previous bug)
+      expect(lines[0]).toMatch(/^a:/);
+      expect(lines[1]).toMatch(/^b:/);
+      expect(formatted).toMatchInlineSnapshot(`
+        "a: 1
+        b: "two""
       `);
     });
 
-    it('formats nested objects on single line when short', () => {
-      expect(formatValue({ outer: { inner: true } })).toBe('{ outer: { inner: true } }');
+    it('formats nested objects', () => {
+      // Separate lines with indentation for nested objects (previous bug)
+      expect(formatValue({ outer: { inner: true } })).toEqual('outer:\n  inner: true');
     });
 
-    it('formats deeply nested objects on multiple lines when exceeding width', () => {
-      expect(formatValue({ outer: { inner: { deep: 'value' } } }, { widthLimit: 30 })).toMatchInlineSnapshot(`
-        "{
-          outer: { inner: { deep: "value" } }
-        }"
+    it('formats object with mixed value types', () => {
+      expect(formatValue({ name: 'test', count: 3, func: () => {}, enabled: true, data: null })).toMatchInlineSnapshot(`
+        "name: "test"
+        count: 3
+        func: (Function)
+        enabled: true
+        data: null"
       `);
     });
 
-    it('formats object with function values on single line', () => {
-      expect(formatValue({ prepublish: () => {}, postpublish: () => {} })).toBe(
-        '{ prepublish: [Function], postpublish: [Function] }'
-      );
-    });
-
-    it('formats object with mixed value types on single line', () => {
-      expect(formatValue({ name: 'test', count: 3, enabled: true, data: null })).toBe(
-        '{ name: "test", count: 3, enabled: true, data: null }'
-      );
-    });
-
-    it('quotes keys that are not valid identifiers', () => {
-      expect(formatValue({ '/path/to/key': 1, 'key-with-hyphens': 2, normalKey: 3 })).toBe(
-        '{ "/path/to/key": 1, "key-with-hyphens": 2, normalKey: 3 }'
-      );
-    });
-  });
-
-  describe('width limit', () => {
-    it('uses single line when within default width limit', () => {
-      expect(formatValue(['major', 'minor'])).toBe('["major", "minor"]');
-    });
-
-    it('uses multi-line when exceeding width limit', () => {
-      expect(formatValue(['major', 'minor'], { widthLimit: 10 })).toMatchInlineSnapshot(`
-        "[
-          "major",
-          "minor"
-        ]"
-      `);
-    });
-
-    it('accounts for indent when checking width limit', () => {
-      // At indent 70 with widthLimit=75, ["a"] (5 chars) + 70 = 75, fits on single line
-      expect(formatValue(['a'], { indent: 70, widthLimit: 75 })).toBe('["a"]');
-      // At indent 70 with widthLimit=74, ["a"] (5 chars) + 70 = 75 > 74, goes multi-line
-      expect(formatValue(['a'], { indent: 70, widthLimit: 74 })).toContain('\n');
-    });
-
-    it('goes multi-line when a child value is multi-line', () => {
-      expect(formatValue([{ longKey: 'longValue', anotherKey: 'anotherValue' }], { widthLimit: 30 }))
-        .toMatchInlineSnapshot(`
-        "[
+    it('formats deeply nested mixed types', () => {
+      const config = {
+        name: 'my-repo',
+        someBool: true,
+        arrayOfObjects: [
           {
-            longKey: "longValue",
-            anotherKey: "anotherValue"
-          }
-        ]"
+            name: 'core',
+            include: ['packages/core/very-long-path-extra-long/*'],
+            someArray: ['major'],
+          },
+          {
+            name: 'utils',
+            include: ['packages/utils/*'],
+            someArray: null,
+          },
+        ],
+        customStuff: {
+          extra: {
+            renderFoo: () => '',
+            renderBar: () => '',
+          },
+          groups: [{ someValue: 'core', otherValue: 'changelog' }],
+        },
+        stringArray: ['packages/*', '!packages/internal/*'],
+      };
+
+      // Review snapshot changes carefully!
+      // Silly things can happen with indentation and whitespace!
+      expect(formatValue(config, { maxWidth: 40 })).toMatchInlineSnapshot(`
+        "name: "my-repo"
+        someBool: true
+        arrayOfObjects:
+          - name: "core"
+            include:
+              - "packages/core/very-long-path-extra-long/*"
+            someArray: ["major"]
+          - name: "utils"
+            include: ["packages/utils/*"]
+            someArray: null
+        customStuff:
+          extra:
+            renderFoo: (Function)
+            renderBar: (Function)
+          groups:
+            - someValue: "core"
+              otherValue: "changelog"
+        stringArray: ["packages/*", "!packages/internal/*"]"
       `);
     });
 
-    it('formats nested array inside object on single line when short', () => {
-      const group = { name: 'my-group', disallowedChangeTypes: ['major'] };
-      expect(formatValue(group)).toBe('{ name: "my-group", disallowedChangeTypes: ["major"] }');
-    });
-
-    it('breaks object to multi-line while keeping short nested array inline', () => {
-      const group = { name: 'my-group', disallowedChangeTypes: ['major', 'minor', 'patch'] };
-      expect(formatValue(group, { widthLimit: 50 })).toMatchInlineSnapshot(`
-        "{
-          name: "my-group",
-          disallowedChangeTypes: ["major", "minor", "patch"]
-        }"
+    it('does not quote keys, even if invalid identifiers', () => {
+      expect(formatValue({ '/path/to/key': 1, 'key-with-hyphens': 2, normalKey: 3 })).toMatchInlineSnapshot(`
+        "/path/to/key: 1
+        key-with-hyphens: 2
+        normalKey: 3"
       `);
     });
   });
 
-  describe('indentation', () => {
-    it('respects initial indent for objects', () => {
-      expect(formatValue({ a: 1 }, { indent: 4, widthLimit: 10 })).toBe('{\n      a: 1\n    }');
+  describe('level', () => {
+    it('respects initial level for objects', () => {
+      expect(formatValue({ a: 1 }, { level: 4 })).toMatchInlineSnapshot(`"        a: 1"`);
     });
 
-    it('respects initial indent for arrays', () => {
-      // [1] is 3 chars + indent 4 = 7, fits in widthLimit 10
-      expect(formatValue([1], { indent: 4, widthLimit: 10 })).toBe('[1]');
-      // [1] is 3 chars + indent 4 = 7 > widthLimit 6, goes multi-line
-      expect(formatValue([1], { indent: 4, widthLimit: 6 })).toBe('[\n      1\n    ]');
+    it('respects initial level for arrays exceeding width', () => {
+      expect(formatValue([1, 2], { level: 4, maxWidth: 6 })).toMatchInlineSnapshot(`
+        "        - 1
+                - 2"
+      `);
+    });
+
+    it('respects level for array with single long value', () => {
+      const formatted = formatValue(['a-long-value'], { maxWidth: 10, level: 2 });
+      // Previous bug: the space would get trimmed since there's no newline in the array
+      expect(formatted).toEqual(`    - "a-long-value"`);
+    });
+
+    it('respects level for single-value array key of object', () => {
+      const formatted = formatValue({ key: ['a-long-value'] }, { maxWidth: 10, level: 2 });
+      // Previous bug: the space would get trimmed since there's no newline in the array
+      expect(formatted).toEqual(`    key:\n      - "a-long-value"`);
+    });
+
+    it('keeps short array on single line when it fits even with level', () => {
+      // Level 4 = 8 spaces indent. [1, 2] is 6 chars. 8 + 6 = 14, fits in maxWidth 14
+      expect(formatValue([1, 2], { level: 4, maxWidth: 14 })).toBe('        [1, 2]');
+    });
+
+    it('accounts for level when checking width limit', () => {
+      // Level 5 = 10 spaces indent. ["a"] is 5 chars. 10 + 5 = 15, fits in maxWidth 15
+      expect(formatValue(['a'], { level: 5, maxWidth: 15 })).toBe('          ["a"]');
+      // 10 + 5 = 15 > 14, goes to list format
+      expect(formatValue(['a'], { level: 5, maxWidth: 14 })).toBe('          - "a"');
     });
   });
 });

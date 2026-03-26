@@ -36,6 +36,8 @@ function getMatchingPackageInfo(
 /**
  * Determines whether the package is included in the list of potentially-changed published packages,
  * based on private flags and scopedPackages.
+ *
+ * (All the reasons except nonexistent include the package name.)
  */
 export function isPackageIncluded(
   packageInfo: PackageInfo | undefined,

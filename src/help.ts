@@ -29,8 +29,8 @@ Commands:
                         pushes changelogs back into the default branch
     sync              - synchronize published versions of packages from the registry with
                         local package.json versions
-    config get <name> - get the value of the specified config setting
-                        (top-level and any overrides)
+    config get <name> - get the value of a config setting (with any overrides)
+    config list       - list all config settings (with any overrides)
 
 Options supported by all commands except 'config':
 
@@ -89,8 +89,12 @@ Options supported by all commands except 'config':
 
 'config get <name>' options:
 
-    --package, -p           - get the config value for specific package(s)
+    --package, -p           - get the effective value for specific package(s)
                               (can be specified multiple times)
+
+'config list' options:
+
+    (no additional options)
 
 `);
 }

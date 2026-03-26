@@ -35,7 +35,7 @@ Use `/beachball-change-files` to generate a Beachball change file. Use `yarn cha
 
 ## Architecture
 
-**Entry point:** `src/cli.ts` dispatches to commands: `check`, `change`, `bump`, `publish`, `canary`, `sync`, `init`.
+**Entry point:** `src/cli.ts` dispatches to commands: `check`, `change`, `bump`, `publish`, `canary`, `sync`, `init`, `config`.
 
 **Key modules:**
 
@@ -76,8 +76,11 @@ Test helpers in `src/__fixtures__/` provide mock factories for repos, logs, pack
 
 ### Test writing tips
 
-- Before manually creating a complex object structure (such as `PackageInfos`, `ChangeInfo`, `BumpInfo`, or `BeachballOptions`), check if there's a helper under `__fixtures__` or a common pattern for creating/mocking this object in other tests.
-- When testing a function with complex parameters, consider creating a wrapper in the test which fills in common defaults.
+- Avoid manually creating complex object structures (such as `PackageInfos`, `ChangeInfo`, `BumpInfo`, or `BeachballOptions`). Consider one of the following approaches instead:
+  - call the real function for generating the structure if possible
+  - check if there's a helper under `__fixtures__`
+  - check for a common pattern for creating/mocking this object in other tests
+- When testing a function with complex parameters, consider creating a wrapper function in the test which fills in common defaults.
 - Any test of a function which writes to the console should call `initMockLogs()` to mock and capture output.
-- Beachball's logs are its UI. In some cases, it may make sense for tests to include complete inline snapshots of output (if it's only a few lines).
+- Beachball's logs are its UI. Often, tests should include complete inline snapshots of output (especially if it's only a few lines).
 - Where reasonable, prefer complete tests of values: `expect(someObj).toEqual({...})` rather than `expect(someObj.foo).toEqual(...)` or `expect(someObj).toMatchObject({...})`, or `expect(someArray).toEqual([...])` rather than `expect(someArray).toContain(...)`

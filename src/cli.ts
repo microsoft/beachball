@@ -3,6 +3,7 @@ import { bump } from './commands/bump';
 import { canary } from './commands/canary';
 import { change } from './commands/change';
 import { configGet } from './commands/configGet';
+import { configList } from './commands/configList';
 import { init } from './commands/init';
 import { publish } from './commands/publish';
 import { sync } from './commands/sync';
@@ -99,7 +100,13 @@ import { getPackageGroups } from './monorepo/getPackageGroups';
       const originalPackageInfos = getPackageInfos(parsedOptions);
       const scopedPackages = getScopedPackages(options, originalPackageInfos);
       const packageGroups = getPackageGroups(originalPackageInfos, options.path, options.groups);
-      configGet(options, { originalPackageInfos, scopedPackages, packageGroups });
+      const configContext = { originalPackageInfos, scopedPackages, packageGroups };
+      const subcommand = options._extraPositionalArgs?.[0];
+      if (subcommand === 'list') {
+        configList(options, configContext);
+      } else {
+        configGet(options, configContext);
+      }
       break;
     }
 

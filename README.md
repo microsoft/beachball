@@ -34,6 +34,10 @@ bumps, publishes to npm registry, and pushes changelogs back into the target bra
 
 synchronizes published versions of packages from a registry, makes local package.json changes to match what is published
 
+### [config](https://microsoft.github.io/beachball/cli/config.html)
+
+inspect the effective beachball configuration for the repo or a specific package
+
 ## Options
 
 Some of the most common options are summarized below. **For all options, see the pages for [CLI options](https://microsoft.github.io/beachball/cli/options.html) and [config file options](https://microsoft.github.io/beachball/overview/configuration.html).**
