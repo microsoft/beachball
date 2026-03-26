@@ -2,11 +2,11 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, jest } from '@je
 import type prompts from 'prompts';
 import { promptForChange } from '../../changefile/promptForChange';
 import type { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
-import { BeachballError } from '../../types/BeachballError';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { MockStdin } from '../../__fixtures__/mockStdin';
 import { MockStdout } from '../../__fixtures__/mockStdout';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import { expectBeachballError } from '../../__fixtures__/expectBeachballError';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
 // so instead we inject a custom mock stdout stream, as well as stdin for entering answers
@@ -175,8 +175,10 @@ describe('promptForChange', () => {
     });
 
     it('throws an error when prompts are needed and stdin is not a TTY', async () => {
-      await expect(promptForChange(defaultParams())).rejects.toThrow(BeachballError);
-      await expect(promptForChange(defaultParams())).rejects.toThrow(/non-interactive context.*--type and --message/s);
+      await expectBeachballError(
+        promptForChange(defaultParams()),
+        'The "change" command is running in a non-interactive context'
+      );
     });
 
     it('includes guidance about --package in the error', async () => {
@@ -200,21 +202,23 @@ describe('promptForChange', () => {
     });
 
     it('throws when only type is provided but message is missing', async () => {
-      await expect(
+      await expectBeachballError(
         promptForChange({
           ...defaultParams(),
           options: { type: 'minor', message: '', disallowedChangeTypes: null },
-        })
-      ).rejects.toThrow(BeachballError);
+        }),
+        'The "change" command is running in a non-interactive context'
+      );
     });
 
     it('throws when only message is provided but type is missing', async () => {
-      await expect(
+      await expectBeachballError(
         promptForChange({
           ...defaultParams(),
           options: { message: 'some message', disallowedChangeTypes: null },
-        })
-      ).rejects.toThrow(BeachballError);
+        }),
+        'The "change" command is running in a non-interactive context'
+      );
     });
   });
 });
