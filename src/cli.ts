@@ -96,7 +96,7 @@ import { BeachballError } from './types/BeachballError';
 
     case 'config': {
       const extraArgs = options._extraPositionalArgs || [];
-      if (extraArgs[0] !== 'get' || !extraArgs[1]) {
+      if (extraArgs[0] !== 'get' || extraArgs.length !== 2) {
         throw new BeachballError(
           'Usage: beachball config get <setting>\n\nGets the value of the specified config setting.'
         );

@@ -159,6 +159,7 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
   };
 
   // Save extra positional args for commands that support subcommands (e.g. 'config get <name>')
+  // (yargs-parser doesn't support positional arguments directly)
   const extraPositionalArgs = positionalArgs.length > 1 ? positionalArgs.slice(1).map(String) : undefined;
 
   const branchArg = args.branch as string | undefined;
