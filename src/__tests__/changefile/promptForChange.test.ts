@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import type prompts from 'prompts';
 import { promptForChange } from '../../changefile/promptForChange';
 import type { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
+import { BeachballError } from '../../types/BeachballError';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { MockStdin } from '../../__fixtures__/mockStdin';
 import { MockStdout } from '../../__fixtures__/mockStdout';
@@ -22,6 +23,9 @@ jest.mock('prompts', () => {
     );
   }) as typeof prompts;
 });
+
+// Save and restore process.stdin.isTTY since promptForChange checks it for non-interactive detection
+const originalIsTTY = process.stdin.isTTY;
 
 /**
  * These combined tests mainly cover various early bail-out cases (the only meaningful logic in
@@ -50,11 +54,19 @@ describe('promptForChange', () => {
   beforeEach(() => {
     stdin = new MockStdin();
     stdout = new MockStdout();
+    // Simulate interactive TTY so prompts-based tests work regardless of the actual environment
+    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
   });
 
   afterEach(() => {
     stdin.destroy();
     stdout.destroy();
+    // Restore the original isTTY value
+    if (originalIsTTY === undefined) {
+      delete (process.stdin as unknown as Record<string, unknown>).isTTY;
+    } else {
+      Object.defineProperty(process.stdin, 'isTTY', { value: originalIsTTY, configurable: true });
+    }
   });
 
   it('does not create change files when there are no changes', async () => {
@@ -151,5 +163,55 @@ describe('promptForChange', () => {
 
     expect(await changeFilesPromise).toBeUndefined();
     expect(logs.mocks.error).toHaveBeenLastCalledWith('Prompt response contains invalid change type "invalid"');
+  });
+
+  describe('non-interactive detection', () => {
+    beforeEach(() => {
+      // Simulate non-interactive environment (stdin is not a TTY)
+      Object.defineProperty(process.stdin, 'isTTY', { value: undefined, configurable: true });
+    });
+
+    it('throws an error when prompts are needed and stdin is not a TTY', async () => {
+      await expect(promptForChange(defaultParams())).rejects.toThrow(BeachballError);
+      await expect(promptForChange(defaultParams())).rejects.toThrow(/non-interactive context.*--type and --message/s);
+    });
+
+    it('includes guidance about --package in the error', async () => {
+      await expect(promptForChange(defaultParams())).rejects.toThrow(/--package/);
+    });
+
+    it('does not throw when type and message are both provided', async () => {
+      const changeFiles = await promptForChange({
+        ...defaultParams(),
+        options: { type: 'minor', message: 'message', disallowedChangeTypes: null },
+      });
+      expect(changeFiles).toEqual([
+        expect.objectContaining({ type: 'minor', comment: 'message', packageName: 'foo' }),
+        expect.objectContaining({ type: 'minor', comment: 'message', packageName: 'bar' }),
+      ]);
+    });
+
+    it('does not throw when there are no changed packages', async () => {
+      const changeFiles = await promptForChange({ ...defaultParams(), changedPackages: [] });
+      expect(changeFiles).toBeUndefined();
+    });
+
+    it('throws when only type is provided but message is missing', async () => {
+      await expect(
+        promptForChange({
+          ...defaultParams(),
+          options: { type: 'minor', message: '', disallowedChangeTypes: null },
+        })
+      ).rejects.toThrow(BeachballError);
+    });
+
+    it('throws when only message is provided but type is missing', async () => {
+      await expect(
+        promptForChange({
+          ...defaultParams(),
+          options: { message: 'some message', disallowedChangeTypes: null },
+        })
+      ).rejects.toThrow(BeachballError);
+    });
   });
 });
