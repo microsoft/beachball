@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterAll, afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type prompts from 'prompts';
 import { promptForChange } from '../../changefile/promptForChange';
 import type { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
@@ -24,7 +24,7 @@ jest.mock('prompts', () => {
   }) as typeof prompts;
 });
 
-// Save and restore process.stdin.isTTY since promptForChange checks it for non-interactive detection
+/** Save and restore `process.stdin.isTTY` since `promptForChange` checks it for non-interactive detection */
 const originalIsTTY = process.stdin.isTTY;
 
 /**
@@ -55,17 +55,20 @@ describe('promptForChange', () => {
     stdin = new MockStdin();
     stdout = new MockStdout();
     // Simulate interactive TTY so prompts-based tests work regardless of the actual environment
-    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
+    process.stdin.isTTY = true;
   });
 
   afterEach(() => {
     stdin.destroy();
     stdout.destroy();
+  });
+
+  afterAll(() => {
     // Restore the original isTTY value
     if (originalIsTTY === undefined) {
       delete (process.stdin as unknown as Record<string, unknown>).isTTY;
     } else {
-      Object.defineProperty(process.stdin, 'isTTY', { value: originalIsTTY, configurable: true });
+      process.stdin.isTTY = originalIsTTY;
     }
   });
 
@@ -168,7 +171,7 @@ describe('promptForChange', () => {
   describe('non-interactive detection', () => {
     beforeEach(() => {
       // Simulate non-interactive environment (stdin is not a TTY)
-      Object.defineProperty(process.stdin, 'isTTY', { value: undefined, configurable: true });
+      process.stdin.isTTY = false;
     });
 
     it('throws an error when prompts are needed and stdin is not a TTY', async () => {
