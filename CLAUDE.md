@@ -73,3 +73,11 @@ Three Jest projects:
 - **E2E** (`src/__e2e__/`): E2E tests covering major scenarios and entire commands
 
 Test helpers in `src/__fixtures__/` provide mock factories for repos, logs, package infos, and change files.
+
+### Test writing tips
+
+- Before manually creating a complex object structure (such as `PackageInfos`, `ChangeInfo`, `BumpInfo`, or `BeachballOptions`), check if there's a helper under `__fixtures__` or a common pattern for creating/mocking this object in other tests.
+- When testing a function with complex parameters, consider creating a wrapper in the test which fills in common defaults.
+- Any test of a function which writes to the console should call `initMockLogs()` to mock and capture output.
+- Beachball's logs are its UI. In some cases, it may make sense for tests to include complete inline snapshots of output (if it's only a few lines).
+- Where reasonable, prefer complete tests of values: `expect(someObj).toEqual({...})` rather than `expect(someObj.foo).toEqual(...)` or `expect(someObj).toMatchObject({...})`, or `expect(someArray).toEqual([...])` rather than `expect(someArray).toContain(...)`

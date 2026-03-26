@@ -30,8 +30,9 @@ Commands:
     sync              - synchronize published versions of packages from the registry with
                         local package.json versions
     config get <name> - get the value of the specified config setting
+                        (top-level and any overrides)
 
-Options supported by all commands:
+Options supported by all commands except 'config':
 
     --branch, -b      - target branch from remote (default: git config init.defaultBranch)
     --change-dir      - name of the directory to store change files (default: change)
@@ -86,7 +87,7 @@ Options supported by all commands:
     --tag, -t               - sync to the specified npm dist-tag (default: 'latest')
     --force                 - use the version from the registry even if it's older than local
 
-'config get' options:
+'config get <name>' options:
 
     --package, -p           - get the config value for specific package(s)
                               (can be specified multiple times)

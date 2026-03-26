@@ -1,225 +1,222 @@
-import { describe, expect, it, jest, beforeEach } from '@jest/globals';
-import { configGet } from '../../commands/configGet';
-import type { BeachballOptions, ParsedOptions } from '../../types/BeachballOptions';
-import { getDefaultOptions } from '../../options/getDefaultOptions';
+import { describe, expect, it } from '@jest/globals';
+import { expectBeachballError } from '../../__fixtures__/expectBeachballError';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-
-// Mock getPackageInfos to avoid needing a real git repo
-jest.mock('../../monorepo/getPackageInfos', () => ({
-  getPackageInfos: () => mockPackageInfos,
-}));
-
-let mockPackageInfos: Record<string, unknown> = {};
+import { type PartialPackageInfos, makePackageInfos } from '../../__fixtures__/packageInfos';
+import { configGet } from '../../commands/configGet';
+import { getDefaultOptions } from '../../options/getDefaultOptions';
+import type { BeachballOptions, PackageOptions, VersionGroupOptions } from '../../types/BeachballOptions';
+import type { BasicCommandContext } from '../../types/CommandContext';
+import { BeachballError } from '../../types/BeachballError';
 
 describe('configGet', () => {
   const logs = initMockLogs();
 
-  function makeOptions(overrides: Partial<BeachballOptions> = {}): BeachballOptions {
-    return { ...getDefaultOptions(), ...overrides };
+  /** Wrapper that just provides custom args to `configGet` (for invalid argument cases) */
+  function configGetArgs(args: string[]) {
+    configGet(
+      { ...getDefaultOptions(), _extraPositionalArgs: args },
+      { originalPackageInfos: {}, scopedPackages: new Set(), packageGroups: {} }
+    );
   }
 
-  function makeParsedOptions(overrides: Partial<BeachballOptions> = {}): ParsedOptions {
-    const options = makeOptions(overrides);
-    return { cliOptions: {}, options };
+  /** Get the given option (`name` will be formatted as args) with optional overrides */
+  function configGetWrapper(
+    name: string,
+    params: Omit<Partial<BasicCommandContext>, 'originalPackageInfos'> & {
+      packageInfos?: PartialPackageInfos;
+      options?: Partial<BeachballOptions>;
+    }
+  ) {
+    const { options: optionOverrides, packageInfos = {}, ...contextOverrides } = params;
+
+    const options: BeachballOptions = {
+      ...getDefaultOptions(),
+      _extraPositionalArgs: ['get', name],
+      ...optionOverrides,
+    };
+    const originalPackageInfos = makePackageInfos(packageInfos);
+
+    configGet(options, {
+      scopedPackages: new Set(Object.keys(originalPackageInfos)),
+      packageGroups: {},
+      ...contextOverrides,
+      originalPackageInfos,
+    });
   }
 
-  beforeEach(() => {
-    mockPackageInfos = {};
+  it('throws on missing subcommand', async () => {
+    await expectBeachballError(() => configGetArgs([]), 'Usage: beachball config get <setting>');
+  });
+
+  it('throws on wrong subcommand', async () => {
+    await expectBeachballError(() => configGetArgs(['set', 'branch']), 'Usage: beachball config get <setting>');
+  });
+
+  it('throws on too many args', async () => {
+    await expectBeachballError(
+      () => configGetArgs(['get', 'branch', 'extra']),
+      'Usage: beachball config get <setting>'
+    );
+  });
+
+  it('throws on unknown config setting', async () => {
+    await expectBeachballError(() => configGetArgs(['get', 'nonExistent']), 'Unknown config setting: "nonExistent"');
+  });
+
+  it('suggests similar config name on typo', async () => {
+    await expectBeachballError(
+      () => configGetArgs(['get', 'branc']),
+      'Unknown config setting: "branc" - did you mean "branch"?'
+    );
   });
 
   it('displays a simple string config value', () => {
-    const parsedOptions = makeParsedOptions({ branch: 'origin/main' });
-    configGet(parsedOptions.options, 'branch', parsedOptions);
-    expect(logs.getMockLines('log')).toBe('branch: origin/main');
+    configGetWrapper('branch', { options: { branch: 'origin/main' } });
+    expect(logs.getMockLines('log')).toBe('"origin/main"');
   });
 
   it('displays a boolean config value', () => {
-    const parsedOptions = makeParsedOptions({ bump: true });
-    configGet(parsedOptions.options, 'bump', parsedOptions);
-    expect(logs.getMockLines('log')).toBe('bump: true');
+    configGetWrapper('bump', { options: { bump: true } });
+    expect(logs.getMockLines('log')).toBe('true');
   });
 
   it('displays a null config value', () => {
-    const parsedOptions = makeParsedOptions({ disallowedChangeTypes: null });
-    configGet(parsedOptions.options, 'disallowedChangeTypes', parsedOptions);
-    expect(logs.getMockLines('log')).toBe('disallowedChangeTypes: null');
+    configGetWrapper('disallowedChangeTypes', { options: { disallowedChangeTypes: null } });
+    expect(logs.getMockLines('log')).toBe('null');
   });
 
   it('displays an array config value', () => {
-    const parsedOptions = makeParsedOptions({ disallowedChangeTypes: ['major'] });
-    configGet(parsedOptions.options, 'disallowedChangeTypes', parsedOptions);
-    expect(logs.getMockLines('log')).toBe('disallowedChangeTypes: ["major"]');
+    configGetWrapper('disallowedChangeTypes', { options: { disallowedChangeTypes: ['major'] } });
+    expect(logs.getMockLines('log')).toBe('["major"]');
   });
 
   it('displays an empty string config value', () => {
-    const parsedOptions = makeParsedOptions({ tag: '' });
-    configGet(parsedOptions.options, 'tag', parsedOptions);
-    expect(logs.getMockLines('log')).toBe('tag: ""');
-  });
-
-  it('throws on unknown config setting', () => {
-    const parsedOptions = makeParsedOptions();
-    expect(() => configGet(parsedOptions.options, 'nonExistent', parsedOptions)).toThrow();
-    expect(logs.getMockLines('error')).toContain('Unknown config setting: "nonExistent"');
-  });
-
-  it('suggests similar config name on typo', () => {
-    const parsedOptions = makeParsedOptions();
-    expect(() => configGet(parsedOptions.options, 'branc', parsedOptions)).toThrow();
-    expect(logs.getMockLines('error')).toContain('Did you mean "branch"');
+    configGetWrapper('tag', { options: { tag: '' } });
+    expect(logs.getMockLines('log')).toBe('""');
   });
 
   it('shows package overrides for a package option', () => {
-    mockPackageInfos = {
-      'pkg-a': {
-        name: 'pkg-a',
-        version: '1.0.0',
-        packageJsonPath: '/fake/pkg-a/package.json',
-        packageOptions: { disallowedChangeTypes: ['major', 'minor'] },
+    configGetWrapper('disallowedChangeTypes', {
+      options: { disallowedChangeTypes: null },
+      packageInfos: {
+        'pkg-a': { beachball: { disallowedChangeTypes: ['major', 'minor'] } },
+        'pkg-b': { version: '2.0.0' },
       },
-      'pkg-b': {
-        name: 'pkg-b',
-        version: '2.0.0',
-        packageJsonPath: '/fake/pkg-b/package.json',
-      },
-    };
-
-    const parsedOptions = makeParsedOptions({ disallowedChangeTypes: null });
-    configGet(parsedOptions.options, 'disallowedChangeTypes', parsedOptions);
+    });
 
     const output = logs.getMockLines('log');
-    expect(output).toContain('disallowedChangeTypes: null');
-    expect(output).toContain('Packages with overrides:');
-    expect(output).toContain('pkg-a: ["major","minor"]');
+    expect(output).toMatchInlineSnapshot(`
+      "Main value: null
+
+      Package overrides:
+        pkg-a: ["major", "minor"]"
+    `);
   });
 
   it('does not show package overrides section for non-package option', () => {
-    mockPackageInfos = {
-      'pkg-a': {
-        name: 'pkg-a',
-        version: '1.0.0',
-        packageJsonPath: '/fake/pkg-a/package.json',
+    configGetWrapper('branch', {
+      options: { branch: 'origin/main' },
+      packageInfos: {
+        'pkg-a': {},
+        'pkg-b': { beachball: { branch: 'ignored' } as PackageOptions },
       },
-    };
-
-    const parsedOptions = makeParsedOptions({ branch: 'origin/main' });
-    configGet(parsedOptions.options, 'branch', parsedOptions);
+    });
 
     const output = logs.getMockLines('log');
-    expect(output).toBe('branch: origin/main');
-    expect(output).not.toContain('Packages with overrides');
+    // Does not contain "Packages with overrides"
+    expect(output).toBe('"origin/main"');
   });
 
   it('shows value for a specific package using --package', () => {
-    mockPackageInfos = {
-      'pkg-a': {
-        name: 'pkg-a',
-        version: '1.0.0',
-        packageJsonPath: '/fake/pkg-a/package.json',
-        packageOptions: { tag: 'beta' },
+    configGetWrapper('tag', {
+      options: { package: 'pkg-a', tag: 'latest' },
+      packageInfos: {
+        'pkg-a': { beachball: { tag: 'beta' } },
+        'pkg-b': { beachball: { tag: 'next' } },
+        'pkg-c': {},
       },
-    };
-
-    const parsedOptions = makeParsedOptions({ package: 'pkg-a', tag: 'latest' });
-    configGet(parsedOptions.options, 'tag', parsedOptions);
+    });
 
     const output = logs.getMockLines('log');
-    expect(output).toContain('tag (for pkg-a): beta');
+    expect(output).toMatchInlineSnapshot(`"pkg-a: "beta""`);
   });
 
   it('falls back to repo value when package has no override', () => {
-    mockPackageInfos = {
-      'pkg-a': {
-        name: 'pkg-a',
-        version: '1.0.0',
-        packageJsonPath: '/fake/pkg-a/package.json',
-      },
-    };
-
-    const parsedOptions = makeParsedOptions({ package: 'pkg-a', tag: 'latest' });
-    configGet(parsedOptions.options, 'tag', parsedOptions);
+    configGetWrapper('tag', {
+      options: { package: 'pkg-a', tag: 'latest' },
+      packageInfos: { 'pkg-a': {} },
+    });
 
     const output = logs.getMockLines('log');
-    expect(output).toContain('tag (for pkg-a): latest');
+    expect(output).toBe('pkg-a: "latest"');
   });
 
   it('shows values for multiple packages', () => {
-    mockPackageInfos = {
-      'pkg-a': {
-        name: 'pkg-a',
-        version: '1.0.0',
-        packageJsonPath: '/fake/pkg-a/package.json',
-        packageOptions: { tag: 'beta' },
+    configGetWrapper('tag', {
+      options: { package: ['pkg-a', 'pkg-b'], tag: 'latest' },
+      packageInfos: {
+        'pkg-a': { beachball: { tag: 'beta' } },
+        'pkg-b': { version: '2.0.0', beachball: { tag: 'next' } },
       },
-      'pkg-b': {
-        name: 'pkg-b',
-        version: '2.0.0',
-        packageJsonPath: '/fake/pkg-b/package.json',
-        packageOptions: { tag: 'next' },
-      },
-    };
-
-    const parsedOptions = makeParsedOptions({ package: ['pkg-a', 'pkg-b'], tag: 'latest' });
-    configGet(parsedOptions.options, 'tag', parsedOptions);
+    });
 
     const output = logs.getMockLines('log');
-    expect(output).toContain('tag (for pkg-a): beta');
-    expect(output).toContain('tag (for pkg-b): next');
+    expect(output).toMatchInlineSnapshot(`
+      "pkg-a: "beta"
+      pkg-b: "next""
+    `);
   });
 
   it('throws when a requested package is not found', () => {
-    mockPackageInfos = {};
-
-    const parsedOptions = makeParsedOptions({ package: 'nonexistent' });
-    expect(() => configGet(parsedOptions.options, 'branch', parsedOptions)).toThrow();
-    expect(logs.getMockLines('error')).toContain('Package not found: "nonexistent"');
+    expect(() => configGetWrapper('branch', { options: { package: 'nonexistent' } })).toThrow(BeachballError);
+    expect(logs.getMockLines('error')).toBe('Package "nonexistent": no corresponding package found');
   });
 
   it('shows group overrides for disallowedChangeTypes', () => {
-    const parsedOptions = makeParsedOptions({
-      disallowedChangeTypes: null,
-      groups: [
-        {
-          name: 'my-group',
-          include: 'packages/*',
-          disallowedChangeTypes: ['major'],
-        },
-      ],
+    configGetWrapper('disallowedChangeTypes', {
+      options: {
+        disallowedChangeTypes: null,
+        groups: [{ name: 'my-group', include: 'packages/*', disallowedChangeTypes: ['major'] }],
+      },
+      packageInfos: { 'pkg-a': {}, 'pkg-b': {} },
+      packageGroups: {
+        'my-group': { packageNames: ['pkg-a', 'pkg-b'], disallowedChangeTypes: ['major'] },
+      },
     });
-    configGet(parsedOptions.options, 'disallowedChangeTypes', parsedOptions);
 
     const output = logs.getMockLines('log');
-    expect(output).toContain('disallowedChangeTypes: null');
-    expect(output).toContain('Group overrides:');
-    expect(output).toContain('my-group: ["major"]');
+    expect(output).toMatchInlineSnapshot(`
+      "Main value: null
+
+      Group overrides:
+        my-group: ["major"]
+          packages in group:
+            ◦ pkg-a
+            ◦ pkg-b"
+    `);
   });
 
-  it('does not show group overrides for non-disallowedChangeTypes options', () => {
-    const parsedOptions = makeParsedOptions({
-      tag: 'latest',
-      groups: [
-        {
-          name: 'my-group',
-          include: 'packages/*',
-          disallowedChangeTypes: ['major'],
-        },
-      ],
+  it('does not show group overrides for invalid group options', () => {
+    configGetWrapper('tag', {
+      options: {
+        tag: 'latest',
+        groups: [{ name: 'my-group', include: 'packages/*', tag: 'ignored' } as unknown as VersionGroupOptions],
+      },
+      packageInfos: {},
     });
-    configGet(parsedOptions.options, 'tag', parsedOptions);
 
     const output = logs.getMockLines('log');
-    expect(output).toBe('tag: latest');
-    expect(output).not.toContain('Group overrides');
+    // does not contain "Group overrides" because "tag" isn't valid for groups
+    expect(output).toBe('"latest"');
   });
 
   it('handles function values (hooks)', () => {
-    const parsedOptions = makeParsedOptions({
-      hooks: { prepublish: () => {} },
+    configGetWrapper('hooks', {
+      options: { hooks: { prepublish: () => {} } },
+      packageInfos: {},
     });
-    configGet(parsedOptions.options, 'hooks', parsedOptions);
 
-    // hooks is an object, but its value contains functions - it will be JSON serialized
-    // (functions become undefined in JSON.stringify, so just verify it doesn't throw)
-    expect(logs.getMockLines('log')).toContain('hooks:');
+    // functions get formatted as [Function]
+    expect(logs.getMockLines('log')).toMatchInlineSnapshot(`"{ prepublish: [Function] }"`);
   });
 });

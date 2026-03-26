@@ -13,6 +13,7 @@ import { getParsedOptions } from './options/getOptions';
 import { validate } from './validation/validate';
 import { getScopedPackages } from './monorepo/getScopedPackages';
 import { BeachballError } from './types/BeachballError';
+import { getPackageGroups } from './monorepo/getPackageGroups';
 
 (async () => {
   try {
@@ -95,13 +96,10 @@ import { BeachballError } from './types/BeachballError';
     }
 
     case 'config': {
-      const extraArgs = options._extraPositionalArgs || [];
-      if (extraArgs[0] !== 'get' || extraArgs.length !== 2) {
-        throw new BeachballError(
-          'Usage: beachball config get <setting>\n\nGets the value of the specified config setting.'
-        );
-      }
-      configGet(options, extraArgs[1], parsedOptions);
+      const originalPackageInfos = getPackageInfos(parsedOptions);
+      const scopedPackages = getScopedPackages(options, originalPackageInfos);
+      const packageGroups = getPackageGroups(originalPackageInfos, options.path, options.groups);
+      configGet(options, { originalPackageInfos, scopedPackages, packageGroups });
       break;
     }
 

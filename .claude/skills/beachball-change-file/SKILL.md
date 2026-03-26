@@ -16,10 +16,10 @@ Beachball normally uses a CLI with an interactive prompt to create change files,
 - Check the root `package.json` `scripts` for scripts that run `beachball change` and `beachball check`.
   - The examples below assume `scripts` called `change` and `checkchange` respectively, but substitute the appropriate script names if found.
   - Using `scripts` if defined is preferred since they may add extra arguments, but it's possible to run the commands directly: `yarn beachball change` and `yarn beachball check` (substituting appropriate command runner)
-- Check for the following settings in the beachball config (usually `beachball.config.js` or located in the root `package.json` `beachball` key):
-  - `disallowedChangeTypes`: modifies the allowed `type` values in the change file
-  - `changeDir`: the default is `"change"`
-  - `branch`: target branch (usually `main` or `master` if not specified)
+- Use `beachball config get` to check the following settings (this reads from the beachball config and returns the resolved value):
+  - `yarn beachball config get disallowedChangeTypes`: modifies the allowed `type` values in the change file (may vary by package)
+  - `yarn beachball config get changeDir`: where to put the change files
+  - `yarn beachball config get branch`: target branch
 
 ## Creating a change file
 
