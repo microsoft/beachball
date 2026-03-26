@@ -2,6 +2,7 @@ import { findGitRoot } from 'workspace-tools';
 import { bump } from './commands/bump';
 import { canary } from './commands/canary';
 import { change } from './commands/change';
+import { configGet } from './commands/configGet';
 import { init } from './commands/init';
 import { publish } from './commands/publish';
 import { sync } from './commands/sync';
@@ -90,6 +91,17 @@ import { BeachballError } from './types/BeachballError';
 
       await change(options, context);
 
+      break;
+    }
+
+    case 'config': {
+      const extraArgs = options._extraPositionalArgs || [];
+      if (extraArgs[0] !== 'get' || !extraArgs[1]) {
+        throw new BeachballError(
+          'Usage: beachball config get <setting>\n\nGets the value of the specified config setting.'
+        );
+      }
+      configGet(options, extraArgs[1], parsedOptions);
       break;
     }
 

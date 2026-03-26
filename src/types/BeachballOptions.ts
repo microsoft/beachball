@@ -70,6 +70,9 @@ export interface CliOptions
 
   // ONLY add new options here if they only make sense on the command line!
   // Most options should be defined in RepoOptions and added to the Pick<...> above.
+
+  /** @internal Extra positional arguments after the command (for subcommands like 'config get <name>') */
+  _extraPositionalArgs?: string[];
 }
 
 export interface RepoOptions {
