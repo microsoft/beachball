@@ -1,4 +1,5 @@
 import prompts from 'prompts';
+import { determineAgent } from '@vercel/detect-agent';
 import type { ChangeFileInfo, ChangeType } from '../types/ChangeInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { isValidChangeType } from '../validation/isValidChangeType';
@@ -52,6 +53,14 @@ export async function promptForChange(params: {
       '  - Edit the generated change files after creation',
       '  - Run "beachball change" multiple times with the --package argument',
     ];
+    if ((await determineAgent()).isAgent) {
+      lines.push(
+        '',
+        'For AI agents, you can ask the user to add the "beachball-change-files" skill from ' +
+          'https://github.com/microsoft/beachball/blob/main/.claude/skills/beachball-change-file/SKILL.md ' +
+          'for better manual instructions about creating change files.'
+      );
+    }
     throw new BeachballError(lines.join('\n'));
   }
 

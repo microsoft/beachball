@@ -114,4 +114,4 @@ If you need to customize something beyond what's currently supported in the opti
 
 ### AI integration
 
-Normally, Beachball uses an interactive CLI prompt for generating change files. Since this doesn't work for AI agents, we have a [change file skill](https://github.com/microsoft/beachball/tree/main/.claude/skills/beachball-change-file) with manual instructions.
+Normally, Beachball uses an interactive CLI prompt for generating change files. Since this doesn't work for AI agents, we have a [change file skill](https://github.com/microsoft/beachball/blob/main/.claude/skills/beachball-change-file/SKILL.md) with manual instructions.
