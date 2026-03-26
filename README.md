@@ -1,14 +1,10 @@
-<!--
-If making changes, don't forget to update the version under packages/beachball/README.md too!
--->
-
 # [beachball](https://microsoft.github.io/beachball/)
 
 the sunniest version bumping tool
 
 ## Prerequisites
 
-git and a remote named "origin"
+A git repo with a remote
 
 ## Usage
 
@@ -32,7 +28,7 @@ bumps versions as well as generating changelogs
 
 ### [publish](https://microsoft.github.io/beachball/cli/publish.html)
 
-bumps, publishes to npm registry (optionally does dist-tags), and pushes changelogs back into the default branch
+bumps, publishes to npm registry, and pushes changelogs back into the target branch
 
 ### [sync](https://microsoft.github.io/beachball/cli/sync.html)
 
@@ -40,53 +36,68 @@ synchronizes published versions of packages from a registry, makes local package
 
 ## Options
 
-Some of the most common options are summarized below. For details, see the pages for [CLI options](https://microsoft.github.io/beachball/cli/options.html) and [config file options](https://microsoft.github.io/beachball/overview/configuration.html).
+Some of the most common options are summarized below. **For all options, see the pages for [CLI options](https://microsoft.github.io/beachball/cli/options.html) and [config file options](https://microsoft.github.io/beachball/overview/configuration.html).**
 
-### --config, -c
+### `--config`, `-c`
 
 Explicit configuration file to use instead of the configuration automatically detected by cosmicconfig.
 
-### --registry, -r
+### `--registry`, `-r` (config: `registry`)
 
 registry, defaults to https://registry.npmjs.org
 
-### --tag, -t
+### `--tag`, `-t` (config: `tag`)
 
-- for the publish command: dist-tag for npm publishes
-- for the sync command: will use specified tag to set the version
+- for the `publish` command: dist-tag for npm publishes
+- for the `sync` command: will use specified tag to set the version
 
-### --branch, -b
+### `--branch`, `-b` (config: `branch`)
 
-target branch from origin (default: as configured in 'git config init.defaultBranch')
+target branch from remote (default: as configured in `git config init.defaultBranch`)
 
-### --message, -m
+### `--message`, `-m`
 
-custom message for the checkin (default: applying package updates)
+- for the `publish` command: message for the checkin (default: "applying package updates")
+- for the `change` command: change file comment for all changed packages
 
-### --no-push
+### `--type`
+
+for the `change` command: change type for all changed packages
+
+### `--package`
+
+for the `change` command: specific package(s) to create a change file for
+
+### `--no-push` (config: `push`)
 
 skip pushing changes back to git remote origin
 
-### --no-publish
+### `--no-publish` (config: `publish`)
 
 skip publishing to the npm registry
 
-### --help, -?, -h
+### `--help`, `-?`, `-h`
 
 show help message
 
-### --yes, -y
+### `--yes`, `-y`
 
 skips the prompts for publish
 
 ## Examples
 
-```
-$ beachball
+```sh
+# check for change files
+beachball check
 
-$ beachball check
+# interactively create change files
+beachball change
 
-$ beachball publish -r http://localhost:4873 -t beta
+# non-interactively create change files
+beachball change --type patch --message "awesome changes"
+
+# publish changes
+beachball publish -r http://localhost:4873 -t beta
 ```
 
 ## Notes
@@ -100,3 +111,7 @@ In large monorepos, the process of fetching versions for sync or before publishi
 Beachball **does not** have a public API beyond the provided [options](https://microsoft.github.io/beachball/overview/configuration.html). Usage of private APIs is not supported and may break at any time.
 
 If you need to customize something beyond what's currently supported in the options, please open a feature request or talk with the maintainers.
+
+### AI integration
+
+Normally, Beachball uses an interactive CLI prompt for generating change files. Since this doesn't work for AI agents, we have a [change file skill](https://github.com/microsoft/beachball/tree/main/.claude/skills/beachball-change-file) with manual instructions.
