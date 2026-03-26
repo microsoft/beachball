@@ -161,7 +161,7 @@ export function getChangedPackages(
   }
 
   // TODO: this should probably reuse the result of readChangeFiles, but they use slightly different args...
-  const changeFiles = getChangesBetweenRefs({
+  const committedChangeFiles = getChangesBetweenRefs({
     fromRef: branch,
     options: ['--no-renames', '--diff-filter=A'],
     // Only list files under the change folder for efficiency
@@ -169,6 +169,9 @@ export function getChangedPackages(
     pattern: '*.json',
     throwOnError: false,
   });
+  // Also consider staged change files (not yet committed) so that `check` respects them
+  const stagedChangeFiles = (getStagedChanges({ cwd: changePath }) || []).filter(f => f.endsWith('.json'));
+  const changeFiles = [...new Set([...committedChangeFiles, ...stagedChangeFiles])];
 
   const changeFilePackageSet = new Set<string>();
 

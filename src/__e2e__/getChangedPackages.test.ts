@@ -245,6 +245,26 @@ describe('getChangedPackages', () => {
     expect(changedPackages).toStrictEqual(['bar']);
   });
 
+  it('excludes packages with staged (not committed) change files', () => {
+    repo = monorepoFactory.cloneRepository();
+
+    const { packageInfos, scopedPackages, options } = getOptionsAndPackages({ extraArgv: ['--verbose'] });
+
+    // setup: create branch, change foo
+    repo.checkout('-b', 'test-staged');
+    repo.commitChange('packages/foo/test.js');
+    // generate change files but only stage them (don't commit)
+    generateChangeFiles(['foo'], { ...options, commit: false });
+    logs.clear();
+
+    // foo is not included in changed packages because its staged change file is found
+    const changedPackages = getChangedPackages(options, packageInfos, scopedPackages);
+    expect(logs.getMockLines('all')).toMatch(
+      /Your local repository already has change files for these packages:\s+• foo/
+    );
+    expect(changedPackages).toStrictEqual([]);
+  });
+
   it('ignores change files that exist in target remote branch', () => {
     // This needs a separate factory since it pushes changes
     const repositoryFactory = new RepositoryFactory('single');
