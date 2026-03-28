@@ -122,6 +122,27 @@ describe('getCliOptions', () => {
     expect(() => getCliOptionsTest(['--disallowedChangeTypes', 'major'])).toThrow();
   });
 
+  it('suggests dashed form for camelCase boolean options', () => {
+    expect(() => getCliOptionsTest(['--gitTags'])).toThrow('Did you mean --git-tags or --no-git-tags?');
+    expect(() => getCliOptionsTest(['--bumpDeps'])).toThrow('Did you mean --bump-deps or --no-bump-deps?');
+    expect(() => getCliOptionsTest(['--keepChangeFiles'])).toThrow(
+      'Did you mean --keep-change-files or --no-keep-change-files?'
+    );
+  });
+
+  it('suggests dashed form for camelCase non-boolean options', () => {
+    expect(() => getCliOptionsTest(['--fromRef', 'main'])).toThrow('Did you mean --from-ref?');
+    expect(() => getCliOptionsTest(['--dependentChangeType', 'patch'])).toThrow(
+      'Did you mean --dependent-change-type?'
+    );
+  });
+
+  it('suggests dashed --no- form for camelCase --noX options', () => {
+    expect(() => getCliOptionsTest(['--noFetch'])).toThrow('Did you mean --fetch or --no-fetch?');
+    expect(() => getCliOptionsTest(['--noBump'])).toThrow('Did you mean --bump or --no-bump?');
+    expect(() => getCliOptionsTest(['--noGitTags'])).toThrow('Did you mean --git-tags or --no-git-tags?');
+  });
+
   it('parses short option aliases', () => {
     const options = getCliOptionsTest(['publish', '-t', 'test', '-r', 'http://whatever', '-y']);
     expect(options).toEqual({ ...defaults, command: 'publish', tag: 'test', registry: 'http://whatever', yes: true });
@@ -192,6 +213,17 @@ describe('getCliOptions', () => {
 
   it('throws on unknown option followed by positional', () => {
     expect(() => getCliOptionsTest(['--foo', 'bar', 'baz'])).toThrow();
+  });
+
+  it('suggests --opt/--no-opt for near-match of a boolean flag', () => {
+    expect(() => getCliOptionsTest(['--fetc'])).toThrow('Did you mean --fetch or --no-fetch?');
+    expect(() => getCliOptionsTest(['--git-tag'])).toThrow('Did you mean --git-tags or --no-git-tags?');
+    expect(() => getCliOptionsTest(['--bum'])).toThrow('Did you mean --bump or --no-bump?');
+  });
+
+  it('suggests --opt/--no-opt for near-match of a --no-X flag', () => {
+    expect(() => getCliOptionsTest(['--no-git-tag'])).toThrow('Did you mean --git-tags or --no-git-tags?');
+    expect(() => getCliOptionsTest(['--no-bum'])).toThrow('Did you mean --bump or --no-bump?');
   });
 
   describe('config command', () => {

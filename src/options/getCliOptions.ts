@@ -1,4 +1,4 @@
-import { Command, Option } from 'commander';
+import { Command, CommanderError, Option } from 'commander';
 import type { ParsedOptions } from '../types/BeachballOptions';
 import { getDefaultRemoteBranch, findProjectRoot } from 'workspace-tools';
 import { env } from '../env';
@@ -109,6 +109,90 @@ function createProgram(): Command {
   return program;
 }
 
+/** Convert a camelCase string to dashed form: e.g. `gitTags` => `git-tags` */
+function camelToDash(str: string): string {
+  return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+}
+
+/**
+ * If the unknown option matches a boolean flag, suggest both `--opt` and `--no-opt`.
+ * If the unknown option is in camelCase, suggest the valid dashed form instead.
+ * Otherwise re-throw the original error unchanged.
+ */
+function enhanceUnknownOptionError(err: CommanderError, program: Command): never {
+  // Parse the unknown flag from commander's error message format:
+  //   "error: unknown option '--foo'"  or  "error: unknown option '--foo'\n(Did you mean --bar?)"
+  const flagMatch = err.message.match(/^error: unknown option '(--[^']+)'/);
+  if (!flagMatch) {
+    throw err;
+  }
+  const unknownFlag = flagMatch[1];
+
+  // Collect info about known options from the program
+  const knownLongFlags = new Set<string>();
+  const negatableBooleans = new Set<string>(); // long flags that have a --no-X counterpart
+  for (const opt of program.options) {
+    if (opt.long) {
+      knownLongFlags.add(opt.long);
+      // Track booleans that have a negation counterpart: if we see --no-X, mark --X as negatable
+      if (opt.negate && knownLongFlags.has(opt.long.replace(/^--no-/, '--'))) {
+        negatableBooleans.add(opt.long.replace(/^--no-/, '--'));
+      }
+    }
+  }
+  // Second pass: if we saw --X before --no-X, we need to check in reverse
+  for (const opt of program.options) {
+    if (opt.long && !opt.negate && knownLongFlags.has(`--no-${opt.long.slice(2)}`)) {
+      negatableBooleans.add(opt.long);
+    }
+  }
+
+  // Check if the unknown flag contains uppercase and the dashed version is valid
+  const flagName = unknownFlag.replace(/^--/, '');
+  if (/[A-Z]/.test(flagName)) {
+    const dashedFlag = `--${camelToDash(flagName)}`;
+    if (knownLongFlags.has(dashedFlag)) {
+      let suggestion: string;
+      if (negatableBooleans.has(dashedFlag)) {
+        suggestion = `(Did you mean ${dashedFlag} or --no-${dashedFlag.slice(2)}?)`;
+      } else if (dashedFlag.startsWith('--no-') && negatableBooleans.has(`--${dashedFlag.slice(5)}`)) {
+        // The dashed form is a --no-X flag and the positive form is negatable
+        suggestion = `(Did you mean --${dashedFlag.slice(5)} or ${dashedFlag}?)`;
+      } else {
+        suggestion = `(Did you mean ${dashedFlag}?)`;
+      }
+      throw new CommanderError(err.exitCode, err.code, `error: unknown option '${unknownFlag}'\n${suggestion}`);
+    }
+  }
+
+  // Check if commander's existing suggestion matches a negatable boolean flag
+  const suggestMatch = err.message.match(/\(Did you mean (--[^ ?]+)\?\)/);
+  if (suggestMatch) {
+    const suggested = suggestMatch[1];
+    if (negatableBooleans.has(suggested)) {
+      throw new CommanderError(
+        err.exitCode,
+        err.code,
+        `error: unknown option '${unknownFlag}'\n(Did you mean ${suggested} or --no-${suggested.slice(2)}?)`
+      );
+    }
+    // If the suggestion itself is a --no-X and the positive form is negatable
+    if (suggested.startsWith('--no-')) {
+      const positiveFlag = `--${suggested.slice(5)}`;
+      if (negatableBooleans.has(positiveFlag)) {
+        throw new CommanderError(
+          err.exitCode,
+          err.code,
+          `error: unknown option '${unknownFlag}'\n(Did you mean ${positiveFlag} or ${suggested}?)`
+        );
+      }
+    }
+  }
+
+  // No enhancement possible, re-throw as-is
+  throw err;
+}
+
 /**
  * Gets CLI options.
  */
@@ -122,7 +206,14 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
     : processOrArgv;
 
   const program = createProgram();
-  program.parse(processInfo.argv);
+  try {
+    program.parse(processInfo.argv);
+  } catch (err) {
+    if (err instanceof CommanderError && err.code === 'commander.unknownOption') {
+      enhanceUnknownOptionError(err, program);
+    }
+    throw err;
+  }
 
   const commanderOpts = program.opts();
   const positionalArgs = program.args;
