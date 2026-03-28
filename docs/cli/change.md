@@ -20,12 +20,12 @@ Some [general options](./options) including `--branch` and `--scope` also apply 
 
 | Option                    | Alias | Default            | Description                                                                |
 | ------------------------- | ----- | ------------------ | -------------------------------------------------------------------------- |
-| `--all`                   |       | false              | Generate change files for all packages                                     |
-| `--dependent-change-type` |       | `patch`            | use this change type for dependent packages                                |
 | `--message`               | `-m`  | (prompt)           | Description for all change files                                           |
-| `--no-commit`             |       | false              | Stage the change files rather than committing                              |
-| `--package`               |       | (changed packages) | Generate change files for these packages (can be specified multiple times) |
 | `--type`                  |       | (prompt)           | Type for all the change files (must be valid for each package)             |
+| `--package`               |       | (changed packages) | Generate change files for these packages (can be specified multiple times) |
+| `--all`                   |       | false              | Generate change files for all packages, even without detected changes      |
+| `--dependent-change-type` |       | `patch`            | Use this change type for dependent packages (rarely modified)              |
+| `--no-commit`             |       | false              | Stage the change files rather than committing                              |
 
 ### Examples
 
@@ -76,7 +76,7 @@ Found changes in the following packages:
   some-pkg
 ```
 
-For each package, the prompt will start by asking for a change **type**. This should be chosen based on [semantic versioning rules](https://semver.org/) because it determines how to update the package version. If the change doesn't affect the published package at all (e.g. you just updated some comments), choose `none`.
+For each package, the prompt will start by asking for a change **type**. This should be chosen based on [semantic versioning](../concepts/change-types) because it determines how to update the package version. If the change doesn't affect the published package at all (e.g. you just updated some comments), choose `none`.
 
 ```
 Please describe the changes for: some-pkg
