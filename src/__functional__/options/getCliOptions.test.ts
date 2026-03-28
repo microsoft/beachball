@@ -11,8 +11,7 @@ jest.mock('workspace-tools', () => {
 
 //
 // These tests cover a mix of built-in parser behavior, provided options, and custom overrides.
-// It's worth having tests for relevant built-in behaviors in case we change parsers in the future
-// (likely to commander), to ensure there are no undocumented breaking changes from the beachball
+// The parser is commander, and these tests document the expected behavior from the beachball
 // "end user" perspective.
 //
 describe('getCliOptions', () => {
@@ -76,8 +75,9 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, scope: ['a,b', 'c,d'] });
   });
 
-  it('throws if non-array option is specified multiple times', () => {
-    expect(() => getCliOptionsTest(['--tag', 'foo', '--tag', 'baz'])).toThrow();
+  it('uses last value if non-array option is specified multiple times', () => {
+    const options = getCliOptionsTest(['--tag', 'foo', '--tag', 'baz']);
+    expect(options).toEqual({ ...defaults, tag: 'baz' });
   });
 
   it('parses negated boolean option', () => {
@@ -85,20 +85,9 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, fetch: false });
   });
 
-  it('parses valid boolean option values', () => {
-    const falseOptions = getCliOptionsTest(['--fetch=false', '--yes', 'false']);
-    expect(falseOptions).toEqual({ ...defaults, fetch: false, yes: false });
-
-    const trueOptions = getCliOptionsTest(['--fetch=true', '--yes', 'true']);
-    expect(trueOptions).toEqual({ ...defaults, fetch: true, yes: true });
-  });
-
-  it('parses boolean flag with valid value', () => {
-    const falseOptions = getCliOptionsTest(['-y', 'false']);
-    expect(falseOptions).toEqual({ ...defaults, yes: false });
-
-    const trueOptions = getCliOptionsTest(['-y', 'true']);
-    expect(trueOptions).toEqual({ ...defaults, yes: true });
+  it('parses negated boolean options with --no-X syntax', () => {
+    const options = getCliOptionsTest(['--no-fetch', '--no-yes']);
+    expect(options).toEqual({ ...defaults, fetch: false, yes: false });
   });
 
   it('throws on invalid numeric value', () => {
@@ -110,10 +99,10 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, gitTags: true, dependentChangeType: 'patch' });
   });
 
-  it('supports camel case for options defined as hyphenated', () => {
+  it('requires hyphenated form for multi-word options', () => {
     const options = getCliOptionsTest([
-      '--gitTags',
-      '--dependentChangeType',
+      '--git-tags',
+      '--dependent-change-type',
       'patch',
       '--disallowed-change-types',
       'major',
@@ -175,37 +164,28 @@ describe('getCliOptions', () => {
     expect(getDefaultRemoteBranch).toHaveBeenCalledWith({ branch: 'foo', verbose: undefined, cwd: projectRoot });
   });
 
-  it('preserves additional string options', () => {
-    const options = getCliOptionsTest(['--foo', 'bar', '--baz=qux']);
-    expect(options).toEqual({ ...defaults, foo: 'bar', baz: 'qux' });
+  it('throws on unknown string options', () => {
+    expect(() => getCliOptionsTest(['--foo', 'bar'])).toThrow();
   });
 
-  it('handles additional boolean flags as booleans', () => {
-    const options = getCliOptionsTest(['--foo', '--no-bar']);
-    expect(options).toEqual({ ...defaults, foo: true, bar: false });
+  it('throws on unknown boolean flags', () => {
+    expect(() => getCliOptionsTest(['--foo'])).toThrow();
   });
 
-  it('handles additional boolean text values as booleans', () => {
-    const options = getCliOptionsTest(['--foo', 'true', '--bar=false']);
-    expect(options).toEqual({ ...defaults, foo: true, bar: false });
+  it('throws on unknown negated boolean flags', () => {
+    expect(() => getCliOptionsTest(['--no-bar'])).toThrow();
   });
 
-  it('handles additional numeric values as numbers', () => {
-    const options = getCliOptionsTest(['--foo', '1', '--bar=2']);
-    expect(options).toEqual({ ...defaults, foo: 1, bar: 2 });
+  it('throws on unknown option with value', () => {
+    expect(() => getCliOptionsTest(['--foo', 'true'])).toThrow();
   });
 
-  it('handles additional option specified multiple times as array', () => {
-    const options = getCliOptionsTest(['--foo', 'bar', '--foo', 'baz']);
-    expect(options).toEqual({ ...defaults, foo: ['bar', 'baz'] });
+  it('throws on unknown option specified multiple times', () => {
+    expect(() => getCliOptionsTest(['--foo', 'bar', '--foo', 'baz'])).toThrow();
   });
 
-  // documenting current behavior (doesn't have to stay this way)
-  it('for additional options, does not handle multiple values as part of array', () => {
-    // in this case the trailing value "baz" would be treated as the command since it's the first
-    // positional option
-    const options = getCliOptionsTest(['--foo', 'bar', 'baz']);
-    expect(options).toEqual({ ...defaults, foo: 'bar', command: 'baz' });
+  it('throws on unknown option followed by positional', () => {
+    expect(() => getCliOptionsTest(['--foo', 'bar', 'baz'])).toThrow();
   });
 
   describe('config command', () => {
