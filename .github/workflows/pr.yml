@@ -55,6 +55,9 @@ jobs:
 
       - run: yarn checkchange --verbose
 
+      - run: yarn format:check
+        if: matrix.os == 'ubuntu-latest'
+
       - run: yarn lint
 
       - run: yarn test:unit

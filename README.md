@@ -66,7 +66,7 @@ target branch from remote (default: as configured in `git config init.defaultBra
 
 ### `--type`
 
-for the `change` command: change type for all changed packages
+for the `change` command: [change type](https://microsoft.github.io/beachball/concepts/change-types.html) for all changed packages
 
 ### `--package`
 
