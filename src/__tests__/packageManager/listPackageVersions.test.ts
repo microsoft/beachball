@@ -118,7 +118,7 @@ describe('list npm versions', () => {
       repoOptions?: Partial<RepoOptions>;
     }) {
       const parsedOptions = getParsedOptions({
-        argv: ['node', 'beachball', ...(params.extraArgv || [])],
+        argv: ['node', 'beachball', 'publish', ...(params.extraArgv || [])],
         cwd: '',
         testRepoOptions: {
           registry,
@@ -318,7 +318,7 @@ describe('list npm versions', () => {
         npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
         const { packages, options } = getOptionsAndPackages({
           packages: { foo: {} },
-          extraArgv: ['--authType', 'password', '--token', 'pass'],
+          extraArgv: ['--auth-type', 'password', '--token', 'pass'],
         });
         expect(options).toMatchObject({ authType: 'password', token: 'pass' });
 

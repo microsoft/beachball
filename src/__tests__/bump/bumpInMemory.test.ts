@@ -20,7 +20,7 @@ describe('bumpInMemory', () => {
   }) {
     const { cliOptions, options } = getParsedOptions({
       cwd,
-      argv: [],
+      argv: ['node', 'beachball', 'bump'],
       testRepoOptions: params.repoOptions,
     });
     const originalPackageInfos = makePackageInfosByFolder({

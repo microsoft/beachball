@@ -59,21 +59,15 @@ export interface CliOptions
    * For sync: use the version from the registry even if it's older than local.
    */
   forceVersions?: boolean;
-  help?: boolean;
   /** Force change files for these packages */
   package?: string | string[];
   token?: string;
   type?: ChangeType | null;
   verbose?: boolean;
-  version?: boolean;
   yes: boolean;
 
-  /**
-   * Extra positional arguments after the command (for subcommands like `config get <name>`).
-   * This is a workaround for `yargs-parser`'s lack of positional argument support.
-   * @internal
-   */
-  _extraPositionalArgs?: string[];
+  /** The config setting name for `config get <name>`. Set by the CLI parser. */
+  configSettingName?: string;
 
   // ONLY add new options here if they only make sense on the command line!
   // Most options should be defined in RepoOptions and added to the Pick<...> above.

@@ -11,16 +11,12 @@ jest.mock('workspace-tools', () => {
 
 //
 // These tests cover a mix of built-in parser behavior, provided options, and custom overrides.
-// It's worth having tests for relevant built-in behaviors in case we change parsers in the future
-// (likely to commander), to ensure there are no undocumented breaking changes from the beachball
-// "end user" perspective.
 //
 describe('getCliOptions', () => {
   // This is the same mocked value as above (can't be shared in a const because jest.mock() is
   // not allowed to access the surrounding context)
   const projectRoot = 'fake-root';
   const mockFindProjectRoot = findProjectRoot as jest.MockedFunction<typeof findProjectRoot>;
-  const defaults = { command: 'change', path: projectRoot };
 
   /** test wrapper for `getCliOptions` which adds common args */
   function getCliOptionsTest(args: string[], cwd?: string) {
@@ -39,195 +35,232 @@ describe('getCliOptions', () => {
     expect(findProjectRoot(process.cwd())).toEqual(projectRoot);
   });
 
-  it('parses no args (adds path to result)', () => {
-    const options = getCliOptionsTest([]);
-    expect(options).toEqual(defaults);
+  it('requires a command', () => {
+    expect(() => getCliOptionsTest([])).toThrow();
   });
 
   it('parses command', () => {
     const options = getCliOptionsTest(['check']);
-    expect(options).toEqual({ ...defaults, command: 'check' });
+    expect(options).toEqual({ command: 'check', path: projectRoot });
   });
 
   it('parses options', () => {
     // use a basic option of each value type (except arrays, tested later)
-    const options = getCliOptionsTest(['--type', 'patch', '--access=public', '--fetch', '--depth', '1']);
-    expect(options).toEqual({ ...defaults, type: 'patch', access: 'public', fetch: true, depth: 1 });
+    const options = getCliOptionsTest(['change', '--type', 'patch', '--access=public', '--fetch', '--depth', '1']);
+    expect(options).toEqual({
+      command: 'change',
+      path: projectRoot,
+      type: 'patch',
+      access: 'public',
+      fetch: true,
+      depth: 1,
+    });
   });
 
   it('parses command and options', () => {
     const options = getCliOptionsTest(['publish', '--tag', 'foo']);
-    expect(options).toEqual({ ...defaults, command: 'publish', tag: 'foo' });
+    expect(options).toEqual({ command: 'publish', path: projectRoot, tag: 'foo' });
   });
 
   it('parses array options with multiple values', () => {
-    const options = getCliOptionsTest(['--scope', 'foo', 'bar']);
-    expect(options).toEqual({ ...defaults, scope: ['foo', 'bar'] });
+    const options = getCliOptionsTest(['change', '--scope', 'foo', 'bar']);
+    expect(options).toEqual({ command: 'change', path: projectRoot, scope: ['foo', 'bar'] });
   });
 
   it('parses array option specified multiple times', () => {
-    const options = getCliOptionsTest(['--scope', 'foo', '--scope', 'bar']);
-    expect(options).toEqual({ ...defaults, scope: ['foo', 'bar'] });
+    const options = getCliOptionsTest(['change', '--scope', 'foo', '--scope', 'bar']);
+    expect(options).toEqual({ command: 'change', path: projectRoot, scope: ['foo', 'bar'] });
   });
 
   // documenting that this is not currently supported (could change in the future if desired)
   it('does not parse values with commas as separate array entries', () => {
-    const options = getCliOptionsTest(['--scope', 'a,b', '--scope=c,d']);
-    expect(options).toEqual({ ...defaults, scope: ['a,b', 'c,d'] });
+    const options = getCliOptionsTest(['change', '--scope', 'a,b', '--scope=c,d']);
+    expect(options).toEqual({ command: 'change', path: projectRoot, scope: ['a,b', 'c,d'] });
   });
 
-  it('throws if non-array option is specified multiple times', () => {
-    expect(() => getCliOptionsTest(['--tag', 'foo', '--tag', 'baz'])).toThrow();
+  it('uses last value if non-array option is specified multiple times', () => {
+    const options = getCliOptionsTest(['change', '--tag', 'foo', '--tag', 'baz']);
+    expect(options).toEqual({ command: 'change', path: projectRoot, tag: 'baz' });
   });
 
   it('parses negated boolean option', () => {
-    const options = getCliOptionsTest(['--no-fetch']);
-    expect(options).toEqual({ ...defaults, fetch: false });
+    const options = getCliOptionsTest(['change', '--no-fetch']);
+    expect(options).toEqual({ command: 'change', path: projectRoot, fetch: false });
   });
 
-  it('parses valid boolean option values', () => {
-    const falseOptions = getCliOptionsTest(['--fetch=false', '--yes', 'false']);
-    expect(falseOptions).toEqual({ ...defaults, fetch: false, yes: false });
-
-    const trueOptions = getCliOptionsTest(['--fetch=true', '--yes', 'true']);
-    expect(trueOptions).toEqual({ ...defaults, fetch: true, yes: true });
-  });
-
-  it('parses boolean flag with valid value', () => {
-    const falseOptions = getCliOptionsTest(['-y', 'false']);
-    expect(falseOptions).toEqual({ ...defaults, yes: false });
-
-    const trueOptions = getCliOptionsTest(['-y', 'true']);
-    expect(trueOptions).toEqual({ ...defaults, yes: true });
+  it('parses negated boolean options with --no-X syntax', () => {
+    const options = getCliOptionsTest(['change', '--no-fetch', '--no-yes']);
+    expect(options).toEqual({ command: 'change', path: projectRoot, fetch: false, yes: false });
   });
 
   it('throws on invalid numeric value', () => {
-    expect(() => getCliOptionsTest(['--depth', 'foo'])).toThrow();
+    expect(() => getCliOptionsTest(['change', '--depth', 'foo'])).toThrow();
   });
 
   it('converts hyphenated options to camel case', () => {
-    const options = getCliOptionsTest(['--git-tags', '--dependent-change-type', 'patch']);
-    expect(options).toEqual({ ...defaults, gitTags: true, dependentChangeType: 'patch' });
+    const options = getCliOptionsTest(['change', '--git-tags', '--dependent-change-type', 'patch']);
+    expect(options).toEqual({
+      command: 'change',
+      path: projectRoot,
+      gitTags: true,
+      dependentChangeType: 'patch',
+    });
   });
 
-  it('supports camel case for options defined as hyphenated', () => {
+  it('requires hyphenated form for multi-word options', () => {
     const options = getCliOptionsTest([
-      '--gitTags',
-      '--dependentChangeType',
+      'change',
+      '--git-tags',
+      '--dependent-change-type',
       'patch',
       '--disallowed-change-types',
       'major',
       'minor',
     ]);
     expect(options).toEqual({
-      ...defaults,
+      command: 'change',
+      path: projectRoot,
       gitTags: true,
       dependentChangeType: 'patch',
       disallowedChangeTypes: ['major', 'minor'],
     });
   });
 
+  it('suggests dashed form for camelCase boolean options', () => {
+    expect(() => getCliOptionsTest(['change', '--gitTags'])).toThrow('Did you mean --git-tags or --no-git-tags?');
+    expect(() => getCliOptionsTest(['change', '--bumpDeps'])).toThrow('Did you mean --bump-deps or --no-bump-deps?');
+    expect(() => getCliOptionsTest(['change', '--keepChangeFiles'])).toThrow(
+      'Did you mean --keep-change-files or --no-keep-change-files?'
+    );
+  });
+
+  it('suggests dashed form for camelCase non-boolean options', () => {
+    expect(() => getCliOptionsTest(['change', '--fromRef', 'main'])).toThrow('Did you mean --from-ref?');
+    expect(() => getCliOptionsTest(['change', '--dependentChangeType', 'patch'])).toThrow(
+      'Did you mean --dependent-change-type?'
+    );
+  });
+
+  it('suggests dashed --no- form for camelCase --noX options', () => {
+    expect(() => getCliOptionsTest(['change', '--noFetch'])).toThrow('Did you mean --fetch or --no-fetch?');
+    expect(() => getCliOptionsTest(['change', '--noBump'])).toThrow('Did you mean --bump or --no-bump?');
+    expect(() => getCliOptionsTest(['change', '--noGitTags'])).toThrow('Did you mean --git-tags or --no-git-tags?');
+  });
+
   it('parses short option aliases', () => {
     const options = getCliOptionsTest(['publish', '-t', 'test', '-r', 'http://whatever', '-y']);
-    expect(options).toEqual({ ...defaults, command: 'publish', tag: 'test', registry: 'http://whatever', yes: true });
+    expect(options).toEqual({
+      command: 'publish',
+      path: projectRoot,
+      tag: 'test',
+      registry: 'http://whatever',
+      yes: true,
+    });
   });
 
   it('parses long option aliases', () => {
-    const options = getCliOptionsTest(['--config', 'path/to/config.json', '--force', '--since', 'main']);
-    expect(options).toEqual({ ...defaults, configPath: 'path/to/config.json', forceVersions: true, fromRef: 'main' });
+    const options = getCliOptionsTest(['change', '--config', 'path/to/config.json', '--force', '--since', 'main']);
+    expect(options).toEqual({
+      command: 'change',
+      path: projectRoot,
+      configPath: 'path/to/config.json',
+      forceVersions: true,
+      fromRef: 'main',
+    });
   });
 
   it('for canary command, adds canary tag and ignores regular tag', () => {
     const options = getCliOptionsTest(['canary', '--tag', 'bar']);
-    expect(options).toEqual({ ...defaults, command: 'canary', tag: 'canary' });
+    expect(options).toEqual({ command: 'canary', path: projectRoot, tag: 'canary' });
   });
 
   it('for canary command, uses canaryName as tag and ignores regular tag', () => {
     const options = getCliOptionsTest(['canary', '--canary-name', 'foo', '--tag', 'bar']);
-    expect(options).toEqual({ ...defaults, command: 'canary', canaryName: 'foo', tag: 'foo' });
+    expect(options).toEqual({ command: 'canary', path: projectRoot, canaryName: 'foo', tag: 'foo' });
   });
 
   it('does not set tag to canaryName for non-canary command', () => {
     const options = getCliOptionsTest(['publish', '--canary-name', 'foo', '--tag', 'bar']);
-    expect(options).toEqual({ ...defaults, command: 'publish', canaryName: 'foo', tag: 'bar' });
+    expect(options).toEqual({ command: 'publish', path: projectRoot, canaryName: 'foo', tag: 'bar' });
   });
 
   it('falls back to given cwd as path if findProjectRoot fails', () => {
     mockFindProjectRoot.mockImplementationOnce(() => {
       throw new Error('nope');
     });
-    const options = getCliOptionsTest([], 'somewhere');
-    expect(options).toEqual({ ...defaults, path: 'somewhere' });
+    const options = getCliOptionsTest(['change'], 'somewhere');
+    expect(options).toEqual({ command: 'change', path: 'somewhere' });
   });
 
   it('uses provided branch if it contains a slash', () => {
-    const options = getCliOptionsTest(['--branch', 'someremote/foo']);
-    expect(options).toEqual({ ...defaults, branch: 'someremote/foo' });
+    const options = getCliOptionsTest(['change', '--branch', 'someremote/foo']);
+    expect(options).toEqual({ command: 'change', path: projectRoot, branch: 'someremote/foo' });
     // this is mocked at the top of the file
     // eslint-disable-next-line etc/no-deprecated
     expect(getDefaultRemoteBranch).not.toHaveBeenCalled();
   });
 
   it('adds default remote to branch without slash', () => {
-    const options = getCliOptionsTest(['--branch', 'foo']);
-    expect(options).toEqual({ ...defaults, branch: 'origin/foo' });
+    const options = getCliOptionsTest(['change', '--branch', 'foo']);
+    expect(options).toEqual({ command: 'change', path: projectRoot, branch: 'origin/foo' });
     // eslint-disable-next-line etc/no-deprecated
     expect(getDefaultRemoteBranch).toHaveBeenCalledWith({ branch: 'foo', verbose: undefined, cwd: projectRoot });
   });
 
-  it('preserves additional string options', () => {
-    const options = getCliOptionsTest(['--foo', 'bar', '--baz=qux']);
-    expect(options).toEqual({ ...defaults, foo: 'bar', baz: 'qux' });
+  it('throws on unknown options', () => {
+    expect(() => getCliOptionsTest(['change', '--foo', 'bar'])).toThrow();
+    expect(() => getCliOptionsTest(['change', '--foo'])).toThrow();
+    expect(() => getCliOptionsTest(['change', '--no-bar'])).toThrow();
+    expect(() => getCliOptionsTest(['change', '--foo', 'true'])).toThrow();
+    expect(() => getCliOptionsTest(['change', '--foo', 'bar', '--foo', 'baz'])).toThrow();
   });
 
-  it('handles additional boolean flags as booleans', () => {
-    const options = getCliOptionsTest(['--foo', '--no-bar']);
-    expect(options).toEqual({ ...defaults, foo: true, bar: false });
+  it('suggests --opt/--no-opt for near-match of a boolean flag', () => {
+    expect(() => getCliOptionsTest(['change', '--fetc'])).toThrow('Did you mean --fetch or --no-fetch?');
+    expect(() => getCliOptionsTest(['change', '--git-tag'])).toThrow('Did you mean --git-tags or --no-git-tags?');
+    expect(() => getCliOptionsTest(['change', '--bum'])).toThrow('Did you mean --bump or --no-bump?');
   });
 
-  it('handles additional boolean text values as booleans', () => {
-    const options = getCliOptionsTest(['--foo', 'true', '--bar=false']);
-    expect(options).toEqual({ ...defaults, foo: true, bar: false });
+  it('suggests --opt/--no-opt for near-match of a --no-X flag', () => {
+    expect(() => getCliOptionsTest(['change', '--no-git-tag'])).toThrow('Did you mean --git-tags or --no-git-tags?');
+    expect(() => getCliOptionsTest(['change', '--no-bum'])).toThrow('Did you mean --bump or --no-bump?');
   });
 
-  it('handles additional numeric values as numbers', () => {
-    const options = getCliOptionsTest(['--foo', '1', '--bar=2']);
-    expect(options).toEqual({ ...defaults, foo: 1, bar: 2 });
+  it('throws on unknown command', () => {
+    expect(() => getCliOptionsTest(['unknown'])).toThrow();
   });
 
-  it('handles additional option specified multiple times as array', () => {
-    const options = getCliOptionsTest(['--foo', 'bar', '--foo', 'baz']);
-    expect(options).toEqual({ ...defaults, foo: ['bar', 'baz'] });
-  });
-
-  // documenting current behavior (doesn't have to stay this way)
-  it('for additional options, does not handle multiple values as part of array', () => {
-    // in this case the trailing value "baz" would be treated as the command since it's the first
-    // positional option
-    const options = getCliOptionsTest(['--foo', 'bar', 'baz']);
-    expect(options).toEqual({ ...defaults, foo: 'bar', command: 'baz' });
+  it('throws on extra positional arguments', () => {
+    expect(() => getCliOptionsTest(['check', 'extra'])).toThrow();
   });
 
   describe('config command', () => {
     it('parses config get with setting name', () => {
       const options = getCliOptionsTest(['config', 'get', 'branch']);
-      expect(options).toEqual({ ...defaults, command: 'config', _extraPositionalArgs: ['get', 'branch'] });
+      expect(options).toEqual({ command: 'config get', path: projectRoot, configSettingName: 'branch' });
     });
 
     it('parses config get with setting name and options', () => {
       const options = getCliOptionsTest(['config', 'get', 'tag', '--package', 'my-pkg']);
       expect(options).toEqual({
-        ...defaults,
-        command: 'config',
-        _extraPositionalArgs: ['get', 'tag'],
+        command: 'config get',
+        path: projectRoot,
+        configSettingName: 'tag',
         package: ['my-pkg'],
       });
     });
 
-    it('still throws for non-config command with extra positional args', () => {
-      expect(() => getCliOptionsTest(['check', 'extra'])).toThrow(
-        'Only one positional argument (the command) is allowed'
-      );
+    it('parses config list', () => {
+      const options = getCliOptionsTest(['config', 'list']);
+      expect(options).toEqual({ command: 'config list', path: projectRoot });
+    });
+
+    it('throws on config get without setting name', () => {
+      expect(() => getCliOptionsTest(['config', 'get'])).toThrow();
+    });
+
+    it('throws on config get with extra args', () => {
+      expect(() => getCliOptionsTest(['config', 'get', 'branch', 'extra'])).toThrow();
     });
   });
 });

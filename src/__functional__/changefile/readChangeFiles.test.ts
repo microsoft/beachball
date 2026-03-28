@@ -30,7 +30,7 @@ describe('readChangeFiles', () => {
     expect(cwd).toBeTruthy();
     const parsedOptions = getParsedOptions({
       cwd: cwd!,
-      argv: [],
+      argv: ['node', 'beachball', 'change'],
       testRepoOptions: { branch: defaultRemoteBranchName, ...repoOptions },
     });
     const packageInfos = getPackageInfos(parsedOptions);

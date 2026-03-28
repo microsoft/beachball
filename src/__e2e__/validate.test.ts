@@ -15,7 +15,7 @@ describe('validate', () => {
   function validateWrapper(validateOptions?: ValidateOptions) {
     const parsedOptions = getParsedOptions({
       cwd: repo!.rootPath,
-      argv: [],
+      argv: ['node', 'beachball', 'check'],
       testRepoOptions: {
         branch: defaultRemoteBranchName,
       },
