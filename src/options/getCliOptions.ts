@@ -96,8 +96,8 @@ function addSharedOptions(cmd: Command): Command {
   cmd.option('--canary-name <value>', 'canary prerelease name');
   cmd.option('--changehint <value>', 'custom hint message when change files are needed');
   cmd.option('--change-dir <value>', 'directory to store change files');
-  cmd.option('-c, --config-path <value>', 'custom beachball config path');
-  cmd.addOption(new Option('--config <value>').hideHelp()); // hidden alias for --config-path
+  cmd.option('-c, --config <value>', 'custom beachball config path');
+  cmd.addOption(new Option('--config-path <value>').hideHelp()); // hidden alias for --config
   cmd.option('--dependent-change-type <value>', 'change type for dependent packages');
   cmd.option('--since, --from-ref <value>', 'consider changes since this git ref');
   cmd.option('-m, --message <value>', 'change description or commit message');
@@ -342,7 +342,7 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
 
   const commanderOpts = { ...match.opts };
 
-  // Handle --config as alias for --config-path
+  // Handle --config-path as alias for --config (both map to configPath)
   if (commanderOpts.config !== undefined) {
     if (commanderOpts.configPath !== undefined) {
       throw new Error('Cannot specify both --config and --config-path');

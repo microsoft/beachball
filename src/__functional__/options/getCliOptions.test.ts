@@ -215,23 +215,11 @@ describe('getCliOptions', () => {
     expect(getDefaultRemoteBranch).toHaveBeenCalledWith({ branch: 'foo', verbose: undefined, cwd: projectRoot });
   });
 
-  it('throws on unknown string options', () => {
+  it('throws on unknown options', () => {
     expect(() => getCliOptionsTest(['change', '--foo', 'bar'])).toThrow();
-  });
-
-  it('throws on unknown boolean flags', () => {
     expect(() => getCliOptionsTest(['change', '--foo'])).toThrow();
-  });
-
-  it('throws on unknown negated boolean flags', () => {
     expect(() => getCliOptionsTest(['change', '--no-bar'])).toThrow();
-  });
-
-  it('throws on unknown option with value', () => {
     expect(() => getCliOptionsTest(['change', '--foo', 'true'])).toThrow();
-  });
-
-  it('throws on unknown option specified multiple times', () => {
     expect(() => getCliOptionsTest(['change', '--foo', 'bar', '--foo', 'baz'])).toThrow();
   });
 
