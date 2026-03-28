@@ -22,17 +22,6 @@ Beachball is a CLI tool for automating semantic version bumping, changelog gener
 | Format                        | `yarn format`                   |
 | Update snapshots              | `yarn update-snapshots`         |
 
-### Required before each commit
-
-- `yarn build`
-- `yarn test`
-- `yarn lint`
-- `yarn format`
-
-### Required before creating a PR
-
-Use `/beachball-change-files` to generate a Beachball change file. Use `yarn change` for `beachball change` and `yarn checkchange` for `beachball check`.
-
 ## Architecture
 
 **Entry point:** `src/cli.ts` dispatches to commands: `check`, `change`, `bump`, `publish`, `canary`, `sync`, `init`, `config`.
@@ -52,7 +41,9 @@ Use `/beachball-change-files` to generate a Beachball change file. Use `yarn cha
 
 **Option resolution:** CLI args > `beachball.config.js` (via cosmiconfig) > defaults. `getParsedOptions()` returns both raw `cliOptions` and merged `options`.
 
-## Code Conventions
+## Coding standards
+
+### Style and conventions
 
 **No global state:** `process.cwd()`, `process.chdir()`, and `process.exit()` are banned via ESLint. All operations take an explicit `cwd` parameter. `process.exit()` should only be called in `cli.ts`.
 
@@ -64,7 +55,27 @@ Use `/beachball-change-files` to generate a Beachball change file. Use `yarn cha
 
 **Style:** Prettier with single quotes, 120 char width, trailing commas (ES5)
 
-## Test Structure
+### Documentation
+
+- You must update the documentation site when adding a new option or command
+- Also consider whether documentation site updates are needed for other new features or behavior changes
+- All headings in the documentation site and other markdown files must use sentence case
+
+### Required before each commit
+
+- `yarn build`
+- `yarn test`
+- `yarn lint`
+- `yarn format`
+
+### Required before creating a PR
+
+- Use `/beachball-change-files` to generate a Beachball change file. Use `yarn change` for `beachball change` and `yarn checkchange` for `beachball check`.
+- Consider whether the
+
+## Testing
+
+### Test structure
 
 Three Jest projects:
 
@@ -74,7 +85,7 @@ Three Jest projects:
 
 Test helpers in `src/__fixtures__/` provide mock factories for repos, logs, package infos, and change files.
 
-### Test writing tips
+### Test writing standards
 
 - Avoid manually creating complex object structures (such as `PackageInfos`, `ChangeInfo`, `BumpInfo`, or `BeachballOptions`). Consider one of the following approaches instead:
   - call the real function for generating the structure if possible
@@ -84,3 +95,13 @@ Test helpers in `src/__fixtures__/` provide mock factories for repos, logs, pack
 - Any test of a function which writes to the console should call `initMockLogs()` to mock and capture output.
 - Beachball's logs are its UI. Often, tests should include complete inline snapshots of output (especially if it's only a few lines).
 - Where reasonable, prefer complete tests of values: `expect(someObj).toEqual({...})` rather than `expect(someObj.foo).toEqual(...)` or `expect(someObj).toMatchObject({...})`, or `expect(someArray).toEqual([...])` rather than `expect(someArray).toContain(...)`
+
+## Documentation site
+
+The doc site uses Vuepress and is located under `/docs`. It uses a separate yarn installation with Node 22 + Yarn 4 to get rid of very outdated deps while keeping beachball v2 on Node 14.
+
+### Editing and validating docs
+
+- If running in a standalone agent environment, you must run `cd docs && yarn` to install dependencies first
+- Doc changes can be validated with `cd docs && yarn docs:build`
+- If adding a new page, you MUST add it to the sidebar in `docs/.vuepress/config.ts`.
