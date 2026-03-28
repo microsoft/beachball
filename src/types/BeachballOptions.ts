@@ -68,6 +68,13 @@ export interface CliOptions
   version?: boolean;
   yes: boolean;
 
+  /**
+   * Extra positional arguments after the command (for subcommands like `config get <name>`).
+   * This is a workaround for `yargs-parser`'s lack of positional argument support.
+   * @internal
+   */
+  _extraPositionalArgs?: string[];
+
   // ONLY add new options here if they only make sense on the command line!
   // Most options should be defined in RepoOptions and added to the Pick<...> above.
 }

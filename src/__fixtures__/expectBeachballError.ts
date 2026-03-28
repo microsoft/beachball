@@ -3,10 +3,10 @@ import { fail } from 'assert';
 import { BeachballError } from '../types/BeachballError';
 
 /**
- * Expects a promise or async function to throw a BeachballError with a specific message.
+ * Expects a promise or function to throw a BeachballError with a specific message.
  */
 export async function expectBeachballError(
-  promiseOrFunction: Promise<unknown> | (() => Promise<unknown>),
+  promiseOrFunction: Promise<unknown> | (() => unknown | Promise<unknown>),
   expectedMessage: string | RegExp
 ): Promise<void> {
   try {

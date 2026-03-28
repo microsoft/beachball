@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add `beachball config get <name>` command to inspect the effective value of a config setting, including per-package and group overrides",
+  "packageName": "beachball",
+  "email": "198982749+Copilot@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}

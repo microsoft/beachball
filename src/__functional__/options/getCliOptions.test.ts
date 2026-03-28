@@ -207,4 +207,27 @@ describe('getCliOptions', () => {
     const options = getCliOptionsTest(['--foo', 'bar', 'baz']);
     expect(options).toEqual({ ...defaults, foo: 'bar', command: 'baz' });
   });
+
+  describe('config command', () => {
+    it('parses config get with setting name', () => {
+      const options = getCliOptionsTest(['config', 'get', 'branch']);
+      expect(options).toEqual({ ...defaults, command: 'config', _extraPositionalArgs: ['get', 'branch'] });
+    });
+
+    it('parses config get with setting name and options', () => {
+      const options = getCliOptionsTest(['config', 'get', 'tag', '--package', 'my-pkg']);
+      expect(options).toEqual({
+        ...defaults,
+        command: 'config',
+        _extraPositionalArgs: ['get', 'tag'],
+        package: ['my-pkg'],
+      });
+    });
+
+    it('still throws for non-config command with extra positional args', () => {
+      expect(() => getCliOptionsTest(['check', 'extra'])).toThrow(
+        'Only one positional argument (the command) is allowed'
+      );
+    });
+  });
 });

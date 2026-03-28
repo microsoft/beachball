@@ -49,7 +49,7 @@ $ yarn change
 If you don't already have a change file for this branch and package, it will ask you to enter a description and a change type (in a monorepo, it will ask for each changed package).
 
 - For the **description**, `beachball` will provide a list of recent commit messages to choose from, or you can type a custom message.
-- Choose the correct **type** using [semantic versioning rules](https://semver.org/).
+- Choose the correct **type** based on the impact of your changes. See [change types](./change-types) for guidance.
 
 After you've answered those questions, a change file similar to the example above is created and committed in your branch under `/change`.
 

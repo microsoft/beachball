@@ -79,7 +79,8 @@ const knownOptions = allKeysOfType<keyof CliOptions>()(
   ...stringOptions,
   // these options are filled in below, not respected from the command line
   'path',
-  'command'
+  'command',
+  '_extraPositionalArgs'
 );
 
 const parserOptions: parser.Options = {
@@ -147,7 +148,7 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
     // use the provided cwd
   }
 
-  if (positionalArgs.length > 1) {
+  if (positionalArgs.length > 1 && String(positionalArgs[0]) !== 'config') {
     throw new Error(`Only one positional argument (the command) is allowed. Received: ${positionalArgs.join(' ')}`);
   }
 
@@ -156,6 +157,10 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
     command: positionalArgs.length ? String(positionalArgs[0]) : 'change',
     path: cwd,
   };
+
+  // Save extra positional args for commands that support subcommands (e.g. 'config get <name>')
+  // (yargs-parser doesn't support positional arguments directly)
+  const extraPositionalArgs = positionalArgs.length > 1 ? positionalArgs.slice(1).map(String) : undefined;
 
   const branchArg = args.branch as string | undefined;
   if (branchArg) {
@@ -191,6 +196,11 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
       // eslint-disable-next-line
       (cliOptions as any)[key] = false;
     }
+  }
+
+  // Set extra positional args after the validation loop (it's an internal array, not from CLI parsing)
+  if (extraPositionalArgs) {
+    cliOptions._extraPositionalArgs = extraPositionalArgs;
   }
 
   return cliOptions;

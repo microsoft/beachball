@@ -34,7 +34,15 @@ export default defineUserConfig({
       {
         text: 'CLI commands',
         collapsible: false,
-        children: ['/cli/options', '/cli/bump', '/cli/change', '/cli/check', '/cli/publish', '/cli/sync'],
+        children: [
+          '/cli/options',
+          '/cli/bump',
+          '/cli/change',
+          '/cli/check',
+          '/cli/config',
+          '/cli/publish',
+          '/cli/sync',
+        ],
       },
     ],
   }),
