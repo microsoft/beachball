@@ -102,13 +102,13 @@ If you're still uncertain about the change type after following the instructions
 
 For each package, start by checking:
 
-- Whether the current `version` in `package.json` contains a prerelease suffix
+- The current `version` in `package.json`
 - `disallowedChangeTypes` for the specific package: `yarn beachball config get disallowedChangeTypes --package <packageName>`
 - Whether the package has a file `<package path>/etc/*.api.md`. If so, the diff of this file will show whether any public API signatures changed.
 
-##### Option 1: Package is NOT prerelease
+##### Case 1: Version is 1.0.0 or greater and NOT prerelease
 
-If the package's current version does NOT have a prerelease suffix, the typical options are `<patch|minor|major|none>` (but you MUST respect `disallowedChangeTypes`):
+If the package's current version is 1.0.0 or greater and does NOT have a prerelease suffix, the typical options are `<patch|minor|major|none>` (but you MUST respect `disallowedChangeTypes`):
 
 - **`"patch"`**: Bug fixes or other changes that don't impact exported API signatures.
 - **`"minor"`**: New exported APIs, non-breaking signature changes to exported APIs, or more significant changes to internal logic. (If the package has a `<package path>/etc/*.api.md` file, checking its diff is the easiest way to see exported API changes.)
@@ -116,7 +116,14 @@ If the package's current version does NOT have a prerelease suffix, the typical 
 - **`"none"`**: None of the changes will impact consumers of the package (e.g. the changes are only to non-exported test-specific files or documentation). If you're not certain, prefer `"patch"`.
 - There are additional options `prerelease|premajor|preminor|prepatch`, but you should only use one of these if explicitly requested by the user.
 
-##### Option 2: Package IS prerelease
+##### Case 2: Version is 0.x.y and NOT prerelease
+
+If the package's major version is 0 and does NOT have a prerelease suffix, this is similar to case 1. However, version 0 packages follow different conventions for semantic versioning:
+
+- Use **`"minor"`** for breaking changes (no need to confirm with the user)
+- Use **`"patch"`** for any other changes that impact consumers of the package
+
+##### Case 3: Version IS prerelease
 
 ONLY if the package's current version includes a prerelease suffix, the typical options are `<prerelease|none>` (but you MUST respect `disallowedChangeTypes`):
 
