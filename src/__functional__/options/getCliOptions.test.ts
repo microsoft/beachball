@@ -116,6 +116,12 @@ describe('getCliOptions', () => {
     });
   });
 
+  it('rejects camelCase form of multi-word options', () => {
+    expect(() => getCliOptionsTest(['--gitTags'])).toThrow();
+    expect(() => getCliOptionsTest(['--dependentChangeType', 'patch'])).toThrow();
+    expect(() => getCliOptionsTest(['--disallowedChangeTypes', 'major'])).toThrow();
+  });
+
   it('parses short option aliases', () => {
     const options = getCliOptionsTest(['publish', '-t', 'test', '-r', 'http://whatever', '-y']);
     expect(options).toEqual({ ...defaults, command: 'publish', tag: 'test', registry: 'http://whatever', yes: true });

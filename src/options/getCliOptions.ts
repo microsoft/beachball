@@ -153,7 +153,10 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
   };
 
   // Handle --config as alias for --config-path
-  if (commanderOpts.config !== undefined && commanderOpts.configPath === undefined) {
+  if (commanderOpts.config !== undefined) {
+    if (commanderOpts.configPath !== undefined) {
+      throw new Error('Cannot specify both --config and --config-path');
+    }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     commanderOpts.configPath = commanderOpts.config;
   }
