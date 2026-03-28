@@ -37,7 +37,7 @@ describe('writeChangelog', () => {
   function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, cwd?: string) {
     const parsedOptions = getParsedOptions({
       cwd: cwd || repo?.rootPath || '',
-      argv: [],
+      argv: ['node', 'beachball', 'bump'],
       testRepoOptions: { branch: defaultRemoteBranchName, ...repoOptions },
     });
     const packageInfos = getPackageInfos(parsedOptions);

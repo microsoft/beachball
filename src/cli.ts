@@ -8,7 +8,7 @@ import { init } from './commands/init';
 import { publish } from './commands/publish';
 import { sync } from './commands/sync';
 
-import { showVersion, showHelp } from './help';
+import { showVersion } from './help';
 import { getPackageInfos } from './monorepo/getPackageInfos';
 import { getParsedOptions } from './options/getOptions';
 import { validate } from './validation/validate';
@@ -27,16 +27,6 @@ import { getPackageGroups } from './monorepo/getPackageGroups';
   // eslint-disable-next-line no-restricted-properties -- this is the top level
   const parsedOptions = getParsedOptions({ cwd: process.cwd(), argv: process.argv });
   const options = parsedOptions.options;
-
-  if (options.help) {
-    showHelp();
-    return;
-  }
-
-  if (options.version) {
-    showVersion();
-    return;
-  }
 
   // Run the commands
   switch (options.command) {
@@ -96,17 +86,21 @@ import { getPackageGroups } from './monorepo/getPackageGroups';
       break;
     }
 
-    case 'config': {
+    case 'config get': {
       const originalPackageInfos = getPackageInfos(parsedOptions);
       const scopedPackages = getScopedPackages(options, originalPackageInfos);
       const packageGroups = getPackageGroups(originalPackageInfos, options.path, options.groups);
       const configContext = { originalPackageInfos, scopedPackages, packageGroups };
-      const subcommand = options._extraPositionalArgs?.[0];
-      if (subcommand === 'list') {
-        configList(options, configContext);
-      } else {
-        configGet(options, configContext);
-      }
+      configGet(options, configContext);
+      break;
+    }
+
+    case 'config list': {
+      const originalPackageInfos = getPackageInfos(parsedOptions);
+      const scopedPackages = getScopedPackages(options, originalPackageInfos);
+      const packageGroups = getPackageGroups(originalPackageInfos, options.path, options.groups);
+      const configContext = { originalPackageInfos, scopedPackages, packageGroups };
+      configList(options, configContext);
       break;
     }
 
@@ -114,6 +108,17 @@ import { getPackageGroups } from './monorepo/getPackageGroups';
       throw new Error('Invalid command: ' + options.command);
   }
 })().catch(e => {
+  // Handle commander's --help and --version output (exit cleanly)
+  if (e && typeof e === 'object' && 'code' in e) {
+    const code = (e as { code: string }).code;
+    if (code === 'commander.helpDisplayed' || code === 'commander.version') {
+      if ((e as { message?: string }).message) {
+        console.log((e as { message: string }).message);
+      }
+      return;
+    }
+  }
+
   if (e instanceof BeachballError && e.alreadyLogged) {
     // Error details were already printed -- just exit
   } else if (e instanceof BeachballError) {

@@ -11,12 +11,13 @@ import type { BeachballOptions, PackageOptions, VersionGroupOptions } from '../.
 describe('configGet', () => {
   const logs = initMockLogs();
 
-  /** Wrapper that just provides custom args to `configGet` (for invalid argument cases) */
-  function configGetArgs(args: string[]) {
-    configGet(
-      { ...getDefaultOptions(), _extraPositionalArgs: args },
-      { originalPackageInfos: {}, scopedPackages: new Set(), packageGroups: {} }
-    );
+  /** Wrapper that just provides custom name to `configGet` (for invalid argument cases) */
+  function configGetWithName(name?: string) {
+    configGet({ ...getDefaultOptions(), command: 'config get', configSettingName: name } as BeachballOptions, {
+      originalPackageInfos: {},
+      scopedPackages: new Set(),
+      packageGroups: {},
+    });
   }
 
   /** Get the given option (`name` will be formatted as args) with optional overrides */
@@ -32,7 +33,8 @@ describe('configGet', () => {
 
     const options: BeachballOptions = {
       ...getDefaultOptions(),
-      _extraPositionalArgs: ['get', name],
+      command: 'config get',
+      configSettingName: name,
       ...optionOverrides,
     };
     const originalPackageInfos = makePackageInfos(packageInfos);
@@ -45,28 +47,17 @@ describe('configGet', () => {
   }
 
   describe('argument validation', () => {
-    it('throws on missing subcommand', async () => {
-      await expectBeachballError(() => configGetArgs([]), 'Usage: beachball config get <setting>');
-    });
-
-    it('throws on wrong subcommand', async () => {
-      await expectBeachballError(() => configGetArgs(['set', 'branch']), 'Usage: beachball config get <setting>');
-    });
-
-    it('throws on too many args', async () => {
-      await expectBeachballError(
-        () => configGetArgs(['get', 'branch', 'extra']),
-        'Usage: beachball config get <setting>'
-      );
+    it('throws on missing setting name', async () => {
+      await expectBeachballError(() => configGetWithName(), 'Usage: beachball config get <setting>');
     });
 
     it('throws on unknown config setting', async () => {
-      await expectBeachballError(() => configGetArgs(['get', 'nonExistent']), 'Unknown config setting: "nonExistent"');
+      await expectBeachballError(() => configGetWithName('nonExistent'), 'Unknown config setting: "nonExistent"');
     });
 
     it('suggests similar config name on typo', async () => {
       await expectBeachballError(
-        () => configGetArgs(['get', 'branc']),
+        () => configGetWithName('branc'),
         'Unknown config setting: "branc" - did you mean "branch"?'
       );
     });

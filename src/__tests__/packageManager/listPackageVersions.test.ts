@@ -118,7 +118,7 @@ describe('list npm versions', () => {
       repoOptions?: Partial<RepoOptions>;
     }) {
       const parsedOptions = getParsedOptions({
-        argv: ['node', 'beachball', ...(params.extraArgv || [])],
+        argv: ['node', 'beachball', 'publish', ...(params.extraArgv || [])],
         cwd: '',
         testRepoOptions: {
           registry,

@@ -30,7 +30,7 @@ describe('getChangedPackages (basic)', () => {
   function getChangedPackagesWrapper(options?: Partial<BeachballOptions>) {
     const parsedOptions = getParsedOptions({
       cwd: reusedRepo.rootPath,
-      argv: [],
+      argv: ['node', 'beachball', 'change'],
       testRepoOptions: {
         fetch: false,
         branch: defaultRemoteBranchName,

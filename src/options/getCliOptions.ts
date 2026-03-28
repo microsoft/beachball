@@ -1,6 +1,9 @@
 import { Command, CommanderError, Option } from 'commander';
+import path from 'path';
 import type { ParsedOptions } from '../types/BeachballOptions';
+import type { PackageJson } from '../types/PackageInfo';
 import { getDefaultRemoteBranch, findProjectRoot } from 'workspace-tools';
+import { readJson } from '../object/readJson';
 import { env } from '../env';
 
 export interface ProcessInfo {
@@ -24,90 +27,95 @@ function parseNumber(value: string, optionName: string): number {
   return num;
 }
 
-/**
- * Creates and configures the commander program with all beachball options.
- */
-function createProgram(): Command {
-  const program = new Command();
-  program
-    .allowExcessArguments(true)
-    .exitOverride() // throw instead of calling process.exit
-    .configureOutput({
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      writeOut: () => {}, // suppress commander's built-in output
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      writeErr: () => {},
-    });
-
-  // Disable commander's built-in --help and --version so we can handle them ourselves
-  program.helpOption(false);
-
+/** Add all shared CLI options (for every command except `config get`) to a command. */
+function addSharedOptions(cmd: Command): Command {
   // -- Boolean options (with --no-X negation support) --
-  program.option('--all');
-  program.option('--bump');
-  program.option('--no-bump');
-  program.option('--bump-deps');
-  program.option('--no-bump-deps');
-  program.option('--commit');
-  program.option('--no-commit');
-  program.option('--disallow-deleted-change-files');
-  program.option('--no-disallow-deleted-change-files');
-  program.option('--fetch');
-  program.option('--no-fetch');
-  program.option('--force, --force-versions');
-  program.option('--git-tags');
-  program.option('--no-git-tags');
-  program.option('-h, --help');
-  program.option('--keep-change-files');
-  program.option('--no-keep-change-files');
-  program.option('--new');
-  program.option('--no-new');
-  program.option('--publish');
-  program.option('--no-publish');
-  program.option('--push');
-  program.option('--no-push');
-  program.option('--verbose');
-  program.option('-v, --version');
-  program.option('-y, --yes');
-  program.option('--no-yes');
+  cmd.option('--all', 'consider all packages to have changed');
+  cmd.option('--bump', 'bump versions during publish');
+  cmd.option('--no-bump', 'skip bumping versions during publish');
+  cmd.option('--bump-deps', 'bump dependent packages');
+  cmd.option('--no-bump-deps', 'skip bumping dependent packages');
+  cmd.option('--commit', 'commit change files after creating');
+  cmd.option('--no-commit', 'stage change files only');
+  cmd.option('--disallow-deleted-change-files', 'verify no change files were deleted');
+  cmd.option('--no-disallow-deleted-change-files');
+  cmd.option('--fetch', 'fetch from the remote before determining changes');
+  cmd.option('--no-fetch', 'skip fetching from the remote');
+  cmd.option('--force, --force-versions', 'use version from registry even if older than local');
+  cmd.option('--git-tags', 'create git tags for published package versions');
+  cmd.option('--no-git-tags', 'skip creating git tags');
+  cmd.option('--keep-change-files', 'keep change files on disk after bumping');
+  cmd.option('--no-keep-change-files');
+  cmd.option('--new', 'publish newly added packages');
+  cmd.option('--no-new');
+  cmd.option('--publish', 'publish to the npm registry');
+  cmd.option('--no-publish', 'skip publishing to the npm registry');
+  cmd.option('--push', 'push to the remote git branch when publishing');
+  cmd.option('--no-push', 'skip pushing to the git remote');
+  cmd.option('--verbose', 'print additional information to the console');
+  cmd.option('-y, --yes', 'skip confirmation prompts');
+  cmd.option('--no-yes');
 
-  // -- Array options (variadic: accepts multiple values or repeated flags) --
-  program.option('--disallowed-change-types <types...>');
-  program.option('-p, --package <packages...>');
-  program.option('--scope <patterns...>');
+  // -- Array options --
+  cmd.option('--disallowed-change-types <types...>', 'disallow these change types');
+  cmd.option('-p, --package <packages...>', 'target specific packages');
+  cmd.option('--scope <patterns...>', 'only consider package paths matching these patterns');
 
   // -- Number options --
-  program.addOption(new Option('--concurrency <n>').argParser((v: string) => parseNumber(v, 'concurrency')));
-  program.addOption(new Option('--depth <n>').argParser((v: string) => parseNumber(v, 'depth')));
-  program.addOption(
-    new Option('--npm-read-concurrency <n>').argParser((v: string) => parseNumber(v, 'npmReadConcurrency'))
+  cmd.addOption(
+    new Option('--concurrency <n>', 'maximum concurrency for write operations').argParser((v: string) =>
+      parseNumber(v, 'concurrency')
+    )
   );
-  program.addOption(new Option('--git-timeout <n>').argParser((v: string) => parseNumber(v, 'gitTimeout')));
-  program.addOption(new Option('--retries <n>').argParser((v: string) => parseNumber(v, 'retries')));
-  program.addOption(new Option('--timeout <n>').argParser((v: string) => parseNumber(v, 'timeout')));
+  cmd.addOption(
+    new Option('--depth <n>', 'depth of git history for shallow clones').argParser((v: string) =>
+      parseNumber(v, 'depth')
+    )
+  );
+  cmd.addOption(
+    new Option('--npm-read-concurrency <n>', 'maximum concurrency for npm registry reads').argParser((v: string) =>
+      parseNumber(v, 'npmReadConcurrency')
+    )
+  );
+  cmd.addOption(
+    new Option('--git-timeout <n>', 'timeout for git push operations').argParser((v: string) =>
+      parseNumber(v, 'gitTimeout')
+    )
+  );
+  cmd.addOption(
+    new Option('--retries <n>', 'number of retries for npm publish').argParser((v: string) => parseNumber(v, 'retries'))
+  );
+  cmd.addOption(
+    new Option('--timeout <n>', 'timeout for npm operations').argParser((v: string) => parseNumber(v, 'timeout'))
+  );
 
   // -- String options --
-  program.option('--access <value>');
-  program.option('-a, --auth-type <value>');
-  program.option('-b, --branch <value>');
-  program.option('--canary-name <value>');
-  program.option('--changehint <value>');
-  program.option('--change-dir <value>');
-  program.option('-c, --config-path <value>');
-  // --config is a long alias for --config-path (commander only supports one long name per option)
-  program.addOption(new Option('--config <value>').hideHelp());
-  program.option('--dependent-change-type <value>');
-  program.option('--since, --from-ref <value>');
-  program.option('-m, --message <value>');
-  program.option('--pack-to-path <value>');
-  program.option('--prerelease-prefix <value>');
-  program.option('-r, --registry <value>');
-  program.option('-t, --tag <value>');
-  program.option('-n, --token <value>');
-  program.option('--type <value>');
+  cmd.option('--access <value>', "access level for npm publish: 'public' or 'restricted'");
+  cmd.option('-a, --auth-type <value>', "npm auth type: 'authtoken' or 'password'");
+  cmd.option('-b, --branch <value>', 'target branch from remote');
+  cmd.option('--canary-name <value>', 'canary prerelease name');
+  cmd.option('--changehint <value>', 'custom hint message when change files are needed');
+  cmd.option('--change-dir <value>', 'directory to store change files');
+  cmd.option('-c, --config-path <value>', 'custom beachball config path');
+  cmd.addOption(new Option('--config <value>').hideHelp()); // hidden alias for --config-path
+  cmd.option('--dependent-change-type <value>', 'change type for dependent packages');
+  cmd.option('--since, --from-ref <value>', 'consider changes since this git ref');
+  cmd.option('-m, --message <value>', 'change description or commit message');
+  cmd.option('--pack-to-path <value>', 'pack packages to this path instead of publishing');
+  cmd.option('--prerelease-prefix <value>', 'prerelease prefix for prerelease bumps');
+  cmd.option('-r, --registry <value>', 'target npm registry');
+  cmd.option('-t, --tag <value>', 'dist-tag for npm publishes');
+  cmd.option('-n, --token <value>', 'npm token or password');
+  cmd.option('--type <value>', 'type of change: major, minor, patch, none, ...');
 
-  return program;
+  return cmd;
 }
+
+/**
+ * Reference command with all shared options, used for error enhancement only.
+ * (Separate from the real commands to avoid circular references.)
+ */
+const referenceCommand = addSharedOptions(new Command());
 
 /** Convert a camelCase string to dashed form: e.g. `gitTags` => `git-tags` */
 function camelToDash(str: string): string {
@@ -119,7 +127,7 @@ function camelToDash(str: string): string {
  * If the unknown option is in camelCase, suggest the valid dashed form instead.
  * Otherwise re-throw the original error unchanged.
  */
-function enhanceUnknownOptionError(err: CommanderError, program: Command): never {
+function enhanceUnknownOptionError(err: CommanderError): never {
   // Parse the unknown flag from commander's error message format:
   //   "error: unknown option '--foo'"  or  "error: unknown option '--foo'\n(Did you mean --bar?)"
   const flagMatch = err.message.match(/^error: unknown option '(--[^']+)'/);
@@ -128,20 +136,19 @@ function enhanceUnknownOptionError(err: CommanderError, program: Command): never
   }
   const unknownFlag = flagMatch[1];
 
-  // Collect info about known options from the program
+  // Collect info about known options from the reference command
   const knownLongFlags = new Set<string>();
   const negatableBooleans = new Set<string>(); // long flags that have a --no-X counterpart
-  for (const opt of program.options) {
+  for (const opt of referenceCommand.options) {
     if (opt.long) {
       knownLongFlags.add(opt.long);
-      // Track booleans that have a negation counterpart: if we see --no-X, mark --X as negatable
       if (opt.negate && knownLongFlags.has(opt.long.replace(/^--no-/, '--'))) {
         negatableBooleans.add(opt.long.replace(/^--no-/, '--'));
       }
     }
   }
   // Second pass: if we saw --X before --no-X, we need to check in reverse
-  for (const opt of program.options) {
+  for (const opt of referenceCommand.options) {
     if (opt.long && !opt.negate && knownLongFlags.has(`--no-${opt.long.slice(2)}`)) {
       negatableBooleans.add(opt.long);
     }
@@ -156,7 +163,6 @@ function enhanceUnknownOptionError(err: CommanderError, program: Command): never
       if (negatableBooleans.has(dashedFlag)) {
         suggestion = `(Did you mean ${dashedFlag} or --no-${dashedFlag.slice(2)}?)`;
       } else if (dashedFlag.startsWith('--no-') && negatableBooleans.has(`--${dashedFlag.slice(5)}`)) {
-        // The dashed form is a --no-X flag and the positive form is negatable
         suggestion = `(Did you mean --${dashedFlag.slice(5)} or ${dashedFlag}?)`;
       } else {
         suggestion = `(Did you mean ${dashedFlag}?)`;
@@ -176,7 +182,6 @@ function enhanceUnknownOptionError(err: CommanderError, program: Command): never
         `error: unknown option '${unknownFlag}'\n(Did you mean ${suggested} or --no-${suggested.slice(2)}?)`
       );
     }
-    // If the suggestion itself is a --no-X and the positive form is negatable
     if (suggested.startsWith('--no-')) {
       const positiveFlag = `--${suggested.slice(5)}`;
       if (negatableBooleans.has(positiveFlag)) {
@@ -193,6 +198,84 @@ function enhanceUnknownOptionError(err: CommanderError, program: Command): never
   throw err;
 }
 
+interface CommandMatch {
+  command: string;
+  opts: Record<string, unknown>;
+  configSettingName?: string;
+}
+
+/** Suppress stderr but capture stdout (for help/version output). */
+function makeOutputConfig(captured: { output: string }) {
+  return {
+    writeOut: (str: string) => {
+      captured.output += str;
+    },
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    writeErr: () => {},
+  };
+}
+
+/**
+ * Creates and configures the commander program with all beachball commands and options.
+ */
+function createProgram(): {
+  program: Command;
+  getMatch: () => CommandMatch | undefined;
+  captured: { output: string };
+} {
+  let match: CommandMatch | undefined;
+  const captured = { output: '' };
+  const outputConfig = makeOutputConfig(captured);
+
+  const packageJson = readJson<PackageJson>(path.resolve(__dirname, '../../package.json'));
+
+  const program = new Command('beachball')
+    .description('the sunniest version bumping tool')
+    .version(`beachball v${packageJson.version} - the sunniest version bumping tool`, '-v, --version')
+    .exitOverride()
+    .configureOutput(outputConfig);
+
+  // Define standard commands — each gets all shared options
+  const commandDefs = [
+    { name: 'change', desc: 'create change files in the change/ folder' },
+    { name: 'check', desc: 'check whether a change file is needed for this branch' },
+    { name: 'bump', desc: 'bump versions and generate changelogs' },
+    { name: 'publish', desc: 'bump, publish to npm registry, and push changelogs' },
+    { name: 'canary', desc: 'publish canary prerelease versions' },
+    { name: 'init', desc: 'initialize beachball config' },
+    { name: 'sync', desc: 'synchronize published versions from the registry' },
+  ];
+
+  for (const { name, desc } of commandDefs) {
+    const cmd = program.command(name).description(desc);
+    cmd.exitOverride().configureOutput(outputConfig).allowExcessArguments(false);
+    addSharedOptions(cmd);
+    cmd.action(() => {
+      match = { command: name, opts: cmd.opts() };
+    });
+  }
+
+  // Config command with subcommands
+  const config = program.command('config').description('view configuration');
+  config.exitOverride().configureOutput(outputConfig);
+
+  const configGet = config.command('get').description('get the value of a config setting');
+  configGet.argument('<name>', 'config setting name');
+  configGet.option('-p, --package <packages...>', 'get effective value for specific package(s)');
+  configGet.exitOverride().configureOutput(outputConfig).allowExcessArguments(false);
+  configGet.action((name: string) => {
+    match = { command: 'config get', opts: configGet.opts(), configSettingName: name };
+  });
+
+  const configList = config.command('list').description('list all config settings');
+  configList.exitOverride().configureOutput(outputConfig).allowExcessArguments(false);
+  configList.action(() => {
+    match = { command: 'config list', opts: configList.opts() };
+  });
+
+  return { program, getMatch: () => match, captured };
+}
+
 /**
  * Gets CLI options.
  */
@@ -205,18 +288,29 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
       { argv: processOrArgv, cwd: env.isJest ? '' : process.cwd() }
     : processOrArgv;
 
-  const program = createProgram();
+  const { program, getMatch, captured } = createProgram();
+
   try {
     program.parse(processInfo.argv);
   } catch (err) {
-    if (err instanceof CommanderError && err.code === 'commander.unknownOption') {
-      enhanceUnknownOptionError(err, program);
+    if (err instanceof CommanderError) {
+      if (err.code === 'commander.helpDisplayed' || err.code === 'commander.version') {
+        // Re-throw with captured output so the caller can print it
+        throw new CommanderError(err.exitCode, err.code, captured.output || err.message);
+      }
+      if (err.code === 'commander.unknownOption') {
+        enhanceUnknownOptionError(err);
+      }
     }
     throw err;
   }
 
-  const commanderOpts = program.opts();
-  const positionalArgs = program.args;
+  const match = getMatch();
+  if (!match) {
+    // No command was matched — show help
+    program.outputHelp();
+    throw new CommanderError(0, 'commander.helpDisplayed', captured.output);
+  }
 
   let cwd = processInfo.cwd;
   try {
@@ -229,19 +323,18 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
     // use the provided cwd
   }
 
-  // Determine command from positional args
-  const command = positionalArgs.length ? String(positionalArgs[0]) : 'change';
-
-  if (positionalArgs.length > 1 && command !== 'config') {
-    throw new Error(`Only one positional argument (the command) is allowed. Received: ${positionalArgs.join(' ')}`);
-  }
-
   // Build the cliOptions object from commander's parsed options.
   // Only include options that were explicitly set on the command line (not undefined defaults).
   const cliOptions: ParsedOptions['cliOptions'] = {
-    command,
+    command: match.command,
     path: cwd,
   };
+
+  if (match.configSettingName !== undefined) {
+    cliOptions.configSettingName = match.configSettingName;
+  }
+
+  const commanderOpts = { ...match.opts };
 
   // Handle --config as alias for --config-path
   if (commanderOpts.config !== undefined) {
@@ -277,11 +370,6 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
   // For canary command, set tag to canaryName or default 'canary'
   if (cliOptions.command === 'canary') {
     cliOptions.tag = cliOptions.canaryName || 'canary';
-  }
-
-  // Save extra positional args for commands that support subcommands (e.g. 'config get <name>')
-  if (positionalArgs.length > 1) {
-    cliOptions._extraPositionalArgs = positionalArgs.slice(1).map(String);
   }
 
   return cliOptions;

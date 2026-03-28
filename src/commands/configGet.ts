@@ -82,14 +82,12 @@ const validConfigNames = new Set<string>([
 export function configGet(options: BeachballOptions, context: BasicCommandContext): void {
   const { originalPackageInfos: packageInfos, scopedPackages } = context;
 
-  const extraArgs = options._extraPositionalArgs || [];
-  if (extraArgs[0] !== 'get' || extraArgs.length !== 2) {
+  const name = options.configSettingName;
+  if (!name) {
     throw new BeachballError(
       'Usage: beachball config get <setting>\n\nGets the value of the specified config setting.'
     );
   }
-
-  const name = extraArgs[1];
   if (!validConfigNames.has(name)) {
     const suggestion = findSimilar(name, [...validConfigNames]);
     throw new BeachballError(

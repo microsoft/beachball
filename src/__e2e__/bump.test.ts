@@ -37,7 +37,7 @@ describe('bump command', () => {
   function getOptions(repoOptions?: Partial<RepoOptions>, cwd?: string) {
     const parsedOptions = getParsedOptions({
       cwd: cwd || repo?.rootPath || '',
-      argv: [],
+      argv: ['node', 'beachball', 'bump'],
       testRepoOptions: { branch: defaultRemoteBranchName, fetch: false, ...repoOptions },
     });
     return { options: parsedOptions.options, parsedOptions };
