@@ -1,7 +1,0 @@
-{
-  "packageName": "beachball",
-  "type": "patch",
-  "dependentChangeType": "patch",
-  "comment": "Consider staged change files during `beachball check`",
-  "email": "elcraig@microsoft.com"
-}

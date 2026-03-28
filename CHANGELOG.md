@@ -1,8 +1,23 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Tue, 10 Mar 2026 23:45:19 GMT and should not be manually modified. -->
+<!-- This log was last generated on Sat, 28 Mar 2026 02:38:37 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.64.0
+
+Sat, 28 Mar 2026 02:38:37 GMT
+
+### Minor changes
+
+- Add `beachball config get <name>` command to inspect the effective value of a config setting, including per-package and group overrides (198982749+Copilot@users.noreply.github.com)
+- Implement "layer" pack style. Also handle all topological package sorting internally, and update the logic to ignore devDependencies since they can't cause breakages. (elcraig@microsoft.com)
+- Add `beachball config list` command (elcraig@microsoft.com)
+
+### Patches
+
+- Detect non-interactive context in `change` command and throw a helpful error with guidance on CLI flags (elcraig@microsoft.com)
+- Consider staged change files during `beachball check` (elcraig@microsoft.com)
 
 ## 2.63.1
 

@@ -2,6 +2,47 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 28 Mar 2026 02:38:37 GMT",
+      "version": "2.64.0",
+      "tag": "beachball_v2.64.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "198982749+Copilot@users.noreply.github.com",
+            "package": "beachball",
+            "commit": "2898ef1daec2eba1403fe40631186fd351735254",
+            "comment": "Add `beachball config get <name>` command to inspect the effective value of a config setting, including per-package and group overrides"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "2898ef1daec2eba1403fe40631186fd351735254",
+            "comment": "Implement \"layer\" pack style. Also handle all topological package sorting internally, and update the logic to ignore devDependencies since they can't cause breakages."
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "2898ef1daec2eba1403fe40631186fd351735254",
+            "comment": "Add `beachball config list` command"
+          }
+        ],
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "2898ef1daec2eba1403fe40631186fd351735254",
+            "comment": "Detect non-interactive context in `change` command and throw a helpful error with guidance on CLI flags"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "2898ef1daec2eba1403fe40631186fd351735254",
+            "comment": "Consider staged change files during `beachball check`"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 10 Mar 2026 23:45:19 GMT",
       "version": "2.63.1",
       "tag": "beachball_v2.63.1",
