@@ -59,13 +59,11 @@ export interface CliOptions
    * For sync: use the version from the registry even if it's older than local.
    */
   forceVersions?: boolean;
-  help?: boolean;
   /** Force change files for these packages */
   package?: string | string[];
   token?: string;
   type?: ChangeType | null;
   verbose?: boolean;
-  version?: boolean;
   yes: boolean;
 
   /** The config setting name for `config get <name>`. Set by the CLI parser. */

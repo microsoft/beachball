@@ -117,6 +117,14 @@ function addSharedOptions(cmd: Command): Command {
  */
 const referenceCommand = addSharedOptions(new Command());
 
+/** Version string, read once at module load (before tests can mock fs). */
+const beachballVersion = (() => {
+  try {
+    return readJson<PackageJson>(path.resolve(__dirname, '../../package.json')).version || 'unknown';
+  } catch {
+    return 'unknown';
+  }
+})();
 /** Convert a camelCase string to dashed form: e.g. `gitTags` => `git-tags` */
 function camelToDash(str: string): string {
   return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
@@ -227,11 +235,9 @@ function createProgram(): {
   const captured = { output: '' };
   const outputConfig = makeOutputConfig(captured);
 
-  const packageJson = readJson<PackageJson>(path.resolve(__dirname, '../../package.json'));
-
   const program = new Command('beachball')
     .description('the sunniest version bumping tool')
-    .version(`beachball v${packageJson.version} - the sunniest version bumping tool`, '-v, --version')
+    .version(beachballVersion, '-v, --version')
     .exitOverride()
     .configureOutput(outputConfig);
 
@@ -341,7 +347,6 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
     if (commanderOpts.configPath !== undefined) {
       throw new Error('Cannot specify both --config and --config-path');
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     commanderOpts.configPath = commanderOpts.config;
   }
   delete commanderOpts.config;
@@ -350,7 +355,7 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
   // Commander already converts hyphenated option names to camelCase in its opts() output.
   for (const [key, value] of Object.entries(commanderOpts)) {
     if (value !== undefined) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
       (cliOptions as any)[key] = value;
     }
   }

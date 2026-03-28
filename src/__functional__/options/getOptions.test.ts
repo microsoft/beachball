@@ -14,7 +14,7 @@ describe('getOptions (deprecated)', () => {
   // Don't reuse a repo in these tests! If multiple tests load beachball.config.js from the same path,
   // it will use the version from the require cache, which will have outdated contents.
 
-  const baseArgv = () => ['node.exe', 'bin.js'];
+  const baseArgv = () => ['node.exe', 'bin.js', 'change'];
 
   const inDirectory = <T>(directory: string, cb: () => T): T => {
     const originalDirectory = process.cwd();
@@ -109,7 +109,7 @@ describe('getParsedOptions', () => {
   // it will use the version from the require cache, which will have outdated contents.
 
   // Return a new object each time since getRepoOptions caches the result based on object identity.
-  const baseArgv = () => ['node', 'beachball', 'stuff'];
+  const baseArgv = () => ['node', 'beachball', 'change'];
 
   beforeAll(() => {
     repositoryFactory = new RepositoryFactory('single');
@@ -130,7 +130,7 @@ describe('getParsedOptions', () => {
     const parsedOptions = getParsedOptions({ argv: baseArgv(), cwd: repo.rootPath });
     expect(parsedOptions).toEqual({
       options: expect.objectContaining({ branch: 'origin/foo' }),
-      cliOptions: { path: repo.rootPath, command: 'stuff' },
+      cliOptions: { path: repo.rootPath, command: 'change' },
     });
   });
 
@@ -141,7 +141,7 @@ describe('getParsedOptions', () => {
     const parsedOptions = getParsedOptions({ argv: baseArgv(), cwd: repo.rootPath });
     expect(parsedOptions).toEqual({
       options: expect.objectContaining({ branch: 'origin/foo' }),
-      cliOptions: { path: repo.rootPath, command: 'stuff' },
+      cliOptions: { path: repo.rootPath, command: 'change' },
     });
   });
 
@@ -179,7 +179,7 @@ describe('getParsedOptions', () => {
     });
     expect(parsedOptions).toEqual({
       options: expect.objectContaining({ branch: 'origin/bar' }),
-      cliOptions: { path: repo.rootPath, command: 'stuff', branch: 'origin/bar' },
+      cliOptions: { path: repo.rootPath, command: 'change', branch: 'origin/bar' },
     });
   });
 
