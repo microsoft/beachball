@@ -1,0 +1,15 @@
+{
+  "name": "beachball-plugins",
+  "owner": {
+    "name": "Microsoft",
+    "email": ""
+  },
+  "plugins": [
+    {
+      "name": "beachball-change-file",
+      "source": "./plugins/beachball-change-file",
+      "description": "Skill for creating Beachball change files. Guides Claude through generating properly formatted change files for versioning and changelogs in repos that use Beachball.",
+      "version": "1.0.2"
+    }
+  ]
+}
