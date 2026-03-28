@@ -342,7 +342,9 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
 
   const commanderOpts = { ...match.opts };
 
-  // Handle --config-path as alias for --config (both map to configPath)
+  // Handle --config-path as alias for --config (both map to configPath).
+  // TODO: Replace this manual alias handling with `new Option(...).alias('--config-path')`
+  // when upgrading to a commander version that supports .alias() on Option.
   if (commanderOpts.config !== undefined) {
     if (commanderOpts.configPath !== undefined) {
       throw new Error('Cannot specify both --config and --config-path');

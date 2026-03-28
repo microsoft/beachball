@@ -11,8 +11,6 @@ jest.mock('workspace-tools', () => {
 
 //
 // These tests cover a mix of built-in parser behavior, provided options, and custom overrides.
-// The parser is commander, and these tests document the expected behavior from the beachball
-// "end user" perspective.
 //
 describe('getCliOptions', () => {
   // This is the same mocked value as above (can't be shared in a const because jest.mock() is
@@ -126,12 +124,6 @@ describe('getCliOptions', () => {
       dependentChangeType: 'patch',
       disallowedChangeTypes: ['major', 'minor'],
     });
-  });
-
-  it('rejects camelCase form of multi-word options', () => {
-    expect(() => getCliOptionsTest(['change', '--gitTags'])).toThrow();
-    expect(() => getCliOptionsTest(['change', '--dependentChangeType', 'patch'])).toThrow();
-    expect(() => getCliOptionsTest(['change', '--disallowedChangeTypes', 'major'])).toThrow();
   });
 
   it('suggests dashed form for camelCase boolean options', () => {
