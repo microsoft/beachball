@@ -70,8 +70,8 @@ Beachball is a CLI tool for automating semantic version bumping, changelog gener
 
 ### Required before creating a PR
 
-- Use `/beachball-change-files` to generate a Beachball change file. Use `yarn change` for `beachball change` and `yarn checkchange` for `beachball check`.
-- Consider whether the
+- Use `/beachball-change-files` to generate a Beachball change file.
+- Check whether any documentation site or help text updates are needed for the change.
 
 ## Testing
 

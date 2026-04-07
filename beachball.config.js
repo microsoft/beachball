@@ -7,6 +7,9 @@ const config = {
   ignorePatterns: [
     '.*ignore',
     '*.yml',
+    'CLAUDE.md',
+    '.claude/**',
+    '.claude-plugin/**',
     '.eslintrc.js',
     '.github/**',
     '.prettierrc.json5',

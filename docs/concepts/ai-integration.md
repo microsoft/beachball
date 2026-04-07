@@ -6,9 +6,11 @@ category: doc
 
 # AI integration
 
-Normally, Beachball uses an interactive CLI prompt for generating change files. Since this doesn't work for AI agents, we provide a **change file skill** that guides AI agents through creating properly formatted change files. The skill should be used automatically when you ask to generate a change file.
+Normally, Beachball uses an interactive CLI prompt for generating change files. Since this doesn't work for AI agents, we provide a **change file skill** that guides AI agents through creating change files. The skill should be used automatically when you ask to generate a change file.
 
-## Plugin marketplace (Claude Code or Copilot CLI)
+## Installation
+
+### Plugin marketplace (Claude Code or Copilot CLI)
 
 Add the beachball marketplace, then install the plugin:
 
@@ -26,6 +28,12 @@ copilot plugin install beachball-change-file@beachball-plugins
 copilot plugin update beachball-change-file
 ```
 
-## Direct skill link
+### Direct skill link
 
-If your tool doesn't support plugin marketplaces, or you'd like to view the skill content first, you can reference the [skill markdown file](https://github.com/microsoft/beachball/blob/main/.claude/skills/beachball-change-file/SKILL.md) directly.
+If you'd like to inspect or manually import the skill, you can view the [skill markdown file](https://github.com/microsoft/beachball/blob/main/.claude-plugin/plugins/beachball-change-file/skills/beachball-change-file/SKILL.md) directly.
+
+## How it works
+
+The skill has instructions for checking which packages have changed and generating a change file with the appropriate type and comment based on each package's diffs (respecting settings such as `disallowedChangeTypes`).
+
+The instructions direct the agent to create a change file manually, instead of using the CLI. This is because `beachball change` has the limitation that it can only accept a single `--type` and `--message` (applied to either all changed packages, or specific package(s) via `--package`). Using a single type and message for all packages is not ideal, and the downside of running multiple times with `--package` is that there would be a separate change file created each time.

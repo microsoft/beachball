@@ -4,8 +4,10 @@
 const fs = require('fs');
 const path = require('path');
 const { git } = require('workspace-tools/lib/git/git');
-const { getBranchChanges, getDefaultBranch } = require('workspace-tools/lib/git/gitUtilities');
+const { getChangesBetweenRefs } = require('workspace-tools/lib/git/gitUtilities');
+const beachballConfig = require('../beachball.config');
 
+const targetBranch = beachballConfig.branch || 'main';
 const repoRoot = path.resolve(__dirname, '..');
 const marketplacePath = path.join(repoRoot, '.claude-plugin', 'marketplace.json');
 
@@ -94,37 +96,40 @@ for (const entry of marketplace.plugins) {
   const skills = (plugin.components && plugin.components.skills) || [];
   for (const skill of skills) {
     const skillAbsPath = path.resolve(sourceDir, skill.path);
-    const skillRelDisplay = path.relative(repoRoot, skillAbsPath);
+    const skillRelPath = path.relative(repoRoot, skillAbsPath);
 
     if (!fs.existsSync(skillAbsPath)) {
-      error(`Skill path does not resolve to a file: ${skill.path} (resolved to ${skillRelDisplay})`);
+      error(`Skill path does not resolve to a file: ${skill.path} (resolved to ${skillRelPath})`);
       continue;
     }
 
-    console.log(`  Skill: ${skill.name} -> ${skillRelDisplay}`);
+    console.log(`  Skill: ${skill.name} -> ${skillRelPath}`);
 
     // --- Parse frontmatter and check version ---
     const skillContent = fs.readFileSync(skillAbsPath, 'utf8');
     const skillVersion = matchFrontmatter(skillContent, /^\s+version:\s*(.*)/m);
 
     if (!skillVersion) {
-      error(`SKILL.md is missing metadata.version in frontmatter (${skillRelDisplay})`);
+      error(`SKILL.md is missing metadata.version in frontmatter (${skillRelPath})`);
     } else if (skillVersion !== plugin.version) {
       error(
-        `Version mismatch: plugin.json has "${plugin.version}" but SKILL.md metadata.version is "${skillVersion}" (${skillRelDisplay})`
+        `Version mismatch: plugin.json has "${plugin.version}" but SKILL.md metadata.version is "${skillVersion}" (${skillRelPath})`
       );
     }
 
     // --- Check that skill content changes are accompanied by a version bump ---
-    const targetBranch = getDefaultBranch({ cwd: repoRoot });
-    const branchChanges = getBranchChanges({ branch: targetBranch, cwd: repoRoot });
-    const realSkillRelPath = path.relative(repoRoot, fs.realpathSync(skillAbsPath));
-    if (branchChanges.includes(realSkillRelPath)) {
+    // (current approach will miss local changes if not committed yet, but works in PR)
+    const skillChanges = getChangesBetweenRefs({
+      fromRef: targetBranch,
+      cwd: repoRoot,
+      pattern: skillRelPath,
+    });
+    if (skillChanges.length) {
       const baseContent = getFileAtRef(skillAbsPath, targetBranch);
       const baseVersion = baseContent ? matchFrontmatter(baseContent, /^\s+version:\s*(.*)/m) : undefined;
       if (baseVersion && skillVersion && baseVersion === skillVersion) {
         error(
-          `SKILL.md has changed since ${targetBranch} but metadata.version was not bumped (still ${baseVersion}) (${skillRelDisplay})`
+          `SKILL.md has changed since ${targetBranch} but metadata.version was not bumped (still ${baseVersion}) (${skillRelPath})`
         );
       }
     }
@@ -133,7 +138,7 @@ for (const entry of marketplace.plugins) {
     const skillName = matchFrontmatter(skillContent, /^name:\s*(.*)/m);
     if (skillName && skillName !== skill.name) {
       error(
-        `Skill name mismatch: plugin.json has "${skill.name}" but SKILL.md frontmatter has "${skillName}" (${skillRelDisplay})`
+        `Skill name mismatch: plugin.json has "${skill.name}" but SKILL.md frontmatter has "${skillName}" (${skillRelPath})`
       );
     }
   }
