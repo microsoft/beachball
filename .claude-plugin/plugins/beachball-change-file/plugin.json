@@ -1,0 +1,14 @@
+{
+  "name": "beachball-change-file",
+  "description": "Skill for creating Beachball change files. Guides Claude through generating properly formatted change files for versioning and changelogs in repos that use Beachball.",
+  "version": "1.0.2",
+  "components": {
+    "skills": [
+      {
+        "name": "beachball-change-file",
+        "path": "skills/beachball-change-file/SKILL.md",
+        "description": "How to create a Beachball change file. ONLY use this skill when the user asks to generate change files, before pushing a branch, or before creating a PR."
+      }
+    ]
+  }
+}

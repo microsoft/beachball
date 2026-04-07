@@ -28,8 +28,9 @@ export default defineUserConfig({
           '/concepts/bump-algorithm',
           '/concepts/change-files',
           '/concepts/change-types',
-          '/concepts/ci-integration',
           '/concepts/groups',
+          '/concepts/ci-integration',
+          '/concepts/ai-integration',
         ],
       },
       {
