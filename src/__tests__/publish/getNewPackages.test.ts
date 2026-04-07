@@ -55,9 +55,11 @@ describe('getNewPackages', () => {
     expect(newPackages).toEqual(['foo', 'bar']);
     expect(npmMock.mock).toHaveBeenCalledTimes(2);
     // expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
-    expect(logs.mocks.log).toHaveBeenCalledTimes(2);
-    expect(logs.mocks.log).toHaveBeenCalledWith('New package detected: foo');
-    expect(logs.mocks.log).toHaveBeenCalledWith('New package detected: bar');
+    expect(logs.getMockLines('log')).toMatchInlineSnapshot(`
+      "New package(s) detected:
+        • foo
+        • bar"
+    `);
   });
 
   it('returns only new package with mix of new, old, and modified', async () => {
@@ -69,7 +71,9 @@ describe('getNewPackages', () => {
     expect(newPackages).toEqual(['baz']);
     expect(npmMock.mock).toHaveBeenCalledTimes(2);
     // expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
-    expect(logs.mocks.log).toHaveBeenCalledTimes(1);
-    expect(logs.mocks.log).toHaveBeenCalledWith('New package detected: baz');
+    expect(logs.getMockLines('log')).toMatchInlineSnapshot(`
+      "New package(s) detected:
+        • baz"
+    `);
   });
 });

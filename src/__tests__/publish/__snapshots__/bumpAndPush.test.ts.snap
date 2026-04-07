@@ -1,0 +1,114 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`bumpAndPush retries on fetch failure then succeeds 2`] = `
+"[log] --------------------------------------------------------------------------------
+[log] Bumping versions and pushing to git (attempt 1/5)
+[log] Reverting
+[log]
+[log] Fetching branch "master" from remote "origin"...
+[warn] fetch error
+[warn] Fetching branch "master" from remote "origin" failed (code 1)
+[warn] [WARN 1/5]: Fetching from origin/master has failed! (see above for details)
+[log] --------------------------------------------------------------------------------
+[log] Bumping versions and pushing to git (attempt 2/5)
+[log] Reverting
+[log]
+[log] Fetching branch "master" from remote "origin"...
+[log] Fetching branch "master" from remote "origin" completed successfully
+[log]
+Merging with origin/master...
+[log] Running: git merge -X theirs origin/master
+[log]
+[log] git merge -X theirs origin/master completed successfully
+[log]
+Bumping versions locally (and writing changelogs if requested)
+[log]
+Merging publish_12345 into origin/master...
+[log] Running: git add .
+[log]
+[log] git add . completed successfully
+[log] Running: git commit -m apply package updates
+[log]
+[log] git commit -m apply package updates completed successfully
+[log] Running: git checkout origin/master
+[log]
+[log] git checkout origin/master completed successfully
+[log] Running: git merge -X ours publish_12345
+[log]
+[log] git merge -X ours publish_12345 completed successfully
+[log]
+Creating git tags for new versions...
+[log]
+Pushing to origin/master...
+[log] Running: git push --no-verify --follow-tags --verbose origin HEAD:master
+[log]
+[log] git push --no-verify --follow-tags --verbose origin HEAD:master completed successfully"
+`;
+
+exports[`bumpAndPush succeeds on first attempt 1`] = `
+"[log] --------------------------------------------------------------------------------
+[log] Bumping versions and pushing to git (attempt 1/5)
+[log] Reverting
+[log]
+[log] Fetching branch "master" from remote "origin"...
+[log] Fetching branch "master" from remote "origin" completed successfully
+[log]
+Merging with origin/master...
+[log] Running: git merge -X theirs origin/master
+[log]
+[log] git merge -X theirs origin/master completed successfully
+[log]
+Bumping versions locally (and writing changelogs if requested)
+[log]
+Merging publish_12345 into origin/master...
+[log] Running: git add .
+[log]
+[log] git add . completed successfully
+[log] Running: git commit -m apply package updates
+[log]
+[log] git commit -m apply package updates completed successfully
+[log] Running: git checkout origin/master
+[log]
+[log] git checkout origin/master completed successfully
+[log] Running: git merge -X ours publish_12345
+[log]
+[log] git merge -X ours publish_12345 completed successfully
+[log]
+Creating git tags for new versions...
+[log]
+Pushing to origin/master...
+[log] Running: git push --no-verify --follow-tags --verbose origin HEAD:master
+[log]
+[log] git push --no-verify --follow-tags --verbose origin HEAD:master completed successfully"
+`;
+
+exports[`bumpAndPush throws and calls displayManualRecovery after all retries exhausted 1`] = `
+"[log] --------------------------------------------------------------------------------
+[log] Bumping versions and pushing to git (attempt 1/3)
+[log] Reverting
+[log]
+[log] Fetching branch "master" from remote "origin"...
+[warn] network error
+[warn] Fetching branch "master" from remote "origin" failed (code 1)
+[warn] [WARN 1/3]: Fetching from origin/master has failed! (see above for details)
+[log] --------------------------------------------------------------------------------
+[log] Bumping versions and pushing to git (attempt 2/3)
+[log] Reverting
+[log]
+[log] Fetching branch "master" from remote "origin"...
+[warn] network error
+[warn] Fetching branch "master" from remote "origin" failed (code 1)
+[warn] [WARN 2/3]: Fetching from origin/master has failed! (see above for details)
+[log] --------------------------------------------------------------------------------
+[log] Bumping versions and pushing to git (attempt 3/3)
+[log] Reverting
+[log]
+[log] Fetching branch "master" from remote "origin"...
+[warn] network error
+[warn] Fetching branch "master" from remote "origin" failed (code 1)
+[warn] [WARN 3/3]: Fetching from origin/master has failed! (see above for details)
+[log]
+[error] Something went wrong with publishing (see above for details). The following packages were NOT published:
+  • bar@2.0.0
+  • foo@1.1.0"
+`;
