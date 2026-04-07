@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Unpin deps for security issues",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}

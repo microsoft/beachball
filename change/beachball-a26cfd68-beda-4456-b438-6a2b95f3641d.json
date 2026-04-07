@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Explicitly update dependency minor/patch ranges to ensure that consumers pull in the latest security updates",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

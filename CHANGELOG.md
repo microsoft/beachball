@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Sat, 28 Mar 2026 02:38:37 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 07 Apr 2026 01:34:47 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.64.1
+
+Tue, 07 Apr 2026 01:34:47 GMT
+
+### Patches
+
+- Explicitly update dependency minor/patch ranges to ensure that consumers pull in the latest security updates (elcraig@microsoft.com)
 
 ## 2.64.0
 

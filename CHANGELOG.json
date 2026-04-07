@@ -2,6 +2,35 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 07 Apr 2026 01:34:47 GMT",
+      "version": "2.64.1",
+      "tag": "beachball_v2.64.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "0cb7bedfea6bbf4c4a34c5931883db229b77cdd8",
+            "comment": "Explicitly update dependency minor/patch ranges to ensure that consumers pull in the latest security updates"
+          }
+        ],
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "0cb7bedfea6bbf4c4a34c5931883db229b77cdd8",
+            "comment": "Update scripts"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "0cb7bedfea6bbf4c4a34c5931883db229b77cdd8",
+            "comment": "Unpin deps for security issues"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 28 Mar 2026 02:38:37 GMT",
       "version": "2.64.0",
       "tag": "beachball_v2.64.0",
