@@ -4,10 +4,13 @@
 const fs = require('fs');
 const path = require('path');
 const { git } = require('workspace-tools/lib/git/git');
-const { getChangesBetweenRefs } = require('workspace-tools/lib/git/gitUtilities');
+const { getChangesBetweenRefs, getDefaultRemoteBranch } = require('workspace-tools');
 const beachballConfig = require('../beachball.config');
 
-const targetBranch = beachballConfig.branch || 'main';
+const targetBranch = getDefaultRemoteBranch({
+  branch: beachballConfig.branch || 'main',
+  cwd: process.cwd(),
+});
 const repoRoot = path.resolve(__dirname, '..');
 const marketplacePath = path.join(repoRoot, '.claude-plugin', 'marketplace.json');
 
