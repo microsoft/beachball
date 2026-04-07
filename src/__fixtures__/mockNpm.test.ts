@@ -2,9 +2,9 @@
 // But this added complexity greatly speeds up the other npm-related tests by removing the
 // dependency on actual npm CLI calls and a fake registry (which are very slow).
 
-import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs';
-// import fetch from 'npm-registry-fetch';
+import fetch from 'npm-registry-fetch';
 import { type NpmResult, npm } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
 import {
@@ -12,13 +12,13 @@ import {
   _makeRegistryData,
   _mockNpmPack,
   _mockNpmPublish,
-  _mockNpmShow,
   type MockNpmResult,
+  type MockNpmCommand,
 } from './mockNpm';
 import * as readJsonModule from '../object/readJson';
 
 jest.mock('fs');
-// jest.mock('npm-registry-fetch');
+jest.mock('npm-registry-fetch');
 jest.mock('../object/readJson');
 jest.mock('../packageManager/npm');
 
@@ -93,94 +93,6 @@ describe('_makeRegistryData', () => {
   });
 });
 
-describe('_mockNpmShow', () => {
-  function getErrorResult(errorMessage: string) {
-    return {
-      stdout: '',
-      stderr: errorMessage,
-      all: errorMessage,
-      success: false,
-      failed: true,
-    } as NpmResult;
-  }
-
-  function getShowResult(params: { name: string; version: string }) {
-    const { name, version } = params;
-    const output = JSON.stringify({
-      ...data[name].versions[version],
-      'dist-tags': data[name]['dist-tags'],
-      versions: Object.keys(data[name].versions),
-    });
-
-    return {
-      stdout: output,
-      stderr: '',
-      all: output,
-      success: true,
-      failed: false,
-    } as NpmResult;
-  }
-
-  const data = _makeRegistryData({
-    foo: {
-      versions: ['1.0.0-beta', '1.0.0', '1.0.1'],
-      'dist-tags': { latest: '1.0.1', beta: '1.0.0-beta' },
-    },
-    '@foo/bar': {
-      versions: ['2.0.0-beta', '2.0.0', '2.0.1'],
-      'dist-tags': { latest: '2.0.1', beta: '2.0.0-beta' },
-    },
-  });
-
-  it("errors if package doesn't exist", async () => {
-    const emptyData = _makeRegistryData({});
-    const result = await _mockNpmShow(emptyData, ['foo'], { cwd: undefined });
-    expect(result).toEqual(getErrorResult('[fake] code E404 - foo - not found'));
-  });
-
-  it('returns requested version plus dist-tags and version list', async () => {
-    const result = await _mockNpmShow(data, ['foo@1.0.0'], { cwd: undefined });
-    expect(result).toEqual(getShowResult({ name: 'foo', version: '1.0.0' }));
-  });
-
-  it('returns requested version of scoped package', async () => {
-    const result = await _mockNpmShow(data, ['@foo/bar@2.0.0'], { cwd: undefined });
-    expect(result).toEqual(getShowResult({ name: '@foo/bar', version: '2.0.0' }));
-  });
-
-  it('returns requested tag', async () => {
-    const result = await _mockNpmShow(data, ['foo@beta'], { cwd: undefined });
-    expect(result).toEqual(getShowResult({ name: 'foo', version: '1.0.0-beta' }));
-  });
-
-  it('returns requested tag of scoped package', async () => {
-    const result = await _mockNpmShow(data, ['@foo/bar@beta'], { cwd: undefined });
-    expect(result).toEqual(getShowResult({ name: '@foo/bar', version: '2.0.0-beta' }));
-  });
-
-  it('returns latest version if no version requested', async () => {
-    const result = await _mockNpmShow(data, ['foo'], { cwd: undefined });
-    expect(result).toEqual(getShowResult({ name: 'foo', version: '1.0.1' }));
-  });
-
-  it('returns latest version of scoped package if no version requested', async () => {
-    const result = await _mockNpmShow(data, ['@foo/bar'], { cwd: undefined });
-    expect(result).toEqual(getShowResult({ name: '@foo/bar', version: '2.0.1' }));
-  });
-
-  it("errors if requested version doesn't exist", async () => {
-    const result = await _mockNpmShow(data, ['foo@2.0.0'], { cwd: undefined });
-    expect(result).toEqual(getErrorResult('[fake] code E404 - foo@2.0.0 - not found'));
-  });
-
-  // support for this could be added later
-  it('currently throws if requested version is a range', async () => {
-    await expect(() => _mockNpmShow(data, ['foo@^1.0.0'], { cwd: undefined })).rejects.toThrow(
-      /not currently supported/
-    );
-  });
-});
-
 describe('_mockNpmPublish', () => {
   function getPublishResult(params: { error?: string; tag?: string }) {
     const { error, tag } = params;
@@ -189,9 +101,8 @@ describe('_mockNpmPublish', () => {
     return {
       stdout,
       stderr: error || '',
-      all: stdout || error,
+      output: stdout || error,
       success: !error,
-      failed: !!error,
     } as NpmResult;
   }
 
@@ -322,8 +233,7 @@ describe('_mockNpmPack', () => {
     const result = await _mockNpmPack(registryData, [], { cwd: 'fake' });
     expect(result).toEqual({
       success: true,
-      failed: false,
-      all: 'foo-1.0.0.tgz',
+      output: 'foo-1.0.0.tgz',
       stdout: 'foo-1.0.0.tgz',
       stderr: '',
     });
@@ -337,8 +247,7 @@ describe('_mockNpmPack', () => {
     const result = await _mockNpmPack(registryData, [], { cwd: 'fake' });
     expect(result).toEqual({
       success: true,
-      failed: false,
-      all: 'foo-bar-2.0.0.tgz',
+      output: 'foo-bar-2.0.0.tgz',
       stdout: 'foo-bar-2.0.0.tgz',
       stderr: '',
     });
@@ -362,25 +271,29 @@ describe('mockNpm', () => {
     packageJson = undefined;
   });
 
-  // describe('mockFetchJson', () => {
-  //   it('mocks registry fetch', async () => {
-  //     npmMock.setRegistryData({ foo: { versions: ['1.0.0'] } });
-  //     expect(fetch.json).toHaveProperty('mock');
-  //     const result = await fetch.json('/foo');
-  //     expect(result).toEqual({
-  //       name: 'foo',
-  //       modified: expect.any(String),
-  //       versions: { '1.0.0': { name: 'foo', version: '1.0.0' } },
-  //       'dist-tags': { latest: '1.0.0' },
-  //     });
-  //   });
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
 
-  //   it('resets calls and registry after each test', () => {
-  //     expect(npmMock.mockFetchJson).not.toHaveBeenCalled();
-  //     // registry data for foo was set in the previous test but should have been cleared
-  //     expect(() => fetch.json('/foo')).toThrow('404 Not Found');
-  //   });
-  // });
+  describe('mockFetchJson', () => {
+    it('mocks registry fetch', async () => {
+      npmMock.setRegistryData({ foo: { versions: ['1.0.0'] } });
+      expect(fetch.json).toHaveProperty('mock');
+      const result = await fetch.json('/foo');
+      expect(result).toEqual({
+        name: 'foo',
+        modified: expect.any(String),
+        versions: { '1.0.0': { name: 'foo', version: '1.0.0' } },
+        'dist-tags': { latest: '1.0.0' },
+      });
+    });
+
+    it('resets calls and registry after each test', () => {
+      expect(npmMock.mockFetchJson).not.toHaveBeenCalled();
+      // registry data for foo was set in the previous test but should have been cleared
+      expect(() => fetch.json('/foo')).toThrow('404 Not Found');
+    });
+  });
 
   describe('getPublishedVersions', () => {
     it('gets data for a package', () => {
@@ -433,23 +346,14 @@ describe('mockNpm', () => {
         versions: ['1.0.0'],
         'dist-tags': { latest: '1.0.0' },
       });
-      expect(await npm(['show', 'foo'], { cwd: undefined })).toMatchObject({
-        success: true,
-        stdout: JSON.stringify({
-          name: 'foo',
-          version: '1.0.0',
-          'dist-tags': { latest: '1.0.0' },
-          versions: ['1.0.0'],
-        }),
+      expect(await fetch.json('/foo')).toEqual({
+        name: 'foo',
+        modified: expect.any(String),
+        versions: {
+          '1.0.0': { name: 'foo', version: '1.0.0' },
+        },
+        'dist-tags': { latest: '1.0.0' },
       });
-      // expect(await fetch.json('/foo')).toEqual({
-      //   name: 'foo',
-      //   modified: expect.any(String),
-      //   versions: {
-      //     '1.0.0': { name: 'foo', version: '1.0.0' },
-      //   },
-      //   'dist-tags': { latest: '1.0.0' },
-      // });
     });
   });
 
@@ -475,8 +379,7 @@ describe('mockNpm', () => {
       const result = await npm(['pack'], { cwd: 'fake' });
       expect(result).toEqual({
         success: true,
-        failed: false,
-        all: 'foo-2.0.0.tgz',
+        output: 'foo-2.0.0.tgz',
         stdout: 'foo-2.0.0.tgz',
         stderr: '',
       });
@@ -494,22 +397,13 @@ describe('mockNpm', () => {
       expect(npmMock.mock).toHaveBeenCalledTimes(1);
       expect(npmMock.mock).toHaveBeenCalledWith(['foo'], expect.objectContaining({ cwd: undefined }));
     });
-
-    it('TEMP mocks npm show command', async () => {
-      npmMock.setRegistryData({ foo: { versions: ['1.0.0'] } });
-      const result = await npm(['show', 'foo'], { cwd: undefined });
-      expect(result).toMatchObject({
-        success: true,
-        stdout: expect.stringContaining('"name":"foo"'),
-      });
-    });
   });
 
   describe('setCommandOverride', () => {
     const fakePublishResult = 'hi';
 
     it('respects mocked command override', async () => {
-      const mockPublish = jest.fn(() => Promise.resolve(fakePublishResult as unknown as MockNpmResult));
+      const mockPublish = jest.fn<MockNpmCommand>(() => Promise.resolve(fakePublishResult as unknown as MockNpmResult));
       npmMock.setCommandOverride('publish', mockPublish);
       const result = await npm(['publish', 'foo'], { cwd: undefined });
       expect(result).toEqual(fakePublishResult);
@@ -517,7 +411,7 @@ describe('mockNpm', () => {
     });
 
     it("respects extra mocked command that's not normally supported", async () => {
-      const mockFoo = jest.fn(() => Promise.resolve('hi' as unknown as MockNpmResult));
+      const mockFoo = jest.fn<MockNpmCommand>(() => Promise.resolve('hi' as unknown as MockNpmResult));
       npmMock.setCommandOverride('foo', mockFoo);
       const result = await npm(['foo'], { cwd: undefined });
       expect(result).toEqual('hi');

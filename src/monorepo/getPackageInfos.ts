@@ -55,7 +55,7 @@ export function getPackageInfos(optionsOrCwd: string | PackageInfosOptions): Pac
   if (wsPackageInfos) {
     return parsedOptions
       ? getPackageInfosWithOptions(wsPackageInfos, parsedOptions.cliOptions)
-      : // eslint-disable-next-line etc/no-deprecated
+      : // eslint-disable-next-line beachball/no-deprecated
         getPackageInfosWithOptions(wsPackageInfos);
   }
   return {};

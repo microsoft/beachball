@@ -89,7 +89,7 @@ describe('getPackageInfosWithOptions', () => {
       const pkg = result['test-package'];
 
       // Should exist but not be enumerable
-      // eslint-disable-next-line etc/no-deprecated
+      // eslint-disable-next-line beachball/no-deprecated
       expect(() => pkg.combinedOptions).toThrow('combinedOptions is no longer supported');
       expect(Object.keys(pkg)).not.toContain('combinedOptions');
       expect(JSON.stringify(pkg)).not.toContain('combinedOptions');

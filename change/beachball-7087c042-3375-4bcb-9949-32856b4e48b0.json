@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "[BREAKING] Switch from `minimatch` to `picomatch`. Patterns should work the same, except that paths MUST use forward slashes. (This applies to `scope`, `ignorePatterns`, `groups`, and `changelog.groups`.)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

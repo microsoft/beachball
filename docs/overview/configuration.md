@@ -91,7 +91,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `groupChanges` | `boolean` | `false` | repo | Write multiple changes to a single change file |
 | `hooks` | [`HooksOptions`][4] | | repo | Hooks for custom pre/post publish actions |
 | `ignorePatterns` | `string[]` | | repo | Ignore changes in files matching these glob patterns ([see notes][6]) |
-| `npmReadConcurrency` | number | 5 | repo | Maximum concurrency for fetching package versions from the registry (see `concurrency` for write operations) |
+| `npmReadConcurrency` | number | 10 | repo | Maximum concurrency for fetching package versions from the registry (see `concurrency` for write operations) |
 | `package` | `string` | | repo | Specifies which package the command relates to (overrides change detection based on `git diff`) |
 | `prereleasePrefix` | `string` | | repo | Prerelease prefix, e.g. `"beta"`. Note that if this is specified, packages with change type major/minor/patch will be bumped as prerelease instead. |
 | `packStyle` | `'sequential' \| 'layer'` | `'sequential'` | repo | With `packToPath`, how to organize the tgz files. `'sequential'` uses numeric prefixes to ensure topological ordering. `'layer'` groups the packages into numbered subfolders based on dependency tree layers. |
@@ -114,7 +114,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 
 ### Glob matching
 
-Glob matching is implemented using [`minimatch`](https://www.npmjs.com/package/minimatch), which supports most glob syntax.
+Glob matching is implemented using [`picomatch`](https://www.npmjs.com/package/picomatch), which supports most glob syntax.
 
 All glob patterns are relative to the repo or monorepo root and must use **forward slashes only**.
 

@@ -115,7 +115,6 @@ describe('packagePublish', () => {
         registry: registry.getUrl(),
         // Probably less important now that this is a fetch not a shell command, but just in case
         timeout: env.isCI && process.platform === 'win32' ? 4500 : 1500,
-        path: tempRoot,
       });
       expect(realPackage).toEqual({
         versions: [testVersion],
@@ -146,23 +145,20 @@ describe('packagePublish', () => {
       expect(logs2ndTry).toMatch(`${testSpec} already exists in the registry`);
     });
 
-    // TODO: enable this once node version is upgraded (it doesn't work with npm 6 because that
-    // version seems to allow truly anonymous publishing with verdaccio, and there's not a
-    // straightforward way to detect the npm version while accounting for nvm)
-    // it('handles auth error and does not retry', async () => {
-    //   await registry.logout();
+    it('handles auth error and does not retry', async () => {
+      await registry.logout();
 
-    //   const testPackageInfo = getTestPackageInfo();
-    //   const publishResult = await packagePublish(testPackageInfo, {
-    //     ...defaultOptions,
-    //     registry: registry.getUrl(),
-    //     path: tempRoot,
-    //   });
-    //   expect(publishResult).toEqual(failedResult);
-    //   // `retries` should be ignored with an auth error
-    //   expect(npmSpy).toHaveBeenCalledTimes(1);
-    //   expect(logs.getMockLines('error')).toMatch(`Publishing ${testSpec} failed due to an auth error. Output:`);
-    // });
+      const testPackageInfo = getTestPackageInfo();
+      const publishResult = await packagePublish(testPackageInfo, {
+        ...defaultOptions,
+        registry: registry.getUrl(),
+        path: tempRoot,
+      });
+      expect(publishResult).toEqual(failedResult);
+      // `retries` should be ignored with an auth error
+      expect(npmSpy).toHaveBeenCalledTimes(1);
+      expect(logs.getMockLines('error')).toMatch(`Publishing ${testSpec} failed due to an auth error. Output:`);
+    });
   });
 
   describe('with mocked npm', () => {
@@ -173,10 +169,10 @@ describe('packagePublish', () => {
       // mock success by default, except for the two mocked failures below
       npmSpy.mockImplementation(() => Promise.resolve({ success: true } as NpmResult));
       // first call: arbitrary error
-      npmSpy.mockImplementationOnce(() => Promise.resolve({ success: false, all: 'some errors' } as NpmResult));
+      npmSpy.mockImplementationOnce(() => Promise.resolve({ success: false, output: 'some errors' } as NpmResult));
       // second call: timeout
       npmSpy.mockImplementationOnce(() =>
-        Promise.resolve({ success: false, all: 'sloooow', timedOut: true } as NpmResult)
+        Promise.resolve({ success: false, output: 'sloooow', timedOut: true } as NpmResult)
       );
 
       const publishResult = await packagePublish(testPackageInfo, {
@@ -197,7 +193,7 @@ describe('packagePublish', () => {
 
     it('fails if out of retries', async () => {
       // Again, mock all npm calls for this test instead of simulating an actual error condition.
-      npmSpy.mockImplementation(() => Promise.resolve({ success: false, all: 'some errors' } as NpmResult));
+      npmSpy.mockImplementation(() => Promise.resolve({ success: false, output: 'some errors' } as NpmResult));
 
       const publishResult = await packagePublish(getTestPackageInfo(), {
         ...defaultOptions,
@@ -217,7 +213,7 @@ describe('packagePublish', () => {
     it('does not retry on auth error (mock)', async () => {
       // Mock an auth error
       const testPackageInfo = getTestPackageInfo();
-      npmSpy.mockImplementation(() => Promise.resolve({ success: false, all: 'ERR! code ENEEDAUTH' } as NpmResult));
+      npmSpy.mockImplementation(() => Promise.resolve({ success: false, output: 'ERR! code ENEEDAUTH' } as NpmResult));
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
@@ -236,7 +232,7 @@ describe('packagePublish', () => {
       // E404 most commonly indicates an issue with a token, which is hard to simulate,
       // so just mock the npm call.
       const testPackageInfo = getTestPackageInfo();
-      npmSpy.mockImplementation(() => Promise.resolve({ success: false, all: 'ERR! code E404' } as NpmResult));
+      npmSpy.mockImplementation(() => Promise.resolve({ success: false, output: 'ERR! code E404' } as NpmResult));
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
@@ -251,7 +247,7 @@ describe('packagePublish', () => {
 
     it('does not retry on E403', async () => {
       const testPackageInfo = getTestPackageInfo();
-      npmSpy.mockImplementation(() => Promise.resolve({ success: false, all: 'ERR! code E403' } as NpmResult));
+      npmSpy.mockImplementation(() => Promise.resolve({ success: false, output: 'ERR! code E403' } as NpmResult));
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,

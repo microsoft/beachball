@@ -15,41 +15,40 @@ export interface ParsedOptions {
   options: BeachballOptions;
 }
 
-export interface CliOptions
-  extends Pick<
-    RepoOptions,
-    | 'access'
-    | 'authType'
-    | 'branch'
-    | 'bump'
-    | 'bumpDeps'
-    | 'canaryName'
-    | 'changehint'
-    | 'changeDir'
-    | 'commit'
-    | 'concurrency'
-    | 'depth'
-    | 'disallowedChangeTypes'
-    | 'disallowDeletedChangeFiles'
-    | 'fetch'
-    | 'fromRef'
-    | 'gitTags'
-    | 'gitTimeout'
-    | 'keepChangeFiles'
-    | 'message'
-    | 'new'
-    | 'npmReadConcurrency'
-    | 'packToPath'
-    | 'path'
-    | 'prereleasePrefix'
-    | 'publish'
-    | 'push'
-    | 'registry'
-    | 'retries'
-    | 'scope'
-    | 'tag'
-    | 'timeout'
-  > {
+export interface CliOptions extends Pick<
+  RepoOptions,
+  | 'access'
+  | 'authType'
+  | 'branch'
+  | 'bump'
+  | 'bumpDeps'
+  | 'canaryName'
+  | 'changehint'
+  | 'changeDir'
+  | 'commit'
+  | 'concurrency'
+  | 'depth'
+  | 'disallowedChangeTypes'
+  | 'disallowDeletedChangeFiles'
+  | 'fetch'
+  | 'fromRef'
+  | 'gitTags'
+  | 'gitTimeout'
+  | 'keepChangeFiles'
+  | 'message'
+  | 'new'
+  | 'npmReadConcurrency'
+  | 'packToPath'
+  | 'path'
+  | 'prereleasePrefix'
+  | 'publish'
+  | 'push'
+  | 'registry'
+  | 'retries'
+  | 'scope'
+  | 'tag'
+  | 'timeout'
+> {
   /** Consider all packages to have changed */
   all: boolean;
   command: string;
@@ -142,9 +141,8 @@ export interface RepoOptions {
    * Maximum concurrency for fetching package versions/tags from the registry.
    * This should be a faster operation than publishing and can use a higher limit.
    * (See `concurrency` for write operations.)
-   * @default 5
+   * @default 10
    */
-  // TODO change back to 10 after https://github.com/microsoft/beachball/issues/1143
   npmReadConcurrency: number;
   /**
    * The default dist-tag used for npm publish, if no other `tag` is specified.
@@ -165,10 +163,11 @@ export interface RepoOptions {
   fromRef?: string;
   /**
    * Whether to generate changelog files.
-   * - `true` (default) to generate both CHANGELOG.md and CHANGELOG.json
+   * - `'md'` (default) to generate only CHANGELOG.md
+   * - `true` to generate both CHANGELOG.md and CHANGELOG.json
    * - `false` to skip changelog generation
-   * - `'md'` to generate only CHANGELOG.md
    * - `'json'` to generate only CHANGELOG.json
+   * @default 'md'
    */
   generateChangelog: boolean | 'md' | 'json';
   /**
@@ -184,7 +183,7 @@ export interface RepoOptions {
   /** Custom pre/post publish actions */
   hooks?: HooksOptions;
   /**
-   * Ignore changes in these files (minimatch patterns; negations not supported).
+   * Ignore changes in these files (picomatch patterns; negations not supported).
    * Patterns are relative to the repo root and must use forward slashes.
    *
    * In repos that don't use a supported monorepo manager (npm/yarn/pnpm workspaces, rush, lerna),
@@ -246,7 +245,7 @@ export interface RepoOptions {
    */
   retries: number;
   /**
-   * Only apply commands to package paths matching these minimatch patterns.
+   * Only apply commands to package paths matching these picomatch patterns.
    * Patterns are relative to the monorepo root and must use forward slashes.
    *
    * Negations are supported: e.g. `['packages/foo/*', '!packages/foo/bar']`
@@ -283,8 +282,9 @@ export interface RepoOptions {
   new: boolean;
 }
 
-export interface PackageOptions
-  extends Partial<Pick<RepoOptions, 'gitTags' | 'disallowedChangeTypes' | 'defaultNpmTag'>> {
+export interface PackageOptions extends Partial<
+  Pick<RepoOptions, 'gitTags' | 'disallowedChangeTypes' | 'defaultNpmTag'>
+> {
   tag?: string | null;
   /**
    * Disable publishing a particular package.
@@ -303,18 +303,18 @@ export interface VersionGroupOptions {
   name: string;
 
   /**
-   * minimatch pattern(s) for package paths to include in this group.
+   * picomatch pattern(s) for package paths to include in this group.
    * Patterns are relative to the repo root and must use forward slashes.
    * If `true`, include all packages except those matching `exclude`.
    */
   include: string | string[] | true;
 
   /**
-   * minimatch pattern(s) for package paths to exclude from this group.
+   * picomatch pattern(s) for package paths to exclude from this group.
    * Patterns are relative to the repo root and must use forward slashes.
    *
-   * Currently this must use **negated patterns only**: e.g. if you want to exclude `packages/foo`,
-   * you must specify `exclude` as `!packages/foo`. (This will be fixed in a future major version.)
+   * NOTE: As of v3, you should use non-negated patterns here (the previous bug requiring
+   * negated patterns has been fixed).
    */
   exclude?: string | string[];
 

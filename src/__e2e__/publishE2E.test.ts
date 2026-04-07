@@ -28,7 +28,7 @@ import { validate } from '../validation/validate';
 // If an issue is found in the future that could only be caught by this test using real npm,
 // a new test file with a real registry should be created to cover that specific scenario.
 jest.mock('../packageManager/npm');
-// jest.mock('npm-registry-fetch');
+jest.mock('npm-registry-fetch');
 
 describe('publish command (e2e)', () => {
   const npmMock = initNpmMock();

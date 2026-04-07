@@ -8,6 +8,6 @@ import { createCommandContext } from '../monorepo/createCommandContext';
  * @deprecated Use `bumpInMemory` instead.
  */
 export function gatherBumpInfo(options: BeachballOptions, originalPackageInfos: PackageInfos): BumpInfo {
-  // eslint-disable-next-line etc/no-deprecated -- compat code
+  // eslint-disable-next-line beachball/no-deprecated -- compat code
   return bumpInMemory(options, createCommandContext(options, originalPackageInfos));
 }

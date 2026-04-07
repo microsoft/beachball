@@ -8,6 +8,10 @@ ignores:
   - verdaccio-memory
   # ok with using implicit dev dep for now (part of verdaccio)
   - '@verdaccio/config'
+  # needed for type references from verdaccio (not listed in deps)
+  - '@verdaccio/types'
+  # not detected in script
+  - cross-env
 
 ignore-patterns:
   # managed separately
