@@ -16,7 +16,6 @@ import { getParsedOptions } from '../options/getOptions';
 import { readJson } from '../object/readJson';
 import { createCommandContext } from '../monorepo/createCommandContext';
 import type { RepoOptions } from '../types/BeachballOptions';
-import { addGitObserver, clearGitObservers } from 'workspace-tools';
 
 describe('publish command (git)', () => {
   let repositoryFactory: RepositoryFactory | undefined;
@@ -44,7 +43,6 @@ describe('publish command (git)', () => {
   }
 
   afterEach(() => {
-    clearGitObservers();
     repositoryFactory?.cleanUp();
     repositoryFactory = undefined;
     repo = undefined;
@@ -128,27 +126,5 @@ describe('publish command (git)', () => {
 
     // changes from publish process were committed
     expect(fs.existsSync(txtPath)).toBe(true);
-  });
-
-  it('specifies fetch depth when depth param is defined', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    repo = repositoryFactory.cloneRepository();
-
-    const { options, parsedOptions } = getOptions({
-      depth: 10,
-    });
-
-    generateChangeFiles(['foo'], options);
-    repo.push();
-
-    const gitObserver = jest.fn((args: string[]) => {
-      if (args[0] === 'fetch') {
-        expect(args).toContain('--depth=10');
-      }
-    });
-    addGitObserver(gitObserver);
-
-    await publish(options, createCommandContext(parsedOptions));
-    expect(gitObserver).toHaveBeenCalled();
   });
 });

@@ -1,5 +1,28 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`publishToRegistry includes new packages not modified 1`] = `
+"[log] Validating new package versions...
+
+[log] Package versions are OK to publish:
+  • foo@1.0.0
+  • baz@1.0.0
+
+[log] Validating no private package among package dependencies
+[log]   OK!
+
+[log] Publishing - foo@1.0.0 with tag latest
+[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
+[log]   (cwd: <root>/packages/foo)
+
+[log] Published! - foo@1.0.0
+
+[log] Publishing - baz@1.0.0 with tag latest
+[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
+[log]   (cwd: <root>/packages/baz)
+
+[log] Published! - baz@1.0.0"
+`;
+
 exports[`publishToRegistry publishes multiple packages in dependency order 1`] = `
 "[log] Validating new package versions...
 

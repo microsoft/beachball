@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`publish command logs expected output for a standard publish flow 1`] = `
+"[log]
+Validating options and change files...
+[log]
+Validating package dependencies...
+[log] Validating no private package among package dependencies
+[log]   OK!
+
+[log]
+[log] Preparing to publish
+
+[log] Publishing with the following configuration:
+
+  registry: fake
+
+  current branch: master
+  current hash: <commit>
+  target branch: origin/master
+  npm dist-tag: latest
+
+  bumps versions before publishing: yes
+  publishes to npm registry: yes
+  pushes bumps and changelogs to remote git repo: no
+
+
+[log] Creating temporary publish branch publish_<timestamp>
+
+[log] Bumping versions and publishing packages to npm registry
+
+[log]
+[log] Skipping git push and tagging
+
+[log] Cleaning up
+
+[log] git checkout master
+[log] deleting temporary publish branch publish_<timestamp>"
+`;

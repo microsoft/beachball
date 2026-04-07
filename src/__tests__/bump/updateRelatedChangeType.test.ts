@@ -281,4 +281,200 @@ describe('updateRelatedChangeType', () => {
       foo: 'preminor',
     });
   });
+
+  // currently fails
+  // it('respects disallowed change type from group', () => {
+  //   const bumpInfo = callUpdateRelatedChangeType({
+  //     changes: [{ packageName: 'dep', type: 'major', dependentChangeType: 'minor' }],
+  //     calculatedChangeTypes: { dep: 'major' },
+  //     packages: {
+  //       foo: { dependencies: { dep: '1.0.0' } },
+  //       bar: {},
+  //       dep: {},
+  //     },
+  //     packageGroups: { grp: { packageNames: ['foo', 'bar'], disallowedChangeTypes: ['major', 'minor'] } },
+  //   });
+  //
+  //   expect(bumpInfo.calculatedChangeTypes).toEqual({
+  //     dep: 'major',
+  //     foo: 'preminor',
+  //     bar: 'preminor',
+  //   });
+  // });
+
+  it('does not bump any dependents when dependentChangeType is none', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'dep', type: 'major', dependentChangeType: 'none' }],
+      packages: {
+        dep: {},
+        a: { dependencies: { dep: '1.0.0' } },
+        b: { dependencies: { a: '1.0.0' } },
+      },
+    });
+
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      dep: 'major',
+    });
+  });
+
+  it('does not propagate when dependent already has a higher calculated change type', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'dep', type: 'patch', dependentChangeType: 'minor' }],
+      calculatedChangeTypes: { dep: 'patch', foo: 'major' },
+      packages: {
+        dep: {},
+        foo: { dependencies: { dep: '1.0.0' } },
+        app: { dependencies: { foo: '1.0.0' } },
+      },
+    });
+
+    // foo already has 'major' which is higher than 'minor', so propagation stops.
+    // app should NOT be bumped since foo's type didn't increase.
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      dep: 'patch',
+      foo: 'major',
+    });
+  });
+
+  it('bumps package with devDependency on the changed package', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'dep', type: 'patch', dependentChangeType: 'minor' }],
+      packages: {
+        dep: {},
+        consumer: { devDependencies: { dep: '1.0.0' } },
+      },
+    });
+
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      dep: 'patch',
+      consumer: 'minor',
+    });
+  });
+
+  it('bumps package with peerDependency on the changed package', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'dep', type: 'patch', dependentChangeType: 'minor' }],
+      packages: {
+        dep: {},
+        consumer: { peerDependencies: { dep: '1.0.0' } },
+      },
+    });
+
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      dep: 'patch',
+      consumer: 'minor',
+    });
+  });
+
+  it('bumps converging dependent through diamond dependency graph', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'dep', type: 'patch', dependentChangeType: 'minor' }],
+      packages: {
+        dep: {},
+        a: { dependencies: { dep: '1.0.0' } },
+        b: { dependencies: { dep: '1.0.0' } },
+        app: { dependencies: { a: '1.0.0', b: '1.0.0' } },
+      },
+    });
+
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      dep: 'patch',
+      a: 'minor',
+      b: 'minor',
+      app: 'minor',
+    });
+  });
+
+  it('propagates dependentChangeType through a deep chain', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'dep', type: 'patch', dependentChangeType: 'minor' }],
+      packages: {
+        dep: {},
+        c1: { dependencies: { dep: '1.0.0' } },
+        c2: { dependencies: { c1: '1.0.0' } },
+        c3: { dependencies: { c2: '1.0.0' } },
+        leaf: { dependencies: { c3: '1.0.0' } },
+      },
+    });
+
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      dep: 'patch',
+      c1: 'minor',
+      c2: 'minor',
+      c3: 'minor',
+      leaf: 'minor',
+    });
+  });
+
+  it('propagates original dependentChangeType past a package with disallowedChangeTypes', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'dep', type: 'major', dependentChangeType: 'minor' }],
+      packages: {
+        dep: {},
+        a: {
+          dependencies: { dep: '1.0.0' },
+          beachball: { disallowedChangeTypes: ['minor'] },
+        },
+        b: { dependencies: { a: '1.0.0' } },
+      },
+    });
+
+    // 'a' gets preminor because minor is disallowed for it.
+    // 'b' gets minor (not preminor) because the original dependentChangeType propagates,
+    // not the downgraded type.
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      dep: 'major',
+      a: 'preminor',
+      b: 'minor',
+    });
+  });
+
+  it('package disallowedChangeTypes null overrides repo disallowedChangeTypes', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'dep', type: 'major', dependentChangeType: 'minor' }],
+      packages: {
+        dep: {},
+        foo: {
+          dependencies: { dep: '1.0.0' },
+          beachball: { disallowedChangeTypes: null },
+        },
+        bar: { dependencies: { dep: '1.0.0' } },
+      },
+      options: { disallowedChangeTypes: ['minor'] },
+    });
+
+    // foo explicitly sets disallowedChangeTypes to null, overriding the repo setting
+    // bar inherits the repo's disallowedChangeTypes
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      dep: 'major',
+      foo: 'minor',
+      bar: 'preminor',
+    });
+  });
+
+  it('bumps second group when first group member depends on second group member', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'dep', type: 'patch', dependentChangeType: 'minor' }],
+      calculatedChangeTypes: { dep: 'patch' },
+      packages: {
+        dep: {},
+        g1a: { dependencies: { dep: '1.0.0' } },
+        g1b: {},
+        g2a: { dependencies: { g1a: '1.0.0' } },
+        g2b: {},
+      },
+      packageGroups: {
+        grp1: { packageNames: ['g1a', 'g1b'], disallowedChangeTypes: null },
+        grp2: { packageNames: ['g2a', 'g2b'], disallowedChangeTypes: null },
+      },
+    });
+
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      dep: 'patch',
+      g1a: 'minor',
+      g1b: 'minor',
+      g2a: 'minor',
+      g2b: 'minor',
+    });
+  });
 });

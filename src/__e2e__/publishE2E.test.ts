@@ -20,7 +20,7 @@ import { validate } from '../validation/validate';
 // These tests are slow, so they should only cover E2E publishing scenarios that can't be fully
 // covered by lower-level tests (such as publishToRegistry or bumping functional tests), and a
 // few all-up scenarios as sanity checks. Tests specific to git or npm scenarios should
-// potentially go in publishGit.test.ts or publishRegistry.test.ts instead.
+// potentially go in publishGit.test.ts or publishNpm.test.ts instead.
 //
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -88,9 +88,9 @@ describe('publish command (e2e)', () => {
     generateChangeFiles(['foo'], options);
     repo.push();
 
-    let fetchCount = 0;
     addGitObserver(args => {
-      args[0] === 'fetch' && fetchCount++;
+      // no fetch when flag set to false
+      expect(args[0]).not.toBe('fetch');
     });
 
     await publishWrapper(parsedOptions);
@@ -100,9 +100,6 @@ describe('publish command (e2e)', () => {
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },
     });
-
-    // no fetch when flag set to false
-    expect(fetchCount).toBe(0);
 
     repo.checkout(defaultBranchName);
     repo.pull();

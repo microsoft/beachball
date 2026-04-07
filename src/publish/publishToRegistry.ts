@@ -33,7 +33,7 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
   // get the packages to publish, reducing the set by packages that don't need publishing
   let packagesToPublish = getPackagesToPublish(bumpInfo, { logSkipped: true });
   if (!packagesToPublish.length) {
-    console.log('Nothing to publish');
+    console.log('Nothing to publish\n');
     return;
   }
 
@@ -121,7 +121,7 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
     if (packToPath) {
       // The regular recovery message is mostly irrelevant for packing, since nothing was published
       console.error(
-        'Something went wrong with packing packages! No packages were published, so you can address the issue and try again.'
+        'Something went wrong with packing packages! No packages were published, so you can address the issue and try again.\n'
       );
     } else {
       displayManualRecovery(bumpInfo, succeededPackages);

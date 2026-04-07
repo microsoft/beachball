@@ -8,7 +8,7 @@ import { gitFetch } from '../git/fetch';
 import { gitAsync } from '../git/gitAsync';
 import { BeachballError } from '../types/BeachballError';
 
-const bumpPushRetries = 5;
+const defaultBumpPushRetries = 5;
 /** Use verbose logging for these steps to make it easier to debug if something goes wrong */
 const verbose = true;
 
@@ -16,11 +16,14 @@ const verbose = true;
  * Bump versions locally, commit, optionally tag, and push to git.
  *
  * This should NOT mutate `bumpInfo`.
+ *
+ * @param bumpPushRetries Retry count, overrideable for testing only
  */
 export async function bumpAndPush(
   bumpInfo: Readonly<BumpInfo>,
   publishBranch: string,
-  options: BeachballOptions
+  options: BeachballOptions,
+  bumpPushRetries = defaultBumpPushRetries
 ): Promise<void> {
   const { path: cwd, branch, depth, gitTimeout } = options;
   const { remote, remoteBranch } = parseRemoteBranch({ branch, cwd });
@@ -87,6 +90,7 @@ export async function bumpAndPush(
   }
 
   if (!completed) {
+    console.log();
     displayManualRecovery(bumpInfo);
     throw new BeachballError(`Failed to bump and push after ${bumpPushRetries} attempts`, {
       alreadyLogged: true,

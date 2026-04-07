@@ -1,5 +1,5 @@
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
-import { gitFailFast } from 'workspace-tools';
+import { gitFailFast as _gitFailFast } from 'workspace-tools';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { tagPackages } from '../../publish/tagPackages';
 import { generateTag } from '../../git/generateTag';
@@ -8,6 +8,7 @@ import { makePackageInfos } from '../../__fixtures__/packageInfos';
 jest.mock('workspace-tools', () => ({
   gitFailFast: jest.fn(),
 }));
+const gitFailFast = _gitFailFast as jest.MockedFunction<typeof _gitFailFast>;
 
 const createTagParameters = (tag: string) => {
   return [['tag', '-a', '-f', tag, '-m', tag], { cwd: '' }];
@@ -60,7 +61,7 @@ describe('tagPackages', () => {
   initMockLogs();
 
   beforeEach(() => {
-    (gitFailFast as jest.Mock).mockReset();
+    gitFailFast.mockReset();
   });
 
   it('does not create package tag for packages with gitTags=false', () => {
@@ -88,6 +89,24 @@ describe('tagPackages', () => {
     // verify git is being called to create new auto tag for foo
     const newFooTag = generateTag('foo', oneTagBumpInfo.packageInfos['foo'].version);
     expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters(newFooTag));
+  });
+
+  it('tags multiple packages with gitTags=true', () => {
+    const modifiedPackages = new Set(['foo', 'bar']);
+    tagPackages(
+      { ...oneTagBumpInfo, modifiedPackages, packageInfos: makePackageInfos({ foo: {}, bar: {} }) },
+      { path: '', gitTags: true, tag: 'beta' }
+    );
+    expect(gitFailFast).toHaveBeenCalledTimes(3);
+
+    // verify git is being called to create new auto tags for foo and bar,
+    // and an overall tag since it's not "latest"
+    const gitCalls = gitFailFast.mock.calls.map(([args]) => args.join(' '));
+    expect(gitCalls).toEqual([
+      'tag -a -f foo_v1.0.0 -m foo_v1.0.0',
+      'tag -a -f bar_v1.0.0 -m bar_v1.0.0',
+      'tag -a -f beta -m beta',
+    ]);
   });
 
   it('does not create package tag for packages with changeType none', () => {

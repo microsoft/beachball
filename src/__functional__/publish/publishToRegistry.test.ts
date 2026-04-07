@@ -11,9 +11,16 @@ import { publishToRegistry } from '../../publish/publishToRegistry';
 import type { BeachballOptions, HooksOptions } from '../../types/BeachballOptions';
 import type { PublishBumpInfo } from '../../types/BumpInfo';
 import type { PackageJson } from '../../types/PackageInfo';
+import { writeChangelog } from '../../changelog/writeChangelog';
 
 // Mock npm calls (publish, pack, show)
 jest.mock('../../packageManager/npm');
+
+// Also mock most of the helpers from performBump (these cover parts of bumping that
+// aren't fully set up in this test)
+jest.mock('../../changefile/unlinkChangeFiles');
+jest.mock('../../changelog/writeChangelog');
+jest.mock('../../bump/updateLockFile');
 
 describe('publishToRegistry', () => {
   const npmMock = initNpmMock();
@@ -34,12 +41,15 @@ describe('publishToRegistry', () => {
 
   afterEach(() => {
     removeTempDir(tempRoot);
+    jest.clearAllMocks();
   });
 
   /** Create a minimal PublishBumpInfo where all packages are modified and in scope */
   function makeBumpInfo(
     partialPackageInfos: Parameters<typeof makePackageInfos>[0],
-    extra?: Partial<Pick<PublishBumpInfo, 'modifiedPackages' | 'calculatedChangeTypes' | 'scopedPackages'>>
+    extra?: Partial<
+      Pick<PublishBumpInfo, 'modifiedPackages' | 'calculatedChangeTypes' | 'scopedPackages' | 'newPackages'>
+    >
   ): PublishBumpInfo {
     const packageInfos = makePackageInfos(partialPackageInfos, { path: tempRoot });
 
@@ -66,10 +76,14 @@ describe('publishToRegistry', () => {
   it('publishes a single package', async () => {
     const bumpInfo = makeBumpInfo({ foo: {} });
 
-    await publishToRegistry(bumpInfo, defaultOptions);
+    // In addition to testing the basic functionality, use a prebump hook to verify
+    // performBump isn't called due to bump: false
+    const prebump = jest.fn<Required<HooksOptions>['prebump']>();
+    await publishToRegistry(bumpInfo, { ...defaultOptions, hooks: { prebump } });
 
     const published = npmMock.getPublishedVersions('foo');
     expect(published?.versions).toEqual(['1.0.0']);
+    expect(prebump).not.toHaveBeenCalled();
 
     // This is like a visual regression test for the log UX
     expect(logs.getMockLines('all', { root: tempRoot })).toMatchInlineSnapshot(`
@@ -105,6 +119,22 @@ describe('publishToRegistry', () => {
     const publishCalls = npmMock.mock.mock.calls.filter(([args]) => args[0] === 'publish');
     const publishOrder = publishCalls.map(([, opts]) => path.basename(opts.cwd!));
     expect(publishOrder).toEqual(['lib', 'app']);
+
+    expect(logs.getMockLines('all', { root: tempRoot })).toMatchSnapshot();
+  });
+
+  it('includes new packages not modified', async () => {
+    const bumpInfo = makeBumpInfo(
+      { foo: {}, bar: {}, baz: {} },
+      { newPackages: ['baz'], modifiedPackages: new Set(['foo']), calculatedChangeTypes: { foo: 'patch' } }
+    );
+
+    await publishToRegistry(bumpInfo, defaultOptions);
+
+    expect(npmMock.getPublishedVersions('foo')?.versions).toEqual(['1.0.0']);
+    expect(npmMock.getPublishedVersions('baz')?.versions).toEqual(['1.0.0']);
+    // bar should not be published since it doesn't have a change type and isn't new
+    expect(npmMock.getPublishedVersions('bar')).toBeUndefined();
 
     expect(logs.getMockLines('all', { root: tempRoot })).toMatchSnapshot();
   });
@@ -201,6 +231,46 @@ describe('publishToRegistry', () => {
     };
     expectHookCalls(prepublish);
     expectHookCalls(postpublish);
+  });
+
+  // More details of performBump are covered by its test
+  it('bumps versions on disk before publishing with bump: true', async () => {
+    const bumpInfo = makeBumpInfo({ foo: {} });
+    // Simulate what bumpInMemory would have already done: update the in-memory version
+    // (functions that use the other parts of bumpInfo are mocked)
+    bumpInfo.packageInfos.foo.version = '1.0.1';
+
+    const prebump = jest.fn<Required<HooksOptions>['prebump']>();
+    const postbump = jest.fn<Required<HooksOptions>['postbump']>();
+    // Use the prepublish hook to verify the bump hooks are called correctly
+    const prepublish = jest.fn<Required<HooksOptions>['prepublish']>(() => {
+      expect(prebump).toHaveBeenCalledTimes(1);
+      expect(postbump).toHaveBeenCalledTimes(1);
+      const fooPath = expect.stringMatching(/packages[\\/]foo$/);
+      // BUG: this should use the old version 1.0.0, not the new one
+      // https://github.com/microsoft/beachball/issues/1116
+      expect(prebump).toHaveBeenCalledWith(fooPath, 'foo', '1.0.1', expect.anything());
+      // this is correct
+      expect(postbump).toHaveBeenCalledWith(fooPath, 'foo', '1.0.1', expect.anything());
+    });
+
+    await publishToRegistry(bumpInfo, {
+      ...defaultOptions,
+      bump: true,
+      hooks: { prebump, postbump, prepublish },
+      generateChangelog: true,
+    });
+
+    // performBump should have written the bumped version to disk, then publish used it
+    const published = npmMock.getPublishedVersions('foo');
+    expect(published?.versions).toEqual(['1.0.1']);
+    expect(prepublish).toHaveBeenCalledTimes(1);
+
+    // Verify the on-disk package.json was updated
+    const packageJson = JSON.parse(fs.readFileSync(bumpInfo.packageInfos.foo.packageJsonPath, 'utf-8')) as PackageJson;
+    expect(packageJson.version).toBe('1.0.1');
+    // And the mocked writeChangelog was called
+    expect(writeChangelog).toHaveBeenCalled();
   });
 
   describe('with concurrency > 1', () => {
