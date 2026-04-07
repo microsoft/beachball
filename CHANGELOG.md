@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Tue, 07 Apr 2026 01:34:47 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 07 Apr 2026 03:06:39 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.64.2
+
+Tue, 07 Apr 2026 03:06:39 GMT
+
+### Patches
+
+- Update AI integration docs in readme (elcraig@microsoft.com)
 
 ## 2.64.1
 

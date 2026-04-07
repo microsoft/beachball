@@ -2,6 +2,29 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Tue, 07 Apr 2026 03:06:39 GMT",
+      "version": "2.64.2",
+      "tag": "beachball_v2.64.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "12c535d908b368d86a570b11e1bd4e1d050c96d2",
+            "comment": "Update AI integration docs in readme"
+          }
+        ],
+        "none": [
+          {
+            "author": "email not defined",
+            "package": "beachball",
+            "commit": "12c535d908b368d86a570b11e1bd4e1d050c96d2",
+            "comment": "Update dev dependency lodash to v4.18.1 [SECURITY]"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 07 Apr 2026 01:34:47 GMT",
       "version": "2.64.1",
       "tag": "beachball_v2.64.1",

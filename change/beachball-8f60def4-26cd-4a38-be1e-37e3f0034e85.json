@@ -1,7 +1,0 @@
-{
-  "packageName": "beachball",
-  "type": "patch",
-  "dependentChangeType": "patch",
-  "comment": "Update AI integration docs in readme",
-  "email": "elcraig@microsoft.com"
-}
