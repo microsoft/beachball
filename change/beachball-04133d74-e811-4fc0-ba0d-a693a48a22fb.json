@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update Yarn to v4.13.0",
-  "packageName": "beachball",
-  "email": "email not defined",
-  "dependentChangeType": "patch"
-}
