@@ -25,7 +25,7 @@ import { validate } from '../validation/validate';
 jest.mock('../packageManager/npm');
 // jest.mock('npm-registry-fetch');
 
-describe('publish command (registry)', () => {
+describe('publish command (npm)', () => {
   const npmMock = initNpmMock();
 
   let repositoryFactory: RepositoryFactory | undefined;

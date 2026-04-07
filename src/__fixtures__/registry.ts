@@ -17,7 +17,7 @@ const portRange = 1000;
  * Lists of tests known to use `Registry`. This is used to make each test try a different
  * port range to avoid collisions caused by race conditions with grabbing free ports.
  */
-const knownTests = ['packagePublish', 'publishE2E', 'publishRegistry', 'syncE2E'];
+const knownTests = ['packagePublish', 'publishE2E', 'publishNpm', 'syncE2E'];
 
 // NOTE: If you are getting timeouts and port collisions, set jest.setTimeout to a higher value.
 //       The default value of 5 seconds may not be enough in situations with port collisions.
