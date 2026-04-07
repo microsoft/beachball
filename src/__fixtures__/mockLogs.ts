@@ -1,4 +1,4 @@
-import { jest, afterEach, beforeAll, afterAll } from '@jest/globals';
+import { jest, afterEach, beforeAll, afterAll, beforeEach } from '@jest/globals';
 
 /** Methods that will be mocked. More could be added later if needed. */
 type MockLogMethod = 'log' | 'warn' | 'error';
@@ -10,6 +10,12 @@ type MockLogsOptions = {
    * All logging can be enabled by setting the VERBOSE env var.
    */
   alsoLog?: boolean | MockLogMethod[];
+
+  /**
+   * Instead of setting up mocks in `beforeAll`, do it in `beforeEach`.
+   * This allows calling `jest.resetAllMocks()` in tests without breaking the logging mocks.
+   */
+  mockBeforeEach?: boolean;
 };
 
 export type MockLogs = {
@@ -49,7 +55,7 @@ export type MockLogs = {
  * of any lifecycle hooks or tests because it calls lifecycle hooks internally for setup and teardown.
  */
 export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
-  const { alsoLog } = options;
+  const { alsoLog, mockBeforeEach } = options;
   let allLines: unknown[][] = [];
   let overrideOptions: MockLogsOptions | undefined;
   const jestConsole = { ...console };
@@ -102,7 +108,7 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
     },
   };
 
-  beforeAll(() => {
+  (mockBeforeEach ? beforeEach : beforeAll)(() => {
     for (const method of mockedMethods) {
       const mainShouldLog = shouldLog(method, alsoLog);
 
@@ -121,7 +127,7 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
     logs.clear();
   });
 
-  afterAll(() => {
+  (mockBeforeEach ? afterEach : afterAll)(() => {
     Object.values(logs.mocks).forEach(mock => mock.mockRestore());
   });
 

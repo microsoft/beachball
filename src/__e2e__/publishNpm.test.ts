@@ -110,7 +110,7 @@ describe('publish command (npm)', () => {
 
     // If there's only the private package with a change file, nothing happens
     await publishWrapper(parsedOptions);
-    expect(logs.mocks.log).toHaveBeenCalledWith('Nothing to bump, skipping publish!');
+    expect(logs.mocks.log).toHaveBeenCalledWith(expect.stringContaining('Nothing to bump - skipping publish!'));
     expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package foopkg'));
     expect(logs.mocks.error).not.toHaveBeenCalled();
     expect(npmMock.getPublishedVersions('foopkg')).toBeUndefined();
@@ -132,10 +132,9 @@ describe('publish command (npm)', () => {
       [log]   OK!
 
       [log]
-      [log]
-      Preparing to publish
-      [log]
-      Publishing with the following configuration:
+      [log] Preparing to publish
+
+      [log] Publishing with the following configuration:
 
         registry: fake
 
@@ -150,8 +149,8 @@ describe('publish command (npm)', () => {
 
 
       [log] Creating temporary publish branch publish_<timestamp>
-      [log]
-      Bumping versions and publishing packages to npm registry
+
+      [log] Bumping versions and publishing packages to npm registry
 
       [log] Removing change files:
       [log] - publicpkg-<guid>.json
@@ -171,8 +170,9 @@ describe('publish command (npm)', () => {
 
       [log]
       [log] Skipping git push and tagging
-      [log]
-      Cleaning up
+
+      [log] Cleaning up
+
       [log] git checkout master
       [log] deleting temporary publish branch publish_<timestamp>"
     `);
@@ -210,7 +210,7 @@ describe('publish command (npm)', () => {
     // initial validate() isn't relevant here
     await publish(options, createCommandContext(parsedOptions));
 
-    expect(logs.mocks.log).toHaveBeenCalledWith('Nothing to bump, skipping publish!');
+    expect(logs.mocks.log).toHaveBeenCalledWith(expect.stringContaining('Nothing to bump - skipping publish!'));
     expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('Change detected for private package bar'));
     expect(logs.mocks.warn).toHaveBeenCalledWith(
       expect.stringContaining('Change detected for nonexistent package fake')

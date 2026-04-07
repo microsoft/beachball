@@ -126,6 +126,18 @@ describe('bumpAndPush', () => {
     expect(getExecaCalls().join('\n')).not.toContain('fetch');
   });
 
+  it('specifies fetch depth when depth param is defined', async () => {
+    wsToolsMocks.git.mockImplementation((args: string[]) => {
+      if (args[0] === 'fetch') {
+        expect(args).toContain('--depth=10');
+      }
+      return { stdout: '', stderr: '', success: true } as wsTools.GitProcessOutput;
+    });
+
+    expect.assertions(1);
+    await callBumpAndPush({ fetch: true, depth: 10 });
+  });
+
   it('retries on fetch failure then succeeds', async () => {
     wsToolsMocks.git
       .mockReturnValueOnce(makeGitResult({ success: false, output: 'fetch error' }))

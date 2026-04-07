@@ -88,9 +88,9 @@ describe('publish command (e2e)', () => {
     generateChangeFiles(['foo'], options);
     repo.push();
 
-    let fetchCount = 0;
     addGitObserver(args => {
-      args[0] === 'fetch' && fetchCount++;
+      // no fetch when flag set to false
+      expect(args[0]).not.toBe('fetch');
     });
 
     await publishWrapper(parsedOptions);
@@ -100,9 +100,6 @@ describe('publish command (e2e)', () => {
       versions: ['1.1.0'],
       'dist-tags': { latest: '1.1.0' },
     });
-
-    // no fetch when flag set to false
-    expect(fetchCount).toBe(0);
 
     repo.checkout(defaultBranchName);
     repo.pull();
