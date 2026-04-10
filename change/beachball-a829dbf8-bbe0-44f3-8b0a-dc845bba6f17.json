@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Refine publish logging",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

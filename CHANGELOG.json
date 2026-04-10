@@ -2,6 +2,29 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Fri, 10 Apr 2026 02:42:47 GMT",
+      "version": "2.64.3",
+      "tag": "beachball_v2.64.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "9e731bde6c0c3f80cec378df501d6b9bc8079791",
+            "comment": "Refine publish logging"
+          }
+        ],
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "99f75b1e3fb06143b856f2fb17af9912a402c7a1",
+            "comment": "update beachball config"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 07 Apr 2026 03:06:39 GMT",
       "version": "2.64.2",
       "tag": "beachball_v2.64.2",

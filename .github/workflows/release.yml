@@ -65,6 +65,6 @@ jobs:
           # Add a token to the remote URL for auth during release
           git remote set-url origin "https://$REPO_PAT@github.com/$GITHUB_REPOSITORY"
 
-          yarn release -y
+          yarn release
         env:
           REPO_PAT: ${{ secrets.REPO_PAT }}
