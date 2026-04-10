@@ -4,26 +4,7 @@ const config = {
   branch: 'main',
   commit: false,
   disallowedChangeTypes: ['major'],
-  ignorePatterns: [
-    '.*ignore',
-    '*.yml',
-    'CLAUDE.md',
-    '.claude/**',
-    '.claude-plugin/**',
-    '.eslintrc.js',
-    '.github/**',
-    '.prettierrc.json5',
-    '.vscode/**',
-    'docs/**',
-    'docs/.*/**',
-    'docs/.*',
-    'jest.*.js',
-    'renovate.json5',
-    'scripts/**',
-    'src/__*/**',
-    // This one is especially important (otherwise dependabot would be blocked by change file requirements)
-    'yarn.lock',
-  ],
+  ignorePatterns: ['.*ignore', '.eslintrc.js', 'jest.*.js', 'src/__*/**'],
 };
 
 module.exports = config;

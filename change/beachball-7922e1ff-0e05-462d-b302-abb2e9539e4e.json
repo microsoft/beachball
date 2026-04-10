@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Move beachball to a monorepo structure",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}

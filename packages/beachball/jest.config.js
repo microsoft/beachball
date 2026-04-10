@@ -1,9 +1,11 @@
 // @ts-check
+const path = require('path');
+
 /** @type {import('@jest/types').Config.InitialProjectOptions} */
 const commonOptions = {
   injectGlobals: false,
   roots: ['<rootDir>/src'],
-  setupFilesAfterEnv: ['<rootDir>/scripts/jestSetup.js'],
+  setupFilesAfterEnv: [path.resolve(__dirname, '../../scripts/jestSetup.js')],
   transform: {
     '^.+\\.tsx?$': [
       'ts-jest',
