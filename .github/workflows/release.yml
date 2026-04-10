@@ -4,10 +4,12 @@ name: Release
 on:
   workflow_dispatch:
 
-# Use newer node and npm for trusted publishing support
+# Use newer node and npm for trusted publishing support. Can't use node 22 yet because of test issues.
+# (`npm login` hangs with the current verdaccio version; this is fixed in latest verdaccio, but it's
+# not compatible with old node)
 env:
+  nodeVersion: 20
   npmVersion: 11
-  nodeVersion: 22
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -20,6 +22,10 @@ jobs:
 
     # This environment contains secrets needed for publishing
     environment: release
+
+    permissions:
+      # for trusted publishing
+      id-token: write
 
     steps:
       - name: Check out code
