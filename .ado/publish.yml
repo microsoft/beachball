@@ -42,6 +42,7 @@ extends:
 
     stages:
       - stage: main
+        displayName:
         jobs:
           - job: build
             displayName: Build and test
@@ -64,8 +65,8 @@ extends:
             steps:
               - checkout: self
 
-              - displayName: Install Node.js ${{ variables.nodeVersion }}
-                task: UseNode@1
+              - task: UseNode@1
+                displayName: Install Node.js ${{ variables.nodeVersion }}
                 retryCountOnTaskFailure: 1
                 inputs:
                   # 👉 NOTE:
@@ -82,16 +83,16 @@ extends:
               # https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
               # The options below include ADO defaults (braceexpand:hashall:interactive-comments) plus
               # errexit:errtrace for better error behavior.
-              - displayName: Force exit on error (bash)
-                script: |
+              - script: |
                   echo "##vso[task.setvariable variable=shellopts]braceexpand:hashall:interactive-comments:errexit:errtrace"
+                displayName: Force exit on error (bash)
 
-              - displayName: Show environment
-                script: |
+              - script: |
                   echo "node: `node -v`"
                   echo "yarn: `yarn -v`"
                   echo "npm: `npm -v`"
                   printenv | sort
+                displayName: Show environment
 
               - script: yarn --frozen-lockfile
 
@@ -101,10 +102,10 @@ extends:
               - script: yarn test:e2e
 
               # TODO: figure out if this should bump or not (currently does bump)
-              - displayName: 'Pack packages'
-                script: |
+              - script: |
                   yarn beachball publish -y --no-push --pack-to-path '$(Build.StagingDirectory)/pkg'
+                displayName: 'Pack packages'
 
-              - displayName: Show all files in pack directory
-                script: |
+              - script: |
                   ls -R '$(Build.StagingDirectory)/pkg'
+                displayName: Show all files in pack directory
