@@ -1,0 +1,75 @@
+# beachball.release - The Release pipeline to publish NPM packages to npmjs.com feeds.
+# Based on https://github.com/microsoft/node-api-dotnet/blob/main/.ado/release.yml
+
+trigger: none
+name: release_$(Date:yyyyMMdd).$(Rev:r)
+
+resources:
+  pipelines:
+    - pipeline: 'beachball_release'
+      project: 'ISS'
+      source: 'beachball.release'
+      trigger:
+        branches:
+          include:
+            - main
+
+  repositories:
+    - repository: CustomPipelineTemplates
+      type: git
+      name: 1ESPipelineTemplates/OfficePipelineTemplates
+      ref: refs/tags/release
+
+extends:
+  template: v1/Office.Official.PipelineTemplate.yml@CustomPipelineTemplates
+  parameters:
+    pool:
+      name: Azure-Pipelines-1ESPT-ExDShared
+      vmImage: windows-latest
+      os: windows
+    # customBuildTags:
+    #   - ES365AIMigrationTooling-BulkMigrated-Release
+    # sdl:
+    #   eslint:
+    #     enableExclusions: true
+    #     # This repo does not ship any javascript code. But has many test cases for the js engine that fail parsing, have code considered insecure and crash eslint.
+    #     exclusionPatterns: |
+    #       '**/*.*'
+
+    stages:
+      - stage: main_release
+        displayName: Publish packages
+        jobs:
+          - job: npmjs_com_job
+            displayName: NPM to npmjs.com
+            templateContext:
+              type: releaseJob
+              isProduction: true
+              inputs:
+                - input: pipelineArtifact
+                  pipeline: beachball_publish
+                  artifactName: published-packages
+                  targetPath: $(Pipeline.Workspace)\published-packages
+
+            # Use ESRP Release to securely publish to npmjs.com.
+            steps:
+              - script: dir /S $(Pipeline.Workspace)\published-packages
+                displayName: Show directory contents
+
+              - task: 'SFP.release-tasks.custom-build-release-task.EsrpRelease@9'
+                displayName: 'ESRP Release to npmjs.com'
+                inputs:
+                  connectedservicename: 'ESRP-JSHost3'
+                  usemanagedidentity: false
+                  keyvaultname: 'OGX-JSHost-KV'
+                  authcertname: 'OGX-JSHost-Auth4'
+                  signcertname: 'OGX-JSHost-Sign3'
+                  clientid: '0a35e01f-eadf-420a-a2bf-def002ba898d'
+                  domaintenantid: 'cdc5aeea-15c5-4db6-b079-fcadd2505dc2'
+                  contenttype: npm
+                  folderlocation: $(Pipeline.Workspace)\published-packages
+                  owners: 'elcraig@microsoft.com'
+                  approvers: 'dannyvv@microsoft.com'
+                  # npm tag
+                  # potentially can also be inferred from the publishConfig field within the package.json file.
+                  productstate: 'test'
