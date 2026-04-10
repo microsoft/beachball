@@ -7,13 +7,13 @@
 .DS_Store
 .nojekyll
 .nvmrc
-docs/.vuepress/dist/
 docs/.vuepress/.cache/
 docs/.vuepress/.temp/
 docs/.yarn
-/change/
 /CHANGELOG.*
-/lib/
+change/
+dist/
+lib/
 LICENSE
 node_modules/
 SECURITY.md

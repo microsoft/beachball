@@ -1,10 +1,13 @@
 // @ts-check
+const path = require('path');
+
 /** @type {import('@typescript-eslint/utils').TSESLint.Linter.Config} */
 const config = {
+  root: true,
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 2020,
-    project: ['tsconfig.json'],
+    project: [path.join(__dirname, 'tsconfig.json')],
   },
   plugins: ['@typescript-eslint', 'etc'],
   reportUnusedDisableDirectives: true,

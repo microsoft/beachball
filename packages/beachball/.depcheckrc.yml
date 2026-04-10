@@ -1,4 +1,4 @@
-ignore-path: .gitignore
+ignore-path: ../../.gitignore
 
 ignores:
   # used in a jsdoc type
@@ -8,7 +8,10 @@ ignores:
   - verdaccio-memory
   # ok with using implicit dev dep for now (part of verdaccio)
   - '@verdaccio/config'
-
-ignore-patterns:
-  # managed separately
-  - docs
+  # specified at root
+  - '@typescript-eslint/parser'
+  - '@typescript-eslint/eslint-plugin'
+  - eslint-plugin-etc
+  - eslint-config-prettier
+  - '@types/node'
+  - '@jest/globals'

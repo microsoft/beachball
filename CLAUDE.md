@@ -8,6 +8,8 @@ Beachball is a CLI tool for automating semantic version bumping, changelog gener
 
 ## Commands
 
+TODO: Beachball has been updated to a monorepo and this needs to be updated
+
 | Task                          | Command                         |
 | ----------------------------- | ------------------------------- |
 | Build                         | `yarn build`                    |

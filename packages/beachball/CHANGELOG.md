@@ -309,7 +309,7 @@ Sat, 07 Sep 2024 08:02:58 GMT
 
 - Prevent accidentally writing dep bumps to grouped changelog (elcraig@microsoft.com)
 - Don't bail early when updating calculated change types if one change file referenced an invalid package (elcraig@microsoft.com)
-- Include pre* changes in changelog (elcraig@microsoft.com)
+- Include pre\* changes in changelog (elcraig@microsoft.com)
 
 ## 2.46.0
 
@@ -1676,126 +1676,167 @@ Fri, 03 Apr 2020 00:56:37 GMT
 - Add custom render functions for changelog parts (elcraig@microsoft.com)
 
 ## 1.25.2
+
 Tue, 31 Mar 2020 18:55:18 GMT
 
 ### Patches
 
 - update isValidChangeType to allow none (xgao@microsoft.com)
+
 ## 1.25.1
+
 Tue, 31 Mar 2020 18:52:13 GMT
 
 ### Patches
 
 - adding a sync command to help recover (kchau@microsoft.com)
+
 ## 1.25.0
+
 Mon, 30 Mar 2020 20:58:37 GMT
 
 ### Minor changes
 
 - Change file prompt: support customizing prompt questions (xgao@microsoft.com)
+
 ## 1.24.0
+
 Mon, 30 Mar 2020 20:34:38 GMT
 
 ### Minor changes
 
 - adding a retries option (kchau@microsoft.com)
+
 ## 1.23.3
+
 Fri, 27 Mar 2020 23:29:23 GMT
 
 ### Patches
 
 - Add readme to beachball package (elcraig@microsoft.com)
+
 ## 1.23.2
+
 Fri, 27 Mar 2020 19:03:31 GMT
 
 ### Patches
 
 - Improve manual recovery message if some packages succeeded; increase maxBuffer for publish (elcraig@microsoft.com)
+
 ## 1.23.1
+
 Wed, 25 Mar 2020 20:20:02 GMT
 
 ### Patches
 
 - Change lodash from a devDepedency to a dependency (jdh@microsoft.com)
+
 ## 1.23.0
+
 Wed, 25 Mar 2020 19:43:44 GMT
 
 ### Minor changes
 
 - ChangeLog: support grouped change log generation (xgao@microsoft.com)
+
 ## 1.22.0
+
 Mon, 23 Mar 2020 21:24:15 GMT
 
 ### Minor changes
 
 - ChangeLog: add empty options interface (xgao@microsoft.com)
+
 ## 1.21.0
+
 Mon, 23 Mar 2020 19:20:05 GMT
 
 ### Minor changes
 
 - Delay inferring commit hash until changelog generation (and remove commit from changefiles) (elcraig@microsoft.com)
+
 ## 1.20.4
+
 Fri, 20 Mar 2020 23:50:38 GMT
 
 ### Patches
 
 - Fix version group bumping logic (xgao@microsoft.com)
+
 ## 1.20.3
+
 Fri, 20 Mar 2020 20:37:09 GMT
 
 ### Patches
 
 - Fix promptChangeFiles to honor disallowedChangeTypes defined in version groups (xgao@microsoft.com)
+
 ## 1.20.2
+
 Sat, 07 Mar 2020 00:06:17 GMT
 
 ### Patches
 
 - Scoped publish: make sure toskip validation/publish for out-of-scope package (xgao@microsoft.com)
+
 ## 1.20.1
+
 Thu, 05 Mar 2020 17:01:38 GMT
 
 ### Patches
 
-- adding some bumpminrange test and add support for * as range (kchau@microsoft.com)
+- adding some bumpminrange test and add support for \* as range (kchau@microsoft.com)
+
 ## 1.20.0
+
 Wed, 04 Mar 2020 02:47:34 GMT
 
 ### Minor changes
 
 - Feature: scoped publish (xgao@microsoft.com)
+
 ## 1.19.0
+
 Wed, 04 Mar 2020 00:13:30 GMT
 
 ### Minor changes
 
 - Adds a new feature to do scoping of checks and change (kchau@microsoft.com)
+
 ## 1.18.4
+
 Fri, 17 Jan 2020 18:13:36 GMT
 
 ### Patches
 
 - fixing a bug about infinite loop in allowed type (kchau@microsoft.com)
+
 ## 1.18.3
+
 Thu, 16 Jan 2020 20:27:41 GMT
 
 ### Patches
 
 - update depedent package bump logic to propagate the change types (kchau@microsoft.com)
+
 ## 1.18.2
+
 Thu, 16 Jan 2020 04:52:54 GMT
 
 ### Patches
 
 - adding some unit tests for bump low level logic as well as adding ability to have change files dictate what change type to use for dependent bumps (kchau@microsoft.com)
+
 ## 1.18.1
+
 Wed, 15 Jan 2020 04:54:51 GMT
 
 ### Patches
 
 - Fixes tagging and also publish brand new packages if not exists (kchau@microsoft.com)
+
 ## 1.18.0
+
 Wed, 15 Jan 2020 03:17:45 GMT
 
 ### Minor changes
@@ -1803,113 +1844,150 @@ Wed, 15 Jan 2020 03:17:45 GMT
 - adding ability to have config files (kchau@microsoft.com)
 - refactored to get ready to support version groups (kchau@microsoft.com)
 - Adds a new feature of version groups that would allow "locked versions" updates (kchau@microsoft.com)
+
 ### Patches
 
 - Improve package list formatting (elcraig@microsoft.com)
 - fixed a bug in getting the command right in the cli (kchau@microsoft.com)
+
 ## 1.16.0
+
 Thu, 05 Dec 2019 00:40:40 GMT
 
 ### Minor changes
 
 - Bump peerDependencies (rezha@microsoft.com)
+
 ## 1.15.1
+
 Fri, 15 Nov 2019 20:01:55 GMT
 
 ### Patches
 
 - catch eerrors throw and make sure we exit with a real status code (kchau@microsoft.com)
+
 ## 1.15.0
+
 Wed, 13 Nov 2019 23:31:43 GMT
 
 ### Minor changes
 
 - Add --bump-deps flag to bump all dependent packages (rezha@microsoft.com)
+
 ## 1.14.3
+
 Mon, 04 Nov 2019 23:56:08 GMT
 
 ### Patches
 
 - deletes none type change files (kchau@microsoft.com)
+
 ## 1.14.2
+
 Wed, 23 Oct 2019 17:32:05 GMT
 
 ### Patches
 
 - make sure that we don't have file names in change files (kchau@microsoft.com)
+
 ## 1.14.1
+
 Fri, 04 Oct 2019 15:11:40 GMT
 
 ### Patches
 
 - fixed package publishing for private packages (kchau@microsoft.com)
+
 ## 1.14.0
+
 Fri, 04 Oct 2019 00:52:18 GMT
 
 ### Minor changes
 
 - Adding robustness in how publish works so merging is safer (odbuild@microsoft.com)
+
 ## 1.13.5
+
 Fri, 27 Sep 2019 23:42:49 GMT
 
 ### Patches
 
 - adds publish test for git push as well as refactoring publish to be more readable (odbuild@microsoft.com)
+
 ## 1.13.4
+
 Wed, 25 Sep 2019 21:40:51 GMT
 
 ### Patches
 
 - Add option to specify a defaultNpmTag on a per package basis (acoates@microsoft.com)
+
 ## 1.13.3
+
 Wed, 25 Sep 2019 20:49:49 GMT
 
 ### Patches
 
 - make tests work on windows (kchau@microsoft.com)
+
 ## 1.13.2
+
 Mon, 16 Sep 2019 22:57:40 GMT
 
 ### Patches
 
 - adding fetching for specific remote instead of all (kchau@microsoft.com)
+
 ## 1.13.1
+
 Tue, 10 Sep 2019 19:37:18 GMT
 
 ### Patches
 
 - Fixing packageJsonPath to contain full path (kchau@microsoft.com)
+
 ## 1.13.0
+
 Tue, 03 Sep 2019 19:59:44 GMT
 
 ### Minor changes
 
 - allow staged files to be counted for changes as well (kchau@microsoft.com)
+
 ## 1.12.2
+
 Tue, 27 Aug 2019 17:44:33 GMT
 
 ### Patches
 
 - make sure to bump the deps of monorepo packages of other packages even if the packages are private (kchau@microsoft.com)
+
 ## 1.12.1
+
 Tue, 27 Aug 2019 03:11:47 GMT
 
 ### Patches
 
 - making publish skip when there is no changes (kchau@microsoft.com)
+
 ## 1.12.0
+
 Fri, 23 Aug 2019 16:30:54 GMT
 
 ### Minor changes
 
 - ignores changelogs (kchau@microsoft.com)
+
 ## 1.11.9
+
 Fri, 23 Aug 2019 03:52:35 GMT
 
 ### Patches
 
 - fixing changelog formatting (kchau@microsoft.com)
+
 ## 1.11.8
+
 Thu, 22 Aug 2019 18:17:34 GMT
 
 ### Patches
@@ -1918,6 +1996,7 @@ Thu, 22 Aug 2019 18:17:34 GMT
 - modify logic to not run on private packages (legray@microsoft.com)
 
 ## 1.11.7
+
 Tue, 20 Aug 2019 15:18:38 GMT
 
 ### Patches
@@ -1925,6 +2004,7 @@ Tue, 20 Aug 2019 15:18:38 GMT
 - fixes the issue with change command not generating change files due to the master having their change files deleted by publishing (kchau@microsoft.com)
 
 ## 1.11.6
+
 Wed, 07 Aug 2019 00:23:45 GMT
 
 ### Patches
@@ -1932,6 +2012,7 @@ Wed, 07 Aug 2019 00:23:45 GMT
 - adds a fetch before diff changes, more info from when change files are needed (kchau@microsoft.com)
 
 ## 1.11.5
+
 Sat, 03 Aug 2019 04:05:33 GMT
 
 ### Patches
@@ -1939,6 +2020,7 @@ Sat, 03 Aug 2019 04:05:33 GMT
 - change format of the error message a tiny bit (kchau@microsoft.com)
 
 ## 1.11.4
+
 Sat, 03 Aug 2019 03:59:51 GMT
 
 ### Patches
@@ -1946,6 +2028,7 @@ Sat, 03 Aug 2019 03:59:51 GMT
 - make the mergepublish portion spit out more explicit messages (kchau@microsoft.com)
 
 ## 1.11.3
+
 Sat, 03 Aug 2019 03:11:15 GMT
 
 ### Patches
@@ -1953,6 +2036,7 @@ Sat, 03 Aug 2019 03:11:15 GMT
 - adds some comment about git fail fast and when to use it (kchau@microsoft.com)
 
 ## 1.11.2
+
 Sat, 03 Aug 2019 03:08:37 GMT
 
 ### Patches
@@ -1960,6 +2044,7 @@ Sat, 03 Aug 2019 03:08:37 GMT
 - Beachball publish should error if git commands fail (acoates@microsoft.com)
 
 ## 1.11.1
+
 Wed, 31 Jul 2019 22:00:03 GMT
 
 ### Patches
@@ -1967,6 +2052,7 @@ Wed, 31 Jul 2019 22:00:03 GMT
 - default branch name should be master (kchau@microsoft.com)
 
 ## 1.11.0
+
 Fri, 26 Jul 2019 18:00:02 GMT
 
 ### Minor changes
@@ -1974,6 +2060,7 @@ Fri, 26 Jul 2019 18:00:02 GMT
 - Fixes #64, #65, #62, #2 - usability changes (kchau@microsoft.com)
 
 ## 1.10.3
+
 Fri, 26 Jul 2019 04:30:54 GMT
 
 ### Patches
@@ -1981,6 +2068,7 @@ Fri, 26 Jul 2019 04:30:54 GMT
 - make git tags to be pushed (kchau@microsoft.com)
 
 ## 1.10.2
+
 Tue, 23 Jul 2019 21:27:22 GMT
 
 ### Patches
@@ -1988,6 +2076,7 @@ Tue, 23 Jul 2019 21:27:22 GMT
 - making beachball node 8 compatible (kchau@microsoft.com)
 
 ## 1.10.1
+
 Thu, 18 Jul 2019 20:18:23 GMT
 
 ### Patches
@@ -1995,6 +2084,7 @@ Thu, 18 Jul 2019 20:18:23 GMT
 - Fix shouldPublish option (acoates@microsoft.com)
 
 ## 1.10.0
+
 Thu, 18 Jul 2019 18:39:14 GMT
 
 ### Minor changes
@@ -2002,6 +2092,7 @@ Thu, 18 Jul 2019 18:39:14 GMT
 - Add prerelease option (kchau@microsoft.com)
 
 ## 1.9.2
+
 Tue, 02 Jul 2019 16:05:08 GMT
 
 ### Patches
@@ -2009,6 +2100,7 @@ Tue, 02 Jul 2019 16:05:08 GMT
 - do not put none changes inside changelog.md (kchau@microsoft.com)
 
 ## 1.9.1
+
 Tue, 02 Jul 2019 15:41:45 GMT
 
 ### Patches
@@ -2016,6 +2108,7 @@ Tue, 02 Jul 2019 15:41:45 GMT
 - makes the bump skip unknown packages (kchau@microsoft.com)
 
 ## 1.9.0
+
 Fri, 28 Jun 2019 17:53:25 GMT
 
 ### Minor changes
@@ -2023,6 +2116,7 @@ Fri, 28 Jun 2019 17:53:25 GMT
 - adds support for tags in CHANGELOG.json (kchau@microsoft.com)
 
 ## 1.8.2
+
 Thu, 27 Jun 2019 21:23:00 GMT
 
 ### Patches
@@ -2030,6 +2124,7 @@ Thu, 27 Jun 2019 21:23:00 GMT
 - matching changelog.json format to rush's formatting (kchau@microsoft.com)
 
 ## 1.8.1
+
 Thu, 27 Jun 2019 21:10:15 GMT
 
 ### Patches
@@ -2037,6 +2132,7 @@ Thu, 27 Jun 2019 21:10:15 GMT
 - use object.values (kchau@microsoft.com)
 
 ## 1.8.0
+
 Thu, 27 Jun 2019 17:50:36 GMT
 
 ### Minor
@@ -2044,6 +2140,7 @@ Thu, 27 Jun 2019 17:50:36 GMT
 - Also writes out json for changelogs while fixing the sitemap (kchau@microsoft.com)
 
 ## 1.7.0
+
 Sun, 23 Jun 2019 00:40:35 GMT
 
 ### Minor
@@ -2051,6 +2148,7 @@ Sun, 23 Jun 2019 00:40:35 GMT
 - adding smarts about which change files are already in master (kchau@microsoft.com)
 
 ## 1.6.4
+
 Tue, 18 Jun 2019 06:30:58 GMT
 
 ### Patches
@@ -2058,6 +2156,7 @@ Tue, 18 Jun 2019 06:30:58 GMT
 - making the default registry have a trailing slash to publish with token correctly (kchau@microsoft.com)
 
 ## 1.6.3
+
 Tue, 18 Jun 2019 05:58:35 GMT
 
 ### Patches
@@ -2065,6 +2164,7 @@ Tue, 18 Jun 2019 05:58:35 GMT
 - enable token argument (kchau@microsoft.com)
 
 ## 1.6.2
+
 Tue, 18 Jun 2019 05:44:02 GMT
 
 ### Patches
@@ -2072,6 +2172,7 @@ Tue, 18 Jun 2019 05:44:02 GMT
 - use a specific registry and also displaynpm publish command (kchau@microsoft.com)
 
 ## 1.6.1
+
 Tue, 18 Jun 2019 05:27:14 GMT
 
 ### Patches
@@ -2079,6 +2180,7 @@ Tue, 18 Jun 2019 05:27:14 GMT
 - display publish errors (kchau@microsoft.com)
 
 ## 1.6.0
+
 Tue, 18 Jun 2019 05:13:35 GMT
 
 ### Minor
@@ -2086,6 +2188,7 @@ Tue, 18 Jun 2019 05:13:35 GMT
 - -b now takes remote branch full name (kchau@microsoft.com)
 
 ## 1.5.1
+
 Mon, 17 Jun 2019 17:36:58 GMT
 
 ### Patches
@@ -2093,6 +2196,7 @@ Mon, 17 Jun 2019 17:36:58 GMT
 - Be more specific in publish to disambiguate the tag and target branch (kchau@microsoft.com)
 
 ## 1.5.0
+
 Fri, 14 Jun 2019 19:35:56 GMT
 
 ### Minor
@@ -2100,6 +2204,7 @@ Fri, 14 Jun 2019 19:35:56 GMT
 - find the right fork point (kchau@microsoft.com)
 
 ## 1.4.0
+
 Wed, 12 Jun 2019 01:53:04 GMT
 
 ### Minor
@@ -2107,6 +2212,7 @@ Wed, 12 Jun 2019 01:53:04 GMT
 - adds no-publish and no-push, skips bump of none (kchau@microsoft.com)
 
 ## 1.3.1
+
 Tue, 11 Jun 2019 19:34:32 GMT
 
 ### Patches
@@ -2114,6 +2220,7 @@ Tue, 11 Jun 2019 19:34:32 GMT
 - fail on change files (kchau@microsoft.com)
 
 ## 1.3.0
+
 Tue, 11 Jun 2019 17:49:00 GMT
 
 ### Minor
@@ -2121,6 +2228,7 @@ Tue, 11 Jun 2019 17:49:00 GMT
 - adds support for auth token (kchau@microsoft.com)
 
 ## 1.2.0
+
 Mon, 10 Jun 2019 23:53:27 GMT
 
 ### Minor
@@ -2128,6 +2236,7 @@ Mon, 10 Jun 2019 23:53:27 GMT
 - adding docs and publishes safe guards (kchau@microsoft.com)
 
 ## 1.1.0
+
 Mon, 10 Jun 2019 21:29:49 GMT
 
 ### Minor
