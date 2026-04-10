@@ -22,16 +22,29 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        npm: [8]
         include:
           - os: ubuntu-latest
             # npm 6 and 8 have slightly different behavior with verdaccio in publishing tests.
             # It's unclear if this translates to meaningful differences in behavior in actual scenarios,
             # but test against both versions to be safe. (Only do this on the ubuntu build for speed.)
             npm: 6
+            node: 14
+          # node 14/npm 8 on ubuntu and windows
+          - os: ubuntu-latest
+            npm: 8
+            node: 14
+          - os: windows-latest
+            npm: 8
+            node: 14
+          # node 20/npm 11 on ubuntu and windows (can't use 22 for reasons described in release.yml)
+          - os: ubuntu-latest
+            npm: 11
+            node: 20
+          - os: windows-latest
+            npm: 11
+            node: 20
 
-    name: build (${{ matrix.os }}, npm ${{ matrix.npm }})
+    name: build (${{ matrix.os }}, node ${{ matrix.node }}, npm ${{ matrix.npm }})
 
     runs-on: ${{ matrix.os }}
 
@@ -39,11 +52,11 @@ jobs:
       - name: Check out code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Install Node.js from .nvmrc
+      - name: Install Node.js ${{ matrix.node }}
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           cache: yarn
-          node-version-file: .nvmrc
+          node-version: ${{ matrix.node }}
 
       # Guarantee a predictable version of npm for the first round of tests
       - name: Install npm@${{ matrix.npm }}
@@ -56,7 +69,7 @@ jobs:
       - run: yarn checkchange --verbose
 
       - run: yarn format:check
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 14 && matrix.npm == 8
 
       - run: yarn lint
 
@@ -76,11 +89,11 @@ jobs:
       - name: Check out code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Install Node.js 22
+      - name: Install Node.js
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           cache: yarn
-          node-version: 24
+          node-version-file: ./docs/.nvmrc
 
       - run: yarn --immutable
         working-directory: ./docs

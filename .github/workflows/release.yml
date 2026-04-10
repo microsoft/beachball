@@ -4,8 +4,12 @@ name: Release
 on:
   workflow_dispatch:
 
+# Use newer node and npm for trusted publishing support. Can't use node 22 yet because of test issues.
+# (`npm login` hangs with the current verdaccio version; this is fixed in latest verdaccio, but it's
+# not compatible with old node)
 env:
-  npmVersion: 8
+  nodeVersion: 20
+  npmVersion: 11
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,6 +23,10 @@ jobs:
     # This environment contains secrets needed for publishing
     environment: release
 
+    permissions:
+      # for trusted publishing
+      id-token: write
+
     steps:
       - name: Check out code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -26,14 +34,13 @@ jobs:
           # Don't save creds in the git config (so it's easier to override later)
           persist-credentials: false
 
-      - name: Install Node.js from .nvmrc
+      - name: Install Node.js ${{ env.nodeVersion }}
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
-          node-version-file: .nvmrc
+          node-version: ${{ env.nodeVersion }}
 
-      # Guarantee a predictable version of npm (the PR build tests against both 6 and 8)
-      - name: Install package managers
-        run: npm install --global npm@${{ env.npmVersion }} yarn@1
+      - name: Install npm@${{ env.npmVersion }}
+        run: npm install --global npm@${{ env.npmVersion }}
 
       - run: yarn --frozen-lockfile
 
@@ -58,7 +65,6 @@ jobs:
           # Add a token to the remote URL for auth during release
           git remote set-url origin "https://$REPO_PAT@github.com/$GITHUB_REPOSITORY"
 
-          yarn release -y -n "$NPM_AUTHTOKEN"
+          yarn release -y
         env:
-          NPM_AUTHTOKEN: ${{ secrets.NPM_AUTHTOKEN }}
           REPO_PAT: ${{ secrets.REPO_PAT }}

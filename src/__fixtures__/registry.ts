@@ -17,7 +17,7 @@ const portRange = 1000;
  * Lists of tests known to use `Registry`. This is used to make each test try a different
  * port range to avoid collisions caused by race conditions with grabbing free ports.
  */
-const knownTests = ['packagePublish', 'publishE2E', 'publishNpm', 'syncE2E'];
+const knownTests = ['packagePublish'];
 
 // NOTE: If you are getting timeouts and port collisions, set jest.setTimeout to a higher value.
 //       The default value of 5 seconds may not be enough in situations with port collisions.
@@ -71,7 +71,13 @@ export class Registry {
     try {
       const registry = this.getUrl();
       console.log(`logging in to ${registry}`);
-      const npm = execa('npm', ['adduser', '--registry', registry]);
+      const npm = execa('npm', ['login', '--registry', registry, '--verbose']);
+      // If this is failing or hanging and you need to debug:
+      //   npm.stdout?.pipe(process.stdout);
+      //   npm.stderr?.pipe(process.stderr);
+      // With Node 22+ and verdaccio 5, the npm login HTTP request fails for some reason.
+      // This is fixed with latest verdaccio, which we can bump when bumping Node.
+
       // for some reason there's no way to supply the username, password, and email besides stdin
       npm.stdout?.on('data', chunk => {
         const chunkStr = String(chunk);
@@ -79,7 +85,7 @@ export class Registry {
           npm.stdin?.write(verdaccioUser.username + '\r\n');
         } else if (chunkStr.includes('Password:')) {
           npm.stdin?.write(verdaccioUser.password + '\r\n');
-        } else if (chunkStr.includes('Email:')) {
+        } else if (chunkStr.includes('Email:') || chunkStr.includes('Email (')) {
           npm.stdin?.write('fake@example.com\r\n');
         }
       });
