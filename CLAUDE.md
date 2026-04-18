@@ -4,27 +4,48 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Beachball is a CLI tool for automating semantic version bumping, changelog generation, and npm publishing in monorepos and single-package repos. It is a single-package TypeScript project (not a monorepo itself).
+Beachball is a CLI tool for automating semantic version bumping, changelog generation, and npm publishing in monorepos and single-package repos.
+
+## Monorepo structure
+
+- `packages/beachball`: `beachball` package
+- `scripts`: repo-internal scripts (`@microsoft/beachball-scripts`)
 
 ## Commands
 
-TODO: Beachball has been updated to a monorepo and this needs to be updated
+### Top-level
+
+These commands work at the top level of the monorepo.
+
+DO NOT run `jest` or `tsc` directly from the top level!
+
+| Task               | Command                 |
+| ------------------ | ----------------------- |
+| Build              | `yarn build`            |
+| Test               | `yarn test`             |
+| Lint (code + deps) | `yarn lint`             |
+| Lint code only     | `yarn lint:code`        |
+| Format             | `yarn format`           |
+| Update snapshots   | `yarn update-snapshots` |
+
+### Per-package commands
+
+These commands work in the `beachball` package and potentially other future packages.
 
 | Task                          | Command                         |
 | ----------------------------- | ------------------------------- |
 | Build                         | `yarn build`                    |
-| Watch mode                    | `yarn start`                    |
 | All tests in correct order    | `yarn test:all`                 |
 | Unit tests only               | `yarn test:unit`                |
 | Functional tests only         | `yarn test:func`                |
 | E2E tests only                | `yarn test:e2e`                 |
 | Single test file (wraps jest) | `yarn test <test path or name>` |
-| Lint (code + deps)            | `yarn lint`                     |
-| Lint code only                | `yarn lint:code`                |
-| Format                        | `yarn format`                   |
+| Lint                          | `yarn lint`                     |
 | Update snapshots              | `yarn update-snapshots`         |
 
 ## Architecture
+
+All these paths refer to the `beachball` package under `packages/beachball`.
 
 **Entry point:** `src/cli.ts` dispatches to commands: `check`, `change`, `bump`, `publish`, `canary`, `sync`, `init`, `config`.
 
@@ -79,7 +100,7 @@ TODO: Beachball has been updated to a monorepo and this needs to be updated
 
 ### Test structure
 
-Three Jest projects:
+`packages/beachball` has three Jest projects:
 
 - **Unit** (`src/__tests__/`): Unit tests for individual functions (no filesystem)
 - **Functional** (`src/__functional__/`): Single-function tests with realistic setups, or unit-like tests which must run against the actual filesystem

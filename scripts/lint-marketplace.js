@@ -3,8 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { git } = require('workspace-tools/lib/git/git');
-const { getChangesBetweenRefs, getDefaultRemoteBranch } = require('workspace-tools');
+const { getChangesBetweenRefs, getDefaultRemoteBranch, git } = require('workspace-tools');
 const beachballConfig = require('../beachball.config');
 
 const targetBranch = getDefaultRemoteBranch({

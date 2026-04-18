@@ -24,6 +24,7 @@
   "scripts": {
     "beachball": "node ./lib/cli.js",
     "build": "tsc",
+    "depcheck": "depcheck .",
     "lint": "eslint --color --max-warnings=0 src",
     "start": "tsc -w --preserveWatchOutput",
     "test": "jest",
@@ -43,10 +44,11 @@
     "p-limit": "^3.1.0",
     "prompts": "^2.4.2",
     "semver": "^7.7.4",
-    "workspace-tools": "^0.41.2",
+    "workspace-tools": "^0.41.4",
     "yargs-parser": "^21.1.1"
   },
   "devDependencies": {
+    "@microsoft/beachball-scripts": "1.0.0",
     "@types/minimatch": "^3.0.0",
     "@types/prompts": "^2.4.2",
     "@types/semver": "^7.3.13",

@@ -1,0 +1,9 @@
+{
+  "name": "@microsoft/beachball-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "devDependencies": {
+    "workspace-tools": "^0.41.4"
+  }
+}

@@ -1,22 +1,8 @@
 {
+  "extends": "@microsoft/beachball-scripts/config/tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "./lib",
-    // compatible with node 14
-    "target": "ES2020",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true,
-    "allowJs": true,
-    "checkJs": true,
-    "skipLibCheck": true,
-    "lib": ["ES2020"],
-    "types": ["node"]
+    "outDir": "lib",
+    "rootDir": "src"
   },
-  "include": ["src/**/*"]
+  "include": ["src"]
 }

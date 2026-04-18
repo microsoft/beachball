@@ -44,14 +44,9 @@ jobs:
 
       - run: yarn --frozen-lockfile
 
-      - run: yarn build
+      - run: yarn build --verbose
 
-      - run: yarn test:unit
-
-      - run: yarn test:func
-
-      - name: yarn test:e2e (npm ${{ env.npmVersion }})
-        run: yarn test:e2e
+      - run: yarn test --verbose
 
       - name: Publish package
         run: |

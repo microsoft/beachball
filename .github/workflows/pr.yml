@@ -64,20 +64,16 @@ jobs:
 
       - run: yarn --frozen-lockfile
 
-      - run: yarn build
+      - run: yarn build --verbose
 
       - run: yarn checkchange --verbose
 
       - run: yarn format:check
         if: matrix.os == 'ubuntu-latest' && matrix.node == 14 && matrix.npm == 8
 
-      - run: yarn lint
+      - run: yarn lint:ci
 
-      - run: yarn test:unit
-
-      - run: yarn test:func
-
-      - run: yarn test:e2e
+      - run: yarn test --verbose
 
   # The docs have a separate installation using Node 22 due to needing newer dependencies
   docs:
