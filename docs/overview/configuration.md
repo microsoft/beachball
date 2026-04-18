@@ -140,8 +140,25 @@ On the command line, this could be specified as `--scope 'packages/foo/*' --scop
 
 ### Determining the target branch and remote
 
-The `branch` option is the official target branch to compare against when determining changes. Usually it should be a name only, though you can also include a remote. The default is the system default branch name (`main` or `master`) and the official remote.
+The `branch` option is the official target branch to compare against when determining changes.
 
-To let `beachball` reliably determine the official remote, it's recommended to specify `repository` in the repo root `package.json`. This allows matching via URL regardless of what the user decided to call the remote.
+In GitHub repos where contributions may come from forks, you should use the **name only (no remote)** and specify `repository` in the repo root `package.json`. This allows finding the official remote by matching the URL (most formats are supported), regardless of what the user decided to call the remote. For example:
 
-If `repository` isn't specified and `branch` doesn't include a remote, the fallback is `upstream` if defined, `origin` if defined, or the first defined remote.
+```json
+{
+  "name": "my-repo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/my-org/my-repo"
+  },
+  "beachball": {
+    "branch": "main"
+  }
+}
+```
+
+In private repos that use a single remote with branches instead of forks, you can either include a remote name (e.g. `branch: 'origin/main'`) if you're certain everyone will use the same remote name, or only include the branch name and specify `repository` as above.
+
+If `branch` isn't specified, the default branch name is the system default branch name (`main` or `master`).
+
+If `branch` doesn't include a remote and it can't be determined from `package.json` `repository`, the fallback remote is `upstream` if defined, `origin` if defined, or the first defined remote.

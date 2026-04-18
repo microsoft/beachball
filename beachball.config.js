@@ -1,6 +1,7 @@
 // @ts-check
 /** @type {Partial<import('./packages/beachball/src/types/BeachballOptions').RepoOptions>}*/
 const config = {
+  access: 'public',
   branch: 'main',
   commit: false,
   disallowedChangeTypes: ['major'],
