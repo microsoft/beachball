@@ -1,17 +1,13 @@
 ignore-path: ../../.gitignore
 
 ignores:
-  # used in a jsdoc type
-  - '@typescript-eslint/utils'
   # used in __fixtures__/registry.ts by partial name
   - verdaccio-auth-memory
   - verdaccio-memory
   # ok with using implicit dev dep for now (part of verdaccio)
   - '@verdaccio/config'
   # specified at root
-  - '@typescript-eslint/parser'
-  - '@typescript-eslint/eslint-plugin'
-  - eslint-plugin-etc
-  - eslint-config-prettier
+  - '@typescript-eslint/*'
+  - 'eslint-*'
   - '@types/node'
   - '@jest/globals'
