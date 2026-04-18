@@ -11,6 +11,10 @@ export function getNpmLogLevelArgs(verbose: boolean | undefined): string[] {
 export function getNpmPublishArgs(packageInfo: PackageInfo, options: Omit<NpmOptions, 'path'>): string[] {
   const { registry, access } = options;
   const authArgs = getNpmAuthArgs(options);
+  if (authArgs) {
+    process.env.NODE_AUTH_TOKEN = authArgs.value;
+  }
+
   const args = [
     'publish',
     '--registry',
@@ -22,7 +26,6 @@ export function getNpmPublishArgs(packageInfo: PackageInfo, options: Omit<NpmOpt
       getPackageOption('defaultNpmTag', packageInfo, options) ||
       'latest',
     ...getNpmLogLevelArgs(options.verbose),
-    ...(authArgs ? [`--${authArgs.key}=${authArgs.value}`] : []),
   ];
 
   if (access && packageInfo.name[0] === '@') {
