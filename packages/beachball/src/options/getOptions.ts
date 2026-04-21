@@ -9,7 +9,7 @@ import { getDefaultOptions } from './getDefaultOptions';
  */
 export function getOptions(argv: string[]): BeachballOptions {
   // eslint-disable-next-line no-restricted-properties -- deprecated API
-  const cliOptions = getCliOptions({ argv, cwd: process.cwd() });
+  const cliOptions = getCliOptions({ argv, cwd: process.cwd(), env: process.env });
   return mergeRepoOptions({
     repoOptions: getRepoOptions(cliOptions),
     cliOptions,

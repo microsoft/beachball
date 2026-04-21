@@ -16,6 +16,7 @@ describe('validate', () => {
     const parsedOptions = getParsedOptions({
       cwd: repo!.rootPath,
       argv: [],
+      env: {},
       testRepoOptions: {
         branch: defaultRemoteBranchName,
       },

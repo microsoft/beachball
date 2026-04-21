@@ -32,7 +32,7 @@ describe('getQuestionsForPackage', () => {
 
     const packageInfos = makePackageInfos({ [pkg]: packageInfo });
     // fill in default options
-    const { options } = getParsedOptions({ cwd: '', argv: [], testRepoOptions: repoOptions });
+    const { options } = getParsedOptions({ cwd: '', argv: [], env: {}, testRepoOptions: repoOptions });
 
     return getQuestionsForPackage({ pkg, packageInfos, packageGroups, options, recentMessages });
   }

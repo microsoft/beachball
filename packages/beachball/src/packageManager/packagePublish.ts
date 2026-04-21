@@ -2,7 +2,7 @@ import type { PackageInfo } from '../types/PackageInfo';
 import path from 'path';
 import { npm, type NpmResult } from './npm';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import { getNpmPublishArgs } from './npmArgs';
+import { getNpmAuthEnv, getNpmPublishArgs } from './npmArgs';
 import type { NpmOptions } from '../types/NpmOptions';
 
 /**
@@ -14,14 +14,15 @@ export async function packagePublish(
   options: NpmOptions & Pick<BeachballOptions, 'retries'>
 ): Promise<NpmResult> {
   const publishArgs = getNpmPublishArgs(packageInfo, options);
+  const authEnv = getNpmAuthEnv(options);
 
   const packageRoot = path.dirname(packageInfo.packageJsonPath);
   const publishTag = publishArgs[publishArgs.indexOf('--tag') + 1];
   const packageSpec = `${packageInfo.name}@${packageInfo.version}`;
-  console.log(`Publishing - ${packageSpec} with tag ${publishTag}`);
 
+  console.log(`Publishing - ${packageSpec} with tag ${publishTag}`);
   console.log(`  publish command: ${publishArgs.join(' ')}`);
-  console.log(`  (cwd: ${packageRoot})\n`);
+  console.log(`  (cwd: ${packageRoot}${authEnv ? `, auth env var: ${Object.keys(authEnv)[0]}=****` : ''})\n`);
 
   let result: NpmResult;
 
@@ -37,6 +38,7 @@ export async function packagePublish(
       cwd: packageRoot,
       timeout: options.timeout,
       all: true,
+      env: { ...process.env, ...authEnv },
     });
 
     if (result.success) {

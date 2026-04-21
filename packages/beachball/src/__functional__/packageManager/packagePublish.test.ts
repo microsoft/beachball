@@ -71,9 +71,17 @@ describe('packagePublish', () => {
 
   describe('with real local registry', () => {
     let registry: Registry;
+    let token: string;
 
-    beforeAll(() => {
+    beforeAll(async () => {
       registry = new Registry(__filename);
+
+      // Get the token once upfront (unfortunately verdaccio doesn't support `npm token create`)
+      await registry.start();
+      await registry.login();
+      token = registry.getToken();
+      await registry.logout();
+      registry.stop();
 
       // Create a test package.json in a temporary location for use in tests.
       tempRoot = tmpdir();
@@ -85,8 +93,10 @@ describe('packagePublish', () => {
       await registry.start();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
       npmSpy.mockRestore();
+      // no-op if already logged out
+      await registry.logout();
       registry.stop();
     });
 
@@ -96,12 +106,17 @@ describe('packagePublish', () => {
     });
 
     // Do a basic publishing test against the real registry
-    it('can publish', async () => {
+    it('can publish with a token', async () => {
+      // Pass the token as an arg this time to verify it's translated to an environment variable
+      // and picked up by npm
+      expect(await registry.whoami()).toBeFalsy();
+
       const testPackageInfo = getTestPackageInfo();
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
         registry: registry.getUrl(),
         path: tempRoot,
+        token,
       });
       expect(publishResult).toEqual(successResult);
       expect(npmSpy).toHaveBeenCalledTimes(1);
@@ -124,12 +139,31 @@ describe('packagePublish', () => {
       });
     });
 
+    it('can publish when logged in', async () => {
+      await registry.login();
+
+      const testPackageInfo = getTestPackageInfo();
+      const publishResult = await packagePublish(testPackageInfo, {
+        ...defaultOptions,
+        registry: registry.getUrl(),
+        path: tempRoot,
+      });
+
+      expect(publishResult).toEqual(successResult);
+      expect(npmSpy).toHaveBeenCalledTimes(1);
+
+      const allLogs = logs.getMockLines('all');
+      expect(allLogs).toMatch(`Publishing - ${testSpec} with tag ${testTag}`);
+      expect(allLogs).toMatch('publish command:');
+      expect(allLogs).toMatch(`[log] Published!`);
+    });
+
     // Use real npm for this because the republish detection relies on the real error message.
     // This test might fail on a machine with a non-English locale due to lack of numeric error code
     // in newer npm versions
     it('errors and does not retry on republish', async () => {
       const testPackageInfo = getTestPackageInfo();
-      const options: PackagePublishOptions = { ...defaultOptions, registry: registry.getUrl(), path: tempRoot };
+      const options: PackagePublishOptions = { ...defaultOptions, registry: registry.getUrl(), path: tempRoot, token };
 
       let publishResult = await packagePublish(testPackageInfo, options);
       expect(publishResult).toEqual(successResult);
@@ -166,6 +200,29 @@ describe('packagePublish', () => {
   });
 
   describe('with mocked npm', () => {
+    it('logs commands and progress', async () => {
+      const testPackageInfo = getTestPackageInfo();
+      npmSpy.mockResolvedValue({ success: true, all: 'not logged' } as NpmResult);
+
+      const publishResult = await packagePublish(testPackageInfo, {
+        ...defaultOptions,
+        registry: 'http://fake-registry',
+        path: tempRoot,
+        token: 'fake-token',
+      });
+      expect(publishResult).toEqual(successResult);
+      expect(npmSpy).toHaveBeenCalledTimes(1);
+
+      const allLogs = logs.getMockLines('all', { root: tempRoot });
+      expect(allLogs).toMatchInlineSnapshot(`
+        "[log] Publishing - testbeachballpackage@0.6.0 with tag testbeachballtag
+        [log]   publish command: publish --registry http://fake-registry --tag testbeachballtag --loglevel warn
+        [log]   (cwd: <root>, auth env var: npm_config_//fake-registry/:_authToken=****)
+
+        [log] Published! - testbeachballpackage@0.6.0"
+      `);
+    });
+
     it('performs retries', async () => {
       // It's difficult or not desirable to simulate actual error conditions (such as timeouts or network errors),
       // so mock all npm calls for this test.

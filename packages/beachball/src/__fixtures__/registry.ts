@@ -3,6 +3,7 @@ import { fork, type ChildProcess } from 'child_process';
 import execa from 'execa';
 import fs from 'fs';
 import getPort from 'get-port';
+import os from 'os';
 import path from 'path';
 import { removeTempDir, tmpdir } from './tmpdir';
 
@@ -29,6 +30,7 @@ export class Registry {
   private startPort: number;
   private testName: string;
   private tempRoot: string | undefined;
+  private token: string | undefined;
   private isLoggedIn = false;
 
   constructor(filename: string) {
@@ -40,7 +42,7 @@ export class Registry {
   }
 
   /**
-   * Start the server and log in as the fake user if not already logged in.
+   * Start the server but don't log in.
    */
   public async start(): Promise<unknown> {
     if (this.server) {
@@ -62,7 +64,12 @@ export class Registry {
     // won't be helpful, so just let it throw.
     await this.startWithPort(tryPort);
     this.port = tryPort;
+  }
 
+  /**
+   * Log in as the fake user.
+   */
+  public async login(): Promise<void> {
     // Something about npm 8 makes publishing fail with anonymous access, so log in with a fake user
     if (this.isLoggedIn) {
       console.log('already logged in');
@@ -99,8 +106,54 @@ export class Registry {
     }
   }
 
+  /**
+   * Run `npm whoami` on the fake registry.
+   */
+  public async whoami(): Promise<string | undefined> {
+    try {
+      const registry = this.getUrl();
+      const result = await execa('npm', ['whoami', '--registry', registry]);
+      return result.stdout.trim();
+    } catch (err) {
+      return undefined;
+    }
+  }
+
+  /**
+   * Get the current token after running `npm login` on the fake registry (workaround for lack of
+   * `npm token create` support in verdaccio). Caches the token after first retrieval.
+   */
+  public getToken(): string {
+    if (this.token) {
+      // Cache the token even if logged out (it seems to stay the same when logging back in)
+      return this.token;
+    }
+
+    if (!this.isLoggedIn) {
+      throw new Error('Must be logged in to get the token');
+    }
+
+    const registryUrl = this.getUrl().replace(/^https?:/, '');
+    const npmrcPath = path.join(os.homedir(), '.npmrc');
+    const npmrcContent = fs
+      .readFileSync(npmrcPath, 'utf-8')
+      .split(/\r?\n/g)
+      .find(line => line.startsWith(registryUrl) && line.includes('_authToken'));
+
+    if (!npmrcContent) {
+      throw new Error(`Failed to find auth token in .npmrc for registry ${registryUrl}`);
+    }
+
+    this.token = npmrcContent.split('=')[1].replace(/"/g, '');
+    return this.token;
+  }
+
   /** Run `npm logout` on the fake registry */
   public async logout(): Promise<void> {
+    if (!this.isLoggedIn) {
+      return;
+    }
+
     // Conservatively set to false even if it fails partway (logging in again is harmless)
     this.isLoggedIn = false;
     try {

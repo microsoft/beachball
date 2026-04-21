@@ -84,6 +84,7 @@ describe('change command', () => {
     const parsedOptions = getParsedOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'change', ...(extraArgv ?? [])],
+      env: {},
       testRepoOptions: {
         branch: defaultRemoteBranchName,
         ...repoOptions,

@@ -62,6 +62,7 @@ export interface CliOptions
   help?: boolean;
   /** Force change files for these packages */
   package?: string | string[];
+  /** Token. This can either come from the CLI option or `NPM_TOKEN` environment variable. */
   token?: string;
   type?: ChangeType | null;
   verbose?: boolean;
@@ -85,6 +86,10 @@ export interface RepoOptions {
    * @default 'restricted'
    */
   access: 'public' | 'restricted';
+  /**
+   * npm publish auth type for `NPM_TOKEN` or `--token`
+   * @default 'authtoken'
+   */
   authType: AuthType;
   /**
    * The target branch. In the repo or CLI config, this can be specified without a remote name

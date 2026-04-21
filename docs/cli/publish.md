@@ -15,7 +15,7 @@ Publishing automates all the bumping and synchronizing of package versions in th
 <!-- prettier-ignore -->
 | Option | Alias | Default | Description |
 | ------ | ----- | ------- | ----------- |
-| `--auth-type` | `-a` | `'authtoken'` | npm auth type: `'authtoken'` or `'password'` |
+| `--auth-type` | `-a` | `'authtoken'` | npm auth type for `NPM_TOKEN` or `--token`: `'authtoken'` or `'password'` |
 | `--git-tags`, `--no-git-tags` | | `true` (`--git-tags`) | whether to create git tags for published package versions |
 | `--keep-change-files` | | | don't delete the change files from disk after bumping |
 | `--message` | `-m` | `'applying package updates'` | custom commit message |
@@ -25,9 +25,22 @@ Publishing automates all the bumping and synchronizing of package versions in th
 | `--registry` | `-r` | `'https://registry.npmjs.org'` | npm registry for publishing |
 | `--retries` | | `3` | number of retries for a package publish before failing |
 | `--tag` | `-t` | `'latest'` | dist-tag for npm publishes |
-| `--token` | `-n` | | credential to use with npm commands (type is specified by `--auth-type`) - locally, use `npm login` instead, or see [alternatives for CI](../concepts/ci-integration) |
+| `--token` | `-n` | | Not recommended; see alternatives below |
 | `--verbose` | | `false` | prints additional information to the console |
 | `--yes` | `-y` | if CI detected, `true` | skips the prompts for publish |
+
+#### Providing a token
+
+There are a few different ways to handle npm authentication for `beachball publish`.
+
+In CI, you should use [trusted publishing](https://docs.npmjs.com/trusted-publishers) if supported to remove the need for tokens. Unfortunately this isn't available in Azure DevOps.
+
+If trusted publishing is unavailable or you're running `beachball` locally, you can do any of the following:
+
+- Set the `NPM_TOKEN` environment variable (`beachball` passes this through to `npm`)
+- Run `npm login` first (or a task which does the same)
+- Manually set the token in [`.npmrc`](https://docs.npmjs.com/cli/v11/configuring-npm/npmrc#auth-related-configuration), possibly referencing an environment variable
+- Old way: use `--token <token>` on the command line (not recommended)
 
 ### Algorithm
 

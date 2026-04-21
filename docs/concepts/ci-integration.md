@@ -57,6 +57,19 @@ There are a couple of options here:
 
 ## Setting options for publishing
 
+### Providing an npm token
+
+As mentioned above, if possible you should use [trusted publishing](https://docs.npmjs.com/trusted-publishers) to remove the need for tokens.
+
+Other options:
+
+- Set the `NPM_TOKEN` environment variable while running `beachball`
+- Run `npm login` first (or a task which does the same)
+- Manually set the token in [`.npmrc`](https://docs.npmjs.com/cli/v11/configuring-npm/npmrc#auth-related-configuration), possibly referencing an environment variable
+- Old way: use `--token <token>` on the command line (not recommended)
+
+### Other options
+
 If you're passing any custom options besides the npm token to `beachball publish`, it's recommended to set them in either the `beachball` config (if they don't interfere with other commands), or a `package.json` script (if specific to `publish`).
 
 For example, the following script could be used for publishing public scoped packages (`access` is also safe to set in the beachball config):
@@ -152,10 +165,6 @@ This sample assumes the following:
   - `REPO_PAT`: A GitHub fine-grained personal access token with write access ([as described above](#github-token))
   - `NPM_TOKEN`: An npm token with write access to the package(s) and/or scope(s), such as a [fine-grained token for public npm](#npm-token)
 - A repo root `package.json` script `release` which runs `beachball publish`
-- A `.npmrc` file with the following content (change the registry if needed):
-  ```txt
-  //registry.npmjs.org/:_authToken=${NPM_TOKEN}
-  ```
 
 ```yml
 # Add trigger configuration of your choice (this one is manual only)
@@ -184,7 +193,7 @@ steps:
 
   - script: npm run release
     name: Publish
-    # This works because .npmrc references NPM_TOKEN
+    # Beachball will use this environment variable
     env:
       NPM_TOKEN: $(NPM_TOKEN)
 ```

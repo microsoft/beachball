@@ -39,6 +39,7 @@ describe('sync command (e2e)', () => {
     const parsedOptions = getParsedOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'sync', ...extraArgv],
+      env: {},
       testRepoOptions: {
         ...publishOptions,
         branch: defaultRemoteBranchName,

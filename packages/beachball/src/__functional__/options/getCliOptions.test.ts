@@ -23,10 +23,11 @@ describe('getCliOptions', () => {
   const defaults = { command: 'change', path: projectRoot };
 
   /** test wrapper for `getCliOptions` which adds common args */
-  function getCliOptionsTest(args: string[], cwd?: string) {
+  function getCliOptionsTest(args: string[], cwd?: string, env?: NodeJS.ProcessEnv) {
     return getCliOptions({
       argv: ['node', 'beachball', ...args],
       cwd: cwd || projectRoot,
+      env: env || {},
     });
   }
 
@@ -206,6 +207,11 @@ describe('getCliOptions', () => {
     // positional option
     const options = getCliOptionsTest(['--foo', 'bar', 'baz']);
     expect(options).toEqual({ ...defaults, foo: 'bar', command: 'baz' });
+  });
+
+  it('gets NPM_TOKEN from environment', () => {
+    const options = getCliOptionsTest([], undefined, { NPM_TOKEN: 'fake-token' });
+    expect(options).toEqual({ ...defaults, token: 'fake-token' });
   });
 
   describe('config command', () => {

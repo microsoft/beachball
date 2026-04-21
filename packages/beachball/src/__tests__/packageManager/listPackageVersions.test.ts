@@ -85,12 +85,12 @@ describe('list npm versions', () => {
       const versions = await listPackageVersions(['foo'], { ...npmOptions, authType: 'password', token: 'pass' });
       expect(versions).toEqual({ foo: ['1.0.0', '1.0.1'] });
       expect(npmMock.mock).toHaveBeenCalledWith(
-        [...commonArgs, '--//fake:_password=pass', 'foo', ..._npmShowProperties],
-        expect.anything()
+        [...commonArgs, 'foo', ..._npmShowProperties],
+        expect.objectContaining({ env: { ...process.env, 'npm_config_//fake/:_password': 'pass' } })
       );
       // expect(npmMock.mockFetchJson).toHaveBeenCalledWith(
       //   '/foo',
-      //   expect.objectContaining({ ...commonOptions, '//fake:_password': 'pass' })
+      //   expect.objectContaining({ ...commonOptions, '//fake/:_password': 'pass' })
       // );
     });
 
@@ -99,12 +99,12 @@ describe('list npm versions', () => {
       const versions = await listPackageVersions(['foo'], { ...npmOptions, authType: 'authtoken', token: 'pass' });
       expect(versions).toEqual({ foo: ['1.0.0', '1.0.1'] });
       expect(npmMock.mock).toHaveBeenCalledWith(
-        [...commonArgs, '--//fake:_authToken=pass', 'foo', ..._npmShowProperties],
-        expect.anything()
+        [...commonArgs, 'foo', ..._npmShowProperties],
+        expect.objectContaining({ env: { ...process.env, 'npm_config_//fake/:_authToken': 'pass' } })
       );
       // expect(npmMock.mockFetchJson).toHaveBeenCalledWith(
       //   '/foo',
-      //   expect.objectContaining({ ...commonOptions, '//fake:_authToken': 'pass' })
+      //   expect.objectContaining({ ...commonOptions, '//fake/:_authToken': 'pass' })
       // );
     });
   });
@@ -119,6 +119,7 @@ describe('list npm versions', () => {
     }) {
       const parsedOptions = getParsedOptions({
         argv: ['node', 'beachball', ...(params.extraArgv || [])],
+        env: {},
         cwd: '',
         testRepoOptions: {
           registry,
@@ -305,12 +306,12 @@ describe('list npm versions', () => {
         const versions = await listPackageVersionsByTag(packages, options);
         expect(versions).toEqual({ foo: '1.0.0' });
         expect(npmMock.mock).toHaveBeenCalledWith(
-          [...commonArgs, '--//fake:_authToken=pass', 'foo', ..._npmShowProperties],
-          expect.anything()
+          [...commonArgs, 'foo', ..._npmShowProperties],
+          expect.objectContaining({ env: { ...process.env, 'npm_config_//fake/:_authToken': 'pass' } })
         );
         // expect(npmMock.mockFetchJson).toHaveBeenCalledWith(
         //   '/foo',
-        //   expect.objectContaining({ ...commonOptions, '//fake:_authToken': 'pass' })
+        //   expect.objectContaining({ ...commonOptions, '//fake/:_authToken': 'pass' })
         // );
       });
 
@@ -325,12 +326,12 @@ describe('list npm versions', () => {
         const versions = await listPackageVersionsByTag(packages, options);
         expect(versions).toEqual({ foo: '1.0.0' });
         expect(npmMock.mock).toHaveBeenCalledWith(
-          [...commonArgs, '--//fake:_password=pass', 'foo', ..._npmShowProperties],
-          expect.anything()
+          [...commonArgs, 'foo', ..._npmShowProperties],
+          expect.objectContaining({ env: { ...process.env, 'npm_config_//fake/:_password': 'pass' } })
         );
         // expect(npmMock.mockFetchJson).toHaveBeenCalledWith(
         //   '/foo',
-        //   expect.objectContaining({ ...commonOptions, '//fake:_password': 'pass' })
+        //   expect.objectContaining({ ...commonOptions, '//fake/:_password': 'pass' })
         // );
       });
 

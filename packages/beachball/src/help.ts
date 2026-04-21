@@ -69,7 +69,7 @@ Options supported by all commands except 'config':
 
     Also supports all 'bump' options.
 
-    --auth-type             - npm auth type: 'authtoken' or 'password'
+    --auth-type             - npm auth type for NPM_TOKEN: 'authtoken' or 'password'
     --message, -m           - commit message (default: "applying package updates")
     --no-bump               - skip both bumping versions and pushing changes back to git remote
     --no-git-tags           - don't create git tags for each published package version
@@ -78,7 +78,6 @@ Options supported by all commands except 'config':
     --registry, -r          - registry (default https://registry.npmjs.org)
     --retries               - number of retries for npm publishes (default: 3)
     --tag, -t               - dist-tag for npm publishes (default: "latest")
-    --token                 - npm token or password
     --yes, -y               - skip the confirmation prompts
 
 'sync' options:

@@ -41,6 +41,7 @@ describe('publish command (npm)', () => {
     const parsedOptions = getParsedOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'publish', '--yes'],
+      env: {},
       testRepoOptions: {
         branch: defaultRemoteBranchName,
         registry: 'fake',

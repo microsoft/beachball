@@ -38,6 +38,7 @@ describe('writeChangelog', () => {
     const parsedOptions = getParsedOptions({
       cwd: cwd || repo?.rootPath || '',
       argv: [],
+      env: {},
       testRepoOptions: { branch: defaultRemoteBranchName, ...repoOptions },
     });
     const packageInfos = getPackageInfos(parsedOptions);

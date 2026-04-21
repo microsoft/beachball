@@ -21,6 +21,7 @@ describe('bumpInMemory', () => {
     const { cliOptions, options } = getParsedOptions({
       cwd,
       argv: [],
+      env: {},
       testRepoOptions: params.repoOptions,
     });
     const originalPackageInfos = makePackageInfosByFolder({

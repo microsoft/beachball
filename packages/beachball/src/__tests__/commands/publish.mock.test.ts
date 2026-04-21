@@ -46,6 +46,7 @@ describe('publish command (all helpers mocked)', () => {
     const parsedOptions = getParsedOptions({
       cwd: '',
       argv: ['node', 'beachball', 'publish', '--yes'],
+      env: {},
       testRepoOptions: {
         branch: defaultRemoteBranchName,
         registry: 'fake',
