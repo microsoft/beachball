@@ -21,6 +21,8 @@ permissions: {}
 jobs:
   build:
     strategy:
+      # Sometimes it can be helpful to see if a failure is specific to a particular environment
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -74,6 +76,22 @@ jobs:
       - run: yarn lint:ci
 
       - run: yarn test --verbose
+        id: test
+
+      # For a few specific test failures, it can be helpful to see npm debug logs
+      # (usually not relevant, but there's not a good way to distinguish by specific failure)
+      - name: (on test failure) Get npm cache path
+        if: failure() && steps.test.outcome == 'failure'
+        shell: bash
+        run: echo "NPM_CACHE_DIR=$(npm config get cache)" >> "$GITHUB_ENV"
+
+      - name: (on test failure) Upload npm logs as artifact
+        if: failure() && steps.test.outcome == 'failure'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: npm-logs-${{ matrix.os }}-node${{ matrix.node }}-npm${{ matrix.npm }}
+          path: ${{ env.NPM_CACHE_DIR }}/_logs
+          retention-days: 3
 
   # The docs have a separate installation using Node 22 due to needing newer dependencies
   docs:

@@ -26,6 +26,7 @@ const testPackage = { name: testName, version: testVersion };
 //
 describe('packagePublish', () => {
   let npmSpy: jest.SpiedFunction<typeof npm>;
+  let npmVersion: string;
   let tempRoot: string;
   let tempPackageJsonPath: string;
   /**
@@ -87,10 +88,13 @@ describe('packagePublish', () => {
       tempRoot = tmpdir();
       tempPackageJsonPath = path.join(tempRoot, 'package.json');
       writeJson(tempPackageJsonPath, testPackage);
+
+      npmVersion = (await npmModule.npm(['--version'], { cwd: tempRoot })).stdout.trim() || '';
     });
 
     beforeEach(async () => {
       await registry.start();
+      jest.clearAllMocks();
     });
 
     afterEach(async () => {
@@ -180,23 +184,24 @@ describe('packagePublish', () => {
       expect(logs2ndTry).toMatch(`${testSpec} already exists in the registry`);
     });
 
-    // TODO: enable this once node version is upgraded (it doesn't work with npm 6 because that
-    // version seems to allow truly anonymous publishing with verdaccio, and there's not a
-    // straightforward way to detect the npm version while accounting for nvm)
-    // it('handles auth error and does not retry', async () => {
-    //   await registry.logout();
+    // TODO: remove it.skip once node version is upgraded (this test doesn't work with npm 6 because
+    // that version seems to allow truly anonymous publishing with verdaccio)
+    // eslint-disable-next-line no-restricted-properties
+    const itNotNpm6 = npmVersion.startsWith('6') ? it.skip : it;
+    itNotNpm6('handles auth error and does not retry', async () => {
+      await registry.logout();
 
-    //   const testPackageInfo = getTestPackageInfo();
-    //   const publishResult = await packagePublish(testPackageInfo, {
-    //     ...defaultOptions,
-    //     registry: registry.getUrl(),
-    //     path: tempRoot,
-    //   });
-    //   expect(publishResult).toEqual(failedResult);
-    //   // `retries` should be ignored with an auth error
-    //   expect(npmSpy).toHaveBeenCalledTimes(1);
-    //   expect(logs.getMockLines('error')).toMatch(`Publishing ${testSpec} failed due to an auth error. Output:`);
-    // });
+      const testPackageInfo = getTestPackageInfo();
+      const publishResult = await packagePublish(testPackageInfo, {
+        ...defaultOptions,
+        registry: registry.getUrl(),
+        path: tempRoot,
+      });
+      expect(publishResult).toEqual(failedResult);
+      // `retries` should be ignored with an auth error
+      expect(npmSpy).toHaveBeenCalledTimes(1);
+      expect(logs.getMockLines('error')).toMatch(`Publishing ${testSpec} failed due to an auth error. Output:`);
+    });
   });
 
   describe('with mocked npm', () => {
