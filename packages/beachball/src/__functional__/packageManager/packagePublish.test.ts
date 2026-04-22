@@ -184,11 +184,12 @@ describe('packagePublish', () => {
       expect(logs2ndTry).toMatch(`${testSpec} already exists in the registry`);
     });
 
-    // TODO: remove it.skip once node version is upgraded (this test doesn't work with npm 6 because
+    // TODO: remove condition once node version is upgraded (this test doesn't work with npm 6 because
     // that version seems to allow truly anonymous publishing with verdaccio)
-    // eslint-disable-next-line no-restricted-properties
-    const itNotNpm6 = npmVersion.startsWith('6') ? it.skip : it;
-    itNotNpm6('handles auth error and does not retry', async () => {
+    it('handles auth error and does not retry', async () => {
+      if (npmVersion.startsWith('6.')) {
+        return;
+      }
       await registry.logout();
 
       const testPackageInfo = getTestPackageInfo();

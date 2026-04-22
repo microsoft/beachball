@@ -150,11 +150,8 @@ export class Registry {
 
   /** Run `npm logout` on the fake registry */
   public async logout(): Promise<void> {
-    if (!this.isLoggedIn) {
-      return;
-    }
-
-    // Conservatively set to false even if it fails partway (logging in again is harmless)
+    // Conservatively set to false even if it fails partway (logging in again is harmless).
+    // Also go ahead and log out even if not flagged as logged in since it could be out of sync.
     this.isLoggedIn = false;
     try {
       const registry = this.getUrl();

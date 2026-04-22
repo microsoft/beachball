@@ -19,7 +19,9 @@ export async function packageManager(
     const result = await execa(manager, args, {
       ...options,
       // This is required for Windows due to https://nodejs.org/en/blog/vulnerability/april-2024-security-releases-2
-      shell: true,
+      // but only provide it on Windows because it breaks oddly-named environment variables
+      // such as npm_config_//someRegistry/:_authToken on Linux...
+      ...(process.platform === 'win32' && { shell: true }),
     });
     return {
       ...result,
