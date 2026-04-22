@@ -208,7 +208,9 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
     cliOptions._extraPositionalArgs = extraPositionalArgs;
   }
 
-  if (processInfo.env.NPM_TOKEN) {
+  // If both --token and NPM_TOKEN are provided, prefer the CLI token (could go either way, but
+  // this is safer for compatibility in case anyone was already using that env name another way)
+  if (processInfo.env.NPM_TOKEN && cliOptions.token === undefined) {
     cliOptions.token = processInfo.env.NPM_TOKEN;
   }
 

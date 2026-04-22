@@ -214,6 +214,16 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, token: 'fake-token' });
   });
 
+  it('prefers CLI token over NPM_TOKEN environment variable', () => {
+    const options = getCliOptionsTest(['--token', 'cli-token'], undefined, { NPM_TOKEN: 'env-token' });
+    expect(options).toEqual({ ...defaults, token: 'cli-token' });
+  });
+
+  it('prefers empty string CLI token over NPM_TOKEN environment variable', () => {
+    const options = getCliOptionsTest(['--token', ''], undefined, { NPM_TOKEN: 'env-token' });
+    expect(options).toEqual({ ...defaults, token: '' });
+  });
+
   describe('config command', () => {
     it('parses config get with setting name', () => {
       const options = getCliOptionsTest(['config', 'get', 'branch']);
