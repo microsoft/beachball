@@ -1,8 +1,20 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Fri, 10 Apr 2026 02:42:47 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 22 Apr 2026 04:13:00 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.65.0
+
+Wed, 22 Apr 2026 04:13:00 GMT
+
+### Minor changes
+
+- Add support for providing npm token via NPM_TOKEN environment variable, and internally pass token to npm using an environment variable (elcraig@microsoft.com)
+
+### Patches
+
+- Update workspace-tools to 0.41.4 (elcraig@microsoft.com)
 
 ## 2.64.3
 

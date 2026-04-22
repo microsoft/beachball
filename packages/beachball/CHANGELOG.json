@@ -2,6 +2,37 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 22 Apr 2026 04:13:00 GMT",
+      "version": "2.65.0",
+      "tag": "beachball_v2.65.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e2c6c618b6f61d4fbfb0dc8adfbe684a2db27e63",
+            "comment": "Add support for providing npm token via NPM_TOKEN environment variable, and internally pass token to npm using an environment variable"
+          }
+        ],
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e2c6c618b6f61d4fbfb0dc8adfbe684a2db27e63",
+            "comment": "Update workspace-tools to 0.41.4"
+          }
+        ],
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "e2c6c618b6f61d4fbfb0dc8adfbe684a2db27e63",
+            "comment": "Move beachball to a monorepo structure"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 10 Apr 2026 02:42:47 GMT",
       "version": "2.64.3",
       "tag": "beachball_v2.64.3",
