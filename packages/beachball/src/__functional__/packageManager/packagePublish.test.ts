@@ -38,9 +38,10 @@ describe('packagePublish', () => {
 
   const logs = initMockLogs();
 
-  const defaultOptions: Omit<PackagePublishOptions, 'path' | 'registry'> = {
+  const defaultOptions: Omit<PackagePublishOptions, 'path'> = {
     npmReadConcurrency: 2,
     retries: 3,
+    registry: 'http://fake-registry', // overwritten for real tests
   };
 
   function getTestPackageInfo(): PackageInfo {
@@ -184,10 +185,11 @@ describe('packagePublish', () => {
       expect(logs2ndTry).toMatch(`${testSpec} already exists in the registry`);
     });
 
-    // TODO: remove condition once node version is upgraded (this test doesn't work with npm 6 because
-    // that version seems to allow truly anonymous publishing with verdaccio)
     it('handles auth error and does not retry', async () => {
+      // TODO: remove condition once node version is upgraded (this test doesn't work with npm 6 because
+      // that version seems to allow truly anonymous publishing with verdaccio)
       if (npmVersion.startsWith('6.')) {
+        console.warn('Skipping auth error test on npm 6');
         return;
       }
       await registry.logout();
@@ -212,7 +214,6 @@ describe('packagePublish', () => {
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
-        registry: 'http://fake-registry',
         path: tempRoot,
         token: 'fake-token',
       });
@@ -244,7 +245,6 @@ describe('packagePublish', () => {
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
-        registry: 'fake',
         path: tempRoot,
       });
       expect(publishResult).toEqual(successResult);
@@ -264,7 +264,6 @@ describe('packagePublish', () => {
 
       const publishResult = await packagePublish(getTestPackageInfo(), {
         ...defaultOptions,
-        registry: 'fake',
         path: tempRoot,
       });
       expect(publishResult).toEqual(failedResult);
@@ -284,7 +283,6 @@ describe('packagePublish', () => {
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
-        registry: 'fake',
         path: tempRoot,
       });
       expect(publishResult).toEqual(failedResult);
@@ -303,7 +301,6 @@ describe('packagePublish', () => {
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
-        registry: 'fake',
         path: tempRoot,
       });
       expect(publishResult).toEqual(failedResult);
@@ -318,7 +315,6 @@ describe('packagePublish', () => {
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
-        registry: 'fake',
         path: tempRoot,
       });
       expect(publishResult).toEqual(failedResult);

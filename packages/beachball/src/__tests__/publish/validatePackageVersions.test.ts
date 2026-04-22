@@ -12,7 +12,7 @@ describe('validatePackageVersions', () => {
   const logs = initMockLogs();
   /** Mock the `npm show` command. This also handles cleanup after each test. */
   const npmMock = initNpmMock();
-  const npmOptions: NpmOptions = { npmReadConcurrency: 2, path: undefined, registry: 'https://fake' };
+  const npmOptions: NpmOptions = { npmReadConcurrency: 2, path: '', registry: 'https://fake' };
 
   it('succeeds with nothing to validate', async () => {
     expect(await validatePackageVersions([], {}, npmOptions)).toBe(true);

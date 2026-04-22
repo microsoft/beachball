@@ -38,7 +38,9 @@ export async function packagePublish(
       cwd: packageRoot,
       timeout: options.timeout,
       all: true,
-      env: { ...process.env, ...authEnv },
+      preferLocal: false,
+      extendEnv: true,
+      env: authEnv,
     });
 
     if (result.success) {

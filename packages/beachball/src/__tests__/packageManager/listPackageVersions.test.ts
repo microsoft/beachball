@@ -26,7 +26,7 @@ describe('list npm versions', () => {
     const npmOptions: NpmOptions = {
       registry,
       timeout,
-      path: undefined,
+      path: '',
       npmReadConcurrency: 2,
     };
 

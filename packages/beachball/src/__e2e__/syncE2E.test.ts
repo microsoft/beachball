@@ -31,7 +31,7 @@ describe('sync command (e2e)', () => {
   const publishOptions: Parameters<typeof packagePublish>[1] = {
     registry: 'fake',
     retries: 3,
-    path: undefined,
+    path: '',
     npmReadConcurrency: 2,
   };
 
