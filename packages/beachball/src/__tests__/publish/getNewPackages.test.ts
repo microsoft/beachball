@@ -12,7 +12,7 @@ describe('getNewPackages', () => {
   const logs = initMockLogs();
   /** Mock the `npm show` command for `npmAsync` calls. This also handles cleanup after each test. */
   const npmMock = initNpmMock();
-  const npmOptions: NpmOptions = { npmReadConcurrency: 2, path: undefined, registry: 'https://fake' };
+  const npmOptions: NpmOptions = { npmReadConcurrency: 2, path: '', registry: 'https://fake' };
 
   it('returns empty if no packages exist', async () => {
     const newPackages = await getNewPackages({ modifiedPackages: new Set(), packageInfos: {} }, npmOptions);

@@ -29,13 +29,13 @@ describe('getNpmPackageInfo', () => {
     { desc: 'scoped', name: '@lage-run/cli', knownVersion: '0.33.0' },
   ])('gets info for $desc package from public npm registry', async ({ name, knownVersion }) => {
     const timeout = 10000;
-    const result = await getNpmPackageInfo(name, { registry, timeout, path: undefined });
+    const result = await getNpmPackageInfo(name, { registry, timeout, path: '' });
 
     expect(npmSpy).toHaveBeenCalledTimes(1);
     // Verify args format
     expect(npmSpy).toHaveBeenCalledWith(
       ['show', '--registry', registry, '--json', name, ..._npmShowProperties],
-      expect.objectContaining({ timeout, cwd: undefined })
+      expect.objectContaining({ timeout, cwd: '' })
     );
     // Verify output format (there's no toHaveResolvedWith matcher, so await the return value)
     expect(await npmSpy.mock.results[0].value).toMatchObject({
@@ -91,20 +91,12 @@ describe('getNpmPackageInfo', () => {
 
   it('passes auth args', async () => {
     // Don't care about the result in this case
-    await getNpmPackageInfo(shouldNotExist, { registry, token: 'fake', path: undefined });
+    await getNpmPackageInfo(shouldNotExist, { registry, token: 'fake', path: '' });
 
     expect(npmSpy).toHaveBeenCalledTimes(1);
     expect(npmSpy).toHaveBeenCalledWith(
-      [
-        'show',
-        '--registry',
-        registry,
-        '--json',
-        '--//registry.npmjs.org/:_authToken=fake',
-        shouldNotExist,
-        ..._npmShowProperties,
-      ],
-      expect.anything()
+      ['show', '--registry', registry, '--json', shouldNotExist, ..._npmShowProperties],
+      expect.objectContaining({ env: { ...process.env, 'npm_config_//registry.npmjs.org/:_authToken': 'fake' } })
     );
 
     // expect(fetchJsonSpy).toHaveBeenCalledTimes(1);

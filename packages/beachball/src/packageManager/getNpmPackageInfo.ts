@@ -1,6 +1,6 @@
 // import fetch from 'npm-registry-fetch';
 import type { NpmOptions } from '../types/NpmOptions';
-import { getNpmAuthArgs, type NpmAuthOptions } from './npmArgs';
+import { getNpmAuthEnv, type NpmAuthOptions } from './npmArgs';
 import type { PackageJson } from '../types/PackageInfo';
 import { npm } from './npm';
 
@@ -52,7 +52,6 @@ export async function getNpmPackageInfo(
   // TODO remove path after https://github.com/microsoft/beachball/issues/1143
   options: NpmAuthOptions & Pick<NpmOptions, 'registry' | 'timeout' | 'verbose' | 'path'>
 ): Promise<NpmPackageVersionsData | undefined> {
-  const authArgs = getNpmAuthArgs(options);
   try {
     options.verbose && console.log(`Fetching info about "${packageName}" from ${options.registry}`);
 
@@ -62,12 +61,16 @@ export async function getNpmPackageInfo(
         '--registry',
         options.registry,
         '--json',
-        ...(authArgs ? [`--${authArgs.key}=${authArgs.value}`] : []),
         packageName,
         // Only output the properties we need (npm show fetches everything internally)
         ..._npmShowProperties,
       ],
-      { timeout: options.timeout, cwd: options.path, all: true }
+      {
+        timeout: options.timeout,
+        cwd: options.path,
+        all: true,
+        env: { ...process.env, ...getNpmAuthEnv(options) },
+      }
     );
 
     if (showResult.success && showResult.stdout !== '') {

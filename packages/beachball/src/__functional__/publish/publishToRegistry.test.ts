@@ -117,7 +117,7 @@ describe('publishToRegistry', () => {
 
     // lib should be published before app (check npm call order)
     const publishCalls = npmMock.mock.mock.calls.filter(([args]) => args[0] === 'publish');
-    const publishOrder = publishCalls.map(([, opts]) => path.basename(opts.cwd!));
+    const publishOrder = publishCalls.map(([, opts]) => path.basename(opts.cwd));
     expect(publishOrder).toEqual(['lib', 'app']);
 
     expect(logs.getMockLines('all', { root: tempRoot })).toMatchSnapshot();
@@ -340,7 +340,7 @@ describe('publishToRegistry', () => {
       // Make publish fail for pkg2 and pkg5.
       // pkg3 and pkg4 should succeed, and pkg1 should be skipped.
       npmMock.setCommandOverride('publish', async (registryData, args, opts) => {
-        const packageName = path.basename(opts.cwd!);
+        const packageName = path.basename(opts.cwd);
         if (packageName === 'pkg2' || packageName === 'pkg5') {
           return { success: false, stdout: '', stderr: 'oh no', all: 'oh no', failed: true };
         }

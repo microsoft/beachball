@@ -72,6 +72,7 @@ describe('performBump', () => {
     const opts = getParsedOptions({
       cwd: fakeRoot,
       argv: [],
+      env: {},
       testRepoOptions: { branch: defaultRemoteBranchName, ...params.repoOptions },
     });
 

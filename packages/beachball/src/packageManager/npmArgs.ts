@@ -8,9 +8,11 @@ export function getNpmLogLevelArgs(verbose: boolean | undefined): string[] {
   return ['--loglevel', verbose ? 'notice' : 'warn'];
 }
 
-export function getNpmPublishArgs(packageInfo: PackageInfo, options: Omit<NpmOptions, 'path'>): string[] {
+export function getNpmPublishArgs(
+  packageInfo: PackageInfo,
+  options: Omit<NpmOptions, 'path' | 'token' | 'authType'>
+): string[] {
   const { registry, access } = options;
-  const authArgs = getNpmAuthArgs(options);
   const args = [
     'publish',
     '--registry',
@@ -22,7 +24,6 @@ export function getNpmPublishArgs(packageInfo: PackageInfo, options: Omit<NpmOpt
       getPackageOption('defaultNpmTag', packageInfo, options) ||
       'latest',
     ...getNpmLogLevelArgs(options.verbose),
-    ...(authArgs ? [`--${authArgs.key}=${authArgs.value}`] : []),
   ];
 
   if (access && packageInfo.name[0] === '@') {
@@ -30,6 +31,21 @@ export function getNpmPublishArgs(packageInfo: PackageInfo, options: Omit<NpmOpt
   }
 
   return args;
+}
+
+/**
+ * Get the environment variable key and value for npm authentication.
+ */
+export function getNpmAuthEnv(options: NpmAuthOptions): Record<`npm_config_${string}`, string> | undefined {
+  const authArgs = getNpmAuthArgs(options);
+  if (!authArgs) {
+    return undefined;
+  }
+  return {
+    // npm_config_* env vars are automatically picked up by npm.
+    // getNpmAuthArgs returns the key in the appropriate format, including required trailing slash.
+    [`npm_config_${authArgs.key}`]: authArgs.value,
+  };
 }
 
 /**
@@ -50,5 +66,9 @@ export function getNpmAuthArgs(options: NpmAuthOptions):
 
   const npmKeyword = authType === 'password' ? '_password' : '_authToken';
   const shorthand = registry.substring(registry.indexOf('//')) as `//${string}`;
-  return { key: `${shorthand}:${npmKeyword}`, value: token };
+  return {
+    // It appears that a trailing slash is strictly required for the environment variable form
+    key: `${shorthand}${shorthand.endsWith('/') ? '' : '/'}:${npmKeyword}`,
+    value: token,
+  };
 }

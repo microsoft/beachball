@@ -26,6 +26,7 @@ const testPackage = { name: testName, version: testVersion };
 //
 describe('packagePublish', () => {
   let npmSpy: jest.SpiedFunction<typeof npm>;
+  let npmVersion: string;
   let tempRoot: string;
   let tempPackageJsonPath: string;
   /**
@@ -37,9 +38,10 @@ describe('packagePublish', () => {
 
   const logs = initMockLogs();
 
-  const defaultOptions: Omit<PackagePublishOptions, 'path' | 'registry'> = {
+  const defaultOptions: Omit<PackagePublishOptions, 'path'> = {
     npmReadConcurrency: 2,
     retries: 3,
+    registry: 'http://fake-registry', // overwritten for real tests
   };
 
   function getTestPackageInfo(): PackageInfo {
@@ -71,22 +73,35 @@ describe('packagePublish', () => {
 
   describe('with real local registry', () => {
     let registry: Registry;
+    let token: string;
 
-    beforeAll(() => {
+    beforeAll(async () => {
       registry = new Registry(__filename);
+
+      // Get the token once upfront (unfortunately verdaccio doesn't support `npm token create`)
+      await registry.start();
+      await registry.login();
+      token = registry.getToken();
+      await registry.logout();
+      registry.stop();
 
       // Create a test package.json in a temporary location for use in tests.
       tempRoot = tmpdir();
       tempPackageJsonPath = path.join(tempRoot, 'package.json');
       writeJson(tempPackageJsonPath, testPackage);
+
+      npmVersion = (await npmModule.npm(['--version'], { cwd: tempRoot })).stdout.trim() || '';
     });
 
     beforeEach(async () => {
       await registry.start();
+      jest.clearAllMocks();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
       npmSpy.mockRestore();
+      // no-op if already logged out
+      await registry.logout();
       registry.stop();
     });
 
@@ -96,12 +111,17 @@ describe('packagePublish', () => {
     });
 
     // Do a basic publishing test against the real registry
-    it('can publish', async () => {
+    it('can publish with a token', async () => {
+      // Pass the token as an arg this time to verify it's translated to an environment variable
+      // and picked up by npm
+      expect(await registry.whoami()).toBeFalsy();
+
       const testPackageInfo = getTestPackageInfo();
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
         registry: registry.getUrl(),
         path: tempRoot,
+        token,
       });
       expect(publishResult).toEqual(successResult);
       expect(npmSpy).toHaveBeenCalledTimes(1);
@@ -124,12 +144,31 @@ describe('packagePublish', () => {
       });
     });
 
+    it('can publish when logged in', async () => {
+      await registry.login();
+
+      const testPackageInfo = getTestPackageInfo();
+      const publishResult = await packagePublish(testPackageInfo, {
+        ...defaultOptions,
+        registry: registry.getUrl(),
+        path: tempRoot,
+      });
+
+      expect(publishResult).toEqual(successResult);
+      expect(npmSpy).toHaveBeenCalledTimes(1);
+
+      const allLogs = logs.getMockLines('all');
+      expect(allLogs).toMatch(`Publishing - ${testSpec} with tag ${testTag}`);
+      expect(allLogs).toMatch('publish command:');
+      expect(allLogs).toMatch(`[log] Published!`);
+    });
+
     // Use real npm for this because the republish detection relies on the real error message.
     // This test might fail on a machine with a non-English locale due to lack of numeric error code
     // in newer npm versions
     it('errors and does not retry on republish', async () => {
       const testPackageInfo = getTestPackageInfo();
-      const options: PackagePublishOptions = { ...defaultOptions, registry: registry.getUrl(), path: tempRoot };
+      const options: PackagePublishOptions = { ...defaultOptions, registry: registry.getUrl(), path: tempRoot, token };
 
       let publishResult = await packagePublish(testPackageInfo, options);
       expect(publishResult).toEqual(successResult);
@@ -146,26 +185,51 @@ describe('packagePublish', () => {
       expect(logs2ndTry).toMatch(`${testSpec} already exists in the registry`);
     });
 
-    // TODO: enable this once node version is upgraded (it doesn't work with npm 6 because that
-    // version seems to allow truly anonymous publishing with verdaccio, and there's not a
-    // straightforward way to detect the npm version while accounting for nvm)
-    // it('handles auth error and does not retry', async () => {
-    //   await registry.logout();
+    it('handles auth error and does not retry', async () => {
+      // TODO: remove condition once node version is upgraded (this test doesn't work with npm 6 because
+      // that version seems to allow truly anonymous publishing with verdaccio)
+      if (npmVersion.startsWith('6.')) {
+        console.warn('Skipping auth error test on npm 6');
+        return;
+      }
+      await registry.logout();
 
-    //   const testPackageInfo = getTestPackageInfo();
-    //   const publishResult = await packagePublish(testPackageInfo, {
-    //     ...defaultOptions,
-    //     registry: registry.getUrl(),
-    //     path: tempRoot,
-    //   });
-    //   expect(publishResult).toEqual(failedResult);
-    //   // `retries` should be ignored with an auth error
-    //   expect(npmSpy).toHaveBeenCalledTimes(1);
-    //   expect(logs.getMockLines('error')).toMatch(`Publishing ${testSpec} failed due to an auth error. Output:`);
-    // });
+      const testPackageInfo = getTestPackageInfo();
+      const publishResult = await packagePublish(testPackageInfo, {
+        ...defaultOptions,
+        registry: registry.getUrl(),
+        path: tempRoot,
+      });
+      expect(publishResult).toEqual(failedResult);
+      // `retries` should be ignored with an auth error
+      expect(npmSpy).toHaveBeenCalledTimes(1);
+      expect(logs.getMockLines('error')).toMatch(`Publishing ${testSpec} failed due to an auth error. Output:`);
+    });
   });
 
   describe('with mocked npm', () => {
+    it('logs commands and progress', async () => {
+      const testPackageInfo = getTestPackageInfo();
+      npmSpy.mockResolvedValue({ success: true, all: 'not logged' } as NpmResult);
+
+      const publishResult = await packagePublish(testPackageInfo, {
+        ...defaultOptions,
+        path: tempRoot,
+        token: 'fake-token',
+      });
+      expect(publishResult).toEqual(successResult);
+      expect(npmSpy).toHaveBeenCalledTimes(1);
+
+      const allLogs = logs.getMockLines('all', { root: tempRoot });
+      expect(allLogs).toMatchInlineSnapshot(`
+        "[log] Publishing - testbeachballpackage@0.6.0 with tag testbeachballtag
+        [log]   publish command: publish --registry http://fake-registry --tag testbeachballtag --loglevel warn
+        [log]   (cwd: <root>, auth env var: npm_config_//fake-registry/:_authToken=****)
+
+        [log] Published! - testbeachballpackage@0.6.0"
+      `);
+    });
+
     it('performs retries', async () => {
       // It's difficult or not desirable to simulate actual error conditions (such as timeouts or network errors),
       // so mock all npm calls for this test.
@@ -181,7 +245,6 @@ describe('packagePublish', () => {
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
-        registry: 'fake',
         path: tempRoot,
       });
       expect(publishResult).toEqual(successResult);
@@ -201,7 +264,6 @@ describe('packagePublish', () => {
 
       const publishResult = await packagePublish(getTestPackageInfo(), {
         ...defaultOptions,
-        registry: 'fake',
         path: tempRoot,
       });
       expect(publishResult).toEqual(failedResult);
@@ -221,7 +283,6 @@ describe('packagePublish', () => {
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
-        registry: 'fake',
         path: tempRoot,
       });
       expect(publishResult).toEqual(failedResult);
@@ -240,7 +301,6 @@ describe('packagePublish', () => {
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
-        registry: 'fake',
         path: tempRoot,
       });
       expect(publishResult).toEqual(failedResult);
@@ -255,7 +315,6 @@ describe('packagePublish', () => {
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
-        registry: 'fake',
         path: tempRoot,
       });
       expect(publishResult).toEqual(failedResult);

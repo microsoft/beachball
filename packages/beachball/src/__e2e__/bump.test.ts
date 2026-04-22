@@ -38,6 +38,7 @@ describe('bump command', () => {
     const parsedOptions = getParsedOptions({
       cwd: cwd || repo?.rootPath || '',
       argv: [],
+      env: {},
       testRepoOptions: { branch: defaultRemoteBranchName, fetch: false, ...repoOptions },
     });
     return { options: parsedOptions.options, parsedOptions };

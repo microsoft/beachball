@@ -31,6 +31,7 @@ describe('readChangeFiles', () => {
     const parsedOptions = getParsedOptions({
       cwd: cwd!,
       argv: [],
+      env: {},
       testRepoOptions: { branch: defaultRemoteBranchName, ...repoOptions },
     });
     const packageInfos = getPackageInfos(parsedOptions);

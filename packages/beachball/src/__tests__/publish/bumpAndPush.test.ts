@@ -69,6 +69,7 @@ describe('bumpAndPush', () => {
     const { options } = getParsedOptions({
       cwd: fakeRoot,
       argv: [],
+      env: {},
       testRepoOptions: {
         branch: defaultRemoteBranchName,
         message: 'apply package updates',

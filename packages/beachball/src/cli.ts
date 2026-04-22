@@ -25,7 +25,7 @@ import { getPackageGroups } from './monorepo/getPackageGroups';
   }
 
   // eslint-disable-next-line no-restricted-properties -- this is the top level
-  const parsedOptions = getParsedOptions({ cwd: process.cwd(), argv: process.argv });
+  const parsedOptions = getParsedOptions({ cwd: process.cwd(), argv: process.argv, env: process.env });
   const options = parsedOptions.options;
 
   if (options.help) {

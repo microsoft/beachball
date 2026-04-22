@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { getNpmAuthArgs, getNpmPublishArgs } from '../../packageManager/npmArgs';
+import { getNpmAuthArgs, getNpmAuthEnv, getNpmPublishArgs } from '../../packageManager/npmArgs';
 import type { AuthType } from '../../types/Auth';
 import type { NpmOptions } from '../../types/NpmOptions';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
@@ -19,22 +19,61 @@ describe('getNpmAuthArgs', () => {
   });
 
   it('defaults to _authToken when no authType specified but token is provided', () => {
-    expect(getNpmAuthArgs({ registry, token })).toEqual({ key: '//testRegistry:_authToken', value: token });
+    expect(getNpmAuthArgs({ registry, token })).toEqual({ key: '//testRegistry/:_authToken', value: token });
   });
 
   it('respects authType: authtoken', () => {
     const result = getNpmAuthArgs({ registry, token, authType: 'authtoken' });
-    expect(result).toEqual({ key: '//testRegistry:_authToken', value: token });
+    expect(result).toEqual({ key: '//testRegistry/:_authToken', value: token });
   });
 
   it('respects authType: password', () => {
     const result = getNpmAuthArgs({ registry, token, authType: 'password' });
-    expect(result).toEqual({ key: '//testRegistry:_password', value: token });
+    expect(result).toEqual({ key: '//testRegistry/:_password', value: token });
   });
 
   it('uses _authToken for invalid authType', () => {
     const result = getNpmAuthArgs({ registry, token, authType: 'invalidvalue' as AuthType });
-    expect(result).toEqual({ key: '//testRegistry:_authToken', value: token });
+    expect(result).toEqual({ key: '//testRegistry/:_authToken', value: token });
+  });
+});
+
+describe('getNpmAuthEnv', () => {
+  const registry = 'https://testRegistry';
+  const token = 'someToken';
+
+  it('returns undefined with no token regardless of authType', () => {
+    expect(getNpmAuthEnv({ registry })).toBeUndefined();
+    expect(getNpmAuthEnv({ registry, authType: 'password' })).toBeUndefined();
+    expect(getNpmAuthEnv({ registry, authType: 'authtoken' })).toBeUndefined();
+  });
+
+  it('ignores empty string as token', () => {
+    expect(getNpmAuthEnv({ registry, token: '' })).toBeUndefined();
+  });
+
+  it('returns npm_config env var with _authToken by default', () => {
+    expect(getNpmAuthEnv({ registry, token })).toEqual({
+      'npm_config_//testRegistry/:_authToken': token,
+    });
+  });
+
+  it('respects authType: authtoken', () => {
+    expect(getNpmAuthEnv({ registry, token, authType: 'authtoken' })).toEqual({
+      'npm_config_//testRegistry/:_authToken': token,
+    });
+  });
+
+  it('respects authType: password', () => {
+    expect(getNpmAuthEnv({ registry, token, authType: 'password' })).toEqual({
+      'npm_config_//testRegistry/:_password': token,
+    });
+  });
+
+  it('uses _authToken for invalid authType', () => {
+    expect(getNpmAuthEnv({ registry, token, authType: 'invalidvalue' as AuthType })).toEqual({
+      'npm_config_//testRegistry/:_authToken': token,
+    });
   });
 });
 
@@ -85,10 +124,5 @@ describe('getNpmPublishArgs', () => {
   it('does not add access for scoped package if not specified', () => {
     const args = getNpmPublishArgs(packageInfos['@scoped/foo'], options).join(' ');
     expect(args).not.toMatch('--access');
-  });
-
-  it('uses auth args if specified', () => {
-    const args = getNpmPublishArgs(packageInfos.basic, { ...options, token: 'testToken' }).join(' ');
-    expect(args).toMatch('--//testRegistry:_authToken=testToken');
   });
 });

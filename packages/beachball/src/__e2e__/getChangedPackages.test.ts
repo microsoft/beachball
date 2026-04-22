@@ -31,6 +31,7 @@ describe('getChangedPackages (basic)', () => {
     const parsedOptions = getParsedOptions({
       cwd: reusedRepo.rootPath,
       argv: [],
+      env: {},
       testRepoOptions: {
         fetch: false,
         branch: defaultRemoteBranchName,
@@ -127,6 +128,7 @@ describe('getChangedPackages', () => {
     const parsedOptions = getParsedOptions({
       cwd,
       argv: ['node', 'beachball', 'change', ...extraArgv],
+      env: {},
       testRepoOptions: {
         branch: defaultRemoteBranchName,
         fetch: false,

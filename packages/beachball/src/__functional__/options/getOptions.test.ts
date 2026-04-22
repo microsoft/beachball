@@ -127,7 +127,7 @@ describe('getParsedOptions', () => {
       `module.exports = ${JSON.stringify(repoOptions)};`
     );
 
-    const parsedOptions = getParsedOptions({ argv: baseArgv(), cwd: repo.rootPath });
+    const parsedOptions = getParsedOptions({ argv: baseArgv(), env: {}, cwd: repo.rootPath });
     expect(parsedOptions).toEqual({
       options: expect.objectContaining({ branch: 'origin/foo' }),
       cliOptions: { path: repo.rootPath, command: 'stuff' },
@@ -138,7 +138,7 @@ describe('getParsedOptions', () => {
     const repo = repositoryFactory.cloneRepository();
     writeJson(path.join(repo.rootPath, 'package.json'), { beachball: { branch: 'origin/foo' } });
 
-    const parsedOptions = getParsedOptions({ argv: baseArgv(), cwd: repo.rootPath });
+    const parsedOptions = getParsedOptions({ argv: baseArgv(), env: {}, cwd: repo.rootPath });
     expect(parsedOptions).toEqual({
       options: expect.objectContaining({ branch: 'origin/foo' }),
       cliOptions: { path: repo.rootPath, command: 'stuff' },
@@ -149,7 +149,7 @@ describe('getParsedOptions', () => {
     const repo = repositoryFactory.cloneRepository();
     writeJson(path.join(repo.rootPath, '.beachballrc.json'), { branch: 'origin/foo' });
 
-    const parsedOptions = getParsedOptions({ argv: baseArgv(), cwd: repo.rootPath });
+    const parsedOptions = getParsedOptions({ argv: baseArgv(), env: {}, cwd: repo.rootPath });
     expect(parsedOptions.options.branch).toEqual('origin/foo');
   });
 
@@ -160,6 +160,7 @@ describe('getParsedOptions', () => {
 
     const parsedOptions = getParsedOptions({
       argv: [...baseArgv(), '--config', 'alternate.config.js'],
+      env: {},
       cwd: repo.rootPath,
     });
     expect(parsedOptions.options.branch).toEqual('origin/foo');
@@ -176,6 +177,7 @@ describe('getParsedOptions', () => {
     const parsedOptions = getParsedOptions({
       argv: [...baseArgv(), '--branch', 'origin/bar'],
       cwd: repo.rootPath,
+      env: {},
     });
     expect(parsedOptions).toEqual({
       options: expect.objectContaining({ branch: 'origin/bar' }),
@@ -203,6 +205,7 @@ describe('getParsedOptions', () => {
     const parsedOptions = getParsedOptions({
       argv: [...baseArgv(), '--disallowed-change-types', 'patch'],
       cwd: repo.rootPath,
+      env: {},
     });
     expect(parsedOptions.options).toMatchObject({
       access: 'public',

@@ -13,6 +13,11 @@ export interface ProcessInfo {
    * This can also be an empty string in tests that don't use the filesystem.
    */
   cwd: string;
+  /**
+   * Environment variables for the process (to easily mock in tests).
+   * Only `NPM_TOKEN` is currently used.
+   */
+  env: NodeJS.ProcessEnv | { NPM_TOKEN?: string };
 }
 
 // For camelCased options, yargs will automatically accept them with-dashes too.
@@ -120,7 +125,7 @@ const parserOptions: parser.Options = {
 };
 
 /**
- * Gets CLI options.
+ * Gets CLI options. Also gets the `NPM_TOKEN` environment variable if present.
  */
 export function getCliOptions(processInfo: ProcessInfo): ParsedOptions['cliOptions'];
 /** @deprecated Pass full process info */
@@ -128,7 +133,7 @@ export function getCliOptions(argv: string[]): ParsedOptions['cliOptions'];
 export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOptions['cliOptions'] {
   const processInfo = Array.isArray(processOrArgv)
     ? // eslint-disable-next-line no-restricted-properties -- legacy API
-      { argv: processOrArgv, cwd: env.isJest ? '' : process.cwd() }
+      { argv: processOrArgv, cwd: env.isJest ? '' : process.cwd(), env: process.env }
     : processOrArgv;
 
   // Be careful not to mutate the input argv
@@ -201,6 +206,10 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
   // Set extra positional args after the validation loop (it's an internal array, not from CLI parsing)
   if (extraPositionalArgs) {
     cliOptions._extraPositionalArgs = extraPositionalArgs;
+  }
+
+  if (processInfo.env.NPM_TOKEN) {
+    cliOptions.token = processInfo.env.NPM_TOKEN;
   }
 
   return cliOptions;
