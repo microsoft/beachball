@@ -82,6 +82,7 @@
     "**/verdaccio/validator": "^13.15.22",
     "**/@verdaccio/config/js-yaml": "^4.1.0",
     "**/@verdaccio/config/minimatch": "^7.4.9",
+    "**/@verdaccio/core/ajv": "^8.18.0",
     "**/@verdaccio/url/validator": "^13.15.22",
     "**/@verdaccio/utils/minimatch": "^7.4.9"
   },
