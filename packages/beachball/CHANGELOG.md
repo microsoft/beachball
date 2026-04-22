@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Wed, 22 Apr 2026 04:13:00 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 22 Apr 2026 23:20:37 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.65.1
+
+Wed, 22 Apr 2026 23:20:37 GMT
+
+### Patches
+
+- Prefer `--token`/`-n` over `process.env.NPM_TOKEN` (elcraig@microsoft.com)
 
 ## 2.65.0
 

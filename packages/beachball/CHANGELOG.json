@@ -2,6 +2,21 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 22 Apr 2026 23:20:37 GMT",
+      "version": "2.65.1",
+      "tag": "beachball_v2.65.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "7e77057a6bd93a4d9d8e4ab62e3dc886c1f9e713",
+            "comment": "Prefer `--token`/`-n` over `process.env.NPM_TOKEN`"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 22 Apr 2026 04:13:00 GMT",
       "version": "2.65.0",
       "tag": "beachball_v2.65.0",
