@@ -31,7 +31,7 @@
     "lint:code": "yarn lage lint",
     "lint:deps": "yarn lage depcheck",
     "lint:versions": "yarn syncpack:check",
-    "lint:marketplace": "node scripts/lint-marketplace.js",
+    "lint:marketplace": "node scripts/lintMarketplace.js",
     "postinstall": "patch-package",
     "release": "yarn beachball publish -y",
     "release:docs": "echo \"Run this from the docs folder instead\" && exit 1",
