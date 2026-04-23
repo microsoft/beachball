@@ -4,6 +4,7 @@ coverage/
 dist
 node_modules/
 .DS_Store
+.npmrc
 lib/
 package-lock.json
 target

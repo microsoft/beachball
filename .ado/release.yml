@@ -1,18 +1,20 @@
 # beachball.release - The Release pipeline to publish NPM packages to npmjs.com feeds.
 # Based on https://github.com/microsoft/node-api-dotnet/blob/main/.ado/release.yml
 
+name: beachball-release-$(Date:yyyy-MM-dd).$(Rev:rr)
+
 trigger: none
-name: release_$(Date:yyyyMMdd).$(Rev:r)
 
 resources:
   pipelines:
-    - pipeline: 'beachball_release'
+    - pipeline: 'beachball_publish'
       project: 'ISS'
-      source: 'beachball.release'
+      source: 'beachball.publish'
       trigger:
         branches:
           include:
             - main
+            - user/elcraig/1es-pt-migration-publish
 
   repositories:
     - repository: OfficePipelineTemplates
@@ -27,14 +29,6 @@ extends:
       name: Azure-Pipelines-1ESPT-ExDShared
       vmImage: windows-latest
       os: windows
-    # customBuildTags:
-    #   - ES365AIMigrationTooling-BulkMigrated-Release
-    # sdl:
-    #   eslint:
-    #     enableExclusions: true
-    #     # This repo does not ship any javascript code. But has many test cases for the js engine that fail parsing, have code considered insecure and crash eslint.
-    #     exclusionPatterns: |
-    #       '**/*.*'
 
     stages:
       - stage: main_release

@@ -7,6 +7,7 @@
 .husky/
 .DS_Store
 .nojekyll
+.npmrc.publish
 .nvmrc
 docs/.vuepress/.cache/
 docs/.vuepress/.temp/
