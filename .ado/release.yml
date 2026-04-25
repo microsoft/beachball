@@ -1,6 +1,8 @@
-# beachball.release - The Release pipeline to publish NPM packages to npmjs.com feeds.
+# The release pipeline to publish NPM packages to npmjs.com via ESRP ("beachball - release")
 # Based on https://github.com/microsoft/node-api-dotnet/blob/main/.ado/release.yml
 
+# Name of the run
+# NOTE: this is referenced in packages/beachball/src/env.ts as BUILD_BUILDNUMBER for some tests
 name: beachball-release-$(Date:yyyy-MM-dd).$(Rev:rr)
 
 trigger: none
