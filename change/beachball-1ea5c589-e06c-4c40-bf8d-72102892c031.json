@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "test change",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
