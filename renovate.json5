@@ -60,6 +60,11 @@
       "dependencyDashboardApproval": false
     },
     {
+      // updates currently disabled due to node 14 incompatibility
+      "matchPackageNames": ["lage", "normalized-tmpdir"],
+      "enabled": false
+    },
+    {
       "matchDepTypes": ["devDependencies"],
       "postUpgradeTasks": {
         "commands": [

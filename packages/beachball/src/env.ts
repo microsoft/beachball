@@ -1,11 +1,16 @@
 const isAzurePipelines = !!process.env.TF_BUILD;
 const isJest = !!process.env.JEST_WORKER_ID;
+const adoBuildNumber = process.env.BUILD_BUILDNUMBER;
 
 export const env = Object.freeze({
   // most everything but ADO sets process.env.CI by default
   isCI: !!process.env.CI || isAzurePipelines,
 
   isJest,
+
+  /** Whether this is one of the beachball repo's official release pipelines */
+  isBeachballAdoRelease:
+    adoBuildNumber?.startsWith('beachball-prepublish') || adoBuildNumber?.startsWith('beachball-release'),
 
   /**
    * @deprecated This should likely be replaced with a different strategy (it's never set)

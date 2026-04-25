@@ -1,0 +1,3 @@
+# Only used for .ado/publish.yml
+registry=https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/
+always-auth=true

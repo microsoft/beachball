@@ -7,8 +7,12 @@ import {
 } from '../../packageManager/getNpmPackageInfo';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import * as npmModule from '../../packageManager/npm';
+import { env } from '../../env';
 
-describe('getNpmPackageInfo', () => {
+// These tests fail on the ADO release build due to network restrictions
+// eslint-disable-next-line no-restricted-properties
+const maybeDescribe = env.isBeachballAdoRelease ? describe.skip : describe;
+maybeDescribe('getNpmPackageInfo', () => {
   const npmSpy = jest.spyOn(npmModule, 'npm');
   // const fetchJsonSpy = jest.spyOn(fetch, 'json');
   const logs = initMockLogs();

@@ -55,7 +55,7 @@
     "@types/tmp": "^0.2.3",
     "@types/yargs-parser": "^21.0.0",
     "get-port": "^5.0.0",
-    "normalized-tmpdir": "^1.0.1",
+    "normalized-tmpdir": "1.0.1",
     "strip-ansi": "^6.0.1",
     "tmp": "^0.2.1",
     "verdaccio": "5.29.2",
