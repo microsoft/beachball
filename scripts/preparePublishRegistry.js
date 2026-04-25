@@ -29,7 +29,7 @@ if (npmrcRegistry) {
 
 const yarnLockContent = fs.readFileSync(lockPath, 'utf-8');
 const updatedYarnLockContent = yarnLockContent.replace(
-  /https:\/\/registry.yarnpkg.com\//g,
+  /https:\/\/registry\.yarnpkg\.com\//g,
   npmrcRegistry.endsWith('/') ? npmrcRegistry : `${npmrcRegistry}/`
 );
 fs.writeFileSync(lockPath, updatedYarnLockContent);
