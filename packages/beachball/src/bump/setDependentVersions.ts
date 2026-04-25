@@ -11,10 +11,12 @@ import { bumpMinSemverRange } from './bumpMinSemverRange';
  *
  * **This mutates dependency versions in `packageInfos`!**
  */
-export function setDependentVersions(
-  bumpInfo: Pick<BumpInfo, 'packageInfos' | 'scopedPackages' | 'modifiedPackages'>,
-  options: Pick<BeachballOptions, 'verbose'>
-): BumpInfo['dependentChangedBy'] {
+export function setDependentVersions(params: {
+  bumpInfo: Pick<BumpInfo, 'packageInfos' | 'scopedPackages' | 'modifiedPackages'>;
+  options: Pick<BeachballOptions, 'verbose'>;
+  skipImplicitBumps?: boolean;
+}): BumpInfo['dependentChangedBy'] {
+  const { bumpInfo, options, skipImplicitBumps } = params;
   const { packageInfos, scopedPackages, modifiedPackages } = bumpInfo;
   const { verbose } = options;
   const dependentChangedBy: BumpInfo['dependentChangedBy'] = {};
@@ -34,23 +36,28 @@ export function setDependentVersions(
           continue;
         }
 
-        const bumpedVersionRange = bumpMinSemverRange({
+        // Bump the range if relevant (see doc comment about the return value)
+        const newRange = bumpMinSemverRange({
           newVersion: depPackage.version,
           currentRange: existingVersionRange,
         });
-        // TODO: dependent bumps in workspace:*/^/~ and catalog: ranges will be missed https://github.com/microsoft/beachball/issues/981
-        // And all this logic is questionable with bumpDeps: false or scopes... https://github.com/microsoft/beachball/issues/1123
-        // see also https://github.com/microsoft/beachball/issues/620 and https://github.com/microsoft/beachball/issues/1033
-        if (existingVersionRange !== bumpedVersionRange) {
-          // Update the version range of the dependency if it changed due to bumps.
-          deps[dep] = bumpedVersionRange;
 
+        // TODO: All this logic is questionable with bumpDeps: false or scopes... https://github.com/microsoft/beachball/issues/1123
+        // see also https://github.com/microsoft/beachball/issues/620 and https://github.com/microsoft/beachball/issues/1033
+        const rangeChanged = typeof newRange === 'string';
+        if (rangeChanged) {
+          // Update the version range of the dependency if the literal range changed due to bumps.
+          deps[dep] = newRange;
+        }
+        if (rangeChanged || (newRange === true && !skipImplicitBumps)) {
           dependentChangedBy[pkgName] ??= new Set<string>();
           dependentChangedBy[pkgName].add(dep);
 
           if (verbose) {
             console.log(
-              `${pkgName} needs to be bumped because ${dep} ${existingVersionRange} -> ${bumpedVersionRange}`
+              rangeChanged
+                ? `${pkgName} needs to be bumped because ${dep} ${existingVersionRange} -> ${newRange}`
+                : `${pkgName} needs a changelog entry because ${dep} was bumped to ${depPackage.version} (range ${existingVersionRange} unchanged)`
             );
           }
         }

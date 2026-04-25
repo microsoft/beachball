@@ -485,10 +485,9 @@ describe('bump command', () => {
     // this gets a changelog entry since the workspace:^1.0.0 dep was updated
     // (a little debatable whether the current text is correct)
     expect(pkg3Changelog!.entries[0].comments.patch![0].comment).toBe('Bump pkg-2 to v1.0.1');
-    // Current behavior: dependentChangedBy misses deps like workspace:~ that don't change,
-    // so the bump of pkg-1 will be missing from pkg-2's changelog.
-    // https://github.com/microsoft/beachball/issues/981
-    expect(readChangelogJson(repo.pathTo('packages/pkg-2'))).toBeNull();
+    // pkg-2 also gets a changelog entry even though its workspace:~ range string is unchanged.
+    const pkg2Changelog = readChangelogJson(repo.pathTo('packages/pkg-2'));
+    expect(pkg2Changelog!.entries[0].comments.patch![0].comment).toBe('Bump pkg-1 to v1.1.0');
   });
 
   it('bumps dependents with catalog: deps', async () => {
@@ -527,10 +526,11 @@ describe('bump command', () => {
     expect(packageInfos['pkg-3']).toEqual({ ...originalPackageInfos['pkg-3'], version: '1.0.1' });
 
     expect(readChangelogJson(repo.pathTo('packages/pkg-1'))).not.toBeNull();
-    // Current behavior: dependentChangedBy misses catalog: deps, so there are no changelog entries
-    // https://github.com/microsoft/beachball/issues/981
-    expect(readChangelogJson(repo.pathTo('packages/pkg-2'))).toBeNull();
-    expect(readChangelogJson(repo.pathTo('packages/pkg-3'))).toBeNull();
+    // catalog: deps don't change the dep range string, but dependents still get changelog entries.
+    const pkg2Changelog = readChangelogJson(repo.pathTo('packages/pkg-2'));
+    expect(pkg2Changelog!.entries[0].comments.patch![0].comment).toBe('Bump pkg-1 to v1.1.0');
+    const pkg3Changelog = readChangelogJson(repo.pathTo('packages/pkg-3'));
+    expect(pkg3Changelog!.entries[0].comments.patch![0].comment).toBe('Bump pkg-2 to v1.0.1');
   });
 
   // Explicit tests for sync/async hooks aren't necessary, especially since these are slow tests.

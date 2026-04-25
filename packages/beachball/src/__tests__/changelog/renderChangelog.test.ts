@@ -85,6 +85,18 @@ describe('renderChangelog', () => {
     expect(result).toMatchSnapshot();
   });
 
+  it('renders grouped changelog', async () => {
+    const options = getOptions();
+    options.previousContent = '';
+    options.isGrouped = true;
+    options.newVersionChangelog.name = 'group';
+    // Distribute entries across packages so the grouped renderer has something to group
+    options.newVersionChangelog.comments.minor![0].package = 'bar';
+    options.newVersionChangelog.comments.patch![0].package = 'baz';
+    options.newVersionChangelog.comments.patch!.push({ package: 'baz', comment: 'stuff', author: 'a@example.com' });
+    expect(await renderChangelog(options)).toMatchSnapshot();
+  });
+
   it('trims previous versions if over maxVersions', async () => {
     const options = getOptions();
     options.previousContent += '\n\n' + changelogFromVersions(['1.1.9', '1.1.8', '1.1.7']);

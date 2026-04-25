@@ -44,8 +44,12 @@ export async function sync(options: BeachballOptions, context?: SyncCommandConte
     }
   }
 
-  // Update dependencies on the packages with updated versions
-  const dependentModifiedPackages = setDependentVersions({ packageInfos, scopedPackages, modifiedPackages }, options);
+  // Update dependencies on the packages with updated versions (only need to include package.json updates)
+  const dependentModifiedPackages = setDependentVersions({
+    bumpInfo: { packageInfos, scopedPackages, modifiedPackages },
+    options,
+    skipImplicitBumps: true,
+  });
   // Add the dependent modified packages to the list that needs to be updated on disk
   // (this is a different purpose than other use of modifiedPackages)
   Object.keys(dependentModifiedPackages).forEach(pkg => modifiedPackages.add(pkg));

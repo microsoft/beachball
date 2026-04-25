@@ -48,7 +48,7 @@ async function writeGroupedChangelog(
   bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'packageInfos'>,
   options: Pick<BeachballOptions, 'changeDir' | 'changelog' | 'generateChangelog' | 'path'>
 ): Promise<string[]> {
-  const { changeFileChangeInfos, calculatedChangeTypes, packageInfos } = bumpInfo;
+  const { packageInfos } = bumpInfo;
 
   // Get the changelog groups with absolute paths.
   const changelogGroups = options.changelog?.groups?.map(({ changelogPath, ...rest }) => ({
@@ -60,8 +60,7 @@ async function writeGroupedChangelog(
   }
 
   // Get changelogs without dependency bump entries
-  // (do NOT spread the bump info here!)
-  const changelogs = getPackageChangelogs({ changeFileChangeInfos, calculatedChangeTypes, packageInfos }, options);
+  const changelogs = getPackageChangelogs({ ...bumpInfo, dependentChangedBy: undefined }, options);
 
   const groupedChangelogs: {
     [changelogAbsDir: string]: { changelogs: PackageChangelog[]; mainPackage: PackageInfo };
