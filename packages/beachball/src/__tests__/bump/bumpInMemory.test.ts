@@ -260,8 +260,7 @@ describe('bumpInMemory', () => {
     const { packageInfos, modifiedPackages, calculatedChangeTypes, dependentChangedBy } = bumpInfo;
     expect(modifiedPackages).toEqual(new Set(['pkg-1', 'pkg-2', 'pkg-3']));
     expect(calculatedChangeTypes).toEqual({ 'pkg-1': 'minor', 'pkg-2': 'patch', 'pkg-3': 'patch' });
-    // Current behavior: dependentChangedBy misses file: deps, so the packages won't be in the changelog.
-    // https://github.com/microsoft/beachball/issues/981
+    // file: deps don't produce changelog entries — currently this is intentional, per https://github.com/microsoft/beachball/pull/1080
     expect(dependentChangedBy).toEqual({});
 
     // All the packages are bumped despite the file: dep specs.
@@ -287,11 +286,8 @@ describe('bumpInMemory', () => {
     expect(modifiedPackages).toEqual(new Set(['pkg-1', 'pkg-2', 'pkg-3']));
     expect(calculatedChangeTypes).toEqual({ 'pkg-1': 'minor', 'pkg-2': 'patch', 'pkg-3': 'patch' });
     expect(dependentChangedBy).toEqual({
+      'pkg-2': new Set(['pkg-1']),
       'pkg-3': new Set(['pkg-2']),
-      // Current behavior: dependentChangedBy misses deps like workspace:~ that don't change,
-      // so the bump of pkg-1 will be missing from pkg-2's changelog.
-      // https://github.com/microsoft/beachball/issues/981
-      // 'pkg-2': new Set(['pkg-1']),
     });
 
     // All the dependent packages are bumped despite the workspace: dep specs
@@ -310,7 +306,6 @@ describe('bumpInMemory', () => {
       //   pkg-2: workspace:^1.0.0
       packageFolders: {
         'pkg-1': { version: '1.0.0' },
-        // both of these are detected as dependent bumps but currently missed from changelog
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': 'catalog:' } },
         'pkg-3': { version: '1.0.0', dependencies: { 'pkg-2': 'catalog:' } },
       },
@@ -322,10 +317,8 @@ describe('bumpInMemory', () => {
     expect(modifiedPackages).toEqual(new Set(['pkg-1', 'pkg-2', 'pkg-3']));
     expect(calculatedChangeTypes).toEqual({ 'pkg-1': 'minor', 'pkg-2': 'patch', 'pkg-3': 'patch' });
     expect(dependentChangedBy).toEqual({
-      // Current behavior: dependentChangedBy misses all catalog: deps pointing to workspace: versions
-      // https://github.com/microsoft/beachball/issues/981
-      // 'pkg-2': new Set(['pkg-1']),
-      // 'pkg-3': new Set(['pkg-2']),
+      'pkg-2': new Set(['pkg-1']),
+      'pkg-3': new Set(['pkg-2']),
     });
 
     // All the dependent packages are bumped despite the catalog: dep specs

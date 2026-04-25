@@ -1,0 +1,11 @@
+{
+  "changes": [
+    {
+      "type": "patch",
+      "comment": "Include dependent bumps for `workspace:` and `catalog:` dependencies in the changelog",
+      "packageName": "beachball",
+      "email": "elcraig@microsoft.com",
+      "dependentChangeType": "patch"
+    }
+  ]
+}

@@ -4,19 +4,25 @@ import { getWorkspaceRange } from '../packageManager/getWorkspaceRange';
 
 /**
  * Bump the semver range for a dependency to match the new version of a package.
- * @param newVersion The new version of the package
- * @param currentRange Current version range for the dependency.
- * @returns New semver range for the dependency
+ *
+ * @returns
+ * - If a bump is needed, string of the new dependency range
+ * - `true` for implicit bumps: if `currentRange` is any `catalog:` version or `workspace:[*~^]`),
+ *   the range in package.json doesn't change now, but will be updated right before publishing
+ * - `undefined` if `newVersion` satisfies `currentRange`
  */
 export function bumpMinSemverRange(params: {
   /** The new version of the package */
   newVersion: string;
   /** Current semver range specified for the dependency */
   currentRange: string;
-}): string {
+}): string | true | undefined {
   const { newVersion, currentRange } = params;
-  if (currentRange === '*' || currentRange.startsWith('file:') || isCatalogVersion(currentRange)) {
-    return currentRange;
+  if (currentRange === '*' || currentRange.startsWith('file:')) {
+    return undefined; // Don't modify wildcard or file: ranges
+  }
+  if (isCatalogVersion(currentRange)) {
+    return true;
   }
 
   if (currentRange[0] === '~' || currentRange[0] === '^') {
@@ -29,7 +35,7 @@ export function bumpMinSemverRange(params: {
   if (workspaceRange === '*' || workspaceRange === '~' || workspaceRange === '^') {
     // For basic workspace ranges we can just preserve current value and replace during publish
     // https://pnpm.io/workspaces#workspace-protocol-workspace
-    return currentRange;
+    return true;
   }
   if (workspaceRange && (workspaceRange[0] === '~' || workspaceRange[0] === '^')) {
     // workspace:~1.0.0
@@ -55,7 +61,7 @@ export function bumpMinSemverRange(params: {
 
   // For unrecognized valid semver ranges: if the new version satisfies the current range, keep it
   if (semver.validRange(currentRange) && semver.satisfies(newVersion, currentRange)) {
-    return currentRange;
+    return undefined;
   }
 
   // Fallback: return the exact new version

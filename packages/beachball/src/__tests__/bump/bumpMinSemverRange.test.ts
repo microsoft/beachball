@@ -4,24 +4,24 @@ import { bumpMinSemverRange } from '../../bump/bumpMinSemverRange';
 describe('bumpMinSemverRange', () => {
   it('preserves *', () => {
     const result = bumpMinSemverRange({ newVersion: '1.0.0', currentRange: '*' });
-    expect(result).toBe('*');
+    expect(result).toBeUndefined();
   });
 
   it('preserves file: protocol with relative path', () => {
     const result = bumpMinSemverRange({ newVersion: '1.0.0', currentRange: 'file:../local-package' });
-    expect(result).toBe('file:../local-package');
+    expect(result).toBeUndefined();
   });
 
   it('preserves file: protocol with absolute path', () => {
     const result = bumpMinSemverRange({ newVersion: '1.0.0', currentRange: 'file:/absolute/path/to/package' });
-    expect(result).toBe('file:/absolute/path/to/package');
+    expect(result).toBeUndefined();
   });
 
   it('preserves catalog: protocol', () => {
     let result = bumpMinSemverRange({ newVersion: '1.0.0', currentRange: 'catalog:' });
-    expect(result).toBe('catalog:');
+    expect(result).toBe(true);
     result = bumpMinSemverRange({ newVersion: '1.0.0', currentRange: 'catalog:foo' });
-    expect(result).toBe('catalog:foo');
+    expect(result).toBe(true);
   });
 
   it.each(['~', '^'])('preserves %s and bumps to new version', prefix => {
@@ -46,7 +46,7 @@ describe('bumpMinSemverRange', () => {
 
   it.each(['workspace:*', 'workspace:~', 'workspace:^'])('preserves %s', workspaceVersion => {
     const result = bumpMinSemverRange({ newVersion: '1.3.0', currentRange: workspaceVersion });
-    expect(result).toBe(workspaceVersion);
+    expect(result).toBe(true);
   });
 
   it('bumps workspace:~x.y.z to workspace range with new version', () => {
@@ -71,6 +71,6 @@ describe('bumpMinSemverRange', () => {
 
   it('preserves unrecognized range if new version satisfies it', () => {
     const result = bumpMinSemverRange({ newVersion: '1.3.0', currentRange: '1' });
-    expect(result).toBe('1');
+    expect(result).toBeUndefined();
   });
 });
