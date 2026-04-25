@@ -11,7 +11,7 @@ resources:
   pipelines:
     - pipeline: 'beachball_publish'
       project: 'ISS'
-      source: 'beachball.publish'
+      source: 'beachball - prepublish'
       trigger:
         branches:
           include:
