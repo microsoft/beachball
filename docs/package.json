@@ -31,6 +31,5 @@
   "engines": {
     "node": ">=22",
     "yarn": "^4"
-  },
-  "packageManager": "yarn@4.13.0"
+  }
 }
