@@ -25,8 +25,11 @@ export function bumpPackageInfoVersion(
     console.warn(`Skipping bumping private package "${pkgName}"`);
   } else {
     // Ensure we can bump the correct versions
+    const stableChangeTypes = ['major', 'minor', 'patch'];
+    const isPrereleaseVersion = !!semver.prerelease(info.version);
+    const shouldPromoteToStable = isPrereleaseVersion && stableChangeTypes.includes(changeType);
     const effectiveChangeType =
-      options.prereleasePrefix && !['premajor', 'preminor', 'prepatch'].includes(changeType)
+      options.prereleasePrefix && !shouldPromoteToStable && !['premajor', 'preminor', 'prepatch'].includes(changeType)
         ? 'prerelease'
         : changeType;
 
