@@ -2,130 +2,46 @@ import { describe, expect, it, afterEach, beforeAll, afterAll, jest } from '@jes
 import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import type { BeachballOptions, RepoOptions } from '../types/BeachballOptions';
+import type { RepoOptions } from '../types/BeachballOptions';
 import { getChangedPackages } from '../changefile/getChangedPackages';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import type { Repository } from '../__fixtures__/repository';
 import { getParsedOptions } from '../options/getOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
-import { addGitObserver, clearGitObservers } from 'workspace-tools';
+import { addGitObserver, clearGitObservers, getPackageInfo as getWsPackageInfo } from 'workspace-tools';
 
-// These were formerly the isChangeFileNeeded tests.
-// They still cover some relevant cases and have a simpler/cheaper setup.
-describe('getChangedPackages (basic)', () => {
-  /** Factory reused for all the tests */
-  let repositoryFactory: RepositoryFactory;
-  /**
-   * Clone from the factory reused for multiple tests where it's safe.
-   * DO NOT:
-   * - push changes
-   * - create uncommitted files or directories
-   */
-  let reusedRepo: Repository;
-  const gitObserver = jest.fn();
-  initMockLogs();
-
-  /** Get options/context, clear `gitObserver` mock, and call `getChangedPackages` */
-  function getChangedPackagesWrapper(options?: Partial<BeachballOptions>) {
-    const parsedOptions = getParsedOptions({
-      cwd: reusedRepo.rootPath,
-      argv: [],
-      env: {},
-      testRepoOptions: {
-        fetch: false,
-        branch: defaultRemoteBranchName,
-        ...options,
-      },
-    });
-    const packageInfos = getPackageInfos(parsedOptions);
-    const scopedPackages = getScopedPackages(parsedOptions.options, packageInfos);
-    gitObserver.mockClear();
-    return getChangedPackages(parsedOptions.options, packageInfos, scopedPackages);
-  }
-
-  /** In `reusedRepo`, check out a branch with a unique name based on master */
-  function checkOutTestBranch() {
-    const branchName = expect.getState().currentTestName!.replace(/\W+/g, '-');
-    reusedRepo.checkout('-b', branchName, defaultBranchName);
-  }
-
-  beforeAll(() => {
-    repositoryFactory = new RepositoryFactory('monorepo');
-    reusedRepo = repositoryFactory.cloneRepository();
-    addGitObserver(gitObserver);
-  });
-
-  afterEach(() => {
-    gitObserver.mockClear();
-  });
-
-  afterAll(() => {
-    // clean up the factory and all clones
-    repositoryFactory.cleanUp();
-    clearGitObservers();
-  });
-
-  it('returns empty list when no changes have been made', () => {
-    expect(getChangedPackagesWrapper()).toEqual([]);
-    expect(gitObserver).toHaveBeenCalled();
-  });
-
-  it('returns package name when changes exist in a new branch', () => {
-    checkOutTestBranch();
-    reusedRepo.commitChange('packages/foo/myFilename');
-    expect(getChangedPackagesWrapper()).toEqual(['foo']);
-    expect(gitObserver).toHaveBeenCalled();
-  });
-
-  it('returns empty list when changes are CHANGELOG files', () => {
-    checkOutTestBranch();
-    reusedRepo.commitChange('packages/foo/CHANGELOG.md');
-    expect(getChangedPackagesWrapper()).toEqual([]);
-    expect(gitObserver).toHaveBeenCalled();
-  });
-
-  it('returns the given package name(s) as-is', () => {
-    expect(getChangedPackagesWrapper({ package: 'foo' })).toEqual(['foo']);
-    expect(gitObserver).not.toHaveBeenCalled();
-
-    // Currently it doesn't even check validity
-    expect(getChangedPackagesWrapper({ package: ['foo', 'bar', 'nope'] })).toEqual(['foo', 'bar', 'nope']);
-    expect(gitObserver).not.toHaveBeenCalled();
-  });
-
-  it('returns all packages with all: true', () => {
-    expect(getChangedPackagesWrapper({ all: true }).sort()).toEqual(['a', 'b', 'bar', 'baz', 'foo']);
-    expect(gitObserver).not.toHaveBeenCalled();
-  });
-
-  it('throws if the remote is invalid', () => {
-    const customRemote = 'foo';
-    reusedRepo.git(['remote', 'add', customRemote, 'file:///__nonexistent']);
-    checkOutTestBranch();
-    reusedRepo.commitChange('fake.js');
-
-    expect(() => {
-      getChangedPackagesWrapper({ fetch: true, branch: `${customRemote}/${defaultBranchName}` });
-    }).toThrow(`Fetching branch "${defaultBranchName}" from remote "${customRemote}" failed`);
-    expect(gitObserver).toHaveBeenCalled();
-  });
-});
-
+//
+// NOTE: These tests should mostly cover logic specific to getChangePackages itself.
+// Details of detecting/ignoring file and package changes are covered by getAllChangedPackages tests.
+//
 describe('getChangedPackages', () => {
-  // These tests reuse factories since they don't push changes
-  let singleFactory: RepositoryFactory;
-  let monorepoFactory: RepositoryFactory;
-  let multiFactory: RepositoryFactory;
-  const extraFactories: RepositoryFactory[] = [];
-  let repo: Repository | undefined;
+  const gitObserver = jest.fn();
   const logs = initMockLogs();
 
-  function getOptionsAndPackages(
-    params: { repoOptions?: Partial<RepoOptions>; extraArgv?: string[]; cwd?: string } = {}
-  ) {
+  /** Factory reused for most tests */
+  let monorepoFactory: RepositoryFactory;
+  const extraFactories: RepositoryFactory[] = [];
+  /** Monorepo reused for multiple tests where it's safe */
+  let _reusedRepo: Repository;
+  /** Repo for current test */
+  let repo: Repository | undefined;
+
+  /**
+   * Get the reused repo for this test and create a new branch. DO NOT:
+   * - push changes
+   * - create uncommitted files or directories (commited files are fine because they'll go away
+   *   on branch change)
+   */
+  function getReusedRepoWithBranch() {
+    repo = _reusedRepo;
+    repo.checkoutTestBranch();
+    return repo;
+  }
+
+  function getOptions(params: { repoOptions?: Partial<RepoOptions>; extraArgv?: string[]; cwd?: string } = {}) {
     const { repoOptions, extraArgv = [], cwd = repo!.rootPath } = params;
-    const parsedOptions = getParsedOptions({
+    return getParsedOptions({
       cwd,
       argv: ['node', 'beachball', 'change', ...extraArgv],
       env: {},
@@ -135,88 +51,75 @@ describe('getChangedPackages', () => {
         ...repoOptions,
       },
     });
+  }
+
+  /** Get options/context, clear `gitObserver` mock, and call `getChangedPackages` */
+  function getChangedPackagesWrapper(params: { repoOptions?: Partial<RepoOptions>; extraArgv?: string[] } = {}) {
+    const parsedOptions = getOptions(params);
     const packageInfos = getPackageInfos(parsedOptions);
     const scopedPackages = getScopedPackages(parsedOptions.options, packageInfos);
-    return { packageInfos, options: parsedOptions.options, parsedOptions, scopedPackages };
+    gitObserver.mockClear();
+    return getChangedPackages(parsedOptions.options, packageInfos, scopedPackages);
   }
 
   beforeAll(() => {
-    singleFactory = new RepositoryFactory('single');
     monorepoFactory = new RepositoryFactory('monorepo');
-    multiFactory = new RepositoryFactory('multi-project');
+    _reusedRepo = monorepoFactory.cloneRepository();
+    addGitObserver(gitObserver);
   });
 
   afterEach(() => {
+    gitObserver.mockClear();
     repo = undefined;
   });
 
   afterAll(() => {
-    singleFactory.cleanUp();
+    // clean up the factory and all clones
     monorepoFactory.cleanUp();
-    multiFactory.cleanUp();
     extraFactories.forEach(factory => factory.cleanUp());
+    clearGitObservers();
   });
 
-  it('detects changed files in single-package repo', () => {
-    repo = singleFactory.cloneRepository();
-    const { packageInfos, scopedPackages, options } = getOptionsAndPackages();
+  it('returns the given package name(s) as-is', () => {
+    repo = getReusedRepoWithBranch();
+    expect(getChangedPackagesWrapper({ extraArgv: ['--package', 'foo'] })).toEqual(['foo']);
+    expect(gitObserver).not.toHaveBeenCalled();
 
-    expect(getChangedPackages(options, packageInfos, scopedPackages)).toStrictEqual([]);
-
-    repo.stageChange('foo.js');
-    expect(getChangedPackages(options, packageInfos, scopedPackages)).toStrictEqual(['foo']);
-  });
-
-  it('respects ignorePatterns option', () => {
-    repo = singleFactory.cloneRepository();
-
-    const { packageInfos, scopedPackages, options } = getOptionsAndPackages({
-      repoOptions: { ignorePatterns: ['*.test.js', 'tests/**', 'yarn.lock'] },
-      extraArgv: ['--verbose'],
+    // Currently it doesn't even check validity
+    const result = getChangedPackagesWrapper({
+      extraArgv: ['--package', 'foo', '--package', 'bar', '--package', 'nope'],
     });
+    expect(result).toEqual(['foo', 'bar', 'nope']);
+    expect(gitObserver).not.toHaveBeenCalled();
+  });
 
-    repo.writeFile('src/foo.test.js');
-    repo.writeFile('src/foo.test.js');
-    repo.writeFile('tests/stuff.js');
-    repo.writeFile('yarn.lock');
-    repo.git(['add', '-A']); // stage in one git operation
+  // Basic test as a sanity check, but simple file-based cases are mainly covered by getAllChangedPackages
+  it('detects changed files in monorepo', () => {
+    repo = getReusedRepoWithBranch();
 
-    expect(getChangedPackages(options, packageInfos, scopedPackages)).toStrictEqual([]);
-    const logLines = logs.getMockLines('all');
-    expect(logLines).toMatch('ignored by pattern');
-    expect(logLines).toMatchInlineSnapshot(`
+    // empty if no changes yet
+    expect(getChangedPackagesWrapper()).toEqual([]);
+
+    repo.commitChange('packages/foo/test.js');
+    expect(getChangedPackagesWrapper()).toEqual(['foo']);
+
+    expect(logs.getMockLines('all', { sanitize: true })).toMatchInlineSnapshot(`
       "[log] Checking for changes against "origin/master"
-      [log] Found 2 changed files in current branch (before filtering)
-      [log]   - ~~src/foo.test.js~~ (ignored by pattern "*.test.js")
-      [log]   - ~~tests/stuff.js~~ (ignored by pattern "tests/**")
-      [log] All files were ignored"
+      [log] Checking for changes against "origin/master""
     `);
   });
 
-  it('detects changed files in monorepo', () => {
-    repo = monorepoFactory.cloneRepository();
-
-    const { packageInfos, scopedPackages, options } = getOptionsAndPackages();
-
-    expect(getChangedPackages(options, packageInfos, scopedPackages)).toStrictEqual([]);
-
-    repo.stageChange('packages/foo/test.js');
-    expect(getChangedPackages(options, packageInfos, scopedPackages)).toStrictEqual(['foo']);
-  });
-
   it('excludes packages that already have change files', () => {
-    repo = monorepoFactory.cloneRepository();
+    repo = getReusedRepoWithBranch();
 
-    const { packageInfos, scopedPackages, options } = getOptionsAndPackages({ extraArgv: ['--verbose'] });
-
-    // setup: create branch, change foo, create a change file, commit
+    // setup: change foo, create a change file, commit
     repo.checkout('-b', 'test');
     repo.commitChange('packages/foo/test.js');
-    generateChangeFiles(['foo'], options);
+    generateChangeFiles(['foo'], { ...getOptions().options, commit: true });
     logs.clear();
 
     // foo is not included in changed packages
-    let changedPackages = getChangedPackages(options, packageInfos, scopedPackages);
+    let changedPackages = getChangedPackagesWrapper({ extraArgv: ['--verbose'] });
     const logLines = logs.getMockLines('all', { sanitize: true });
     expect(logLines).toMatch(/Your local repository already has change files for these packages:\s+• foo/);
     expect(logLines).toMatchInlineSnapshot(`
@@ -228,43 +131,64 @@ describe('getChangedPackages', () => {
       [log] Your local repository already has change files for these packages:
         • foo"
     `);
-    expect(changedPackages).toStrictEqual([]);
+    expect(changedPackages).toEqual([]);
     logs.clear();
 
     // change bar => bar is the only changed package returned
-    repo.stageChange('packages/bar/test.js');
-    changedPackages = getChangedPackages(options, packageInfos, scopedPackages);
+    // (with the reused repo, it must commit the change)
+    repo.commitChange('packages/bar/test.js');
+    changedPackages = getChangedPackagesWrapper({ extraArgv: ['--verbose'] });
     expect(logs.getMockLines('all', { sanitize: true })).toMatchInlineSnapshot(`
       "[log] Checking for changes against "origin/master"
       [log] Found 3 changed files in current branch (before filtering)
       [log]   - ~~change/foo-<guid>.json~~ (ignored by pattern "change/*.json")
-      [log]   - packages/foo/test.js
       [log]   - packages/bar/test.js
+      [log]   - packages/foo/test.js
       [log] Found 2 files in 2 packages that should be published
       [log] Your local repository already has change files for these packages:
         • foo"
     `);
-    expect(changedPackages).toStrictEqual(['bar']);
+    expect(changedPackages).toEqual(['bar']);
+  });
+
+  it('returns all packages with all: true, removing those with change files', () => {
+    repo = getReusedRepoWithBranch();
+    generateChangeFiles(['foo', 'a'], { ...getOptions().options, commit: true });
+
+    const result = getChangedPackagesWrapper({ extraArgv: ['--all'] });
+    expect(result.sort()).toEqual(['b', 'bar', 'baz']);
+    expect(gitObserver).toHaveBeenCalled();
+  });
+
+  it('throws if the remote is invalid', () => {
+    repo = getReusedRepoWithBranch();
+    const customRemote = 'foo';
+    repo.git(['remote', 'add', customRemote, 'file:///__nonexistent']);
+    repo.commitChange('fake.js');
+
+    expect(() => {
+      getChangedPackagesWrapper({ repoOptions: { fetch: true, branch: `${customRemote}/${defaultBranchName}` } });
+    }).toThrow(`Fetching branch "${defaultBranchName}" from remote "${customRemote}" failed`);
+    expect(gitObserver).toHaveBeenCalled();
   });
 
   it('excludes packages with staged (not committed) change files', () => {
+    // this can't use the reused repo because it needs to stage changes
     repo = monorepoFactory.cloneRepository();
-
-    const { packageInfos, scopedPackages, options } = getOptionsAndPackages({ extraArgv: ['--verbose'] });
 
     // setup: create branch, change foo
     repo.checkout('-b', 'test-staged');
     repo.commitChange('packages/foo/test.js');
     // generate change files but only stage them (don't commit)
-    generateChangeFiles(['foo'], { ...options, commit: false });
+    generateChangeFiles(['foo'], { ...getOptions().options, commit: false });
     logs.clear();
 
     // foo is not included in changed packages because its staged change file is found
-    const changedPackages = getChangedPackages(options, packageInfos, scopedPackages);
+    const changedPackages = getChangedPackagesWrapper({ extraArgv: ['--verbose'] });
     expect(logs.getMockLines('all')).toMatch(
       /Your local repository already has change files for these packages:\s+• foo/
     );
-    expect(changedPackages).toStrictEqual([]);
+    expect(changedPackages).toEqual([]);
   });
 
   it('ignores change files that exist in target remote branch', () => {
@@ -272,109 +196,24 @@ describe('getChangedPackages', () => {
     const repositoryFactory = new RepositoryFactory('single');
     extraFactories.push(repositoryFactory);
     repo = repositoryFactory.cloneRepository();
-    const { packageInfos, scopedPackages, options } = getOptionsAndPackages({ extraArgv: ['--verbose'] });
-    expect(options.commit).toBe(true);
 
     // create and push a change file in master
-    generateChangeFiles(['foo'], options);
+    const packageName = getWsPackageInfo(repo.rootPath)!.name;
+    generateChangeFiles([packageName], { ...getOptions().options, commit: true });
     repo.push();
 
-    // create a new branch and stage a new file + changes to existing file
+    // create a new branch and stage changes to an existing file
     repo.checkout('-b', 'test');
-    repo.writeFile('test.js');
-    repo.writeFile('yarn.lock', 'hi'); // this should already exist
-    repo.git(['add', '-A']);
+    repo.stageChange('yarn.lock', 'hi'); // this should already exist
     logs.clear();
 
-    const changedPackages = getChangedPackages(options, packageInfos, scopedPackages);
-    expect(changedPackages).toStrictEqual(['foo']);
+    const changedPackages = getChangedPackagesWrapper({ extraArgv: ['--verbose'] });
+    expect(changedPackages).toEqual(['foo']);
     expect(logs.getMockLines('all', { sanitize: true })).toMatchInlineSnapshot(`
       "[log] Checking for changes against "origin/master"
-      [log] Found 2 changed files in current branch (before filtering)
-      [log]   - test.js
+      [log] Found 1 changed file in current branch (before filtering)
       [log]   - yarn.lock
-      [log] Found 2 files in 1 package that should be published"
-    `);
-  });
-
-  it('ignores package changes as appropriate', () => {
-    // Due to cost of fixtures, test various ignore scenarios together
-    const customFactory = new RepositoryFactory({
-      folders: {
-        packages: {
-          'private-pkg': { version: '1.0.0', private: true },
-          'no-publish': { version: '1.0.0', beachball: { shouldPublish: false } as BeachballOptions },
-          'out-of-scope': { version: '1.0.0' },
-          'ignore-pkg': { version: '1.0.0' },
-          'publish-me': { version: '1.0.0' },
-        },
-      },
-    });
-    extraFactories.push(customFactory);
-    repo = customFactory.cloneRepository();
-    repo.stageChange('packages/private-pkg/test.js');
-    repo.stageChange('packages/no-publish/test.js');
-    repo.stageChange('packages/out-of-scope/test.js');
-    repo.stageChange('packages/ignore-pkg/jest.config.js');
-    repo.stageChange('packages/ignore-pkg/CHANGELOG.md');
-    repo.stageChange('packages/publish-me/test.js');
-
-    const { packageInfos, scopedPackages, options } = getOptionsAndPackages({
-      repoOptions: {
-        scope: ['!packages/out-of-scope'],
-        ignorePatterns: ['**/jest.config.js'],
-      },
-      extraArgv: ['--verbose'],
-    });
-
-    const changedPackages = getChangedPackages(options, packageInfos, scopedPackages);
-    const logLines = logs.getMockLines('all');
-    // check individual cases
-    expect(logLines).toMatch('private-pkg is private');
-    expect(logLines).toMatch('no-publish has beachball.shouldPublish=false');
-    expect(logLines).toMatch('out-of-scope is out of scope');
-    expect(logLines).toMatch('ignored by pattern "**/jest.config.js"');
-    expect(logLines).toMatch('ignored by pattern "CHANGELOG.{md,json}"');
-    // and overall output
-    expect(logLines).toMatchInlineSnapshot(`
-      "[log] Checking for changes against "origin/master"
-      [log] Found 6 changed files in current branch (before filtering)
-      [log]   - ~~packages/ignore-pkg/CHANGELOG.md~~ (ignored by pattern "CHANGELOG.{md,json}")
-      [log]   - ~~packages/ignore-pkg/jest.config.js~~ (ignored by pattern "**/jest.config.js")
-      [log]   - ~~packages/no-publish/test.js~~ (no-publish has beachball.shouldPublish=false)
-      [log]   - ~~packages/out-of-scope/test.js~~ (out-of-scope is out of scope)
-      [log]   - ~~packages/private-pkg/test.js~~ (private-pkg is private)
-      [log]   - packages/publish-me/test.js
       [log] Found 1 file in 1 package that should be published"
     `);
-    // and return value
-    expect(changedPackages).toStrictEqual(['publish-me']);
-  });
-
-  it('detects changed files in multi-root monorepo repo', () => {
-    repo = multiFactory.cloneRepository();
-    const {
-      options: rootOptions,
-      packageInfos: rootPackageInfos,
-      scopedPackages: rootScopedPackages,
-    } = getOptionsAndPackages();
-    expect(Object.keys(multiFactory.fixtures)).toEqual(['project-a', 'project-b']);
-
-    const projectARoot = repo.pathTo('project-a');
-    const projectBRoot = repo.pathTo('project-b');
-
-    expect(getChangedPackages(rootOptions, rootPackageInfos, rootScopedPackages)).toStrictEqual([]);
-
-    repo.stageChange('project-a/packages/foo/test.js');
-
-    const infoA = getOptionsAndPackages({ cwd: projectARoot });
-    const infoB = getOptionsAndPackages({ cwd: projectBRoot });
-    const changedPackagesA = getChangedPackages(infoA.options, infoA.packageInfos, infoA.scopedPackages);
-    const changedPackagesB = getChangedPackages(infoB.options, infoB.packageInfos, infoB.scopedPackages);
-    const changedPackagesRoot = getChangedPackages(rootOptions, rootPackageInfos, rootScopedPackages);
-
-    expect(changedPackagesA).toStrictEqual(['@project-a/foo']);
-    expect(changedPackagesB).toStrictEqual([]);
-    expect(changedPackagesRoot).toStrictEqual(['@project-a/foo']);
   });
 });

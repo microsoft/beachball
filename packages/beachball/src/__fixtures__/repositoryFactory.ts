@@ -11,7 +11,7 @@ import { writeJson } from '../object/writeJson';
 
 /**
  * Standard fixture options. See {@link getSinglePackageFixture}, {@link getMonorepoFixture} and
- * {@link getMultiWorkspaceFixture} for details about the structure and included files.
+ * {@link getMultiProjectFixture} for details about the structure and included files.
  */
 export type FixtureType = 'single' | 'monorepo' | 'multi-project';
 
@@ -132,7 +132,7 @@ function getMonorepoFixture(parentFolder?: string): RepoFixture {
  * The two workspaces are under subfolders `project-a` and `project-b`, and the packages in each
  * workspace use scoped names `@project-a/*` and `@project-b/*`.
  */
-function getMultiWorkspaceFixture(): { 'project-a': RepoFixture; 'project-b': RepoFixture } {
+function getMultiProjectFixture(): { 'project-a': RepoFixture; 'project-b': RepoFixture } {
   return {
     'project-a': getMonorepoFixture('project-a'),
     'project-b': getMonorepoFixture('project-b'),
@@ -172,7 +172,7 @@ export class RepositoryFactory {
   constructor(fixtureParam: FixtureType | RepoFixture) {
     let initialFixtures: { [parentFolder: string]: RepoFixture };
     if (fixtureParam === 'multi-project') {
-      initialFixtures = getMultiWorkspaceFixture();
+      initialFixtures = getMultiProjectFixture();
     } else {
       initialFixtures = {
         '.':

@@ -13,35 +13,38 @@ Beachball is a CLI tool for automating semantic version bumping, changelog gener
 
 ## Commands
 
+Beachball currently uses Node 14. Before running tests, you may need to activate `nvm`: on Mac or Linux, `source ~/.nvm/nvm.sh && nvm use`.
+
 ### Top-level
 
 These commands work at the top level of the monorepo.
 
 DO NOT run `jest` or `tsc` directly from the top level!
 
-| Task               | Command                 |
-| ------------------ | ----------------------- |
-| Build              | `yarn build`            |
-| Test               | `yarn test`             |
-| Lint (code + deps) | `yarn lint`             |
-| Lint code only     | `yarn lint:code`        |
-| Format             | `yarn format`           |
-| Update snapshots   | `yarn update-snapshots` |
+| Task                                | Command                 |
+| ----------------------------------- | ----------------------- |
+| Build                               | `yarn build`            |
+| Run all tests (NOT a specific test) | `yarn test`             |
+| Lint (code + deps)                  | `yarn lint`             |
+| Lint code only                      | `yarn lint:code`        |
+| Format                              | `yarn format`           |
+| Update snapshots                    | `yarn update-snapshots` |
 
-### Per-package commands
+### Commands
 
-These commands work in the `beachball` package and potentially other future packages.
+These commands work in an individual package (`cd packages/<name>`).
 
-| Task                          | Command                         |
-| ----------------------------- | ------------------------------- |
-| Build                         | `yarn build`                    |
-| All tests in correct order    | `yarn test:all`                 |
-| Unit tests only               | `yarn test:unit`                |
-| Functional tests only         | `yarn test:func`                |
-| E2E tests only                | `yarn test:e2e`                 |
-| Single test file (wraps jest) | `yarn test <test path or name>` |
-| Lint                          | `yarn lint`                     |
-| Update snapshots              | `yarn update-snapshots`         |
+| Task                                     | Command                         |
+| ---------------------------------------- | ------------------------------- |
+| Build                                    | `yarn build`                    |
+| Test (packages other than `beachball`)   | `yarn test`                     |
+| Single test file (wraps jest)            | `yarn test <test path or name>` |
+| (`beachball`) All tests in correct order | `yarn test:all`                 |
+| (`beachball`) Unit tests only            | `yarn test:unit`                |
+| (`beachball`) Functional tests only      | `yarn test:func`                |
+| (`beachball`) E2E tests only             | `yarn test:e2e`                 |
+| Lint                                     | `yarn lint`                     |
+| Update snapshots                         | `yarn update-snapshots`         |
 
 ## Architecture
 
