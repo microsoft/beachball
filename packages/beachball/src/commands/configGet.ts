@@ -1,4 +1,4 @@
-import { isPackageIncluded } from '../changefile/getChangedPackages';
+import { isPackageIncluded } from '../changefile/isPackageIncluded';
 import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes';
 import { formatValue } from '../logging/formatValue';
 import { BeachballError } from '../types/BeachballError';

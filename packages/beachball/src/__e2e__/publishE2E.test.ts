@@ -149,7 +149,7 @@ describe('publish command (e2e)', () => {
         if (fetchCount === 0) {
           const anotherRepo = repositoryFactory!.cloneRepository();
           // inject a checkin
-          anotherRepo.updateJsonFile('package.json', { version: '1.0.2' });
+          anotherRepo.updateJsonFile('package.json', { version: '1.0.2' }, { commit: true });
           anotherRepo.push();
         }
 

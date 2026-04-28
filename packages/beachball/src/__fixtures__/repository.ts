@@ -1,7 +1,8 @@
+import { expect } from '@jest/globals';
 import path from 'path';
 import * as fs from 'fs';
-import { removeTempDir, tmpdir } from './tmpdir';
 import { git, type GitProcessOutput } from 'workspace-tools';
+import { removeTempDir, tmpdir } from './tmpdir';
 import {
   defaultBranchName,
   defaultRemoteBranchName,
@@ -131,8 +132,11 @@ ${gitResult.stderr.toString()}`);
    * Create (or update) a file, creating the intermediate directories if necessary.
    * Automatically uses root path; do not pass absolute paths here.
    */
-  writeFile(relativePath: string, content: string | object = ''): void {
+  writeFile(relativePath: string, content: string | object = '', options?: { dirMustExist?: boolean }): void {
     const filePath = this.pathTo(relativePath);
+    if (options?.dirMustExist && !fs.existsSync(path.dirname(filePath))) {
+      throw new Error(`Parent directory of file does not exist: ${relativePath}`);
+    }
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, typeof content === 'string' ? content : JSON.stringify(content));
   }
@@ -163,22 +167,27 @@ ${gitResult.stderr.toString()}`);
 
   /**
    * Update the content of a JSON file that already exists in the repo.
-   * The updates will be merged with the original.
+   * The updates will be shallowly merged with the original. Throws if the file doesn't exist.
    *
    * This is useful if you'd like to mostly use a built-in fixture but change one package,
    * such as making it private.
    */
-  updateJsonFile(filename: string, updates: object): void {
+  updateJsonFile(filename: string, updates: object, options?: { commit?: boolean }): void {
     if (!filename.endsWith('.json')) {
       throw new Error('This method only works with json files');
     }
 
     const fullPath = this.pathTo(filename);
+    if (!fs.existsSync(fullPath)) {
+      throw new Error(`JSON file does not exist: ${filename}`);
+    }
     const oldContent = readJson<object>(fullPath);
     writeJson(fullPath, { ...oldContent, ...updates });
 
-    this.git(['add', filename]);
-    this.git(['commit', '-m', `"${filename}"`]);
+    if (options?.commit) {
+      this.git(['add', filename]);
+      this.git(['commit', '-m', `"${filename}"`]);
+    }
   }
 
   /** Get the current HEAD sha1 */
@@ -202,6 +211,12 @@ ${gitResult.stderr.toString()}`);
   /** Check out a branch. Args can be the name and/or any options. */
   checkout(...args: string[]): void {
     this.git(['checkout', ...args]);
+  }
+
+  /** Check out a branch based on the default branch, with a name matching the current test name */
+  checkoutTestBranch(): void {
+    const branchName = expect.getState().currentTestName!.replace(/\W+/g, '-');
+    this.checkout('-b', branchName, defaultBranchName);
   }
 
   /** Pull from the default remote and branch.  */

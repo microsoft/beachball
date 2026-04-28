@@ -2,6 +2,7 @@ import { git, parseRemoteBranch } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { gitFetch } from './fetch';
 import { bulletedList, type BulletList } from '../logging/bulletedList';
+import { BeachballError } from '../types/BeachballError';
 
 /**
  * Ensure that adequate history is available to check for changes between HEAD and `options.branch`.
@@ -26,13 +27,15 @@ export function ensureSharedHistory(
       // This is most likely to be an issue in a CI build which does a shallow checkout (github
       // actions/checkout does this by default) and also disables beachball fetching.
       logError('missing-branch', branch, remote, remoteBranch);
-      throw new Error(`Target branch "${branch}" does not exist locally, and fetching is disabled`);
+      throw new BeachballError(`Target branch "${branch}" does not exist locally, and fetching is disabled`, {
+        alreadyLogged: true,
+      });
     }
 
     if (!remote) {
       // If the remote isn't specified, even if fetching is allowed it will be unclear what to
       // compare against
-      throw new Error(
+      throw new BeachballError(
         `Target branch "${branch}" doesn't exist locally, and a remote name wasn't specified and couldn't be inferred. ` +
           'Please set "repository" in your root package.json or include a remote in the beachball "branch" setting.'
       );
@@ -45,7 +48,7 @@ export function ensureSharedHistory(
       console.log(`Adding branch "${remoteBranch}" to fetch config for remote "${remote}"`);
       const result = git(['remote', 'set-branches', '--add', remote, remoteBranch], { cwd });
       if (!result.success) {
-        throw new Error(
+        throw new BeachballError(
           `Failed to add branch "${remoteBranch}" to fetch config for remote "${remote}":\n${result.stderr}`
         );
       }
@@ -65,7 +68,9 @@ export function ensureSharedHistory(
       depth: depth && isShallowRepository(cwd) ? depth : undefined,
     });
     if (!result.success) {
-      throw new Error(result.errorMessage);
+      throw new BeachballError(
+        `Failed to fetch branch "${remoteBranch}" from remote "${remote}": ${result.errorMessage || ''}`
+      );
     }
   }
 
@@ -77,7 +82,9 @@ export function ensureSharedHistory(
       if (!fetch) {
         // Fetching is disabled, so the lack of history can't be fixed
         logError('shallow-clone', branch, remote, remoteBranch);
-        throw new Error(`Inadequate history available to connect HEAD to target branch "${branch}"`);
+        throw new BeachballError(`Inadequate history available to connect HEAD to target branch "${branch}"`, {
+          alreadyLogged: true,
+        });
       }
 
       // Try fetching more history
@@ -85,7 +92,7 @@ export function ensureSharedHistory(
     }
 
     if (!isConnected) {
-      throw new Error(`HEAD does not appear to share history with target branch "${branch}"`);
+      throw new BeachballError(`HEAD does not appear to share history with target branch "${branch}"`);
     }
   }
 }
@@ -114,7 +121,7 @@ function deepenHistory(params: {
     console.log(`Deepening by ${depth} more commits (attempt ${attempt}/${maxAttempts})...`);
     const result = gitFetch({ remote, branch: remoteBranch, deepen: depth, cwd, verbose });
     if (!result.success) {
-      throw new Error(`Failed to fetch more history (see above for details)`);
+      throw new BeachballError(`Failed to fetch more history (see above for details)`);
     }
     if (hasCommonCommit(branch, cwd)) {
       // Fetched enough history to find a common commit
@@ -130,7 +137,7 @@ function deepenHistory(params: {
   console.log(`Still didn't find a common commit after deepening by ${depth * maxAttempts}. Unshallowing...`);
   const result = gitFetch({ remote, branch: remoteBranch, unshallow: true, cwd, verbose });
   if (!result.success) {
-    throw new Error(`Failed to unshallow repo (see above for details)`);
+    throw new BeachballError(`Failed to unshallow repo (see above for details)`);
   }
 
   return hasCommonCommit(branch, cwd);

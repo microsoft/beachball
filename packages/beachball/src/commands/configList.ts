@@ -1,4 +1,4 @@
-import { isPackageIncluded } from '../changefile/getChangedPackages';
+import { isPackageIncluded } from '../changefile/isPackageIncluded';
 import { formatValue } from '../logging/formatValue';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { BasicCommandContext } from '../types/CommandContext';
