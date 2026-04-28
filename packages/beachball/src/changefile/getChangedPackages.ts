@@ -9,15 +9,21 @@ import { readJson } from '../object/readJson';
 import { bulletedList } from '../logging/bulletedList';
 import { getAllChangedPackages } from './getAllChangedPackages';
 import { getIncludedLoggers, isPackageIncluded } from './isPackageIncluded';
-import { ensureSharedHistory, hasCommonCommit } from '../git/ensureSharedHistory';
+import { ensureSharedHistory } from '../git/ensureSharedHistory';
 
 /**
  * Gets all the changed packages which **do not already have a change file** and are in scope.
+ * This is only used by the `change` and `check` commands, not the bump/publish process.
  *
- * Exceptions:
+ * Special cases:
  * - If `options.package` is provided, use that as-is (skipping all git operations).
  * - If `options.all` is true, gets all the packages in scope regardless of whether they've changed
- *   (skipping git diff of files), filtered by packages that already have change files.
+ *   (skipping git diff of files), omitting packages that already have change files.
+ *
+ * Usually (without `options.package`) this has the side effect of calling `ensureSharedHistory` to
+ * verify that enough git history is available to check for changes between `HEAD` and
+ * `options.branch` (only an issue for shallow clones), and deepens the history if needed.
+ * Unless `options.fetch` is `false`, it will also fetch from the remote.
  */
 export function getChangedPackages(
   options: BeachballOptions,
@@ -33,10 +39,10 @@ export function getChangedPackages(
 
   console.log(`Checking for changes against "${options.branch}"`);
 
-  // We should fetch shared history even with --all for accurate change file checks later
-  if (!hasCommonCommit(branch, options.path)) {
-    ensureSharedHistory(options);
-  }
+  // Ensure the current branch and target branch have a common shared commit. This has the side
+  // effect of fetching from the remote (unless disabled), which should be done even if there's
+  // already shared history (and even with --all) for accurate added change file checks later.
+  ensureSharedHistory(options);
 
   let changedPackages: string[];
 

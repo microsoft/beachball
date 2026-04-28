@@ -197,6 +197,6 @@ function isShallowRepository(cwd: string): boolean {
 }
 
 /** Returns whether `branch` and HEAD have a common commit anywhere in their history */
-export function hasCommonCommit(branch: string, cwd: string): boolean {
+function hasCommonCommit(branch: string, cwd: string): boolean {
   return git(['merge-base', branch, 'HEAD'], { cwd }).success;
 }

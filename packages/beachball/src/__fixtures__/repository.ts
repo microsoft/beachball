@@ -167,21 +167,21 @@ ${gitResult.stderr.toString()}`);
 
   /**
    * Update the content of a JSON file that already exists in the repo.
-   * The updates will be merged with the original.
+   * The updates will be shallowly merged with the original. Throws if the file doesn't exist.
    *
    * This is useful if you'd like to mostly use a built-in fixture but change one package,
    * such as making it private.
    */
-  updateJsonFile(filename: string, updates: object, options?: { mustExist?: boolean; commit?: boolean }): void {
+  updateJsonFile(filename: string, updates: object, options?: { commit?: boolean }): void {
     if (!filename.endsWith('.json')) {
       throw new Error('This method only works with json files');
     }
 
     const fullPath = this.pathTo(filename);
-    const oldContent = readJson<object>(fullPath);
-    if (options?.mustExist && !oldContent) {
+    if (!fs.existsSync(fullPath)) {
       throw new Error(`JSON file does not exist: ${filename}`);
     }
+    const oldContent = readJson<object>(fullPath);
     writeJson(fullPath, { ...oldContent, ...updates });
 
     if (options?.commit) {

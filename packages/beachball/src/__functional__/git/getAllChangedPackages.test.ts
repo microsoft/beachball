@@ -199,9 +199,9 @@ describe('getAllChangedPackages', () => {
     repo = getReusedRepoWithBranch('monorepo');
 
     // Update packages so they'll be ignored
-    repo.updateJsonFile('packages/foo/package.json', { private: true }, { mustExist: true });
+    repo.updateJsonFile('packages/foo/package.json', { private: true });
     repo.writeFile('packages/foo/foo.js');
-    repo.updateJsonFile('packages/bar/package.json', { beachball: { shouldPublish: false } }, { mustExist: true });
+    repo.updateJsonFile('packages/bar/package.json', { beachball: { shouldPublish: false } });
     repo.writeFile('packages/bar/bar.js');
     // baz is not ignored
     repo.writeFile('packages/baz/baz.js');
