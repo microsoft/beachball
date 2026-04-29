@@ -31,6 +31,7 @@ export default defineUserConfig({
           '/concepts/groups',
           '/concepts/ci-integration',
           '/concepts/ai-integration',
+          '/concepts/large-repos',
         ],
       },
       {

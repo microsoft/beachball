@@ -109,7 +109,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 [2]: https://github.com/microsoft/beachball/blob/main/src/types/ChangelogOptions.ts
 [3]: ../concepts/groups#version-groups
 [4]: https://github.com/microsoft/beachball/blob/main/src/types/BeachballOptions.ts
-[5]: #determining-the-target-branch-and-remote
+[5]: #specifying-the-target-branch-and-remote
 [6]: #glob-matching
 
 ### Glob matching
@@ -129,6 +129,7 @@ This option takes a list of patterns which are matched against package paths. Pa
 Example: with this config, `beachball` will only consider packages under `packages/foo` (excluding `packages/foo/bar`).
 
 ```json
+// in beachball.config.js or root package.json "beachball"
 {
   "scope": ["packages/foo/*", "!packages/foo/bar"]
 }
@@ -138,27 +139,51 @@ On the command line, this could be specified as `--scope 'packages/foo/*' --scop
 
 > Note: if you have multiple sets of packages in the repo with different scopes, `groupChanges` is not supported.
 
-### Determining the target branch and remote
+### Specifying the target branch and remote
 
 The `branch` option is the official target branch to compare against when determining changes.
 
-In GitHub repos where contributions may come from forks, you should use the **name only (no remote)** and specify `repository` in the repo root `package.json`. This allows finding the official remote by matching the URL (most formats are supported), regardless of what the user decided to call the remote. For example:
+#### Repos which may have forks
+
+If you have a public GitHub repo or another situation where **any** contributions might come from a fork, `branch` should use the **name only (no remote)** (since users can choose arbitrary names for their own remote and the official remote):
 
 ```json
+// in beachball.config.js or root package.json "beachball"
 {
-  "name": "my-repo",
+  "branch": "main"
+}
+```
+
+To ensure Beachball can reliably determine which local remote name corresponds to the official remote, set `repository` in the repo root `package.json`:
+
+```json
+// repo root package.json
+{
   "repository": {
     "type": "git",
-    "url": "https://github.com/my-org/my-repo"
-  },
-  "beachball": {
-    "branch": "main"
+    // your repository URL here (most formats are supported)
+    "url": "https://github.com/microsoft/beachball"
   }
 }
 ```
 
-In private repos that use a single remote with branches instead of forks, you can either include a remote name (e.g. `branch: 'origin/main'`) if you're certain everyone will use the same remote name, or only include the branch name and specify `repository` as above.
+#### Repos with a single remote (mostly Azure DevOps)
+
+If **all** your contributors use branches on a single remote (as opposed to forking), you can specify the remote name as part of the `branch` setting. This is almost always the model used in internal Azure DevOps repos. (Do NOT use this approach for public GitHub repos.)
+
+```json
+// in beachball.config.js or root package.json "beachball"
+{
+  "branch": "origin/main"
+}
+```
+
+For safety as a fallback, it's still recommended to set `repository` in your repo root `package.json` as detailed above.
+
+#### How Beachball determines the branch and remote
 
 If `branch` isn't specified, the default branch name is the system default branch name (`main` or `master`).
 
-If `branch` doesn't include a remote and it can't be determined from `package.json` `repository`, the fallback remote is `upstream` if defined, `origin` if defined, or the first defined remote.
+If `branch` doesn't include a remote (or isn't specified), Beachball will first look for a remote matching `package.json` `repository`. If that's not found, the fallback remote is `upstream` if defined, `origin` if defined, or the first defined remote.
+
+All the fallback logic involves git operations, so especially in large repos, it's best to give Beachball a hint using one of the approaches specified above for efficiency.

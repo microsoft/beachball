@@ -110,6 +110,10 @@ beachball publish -r http://localhost:4873 -t beta
 
 In large monorepos, the process of fetching versions for sync or before publishing can be time-consuming due to the high number of packages. To optimize performance, you can override the concurrency for fetching from the registry by setting `options.npmReadConcurrency` (default: 5). You can also increase concurrency for hook calls and publish operations via `options.concurrency` (default: 1; respects topological order).
 
+### Optimizing for large monorepos
+
+If you have a large to very large monorepo, there are several configuration options and strategies that can help improve Beachball's performance. For details, see the [large repos guide](https://microsoft.github.io/beachball/concepts/large-repos.html).
+
 ### API surface
 
 Beachball **does not** have a public API beyond the provided [options](https://microsoft.github.io/beachball/overview/configuration.html). Usage of private APIs is not supported and may break at any time.
