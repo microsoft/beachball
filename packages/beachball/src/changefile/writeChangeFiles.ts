@@ -1,6 +1,6 @@
 import type { ChangeFileInfo } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
-import { getBranchName, stage, commit } from 'workspace-tools';
+import { stage, commit } from 'workspace-tools';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -17,7 +17,6 @@ export function writeChangeFiles(
 ): string[] {
   const { path: cwd, groupChanges, commit: commitChangeFiles } = options;
   const changePath = getChangePath(options);
-  const branchName = getBranchName({ cwd });
 
   if (!Object.keys(changes).length) {
     return [];
@@ -44,15 +43,12 @@ export function writeChangeFiles(
     });
   }
 
-  // Stage and maybe commit if in a git repo.
-  // The actual context should always be a git repo, but during testing it might not be.
-  if (branchName) {
-    stage({ patterns: changeFiles, cwd });
-    if (commitChangeFiles) {
-      // only commit change files, ignore other staged files/changes
-      const commitOptions = ['--only', path.join(changePath, '*.json')];
-      commit({ message: 'Change files', cwd, options: commitOptions });
-    }
+  // Stage and maybe commit
+  stage({ patterns: changeFiles, cwd });
+  if (commitChangeFiles) {
+    // only commit change files, ignore other staged files/changes
+    const commitOptions = ['--only', path.join(changePath, '*.json')];
+    commit({ message: 'Change files', cwd, options: commitOptions });
   }
 
   console.log(

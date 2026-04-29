@@ -9,19 +9,24 @@ const minimatchOptions: minimatch.IOptions = { matchBase: true };
 export function filterIgnoredFiles(
   params: Pick<BeachballOptions, 'ignorePatterns'> & {
     /** Relative file paths */
-    filePaths: string[];
+    filePaths: string[] | Set<string>;
     /** If specified, called for each ignored file */
     logIgnored?: (filePath: string, reason: string) => void;
   }
 ): string[] {
   const { filePaths, ignorePatterns, logIgnored } = params;
   if (!ignorePatterns?.length) {
-    return filePaths;
+    return Array.isArray(filePaths) ? filePaths : [...filePaths];
   }
 
-  return filePaths.filter(filePath => {
+  const filtered: string[] = [];
+  for (const filePath of filePaths) {
     const ignorePattern = ignorePatterns.find(pattern => minimatch(filePath, pattern, minimatchOptions));
-    ignorePattern && logIgnored?.(filePath, `ignored by pattern "${ignorePattern}"`);
-    return !ignorePattern;
-  });
+    if (ignorePattern) {
+      logIgnored?.(filePath, `ignored by pattern "${ignorePattern}"`);
+    } else {
+      filtered.push(filePath);
+    }
+  }
+  return filtered;
 }

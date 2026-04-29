@@ -1,5 +1,6 @@
-import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
+import { describe, expect, it, beforeAll, afterAll, afterEach, jest } from '@jest/globals';
 import fs from 'fs';
+import * as workspaceTools from 'workspace-tools';
 import { generateChangeFiles, getChangeFiles } from '../../__fixtures__/changeFiles';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
@@ -17,6 +18,16 @@ import { readJson } from '../../object/readJson';
 import { writeJson } from '../../object/writeJson';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
 import { getChangePath } from '../../paths';
+
+jest.mock('workspace-tools', () => {
+  const actual = jest.requireActual<typeof workspaceTools>('workspace-tools');
+  // use fake git by default
+  return { ...actual, commit: jest.fn(), stage: jest.fn() };
+});
+// eslint-disable-next-line etc/no-deprecated -- wrong variadic signature
+const mockCommit = workspaceTools.commit as jest.MockedFunction<typeof workspaceTools.commit>;
+// eslint-disable-next-line etc/no-deprecated
+const mockStage = workspaceTools.stage as jest.MockedFunction<typeof workspaceTools.stage>;
 
 // The tests for fromRef that use git are in a nested describe block
 describe('readChangeFiles', () => {
@@ -247,6 +258,13 @@ describe('readChangeFiles', () => {
       // use the monorepo fixture for all tests that need git (not all the tests need git).
       repositoryFactory = new RepositoryFactory('monorepo');
       repo = repositoryFactory.cloneRepository();
+
+      const realWsTools = jest.requireActual<typeof workspaceTools>('workspace-tools');
+      // Use the real git implementation for these tests since we're relying on git history
+      // eslint-disable-next-line etc/no-deprecated -- wrong variadic signature
+      mockCommit.mockImplementation(realWsTools.commit);
+      // eslint-disable-next-line etc/no-deprecated
+      mockStage.mockImplementation(realWsTools.stage);
     });
 
     afterEach(() => {
@@ -255,6 +273,8 @@ describe('readChangeFiles', () => {
 
     afterAll(() => {
       repositoryFactory.cleanUp();
+      mockCommit.mockReset();
+      mockStage.mockReset();
     });
 
     it('filters change files to only those modified since fromRef', () => {
