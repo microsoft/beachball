@@ -1,8 +1,20 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Wed, 22 Apr 2026 23:20:37 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 29 Apr 2026 22:36:53 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.65.3
+
+Wed, 29 Apr 2026 22:36:53 GMT
+
+### Patches
+
+- Update readme with link to large repos performance info (elcraig@microsoft.com)
+- Include dependent bumps for `workspace:` and `catalog:` dependencies in the changelog (elcraig@microsoft.com)
+- Include catalog dependency changes when checking for changed packages (elcraig@microsoft.com)
+- Refactor internals for getting changed packages (elcraig@microsoft.com)
+- Fix deepening of shallow clones in latest git by being more specific about the comparison ref being fetched. Also reduce git operations for the case where the branch ref doesn't exist locally. (elcraig@microsoft.com)
 
 ## 2.65.1
 

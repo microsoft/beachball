@@ -2,6 +2,53 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Wed, 29 Apr 2026 22:36:53 GMT",
+      "version": "2.65.3",
+      "tag": "beachball_v2.65.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "3fb67d82f8a4e318735a06abfa21cce7e9c416bb",
+            "comment": "Update readme with link to large repos performance info"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "3fb67d82f8a4e318735a06abfa21cce7e9c416bb",
+            "comment": "Include dependent bumps for `workspace:` and `catalog:` dependencies in the changelog"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "3fb67d82f8a4e318735a06abfa21cce7e9c416bb",
+            "comment": "Include catalog dependency changes when checking for changed packages"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "3fb67d82f8a4e318735a06abfa21cce7e9c416bb",
+            "comment": "Refactor internals for getting changed packages"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "3fb67d82f8a4e318735a06abfa21cce7e9c416bb",
+            "comment": "Fix deepening of shallow clones in latest git by being more specific about the comparison ref being fetched. Also reduce git operations for the case where the branch ref doesn't exist locally."
+          }
+        ],
+        "none": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "3fb67d82f8a4e318735a06abfa21cce7e9c416bb",
+            "comment": "env update for tests"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 22 Apr 2026 23:20:37 GMT",
       "version": "2.65.1",
       "tag": "beachball_v2.65.1",
