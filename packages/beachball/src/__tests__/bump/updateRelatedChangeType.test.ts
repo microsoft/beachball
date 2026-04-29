@@ -252,11 +252,8 @@ describe('updateRelatedChangeType', () => {
 
     expect(bumpInfo.calculatedChangeTypes).toEqual({
       bar: 'major',
-      // This points out an interesting artifact of the new pre* support that should probably be
-      // better rationalized... (prior to that change, this would have been 'patch', which is
-      // more likely the expected behavior in general)
-      // https://github.com/microsoft/beachball/issues/947
-      foo: 'preminor',
+      // With pre* change types removed, disallowing 'minor' falls back to 'patch'.
+      foo: 'patch',
     });
   });
 
@@ -274,11 +271,8 @@ describe('updateRelatedChangeType', () => {
 
     expect(bumpInfo.calculatedChangeTypes).toEqual({
       bar: 'major',
-      // This points out an interesting artifact of the new pre* support that should probably be
-      // better rationalized... (prior to that change, this would have been 'patch', which is
-      // more likely the expected behavior in general)
-      // https://github.com/microsoft/beachball/issues/947
-      foo: 'preminor',
+      // With pre* change types removed, disallowing 'minor'/'major' falls back to 'patch'.
+      foo: 'patch',
     });
   });
 
@@ -419,12 +413,12 @@ describe('updateRelatedChangeType', () => {
       },
     });
 
-    // 'a' gets preminor because minor is disallowed for it.
-    // 'b' gets minor (not preminor) because the original dependentChangeType propagates,
+    // 'a' gets patch because minor is disallowed for it.
+    // 'b' gets minor (not patch) because the original dependentChangeType propagates,
     // not the downgraded type.
     expect(bumpInfo.calculatedChangeTypes).toEqual({
       dep: 'major',
-      a: 'preminor',
+      a: 'patch',
       b: 'minor',
     });
   });
@@ -448,7 +442,7 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.calculatedChangeTypes).toEqual({
       dep: 'major',
       foo: 'minor',
-      bar: 'preminor',
+      bar: 'patch',
     });
   });
 

@@ -66,7 +66,7 @@ export function bumpInMemory(options: BeachballOptions, context: Omit<CommandCon
 
   // pass 4: actually bump the packages in the bumpInfo in memory (no disk writes at this point)
   for (const pkgName of Object.keys(calculatedChangeTypes)) {
-    bumpPackageInfoVersion(pkgName, bumpInfo, options);
+    bumpPackageInfoVersion(pkgName, bumpInfo);
   }
 
   // step 5: Bump all the dependency version ranges and collect dependentChangedBy for the changelog.

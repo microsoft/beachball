@@ -27,6 +27,8 @@ Commands:
     bump              - bumps versions as well as generating changelogs
     publish           - bumps, publishes to npm registry (optionally does dist-tags), and
                         pushes changelogs back into the default branch
+    prerelease        - publishes a prerelease for the current change set without
+                        committing back to git (e.g. for canary, beta, or per-PR releases)
     sync              - synchronize published versions of packages from the registry with
                         local package.json versions
     config get <name> - get the value of a config setting (with any overrides)
@@ -63,7 +65,6 @@ Options supported by all commands except 'config':
 'bump' options:
 
     --keep-change-files     - don't delete the change files from disk after bumping
-    --prerelease-prefix     - prerelease prefix for packages that will receive a prerelease bump
 
 'publish' options:
 
@@ -79,6 +80,13 @@ Options supported by all commands except 'config':
     --retries               - number of retries for npm publishes (default: 3)
     --tag, -t               - dist-tag for npm publishes (default: "latest")
     --yes, -y               - skip the confirmation prompts
+
+'prerelease' options:
+
+    --prerelease-prefix     - suffix used for the prerelease version (e.g. "beta" produces
+                              versions like 1.2.3-beta.0). Default: "prerelease"
+    --identifier-base       - "0" (default) or "1" for the starting prerelease counter,
+                              or "false" to omit the numeric counter
 
 'sync' options:
 

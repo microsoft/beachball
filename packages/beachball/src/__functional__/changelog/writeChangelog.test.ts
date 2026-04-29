@@ -425,16 +425,15 @@ describe('writeChangelog', () => {
     expect(readChangelogJson(repo.pathTo('packages/foo'))).toBeNull();
   });
 
-  it('includes pre* changes', async () => {
+  it('renders major, minor, and patch changes in the expected sections', async () => {
     repo = sharedSingleRepo;
     const { options, packageInfos } = getOptionsAndPackages();
 
     generateChangeFiles(
       [
-        { packageName: 'foo', comment: 'comment 1', type: 'premajor' },
-        { packageName: 'foo', comment: 'comment 2', type: 'preminor' },
-        { packageName: 'foo', comment: 'comment 3', type: 'prepatch' },
-        { packageName: 'foo', comment: 'comment 4', type: 'prerelease' },
+        { packageName: 'foo', comment: 'comment 1', type: 'major' },
+        { packageName: 'foo', comment: 'comment 2', type: 'minor' },
+        { packageName: 'foo', comment: 'comment 3', type: 'patch' },
       ],
       options
     );
@@ -442,31 +441,9 @@ describe('writeChangelog', () => {
     await writeChangelogWrapper({ options, packageInfos });
 
     const changelogMd = readChangelogMd(repo.rootPath);
-    expect(changelogMd).toContain('### Major changes (pre-release)\n\n- comment 1');
-    expect(changelogMd).toContain('### Minor changes (pre-release)\n\n- comment 2');
-    expect(changelogMd).toContain('### Patches (pre-release)\n\n- comment 3');
-    expect(changelogMd).toContain('### Changes\n\n- comment 4');
-  });
-
-  it('includes pre* changes', async () => {
-    repo = repositoryFactory.cloneRepository();
-    const { options, packageInfos } = getOptionsAndPackages();
-
-    generateChangeFiles(
-      [
-        getChange('foo', 'comment 1', 'premajor'),
-        getChange('foo', 'comment 2', 'preminor'),
-        getChange('foo', 'comment 3', 'prepatch'),
-      ],
-      options
-    );
-
-    await writeChangelogWrapper({ options, packageInfos });
-
-    const changelogMd = readChangelogMd(repo.rootPath);
-    expect(changelogMd).toContain('### Major changes (pre-release)\n\n- comment 1');
-    expect(changelogMd).toContain('### Minor changes (pre-release)\n\n- comment 2');
-    expect(changelogMd).toContain('### Patches (pre-release)\n\n- comment 3');
+    expect(changelogMd).toContain('### Major changes\n\n- comment 1');
+    expect(changelogMd).toContain('### Minor changes\n\n- comment 2');
+    expect(changelogMd).toContain('### Patches\n\n- comment 3');
   });
 
   it('writes only CHANGELOG.md if generateChangelog is "md"', async () => {

@@ -138,19 +138,19 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, configPath: 'path/to/config.json', forceVersions: true, fromRef: 'main' });
   });
 
-  it('for canary command, adds canary tag and ignores regular tag', () => {
-    const options = getCliOptionsTest(['canary', '--tag', 'bar']);
-    expect(options).toEqual({ ...defaults, command: 'canary', tag: 'canary' });
+  it('for prerelease command, defaults tag to "prerelease" and ignores regular tag', () => {
+    const options = getCliOptionsTest(['prerelease', '--tag', 'bar']);
+    expect(options).toEqual({ ...defaults, command: 'prerelease', tag: 'prerelease' });
   });
 
-  it('for canary command, uses canaryName as tag and ignores regular tag', () => {
-    const options = getCliOptionsTest(['canary', '--canary-name', 'foo', '--tag', 'bar']);
-    expect(options).toEqual({ ...defaults, command: 'canary', canaryName: 'foo', tag: 'foo' });
+  it('for prerelease command, uses prereleasePrefix as tag and ignores regular tag', () => {
+    const options = getCliOptionsTest(['prerelease', '--prerelease-prefix', 'foo', '--tag', 'bar']);
+    expect(options).toEqual({ ...defaults, command: 'prerelease', prereleasePrefix: 'foo', tag: 'foo' });
   });
 
-  it('does not set tag to canaryName for non-canary command', () => {
-    const options = getCliOptionsTest(['publish', '--canary-name', 'foo', '--tag', 'bar']);
-    expect(options).toEqual({ ...defaults, command: 'publish', canaryName: 'foo', tag: 'bar' });
+  it('does not set tag from prereleasePrefix for non-prerelease command', () => {
+    const options = getCliOptionsTest(['publish', '--prerelease-prefix', 'foo', '--tag', 'bar']);
+    expect(options).toEqual({ ...defaults, command: 'publish', prereleasePrefix: 'foo', tag: 'bar' });
   });
 
   it('falls back to given cwd as path if findProjectRoot fails', () => {

@@ -45,7 +45,6 @@ const stringOptions = [
   'access',
   'authType',
   'branch',
-  'canaryName',
   'changehint',
   'changeDir',
   'configPath',
@@ -178,8 +177,8 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
         : getDefaultRemoteBranch({ branch: branchArg, verbose: args.verbose as boolean | undefined, cwd });
   }
 
-  if (cliOptions.command === 'canary') {
-    cliOptions.tag = cliOptions.canaryName || 'canary';
+  if (cliOptions.command === 'prerelease') {
+    cliOptions.tag = cliOptions.prereleasePrefix || 'prerelease';
   }
 
   for (const key of Object.keys(cliOptions) as (keyof CliOptions)[]) {

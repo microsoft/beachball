@@ -1,4 +1,5 @@
-import type { ChangeSet, ChangeInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
+import type { ChangeSet, ChangeInfo, ChangeInfoMultiple, ChangeType } from '../types/ChangeInfo';
+import { LegacyChangeTypeMap } from './changeTypes';
 import { getChangePath } from '../paths';
 import fs from 'fs';
 import path from 'path';
@@ -88,6 +89,40 @@ export function readChangeFiles(
 
     // Filter the changes from this file
     for (const change of changes) {
+      // Migrate legacy change types from older Beachball versions.
+      // - `pre*` => the stripped equivalent (with a warning)
+      // - `prerelease` => hard error; the user must recreate the change file
+      if ((change.type as string) === 'prerelease') {
+        throw new Error(
+          `Change file ${changeFilePath} uses change type "prerelease", which is no longer supported. ` +
+            `Delete this change file and recreate it with a "patch", "minor", "major", or "none" change type. ` +
+            `To publish a prerelease version, use the "beachball prerelease" command instead.`
+        );
+      }
+      const legacyReplacement = LegacyChangeTypeMap[change.type as keyof typeof LegacyChangeTypeMap];
+      if (legacyReplacement) {
+        console.warn(
+          `Change file ${changeFilePath} uses legacy change type "${change.type}", which has been renamed to "${legacyReplacement}". ` +
+            `The change file will be processed as "${legacyReplacement}". To remove this warning, update the file (or recreate it).`
+        );
+        change.type = legacyReplacement;
+      }
+      // Same migration for the dependentChangeType field
+      if ((change.dependentChangeType as string) === 'prerelease') {
+        throw new Error(
+          `Change file ${changeFilePath} uses dependentChangeType "prerelease", which is no longer supported. ` +
+            `Delete this change file and recreate it with a "patch", "minor", "major", or "none" dependentChangeType.`
+        );
+      }
+      const legacyDepReplacement = LegacyChangeTypeMap[change.dependentChangeType as keyof typeof LegacyChangeTypeMap];
+      if (legacyDepReplacement) {
+        console.warn(
+          `Change file ${changeFilePath} uses legacy dependentChangeType "${change.dependentChangeType}", which has been renamed to "${legacyDepReplacement}". ` +
+            `The change file will be processed as "${legacyDepReplacement}". To remove this warning, update the file (or recreate it).`
+        );
+        change.dependentChangeType = legacyDepReplacement as ChangeType;
+      }
+
       // Log warnings about change entries for nonexistent and private packages.
       // (This may happen if a package is renamed or its private flag is changed.)
       const warningType = !packageInfos[change.packageName]
