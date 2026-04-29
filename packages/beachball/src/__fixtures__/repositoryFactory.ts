@@ -162,6 +162,14 @@ export class RepositoryFactory {
   /** Cloned child repos, tracked so we can clean them up */
   private childRepos: Repository[] = [];
 
+  /** Get the root directory of the origin repository */
+  public get originRoot(): string {
+    if (!this.root) {
+      throw new Error('Factory was already cleaned');
+    }
+    return this.root;
+  }
+
   /**
    * Create the "origin" repo and create+commit fixture files.
    * If `fixture` is a string, the corresponding default fixture is used.

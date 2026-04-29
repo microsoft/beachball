@@ -6,8 +6,14 @@ import { BeachballError } from '../types/BeachballError';
 
 /**
  * Ensure that adequate history is available to check for changes between HEAD and `options.branch`.
- * Otherwise attempting to get changes will fail with an error "no merge base".
- * (This is mostly an issue with CI builds that use shallow clones.)
+ * Otherwise attempting to get changes will fail with an error "no merge base". (This is mostly an
+ * issue with CI builds that use shallow clones and may not have a tracking branch configured for
+ * the remote target branch.)
+ *
+ * Since repo may be very large, it's important to avoid fetching the entire history or extra refs.
+ * If the repo is shallow and no common commit is found after a normal fetch, this function will
+ * iteratively deepen the history (100 commits at a time by default) and check for a common commit
+ * each round. If still not found, it will unshallow the clone.
  *
  * Throws an error if history is inadequate and cannot be fixed.
  */
@@ -33,25 +39,12 @@ export function ensureSharedHistory(
     }
 
     if (!remote) {
-      // If the remote isn't specified, even if fetching is allowed it will be unclear what to
-      // compare against
+      // If the remote isn't specified, even if fetching is allowed, it will be unclear what to
+      // compare against, so throw an error.
       throw new BeachballError(
         `Target branch "${branch}" doesn't exist locally, and a remote name wasn't specified and couldn't be inferred. ` +
           'Please set "repository" in your root package.json or include a remote in the beachball "branch" setting.'
       );
-    }
-
-    // If fetching the requested branch isn't already (probably) configured, add it to the list so
-    // it can be fetched in the next step. Otherwise the ref <remote>/<remoteBranch> won't exist locally.
-    const fetchConfig = git(['config', '--get-all', `remote.${remote}.fetch`], { cwd }).stdout.trim();
-    if (!fetchConfig.includes(`${remote}/*`) && !fetchConfig.includes(branch)) {
-      console.log(`Adding branch "${remoteBranch}" to fetch config for remote "${remote}"`);
-      const result = git(['remote', 'set-branches', '--add', remote, remoteBranch], { cwd });
-      if (!result.success) {
-        throw new BeachballError(
-          `Failed to add branch "${remoteBranch}" to fetch config for remote "${remote}":\n${result.stderr}`
-        );
-      }
     }
   }
 
@@ -89,6 +82,8 @@ export function ensureSharedHistory(
 
       // Try fetching more history
       isConnected = deepenHistory({ remote, remoteBranch, branch, depth, cwd, verbose });
+    } else {
+      // Repo isn't shallow, so potentially we just need to add a ref to be connected
     }
 
     if (!isConnected) {

@@ -18,6 +18,7 @@ describe('ensureSharedHistory', () => {
   let repositoryFactory: RepositoryFactory;
   const logs = initMockLogs();
   const testBranch = 'test';
+  const defaultRefSpec = `+refs/heads/${defaultBranchName}:refs/remotes/${defaultRemoteBranchName}`;
 
   const realGit = jest.requireActual<typeof workspaceTools>('workspace-tools').git;
   /**
@@ -25,8 +26,7 @@ describe('ensureSharedHistory', () => {
    * (Use this instead of `.mockImplementation()` to avoid interference with other mocks.)
    */
   let gitOverride: typeof workspaceTools.git | undefined;
-  const gitSpy = jest
-    .spyOn(workspaceTools, 'git')
+  const gitSpy = (workspaceTools.git as jest.MockedFunction<typeof workspaceTools.git>)
     // Attempt to force git to use English in logs, so we can check for absence of "warning" strings
     .mockImplementation((args, opts) => (gitOverride || realGit)(args, opts && optsWithLang(opts)));
 
@@ -77,10 +77,10 @@ describe('ensureSharedHistory', () => {
 
     ensureSharedHistory({ path: repo.rootPath, verbose: true, branch: defaultRemoteBranchName, fetch: true });
     // Ensure the expected git calls were made
-    expect(filteredGitCalls()).toEqual(['fetch origin master']);
+    expect(filteredGitCalls()).toEqual([`fetch origin ${defaultRefSpec}`]);
 
     const allLogs = logs.getMockLines('all');
-    expect(allLogs).toMatch('Fetching branch "master" from remote "origin"...');
+    expect(allLogs).toMatch(`Fetching branch "master" from remote "origin" (${defaultRefSpec})...`);
     expect(allLogs).toMatch('Fetching branch "master" from remote "origin" completed successfully');
     expect(allLogs).not.toMatch('warning');
   });
@@ -118,7 +118,7 @@ describe('ensureSharedHistory', () => {
     gitSpy.mockClear();
 
     ensureSharedHistory({ path: repo.rootPath, verbose: true, branch: defaultRemoteBranchName, fetch: true, depth: 1 });
-    expect(filteredGitCalls()).toEqual(['fetch origin master']);
+    expect(filteredGitCalls()).toEqual([`fetch origin ${defaultRefSpec}`]);
   });
 
   it('errors if fetching is disabled and target branch does not exist locally', () => {
@@ -168,10 +168,10 @@ describe('ensureSharedHistory', () => {
     expect(() =>
       ensureSharedHistory({ path: repo.rootPath, verbose: true, branch: defaultRemoteBranchName, fetch: true })
     ).toThrow('Fetching branch "master" from remote "origin" failed');
-    expect(filteredGitCalls()).toContain('fetch origin master');
+    expect(filteredGitCalls()).toContain(`fetch origin ${defaultRefSpec}`);
 
     const allLogs = logs.getMockLines('all');
-    expect(allLogs).toMatch('Fetching branch "master" from remote "origin"...');
+    expect(allLogs).toMatch(`Fetching branch "master" from remote "origin" (${defaultRefSpec})...`);
     expect(allLogs).toMatch('Fetching branch "master" from remote "origin" failed');
   });
 
@@ -183,8 +183,7 @@ describe('ensureSharedHistory', () => {
       ensureSharedHistory({ path: repo.rootPath, verbose: false, branch: 'origin/fake', fetch: true })
     ).toThrow('Fetching branch "fake" from remote "origin" failed');
     const gitOps = filteredGitCalls();
-    expect(gitOps).not.toContain('remote set-branches --add origin fake');
-    expect(gitOps).toContain('fetch origin fake');
+    expect(gitOps).toContain('fetch origin +refs/heads/fake:refs/remotes/origin/fake');
 
     expect(logs.getMockLines('all')).toEqual('');
   });
@@ -198,12 +197,12 @@ describe('ensureSharedHistory', () => {
     ).toThrow('Fetching branch "fake" from remote "origin" failed');
 
     const gitOps = filteredGitCalls();
-    expect(gitOps).toContain('remote set-branches --add origin fake');
-    expect(gitOps).toContain('fetch origin fake');
+    expect(gitOps).toContain('fetch origin +refs/heads/fake:refs/remotes/origin/fake');
 
     const allLogs = logs.getMockLines('all');
-    expect(allLogs).toMatch('Adding branch "fake" to fetch config for remote "origin"');
-    expect(allLogs).toMatch('Fetching branch "fake" from remote "origin"...');
+    expect(allLogs).toMatch(
+      `Fetching branch "fake" from remote "origin" (+refs/heads/fake:refs/remotes/origin/fake)...`
+    );
   });
 
   it('errors if fetching is disabled and adequate history is not available', () => {
@@ -237,13 +236,13 @@ describe('ensureSharedHistory', () => {
       branch: defaultRemoteBranchName,
       fetch: true,
       depth: 2,
-      // Run this with verbose git logs so we can verify arguments were correct (no "warning" logs).
-      // However, this adds noise including filesystem paths to the output, so we can't snapshot it.
+      // Run this with verbose git logs so we can verify arguments were correct (no "warning" logs)
       verbose: true,
     });
 
-    const allLogs = logs.getMockLines('all');
-    expect(allLogs).toMatch('Adding branch "master" to fetch config for remote "origin"');
+    const allLogs = logs.getMockLines('all', {
+      replacePaths: { [repo.rootPath]: '<repo-root>', [repositoryFactory.originRoot]: '<origin-root>' },
+    });
     expect(allLogs).toMatch('This is a shallow clone. Deepening to check for changes...');
     expect(allLogs).toMatch('Deepening by 2 more commits (attempt 1/3)...');
     expect(allLogs).toMatch('Deepening by 2 more commits (attempt 2/3)...');
@@ -252,17 +251,40 @@ describe('ensureSharedHistory', () => {
     expect(logs.mocks.warn).not.toHaveBeenCalled();
     expect(logs.mocks.error).not.toHaveBeenCalled();
 
-    expect(filteredGitCalls().filter(line => !line.startsWith('rev-parse') && !line.startsWith('merge-base')))
-      .toMatchInlineSnapshot(`
-      [
-        "config --get-all remote.origin.fetch",
-        "remote set-branches --add origin master",
-        "fetch --depth=2 origin master",
-        "fetch --deepen=2 origin master",
-        "fetch --deepen=2 origin master",
-        "fetch --deepen=2 origin master",
-      ]
-    `);
+    const deepen = `fetch --deepen=2 origin ${defaultRefSpec}`;
+    expect(filteredGitCalls()).toEqual([`fetch --depth=2 origin ${defaultRefSpec}`, deepen, deepen, deepen]);
+  });
+
+  it('deepens history if needed when tracking ref already exists locally', () => {
+    // singleBranch: false means origin/master is already fetched at depth 1 before ensureSharedHistory
+    // runs, so hasBranchRef returns true and the ref already exists — but history is still too shallow.
+    // This verifies that deepening correctly updates the existing tracking ref (requires explicit refspec).
+    const repo = repositoryFactory.cloneRepository({ depth: 1, branch: testBranch, singleBranch: false });
+
+    // Verify the precondition: origin/master already exists locally (at depth 1)
+    expect(realGit(['rev-parse', '--verify', defaultRemoteBranchName], { cwd: repo.rootPath }).success).toBe(true);
+
+    gitSpy.mockClear();
+
+    ensureSharedHistory({
+      path: repo.rootPath,
+      branch: defaultRemoteBranchName,
+      fetch: true,
+      depth: 2,
+      verbose: true,
+    });
+
+    const allLogs = logs.getMockLines('all', {
+      replacePaths: { [repo.rootPath]: '<repo-root>', [repositoryFactory.originRoot]: '<origin-root>' },
+    });
+    expect(allLogs).toMatch('This is a shallow clone. Deepening to check for changes...');
+    expect(allLogs).toMatch('Deepening by 2 more commits (attempt 1/3)...');
+    expect(allLogs).not.toMatch('warning');
+    expect(logs.mocks.warn).not.toHaveBeenCalled();
+    expect(logs.mocks.error).not.toHaveBeenCalled();
+
+    const deepen = `fetch --deepen=2 origin ${defaultRefSpec}`;
+    expect(filteredGitCalls()).toEqual([`fetch --depth=2 origin ${defaultRefSpec}`, deepen, deepen, deepen]);
   });
 
   it('unshallows if deepening attempts fail', () => {
@@ -279,17 +301,14 @@ describe('ensureSharedHistory', () => {
     });
 
     expect(logs.getMockLines('all')).toMatch("Still didn't find a common commit after deepening by 3. Unshallowing...");
-    expect(filteredGitCalls()).toMatchInlineSnapshot(`
-      [
-        "config --get-all remote.origin.fetch",
-        "remote set-branches --add origin master",
-        "fetch --depth=1 origin master",
-        "fetch --deepen=1 origin master",
-        "fetch --deepen=1 origin master",
-        "fetch --deepen=1 origin master",
-        "fetch --unshallow origin master",
-      ]
-    `);
+    const deepen = `fetch --deepen=1 origin ${defaultRefSpec}`;
+    expect(filteredGitCalls()).toEqual([
+      `fetch --depth=1 origin ${defaultRefSpec}`,
+      deepen,
+      deepen,
+      deepen,
+      `fetch --unshallow origin ${defaultRefSpec}`,
+    ]);
   });
 
   it('errors if there is no common history', () => {
@@ -309,12 +328,12 @@ describe('ensureSharedHistory', () => {
 
     // The fetch part succeeded
     const allLogs = logs.getMockLines('all');
-    expect(allLogs).toMatch('Fetching branch "master" from remote "origin"...');
+    expect(allLogs).toMatch(`Fetching branch "master" from remote "origin" (${defaultRefSpec})...`);
     expect(allLogs).toMatch('Fetching branch "master" from remote "origin" completed successfully');
 
     expect(filteredGitCalls([])).toEqual([
       'rev-parse --verify origin/master',
-      'fetch origin master',
+      `fetch origin ${defaultRefSpec}`,
       'merge-base origin/master HEAD',
       'rev-parse --is-shallow-repository',
     ]);
