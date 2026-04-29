@@ -25,6 +25,6 @@ The options below apply to most CLI commands.
 | `--since`       |       |                           | only consider changes or change files since this git ref (branch name, commit SHA)           |
 | `--verbose`     |       |                           | prints additional information to the console                                                 |
 
-[1]: ../overview/configuration#determining-the-target-branch-and-remote
+[1]: ../overview/configuration#specifying-the-target-branch-and-remote
 [2]: https://www.npmjs.com/package/cosmiconfig
 [3]: ../overview/configuration#scoping
