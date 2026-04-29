@@ -188,6 +188,46 @@ describe('readChangeFiles', () => {
     expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
 
+  it.each<['premajor' | 'preminor' | 'prepatch', 'major' | 'minor' | 'patch']>([
+    ['premajor', 'major'],
+    ['preminor', 'minor'],
+    ['prepatch', 'patch'],
+  ])('coerces legacy change type %s to %s with a warning', (legacyType, replacement) => {
+    tempRoot = createTestFileStructureType('monorepo');
+    const { options, packageInfos, scopedPackages } = getOptionsAndPackages();
+
+    generateChangeFiles([{ packageName: 'foo', type: legacyType as 'patch' }], options);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
+
+    expect(changeSet).toHaveLength(1);
+    expect(changeSet[0].change.type).toBe(replacement);
+    expect(logs.mocks.warn).toHaveBeenCalledWith(
+      expect.stringContaining(`legacy change type "${legacyType}", which has been renamed to "${replacement}"`)
+    );
+  });
+
+  it('errors on legacy change type "prerelease"', () => {
+    tempRoot = createTestFileStructureType('monorepo');
+    const { options, packageInfos, scopedPackages } = getOptionsAndPackages();
+
+    generateChangeFiles([{ packageName: 'foo', type: 'prerelease' as 'patch' }], options);
+
+    expect(() => readChangeFiles(options, packageInfos, scopedPackages)).toThrow(
+      /change type "prerelease", which is no longer supported/
+    );
+  });
+
+  it('coerces legacy dependentChangeType "preminor" to "minor" with a warning', () => {
+    tempRoot = createTestFileStructureType('monorepo');
+    const { options, packageInfos, scopedPackages } = getOptionsAndPackages();
+
+    generateChangeFiles([{ packageName: 'foo', type: 'minor', dependentChangeType: 'preminor' as 'minor' }], options);
+    const changeSet = readChangeFiles(options, packageInfos, scopedPackages);
+
+    expect(changeSet[0].change.dependentChangeType).toBe('minor');
+    expect(logs.mocks.warn).toHaveBeenCalledWith(expect.stringContaining('legacy dependentChangeType "preminor"'));
+  });
+
   it('runs transform.changeFiles functions if provided', () => {
     const editedComment = 'Edited comment for testing';
     tempRoot = createTestFileStructureType('monorepo');

@@ -93,7 +93,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `ignorePatterns` | `string[]` | | repo | Ignore changes in files matching these glob patterns ([see notes][6]) |
 | `npmReadConcurrency` | number | 5 | repo | Maximum concurrency for fetching package versions from the registry (see `concurrency` for write operations) |
 | `package` | `string` | | repo | Specifies which package the command relates to (overrides change detection based on `git diff`) |
-| `prereleasePrefix` | `string` | | repo | Prerelease prefix, e.g. `"beta"`. Note that if this is specified, packages with change type major/minor/patch will be bumped as prerelease instead. |
+| `prereleasePrefix` | `string` | `'prerelease'` | repo | Suffix used by the [`prerelease`](../cli/prerelease) command for prerelease versions, e.g. `"beta"` produces versions like `1.2.3-beta.0`. |
 | `packStyle` | `'sequential' \| 'layer'` | `'sequential'` | repo | With `packToPath`, how to organize the tgz files. `'sequential'` uses numeric prefixes to ensure topological ordering. `'layer'` groups the packages into numbered subfolders based on dependency tree layers. |
 | `packToPath` | `string` | | repo | Instead of publishing to npm, pack packages to tgz files under the specified path. |
 | `publish` | `boolean` | `true` | repo | Whether to publish to npm registry |

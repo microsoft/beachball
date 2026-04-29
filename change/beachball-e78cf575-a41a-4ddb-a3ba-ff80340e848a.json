@@ -1,0 +1,7 @@
+{
+  "packageName": "beachball",
+  "type": "major",
+  "dependentChangeType": "patch",
+  "comment": "Rename `canary` command to `prerelease`, repurpose `prereleasePrefix` (and remove `canaryName`), and shrink `ChangeType` to `patch | minor | major | none`. Old `pre*` change types in change files are auto-coerced (with a warning); `prerelease` change type is now an error. `bump`/`publish` no longer produce prerelease versions and now strip any prerelease component from the current version before bumping (prerelease → release promotion).",
+  "email": "198982749+Copilot@users.noreply.github.com"
+}

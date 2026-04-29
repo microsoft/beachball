@@ -153,6 +153,32 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, command: 'publish', prereleasePrefix: 'foo', tag: 'bar' });
   });
 
+  it.each<['premajor' | 'preminor' | 'prepatch', 'major' | 'minor' | 'patch']>([
+    ['premajor', 'major'],
+    ['preminor', 'minor'],
+    ['prepatch', 'patch'],
+  ])('coerces legacy --type %s to %s with a warning', (legacyType, replacement) => {
+    const options = getCliOptionsTest(['change', '--type', legacyType]);
+    expect(options).toEqual({ ...defaults, type: replacement });
+  });
+
+  it('errors on legacy --type prerelease', () => {
+    expect(() => getCliOptionsTest(['change', '--type', 'prerelease'])).toThrow(
+      /--type "prerelease" is no longer supported/
+    );
+  });
+
+  it('coerces legacy --dependent-change-type preminor to minor with a warning', () => {
+    const options = getCliOptionsTest(['change', '--dependent-change-type', 'preminor']);
+    expect(options).toEqual({ ...defaults, dependentChangeType: 'minor' });
+  });
+
+  it('errors on legacy --dependent-change-type prerelease', () => {
+    expect(() => getCliOptionsTest(['change', '--dependent-change-type', 'prerelease'])).toThrow(
+      /--dependent-change-type "prerelease" is no longer supported/
+    );
+  });
+
   it('falls back to given cwd as path if findProjectRoot fails', () => {
     mockFindProjectRoot.mockImplementationOnce(() => {
       throw new Error('nope');

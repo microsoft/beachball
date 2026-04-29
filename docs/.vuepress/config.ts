@@ -42,6 +42,7 @@ export default defineUserConfig({
           '/cli/change',
           '/cli/check',
           '/cli/config',
+          '/cli/prerelease',
           '/cli/publish',
           '/cli/sync',
         ],
