@@ -6,6 +6,7 @@ import { BeachballError } from '../types/BeachballError';
  * Expects a promise or function to throw a BeachballError with a specific message.
  */
 export async function expectBeachballError(
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   promiseOrFunction: Promise<unknown> | (() => unknown | Promise<unknown>),
   expectedMessage: string | RegExp
 ): Promise<void> {

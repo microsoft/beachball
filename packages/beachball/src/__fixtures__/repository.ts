@@ -215,6 +215,7 @@ ${gitResult.stderr.toString()}`);
 
   /** Check out a branch based on the default branch, with a name matching the current test name */
   checkoutTestBranch(): void {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const branchName = expect.getState().currentTestName!.replace(/\W+/g, '-');
     this.checkout('-b', branchName, defaultBranchName);
   }

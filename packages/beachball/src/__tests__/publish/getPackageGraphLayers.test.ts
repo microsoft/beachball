@@ -7,7 +7,6 @@ import { getPackageDependencies } from 'workspace-tools';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 jest.mock('workspace-tools', () => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   const wstools = jest.requireActual<typeof import('workspace-tools')>('workspace-tools');
   return { ...wstools, getPackageDependencies: jest.fn(wstools.getPackageDependencies) };
 });

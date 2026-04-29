@@ -24,9 +24,9 @@ jest.mock('workspace-tools', () => {
   // use fake git by default
   return { ...actual, commit: jest.fn(), stage: jest.fn() };
 });
-// eslint-disable-next-line etc/no-deprecated -- wrong variadic signature
+// eslint-disable-next-line beachball/no-deprecated -- wrong variadic signature
 const mockCommit = workspaceTools.commit as jest.MockedFunction<typeof workspaceTools.commit>;
-// eslint-disable-next-line etc/no-deprecated
+// eslint-disable-next-line beachball/no-deprecated
 const mockStage = workspaceTools.stage as jest.MockedFunction<typeof workspaceTools.stage>;
 
 // The tests for fromRef that use git are in a nested describe block
@@ -261,9 +261,7 @@ describe('readChangeFiles', () => {
 
       const realWsTools = jest.requireActual<typeof workspaceTools>('workspace-tools');
       // Use the real git implementation for these tests since we're relying on git history
-      // eslint-disable-next-line etc/no-deprecated -- wrong variadic signature
       mockCommit.mockImplementation(realWsTools.commit);
-      // eslint-disable-next-line etc/no-deprecated
       mockStage.mockImplementation(realWsTools.stage);
     });
 

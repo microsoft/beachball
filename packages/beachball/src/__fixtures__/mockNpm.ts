@@ -234,7 +234,7 @@ export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
 
   if (!pkgData) {
     const stderr = `[fake] code E404 - ${name} - not found`;
-    return { stdout: '', stderr, all: stderr, success: false, failed: true } as NpmResult;
+    return { stdout: '', stderr, all: stderr, success: false, failed: true };
   }
 
   let finalVersion: string | undefined;
@@ -254,7 +254,7 @@ export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
     // Some versions for this package exist, but the specified version or tag doesn't
     // (note that "E404" matches the actual npm output, but the rest of the message is different)
     const stderr = `[fake] code E404 - ${name}@${version} - not found`;
-    return { stdout: '', stderr, all: stderr, success: false, failed: true } as NpmResult;
+    return { stdout: '', stderr, all: stderr, success: false, failed: true };
   }
 
   const stdout = JSON.stringify({
@@ -262,7 +262,7 @@ export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
     'dist-tags': pkgData['dist-tags'],
     versions: Object.keys(pkgData.versions),
   });
-  return { stdout, stderr: '', all: stdout, success: true, failed: false } as NpmResult;
+  return { stdout, stderr: '', all: stdout, success: true, failed: false };
 };
 
 /** (exported for testing) Mock npm publish to the registry data */
