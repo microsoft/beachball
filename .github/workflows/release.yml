@@ -34,6 +34,14 @@ jobs:
           # Don't save creds in the git config (so it's easier to override later)
           persist-credentials: false
 
+      # Prereleases from main are disabled until the canary/prerelease flow is fixed
+      - name: Verify v2 branch
+        run: |
+          if [[ "${GITHUB_REF}" != "refs/heads/v2" ]]; then
+            echo "Releases can only be triggered from the v2 branch."
+            exit 1
+          fi
+
       - name: Install Node.js ${{ env.nodeVersion }}
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:

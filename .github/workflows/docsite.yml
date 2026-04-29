@@ -2,7 +2,8 @@ name: Update documentation site
 
 on:
   push:
-    branches: [main]
+    # The docsite publishes from the v2 branch for now
+    branches: [v2]
     paths:
       - 'docs/**'
       - .github/workflows/docsite.yml
@@ -22,6 +23,14 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      # Prereleases from main are disabled until the canary/prerelease flow is fixed
+      - name: Verify v2 branch
+        run: |
+          if [[ "${GITHUB_REF}" != "refs/heads/v2" ]]; then
+            echo "Releases can only be triggered from the v2 branch."
+            exit 1
+          fi
 
       # The docs have a separate installation using Node 22 due to needing newer dependencies
       - name: Install Node.js
