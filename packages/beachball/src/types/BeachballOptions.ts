@@ -165,8 +165,11 @@ export interface RepoOptions {
    */
   fetch: boolean;
   /**
+   * Currently only for `bump`/`publish`:
    * Consider change files since this git ref (branch name, commit SHA, etc).
    */
+  // This probably should not be specific to bump/publish, but the initial implementation didn't
+  // add any related logic to change/check...
   fromRef?: string;
   /**
    * Whether to generate changelog files.

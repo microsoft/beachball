@@ -1,18 +1,20 @@
 import fs from 'fs';
 import path from 'path';
+import { getBranchChanges, getChangesBetweenRefs, getStagedChanges } from 'workspace-tools';
 import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import { getChangePath } from '../paths';
-import { getChangesBetweenRefs, getStagedChanges } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfos, ScopedPackages } from '../types/PackageInfo';
 import { readJson } from '../object/readJson';
 import { bulletedList } from '../logging/bulletedList';
 import { getAllChangedPackages } from './getAllChangedPackages';
+import { getCatalogChangedPackages } from './getCatalogChangedPackages';
 import { getIncludedLoggers, isPackageIncluded } from './isPackageIncluded';
 import { ensureSharedHistory } from '../git/ensureSharedHistory';
 
 /**
  * Gets all the changed packages which **do not already have a change file** and are in scope.
+ * This includes all packages which should change due to catalog version changes.
  * This is only used by the `change` and `check` commands, not the bump/publish process.
  *
  * Special cases:
@@ -37,27 +39,42 @@ export function getChangedPackages(
     return typeof options.package === 'string' ? [options.package] : [...options.package];
   }
 
-  console.log(`Checking for changes against "${options.branch}"`);
+  console.log(`Checking for changes against "${branch}"`);
 
   // Ensure the current branch and target branch have a common shared commit. This has the side
   // effect of fetching from the remote (unless disabled), which should be done even if there's
   // already shared history (and even with --all) for accurate added change file checks later.
   ensureSharedHistory(options);
 
-  let changedPackages: string[];
+  let changedPackages: Set<string>;
+  let stagedFiles: string[] | undefined;
 
   if (options.all) {
     // If --all is set, return all the packages in scope rather than looking at which files changed
     verboseLog('--all option was provided, so including all packages that are in scope (regardless of changes)');
-    changedPackages = Object.values(packageInfos)
-      .filter(pkg => {
-        const { isIncluded, reason } = isPackageIncluded(pkg, scopedPackages);
-        isIncluded ? logIncluded(pkg.name) : logIgnored(pkg.name, reason.replace(`${pkg.name} `, ''));
-        return isIncluded;
-      })
-      .map(pkg => pkg.name);
+    changedPackages = new Set(
+      Object.values(packageInfos)
+        .filter(pkg => {
+          const { isIncluded, reason } = isPackageIncluded(pkg, scopedPackages);
+          isIncluded ? logIncluded(pkg.name) : logIgnored(pkg.name, reason.replace(`${pkg.name} `, ''));
+          return isIncluded;
+        })
+        .map(pkg => pkg.name)
+    );
   } else {
-    changedPackages = getAllChangedPackages({ options, packageInfos, scopedPackages });
+    stagedFiles = getStagedChanges({ cwd: options.path }) || [];
+    const committedFiles = getBranchChanges({ branch, cwd: options.path }) || [];
+    // dedupe with a Set in case a file was already committed and has more changes staged
+    const allChangedFiles = new Set([...committedFiles, ...stagedFiles]);
+
+    const directChangedPackages = getAllChangedPackages({ options, packageInfos, scopedPackages, allChangedFiles });
+    const catalogChangedPackages = getCatalogChangedPackages({
+      options,
+      packageInfos,
+      scopedPackages,
+      allChangedFiles,
+    });
+    changedPackages = new Set([...directChangedPackages, ...catalogChangedPackages]);
   }
 
   const changePath = getChangePath(options);
@@ -75,7 +92,11 @@ export function getChangedPackages(
     throwOnError: false,
   });
   // Also consider staged change files (not yet committed) so that `check` respects them
-  const stagedChangeFiles = (getStagedChanges({ cwd: changePath }) || []).filter(f => f.endsWith('.json'));
+  const relChangeDir = path.relative(options.path, changePath).replace(/\\/g, '/') + '/';
+  const stagedChangeFiles = (
+    stagedFiles?.filter(f => f.startsWith(relChangeDir)).map(f => f.replace(relChangeDir, '')) ||
+    getStagedChanges({ cwd: changePath })
+  ).filter(f => f.endsWith('.json'));
   const changeFiles = [...new Set([...committedChangeFiles, ...stagedChangeFiles])];
 
   const changeFilePackageSet = new Set<string>();
@@ -90,6 +111,7 @@ export function getChangedPackages(
       for (const change of changes) {
         if (change.packageName) {
           changeFilePackageSet.add(change.packageName);
+          changedPackages.delete(change.packageName);
         }
       }
     } catch (e) {
@@ -104,5 +126,5 @@ export function getChangedPackages(
     );
   }
 
-  return changedPackages.filter(pkgName => !changeFilePackageSet.has(pkgName));
+  return [...changedPackages];
 }
