@@ -18,7 +18,7 @@ function getProjectOptions(projectOverrides) {
       '^.+\\.tsx?$': [
         'ts-jest',
         // in ts-jest, this means skip type checking (we already type check in the build step)
-        { isolatedModules: true },
+        { tsconfig: { isolatedModules: true } },
       ],
     },
     testEnvironment: 'node',
