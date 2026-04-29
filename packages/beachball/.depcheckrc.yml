@@ -11,3 +11,7 @@ ignores:
   - 'eslint-*'
   - '@types/node'
   - '@jest/globals'
+  # needed for type references from verdaccio (not listed in deps)
+  - '@verdaccio/types'
+  # needed for type references from @verdaccio/types
+  - '@types/jsonwebtoken'

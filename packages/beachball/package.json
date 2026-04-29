@@ -48,23 +48,19 @@
   },
   "devDependencies": {
     "@microsoft/beachball-scripts": "1.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/minimatch": "^3.0.0",
     "@types/prompts": "^2.4.2",
     "@types/semver": "^7.3.13",
     "@types/tmp": "^0.2.3",
     "@types/yargs-parser": "^21.0.0",
+    "@verdaccio/types": "^13.0.0",
     "get-port": "^5.0.0",
     "normalized-tmpdir": "1.0.1",
     "strip-ansi": "^6.0.1",
     "tmp": "^0.2.1",
-    "verdaccio": "5.29.2",
-    "verdaccio-auth-memory": "10.2.2",
-    "verdaccio-memory": "10.3.2"
-  },
-  "rationale": {
-    "devDependencies": {
-      "verdaccio-auth-memory@10.2.2": "node 18 required by newer version",
-      "verdaccio-memory@10.3.2": "node 18 required by newer version"
-    }
+    "verdaccio": "^6.5.2",
+    "verdaccio-auth-memory": "^13.0.0",
+    "verdaccio-memory": "^10.4.3"
   }
 }

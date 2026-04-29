@@ -6,7 +6,7 @@ import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
 import * as npmModule from '../../packageManager/npm';
 import { packagePublish } from '../../packageManager/packagePublish';
 import type { PackageInfo } from '../../types/PackageInfo';
-import type { npm, NpmResult } from '../../packageManager/npm';
+import { npm, NpmResult } from '../../packageManager/npm';
 import { writeJson } from '../../object/writeJson';
 import { getNpmPackageInfo } from '../../packageManager/getNpmPackageInfo';
 import { env } from '../../env';
@@ -28,7 +28,6 @@ const testPackage = { name: testName, version: testVersion };
 // eslint-disable-next-line no-restricted-properties
 describe.skip('packagePublish', () => {
   let npmSpy: jest.SpiedFunction<typeof npm>;
-  let npmVersion: string;
   let tempRoot: string;
   let tempPackageJsonPath: string;
   /**
@@ -91,8 +90,6 @@ describe.skip('packagePublish', () => {
       tempRoot = tmpdir();
       tempPackageJsonPath = path.join(tempRoot, 'package.json');
       writeJson(tempPackageJsonPath, testPackage);
-
-      npmVersion = (await npmModule.npm(['--version'], { cwd: tempRoot })).stdout.trim() || '';
     });
 
     beforeEach(async () => {
@@ -188,12 +185,6 @@ describe.skip('packagePublish', () => {
     });
 
     it('handles auth error and does not retry', async () => {
-      // TODO: remove condition once node version is upgraded (this test doesn't work with npm 6 because
-      // that version seems to allow truly anonymous publishing with verdaccio)
-      if (npmVersion.startsWith('6.')) {
-        console.warn('Skipping auth error test on npm 6');
-        return;
-      }
       await registry.logout();
 
       const testPackageInfo = getTestPackageInfo();
