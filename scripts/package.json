@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
+  "scripts": {
+    "build": "yarn run -T tsc --noEmit"
+  },
   "devDependencies": {
     "workspace-tools": "^0.41.6"
   }
