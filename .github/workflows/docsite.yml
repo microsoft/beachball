@@ -2,7 +2,8 @@ name: Update documentation site
 
 on:
   push:
-    branches: [main]
+    # The docsite publishes from the v2 branch for now
+    branches: [v2]
     paths:
       - 'docs/**'
       - .github/workflows/docsite.yml
