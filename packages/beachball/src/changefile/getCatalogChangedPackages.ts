@@ -63,6 +63,11 @@ export function getCatalogChangedPackages(params: {
 
   const changedPackages: string[] = [];
 
+  const changedCatalogDepNames = [
+    Object.keys(catalogsDiff.default || {}),
+    Object.values(catalogsDiff.named || {}).map(catalog => Object.keys(catalog)),
+  ].flat(2);
+
   for (const pkg of Object.values(packageInfos)) {
     // Skip logging exclude reasons for catalog references
     if (!isPackageIncluded(pkg, scopedPackages).isIncluded) continue;
@@ -74,8 +79,13 @@ export function getCatalogChangedPackages(params: {
       if (!deps) continue;
 
       for (const [name, version] of Object.entries(deps)) {
-        // See if this dep spec can be resolved from the catalog diff. If so, it's a change.
-        if (getCatalogVersion({ name, version, catalogs: catalogsDiff, allowNotFound: true })) {
+        // If this dep name might be one of the changed catalog dependencies, check if the version
+        // specified in this package can be resolved from the catalog diff. If so, it's a change.
+        // (it's possible some package could specify a non-catalog version of the same dep)
+        if (
+          changedCatalogDepNames.includes(name) &&
+          getCatalogVersion({ name, version, catalogs: catalogsDiff, allowNotFound: true })
+        ) {
           changedDeps.push(name);
         }
       }
