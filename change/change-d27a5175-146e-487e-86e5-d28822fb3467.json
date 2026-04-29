@@ -1,0 +1,11 @@
+{
+  "changes": [
+    {
+      "type": "patch",
+      "comment": "Fix deepening of shallow clones in latest git by being more specific about the comparison ref being fetched. Also reduce git operations for the case where the branch ref doesn't exist locally.",
+      "packageName": "beachball",
+      "email": "elcraig@microsoft.com",
+      "dependentChangeType": "patch"
+    }
+  ]
+}

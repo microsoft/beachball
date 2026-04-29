@@ -106,7 +106,7 @@ describe('bumpAndPush', () => {
     expect(mockPerformBump).toHaveBeenCalledTimes(1);
     expect(mockTagPackages).toHaveBeenCalledTimes(1);
     expect(wsToolsMocks.revertLocalChanges).toHaveBeenCalledTimes(1);
-    expect(getWsToolsGitCalls().join('\n')).toEqual('git fetch origin master');
+    expect(getWsToolsGitCalls().join('\n')).toEqual('git fetch origin +refs/heads/master:refs/remotes/origin/master');
     expect(getExecaCalls()).toEqual([
       'git merge -X theirs origin/master',
       'git add .',

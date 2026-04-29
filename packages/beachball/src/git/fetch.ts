@@ -3,10 +3,16 @@ import { getGitEnv } from './gitAsync';
 
 type GitFetchParams = {
   cwd: string;
-  /** Remote to fetch from. If not specified, fetches all remotes. */
-  remote?: string;
-  /** Branch to fetch. This will be ignored if `remote` is not also specified. */
-  branch?: string;
+  /**
+   * Remote to fetch from. This should almost always be set but might be an empty string
+   * if the repo somehow has no remotes configured.
+   */
+  remote: string;
+  /**
+   * Branch to fetch. It will be converted to a full refspec for fetching:
+   * e.g. `branch: 'main', remote: 'origin'` will be converted to `+main:refs/remotes/origin/main`.
+   */
+  branch: string;
   /** Set depth to this number of commits (mutually exclusive with `deepen` and `unshallow`) */
   depth?: number;
   /** Deepen a shallow clone by this number of commits (mutually exclusive with `depth` and `unshallow`) */
@@ -20,6 +26,9 @@ type GitFetchParams = {
  * Wrapper for `git fetch`. If `verbose` is true, log the command before starting, and display output
  * on stdout (except in tests). In tests with `verbose`, the output will be logged all together to
  * `console.log` when the command finishes (for easier mocking/capturing).
+ *
+ * This converts `remote` and `branch` into a fully qualified refspec, so it doesn't matter if
+ * the remote branch is tracked or not in the local repository.
  */
 export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMessage?: string } {
   const { remote, branch, depth, deepen, unshallow, cwd, verbose } = params;
@@ -31,14 +40,21 @@ export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMess
 
   const extraArgs = depth ? [`--depth=${depth}`] : deepen ? [`--deepen=${deepen}`] : unshallow ? ['--unshallow'] : [];
 
-  let description = remote
-    ? `Fetching ${branch ? `branch "${branch}" from ` : ''}remote "${remote}"`
-    : 'Fetching all remotes';
+  // Be specific with the ref being fetched, so we don't have to worry about tracking configs.
+  // In git fetch <remote> +<src>:<dst>...
+  // - The + means allow non-fast-forward updates (in case the remote was force pushed).
+  // - <src> refs/heads/${branch} is resolved against the remote's advertised refs. The fully
+  //   qualified ref is unambiguous, whereas bare branch names can be silently misresolved,
+  //   causing git to treat the ref as absent and delete the local tracking ref.
+  // - <dst> refs/remotes/${remote}/${branch} is resolved locally and only moves the tracking ref
+  //   for the remote branch, not the local refs/heads/${branch} or its tracking config.
+  const resolvedBranch = remote ? `+refs/heads/${branch}:refs/remotes/${remote}/${branch}` : undefined;
 
-  if (extraArgs.length) {
-    description += ` (with ${extraArgs.join(' ')})`;
-  }
+  const shortDescription = `Fetching ${resolvedBranch ? `branch "${branch}" from remote "${remote}"` : 'all remotes'}`;
 
+  let description = shortDescription;
+  resolvedBranch && (description += ` (${resolvedBranch})`);
+  extraArgs.length && (description += ` (with ${extraArgs.join(' ')})`);
   shouldLog && console.log(description + '...');
 
   const result: ReturnType<typeof gitFetch> = git(
@@ -46,7 +62,7 @@ export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMess
       'fetch',
       ...extraArgs,
       // If the remote is unknown, don't specify the branch (fetching a branch without a remote is invalid)
-      ...(remote && branch ? [remote, branch] : remote ? [remote] : []),
+      ...(resolvedBranch ? [remote, resolvedBranch] : []),
     ],
     { cwd, stdio: shouldLog === 'live' ? 'inherit' : 'pipe' }
   );
@@ -59,7 +75,7 @@ export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMess
     result.stderr && log(result.stderr);
   }
 
-  let message = `${description} ${result.success ? 'completed successfully' : `failed (code ${result.status})`}`;
+  let message = `${shortDescription} ${result.success ? 'completed successfully' : `failed (code ${result.status})`}`;
   if (shouldLog) {
     log(message);
     message += ' - see above for details';
