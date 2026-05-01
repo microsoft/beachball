@@ -56,6 +56,7 @@ export function getChangedPackages(
       Object.values(packageInfos)
         .filter(pkg => {
           const { isIncluded, reason } = isPackageIncluded(pkg, scopedPackages);
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           isIncluded ? logIncluded(pkg.name) : logIgnored(pkg.name, reason.replace(`${pkg.name} `, ''));
           return isIncluded;
         })

@@ -13,7 +13,7 @@ const config = {
   gitTags: false,
   canaryName: 'alpha',
 
-  ignorePatterns: ['.*ignore', '.eslintrc.js', 'jest.*.js', 'src/__*/**'],
+  ignorePatterns: ['.*ignore', '.eslintrc.js', 'eslint.config.*', 'jest.*.js', 'src/__*/**'],
 };
 
 module.exports = config;

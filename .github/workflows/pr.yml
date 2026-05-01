@@ -64,9 +64,8 @@ jobs:
       - run: yarn format:check
         if: matrix.os == 'ubuntu-latest' && matrix.node == 22
 
-      # TODO: re-enable when updating eslint
-      # - run: yarn lint:ci
-      #   if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+      - run: yarn lint:ci
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
 
       - run: yarn test --verbose
         id: test

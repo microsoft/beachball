@@ -231,7 +231,7 @@ describe('publish command (all helpers mocked)', () => {
   // This also needs to be covered by a test with real git
   it('returns to original branch and deletes publish branch after completion', async () => {
     const currentBranch = 'fake-branch';
-    // eslint-disable-next-line etc/no-deprecated
+    // eslint-disable-next-line beachball/no-deprecated
     wsToolsMocks.getBranchName.mockReturnValue(currentBranch);
     const { options, context } = getOptionsAndContext({
       packageInfos: { foo: {} },
@@ -245,7 +245,7 @@ describe('publish command (all helpers mocked)', () => {
   });
 
   it('returns to correct hash from detached HEAD', async () => {
-    // eslint-disable-next-line etc/no-deprecated
+    // eslint-disable-next-line beachball/no-deprecated
     wsToolsMocks.getBranchName.mockReturnValue('HEAD');
 
     const { options, context } = getOptionsAndContext({ packageInfos: { foo: {} } });

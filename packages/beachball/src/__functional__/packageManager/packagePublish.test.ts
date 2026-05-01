@@ -25,6 +25,7 @@ const testPackage = { name: testName, version: testVersion };
 // a bug is found that would have been caught that way).
 //
 // TODO: re-enable when jest and verdaccio are updated
+// eslint-disable-next-line no-restricted-properties
 describe.skip('packagePublish', () => {
   let npmSpy: jest.SpiedFunction<typeof npm>;
   let npmVersion: string;
