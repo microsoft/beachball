@@ -20,7 +20,7 @@ $ beachball bump
 
 [General options](./options) also apply for this command.
 
-| Option                | Description                                                                      |
-| --------------------- | -------------------------------------------------------------------------------- |
-| `--keep-change-files` | don't delete the change files from disk after bumping                            |
-| `--prerelease-prefix` | prerelease prefix (e.g. `beta`) for packages that will receive a prerelease bump |
+| Option                | Description                                                                                                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--keep-change-files` | don't delete the change files from disk after bumping                                                                                                         |
+| `--prerelease-prefix` | prerelease prefix (e.g. `beta`); stable packages with major/minor/patch changes bump as prereleases, while existing prerelease packages can promote to stable |

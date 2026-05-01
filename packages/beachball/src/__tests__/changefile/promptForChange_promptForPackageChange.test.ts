@@ -88,16 +88,19 @@ describe('promptForChange _promptForPackageChange', () => {
 
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`"Please describe the changes for: foo"`);
     expect(stdout.getOutput()).toMatchInlineSnapshot(`
-        "? Change type » - Use arrow-keys. Return to submit.
-        >    Patch      - bug fixes; no API changes.
-             Minor      - small feature; backwards compatible API changes.
-             None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        √ Change type »  Patch      - bug fixes; no API changes.
-        ? Describe changes (type or choose one) »
-        >   message
-        √ Describe changes (type or choose one) » message"
-      `);
+      "? Change type » - Use arrow-keys. Return to submit.
+      >    Patch      - bug fixes; no API changes.
+           Minor      - small feature; backwards compatible API changes.
+           None       - this change does not affect the published package in any way.
+           Major      - major feature; breaking changes.
+           Prepatch   - start a prerelease patch.
+           Preminor   - start a prerelease minor.
+           Premajor   - start a prerelease major.
+      √ Change type »  Patch      - bug fixes; no API changes.
+      ? Describe changes (type or choose one) »
+      >   message
+      √ Describe changes (type or choose one) » message"
+    `);
     expect(answers).toEqual({ type: 'patch', comment: 'message' });
   });
 
@@ -200,32 +203,41 @@ describe('promptForChange _promptForPackageChange', () => {
     await stdin.sendByChar('\n');
 
     expect(stdout.getOutput()).toMatchInlineSnapshot(`
-        "? Change type » - Use arrow-keys. Return to submit.
-        >    Patch      - bug fixes; no API changes.
-             Minor      - small feature; backwards compatible API changes.
-             None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        ? Change type » - Use arrow-keys. Return to submit.
-             Patch      - bug fixes; no API changes.
-        >    Minor      - small feature; backwards compatible API changes.
-             None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        ? Change type » - Use arrow-keys. Return to submit.
-             Patch      - bug fixes; no API changes.
-             Minor      - small feature; backwards compatible API changes.
-        >    None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        √ Change type »  None       - this change does not affect the published package in any way.
-        ? Describe changes (type or choose one) »
-        >   first
-            second
-            third
-        ? Describe changes (type or choose one) »
-            first
-        >   second
-            third
-        √ Describe changes (type or choose one) » second"
-      `);
+      "? Change type » - Use arrow-keys. Return to submit.
+      >    Patch      - bug fixes; no API changes.
+           Minor      - small feature; backwards compatible API changes.
+           None       - this change does not affect the published package in any way.
+           Major      - major feature; breaking changes.
+           Prepatch   - start a prerelease patch.
+           Preminor   - start a prerelease minor.
+           Premajor   - start a prerelease major.
+      ? Change type » - Use arrow-keys. Return to submit.
+           Patch      - bug fixes; no API changes.
+      >    Minor      - small feature; backwards compatible API changes.
+           None       - this change does not affect the published package in any way.
+           Major      - major feature; breaking changes.
+           Prepatch   - start a prerelease patch.
+           Preminor   - start a prerelease minor.
+           Premajor   - start a prerelease major.
+      ? Change type » - Use arrow-keys. Return to submit.
+           Patch      - bug fixes; no API changes.
+           Minor      - small feature; backwards compatible API changes.
+      >    None       - this change does not affect the published package in any way.
+           Major      - major feature; breaking changes.
+           Prepatch   - start a prerelease patch.
+           Preminor   - start a prerelease minor.
+           Premajor   - start a prerelease major.
+      √ Change type »  None       - this change does not affect the published package in any way.
+      ? Describe changes (type or choose one) »
+      >   first
+          second
+          third
+      ? Describe changes (type or choose one) »
+          first
+      >   second
+          third
+      √ Describe changes (type or choose one) » second"
+    `);
 
     const answers = await answerPromise;
     expect(answers).toEqual({ type: 'none', comment: 'second' });
@@ -314,17 +326,20 @@ describe('promptForChange _promptForPackageChange', () => {
       `);
 
     expect(stdout.getOutput()).toMatchInlineSnapshot(`
-        "? Change type » - Use arrow-keys. Return to submit.
-        >    Patch      - bug fixes; no API changes.
-             Minor      - small feature; backwards compatible API changes.
-             None       - this change does not affect the published package in any way.
-             Major      - major feature; breaking changes.
-        √ Change type »  Patch      - bug fixes; no API changes.
-        ? Describe changes (type or choose one) »
-        >   message
-        ? Describe changes (type or choose one) » a
-        × Describe changes (type or choose one) » a"
-      `);
+      "? Change type » - Use arrow-keys. Return to submit.
+      >    Patch      - bug fixes; no API changes.
+           Minor      - small feature; backwards compatible API changes.
+           None       - this change does not affect the published package in any way.
+           Major      - major feature; breaking changes.
+           Prepatch   - start a prerelease patch.
+           Preminor   - start a prerelease minor.
+           Premajor   - start a prerelease major.
+      √ Change type »  Patch      - bug fixes; no API changes.
+      ? Describe changes (type or choose one) »
+      >   message
+      ? Describe changes (type or choose one) » a
+      × Describe changes (type or choose one) » a"
+    `);
 
     expect(answers).toBeUndefined();
   });
