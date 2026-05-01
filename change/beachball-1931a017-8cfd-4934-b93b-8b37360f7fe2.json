@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Require Node **22.18.0** or newer, and use ES2024 syntax in output",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

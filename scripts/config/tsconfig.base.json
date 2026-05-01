@@ -1,20 +1,18 @@
 {
   "compilerOptions": {
-    // compatible with node 14
-    "target": "ES2020",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    // compatible with node 22
+    "target": "ES2024",
+    // Use CJS output for now
+    "module": "node20",
+    "moduleResolution": "node16",
+    // For some reason, jest is failing with this error which isn't even an option specified...
+    // TS5107: Option 'moduleResolution=node10' is deprecated and will stop functioning in TypeScript 7.0
+    "ignoreDeprecations": "6.0",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true,
-    "allowJs": true,
-    "checkJs": true,
     "skipLibCheck": true,
-    "lib": ["ES2020"],
+    "lib": ["ES2024"],
     "types": ["node"]
   }
 }

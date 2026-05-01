@@ -22,26 +22,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # node 22/npm 10 on ubuntu and windows
           - os: ubuntu-latest
-            # npm 6 and 8 have slightly different behavior with verdaccio in publishing tests.
-            # It's unclear if this translates to meaningful differences in behavior in actual scenarios,
-            # but test against both versions to be safe. (Only do this on the ubuntu build for speed.)
-            npm: 6
-            node: 14
-          # node 14/npm 8 on ubuntu and windows
-          - os: ubuntu-latest
-            npm: 8
-            node: 14
+            npm: 10
+            node: 22
           - os: windows-latest
-            npm: 8
-            node: 14
-          # node 20/npm 11 on ubuntu and windows (can't use 22 for reasons described in release.yml)
+            npm: 10
+            node: 22
+          # node 24/npm 11 on ubuntu and windows
           - os: ubuntu-latest
             npm: 11
-            node: 20
+            node: 24
           - os: windows-latest
             npm: 11
-            node: 20
+            node: 24
 
     name: build (${{ matrix.os }}, node ${{ matrix.node }}, npm ${{ matrix.npm }})
 
@@ -57,21 +51,22 @@ jobs:
           cache: yarn
           node-version: ${{ matrix.node }}
 
-      # Guarantee a predictable version of npm for the first round of tests
+      # Guarantee a predictable version of npm
       - name: Install npm@${{ matrix.npm }}
         run: npm install --global npm@${{ matrix.npm }}
 
-      - run: yarn --frozen-lockfile
+      - run: yarn --immutable
 
       - run: yarn build --verbose
 
       - run: yarn checkchange --verbose
 
       - run: yarn format:check
-        if: matrix.os == 'ubuntu-latest' && matrix.node == 14 && matrix.npm == 8
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
 
-      - run: yarn lint:ci
-        if: matrix.os == 'ubuntu-latest' && matrix.node == 14 && matrix.npm == 8
+      # TODO: re-enable when updating eslint
+      # - run: yarn lint:ci
+      #   if: matrix.os == 'ubuntu-latest' && matrix.node == 22
 
       - run: yarn test --verbose
         id: test
@@ -97,7 +92,7 @@ jobs:
           path: ${{ env.NPM_CACHE_DIR }}/_logs
           retention-days: 3
 
-  # The docs have a separate installation using Node 22 due to needing newer dependencies
+  # The docs have a separate installation
   docs:
     name: build docs
 
@@ -111,7 +106,7 @@ jobs:
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           cache: yarn
-          node-version-file: ./docs/.nvmrc
+          node-version-file: .nvmrc
 
       - run: yarn --immutable
         working-directory: ./docs

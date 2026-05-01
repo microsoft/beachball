@@ -4,7 +4,8 @@
 const config = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    ecmaVersion: 2020,
+    // TODO: es2024 after eslint update
+    ecmaVersion: 2022,
   },
   plugins: ['@typescript-eslint', 'etc'],
   reportUnusedDisableDirectives: true,

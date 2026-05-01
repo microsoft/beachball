@@ -5,11 +5,15 @@ const config = {
   branch: 'main',
   commit: false,
   groupChanges: true,
-  ignorePatterns: ['.*ignore', '.eslintrc.js', 'jest.*.js', 'src/__*/**'],
+
   // TODO (release): change back to major
   disallowedChangeTypes: ['prerelease'],
-  // TODO (release): remove
+  // TODO (release): remove these
+  defaultNpmTag: 'next',
+  gitTags: false,
   canaryName: 'alpha',
+
+  ignorePatterns: ['.*ignore', '.eslintrc.js', 'jest.*.js', 'src/__*/**'],
 };
 
 module.exports = config;

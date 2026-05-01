@@ -16,7 +16,7 @@
     "github>microsoft/m365-renovate-config:groupTypes",
     "github>microsoft/m365-renovate-config:keepFresh"
     // TODO (release): re-enable and remove special rules
-    // "github>microsoft/m365-renovate-config:restrictNode(14)"
+    // "github>microsoft/m365-renovate-config:restrictNode(22)"
   ],
 
   "gitAuthor": "Renovate Bot <renovate@whitesourcesoftware.com>",
@@ -92,7 +92,7 @@
     {
       "matchBaseBranches": ["main"],
       "matchPackageNames": ["@types/node", "node", "nodejs/node", "node-version"],
-      "allowedVersions": "14"
+      "allowedVersions": "22"
     },
     {
       "matchManagers": ["npm"],
