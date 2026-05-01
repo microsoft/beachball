@@ -6,7 +6,7 @@ import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
 import * as npmModule from '../../packageManager/npm';
 import { packagePublish } from '../../packageManager/packagePublish';
 import type { PackageInfo } from '../../types/PackageInfo';
-import { npm, NpmResult } from '../../packageManager/npm';
+import type { npm, NpmResult } from '../../packageManager/npm';
 import { writeJson } from '../../object/writeJson';
 import { getNpmPackageInfo } from '../../packageManager/getNpmPackageInfo';
 import { env } from '../../env';
@@ -24,9 +24,7 @@ const testPackage = { name: testName, version: testVersion };
 // The rest mock npm calls for efficiency (but could potentially be updated to use real npm if
 // a bug is found that would have been caught that way).
 //
-// TODO: re-enable when jest and verdaccio are updated
-// eslint-disable-next-line no-restricted-properties
-describe.skip('packagePublish', () => {
+describe('packagePublish', () => {
   let npmSpy: jest.SpiedFunction<typeof npm>;
   let tempRoot: string;
   let tempPackageJsonPath: string;
