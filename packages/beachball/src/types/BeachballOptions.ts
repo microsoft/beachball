@@ -23,7 +23,6 @@ export interface CliOptions
     | 'branch'
     | 'bump'
     | 'bumpDeps'
-    | 'canaryName'
     | 'changehint'
     | 'changeDir'
     | 'commit'
@@ -115,7 +114,6 @@ export interface RepoOptions {
    * @default true
    */
   bumpDeps: boolean;
-  canaryName?: string;
   /** Options for customizing change file prompt. */
   changeFilePrompt?: ChangeFilePromptOptions;
   /**
@@ -213,7 +211,10 @@ export interface RepoOptions {
    * In tests which don't use the filesystem, this may be an empty string or fake path.
    */
   path: string;
-  /** Prerelease prefix for packages that are specified to receive a prerelease bump */
+  /**
+   * Suffix used by the `prerelease` command for prerelease versions, e.g. `"beta"` -> `1.2.3-beta.0`.
+   * @default 'prerelease'
+   */
   prereleasePrefix?: string | null;
   /**
    * This is for prerelease. Set it to "0" for zero-based or "1" for one-based.

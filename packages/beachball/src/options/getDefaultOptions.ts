@@ -12,7 +12,6 @@ export function getDefaultOptions(): BeachballOptions {
     branch: 'origin/master',
     bump: true,
     bumpDeps: true,
-    canaryName: undefined,
     changehint: 'Run "beachball change" to create a change file',
     changeDir: 'change',
     command: 'change',

@@ -1,5 +1,4 @@
 import type prompts from 'prompts';
-import semver from 'semver';
 import type { ChangeType } from '../types/ChangeInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { DefaultPrompt } from '../types/ChangeFilePrompt';
@@ -41,7 +40,6 @@ function getChangeTypePrompt(params: {
   options: Pick<BeachballOptions, 'type' | 'disallowedChangeTypes'>;
 }): (prompts.PromptObject & Required<Pick<prompts.PromptObject, 'choices'>>) | undefined {
   const { pkg, packageInfos, packageGroups, options } = params;
-  const packageInfo = packageInfos[pkg];
 
   const disallowedChangeTypes = getDisallowedChangeTypes(pkg, packageInfos, packageGroups, options) || [];
 
@@ -50,9 +48,7 @@ function getChangeTypePrompt(params: {
     return;
   }
 
-  const showPrereleaseOption = !!semver.prerelease(packageInfo.version);
   const changeTypeChoices: prompts.Choice[] = [
-    ...(showPrereleaseOption ? [{ value: 'prerelease', title: ' [1mPrerelease[22m - bump prerelease version' }] : []),
     { value: 'patch', title: ' [1mPatch[22m      - bug fixes; no API changes.' },
     { value: 'minor', title: ' [1mMinor[22m      - small feature; backwards compatible API changes.' },
     {

@@ -328,106 +328,25 @@ describe('bumpInMemory', () => {
     expect(packageInfos['pkg-3']).toEqual({ ...originalPackageInfos['pkg-3'], version: '1.0.1' });
   });
 
-  it('bumps to prerelease using prefix, and uses prerelease version for dependents', () => {
+  it('strips prerelease component from current version before bumping', () => {
+    // assumption E: `bump`/`publish` no longer support producing prerelease versions.
+    // If a package is currently on a prerelease (e.g. after `beachball prerelease` ran),
+    // running `bump` with a change file should produce the corresponding release version,
+    // not another prerelease. This is the "prerelease -> release promotion" behavior.
     const { bumpInfo } = gatherBumpInfoWrapper({
       packageFolders: {
-        'pkg-1': {},
-        'pkg-2': { dependencies: { 'pkg-1': '1.0.0' } },
-        'pkg-3': { peerDependencies: { 'pkg-2': '1.0.0' } },
+        'pkg-1': { version: '1.0.0-beta.0' },
+        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0-beta.0' } },
       },
-      repoOptions: {
-        bumpDeps: true,
-        prereleasePrefix: 'beta',
-      },
-      changes: [{ packageName: 'pkg-1', type: 'prerelease' }],
+      repoOptions: { bumpDeps: true },
+      changes: [{ packageName: 'pkg-1', type: 'patch' }],
     });
 
     const { packageInfos, calculatedChangeTypes } = bumpInfo;
-    // dependents are calculated as patch but later changed to prerelease
-    expect(calculatedChangeTypes).toEqual({ 'pkg-1': 'prerelease', 'pkg-2': 'patch', 'pkg-3': 'patch' });
-
-    const newVersion = '1.0.1-beta.0';
-    expect(packageInfos['pkg-1'].version).toBe(newVersion);
-    expect(packageInfos['pkg-2'].version).toBe(newVersion);
-    expect(packageInfos['pkg-3'].version).toBe(newVersion);
-
-    expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(newVersion);
-    expect(packageInfos['pkg-3'].peerDependencies!['pkg-2']).toBe(newVersion);
-  });
-
-  it('bumps to prerelease and uses the specified identifier base', () => {
-    const { bumpInfo } = gatherBumpInfoWrapper({
-      packageFolders: {
-        'pkg-1': {},
-        'pkg-2': { dependencies: { 'pkg-1': '1.0.0' } },
-      },
-      repoOptions: {
-        bumpDeps: true,
-        prereleasePrefix: 'beta',
-        identifierBase: '1',
-      },
-      changes: [{ packageName: 'pkg-1', type: 'prerelease' }],
-    });
-
-    const { packageInfos, calculatedChangeTypes } = bumpInfo;
-    // dependents are calculated as patch but later changed to prerelease
-    expect(calculatedChangeTypes).toEqual({ 'pkg-1': 'prerelease', 'pkg-2': 'patch' });
-
-    const newVersion = '1.0.1-beta.1';
-    expect(packageInfos['pkg-1'].version).toBe(newVersion);
-    expect(packageInfos['pkg-2'].version).toBe(newVersion);
-    expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(newVersion);
-  });
-
-  it('bumps to prerelease with no identifier base', () => {
-    const { bumpInfo } = gatherBumpInfoWrapper({
-      packageFolders: {
-        'pkg-1': {},
-        'pkg-2': { dependencies: { 'pkg-1': '1.0.0' } },
-      },
-      repoOptions: {
-        bumpDeps: true,
-        prereleasePrefix: 'beta',
-        identifierBase: false,
-      },
-      changes: [{ packageName: 'pkg-1', type: 'prerelease' }],
-    });
-
-    const { packageInfos, calculatedChangeTypes } = bumpInfo;
-    // dependents are calculated as patch but later changed to prerelease
-    expect(calculatedChangeTypes).toEqual({ 'pkg-1': 'prerelease', 'pkg-2': 'patch' });
-
-    const newVersion = '1.0.1-beta';
-    expect(packageInfos['pkg-1'].version).toBe(newVersion);
-    expect(packageInfos['pkg-2'].version).toBe(newVersion);
-    expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(newVersion);
-  });
-
-  it('bumps all packages and increments prefixed versions in dependents', () => {
-    const { bumpInfo } = gatherBumpInfoWrapper({
-      packageFolders: {
-        'pkg-1': { version: '1.0.1-beta.0' },
-        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
-        'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
-      },
-      repoOptions: {
-        bumpDeps: true,
-        prereleasePrefix: 'beta',
-      },
-      changes: [{ packageName: 'pkg-1', type: 'prerelease', dependentChangeType: 'prerelease' }],
-    });
-    const { packageInfos, calculatedChangeTypes } = bumpInfo;
-
-    expect(calculatedChangeTypes).toEqual({ 'pkg-1': 'prerelease', 'pkg-2': 'prerelease', 'pkg-3': 'prerelease' });
-
-    const pkg1NewVersion = '1.0.1-beta.1';
-    const othersNewVersion = '1.0.1-beta.0';
-    expect(packageInfos['pkg-1'].version).toBe(pkg1NewVersion);
-    expect(packageInfos['pkg-2'].version).toBe(othersNewVersion);
-    expect(packageInfos['pkg-3'].version).toBe(othersNewVersion);
-
-    expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(pkg1NewVersion);
-    expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(othersNewVersion);
+    expect(calculatedChangeTypes).toEqual({ 'pkg-1': 'patch', 'pkg-2': 'patch' });
+    expect(packageInfos['pkg-1'].version).toBe('1.0.1');
+    expect(packageInfos['pkg-2'].version).toBe('1.0.1');
+    expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe('1.0.1');
   });
 
   it('does not modify dependency ranges of packages that are not bumped', () => {

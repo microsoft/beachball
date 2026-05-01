@@ -21,7 +21,6 @@ const repoOptionKeys: Record<string, true> = {
   branch: true,
   bump: true,
   bumpDeps: true,
-  canaryName: true,
   changeFilePrompt: true,
   changehint: true,
   changeDir: true,

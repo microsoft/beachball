@@ -38,6 +38,12 @@ Packages with a major version of 0 are considered unstable per the semver spec. 
 
 Some repos or packages may restrict which change types are allowed using the [`disallowedChangeTypes`](../overview/configuration#options) config option. For example, `major` bumps are often disallowed to ensure coordination of major release efforts. Any disallowed options will be omitted from the interactive prompt, and a change file or `--type` argument that uses a disallowed type will cause an error.
 
+## Prereleases
+
+To publish a prerelease version (such as a canary, beta, or per-PR build), use the [`beachball prerelease`](../cli/prerelease) command. There is no `prerelease` change type — instead, choose one of `patch`, `minor`, `major`, or `none` based on the impact of your changes, and let `beachball prerelease` handle the prerelease versioning.
+
+> **Note:** Older Beachball versions accepted `premajor`, `preminor`, `prepatch`, and `prerelease` as change types. These have been removed; existing change files using `premajor`/`preminor`/`prepatch` are auto-migrated to `major`/`minor`/`patch` (with a deprecation warning), and change files using `prerelease` will produce an error so they can be recreated with the appropriate type.
+
 ## Tips for reviewers
 
 Change files show up as part of the PR diff, making it easy to verify the change type during code review. Common things to watch for:

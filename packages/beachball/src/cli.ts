@@ -1,6 +1,6 @@
 import { findGitRoot } from 'workspace-tools';
 import { bump } from './commands/bump';
-import { canary } from './commands/canary';
+import { prerelease } from './commands/prerelease';
 import { change } from './commands/change';
 import { configGet } from './commands/configGet';
 import { configList } from './commands/configList';
@@ -61,9 +61,9 @@ import { getPackageGroups } from './monorepo/getPackageGroups';
       break;
     }
 
-    case 'canary': {
+    case 'prerelease': {
       const { context } = validate(parsedOptions, { checkDependencies: true });
-      await canary(options, context);
+      await prerelease(options, context);
       break;
     }
 

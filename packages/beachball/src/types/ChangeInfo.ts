@@ -1,4 +1,10 @@
-export type ChangeType = 'prerelease' | 'prepatch' | 'patch' | 'preminor' | 'minor' | 'premajor' | 'major' | 'none';
+export type ChangeType = 'patch' | 'minor' | 'major' | 'none';
+
+/**
+ * Legacy change types that have been removed (mapped to their replacements at read time).
+ * `prerelease` is no longer accepted. `pre*` types are coerced to their stripped equivalents.
+ */
+export type LegacyChangeType = 'prerelease' | 'prepatch' | 'preminor' | 'premajor';
 
 /**
  * Info saved in each change file.

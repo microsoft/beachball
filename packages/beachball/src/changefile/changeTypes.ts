@@ -4,16 +4,17 @@ import type { ChangeSet, ChangeType } from '../types/ChangeInfo';
 /**
  * List of all change types from least to most significant.
  */
-export const SortedChangeTypes = [
-  'none',
-  'prerelease',
-  'prepatch',
-  'patch',
-  'preminor',
-  'minor',
-  'premajor',
-  'major',
-] as const satisfies readonly ChangeType[];
+export const SortedChangeTypes = ['none', 'patch', 'minor', 'major'] as const satisfies readonly ChangeType[];
+
+/**
+ * Legacy change types from older Beachball versions, in priority order matching their replacements.
+ * Used to migrate old change files at read time.
+ */
+export const LegacyChangeTypeMap = {
+  prepatch: 'patch',
+  preminor: 'minor',
+  premajor: 'major',
+} as const satisfies Record<string, ChangeType>;
 
 /** `'none'` change type (smallest weight) */
 export const MinChangeType: ChangeType = 'none';

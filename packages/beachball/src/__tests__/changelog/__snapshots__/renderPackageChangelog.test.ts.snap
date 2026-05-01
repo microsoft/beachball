@@ -29,29 +29,13 @@ Thu, 22 Aug 2019 21:20:40 GMT
 
 - major change (user1@example.com)
 
-### Major changes (pre-release)
-
-- premajor change (user1@example.com)
-
 ### Minor changes
 
 - minor change (user1@example.com)
 
-### Minor changes (pre-release)
-
-- preminor change (user1@example.com)
-
 ### Patches
 
-- patch change (user1@example.com)
-
-### Patches (pre-release)
-
-- prepatch change (user1@example.com)
-
-### Changes
-
-- prerelease change (user1@example.com)"
+- patch change (user1@example.com)"
 `;
 
 exports[`changelog renderers - renderPackageChangelog uses custom renderChangeTypeHeader 1`] = `

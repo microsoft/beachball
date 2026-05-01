@@ -53,7 +53,6 @@ describe('configList', () => {
         branch: "origin/foo"
         bump: true
         bumpDeps: true
-        canaryName: undefined
         changeDir: "change"
         changehint: "Run \\"beachball change\\" to create a change file"
         changelog:

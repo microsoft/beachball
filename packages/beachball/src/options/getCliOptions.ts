@@ -45,7 +45,6 @@ const stringOptions = [
   'access',
   'authType',
   'branch',
-  'canaryName',
   'changehint',
   'changeDir',
   'configPath',
@@ -178,8 +177,34 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
         : getDefaultRemoteBranch({ branch: branchArg, verbose: args.verbose as boolean | undefined, cwd });
   }
 
-  if (cliOptions.command === 'canary') {
-    cliOptions.tag = cliOptions.canaryName || 'canary';
+  if (cliOptions.command === 'prerelease') {
+    cliOptions.tag = cliOptions.prereleasePrefix || 'prerelease';
+  }
+
+  // Migrate legacy `--type` and `--dependent-change-type` values from older Beachball versions.
+  // (Same migration is applied to change files in `readChangeFiles.ts`.)
+  for (const optName of ['type', 'dependentChangeType'] as const) {
+    const optValue = cliOptions[optName] as string | undefined | null;
+    if (optValue === 'prerelease') {
+      throw new Error(
+        `--${optName === 'type' ? 'type' : 'dependent-change-type'} "prerelease" is no longer supported. ` +
+          `Use "patch", "minor", "major", or "none" instead. To publish a prerelease version, use "beachball prerelease".`
+      );
+    }
+    const legacyMap: Record<string, 'patch' | 'minor' | 'major'> = {
+      prepatch: 'patch',
+      preminor: 'minor',
+      premajor: 'major',
+    };
+    if (optValue && legacyMap[optValue]) {
+      const replacement = legacyMap[optValue];
+      console.warn(
+        `--${
+          optName === 'type' ? 'type' : 'dependent-change-type'
+        } "${optValue}" is deprecated; using "${replacement}" instead.`
+      );
+      cliOptions[optName] = replacement;
+    }
   }
 
   for (const key of Object.keys(cliOptions) as (keyof CliOptions)[]) {

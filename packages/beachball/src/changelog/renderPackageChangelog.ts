@@ -5,16 +5,12 @@ import { SortedChangeTypes } from '../changefile/changeTypes';
 
 const groupNames: { [k in ChangeType]: string } = {
   major: 'Major changes',
-  premajor: 'Major changes (pre-release)',
   minor: 'Minor changes',
-  preminor: 'Minor changes (pre-release)',
   patch: 'Patches',
-  prepatch: 'Patches (pre-release)',
-  prerelease: 'Changes',
   none: '', // not used
 };
 
-// Skip 'none' changes, then order from major down to prerelease
+// Skip 'none' changes, then order from major down to patch
 const changeTypeOrder = SortedChangeTypes.slice(1).reverse();
 
 export const defaultRenderers: Required<ChangelogRenderers> = {

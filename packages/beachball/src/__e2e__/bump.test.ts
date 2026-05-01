@@ -405,41 +405,30 @@ describe('bump command', () => {
     expect(changelogJson3).toBeNull();
   });
 
-  // Prerelease scenarios are covered in more detail in bumpInMemory.test.ts
-  it('bumps to prerelease and uses prerelease version for dependents', async () => {
+  // The previous prerelease-via-bump scenario was removed when prerelease publishing was moved
+  // to the dedicated `beachball prerelease` command. The prerelease -> release promotion behavior
+  // (where bumping a package currently on a prerelease version produces the next release) is
+  // covered by bumpInMemory.test.ts and bumpPackageInfoVersion.test.ts.
+  it('promotes a prerelease version to a release version when bumping', async () => {
     const monorepo: RepoFixture['folders'] = {
       packages: {
-        'pkg-1': { version: '1.0.0' },
-        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
-        'pkg-3': { version: '1.0.0', devDependencies: { 'pkg-2': '1.0.0' } },
-        'pkg-4': { version: '1.0.0', peerDependencies: { 'pkg-3': '1.0.0' } },
-        'pkg-5': { version: '1.0.0', optionalDependencies: { 'pkg-4': '1.0.0' } },
+        'pkg-1': { version: '1.0.0-beta.0' },
+        'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0-beta.0' } },
       },
     };
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
-      bumpDeps: true,
-      prereleasePrefix: 'beta',
-    });
-    generateChangeFiles([{ packageName: 'pkg-1', type: 'prerelease', dependentChangeType: 'prerelease' }], options);
+    const { options, parsedOptions } = getOptions({ bumpDeps: true });
+    generateChangeFiles([{ packageName: 'pkg-1', type: 'patch' }], options);
     repo.push();
 
     await bumpWrapper(parsedOptions);
 
     const packageInfos = getPackageInfos(parsedOptions);
-
-    const newVersion = '1.0.1-beta.0';
-    expect(packageInfos['pkg-1'].version).toBe(newVersion);
-    expect(packageInfos['pkg-2'].version).toBe(newVersion);
-    expect(packageInfos['pkg-3'].version).toBe(newVersion);
-    expect(packageInfos['pkg-4'].version).toBe(newVersion);
-
-    expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(newVersion);
-    expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(newVersion);
-    expect(packageInfos['pkg-4'].peerDependencies!['pkg-3']).toBe(newVersion);
-    expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(newVersion);
+    expect(packageInfos['pkg-1'].version).toBe('1.0.1');
+    expect(packageInfos['pkg-2'].version).toBe('1.0.1');
+    expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe('1.0.1');
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(0);

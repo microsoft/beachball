@@ -88,23 +88,6 @@ describe('getQuestionsForPackage', () => {
     expect(choices).toEqual(['patch', 'minor', 'none']);
   });
 
-  it('allows prerelease change for package with prerelease version', () => {
-    const questions = getQuestionsWrapper({
-      packageInfo: { version: '1.0.0-beta.1' },
-    });
-    const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value as ChangeType);
-    expect(choices).toEqual(['prerelease', 'patch', 'minor', 'none', 'major']);
-  });
-
-  // this is a bit weird as well, but documenting current behavior
-  it('excludes prerelease if disallowed', () => {
-    const questions = getQuestionsWrapper({
-      packageInfo: { version: '1.0.0-beta.1', beachball: { disallowedChangeTypes: ['prerelease'] } },
-    });
-    const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value as ChangeType);
-    expect(choices).toEqual(['patch', 'minor', 'none', 'major']);
-  });
-
   it('excludes the change type question when options.type is specified', () => {
     const questions = getQuestionsWrapper({
       options: { type: 'patch', message: '' },
@@ -121,11 +104,10 @@ describe('getQuestionsForPackage', () => {
     expect(questions![0].name).toBe('comment');
   });
 
-  it('excludes the change type question when prerelease is implicitly the only valid option', () => {
+  it('excludes the change type question when only "none" is the valid option', () => {
     const questions = getQuestionsWrapper({
       packageInfo: {
-        version: '1.0.0-beta.1',
-        beachball: { disallowedChangeTypes: ['major', 'minor', 'patch', 'none'] },
+        beachball: { disallowedChangeTypes: ['major', 'minor', 'patch'] },
       },
     });
     expect(questions).toHaveLength(1);

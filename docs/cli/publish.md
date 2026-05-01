@@ -19,7 +19,6 @@ Publishing automates all the bumping and synchronizing of package versions in th
 | `--git-tags`, `--no-git-tags` | | `true` (`--git-tags`) | whether to create git tags for published package versions |
 | `--keep-change-files` | | | don't delete the change files from disk after bumping |
 | `--message` | `-m` | `'applying package updates'` | custom commit message |
-| `--prerelease-prefix` | | | prerelease prefix (e.g. `beta`) for packages that will receive a prerelease bump |
 | `--publish`, `--no-publish` | | `true` (`--publish`) | whether to publish to the npm registry |
 | `--push`, `--no-push` | | `true` (`--push`) | whether to commit changes and push them back to the git remote |
 | `--registry` | `-r` | `'https://registry.npmjs.org'` | npm registry for publishing |
