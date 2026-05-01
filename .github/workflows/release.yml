@@ -56,7 +56,8 @@ jobs:
 
       - run: yarn test --verbose
 
-      - name: Publish package
+      # TODO (release): switch back to regular release
+      - name: Publish package (canary)
         run: |
           git config user.email "kchau@microsoft.com"
           git config user.name "Ken Chau"
@@ -68,6 +69,6 @@ jobs:
           # Add a token to the remote URL for auth during release
           git remote set-url origin "https://$REPO_PAT@github.com/$GITHUB_REPOSITORY"
 
-          yarn release
+          yarn release:canary
         env:
           REPO_PAT: ${{ secrets.REPO_PAT }}

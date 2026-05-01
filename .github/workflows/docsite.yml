@@ -24,7 +24,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      # Prereleases from main are disabled until the canary/prerelease flow is fixed
+      # TODO (release): release from main
       - name: Verify v2 branch
         run: |
           if [[ "${GITHUB_REF}" != "refs/heads/v2" ]]; then
