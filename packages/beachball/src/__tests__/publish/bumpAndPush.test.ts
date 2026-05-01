@@ -58,8 +58,8 @@ describe('bumpAndPush', () => {
   /** Create a mock workspace-tools git() result */
   function makeGitResult(opts: { success: boolean; output?: string }): GitProcessOutput {
     return {
-      stderr: opts.success ? '' : opts.output ?? '',
-      stdout: opts.success ? opts.output ?? '' : '',
+      stderr: opts.success ? '' : (opts.output ?? ''),
+      stdout: opts.success ? (opts.output ?? '') : '',
       success: opts.success,
       status: opts.success ? 0 : 1,
     } as GitProcessOutput;

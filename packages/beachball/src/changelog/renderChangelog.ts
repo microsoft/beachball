@@ -2,8 +2,10 @@ import { renderPackageChangelog, defaultRenderers } from './renderPackageChangel
 import type { ChangelogOptions, PackageChangelogRenderInfo } from '../types/ChangelogOptions';
 import type { PackageChangelog } from '../types/ChangeLog';
 
-export interface MarkdownChangelogRenderOptions
-  extends Omit<PackageChangelogRenderInfo, 'renderers' | 'defaultRenderers'> {
+export interface MarkdownChangelogRenderOptions extends Omit<
+  PackageChangelogRenderInfo,
+  'renderers' | 'defaultRenderers'
+> {
   previousContent: string;
   changelogOptions: ChangelogOptions;
 }

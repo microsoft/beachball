@@ -15,6 +15,7 @@ docs/.vuepress/.temp/
 docs/.yarn
 /CHANGELOG.*
 change/
+coverage/
 dist/
 lib/
 LICENSE
