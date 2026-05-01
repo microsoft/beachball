@@ -6,14 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Beachball is a CLI tool for automating semantic version bumping, changelog generation, and npm publishing in monorepos and single-package repos.
 
+## Branches
+
+- `v2`: the current stable release branch from `beachball@latest` and the doc site are published.
+- `main`: contains development work for the next major release of beachball, version 3. Breaking changes are allowed if necessary.
+
 ## Monorepo structure
 
 - `packages/beachball`: `beachball` package
 - `scripts`: repo-internal scripts (`@microsoft/beachball-scripts`)
 
 ## Commands
-
-Beachball currently uses Node 14. Before running tests, you may need to activate `nvm`: on Mac or Linux, `source ~/.nvm/nvm.sh && nvm use`.
 
 ### Top-level
 
@@ -124,7 +127,7 @@ Test helpers in `src/__fixtures__/` provide mock factories for repos, logs, pack
 
 ## Documentation site
 
-The doc site uses Vuepress and is located under `/docs`. It uses a separate yarn installation with Node 22 + Yarn 4 to get rid of very outdated deps while keeping beachball v2 on Node 14.
+The doc site uses Vuepress and is located under `/docs`. It uses a separate yarn installation to keep the docs dependencies separate.
 
 ### Editing and validating docs
 

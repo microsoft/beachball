@@ -4,11 +4,8 @@ name: Release
 on:
   workflow_dispatch:
 
-# Use newer node and npm for trusted publishing support. Can't use node 22 yet because of test issues.
-# (`npm login` hangs with the current verdaccio version; this is fixed in latest verdaccio, but it's
-# not compatible with old node)
 env:
-  nodeVersion: 20
+  nodeVersion: 24
   npmVersion: 11
 
 concurrency:
@@ -50,7 +47,7 @@ jobs:
       - name: Install npm@${{ env.npmVersion }}
         run: npm install --global npm@${{ env.npmVersion }}
 
-      - run: yarn --frozen-lockfile
+      - run: yarn --immutable
 
       - run: yarn build --verbose
 

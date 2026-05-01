@@ -2,8 +2,8 @@
   "compilerOptions": {
     "noEmit": true,
     "strict": true,
-    "lib": ["es2022", "dom"],
-    "module": "es2022",
+    "lib": ["es2024", "dom"],
+    "module": "preserve", // handled by vite
     "moduleResolution": "bundler",
     "types": ["node"]
   },

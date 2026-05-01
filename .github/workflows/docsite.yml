@@ -32,11 +32,11 @@ jobs:
             exit 1
           fi
 
-      # The docs have a separate installation using Node 22 due to needing newer dependencies
+      # The docs have a separate installation
       - name: Install Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
-          node-version-file: docs/.nvmrc
+          node-version-file: .nvmrc
 
       - run: yarn --immutable
         working-directory: ./docs

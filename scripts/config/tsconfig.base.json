@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    // compatible with node 14
-    "target": "ES2020",
+    // compatible with node 22
+    "target": "ES2024",
     "module": "commonjs",
     "moduleResolution": "node",
     "declaration": true,
@@ -11,10 +11,8 @@
     "noUnusedLocals": true,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
-    "allowJs": true,
-    "checkJs": true,
     "skipLibCheck": true,
-    "lib": ["ES2020"],
+    "lib": ["ES2024"],
     "types": ["node"]
   }
 }

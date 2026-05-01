@@ -1,7 +1,6 @@
 {
   "name": "@beachball/docs",
   "version": "0.0.0",
-  "description": "Separate package with separate build to get rid of very outdated deps while keeping beachball v2 on Node 14",
   "private": true,
   "type": "module",
   "scripts": {
@@ -29,7 +28,6 @@
     }
   },
   "engines": {
-    "node": ">=22",
-    "yarn": "^4"
+    "node": ">=22.18.0"
   }
 }

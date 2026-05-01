@@ -84,10 +84,10 @@ export function initMockLogs(options: MockLogsOptions = {}): MockLogs {
 
       if (opts.root || opts.replacePaths) {
         const replacePaths = { ...opts.replacePaths, ...(opts.root && { [opts.root]: '<root>' }) };
-        // Normalize slashes first to ensure they're the same, then emulate replaceAll
+        // Normalize slashes first to ensure they're the same, then replace each path
         lines = lines.replace(/\\/g, '/');
         for (const [key, value] of Object.entries(replacePaths)) {
-          lines = lines.split(key.replace(/\\/g, '/')).join(value);
+          lines = lines.replaceAll(key.replace(/\\/g, '/'), value);
         }
       }
 

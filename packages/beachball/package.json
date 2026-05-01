@@ -10,11 +10,9 @@
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "bin": {
-    "beachball": "./bin/beachball.js"
-  },
+  "bin": "./bin/beachball.js",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=22.18.0"
   },
   "files": [
     "bin",
@@ -23,16 +21,16 @@
   ],
   "scripts": {
     "beachball": "node ./lib/cli.js",
-    "build": "tsc",
-    "depcheck": "depcheck .",
-    "lint": "eslint --color --max-warnings=0 src",
-    "start": "tsc -w --preserveWatchOutput",
-    "test": "jest",
+    "build": "yarn run -T tsc",
+    "depcheck": "yarn run -T depcheck .",
+    "lint": "yarn run -T eslint --color --max-warnings=0 src",
+    "start": "yarn run -T tsc -w --preserveWatchOutput",
+    "test": "yarn run -T jest",
     "test:all": "yarn test:unit && yarn test:func && yarn test:e2e",
-    "test:e2e": "jest --selectProjects e2e",
-    "test:func": "jest --selectProjects functional",
-    "test:unit": "jest --selectProjects unit",
-    "test:watch": "jest --watch",
+    "test:e2e": "yarn run -T jest --selectProjects e2e",
+    "test:func": "yarn run -T jest --selectProjects functional",
+    "test:unit": "yarn run -T jest --selectProjects unit",
+    "test:watch": "yarn run -T jest --watch",
     "update-snapshots": "yarn test:unit -u && yarn test:func -u && yarn test:e2e -u"
   },
   "dependencies": {
