@@ -1,6 +1,6 @@
 {
   "name": "beachball",
-  "version": "2.65.3",
+  "version": "3.0.0-alpha.0",
   "description": "The Sunniest Semantic Version Bumper",
   "repository": {
     "type": "git",

@@ -4,9 +4,12 @@ const config = {
   access: 'public',
   branch: 'main',
   commit: false,
-  disallowedChangeTypes: ['major'],
   groupChanges: true,
   ignorePatterns: ['.*ignore', '.eslintrc.js', 'jest.*.js', 'src/__*/**'],
+  // TODO (release): change back to major
+  disallowedChangeTypes: ['prerelease'],
+  // TODO (release): remove
+  canaryName: 'alpha',
 };
 
 module.exports = config;

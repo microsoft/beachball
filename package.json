@@ -33,7 +33,7 @@
     "lint:versions": "yarn syncpack:check",
     "lint:marketplace": "node scripts/lintMarketplace.js",
     "postinstall": "patch-package",
-    "release": "yarn beachball publish -y",
+    "release:canary": "yarn beachball canary -y",
     "release:docs": "echo \"Run this from the docs folder instead\" && exit 1",
     "syncpack:check": "syncpack list-mismatches",
     "syncpack:update": "syncpack fix-mismatches",

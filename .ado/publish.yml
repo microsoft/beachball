@@ -109,9 +109,12 @@ extends:
                 displayName: Test
 
               # TODO: figure out if this should bump or not (currently does bump)
+              # and currently uses a prerelease prefix of 'test' to avoid interfering with real versions
+              # TODO (release): change back to:
+              # yarn beachball publish --prerelease-prefix test -y --no-push --pack-to-path '$(Build.StagingDirectory)/pkg'
               - script: |
-                  yarn beachball publish -y --no-push --pack-to-path '$(Build.StagingDirectory)/pkg'
-                displayName: 'Pack packages'
+                  yarn release:canary --no-push --pack-to-path '$(Build.StagingDirectory)/pkg'
+                displayName: 'Pack packages (canary)'
 
               - script: |
                   ls -R '$(Build.StagingDirectory)/pkg'
