@@ -154,6 +154,35 @@ describe('gitFetch', () => {
     );
   });
 
+  it('fetches multiple branches in a single invocation', () => {
+    // Multiple refspecs let one --deepen / --unshallow cover both refs in a single network
+    // round-trip — used by ensureSharedHistory when it has to deepen both HEAD and the target.
+    gitOverride = noOpSuccess;
+    const otherBranch = 'feature';
+    const res = gitFetch({
+      cwd: repo.rootPath,
+      remote: defaultRemoteName,
+      branch: [defaultBranchName, otherBranch],
+      deepen: 5,
+      verbose: true,
+    });
+
+    const refspec1 = `+refs/heads/${defaultBranchName}:refs/remotes/${defaultRemoteName}/${defaultBranchName}`;
+    const refspec2 = `+refs/heads/${otherBranch}:refs/remotes/${defaultRemoteName}/${otherBranch}`;
+    expect(gitSpy).toHaveBeenCalledWith(
+      ['fetch', '--deepen=5', defaultRemoteName, refspec1, refspec2],
+      expect.anything()
+    );
+    expect(res).toMatchObject({ success: true });
+    expect(logs.mocks.log).toHaveBeenCalledWith(
+      `Fetching branches "${defaultBranchName}", "${otherBranch}" from remote "${defaultRemoteName}" ` +
+        `(${refspec1} ${refspec2}) (with --deepen=5)...`
+    );
+    expect(logs.mocks.log).toHaveBeenCalledWith(
+      `Fetching branches "${defaultBranchName}", "${otherBranch}" from remote "${defaultRemoteName}" completed successfully`
+    );
+  });
+
   it('preserves the tracking ref after a real fetch', () => {
     // With a bare branch name like 'master' as the refspec source, git can fail to resolve it
     // on the remote and treat it as absent, pruning refs/remotes/origin/master (exit code 0).
