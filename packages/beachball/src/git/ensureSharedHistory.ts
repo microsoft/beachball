@@ -110,11 +110,19 @@ function deepenHistory(params: {
 
   console.log(`This is a shallow clone. Deepening to check for changes...`);
 
+  // git fetch --deepen only deepens the histories of the refs explicitly listed in the
+  // refspec args, not other local refs. To find the common ancestor, both the target branch
+  // and HEAD (when on a different branch) need enough history to reach it. We pass both
+  // refspecs to a single git invocation so one --deepen / --unshallow covers both refs in one
+  // network round-trip.
+  const headBranch = getHeadBranch(cwd);
+  const branchesToFetch = headBranch && headBranch !== remoteBranch ? [remoteBranch, headBranch] : [remoteBranch];
+
   // Iteratively deepen the history
   const maxAttempts = 3;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     console.log(`Deepening by ${depth} more commits (attempt ${attempt}/${maxAttempts})...`);
-    const result = gitFetch({ remote, branch: remoteBranch, deepen: depth, cwd, verbose });
+    const result = gitFetch({ remote, branch: branchesToFetch, deepen: depth, cwd, verbose });
     if (!result.success) {
       throw new BeachballError(`Failed to fetch more history (see above for details)`);
     }
@@ -130,7 +138,7 @@ function deepenHistory(params: {
 
   // No common commit was found and the repo is still shallow, so fully unshallow it
   console.log(`Still didn't find a common commit after deepening by ${depth * maxAttempts}. Unshallowing...`);
-  const result = gitFetch({ remote, branch: remoteBranch, unshallow: true, cwd, verbose });
+  const result = gitFetch({ remote, branch: branchesToFetch, unshallow: true, cwd, verbose });
   if (!result.success) {
     throw new BeachballError(`Failed to unshallow repo (see above for details)`);
   }
@@ -185,6 +193,13 @@ ${bulletedList(mitigationSteps)}
 
 function hasBranchRef(branch: string, cwd: string): boolean {
   return git(['rev-parse', '--verify', branch], { cwd }).success;
+}
+
+/** Returns the current branch name, or undefined if in detached HEAD state */
+function getHeadBranch(cwd: string): string | undefined {
+  const result = git(['rev-parse', '--abbrev-ref', 'HEAD'], { cwd });
+  const branch = result.stdout.trim();
+  return result.success && branch !== 'HEAD' ? branch : undefined;
 }
 
 function isShallowRepository(cwd: string): boolean {

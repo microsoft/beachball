@@ -9,10 +9,13 @@ type GitFetchParams = {
    */
   remote: string;
   /**
-   * Branch to fetch. It will be converted to a full refspec for fetching:
-   * e.g. `branch: 'main', remote: 'origin'` will be converted to `+main:refs/remotes/origin/main`.
+   * Branch(es) to fetch. Each will be converted to a full refspec for fetching:
+   * e.g. `branch: 'main', remote: 'origin'` will be converted to `+refs/heads/main:refs/remotes/origin/main`.
+   * Pass an array to fetch multiple branches in a single git invocation, which lets a single
+   * `--deepen` or `--unshallow` apply to all of them (saves network round-trips when both HEAD
+   * and the target branch need deepening).
    */
-  branch: string;
+  branch: string | string[];
   /** Set depth to this number of commits (mutually exclusive with `deepen` and `unshallow`) */
   depth?: number;
   /** Deepen a shallow clone by this number of commits (mutually exclusive with `depth` and `unshallow`) */
@@ -31,7 +34,8 @@ type GitFetchParams = {
  * the remote branch is tracked or not in the local repository.
  */
 export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMessage?: string } {
-  const { remote, branch, depth, deepen, unshallow, cwd, verbose } = params;
+  const { remote, depth, deepen, unshallow, cwd, verbose } = params;
+  const branches = Array.isArray(params.branch) ? params.branch : [params.branch];
   const { shouldLog } = getGitEnv(verbose);
 
   if ([depth, deepen, unshallow].filter(v => v !== undefined).length > 1) {
@@ -40,7 +44,7 @@ export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMess
 
   const extraArgs = depth ? [`--depth=${depth}`] : deepen ? [`--deepen=${deepen}`] : unshallow ? ['--unshallow'] : [];
 
-  // Be specific with the ref being fetched, so we don't have to worry about tracking configs.
+  // Be specific with each ref being fetched, so we don't have to worry about tracking configs.
   // In git fetch <remote> +<src>:<dst>...
   // - The + means allow non-fast-forward updates (in case the remote was force pushed).
   // - <src> refs/heads/${branch} is resolved against the remote's advertised refs. The fully
@@ -48,12 +52,16 @@ export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMess
   //   causing git to treat the ref as absent and delete the local tracking ref.
   // - <dst> refs/remotes/${remote}/${branch} is resolved locally and only moves the tracking ref
   //   for the remote branch, not the local refs/heads/${branch} or its tracking config.
-  const resolvedBranch = remote ? `+refs/heads/${branch}:refs/remotes/${remote}/${branch}` : undefined;
+  const resolvedRefspecs = remote ? branches.map(b => `+refs/heads/${b}:refs/remotes/${remote}/${b}`) : [];
 
-  const shortDescription = `Fetching ${resolvedBranch ? `branch "${branch}" from remote "${remote}"` : 'all remotes'}`;
+  const branchLabel =
+    branches.length > 1 ? `branches ${branches.map(b => `"${b}"`).join(', ')}` : `branch "${branches[0]}"`;
+  const shortDescription = `Fetching ${
+    resolvedRefspecs.length ? `${branchLabel} from remote "${remote}"` : 'all remotes'
+  }`;
 
   let description = shortDescription;
-  resolvedBranch && (description += ` (${resolvedBranch})`);
+  resolvedRefspecs.length && (description += ` (${resolvedRefspecs.join(' ')})`);
   extraArgs.length && (description += ` (with ${extraArgs.join(' ')})`);
   shouldLog && console.log(description + '...');
 
@@ -62,7 +70,7 @@ export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMess
       'fetch',
       ...extraArgs,
       // If the remote is unknown, don't specify the branch (fetching a branch without a remote is invalid)
-      ...(resolvedBranch ? [remote, resolvedBranch] : []),
+      ...(resolvedRefspecs.length ? [remote, ...resolvedRefspecs] : []),
     ],
     { cwd, stdio: shouldLog === 'live' ? 'inherit' : 'pipe' }
   );
