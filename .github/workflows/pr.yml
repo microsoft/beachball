@@ -80,10 +80,10 @@ jobs:
         id: test
 
       # See packageManager.ts comments...
-      - name: test publish (Windows bash)
+      - name: run specific tests in Windows bash
         if: matrix.os == 'windows-latest'
         shell: bash
-        run: yarn workspace beachball test packagePublish
+        run: yarn workspace beachball test packagePublish npmAuthEnvPassthrough
 
       # For a few specific test failures, it can be helpful to see npm debug logs
       # (usually not relevant, but there's not a good way to distinguish by specific failure)
