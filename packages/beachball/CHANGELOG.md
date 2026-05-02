@@ -1,8 +1,17 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Wed, 29 Apr 2026 22:36:53 GMT and should not be manually modified. -->
+<!-- This log was last generated on Sat, 02 May 2026 01:47:50 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.65.4
+
+Sat, 02 May 2026 01:47:50 GMT
+
+### Patches
+
+- Fix npm auth environment variables with yarn 4 (elcraig@microsoft.com)
+- Fully fix iterative deepening for latest git (elcraig@microsoft.com)
 
 ## 2.65.3
 

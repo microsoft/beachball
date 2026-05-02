@@ -2,6 +2,27 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Sat, 02 May 2026 01:47:50 GMT",
+      "version": "2.65.4",
+      "tag": "beachball_v2.65.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "725bbb928615e6b79fa0294ebe0cebbb85a55581",
+            "comment": "Fix npm auth environment variables with yarn 4"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "725bbb928615e6b79fa0294ebe0cebbb85a55581",
+            "comment": "Fully fix iterative deepening for latest git"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 29 Apr 2026 22:36:53 GMT",
       "version": "2.65.3",
       "tag": "beachball_v2.65.3",
