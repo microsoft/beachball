@@ -249,7 +249,7 @@ describe('publishToRegistry', () => {
       const fooPath = expect.stringMatching(/packages[\\/]foo$/);
       // BUG: this should use the old version 1.0.0, not the new one
       // https://github.com/microsoft/beachball/issues/1116
-      expect(prebump).toHaveBeenCalledWith(fooPath, 'foo', '1.0.1', expect.anything());
+      expect(prebump as typeof postbump).toHaveBeenCalledWith(fooPath, 'foo', '1.0.1', expect.anything());
       // this is correct
       expect(postbump).toHaveBeenCalledWith(fooPath, 'foo', '1.0.1', expect.anything());
     });

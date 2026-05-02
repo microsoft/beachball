@@ -14,6 +14,7 @@ import {
   _mockNpmPublish,
   _mockNpmShow,
   type MockNpmResult,
+  type MockNpmCommand,
 } from './mockNpm';
 import * as readJsonModule from '../object/readJson';
 
@@ -505,7 +506,7 @@ describe('mockNpm', () => {
     const fakePublishResult = 'hi';
 
     it('respects mocked command override', async () => {
-      const mockPublish = jest.fn(() => Promise.resolve(fakePublishResult as unknown as MockNpmResult));
+      const mockPublish = jest.fn<MockNpmCommand>(() => Promise.resolve(fakePublishResult as unknown as MockNpmResult));
       npmMock.setCommandOverride('publish', mockPublish);
       const result = await npm(['publish', 'foo'], { cwd: '' });
       expect(result).toEqual(fakePublishResult);
@@ -513,7 +514,7 @@ describe('mockNpm', () => {
     });
 
     it("respects extra mocked command that's not normally supported", async () => {
-      const mockFoo = jest.fn(() => Promise.resolve('hi' as unknown as MockNpmResult));
+      const mockFoo = jest.fn<MockNpmCommand>(() => Promise.resolve('hi' as unknown as MockNpmResult));
       npmMock.setCommandOverride('foo', mockFoo);
       const result = await npm(['foo'], { cwd: '' });
       expect(result).toEqual('hi');

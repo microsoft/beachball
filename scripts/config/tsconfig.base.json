@@ -5,9 +5,6 @@
     // Use CJS output for now
     "module": "node20",
     "moduleResolution": "node16",
-    // For some reason, jest is failing with this error which isn't even an option specified...
-    // TS5107: Option 'moduleResolution=node10' is deprecated and will stop functioning in TypeScript 7.0
-    "ignoreDeprecations": "6.0",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,

@@ -24,11 +24,8 @@ const testPackage = { name: testName, version: testVersion };
 // The rest mock npm calls for efficiency (but could potentially be updated to use real npm if
 // a bug is found that would have been caught that way).
 //
-// TODO: re-enable when jest and verdaccio are updated
-// eslint-disable-next-line no-restricted-properties
-describe.skip('packagePublish', () => {
+describe('packagePublish', () => {
   let npmSpy: jest.SpiedFunction<typeof npm>;
-  let npmVersion: string;
   let tempRoot: string;
   let tempPackageJsonPath: string;
   /**
@@ -91,8 +88,6 @@ describe.skip('packagePublish', () => {
       tempRoot = tmpdir();
       tempPackageJsonPath = path.join(tempRoot, 'package.json');
       writeJson(tempPackageJsonPath, testPackage);
-
-      npmVersion = (await npmModule.npm(['--version'], { cwd: tempRoot })).stdout.trim() || '';
     });
 
     beforeEach(async () => {
@@ -188,12 +183,6 @@ describe.skip('packagePublish', () => {
     });
 
     it('handles auth error and does not retry', async () => {
-      // TODO: remove condition once node version is upgraded (this test doesn't work with npm 6 because
-      // that version seems to allow truly anonymous publishing with verdaccio)
-      if (npmVersion.startsWith('6.')) {
-        console.warn('Skipping auth error test on npm 6');
-        return;
-      }
       await registry.logout();
 
       const testPackageInfo = getTestPackageInfo();

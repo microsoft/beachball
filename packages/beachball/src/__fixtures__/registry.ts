@@ -270,7 +270,7 @@ export class Registry {
       configBuilder.addLogger({
         type: 'file',
         level: 'trace',
-        format: 'file',
+        format: 'pretty',
         path: path.join(process.cwd(), `verdaccio-${Date.now()}.log`),
       });
     }
