@@ -251,7 +251,8 @@ describe('ensureSharedHistory', () => {
     expect(logs.mocks.warn).not.toHaveBeenCalled();
     expect(logs.mocks.error).not.toHaveBeenCalled();
 
-    const deepen = `fetch --deepen=2 origin ${defaultRefSpec}`;
+    const testRefSpec = `+refs/heads/${testBranch}:refs/remotes/origin/${testBranch}`;
+    const deepen = `fetch --deepen=2 origin ${defaultRefSpec} ${testRefSpec}`;
     expect(filteredGitCalls()).toEqual([`fetch --depth=2 origin ${defaultRefSpec}`, deepen, deepen, deepen]);
   });
 
@@ -283,7 +284,8 @@ describe('ensureSharedHistory', () => {
     expect(logs.mocks.warn).not.toHaveBeenCalled();
     expect(logs.mocks.error).not.toHaveBeenCalled();
 
-    const deepen = `fetch --deepen=2 origin ${defaultRefSpec}`;
+    const testRefSpec = `+refs/heads/${testBranch}:refs/remotes/origin/${testBranch}`;
+    const deepen = `fetch --deepen=2 origin ${defaultRefSpec} ${testRefSpec}`;
     expect(filteredGitCalls()).toEqual([`fetch --depth=2 origin ${defaultRefSpec}`, deepen, deepen, deepen]);
   });
 
@@ -301,13 +303,14 @@ describe('ensureSharedHistory', () => {
     });
 
     expect(logs.getMockLines('all')).toMatch("Still didn't find a common commit after deepening by 3. Unshallowing...");
-    const deepen = `fetch --deepen=1 origin ${defaultRefSpec}`;
+    const testRefSpec = `+refs/heads/${testBranch}:refs/remotes/origin/${testBranch}`;
+    const deepen = `fetch --deepen=1 origin ${defaultRefSpec} ${testRefSpec}`;
     expect(filteredGitCalls()).toEqual([
       `fetch --depth=1 origin ${defaultRefSpec}`,
       deepen,
       deepen,
       deepen,
-      `fetch --unshallow origin ${defaultRefSpec}`,
+      `fetch --unshallow origin ${defaultRefSpec} ${testRefSpec}`,
     ]);
   });
 
