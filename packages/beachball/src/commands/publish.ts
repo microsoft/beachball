@@ -8,6 +8,7 @@ import { publishToRegistry } from '../publish/publishToRegistry';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PublishBumpInfo } from '../types/BumpInfo';
 import type { CommandContext } from '../types/CommandContext';
+import { checkNpmAuthEnvPassthrough } from '../packageManager/npmAuthEnvPassthrough';
 
 /**
  * Potentially bump, publish, and push package changes depending on options.
@@ -66,6 +67,11 @@ export async function publish(options: BeachballOptions, context?: CommandContex
       return;
     }
     console.log();
+  }
+
+  if (options.token) {
+    // Verify that passing the npm auth token via env vars works (see function comment...)
+    await checkNpmAuthEnvPassthrough(options);
   }
 
   // checkout publish branch
