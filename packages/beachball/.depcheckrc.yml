@@ -1,6 +1,8 @@
 ignore-path: ../../.gitignore
 
 ignores:
+  # used in scripts
+  - cross-env
   # used in __fixtures__/registry.ts by partial name
   - verdaccio-auth-memory
   - verdaccio-memory
