@@ -5,6 +5,7 @@ import { change } from './commands/change';
 import { configGet } from './commands/configGet';
 import { configList } from './commands/configList';
 import { init } from './commands/init';
+import { migrate } from './commands/migrate';
 import { publish } from './commands/publish';
 import { sync } from './commands/sync';
 
@@ -69,6 +70,11 @@ import { getPackageGroups } from './monorepo/getPackageGroups';
 
     case 'init': {
       await init(options);
+      break;
+    }
+
+    case 'migrate': {
+      migrate(options);
       break;
     }
 
