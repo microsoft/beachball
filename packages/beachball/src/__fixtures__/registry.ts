@@ -2,7 +2,6 @@ import { ConfigBuilder } from '@verdaccio/config';
 import { fork, type ChildProcess } from 'child_process';
 import execa from 'execa';
 import fs from 'fs';
-import getPort from 'get-port';
 import os from 'os';
 import path from 'path';
 import { removeTempDir, tmpdir } from './tmpdir';
@@ -58,7 +57,14 @@ export class Registry {
     // If this is consistently having problems, probably it's best to increase portRange.
     const maxPort = this.startPort + portRange;
     console.log(`Looking for free ports in range ${this.startPort} to ${maxPort}`);
-    const tryPort = await getPort({ port: getPort.makeRange(this.startPort, maxPort) });
+
+    const port: number[] = [];
+    for (let i = this.startPort; i <= maxPort; i++) {
+      port.push(i);
+    }
+
+    const getPort = await import('get-port');
+    const tryPort = await getPort.default({ port });
 
     // Try to start the server. If it fails, it's likely a config error or something where a retry
     // won't be helpful, so just let it throw.
