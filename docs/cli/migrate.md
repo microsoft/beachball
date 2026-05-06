@@ -18,6 +18,6 @@ If your config is already compatible with v3, you will see:
 No config updates are needed for v3.
 ```
 
-Otherwise, the command will list specific updates that need to be made.
+Otherwise, the command will list specific config updates that are needed. The command doesn't attempt to make updates directly due to the variety of locations and file types where the config can be specified.
 
 See the [v3 migration guide](../overview/v3-migration) for more information.
