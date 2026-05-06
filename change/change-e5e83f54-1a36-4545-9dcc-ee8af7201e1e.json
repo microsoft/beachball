@@ -1,0 +1,11 @@
+{
+  "changes": [
+    {
+      "type": "minor",
+      "comment": "Fix handling of group `disallowedChangeTypes` in dependent bumps (`updateRelatedChangeType`). This should be non-breaking but has a chance of unexpected side effects.",
+      "packageName": "beachball",
+      "email": "elcraig@microsoft.com",
+      "dependentChangeType": "patch"
+    }
+  ]
+}
