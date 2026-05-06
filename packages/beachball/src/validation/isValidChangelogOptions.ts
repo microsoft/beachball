@@ -7,9 +7,7 @@ export function isValidChangelogOptions(options: ChangelogOptions): boolean {
     return true;
   }
 
-  const badGroups = options.groups.filter(
-    group => !group.changelogPath || !('masterPackageName' in group || 'mainPackageName' in group) || !group.include
-  );
+  const badGroups = options.groups.filter(group => !group.changelogPath || !group.mainPackageName || !group.include);
 
   if (badGroups.length) {
     console.error(
