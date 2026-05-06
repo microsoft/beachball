@@ -19,7 +19,12 @@ export default defineUserConfig({
       {
         text: 'Overview',
         collapsible: false,
-        children: ['/overview/getting-started', '/overview/installation', '/overview/configuration'],
+        children: [
+          '/overview/getting-started',
+          '/overview/installation',
+          '/overview/configuration',
+          '/overview/v3-migration',
+        ],
       },
       {
         text: 'Concepts',
@@ -43,6 +48,7 @@ export default defineUserConfig({
           '/cli/change',
           '/cli/check',
           '/cli/config',
+          '/cli/migrate',
           '/cli/publish',
           '/cli/sync',
         ],
