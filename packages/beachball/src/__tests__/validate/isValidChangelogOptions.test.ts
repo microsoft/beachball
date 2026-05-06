@@ -12,7 +12,7 @@ describe('isValidChangelogOptions', () => {
     expect(logs.mocks.error).not.toHaveBeenCalled();
   });
 
-  it('returns true when groups are valid with masterPackageName', () => {
+  it('returns false for groups with masterPackageName', () => {
     const options = {
       groups: [
         {
@@ -21,9 +21,9 @@ describe('isValidChangelogOptions', () => {
           include: ['pkg1', 'pkg2'],
         },
       ],
-    } as ChangelogOptions;
-    expect(isValidChangelogOptions(options)).toBe(true);
-    expect(logs.mocks.error).not.toHaveBeenCalled();
+    } as unknown as ChangelogOptions;
+    expect(isValidChangelogOptions(options)).toBe(false);
+    expect(logs.mocks.error).toHaveBeenCalled();
   });
 
   it('returns true when groups are valid with mainPackageName', () => {

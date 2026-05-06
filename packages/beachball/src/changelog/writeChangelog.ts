@@ -72,8 +72,7 @@ async function writeGroupedChangelog(
   // Validate groups and initialize groupedChangelogs
   for (const group of changelogGroups) {
     const { changelogAbsDir } = group;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @ms-cloudpack/no-deprecated
-    const mainPackageName = group.mainPackageName ?? group.masterPackageName!;
+    const mainPackageName = group.mainPackageName;
     const mainPackage = packageInfos[mainPackageName];
     if (!mainPackage) {
       console.warn(`main package ${mainPackageName} does not exist.`);
@@ -92,7 +91,7 @@ async function writeGroupedChangelog(
     const relativePath = path.relative(options.path, packagePath);
 
     for (const group of changelogGroups) {
-      const isInGroup = isPathIncluded(relativePath, group.include, group.exclude);
+      const isInGroup = isPathIncluded({ relativePath, include: group.include, exclude: group.exclude });
       if (isInGroup) {
         groupedChangelogs[group.changelogAbsDir].changelogs.push(changelogs[pkg]);
       }

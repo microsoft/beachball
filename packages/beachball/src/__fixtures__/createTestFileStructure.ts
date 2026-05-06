@@ -27,10 +27,12 @@ export function createTestFileStructure(files: Record<string, string | object>):
  *
  * multi-project isn't supported since those scenarios tend to rely on git.
  */
-export function createTestFileStructureType(type: 'single' | 'monorepo'): string {
-  const beachballOptions: Partial<RepoOptions> = {
-    groups: [{ disallowedChangeTypes: null, name: 'grouped', include: 'group*' }],
-  };
+export function createTestFileStructureType(
+  type: 'single' | 'monorepo',
+  beachballOptions?: Partial<RepoOptions>
+): string {
+  beachballOptions ??=
+    type === 'single' ? {} : { groups: [{ disallowedChangeTypes: null, name: 'grouped', include: 'group*' }] };
 
   switch (type) {
     case 'single':
@@ -39,6 +41,7 @@ export function createTestFileStructureType(type: 'single' | 'monorepo'): string
           name: 'foo',
           version: '1.0.0',
           dependencies: { bar: '1.0.0', baz: '1.0.0' },
+          beachball: beachballOptions,
         },
       });
     case 'monorepo':

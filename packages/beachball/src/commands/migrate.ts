@@ -23,6 +23,46 @@ export function migrate(parsedOptions: ParsedOptions): void {
     options,
   });
 
+  const groupUpdates: BulletList = [];
+  for (const group of options.groups ?? []) {
+    const exclude = typeof group.exclude === 'string' ? [group.exclude] : group.exclude || [];
+    const negatedExclude = exclude.filter(p => p.startsWith('!'));
+    if (negatedExclude.length) {
+      groupUpdates.push(`Group "${group.name}"`, [
+        'Remove the leading "!" from these `exclude` patterns:',
+        negatedExclude,
+      ]);
+    }
+  }
+  if (groupUpdates.length) {
+    updates.push('`groups`', groupUpdates);
+  }
+
+  const changelogGroupUpdates: BulletList = [];
+  for (const group of options.changelog?.groups ?? []) {
+    const thisGroupUpdates: BulletList = [];
+    let mainPkg = group.mainPackageName as string | undefined;
+    if (!mainPkg) {
+      mainPkg = (group as { masterPackageName?: string }).masterPackageName;
+      if (mainPkg) {
+        thisGroupUpdates.push('Rename `masterPackageName` to `mainPackageName`');
+      }
+    }
+
+    const exclude = typeof group.exclude === 'string' ? [group.exclude] : group.exclude || [];
+    const negatedExclude = exclude.filter(p => p.startsWith('!'));
+    if (negatedExclude.length) {
+      thisGroupUpdates.push(`Remove the leading "!" from these \`exclude\` patterns:`, negatedExclude);
+    }
+
+    if (thisGroupUpdates.length) {
+      changelogGroupUpdates.push(`Group for package "${mainPkg ?? '(missing)'}"`, thisGroupUpdates);
+    }
+  }
+  if (changelogGroupUpdates.length) {
+    updates.push('`changelog.groups`', changelogGroupUpdates);
+  }
+
   if ((repoOptions as { new?: boolean }).new !== undefined) {
     updates.push('The `new` option has been removed. Please remove it from your config.');
   }
