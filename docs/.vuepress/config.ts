@@ -19,7 +19,12 @@ export default defineUserConfig({
       {
         text: 'Overview',
         collapsible: false,
-        children: ['/overview/getting-started', '/overview/installation', '/overview/configuration', '/overview/v3-migration'],
+        children: [
+          '/overview/getting-started',
+          '/overview/installation',
+          '/overview/configuration',
+          '/overview/v3-migration',
+        ],
       },
       {
         text: 'Concepts',
