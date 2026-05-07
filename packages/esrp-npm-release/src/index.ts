@@ -25,8 +25,9 @@ const env = {
   esrp: {
     // static config
     productName: getEnv('ESRP_PRODUCT_NAME'),
+    npmTag: getEnv('ESRP_NPM_TAG', 'latest'),
     createdBy: getEnv('ESRP_CREATED_BY', defaultUser),
-    driEmail: getEnv('ESRP_DRI_EMAILS', defaultUser).split(','),
+    driEmail: [getEnv('ESRP_DRI_EMAIL', defaultUser)],
     owners: getEnv('ESRP_OWNERS', defaultUser).split(','),
     approvers: getEnv('ESRP_APPROVERS', defaultUser).split(','),
     clientId: getEnv('ESRP_CLIENT_ID'),
@@ -179,6 +180,7 @@ async function main() {
           description: `${env.esrp.productName} packages - ${layerNum}`,
         },
         releaseTitle: env.esrp.productName,
+        npmTag: env.esrp.npmTag,
       },
     });
 

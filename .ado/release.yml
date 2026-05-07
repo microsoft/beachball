@@ -24,6 +24,10 @@ resources:
       name: 1ESPipelineTemplates/OfficePipelineTemplates
       ref: refs/tags/release
 
+variables:
+  - name: nodeVersion
+    value: 24
+
 extends:
   template: v1/Office.Official.PipelineTemplate.yml@OfficePipelineTemplates
   parameters:
@@ -45,27 +49,60 @@ extends:
                 - input: pipelineArtifact
                   pipeline: beachball_publish
                   artifactName: published-packages
-                  targetPath: $(Pipeline.Workspace)\published-packages
+                  targetPath: $(Agent.BuildDirectory)\published-packages
+                - input: pipelineArtifact
+                  pipeline: beachball_publish
+                  artifactName: release-api-tool
+                  targetPath: $(Agent.BuildDirectory)\release-api-tool
+              outputs:
+                - output: pipelineArtifact
+                  targetPath: $(Agent.BuildDirectory)/artifacts_processed_$(System.StageAttempt)/artifacts_processed_$(System.StageAttempt).txt
+                  artifactName: artifacts_processed_$(System.StageAttempt)
+                  displayName: Publish the artifacts processed for this stage attempt
+                  sbomEnabled: false
+                  isProduction: false
+                  condition: always()
 
             # Use ESRP Release to securely publish to npmjs.com.
             steps:
-              - script: dir /S $(Pipeline.Workspace)\published-packages
+              - task: UseNode@1
+                displayName: Install Node.js ${{ variables.nodeVersion }}
+                retryCountOnTaskFailure: 1
+                inputs:
+                  version: '${{ variables.nodeVersion }}.x'
+                  checkLatest: false
+
+              - script: dir /S $(Agent.BuildDirectory)\published-packages
                 displayName: Show directory contents
 
-              - task: 'SFP.release-tasks.custom-build-release-task.EsrpRelease@9'
-                displayName: 'ESRP Release to npmjs.com'
-                inputs:
-                  connectedservicename: 'ESRP-JSHost3'
-                  usemanagedidentity: false
-                  keyvaultname: 'OGX-JSHost-KV'
-                  authcertname: 'OGX-JSHost-Auth4'
-                  signcertname: 'OGX-JSHost-Sign3'
-                  clientid: '0a35e01f-eadf-420a-a2bf-def002ba898d'
-                  domaintenantid: 'cdc5aeea-15c5-4db6-b079-fcadd2505dc2'
-                  contenttype: npm
-                  folderlocation: $(Pipeline.Workspace)\published-packages
-                  owners: 'elcraig@microsoft.com'
-                  approvers: 'dannyvv@microsoft.com'
-                  # npm tag
-                  # potentially can also be inferred from the publishConfig field within the package.json file.
-                  productstate: 'test'
+              # TODO get secrets from key vault
+              # - task: 'SFP.release-tasks.custom-build-release-task.EsrpRelease@9'
+              #   displayName: 'ESRP Release to npmjs.com'
+              #   inputs:
+              #     connectedservicename: 'ESRP-JSHost3'
+              #     usemanagedidentity: false
+              #     keyvaultname: 'OGX-JSHost-KV'
+              #     authcertname: 'OGX-JSHost-Auth4'
+              #     signcertname: 'OGX-JSHost-Sign3'
+              #     clientid: '0a35e01f-eadf-420a-a2bf-def002ba898d'
+              #     domaintenantid: 'cdc5aeea-15c5-4db6-b079-fcadd2505dc2'
+
+              - script: node $(Agent.BuildDirectory)\release-api-tool\index.js
+                displayName: Publish to npmjs.com using ESRP Release API wrapper
+                retryCountOnTaskFailure: 3
+                env:
+                  PACKED_PACKAGES_PATH: $(Agent.BuildDirectory)\published-packages
+                  ESRP_PRODUCT_NAME: beachball
+                  ESRP_NPM_TAG: test
+                  ESRP_USER: elcraig@microsoft.com
+                  ESRP_APPROVERS: dannyvv@microsoft.com
+                  ESRP_CLIENT_ID: 0a35e01f-eadf-420a-a2bf-def002ba898d
+                  # TODO make sure this is the right tenant
+                  ESRP_TENANT_ID: cdc5aeea-15c5-4db6-b079-fcadd2505dc2
+                  ESRP_AUTH_CERT: '$(esrpAuthCert)'
+                  ESRP_REQUEST_SIGNING_CERT: '$(esrpRequestSigningCert)'
+                  AZURE_STORAGE_ACCOUNT_NAME: ''
+                  AZURE_CONTAINER_NAME: ''
+                  AZURE_CLIENT_ID: '$(azureClientId)'
+                  AZURE_TENANT_ID: '$(azureTenantId)'
+                  AZURE_ID_TOKEN: '$(azureIdToken)'
