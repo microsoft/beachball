@@ -15,50 +15,6 @@ import { createLog } from './utils/createLog.ts';
 
 await processArtifact(workerData as ESRPReleaseWorkerData);
 
-async function withLease<T>(client: BlockBlobClient, fn: () => Promise<T>) {
-  const lease = client.getBlobLeaseClient();
-
-  for (let i = 0; i < 360; i++) {
-    // Try to get lease for 30 minutes
-    try {
-      await client.uploadData(new ArrayBuffer()); // blob needs to exist for lease to be acquired
-      await lease.acquireLease(60);
-
-      try {
-        const abortController = new AbortController();
-        const refresher = new Promise<void>((resolve, reject) => {
-          abortController.signal.onabort = () => {
-            clearInterval(interval);
-            resolve();
-          };
-
-          const interval = setInterval(() => {
-            lease.renewLease().catch(err => {
-              clearInterval(interval);
-              reject(new Error('Failed to renew lease ' + err));
-            });
-          }, 30_000);
-        });
-
-        const result = await Promise.race([fn(), refresher]);
-        abortController.abort();
-        return result;
-      } finally {
-        await lease.releaseLease();
-      }
-    } catch (err) {
-      const maybeStatus = (err as { statusCode?: number }).statusCode;
-      if (maybeStatus !== 409 && maybeStatus !== 412) {
-        throw err;
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 5000));
-    }
-  }
-
-  throw new Error('Failed to acquire lease on blob after 30 minutes');
-}
-
 async function processArtifact(params: ESRPReleaseWorkerData) {
   const { artifactName, artifactFilePath, storageAccountName, version } = params;
 
@@ -109,8 +65,51 @@ async function processArtifact(params: ESRPReleaseWorkerData) {
       stagingSasToken,
     });
 
+    // This will either succeed or throw
     await releaseService.createRelease({ version, filePath: artifactFilePath, friendlyFileName });
   });
+}
 
-  log(`Successfully released lease for: ${friendlyFileName}`);
+async function withLease<T>(client: BlockBlobClient, fn: () => Promise<T>) {
+  const lease = client.getBlobLeaseClient();
+
+  for (let i = 0; i < 360; i++) {
+    // Try to get lease for 30 minutes
+    try {
+      await client.uploadData(new ArrayBuffer()); // blob needs to exist for lease to be acquired
+      await lease.acquireLease(60);
+
+      try {
+        const abortController = new AbortController();
+        const refresher = new Promise<void>((resolve, reject) => {
+          abortController.signal.onabort = () => {
+            clearInterval(interval);
+            resolve();
+          };
+
+          const interval = setInterval(() => {
+            lease.renewLease().catch(err => {
+              clearInterval(interval);
+              reject(new Error('Failed to renew lease ' + err));
+            });
+          }, 30_000);
+        });
+
+        const result = await Promise.race([fn(), refresher]);
+        abortController.abort();
+        return result;
+      } finally {
+        await lease.releaseLease();
+      }
+    } catch (err) {
+      const maybeStatus = (err as { statusCode?: number }).statusCode;
+      if (maybeStatus !== 409 && maybeStatus !== 412) {
+        throw err;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+  }
+
+  throw new Error('Failed to acquire lease on blob after 30 minutes');
 }

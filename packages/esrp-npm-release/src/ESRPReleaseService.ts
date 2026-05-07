@@ -75,7 +75,7 @@ export class ESRPReleaseService {
    * Create a release, poll for its completion, and return the download URL.
    * Returns null or throws if not successful.
    */
-  async createRelease(params: CreateReleaseParams): Promise<ReleaseResult | null> {
+  async createRelease(params: CreateReleaseParams): Promise<ReleaseResult> {
     const { version, filePath, friendlyFileName } = params;
     const correlationId = crypto.randomUUID();
     const blobClient = this.#containerClient.getBlockBlobClient(correlationId);
@@ -143,12 +143,13 @@ export class ESRPReleaseService {
           downloadUrl: releaseDetails.files[0].fileDownloadDetails[0].downloadUrl,
         };
       }
+      // TODO: other release types
+      return {} as ReleaseResult;
     } finally {
       this.#log(`Deleting blob ${blobClient.url}`);
       await blobClient.delete();
       this.#log('Deleted blob successfully');
     }
-    return null;
   }
 
   async #submitRelease(
