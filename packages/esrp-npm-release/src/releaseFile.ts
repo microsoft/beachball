@@ -30,12 +30,12 @@ const stagingContainerName = 'staging';
  * 5. Release the lease when done
  */
 export async function releaseFile(params: ReleaseFileParams): Promise<void> {
-  const { log, filePath, storageAccountName, version } = params;
+  const { log, filePath, stagingStorageAccountName, version } = params;
 
   const friendlyFileName = `${version}/${path.basename(filePath)}`;
 
-  const blobServiceClient = new BlobServiceClient(`https://${storageAccountName}.blob.core.windows.net/`, {
-    getToken: () => Promise.resolve(params.storageAuthToken),
+  const blobServiceClient = new BlobServiceClient(`https://${stagingStorageAccountName}.blob.core.windows.net/`, {
+    getToken: () => Promise.resolve(params.stagingAuthToken),
   });
   const leasesContainerClient = blobServiceClient.getContainerClient(leasesContainerName);
   await leasesContainerClient.createIfNotExists();
@@ -62,7 +62,7 @@ export async function releaseFile(params: ReleaseFileParams): Promise<void> {
         expiresOn: oneHourFromNow,
       },
       userDelegationKey,
-      storageAccountName
+      stagingStorageAccountName
     ).toString();
 
     const releaseService = await ESRPReleaseService.create({
@@ -72,7 +72,7 @@ export async function releaseFile(params: ReleaseFileParams): Promise<void> {
       clientId: params.clientId,
       authCertificatePfx: params.authCertificatePfx,
       requestSigningCertificatePfx: params.requestSigningCertificatePfx,
-      containerClient: stagingContainerClient,
+      stagingContainerClient: stagingContainerClient,
       stagingSasToken,
     });
 

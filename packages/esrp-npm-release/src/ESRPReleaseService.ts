@@ -23,7 +23,7 @@ export class ESRPReleaseService {
       requestSigningCertificatePfx,
       tenantId,
       clientId,
-      containerClient,
+      stagingContainerClient,
       stagingSasToken,
       ...thruParams
     } = params;
@@ -43,7 +43,7 @@ export class ESRPReleaseService {
       accessToken: accessToken.token,
       requestSigningCertificates,
       requestSigningKey,
-      containerClient,
+      stagingContainerClient,
       stagingSasToken,
       ...thruParams,
     });
@@ -55,7 +55,7 @@ export class ESRPReleaseService {
   readonly #accessToken: string;
   readonly #requestSigningCertificates: string[];
   readonly #requestSigningKey: string;
-  readonly #containerClient: ContainerClient;
+  readonly #stagingContainerClient: ContainerClient;
   readonly #stagingSasToken: string;
 
   private constructor(params: ESRPReleaseServiceParams) {
@@ -65,7 +65,7 @@ export class ESRPReleaseService {
     this.#accessToken = params.accessToken;
     this.#requestSigningCertificates = params.requestSigningCertificates;
     this.#requestSigningKey = params.requestSigningKey;
-    this.#containerClient = params.containerClient;
+    this.#stagingContainerClient = params.stagingContainerClient;
     this.#stagingSasToken = params.stagingSasToken;
   }
 
@@ -76,7 +76,7 @@ export class ESRPReleaseService {
   async createRelease(params: CreateReleaseParams): Promise<void> {
     const { version, filePath, friendlyFileName } = params;
     const correlationId = randomUUID();
-    const blobClient = this.#containerClient.getBlockBlobClient(correlationId);
+    const blobClient = this.#stagingContainerClient.getBlockBlobClient(correlationId);
 
     this.#log(`Uploading ${filePath} to ${blobClient.url}`);
     await blobClient.uploadFile(filePath);

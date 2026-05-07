@@ -15,9 +15,9 @@ export interface ReleaseFileParams {
   requestSigningCertificatePfx: string;
 
   /** Azure auth token for storage account access */
-  storageAuthToken: AccessToken;
+  stagingAuthToken: AccessToken;
   /** Azure blob storage account name for staging artifact files */
-  storageAccountName: string;
+  stagingStorageAccountName: string;
 
   /** Info for creating the release request */
   releaseRequestParams: CreateNpmReleaseRequestMessageParams;
@@ -31,13 +31,13 @@ export interface CreateESRPReleaseServiceParams extends Pick<
   ReleaseFileParams,
   'log' | 'tenantId' | 'clientId' | 'authCertificatePfx' | 'requestSigningCertificatePfx' | 'releaseRequestParams'
 > {
-  containerClient: ContainerClient;
+  stagingContainerClient: ContainerClient;
   stagingSasToken: string;
 }
 
 export interface ESRPReleaseServiceParams extends Pick<
   CreateESRPReleaseServiceParams,
-  'releaseRequestParams' | 'log' | 'clientId' | 'containerClient' | 'stagingSasToken'
+  'releaseRequestParams' | 'log' | 'clientId' | 'stagingContainerClient' | 'stagingSasToken'
 > {
   accessToken: string;
   requestSigningCertificates: string[];

@@ -9,9 +9,10 @@ trigger: none
 
 resources:
   pipelines:
-    - pipeline: 'beachball_publish'
-      project: 'ISS'
-      source: 'beachball - prepublish'
+    # must match publishPipelineAlias variable
+    - pipeline: prepublish
+      project: ISS
+      source: beachball - prepublish
       trigger:
         branches:
           include:
@@ -25,8 +26,10 @@ resources:
       ref: refs/tags/release
 
 variables:
-  - name: nodeVersion
-    value: 24
+  nodeVersion: 24
+  publishPipelineAlias: prepublish
+  packagesArtifactName: published-packages
+  releaseApiToolArtifactName: release-api-tool
 
 extends:
   template: v1/Office.Official.PipelineTemplate.yml@OfficePipelineTemplates
@@ -40,20 +43,20 @@ extends:
       - stage: main_release
         displayName: Publish packages
         jobs:
-          - job: npmjs_com_job
+          - job: npm_release
             displayName: NPM to npmjs.com
             templateContext:
               type: releaseJob
               isProduction: true
               inputs:
                 - input: pipelineArtifact
-                  pipeline: beachball_publish
-                  artifactName: published-packages
-                  targetPath: $(Agent.BuildDirectory)\published-packages
+                  pipeline: ${{ variables.publishPipelineAlias }}
+                  artifactName: ${{ variables.packagesArtifactName }}
+                  targetPath: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
                 - input: pipelineArtifact
-                  pipeline: beachball_publish
-                  artifactName: release-api-tool
-                  targetPath: $(Agent.BuildDirectory)\release-api-tool
+                  pipeline: ${{ variables.publishPipelineAlias }}
+                  artifactName: ${{ variables.releaseApiToolArtifactName }}
+                  targetPath: $(Agent.BuildDirectory)\${{ variables.releaseApiToolArtifactName }}
               outputs:
                 - output: pipelineArtifact
                   targetPath: $(Agent.BuildDirectory)/artifacts_processed_$(System.StageAttempt)/artifacts_processed_$(System.StageAttempt).txt
@@ -72,36 +75,51 @@ extends:
                   version: '${{ variables.nodeVersion }}.x'
                   checkLatest: false
 
-              - script: dir /S $(Agent.BuildDirectory)\published-packages
+              - script: dir /S $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
                 displayName: Show directory contents
 
-              # TODO get secrets from key vault
-              # - task: 'SFP.release-tasks.custom-build-release-task.EsrpRelease@9'
-              #   displayName: 'ESRP Release to npmjs.com'
-              #   inputs:
-              #     connectedservicename: 'ESRP-JSHost3'
-              #     usemanagedidentity: false
-              #     keyvaultname: 'OGX-JSHost-KV'
-              #     authcertname: 'OGX-JSHost-Auth4'
-              #     signcertname: 'OGX-JSHost-Sign3'
-              #     clientid: '0a35e01f-eadf-420a-a2bf-def002ba898d'
-              #     domaintenantid: 'cdc5aeea-15c5-4db6-b079-fcadd2505dc2'
+              # Get credentials that will be used to temporarily upload zips to ogxesrptempstorage
+              # in the OGX azure subscription
+              - task: AzureCLI@2
+                displayName: Get credentials for staging blob storage
+                inputs:
+                  # this is the service connection name
+                  azureSubscription: Office-ogx-esrp-infra-bot
+                  scriptType: pscore
+                  scriptLocation: inlineScript
+                  addSpnToEnvironment: true
+                  inlineScript: |
+                    Write-Host "##vso[task.setvariable variable=STAGING_TENANT_ID]$env:tenantId"
+                    Write-Host "##vso[task.setvariable variable=STAGING_CLIENT_ID]$env:servicePrincipalId"
+                    Write-Host "##vso[task.setvariable variable=STAGING_ID_TOKEN;issecret=true]$env:idToken"
 
-              - script: node $(Agent.BuildDirectory)\release-api-tool\index.js
+              # Fetch ESRP certificates from key vault in Torus
+              - task: AzureKeyVault@2
+                displayName: Get ESRP certificates from Key Vault
+                inputs:
+                  # torus service connection name ("connectedservicename" from EsrpRelease task)
+                  azureSubscription: ESRP-JSHost3
+                  # "keyvaultname" from EsrpRelease task
+                  KeyVaultName: OGX-JSHost-KV
+                  # "authcertname" and "signcertname" from EsrpRelease task
+                  SecretsFilter: OGX-JSHost-Auth4,OGX-JSHost-Sign3
+
+              - script: node $(Agent.BuildDirectory)\${{ variables.releaseApiToolArtifactName }}\index.js
                 displayName: Publish to npmjs.com using ESRP Release API wrapper
                 retryCountOnTaskFailure: 3
                 env:
-                  PACKED_PACKAGES_PATH: $(Agent.BuildDirectory)\published-packages
+                  PACKED_PACKAGES_PATH: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
                   ESRP_PRODUCT_NAME: beachball
                   ESRP_NPM_TAG: test
                   ESRP_USER: elcraig@microsoft.com
                   ESRP_APPROVERS: dannyvv@microsoft.com
-                  ESRP_CLIENT_ID: 0a35e01f-eadf-420a-a2bf-def002ba898d
-                  # TODO make sure this is the right tenant
+                  # torus tenant ID ("domaintenantid" from EsrpRelease task, same as service connection "ESRP-JSHost3")
                   ESRP_TENANT_ID: cdc5aeea-15c5-4db6-b079-fcadd2505dc2
-                  ESRP_AUTH_CERT: '$(esrpAuthCert)'
-                  ESRP_REQUEST_SIGNING_CERT: '$(esrpRequestSigningCert)'
-                  AZURE_STORAGE_ACCOUNT_NAME: ''
-                  AZURE_CLIENT_ID: '$(azureClientId)'
-                  AZURE_TENANT_ID: '$(azureTenantId)'
-                  AZURE_ID_TOKEN: '$(azureIdToken)'
+                  # "clientid" from EsrpRelease task
+                  ESRP_CLIENT_ID: 0a35e01f-eadf-420a-a2bf-def002ba898d
+                  ESRP_AUTH_CERT: $(OGX-JSHost-Auth4)
+                  ESRP_REQUEST_SIGNING_CERT: $(OGX-JSHost-Sign3)
+                  STAGING_STORAGE_ACCOUNT_NAME: ogxesrptempstorage
+                  STAGING_CLIENT_ID: $(STAGING_CLIENT_ID)
+                  STAGING_TENANT_ID: $(STAGING_TENANT_ID)
+                  STAGING_ID_TOKEN: $(STAGING_ID_TOKEN)

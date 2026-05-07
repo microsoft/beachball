@@ -20,7 +20,6 @@ export interface CreateNpmReleaseRequestMessageParams {
   /** your release title */
   releaseTitle: string;
   productInfo: ProductInfo;
-  /** @default 'latest' */
   npmTag?: string;
 }
 
@@ -50,7 +49,8 @@ export function createNpmReleaseRequest(params: CreateNpmReleaseRequestMessagePa
     routingInfo: {
       intent: 'packagedistribution',
       contentType: 'npm',
-      productState: params.npmTag ?? 'latest',
+      // Don't default to "latest" here in case the package specifies the tag in publishConfig
+      ...(params.npmTag && { productState: params.npmTag }),
     },
   };
 }

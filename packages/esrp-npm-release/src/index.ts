@@ -29,30 +29,33 @@ const env = {
   // Path to the directory of packed .tgz files organized into numbered layer subdirectories
   packedPackagesPath: getEnv('PACKED_PACKAGES_PATH'),
   esrp: {
-    // ESRP-onboarded product and identity configuration
+    // Release metadata
     productName: getEnv('ESRP_PRODUCT_NAME'),
-    npmTag: getEnv('ESRP_NPM_TAG', 'latest'),
+    npmTag: getEnv('ESRP_NPM_TAG', '') || undefined,
     createdBy: getEnv('ESRP_CREATED_BY', defaultUser),
     driEmail: [getEnv('ESRP_DRI_EMAIL', defaultUser)],
     owners: getEnv('ESRP_OWNERS', defaultUser).split(','),
     approvers: getEnv('ESRP_APPROVERS', defaultUser).split(','),
-    clientId: getEnv('ESRP_CLIENT_ID'),
+
+    // Production tenant ID used for your ESRP app registration
     tenantId: getEnv('ESRP_TENANT_ID'),
+    // Client ID used for your ESRP app registration in a production tenant
+    clientId: getEnv('ESRP_CLIENT_ID'),
 
     // Certificate secrets (base64-encoded PFX): auth cert authenticates to ESRP AAD,
     // request signing cert signs the JWS token included in each release request
     authCertificatePfx: getEnv('ESRP_AUTH_CERT'),
     requestSigningCertificatePfx: getEnv('ESRP_REQUEST_SIGNING_CERT'),
   },
-  azure: {
-    // Azure Blob Storage is used as a staging area: packages are uploaded here
-    // and the ESRP API downloads them from the blob URL
-    storageAccountName: getEnv('AZURE_STORAGE_ACCOUNT_NAME'),
+  staging: {
+    // Azure Blob Storage is used as a staging area: packages are uploaded to a storage account
+    // in your team's subscription, then ESRP downloads them from the blob URL
+    storageAccountName: getEnv('STAGING_STORAGE_ACCOUNT_NAME'),
 
-    // Secrets: federated identity credentials for storage account access
-    clientId: getEnv('AZURE_CLIENT_ID'),
-    idToken: getEnv('AZURE_ID_TOKEN'),
-    tenantId: getEnv('AZURE_TENANT_ID'),
+    // Secrets: credentials for storage account access
+    clientId: getEnv('STAGING_CLIENT_ID'),
+    idToken: getEnv('STAGING_ID_TOKEN'),
+    tenantId: getEnv('STAGING_TENANT_ID'),
   },
   ado: {
     // Predefined ADO pipeline variables (set automatically by the agent)
@@ -136,11 +139,11 @@ async function main() {
   // In the vscode example, the pipeline acquires this token in a previous step and stores it in
   // PUBLISH_AUTH_TOKENS env, but that appears to only be necessary since multiple steps need the token
   // or there may be retries.
-  const storageAuthToken = await getAadToken({
-    endpoint: `https://${env.azure.storageAccountName}.blob.core.windows.net/`,
-    tenantId: env.azure.tenantId,
-    clientId: env.azure.clientId,
-    auth: { idToken: env.azure.idToken },
+  const stagingAuthToken = await getAadToken({
+    endpoint: `https://${env.staging.storageAccountName}.blob.core.windows.net/`,
+    tenantId: env.staging.tenantId,
+    clientId: env.staging.clientId,
+    auth: { idToken: env.staging.idToken },
   });
 
   const done = new State();
@@ -183,10 +186,10 @@ async function main() {
     await releaseFile({
       log: layerLog,
       filePath: zipPath,
-      storageAuthToken,
+      stagingAuthToken,
       authCertificatePfx: env.esrp.authCertificatePfx,
       requestSigningCertificatePfx: env.esrp.requestSigningCertificatePfx,
-      storageAccountName: env.azure.storageAccountName,
+      stagingStorageAccountName: env.staging.storageAccountName,
       clientId: env.esrp.clientId,
       tenantId: env.esrp.tenantId,
       version: env.ado.buildSourceVersion,

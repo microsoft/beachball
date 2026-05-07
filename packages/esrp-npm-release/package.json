@@ -4,6 +4,7 @@
   "license": "UNLICENSED",
   "description": "ESRP npm release helper",
   "bin": "dist/index.js",
+  "private": true,
   "exports": null,
   "type": "module",
   "engines": {
@@ -18,8 +19,7 @@
     "bundle": "node scripts/bundle.js",
     "depcheck": "yarn run -T depcheck .",
     "lint": "yarn run -T eslint --color --max-warnings=0 src",
-    "start": "node src/index.ts",
-    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest"
+    "start": "node src/index.ts"
   },
   "devDependencies": {
     "@azure/core-auth": "^1.10.1",
