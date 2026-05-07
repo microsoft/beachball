@@ -9,7 +9,7 @@ import { getAadToken } from './utils/getAadToken.ts';
 import { getEnv } from './utils/getEnv.ts';
 import { createNpmReleaseRequest } from './releaseRequests/npmRelease.ts';
 import { createLog } from './utils/createLog.ts';
-import { releaseFile } from './worker.ts';
+import { releaseFile } from './releaseFile.ts';
 
 const packageLayersDir = '/path/to/downloaded-packs-dir';
 const releaseType: ReleaseType = 'npm';

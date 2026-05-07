@@ -336,7 +336,7 @@ async function main() {
           return;
         }
 
-        const worker = new Worker(path.join(import.meta.dirname, 'worker.ts'), {
+        const worker = new Worker(path.join(import.meta.dirname, 'releaseFile.ts'), {
           workerData: {
             logPrefix: artifact.name,
             filePath: artifactFilePath,
