@@ -1,14 +1,14 @@
 import type { ContainerClient } from '@azure/storage-blob';
-import crypto from 'crypto';
+import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { FileHashType, type ReleaseSubmitResponse } from './models/types.ts';
 import { getCertificatesFromPFX, getKeyFromPFX, hashFileStream } from './utils/signing.ts';
 import { getReleaseDetails, getReleaseStatus, submitRelease } from './utils/releaseHttp.ts';
 import { generateJwsToken } from './utils/generateJwsToken.ts';
-import type { GeneratedReleaseRequestMessage } from './releaseRequests/baseRelease.ts';
+import { createNpmReleaseRequest, type CreateNpmReleaseRequestMessageParams } from './models/npmRelease.ts';
 import { esrpApiEndpoint, getAadToken } from './utils/getAadToken.ts';
-import type { CreateESRPReleaseServiceParams, ESRPReleaseServiceParams, ReleaseResult, ReleaseType } from './types.ts';
+import type { CreateESRPReleaseServiceParams, ESRPReleaseServiceParams } from './types.ts';
 
 interface CreateReleaseParams {
   version: string;
@@ -49,8 +49,7 @@ export class ESRPReleaseService {
     });
   }
 
-  readonly #baseReleaseRequest: GeneratedReleaseRequestMessage;
-  readonly #releaseType: ReleaseType;
+  readonly #releaseRequestParams: CreateNpmReleaseRequestMessageParams;
   readonly #log: (...args: unknown[]) => void;
   readonly #clientId: string;
   readonly #accessToken: string;
@@ -60,8 +59,7 @@ export class ESRPReleaseService {
   readonly #stagingSasToken: string;
 
   private constructor(params: ESRPReleaseServiceParams) {
-    this.#baseReleaseRequest = params.baseReleaseRequest;
-    this.#releaseType = params.releaseType;
+    this.#releaseRequestParams = params.releaseRequestParams;
     this.#log = params.log;
     this.#clientId = params.clientId;
     this.#accessToken = params.accessToken;
@@ -72,12 +70,12 @@ export class ESRPReleaseService {
   }
 
   /**
-   * Create a release, poll for its completion, and return the download URL.
-   * Returns null or throws if not successful.
+   * Create a release and poll for its completion.
+   * Throws if not successful.
    */
-  async createRelease(params: CreateReleaseParams): Promise<ReleaseResult> {
+  async createRelease(params: CreateReleaseParams): Promise<void> {
     const { version, filePath, friendlyFileName } = params;
-    const correlationId = crypto.randomUUID();
+    const correlationId = randomUUID();
     const blobClient = this.#containerClient.getBlockBlobClient(correlationId);
 
     this.#log(`Uploading ${filePath} to ${blobClient.url}`);
@@ -133,23 +131,6 @@ export class ESRPReleaseService {
       }
 
       this.#log('Release details:', JSON.stringify(releaseDetails, null, 2));
-
-      if (this.#releaseType === 'staticLink') {
-        if (!releaseDetails.files?.[0]?.fileDownloadDetails?.[0]?.downloadUrl) {
-          throw new Error(`Missing download URL in release details: ${JSON.stringify(releaseDetails)}`);
-        }
-
-        this.#log('Successfully created release:', releaseDetails.files[0].fileDownloadDetails[0].downloadUrl);
-        return {
-          type: 'staticLink',
-          downloadUrl: releaseDetails.files[0].fileDownloadDetails[0].downloadUrl,
-        };
-      }
-      if (this.#releaseType === 'npm') {
-        return { type: 'npm' };
-      }
-      // TODO: other release types
-      return {} as ReleaseResult;
     } finally {
       this.#log(`Deleting blob ${blobClient.url}`);
       await blobClient.delete();
@@ -166,7 +147,7 @@ export class ESRPReleaseService {
     const hash = await hashFileStream('sha256', filePath);
     const blobUrl = `${blobClientUrl}?${this.#stagingSasToken}`;
 
-    const message = structuredClone(this.#baseReleaseRequest);
+    const message = createNpmReleaseRequest(this.#releaseRequestParams);
     message.esrpCorrelationId = correlationId;
     message.customerCorrelationId = correlationId;
     message.productInfo.version = version;

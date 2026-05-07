@@ -7,23 +7,14 @@ import {
   type BlockBlobClient,
 } from '@azure/storage-blob';
 import { clearInterval, setInterval } from 'node:timers';
-import { isMainThread, workerData } from 'node:worker_threads';
 import path from 'path';
 import { ESRPReleaseService } from './ESRPReleaseService.ts';
 import type { ReleaseFileParams } from './types.ts';
-import { createLog } from './utils/createLog.ts';
-
-if (!isMainThread) {
-  // support vs code pattern for now
-  await releaseFile(workerData as ReleaseFileParams);
-}
 
 export async function releaseFile(params: ReleaseFileParams): Promise<void> {
-  const { logPrefix, filePath, storageAccountName, version } = params;
+  const { log, filePath, storageAccountName, version } = params;
 
-  const log = createLog(logPrefix);
-
-  const friendlyFileName = `${params.friendlyFileNamePrefix ?? version}/${path.basename(filePath)}`;
+  const friendlyFileName = `${version}/${path.basename(filePath)}`;
 
   const blobServiceClient = new BlobServiceClient(`https://${storageAccountName}.blob.core.windows.net/`, {
     getToken: () => Promise.resolve(params.publishAuthToken),
@@ -57,8 +48,7 @@ export async function releaseFile(params: ReleaseFileParams): Promise<void> {
     ).toString();
 
     const releaseService = await ESRPReleaseService.create({
-      baseReleaseRequest: params.baseReleaseRequest,
-      releaseType: params.releaseType,
+      releaseRequestParams: params.releaseRequestParams,
       log,
       tenantId: params.tenantId,
       clientId: params.clientId,
