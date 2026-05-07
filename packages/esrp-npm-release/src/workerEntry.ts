@@ -10,28 +10,10 @@ import { clearInterval, setInterval } from 'node:timers';
 import { workerData } from 'node:worker_threads';
 import path from 'path';
 import { ESRPReleaseService } from './ESRPReleaseService.ts';
-import { createStaticLinkReleaseRequest } from './releaseRequests/staticLinkRelease.ts';
-import type { WorkerData } from './types.ts';
+import type { ESRPReleaseWorkerData } from './types.ts';
 import { createLog } from './utils/createLog.ts';
 
-const vscodeEmail = 'example@microsoft.com';
-const vscodeRequestBase = () =>
-  createStaticLinkReleaseRequest({
-    driEmail: [vscodeEmail],
-    createdBy: vscodeEmail,
-    owners: [vscodeEmail],
-    approvers: [vscodeEmail],
-    releaseTitle: 'VS Code',
-    releaseContentType: 'InstallPackage',
-    productInfo: { name: 'VS Code', description: 'VS Code' },
-    accessPermissionsInfo: {
-      mainPublisher: 'VSCode',
-      allDownloadEntities: ['VSCode'],
-    },
-    files: [],
-  });
-
-await processArtifact(workerData as WorkerData);
+await processArtifact(workerData as ESRPReleaseWorkerData);
 
 async function withLease<T>(client: BlockBlobClient, fn: () => Promise<T>) {
   const lease = client.getBlobLeaseClient();
@@ -77,27 +59,12 @@ async function withLease<T>(client: BlockBlobClient, fn: () => Promise<T>) {
   throw new Error('Failed to acquire lease on blob after 30 minutes');
 }
 
-async function processArtifact(
-  // Pick<
-  //   CreateESRPReleaseServiceParams,
-  //   'tenantId' | 'clientId' | 'authCertificatePfx' | 'requestSigningCertificatePfx'
-  // > &
-  params: WorkerData
-) {
+async function processArtifact(params: ESRPReleaseWorkerData) {
   const { artifactName, artifactFilePath, storageAccountName, version } = params;
 
   const log = createLog(artifactName);
 
-  // const match =
-  //   /^vscode_(?<product>[^_]+)_(?<os>[^_]+)(?:_legacy)?_(?<arch>[^_]+)_(?<unprocessedType>[^_]+)$/.exec(
-  //     artifact.name,
-  //   );
-  // if (!match) {
-  //   throw new Error(`Invalid artifact name: ${artifact.name}`);
-  // }
-
-  // vscode which has multiple build "quality" variants (e.g. "insiders") prepends that
-  const friendlyFileName = `${version}/${path.basename(artifactFilePath)}`;
+  const friendlyFileName = `${params.friendlyFileNamePrefix ?? version}/${path.basename(artifactFilePath)}`;
 
   const blobServiceClient = new BlobServiceClient(`https://${storageAccountName}.blob.core.windows.net/`, {
     getToken: () => Promise.resolve(params.publishAuthToken),
@@ -111,7 +78,7 @@ async function processArtifact(
   await withLease(leaseBlobClient, async () => {
     log(`Successfully acquired lease for: ${friendlyFileName}`);
 
-    const stagingContainerClient = blobServiceClient.getContainerClient('staging');
+    const stagingContainerClient = blobServiceClient.getContainerClient(params.containerName);
     await stagingContainerClient.createIfNotExists();
 
     const now = new Date().valueOf();
@@ -121,7 +88,7 @@ async function processArtifact(
     const userDelegationKey = await blobServiceClient.getUserDelegationKey(oneHourAgo, oneHourFromNow);
     const stagingSasToken = generateBlobSASQueryParameters(
       {
-        containerName: 'staging',
+        containerName: params.containerName,
         permissions: ContainerSASPermissions.from({ read: true }),
         startsOn: oneHourAgo,
         expiresOn: oneHourFromNow,
@@ -131,7 +98,8 @@ async function processArtifact(
     ).toString();
 
     const releaseService = await ESRPReleaseService.create({
-      getBaseReleaseRequest: vscodeRequestBase,
+      baseReleaseRequest: params.baseReleaseRequest,
+      releaseType: params.releaseType,
       log,
       tenantId: params.tenantId,
       clientId: params.clientId,

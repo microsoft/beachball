@@ -8,7 +8,7 @@ import { getReleaseDetails, getReleaseStatus, submitRelease } from './utils/rele
 import { generateJwsToken } from './utils/generateJwsToken.ts';
 import type { GeneratedReleaseRequestMessage } from './releaseRequests/baseRelease.ts';
 import { esrpApiEndpoint, getAadToken } from './utils/getAadToken.ts';
-import type { CreateESRPReleaseServiceParams, ESRPReleaseServiceParams } from './types.ts';
+import type { CreateESRPReleaseServiceParams, ESRPReleaseServiceParams, ReleaseResult, ReleaseType } from './types.ts';
 
 interface CreateReleaseParams {
   version: string;
@@ -49,7 +49,8 @@ export class ESRPReleaseService {
     });
   }
 
-  readonly #getBaseReleaseRequest: () => GeneratedReleaseRequestMessage;
+  readonly #baseReleaseRequest: GeneratedReleaseRequestMessage;
+  readonly #releaseType: ReleaseType;
   readonly #log: (...args: unknown[]) => void;
   readonly #clientId: string;
   readonly #accessToken: string;
@@ -59,7 +60,8 @@ export class ESRPReleaseService {
   readonly #stagingSasToken: string;
 
   private constructor(params: ESRPReleaseServiceParams) {
-    this.#getBaseReleaseRequest = params.getBaseReleaseRequest;
+    this.#baseReleaseRequest = params.baseReleaseRequest;
+    this.#releaseType = params.releaseType;
     this.#log = params.log;
     this.#clientId = params.clientId;
     this.#accessToken = params.accessToken;
@@ -71,9 +73,9 @@ export class ESRPReleaseService {
 
   /**
    * Create a release, poll for its completion, and return the download URL.
-   * Returns undefined or throws if not successful.
+   * Returns null or throws if not successful.
    */
-  async createRelease(params: CreateReleaseParams): Promise<string | undefined> {
+  async createRelease(params: CreateReleaseParams): Promise<ReleaseResult | null> {
     const { version, filePath, friendlyFileName } = params;
     const correlationId = crypto.randomUUID();
     const blobClient = this.#containerClient.getBlockBlobClient(correlationId);
@@ -130,24 +132,27 @@ export class ESRPReleaseService {
         throw new Error(`Timed out waiting for release: ${JSON.stringify(releaseDetails)}`);
       }
 
-      if (!releaseDetails.files?.[0]?.fileDownloadDetails?.[0]?.downloadUrl) {
-        throw new Error(`Missing download URL in release details: ${JSON.stringify(releaseDetails)}`);
-      }
+      if (this.#releaseType === 'staticLink') {
+        if (!releaseDetails.files?.[0]?.fileDownloadDetails?.[0]?.downloadUrl) {
+          throw new Error(`Missing download URL in release details: ${JSON.stringify(releaseDetails)}`);
+        }
 
-      this.#log('Successfully created release:', releaseDetails.files[0].fileDownloadDetails[0].downloadUrl);
-      return releaseDetails.files[0].fileDownloadDetails[0].downloadUrl;
+        this.#log('Successfully created release:', releaseDetails.files[0].fileDownloadDetails[0].downloadUrl);
+        return {
+          type: 'staticLink',
+          downloadUrl: releaseDetails.files[0].fileDownloadDetails[0].downloadUrl,
+        };
+      }
     } finally {
       this.#log(`Deleting blob ${blobClient.url}`);
       await blobClient.delete();
       this.#log('Deleted blob successfully');
     }
+    return null;
   }
 
   async #submitRelease(
-    params: CreateReleaseParams & {
-      correlationId: string;
-      blobClientUrl: string;
-    }
+    params: CreateReleaseParams & { correlationId: string; blobClientUrl: string }
   ): Promise<ReleaseSubmitResponse> {
     const { version, filePath, friendlyFileName, correlationId, blobClientUrl } = params;
 
@@ -155,7 +160,7 @@ export class ESRPReleaseService {
     const hash = await hashFileStream('sha256', filePath);
     const blobUrl = `${blobClientUrl}?${this.#stagingSasToken}`;
 
-    const message = this.#getBaseReleaseRequest();
+    const message = structuredClone(this.#baseReleaseRequest);
     message.esrpCorrelationId = correlationId;
     message.customerCorrelationId = correlationId;
     message.productInfo.version = version;
