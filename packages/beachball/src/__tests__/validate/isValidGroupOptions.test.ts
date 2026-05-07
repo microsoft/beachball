@@ -59,6 +59,21 @@ describe('isValidGroupOptions', () => {
         • { "include": ["pkg1"] }"
     `);
   });
+
+  it('returns false when a group has an exclude pattern starting with "!"', () => {
+    const groups: VersionGroupOptions[] = [
+      { name: 'group1', include: ['pkg1'], exclude: '!badpattern', disallowedChangeTypes: null },
+      { name: 'group2', include: ['pkg2'], disallowedChangeTypes: null },
+      { name: 'group3', include: ['pkg3'], exclude: ['goodpattern', '!badpattern2'], disallowedChangeTypes: null },
+    ];
+    expect(isValidGroupOptions(groups)).toBe(false);
+    expect(logs.mocks.error).toHaveBeenCalledTimes(1);
+    expect(logs.mocks.error.mock.calls[0].join(' ')).toMatchInlineSnapshot(`
+      "ERROR: "groups[*].exclude" patterns must not start with "!". Found invalid groups:
+        • group1: "!badpattern"
+        • group3: [ "goodpattern", "!badpattern2" ]"
+    `);
+  });
 });
 
 describe('isValidGroupedPackageOptions', () => {

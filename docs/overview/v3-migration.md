@@ -35,3 +35,7 @@ For the full list of changes between v2 and v3, see the [beachball CHANGELOG.md]
 Remove the requirement for `groups[*].exclude` and `changelog.groups[*].exclude` patterns to be negated (leading `!`).
 
 To migrate, simply remove the leading `!` from all `exclude` patterns.
+
+### Rename `changelog.groups[*].masterPackageName` to `mainPackageName`
+
+To migrate, find and replace `masterPackageName` to `mainPackageName`.

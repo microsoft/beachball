@@ -26,7 +26,7 @@ For cases where it's necessary to bump packages together, `beachball` also provi
 
 ### Configuring version groups
 
-Groups can be added to the [configuration file](../overview/configuration). See the [`VersionGroupOptions` source](https://github.com/microsoft/beachball/blob/main/src/types/ChangelogOptions.ts) for full details.
+Groups can be added to the [configuration file](../overview/configuration). See the [`VersionGroupOptions` source](https://github.com/microsoft/beachball/blob/main/packages/beachball/src/types/ChangelogOptions.ts) for full details.
 
 <!-- prettier-ignore -->
 | Name | Type | Description |
@@ -57,7 +57,7 @@ If you only want to publish or record changes for certain packages, you should u
 
 ## Grouped changelogs
 
-To show changes for multiple packages in one change file, use the `changelog.groups` option. See the [`ChangelogGroupOptions` source](https://github.com/microsoft/beachball/blob/main/src/types/ChangelogOptions.ts) for full details.
+To show changes for multiple packages in one change file, use the `changelog.groups` option. See the [`ChangelogGroupOptions` source](https://github.com/microsoft/beachball/blob/main/packages/beachball/src/types/ChangelogOptions.ts) for full details.
 
 <!-- prettier-ignore -->
 | Name | Type | Description |
@@ -67,7 +67,7 @@ To show changes for multiple packages in one change file, use the `changelog.gro
 | `exclude` | `string \| string[]` | glob pattern(s) for package paths to exclude (see [notes on globs][1]). |
 | `changelogPath` | `string` | Put the grouped changelog file under this directory. Can be relative to the root, or absolute. |
 
-In this example, changelogs for all packages under `packages/*` (except `packages/baz`) are written to a `CHANGELOG.md` at the repo root (`.`), with `foo` as the master package. (To replace `foo`'s usual changelog with a grouped one, you'd specify `changelogPath` as the path to `foo` instead, e.g. `packages/foo`.)
+In this example, changelogs for all packages under `packages/*` (except `packages/baz`) are written to a `CHANGELOG.md` at the repo root (`.`), with `foo` as the main package. (To replace `foo`'s usual changelog with a grouped one, you'd specify `changelogPath` as the path to `foo` instead, e.g. `packages/foo`.)
 
 ```json
 {
