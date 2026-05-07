@@ -9,6 +9,8 @@
     "declarationMap": true,
     "sourceMap": true,
     "skipLibCheck": true,
+    "strict": true,
+    "noUnusedLocals": true,
     "lib": ["ES2024"],
     "types": ["node"]
   }

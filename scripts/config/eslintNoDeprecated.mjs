@@ -30,8 +30,6 @@ export default createRule({
     type: 'problem',
   },
   create: context => {
-    let /** @type {ts.Node[] | undefined } */ ignoredNodes;
-
     const { esTreeNodeToTSNodeMap, program } = ESLintUtils.getParserServices(context);
     const typeChecker = program.getTypeChecker();
 
