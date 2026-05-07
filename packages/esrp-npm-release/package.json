@@ -1,0 +1,33 @@
+{
+  "name": "@microsoft/esrp-npm-release",
+  "version": "0.1.0",
+  "license": "UNLICENSED",
+  "description": "ESRP npm release helper",
+  "bin": "dist/index.js",
+  "exports": null,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "yarn run -T tsc --pretty",
+    "bundle": "node scripts/bundle.js",
+    "depcheck": "yarn run -T depcheck .",
+    "lint": "yarn run -T eslint --color --max-warnings=0 src",
+    "start": "node src/index.ts",
+    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest"
+  },
+  "devDependencies": {
+    "@azure/msal-node": "^2.6.0",
+    "@azure/storage-blob": "^12.31.0",
+    "@ms-cloudpack/esbuild-node-helpers": "^0.1.1",
+    "@types/jws": "^3.2.11",
+    "@types/yazl": "^3.3.1",
+    "esbuild": "^0.28.0",
+    "jws": "^4.0.1",
+    "yazl": "^3.3.1"
+  }
+}

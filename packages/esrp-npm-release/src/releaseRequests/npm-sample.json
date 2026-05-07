@@ -1,0 +1,92 @@
+{
+  "releaseInfo": {
+    "title": "some-product",
+    "minimumNumberOfApprovers": 1,
+    "properties": {
+      "ReleaseContentType": "npm",
+      "IsRsm": "false"
+    },
+    "isRevision": false,
+    "revisionNumber": null
+  },
+  "productInfo": {
+    "name": "some-product",
+    "version": "1.3.0",
+    "description": "Package Distribution through ESRP Release."
+  },
+  "files": [
+    {
+      "fileId": null,
+      "distributionRelativePath": "",
+      "partNumber": null,
+      "friendlyFileName": "",
+      "tenantFileLocationType": "1",
+      "tenantFileLocation": "/__w/1/s/Agents-for-js/out",
+      "signedEngineeringCopyLocation": null,
+      "encryptedDistributionBlobLocation": null,
+      "preEncryptedDistributionBlobLocation": null,
+      "secondaryDistributionHashRequired": null,
+      "secondaryDistributionHashType": null,
+      "lastModifiedAt": null,
+      "fileDownloadDetails": null,
+      "cultureCodes": null,
+      "displayFileInDownloadCenter": null,
+      "isPrimaryFileInDownloadCenter": null,
+      "name": "some-product-1.3.0.zip",
+      "hash": "*********",
+      "sourceLocation": {
+        "blobUrl": "<azure blob URL of zip file with auth token>",
+        "type": 0,
+        "uncPath": null,
+        "url": null,
+        "eTag": null
+      },
+      "sizeInBytes": 811290,
+      "hashType": 0
+    }
+  ],
+  "routingInfo": {
+    "intent": "packagedistribution",
+    "contentType": "npm",
+    "contentOrigin": "azeus",
+    "productState": "latest"
+  },
+  "createdBy": {
+    "userPrincipalName": "*****@microsoft.com"
+  },
+  "owners": [
+    {
+      "owner": {
+        "userPrincipalName": "*****@microsoft.com"
+      }
+    },
+    {
+      "owner": {
+        "userPrincipalName": "*****@microsoft.com"
+      }
+    }
+  ],
+  "approvers": [
+    {
+      "approver": {
+        "userPrincipalName": "*****@microsoft.com"
+      },
+      "isAutoApproved": true,
+      "isMandatory": false
+    },
+    {
+      "approver": {
+        "userPrincipalName": "*****@microsoft.com"
+      },
+      "isAutoApproved": true,
+      "isMandatory": false
+    }
+  ],
+  "authorizedDownloadUsers": null,
+  "accessPermissionsInfo": {
+    "mainPublisher": "ESRPRELPACMAN",
+    "releasePublishers": null,
+    "channelDownloadEntityDetails": null
+  },
+  "jwsToken": "***"
+}

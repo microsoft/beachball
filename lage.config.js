@@ -14,6 +14,7 @@ const config = {
       dependsOn: ['^build'],
       outputs: ['lib/**/*'],
     },
+    bundle: ['build'],
     lint: ['build'],
     depcheck: [],
     test: ['build'],
