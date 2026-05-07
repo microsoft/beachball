@@ -10,7 +10,8 @@
     "node": ">=22.18.0"
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE.txt"
   ],
   "scripts": {
     "build": "yarn run -T tsc --pretty",
