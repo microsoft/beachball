@@ -3,14 +3,16 @@ import type { GeneratedReleaseRequestMessage } from './releaseRequests/baseRelea
 import type { AccessToken } from './utils/getAadToken';
 
 /** currently implemented release types */
-export type ReleaseType = 'staticLink';
+export type ReleaseType = 'npm' | 'staticLink';
 
-export type ReleaseResult = {
-  type: 'staticLink';
-  downloadUrl: string;
-};
+export type ReleaseResult =
+  | {
+      type: 'staticLink';
+      downloadUrl: string;
+    }
+  | { type: 'npm' };
 
-export interface ESRPReleaseWorkerData {
+export interface ReleaseFileParams {
   /** ESRP Release Service client ID */
   clientId: string;
   /** ESRP Release Service tenant ID */
@@ -28,8 +30,8 @@ export interface ESRPReleaseWorkerData {
 
   releaseType: ReleaseType;
   baseReleaseRequest: GeneratedReleaseRequestMessage;
-  artifactName: string;
-  artifactFilePath: string;
+  logPrefix: string;
+  filePath: string;
   /** Version to use for the release. For npm, it's arbitrary (doesn't change package versions). */
   version: string;
   /** Friendly file name prefix for the release. Defaults to `version`. */
@@ -37,7 +39,7 @@ export interface ESRPReleaseWorkerData {
 }
 
 export interface CreateESRPReleaseServiceParams extends Pick<
-  ESRPReleaseWorkerData,
+  ReleaseFileParams,
   'tenantId' | 'clientId' | 'authCertificatePfx' | 'requestSigningCertificatePfx' | 'baseReleaseRequest' | 'releaseType'
 > {
   log: (...args: unknown[]) => void;

@@ -132,6 +132,8 @@ export class ESRPReleaseService {
         throw new Error(`Timed out waiting for release: ${JSON.stringify(releaseDetails)}`);
       }
 
+      this.#log('Release details:', JSON.stringify(releaseDetails, null, 2));
+
       if (this.#releaseType === 'staticLink') {
         if (!releaseDetails.files?.[0]?.fileDownloadDetails?.[0]?.downloadUrl) {
           throw new Error(`Missing download URL in release details: ${JSON.stringify(releaseDetails)}`);
@@ -142,6 +144,9 @@ export class ESRPReleaseService {
           type: 'staticLink',
           downloadUrl: releaseDetails.files[0].fileDownloadDetails[0].downloadUrl,
         };
+      }
+      if (this.#releaseType === 'npm') {
+        return { type: 'npm' };
       }
       // TODO: other release types
       return {} as ReleaseResult;

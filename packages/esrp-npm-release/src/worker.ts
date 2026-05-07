@@ -7,20 +7,23 @@ import {
   type BlockBlobClient,
 } from '@azure/storage-blob';
 import { clearInterval, setInterval } from 'node:timers';
-import { workerData } from 'node:worker_threads';
+import { isMainThread, workerData } from 'node:worker_threads';
 import path from 'path';
 import { ESRPReleaseService } from './ESRPReleaseService.ts';
-import type { ESRPReleaseWorkerData } from './types.ts';
+import type { ReleaseFileParams } from './types.ts';
 import { createLog } from './utils/createLog.ts';
 
-await processArtifact(workerData as ESRPReleaseWorkerData);
+if (!isMainThread) {
+  // support vs code pattern for now
+  await releaseFile(workerData as ReleaseFileParams);
+}
 
-async function processArtifact(params: ESRPReleaseWorkerData) {
-  const { artifactName, artifactFilePath, storageAccountName, version } = params;
+export async function releaseFile(params: ReleaseFileParams): Promise<void> {
+  const { logPrefix, filePath, storageAccountName, version } = params;
 
-  const log = createLog(artifactName);
+  const log = createLog(logPrefix);
 
-  const friendlyFileName = `${params.friendlyFileNamePrefix ?? version}/${path.basename(artifactFilePath)}`;
+  const friendlyFileName = `${params.friendlyFileNamePrefix ?? version}/${path.basename(filePath)}`;
 
   const blobServiceClient = new BlobServiceClient(`https://${storageAccountName}.blob.core.windows.net/`, {
     getToken: () => Promise.resolve(params.publishAuthToken),
@@ -66,7 +69,7 @@ async function processArtifact(params: ESRPReleaseWorkerData) {
     });
 
     // This will either succeed or throw
-    await releaseService.createRelease({ version, filePath: artifactFilePath, friendlyFileName });
+    await releaseService.createRelease({ version, filePath: filePath, friendlyFileName });
   });
 }
 

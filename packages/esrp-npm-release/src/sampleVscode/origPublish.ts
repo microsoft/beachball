@@ -6,6 +6,7 @@ import path from 'path';
 import { Readable } from 'stream';
 import type { ReadableStream } from 'stream/web';
 import { pipeline } from 'node:stream/promises';
+// @ts-expect-error - no longer installed
 import yauzl from 'yauzl';
 import { Worker } from 'node:worker_threads';
 import { env, type Artifact } from './common.ts';
@@ -136,22 +137,23 @@ async function downloadArtifact(artifact: Artifact, downloadPath: string): Promi
 
 async function unzip(packagePath: string, outputPath: string): Promise<string[]> {
   return new Promise((resolve, reject) => {
+    /* eslint-disable */
+    // @ts-expect-error - no longer installed
     yauzl.open(packagePath, { lazyEntries: true, autoClose: true }, (err, zipfile) => {
       if (err) {
         return reject(err);
       }
 
       const result: string[] = [];
+      // @ts-expect-error - no longer installed
       zipfile.on('entry', entry => {
-        // eslint-disable-next-line
         if (entry.fileName.endsWith('/')) {
           zipfile.readEntry();
         } else {
-          // eslint-disable-next-line
+          // @ts-expect-error - no longer installed
           zipfile.openReadStream(entry, (err, istream) => {
             if (err) return reject(err);
 
-            // eslint-disable-next-line
             const filePath = path.join(outputPath, entry.fileName);
             fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
@@ -160,6 +162,7 @@ async function unzip(packagePath: string, outputPath: string): Promise<string[]>
               result.push(filePath);
               zipfile.readEntry();
             });
+            // @ts-expect-error - no longer installed
             istream?.on('error', e => reject(e));
             istream.pipe(ostream);
           });
@@ -170,6 +173,7 @@ async function unzip(packagePath: string, outputPath: string): Promise<string[]>
       zipfile.readEntry();
     });
   });
+  /* eslint-enable */
 }
 
 // It is VERY important that we don't download artifacts too much too fast from AZDO.

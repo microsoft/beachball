@@ -25,10 +25,9 @@
     "@azure/storage-blob": "^12.31.0",
     "@ms-cloudpack/esbuild-node-helpers": "^0.1.1",
     "@types/jws": "^3.2.11",
-    "@types/node": "^22.0.0",
-    "@types/yauzl": "^2.10.3",
+    "@types/yazl": "^3.3.1",
+    "esbuild": "^0.28.0",
     "jws": "^4.0.1",
-    "prettier": "^3.8.1",
-    "typescript": "~6.0.0"
+    "yazl": "^3.3.1"
   }
 }

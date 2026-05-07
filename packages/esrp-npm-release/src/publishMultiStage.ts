@@ -12,8 +12,9 @@ import { pipeline } from 'node:stream/promises';
 import type { ReadableStream } from 'node:stream/web';
 import { Worker } from 'node:worker_threads';
 import path from 'path';
+// @ts-expect-error - no longer installed
 import yauzl from 'yauzl';
-import type { ESRPReleaseWorkerData, ReleaseType } from './types.ts';
+import type { ReleaseFileParams, ReleaseType } from './types.ts';
 import { getAadToken } from './utils/getAadToken.ts';
 import { getEnv } from './utils/getEnv.ts';
 import { retry } from './utils/retry.ts';
@@ -84,6 +85,14 @@ class State {
   private set = new Set<string>();
 
   constructor() {
+    // https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/product-publish.yml#L19C1-L25C30
+    // - output: pipelineArtifact
+    //   targetPath: $(Pipeline.Workspace)/artifacts_processed_$(System.StageAttempt)/artifacts_processed_$(System.StageAttempt).txt
+    //   artifactName: artifacts_processed_$(System.StageAttempt)
+    //   displayName: Publish the artifacts processed for this stage attempt
+    //   sbomEnabled: false
+    //   isProduction: false
+    //   condition: always()
     const previousState = fs
       .readdirSync(env.pipelineWorkspacePath)
       .map(name => /^artifacts_processed_(\d+)$/.exec(name))
@@ -202,6 +211,8 @@ async function downloadArtifact(artifact: Artifact, downloadPath: string): Promi
 
 async function unzip(packagePath: string, outputPath: string): Promise<string[]> {
   return new Promise((resolve, reject) => {
+    /* eslint-disable */
+    // @ts-expect-error - no longer installed
     yauzl.open(packagePath, { lazyEntries: true, autoClose: true }, (err, zipfile) => {
       if (err) {
         return reject(err);
@@ -212,6 +223,7 @@ async function unzip(packagePath: string, outputPath: string): Promise<string[]>
         if (entry.fileName.endsWith('/')) {
           zipfile.readEntry();
         } else {
+          // @ts-expect-error - no longer installed
           zipfile.openReadStream(entry, (err2, istream) => {
             if (err2) return reject(err2);
 
@@ -223,6 +235,7 @@ async function unzip(packagePath: string, outputPath: string): Promise<string[]>
               result.push(filePath);
               zipfile.readEntry();
             });
+            // @ts-expect-error - no longer installed
             istream?.on('error', err3 => reject(err3));
             istream.pipe(ostream);
           });
@@ -233,6 +246,7 @@ async function unzip(packagePath: string, outputPath: string): Promise<string[]>
       zipfile.readEntry();
     });
   });
+  /* eslint-enable */
 }
 
 // It is VERY important that we don't download artifacts too much too fast from AZDO.
@@ -246,7 +260,7 @@ async function main() {
   const processing = new Set<string>();
 
   for (const name of done) {
-    console.log(`\u2705 ${name}`);
+    console.log(`✅ ${name}`);
   }
 
   // TODO determine if needed and replace
@@ -324,8 +338,8 @@ async function main() {
 
         const worker = new Worker(path.join(import.meta.dirname, 'worker.ts'), {
           workerData: {
-            artifactName: artifact.name,
-            artifactFilePath,
+            logPrefix: artifact.name,
+            filePath: artifactFilePath,
             publishAuthToken,
             authCertificatePfx: env.authCertificatePfx,
             requestSigningCertificatePfx: env.requestSigningCertificatePfx,
@@ -337,7 +351,7 @@ async function main() {
             releaseType,
             baseReleaseRequest,
             friendlyFileNamePrefix,
-          } satisfies ESRPReleaseWorkerData,
+          } satisfies ReleaseFileParams,
         });
         worker.on('error', reject);
         worker.on('exit', code => {
