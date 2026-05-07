@@ -1,4 +1,8 @@
-// based on the worker part of https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/common/publish.ts
+// Orchestrates the release of a single layer's zip file through the ESRP Release API.
+// Handles blob storage staging, lease-based concurrency control, SAS token generation,
+// and delegates the actual ESRP API calls to ESRPReleaseService.
+//
+// Based on the worker part of https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/common/publish.ts
 // called by https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/product-publish.yml#L106
 import {
   BlobServiceClient,
@@ -11,6 +15,20 @@ import path from 'path';
 import { ESRPReleaseService } from './ESRPReleaseService.ts';
 import type { ReleaseFileParams } from './types.ts';
 
+const leasesContainerName = 'leases';
+const stagingContainerName = 'staging';
+
+/**
+ * Release a single file (zip of .tgz packages for one layer) via ESRP.
+ *
+ * Steps:
+ * 1. Create a "leases" container and acquire a blob lease to prevent concurrent releases
+ *    of the same file (important when multiple pipeline jobs could overlap)
+ * 2. Generate a short-lived SAS token for the "staging" container so ESRP can read the blob
+ * 3. Authenticate with ESRP using the auth certificate and create an ESRPReleaseService
+ * 4. Upload the file, submit the release request, and poll until completion
+ * 5. Release the lease when done
+ */
 export async function releaseFile(params: ReleaseFileParams): Promise<void> {
   const { log, filePath, storageAccountName, version } = params;
 
@@ -19,7 +37,7 @@ export async function releaseFile(params: ReleaseFileParams): Promise<void> {
   const blobServiceClient = new BlobServiceClient(`https://${storageAccountName}.blob.core.windows.net/`, {
     getToken: () => Promise.resolve(params.storageAuthToken),
   });
-  const leasesContainerClient = blobServiceClient.getContainerClient('leases');
+  const leasesContainerClient = blobServiceClient.getContainerClient(leasesContainerName);
   await leasesContainerClient.createIfNotExists();
   const leaseBlobClient = leasesContainerClient.getBlockBlobClient(friendlyFileName);
 
@@ -28,7 +46,7 @@ export async function releaseFile(params: ReleaseFileParams): Promise<void> {
   await withLease(leaseBlobClient, async () => {
     log(`Successfully acquired lease for: ${friendlyFileName}`);
 
-    const stagingContainerClient = blobServiceClient.getContainerClient(params.containerName);
+    const stagingContainerClient = blobServiceClient.getContainerClient(stagingContainerName);
     await stagingContainerClient.createIfNotExists();
 
     const now = new Date().valueOf();
@@ -38,7 +56,7 @@ export async function releaseFile(params: ReleaseFileParams): Promise<void> {
     const userDelegationKey = await blobServiceClient.getUserDelegationKey(oneHourAgo, oneHourFromNow);
     const stagingSasToken = generateBlobSASQueryParameters(
       {
-        containerName: params.containerName,
+        containerName: stagingContainerName,
         permissions: ContainerSASPermissions.from({ read: true }),
         startsOn: oneHourAgo,
         expiresOn: oneHourFromNow,

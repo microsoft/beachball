@@ -1,4 +1,8 @@
-// based on the non-worker part of https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/common/publish.ts
+// Entry point for the ESRP npm release tool.
+// Reads packed packages (produced by `beachball publish --pack-to-path --pack-style layer`),
+// zips each layer, and publishes them to npmjs.com via the ESRP Release API in dependency order.
+//
+// Based on the non-worker part of https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/common/publish.ts
 // called by https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/product-publish.yml#L106
 
 import fs from 'fs';
@@ -18,12 +22,14 @@ function getEnv(name: string, defaultValue?: string): string {
   throw new Error(`Missing env: ${name}`);
 }
 
+// ESRP_USER serves as a fallback default for the contact email fields below
 const defaultUser = getEnv('ESRP_USER', '') || undefined;
+
 const env = {
-  // varies
+  // Path to the directory of packed .tgz files organized into numbered layer subdirectories
   packedPackagesPath: getEnv('PACKED_PACKAGES_PATH'),
   esrp: {
-    // static config
+    // ESRP-onboarded product and identity configuration
     productName: getEnv('ESRP_PRODUCT_NAME'),
     npmTag: getEnv('ESRP_NPM_TAG', 'latest'),
     createdBy: getEnv('ESRP_CREATED_BY', defaultUser),
@@ -33,21 +39,23 @@ const env = {
     clientId: getEnv('ESRP_CLIENT_ID'),
     tenantId: getEnv('ESRP_TENANT_ID'),
 
-    // secrets
+    // Certificate secrets (base64-encoded PFX): auth cert authenticates to ESRP AAD,
+    // request signing cert signs the JWS token included in each release request
     authCertificatePfx: getEnv('ESRP_AUTH_CERT'),
     requestSigningCertificatePfx: getEnv('ESRP_REQUEST_SIGNING_CERT'),
   },
   azure: {
-    // static config
+    // Azure Blob Storage is used as a staging area: packages are uploaded here
+    // and the ESRP API downloads them from the blob URL
     storageAccountName: getEnv('AZURE_STORAGE_ACCOUNT_NAME'),
-    containerName: getEnv('AZURE_CONTAINER_NAME'),
 
-    // secrets
+    // Secrets: federated identity credentials for storage account access
     clientId: getEnv('AZURE_CLIENT_ID'),
     idToken: getEnv('AZURE_ID_TOKEN'),
     tenantId: getEnv('AZURE_TENANT_ID'),
   },
   ado: {
+    // Predefined ADO pipeline variables (set automatically by the agent)
     agentBuildDirectory: getEnv('AGENT_BUILDDIRECTORY'),
     agentTempDirectory: getEnv('AGENT_TEMPDIRECTORY'),
     buildSourceVersion: getEnv('BUILD_SOURCEVERSION'),
@@ -55,12 +63,26 @@ const env = {
   },
 };
 
+/**
+ * Tracks which layers have been successfully published across stage retry attempts.
+ *
+ * On construction, loads state from the most recent previous attempt (if any) by scanning
+ * `AGENT_BUILDDIRECTORY` for `artifacts_processed_<N>` directories. Each successful layer
+ * is appended to a text file that gets published as a pipeline artifact (via the
+ * `artifacts_processed_$(System.StageAttempt)` output in the release pipeline YAML).
+ *
+ * This allows the tool to resume from where it left off when ADO retries a failed stage,
+ * skipping layers that were already published to npm.
+ */
 class State {
   private statePath: string;
   private set = new Set<string>();
 
   constructor() {
-    // https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/product-publish.yml#L19C1-L25C30
+    // Look for state from previous stage attempts. The release pipeline publishes an
+    // `artifacts_processed_<attempt>` artifact after each attempt. We find the highest-numbered
+    // previous attempt and load its list of completed layers so we can skip them.
+    // See: https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/product-publish.yml#L19C1-L25C30
     // - output: pipelineArtifact
     //   targetPath: $(Agent.BuildDirectory)/artifacts_processed_$(System.StageAttempt)/artifacts_processed_$(System.StageAttempt).txt
     //   artifactName: artifacts_processed_$(System.StageAttempt)
@@ -165,7 +187,6 @@ async function main() {
       authCertificatePfx: env.esrp.authCertificatePfx,
       requestSigningCertificatePfx: env.esrp.requestSigningCertificatePfx,
       storageAccountName: env.azure.storageAccountName,
-      containerName: env.azure.containerName,
       clientId: env.esrp.clientId,
       tenantId: env.esrp.tenantId,
       version: env.ado.buildSourceVersion,

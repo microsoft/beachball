@@ -102,7 +102,6 @@ extends:
                   ESRP_AUTH_CERT: '$(esrpAuthCert)'
                   ESRP_REQUEST_SIGNING_CERT: '$(esrpRequestSigningCert)'
                   AZURE_STORAGE_ACCOUNT_NAME: ''
-                  AZURE_CONTAINER_NAME: ''
                   AZURE_CLIENT_ID: '$(azureClientId)'
                   AZURE_TENANT_ID: '$(azureTenantId)'
                   AZURE_ID_TOKEN: '$(azureIdToken)'

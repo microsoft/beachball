@@ -18,8 +18,6 @@ export interface ReleaseFileParams {
   storageAuthToken: AccessToken;
   /** Azure blob storage account name for staging artifact files */
   storageAccountName: string;
-  /** Azure blob storage container name in `storageAccountName` */
-  containerName: string;
 
   /** Info for creating the release request */
   releaseRequestParams: CreateNpmReleaseRequestMessageParams;
