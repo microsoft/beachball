@@ -17,7 +17,7 @@ export async function releaseFile(params: ReleaseFileParams): Promise<void> {
   const friendlyFileName = `${version}/${path.basename(filePath)}`;
 
   const blobServiceClient = new BlobServiceClient(`https://${storageAccountName}.blob.core.windows.net/`, {
-    getToken: () => Promise.resolve(params.publishAuthToken),
+    getToken: () => Promise.resolve(params.storageAuthToken),
   });
   const leasesContainerClient = blobServiceClient.getContainerClient('leases');
   await leasesContainerClient.createIfNotExists();

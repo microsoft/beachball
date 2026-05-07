@@ -115,7 +115,7 @@ export interface ReleaseInfo {
 export interface ProductInfo {
   /** Name of the product */
   name?: string;
-  /** Version of the product */
+  /** Version of the product (for npm, this is arbitrary, not the package version) */
   version?: string;
   /** Description of the product */
   description?: string;

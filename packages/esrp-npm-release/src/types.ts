@@ -9,21 +9,24 @@ export interface ReleaseFileParams {
   clientId: string;
   /** ESRP Release Service tenant ID */
   tenantId: string;
-  /** Auth cert PFX content, probably from an environment variable */
+  /** ESRP Auth cert PFX content */
   authCertificatePfx: string;
-  /** JWS request signing cert PFX content, probably from an environment variable */
+  /** ESRP JWS request signing cert PFX content */
   requestSigningCertificatePfx: string;
 
-  publishAuthToken: AccessToken;
-  /** Storage account name for staging artifact files */
+  /** Azure auth token for storage account access */
+  storageAuthToken: AccessToken;
+  /** Azure blob storage account name for staging artifact files */
   storageAccountName: string;
-  /** Container name in `storageAccountName` */
+  /** Azure blob storage container name in `storageAccountName` */
   containerName: string;
 
+  /** Info for creating the release request */
   releaseRequestParams: CreateNpmReleaseRequestMessageParams;
-  filePath: string;
   /** Version to use for the release. For npm, it's arbitrary (doesn't change package versions). */
   version: string;
+  /** Local file path to upload */
+  filePath: string;
 }
 
 export interface CreateESRPReleaseServiceParams extends Pick<
