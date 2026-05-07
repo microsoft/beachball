@@ -36,6 +36,10 @@ Remove the requirement for `groups[*].exclude` and `changelog.groups[*].exclude`
 
 To migrate, simply remove the leading `!` from all `exclude` patterns.
 
+### Rename `changelog.groups[*].masterPackageName` to `mainPackageName`
+
+To migrate, find and replace `masterPackageName` to `mainPackageName`.
+
 ### `shouldPublish` behavior change
 
 > Note: **you should almost never need this option** - in most scenarios, just set `private: true` in `package.json` instead.
