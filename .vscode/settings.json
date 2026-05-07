@@ -12,6 +12,7 @@
   "search.exclude": {
     "**/node_modules": true,
     "**/lib": true,
+    "**/dist": true,
     "**/*.svg": true,
     "**/.yarn": true
   },

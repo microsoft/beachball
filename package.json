@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "beachball": "node ./packages/beachball/lib/cli.js",
-    "build": "lage build",
+    "build": "lage build bundle",
     "bump": "yarn beachball bump",
     "change": "yarn beachball change",
     "checkchange": "yarn beachball check",

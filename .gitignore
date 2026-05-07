@@ -6,9 +6,11 @@ node_modules/
 .DS_Store
 .npmrc
 lib/
+dist/
 package-lock.json
 target
 .claude/settings.local.json
+packages/*/NOTICE.txt
 
 docs/.vuepress/.cache
 docs/.vuepress/.temp

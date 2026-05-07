@@ -22,7 +22,7 @@ resources:
 
 variables:
   - name: nodeVersion
-    value: 20
+    value: 24
   - name: npmVersion
     value: 11
   - name: tags
@@ -60,6 +60,9 @@ extends:
                 - output: pipelineArtifact
                   artifactName: published-packages
                   targetPath: $(Build.StagingDirectory)/pkg
+                - output: pipelineArtifact
+                  artifactName: release-api-tool
+                  targetPath: $(Build.SourcesDirectory)/packages/esrp-npm-release/dist/index.js
 
             steps:
               - checkout: self
@@ -99,7 +102,7 @@ extends:
                 inputs:
                   workingFile: '$(Build.SourcesDirectory)/.npmrc'
 
-              - script: yarn --frozen-lockfile
+              - script: yarn --immutable
                 displayName: Install dependencies
 
               - script: yarn build --verbose

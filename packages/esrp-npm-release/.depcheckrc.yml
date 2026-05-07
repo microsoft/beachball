@@ -1,0 +1,7 @@
+ignore-path: ../../.gitignore
+
+ignores:
+  # peer dep
+  - esbuild
+  # sample code
+  - yauzl
