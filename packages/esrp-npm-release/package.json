@@ -22,8 +22,10 @@
     "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest"
   },
   "devDependencies": {
-    "@azure/msal-node": "^2.6.0",
+    "@azure/core-auth": "^1.10.1",
+    "@azure/msal-node": "^5.1.5",
     "@azure/storage-blob": "^12.31.0",
+    "@microsoft/beachball-scripts": "1.0.0",
     "@ms-cloudpack/esbuild-node-helpers": "^0.1.1",
     "@types/jws": "^3.2.11",
     "@types/yazl": "^3.3.1",

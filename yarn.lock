@@ -85,7 +85,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/core-auth@npm:^1.10.0, @azure/core-auth@npm:^1.9.0":
+"@azure/core-auth@npm:^1.10.0, @azure/core-auth@npm:^1.10.1, @azure/core-auth@npm:^1.9.0":
   version: 1.10.1
   resolution: "@azure/core-auth@npm:1.10.1"
   dependencies:
@@ -199,21 +199,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/msal-common@npm:14.16.1":
-  version: 14.16.1
-  resolution: "@azure/msal-common@npm:14.16.1"
-  checksum: 10c0/10f7369cac5735204e190f8d92b8e5f2db66f20a99da55f2febd3b2ece56419c5dde0877dd9af492d8c35efa1b2952808cc18f34b47a8e9da9ef0497cdf3c7be
+"@azure/msal-common@npm:16.5.2":
+  version: 16.5.2
+  resolution: "@azure/msal-common@npm:16.5.2"
+  checksum: 10c0/e7c55eea2563adb6561f663b4a649ee62823102eeb5e4632b2ec1062071619900910015625b2465781c57d986384c05186afc82560cb7ea879526319e8626bb2
   languageName: node
   linkType: hard
 
-"@azure/msal-node@npm:^2.6.0":
-  version: 2.16.3
-  resolution: "@azure/msal-node@npm:2.16.3"
+"@azure/msal-node@npm:^5.1.5":
+  version: 5.1.5
+  resolution: "@azure/msal-node@npm:5.1.5"
   dependencies:
-    "@azure/msal-common": "npm:14.16.1"
+    "@azure/msal-common": "npm:16.5.2"
     jsonwebtoken: "npm:^9.0.0"
-    uuid: "npm:^8.3.0"
-  checksum: 10c0/7fa1da0cb22bb1142b265ae075c1a8f3d3d1fe5705c13da5500431eacff9854435e43fe59f82db22459a8c2c91022454dafacdaedab568fd0670c972f32221f5
+  checksum: 10c0/476690a23931349281e9226ecb1a2124e45af7a8c1415315c9bf7f7e1f75dab8a7e33190cb58fa057f3128839733eec53e8bd9133a5123e774721f890efabe88
   languageName: node
   linkType: hard
 
@@ -2397,8 +2396,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@microsoft/esrp-npm-release@workspace:packages/esrp-npm-release"
   dependencies:
-    "@azure/msal-node": "npm:^2.6.0"
+    "@azure/core-auth": "npm:^1.10.1"
+    "@azure/msal-node": "npm:^5.1.5"
     "@azure/storage-blob": "npm:^12.31.0"
+    "@microsoft/beachball-scripts": "npm:1.0.0"
     "@ms-cloudpack/esbuild-node-helpers": "npm:^0.1.1"
     "@types/jws": "npm:^3.2.11"
     "@types/yazl": "npm:^3.3.1"
@@ -9654,7 +9655,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^8.3.0, uuid@npm:^8.3.2":
+"uuid@npm:^8.3.2":
   version: 8.3.2
   resolution: "uuid@npm:8.3.2"
   bin:

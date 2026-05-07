@@ -1,9 +1,8 @@
-import {
-  type ReleaseRequestMessage,
-  type ReleaseSubmitResponse,
-  type ReleaseResultMessage,
-  type ReleaseDetailsMessage,
-  StatusCode,
+import type {
+  ReleaseRequestMessage,
+  ReleaseSubmitResponse,
+  ReleaseResultMessage,
+  ReleaseDetailsMessage,
 } from '../models/types.ts';
 import { retry } from './retry.ts';
 
@@ -65,39 +64,6 @@ export function getReleaseDetails(params: ReleaseHttpParams & { releaseId: strin
     bearerToken,
     method: 'GET',
   });
-}
-
-export async function pollRelease(
-  params: ReleaseHttpParams & {
-    releaseId: string;
-    timeoutInSeconds: number;
-    pollIntervalInSeconds: number;
-  }
-): Promise<void> {
-  const { clientId, bearerToken, releaseId, timeoutInSeconds, pollIntervalInSeconds } = params;
-
-  const startTime = Date.now();
-  let releaseStatus = null;
-
-  while ((Date.now() - startTime) / 1000 < timeoutInSeconds) {
-    try {
-      releaseStatus = await getReleaseStatus({ clientId, bearerToken, releaseId });
-    } catch (err) {
-      console.warn(err);
-      console.warn('will retry until timeout is reached');
-    }
-
-    if (!releaseStatus) {
-      // continue
-    } else if (releaseStatus.status === StatusCode.Inprogress) {
-      console.log(`Polling for release completion in ${pollIntervalInSeconds} seconds...`);
-      await new Promise(resolve => setTimeout(resolve, pollIntervalInSeconds * 1000));
-    } else {
-      break;
-    }
-  }
-
-  console.log('ReleaseStatusResponse:' + JSON.stringify(releaseStatus, null, 2));
 }
 
 async function doHttpRequest<TResult>(
