@@ -1,6 +1,5 @@
-import type { ContainerClient } from '@azure/storage-blob';
+import type { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
 import type { CreateNpmReleaseRequestMessageParams } from './models/npmRelease.ts';
-import type { AccessToken } from './utils/getAadToken';
 
 export interface ReleaseFileParams {
   log: (...args: unknown[]) => void;
@@ -14,10 +13,8 @@ export interface ReleaseFileParams {
   /** ESRP JWS request signing cert PFX content */
   requestSigningCertificatePfx: string;
 
-  /** Azure auth token for storage account access */
-  stagingAuthToken: AccessToken;
-  /** Azure blob storage account name for staging artifact files */
-  stagingStorageAccountName: string;
+  /** Azure blob storage client for staging artifact files */
+  stagingBlobServiceClient: BlobServiceClient;
 
   /** Info for creating the release request */
   releaseRequestParams: CreateNpmReleaseRequestMessageParams;

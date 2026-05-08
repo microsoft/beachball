@@ -4,12 +4,7 @@
 //
 // Based on the worker part of https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/common/publish.ts
 // called by https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/product-publish.yml#L106
-import {
-  BlobServiceClient,
-  ContainerSASPermissions,
-  generateBlobSASQueryParameters,
-  type BlockBlobClient,
-} from '@azure/storage-blob';
+import { ContainerSASPermissions, generateBlobSASQueryParameters, type BlockBlobClient } from '@azure/storage-blob';
 import { clearInterval, setInterval } from 'node:timers';
 import path from 'path';
 import { ESRPReleaseService } from './ESRPReleaseService.ts';
@@ -30,14 +25,11 @@ const stagingContainerName = 'staging';
  * 5. Release the lease when done
  */
 export async function releaseFile(params: ReleaseFileParams): Promise<void> {
-  const { log, filePath, stagingStorageAccountName, version } = params;
+  const { log, filePath, stagingBlobServiceClient, version } = params;
 
   const friendlyFileName = `${version}/${path.basename(filePath)}`;
 
-  const blobServiceClient = new BlobServiceClient(`https://${stagingStorageAccountName}.blob.core.windows.net/`, {
-    getToken: () => Promise.resolve(params.stagingAuthToken),
-  });
-  const leasesContainerClient = blobServiceClient.getContainerClient(leasesContainerName);
+  const leasesContainerClient = stagingBlobServiceClient.getContainerClient(leasesContainerName);
   await leasesContainerClient.createIfNotExists();
   const leaseBlobClient = leasesContainerClient.getBlockBlobClient(friendlyFileName);
 
@@ -46,14 +38,14 @@ export async function releaseFile(params: ReleaseFileParams): Promise<void> {
   await withLease(leaseBlobClient, async () => {
     log(`Successfully acquired lease for: ${friendlyFileName}`);
 
-    const stagingContainerClient = blobServiceClient.getContainerClient(stagingContainerName);
+    const stagingContainerClient = stagingBlobServiceClient.getContainerClient(stagingContainerName);
     await stagingContainerClient.createIfNotExists();
 
     const now = new Date().valueOf();
     const oneHour = 60 * 60 * 1000;
     const oneHourAgo = new Date(now - oneHour);
     const oneHourFromNow = new Date(now + oneHour);
-    const userDelegationKey = await blobServiceClient.getUserDelegationKey(oneHourAgo, oneHourFromNow);
+    const userDelegationKey = await stagingBlobServiceClient.getUserDelegationKey(oneHourAgo, oneHourFromNow);
     const stagingSasToken = generateBlobSASQueryParameters(
       {
         containerName: stagingContainerName,
@@ -62,7 +54,7 @@ export async function releaseFile(params: ReleaseFileParams): Promise<void> {
         expiresOn: oneHourFromNow,
       },
       userDelegationKey,
-      stagingStorageAccountName
+      stagingBlobServiceClient.accountName
     ).toString();
 
     const releaseService = await ESRPReleaseService.create({
@@ -77,7 +69,7 @@ export async function releaseFile(params: ReleaseFileParams): Promise<void> {
     });
 
     // This will either succeed or throw
-    await releaseService.createRelease({ version, filePath: filePath, friendlyFileName });
+    await releaseService.createRelease({ version, filePath, friendlyFileName });
   });
 }
 

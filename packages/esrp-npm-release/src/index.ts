@@ -5,11 +5,13 @@
 // Based on the non-worker part of https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/common/publish.ts
 // called by https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/product-publish.yml#L106
 
+import { BlobServiceClient } from '@azure/storage-blob';
 import fs from 'fs';
 import path from 'path';
 import yazl from 'yazl';
-import { getAadToken } from './utils/getAadToken.ts';
 import { releaseFile } from './releaseFile.ts';
+import { ReleaseState } from './ReleaseState.ts';
+import { getAadToken } from './utils/getAadToken.ts';
 
 /**
  * Get an environment variable and throw if it's missing. Built-ins reference:
@@ -58,79 +60,11 @@ const env = {
   },
   /** Predefined ADO pipeline variables (set automatically by the agent) */
   ado: {
-    agentBuildDirectory: getEnv('AGENT_BUILDDIRECTORY'),
     agentTempDirectory: getEnv('AGENT_TEMPDIRECTORY'),
     /** git commit of the source */
     buildSourceVersion: getEnv('BUILD_SOURCEVERSION'),
-    stageAttempt: getEnv('SYSTEM_STAGEATTEMPT'),
   },
 };
-
-/**
- * Tracks which layers have been successfully published across stage retry attempts.
- *
- * On construction, loads state from the most recent previous attempt (if any) by scanning
- * `AGENT_BUILDDIRECTORY` for `artifacts_processed_<N>` directories. Each successful layer
- * is appended to a text file that gets published as a pipeline artifact (via the
- * `artifacts_processed_$(System.StageAttempt)` output in the release pipeline YAML).
- *
- * This allows the tool to resume from where it left off when ADO retries a failed stage,
- * skipping layers that were already published to npm.
- */
-class State {
-  private statePath: string;
-  private set = new Set<string>();
-
-  constructor() {
-    // Look for state from previous stage attempts. The release pipeline publishes an
-    // `artifacts_processed_<attempt>` pipeline artifact after each attempt (via a
-    // PublishPipelineArtifact step), and downloads all current-run artifacts at the start
-    // of each attempt (via DownloadPipelineArtifact with source: current).
-    // We find the highest-numbered previous attempt and load its list of completed layers
-    // so we can skip them.
-    // (based on https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/product-publish.yml#L19C1-L25C30
-    // but updated with an approach that works in release pipelines)
-    const previousState = fs
-      .readdirSync(env.ado.agentBuildDirectory)
-      .map(name => /^artifacts_processed_(\d+)$/.exec(name))
-      .filter((match): match is RegExpExecArray => !!match)
-      .map(match => ({ name: match[0], attempt: Number(match[1]) }))
-      .sort((a, b) => b.attempt - a.attempt)[0];
-
-    if (previousState) {
-      const previousStatePath = path.join(env.ado.agentBuildDirectory, previousState.name, previousState.name + '.txt');
-      fs.readFileSync(previousStatePath, 'utf8')
-        .split(/\n/)
-        .filter(name => !!name)
-        .forEach(name => this.set.add(name));
-    }
-
-    this.statePath = path.join(
-      env.ado.agentBuildDirectory,
-      `artifacts_processed_${env.ado.stageAttempt}`,
-      `artifacts_processed_${env.ado.stageAttempt}.txt`
-    );
-    fs.mkdirSync(path.dirname(this.statePath), { recursive: true });
-    fs.writeFileSync(this.statePath, [...this.set.values()].map(name => `${name}\n`).join(''));
-  }
-
-  get size(): number {
-    return this.set.size;
-  }
-
-  has(name: string): boolean {
-    return this.set.has(name);
-  }
-
-  add(name: string): void {
-    this.set.add(name);
-    fs.appendFileSync(this.statePath, `${name}\n`);
-  }
-
-  [Symbol.iterator](): IterableIterator<string> {
-    return this.set[Symbol.iterator]();
-  }
-}
 
 async function main() {
   // In the vscode example, the pipeline acquires this token in a previous step and stores it in
@@ -143,11 +77,12 @@ async function main() {
     auth: { idToken: env.staging.idToken },
   });
 
-  const done = new State();
+  const stagingBlobServiceClient = new BlobServiceClient(
+    `https://${env.staging.storageAccountName}.blob.core.windows.net/`,
+    { getToken: () => Promise.resolve(stagingAuthToken) }
+  );
 
-  for (const name of done) {
-    console.log(`✅ layer ${name}`);
-  }
+  const state = await ReleaseState.create(stagingBlobServiceClient, env.ado.buildSourceVersion);
 
   // NOTE: Any errors for a layer are allowed to propagate, since a failure blocks later layers
 
@@ -157,11 +92,13 @@ async function main() {
   const layers = fs.readdirSync(env.packedPackagesPath).sort();
 
   for (const layerNum of layers) {
-    // This is an arbitrary string, not used as the published version
-    const layerVersion = `${env.ado.buildSourceVersion}-${layerNum}`;
-    if (done.has(layerVersion)) {
+    if (state.hasPublished(layerNum)) {
+      console.log(`✅ layer ${layerNum} (already published)`);
       continue;
     }
+
+    // This is an arbitrary string, not used as the published version
+    const layerVersion = `${env.ado.buildSourceVersion}-${layerNum}`;
 
     console.log(`\n==== Starting layer ${layerNum.replace(/^0+/, '')} of ${layers.length} ====\n`);
     const layerPrefix = 'layer-' + layerNum;
@@ -185,10 +122,9 @@ async function main() {
     await releaseFile({
       log: layerLog,
       filePath: zipPath,
-      stagingAuthToken,
+      stagingBlobServiceClient,
       authCertificatePfx: env.esrp.authCertificatePfx,
       requestSigningCertificatePfx: env.esrp.requestSigningCertificatePfx,
-      stagingStorageAccountName: env.staging.storageAccountName,
       clientId: env.esrp.clientId,
       tenantId: env.esrp.tenantId,
       version: layerVersion,
@@ -207,11 +143,11 @@ async function main() {
       },
     });
 
-    done.add(layerVersion);
+    await state.markPublished(layerNum);
     console.log(`✅ layer ${layerNum}`);
   }
 
-  console.log(`All ${done.size} artifacts published!`);
+  console.log(`All ${state.publishedCount} artifacts published!`);
 }
 
 await main().catch(err => {

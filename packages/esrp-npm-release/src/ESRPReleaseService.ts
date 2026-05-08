@@ -2,13 +2,13 @@ import type { ContainerClient } from '@azure/storage-blob';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { FileHashType, type ReleaseSubmitResponse } from './models/types.ts';
-import { getCertificatesFromPFX, getKeyFromPFX, hashFileStream } from './utils/signing.ts';
-import { getReleaseDetails, getReleaseStatus, submitRelease } from './utils/releaseHttp.ts';
-import { generateJwsToken } from './utils/generateJwsToken.ts';
 import { createNpmReleaseRequest, type CreateNpmReleaseRequestMessageParams } from './models/npmRelease.ts';
-import { esrpApiEndpoint, getAadToken } from './utils/getAadToken.ts';
+import { FileHashType, type ReleaseSubmitResponse } from './models/types.ts';
 import type { CreateESRPReleaseServiceParams, ESRPReleaseServiceParams } from './types.ts';
+import { generateJwsToken } from './utils/generateJwsToken.ts';
+import { esrpApiEndpoint, getAadToken } from './utils/getAadToken.ts';
+import { getReleaseDetails, getReleaseStatus, submitRelease } from './utils/releaseHttp.ts';
+import { getCertificatesFromPFX, getKeyFromPFX, hashFileStream } from './utils/signing.ts';
 
 interface CreateReleaseParams {
   version: string;

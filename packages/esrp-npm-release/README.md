@@ -96,15 +96,6 @@ extends:
                   pipeline: ${{ variables.publishPipelineAlias }}
                   artifactName: ${{ variables.releaseApiToolArtifactName }}
                   targetPath: $(Agent.BuildDirectory)\${{ variables.releaseApiToolArtifactName }}
-              outputs:
-                # Track which layers have been processed across stage retries
-                - output: pipelineArtifact
-                  targetPath: $(Agent.BuildDirectory)/artifacts_processed_$(System.StageAttempt)/artifacts_processed_$(System.StageAttempt).txt
-                  artifactName: artifacts_processed_$(System.StageAttempt)
-                  displayName: Publish the artifacts processed for this stage attempt
-                  sbomEnabled: false
-                  isProduction: false
-                  condition: always()
 
             steps:
               - task: UseNode@1
