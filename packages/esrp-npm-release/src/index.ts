@@ -109,15 +109,17 @@ async function main() {
     const zipPath = path.join(zipsDir, `${layerPrefix}-${Date.now()}.zip`);
 
     const zipfile = new yazl.ZipFile();
-    zipfile.outputStream.pipe(fs.createWriteStream(zipPath)).on('close', function () {
-      layerLog('done');
-    });
-    for (const file of fs.readdirSync(layerDir)) {
-      if (file.endsWith('.tgz')) {
-        zipfile.addFile(path.join(layerDir, file), file);
+    await new Promise<void>((resolve, reject) => {
+      zipfile.outputStream.on('error', reject);
+      zipfile.outputStream.pipe(fs.createWriteStream(zipPath)).on('close', resolve).on('error', reject);
+      for (const file of fs.readdirSync(layerDir)) {
+        if (file.endsWith('.tgz')) {
+          zipfile.addFile(path.join(layerDir, file), file);
+        }
       }
-    }
-    zipfile.end();
+      zipfile.end();
+    });
+    layerLog('done');
 
     await releaseFile({
       log: layerLog,

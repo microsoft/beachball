@@ -30,8 +30,9 @@ export function getThumbprint(certPem: string, algorithm: 'sha1' | 'sha256'): Bu
 }
 
 export function getKeyFromPFX(pfxContent: string): string {
-  const pfxCertificatePath = path.join(os.tmpdir(), 'cert.pfx');
-  const pemKeyPath = path.join(os.tmpdir(), 'key.pem');
+  const id = crypto.randomUUID();
+  const pfxCertificatePath = path.join(os.tmpdir(), `cert-${id}.pfx`);
+  const pemKeyPath = path.join(os.tmpdir(), `key-${id}.pem`);
 
   try {
     const pfxCertificate = Buffer.from(pfxContent, 'base64');
@@ -50,8 +51,9 @@ export function getKeyFromPFX(pfxContent: string): string {
 }
 
 export function getCertificatesFromPFX(pfxContent: string): string[] {
-  const pfxCertificatePath = path.join(os.tmpdir(), 'cert.pfx');
-  const pemCertificatePath = path.join(os.tmpdir(), 'cert.pem');
+  const id = crypto.randomUUID();
+  const pfxCertificatePath = path.join(os.tmpdir(), `cert-${id}.pfx`);
+  const pemCertificatePath = path.join(os.tmpdir(), `cert-${id}.pem`);
 
   try {
     const pfxCertificate = Buffer.from(pfxContent, 'base64');
