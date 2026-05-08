@@ -20,7 +20,7 @@ export function hashFileStream(hashName: 'sha256', filePath: string): Promise<Bu
  * DER binary format.
  */
 export function pemToDer(input: string): Buffer {
-  return Buffer.from(input.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n/g, ''), 'base64');
+  return Buffer.from(input.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\s+/g, ''), 'base64');
 }
 
 /** Get the thumbprint of a certificate with the specified algorithm */

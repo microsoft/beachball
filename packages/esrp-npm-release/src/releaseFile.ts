@@ -105,10 +105,14 @@ async function withLease<T>(client: BlockBlobClient, fn: () => Promise<T>) {
             });
           }, 30_000);
         });
+        const refresherCompletion = refresher.catch(() => {});
 
-        const result = await Promise.race([fn(), refresher]);
-        abortController.abort();
-        return result;
+        try {
+          return await Promise.race([fn(), refresher]);
+        } finally {
+          abortController.abort();
+          await refresherCompletion;
+        }
       } finally {
         await lease.releaseLease();
       }
