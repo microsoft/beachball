@@ -67,12 +67,11 @@ extends:
                   version: '${{ variables.nodeVersion }}.x'
                   checkLatest: false
 
-              - task: DownloadPipelineArtifact@2
+              - task: 1ES.DownloadPipelineArtifact@1
                 displayName: Download previous attempt state (if any)
                 continueOnError: true
                 inputs:
-                  source: current
-                  path: $(Agent.BuildDirectory)
+                  targetPath: $(Agent.BuildDirectory)
 
               - script: dir /S $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
                 displayName: Show directory contents
@@ -123,10 +122,11 @@ extends:
                   STAGING_TENANT_ID: $(STAGING_TENANT_ID)
                   STAGING_ID_TOKEN: $(STAGING_ID_TOKEN)
 
-              - task: PublishPipelineArtifact@1
+              - task: 1ES.PublishPipelineArtifact@1
                 displayName: Publish the artifacts processed for this stage attempt
                 condition: always()
                 inputs:
                   targetPath: $(Agent.BuildDirectory)/artifacts_processed_$(System.StageAttempt)/artifacts_processed_$(System.StageAttempt).txt
                   artifactName: artifacts_processed_$(System.StageAttempt)
-                  # properties: '{"user-sbomEnabled":"false","user-isProduction":"false"}'
+                  sbomEnabled: false
+                  isProduction: false
