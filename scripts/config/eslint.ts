@@ -5,11 +5,11 @@ import eslint from 'eslint/config';
 import prettier from 'eslint-config-prettier/flat';
 import tseslint from 'typescript-eslint';
 import path from 'path';
-import noDeprecated from './eslintNoDeprecated.mjs';
+import noDeprecated from './eslintNoDeprecated.ts';
 
 const repoRoot = path.resolve(import.meta.dirname, '../..');
 
-export function getConfig(/** @type {string} */ dirname) {
+export function getConfig(dirname: string) {
   return eslint.defineConfig(
     // ignores must be in separate objects to be properly respected
     includeIgnoreFile(path.join(repoRoot, '.gitignore')),
@@ -33,7 +33,7 @@ export function getConfig(/** @type {string} */ dirname) {
       plugins: {
         // see file comment for why this exists
         beachball: {
-          rules: { 'no-deprecated': /** @type {*} */ (noDeprecated) },
+          rules: { 'no-deprecated': noDeprecated as never },
         },
       },
     },

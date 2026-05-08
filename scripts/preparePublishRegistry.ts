@@ -3,10 +3,10 @@
 // It's run before `yarn install` in .ado/publish.yml to use a private registry for compliance.
 //
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-const repoRoot = path.dirname(__dirname);
+const repoRoot = path.dirname(import.meta.dirname);
 const publishNpmrcPath = path.join(repoRoot, '.npmrc.publish');
 const npmrcPath = path.join(repoRoot, '.npmrc');
 const lockPath = path.join(repoRoot, 'yarn.lock');
@@ -17,7 +17,7 @@ console.log(`Copied ${publishNpmrcPath} to ${npmrcPath}`);
 const npmrcRegistry = fs
   .readFileSync(publishNpmrcPath, 'utf-8')
   .split(/\r?\n/g)
-  .find(line => line.startsWith('registry='))
+  .find((line: string) => line.startsWith('registry='))
   ?.replace(/^registry="?([^"]+).*/, '$1');
 
 if (npmrcRegistry) {

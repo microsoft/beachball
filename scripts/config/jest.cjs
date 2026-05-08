@@ -13,7 +13,7 @@ function getProjectOptions(projectOverrides) {
   return {
     injectGlobals: false,
     roots: ['<rootDir>/src'],
-    setupFilesAfterEnv: [path.resolve(__dirname, 'jestSetup.js')],
+    setupFilesAfterEnv: [path.resolve(__dirname, 'jestSetup.cjs')],
     transform: {
       '^.+\\.tsx?$': [
         'ts-jest',

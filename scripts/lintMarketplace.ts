@@ -1,33 +1,30 @@
-// @ts-check
-'use strict';
+import fs from 'fs';
+import { createRequire } from 'module';
+import path from 'path';
+import { getChangesBetweenRefs, getDefaultRemoteBranch, git } from 'workspace-tools';
 
-const fs = require('fs');
-const path = require('path');
-const { getChangesBetweenRefs, getDefaultRemoteBranch, git } = require('workspace-tools');
-const beachballConfig = require('../beachball.config');
+// load beachball config with require for now to avoid TS checking of CJS code from beachball
+const localRequire = createRequire(import.meta.url);
+const beachballConfig = localRequire('../beachball.config.js') as { branch?: string };
 
 const targetBranch = getDefaultRemoteBranch({
   branch: beachballConfig.branch || 'main',
   cwd: process.cwd(),
 });
-const repoRoot = path.resolve(__dirname, '..');
+const repoRoot = path.resolve(import.meta.dirname, '..');
 const marketplacePath = path.join(repoRoot, '.claude-plugin', 'marketplace.json');
 
-/** @type {string[]} */
-const errors = [];
+const errors: string[] = [];
 
-function error(/** @type {string} */ msg) {
+function error(msg: string): void {
   errors.push(msg);
   console.error(`  ERROR: ${msg}`);
 }
 
 /**
  * Extract a field from YAML frontmatter by regex.
- * @param {string} content
- * @param {RegExp} pattern - Must have one capture group for the value
- * @returns {string | undefined}
  */
-function matchFrontmatter(content, pattern) {
+function matchFrontmatter(content: string, pattern: RegExp): string | undefined {
   const fmMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!fmMatch) return undefined;
   const lineMatch = fmMatch[1].match(pattern);
@@ -36,15 +33,26 @@ function matchFrontmatter(content, pattern) {
 
 /**
  * Get a file's content from a specific git ref.
- * @param {string} filePath - Absolute path to a file (symlinks are resolved)
- * @param {string} ref
- * @returns {string | undefined}
  */
-function getFileAtRef(filePath, ref) {
+function getFileAtRef(filePath: string, ref: string): string | undefined {
   const realPath = fs.realpathSync(filePath);
   const relPath = path.relative(repoRoot, realPath);
   const result = git(['show', `${ref}:${relPath}`], { cwd: repoRoot });
   return result.success ? result.stdout : undefined;
+}
+
+interface MarketplacePlugin {
+  name: string;
+  version: string;
+  source: string;
+}
+
+interface PluginJson {
+  name: string;
+  version: string;
+  components?: {
+    skills?: Array<{ name: string; path: string }>;
+  };
 }
 
 // --- Load marketplace ---
@@ -53,7 +61,10 @@ if (!fs.existsSync(marketplacePath)) {
   process.exit(1);
 }
 
-const marketplace = JSON.parse(fs.readFileSync(marketplacePath, 'utf8'));
+const marketplace = JSON.parse(fs.readFileSync(marketplacePath, 'utf8')) as {
+  name: string;
+  plugins: MarketplacePlugin[];
+};
 
 console.log(`Validating Claude marketplace "${marketplace.name}" (${marketplace.plugins.length} plugin(s))\n`);
 
@@ -80,7 +91,7 @@ for (const entry of marketplace.plugins) {
     continue;
   }
 
-  const plugin = JSON.parse(fs.readFileSync(pluginJsonPath, 'utf8'));
+  const plugin = JSON.parse(fs.readFileSync(pluginJsonPath, 'utf8')) as PluginJson;
 
   // --- Name sync: marketplace ↔ plugin.json ---
   if (entry.name !== plugin.name) {

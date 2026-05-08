@@ -91,7 +91,7 @@ extends:
                   printenv | sort
                 displayName: Show environment
 
-              - script: node scripts/preparePublishRegistry.js
+              - script: node scripts/preparePublishRegistry.ts
                 displayName: Prepare npm feed
 
               - task: npmAuthenticate@0

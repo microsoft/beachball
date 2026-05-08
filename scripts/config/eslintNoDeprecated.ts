@@ -11,10 +11,9 @@ import ts from 'typescript';
 import { tsquery } from '@phenomnomnominal/tsquery';
 import * as tsutils from 'tsutils';
 
-const createRule = ESLintUtils.RuleCreator(name => '');
+const createRule = ESLintUtils.RuleCreator(_name => '');
 
-/** @type {WeakMap<ts.Program, Set<string>>} */
-const deprecatedNamesByProgram = new WeakMap();
+const deprecatedNamesByProgram = new WeakMap<ts.Program, Set<string>>();
 
 export default createRule({
   name: 'no-deprecated',
@@ -50,7 +49,7 @@ export default createRule({
         ) {
           return;
         }
-        const identifier = /** @type {ts.Identifier} */ (esTreeNodeToTSNodeMap.get(node));
+        const identifier = esTreeNodeToTSNodeMap.get(node) as ts.Identifier;
         if (!deprecatedNames.has(identifier.text) || isDeclaration(identifier)) {
           return;
         }
@@ -71,7 +70,7 @@ export default createRule({
   },
 });
 
-function isDeclaration(/** @type {ts.Identifier} */ identifier) {
+function isDeclaration(identifier: ts.Identifier): boolean {
   const parent = identifier.parent;
   switch (parent.kind) {
     case ts.SyntaxKind.ClassDeclaration:
@@ -96,17 +95,16 @@ function isDeclaration(/** @type {ts.Identifier} */ identifier) {
     case ts.SyntaxKind.PropertyDeclaration:
     case ts.SyntaxKind.EnumMember:
     case ts.SyntaxKind.ImportEqualsDeclaration:
-      return /** @type {ts.NamedDeclaration} */ (parent).name === identifier;
+      return (parent as ts.NamedDeclaration).name === identifier;
     case ts.SyntaxKind.PropertyAssignment:
       return (
-        /** @type {ts.PropertyAssignment} */ (parent).name === identifier &&
-        !tsutils.isReassignmentTarget(/** @type {ts.ObjectLiteralExpression} */ (identifier.parent.parent))
+        (parent as ts.PropertyAssignment).name === identifier &&
+        !tsutils.isReassignmentTarget(identifier.parent.parent as ts.ObjectLiteralExpression)
       );
     case ts.SyntaxKind.BindingElement:
       // return true for `b` in `const {a: b} = obj"`
       return (
-        /** @type {ts.BindingElement} */ (parent).name === identifier &&
-        /** @type {ts.BindingElement} */ (parent).propertyName !== undefined
+        (parent as ts.BindingElement).name === identifier && (parent as ts.BindingElement).propertyName !== undefined
       );
     default:
       return false;
@@ -115,11 +113,9 @@ function isDeclaration(/** @type {ts.Identifier} */ identifier) {
 
 /**
  * Get all identifiers with jsdoc tag `@tagName` in the program.
- * @param {string} tagName
- * @param {ts.Program} program
  */
-function findTaggedNames(tagName, program) {
-  const /** @type {Set<string>} */ taggedNames = new Set();
+function findTaggedNames(tagName: string, program: ts.Program): Set<string> {
+  const taggedNames = new Set<string>();
   for (const sourceFile of program.getSourceFiles()) {
     if (!sourceFile.text.includes(`@${tagName}`)) {
       continue;
@@ -135,7 +131,7 @@ function findTaggedNames(tagName, program) {
       if (tags.some(tag => tag.tagName.text === tagName)) {
         const name = ts.isConstructorDeclaration(node)
           ? node.parent.name
-          : /** @type {ts.Node & { name?: ts.Identifier }} */ (node).name;
+          : (node as ts.Node & { name?: ts.Identifier }).name;
         if (name?.text) {
           taggedNames.add(name.text);
         }
@@ -147,11 +143,8 @@ function findTaggedNames(tagName, program) {
 
 /**
  * Get the text of all tags of `node`'s type matching `tagName`.
- * @param {string} tagName
- * @param {ts.Identifier} node
- * @param {ts.TypeChecker} tc
  */
-function getTags(tagName, node, tc) {
+function getTags(tagName: string, node: ts.Identifier, tc: ts.TypeChecker): string[] {
   const callExpression = getCallExpresion(node);
   if (callExpression) {
     const signature = tc.getResolvedSignature(callExpression);
@@ -161,7 +154,7 @@ function getTags(tagName, node, tc) {
     }
   }
 
-  let /** @type {ts.Symbol | undefined} */ symbol;
+  let symbol: ts.Symbol | undefined;
   const parent = node.parent;
   if (parent.kind === ts.SyntaxKind.BindingElement) {
     symbol = tc.getTypeAtLocation(parent.parent).getProperty(node.text);
@@ -190,11 +183,9 @@ function getTags(tagName, node, tc) {
 
 /**
  * Get the text of all `tags` matching `tagName`.
- * @param {string} tagName
- * @param {ts.JSDocTagInfo[]} tags
  */
-function findTags(tagName, tags) {
-  const result = /** @type {string[]} */ ([]);
+function findTags(tagName: string, tags: ts.JSDocTagInfo[]): string[] {
+  const result: string[] = [];
   for (const tag of tags) {
     if (tag.name === tagName) {
       const { text = '' } = tag;
@@ -208,7 +199,7 @@ function findTags(tagName, tags) {
   return result;
 }
 
-function getCallExpresion(/** @type {ts.Expression} */ node) {
+function getCallExpresion(node: ts.Expression): ts.CallLikeExpression | undefined {
   let parent = node.parent;
   if (tsutils.isPropertyAccessExpression(parent) && parent.name === node) {
     parent = parent.parent;
@@ -216,7 +207,7 @@ function getCallExpresion(/** @type {ts.Expression} */ node) {
   return tsutils.isCallLikeExpression(parent) ? parent : undefined;
 }
 
-function isFunctionOrMethod(/** @type {ts.Declaration[] | undefined} */ declarations) {
+function isFunctionOrMethod(declarations: ts.Declaration[] | undefined): boolean {
   if (!declarations?.length) {
     return false;
   }

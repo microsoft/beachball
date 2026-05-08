@@ -30,7 +30,7 @@
     "lint:code": "lage lint",
     "lint:deps": "lage depcheck",
     "lint:versions": "yarn syncpack:check",
-    "lint:marketplace": "node scripts/lintMarketplace.js",
+    "lint:marketplace": "node scripts/lintMarketplace.ts",
     "release:canary": "yarn beachball canary -y",
     "release:docs": "echo \"Run this from the docs folder instead\" && exit 1",
     "syncpack:check": "syncpack lint",
