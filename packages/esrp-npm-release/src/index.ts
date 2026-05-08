@@ -12,6 +12,7 @@ import yazl from 'yazl';
 import { releaseFile } from './releaseFile.ts';
 import { ReleaseState } from './ReleaseState.ts';
 import { getAadToken } from './utils/getAadToken.ts';
+import { ReleaseError } from './utils/ReleaseError.ts';
 
 /**
  * Get an environment variable and throw if it's missing. Built-ins reference:
@@ -84,8 +85,6 @@ async function main() {
 
   const state = await ReleaseState.create(stagingBlobServiceClient, env.ado.buildSourceVersion);
 
-  // NOTE: Any errors for a layer are allowed to propagate, since a failure blocks later layers
-
   const zipsDir = path.join(env.ado.agentTempDirectory, 'npm-zips');
   fs.mkdirSync(zipsDir, { recursive: true });
 
@@ -153,7 +152,16 @@ async function main() {
 }
 
 await main().catch(err => {
-  console.error((err as Error).stack || err);
+  if (err instanceof ReleaseError && err.alreadyLogged) {
+    // Error details were already printed -- just exit
+  } else if (err instanceof ReleaseError) {
+    // Expected error, not yet logged -- print the message (no stack trace)
+    console.error(err.message);
+  } else {
+    // Unexpected error -- print full details including stack
+    console.error('Unexpected error while running release!');
+    console.error((err as Error)?.stack || err);
+  }
   // eslint-disable-next-line no-restricted-properties
   process.exit(1);
 });
