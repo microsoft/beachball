@@ -1,6 +1,6 @@
 // @ts-check
 
-const { getConfigWithProjects } = require('@microsoft/beachball-scripts/config/jest');
+const { getConfigWithProjects } = require('@microsoft/beachball-scripts/config/jest.cjs');
 
 module.exports = getConfigWithProjects(
   [

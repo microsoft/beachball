@@ -3,7 +3,10 @@
   "compilerOptions": {
     "noEmit": true,
     "allowJs": true,
-    "checkJs": true
+    "checkJs": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true
   },
   "include": ["."],
   "exclude": ["node_modules"]
