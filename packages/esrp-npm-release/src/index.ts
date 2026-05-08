@@ -83,16 +83,13 @@ class State {
 
   constructor() {
     // Look for state from previous stage attempts. The release pipeline publishes an
-    // `artifacts_processed_<attempt>` artifact after each attempt. We find the highest-numbered
-    // previous attempt and load its list of completed layers so we can skip them.
-    // See: https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/product-publish.yml#L19C1-L25C30
-    // - output: pipelineArtifact
-    //   targetPath: $(Agent.BuildDirectory)/artifacts_processed_$(System.StageAttempt)/artifacts_processed_$(System.StageAttempt).txt
-    //   artifactName: artifacts_processed_$(System.StageAttempt)
-    //   displayName: Publish the artifacts processed for this stage attempt
-    //   sbomEnabled: false
-    //   isProduction: false
-    //   condition: always()
+    // `artifacts_processed_<attempt>` pipeline artifact after each attempt (via a
+    // PublishPipelineArtifact step), and downloads all current-run artifacts at the start
+    // of each attempt (via DownloadPipelineArtifact with source: current).
+    // We find the highest-numbered previous attempt and load its list of completed layers
+    // so we can skip them.
+    // (based on https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/product-publish.yml#L19C1-L25C30
+    // but updated with an approach that works in release pipelines)
     const previousState = fs
       .readdirSync(env.ado.agentBuildDirectory)
       .map(name => /^artifacts_processed_(\d+)$/.exec(name))

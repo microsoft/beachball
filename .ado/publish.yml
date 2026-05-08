@@ -28,6 +28,8 @@ variables:
   - name: tags
     value: production
     readonly: true
+  - name: packagesArtifactName
+    value: packed-packages
 
 extends:
   template: v1/Office.Official.PipelineTemplate.yml@OfficePipelineTemplates
@@ -58,11 +60,12 @@ extends:
             templateContext:
               outputs:
                 - output: pipelineArtifact
-                  artifactName: published-packages
-                  targetPath: $(Build.StagingDirectory)/pkg
+                  artifactName: ${{ variables.packagesArtifactName }}
+                  path: $(Build.StagingDirectory)/${{ variables.packagesArtifactName }}
                 - output: pipelineArtifact
                   artifactName: release-api-tool
-                  targetPath: $(Build.SourcesDirectory)/packages/esrp-npm-release/dist/index.js
+                  path: $(Build.SourcesDirectory)/packages/esrp-npm-release/dist/index.js
+                  isProduction: false
 
             steps:
               - checkout: self
@@ -119,11 +122,11 @@ extends:
               # TODO: figure out if this should bump or not (currently does bump)
               # and currently uses a prerelease prefix of 'test' to avoid interfering with real versions
               # TODO (release): change back to:
-              # yarn beachball publish --prerelease-prefix test -y --no-push --pack-to-path '$(Build.StagingDirectory)/pkg'
+              # yarn beachball publish --prerelease-prefix test -y --no-push --pack-to-path '$(Build.StagingDirectory)/packed-packages'
               - script: |
-                  yarn release:canary --no-push --pack-to-path '$(Build.StagingDirectory)/pkg'
+                  yarn release:canary --no-push --pack-to-path '$(Build.StagingDirectory)/${{ variables.packagesArtifactName }}'
                 displayName: 'Pack packages (canary)'
 
               - script: |
-                  ls -R '$(Build.StagingDirectory)/pkg'
-                displayName: Show all files in pack directory
+                  ls -R '$(Build.StagingDirectory)/${{ variables.packagesArtifactName }}'
+                displayName: Show all packed packages

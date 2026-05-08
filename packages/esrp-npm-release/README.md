@@ -26,9 +26,9 @@ This tool is designed to run in an Azure DevOps release pipeline using [1ES Pipe
 The prepublish pipeline builds the repo, packs the packages, and publishes them as a pipeline artifact. It should:
 
 1. Build and test the repo
-2. Run `beachball publish --pack-to-path '$(Build.StagingDirectory)/published-packages' --pack-style layer` to create a folder with numbered subdirectories containing package `.tgz` files in dependency-topological layers
+2. Run `beachball publish --pack-to-path '$(Build.StagingDirectory)/packed-packages' --pack-style layer` to create a folder with numbered subdirectories containing package `.tgz` files in dependency-topological layers
 3. Publish two pipeline artifacts via `templateContext.outputs`:
-   - `published-packages`: the packed `.tgz` files (the output of `--pack-to-path`)
+   - `packed-packages`: the packed `.tgz` files (the output of `--pack-to-path`)
    - `release-api-tool`: the bundled `dist/index.js` from this package
 
 See https://github.com/microsoft/beachball/blob/main/.ado/publish.yml for a full example.
@@ -37,8 +37,8 @@ See https://github.com/microsoft/beachball/blob/main/.ado/publish.yml for a full
 templateContext:
   outputs:
     - output: pipelineArtifact
-      artifactName: published-packages
-      targetPath: $(Build.StagingDirectory)/published-packages
+      artifactName: packed-packages
+      targetPath: $(Build.StagingDirectory)/packed-packages
     - output: pipelineArtifact
       artifactName: release-api-tool
       # or the appropriate path in your repo
@@ -67,7 +67,7 @@ resources:
 
 variables:
   publishPipelineAlias: prepublish
-  packagesArtifactName: published-packages
+  packagesArtifactName: packed-packages
   releaseApiToolArtifactName: release-api-tool
 
 extends:

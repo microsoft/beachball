@@ -28,7 +28,7 @@ resources:
 variables:
   nodeVersion: 24
   publishPipelineAlias: prepublish
-  packagesArtifactName: published-packages
+  packagesArtifactName: packed-packages
   releaseApiToolArtifactName: release-api-tool
 
 extends:
@@ -57,14 +57,6 @@ extends:
                   pipeline: ${{ variables.publishPipelineAlias }}
                   artifactName: ${{ variables.releaseApiToolArtifactName }}
                   targetPath: $(Agent.BuildDirectory)\${{ variables.releaseApiToolArtifactName }}
-              outputs:
-                - output: pipelineArtifact
-                  targetPath: $(Agent.BuildDirectory)/artifacts_processed_$(System.StageAttempt)/artifacts_processed_$(System.StageAttempt).txt
-                  artifactName: artifacts_processed_$(System.StageAttempt)
-                  displayName: Publish the artifacts processed for this stage attempt
-                  sbomEnabled: false
-                  isProduction: false
-                  condition: always()
 
             # Use ESRP Release to securely publish to npmjs.com.
             steps:
@@ -74,6 +66,13 @@ extends:
                 inputs:
                   version: '${{ variables.nodeVersion }}.x'
                   checkLatest: false
+
+              - task: DownloadPipelineArtifact@2
+                displayName: Download previous attempt state (if any)
+                continueOnError: true
+                inputs:
+                  source: current
+                  path: $(Agent.BuildDirectory)
 
               - script: dir /S $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
                 displayName: Show directory contents
@@ -123,3 +122,11 @@ extends:
                   STAGING_CLIENT_ID: $(STAGING_CLIENT_ID)
                   STAGING_TENANT_ID: $(STAGING_TENANT_ID)
                   STAGING_ID_TOKEN: $(STAGING_ID_TOKEN)
+
+              - task: PublishPipelineArtifact@1
+                displayName: Publish the artifacts processed for this stage attempt
+                condition: always()
+                inputs:
+                  targetPath: $(Agent.BuildDirectory)/artifacts_processed_$(System.StageAttempt)/artifacts_processed_$(System.StageAttempt).txt
+                  artifactName: artifacts_processed_$(System.StageAttempt)
+                  # properties: '{"user-sbomEnabled":"false","user-isProduction":"false"}'
