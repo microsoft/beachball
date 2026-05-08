@@ -37,9 +37,9 @@ const env = {
     owners: getEnv('ESRP_OWNERS', defaultUser).split(','),
     approvers: getEnv('ESRP_APPROVERS', defaultUser).split(','),
 
-    // Production tenant ID used for your ESRP app registration
+    /** Production tenant ID used for your ESRP app registration */
     tenantId: getEnv('ESRP_TENANT_ID'),
-    // Client ID used for your ESRP app registration in a production tenant
+    /** Client ID used for your ESRP app registration in a production tenant */
     clientId: getEnv('ESRP_CLIENT_ID'),
 
     // Certificate secrets (base64-encoded PFX): auth cert authenticates to ESRP AAD,
@@ -47,9 +47,8 @@ const env = {
     authCertificatePfx: getEnv('ESRP_AUTH_CERT'),
     requestSigningCertificatePfx: getEnv('ESRP_REQUEST_SIGNING_CERT'),
   },
+  /** info for temporarily uploading packages to a storage account in your team's subscription */
   staging: {
-    // Azure Blob Storage is used as a staging area: packages are uploaded to a storage account
-    // in your team's subscription, then ESRP downloads them from the blob URL
     storageAccountName: getEnv('STAGING_STORAGE_ACCOUNT_NAME'),
 
     // Secrets: credentials for storage account access
@@ -57,10 +56,11 @@ const env = {
     idToken: getEnv('STAGING_ID_TOKEN'),
     tenantId: getEnv('STAGING_TENANT_ID'),
   },
+  /** Predefined ADO pipeline variables (set automatically by the agent) */
   ado: {
-    // Predefined ADO pipeline variables (set automatically by the agent)
     agentBuildDirectory: getEnv('AGENT_BUILDDIRECTORY'),
     agentTempDirectory: getEnv('AGENT_TEMPDIRECTORY'),
+    /** git commit of the source */
     buildSourceVersion: getEnv('BUILD_SOURCEVERSION'),
     stageAttempt: getEnv('SYSTEM_STAGEATTEMPT'),
   },
@@ -157,7 +157,9 @@ async function main() {
   const layers = fs.readdirSync(env.packedPackagesPath).sort();
 
   for (const layerNum of layers) {
-    if (done.has(layerNum)) {
+    // This is an arbitrary string, not used as the published version
+    const layerVersion = `${env.ado.buildSourceVersion}-${layerNum}`;
+    if (done.has(layerVersion)) {
       continue;
     }
 
@@ -189,7 +191,7 @@ async function main() {
       stagingStorageAccountName: env.staging.storageAccountName,
       clientId: env.esrp.clientId,
       tenantId: env.esrp.tenantId,
-      version: env.ado.buildSourceVersion,
+      version: layerVersion,
       releaseRequestParams: {
         createdBy: env.esrp.createdBy,
         driEmail: env.esrp.driEmail,
@@ -197,7 +199,7 @@ async function main() {
         approvers: env.esrp.approvers,
         productInfo: {
           name: env.esrp.productName,
-          version: `${env.ado.buildSourceVersion}-${layerNum}`,
+          version: layerVersion,
           description: `${env.esrp.productName} packages - ${layerNum}`,
         },
         releaseTitle: env.esrp.productName,
@@ -205,7 +207,7 @@ async function main() {
       },
     });
 
-    done.add(layerNum);
+    done.add(layerVersion);
     console.log(`✅ layer ${layerNum}`);
   }
 
