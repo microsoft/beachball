@@ -64,7 +64,7 @@ extends:
                 displayName: Install Node.js ${{ variables.nodeVersion }}
                 retryCountOnTaskFailure: 1
                 inputs:
-                  version: '${{ variables.nodeVersion }}.x'
+                  version: ${{ variables.nodeVersion }}.x
                   checkLatest: false
 
               - script: dir /S $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}

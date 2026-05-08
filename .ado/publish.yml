@@ -72,11 +72,7 @@ extends:
                 displayName: Install Node.js ${{ variables.nodeVersion }}
                 retryCountOnTaskFailure: 1
                 inputs:
-                  # 👉 NOTE:
-                  # - we can use only versions that ship with container, otherwise we will run into nodejs installation issues.
-                  # - as 1es bumps those versions within container automatically we need to use `<major>.x` to not run into issues once they bump the versions.
-                  # https://github.com/actions/runner-images/blob/ubuntu20/20230924.1/images/linux/Ubuntu2004-Readme.md#nodejs
-                  version: '${{ variables.nodeVersion }}.x'
+                  version: ${{ variables.nodeVersion }}.x
                   checkLatest: false
 
               # For multiline scripts, we want the whole task to fail if any line of the script fails.
@@ -101,7 +97,7 @@ extends:
               - task: npmAuthenticate@0
                 displayName: npm authenticate
                 inputs:
-                  workingFile: '$(Build.SourcesDirectory)/.npmrc'
+                  workingFile: $(Build.SourcesDirectory)/.npmrc
 
               # This isn't used, it's just a clear way to check that auth is working
               # (yarn install's auth errors can be very unclear)
@@ -123,7 +119,7 @@ extends:
               # yarn beachball publish --prerelease-prefix test -y --no-push --pack-to-path '$(Build.StagingDirectory)/packed-packages'
               - script: |
                   yarn release:canary --no-push --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
-                displayName: 'Pack packages (canary)'
+                displayName: Pack packages (canary)
 
               - script: |
                   mkdir -p $(Build.StagingDirectory)/out/release-api-tool
