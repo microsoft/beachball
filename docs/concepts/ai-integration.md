@@ -10,27 +10,35 @@ Normally, Beachball uses an interactive CLI prompt for generating change files. 
 
 ## Installation
 
-### Plugin marketplace (Claude Code or Copilot CLI)
+### GitHub CLI
 
-Add the beachball marketplace, then install the plugin:
+Install the skill using the [Agent Skills](https://agentskills.io/) format supported by the GitHub CLI:
 
 ```sh
-# Claude Code
-/plugin marketplace add microsoft/beachball
-/plugin install beachball-change-file@beachball-plugins
-# To update later:
-/plugin marketplace update beachball-plugins
-
-# Copilot CLI
-copilot plugin marketplace add microsoft/beachball
-copilot plugin install beachball-change-file@beachball-plugins
-# To update later:
-copilot plugin update beachball-change-file
+gh skill install microsoft/beachball beachball-change-file
 ```
+
+This installs the skill for any compatible AI agent (GitHub Copilot, Claude Code, etc.).
+
+Note that the skill does not have dedicated tags, so if you want to pin the version, it's best to use a SHA:
+
+```sh
+gh skill install microsoft/beachball beachball-change-file --pin abc123
+```
+
+To update:
+
+```sh
+gh skill update beachball-change-file
+```
+
+### Built-in for this repo
+
+If you're working in the beachball repo itself, the skill is available automatically from the `skills/` directory at the repo root.
 
 ### Direct skill link
 
-If you'd like to inspect or manually import the skill, you can view the [skill markdown file](https://github.com/microsoft/beachball/blob/main/.claude-plugin/plugins/beachball-change-file/skills/beachball-change-file/SKILL.md) directly.
+If you'd like to inspect or manually import the skill, you can view the [SKILL.md](https://github.com/microsoft/beachball/blob/main/skills/beachball-change-file/SKILL.md) file directly.
 
 ## How it works
 
