@@ -18,35 +18,16 @@ interface CreateReleaseParams {
 
 export class ESRPReleaseService {
   static async create(params: CreateESRPReleaseServiceParams): Promise<ESRPReleaseService> {
-    const {
-      authCertificatePfx,
-      requestSigningCertificatePfx,
-      tenantId,
-      clientId,
-      stagingContainerClient,
-      stagingSasToken,
-      ...thruParams
-    } = params;
-
-    const requestSigningKey = getKeyFromPFX(requestSigningCertificatePfx);
-    const requestSigningCertificates = getCertificatesFromPFX(requestSigningCertificatePfx);
+    const { authCertificatePfx, tenantId, ...thruParams } = params;
 
     const accessToken = await getAadToken({
       endpoint: esrpApiEndpoint,
-      clientId,
+      clientId: params.clientId,
       tenantId,
       auth: { certPfxContent: authCertificatePfx },
     });
 
-    return new ESRPReleaseService({
-      clientId,
-      accessToken: accessToken.token,
-      requestSigningCertificates,
-      requestSigningKey,
-      stagingContainerClient,
-      stagingSasToken,
-      ...thruParams,
-    });
+    return new ESRPReleaseService({ accessToken: accessToken.token, ...thruParams });
   }
 
   readonly #releaseRequestParams: CreateNpmReleaseRequestMessageParams;
@@ -63,8 +44,8 @@ export class ESRPReleaseService {
     this.#log = params.log;
     this.#clientId = params.clientId;
     this.#accessToken = params.accessToken;
-    this.#requestSigningCertificates = params.requestSigningCertificates;
-    this.#requestSigningKey = params.requestSigningKey;
+    this.#requestSigningKey = getKeyFromPFX(params.requestSigningCertificatePfx);
+    this.#requestSigningCertificates = getCertificatesFromPFX(params.requestSigningCertificatePfx);
     this.#stagingContainerClient = params.stagingContainerClient;
     this.#stagingSasToken = params.stagingSasToken;
   }

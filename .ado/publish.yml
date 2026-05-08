@@ -28,8 +28,6 @@ variables:
   - name: tags
     value: production
     readonly: true
-  - name: packagesArtifactName
-    value: packed-packages
 
 extends:
   template: v1/Office.Official.PipelineTemplate.yml@OfficePipelineTemplates
@@ -58,14 +56,14 @@ extends:
               clean: all
 
             templateContext:
+              outputParentDirectory: $(Build.StagingDirectory)/out
               outputs:
                 - output: pipelineArtifact
-                  artifactName: ${{ variables.packagesArtifactName }}
-                  path: $(Build.StagingDirectory)/${{ variables.packagesArtifactName }}
+                  artifactName: packed-packages
+                  path: $(Build.StagingDirectory)/out/packed-packages
                 - output: pipelineArtifact
                   artifactName: release-api-tool
-                  path: $(Build.SourcesDirectory)/packages/esrp-npm-release/dist/index.js
-                  isProduction: false
+                  path: $(Build.StagingDirectory)/out/release-api-tool
 
             steps:
               - checkout: self
@@ -124,9 +122,13 @@ extends:
               # TODO (release): change back to:
               # yarn beachball publish --prerelease-prefix test -y --no-push --pack-to-path '$(Build.StagingDirectory)/packed-packages'
               - script: |
-                  yarn release:canary --no-push --pack-to-path '$(Build.StagingDirectory)/${{ variables.packagesArtifactName }}'
+                  yarn release:canary --no-push --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
                 displayName: 'Pack packages (canary)'
 
               - script: |
-                  ls -R '$(Build.StagingDirectory)/${{ variables.packagesArtifactName }}'
-                displayName: Show all packed packages
+                  mkdir -p $(Build.StagingDirectory)/out/release-api-tool
+                  cp -r packages/esrp-npm-release/dist/index.js $(Build.StagingDirectory)/out/release-api-tool
+                displayName: Copy release API tool to staging directory
+
+              - script: ls -R '$(Build.StagingDirectory)/out'
+                displayName: Show all output files

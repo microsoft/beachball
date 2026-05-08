@@ -57,16 +57,7 @@ export async function releaseFile(params: ReleaseFileParams): Promise<void> {
       stagingBlobServiceClient.accountName
     ).toString();
 
-    const releaseService = await ESRPReleaseService.create({
-      releaseRequestParams: params.releaseRequestParams,
-      log,
-      tenantId: params.tenantId,
-      clientId: params.clientId,
-      authCertificatePfx: params.authCertificatePfx,
-      requestSigningCertificatePfx: params.requestSigningCertificatePfx,
-      stagingContainerClient: stagingContainerClient,
-      stagingSasToken,
-    });
+    const releaseService = await ESRPReleaseService.create({ ...params, stagingContainerClient, stagingSasToken });
 
     // This will either succeed or throw
     await releaseService.createRelease({ version, filePath, friendlyFileName });

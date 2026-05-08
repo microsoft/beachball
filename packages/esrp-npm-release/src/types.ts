@@ -34,9 +34,14 @@ export interface CreateESRPReleaseServiceParams extends Pick<
 
 export interface ESRPReleaseServiceParams extends Pick<
   CreateESRPReleaseServiceParams,
-  'releaseRequestParams' | 'log' | 'clientId' | 'stagingContainerClient' | 'stagingSasToken'
+  | 'releaseRequestParams'
+  | 'log'
+  | 'clientId'
+  | 'stagingContainerClient'
+  | 'stagingSasToken'
+  | 'requestSigningCertificatePfx'
 > {
   accessToken: string;
-  requestSigningCertificates: string[];
-  requestSigningKey: string;
+  // requestSigningCertificates: string[];
+  // requestSigningKey: string;
 }
