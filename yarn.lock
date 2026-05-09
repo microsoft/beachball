@@ -2365,7 +2365,7 @@ __metadata:
     execa: "npm:^5.1.1"
     get-port: "npm:^7.0.0"
     minimatch: "npm:^3.1.5"
-    normalized-tmpdir: "npm:1.0.1"
+    normalized-tmpdir: "npm:1.1.0"
     p-graph: "npm:^1.3.0"
     p-limit: "npm:^3.1.0"
     prompts: "npm:^2.4.2"
@@ -5790,10 +5790,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"normalized-tmpdir@npm:1.0.1":
-  version: 1.0.1
-  resolution: "normalized-tmpdir@npm:1.0.1"
-  checksum: 10c0/7fd828668a152e078a45a24ce4dd5c90b44ffd7b394c6c7c441d82e8806b5770c40355c60100b52aa43c2fcbe0a4545c7dbad3df02ee18fd8c0d37e0acc0d931
+"normalized-tmpdir@npm:1.1.0":
+  version: 1.1.0
+  resolution: "normalized-tmpdir@npm:1.1.0"
+  checksum: 10c0/e9aece277b9fe753baf5c61cf07b6fe241a6b66c4f45783353f1fdc72686f264af28c6494d2d28991c1289fb4ec78e4cd3b7e6b5d705042ae405d5099c9cd0ed
   languageName: node
   linkType: hard
 
