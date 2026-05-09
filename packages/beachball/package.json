@@ -58,7 +58,7 @@
     "normalized-tmpdir": "1.0.1",
     "strip-ansi": "^6.0.1",
     "tmp": "^0.2.1",
-    "verdaccio": "5.29.2",
+    "verdaccio": "5.33.0",
     "verdaccio-auth-memory": "10.2.2",
     "verdaccio-memory": "10.3.2"
   },

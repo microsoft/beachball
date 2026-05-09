@@ -1,0 +1,11 @@
+{
+  "changes": [
+    {
+      "type": "none",
+      "comment": "Update devDependency verdaccio to v5.33.0",
+      "packageName": "beachball",
+      "email": "renovate@whitesourcesoftware.com",
+      "dependentChangeType": "none"
+    }
+  ]
+}
