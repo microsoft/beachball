@@ -46,6 +46,9 @@ describe('getQuestionsForPackage', () => {
           { title: expect.stringContaining('Minor'), value: 'minor' },
           { title: expect.stringContaining('None'), value: 'none' },
           { title: expect.stringContaining('Major'), value: 'major' },
+          { title: expect.stringContaining('Prepatch'), value: 'prepatch' },
+          { title: expect.stringContaining('Preminor'), value: 'preminor' },
+          { title: expect.stringContaining('Premajor'), value: 'premajor' },
         ],
         message: 'Change type',
         name: 'type',
@@ -74,7 +77,9 @@ describe('getQuestionsForPackage', () => {
 
   it('errors if there are no valid change types for package', () => {
     const questions = getQuestionsWrapper({
-      packageInfo: { beachball: { disallowedChangeTypes: ['major', 'minor', 'patch', 'none'] } },
+      packageInfo: {
+        beachball: { disallowedChangeTypes: ['major', 'minor', 'patch', 'none', 'premajor', 'preminor', 'prepatch'] },
+      },
     });
     expect(questions).toBeUndefined();
     expect(logs.mocks.error).toHaveBeenCalledWith('No valid change types available for package "foo"');
@@ -85,7 +90,15 @@ describe('getQuestionsForPackage', () => {
       packageInfo: { beachball: { disallowedChangeTypes: ['major'] } },
     });
     const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value as ChangeType);
-    expect(choices).toEqual(['patch', 'minor', 'none']);
+    expect(choices).toEqual(['patch', 'minor', 'none', 'prepatch', 'preminor', 'premajor']);
+  });
+
+  it('excludes prerelease bump choices if disallowed', () => {
+    const questions = getQuestionsWrapper({
+      packageInfo: { beachball: { disallowedChangeTypes: ['prepatch', 'preminor', 'premajor'] } },
+    });
+    const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value as ChangeType);
+    expect(choices).toEqual(['patch', 'minor', 'none', 'major']);
   });
 
   it('allows prerelease change for package with prerelease version', () => {
@@ -93,7 +106,7 @@ describe('getQuestionsForPackage', () => {
       packageInfo: { version: '1.0.0-beta.1' },
     });
     const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value as ChangeType);
-    expect(choices).toEqual(['prerelease', 'patch', 'minor', 'none', 'major']);
+    expect(choices).toEqual(['prerelease', 'patch', 'minor', 'none', 'major', 'prepatch', 'preminor', 'premajor']);
   });
 
   // this is a bit weird as well, but documenting current behavior
@@ -102,7 +115,7 @@ describe('getQuestionsForPackage', () => {
       packageInfo: { version: '1.0.0-beta.1', beachball: { disallowedChangeTypes: ['prerelease'] } },
     });
     const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value as ChangeType);
-    expect(choices).toEqual(['patch', 'minor', 'none', 'major']);
+    expect(choices).toEqual(['patch', 'minor', 'none', 'major', 'prepatch', 'preminor', 'premajor']);
   });
 
   it('excludes the change type question when options.type is specified', () => {
@@ -115,7 +128,9 @@ describe('getQuestionsForPackage', () => {
 
   it('excludes the change type question with only one valid option', () => {
     const questions = getQuestionsWrapper({
-      packageInfo: { beachball: { disallowedChangeTypes: ['major', 'minor', 'none'] } },
+      packageInfo: {
+        beachball: { disallowedChangeTypes: ['major', 'minor', 'none', 'premajor', 'preminor', 'prepatch'] },
+      },
     });
     expect(questions).toHaveLength(1);
     expect(questions![0].name).toBe('comment');
@@ -125,7 +140,7 @@ describe('getQuestionsForPackage', () => {
     const questions = getQuestionsWrapper({
       packageInfo: {
         version: '1.0.0-beta.1',
-        beachball: { disallowedChangeTypes: ['major', 'minor', 'patch', 'none'] },
+        beachball: { disallowedChangeTypes: ['major', 'minor', 'patch', 'none', 'premajor', 'preminor', 'prepatch'] },
       },
     });
     expect(questions).toHaveLength(1);

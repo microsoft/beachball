@@ -85,7 +85,14 @@ Please describe the changes for: some-pkg
   Minor - small feature; backwards compatible changes.
   None - this change does not affect the published package in any way.
   Major - major feature; breaking changes.
+  Prepatch - start a prerelease patch.
+  Preminor - start a prerelease minor.
+  Premajor - start a prerelease major.
 ```
+
+`Prepatch`, `preminor`, and `premajor` start prerelease versions. For a package that is already on a
+prerelease version, use `prerelease` to continue the prerelease sequence or a stable type (`patch`,
+`minor`, or `major`) to move to a stable version according to semver.
 
 Next, it asks for a **description** of the change. You can type any text or choose from a list of recent commit messages.
 

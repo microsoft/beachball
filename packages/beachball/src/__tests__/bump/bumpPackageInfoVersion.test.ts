@@ -119,6 +119,23 @@ describe('bumpPackageInfoVersion', () => {
     expect(bumpInfo.modifiedPackages).toContain(name);
   });
 
+  it.each<[ChangeType, string]>([
+    ['major', '2.0.0'],
+    ['minor', '2.0.0'],
+    ['patch', '2.0.0'],
+  ])(
+    'promotes prerelease package to stable for changeType %s when prereleasePrefix is set',
+    (changeType, expectedVersion) => {
+      const bumpInfo = bumpPackageInfoVersionWrapper({
+        changeType,
+        packageInfo: { version: '2.0.0-rc.0' },
+        options: { prereleasePrefix: 'rc' },
+      });
+      expect(bumpInfo.packageInfos[name].version).toBe(expectedVersion);
+      expect(bumpInfo.modifiedPackages).toContain(name);
+    }
+  );
+
   it('bumps to subsequent prerelease version with existing prefix', () => {
     const bumpInfo = bumpPackageInfoVersionWrapper({
       changeType: 'prerelease',

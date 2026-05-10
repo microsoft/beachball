@@ -120,7 +120,9 @@ If the package's current version is 1.0.0 or greater and does NOT have a prerele
 - `"minor"`: New exported APIs, non-breaking signature changes to exported APIs, or more significant changes to internal logic. (If the package has a `<package path>/etc/*.api.md` file, checking its diff is the easiest way to see exported API changes.)
 - `"major"`: Breaking changes to exported APIs (removals or breaking signature changes), critical dependency updates, or behavior changes that might be breaking for the consumer. You MUST confirm with the user before choosing `"major"`.
 - `"none"`: None of the changes will impact consumers of the package (e.g. the changes are only to non-exported test-specific files or documentation). If you're not certain, prefer `"patch"`.
-- There are additional options `prerelease|premajor|preminor|prepatch`, but you should only use one of these if explicitly requested by the user.
+- There are additional prerelease options:
+  - Use `premajor`, `preminor`, or `prepatch` when the user-facing change should start a prerelease instead of a stable release.
+  - Use `prerelease` only for packages already on a prerelease version, to continue the prerelease sequence.
 
 #### Case 2: Version is 0.x.y and NOT prerelease
 
@@ -132,8 +134,9 @@ If the package's major version is 0 and does NOT have a prerelease suffix, this 
 
 #### Case 3: Version IS prerelease
 
-ONLY if the package's current version includes a prerelease suffix, the typical options are `<prerelease|none>` (but you MUST respect `disallowedChangeTypes`):
+ONLY if the package's current version includes a prerelease suffix, the typical options are `<prerelease|patch|minor|major|none>` (but you MUST respect `disallowedChangeTypes`):
 
 - `"prerelease"`: Any changes that impact consumers of the package
+- `"patch"`, `"minor"`, or `"major"`: Promote or advance the package to a stable version according to semver. Use these when the current prerelease already represents the stable release you want to ship (for example, `2.0.0-rc.0` → `2.0.0`).
 - `"none"`: None of the changes will impact consumers of the package (e.g. the changes are only to non-exported test-specific files or documentation). If you're not certain, prefer `"prerelease"`.
-- There are additional options `premajor|preminor|prepatch`, but you should only use one of these if explicitly requested by the user or all other change types are disallowed.
+- There are additional options `premajor|preminor|prepatch`; use one when intentionally starting a new prerelease target from the current prerelease version, or when all other change types are disallowed.

@@ -20,9 +20,22 @@ The available types follow [semantic versioning](https://semver.org/) convention
 | `patch` | Bug fixes or internal changes that don't affect exported API signatures | 1.0.0 → 1.0.1 |
 | `minor` | New exported APIs, non-breaking changes to exported API signatures, or significant changes to internal logic | 1.0.0 → 1.1.0 |
 | `major` | Breaking changes to exported APIs (removals or breaking signature changes), critical dependency updates, or behavior changes that could break consumers | 1.0.0 → 2.0.0 |
+| `prepatch` | Start a prerelease for patch-level changes | 1.0.0 → 1.0.1-beta.0 |
+| `preminor` | Start a prerelease for minor-level changes | 1.0.0 → 1.1.0-beta.0 |
+| `premajor` | Start a prerelease for major-level changes | 1.0.0 → 2.0.0-beta.0 |
 | `none` | Changes that don't affect consumers at all (tests, documentation, internal config) | no bump |
 
 When in doubt between `minor`/`patch` or `patch`/`none`, it's generally best to choose the larger change type.
+
+The prerelease examples assume `prereleasePrefix` is set to `beta`. Without a prefix, semver uses a
+numeric prerelease identifier such as `1.0.1-0`.
+
+### Prerelease packages
+
+For packages already on a prerelease version, choose `prerelease` to continue the prerelease sequence.
+Choose `patch`, `minor`, or `major` to move to a stable version when the current prerelease already
+represents that release (for example, 2.0.0-rc.0 → 2.0.0). Choose `prepatch`, `preminor`, or
+`premajor` to start a new prerelease target from the current version.
 
 ### Zero-version packages (version 0.x.y)
 
