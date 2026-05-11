@@ -5,13 +5,13 @@
   "editor.tabSize": 2,
   "eslint.enable": true,
   "files.trimTrailingWhitespace": true,
-  "javascript.preferences.quoteStyle": "single",
-  "typescript.preferences.quoteStyle": "single",
-  "typescript.tsdk": "node_modules/typescript/lib",
+  "js/ts.preferences.quoteStyle": "single",
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
   "jest.runMode": "on-demand",
   "search.exclude": {
     "**/node_modules": true,
     "**/lib": true,
+    "**/dist": true,
     "**/*.svg": true,
     "**/.yarn": true
   },

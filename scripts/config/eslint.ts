@@ -5,11 +5,11 @@ import eslint from 'eslint/config';
 import prettier from 'eslint-config-prettier/flat';
 import tseslint from 'typescript-eslint';
 import path from 'path';
-import noDeprecated from './eslintNoDeprecated.ts';
+import deprecated from '@ms-cloudpack/eslint-plugin-deprecated';
 
 const repoRoot = path.resolve(import.meta.dirname, '../..');
 
-export function getConfig(dirname: string) {
+export function getConfig(dirname: string, ...configs: eslint.Config[]) {
   return eslint.defineConfig(
     // ignores must be in separate objects to be properly respected
     includeIgnoreFile(path.join(repoRoot, '.gitignore')),
@@ -19,6 +19,7 @@ export function getConfig(dirname: string) {
     pluginJs.configs.recommended,
     tseslint.configs.recommendedTypeChecked,
     prettier,
+    deprecated.configs.recommended as unknown as eslint.Config, // typescript-eslint mismatch
     {
       languageOptions: {
         globals: globals.node, // switch to nodeBuiltin if using ESM
@@ -30,16 +31,9 @@ export function getConfig(dirname: string) {
       linterOptions: {
         reportUnusedDisableDirectives: 'error',
       },
-      plugins: {
-        // see file comment for why this exists
-        beachball: {
-          rules: { 'no-deprecated': noDeprecated as never },
-        },
-      },
     },
     {
       rules: {
-        'beachball/no-deprecated': 'error',
         '@typescript-eslint/consistent-generic-constructors': 'error',
         '@typescript-eslint/consistent-type-assertions': 'error',
         '@typescript-eslint/consistent-type-imports': ['error', { disallowTypeAnnotations: false }],
@@ -53,6 +47,7 @@ export function getConfig(dirname: string) {
             leadingUnderscore: 'allow',
           },
         ],
+        '@typescript-eslint/no-import-type-side-effects': 'error',
         '@typescript-eslint/no-non-null-assertion': 'error',
         '@typescript-eslint/no-shadow': 'error',
         '@typescript-eslint/no-unused-expressions': ['error', { allowShortCircuit: true }],
@@ -177,6 +172,7 @@ export function getConfig(dirname: string) {
     {
       files: ['**/*.{js,cjs,mjs}'],
       extends: [tseslint.configs.disableTypeChecked],
-    }
+    },
+    ...configs
   );
 }
