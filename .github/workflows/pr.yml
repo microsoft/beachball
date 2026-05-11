@@ -64,7 +64,7 @@ jobs:
       - run: yarn format:check
         if: matrix.os == 'ubuntu-latest' && matrix.node == 22
 
-      - run: yarn lint:ci
+      - run: yarn lint --verbose
         if: matrix.os == 'ubuntu-latest' && matrix.node == 22
 
       - run: yarn test --verbose

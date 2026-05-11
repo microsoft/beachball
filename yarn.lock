@@ -970,15 +970,47 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@microsoft/beachball-scripts@npm:1.0.0, @microsoft/beachball-scripts@workspace:scripts":
+"@microsoft/beachball-scripts@workspace:^, @microsoft/beachball-scripts@workspace:scripts":
   version: 0.0.0-use.local
   resolution: "@microsoft/beachball-scripts@workspace:scripts"
   dependencies:
-    "@phenomnomnominal/tsquery": "npm:^6.1.3"
-    tsutils: "npm:^3.21.0"
+    "@ms-cloudpack/eslint-plugin-deprecated": "patch:@ms-cloudpack/eslint-plugin-deprecated@npm%3A0.1.4#~/.yarn/patches/@ms-cloudpack-eslint-plugin-deprecated-npm-0.1.4-74fc1f6a58.patch"
+    eslint: "npm:^9.0.0"
+    typescript: "npm:~6.0.0"
+    typescript-eslint: "npm:^8.52.0"
     workspace-tools: "npm:^0.41.6"
   languageName: unknown
   linkType: soft
+
+"@ms-cloudpack/eslint-plugin-deprecated@npm:0.1.4":
+  version: 0.1.4
+  resolution: "@ms-cloudpack/eslint-plugin-deprecated@npm:0.1.4"
+  dependencies:
+    "@phenomnomnominal/tsquery": "npm:^6.1.3"
+    "@typescript-eslint/utils": "npm:^8.0.0"
+    tsutils: "npm:^3.21.0"
+  peerDependencies:
+    eslint: ^8.0.0 || ^9.0.0 || ^10.0.0
+    typescript: ">=5.0.0"
+    typescript-eslint: ^8.0.0
+  checksum: 10c0/edd76288aa5b7a7da5c63670ef17409e608ec7325978b22b248cf394ada0ac410e9295930788d44946d927c09a2f46dbcc30bbcf18cef5bed3c6a6427788eab5
+  languageName: node
+  linkType: hard
+
+"@ms-cloudpack/eslint-plugin-deprecated@patch:@ms-cloudpack/eslint-plugin-deprecated@npm%3A0.1.4#~/.yarn/patches/@ms-cloudpack-eslint-plugin-deprecated-npm-0.1.4-74fc1f6a58.patch":
+  version: 0.1.4
+  resolution: "@ms-cloudpack/eslint-plugin-deprecated@patch:@ms-cloudpack/eslint-plugin-deprecated@npm%3A0.1.4#~/.yarn/patches/@ms-cloudpack-eslint-plugin-deprecated-npm-0.1.4-74fc1f6a58.patch::version=0.1.4&hash=a54a21"
+  dependencies:
+    "@phenomnomnominal/tsquery": "npm:^6.1.3"
+    "@typescript-eslint/utils": "npm:^8.0.0"
+    tsutils: "npm:^3.21.0"
+  peerDependencies:
+    eslint: ^8.0.0 || ^9.0.0 || ^10.0.0
+    typescript: ">=5.0.0"
+    typescript-eslint: ^8.0.0
+  checksum: 10c0/1443098a63b65cc4d8f530f548d4d633c4670b51f675840160141ed1390d15610f50fdba71be9ec4c4827cee37054b6fcf1c12266d5c653c7744e0744e1bb9f7
+  languageName: node
+  linkType: hard
 
 "@napi-rs/wasm-runtime@npm:^0.2.11":
   version: 0.2.12
@@ -1405,7 +1437,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/utils@npm:8.59.1, @typescript-eslint/utils@npm:^8.52.0":
+"@typescript-eslint/utils@npm:8.59.1, @typescript-eslint/utils@npm:^8.0.0, @typescript-eslint/utils@npm:^8.52.0":
   version: 8.59.1
   resolution: "@typescript-eslint/utils@npm:8.59.1"
   dependencies:
@@ -2351,7 +2383,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "beachball@workspace:packages/beachball"
   dependencies:
-    "@microsoft/beachball-scripts": "npm:1.0.0"
+    "@microsoft/beachball-scripts": "workspace:^"
     "@types/jsonwebtoken": "npm:^9.0.10"
     "@types/minimatch": "npm:^3.0.0"
     "@types/prompts": "npm:^2.4.2"
