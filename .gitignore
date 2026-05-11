@@ -8,6 +8,7 @@ node_modules/
 lib/
 package-lock.json
 target
+.copilot/.local
 .claude/settings.local.json
 # ignore when switching between yarn 1/4 branches
 /.yarn
