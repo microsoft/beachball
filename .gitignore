@@ -22,6 +22,7 @@ docs/.yarn
 
 .yarn/*
 !.yarn/patches/
+!.yarn/plugins/
 !.yarn/releases/
 # Ignore this in case a local .npmrc is added with a token for publishing
 .npmrc

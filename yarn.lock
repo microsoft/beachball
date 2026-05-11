@@ -2377,7 +2377,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@microsoft/beachball-scripts@workspace:^, @microsoft/beachball-scripts@workspace:scripts":
+"@microsoft/beachball-scripts@npm:1.0.0, @microsoft/beachball-scripts@workspace:^, @microsoft/beachball-scripts@workspace:scripts":
   version: 0.0.0-use.local
   resolution: "@microsoft/beachball-scripts@workspace:scripts"
   dependencies:
@@ -2400,7 +2400,7 @@ __metadata:
     "@azure/msal-node": "npm:^5.1.5"
     "@azure/storage-blob": "npm:^12.31.0"
     "@microsoft/beachball-scripts": "npm:1.0.0"
-    "@ms-cloudpack/esbuild-node-helpers": "npm:^0.1.1"
+    "@ms-cloudpack/esbuild-node-helpers": "npm:^0.1.2"
     "@types/jws": "npm:^3.2.11"
     "@types/yazl": "npm:^3.3.1"
     esbuild: "npm:^0.28.0"
@@ -2418,14 +2418,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ms-cloudpack/environment@npm:^0.1.6":
-  version: 0.1.6
-  resolution: "@ms-cloudpack/environment@npm:0.1.6"
-  checksum: 10c0/1082851c6174d29edc336579e7075c2b602be06807083e8e90b21214ba82d0a8863e6bc59c8da51feee13eea789a25b5e5309ea3471bea6ca085ee47f5e3bf0d
-  languageName: node
-  linkType: hard
-
-"@ms-cloudpack/esbuild-node-helpers@npm:0.1.2":
+"@ms-cloudpack/esbuild-node-helpers@npm:0.1.2, @ms-cloudpack/esbuild-node-helpers@npm:^0.1.2":
   version: 0.1.2
   resolution: "@ms-cloudpack/esbuild-node-helpers@npm:0.1.2"
   dependencies:
@@ -2436,20 +2429,6 @@ __metadata:
   peerDependencies:
     esbuild: ">=0.28.0"
   checksum: 10c0/233e3bcc6414cfc6463cc201a432c0d637b50f4603980397bb5b703551d1027a989279b72648ac0a8dd4346debe472ad29bb5eb4dfa20167107a2f3defde1296
-  languageName: node
-  linkType: hard
-
-"@ms-cloudpack/esbuild-node-helpers@npm:^0.1.1":
-  version: 0.1.3
-  resolution: "@ms-cloudpack/esbuild-node-helpers@npm:0.1.3"
-  dependencies:
-    "@ms-cloudpack/environment": "npm:^0.1.6"
-    hosted-git-info: "npm:^9.0.0"
-    picocolors: "npm:^1.1.1"
-    validate-npm-package-license: "npm:^3.0.4"
-  peerDependencies:
-    esbuild: ">=0.28.0"
-  checksum: 10c0/bfaa027729c209102c5effebecebfee7ce1d0beaa467b245e9aa8a43eedf030c76fde440cb75de39ea70a3b1e14bcdd570d6c2ddc4ab63cba61dcde5024f4392
   languageName: node
   linkType: hard
 
