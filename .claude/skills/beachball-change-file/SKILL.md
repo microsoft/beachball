@@ -1,1 +1,0 @@
-../../../.claude-plugin/plugins/beachball-change-file/skills/beachball-change-file/SKILL.md

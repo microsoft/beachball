@@ -2,8 +2,8 @@
 name: beachball-change-file
 description: How to create a Beachball change file. ONLY use this skill when the user asks to generate change files, before pushing a branch, or before creating a PR.
 metadata:
-  version: 1.0.2
-  source: https://github.com/microsoft/beachball/blob/main/.claude-plugin/plugins/beachball-change-file/skills/beachball-change-file/SKILL.md
+  version: 1.0.3
+  source: https://github.com/microsoft/beachball/blob/main/skills/beachball-change-file/SKILL.md
 ---
 
 [Beachball](https://microsoft.github.io/beachball/) is a tool used for managing versioning and changelogs for JS/TS codebases. Every pull request must include a Beachball change file. Change files include the list of packages with public-facing changes in the branch, with the description and semver change type for each package. After the PR is checked in and a release is run, the change files are used to determine version bumps and update changelogs.
