@@ -1,13 +1,13 @@
-import fs from 'fs';
 import type { AccessToken } from '@azure/core-auth';
 import { ConfidentialClientApplication, type AuthenticationResult, type NodeAuthOptions } from '@azure/msal-node';
 import type { ReleaseHttpParams } from './releaseHttp.ts';
-import { getCertificatesFromPFX, getKeyFromPFX, getThumbprint } from './signing.ts';
+import { getKeyAndCertificatesFromPFX, getThumbprint } from './signing.ts';
+import { ReleaseError } from './ReleaseError.ts';
 
 export interface GetAadTokenParams extends Pick<ReleaseHttpParams, 'clientId'> {
   tenantId: string;
   endpoint: string;
-  auth: { certPath: string; privateKeyPath: string } | { certPfxContent: string } | { idToken: string };
+  auth: { certPfxContent: string } | { idToken: string };
 }
 
 export type { AccessToken };
@@ -16,49 +16,44 @@ export const esrpApiEndpoint = 'https://api.esrp.microsoft.com/';
 
 /**
  * Get a `ConfidentialClientApplication` access token from AAD using a certificate.
+ * Throws a `ReleaseError` on failure.
  */
 export async function getAadToken(params: GetAadTokenParams): Promise<AccessToken> {
-  const { clientId, auth, endpoint } = params;
+  const { clientId, tenantId, auth, endpoint } = params;
 
   const authOptions: NodeAuthOptions = {
     clientId,
-    authority: `https://login.microsoftonline.com/${params.tenantId}`,
+    authority: `https://login.microsoftonline.com/${tenantId}`,
   };
 
   if ('idToken' in auth) {
     authOptions.clientAssertion = auth.idToken;
   } else {
-    let certContent: string;
-    let keyContent: string;
-    if ('certPath' in auth) {
-      certContent = fs.readFileSync(auth.certPath, 'utf-8');
-      keyContent = fs.readFileSync(auth.privateKeyPath, 'utf-8');
-    } else {
-      certContent = getCertificatesFromPFX(auth.certPfxContent)[0];
-      keyContent = getKeyFromPFX(auth.certPfxContent);
+    try {
+      const { key, certificates } = getKeyAndCertificatesFromPFX(auth.certPfxContent);
+      const thumbprintSha256 = getThumbprint(certificates[0], 'sha256').toString('hex');
+      authOptions.clientCertificate = {
+        thumbprintSha256,
+        privateKey: key,
+        x5c: certificates[0],
+      };
+    } catch (err) {
+      throw new ReleaseError(`Error parsing cert info to acquire token`, { cause: err });
     }
-    const thumbprintSha256 = getThumbprint(certContent, 'sha256').toString('hex');
-    authOptions.clientCertificate = {
-      thumbprintSha256,
-      privateKey: keyContent,
-      x5c: certContent,
-    };
   }
 
-  const cca = new ConfidentialClientApplication({ auth: authOptions });
-
   let result: AuthenticationResult | null;
+  const scope = `${endpoint}.default`;
+  const errorMessageBase = `Failed to acquire token for client "${clientId}" in tenant "${tenantId}" with scope "${scope}"`;
   try {
-    result = await cca.acquireTokenByClientCredential({
-      scopes: [`${endpoint}.default`],
-    });
-  } catch (ex: unknown) {
-    const message = ex instanceof Error ? ex.message : String(ex);
-    throw new Error(`Error acquiring AAD token: ${message}`);
+    const cca = new ConfidentialClientApplication({ auth: authOptions });
+    result = await cca.acquireTokenByClientCredential({ scopes: [scope] });
+  } catch (ex) {
+    throw new ReleaseError(errorMessageBase, { cause: ex });
   }
 
   if (!result || !result.expiresOn) {
-    throw new Error('Failed to acquire AAD token: no result returned');
+    throw new ReleaseError(`${errorMessageBase}: no result returned`);
   }
 
   return {

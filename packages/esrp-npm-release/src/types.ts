@@ -1,8 +1,9 @@
 import type { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
 import type { CreateNpmReleaseRequestMessageParams } from './models/npmRelease.ts';
+import type { Logger } from './utils/Logger.ts';
 
 export interface ReleaseFileParams {
-  log: (...args: unknown[]) => void;
+  logger: Logger;
 
   /** ESRP Release Service client ID */
   clientId: string;
@@ -17,16 +18,14 @@ export interface ReleaseFileParams {
   stagingBlobServiceClient: BlobServiceClient;
 
   /** Info for creating the release request */
-  releaseRequestParams: CreateNpmReleaseRequestMessageParams;
-  /** Version to use for the release. For npm, it's arbitrary (doesn't change package versions). */
-  version: string;
+  releaseRequestParams: Omit<CreateNpmReleaseRequestMessageParams, 'correlationId'>;
   /** Local file path to upload */
   filePath: string;
 }
 
 export interface CreateESRPReleaseServiceParams extends Pick<
   ReleaseFileParams,
-  'log' | 'tenantId' | 'clientId' | 'authCertificatePfx' | 'requestSigningCertificatePfx' | 'releaseRequestParams'
+  'logger' | 'tenantId' | 'clientId' | 'authCertificatePfx' | 'requestSigningCertificatePfx' | 'releaseRequestParams'
 > {
   stagingContainerClient: ContainerClient;
   stagingSasToken: string;
@@ -35,13 +34,11 @@ export interface CreateESRPReleaseServiceParams extends Pick<
 export interface ESRPReleaseServiceParams extends Pick<
   CreateESRPReleaseServiceParams,
   | 'releaseRequestParams'
-  | 'log'
+  | 'logger'
   | 'clientId'
   | 'stagingContainerClient'
   | 'stagingSasToken'
   | 'requestSigningCertificatePfx'
 > {
   accessToken: string;
-  // requestSigningCertificates: string[];
-  // requestSigningKey: string;
 }

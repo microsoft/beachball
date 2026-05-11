@@ -1,6 +1,10 @@
 import type { ContainerClient, BlobServiceClient } from '@azure/storage-blob';
+import { ReleaseError } from './utils/ReleaseError';
 
 const stateContainerName = 'release-state';
+
+const getContainerDesc = (accountName: string) =>
+  `container "${stateContainerName}" in storage account "${accountName}"` as const;
 
 /**
  * Tracks which layers have been successfully published for the current source version.
@@ -16,43 +20,69 @@ const stateContainerName = 'release-state';
  * since the same source version always produces the same layers.
  */
 export class ReleaseState {
-  private set = new Set<string>();
-  private containerClient: ContainerClient;
-  private prefix: string;
+  #publishedLayers: Set<string>;
+  #containerClient: ContainerClient;
+  #prefix: string;
 
-  private constructor(containerClient: ContainerClient, prefix: string) {
-    this.containerClient = containerClient;
-    this.prefix = prefix;
-  }
-
+  /**
+   * Initialize the ReleaseState from persisted state in Azure Blob Storage, loading the list of
+   * already-published layers for this `sourceVersion`. Throws `ReleaseError` on any issue.
+   */
   static async create(blobServiceClient: BlobServiceClient, sourceVersion: string): Promise<ReleaseState> {
-    const containerClient = blobServiceClient.getContainerClient(stateContainerName);
-    await containerClient.createIfNotExists();
-
-    const prefix = `${sourceVersion}/`;
-    const state = new ReleaseState(containerClient, prefix);
-
-    for await (const blob of containerClient.listBlobsFlat({ prefix })) {
-      state.set.add(blob.name.slice(prefix.length));
+    const desc = getContainerDesc(blobServiceClient.accountName);
+    let containerClient: ContainerClient;
+    try {
+      containerClient = blobServiceClient.getContainerClient(stateContainerName);
+    } catch (err) {
+      throw new ReleaseError(`Error initializing client for ${desc}`, { cause: err });
     }
 
-    return state;
+    await containerClient.createIfNotExists().catch(err => {
+      throw new ReleaseError(`Error creating or accessing ${desc}`, { cause: err });
+    });
+
+    const prefix = `${sourceVersion}/`;
+    const publishedLayers = new Set<string>();
+    try {
+      for await (const blob of containerClient.listBlobsFlat({ prefix })) {
+        publishedLayers.add(blob.name.slice(prefix.length));
+      }
+    } catch (err) {
+      throw new ReleaseError(`Error listing blobs with prefix "${prefix}" in ${desc}`, { cause: err });
+    }
+
+    return new ReleaseState(containerClient, prefix, publishedLayers);
+  }
+
+  private constructor(containerClient: ContainerClient, prefix: string, publishedLayers: Set<string>) {
+    this.#containerClient = containerClient;
+    this.#prefix = prefix;
+    this.#publishedLayers = publishedLayers;
   }
 
   /** Number of layers published */
-  get publishedCount(): number {
-    return this.set.size;
+  public get publishedCount(): number {
+    return this.#publishedLayers.size;
   }
 
   /** Returns whether the layer has already been published */
-  hasPublished(layerNum: string): boolean {
-    return this.set.has(layerNum);
+  public hasPublished(layerNum: string): boolean {
+    return this.#publishedLayers.has(layerNum);
   }
 
-  /** Marks the layer as published */
-  async markPublished(layerNum: string): Promise<void> {
-    const blobClient = this.containerClient.getBlockBlobClient(this.prefix + layerNum);
-    await blobClient.upload('', 0);
-    this.set.add(layerNum);
+  /** Marks the layer as published (throws `ReleaseError` on any issue) */
+  public async markPublished(layerNum: string): Promise<void> {
+    const blobName = this.#prefix + layerNum;
+    try {
+      const blobClient = this.#containerClient.getBlockBlobClient(blobName);
+      await blobClient.upload('', 0);
+      this.#publishedLayers.add(layerNum);
+    } catch (err) {
+      throw new ReleaseError(
+        `Error marking layer ${layerNum} as published in persisted release state ` +
+          `(${getContainerDesc(this.#containerClient.accountName)})`,
+        { cause: err }
+      );
+    }
   }
 }

@@ -1,9 +1,10 @@
 import fs from 'fs';
-import path from 'path';
 import crypto from 'crypto';
-import cp from 'child_process';
-import os from 'os';
+import execa from 'execa';
 
+/**
+ * Hash a file using a stream (in case the file is large).
+ */
 export function hashFileStream(hashName: 'sha256', filePath: string): Promise<Buffer> {
   const stream = fs.createReadStream(filePath);
   return new Promise<Buffer>((resolve, reject) => {
@@ -15,6 +16,7 @@ export function hashFileStream(hashName: 'sha256', filePath: string): Promise<Bu
       .on('close', () => resolve(shasum.digest()));
   });
 }
+
 /**
  * Convert a certificate from PEM format (base64 text with header/footer) into the raw
  * DER binary format.
@@ -23,52 +25,42 @@ export function pemToDer(input: string): Buffer {
   return Buffer.from(input.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\s+/g, ''), 'base64');
 }
 
-/** Get the thumbprint of a certificate with the specified algorithm */
+/**
+ * Get the thumbprint of a certificate with the specified algorithm.
+ */
 export function getThumbprint(certPem: string, algorithm: 'sha1' | 'sha256'): Buffer {
   const certDer = pemToDer(certPem);
   return crypto.createHash(algorithm).update(certDer).digest();
 }
 
-export function getKeyFromPFX(pfxContent: string): string {
-  const id = crypto.randomUUID();
-  const pfxCertificatePath = path.join(os.tmpdir(), `cert-${id}.pfx`);
-  const pemKeyPath = path.join(os.tmpdir(), `key-${id}.pem`);
-
+/**
+ * Extract the private key and all certificates from a PFX file using `openssl`.
+ *
+ * Certificates are returned with the end-entity (leaf) certificate first, followed by any
+ * intermediates, with the root CA last. This reverses `openssl pkcs12`'s output order so
+ * callers can index `[0]` to get the signing certificate.
+ *
+ * Throws an informative plain `Error` on any failure.
+ */
+export function getKeyAndCertificatesFromPFX(pfxContent: string): { key: string; certificates: string[] } {
+  const pfxCertificate = Buffer.from(pfxContent, 'base64');
+  let result: execa.ExecaSyncReturnValue;
   try {
-    const pfxCertificate = Buffer.from(pfxContent, 'base64');
-    fs.writeFileSync(pfxCertificatePath, pfxCertificate);
-    cp.execSync(`openssl pkcs12 -in "${pfxCertificatePath}" -nocerts -nodes -out "${pemKeyPath}" -passin pass:`);
-    const raw = fs.readFileSync(pemKeyPath, 'utf-8');
-    const result = raw.match(/-----BEGIN PRIVATE KEY-----[\s\S]+?-----END PRIVATE KEY-----/g);
-    if (!result) {
-      throw new Error('Failed to extract private key from PFX');
-    }
-    return result[0];
-  } finally {
-    fs.rmSync(pfxCertificatePath, { force: true });
-    fs.rmSync(pemKeyPath, { force: true });
+    result = execa.sync('openssl', ['pkcs12', '-nodes', '-passin', 'pass:'], { input: pfxCertificate });
+  } catch (_err) {
+    const err = _err as execa.ExecaSyncError;
+    throw new Error(`Error processing PFX with \`${err.command}\`:\n${err.message}`);
   }
-}
 
-export function getCertificatesFromPFX(pfxContent: string): string[] {
-  const id = crypto.randomUUID();
-  const pfxCertificatePath = path.join(os.tmpdir(), `cert-${id}.pfx`);
-  const pemCertificatePath = path.join(os.tmpdir(), `cert-${id}.pem`);
-
-  try {
-    const pfxCertificate = Buffer.from(pfxContent, 'base64');
-    fs.writeFileSync(pfxCertificatePath, pfxCertificate);
-    cp.execSync(`openssl pkcs12 -in "${pfxCertificatePath}" -nokeys -out "${pemCertificatePath}" -passin pass:`);
-    const raw = fs.readFileSync(pemCertificatePath, 'utf-8');
-    const matches = raw.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g);
-    return matches ? matches.reverse() : [];
-  } finally {
-    fs.rmSync(pfxCertificatePath, { force: true });
-    fs.rmSync(pemCertificatePath, { force: true });
+  const keyMatch = result.stdout.match(/-----BEGIN PRIVATE KEY-----[\s\S]+?-----END PRIVATE KEY-----/);
+  if (!keyMatch) {
+    throw new Error('Private key not found in processed PFX');
   }
-}
 
-export function getCertificatesFromPemFile(pemFilePath: string): string[] {
-  const certPem = fs.readFileSync(pemFilePath, 'utf-8');
-  return certPem.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g) || [];
+  const certMatches = result.stdout.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g);
+  if (!certMatches) {
+    throw new Error('Certificates not found in processed PFX');
+  }
+
+  return { key: keyMatch[0], certificates: certMatches.reverse() };
 }

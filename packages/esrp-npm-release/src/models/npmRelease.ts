@@ -9,6 +9,7 @@ export type GeneratedReleaseRequestMessage = ReleaseRequestMessage &
   >;
 
 export interface CreateNpmReleaseRequestMessageParams {
+  correlationId: string;
   /** email of the DRI for the team creating this release */
   driEmail: string[];
   /** created by email */
@@ -19,12 +20,14 @@ export interface CreateNpmReleaseRequestMessageParams {
   approvers: string[];
   /** your release title */
   releaseTitle: string;
-  productInfo: ProductInfo;
+  productInfo: Required<ProductInfo>;
   npmTag?: string;
 }
 
 export function createNpmReleaseRequest(params: CreateNpmReleaseRequestMessageParams): GeneratedReleaseRequestMessage {
   return {
+    esrpCorrelationId: params.correlationId,
+    customerCorrelationId: params.correlationId,
     driEmail: params.driEmail,
     createdBy: { userPrincipalName: params.createdBy },
     owners: params.owners.map(email => ({ owner: { userPrincipalName: email } })),
