@@ -3,7 +3,7 @@
 export class Logger {
   #prefix: string | undefined;
 
-  constructor(prefix?: string) {
+  public constructor(prefix?: string) {
     this.#prefix = prefix;
   }
 

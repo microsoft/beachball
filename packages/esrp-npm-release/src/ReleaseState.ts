@@ -29,7 +29,7 @@ export class ReleaseState {
    * Initialize the ReleaseState from persisted state in Azure Blob Storage, loading the list of
    * already-published layers for this `repoName` + `sourceVersion`. Throws `ReleaseError` on any issue.
    */
-  static async create(params: {
+  public static async create(params: {
     blobServiceClient: BlobServiceClient;
     repoName: string;
     sourceVersion: string;

@@ -6,16 +6,18 @@ import {
   generateBlobSASQueryParameters,
 } from '@azure/storage-blob';
 import { randomUUID } from 'crypto';
-import fs from 'fs';
 import path from 'path';
-import { createNpmReleaseRequest, type CreateNpmReleaseRequestMessageParams } from './models/npmRelease.ts';
-import { FileHashType, type ReleaseResultMessage, type ReleaseSubmitResponse } from './models/types.ts';
-import { generateJwsToken } from './utils/generateJwsToken.ts';
+import {
+  createNpmReleaseRequest,
+  stringifyReleaseMessage,
+  type CreateNpmReleaseRequestMessageParams,
+} from './models/npmRelease.ts';
+import type { ReleaseResultMessage, ReleaseSubmitResponse } from './models/types.ts';
 import { esrpApiEndpoint, getAadToken } from './utils/getAadToken.ts';
-import { getReleaseDetails, getReleaseStatus, submitRelease } from './utils/releaseHttp.ts';
-import { getKeyAndCertificatesFromPFX, hashFileStream } from './utils/signing.ts';
-import { ReleaseError } from './utils/ReleaseError.ts';
 import type { Logger } from './utils/Logger.ts';
+import { ReleaseError } from './utils/ReleaseError.ts';
+import { getReleaseDetails, getReleaseStatus, submitRelease } from './utils/releaseHttp.ts';
+import { getKeyAndCertificatesFromPFX } from './utils/signing.ts';
 
 interface PerReleaseCredentials {
   esrpAccessToken: string;
@@ -47,7 +49,10 @@ interface CreateReleaseParams {
   filePath: string;
   stagingBlobPathPrefix: string;
   /** Info for creating the release request */
-  releaseRequestParams: Omit<CreateNpmReleaseRequestMessageParams, 'correlationId'>;
+  releaseRequestParams: Omit<
+    CreateNpmReleaseRequestMessageParams,
+    'correlationId' | 'file' | 'requestSigningCertificates' | 'requestSigningKey'
+  >;
 }
 
 const stagingContainerName = 'staging';
@@ -69,9 +74,11 @@ export class ESRPReleaseService {
    * AAD and SAS tokens are acquired per release (in `createRelease`) so that slow prior
    * releases don't leave us with expired credentials.
    */
-  static async create(params: CreateESRPReleaseServiceParams): Promise<ESRPReleaseService> {
+  public static async create(params: CreateESRPReleaseServiceParams): Promise<ESRPReleaseService> {
+    const { logger } = params;
     let stagingContainerClient: ContainerClient;
     try {
+      logger.log(`Getting client and ensuring staging container "${stagingContainerName}" exists`);
       stagingContainerClient = params.stagingBlobServiceClient.getContainerClient(stagingContainerName);
       await stagingContainerClient.createIfNotExists();
     } catch (err) {
@@ -97,6 +104,7 @@ export class ESRPReleaseService {
     this.#stagingBlobServiceClient = params.stagingBlobServiceClient;
     this.#stagingContainerClient = params.stagingContainerClient;
     try {
+      this.#logger.log('Extracting request signing key and certificates from PFX');
       const { key, certificates } = getKeyAndCertificatesFromPFX(params.requestSigningCertificatePfx);
       this.#requestSigningKey = key;
       this.#requestSigningCertificates = certificates;
@@ -115,15 +123,18 @@ export class ESRPReleaseService {
    * 3. Submit the release request and poll until completion
    * 4. Delete the staged blob
    */
-  async createRelease(params: CreateReleaseParams): Promise<void> {
+  public async createRelease(params: CreateReleaseParams): Promise<void> {
     const { filePath, releaseRequestParams, stagingBlobPathPrefix } = params;
 
     // Acquire fresh credentials for each release in case earlier slow operations caused
     // the previously-acquired AAD/SAS tokens to expire.
+    this.#logger.log('Acquiring fresh credentials for release');
     const credentials = await this.#acquireCredentials();
 
+    // in index.ts, version is <commit>-<layerNum> and filePath is <layerNum>-<timestamp>.zip
     const friendlyFileName = `${releaseRequestParams.productInfo.version}/${path.basename(filePath)}`;
     const correlationId = randomUUID();
+    this.#logger.log(`Generated correlation ID ${correlationId} for release of ${friendlyFileName}`);
 
     let blobClient: BlockBlobClient;
     try {
@@ -136,7 +147,6 @@ export class ESRPReleaseService {
     await blobClient.uploadFile(filePath).catch(err => {
       throw new ReleaseError(`Error uploading file to staging storage`, { cause: err });
     });
-    this.#logger.log('Uploaded blob successfully');
 
     try {
       await this.#submitAndPollRelease({
@@ -151,7 +161,6 @@ export class ESRPReleaseService {
       this.#logger.log(`Deleting blob ${blobClient.url}`);
       try {
         await blobClient.delete();
-        this.#logger.log('Deleted blob successfully');
       } catch (err) {
         this.#logger.warn(`Failed to delete blob:`, err);
       }
@@ -160,6 +169,7 @@ export class ESRPReleaseService {
 
   /** Acquire fresh AAD and SAS tokens for a single release. */
   async #acquireCredentials(): Promise<PerReleaseCredentials> {
+    this.#logger.log(`Acquiring AAD access token for ESRP API at ${esrpApiEndpoint}`);
     const esrpAccessToken = await getAadToken({
       endpoint: esrpApiEndpoint,
       clientId: this.#clientId,
@@ -175,7 +185,11 @@ export class ESRPReleaseService {
       const oneHour = 60 * 60 * 1000;
       const oneHourAgo = new Date(now - oneHour);
       const oneHourFromNow = new Date(now + oneHour);
+      this.#logger.log(
+        `Requesting user delegation key for staging storage account "${this.#stagingBlobServiceClient.accountName}"`
+      );
       const userDelegationKey = await this.#stagingBlobServiceClient.getUserDelegationKey(oneHourAgo, oneHourFromNow);
+      this.#logger.log('Generating SAS token for staging blob access');
       stagingSasToken = generateBlobSASQueryParameters(
         {
           containerName: stagingContainerName,
@@ -201,9 +215,7 @@ export class ESRPReleaseService {
       credentials: PerReleaseCredentials;
     }
   ): Promise<void> {
-    const { filePath, credentials } = params;
-
-    this.#logger.log(`Submitting release: ${filePath}`);
+    const { credentials } = params;
 
     const submitReleaseResult = await this.#submitRelease(params);
     if (!submitReleaseResult.operationId) {
@@ -215,6 +227,7 @@ export class ESRPReleaseService {
 
     // Poll every 5 seconds, wait 60 minutes max -> poll 60/5*60=720 times
     let releaseStatus: ReleaseResultMessage | undefined;
+    let lastLoggedStatus: string | undefined;
     for (let i = 0; i < 720; i++) {
       await new Promise(c => setTimeout(c, 5000));
       releaseStatus = await getReleaseStatus({
@@ -224,6 +237,12 @@ export class ESRPReleaseService {
       }).catch(err => {
         throw new ReleaseError(`Failed to get release status`, { cause: err });
       });
+
+      // Log only on status changes to avoid spamming the log on every poll
+      if (releaseStatus.status !== lastLoggedStatus) {
+        this.#logger.log(`Release ${submitReleaseResult.operationId} status: "${releaseStatus.status}"`);
+        lastLoggedStatus = releaseStatus.status;
+      }
 
       if (releaseStatus.status === 'pass') {
         break;
@@ -247,6 +266,7 @@ export class ESRPReleaseService {
       );
     }
 
+    this.#logger.log(`Release ${submitReleaseResult.operationId} passed; fetching release details`);
     const releaseDetails = await getReleaseDetails({
       clientId: this.#clientId,
       bearerToken: credentials.esrpAccessToken,
@@ -257,7 +277,7 @@ export class ESRPReleaseService {
       });
     });
 
-    this.#logger.log('Release details:', JSON.stringify(releaseDetails, null, 2));
+    this.#logger.log('Release details:', stringifyReleaseMessage(releaseDetails));
   }
 
   /**
@@ -274,43 +294,21 @@ export class ESRPReleaseService {
   ): Promise<ReleaseSubmitResponse> {
     const { filePath, friendlyFileName, correlationId, blobUrl, releaseRequestParams, credentials } = params;
 
-    let size: number;
-    let hash: Buffer;
-    try {
-      size = fs.statSync(filePath).size;
-      // Hash the file with a stream--most package tarballs are small, but some are not
-      hash = await hashFileStream('sha256', filePath);
-    } catch (err) {
-      throw new ReleaseError(`Failed to stat or hash file ${filePath}`, { cause: err });
-    }
-    const sasBlobUrl = `${blobUrl}?${credentials.stagingSasToken}`;
+    this.#logger.log(`Preparing to submit release`);
 
-    const message = createNpmReleaseRequest({
+    const message = await createNpmReleaseRequest({
       ...releaseRequestParams,
       correlationId,
-    });
-    message.files = [
-      {
-        name: path.basename(filePath),
+      requestSigningCertificates: this.#requestSigningCertificates,
+      requestSigningKey: this.#requestSigningKey,
+      file: {
+        path: filePath,
+        sasBlobUrl: `${blobUrl}?${credentials.stagingSasToken}`,
         friendlyFileName,
-        tenantFileLocation: sasBlobUrl,
-        tenantFileLocationType: 'AzureBlob',
-        sourceLocation: { type: 'azureBlob', blobUrl: sasBlobUrl },
-        hashType: FileHashType.sha256,
-        hash: Array.from(hash) as unknown as string,
-        sizeInBytes: size,
       },
-    ];
+    });
 
-    try {
-      message.jwsToken = generateJwsToken({
-        releaseRequest: message,
-        certificates: this.#requestSigningCertificates,
-        privateKey: this.#requestSigningKey,
-      });
-    } catch (err) {
-      throw new ReleaseError(`Failed to generate JWS token for release request`, { cause: err });
-    }
+    this.#logger.log(`Sending request to ESRP API: ${stringifyReleaseMessage(message)}`);
 
     return await submitRelease({
       clientId: this.#clientId,

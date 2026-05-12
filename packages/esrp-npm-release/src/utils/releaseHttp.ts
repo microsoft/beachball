@@ -10,30 +10,24 @@ export interface ReleaseHttpParams {
   clientId: string;
   /** Bearer token for authentication as the AAD app */
   bearerToken: string;
+  /** Release correlation ID */
+  releaseId: string;
 }
 
 const esrpBaseUrl = 'https://api.esrp.microsoft.com/api/v3/releaseservices/clients/';
 // const esrpBaseUrl = 'https://ppe.api.esrp.microsoft.com/api/v3/releaseservices/clients/';
-
-const submitUrl = (params: { clientId: string }) => `${esrpBaseUrl}${params.clientId}/workflows/release/operations`;
-
-const getStatusUrl = (params: { clientId: string; releaseId: string }) =>
-  `${esrpBaseUrl}${params.clientId}/workflows/release/operations/grs/${params.releaseId}`;
-
-const getDetailsUrl = (params: { clientId: string; releaseId: string }) =>
-  `${esrpBaseUrl}${params.clientId}/workflows/release/operations/grd/${params.releaseId}`;
 
 /**
  * Submit a release request.
  * Throws an `Error` (not `ReleaseError`) if the request fails or the response can't be parsed.
  */
 export function submitRelease(
-  params: ReleaseHttpParams & { releaseRequest: ReleaseRequestMessage }
+  params: Omit<ReleaseHttpParams, 'releaseId'> & { releaseRequest: ReleaseRequestMessage }
 ): Promise<ReleaseSubmitResponse> {
   const { clientId, bearerToken, releaseRequest } = params;
 
   return doHttpRequest<ReleaseSubmitResponse>({
-    apiUrl: submitUrl({ clientId }),
+    apiUrl: `${esrpBaseUrl}${clientId}/workflows/release/operations`,
     bearerToken,
     method: 'POST',
     body: releaseRequest,
@@ -44,15 +38,11 @@ export function submitRelease(
  * Get the status of a release request.
  * Throws an `Error` (not `ReleaseError`) if the request fails or the response can't be parsed.
  */
-export function getReleaseStatus(params: {
-  clientId: string;
-  bearerToken: string;
-  releaseId: string;
-}): Promise<ReleaseResultMessage> {
+export function getReleaseStatus(params: ReleaseHttpParams): Promise<ReleaseResultMessage> {
   const { clientId, bearerToken, releaseId } = params;
 
   return doHttpRequest<ReleaseResultMessage>({
-    apiUrl: getStatusUrl({ clientId, releaseId }),
+    apiUrl: `${esrpBaseUrl}${clientId}/workflows/release/operations/grs/${releaseId}`,
     bearerToken,
     method: 'GET',
   });
@@ -62,11 +52,11 @@ export function getReleaseStatus(params: {
  * Get the details of a release request.
  * Throws an `Error` (not `ReleaseError`) if the request fails or the response can't be parsed.
  */
-export function getReleaseDetails(params: ReleaseHttpParams & { releaseId: string }): Promise<ReleaseDetailsMessage> {
+export function getReleaseDetails(params: ReleaseHttpParams): Promise<ReleaseDetailsMessage> {
   const { clientId, bearerToken, releaseId } = params;
 
   return doHttpRequest<ReleaseDetailsMessage>({
-    apiUrl: getDetailsUrl({ clientId, releaseId }),
+    apiUrl: `${esrpBaseUrl}${clientId}/workflows/release/operations/grd/${releaseId}`,
     bearerToken,
     method: 'GET',
   });

@@ -1,10 +1,23 @@
-import type { ProductInfo, ReleaseRequestMessage } from './types.ts';
+import fs from 'fs';
+import path from 'path';
+import { generateJwsToken } from '../utils/generateJwsToken.ts';
+import { ReleaseError } from '../utils/ReleaseError.ts';
+import { hashFileStream } from '../utils/signing.ts';
+import { FileHashType, type ProductInfo, type ReleaseFileInfo, type ReleaseRequestMessage } from './types.ts';
 
 export type GeneratedReleaseRequestMessage = ReleaseRequestMessage &
   Required<
     Pick<
       ReleaseRequestMessage,
-      'driEmail' | 'createdBy' | 'owners' | 'approvers' | 'accessPermissionsInfo' | 'productInfo' | 'releaseInfo'
+      | 'driEmail'
+      | 'createdBy'
+      | 'owners'
+      | 'approvers'
+      | 'accessPermissionsInfo'
+      | 'productInfo'
+      | 'releaseInfo'
+      | 'files'
+      | 'jwsToken'
     >
   >;
 
@@ -22,10 +35,36 @@ export interface CreateNpmReleaseRequestMessageParams {
   releaseTitle: string;
   productInfo: Required<ProductInfo>;
   npmTag?: string;
+  file: Required<Pick<ReleaseFileInfo, 'friendlyFileName'>> & {
+    /** Local file path */
+    path: string;
+    /** SAS URL for the staged blob */
+    sasBlobUrl: string;
+  };
+  requestSigningCertificates: string[];
+  requestSigningKey: string;
 }
 
-export function createNpmReleaseRequest(params: CreateNpmReleaseRequestMessageParams): GeneratedReleaseRequestMessage {
-  return {
+/**
+ * Create a release request. Handles hashing the file, constructing the message, and JWS signing.
+ * Throws `ReleaseError` on any failure.
+ */
+export async function createNpmReleaseRequest(
+  params: CreateNpmReleaseRequestMessageParams
+): Promise<GeneratedReleaseRequestMessage> {
+  const { file } = params;
+
+  let size: number;
+  let hash: Buffer;
+  try {
+    size = fs.statSync(file.path).size;
+    // Hash the file with a stream--most package tarballs are small, but some are not
+    hash = await hashFileStream('sha256', file.path);
+  } catch (err) {
+    throw new ReleaseError(`Failed to stat or hash file ${file.path}`, { cause: err });
+  }
+
+  const message: Omit<GeneratedReleaseRequestMessage, 'jwsToken'> = {
     esrpCorrelationId: params.correlationId,
     customerCorrelationId: params.correlationId,
     driEmail: params.driEmail,
@@ -55,5 +94,42 @@ export function createNpmReleaseRequest(params: CreateNpmReleaseRequestMessagePa
       // Don't default to "latest" here in case the package specifies the tag in publishConfig
       ...(params.npmTag && { productState: params.npmTag }),
     },
+    files: [
+      {
+        name: path.basename(file.path),
+        friendlyFileName: file.friendlyFileName,
+        tenantFileLocationType: 'AzureBlob',
+        sourceLocation: { type: 'azureBlob', blobUrl: file.sasBlobUrl },
+        hashType: FileHashType.sha256,
+        // TODO: vscode example has this as an array
+        hash: Array.from(hash) as unknown as string,
+        sizeInBytes: size,
+      },
+    ],
   };
+
+  try {
+    const jwsToken = generateJwsToken({
+      releaseRequest: message,
+      certificates: params.requestSigningCertificates,
+      privateKey: params.requestSigningKey,
+    });
+    return { ...message, jwsToken };
+  } catch (err) {
+    throw new ReleaseError(`Failed to generate JWS token for release request`, { cause: err });
+  }
+}
+
+/** Stringify a release-related message with some info redacted */
+export function stringifyReleaseMessage(message: Pick<ReleaseRequestMessage, 'files' | 'jwsToken'>): string {
+  message = { ...message };
+  if (message.jwsToken) message.jwsToken = '***';
+  message.files = message.files?.map(f => ({
+    ...f,
+    ...(f.sourceLocation && {
+      ...f.sourceLocation,
+      blobUrl: f.sourceLocation?.blobUrl?.replace(/\?.*$/, '?***'),
+    }),
+  }));
+  return JSON.stringify(message, null, 2);
 }

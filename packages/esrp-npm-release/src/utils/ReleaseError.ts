@@ -10,9 +10,9 @@
  */
 export class ReleaseError extends Error {
   /** If true, detailed error info was already logged via console.error before throwing. */
-  alreadyLogged: boolean;
+  public alreadyLogged: boolean;
 
-  constructor(
+  public constructor(
     message: string,
     options?: {
       /** If true, the exit handler won't log anything */

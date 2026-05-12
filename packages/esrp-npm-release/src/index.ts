@@ -24,19 +24,21 @@ function getEnvOptions() {
     const result = process.env[name];
     if (typeof result === 'string') return result;
     if (defaultValue !== undefined) return defaultValue;
+    // collect all errors and throw at the end
     missingEnv.push(name);
-    return ''; // return '' for now and throw later
+    return '';
   }
 
   // ESRP_USER serves as a fallback default for the contact email fields below
   const defaultUser = getEnv('ESRP_USER', '') || undefined;
 
   const env = {
-    // Path to the directory of packed .tgz files organized into numbered layer subdirectories
+    /** Path to the directory of packed .tgz files organized into numbered layer subdirectories */
     packedPackagesPath: getEnv('PACKED_PACKAGES_PATH'),
     esrp: {
       // Release metadata
       productName: getEnv('ESRP_PRODUCT_NAME'),
+      // default to '' so it doesn't throw, but skip if unspecified so ESRP will read publishConfig
       npmTag: getEnv('ESRP_NPM_TAG', '') || undefined,
       createdBy: getEnv('ESRP_CREATED_BY', defaultUser),
       driEmail: [getEnv('ESRP_DRI_EMAIL', defaultUser)],
@@ -48,9 +50,9 @@ function getEnvOptions() {
       /** Client ID used for your ESRP app registration in a production tenant */
       clientId: getEnv('ESRP_CLIENT_ID'),
 
-      // Certificate secrets (base64-encoded PFX): auth cert authenticates to ESRP AAD,
-      // request signing cert signs the JWS token included in each release request
+      /** Base64-encoded PFX certificate used for authenticating to ESRP AAD */
       authCertificatePfx: getEnv('ESRP_AUTH_CERT'),
+      /** Base64-encoded PFX certificate used for signing JWS tokens in release requests */
       requestSigningCertificatePfx: getEnv('ESRP_REQUEST_SIGNING_CERT'),
     },
     /** info for temporarily uploading packages to a storage account in your team's subscription */
@@ -85,11 +87,13 @@ async function main() {
   let stagingBlobServiceClient: BlobServiceClient;
   try {
     const storageUrl = `https://${env.staging.storageAccountName}.blob.core.windows.net/`;
+    logger.log(`Initializing BlobServiceClient for staging storage account at ${storageUrl}`);
     stagingBlobServiceClient = new BlobServiceClient(storageUrl, {
       // In the vscode example, the pipeline acquires the staging token in a previous step and stores it in
       // PUBLISH_AUTH_TOKENS env, but that appears to only be necessary since multiple steps need the token
-      getToken: () =>
-        getAadToken({
+      getToken: () => {
+        logger.log(`Acquiring AAD token for staging storage account "${env.staging.storageAccountName}"`);
+        return getAadToken({
           endpoint: storageUrl,
           tenantId: env.staging.tenantId,
           clientId: env.staging.clientId,
@@ -100,7 +104,8 @@ async function main() {
             `Error acquiring token for staging storage account "${env.staging.storageAccountName}":\n${err.getMessageWithCause()}`
           );
           throw new ReleaseError('Error acquiring token (see above)', { alreadyLogged: true });
-        }),
+        });
+      },
     });
   } catch (err) {
     throw new ReleaseError(
@@ -112,19 +117,17 @@ async function main() {
   // Strip any "org/" prefix so only the repo name is used in the staging blob paths.
   const repoName = env.ado.buildRepositoryName.split('/').slice(-1)[0];
 
+  logger.log(`Loading release state for repo "${repoName}" at source version ${env.ado.buildSourceVersion}`);
   const state = await ReleaseState.create({
     blobServiceClient: stagingBlobServiceClient,
     repoName,
     sourceVersion: env.ado.buildSourceVersion,
   });
-
-  const zipsDir = path.join(env.ado.agentTempDirectory, 'npm-zips');
-  fs.mkdirSync(zipsDir, { recursive: true });
-
-  const layers = fs.readdirSync(env.packedPackagesPath).sort();
+  logger.log(`Release state loaded: ${state.publishedCount} layer(s) already published`);
 
   // Construct the release service once. It re-acquires AAD/SAS tokens per release internally
   // since releasing each layer can take a long time (potentially exceeding token lifetimes).
+  logger.log('Initializing ESRP release service');
   const releaseService = await ESRPReleaseService.create({
     logger,
     clientId: env.esrp.clientId,
@@ -133,6 +136,17 @@ async function main() {
     requestSigningCertificatePfx: env.esrp.requestSigningCertificatePfx,
     stagingBlobServiceClient,
   });
+
+  const zipsDir = path.join(env.ado.agentTempDirectory, 'npm-zips');
+  logger.log(`Creating temp directory for zipped packages at ${zipsDir}`);
+  fs.mkdirSync(zipsDir, { recursive: true });
+
+  logger.log(`Reading packed packages from ${env.packedPackagesPath}`);
+  const layers = fs
+    .readdirSync(env.packedPackagesPath)
+    .sort()
+    .filter(name => fs.statSync(path.join(env.packedPackagesPath, name)).isDirectory());
+  logger.log(`Found ${layers.length} layer(s) to release`);
 
   for (const layerNum of layers) {
     if (state.hasPublished(layerNum)) {
@@ -143,20 +157,18 @@ async function main() {
     const layerPrefix = 'layer-' + layerNum;
     logger.startGroup(layerPrefix, `Starting release for layer ${layerNum} of ${layers.length}`);
 
-    // This is an arbitrary string, not used as the published version
-    const layerVersion = `${env.ado.buildSourceVersion}-${layerNum}`;
-
-    logger.log('Zipping layer contents');
+    const layerDir = path.join(env.packedPackagesPath, layerNum);
     const zipPath = path.join(zipsDir, `${layerPrefix}-${Date.now()}.zip`);
 
+    logger.log(`Zipping layer contents to ${zipPath}`);
     const zipfile = new yazl.ZipFile();
     await new Promise<void>((resolve, reject) => {
       zipfile.outputStream.on('error', reject);
       zipfile.outputStream.pipe(fs.createWriteStream(zipPath)).on('close', resolve).on('error', reject);
 
-      const layerDir = path.join(env.packedPackagesPath, layerNum);
       for (const file of fs.readdirSync(layerDir)) {
         if (file.endsWith('.tgz')) {
+          logger.log(`- ${file}`);
           zipfile.addFile(path.join(layerDir, file), file);
         }
       }
@@ -164,8 +176,8 @@ async function main() {
     }).catch(err => {
       throw new ReleaseError(`Error creating zip file for layer ${layerNum}`, { cause: err });
     });
-    logger.log('done');
 
+    logger.log(`Submitting release for layer ${layerNum} via ESRP`);
     await releaseService.createRelease({
       filePath: zipPath,
       stagingBlobPathPrefix: repoName,
@@ -176,14 +188,17 @@ async function main() {
         approvers: env.esrp.approvers,
         productInfo: {
           name: env.esrp.productName,
-          version: layerVersion,
+          // This is an arbitrary string, not used as the published version
+          version: `${env.ado.buildSourceVersion}-${layerNum}`,
           description: `${env.esrp.productName} packages - ${layerNum}`,
         },
         releaseTitle: env.esrp.productName,
         npmTag: env.esrp.npmTag,
       },
     });
+    logger.log(`Release for layer ${layerNum} completed successfully`);
 
+    logger.log(`Marking layer ${layerNum} as published in release state`);
     await state.markPublished(layerNum);
 
     logger.endGroup();
