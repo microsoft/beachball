@@ -2377,7 +2377,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@microsoft/beachball-scripts@npm:1.0.0, @microsoft/beachball-scripts@workspace:^, @microsoft/beachball-scripts@workspace:scripts":
+"@microsoft/beachball-scripts@workspace:^, @microsoft/beachball-scripts@workspace:scripts":
   version: 0.0.0-use.local
   resolution: "@microsoft/beachball-scripts@workspace:scripts"
   dependencies:
@@ -2399,8 +2399,7 @@ __metadata:
     "@azure/core-auth": "npm:^1.10.1"
     "@azure/msal-node": "npm:^5.1.5"
     "@azure/storage-blob": "npm:^12.31.0"
-    "@microsoft/beachball-scripts": "npm:1.0.0"
-    "@ms-cloudpack/esbuild-node-helpers": "npm:^0.1.2"
+    "@microsoft/beachball-scripts": "workspace:^"
     "@types/jws": "npm:^3.2.11"
     "@types/yazl": "npm:^3.3.1"
     esbuild: "npm:^0.28.0"
@@ -2419,7 +2418,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ms-cloudpack/esbuild-node-helpers@npm:0.1.2, @ms-cloudpack/esbuild-node-helpers@npm:^0.1.2":
+"@ms-cloudpack/esbuild-node-helpers@npm:0.1.2":
   version: 0.1.2
   resolution: "@ms-cloudpack/esbuild-node-helpers@npm:0.1.2"
   dependencies:

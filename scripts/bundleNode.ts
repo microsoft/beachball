@@ -17,6 +17,7 @@ await bundleNode({
   verifyFiles: false,
   esbuildOptions: { splitting: false },
   unacceptableLicenseTest,
+  excludeFromNotice: dep => dep.name.startsWith('@azure/') && dep.license === 'MIT',
 }).catch(err => {
   if (!(err instanceof BundleError && err.alreadyLogged)) {
     console.error(err.stack || String(err));

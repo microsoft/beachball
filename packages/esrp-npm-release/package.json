@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "build": "yarn run -T tsc --pretty",
-    "bundle": "node scripts/bundle.js",
+    "bundle": "node ../../scripts/bundleNode.ts",
     "depcheck": "yarn run -T depcheck .",
     "lint": "yarn run -T eslint --color --max-warnings=0 src",
     "start": "node src/index.ts"
@@ -25,8 +25,7 @@
     "@azure/core-auth": "^1.10.1",
     "@azure/msal-node": "^5.1.5",
     "@azure/storage-blob": "^12.31.0",
-    "@microsoft/beachball-scripts": "1.0.0",
-    "@ms-cloudpack/esbuild-node-helpers": "^0.1.2",
+    "@microsoft/beachball-scripts": "workspace:^",
     "@types/jws": "^3.2.11",
     "@types/yazl": "^3.3.1",
     "esbuild": "^0.28.0",
