@@ -101,6 +101,8 @@ extends:
                 retryCountOnTaskFailure: 3
                 env:
                   PACKED_PACKAGES_PATH: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
+                  # `id` from https://feeds.dev.azure.com/office/_apis/packaging/feeds/Office
+                  PACKAGING_FEED_ID: 86ec7889-a365-4cd1-90df-6e18cc2ea59f
                   ESRP_PRODUCT_NAME: beachball
                   ESRP_NPM_TAG: test
                   ESRP_USER: elcraig@microsoft.com
@@ -115,3 +117,5 @@ extends:
                   STAGING_CLIENT_ID: $(STAGING_CLIENT_ID)
                   STAGING_TENANT_ID: $(STAGING_TENANT_ID)
                   STAGING_ID_TOKEN: $(STAGING_ID_TOKEN)
+                  # must be manually passed in
+                  SYSTEM_ACCESSTOKEN: $(System.AccessToken)

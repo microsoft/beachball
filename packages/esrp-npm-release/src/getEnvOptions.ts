@@ -3,6 +3,12 @@ import { ReleaseError } from './utils/ReleaseError.ts';
 export interface EnvOptions {
   /** Path to the directory of packed .tgz files organized into numbered layer subdirectories */
   packedPackagesPath: string;
+  /**
+   * Internal packaging feed ID used in the prepublish build (so new versions can be ingested).
+   * Go to `https://feeds.dev.azure.com/<org>/_apis/packaging/feeds/<name>` and find `id`.
+   */
+  packagingFeedId: string;
+
   esrp: EsrpEnvOptions;
   /** Info for temporarily uploading packages to a storage account in your team's subscription */
   staging: StagingEnvOptions;
@@ -63,6 +69,20 @@ export interface AdoEnvOptions {
   buildSourceVersion: string;
   /** Repository name (for GitHub-connected repos this is "org/repo"; bare name for ADO Repos) */
   buildRepositoryName: string;
+  /**
+   * Raw value of `SYSTEM_COLLECTIONURI`, e.g. `https://dev.azure.com/office/` or
+   * `https://office.visualstudio.com/`. Consumers parse the org name out of this as needed.
+   */
+  systemCollectionUri: string;
+  /**
+   * `System.AccessToken` for the build identity. Used to authenticate to the ADO Artifacts
+   * API (e.g. for piercing). Pipelines must explicitly map this into the env, e.g.:
+   * ```
+   * env:
+   *   SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+   * ```
+   */
+  systemAccessToken: string;
 }
 
 /**
@@ -89,14 +109,15 @@ export function getEnvOptions(env: NodeJS.ProcessEnv = process.env): EnvOptions 
 
   const result: EnvOptions = {
     packedPackagesPath: getEnv('PACKED_PACKAGES_PATH'),
+    packagingFeedId: getEnv('PACKAGING_FEED_ID'),
     esrp: {
       productName: getEnv('ESRP_PRODUCT_NAME'),
       // default to '' so it doesn't throw, but skip if unspecified so ESRP will read publishConfig
       npmTag: getEnv('ESRP_NPM_TAG', '') || undefined,
       createdBy: getEnv('ESRP_CREATED_BY', defaultUser),
       driEmail: [getEnv('ESRP_DRI_EMAIL', defaultUser)],
-      owners: getEnv('ESRP_OWNERS', defaultUser).split(','),
-      approvers: getEnv('ESRP_APPROVERS', defaultUser).split(','),
+      owners: splitString(getEnv('ESRP_OWNERS', defaultUser)),
+      approvers: splitString(getEnv('ESRP_APPROVERS', defaultUser)),
       tenantId: getEnv('ESRP_TENANT_ID'),
       clientId: getEnv('ESRP_CLIENT_ID'),
       authCertificatePfx: getEnv('ESRP_AUTH_CERT'),
@@ -112,6 +133,8 @@ export function getEnvOptions(env: NodeJS.ProcessEnv = process.env): EnvOptions 
       agentTempDirectory: getEnv('AGENT_TEMPDIRECTORY'),
       buildSourceVersion: getEnv('BUILD_SOURCEVERSION'),
       buildRepositoryName: getEnv('BUILD_REPOSITORY_NAME'),
+      systemCollectionUri: getEnv('SYSTEM_COLLECTIONURI'),
+      systemAccessToken: getEnv('SYSTEM_ACCESSTOKEN'),
     },
   };
 
@@ -119,4 +142,11 @@ export function getEnvOptions(env: NodeJS.ProcessEnv = process.env): EnvOptions 
     throw new ReleaseError(`Missing required environment variables: ${missingEnv.join(', ')}`);
   }
   return result;
+}
+
+function splitString(value: string): string[] {
+  return value
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
 }
