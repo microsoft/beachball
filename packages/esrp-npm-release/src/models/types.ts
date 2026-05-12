@@ -73,10 +73,10 @@ export interface FileDownloadDetails {
 }
 
 export interface ReleaseFileInfo {
-  name?: string;
+  name: string;
   /** sha256 hash of file -- TODO vscode has this as an array */
-  hash?: string;
-  sourceLocation?: FileLocation;
+  hash: string;
+  sourceLocation: FileLocation;
   sizeInBytes?: number;
   hashType?: FileHashType;
   fileId?: unknown;
@@ -84,9 +84,9 @@ export interface ReleaseFileInfo {
   partNumber?: string;
   friendlyFileName?: string;
   /** TODO: seen `'1'` (local file), `'AzureBlob'` -- which is correct? */
-  tenantFileLocationType?: string;
+  tenantFileLocationType: string;
   /** TODO: seen either local file path or blob URL */
-  tenantFileLocation?: string;
+  tenantFileLocation: string;
   signedEngineeringCopyLocation?: string;
   encryptedDistributionBlobLocation?: string;
   preEncryptedDistributionBlobLocation?: string;

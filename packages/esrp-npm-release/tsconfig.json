@@ -3,7 +3,7 @@
   "compilerOptions": {
     "noEmit": true,
     "moduleResolution": "bundler",
-    "module": "preserve",
+    "module": "esnext",
     "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true

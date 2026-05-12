@@ -98,6 +98,7 @@ export async function createNpmReleaseRequest(
       {
         name: path.basename(file.path),
         friendlyFileName: file.friendlyFileName,
+        tenantFileLocation: file.sasBlobUrl,
         tenantFileLocationType: 'AzureBlob',
         sourceLocation: { type: 'azureBlob', blobUrl: file.sasBlobUrl },
         hashType: FileHashType.sha256,
@@ -126,10 +127,11 @@ export function stringifyReleaseMessage(message: Pick<ReleaseRequestMessage, 'fi
   if (message.jwsToken) message.jwsToken = '***';
   message.files = message.files?.map(f => ({
     ...f,
-    ...(f.sourceLocation && {
+    tenantFileLocation: f.tenantFileLocation.replace(/\?.*$/, '?***'),
+    sourceLocation: {
       ...f.sourceLocation,
       blobUrl: f.sourceLocation?.blobUrl?.replace(/\?.*$/, '?***'),
-    }),
+    },
   }));
   return JSON.stringify(message, null, 2);
 }

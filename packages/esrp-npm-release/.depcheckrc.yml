@@ -1,7 +1,7 @@
 ignore-path: ../../.gitignore
 
 ignores:
-  # peer dep
-  - esbuild
-  # sample code
-  - yauzl
+  # used in `test` script via cross-env, not in source
+  - cross-env
+  # specified at root
+  - '@jest/globals'

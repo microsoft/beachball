@@ -19,7 +19,8 @@
     "bundle": "node ../../scripts/bundleNode.ts",
     "depcheck": "yarn run -T depcheck .",
     "lint": "yarn run -T eslint --color --max-warnings=0 src",
-    "start": "node src/index.ts"
+    "start": "node src/index.ts",
+    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest"
   },
   "devDependencies": {
     "@azure/core-auth": "^1.10.1",
@@ -28,7 +29,7 @@
     "@microsoft/beachball-scripts": "workspace:^",
     "@types/jws": "^3.2.11",
     "@types/yazl": "^3.3.1",
-    "esbuild": "^0.28.0",
+    "cross-env": "^10.1.0",
     "execa": "^5.1.1",
     "jws": "^4.0.1",
     "yazl": "^3.3.1"
