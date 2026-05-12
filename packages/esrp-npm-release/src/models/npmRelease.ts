@@ -102,8 +102,7 @@ export async function createNpmReleaseRequest(
         tenantFileLocationType: 'AzureBlob',
         sourceLocation: { type: 'azureBlob', blobUrl: file.sasBlobUrl },
         hashType: FileHashType.sha256,
-        // TODO: vscode example has this as an array
-        hash: Array.from(hash) as unknown as string,
+        hash: Array.from(hash),
         sizeInBytes: size,
       },
     ],

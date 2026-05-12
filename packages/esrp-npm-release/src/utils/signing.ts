@@ -1,6 +1,7 @@
 import fs from 'fs';
 import crypto from 'crypto';
 import execa from 'execa';
+import type { Logger } from './Logger.ts';
 
 /**
  * Hash a file using a stream (in case the file is large).
@@ -36,13 +37,18 @@ export function getThumbprint(certPem: string, algorithm: 'sha1' | 'sha256'): Bu
 /**
  * Extract the private key and all certificates from a PFX file using `openssl`.
  *
- * Certificates are returned with the end-entity (leaf) certificate first, followed by any
- * intermediates, with the root CA last. This reverses `openssl pkcs12`'s output order so
- * callers can index `[0]` to get the signing certificate.
+ * Returns `certificates` with the end-entity (leaf) certificate at index 0, identified by
+ * matching its public key against the extracted private key. The leaf is expected to be
+ * either the first or last cert that `openssl pkcs12` emits — which covers every realistic
+ * PFX producer (openssl, Windows certutil/`Export-PfxCertificate`, browsers, keytool, etc.).
+ * If neither the first nor last cert matches the key, this throws rather than guess.
  *
  * Throws an informative plain `Error` on any failure.
  */
-export function getKeyAndCertificatesFromPFX(pfxContent: string): { key: string; certificates: string[] } {
+export function getKeyAndCertificatesFromPFX(
+  pfxContent: string,
+  logger: Logger
+): { key: string; certificates: string[] } {
   const pfxCertificate = Buffer.from(pfxContent, 'base64');
   let result: execa.ExecaSyncReturnValue;
   try {
@@ -52,8 +58,8 @@ export function getKeyAndCertificatesFromPFX(pfxContent: string): { key: string;
     throw new Error(`Error processing PFX with \`${err.command}\`:\n${err.message}`);
   }
 
-  const keyMatch = result.stdout.match(/-----BEGIN PRIVATE KEY-----[\s\S]+?-----END PRIVATE KEY-----/);
-  if (!keyMatch) {
+  const key = result.stdout.match(/-----BEGIN PRIVATE KEY-----[\s\S]+?-----END PRIVATE KEY-----/)?.[0];
+  if (!key) {
     throw new Error('Private key not found in processed PFX');
   }
 
@@ -62,5 +68,23 @@ export function getKeyAndCertificatesFromPFX(pfxContent: string): { key: string;
     throw new Error('Certificates not found in processed PFX');
   }
 
-  return { key: keyMatch[0], certificates: certMatches.reverse() };
+  // Identify the leaf cert by matching its public key against the private key. We only
+  // check the first and last positions since real-world PFX producers all put the leaf at
+  // one end or the other.
+  const keyPub = crypto.createPublicKey(key).export({ type: 'spki', format: 'der' });
+  const matchesKey = (cert: string) =>
+    crypto.createPublicKey(cert).export({ type: 'spki', format: 'der' }).equals(keyPub);
+
+  let certificates: string[];
+  if (matchesKey(certMatches[0])) {
+    logger.log(`Found ${certMatches.length} certificate(s) in PFX; leaf is at index 0 (using as-is)`);
+    certificates = certMatches;
+  } else if (matchesKey(certMatches[certMatches.length - 1])) {
+    logger.log(`Found ${certMatches.length} certificate(s) in PFX; leaf is at last index (reversing)`);
+    certificates = [...certMatches].reverse();
+  } else {
+    throw new Error('Leaf certificate (matching the private key) is neither first nor last in the PFX');
+  }
+
+  return { key, certificates };
 }

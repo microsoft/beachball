@@ -1,5 +1,6 @@
 import type { AccessToken } from '@azure/core-auth';
 import { ConfidentialClientApplication, type AuthenticationResult, type NodeAuthOptions } from '@azure/msal-node';
+import type { Logger } from './Logger.ts';
 import type { ReleaseHttpParams } from './releaseHttp.ts';
 import { getKeyAndCertificatesFromPFX, getThumbprint } from './signing.ts';
 import { ReleaseError } from './ReleaseError.ts';
@@ -8,6 +9,7 @@ export interface GetAadTokenParams extends Pick<ReleaseHttpParams, 'clientId'> {
   tenantId: string;
   endpoint: string;
   auth: { certPfxContent: string } | { idToken: string };
+  logger: Logger;
 }
 
 export type { AccessToken };
@@ -17,7 +19,7 @@ export type { AccessToken };
  * Throws a `ReleaseError` on failure.
  */
 export async function getAadToken(params: GetAadTokenParams): Promise<AccessToken> {
-  const { clientId, tenantId, auth, endpoint } = params;
+  const { clientId, tenantId, auth, endpoint, logger } = params;
 
   const authOptions: NodeAuthOptions = {
     clientId,
@@ -28,7 +30,7 @@ export async function getAadToken(params: GetAadTokenParams): Promise<AccessToke
     authOptions.clientAssertion = auth.idToken;
   } else {
     try {
-      const { key, certificates } = getKeyAndCertificatesFromPFX(auth.certPfxContent);
+      const { key, certificates } = getKeyAndCertificatesFromPFX(auth.certPfxContent, logger);
       const thumbprintSha256 = getThumbprint(certificates[0], 'sha256').toString('hex');
       authOptions.clientCertificate = {
         thumbprintSha256,

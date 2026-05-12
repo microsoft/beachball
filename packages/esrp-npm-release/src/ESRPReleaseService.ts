@@ -105,7 +105,7 @@ export class ESRPReleaseService {
     this.#stagingContainerClient = params.stagingContainerClient;
     try {
       this.#logger.log('Extracting request signing key and certificates from PFX');
-      const { key, certificates } = getKeyAndCertificatesFromPFX(params.requestSigningCertificatePfx);
+      const { key, certificates } = getKeyAndCertificatesFromPFX(params.requestSigningCertificatePfx, this.#logger);
       this.#requestSigningKey = key;
       this.#requestSigningCertificates = certificates;
     } catch (err) {
@@ -175,6 +175,7 @@ export class ESRPReleaseService {
       clientId: this.#clientId,
       tenantId: this.#tenantId,
       auth: { certPfxContent: this.#authCertificatePfx },
+      logger: this.#logger,
     }).catch(err => {
       throw new ReleaseError(`Error acquiring access token for ESRP API`, { cause: err });
     });
@@ -244,18 +245,18 @@ export class ESRPReleaseService {
         lastLoggedStatus = releaseStatus.status;
       }
 
+      const releaseStr = JSON.stringify(releaseStatus, null, 2);
       if (releaseStatus.status === 'pass') {
+        this.#logger.log(`Release ${submitReleaseResult.operationId} passed. Last status details: ${releaseStr}`);
         break;
       }
       // TODO: mismatch with values included in provided types
       if ((releaseStatus.status as unknown) === 'aborted' || releaseStatus.status === 'cancelled') {
-        throw new ReleaseError(
-          `Release was aborted. Full status API response: ${JSON.stringify(releaseStatus, null, 2)}`
-        );
+        throw new ReleaseError(`Release was aborted. Full status API response: ${releaseStr}`);
       }
       if (releaseStatus.status !== 'inprogress') {
         throw new ReleaseError(
-          `Unexpected release status "${releaseStatus.status}". Full status API response: ${JSON.stringify(releaseStatus, null, 2)}`
+          `Unexpected release status "${releaseStatus.status}". Full status API response: ${releaseStr}`
         );
       }
     }

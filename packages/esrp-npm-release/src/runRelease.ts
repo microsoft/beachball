@@ -37,6 +37,7 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
           tenantId: env.staging.tenantId,
           clientId: env.staging.clientId,
           auth: { idToken: env.staging.idToken },
+          logger,
         }).catch((err: ReleaseError) => {
           // unclear how this will propagate, so go ahead and log and re-throw a generic message
           logger.error(
@@ -103,19 +104,24 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
     logger.startGroup(layerPrefix, `Starting release for layer ${layerNum} of ${layers.length}`);
 
     const layerDir = path.join(env.packedPackagesPath, layerNum);
-    const zipPath = path.join(zipsDir, `${layerPrefix}-${Date.now()}.zip`);
+    const tgzFiles = fs
+      .readdirSync(layerDir)
+      .filter(file => file.endsWith('.tgz'))
+      .map(file => path.join(layerDir, file));
+    if (!tgzFiles.length) {
+      throw new ReleaseError(`No .tgz files found in layer directory ${layerDir}`);
+    }
 
+    const zipPath = path.join(zipsDir, `${layerPrefix}-${Date.now()}.zip`);
     logger.log(`Zipping layer contents to ${zipPath}`);
     const zipfile = new yazl.ZipFile();
     await new Promise<void>((resolve, reject) => {
       zipfile.outputStream.on('error', reject);
       zipfile.outputStream.pipe(fs.createWriteStream(zipPath)).on('close', resolve).on('error', reject);
 
-      for (const file of fs.readdirSync(layerDir)) {
-        if (file.endsWith('.tgz')) {
-          logger.log(`- ${file}`);
-          zipfile.addFile(path.join(layerDir, file), file);
-        }
+      for (const file of tgzFiles) {
+        logger.log(`- ${path.basename(file)}`);
+        zipfile.addFile(file, path.basename(file));
       }
       zipfile.end();
     }).catch(err => {
