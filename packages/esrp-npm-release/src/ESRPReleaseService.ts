@@ -13,10 +13,10 @@ import {
   type CreateNpmReleaseRequestMessageParams,
 } from './models/npmRelease.ts';
 import type { ReleaseResultMessage, ReleaseSubmitResponse } from './models/types.ts';
-import { esrpApiEndpoint, getAadToken } from './utils/getAadToken.ts';
+import { getAadToken } from './utils/getAadToken.ts';
 import type { Logger } from './utils/Logger.ts';
 import { ReleaseError } from './utils/ReleaseError.ts';
-import { getReleaseDetails, getReleaseStatus, submitRelease } from './utils/releaseHttp.ts';
+import { esrpApiEndpoint, getReleaseDetails, getReleaseStatus, submitRelease } from './utils/releaseHttp.ts';
 import { getKeyAndCertificatesFromPFX } from './utils/signing.ts';
 
 interface PerReleaseCredentials {
@@ -44,7 +44,7 @@ interface ESRPReleaseServiceParams extends CreateESRPReleaseServiceParams {
   stagingContainerClient: ContainerClient;
 }
 
-interface CreateReleaseParams {
+export interface CreateReleaseParams {
   /** Local file path to upload */
   filePath: string;
   stagingBlobPathPrefix: string;

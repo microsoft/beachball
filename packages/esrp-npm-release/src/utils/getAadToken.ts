@@ -12,8 +12,6 @@ export interface GetAadTokenParams extends Pick<ReleaseHttpParams, 'clientId'> {
 
 export type { AccessToken };
 
-export const esrpApiEndpoint = 'https://api.esrp.microsoft.com/';
-
 /**
  * Get a `ConfidentialClientApplication` access token from AAD using a certificate.
  * Throws a `ReleaseError` on failure.
