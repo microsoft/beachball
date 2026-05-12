@@ -54,8 +54,8 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
   }
 
   let layers: string[][] | undefined;
-  if (packToPath && options.packStyle === 'layer') {
-    // If packing in layer style, get that ordering instead of toposorting
+  if (packToPath) {
+    // If packing, get the layers instead of toposorting
     layers = getPackageGraphLayers({ packagesToPublish, bumpInfo, options });
   } else if (options.concurrency === 1) {
     // Otherwise, unless publishing concurrently, toposort the packages in case publishing fails
@@ -74,16 +74,11 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
 
   // finally pass through doing the actual npm publish command
   const succeededPackages = new Set<string>();
-  let packIndex = 0;
 
   const packagePublishInternal = async (packageInfo: PackageInfo) => {
     let success: boolean;
-    if (packToPath) {
-      success = await packPackage(packageInfo, {
-        packToPath,
-        verbose,
-        packInfo: layers ? { layers } : { index: packIndex++, total: packagesToPublish.length },
-      });
+    if (packToPath && layers) {
+      success = await packPackage(packageInfo, { packToPath, verbose, layers });
     } else {
       success = (await packagePublish(packageInfo, options)).success;
     }

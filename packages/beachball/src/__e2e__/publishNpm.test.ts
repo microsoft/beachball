@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs';
+import path from 'path';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initMockLogs } from '../__fixtures__/mockLogs';
@@ -90,7 +91,8 @@ describe('publish command (npm)', () => {
     generateChangeFiles(['foo'], options);
     await publishWrapper(parsedOptions);
 
-    expect(fs.readdirSync(packToPath)).toEqual(['1-foo-1.1.0.tgz']);
+    expect(fs.readdirSync(packToPath)).toEqual(['1']);
+    expect(fs.readdirSync(path.join(packToPath, '1'))).toEqual(['foo-1.1.0.tgz']);
     expect(npmMock.getPublishedVersions('foo')).toBeUndefined();
     expect(logs.mocks.error).not.toHaveBeenCalled();
   });

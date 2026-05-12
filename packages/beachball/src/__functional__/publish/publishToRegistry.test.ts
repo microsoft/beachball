@@ -380,46 +380,6 @@ describe('publishToRegistry', () => {
       removeTempDir(packToPath);
     });
 
-    it('packs packages sequentially by default', async () => {
-      const bumpInfo = makeBumpInfo({
-        app: { dependencies: { lib: '1.0.0' } },
-        lib: {},
-      });
-
-      await publishToRegistry(bumpInfo, { ...defaultOptions, packToPath });
-
-      // Nothing should be published to the registry
-      expect(npmMock.getPublishedVersions('lib')).toBeUndefined();
-      expect(npmMock.getPublishedVersions('app')).toBeUndefined();
-
-      // Tgz files should be in packToPath with numeric prefixes (toposorted: lib=1, app=2)
-      const files = fs.readdirSync(packToPath).sort();
-      expect(files).toEqual([
-        `1-${getMockNpmPackName(bumpInfo.packageInfos.lib)}`,
-        `2-${getMockNpmPackName(bumpInfo.packageInfos.app)}`,
-      ]);
-
-      expect(
-        logs.getMockLines('all', { replacePaths: { [tempRoot]: '<root>', [packToPath]: '<packPath>' } })
-      ).toMatchSnapshot();
-    });
-
-    it('throws with packing error message on pack failure', async () => {
-      const bumpInfo = makeBumpInfo({ foo: {} });
-
-      npmMock.setCommandOverride('pack', () =>
-        Promise.resolve({ success: false, stdout: '', stderr: 'pack error', all: 'pack error', failed: true })
-      );
-
-      await expect(publishToRegistry(bumpInfo, { ...defaultOptions, packToPath })).rejects.toThrow('Error packing');
-
-      expect(logs.getMockLines('error')).toMatch('Something went wrong with packing packages!');
-
-      expect(
-        logs.getMockLines('all', { replacePaths: { [tempRoot]: '<root>', [packToPath]: '<packPath>' } })
-      ).toMatchSnapshot();
-    });
-
     it('packs packages into layer folders', async () => {
       const bumpInfo = makeBumpInfo({
         app: { dependencies: { lib: '1.0.0' } },
@@ -427,7 +387,7 @@ describe('publishToRegistry', () => {
         lib: {},
       });
 
-      await publishToRegistry(bumpInfo, { ...defaultOptions, packToPath, packStyle: 'layer' });
+      await publishToRegistry(bumpInfo, { ...defaultOptions, packToPath });
 
       // Nothing should be published to the registry
       expect(npmMock.getPublishedVersions('lib')).toBeUndefined();

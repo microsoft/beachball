@@ -46,7 +46,6 @@ const repoOptionKeys: Record<string, true> = {
   identifierBase: true,
   publish: true,
   packToPath: true,
-  packStyle: true,
   push: true,
   registry: true,
   retries: true,

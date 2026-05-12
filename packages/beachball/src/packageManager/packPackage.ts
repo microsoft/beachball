@@ -7,28 +7,18 @@ import { getNpmLogLevelArgs } from './npmArgs';
 
 /**
  * Attempts to pack the package and move the tgz to `options.packPath`.
- * Depending on `packInfo.packStyle`, either the filename will be prefixed with a number,
- * or it will be put in a numbered folder.
+ * The files will be put in numbered subfolders by layer.
  * @returns true if successful, false if not.
  */
 export async function packPackage(
   packageInfo: PackageInfo,
   options: Required<Pick<BeachballOptions, 'packToPath'>> &
     Pick<BeachballOptions, 'verbose'> & {
-      packInfo:
-        | {
-            /** Index of this package in the topologically-sorted list to publish */
-            index: number;
-            /** Total number of packages to publish */
-            total: number;
-          }
-        | {
-            /** Array of layers of package names returned by `getPackageGraphLayers` */
-            layers: string[][];
-          };
+      /** Array of layers of package names returned by `getPackageGraphLayers` */
+      layers: string[][];
     }
 ): Promise<boolean> {
-  const { packToPath, verbose, packInfo } = options;
+  const { packToPath, verbose, layers } = options;
 
   const packArgs = ['pack', ...getNpmLogLevelArgs(verbose)];
 
@@ -54,24 +44,16 @@ export async function packPackage(
     return false;
   }
 
-  // Prepend a numeric prefix to the pack file (0-padded so basic sorting works).
-  // Or for packStyle: "layer", put the pack file in a subfolder for its dependency tree layer.
+  // Put the pack file in a subfolder for its dependency tree layer.
   // The prefix isn't strictly needed for single packages, but use it for consistency in case of a
   // monorepo which usually publishes multiple packages but sometimes only one has changed.
-  let finalPackFilePath: string;
-  if ('layers' in packInfo) {
-    const { layers } = packInfo;
-    const packageLayer = layers.findIndex(layer => layer.includes(packageInfo.name));
-    if (packageLayer === -1) {
-      console.error(`Internal error: package ${packageInfo.name} not found in order of packages to publish\n`);
-      return false;
-    }
-    const layerDir = makePrefix({ num: packageLayer, total: layers.length });
-    finalPackFilePath = path.join(packToPath, layerDir, packFile);
-  } else {
-    const packPrefix = makePrefix({ num: packInfo.index, total: packInfo.total });
-    finalPackFilePath = path.join(packToPath, `${packPrefix}-${packFile}`);
+  const packageLayer = layers.findIndex(layer => layer.includes(packageInfo.name));
+  if (packageLayer === -1) {
+    console.error(`Internal error: package ${packageInfo.name} not found in order of packages to publish\n`);
+    return false;
   }
+  const layerDir = makePrefix({ num: packageLayer, total: layers.length });
+  const finalPackFilePath = path.join(packToPath, layerDir, packFile);
 
   try {
     if (fs.existsSync(finalPackFilePath)) {

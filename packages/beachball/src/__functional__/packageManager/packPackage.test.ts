@@ -58,7 +58,7 @@ describe('packPackage', () => {
 
     const packResult = await packPackage(testPkg.info, {
       packToPath: tempPackPath,
-      packInfo: { index: 0, total: 1 },
+      layers: [[testPkg.name]],
     });
     expect(packResult).toEqual(true);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
@@ -67,12 +67,13 @@ describe('packPackage', () => {
       expect.objectContaining({ cwd: tempRoot })
     );
     // file is moved to correct location (not the package folder)
-    expect(fs.readdirSync(tempPackPath)).toEqual([`1-${testPkg.packName}`]);
+    const outFile = path.join(tempPackPath, '1', testPkg.packName);
+    expect(fs.existsSync(outFile)).toBe(true);
     expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
 
     const allLogs = logs.getMockLines('all');
     expect(allLogs).toMatch(`Packing - ${testPkg.spec}`);
-    expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${path.join(tempPackPath, `1-${testPkg.packName}`)}`);
+    expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${outFile}`);
   });
 
   it('packs scoped package', async () => {
@@ -81,7 +82,7 @@ describe('packPackage', () => {
 
     const packResult = await packPackage(testPkg.info, {
       packToPath: tempPackPath,
-      packInfo: { index: 0, total: 1 },
+      layers: [[testPkg.name]],
     });
     expect(packResult).toEqual(true);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
@@ -90,22 +91,26 @@ describe('packPackage', () => {
       expect.objectContaining({ cwd: tempRoot })
     );
     // file is moved to correct location (not the package folder)
-    expect(fs.readdirSync(tempPackPath)).toEqual([`1-${testPkg.packName}`]);
+    const outFile = path.join(tempPackPath, '1', testPkg.packName);
+    expect(fs.existsSync(outFile)).toBe(true);
     expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
 
     const allLogs = logs.getMockLines('all');
     expect(allLogs).toMatch(`Packing - ${testPkg.spec}`);
-    expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${path.join(tempPackPath, `1-${testPkg.packName}`)}`);
+    expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${outFile}`);
   });
 
   it('packs package with correct longer prefix', async () => {
     const testPkg = getTestPackage('testpkg');
     writeJson(tempPackageJsonPath, testPkg.json);
 
-    // There are 100 packages to pack, so index 1 should be prefixed with "002-"
+    // There are 100 layers, so layer index 1 should be put in subfolder "002"
+    const layers = Array.from({ length: 100 }, () => [] as string[]);
+    layers[1].push(testPkg.name);
+
     const packResult = await packPackage(testPkg.info, {
       packToPath: tempPackPath,
-      packInfo: { index: 1, total: 100 },
+      layers,
     });
     expect(packResult).toEqual(true);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
@@ -113,15 +118,16 @@ describe('packPackage', () => {
       ['pack', '--loglevel', 'warn'],
       expect.objectContaining({ cwd: tempRoot })
     );
-    expect(fs.readdirSync(tempPackPath)).toEqual([`002-${testPkg.packName}`]);
+    const outFile = path.join(tempPackPath, '002', testPkg.packName);
+    expect(fs.existsSync(outFile)).toBe(true);
     expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
 
     const allLogs = logs.getMockLines('all');
     expect(allLogs).toMatch(`Packing - ${testPkg.spec}`);
-    expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${path.join(tempPackPath, `002-${testPkg.packName}`)}`);
+    expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${outFile}`);
   });
 
-  it('packs package with packMode: "layers"', async () => {
+  it('packs package in correct layer subfolder', async () => {
     const testPkg = getTestPackage('testpkg');
     writeJson(tempPackageJsonPath, testPkg.json);
 
@@ -130,7 +136,7 @@ describe('packPackage', () => {
 
     const packResult = await packPackage(testPkg.info, {
       packToPath: tempPackPath,
-      packInfo: { layers },
+      layers,
     });
     expect(packResult).toEqual(true);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
@@ -147,6 +153,20 @@ describe('packPackage', () => {
     expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${outFile}`);
   });
 
+  it('handles package not found in layers', async () => {
+    const testPkg = getTestPackage('testpkg');
+    writeJson(tempPackageJsonPath, testPkg.json);
+
+    const packResult = await packPackage(testPkg.info, {
+      packToPath: tempPackPath,
+      layers: [['otherpkg']],
+    });
+    expect(packResult).toEqual(false);
+
+    const allLogs = logs.getMockLines('all');
+    expect(allLogs).toMatch(`Internal error: package ${testPkg.name} not found in order of packages to publish`);
+  });
+
   it('handles failure packing', async () => {
     const testPkg = getTestPackage('testpkg');
     // It's difficult to simulate actual error conditions, so mock an npm call failure.
@@ -156,7 +176,7 @@ describe('packPackage', () => {
 
     const packResult = await packPackage(testPkg.info, {
       packToPath: tempPackPath,
-      packInfo: { index: 0, total: 1 },
+      layers: [[testPkg.name]],
     });
     expect(packResult).toEqual(false);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
@@ -176,7 +196,7 @@ describe('packPackage', () => {
 
     const packResult = await packPackage(testPkg.info, {
       packToPath: tempPackPath,
-      packInfo: { index: 0, total: 1 },
+      layers: [[testPkg.name]],
     });
     expect(packResult).toEqual(false);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
@@ -196,7 +216,7 @@ describe('packPackage', () => {
 
     const packResult = await packPackage(testPkg.info, {
       packToPath: tempPackPath,
-      packInfo: { index: 0, total: 1 },
+      layers: [[testPkg.name]],
     });
     expect(packResult).toEqual(false);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
@@ -212,13 +232,14 @@ describe('packPackage', () => {
     const testPkg = getTestPackage('testpkg');
     writeJson(tempPackageJsonPath, testPkg.json);
 
-    const destPath = path.join(tempPackPath, `1-${testPkg.packName}`);
+    const destPath = path.join(tempPackPath, '1', testPkg.packName);
+    fs.mkdirSync(path.dirname(destPath), { recursive: true });
     fs.writeFileSync(destPath, 'other content');
     const origPath = path.join(tempRoot, testPkg.packName);
 
     const packResult = await packPackage(testPkg.info, {
       packToPath: tempPackPath,
-      packInfo: { index: 0, total: 1 },
+      layers: [[testPkg.name]],
     });
     expect(packResult).toEqual(false);
     expect(npmMock.mock).toHaveBeenCalledTimes(1);
@@ -245,7 +266,7 @@ describe('packPackage', () => {
 
       const packResult = await packPackage(testPkg.info, {
         packToPath: tempPackPath,
-        packInfo: { index: 0, total: 1 },
+        layers: [[testPkg.name]],
       });
       expect(packResult).toEqual(true);
       expect(npmMock.mock).toHaveBeenCalledTimes(1);
@@ -254,12 +275,13 @@ describe('packPackage', () => {
         expect.objectContaining({ cwd: tempRoot })
       );
       // file is moved to correct location (not the package folder)
-      expect(fs.readdirSync(tempPackPath)).toEqual([`1-${testPkg.packName}`]);
+      const outFile = path.join(tempPackPath, '1', testPkg.packName);
+      expect(fs.existsSync(outFile)).toBe(true);
       expect(fs.existsSync(path.join(tempRoot, testPkg.packName))).toBe(false);
 
       const allLogs = logs.getMockLines('all');
       expect(allLogs).toMatch(`Packing - ${testPkg.spec}`);
-      expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${path.join(tempPackPath, `1-${testPkg.packName}`)}`);
+      expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${outFile}`);
     });
   });
 });
