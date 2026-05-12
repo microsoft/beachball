@@ -3,7 +3,7 @@ import path from 'path';
 import { generateJwsToken } from '../utils/generateJwsToken.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
 import { hashFileStream } from '../utils/signing.ts';
-import { FileHashType, type ProductInfo, type ReleaseFileInfo, type ReleaseRequestMessage } from './types.ts';
+import { FileHashType, type ProductInfo, type ReleaseRequestMessage } from './types.ts';
 
 export type GeneratedReleaseRequestMessage = ReleaseRequestMessage &
   Required<
@@ -35,7 +35,7 @@ export interface CreateNpmReleaseRequestMessageParams {
   releaseTitle: string;
   productInfo: Required<ProductInfo>;
   npmTag?: string;
-  file: Required<Pick<ReleaseFileInfo, 'friendlyFileName'>> & {
+  file: {
     /** Local file path */
     path: string;
     /** SAS URL for the staged blob */
@@ -97,7 +97,6 @@ export async function createNpmReleaseRequest(
     files: [
       {
         name: path.basename(file.path),
-        friendlyFileName: file.friendlyFileName,
         tenantFileLocation: file.sasBlobUrl,
         tenantFileLocationType: 'AzureBlob',
         sourceLocation: { type: 'azureBlob', blobUrl: file.sasBlobUrl },
@@ -120,9 +119,10 @@ export async function createNpmReleaseRequest(
   }
 }
 
-/** Stringify a release-related message with some info redacted */
-export function stringifyReleaseMessage(message: Pick<ReleaseRequestMessage, 'files' | 'jwsToken'>): string {
-  message = { ...message };
+export function redactReleaseRequest<TMessage extends Pick<ReleaseRequestMessage, 'files' | 'jwsToken'>>(
+  message: TMessage
+): TMessage {
+  message = structuredClone(message);
   if (message.jwsToken) message.jwsToken = '***';
   message.files = message.files?.map(f => ({
     ...f,
@@ -132,5 +132,5 @@ export function stringifyReleaseMessage(message: Pick<ReleaseRequestMessage, 'fi
       blobUrl: f.sourceLocation?.blobUrl?.replace(/\?.*$/, '?***'),
     },
   }));
-  return JSON.stringify(message, null, 2);
+  return message;
 }

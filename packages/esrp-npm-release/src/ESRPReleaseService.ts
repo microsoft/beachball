@@ -6,10 +6,9 @@ import {
   generateBlobSASQueryParameters,
 } from '@azure/storage-blob';
 import { randomUUID } from 'crypto';
-import path from 'path';
 import {
   createNpmReleaseRequest,
-  stringifyReleaseMessage,
+  redactReleaseRequest,
   type CreateNpmReleaseRequestMessageParams,
 } from './models/npmRelease.ts';
 import type { ReleaseResultMessage, ReleaseSubmitResponse } from './models/types.ts';
@@ -131,11 +130,7 @@ export class ESRPReleaseService {
     this.#logger.log('Acquiring fresh credentials for release');
     const credentials = await this.#acquireCredentials();
 
-    // in index.ts, version is <commit>-<layerNum> and filePath is <layerNum>-<timestamp>.zip
-    const friendlyFileName = `${releaseRequestParams.productInfo.version}/${path.basename(filePath)}`;
     const correlationId = randomUUID();
-    this.#logger.log(`Generated correlation ID ${correlationId} for release of ${friendlyFileName}`);
-
     let blobClient: BlockBlobClient;
     try {
       blobClient = this.#stagingContainerClient.getBlockBlobClient(`${stagingBlobPathPrefix}/${correlationId}`);
@@ -143,6 +138,7 @@ export class ESRPReleaseService {
       throw new ReleaseError(`Error initializing blob client for staging upload`, { cause: err });
     }
 
+    // filePath is <layerNum>-<timestamp>.zip
     this.#logger.log(`Uploading ${filePath} to ${blobClient.url}`);
     await blobClient.uploadFile(filePath).catch(err => {
       throw new ReleaseError(`Error uploading file to staging storage`, { cause: err });
@@ -151,7 +147,6 @@ export class ESRPReleaseService {
     try {
       await this.#submitAndPollRelease({
         filePath,
-        friendlyFileName,
         correlationId,
         blobUrl: blobClient.url,
         releaseRequestParams,
@@ -210,7 +205,6 @@ export class ESRPReleaseService {
 
   async #submitAndPollRelease(
     params: Omit<CreateReleaseParams, 'stagingBlobPathPrefix'> & {
-      friendlyFileName: string;
       correlationId: string;
       blobUrl: string;
       credentials: PerReleaseCredentials;
@@ -241,7 +235,7 @@ export class ESRPReleaseService {
 
       // Log only on status changes to avoid spamming the log on every poll
       if (releaseStatus.status !== lastLoggedStatus) {
-        this.#logger.log(`Release ${submitReleaseResult.operationId} status: "${releaseStatus.status}"`);
+        this.#logger.log(`Release status: "${releaseStatus.status}"`);
         lastLoggedStatus = releaseStatus.status;
       }
 
@@ -278,7 +272,7 @@ export class ESRPReleaseService {
       });
     });
 
-    this.#logger.log('Release details:', stringifyReleaseMessage(releaseDetails));
+    this.#logger.log('Release details:', JSON.stringify(redactReleaseRequest(releaseDetails), null, 2));
   }
 
   /**
@@ -287,17 +281,16 @@ export class ESRPReleaseService {
    */
   async #submitRelease(
     params: Omit<CreateReleaseParams, 'stagingBlobPathPrefix'> & {
-      friendlyFileName: string;
       correlationId: string;
       blobUrl: string;
       credentials: PerReleaseCredentials;
     }
   ): Promise<ReleaseSubmitResponse> {
-    const { filePath, friendlyFileName, correlationId, blobUrl, releaseRequestParams, credentials } = params;
+    const { filePath, correlationId, blobUrl, releaseRequestParams, credentials } = params;
 
     this.#logger.log(`Preparing to submit release`);
 
-    const message = await createNpmReleaseRequest({
+    const request = await createNpmReleaseRequest({
       ...releaseRequestParams,
       correlationId,
       requestSigningCertificates: this.#requestSigningCertificates,
@@ -305,16 +298,15 @@ export class ESRPReleaseService {
       file: {
         path: filePath,
         sasBlobUrl: `${blobUrl}?${credentials.stagingSasToken}`,
-        friendlyFileName,
       },
     });
 
-    this.#logger.log(`Sending request to ESRP API: ${stringifyReleaseMessage(message)}`);
+    this.#logger.log(`Sending request to ESRP API: ${JSON.stringify(redactReleaseRequest(request), null, 2)}`);
 
     return await submitRelease({
       clientId: this.#clientId,
       bearerToken: credentials.esrpAccessToken,
-      releaseRequest: message,
+      releaseRequest: request,
     }).catch(err => {
       throw new ReleaseError(`Failed to submit release`, { cause: err });
     });
