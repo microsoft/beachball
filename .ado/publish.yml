@@ -22,7 +22,7 @@ resources:
 
 variables:
   - name: nodeVersion
-    value: 24
+    value: 20
   - name: npmVersion
     value: 11
   - name: tags
@@ -56,11 +56,10 @@ extends:
               clean: all
 
             templateContext:
-              outputParentDirectory: $(Build.StagingDirectory)/out
               outputs:
                 - output: pipelineArtifact
-                  artifactName: packed-packages
-                  path: $(Build.StagingDirectory)/out/packed-packages
+                  artifactName: published-packages
+                  targetPath: $(Build.StagingDirectory)/pkg
 
             steps:
               - checkout: self
@@ -69,7 +68,11 @@ extends:
                 displayName: Install Node.js ${{ variables.nodeVersion }}
                 retryCountOnTaskFailure: 1
                 inputs:
-                  version: ${{ variables.nodeVersion }}.x
+                  # 👉 NOTE:
+                  # - we can use only versions that ship with container, otherwise we will run into nodejs installation issues.
+                  # - as 1es bumps those versions within container automatically we need to use `<major>.x` to not run into issues once they bump the versions.
+                  # https://github.com/actions/runner-images/blob/ubuntu20/20230924.1/images/linux/Ubuntu2004-Readme.md#nodejs
+                  version: '${{ variables.nodeVersion }}.x'
                   checkLatest: false
 
               # For multiline scripts, we want the whole task to fail if any line of the script fails.
@@ -89,19 +92,14 @@ extends:
                 displayName: Show environment
 
               - script: node scripts/preparePublishRegistry.ts
-                displayName: Prepare npm registry settings
+                displayName: Prepare npm feed
 
               - task: npmAuthenticate@0
                 displayName: npm authenticate
                 inputs:
-                  workingFile: $(Build.SourcesDirectory)/.npmrc
+                  workingFile: '$(Build.SourcesDirectory)/.npmrc'
 
-              # This isn't used, it's just a clear way to check that auth is working
-              # (yarn install's auth errors can be very unclear)
-              - script: yarn npm info beachball
-                displayName: Get package to verify registry auth
-
-              - script: yarn --immutable
+              - script: yarn --frozen-lockfile
                 displayName: Install dependencies
 
               - script: yarn build --verbose
@@ -113,10 +111,11 @@ extends:
               # TODO: figure out if this should bump or not (currently does bump)
               # and currently uses a prerelease prefix of 'test' to avoid interfering with real versions
               # TODO (release): change back to:
-              # yarn beachball publish --prerelease-prefix test -y --no-push --pack-to-path '$(Build.StagingDirectory)/packed-packages'
+              # yarn beachball publish --prerelease-prefix test -y --no-push --pack-to-path '$(Build.StagingDirectory)/pkg'
               - script: |
-                  yarn release:canary --no-push --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
-                displayName: Pack packages (canary)
+                  yarn release:canary --no-push --pack-to-path '$(Build.StagingDirectory)/pkg'
+                displayName: 'Pack packages (canary)'
 
-              - script: ls -R '$(Build.StagingDirectory)/out'
-                displayName: Show all output files
+              - script: |
+                  ls -R '$(Build.StagingDirectory)/pkg'
+                displayName: Show all files in pack directory

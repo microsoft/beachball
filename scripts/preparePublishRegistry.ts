@@ -9,7 +9,7 @@ import path from 'path';
 const repoRoot = path.dirname(import.meta.dirname);
 const publishNpmrcPath = path.join(repoRoot, '.npmrc.publish');
 const npmrcPath = path.join(repoRoot, '.npmrc');
-const yarnrcPath = path.join(repoRoot, '.yarnrc.yml');
+const lockPath = path.join(repoRoot, 'yarn.lock');
 
 fs.copyFileSync(publishNpmrcPath, npmrcPath);
 console.log(`Copied ${publishNpmrcPath} to ${npmrcPath}`);
@@ -20,16 +20,17 @@ const npmrcRegistry = fs
   .find((line: string) => line.startsWith('registry='))
   ?.replace(/^registry="?([^"]+).*/, '$1');
 
-if (!npmrcRegistry) {
-  console.error(`No registry found in ${publishNpmrcPath}`);
+if (npmrcRegistry) {
+  console.log(`Using npm registry: ${npmrcRegistry}`);
+} else {
+  console.warn(`No registry found in ${publishNpmrcPath}`);
   process.exit(1);
 }
 
-const yarnrcUpdates = `
-npmRegistryServer: "${npmrcRegistry}"
-npmAlwaysAuth: true
-npmrcAuthEnabled: true
-`;
-console.log(`Updating ${yarnrcPath} with private registry settings:\n${yarnrcUpdates}`);
-const yarnrcContent = fs.readFileSync(yarnrcPath, 'utf-8');
-fs.writeFileSync(yarnrcPath, `${yarnrcContent}\n${yarnrcUpdates}`, 'utf-8');
+const yarnLockContent = fs.readFileSync(lockPath, 'utf-8');
+const updatedYarnLockContent = yarnLockContent.replace(
+  /https:\/\/registry\.yarnpkg\.com\//g,
+  npmrcRegistry.endsWith('/') ? npmrcRegistry : `${npmrcRegistry}/`
+);
+fs.writeFileSync(lockPath, updatedYarnLockContent);
+console.log(`Updated registry in yarn.lock to ${npmrcRegistry}`);
