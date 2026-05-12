@@ -7,7 +7,7 @@ import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
 import { writeJson } from '../../object/writeJson';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
-import { publishToRegistry } from '../../publish/publishToRegistry';
+import { publishToRegistry, type LayerVersionsJson } from '../../publish/publishToRegistry';
 import type { BeachballOptions, HooksOptions } from '../../types/BeachballOptions';
 import type { PublishBumpInfo } from '../../types/BumpInfo';
 import type { PackageJson } from '../../types/PackageInfo';
@@ -393,7 +393,7 @@ describe('publishToRegistry', () => {
       expect(npmMock.getPublishedVersions('lib')).toBeUndefined();
       expect(npmMock.getPublishedVersions('app')).toBeUndefined();
 
-      // Tgz files should be in numbered subdirectories by layer
+      // tgz files should be in numbered subdirectories by layer
       // lib has no deps → layer 0 (folder "1"), app and other depend on lib → layer 1 (folder "2")
       const layer1 = fs.readdirSync(path.join(packToPath, '1'));
       const layer2 = fs.readdirSync(path.join(packToPath, '2'));
@@ -402,6 +402,11 @@ describe('publishToRegistry', () => {
         getMockNpmPackName(bumpInfo.packageInfos.app),
         getMockNpmPackName(bumpInfo.packageInfos.other),
       ]);
+
+      const versionsPath = path.join(packToPath, 'versions.json');
+      expect(fs.existsSync(versionsPath)).toBe(true);
+      const versionsJson = JSON.parse(fs.readFileSync(versionsPath, 'utf-8')) as LayerVersionsJson;
+      expect(versionsJson).toEqual([{ lib: '1.0.0' }, { app: '1.0.0', other: '1.0.0' }]);
 
       expect(
         logs.getMockLines('all', { replacePaths: { [tempRoot]: '<root>', [packToPath]: '<packPath>' } })

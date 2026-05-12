@@ -15,7 +15,7 @@ import { bulletedList } from '../logging/bulletedList';
  * - `bumpDeps` is false
  * - `scope` is set
  * - There are `newPackages`
- * - Any change has `dependentChangeType` set to "none"
+ * - Any change has `dependentChangeType` set to "none" when its type is not "none"
  *
  * Currently, there's only VERY basic cycle handling: all cycles are grouped together on a final
  * layer, regardless of any interdependencies. The `toposort` package previously used by beachball
@@ -41,7 +41,9 @@ export function getPackageGraphLayers(params: {
     options.bumpDeps &&
     !options.scope &&
     !bumpInfo.newPackages?.length &&
-    !changeFileChangeInfos.some(change => change.change.dependentChangeType === 'none');
+    !changeFileChangeInfos.some(
+      change => change.change.type !== 'none' && change.change.dependentChangeType === 'none'
+    );
   const packagesToConsider = canConsiderPublishedOnly ? packagesToPublish : Object.keys(packageInfos);
   const packagesToConsiderSet = new Set(packagesToConsider);
 

@@ -226,8 +226,9 @@ export interface RepoOptions {
    */
   publish: boolean;
   /**
-   * If provided, pack packages to the specified path instead of publishing.
-   * Implies `publish: false`.
+   * Instead of publishing to npm, pack packages to tgz files in numbered subfolders under this path,
+   * based on dependency tree layers (leaves first). There will also be a file `versions.json` at
+   * the top level with the versions of the packed packages in each layer. (Implies `publish: false`.)
    */
   packToPath?: string;
   /**
