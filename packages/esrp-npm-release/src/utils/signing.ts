@@ -13,7 +13,7 @@ export function hashFileStream(hashName: 'sha256', filePath: string): Promise<Bu
     stream
       .on('data', shasum.update.bind(shasum))
       .on('error', reject)
-      .on('close', () => resolve(shasum.digest()));
+      .on('end', () => resolve(shasum.digest()));
   });
 }
 
