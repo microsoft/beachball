@@ -1,5 +1,5 @@
 // Entry point for the ESRP npm release tool.
-// Reads packed packages (produced by `beachball publish --pack-to-path --pack-style layer`),
+// Reads packed packages (produced by `beachball publish --pack-to-path <path>`),
 // zips each layer, and publishes them to npmjs.com via the ESRP Release API in dependency order.
 //
 // Based on the non-worker part of https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/common/publish.ts
@@ -9,7 +9,7 @@ import { BlobServiceClient } from '@azure/storage-blob';
 import fs from 'fs';
 import path from 'path';
 import yazl from 'yazl';
-import { releaseFile } from './releaseFile.ts';
+import { ESRPReleaseService } from './ESRPReleaseService.ts';
 import { ReleaseState } from './ReleaseState.ts';
 import { getAadToken } from './utils/getAadToken.ts';
 import { ReleaseError } from './utils/ReleaseError.ts';
@@ -68,6 +68,8 @@ function getEnvOptions() {
       agentTempDirectory: getEnv('AGENT_TEMPDIRECTORY'),
       /** git commit of the source */
       buildSourceVersion: getEnv('BUILD_SOURCEVERSION'),
+      /** Repository name (for GitHub-connected repos this is "org/repo"; bare name for ADO Repos) */
+      buildRepositoryName: getEnv('BUILD_REPOSITORY_NAME'),
     },
   };
 
@@ -107,12 +109,30 @@ async function main() {
     );
   }
 
-  const state = await ReleaseState.create(stagingBlobServiceClient, env.ado.buildSourceVersion);
+  // Strip any "org/" prefix so only the repo name is used in the staging blob paths.
+  const repoName = env.ado.buildRepositoryName.split('/').slice(-1)[0];
+
+  const state = await ReleaseState.create({
+    blobServiceClient: stagingBlobServiceClient,
+    repoName,
+    sourceVersion: env.ado.buildSourceVersion,
+  });
 
   const zipsDir = path.join(env.ado.agentTempDirectory, 'npm-zips');
   fs.mkdirSync(zipsDir, { recursive: true });
 
   const layers = fs.readdirSync(env.packedPackagesPath).sort();
+
+  // Construct the release service once. It re-acquires AAD/SAS tokens per release internally
+  // since releasing each layer can take a long time (potentially exceeding token lifetimes).
+  const releaseService = await ESRPReleaseService.create({
+    logger,
+    clientId: env.esrp.clientId,
+    tenantId: env.esrp.tenantId,
+    authCertificatePfx: env.esrp.authCertificatePfx,
+    requestSigningCertificatePfx: env.esrp.requestSigningCertificatePfx,
+    stagingBlobServiceClient,
+  });
 
   for (const layerNum of layers) {
     if (state.hasPublished(layerNum)) {
@@ -126,8 +146,6 @@ async function main() {
     // This is an arbitrary string, not used as the published version
     const layerVersion = `${env.ado.buildSourceVersion}-${layerNum}`;
 
-    const layerDir = path.join(env.packedPackagesPath, layerNum);
-
     logger.log('Zipping layer contents');
     const zipPath = path.join(zipsDir, `${layerPrefix}-${Date.now()}.zip`);
 
@@ -135,6 +153,8 @@ async function main() {
     await new Promise<void>((resolve, reject) => {
       zipfile.outputStream.on('error', reject);
       zipfile.outputStream.pipe(fs.createWriteStream(zipPath)).on('close', resolve).on('error', reject);
+
+      const layerDir = path.join(env.packedPackagesPath, layerNum);
       for (const file of fs.readdirSync(layerDir)) {
         if (file.endsWith('.tgz')) {
           zipfile.addFile(path.join(layerDir, file), file);
@@ -146,14 +166,9 @@ async function main() {
     });
     logger.log('done');
 
-    await releaseFile({
-      logger,
+    await releaseService.createRelease({
       filePath: zipPath,
-      stagingBlobServiceClient,
-      authCertificatePfx: env.esrp.authCertificatePfx,
-      requestSigningCertificatePfx: env.esrp.requestSigningCertificatePfx,
-      clientId: env.esrp.clientId,
-      tenantId: env.esrp.tenantId,
+      stagingBlobPathPrefix: repoName,
       releaseRequestParams: {
         createdBy: env.esrp.createdBy,
         driEmail: env.esrp.driEmail,

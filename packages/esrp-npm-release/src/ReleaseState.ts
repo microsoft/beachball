@@ -11,9 +11,10 @@ const getContainerDesc = (accountName: string) =>
  *
  * State is persisted to Azure Blob Storage in the staging storage account under the
  * `release-state` container. Each successfully-published layer corresponds to one empty
- * marker blob at `{buildSourceVersion}/{layerName}`. This allows the tool to resume from
- * where it left off when ADO retries a failed stage or task, skipping layers that were
- * already published to npm.
+ * marker blob at `{repoName}/{buildSourceVersion}/{layerName}`. This allows the tool to
+ * resume from where it left off when ADO retries a failed stage or task, skipping layers
+ * that were already published to npm. The repo name prefix isolates state between
+ * different repositories sharing the same staging storage account.
  *
  * Keying by `buildSourceVersion` (rather than build ID + stage attempt) means state is
  * shared across all retries and reruns for the same git commit, which is what we want
@@ -26,10 +27,16 @@ export class ReleaseState {
 
   /**
    * Initialize the ReleaseState from persisted state in Azure Blob Storage, loading the list of
-   * already-published layers for this `sourceVersion`. Throws `ReleaseError` on any issue.
+   * already-published layers for this `repoName` + `sourceVersion`. Throws `ReleaseError` on any issue.
    */
-  static async create(blobServiceClient: BlobServiceClient, sourceVersion: string): Promise<ReleaseState> {
+  static async create(params: {
+    blobServiceClient: BlobServiceClient;
+    repoName: string;
+    sourceVersion: string;
+  }): Promise<ReleaseState> {
+    const { blobServiceClient, repoName, sourceVersion } = params;
     const desc = getContainerDesc(blobServiceClient.accountName);
+
     let containerClient: ContainerClient;
     try {
       containerClient = blobServiceClient.getContainerClient(stateContainerName);
@@ -41,7 +48,7 @@ export class ReleaseState {
       throw new ReleaseError(`Error creating or accessing ${desc}`, { cause: err });
     });
 
-    const prefix = `${sourceVersion}/`;
+    const prefix = `${repoName}/${sourceVersion}/`;
     const publishedLayers = new Set<string>();
     try {
       for await (const blob of containerClient.listBlobsFlat({ prefix })) {
