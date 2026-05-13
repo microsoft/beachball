@@ -2404,7 +2404,7 @@ __metadata:
     "@types/yazl": "npm:^3.3.1"
     cross-env: "npm:^10.1.0"
     execa: "npm:^5.1.1"
-    jws: "npm:^4.0.1"
+    jws: "patch:jws@npm%3A4.0.1#~/.yarn/patches/jws-npm-4.0.1-0d8c257cbe.patch"
     yazl: "npm:^3.3.1"
   bin:
     esrp-npm-release: dist/index.js
@@ -7041,13 +7041,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jws@npm:^4.0.1":
+"jws@npm:4.0.1, jws@npm:^4.0.1":
   version: 4.0.1
   resolution: "jws@npm:4.0.1"
   dependencies:
     jwa: "npm:^2.0.1"
     safe-buffer: "npm:^5.0.1"
   checksum: 10c0/6be1ed93023aef570ccc5ea8d162b065840f3ef12f0d1bb3114cade844de7a357d5dc558201d9a65101e70885a6fa56b17462f520e6b0d426195510618a154d0
+  languageName: node
+  linkType: hard
+
+"jws@patch:jws@npm%3A4.0.1#~/.yarn/patches/jws-npm-4.0.1-0d8c257cbe.patch":
+  version: 4.0.1
+  resolution: "jws@patch:jws@npm%3A4.0.1#~/.yarn/patches/jws-npm-4.0.1-0d8c257cbe.patch::version=4.0.1&hash=c18357"
+  dependencies:
+    jwa: "npm:^2.0.1"
+    safe-buffer: "npm:^5.0.1"
+  checksum: 10c0/46d80cb91b5245aa6f8a737f64c7e9480a48684d0a12972d64486f0688d037831c53607cc75ce93d93e02668b177b9ef933f96bc5ffa60c05ce017512dd19809
   languageName: node
   linkType: hard
 

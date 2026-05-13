@@ -1,0 +1,19 @@
+diff --git a/lib/tostring.js b/lib/tostring.js
+index f5a49a36548b1e299042c9e3d1cdd60c71d8ec0c..493dd5cdd98ad99f84fb740864f9dd54c73ab7a3 100644
+--- a/lib/tostring.js
++++ b/lib/tostring.js
+@@ -4,7 +4,11 @@ var Buffer = require('buffer').Buffer;
+ module.exports = function toString(obj) {
+   if (typeof obj === 'string')
+     return obj;
+-  if (typeof obj === 'number' || Buffer.isBuffer(obj))
++  if (typeof obj === 'number' || typeof obj === 'bigint' || Buffer.isBuffer(obj))
+     return obj.toString();
+-  return JSON.stringify(obj);
++  const marker = '__BIGINT_' + Math.random().toString(36).slice(2) + '__';
++  const json = JSON.stringify(obj, (_k, v) =>
++    typeof v === 'bigint' ? marker + v.toString() + marker : v
++  );
++  return json.replace(new RegExp('"' + marker + '(-?\\d+)' + marker + '"', 'g'), '$1');
+ };
+\ No newline at end of file
