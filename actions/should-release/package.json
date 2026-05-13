@@ -1,0 +1,20 @@
+{
+  "name": "@microsoft/should-release",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Determines whether this release workflow run is needed, and cancels it if not",
+  "type": "module",
+  "scripts": {
+    "build": "repo-scripts build",
+    "bundle": "repo-scripts bundle"
+  },
+  "beachball": {
+    "shouldPublish": false
+  },
+  "devDependencies": {
+    "@actions/core": "catalog:",
+    "@actions/glob": "catalog:",
+    "@microsoft/beachball-actions-common": "workspace:",
+    "@microsoft/beachball-actions-scripts": "workspace:"
+  }
+}

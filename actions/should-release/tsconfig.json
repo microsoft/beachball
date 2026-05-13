@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig.base.actions.json",
+  "compilerOptions": {
+    "outDir": "lib",
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}
