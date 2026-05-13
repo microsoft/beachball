@@ -2,6 +2,7 @@ import type { BeachballOptions, ParsedOptions, RepoOptions } from '../types/Beac
 import { getCliOptions, type ProcessInfo } from './getCliOptions';
 import { getRepoOptions } from './getRepoOptions';
 import { getDefaultOptions } from './getDefaultOptions';
+import { getRegistryFromNpmrc } from '../packageManager/npmrc';
 
 /**
  * Gets all repo level options (default + root options + cli options)
@@ -38,9 +39,19 @@ function mergeRepoOptions(
   const { repoOptions, cliOptions } = params;
   // TODO: proper recursive merging
   // (right now it's not important because no nested objects are expected outside of repoOptions)
-  return {
+  const merged = {
     ...getDefaultOptions(),
     ...repoOptions,
     ...cliOptions,
   };
+
+  // If neither the CLI nor the config file provided a registry, try reading it from .npmrc
+  if (!cliOptions.registry && !repoOptions.registry && merged.path) {
+    const npmrcRegistry = getRegistryFromNpmrc(merged.path);
+    if (npmrcRegistry) {
+      merged.registry = npmrcRegistry;
+    }
+  }
+
+  return merged;
 }

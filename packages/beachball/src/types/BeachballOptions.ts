@@ -243,7 +243,9 @@ export interface RepoOptions {
    */
   push: boolean;
   /**
-   * Target npm registry for publishing
+   * Target npm registry for publishing.
+   * If not specified, beachball will look for a `registry` setting in `.npmrc` files
+   * (project-level, then user-level) before falling back to the default.
    * @default 'https://registry.npmjs.org/'
    */
   registry: string;

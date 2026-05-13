@@ -214,4 +214,37 @@ describe('getParsedOptions', () => {
     });
     expect(parsedOptions.options.changelog).toEqual(repoOptions.changelog);
   });
+
+  it('reads registry from .npmrc when not set in config or CLI', () => {
+    const repo = repositoryFactory.cloneRepository();
+    fs.writeFileSync(path.join(repo.rootPath, '.npmrc'), 'registry=https://npmrc-registry.example.com/\n');
+
+    const parsedOptions = getParsedOptions({ argv: baseArgv(), env: {}, cwd: repo.rootPath });
+    expect(parsedOptions.options.registry).toBe('https://npmrc-registry.example.com/');
+  });
+
+  it('prefers CLI --registry over .npmrc registry', () => {
+    const repo = repositoryFactory.cloneRepository();
+    fs.writeFileSync(path.join(repo.rootPath, '.npmrc'), 'registry=https://npmrc-registry.example.com/\n');
+
+    const parsedOptions = getParsedOptions({
+      argv: [...baseArgv(), '--registry', 'https://cli-registry.example.com/'],
+      env: {},
+      cwd: repo.rootPath,
+    });
+    expect(parsedOptions.options.registry).toBe('https://cli-registry.example.com/');
+  });
+
+  it('prefers config registry over .npmrc registry', () => {
+    const repo = repositoryFactory.cloneRepository();
+    fs.writeFileSync(path.join(repo.rootPath, '.npmrc'), 'registry=https://npmrc-registry.example.com/\n');
+    const repoOptions: Partial<RepoOptions> = { registry: 'https://config-registry.example.com/' };
+    fs.writeFileSync(
+      path.join(repo.rootPath, 'beachball.config.js'),
+      `module.exports = ${JSON.stringify(repoOptions)};`
+    );
+
+    const parsedOptions = getParsedOptions({ argv: baseArgv(), env: {}, cwd: repo.rootPath });
+    expect(parsedOptions.options.registry).toBe('https://config-registry.example.com/');
+  });
 });

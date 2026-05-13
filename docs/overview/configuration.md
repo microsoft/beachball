@@ -98,7 +98,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `packToPath` | `string` | | repo | Instead of publishing to npm, pack packages to tgz files under the specified path. |
 | `publish` | `boolean` | `true` | repo | Whether to publish to npm registry |
 | `push` | `boolean` | `true` | repo | Whether to push to the remote git branch |
-| `registry` | `string` | | repo | Publish to this npm registry |
+| `registry` | `string` | | repo | Publish to this npm registry. If not set, uses the `registry` from `.npmrc` (project-level, then user-level), or defaults to `https://registry.npmjs.org/`. |
 | `retries` | `number` | `3` | repo | Number of retries for a package publish before failing |
 | `scope` | `string[]` | | repo | Only consider package paths matching these patterns ([see details](#scoping)) |
 | `shouldPublish` | `false \| undefined` | | package | Manually disable publishing of a package by beachball (does not work to force publishing) |
