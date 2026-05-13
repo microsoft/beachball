@@ -2154,6 +2154,7 @@ __metadata:
     "@actions/core": "catalog:"
     "@microsoft/beachball-actions-common": "workspace:"
     "@microsoft/beachball-actions-scripts": "workspace:"
+    "@microsoft/beachball-scripts": "workspace:^"
   languageName: unknown
   linkType: soft
 
@@ -2164,12 +2165,15 @@ __metadata:
     "@actions/core": "catalog:"
     "@actions/github": "catalog:"
     "@microsoft/beachball-actions-scripts": "workspace:"
+    "@microsoft/beachball-scripts": "workspace:^"
   languageName: unknown
   linkType: soft
 
 "@microsoft/beachball-actions-scripts@workspace:, @microsoft/beachball-actions-scripts@workspace:packages/beachball-actions-scripts":
   version: 0.0.0-use.local
   resolution: "@microsoft/beachball-actions-scripts@workspace:packages/beachball-actions-scripts"
+  dependencies:
+    "@microsoft/beachball-scripts": "workspace:^"
   bin:
     repo-scripts: ./src/bin/repo-scripts.js
   languageName: unknown
@@ -2185,7 +2189,6 @@ __metadata:
     "@eslint/compat": "npm:^2.0.0"
     "@eslint/js": "npm:^9.0.0"
     "@jest/globals": "npm:^30.0.0"
-    "@tsconfig/node24": "npm:^24.0.0"
     "@types/node": "npm:^22.0.0"
     "@types/yargs-parser": "npm:^21.0.0"
     "@typescript-eslint/utils": "npm:^8.52.0"
@@ -2239,6 +2242,7 @@ __metadata:
     "@actions/glob": "catalog:"
     "@microsoft/beachball-actions-common": "workspace:"
     "@microsoft/beachball-actions-scripts": "workspace:"
+    "@microsoft/beachball-scripts": "workspace:^"
   languageName: unknown
   linkType: soft
 
@@ -2470,13 +2474,6 @@ __metadata:
   dependencies:
     defer-to-connect: "npm:^2.0.0"
   checksum: 10c0/73946918c025339db68b09abd91fa3001e87fc749c619d2e9c2003a663039d4c3cb89836c98a96598b3d47dec2481284ba85355392644911f5ecd2336536697f
-  languageName: node
-  linkType: hard
-
-"@tsconfig/node24@npm:^24.0.0":
-  version: 24.0.4
-  resolution: "@tsconfig/node24@npm:24.0.4"
-  checksum: 10c0/9c5d4173204c6935c45d3ff0584fd423bd7d8bc3f6b246e646320ae584e4226b34ea1c66ec67cd16769c73e7e80f4cc562287b0acaa4ec81aa482463972ff83f
   languageName: node
   linkType: hard
 

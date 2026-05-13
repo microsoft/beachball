@@ -21,6 +21,7 @@
     "@actions/github": "catalog:"
   },
   "devDependencies": {
-    "@microsoft/beachball-actions-scripts": "workspace:"
+    "@microsoft/beachball-actions-scripts": "workspace:",
+    "@microsoft/beachball-scripts": "workspace:^"
   }
 }

@@ -12,5 +12,8 @@
   },
   "beachball": {
     "shouldPublish": false
+  },
+  "devDependencies": {
+    "@microsoft/beachball-scripts": "workspace:^"
   }
 }
