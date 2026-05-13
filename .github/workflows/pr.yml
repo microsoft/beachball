@@ -59,6 +59,12 @@ jobs:
 
       - run: yarn build --verbose
 
+      - name: Check for modified files (e.g. action dist updates)
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        uses: ./actions/check-for-modified-files
+        with:
+          extraError: 'If action dist files changed, run "yarn build" and check in the updated dist files.'
+
       - run: yarn checkchange --verbose
 
       - run: yarn format:check
