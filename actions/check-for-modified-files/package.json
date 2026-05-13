@@ -1,0 +1,9 @@
+{
+  "name": "@microsoft/beachball-action-check-for-modified-files",
+  "version": "3.0.0",
+  "description": "Fails the build if it modified any files",
+  "type": "module",
+  "beachball": {
+    "shouldPublish": false
+  }
+}

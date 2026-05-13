@@ -1,0 +1,20 @@
+{
+  "name": "@microsoft/beachball-action-should-release",
+  "version": "3.0.0",
+  "description": "Determines whether this release workflow run is needed, and cancels it if not",
+  "type": "module",
+  "scripts": {
+    "build": "yarn run -T tsc --pretty",
+    "bundle": "node ../../scripts/bundleNode.ts",
+    "lint": "yarn run -T eslint --color --max-warnings=0 src"
+  },
+  "beachball": {
+    "shouldPublish": false
+  },
+  "devDependencies": {
+    "@actions/core": "catalog:",
+    "@actions/glob": "catalog:",
+    "@microsoft/beachball-actions-common": "workspace:",
+    "@microsoft/beachball-scripts": "workspace:^"
+  }
+}

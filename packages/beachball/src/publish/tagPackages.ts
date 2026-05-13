@@ -19,11 +19,9 @@ export function tagPackages(
 ): void {
   const { gitTags, tag: distTag, path: cwd } = options;
 
-  for (const tags of Object.values(packageTags)) {
-    if (!tags?.length) {
-      continue;
-    }
-    for (const tag of tags) {
+  // Dedupe the tags in case multiple packages use a shared secondary tag
+  for (const tag of new Set(Object.values(packageTags).flat())) {
+    if (tag) {
       console.log(`Tagging - ${tag}`);
       createTag(tag, cwd);
     }

@@ -80,4 +80,13 @@ describe('tagPackages', () => {
       'tag -a -f beta -m beta',
     ]);
   });
+
+  it('dedupes tags across packages', () => {
+    const packageTags: BumpInfo['packageTags'] = { foo: ['foo@1', 'shared-tag'], bar: ['shared-tag'] };
+    tagPackages(packageTags, { path: '', gitTags: true, tag: '' });
+
+    expect(gitFailFast).toHaveBeenCalledTimes(2);
+    const gitCalls = gitFailFast.mock.calls.map(([args]) => args.join(' '));
+    expect(gitCalls).toEqual(['tag -a -f foo@1 -m foo@1', 'tag -a -f shared-tag -m shared-tag']);
+  });
 });

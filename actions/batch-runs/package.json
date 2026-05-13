@@ -1,0 +1,19 @@
+{
+  "name": "@microsoft/beachball-action-batch-runs",
+  "version": "3.0.0",
+  "description": "Cancels this workflow run if a newer one is pending",
+  "type": "module",
+  "scripts": {
+    "build": "yarn run -T tsc --pretty",
+    "bundle": "node ../../scripts/bundleNode.ts",
+    "lint": "yarn run -T eslint --color --max-warnings=0 src"
+  },
+  "beachball": {
+    "shouldPublish": false
+  },
+  "devDependencies": {
+    "@actions/core": "catalog:",
+    "@microsoft/beachball-actions-common": "workspace:",
+    "@microsoft/beachball-scripts": "workspace:^"
+  }
+}
