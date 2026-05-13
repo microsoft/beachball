@@ -2,12 +2,7 @@ import * as core from '@actions/core';
 import * as glob from '@actions/glob';
 import fs from 'fs';
 import path from 'path';
-import {
-  checkForNewerRuns,
-  cancelRun,
-  getEnumInput,
-  onUnhandledError,
-} from '@microsoft/beachball-actions-common';
+import { checkForNewerRuns, cancelRun, getEnumInput, onUnhandledError } from '@microsoft/beachball-actions-common';
 
 async function main() {
   const batch = core.getBooleanInput('batch');
@@ -23,8 +18,8 @@ async function main() {
     core.debug(
       `files in ${globDir}: ${fs
         .readdirSync(globDir)
-        .map((f) => `\n  ${f}`)
-        .join('')}`,
+        .map(f => `\n  ${f}`)
+        .join('')}`
     );
   }
   const changeFiles = await (await glob.create(changeGlob)).glob();
