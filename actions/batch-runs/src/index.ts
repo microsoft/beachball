@@ -1,10 +1,5 @@
 import * as core from '@actions/core';
-import {
-  checkForNewerRuns,
-  cancelRun,
-  getEnumInput,
-  onUnhandledError,
-} from '@microsoft/beachball-actions-common';
+import { checkForNewerRuns, cancelRun, getEnumInput, onUnhandledError } from '@microsoft/beachball-actions-common';
 
 const main = async (): Promise<void> => {
   const mode = getEnumInput('mode', ['cancel', 'output'] as const, 'cancel');

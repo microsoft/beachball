@@ -3,9 +3,7 @@ import * as github from '@actions/github';
 import { logGithubRequestError } from './logGithubRequestError.js';
 
 type Octokit = ReturnType<typeof github.getOctokit>;
-type WorkflowRunsResult = Awaited<
-  ReturnType<Octokit['rest']['actions']['listWorkflowRuns']>
->['data'];
+type WorkflowRunsResult = Awaited<ReturnType<Octokit['rest']['actions']['listWorkflowRuns']>>['data'];
 
 /**
  * Check for newer pending runs of this workflow against the current branch.
@@ -54,9 +52,7 @@ export async function checkForNewerRuns(token: string): Promise<boolean> {
   // possibly when only the second stage of the current job is queued?
   const runCount = thisBranchRuns.workflow_runs.length;
   core.info(
-    `There ${
-      runCount === 1 ? 'is 1 newer run' : `are ${runCount || 'no'} newer runs`
-    } pending for ${branchName}.`,
+    `There ${runCount === 1 ? 'is 1 newer run' : `are ${runCount || 'no'} newer runs`} pending for ${branchName}.`
   );
   if (runCount) {
     for (const run of thisBranchRuns.workflow_runs) {

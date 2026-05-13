@@ -11,15 +11,13 @@ import * as core from '@actions/core';
 export function getEnumInput<TValue extends string>(
   inputName: string,
   allowedValues: ReadonlyArray<TValue>,
-  defaultValue?: TValue,
+  defaultValue?: TValue
 ): TValue {
   const required = typeof defaultValue !== 'string';
   const value = core.getInput(inputName, { required }) || defaultValue || '';
   if (!allowedValues.includes(value as TValue)) {
-    const allowedValuesStr = allowedValues.map((v) => `"${v}"`).join(' or ');
-    core.setFailed(
-      `Valid options for "${inputName}" are ${allowedValuesStr} (received "${value}")`,
-    );
+    const allowedValuesStr = allowedValues.map(v => `"${v}"`).join(' or ');
+    core.setFailed(`Valid options for "${inputName}" are ${allowedValuesStr} (received "${value}")`);
     process.exit(1);
   }
   return value as TValue;

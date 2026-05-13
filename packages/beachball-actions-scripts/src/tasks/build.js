@@ -20,7 +20,7 @@ export default async function build(/** @type {string[]} */ additionalArgs) {
         '--pretty',
         ...additionalArgs,
       ],
-      { cwd: packageRoot, preferLocal: true, stdio: 'inherit' },
+      { cwd: packageRoot, preferLocal: true, stdio: 'inherit' }
     );
   } catch (err) {
     if (err instanceof SubprocessError) {
