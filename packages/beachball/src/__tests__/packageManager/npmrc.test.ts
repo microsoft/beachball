@@ -86,4 +86,36 @@ describe('getRegistryFromNpmrc', () => {
     fs.writeFileSync(path.join(subDir, '.npmrc'), 'Registry=https://case-registry.example.com/\n');
     expect(getRegistryFromNpmrc(subDir)).toBe('https://case-registry.example.com/');
   });
+
+  it('substitutes ${VAR} with environment variable values', () => {
+    const subDir = path.join(tmpDir, 'envvar-npmrc');
+    fs.mkdirSync(subDir, { recursive: true });
+    fs.writeFileSync(path.join(subDir, '.npmrc'), 'registry=https://${REGISTRY_HOST}/npm/\n');
+    const env = { REGISTRY_HOST: 'my-private-registry.example.com' } as NodeJS.ProcessEnv;
+    expect(getRegistryFromNpmrc(subDir, env)).toBe('https://my-private-registry.example.com/npm/');
+  });
+
+  it('substitutes multiple ${VAR} references in the same value', () => {
+    const subDir = path.join(tmpDir, 'multi-envvar-npmrc');
+    fs.mkdirSync(subDir, { recursive: true });
+    fs.writeFileSync(path.join(subDir, '.npmrc'), 'registry=${PROTO}://${HOST}/\n');
+    const env = { PROTO: 'https', HOST: 'registry.example.com' } as NodeJS.ProcessEnv;
+    expect(getRegistryFromNpmrc(subDir, env)).toBe('https://registry.example.com/');
+  });
+
+  it('replaces unset ${VAR} with empty string', () => {
+    const subDir = path.join(tmpDir, 'unset-envvar-npmrc');
+    fs.mkdirSync(subDir, { recursive: true });
+    fs.writeFileSync(path.join(subDir, '.npmrc'), 'registry=https://registry.example.com/${MISSING_PATH}\n');
+    const env = {} as NodeJS.ProcessEnv;
+    expect(getRegistryFromNpmrc(subDir, env)).toBe('https://registry.example.com/');
+  });
+
+  it('does not substitute $VAR without braces', () => {
+    const subDir = path.join(tmpDir, 'no-brace-envvar-npmrc');
+    fs.mkdirSync(subDir, { recursive: true });
+    fs.writeFileSync(path.join(subDir, '.npmrc'), 'registry=https://$REGISTRY_HOST/npm/\n');
+    const env = { REGISTRY_HOST: 'substituted.example.com' } as NodeJS.ProcessEnv;
+    expect(getRegistryFromNpmrc(subDir, env)).toBe('https://$REGISTRY_HOST/npm/');
+  });
 });
