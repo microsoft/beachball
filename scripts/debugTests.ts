@@ -1,4 +1,4 @@
-import jest from 'jest';
+import * as jest from 'jest';
 import { findPackageRoot } from 'workspace-tools';
 
 const args = process.argv.slice(2);

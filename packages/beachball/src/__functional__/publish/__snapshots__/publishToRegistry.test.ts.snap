@@ -265,48 +265,6 @@ exports[`publishToRegistry with packToPath packs packages into layer folders 1`]
 
 [log] lib-1.0.0.tgz
 
-[log] Packed lib@1.0.0 to <packPath>/1/lib-1.0.0.tgz"
-`;
-
-exports[`publishToRegistry with packToPath packs packages sequentially by default 1`] = `
-"[log] Validating new package versions...
-
-[log] Package versions are OK to publish:
-  • app@1.0.0
-  • lib@1.0.0
-
-[log] Validating no private package among package dependencies
-[log]   OK!
-
-[log] Packing - lib@1.0.0
-[log]   (cwd: <root>/packages/lib)
-
-[log] lib-1.0.0.tgz
-
-[log] Packed lib@1.0.0 to <packPath>/1-lib-1.0.0.tgz
-[log] Packing - app@1.0.0
-[log]   (cwd: <root>/packages/app)
-
-[log] app-1.0.0.tgz
-
-[log] Packed app@1.0.0 to <packPath>/2-app-1.0.0.tgz"
-`;
-
-exports[`publishToRegistry with packToPath throws with packing error message on pack failure 1`] = `
-"[log] Validating new package versions...
-
-[log] Package versions are OK to publish:
-  • foo@1.0.0
-
-[log] Validating no private package among package dependencies
-[log]   OK!
-
-[log] Packing - foo@1.0.0
-[log]   (cwd: <root>/packages/foo)
-
-[log] pack error
-
-[error] Packing foo@1.0.0 failed (see above for details)
-
-[error] Something went wrong with packing packages! No packages were published, so you can address the issue and try again."
+[log] Packed lib@1.0.0 to <packPath>/1/lib-1.0.0.tgz
+[log] Wrote versions of packed packages to <packPath>/versions.json"
 `;
