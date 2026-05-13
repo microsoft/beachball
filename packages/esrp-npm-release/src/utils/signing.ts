@@ -1,22 +1,6 @@
-import fs from 'fs';
 import crypto from 'crypto';
 import execa from 'execa';
 import type { Logger } from './Logger.ts';
-
-/**
- * Hash a file using a stream (in case the file is large).
- */
-export function hashFileStream(hashName: 'sha256', filePath: string): Promise<Buffer> {
-  const stream = fs.createReadStream(filePath);
-  return new Promise<Buffer>((resolve, reject) => {
-    const shasum = crypto.createHash(hashName);
-
-    stream
-      .on('data', shasum.update.bind(shasum))
-      .on('error', reject)
-      .on('end', () => resolve(shasum.digest()));
-  });
-}
 
 /**
  * Convert a certificate from PEM format (base64 text with header/footer) into the raw

@@ -85,7 +85,7 @@ async function piercePackage(params: PiercePackageParams): Promise<void> {
   const { packageName, version, headers, instance, feedId, logger } = params;
 
   // Scoped names ("@scope/pkg") are accepted as-is by this endpoint.
-  const url = `https://${instance}.pkgs.visualstudio.com/_apis/packaging/feeds/${feedId}/npm/packages/${packageName}/versions/${version}/content`;
+  const url = `https://pkgs.dev.azure.com/${instance}/_apis/packaging/feeds/${feedId}/npm/packages/${packageName}/versions/${version}/content`;
 
   // HEAD with manual redirect handling: 200 = already cached, 303 = upstream pull triggered.
   // `redirect: 'manual'` prevents `fetch` from following the 303 to the upstream tarball

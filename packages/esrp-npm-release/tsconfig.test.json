@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "verbatimModuleSyntax": false,
+    "ignoreDeprecations": "6.0",
+    "esModuleInterop": true,
+    // ts-jest misuses this to disable type checking
+    "isolatedModules": true
+  }
+}

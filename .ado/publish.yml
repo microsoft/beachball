@@ -115,10 +115,11 @@ extends:
 
               # TODO: figure out if this should bump or not (currently does bump)
               # and currently uses a prerelease prefix of 'test' to avoid interfering with real versions
+              # TODO: update beachball to read the registry from .npmrc and/or .yarnrc.yml
               # TODO (release): change back to:
               # yarn beachball publish --prerelease-prefix test -y --no-push --pack-to-path '$(Build.StagingDirectory)/packed-packages'
               - script: |
-                  yarn release:canary --no-push --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
+                  yarn release:canary --no-push --pack-to-path '$(Build.StagingDirectory)/out/packed-packages' --registry https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/
                 displayName: Pack packages (canary)
 
               - script: |

@@ -58,8 +58,8 @@ const stagingContainerName = 'staging';
 
 /**
  * Orchestrates ESRP Release API operations for one or more files.
- * Handles AAD authentication, blob staging, SAS token generation, JWS signing,
- * release submission, and polling for completion.
+ * Handles AAD authentication, blob staging, SAS token generation, JWS signing, release submission,
+ * and polling for completion.
  *
  * Based on https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/common/publish.ts
  * called by https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/product-publish.yml#L106
@@ -70,8 +70,8 @@ const stagingContainerName = 'staging';
 export class ESRPReleaseService {
   /**
    * Construct a service instance, ensuring the staging container exists upfront.
-   * AAD and SAS tokens are acquired per release (in `createRelease`) so that slow prior
-   * releases don't leave us with expired credentials.
+   * AAD and SAS tokens are acquired per release (in `createRelease`) in case prior releases are slow
+   * (unclear if this would be an issue in practice).
    */
   public static async create(params: CreateESRPReleaseServiceParams): Promise<ESRPReleaseService> {
     const { logger } = params;
