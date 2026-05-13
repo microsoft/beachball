@@ -37,6 +37,8 @@ DO NOT run `jest` or `tsc` directly from the top level!
 
 These commands work in an individual package (`cd packages/<name>`).
 
+Prefer the scripts below rather than running binaries directly. If you must run a binary such as `jest`, use `yarn run -T`.
+
 | Task                                     | Command                         |
 | ---------------------------------------- | ------------------------------- |
 | Build                                    | `yarn build`                    |

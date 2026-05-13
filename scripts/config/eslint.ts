@@ -98,6 +98,14 @@ export function getConfig(dirname: string, ...configs: eslint.Config[]) {
             message: 'Errors should be propagated to the top level and handled there.',
           },
         ],
+        'no-restricted-syntax': [
+          'error',
+          {
+            // copilot likes to write "as never" casts in tests
+            selector: 'TSAsExpression > TSNeverKeyword',
+            message: 'Cast to specific types and/or unknown instead',
+          },
+        ],
 
         // Downgrade these rules to warnings because they cause excessive/unhelpful noise when
         // the actual problem is type errors due to a missing import...
