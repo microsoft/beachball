@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "@ms-cloudpack/eslint-plugin-deprecated": "patch:@ms-cloudpack/eslint-plugin-deprecated@npm%3A0.1.4#~/.yarn/patches/@ms-cloudpack-eslint-plugin-deprecated-npm-0.1.4-74fc1f6a58.patch",
+    "@tsconfig/node24": "^24.0.0",
     "eslint": "^9.0.0",
     "typescript": "~6.0.0",
     "typescript-eslint": "^8.52.0",

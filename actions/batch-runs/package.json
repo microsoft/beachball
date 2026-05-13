@@ -14,6 +14,7 @@
   "devDependencies": {
     "@actions/core": "catalog:",
     "@microsoft/beachball-actions-common": "workspace:",
-    "@microsoft/beachball-actions-scripts": "workspace:"
+    "@microsoft/beachball-actions-scripts": "workspace:",
+    "@microsoft/beachball-scripts": "workspace:^"
   }
 }

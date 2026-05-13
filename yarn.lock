@@ -1205,6 +1205,7 @@ __metadata:
     "@actions/core": "catalog:"
     "@microsoft/beachball-actions-common": "workspace:"
     "@microsoft/beachball-actions-scripts": "workspace:"
+    "@microsoft/beachball-scripts": "workspace:^"
   languageName: unknown
   linkType: soft
 
@@ -1215,12 +1216,15 @@ __metadata:
     "@actions/core": "catalog:"
     "@actions/github": "catalog:"
     "@microsoft/beachball-actions-scripts": "workspace:"
+    "@microsoft/beachball-scripts": "workspace:^"
   languageName: unknown
   linkType: soft
 
 "@microsoft/beachball-actions-scripts@workspace:, @microsoft/beachball-actions-scripts@workspace:packages/beachball-actions-scripts":
   version: 0.0.0-use.local
   resolution: "@microsoft/beachball-actions-scripts@workspace:packages/beachball-actions-scripts"
+  dependencies:
+    "@microsoft/beachball-scripts": "workspace:^"
   bin:
     repo-scripts: ./src/bin/repo-scripts.js
   languageName: unknown
@@ -1233,7 +1237,6 @@ __metadata:
     "@eslint/compat": "npm:^2.0.0"
     "@eslint/js": "npm:^9.0.0"
     "@jest/globals": "npm:^30.0.0"
-    "@tsconfig/node24": "npm:^24.0.0"
     "@types/node": "npm:^22.0.0"
     "@types/yargs-parser": "npm:^21.0.0"
     "@typescript-eslint/utils": "npm:^8.52.0"
@@ -1260,6 +1263,7 @@ __metadata:
   resolution: "@microsoft/beachball-scripts@workspace:scripts"
   dependencies:
     "@ms-cloudpack/eslint-plugin-deprecated": "patch:@ms-cloudpack/eslint-plugin-deprecated@npm%3A0.1.4#~/.yarn/patches/@ms-cloudpack-eslint-plugin-deprecated-npm-0.1.4-74fc1f6a58.patch"
+    "@tsconfig/node24": "npm:^24.0.0"
     eslint: "npm:^9.0.0"
     typescript: "npm:~6.0.0"
     typescript-eslint: "npm:^8.52.0"
@@ -1287,6 +1291,7 @@ __metadata:
     "@actions/glob": "catalog:"
     "@microsoft/beachball-actions-common": "workspace:"
     "@microsoft/beachball-actions-scripts": "workspace:"
+    "@microsoft/beachball-scripts": "workspace:^"
   languageName: unknown
   linkType: soft
 
