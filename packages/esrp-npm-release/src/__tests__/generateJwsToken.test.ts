@@ -6,19 +6,19 @@ import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtur
 // eslint-disable-next-line no-restricted-properties -- intentional skip when openssl is unavailable
 const describeIfOpenssl = isOpensslAvailable() ? describe : describe.skip;
 
-/** `jws.decode` returns `null | undefined` for invalid tokens; throw to keep test types simple. */
-function decodeOrThrow(token: string): jws.Signature {
-  const decoded = jws.decode(token);
-  if (!decoded) throw new Error('Could not decode JWS token');
-  return decoded;
-}
-
 describeIfOpenssl('generateJwsToken', () => {
   let testCert: TestCert;
 
   beforeAll(() => {
     testCert = generateTestCert();
   });
+
+  /** `jws.decode` returns `null | undefined` for invalid tokens; throw to keep test types simple. */
+  function decodeOrThrow(token: string): jws.Signature {
+    const decoded = jws.decode(token);
+    if (!decoded) throw new Error('Could not decode JWS token');
+    return decoded;
+  }
 
   function makeToken(): string {
     return generateJwsToken({

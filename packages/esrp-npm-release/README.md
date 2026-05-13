@@ -2,20 +2,137 @@
 
 Helper for teams within Microsoft that would like to [use ESRP to release npm packages](https://eng.ms/docs/microsoft-security/identity/trust-and-security-services/tss-release-distribute/tss-release-esrp-parent/oss-publishing/releasing-open-source/npmjs) in the correct order.
 
-This tool replaces the `EsrpRelease` ADO task with a direct ESRP API integration that (when used together with `beachball`) respects dependency-topological ordering of packages. This means that if publishing fails partway through, or someone accidentally installs a new version while publishing is still in progress, there will never be any dependency references to package versions that don't yet exist on the registry.
+This tool replaces the `EsrpRelease` ADO task with a direct ESRP API integration that (when used together with `beachball`) respects **dependency-topological ordering** of packages. This means that if publishing fails partway through, or someone accidentally installs a new version while publishing is still in progress, there will never be any dependency references to package versions that don't yet exist on the registry. The tool also supports retrying the release stage in ADO without repeating already-published layers.
 
 One unfortunate thing about using the API is that it only accepts blob storage URLs, so it requires an extra step of temporarily uploading files to a "staging" storage account. This tool automates that process (including cleanup), but you'll need to create an extra storage account and service connection.
 
-## Prerequisites
+## Overview
 
-- Output folder from `beachball publish --pack-to-path <path> --pack-style layer` or in the same format. The folder should contain numbered subdirectories, each containing `.tgz` files in dependency-topological layers.
+This tool relies on the following:
+
+- Output folder from `beachball publish --pack-to-path <path>` or [in the same format](#packed-packages-format)
 - ESRP Azure resources configured per their guides
   - An ESRP-onboarded app registration in a production tenant (need client ID and tenant ID)
   - Production tenant key vault storing the ESRP auth certificate and request signing certificate (PFX format, base64-encoded)
-  - Azure Resource Manager service connection with access to the app registration and key vault
-- Specific to this tool: staging resources
-  - Azure Blob Storage account in your team's subscription to temporarily host zips of packages
-  - Azure Resource Manager service connection with access to the storage account
+  - ADO Azure Resource Manager service connection with access to the app registration and key vault
+- Specific to this tool: [staging resources](#staging-storage-account-setup)
+  - Azure Blob Storage account in your team's subscription (in the corp tenant) to temporarily host zips of packages
+  - Managed identity with the right RBAC roles on the storage account
+  - ADO Azure Resource Manager service connection configured to use that identity
+
+<!-- TODO add info about internal feed setup -->
+
+## Packed packages format
+
+Running `beachball publish --pack-to-path <path>` produces a directory with this shape. If there are 10+ layers, the directories must be zero-padded (e.g. `01`, `02`, ..., `10`, etc.) to ensure correct lexical ordering.
+
+```
+<path>/
+├── 01/                    # Layer 1: packages with no internal dependencies
+│   ├── pkg-a-1.0.0.tgz
+│   └── pkg-b-2.0.0.tgz
+├── 02/                    # Layer 2: packages that depend only on layer 1
+│   └── pkg-c-3.0.0.tgz
+├── 03/
+│   └── ...
+...
+└── versions.json
+```
+
+Each numbered directory is a **dependency-topological layer**: the packages in layer 1 have no internal dependencies, or none within the set of packages being published. Packages in layer `N` may only depend on packages in layers `1..N-1`. The tool releases layers in numeric order, so that by the time a layer is published, every internal dependency version it references is already on the registry.
+
+`versions.json` contains an array, one entry per layer, mapping package name to the version being released. This is used to pierce the new package version into the internal feed without parsing package names and versions from the `.tgz` filenames.
+
+<!-- prettier-ignore -->
+```json
+[
+  { "pkg-a": "1.0.0", "pkg-b": "2.0.0" },
+  { "pkg-c": "3.0.0" }
+]
+```
+
+## Staging storage account setup
+
+This tool needs an Azure Blob Storage account in a subscription you control to:
+
+- Temporarily host the zipped layers (in a container named `staging`) so ESRP can download them via SAS URL.
+- Persist retry state (in a container named `release-state`) so ADO stage retries can resume from where a previous attempt left off.
+
+Both containers are created on demand by the tool — you don't need to pre-create them.
+
+The Bicep template at [`.ado/roleAssignments.bicep`](https://github.com/microsoft/beachball/blob/main/.ado/roleAssignments.bicep) provisions everything in one shot: the storage account itself, a user-assigned managed identity, the required RBAC role assignments, and a lifecycle management policy.
+
+The commands below reuse the same subscription, resource group, storage account, and managed identity names, so set them once in your shell to keep the snippets copy-pasteable:
+
+```bash
+SUBSCRIPTION="<sub>"
+RESOURCE_GROUP="<rg>"
+STORAGE_ACCOUNT="<storage>"
+MANAGED_IDENTITY="<uami-name>"
+```
+
+### 1. Create the resource group
+
+Resource groups aren't created by the Bicep template. Either use an existing group, or run the command below to create a new one. (To see available locations: `az account list-locations --output tsv --query "[].name"`)
+
+```bash
+az group create \
+  --subscription "$SUBSCRIPTION" \
+  --name "$RESOURCE_GROUP" \
+  --location <location>
+```
+
+### 2. Deploy the Bicep template
+
+This creates the storage account, a user-assigned managed identity, the two required data-plane role assignments, and a blob lifecycle policy (see [the notes below](#about-the-rbac-roles-and-lifecycle-policy) for what each piece is for).
+
+Preview the changes first. If a storage account with the given name already exists in the resource group, its properties are reconciled to match the template, and this command will show the diff.
+
+```bash
+az deployment group what-if \
+  --subscription "$SUBSCRIPTION" \
+  --resource-group "$RESOURCE_GROUP" \
+  --template-file roleAssignments.bicep \
+  --parameters \
+    stagingStorageName="$STORAGE_ACCOUNT" \
+    managedIdentityName="$MANAGED_IDENTITY"
+```
+
+Apply changes:
+
+```bash
+az deployment group create \
+  --subscription "$SUBSCRIPTION" \
+  --resource-group "$RESOURCE_GROUP" \
+  --template-file roleAssignments.bicep \
+  --parameters \
+    stagingStorageName="$STORAGE_ACCOUNT" \
+    managedIdentityName="$MANAGED_IDENTITY"
+```
+
+The deployment is idempotent — re-running it reconciles drift in the storage account properties, role assignments, and lifecycle policy. The storage account name will be passed to the tool as `STAGING_STORAGE_ACCOUNT_NAME`.
+
+#### About the RBAC roles and lifecycle policy
+
+The template assigns two **data-plane** roles to the managed identity at the storage account scope. Control-plane roles like `Contributor` or `Owner` are **not sufficient** — without the roles below, you'd see a 403 error like "This request is not authorized to perform this operation using this permission" the first time the tool tried to list or write a blob.
+
+- **Storage Blob Data Contributor**: List, read, write, and delete blobs in the `staging` and `release-state` containers, and create the containers on first use.
+- **Storage Blob Delegator**: Mint short-lived user-delegation SAS tokens that ESRP uses to download staged zips.
+
+RBAC propagation usually takes less than five minutes. If a freshly-assigned role still produces 403s, wait a few minutes and retry.
+
+The template also configures an [Azure Storage lifecycle management policy](https://learn.microsoft.com/azure/storage/blobs/lifecycle-management-overview) on the staging storage account. It cleans up `release-state` blobs automatically after (as of writing) 90 days, and `staging` blobs after 3 days. (The release tool attempts to delete the `staging` blobs immediately after the release, but the policy provides a fallback.)
+
+### 3. Create a service connection
+
+In your ADO project, create an **Azure Resource Manager** service connection:
+
+- **Identity type**: Managed identity (automatically configures Workload Identity Federation)
+- **Managed identity details**: Choose your subscription, resource group, and identity
+- **Azure scope**: Choose the same subscription and resource group
+- **Service Connection Name**: Choose any name and make note of it for later
+
+The release pipeline (later) passes the connection's name to `AzureCLI@2` as `azureSubscription`. It uses the option `addSpnToEnvironment: true` to obtain a federated `idToken` that this tool exchanges for an AAD access token at runtime — there are no long-lived secrets to manage.
 
 ## Pipeline setup
 
@@ -26,7 +143,7 @@ This tool is designed to run in an Azure DevOps release pipeline using [1ES Pipe
 The prepublish pipeline builds the repo, packs the packages, and publishes them as a pipeline artifact. It should:
 
 1. Build and test the repo
-2. Run `beachball publish --pack-to-path '$(Build.StagingDirectory)/packed-packages' --pack-style layer` to create a folder with numbered subdirectories containing package `.tgz` files in dependency-topological layers
+2. Run `beachball publish --pack-to-path '$(Build.StagingDirectory)/packed-packages'` to create a folder with numbered subdirectories containing package `.tgz` files in dependency-topological layers
 3. Publish two pipeline artifacts via `templateContext.outputs`:
    - `packed-packages`: the packed `.tgz` files (the output of `--pack-to-path`)
    - `release-api-tool`: the bundled `dist/index.js` from this package
@@ -121,7 +238,7 @@ extends:
               - task: AzureKeyVault@2
                 displayName: Get ESRP certificates from Key Vault
                 inputs:
-                  azureSubscription: <release service connection name>
+                  azureSubscription: <ESRP service connection name>
                   KeyVaultName: <key vault name>
                   SecretsFilter: <auth cert name>,<request signing cert name>
 
@@ -130,17 +247,29 @@ extends:
                 displayName: Publish using ESRP Release API
                 retryCountOnTaskFailure: 3
                 env:
+                  PACKED_PACKAGES_PATH: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
+                  # ID of the internal packaging feed used in the prepublish build; the tool pierces
+                  # the newly-published versions into this feed after each layer is released.
+                  # Find it at https://feeds.dev.azure.com/<org>/_apis/packaging/feeds/<name> -> id
+                  PACKAGING_FEED_ID: <feed GUID>
+                  # System.AccessToken must be mapped explicitly (it's not auto-injected as an env var).
+                  # Used to authenticate to the ADO Artifacts API for piercing.
+                  SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+                  # Staging storage credentials
                   STAGING_STORAGE_ACCOUNT_NAME: <storage account name>
+                  # set above by AzureCLI@2 but must be mapped in
                   STAGING_CLIENT_ID: $(STAGING_CLIENT_ID)
                   STAGING_TENANT_ID: $(STAGING_TENANT_ID)
                   STAGING_ID_TOKEN: $(STAGING_ID_TOKEN)
+
+                  # ESRP credentials (certs fetched above by AzureKeyVault@2)
                   ESRP_AUTH_CERT: $(<auth cert name>)
                   ESRP_REQUEST_SIGNING_CERT: $(<request signing cert name>)
                   ESRP_TENANT_ID: <production tenant ID>
                   ESRP_CLIENT_ID: <ESRP app registration client ID>
-                  PACKED_PACKAGES_PATH: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
 
-                  # Configure release info
+                  # Release info
                   ESRP_PRODUCT_NAME: <friendly product name>
                   ESRP_NPM_TAG: <npm dist-tag> # optional, default "latest" or inferred from publishConfig
                   # ESRP_USER is optional and provides a default value for other user-related options
@@ -150,17 +279,3 @@ extends:
                   ESRP_OWNERS: <email> # comma-separated; optional if ESRP_USER is set
                   ESRP_DRI_EMAIL: <email> # optional if ESRP_USER is set
 ```
-
-## How it works
-
-1. **Authenticates** with Azure Blob Storage using a federated ID token
-2. **Loads retry state** from previous stage attempts (if any) to skip already-published layers
-3. **Iterates layers** in order. For each layer:
-   - Zips all `.tgz` files in the layer directory
-   - Acquires a blob lease to prevent concurrent releases
-   - Uploads the zip to Azure Blob Storage
-   - Submits an ESRP release request with a JWS-signed token
-   - Polls for release completion (up to 60 minutes)
-   - Cleans up the staging blob (also on failure)
-   - Records the layer as done (persisted to disk for retry resilience)
-4. **Publishes state** as a pipeline artifact so retried stage attempts can resume from where a previous attempt left off

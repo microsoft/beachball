@@ -1,22 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { pierce } from '../utils/pierce.ts';
+import { pierce, type PierceOptions } from '../utils/pierce.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
 import { MockLogger } from '../__fixtures__/MockLogger.ts';
-
-const baseParams = {
-  accessToken: 'tok',
-  collectionUri: 'https://dev.azure.com/myorg/',
-  feedId: 'feed-guid',
-};
-
-function makeFetchResponse(opts: { status: number }): Response {
-  return { status: opts.status } as Response;
-}
 
 describe('pierce', () => {
   let fetchMock: jest.Mock<typeof fetch>;
   let logger: MockLogger;
   const originalFetch = globalThis.fetch;
+
+  const baseParams: Pick<PierceOptions, 'accessToken' | 'collectionUri' | 'feedId'> = {
+    accessToken: 'tok',
+    collectionUri: 'https://dev.azure.com/myorg/',
+    feedId: 'feed-guid',
+  };
+
+  function makeFetchResponse(opts: { status: number }): Response {
+    return { status: opts.status } as Response;
+  }
 
   beforeEach(() => {
     fetchMock = jest.fn<typeof fetch>();

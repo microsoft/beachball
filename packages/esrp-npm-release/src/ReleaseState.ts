@@ -19,6 +19,9 @@ const getContainerDesc = (accountName: string) =>
  * Keying by `buildSourceVersion` (rather than build ID + stage attempt) means state is
  * shared across all retries and reruns for the same git commit, which is what we want
  * since the same source version always produces the same layers.
+ *
+ * The recommended bicep template includes a lifecycle management policy to clean up blobs
+ * after a given window (90 days as of writing).
  */
 export class ReleaseState {
   #publishedLayers: Set<string>;

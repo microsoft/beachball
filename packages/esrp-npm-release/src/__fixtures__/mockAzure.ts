@@ -124,8 +124,6 @@ export function createMockBlobServiceClient(
   return {
     accountName,
     getContainerClient: jest.fn<(name: string) => MockContainerClient>().mockReturnValue(containerClient),
-    getUserDelegationKey: jest.fn(() =>
-      Promise.resolve({ value: 'mock-key', signedTid: 'tid' } as unknown as ServiceGetUserDelegationKeyResponse)
-    ),
+    getUserDelegationKey: jest.fn(() => Promise.resolve({ value: 'mock-key' } as ServiceGetUserDelegationKeyResponse)),
   };
 }

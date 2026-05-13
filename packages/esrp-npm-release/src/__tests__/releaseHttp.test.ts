@@ -2,23 +2,23 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { getReleaseDetails, getReleaseStatus, submitRelease } from '../utils/releaseHttp.ts';
 import type { ReleaseRequestMessage } from '../models/types.ts';
 
-const baseUrl = 'https://api.esrp.microsoft.com/api/v3/releaseservices/clients/';
-
-const mockRequest = { driEmail: ['example@example.com'] } as ReleaseRequestMessage;
-
-function makeFetchResponse(opts: { status?: number; ok?: boolean; body: string }): Response {
-  const status = opts.status ?? 200;
-  const ok = opts.ok ?? (status >= 200 && status < 300);
-  return {
-    ok,
-    status,
-    text: () => Promise.resolve(opts.body),
-  } as Response;
-}
-
 describe('releaseHttp', () => {
   let fetchMock: jest.Mock<typeof fetch>;
   const originalFetch = globalThis.fetch;
+
+  const baseUrl = 'https://api.esrp.microsoft.com/api/v3/releaseservices/clients/';
+
+  const mockRequest = { driEmail: ['example@example.com'] } as ReleaseRequestMessage;
+
+  function makeFetchResponse(opts: { status?: number; ok?: boolean; body: string }): Response {
+    const status = opts.status ?? 200;
+    const ok = opts.ok ?? (status >= 200 && status < 300);
+    return {
+      ok,
+      status,
+      text: () => Promise.resolve(opts.body),
+    } as Response;
+  }
 
   beforeEach(() => {
     fetchMock = jest.fn<typeof fetch>();

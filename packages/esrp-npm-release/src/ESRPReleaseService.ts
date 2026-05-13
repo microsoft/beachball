@@ -121,6 +121,9 @@ export class ESRPReleaseService {
    * 2. Upload the file to the staging container
    * 3. Submit the release request and poll until completion
    * 4. Delete the staged blob
+   *
+   * The recommended bicep template includes a lifecycle management policy to clean up blobs
+   * after a given window (3 days as of writing).
    */
   public async createRelease(params: CreateReleaseParams): Promise<void> {
     const { filePath, releaseRequestParams, stagingBlobPathPrefix } = params;
