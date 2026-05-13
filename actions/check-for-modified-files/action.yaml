@@ -1,0 +1,24 @@
+name: Check for modified files
+description: Fails the build if it modified any files
+inputs:
+  extraError:
+    description: Extra error message to include in the output
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Check for modified files
+      shell: bash
+      env:
+        EXTRA_ERROR: ${{ inputs.extraError }}
+      run: |
+        statusOutput="$(git status -s)"
+        if [ ! -z "$statusOutput" ]; then
+          echo "::error::This build resulted in file modifications that have not been checked in."
+          echo "$statusOutput"
+          [ ! -z "$EXTRA_ERROR" ] && echo "::error::$EXTRA_ERROR"
+          echo "Check the following output and resolve the problem that caused these files to change."
+          echo
+          git diff HEAD
+          exit 1
+        fi

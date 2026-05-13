@@ -1,0 +1,23 @@
+name: should-release
+description: Determines whether this release workflow run is needed, and (by default) cancels it if not
+inputs:
+  token:
+    description: GitHub token with "actions:write" permission
+    required: true
+  batch:
+    description: |
+      Whether to emulate batched behavior by checking for newer pending runs against this branch.
+      "concurrency" setting MUST be enabled on the workflow for this to work properly.
+    default: false
+  changeGlob:
+    description: Glob to check for beachball change files
+    default: 'change/*.json'
+  mode:
+    description: Whether to cancel the run ("cancel") or set an output variable ("output")
+    default: cancel
+outputs:
+  shouldRelease:
+    description: Whether the release should continue ("yes" or "no")
+runs:
+  using: 'node24'
+  main: 'dist/index.js'

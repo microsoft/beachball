@@ -1,0 +1,16 @@
+{
+  "name": "@microsoft/beachball-actions-scripts",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "repo-scripts": "./src/bin/repo-scripts.js"
+  },
+  "scripts": {
+    "build": "repo-scripts build"
+  },
+  "beachball": {
+    "shouldPublish": false
+  }
+}
