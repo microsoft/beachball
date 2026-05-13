@@ -13,6 +13,9 @@ target
 .copilot/.local
 packages/*/NOTICE.txt
 
+# Allow action dist files to be checked in
+!actions/*/dist/
+
 docs/.vuepress/.cache
 docs/.vuepress/.temp
 docs/.yarn
