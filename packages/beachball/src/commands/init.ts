@@ -5,6 +5,7 @@ import type { PackageJson } from '../types/PackageInfo';
 import { readJson } from '../object/readJson';
 import { getNpmPackageInfo } from '../packageManager/getNpmPackageInfo';
 import { BeachballError } from '../types/BeachballError';
+import { resolveNpmConfig } from '../packageManager/npmConfig';
 
 function throwInitError(message: string): never {
   console.error(message);
@@ -21,7 +22,8 @@ export async function init(options: Pick<BeachballOptions, 'path' | 'registry'>)
     throwInitError(`Cannot find package.json at ${packageJsonFilePath}`);
   }
 
-  const beachballInfo = await getNpmPackageInfo('beachball', options);
+  const resolved = await resolveNpmConfig(options);
+  const beachballInfo = await getNpmPackageInfo('beachball', resolved);
   if (!beachballInfo) {
     throwInitError('Failed to retrieve beachball version from npm');
   }

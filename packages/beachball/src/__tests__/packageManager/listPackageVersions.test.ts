@@ -129,8 +129,9 @@ describe('list npm versions', () => {
         },
       });
       const packageInfos = makePackageInfos(params.packages, parsedOptions.cliOptions);
-
-      return { options: parsedOptions.options, packages: Object.values(packageInfos) };
+      // registry is always provided via testRepoOptions above
+      const options = parsedOptions.options as typeof parsedOptions.options & { registry: string };
+      return { options, packages: Object.values(packageInfos) };
     }
 
     describe('defaults and repo options', () => {

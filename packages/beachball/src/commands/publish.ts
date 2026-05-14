@@ -9,6 +9,7 @@ import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PublishBumpInfo } from '../types/BumpInfo';
 import type { CommandContext } from '../types/CommandContext';
 import { checkNpmAuthEnvPassthrough } from '../packageManager/npmAuthEnvPassthrough';
+import { resolveNpmConfig } from '../packageManager/npmConfig';
 
 /**
  * Potentially bump, publish, and push package changes depending on options.
@@ -20,7 +21,10 @@ export async function publish(options: BeachballOptions): Promise<void>;
 export async function publish(options: BeachballOptions, context?: CommandContext): Promise<void> {
   console.log('Preparing to publish\n');
 
-  const { path: cwd, branch, registry, tag, packToPath } = options;
+  // Resolve registry and credentials from .npmrc if not already set
+  const resolved = await resolveNpmConfig(options);
+
+  const { path: cwd, branch, registry, tag, packToPath } = resolved;
   // eslint-disable-next-line @ms-cloudpack/no-deprecated -- compat code
   context ??= createCommandContext(options);
 
@@ -71,7 +75,7 @@ export async function publish(options: BeachballOptions, context?: CommandContex
 
   if (options.token) {
     // Verify that passing the npm auth token via env vars works (see function comment...)
-    await checkNpmAuthEnvPassthrough(options);
+    await checkNpmAuthEnvPassthrough(resolved);
   }
 
   // checkout publish branch
@@ -98,7 +102,7 @@ export async function publish(options: BeachballOptions, context?: CommandContex
         "your publish process. In that case, it's recommended to remove `new: true` from your " +
         'config or remove `--new` from your publish command.)\n'
     );
-    bumpInfo.newPackages = await getNewPackages(bumpInfo, options);
+    bumpInfo.newPackages = await getNewPackages(bumpInfo, resolved);
   }
 
   // Step 1. Bump on disk + npm publish
@@ -110,7 +114,7 @@ export async function publish(options: BeachballOptions, context?: CommandContex
       : publishMessage[0].toUpperCase() + publishMessage.slice(1);
     console.log(`${message}\n`);
 
-    await publishToRegistry(bumpInfo, options);
+    await publishToRegistry(bumpInfo, resolved);
     console.log();
   } else {
     console.log('Skipping publish\n');

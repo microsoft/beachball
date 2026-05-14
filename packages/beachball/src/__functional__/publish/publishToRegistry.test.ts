@@ -27,7 +27,7 @@ describe('publishToRegistry', () => {
   const logs = initMockLogs();
 
   let tempRoot: string;
-  let defaultOptions: BeachballOptions;
+  let defaultOptions: BeachballOptions & { registry: string };
 
   beforeEach(() => {
     tempRoot = tmpdir();

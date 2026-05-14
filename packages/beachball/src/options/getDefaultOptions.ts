@@ -31,7 +31,6 @@ export function getDefaultOptions(): BeachballOptions {
     path: '',
     publish: true,
     push: true,
-    registry: 'https://registry.npmjs.org/',
     retries: 3,
     scope: null,
     tag: '',

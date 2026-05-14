@@ -1,6 +1,5 @@
 import execa from 'execa';
 import path from 'path';
-import type { BeachballOptions } from '../types/BeachballOptions';
 import { getNpmAuthEnv } from './npmArgs';
 import { BeachballError } from '../types/BeachballError';
 import { findPackageRoot, getPackageInfo } from 'workspace-tools';
@@ -41,7 +40,7 @@ export function filterPathForNpm(pathEnv: string): string {
  * `filterPathForNpm` doesn't cover this platform/environment variant.
  */
 export async function checkNpmAuthEnvPassthrough(
-  options: Pick<BeachballOptions, 'registry' | 'path'> & {
+  options: { registry: string; path: string } & {
     /** PATH override only for testing */
     pathEnv?: string;
   }

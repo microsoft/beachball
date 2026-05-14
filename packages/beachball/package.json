@@ -35,6 +35,7 @@
     "update-snapshots": "yarn test:unit -u && yarn test:func -u && yarn test:e2e -u"
   },
   "dependencies": {
+    "@npmcli/config": "^10.9.0",
     "@vercel/detect-agent": "^1.2.1",
     "cosmiconfig": "^9.0.1",
     "execa": "^5.1.1",

@@ -215,17 +215,17 @@ describe('getParsedOptions', () => {
     expect(parsedOptions.options.changelog).toEqual(repoOptions.changelog);
   });
 
-  it('reads registry from .npmrc when not set in config or CLI', () => {
+  it('does not set registry from .npmrc during option parsing (resolved lazily)', () => {
     const repo = repositoryFactory.cloneRepository();
     fs.writeFileSync(path.join(repo.rootPath, '.npmrc'), 'registry=https://npmrc-registry.example.com/\n');
 
     const parsedOptions = getParsedOptions({ argv: baseArgv(), env: {}, cwd: repo.rootPath });
-    expect(parsedOptions.options.registry).toBe('https://npmrc-registry.example.com/');
+    // registry is undefined because .npmrc is resolved lazily via resolveNpmConfig
+    expect(parsedOptions.options.registry).toBeUndefined();
   });
 
-  it('prefers CLI --registry over .npmrc registry', () => {
+  it('picks up CLI --registry', () => {
     const repo = repositoryFactory.cloneRepository();
-    fs.writeFileSync(path.join(repo.rootPath, '.npmrc'), 'registry=https://npmrc-registry.example.com/\n');
 
     const parsedOptions = getParsedOptions({
       argv: [...baseArgv(), '--registry', 'https://cli-registry.example.com/'],
@@ -235,9 +235,8 @@ describe('getParsedOptions', () => {
     expect(parsedOptions.options.registry).toBe('https://cli-registry.example.com/');
   });
 
-  it('prefers config registry over .npmrc registry', () => {
+  it('picks up config registry', () => {
     const repo = repositoryFactory.cloneRepository();
-    fs.writeFileSync(path.join(repo.rootPath, '.npmrc'), 'registry=https://npmrc-registry.example.com/\n');
     const repoOptions: Partial<RepoOptions> = { registry: 'https://config-registry.example.com/' };
     fs.writeFileSync(
       path.join(repo.rootPath, 'beachball.config.js'),

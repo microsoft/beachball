@@ -7,6 +7,7 @@ import { setDependentVersions } from '../bump/setDependentVersions';
 import { updateLockFile } from '../bump/updateLockFile';
 import { updatePackageJsons } from '../bump/updatePackageJsons';
 import type { BasicCommandContext } from '../types/CommandContext';
+import { resolveNpmConfig } from '../packageManager/npmConfig';
 
 export type SyncCommandContext = Pick<BasicCommandContext, 'originalPackageInfos' | 'scopedPackages'>;
 
@@ -17,6 +18,9 @@ export async function sync(options: BeachballOptions, context: SyncCommandContex
 /** @deprecated Use other signature */
 export async function sync(options: BeachballOptions): Promise<void>;
 export async function sync(options: BeachballOptions, context?: SyncCommandContext): Promise<void> {
+  // Resolve registry and credentials from .npmrc if not already set
+  const resolved = await resolveNpmConfig(options);
+
   // eslint-disable-next-line @ms-cloudpack/no-deprecated
   const packageInfos = context?.originalPackageInfos ?? getPackageInfos(options.path);
   const scopedPackages = context?.scopedPackages ?? getScopedPackages(options, packageInfos);
@@ -25,7 +29,7 @@ export async function sync(options: BeachballOptions, context?: SyncCommandConte
 
   console.log(`Getting versions from registry for ${infos.size} package(s)...`);
 
-  const publishedVersions = await listPackageVersionsByTag([...infos.values()], options);
+  const publishedVersions = await listPackageVersionsByTag([...infos.values()], resolved);
 
   const modifiedPackages = new Set<string>();
 

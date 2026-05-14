@@ -21,7 +21,10 @@ import { getPackageGraphLayers } from './getPackageGraphLayers';
  *
  * This will bump packages on the filesystem first if `options.bump` is true.
  */
-export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: BeachballOptions): Promise<void> {
+export async function publishToRegistry(
+  bumpInfo: PublishBumpInfo,
+  options: BeachballOptions & { registry: string }
+): Promise<void> {
   const { packToPath, verbose } = options;
   const verb = packToPath ? 'pack' : 'publish';
 

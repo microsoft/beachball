@@ -7,6 +7,7 @@ import { publishToRegistry } from '../publish/publishToRegistry';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { CommandContext } from '../types/CommandContext';
 import { createCommandContext } from '../monorepo/createCommandContext';
+import { resolveNpmConfig } from '../packageManager/npmConfig';
 
 /**
  * Bump and publish a "canary" prerelease version.
@@ -16,6 +17,9 @@ export async function canary(options: BeachballOptions, context: CommandContext)
 /** @deprecated Use other signature */
 export async function canary(options: BeachballOptions): Promise<void>;
 export async function canary(options: BeachballOptions, context?: CommandContext): Promise<void> {
+  // Resolve registry and credentials from .npmrc if not already set
+  const resolved = await resolveNpmConfig(options);
+
   // eslint-disable-next-line @ms-cloudpack/no-deprecated -- compat code
   context ??= createCommandContext(options);
 
@@ -31,7 +35,7 @@ export async function canary(options: BeachballOptions, context?: CommandContext
     }
   }
 
-  const packageVersions = await listPackageVersions([...bumpInfo.modifiedPackages], options);
+  const packageVersions = await listPackageVersions([...bumpInfo.modifiedPackages], resolved);
 
   for (const pkg of bumpInfo.modifiedPackages) {
     let newVersion = originalPackageInfos[pkg].version;
@@ -49,7 +53,7 @@ export async function canary(options: BeachballOptions, context?: CommandContext
   await performBump(bumpInfo, options);
 
   if (options.publish || options.packToPath) {
-    await publishToRegistry(bumpInfo, options);
+    await publishToRegistry(bumpInfo, resolved);
   } else {
     console.log('Skipping publish');
   }
