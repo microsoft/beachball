@@ -2,7 +2,7 @@
 
 Determines whether a release workflow run is needed, and cancels it if not (unless `mode` is `output`). A run is needed if:
 
-- [Beachball](https://microsoft.github.io/beachball) change files exist
+- Beachball change files exist
 - If `batch: true` is set, no newer runs for the same branch exist _(must also enable `concurrency` in workflow; see below)_
 
 ## Getting started
@@ -19,7 +19,7 @@ jobs:
   release:
     steps:
       # You must check out code before running this action
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - uses: microsoft/beachball/actions/should-release@v3
         with:
@@ -37,9 +37,7 @@ jobs:
     outputs:
       shouldRelease: ${{ steps.shouldRelease.outputs.shouldRelease }}
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v6
 
       - uses: microsoft/beachball/actions/should-release@v3
         id: shouldRelease
