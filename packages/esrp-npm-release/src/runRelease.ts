@@ -7,17 +7,7 @@ import type { EnvOptions } from './getEnvOptions.ts';
 import { ReleaseState } from './ReleaseState.ts';
 import { getAadToken } from './utils/getAadToken.ts';
 import type { Logger } from './utils/Logger.ts';
-import { pierce } from './utils/pierce.ts';
 import { ReleaseError } from './utils/ReleaseError.ts';
-
-/**
- * Layout of `versions.json` written by beachball's `publishToRegistry` when packing:
- * one record per layer, each mapping package name to published version.
- *
- * Must stay in sync with `LayerVersionsJson` in
- * `packages/beachball/src/publish/publishToRegistry.ts`.
- */
-type LayerVersionsJson = Record<string, string>[];
 
 export interface RunReleaseOptions {
   env: EnvOptions;
@@ -104,23 +94,7 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
 
   logger.log(`Found ${layers.length} layer(s) to release`);
 
-  // versions.json is written by beachball's publishToRegistry next to the layer dirs.
-  // It records, per layer, the exact name@version of every packed package — used after each
-  // ESRP publish to pierce those versions into the ADO Artifacts feed.
-  const versionsJsonPath = path.join(env.packedPackagesPath, 'versions.json');
-  let layerVersions: LayerVersionsJson;
-  try {
-    layerVersions = JSON.parse(fs.readFileSync(versionsJsonPath, 'utf8')) as LayerVersionsJson;
-  } catch (err) {
-    throw new ReleaseError(`Failed to read ${versionsJsonPath}`, { cause: err });
-  }
-  if (layerVersions.length !== layers.length) {
-    throw new ReleaseError(
-      `versions.json has ${layerVersions.length} layer(s) but found ${layers.length} layer directory(ies) under ${env.packedPackagesPath}`
-    );
-  }
-
-  for (const [layerIdx, layerNum] of layers.entries()) {
+  for (const layerNum of layers) {
     if (state.hasPublished(layerNum)) {
       logger.log(`✅ layer ${layerNum} (already published)`);
       continue;
@@ -176,19 +150,6 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
       },
     });
     logger.log('📦 Packages were successfully published to npm');
-
-    // After ESRP has published the tarballs to npmjs.com, force the ADO Artifacts feed to ingest
-    // those versions from upstream. This is mainly to ensure future beachball publish/pack runs'
-    // version existence checks are accurate, since in production builds they must run against
-    // the private feed.
-    logger.log('Piercing packages into ADO feed');
-    await pierce({
-      packages: layerVersions[layerIdx],
-      accessToken: env.ado.systemAccessToken,
-      collectionUri: env.ado.systemCollectionUri,
-      feedId: env.packagingFeedId,
-      logger,
-    });
 
     // This is done AFTER piercing to prevent silently trying to re-publish the same versions
     // if there's a failure in any later step (since ESRP won't error on re-publishes)

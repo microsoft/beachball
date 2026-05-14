@@ -43,23 +43,15 @@ export function removeTempDir(tempDir: string | undefined): void {
  * Build a fake "packed packages" directory at `parentDir` containing the requested layers.
  * Each layer is a numbered subdirectory (e.g. "0", "1") with empty `.tgz` files inside.
  *
- * Also writes a `versions.json` next to the layer directories matching the shape produced by
- * beachball's `publishToRegistry`. By default, package name and version are parsed from each
- * `.tgz` filename (`<name>-<version>.tgz`); pass `layerVersions` to override for invalid cases.
- *
- * Returns the path to the created packed-packages directory.
- *
  * @example
  *   const packedDir = createPackedDir(getTempDir(), {
  *     '0': ['pkg-a-1.0.0.tgz'],
  *     '1': ['pkg-b-2.0.0.tgz', 'pkg-c-3.0.0.tgz'],
  *   });
+ *
+ * @returns Path to the created packed-packages directory
  */
-export function createPackedDir(
-  parentDir: string,
-  layers: Record<string, string[]>,
-  layerVersions?: Record<string, string>[]
-): string {
+export function createPackedDir(parentDir: string, layers: Record<string, string[]>): string {
   const packedDir = path.join(parentDir, 'packed');
   fs.mkdirSync(packedDir, { recursive: true });
   for (const [layerName, files] of Object.entries(layers)) {
@@ -69,29 +61,5 @@ export function createPackedDir(
       fs.writeFileSync(path.join(layerDir, file), `mock contents of ${file}`);
     }
   }
-
-  const versions = layerVersions ?? deriveVersionsFromTgzFiles(layers);
-  fs.writeFileSync(path.join(packedDir, 'versions.json'), JSON.stringify(versions, null, 2));
-
   return packedDir;
-}
-
-/**
- * Parse `<name>-<version>.tgz` filenames into a versions.json-shaped array, in the same
- * sorted-layer-name order that `runRelease` iterates. Non-numeric layer names (e.g.
- * `_manifest`) are skipped so the resulting array lines up 1:1 with the layers.
- */
-function deriveVersionsFromTgzFiles(layers: Record<string, string[]>): Record<string, string>[] {
-  const numericLayerNames = Object.keys(layers)
-    .filter(name => /^\d+$/.test(name))
-    .sort();
-  return numericLayerNames.map(layerName => {
-    const entries: [string, string][] = [];
-    for (const file of layers[layerName]) {
-      if (!file.endsWith('.tgz')) continue;
-      const match = /^(.+)-(\d[\w.+-]*)\.tgz$/.exec(file);
-      if (match) entries.push([match[1], match[2]]);
-    }
-    return Object.fromEntries(entries);
-  });
 }

@@ -33,9 +33,6 @@ jest.unstable_mockModule<typeof import('../utils/getAadToken.ts')>('../utils/get
   getAadToken: () => Promise.resolve({ token: 'token', expiresOnTimestamp: 0 }),
 }));
 
-const mockPierce = jest.fn<typeof import('../utils/pierce.ts').pierce>();
-jest.unstable_mockModule('../utils/pierce.ts', () => ({ pierce: mockPierce }));
-
 const { runRelease } = await import('../runRelease.ts');
 
 describe('runRelease', () => {
@@ -57,12 +54,12 @@ describe('runRelease', () => {
     } satisfies Partial<typeof state> as unknown as typeof state;
   }
 
-  function envWithTempPaths(layers: Record<string, string[]>, layerVersions?: Record<string, string>[]) {
+  function envWithTempPaths(layers: Record<string, string[]>) {
     const temp = getTempDir();
     const agentTemp = path.join(temp, 'agent');
     fs.mkdirSync(agentTemp, { recursive: true });
 
-    const packedDir = createPackedDir(temp, layers, layerVersions);
+    const packedDir = createPackedDir(temp, layers);
 
     return createMockEnv({
       packedPackagesPath: packedDir,
@@ -233,98 +230,5 @@ describe('runRelease', () => {
     expect(releaseService.createRelease).toHaveBeenCalledTimes(1);
     expect(state.markPublished).toHaveBeenCalledWith('1');
     expect(state.markPublished).not.toHaveBeenCalledWith('2');
-  });
-
-  it("pierces each layer's packages into the ADO feed after publishing", async () => {
-    const env = envWithTempPaths({
-      '1': ['pkg-a-1.0.0.tgz'],
-      '2': ['pkg-b-2.0.0.tgz', 'pkg-c-3.0.0.tgz'],
-    });
-
-    await runRelease({ env, logger });
-
-    // One pierce call per published layer, in order, with that layer's packages
-    expect(mockPierce).toHaveBeenCalledTimes(2);
-    expect(mockPierce).toHaveBeenNthCalledWith(1, {
-      packages: { 'pkg-a': '1.0.0' },
-      accessToken: 'mock-system-access-token',
-      collectionUri: 'https://dev.azure.com/mockorg/',
-      feedId: 'mock-feed-id',
-      logger,
-    });
-    expect(mockPierce).toHaveBeenNthCalledWith(2, {
-      packages: { 'pkg-b': '2.0.0', 'pkg-c': '3.0.0' },
-      accessToken: 'mock-system-access-token',
-      collectionUri: 'https://dev.azure.com/mockorg/',
-      feedId: 'mock-feed-id',
-      logger,
-    });
-  });
-
-  it('runs pierce BEFORE markPublished for each layer (so a pierce failure leaves the layer un-marked)', async () => {
-    const env = envWithTempPaths({
-      '1': ['pkg-a-1.0.0.tgz'],
-      '2': ['pkg-b-2.0.0.tgz'],
-    });
-
-    await runRelease({ env, logger });
-
-    // Each pierce call must come before its corresponding markPublished call.
-    // Use mock.invocationCallOrder to check the global call sequence.
-    expect(mockPierce.mock.invocationCallOrder).toHaveLength(2);
-    expect(state.markPublished.mock.invocationCallOrder).toHaveLength(2);
-    expect(mockPierce.mock.invocationCallOrder[0]).toBeLessThan(state.markPublished.mock.invocationCallOrder[0]);
-    expect(mockPierce.mock.invocationCallOrder[1]).toBeLessThan(state.markPublished.mock.invocationCallOrder[1]);
-  });
-
-  it('does not call markPublished for a layer when pierce throws (preventing silent re-publish)', async () => {
-    mockPierce.mockRejectedValueOnce(new Error('pierce exploded'));
-    const env = envWithTempPaths({ '1': ['pkg-a-1.0.0.tgz'] });
-
-    const err = (await runRelease({ env, logger }).catch((e: unknown) => e)) as Error;
-    expect(err.message).toBe('pierce exploded');
-    expect(state.markPublished).not.toHaveBeenCalled();
-  });
-
-  it('skips piercing for layers that were already published', async () => {
-    state = makeReleaseState({ alreadyPublished: ['1'] });
-
-    const env = envWithTempPaths({
-      '1': ['pkg-a-1.0.0.tgz'],
-      '2': ['pkg-b-2.0.0.tgz'],
-    });
-
-    await runRelease({ env, logger });
-
-    expect(mockPierce).toHaveBeenCalledTimes(1);
-    expect(mockPierce).toHaveBeenCalledWith(expect.objectContaining({ packages: { 'pkg-b': '2.0.0' } }));
-  });
-
-  it('throws when versions.json is missing', async () => {
-    const env = envWithTempPaths({ '1': ['pkg-a-1.0.0.tgz'] });
-    fs.rmSync(path.join(env.packedPackagesPath, 'versions.json'));
-
-    const err = await runRelease({ env, logger }).catch(e => e as unknown);
-    expect(err).toBeInstanceOf(ReleaseError);
-    expect((err as ReleaseError).message).toMatch(/Failed to read .*versions\.json$/);
-    expect(releaseService.createRelease).not.toHaveBeenCalled();
-    expect(mockPierce).not.toHaveBeenCalled();
-  });
-
-  it('throws when versions.json layer count does not match the number of layer directories', async () => {
-    const env = envWithTempPaths(
-      {
-        '1': ['pkg-a-1.0.0.tgz'],
-        '2': ['pkg-b-2.0.0.tgz'],
-      },
-      // versions.json has only one layer entry but two directories exist
-      [{ 'pkg-a': '1.0.0' }]
-    );
-
-    const err = await runRelease({ env, logger }).catch(e => e as unknown);
-    expect(err).toBeInstanceOf(ReleaseError);
-    expect((err as ReleaseError).message).toMatch(/versions\.json has 1 layer.* but found 2 layer/);
-    expect(releaseService.createRelease).not.toHaveBeenCalled();
-    expect(mockPierce).not.toHaveBeenCalled();
   });
 });

@@ -36,20 +36,9 @@ Running `beachball publish --pack-to-path <path>` produces a directory with this
 ├── 03/
 │   └── ...
 ...
-└── versions.json
 ```
 
 Each numbered directory is a **dependency-topological layer**: the packages in layer 1 have no internal dependencies, or none within the set of packages being published. Packages in layer `N` may only depend on packages in layers `1..N-1`. The tool releases layers in numeric order, so that by the time a layer is published, every internal dependency version it references is already on the registry.
-
-`versions.json` contains an array, one entry per layer, mapping package name to the version being released. This is used to pierce the new package version into the internal feed without parsing package names and versions from the `.tgz` filenames.
-
-<!-- prettier-ignore -->
-```json
-[
-  { "pkg-a": "1.0.0", "pkg-b": "2.0.0" },
-  { "pkg-c": "3.0.0" }
-]
-```
 
 ## Staging storage account setup
 
@@ -248,10 +237,6 @@ extends:
                 retryCountOnTaskFailure: 3
                 env:
                   PACKED_PACKAGES_PATH: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
-                  # ID of the internal packaging feed used in the prepublish build; the tool pierces
-                  # the newly-published versions into this feed after each layer is released.
-                  # Find it at https://feeds.dev.azure.com/<org>/_apis/packaging/feeds/<name> -> id
-                  PACKAGING_FEED_ID: <feed GUID>
                   # System.AccessToken must be mapped explicitly (it's not auto-injected as an env var).
                   # Used to authenticate to the ADO Artifacts API for piercing.
                   SYSTEM_ACCESSTOKEN: $(System.AccessToken)
