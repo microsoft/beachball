@@ -59,58 +59,6 @@ jobs:
 
       - run: yarn build --verbose
 
-      - name: Check for modified files (e.g. action dist updates)
-        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        uses: ./actions/check-for-modified-files
-        with:
-          extraError: 'If action dist files changed, run "yarn build" and check in the updated dist files.'
-
-      - name: e2e - install-beachball
-        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        uses: ./actions/install-beachball
-
-      - name: e2e - batch-runs
-        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        uses: ./actions/batch-runs
-        id: batchRuns
-        with:
-          mode: output
-          token: ${{ github.token }}
-
-      - name: e2e - batch-runs result
-        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        with:
-          script: |
-            const shouldCancel = '${{ steps.batchRuns.outputs.shouldCancel }}';
-            if (shouldCancel === 'yes' && process.env.GITHUB_REF_NAME === 'main') {
-              core.info('Newer run is pending for main');
-            } else if (shouldCancel !== 'no') {
-              core.setFailed(`batch-runs unexpectedly returned "${shouldCancel}"`);
-            }
-
-      # Note: this is not actually used here to determine if a release is needed
-      - name: e2e - should-release
-        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        uses: ./actions/should-release
-        id: shouldRelease
-        with:
-          mode: output
-          token: ${{ github.token }}
-          batch: true
-
-      - name: e2e - should-release result
-        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        with:
-          script: |
-            const shouldRelease = '${{ steps.shouldRelease.outputs.shouldRelease }}';
-            if (shouldRelease !== 'yes' && shouldRelease !== 'no') {
-              core.setFailed(`should-release returned "${shouldRelease}" instead of "yes" or "no"`);
-            } else {
-              core.info(`should-release returned shouldRelease: "${shouldRelease}"`);
-            }
-
       - run: yarn checkchange --verbose
 
       - run: yarn format:check
@@ -142,6 +90,72 @@ jobs:
           name: npm-logs-${{ matrix.os }}-node${{ matrix.node }}-npm${{ matrix.npm }}
           path: ${{ env.NPM_CACHE_DIR }}/_logs
           retention-days: 3
+
+  actions:
+    name: test actions
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          cache: yarn
+          # This should match the node version from "runs: using:" in the action.yaml files
+          node-version: 24
+
+      - run: yarn --immutable
+
+      - run: yarn build --verbose
+
+      - name: Check for modified files (e.g. action dist updates)
+        uses: ./actions/check-for-modified-files
+        with:
+          extraError: 'If action dist files changed, run "yarn build" and check in the updated dist files.'
+
+      - name: e2e - install-beachball
+        uses: ./actions/install-beachball
+
+      - name: e2e - batch-runs
+        uses: ./actions/batch-runs
+        id: batchRuns
+        with:
+          mode: output
+          token: ${{ github.token }}
+
+      - name: e2e - batch-runs result
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const shouldCancel = '${{ steps.batchRuns.outputs.shouldCancel }}';
+            if (shouldCancel === 'yes' && process.env.GITHUB_REF_NAME === 'main') {
+              core.info('Newer run is pending for main');
+            } else if (shouldCancel !== 'no') {
+              core.setFailed(`batch-runs unexpectedly returned "${shouldCancel}"`);
+            }
+
+      # Note: this is not actually used here to determine if a release is needed
+      - name: e2e - should-release
+        uses: ./actions/should-release
+        id: shouldRelease
+        with:
+          mode: output
+          token: ${{ github.token }}
+          batch: true
+
+      - name: e2e - should-release result
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const shouldRelease = '${{ steps.shouldRelease.outputs.shouldRelease }}';
+            if (shouldRelease !== 'yes' && shouldRelease !== 'no') {
+              core.setFailed(`should-release returned "${shouldRelease}" instead of "yes" or "no"`);
+            } else {
+              core.info(`should-release returned shouldRelease: "${shouldRelease}"`);
+            }
 
   # The docs have a separate installation
   docs:

@@ -10,7 +10,7 @@ For this action to work properly, it **MUST be combined with the built-in [`conc
 concurrency: ${{ github.ref }}
 ```
 
-(Despite the repo name, this particular action is not specific to [Beachball](https://microsoft.github.io/beachball).)
+(Despite the repo location, this particular action is not specific to Beachball.)
 
 ## Getting started
 
