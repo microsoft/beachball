@@ -4,6 +4,7 @@ import { _packageContentTypeAccept, getNpmPackageInfo } from '../../packageManag
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 import { env } from '../../env';
+import { expectBeachballError } from '../../__fixtures__/expectBeachballError';
 
 // These tests fail on the ADO release build due to network restrictions
 // eslint-disable-next-line no-restricted-properties
@@ -80,6 +81,23 @@ maybeDescribe('getNpmPackageInfo', () => {
       '//registry.npmjs.org/:_authToken': 'fake',
     });
     // No warning since verbose wasn't enabled
+    expect(logs.mocks.warn).not.toHaveBeenCalled();
+  });
+
+  it('throws on 401 auth error', async () => {
+    // this will throw since a token for this registry isn't provided
+    const privateRegistry = 'https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/';
+    await expectBeachballError(
+      () => getNpmPackageInfo('beachball', { registry: privateRegistry }),
+      `Authentication error fetching npm info for "beachball" from ${privateRegistry}`
+    );
+
+    expect(fetchJsonSpy).toHaveBeenCalledTimes(1);
+    expect(fetchJsonSpy).toHaveBeenCalledWith('/' + 'beachball', {
+      registry: privateRegistry,
+      headers: { accept: _packageContentTypeAccept },
+    });
+    // No warning since the error is thrown
     expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
 });

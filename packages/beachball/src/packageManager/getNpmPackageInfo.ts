@@ -2,6 +2,7 @@ import fetch from 'npm-registry-fetch';
 import type { NpmOptions } from '../types/NpmOptions';
 import { getNpmAuthArgs, type NpmAuthOptions } from './npmArgs';
 import type { PackageJson } from '../types/PackageInfo';
+import { BeachballError } from '../types/BeachballError';
 
 /** Published versions and dist-tags for a package */
 export interface NpmPackageVersionsData {
@@ -48,8 +49,6 @@ export async function getNpmPackageInfo(
   options: NpmAuthOptions & Pick<NpmOptions, 'registry' | 'timeout' | 'verbose'>
 ): Promise<NpmPackageVersionsData | undefined> {
   try {
-    options.verbose && console.log(`Fetching info about "${packageName}" from ${options.registry}`);
-
     const authArgs = getNpmAuthArgs(options);
 
     const result = (await fetch.json(`/${encodeURIComponent(packageName)}`, {
@@ -69,6 +68,12 @@ export async function getNpmPackageInfo(
       'dist-tags': result['dist-tags'] || {},
     };
   } catch (err) {
+    const maybeStatus = (err as { statusCode?: number }).statusCode;
+    if (maybeStatus === 401) {
+      throw new BeachballError(
+        `Authentication error fetching npm info for "${packageName}" from ${options.registry}: ${String(err)}`
+      );
+    }
     options.verbose && console.warn(`Failed to get or parse npm info for ${packageName}: ${String(err)}`);
     return undefined;
   }
