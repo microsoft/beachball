@@ -21,6 +21,39 @@ describe('validatePackageDependencies', () => {
     }
   );
 
+  it.each(['dependencies', 'peerDependencies', 'optionalDependencies'] as const)(
+    'invalid when %s contains shouldPublish:false package',
+    depType => {
+      const packageInfos = makePackageInfos({
+        foo: { beachball: { shouldPublish: false } },
+        bar: { [depType]: { foo: '1.0.0' } },
+      });
+      expect(validatePackageDependencies(['foo', 'bar'], packageInfos)).toBeFalsy();
+
+      expect(logs.getMockLines('error')).toEqual(
+        'ERROR: Found unpublished (shouldPublish: false) packages among published package dependencies:\n  • foo: used by bar'
+      );
+    }
+  );
+
+  it('reports both private and shouldPublish:false deps in adjacent blocks', () => {
+    const packageInfos = makePackageInfos({
+      foo: { private: true },
+      qux: { beachball: { shouldPublish: false } },
+      bar: { dependencies: { foo: '1.0.0', qux: '1.0.0' } },
+    });
+    expect(validatePackageDependencies(['foo', 'qux', 'bar'], packageInfos)).toBeFalsy();
+
+    expect(logs.getMockLines('error')).toMatchInlineSnapshot(`
+      "ERROR: Found private packages among published package dependencies:
+        • foo: used by bar
+
+
+      ERROR: Found unpublished (shouldPublish: false) packages among published package dependencies:
+        • qux: used by bar"
+    `);
+  });
+
   it('valid when non-listed package depends on private package', () => {
     const packageInfos = makePackageInfos({
       foo: { private: true },
@@ -33,6 +66,14 @@ describe('validatePackageDependencies', () => {
   it('valid when devDependencies contains private package', () => {
     const packageInfos = makePackageInfos({
       foo: { private: true },
+      bar: { devDependencies: { foo: '1.0.0' } },
+    });
+    expect(validatePackageDependencies(['foo', 'bar'], packageInfos)).toBeTruthy();
+  });
+
+  it('valid when devDependencies contains shouldPublish:false package', () => {
+    const packageInfos = makePackageInfos({
+      foo: { beachball: { shouldPublish: false } },
       bar: { devDependencies: { foo: '1.0.0' } },
     });
     expect(validatePackageDependencies(['foo', 'bar'], packageInfos)).toBeTruthy();

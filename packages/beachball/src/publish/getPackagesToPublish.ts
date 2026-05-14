@@ -11,6 +11,8 @@ export function getPackagesToPublish(
   params?: {
     /** If true, log skipped packages and reasons */
     logSkipped?: boolean;
+    /** If true, filter out packages with beachball.shouldPublish=false */
+    respectShouldPublish?: boolean;
   }
 ): string[] {
   const { modifiedPackages, packageInfos, calculatedChangeTypes, scopedPackages } = bumpInfo;
@@ -31,6 +33,8 @@ export function getPackagesToPublish(
       skipReason = 'is out-of-scope';
     } else if (!changeType) {
       skipReason = 'is not bumped (no calculated change type)';
+    } else if (params?.respectShouldPublish && packageInfo.packageOptions?.shouldPublish === false) {
+      skipReason = 'has beachball.shouldPublish=false';
     }
 
     if (skipReason) {

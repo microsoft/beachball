@@ -283,6 +283,75 @@ describe('publish command (e2e)', () => {
     expect(newPackageInfos.baz.version).toBe('1.4.0');
   });
 
+  // Verify the coherent shouldPublish:false semantics: the package is bumped, tagged, and
+  // included in the dependent graph, but it is NOT published to the registry.
+  it('bumps and tags a shouldPublish:false dependent but does not publish it', async () => {
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: {
+          foo: { version: '1.0.0', dependencies: { bar: '^1.3.4' }, beachball: { shouldPublish: false } },
+          bar: { version: '1.3.4' },
+        },
+      },
+    });
+    repo = repositoryFactory.cloneRepository();
+
+    const { options, parsedOptions } = getOptions({ fetch: false });
+
+    generateChangeFiles(['bar'], options);
+    repo.push();
+
+    await publishWrapper(parsedOptions);
+
+    // bar is bumped and published normally
+    expect(npmMock.getPublishedVersions('bar')).toEqual({
+      versions: ['1.4.0'],
+      'dist-tags': { latest: '1.4.0' },
+    });
+    // foo (shouldPublish: false) is not published, but is still bumped and tagged
+    expect(npmMock.getPublishedVersions('foo')).toBeUndefined();
+
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    expect(repo.getCurrentTags()).toEqual(['bar_v1.4.0', 'foo_v1.0.1']);
+
+    const newPackageInfos = getPackageInfos(parsedOptions);
+    expect(newPackageInfos.foo.version).toBe('1.0.1');
+    expect(newPackageInfos.foo.dependencies?.bar).toBe('^1.4.0');
+    expect(newPackageInfos.bar.version).toBe('1.4.0');
+  });
+
+  // shouldPublish:false packages should also accept their own change files. The package is
+  // bumped/tagged/changelogged but still not published.
+  it('accepts a direct change file for a shouldPublish:false package without publishing it', async () => {
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: {
+          foo: { version: '1.0.0', beachball: { shouldPublish: false } },
+          bar: { version: '1.0.0' },
+        },
+      },
+    });
+    repo = repositoryFactory.cloneRepository();
+
+    const { options, parsedOptions } = getOptions({ fetch: false });
+
+    generateChangeFiles(['foo'], options);
+    repo.push();
+
+    await publishWrapper(parsedOptions);
+
+    expect(npmMock.getPublishedVersions('foo')).toBeUndefined();
+    expect(npmMock.getPublishedVersions('bar')).toBeUndefined();
+
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
+
+    const newPackageInfos = getPackageInfos(parsedOptions);
+    expect(newPackageInfos.foo.version).toBe('1.1.0');
+  });
+
   it('does not publish an out-of-scope package', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();

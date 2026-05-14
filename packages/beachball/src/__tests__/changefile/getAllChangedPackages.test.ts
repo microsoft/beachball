@@ -188,6 +188,7 @@ describe('getAllChangedPackages', () => {
     const result = getAllChangedPackagesWrapper({
       packageInfos,
       repoOptions: { scope: ['!packages/grouped/*'] },
+      extraArgv: ['--verbose'],
       allChangedFiles: [
         'packages/foo/foo.js',
         'packages/bar/bar.js',
@@ -197,8 +198,16 @@ describe('getAllChangedPackages', () => {
       ],
     });
 
-    expect(result).toEqual(['baz']);
+    expect(result).toEqual(['bar', 'baz']);
     const logLines = logs.getMockLines('all');
-    expect(logLines).toMatchInlineSnapshot(`""`);
+    expect(logLines).toMatchInlineSnapshot(`
+      "[log] Found 5 changed files in current branch (before filtering)
+      [log]   - ~~packages/foo/foo.js~~ (foo is private)
+      [log]   - packages/bar/bar.js
+      [log]   - packages/baz/baz.js
+      [log]   - ~~packages/grouped/a/grouped.js~~ (grouped/a is out of scope)
+      [log]   - ~~packages/grouped/b/grouped.js~~ (grouped/b is out of scope)
+      [log] Found 2 files in 2 packages that should be published"
+    `);
   });
 });
