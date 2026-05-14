@@ -18,14 +18,6 @@ describe('isPackageIncluded', () => {
     });
   });
 
-  it('excludes packages with beachball.shouldPublish=false', () => {
-    const { foo } = makePackageInfos({ foo: { beachball: { shouldPublish: false } } });
-    expect(isPackageIncluded(foo, new Set(['foo']))).toEqual({
-      isIncluded: false,
-      reason: 'foo has beachball.shouldPublish=false',
-    });
-  });
-
   it('excludes packages out of scope', () => {
     const { foo } = makePackageInfos({ foo: {} });
     expect(isPackageIncluded(foo, new Set(['bar']))).toEqual({
@@ -42,21 +34,16 @@ describe('isPackageIncluded', () => {
     });
   });
 
-  it('reports private before shouldPublish=false', () => {
-    const { foo } = makePackageInfos({
-      foo: { private: true, beachball: { shouldPublish: false } },
-    });
-    expect(isPackageIncluded(foo, new Set(['foo']))).toEqual({
-      isIncluded: false,
-      reason: 'foo is private',
-    });
+  it('includes packages with beachball.shouldPublish=false', () => {
+    const { foo } = makePackageInfos({ foo: { beachball: { shouldPublish: false } } });
+    expect(isPackageIncluded(foo, new Set(['foo']))).toEqual({ isIncluded: true, reason: '' });
   });
 
-  it('reports shouldPublish=false before out-of-scope', () => {
-    const { foo } = makePackageInfos({ foo: { beachball: { shouldPublish: false } } });
+  it('reports private before out-of-scope', () => {
+    const { foo } = makePackageInfos({ foo: { private: true } });
     expect(isPackageIncluded(foo, new Set(['bar']))).toEqual({
       isIncluded: false,
-      reason: 'foo has beachball.shouldPublish=false',
+      reason: 'foo is private',
     });
   });
 });

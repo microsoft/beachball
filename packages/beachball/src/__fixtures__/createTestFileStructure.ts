@@ -2,9 +2,11 @@ import fs from 'fs';
 import { tmpdir } from './tmpdir';
 import path from 'path';
 import type { RepoOptions } from '../types/BeachballOptions';
+import { readJson } from '../object/readJson';
+import { writeJson } from '../object/writeJson';
 
 /**
- * For each key in `files`, create a test folder and write a file of that filename, where the
+ * For each key in `files`, create a test folder and write a file of that filePath, where the
  * content is the value (and create any intermediate folders).
  * @returns path to the test folder
  */
@@ -56,4 +58,19 @@ export function createTestFileStructureType(type: 'single' | 'monorepo'): string
         'yarn.lock': '',
       });
   }
+}
+
+/**
+ * Shallow-merge the given updates with an existing JSON file.
+ */
+export function updateJsonFile(filePath: string, updates: object): void {
+  if (!filePath.endsWith('.json')) {
+    throw new Error('This method only works with json files');
+  }
+
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`JSON file does not exist: ${filePath}`);
+  }
+  const oldContent = readJson<object>(filePath);
+  writeJson(filePath, { ...oldContent, ...updates });
 }

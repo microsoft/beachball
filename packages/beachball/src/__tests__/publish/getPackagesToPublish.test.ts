@@ -97,4 +97,32 @@ describe('getPackagesToPublish', () => {
         • pkg-b is not bumped (no calculated change type)"
     `);
   });
+
+  it('excludes packages with beachball.shouldPublish=false by default', () => {
+    const result = getPackagesToPublishWrapper({
+      packageInfos: {
+        'pkg-a': { beachball: { shouldPublish: false } },
+        'pkg-b': {},
+      },
+    });
+    expect(result).toEqual(['pkg-b']);
+    expect(logs.getMockLines('log')).toMatchInlineSnapshot(`
+      "Skipping publishing the following packages:
+        • pkg-a has beachball.shouldPublish=false"
+    `);
+  });
+
+  it('includes packages with beachball.shouldPublish=false when ignoreShouldPublish=true', () => {
+    const result = getPackagesToPublishWrapper(
+      {
+        packageInfos: {
+          'pkg-a': { beachball: { shouldPublish: false } },
+          'pkg-b': {},
+        },
+      },
+      { ignoreShouldPublish: true }
+    );
+    expect(result).toEqual(['pkg-a', 'pkg-b']);
+    expect(logs.mocks.log).not.toHaveBeenCalled();
+  });
 });

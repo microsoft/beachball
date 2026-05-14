@@ -38,11 +38,30 @@ export function getPackageInfos(optionsOrCwd: string | PackageInfosOptions): Pac
   const projectRoot = typeof optionsOrCwd === 'string' ? findProjectRoot(cwd) : cwd;
   const packageRoot = findPackageRoot(cwd);
 
+  const wsPackageInfos = getRawPackageInfos({ projectRoot, packageRoot, options: parsedOptions?.options });
+  if (wsPackageInfos) {
+    return parsedOptions
+      ? getPackageInfosWithOptions(wsPackageInfos, parsedOptions.cliOptions)
+      : // eslint-disable-next-line @ms-cloudpack/no-deprecated
+        getPackageInfosWithOptions(wsPackageInfos);
+  }
+  return {};
+}
+
+/**
+ * Internal helper to get raw package infos.
+ */
+export function getRawPackageInfos(params: {
+  projectRoot: string;
+  packageRoot: string | undefined;
+  options: PackageInfosOptions['options'] | undefined;
+}): WSPackageInfo[] | undefined {
+  const { projectRoot, packageRoot, options } = params;
+
   let wsPackageInfos: WSPackageInfo[] | undefined;
   if (projectRoot) {
     wsPackageInfos =
-      getPackageInfosFromMonorepoManager(projectRoot) ||
-      getPackageInfosFromOtherMonorepo(projectRoot, parsedOptions?.options);
+      getPackageInfosFromMonorepoManager(projectRoot) || getPackageInfosFromOtherMonorepo(projectRoot, options);
   }
 
   if (!wsPackageInfos?.length && packageRoot) {
@@ -52,13 +71,7 @@ export function getPackageInfos(optionsOrCwd: string | PackageInfosOptions): Pac
     }
   }
 
-  if (wsPackageInfos) {
-    return parsedOptions
-      ? getPackageInfosWithOptions(wsPackageInfos, parsedOptions.cliOptions)
-      : // eslint-disable-next-line @ms-cloudpack/no-deprecated
-        getPackageInfosWithOptions(wsPackageInfos);
-  }
-  return {};
+  return wsPackageInfos;
 }
 
 /** Try to find packages from a monorepo manager */

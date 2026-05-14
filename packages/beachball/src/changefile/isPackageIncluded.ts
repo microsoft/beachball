@@ -15,12 +15,9 @@ export function isPackageIncluded(
     ? 'no corresponding package found'
     : packageInfo.private
       ? `${packageInfo.name} is private`
-      : // This is a package-only option (can't be set at repo level or via CLI)
-        packageInfo.packageOptions?.shouldPublish === false
-        ? `${packageInfo.name} has beachball.shouldPublish=false`
-        : !scopedPackages.has(packageInfo.name)
-          ? `${packageInfo.name} is out of scope`
-          : ''; // not ignored
+      : !scopedPackages.has(packageInfo.name)
+        ? `${packageInfo.name} is out of scope`
+        : ''; // not ignored
 
   return { isIncluded: !reason, reason };
 }

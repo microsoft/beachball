@@ -1,4 +1,5 @@
 import { describe, expect, it, afterAll, beforeAll, afterEach } from '@jest/globals';
+import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { initMockLogs } from '../__fixtures__/mockLogs';
@@ -64,6 +65,29 @@ describe('validate', () => {
 
     const result = validateWrapper({ checkChangeNeeded: true, allowMissingChangeFiles: true });
     expect(result.isChangeNeeded).toBe(true);
+    expect(logs.mocks.error).not.toHaveBeenCalled();
+  });
+
+  // A shouldPublish: false package depending on a private (or shouldPublish: false) package must
+  // not be treated as a "published package" during dependency validation. Otherwise `check`
+  // produces a false-positive error, since the dependent itself won't be published.
+  it('does not report dependency errors for shouldPublish:false package depending on private package', () => {
+    repo = repositoryFactory.cloneRepository();
+    repo.updateJsonFile('packages/foo/package.json', { beachball: { shouldPublish: false } });
+    repo.updateJsonFile('packages/bar/package.json', { private: true });
+
+    const parsedOptions = getParsedOptions({
+      cwd: repo.rootPath,
+      argv: [],
+      env: {},
+      testRepoOptions: { branch: defaultRemoteBranchName },
+    });
+
+    generateChangeFiles(['foo'], parsedOptions.options);
+
+    const result = validate(parsedOptions, { checkChangeNeeded: true, checkDependencies: true });
+
+    expect(result.isChangeNeeded).toBe(false);
     expect(logs.mocks.error).not.toHaveBeenCalled();
   });
 });

@@ -283,6 +283,42 @@ describe('publish command (e2e)', () => {
     expect(newPackageInfos.baz.version).toBe('1.4.0');
   });
 
+  // A package with shouldPublish: false gets all steps of the publish process except npm publish
+  it('handles packages with shouldPublish:false', async () => {
+    repositoryFactory = new RepositoryFactory({
+      folders: {
+        packages: {
+          foo: { version: '1.0.0', beachball: { shouldPublish: false } },
+          bar: { version: '1.0.0' },
+          baz: { version: '1.0.0', dependencies: { bar: '^1.0.0' } },
+        },
+      },
+    });
+    repo = repositoryFactory.cloneRepository();
+
+    const { options, parsedOptions } = getOptions({ fetch: false });
+
+    generateChangeFiles(['foo', 'bar'], options);
+    repo.push();
+
+    await publishWrapper(parsedOptions);
+
+    // foo is not published, but the other two are
+    expect(npmMock.getPublishedVersions('foo')).toBeUndefined();
+    expect(npmMock.getPublishedVersions('bar')).toEqual({ versions: ['1.1.0'], 'dist-tags': { latest: '1.1.0' } });
+    expect(npmMock.getPublishedVersions('baz')).toEqual({ versions: ['1.0.1'], 'dist-tags': { latest: '1.0.1' } });
+
+    repo.checkout(defaultBranchName);
+    repo.pull();
+    // foo is git tagged
+    expect(repo.getCurrentTags()).toEqual(['bar_v1.1.0', 'baz_v1.0.1', 'foo_v1.1.0']);
+
+    const newPackageInfos = getPackageInfos(parsedOptions);
+    // foo is bumped and committed with a changelog
+    expect(newPackageInfos.foo.version).toBe('1.1.0');
+    expect(fs.existsSync(repo.pathTo('packages/foo/CHANGELOG.md'))).toBe(true);
+  });
+
   it('does not publish an out-of-scope package', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();

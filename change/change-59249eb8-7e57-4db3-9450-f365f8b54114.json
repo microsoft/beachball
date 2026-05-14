@@ -1,0 +1,11 @@
+{
+  "changes": [
+    {
+      "type": "major",
+      "comment": "Apply consistent behavior with package `shouldPublish: false` setting: skip `npm publish` but *do* require change files and produce version bumps, changelogs, and git tags",
+      "packageName": "beachball",
+      "email": "elcraig@microsoft.com",
+      "dependentChangeType": "patch"
+    }
+  ]
+}

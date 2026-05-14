@@ -4,8 +4,9 @@ import { migrate } from '../../commands/migrate';
 import { getParsedOptions } from '../../options/getOptions';
 import type { RepoOptions } from '../../types/BeachballOptions';
 import { removeTempDir } from '../../__fixtures__/tmpdir';
-import { createTestFileStructureType } from '../../__fixtures__/createTestFileStructure';
+import { createTestFileStructureType, updateJsonFile } from '../../__fixtures__/createTestFileStructure';
 import { BeachballError } from '../../types/BeachballError';
+import path from 'path';
 
 jest.mock('workspace-tools', () => ({
   ...jest.requireActual<typeof import('workspace-tools')>('workspace-tools'),
@@ -37,6 +38,44 @@ describe('migrate command', () => {
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[error] The following updates are needed for v3:
       [error]   • The \`new\` option has been removed. Please remove it from your config."
+    `);
+  });
+
+  it('warns on public packages using shouldPublish option', () => {
+    tempRoot = createTestFileStructureType('monorepo');
+    updateJsonFile(path.join(tempRoot, 'packages/foo/package.json'), { beachball: { shouldPublish: false } });
+    updateJsonFile(path.join(tempRoot, 'packages/baz/package.json'), { beachball: { shouldPublish: false } });
+
+    migrate(getOptions());
+
+    const output = logs.getMockLines('all', { root: tempRoot });
+    expect(output).toMatchInlineSnapshot(`
+      "[warn] The following warnings were found for your config:
+      [warn]   • Found non-private packages using \`"shouldPublish": false\`. The behavior of this setting has changed--please see the v3 migration guide for details and verify it still works for your scenario.
+          ▪ <root>/packages/baz/package.json
+          ▪ <root>/packages/foo/package.json"
+    `);
+  });
+
+  it('errors on private packages using shouldPublish option', () => {
+    tempRoot = createTestFileStructureType('monorepo');
+    updateJsonFile(path.join(tempRoot, 'packages/foo/package.json'), {
+      private: true,
+      beachball: { shouldPublish: false },
+    });
+    updateJsonFile(path.join(tempRoot, 'packages/baz/package.json'), {
+      private: true,
+      beachball: { shouldPublish: false },
+    });
+
+    expect(() => migrate(getOptions())).toThrow(BeachballError);
+
+    const output = logs.getMockLines('all', { root: tempRoot });
+    expect(output).toMatchInlineSnapshot(`
+      "[error] The following updates are needed for v3:
+      [error]   • Found private packages using \`"shouldPublish": false\`. This setting does nothing with private packages and should be removed.
+          ▪ <root>/packages/baz/package.json
+          ▪ <root>/packages/foo/package.json"
     `);
   });
 });
