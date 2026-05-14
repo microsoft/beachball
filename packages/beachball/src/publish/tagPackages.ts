@@ -1,6 +1,6 @@
 import { gitFailFast } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import { getPackagesToPublish } from './getPackagesToPublish';
+import type { BumpInfo } from '../types/BumpInfo';
 
 function createTag(tag: string, cwd: string): void {
   gitFailFast(['tag', '-a', '-f', tag, '-m', tag], { cwd });
@@ -14,18 +14,12 @@ function createTag(tag: string, cwd: string): void {
  * non-default value (not "latest"), create a git tag for the dist-tag.
  */
 export function tagPackages(
-  bumpInfo: Parameters<typeof getPackagesToPublish>[0] & Pick<import('../types/BumpInfo').BumpInfo, 'packageTags'>,
+  packageTags: BumpInfo['packageTags'],
   options: Pick<BeachballOptions, 'gitTags' | 'path' | 'tag'>
 ): void {
   const { gitTags, tag: distTag, path: cwd } = options;
-  const { packageTags } = bumpInfo;
 
-  // Reuse the getPackagesToPublish filtering logic to remove private or unchanged packages.
-  // For this step, ignore shouldPublish=false.
-  const packagesToPublish = getPackagesToPublish(bumpInfo, { ignoreShouldPublish: true });
-
-  for (const pkg of packagesToPublish) {
-    const tags = packageTags[pkg];
+  for (const tags of Object.values(packageTags)) {
     if (!tags?.length) {
       continue;
     }

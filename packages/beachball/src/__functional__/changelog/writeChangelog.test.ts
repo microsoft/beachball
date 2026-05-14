@@ -84,7 +84,12 @@ describe('writeChangelog', () => {
       writeJson(packageJsonPath, packageJson);
     }
 
-    const packageTags = calculatePackageTags({ packageInfos }, options);
+    const modifiedPackages = new Set(Object.keys(calculatedChangeTypes));
+    const scopedPackages = getScopedPackages(options, packageInfos);
+    const packageTags = calculatePackageTags(
+      { packageInfos, calculatedChangeTypes, modifiedPackages, scopedPackages },
+      options
+    );
     await writeChangelog(
       { dependentChangedBy, calculatedChangeTypes, changeFileChangeInfos, packageInfos, packageTags },
       options

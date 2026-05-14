@@ -53,6 +53,8 @@ export type BumpInfo = {
 
   /**
    * Map from package name to the git tag(s) that will be created for it during publish.
+   * It **only** includes the packages valid for tagging per `getPackagesToPublish`
+   * (this includes packages with `shouldPublish: false`).
    *
    * - `undefined` means no tag will be created (`gitTags` disabled for the package and no
    *   `getGitTag` override, or `getGitTag` returned `null`).

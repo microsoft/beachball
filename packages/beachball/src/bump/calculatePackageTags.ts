@@ -1,6 +1,7 @@
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { BumpInfo } from '../types/BumpInfo';
 import { getPackageOption } from '../options/getPackageOption';
+import { getPackagesToPublish } from '../publish/getPackagesToPublish';
 
 /** Get a standardized package version git tag: `${name}_v${version}` */
 export function generateTag(name: string, version: string): string {
@@ -18,15 +19,19 @@ export function generateTag(name: string, version: string): string {
  *   all entries will be created as git tags at publish time.
  */
 export function calculatePackageTags(
-  bumpInfo: Pick<BumpInfo, 'packageInfos'>,
+  bumpInfo: Pick<BumpInfo, 'modifiedPackages' | 'packageInfos' | 'calculatedChangeTypes' | 'scopedPackages'>,
   options: Pick<BeachballOptions, 'gitTags' | 'getGitTag'>
 ): { [pkgName: string]: string[] | undefined } {
   const { getGitTag } = options;
   const { packageInfos } = bumpInfo;
 
   const packageTags: { [pkgName: string]: string[] | undefined } = {};
+  // Only generate tags for the packages that are being bumped.
+  // For this step, ignore shouldPublish=false.
+  const packagesToPublish = getPackagesToPublish(bumpInfo, { ignoreShouldPublish: true });
 
-  for (const [pkgName, packageInfo] of Object.entries(packageInfos)) {
+  for (const pkgName of packagesToPublish) {
+    const packageInfo = packageInfos[pkgName];
     const shouldTag = getPackageOption('gitTags', packageInfo, options);
     const defaultTag = generateTag(packageInfo.name, packageInfo.version);
 
