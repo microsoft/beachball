@@ -37,7 +37,7 @@ export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOp
 
   // Get the packages to publish, reducing the set by packages that don't need publishing.
   // This is where packages with shouldPublish: false should be filtered out.
-  let packagesToPublish = getPackagesToPublish(bumpInfo, { logSkipped: true, respectShouldPublish: true });
+  let packagesToPublish = getPackagesToPublish(bumpInfo, { logSkipped: true });
   if (!packagesToPublish.length) {
     console.log('Nothing to publish\n');
     return;

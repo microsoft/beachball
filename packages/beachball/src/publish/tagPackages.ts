@@ -21,8 +21,8 @@ export function tagPackages(
   const { packageInfos } = bumpInfo;
 
   // Reuse the getPackagesToPublish filtering logic to remove private or unchanged packages,
-  // and also exclude packages with git tags disabled
-  const filteredPackages = getPackagesToPublish(bumpInfo).filter(pkg =>
+  // and also exclude packages with git tags disabled. For this step, ignore shouldPublish=false.
+  const filteredPackages = getPackagesToPublish(bumpInfo, { ignoreShouldPublish: true }).filter(pkg =>
     getPackageOption('gitTags', packageInfos[pkg], options)
   );
 

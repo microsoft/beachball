@@ -1,5 +1,5 @@
 import type { ParsedOptions } from '../types/BeachballOptions';
-import type { PackageInfo as WSPackageInfo } from 'workspace-tools';
+import { findPackageRoot, type PackageInfo as WSPackageInfo } from 'workspace-tools';
 import { getRawPackageInfos } from '../monorepo/getPackageInfos';
 import { bulletedList, type BulletList } from '../logging/bulletedList';
 import { BeachballError } from '../types/BeachballError';
@@ -17,7 +17,7 @@ export function migrate(parsedOptions: ParsedOptions): void {
 
   const rawPackageInfos = getRawPackageInfos({
     projectRoot: options.path,
-    packageRoot: options.path,
+    packageRoot: findPackageRoot(options.path),
     options,
   });
 
@@ -59,7 +59,7 @@ function checkShouldPublish(params: {
     updates.push(
       'Found private packages using `"shouldPublish": false`. ' +
         'This setting does nothing with private packages and should be removed.',
-      privatePackagesWithShouldPublish.map(pkg => pkg.packageJsonPath)
+      privatePackagesWithShouldPublish.map(pkg => pkg.packageJsonPath).sort()
     );
   }
 
@@ -67,7 +67,7 @@ function checkShouldPublish(params: {
     warnings.push(
       'Found non-private packages using `"shouldPublish": false`. The behavior of this setting has changed--' +
         'please see the v3 migration guide for details and verify it still works for your scenario.',
-      publicPackagesWithShouldPublish.map(pkg => pkg.packageJsonPath)
+      publicPackagesWithShouldPublish.map(pkg => pkg.packageJsonPath).sort()
     );
   }
 }
