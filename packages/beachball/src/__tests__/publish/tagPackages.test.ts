@@ -125,4 +125,76 @@ describe('tagPackages', () => {
     expect(gitFailFast).toHaveBeenCalledTimes(1);
     expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters('abc'));
   });
+
+  it('uses getGitTag to generate custom tags', () => {
+    const bumpInfo: TagBumpInfo = {
+      calculatedChangeTypes: { foo: 'minor' },
+      packageInfos: makePackageInfos({ foo: { version: '1.0.0' } }),
+      modifiedPackages: new Set(['foo']),
+      scopedPackages: new Set(['foo']),
+      newPackages: [],
+    };
+    tagPackages(bumpInfo, {
+      path: '',
+      gitTags: true,
+      tag: '',
+      getGitTag: (_pkg, defaultTag) => `custom-${defaultTag}`,
+    });
+    expect(gitFailFast).toHaveBeenCalledTimes(1);
+    expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters('custom-foo_v1.0.0'));
+  });
+
+  it('uses getGitTag returning multiple tags', () => {
+    const bumpInfo: TagBumpInfo = {
+      calculatedChangeTypes: { foo: 'minor' },
+      packageInfos: makePackageInfos({ foo: { version: '2.0.0' } }),
+      modifiedPackages: new Set(['foo']),
+      scopedPackages: new Set(['foo']),
+      newPackages: [],
+    };
+    tagPackages(bumpInfo, {
+      path: '',
+      gitTags: true,
+      tag: '',
+      getGitTag: () => ['tag-a', 'tag-b'],
+    });
+    expect(gitFailFast).toHaveBeenCalledTimes(2);
+    expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters('tag-a'));
+    expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters('tag-b'));
+  });
+
+  it('uses getGitTag returning null to skip tagging', () => {
+    const bumpInfo: TagBumpInfo = {
+      calculatedChangeTypes: { foo: 'minor' },
+      packageInfos: makePackageInfos({ foo: { version: '1.0.0' } }),
+      modifiedPackages: new Set(['foo']),
+      scopedPackages: new Set(['foo']),
+      newPackages: [],
+    };
+    tagPackages(bumpInfo, {
+      path: '',
+      gitTags: true,
+      tag: '',
+      getGitTag: () => null,
+    });
+    expect(gitFailFast).not.toHaveBeenCalled();
+  });
+
+  it('getGitTag overrides gitTags=false for packages', () => {
+    const bumpInfo: TagBumpInfo = {
+      calculatedChangeTypes: { foo: 'minor' },
+      packageInfos: makePackageInfos({ foo: { version: '1.0.0' } }, { gitTags: false }),
+      modifiedPackages: new Set(['foo']),
+      scopedPackages: new Set(['foo']),
+      newPackages: [],
+    };
+    tagPackages(bumpInfo, {
+      path: '',
+      gitTags: false,
+      tag: '',
+      getGitTag: (_pkg, defaultTag) => defaultTag,
+    });
+    expect(gitFailFast).toHaveBeenCalledTimes(1);
+    expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters('foo_v1.0.0'));
+  });
 });

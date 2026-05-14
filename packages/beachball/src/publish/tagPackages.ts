@@ -10,27 +10,42 @@ function createTag(tag: string, cwd: string): void {
 
 /**
  * Create git tags for each changed package, unless the package or repo has opted out of git tags.
+ * If `getGitTag` is provided, it can override or skip the default tag on a per-package basis.
  * Also, if git tags aren't disabled for the repo and the overall dist-tag (`options.tag`) has a
  * non-default value (not "latest"), create a git tag for the dist-tag.
  */
 export function tagPackages(
   bumpInfo: Parameters<typeof getPackagesToPublish>[0],
-  options: Pick<BeachballOptions, 'gitTags' | 'path' | 'tag'>
+  options: Pick<BeachballOptions, 'getGitTag' | 'gitTags' | 'path' | 'tag'>
 ): void {
-  const { gitTags, tag: distTag, path: cwd } = options;
+  const { getGitTag, gitTags, tag: distTag, path: cwd } = options;
   const { packageInfos } = bumpInfo;
 
   // Reuse the getPackagesToPublish filtering logic to remove private or unchanged packages,
   // and also exclude packages with git tags disabled. For this step, ignore shouldPublish=false.
+  // and also exclude packages with git tags disabled (unless getGitTag can override)
   const filteredPackages = getPackagesToPublish(bumpInfo, { ignoreShouldPublish: true }).filter(pkg =>
-    getPackageOption('gitTags', packageInfos[pkg], options)
+    getGitTag ? true : getPackageOption('gitTags', packageInfos[pkg], options)
   );
 
   for (const pkg of filteredPackages) {
     const packageInfo = packageInfos[pkg];
-    console.log(`Tagging - ${packageInfo.name}@${packageInfo.version}`);
-    const generatedTag = generateTag(packageInfo.name, packageInfo.version);
-    createTag(generatedTag, cwd);
+    const defaultTag = generateTag(packageInfo.name, packageInfo.version);
+
+    if (getGitTag) {
+      const customTags = getGitTag(packageInfo, defaultTag);
+      if (customTags === null) {
+        continue;
+      }
+      const tagsArray = Array.isArray(customTags) ? customTags : [customTags];
+      for (const tag of tagsArray) {
+        console.log(`Tagging - ${tag}`);
+        createTag(tag, cwd);
+      }
+    } else {
+      console.log(`Tagging - ${packageInfo.name}@${packageInfo.version}`);
+      createTag(defaultTag, cwd);
+    }
   }
 
   if (gitTags && distTag && distTag !== 'latest') {

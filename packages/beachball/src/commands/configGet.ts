@@ -35,6 +35,7 @@ const repoOptionKeys: Record<string, true> = {
   fetch: true,
   fromRef: true,
   generateChangelog: true,
+  getGitTag: true,
   groups: true,
   gitTags: true,
   hooks: true,

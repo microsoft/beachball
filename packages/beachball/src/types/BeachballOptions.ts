@@ -2,7 +2,7 @@ import type { AuthType } from './Auth';
 import type { ChangeInfo, ChangeInfoMultiple, ChangeType } from './ChangeInfo';
 import type { ChangeFilePromptOptions } from './ChangeFilePrompt';
 import type { ChangelogOptions } from './ChangelogOptions';
-import type { PackageInfos } from './PackageInfo';
+import type { PackageInfo, PackageInfos } from './PackageInfo';
 
 // TODO: this shouldn't include PackageOptions
 export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
@@ -183,10 +183,17 @@ export interface RepoOptions {
    */
   groups?: VersionGroupOptions[];
   /**
-   * Whether to create git tags for published packages
+   * Whether to create git tags for published packages.
+   * Note that `getGitTag` is still respected, overriding this option on a per-package basis.
    * @default true
    */
   gitTags: boolean;
+  /**
+   * Get package-specific git tag(s). Return `null` to skip tagging this package.
+   * @param pkg Package being tagged, including the updated version
+   * @param defaultTag The default tag that would be generated for this package (e.g. `pkg_v1.2.3`)
+   */
+  getGitTag?: (pkg: PackageInfo, defaultTag: string) => string | string[] | null;
   /** Custom pre/post publish actions */
   hooks?: HooksOptions;
   /**
