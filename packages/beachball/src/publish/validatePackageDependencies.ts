@@ -35,14 +35,14 @@ export function validatePackageDependencies(packagesToValidate: string[], packag
 
   if (privateDeps.length) {
     console.error(
-      `\nERROR: Found private packages among published package dependencies:\n` +
+      `ERROR: Found private packages among published package dependencies:\n` +
         bulletedList(privateDeps.map(dep => `${dep}: used by ${prodDeps[dep].join(', ')}`).sort()) +
         '\n'
     );
   }
   if (unpublishedDeps.length) {
     console.error(
-      `\nERROR: Found unpublished (shouldPublish: false) packages among published package dependencies:\n` +
+      `ERROR: Found unpublished (beachball.shouldPublish: false) packages among published package dependencies:\n` +
         bulletedList(unpublishedDeps.map(dep => `${dep}: used by ${prodDeps[dep].join(', ')}`).sort()) +
         '\n'
     );

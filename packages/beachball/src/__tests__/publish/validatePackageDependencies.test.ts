@@ -31,7 +31,7 @@ describe('validatePackageDependencies', () => {
       expect(validatePackageDependencies(['foo', 'bar'], packageInfos)).toBeFalsy();
 
       expect(logs.getMockLines('error')).toEqual(
-        'ERROR: Found unpublished (shouldPublish: false) packages among published package dependencies:\n  • foo: used by bar'
+        'ERROR: Found unpublished (beachball.shouldPublish: false) packages among published package dependencies:\n  • foo: used by bar'
       );
     }
   );
@@ -48,8 +48,7 @@ describe('validatePackageDependencies', () => {
       "ERROR: Found private packages among published package dependencies:
         • foo: used by bar
 
-
-      ERROR: Found unpublished (shouldPublish: false) packages among published package dependencies:
+      ERROR: Found unpublished (beachball.shouldPublish: false) packages among published package dependencies:
         • qux: used by bar"
     `);
   });
