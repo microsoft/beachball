@@ -30,7 +30,7 @@ export function validatePackageDependencies(packagesToValidate: string[], packag
   // logic for catalog versions).
   const privateDeps = Object.keys(prodDeps).filter(dep => packageInfos[dep]?.private);
   const unpublishedDeps = Object.keys(prodDeps).filter(
-    dep => !packageInfos[dep]?.private && packageInfos[dep]?.packageOptions?.shouldPublish === false
+    dep => packageInfos[dep]?.packageOptions?.shouldPublish === false
   );
 
   if (privateDeps.length) {
