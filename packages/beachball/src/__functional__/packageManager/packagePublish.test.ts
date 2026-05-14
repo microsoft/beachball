@@ -1,4 +1,5 @@
 import { describe, expect, it, beforeAll, afterAll, beforeEach, jest, afterEach } from '@jest/globals';
+import fs from 'fs';
 import path from 'path';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { Registry } from '../../__fixtures__/registry';
@@ -9,7 +10,6 @@ import type { PackageInfo } from '../../types/PackageInfo';
 import type { npm, NpmResult } from '../../packageManager/npm';
 import { writeJson } from '../../object/writeJson';
 import { getNpmPackageInfo } from '../../packageManager/getNpmPackageInfo';
-import { env } from '../../env';
 
 type PackagePublishOptions = Parameters<typeof packagePublish>[1];
 
@@ -72,22 +72,24 @@ describe('packagePublish', () => {
 
   describe('with real local registry', () => {
     let registry: Registry;
-    let token: string;
 
     beforeAll(async () => {
-      registry = new Registry(__filename);
+      registry = new Registry({ testFilename: __filename });
 
-      // Get the token once upfront (unfortunately verdaccio doesn't support `npm token create`)
+      // Start and stop the server to allocate a port and confirm the config works.
       await registry.start();
-      await registry.login();
-      token = registry.getToken();
-      await registry.logout();
       registry.stop();
 
       // Create a test package.json in a temporary location for use in tests.
       tempRoot = tmpdir();
       tempPackageJsonPath = path.join(tempRoot, 'package.json');
       writeJson(tempPackageJsonPath, testPackage);
+
+      const registryUrl = registry.getUrl().replace(/^https?:/, '');
+      fs.writeFileSync(
+        path.join(tempRoot, '.npmrc'),
+        `${registryUrl}/:username=fake\n${registryUrl}/:email=fake@example.com`
+      );
     });
 
     beforeEach(async () => {
@@ -97,7 +99,6 @@ describe('packagePublish', () => {
 
     afterEach(async () => {
       npmSpy.mockRestore();
-      // no-op if already logged out
       await registry.logout();
       registry.stop();
     });
@@ -107,10 +108,9 @@ describe('packagePublish', () => {
       removeTempDir(tempRoot);
     });
 
-    // Do a basic publishing test against the real registry
+    // Do a basic publishing test against the real registry.
     it('can publish with a token', async () => {
-      // Pass the token as an arg this time to verify it's translated to an environment variable
-      // and picked up by npm
+      const token = await registry.getToken();
       expect(await registry.whoami()).toBeFalsy();
 
       const testPackageInfo = getTestPackageInfo();
@@ -128,12 +128,7 @@ describe('packagePublish', () => {
       expect(allLogs).toMatch('publish command:');
       expect(allLogs).toMatch(`[log] Published!`);
 
-      const realPackage = await getNpmPackageInfo(testPackageInfo.name, {
-        registry: registry.getUrl(),
-        // Probably less important now that this is a fetch not a shell command, but just in case
-        timeout: env.isCI && process.platform === 'win32' ? 4500 : 1500,
-        path: tempRoot,
-      });
+      const realPackage = await getNpmPackageInfo(testPackageInfo.name, { registry: registry.getUrl(), token });
       expect(realPackage).toEqual({
         versions: [testVersion],
         // This will publish the test tag as well as "latest" because it's a new package
@@ -162,8 +157,11 @@ describe('packagePublish', () => {
 
     // Use real npm for this because the republish detection relies on the real error message.
     // This test might fail on a machine with a non-English locale due to lack of numeric error code
-    // in newer npm versions
+    // in newer npm versions.
     it('errors and does not retry on republish', async () => {
+      const token = await registry.getToken();
+      expect(await registry.whoami()).toBeFalsy();
+
       const testPackageInfo = getTestPackageInfo();
       const options: PackagePublishOptions = { ...defaultOptions, registry: registry.getUrl(), path: tempRoot, token };
 
@@ -183,8 +181,6 @@ describe('packagePublish', () => {
     });
 
     it('handles auth error and does not retry', async () => {
-      await registry.logout();
-
       const testPackageInfo = getTestPackageInfo();
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
