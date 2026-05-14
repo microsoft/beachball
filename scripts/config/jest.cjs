@@ -22,6 +22,10 @@ function getProjectOptions(projectOverrides) {
       ],
     },
     testEnvironment: 'node',
+    testEnvironmentOptions: {
+      // https://jestjs.io/blog/2025/06/04/jest-30#globals-cleanup-between-test-files
+      globalsCleanup: 'on',
+    },
     ...projectOverrides,
   };
 }
@@ -32,6 +36,7 @@ function getProjectOptions(projectOverrides) {
  */
 function getTopLevelOptions() {
   return {
+    injectGlobals: false,
     reporters: ['default', 'github-actions'],
     // Enable to locally test with coverage info (will only work properly with `yarn test`, not
     // `test:all` or individual projects). This would be tricky to enable in CI due to the multiple

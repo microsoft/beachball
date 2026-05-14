@@ -8,6 +8,7 @@
   "js/ts.preferences.quoteStyle": "single",
   "js/ts.tsdk.path": "node_modules/typescript/lib",
   "jest.runMode": "on-demand",
+  "eslint.workingDirectories": [{ "mode": "auto" }],
   "search.exclude": {
     "**/node_modules": true,
     "**/lib": true,
