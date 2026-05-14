@@ -1,0 +1,11 @@
+{
+  "changes": [
+    {
+      "type": "major",
+      "comment": "`PackageChangelog/ChangelogJsonEntry.tag` will be `undefined` if the package did not have an associated git tag (this only impacts custom changelog rendering or later reading of `CHANGELOG.json`)",
+      "packageName": "beachball",
+      "email": "elcraig@microsoft.com",
+      "dependentChangeType": "patch"
+    }
+  ]
+}

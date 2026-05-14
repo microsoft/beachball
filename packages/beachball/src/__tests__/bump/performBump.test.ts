@@ -91,6 +91,7 @@ describe('performBump', () => {
         dependentChangedBy: {},
         packageGroups: {},
         scopedPackages: new Set(),
+        packageTags: {},
       },
       opts.options
     );

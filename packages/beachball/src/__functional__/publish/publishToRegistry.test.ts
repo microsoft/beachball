@@ -67,6 +67,7 @@ describe('publishToRegistry', () => {
       modifiedPackages: new Set(names),
       dependentChangedBy: {},
       scopedPackages: new Set(names),
+      packageTags: {},
       ...extra,
     };
   }

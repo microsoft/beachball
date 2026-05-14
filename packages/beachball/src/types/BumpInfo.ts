@@ -50,6 +50,19 @@ export type BumpInfo = {
 
   /** Set of packages that are in scope for this bump */
   scopedPackages: ScopedPackages;
+
+  /**
+   * Map from package name to the git tag(s) that will be created for it during publish.
+   *
+   * - `undefined` means no tag will be created (`gitTags` disabled for the package and no
+   *   `getGitTag` override, or `getGitTag` returned `null`).
+   * - When defined, this is a non-empty array of tag strings. The first entry is the "primary"
+   *   tag used in changelog metadata; all entries are created as git tags by `tagPackages`.
+   *
+   * This is computed once at the end of `bumpInMemory` so that changelog generation and
+   * `tagPackages` agree on what tag(s) will exist.
+   */
+  packageTags: { readonly [pkgName: string]: readonly string[] | undefined };
 };
 
 /** Dependents cache (child points to parents): if A depends on B, then `{ B: [A] }` */

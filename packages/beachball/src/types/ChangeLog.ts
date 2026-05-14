@@ -47,8 +47,15 @@ export interface PackageChangelog {
   date: Date;
   /** Version number (if a grouped changelog, for the primary package) */
   version: string;
-  /** Corresponding git tag name (if a grouped changelog, for the primary package) */
-  tag: string;
+  /**
+   * Corresponding git tag name (if a grouped changelog, for the primary package).
+   *
+   * Will be undefined if no git tag will actually be created for this package — i.e. `gitTags`
+   * is disabled and `getGitTag` is not set (or returned `null`).
+   *
+   * If the package's `getGitTag` returns multiple tags, this is the first ("most specific") one.
+   */
+  tag?: string;
   /** Changes in this version */
   comments: { [k in ChangeType]?: ChangelogEntry[] };
 }

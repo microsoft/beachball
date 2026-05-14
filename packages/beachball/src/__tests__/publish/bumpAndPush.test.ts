@@ -84,6 +84,7 @@ describe('bumpAndPush', () => {
       dependentChangedBy: {},
       packageGroups: {},
       scopedPackages: new Set(['foo', 'bar']),
+      packageTags: {},
     };
     return bumpAndPush(bumpInfo, publishBranch, options, maxRetries);
   }

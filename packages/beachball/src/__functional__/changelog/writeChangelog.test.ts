@@ -24,6 +24,7 @@ import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 import type { PackageInfos } from '../../types/PackageInfo';
 import { writeJson } from '../../object/writeJson';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
+import { calculatePackageTags } from '../../bump/calculatePackageTags';
 
 describe('writeChangelog', () => {
   let repositoryFactory: RepositoryFactory;
@@ -83,7 +84,11 @@ describe('writeChangelog', () => {
       writeJson(packageJsonPath, packageJson);
     }
 
-    await writeChangelog({ dependentChangedBy, calculatedChangeTypes, changeFileChangeInfos, packageInfos }, options);
+    const packageTags = calculatePackageTags({ packageInfos }, options);
+    await writeChangelog(
+      { dependentChangedBy, calculatedChangeTypes, changeFileChangeInfos, packageInfos, packageTags },
+      options
+    );
   }
 
   beforeAll(() => {
@@ -499,6 +504,27 @@ describe('writeChangelog', () => {
     const changelogJson = readChangelogJson(repo.rootPath);
     expect(changelogJson).not.toBeNull();
     expect(changelogJson!.entries[0].comments.minor).toEqual([expect.objectContaining({ comment: 'foo comment' })]);
+  });
+
+  it('omits tag from grouped CHANGELOG.json when gitTags is disabled', async () => {
+    repo = sharedMonoRepo;
+    const { options, packageInfos } = getOptionsAndPackages({
+      generateChangelog: 'json',
+      gitTags: false,
+      changelog: {
+        groups: [{ mainPackageName: 'foo', changelogPath: '.', include: ['packages/*'] }],
+      },
+    });
+
+    generateChangeFiles([getChange('foo', 'foo comment')], options);
+
+    await writeChangelogWrapper({ options, packageInfos });
+
+    // Grouped CHANGELOG.json is written without a tag
+    const groupedJson = readChangelogJson(repo.rootPath);
+    expect(groupedJson).toEqual({ name: 'foo', entries: [expect.anything()] });
+    expect(groupedJson!.entries[0].version).toBe('1.1.0');
+    expect(groupedJson!.entries[0].tag).toBeUndefined();
   });
 
   it('appends to existing changelog', async () => {

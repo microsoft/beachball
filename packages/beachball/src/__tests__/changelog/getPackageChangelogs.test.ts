@@ -3,6 +3,7 @@ import { getPackageChangelogs } from '../../changelog/getPackageChangelogs';
 import type { ChangeFileInfo, ChangeSet } from '../../types/ChangeInfo';
 import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
 import { getFileAddedHash } from 'workspace-tools';
+import { generateTag } from '../../bump/calculatePackageTags';
 
 type PartialBumpInfo = Parameters<typeof getPackageChangelogs>[0];
 
@@ -28,14 +29,20 @@ describe('getPackageChangelogs', () => {
   function getPackageChangelogsWrapper(
     bumpInfo: Pick<PartialBumpInfo, 'calculatedChangeTypes' | 'dependentChangedBy'> & {
       packageInfos: PartialPackageInfos;
+      packageTags?: PartialBumpInfo['packageTags'];
       /** Changed package names or change file info (must include `packageName`) */
       changes: (string | Partial<ChangeFileInfo>)[];
     },
     options?: Partial<Parameters<typeof getPackageChangelogs>[1]>
   ) {
+    const packageInfos = makePackageInfos(bumpInfo.packageInfos);
+    const packageTags =
+      bumpInfo.packageTags ??
+      Object.fromEntries(Object.values(packageInfos).map(p => [p.name, [generateTag(p.name, p.version)]]));
     return getPackageChangelogs(
       {
-        packageInfos: makePackageInfos(bumpInfo.packageInfos),
+        packageInfos,
+        packageTags,
         calculatedChangeTypes: bumpInfo.calculatedChangeTypes,
         dependentChangedBy: bumpInfo.dependentChangedBy,
         changeFileChangeInfos: bumpInfo.changes.map((change): ChangeSet[number] => {
@@ -113,6 +120,29 @@ describe('getPackageChangelogs', () => {
     });
 
     expect(getFileAddedHashMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('omits tag when the package has no precomputed tag', () => {
+    const changelogs = getPackageChangelogsWrapper({
+      packageInfos: { foo: { version: '1.0.0' } },
+      calculatedChangeTypes: { foo: 'patch' },
+      changes: ['foo'],
+      packageTags: { foo: undefined },
+    });
+
+    expect(changelogs.foo.version).toBe('1.0.0');
+    expect(changelogs.foo.tag).toBeUndefined();
+  });
+
+  it('uses the first precomputed tag from packageTags', () => {
+    const changelogs = getPackageChangelogsWrapper({
+      packageInfos: { foo: { version: '1.0.0' } },
+      calculatedChangeTypes: { foo: 'patch' },
+      changes: ['foo'],
+      packageTags: { foo: ['primary-tag', 'secondary-tag', 'tertiary-tag'] },
+    });
+
+    expect(changelogs.foo.tag).toBe('primary-tag');
   });
 
   it('preserves custom properties from change files', () => {

@@ -5,7 +5,6 @@ import type { BumpInfo } from '../types/BumpInfo';
 import { getChangePath } from '../paths';
 import { getFileAddedHash } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import { generateTag } from '../publish/tagPackages';
 
 /**
  * Used for `ChangelogEntry.commit` if the commit hash is not available.
@@ -18,11 +17,11 @@ const commitNotAvailable = 'not available';
  * @returns Mapping from package name to package changelog.
  */
 export function getPackageChangelogs(
-  bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'packageInfos'> &
+  bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'packageInfos' | 'packageTags'> &
     Partial<Pick<BumpInfo, 'dependentChangedBy'>>,
   options: Pick<BeachballOptions, 'path' | 'changeDir' | 'changelog'>
 ): Record<string, PackageChangelog> {
-  const { changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy = {}, packageInfos } = bumpInfo;
+  const { changeFileChangeInfos, calculatedChangeTypes, dependentChangedBy = {}, packageInfos, packageTags } = bumpInfo;
   const includeCommitHashes = options.changelog?.includeCommitHashes !== false;
 
   const changelogs: Record<string, PackageChangelog> = {};
@@ -31,7 +30,7 @@ export function getPackageChangelogs(
 
   for (const { change, changeFile } of changeFileChangeInfos) {
     const { packageName, type: changeType, dependentChangeType, email, ...rest } = change;
-    changelogs[packageName] ??= createPackageChangelog(packageInfos[packageName]);
+    changelogs[packageName] ??= createPackageChangelog(packageInfos[packageName], packageTags[packageName]?.[0]);
 
     if (includeCommitHashes) {
       changeFileCommits[changeFile] ??=
@@ -64,7 +63,7 @@ export function getPackageChangelogs(
       continue;
     }
 
-    changelogs[dependent] ??= createPackageChangelog(packageInfos[dependent]);
+    changelogs[dependent] ??= createPackageChangelog(packageInfos[dependent], packageTags[dependent]?.[0]);
 
     changelogs[dependent].comments ??= {};
     changelogs[dependent].comments[changeType] ??= [];
@@ -89,13 +88,11 @@ export function getPackageChangelogs(
   return changelogs;
 }
 
-function createPackageChangelog(packageInfo: PackageInfo): PackageChangelog {
-  const name = packageInfo.name;
-  const version = packageInfo.version;
+function createPackageChangelog(packageInfo: PackageInfo, tag: string | undefined): PackageChangelog {
   return {
-    name,
-    version,
-    tag: generateTag(name, version),
+    name: packageInfo.name,
+    version: packageInfo.version,
+    ...(tag !== undefined && { tag }),
     date: new Date(),
     comments: {},
   };
