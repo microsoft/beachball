@@ -1,4 +1,3 @@
-import { generateTag } from '../git/generateTag';
 import { gitFailFast } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { getPackagesToPublish } from './getPackagesToPublish';
@@ -6,6 +5,11 @@ import { getPackageOption } from '../options/getPackageOption';
 
 function createTag(tag: string, cwd: string): void {
   gitFailFast(['tag', '-a', '-f', tag, '-m', tag], { cwd });
+}
+
+/** Get a standardized package version git tag: `${name}_v${version}` */
+export function generateTag(name: string, version: string): string {
+  return `${name}_v${version}`;
 }
 
 /**
@@ -21,15 +25,19 @@ export function tagPackages(
   const { getGitTag, gitTags, tag: distTag, path: cwd } = options;
   const { packageInfos } = bumpInfo;
 
-  // Reuse the getPackagesToPublish filtering logic to remove private or unchanged packages,
-  // and also exclude packages with git tags disabled. For this step, ignore shouldPublish=false.
-  // and also exclude packages with git tags disabled (unless getGitTag can override)
-  const filteredPackages = getPackagesToPublish(bumpInfo, { ignoreShouldPublish: true }).filter(pkg =>
-    getGitTag ? true : getPackageOption('gitTags', packageInfos[pkg], options)
-  );
+  // Reuse the getPackagesToPublish filtering logic to remove private or unchanged packages.
+  // For this step, ignore shouldPublish=false.
+  const packagesToPublish = getPackagesToPublish(bumpInfo, { ignoreShouldPublish: true });
 
-  for (const pkg of filteredPackages) {
+  for (const pkg of packagesToPublish) {
+    // Reuse the getPackagesToPublish filtering logic to remove private or unchanged packages,
+    // and also exclude packages with git tags disabled (unless getGitTag can override)
     const packageInfo = packageInfos[pkg];
+    const shouldTag = getPackageOption('gitTags', packageInfo, options);
+    if (!shouldTag && !getGitTag) {
+      continue;
+    }
+
     const defaultTag = generateTag(packageInfo.name, packageInfo.version);
 
     if (getGitTag) {
@@ -42,7 +50,7 @@ export function tagPackages(
         console.log(`Tagging - ${tag}`);
         createTag(tag, cwd);
       }
-    } else {
+    } else if (shouldTag) {
       console.log(`Tagging - ${packageInfo.name}@${packageInfo.version}`);
       createTag(defaultTag, cwd);
     }

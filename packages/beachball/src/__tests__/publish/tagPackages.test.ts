@@ -1,8 +1,7 @@
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { gitFailFast as _gitFailFast } from 'workspace-tools';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { tagPackages } from '../../publish/tagPackages';
-import { generateTag } from '../../git/generateTag';
+import { tagPackages, generateTag } from '../../publish/tagPackages';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 jest.mock('workspace-tools', () => ({

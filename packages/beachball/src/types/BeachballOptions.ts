@@ -190,6 +190,7 @@ export interface RepoOptions {
   gitTags: boolean;
   /**
    * Get package-specific git tag(s). Return `null` to skip tagging this package.
+   * If returning an array, the first tag should be the most specific to this package.
    * @param pkg Package being tagged, including the updated version
    * @param defaultTag The default tag that would be generated for this package (e.g. `pkg_v1.2.3`)
    */
