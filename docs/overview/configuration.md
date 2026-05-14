@@ -94,7 +94,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `npmReadConcurrency` | number | 5 | repo | Maximum concurrency for fetching package versions from the registry (see `concurrency` for write operations) |
 | `package` | `string` | | repo | Specifies which package the command relates to (overrides change detection based on `git diff`) |
 | `prereleasePrefix` | `string` | | repo | Prerelease prefix, e.g. `"beta"`. Note that if this is specified, packages with change type major/minor/patch will be bumped as prerelease instead. |
-| `packStyle` | `'sequential' \| 'layer'` | `'layer'` | repo | With `packToPath`, how to organize the tgz files. `'sequential'` uses numeric prefixes to ensure topological ordering. `'layer'` groups the packages into numbered subfolders based on dependency tree layers and writes a `versions.json` with the versions of the packed packages in each layer. |
+| `packToPath` | `string` | | repo | Instead of publishing to npm, pack packages to tgz files in numbered subfolders under this path, based on dependency tree layers (leaves first). |
 | `packToPath` | `string` | | repo | Instead of publishing to npm, pack packages to tgz files under the specified path. |
 | `publish` | `boolean` | `true` | repo | Whether to publish to npm registry |
 | `push` | `boolean` | `true` | repo | Whether to push to the remote git branch |

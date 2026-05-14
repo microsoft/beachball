@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import { getCatalogs } from 'workspace-tools';
 import { performBump } from '../bump/performBump';
 import type { PublishBumpInfo } from '../types/BumpInfo';
@@ -116,15 +114,6 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
         // this doesn't actually start tasks for packages of which dependencies have failed.
         continue: true,
       });
-    }
-
-    if (packToPath && layers) {
-      const layerVersions: LayerVersionsJson = layers.map(layer =>
-        Object.fromEntries(layer.map(pkg => [pkg, bumpInfo.packageInfos[pkg].version]))
-      );
-      const versionsPath = path.join(packToPath, 'versions.json');
-      fs.writeFileSync(versionsPath, JSON.stringify(layerVersions, null, 2));
-      console.log(`Wrote versions of packed packages to ${versionsPath}`);
     }
   } catch (error) {
     // p-graph will throw an array of errors if it fails to run all tasks

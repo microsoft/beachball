@@ -235,8 +235,6 @@ export interface RepoOptions {
    * With `packToPath`, how to organize the tgz files:
    * - `'sequential'` uses numeric prefixes to ensure topological order
    * - `'layer'` groups the packages into numbered subfolders based on dependency tree layers.
-   *   There will also be a file `versions.json` at the top level with the versions of the
-   *   packed packages in each layer.
    * @default 'layer'
    */
   packStyle?: 'sequential' | 'layer';
