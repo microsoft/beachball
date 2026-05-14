@@ -1,8 +1,8 @@
-// import fetch from 'npm-registry-fetch';
+import fetch from 'npm-registry-fetch';
 import type { NpmOptions } from '../types/NpmOptions';
-import { getNpmAuthEnv, type NpmAuthOptions } from './npmArgs';
+import { getNpmAuthArgs, type NpmAuthOptions } from './npmArgs';
 import type { PackageJson } from '../types/PackageInfo';
-import { npm } from './npm';
+import { BeachballError } from '../types/BeachballError';
 
 /** Published versions and dist-tags for a package */
 export interface NpmPackageVersionsData {
@@ -40,66 +40,40 @@ export interface NpmRegistryFetchJson {
  */
 export const _packageContentTypeAccept = 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*';
 
-// TODO remove after https://github.com/microsoft/beachball/issues/1143
-export const _npmShowProperties = ['versions', 'dist-tags'];
-
 /**
  * Get package versions and tags using `npm-registry-fetch`.
  * @returns Data about the package, or undefined if there was some issue
  */
 export async function getNpmPackageInfo(
   packageName: string,
-  // TODO remove path after https://github.com/microsoft/beachball/issues/1143
-  options: NpmAuthOptions & Pick<NpmOptions, 'registry' | 'timeout' | 'verbose' | 'path'>
+  options: NpmAuthOptions & Pick<NpmOptions, 'registry' | 'timeout' | 'verbose'>
 ): Promise<NpmPackageVersionsData | undefined> {
   try {
-    options.verbose && console.log(`Fetching info about "${packageName}" from ${options.registry}`);
+    const authArgs = getNpmAuthArgs(options);
 
-    const showResult = await npm(
-      [
-        'show',
-        '--registry',
-        options.registry,
-        '--json',
-        packageName,
-        // Only output the properties we need (npm show fetches everything internally)
-        ..._npmShowProperties,
-      ],
-      {
-        timeout: options.timeout,
-        cwd: options.path,
-        all: true,
-        env: { ...process.env, ...getNpmAuthEnv(options) },
-      }
-    );
+    const result = (await fetch.json(`/${encodeURIComponent(packageName)}`, {
+      registry: options.registry,
+      timeout: options.timeout,
+      ...(authArgs && {
+        alwaysAuth: true,
+        [authArgs.key]: authArgs.value,
+      }),
+      headers: {
+        accept: _packageContentTypeAccept,
+      },
+    })) as unknown as NpmRegistryFetchJson;
 
-    if (showResult.success && showResult.stdout !== '') {
-      const data = JSON.parse(showResult.stdout) as NpmPackageVersionsData;
-      // Weird thing showing up in tests only with npm 8: sometimes `versions` is a single string?
-      if (typeof data.versions === 'string') {
-        data.versions = [data.versions];
-      }
-      return data;
-    }
-    throw new Error(showResult.all ? `Output:\n${showResult.all}` : 'unknown error');
-
-    // const result = (await fetch.json(`/${encodeURIComponent(packageName)}`, {
-    //   registry: options.registry,
-    //   timeout: options.timeout,
-    //   ...(authArgs && {
-    //     alwaysAuth: true,
-    //     [authArgs.key]: authArgs.value,
-    //   }),
-    //   headers: {
-    //     accept: _packageContentTypeAccept,
-    //   },
-    // })) as unknown as NpmRegistryFetchJson;
-
-    // return {
-    //   versions: Object.keys(result.versions || {}),
-    //   'dist-tags': result['dist-tags'] || {},
-    // };
+    return {
+      versions: Object.keys(result.versions || {}),
+      'dist-tags': result['dist-tags'] || {},
+    };
   } catch (err) {
+    const maybeStatus = (err as { statusCode?: number }).statusCode;
+    if (maybeStatus === 401) {
+      throw new BeachballError(
+        `Authentication error fetching npm info for "${packageName}" from ${options.registry}: ${String(err)}`
+      );
+    }
     options.verbose && console.warn(`Failed to get or parse npm info for ${packageName}: ${String(err)}`);
     return undefined;
   }

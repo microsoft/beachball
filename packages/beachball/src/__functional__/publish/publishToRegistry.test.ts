@@ -15,6 +15,7 @@ import { writeChangelog } from '../../changelog/writeChangelog';
 
 // Mock npm calls (publish, pack, show)
 jest.mock('../../packageManager/npm');
+jest.mock('npm-registry-fetch');
 
 // Also mock most of the helpers from performBump (these cover parts of bumping that
 // aren't fully set up in this test)

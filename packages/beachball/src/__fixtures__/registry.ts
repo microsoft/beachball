@@ -29,11 +29,15 @@ export class Registry {
   private startPort: number;
   private testName: string;
   private tempRoot: string | undefined;
-  private token: string | undefined;
-  private isLoggedIn = false;
+  private debugMode: boolean;
 
-  constructor(filename: string) {
-    this.testName = path.basename(filename, '.test.ts');
+  constructor(options: {
+    testFilename: string;
+    /** Enable verdaccio debug logs and log files */
+    debugMode?: boolean;
+  }) {
+    this.testName = path.basename(options.testFilename, '.test.ts');
+    this.debugMode = !!options.debugMode;
     if (!knownTests.includes(this.testName)) {
       throw new Error(`Please add ${this.testName} to knownTests in registry.ts`);
     }
@@ -76,11 +80,6 @@ export class Registry {
    * Log in as the fake user.
    */
   public async login(): Promise<void> {
-    // Something about npm 8 makes publishing fail with anonymous access, so log in with a fake user
-    if (this.isLoggedIn) {
-      console.log('already logged in');
-      return;
-    }
     try {
       const registry = this.getUrl();
       console.log(`logging in to ${registry}`);
@@ -104,7 +103,6 @@ export class Registry {
       });
       await npm;
       console.log('logged in');
-      this.isLoggedIn = true;
     } catch (err) {
       throw new Error(
         `Error logging in to registry: ${(err as Error).stack || err}\n${(err as execa.ExecaError).stderr}`
@@ -126,18 +124,13 @@ export class Registry {
   }
 
   /**
-   * Get the current token after running `npm login` on the fake registry (workaround for lack of
-   * `npm token create` support in verdaccio). Caches the token after first retrieval.
+   * Verdaccio regenerates its JWT signing secret on each start, so the token has to be re-acquired
+   * after every restart. Login briefly, grab the token, then logout to remove auth from `.npmrc`.
+   * The token itself remains valid in this verdaccio session (auth-memory doesn't track revocations),
+   * and the unauthenticated tests can rely on no token being in `.npmrc`.
    */
-  public getToken(): string {
-    if (this.token) {
-      // Cache the token even if logged out (it seems to stay the same when logging back in)
-      return this.token;
-    }
-
-    if (!this.isLoggedIn) {
-      throw new Error('Must be logged in to get the token');
-    }
+  public async getToken(): Promise<string> {
+    await this.login();
 
     const registryUrl = this.getUrl().replace(/^https?:/, '');
     const npmrcPath = path.join(os.homedir(), '.npmrc');
@@ -146,19 +139,17 @@ export class Registry {
       .split(/\r?\n/g)
       .find(line => line.startsWith(registryUrl) && line.includes('_authToken'));
 
+    await this.logout();
+
     if (!npmrcContent) {
       throw new Error(`Failed to find auth token in .npmrc for registry ${registryUrl}`);
     }
 
-    this.token = npmrcContent.split('=')[1].replace(/"/g, '');
-    return this.token;
+    return npmrcContent.split('=')[1].replace(/"/g, '');
   }
 
   /** Run `npm logout` on the fake registry */
   public async logout(): Promise<void> {
-    // Conservatively set to false even if it fails partway (logging in again is harmless).
-    // Also go ahead and log out even if not flagged as logged in since it could be out of sync.
-    this.isLoggedIn = false;
     try {
       const registry = this.getUrl();
       await execa('npm', ['logout', '--registry', registry]);
@@ -193,7 +184,13 @@ export class Registry {
         this.server = fork(verdaccioBin, ['--listen', String(port), '--config', `./${configName}`], {
           cwd: this.tempRoot,
           stdio: 'pipe',
+          ...(this.debugMode && { env: { ...process.env, DEBUG: 'verdaccio:*' } }),
         });
+
+        if (this.debugMode) {
+          this.server.stdout?.pipe(process.stdout);
+          this.server.stderr?.pipe(process.stderr);
+        }
 
         this.server.on('message', (msg: { verdaccio_started: boolean }) => {
           if (msg.verdaccio_started) {
@@ -205,6 +202,7 @@ export class Registry {
         });
 
         this.server.stderr?.on('data', data => {
+          if (this.debugMode) return;
           const dataStr = String(data);
           if (!dataStr.includes('Debugger attached')) {
             rejectWrapper(new Error(dataStr));
@@ -261,8 +259,8 @@ export class Registry {
       // This is the old anonymous access config--it still works for accessing packages, but not for publishing
       packages: {
         '**': {
-          access: ['$anonymous'],
-          publish: ['$anonymous'],
+          access: ['$authenticated'],
+          publish: ['$authenticated'],
         },
       },
       store: {
@@ -271,8 +269,7 @@ export class Registry {
       },
     });
 
-    // set VERDACCIO_LOG env to write a log file
-    if (process.env.VERDACCIO_LOG) {
+    if (this.debugMode) {
       configBuilder.addLogger({
         type: 'file',
         level: 'trace',

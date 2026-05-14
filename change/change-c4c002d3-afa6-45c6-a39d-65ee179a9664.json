@@ -1,0 +1,11 @@
+{
+  "changes": [
+    {
+      "type": "minor",
+      "comment": "Use `npm-registry-fetch` for npm read operations instead of the `npm` CLI. Also change the default `npmReadConcurrency` to 10.",
+      "packageName": "beachball",
+      "email": "elcraig@microsoft.com",
+      "dependentChangeType": "patch"
+    }
+  ]
+}

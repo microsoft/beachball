@@ -6,7 +6,7 @@ import { initNpmMock } from '../../__fixtures__/mockNpm';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 
 jest.mock('../../packageManager/npm');
-// jest.mock('npm-registry-fetch');
+jest.mock('npm-registry-fetch');
 
 describe('getNewPackages', () => {
   const logs = initMockLogs();
@@ -17,8 +17,7 @@ describe('getNewPackages', () => {
   it('returns empty if no packages exist', async () => {
     const newPackages = await getNewPackages({ modifiedPackages: new Set(), packageInfos: {} }, npmOptions);
     expect(newPackages).toEqual([]);
-    expect(npmMock.mock).not.toHaveBeenCalled();
-    // expect(npmMock.mockFetchJson).not.toHaveBeenCalled();
+    expect(npmMock.mockFetchJson).not.toHaveBeenCalled();
     expect(logs.mocks.log).not.toHaveBeenCalled();
   });
 
@@ -28,8 +27,7 @@ describe('getNewPackages', () => {
 
     const newPackages = await getNewPackages({ modifiedPackages, packageInfos }, npmOptions);
     expect(newPackages).toEqual([]);
-    expect(npmMock.mock).not.toHaveBeenCalled();
-    // expect(npmMock.mockFetchJson).not.toHaveBeenCalled();
+    expect(npmMock.mockFetchJson).not.toHaveBeenCalled();
     expect(logs.mocks.log).not.toHaveBeenCalled();
   });
 
@@ -41,8 +39,7 @@ describe('getNewPackages', () => {
 
     const newPackages = await getNewPackages({ modifiedPackages, packageInfos }, npmOptions);
     expect(newPackages).toEqual([]);
-    expect(npmMock.mock).toHaveBeenCalledTimes(2);
-    // expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
+    expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
     expect(logs.mocks.log).not.toHaveBeenCalled();
   });
 
@@ -53,8 +50,7 @@ describe('getNewPackages', () => {
 
     const newPackages = await getNewPackages({ modifiedPackages, packageInfos }, npmOptions);
     expect(newPackages).toEqual(['foo', 'bar']);
-    expect(npmMock.mock).toHaveBeenCalledTimes(2);
-    // expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
+    expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`
       "New package(s) detected:
         • foo
@@ -69,8 +65,7 @@ describe('getNewPackages', () => {
 
     const newPackages = await getNewPackages({ modifiedPackages, packageInfos }, npmOptions);
     expect(newPackages).toEqual(['baz']);
-    expect(npmMock.mock).toHaveBeenCalledTimes(2);
-    // expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
+    expect(npmMock.mockFetchJson).toHaveBeenCalledTimes(2);
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`
       "New package(s) detected:
         • baz"
