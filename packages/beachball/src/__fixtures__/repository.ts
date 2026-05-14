@@ -10,8 +10,7 @@ import {
   optsWithLang,
   setDefaultBranchName,
 } from './gitDefaults';
-import { readJson } from '../object/readJson';
-import { writeJson } from '../object/writeJson';
+import { updateJsonFile } from './createTestFileStructure';
 
 /**
  * Clone options. See the docs for details on behavior and interaction of these options.
@@ -173,17 +172,7 @@ ${gitResult.stderr.toString()}`);
    * such as making it private.
    */
   updateJsonFile(filename: string, updates: object, options?: { commit?: boolean }): void {
-    if (!filename.endsWith('.json')) {
-      throw new Error('This method only works with json files');
-    }
-
-    const fullPath = this.pathTo(filename);
-    if (!fs.existsSync(fullPath)) {
-      throw new Error(`JSON file does not exist: ${filename}`);
-    }
-    const oldContent = readJson<object>(fullPath);
-    writeJson(fullPath, { ...oldContent, ...updates });
-
+    updateJsonFile(this.pathTo(filename), updates);
     if (options?.commit) {
       this.git(['add', filename]);
       this.git(['commit', '-m', `"${filename}"`]);

@@ -29,7 +29,7 @@ DO NOT run `jest` or `tsc` directly from the top level!
 | Build                               | `yarn build`            |
 | Run all tests (NOT a specific test) | `yarn test`             |
 | Lint (code + deps)                  | `yarn lint`             |
-| Lint code only                      | `yarn lint:code`        |
+| Lint code only (only works at root) | `yarn lint:code`        |
 | Format                              | `yarn format`           |
 | Update snapshots                    | `yarn update-snapshots` |
 
