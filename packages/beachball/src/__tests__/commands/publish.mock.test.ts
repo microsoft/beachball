@@ -7,7 +7,6 @@ import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/p
 import { publish } from '../../commands/publish';
 import { getParsedOptions } from '../../options/getOptions';
 import { bumpAndPush } from '../../publish/bumpAndPush';
-import { getNewPackages } from '../../publish/getNewPackages';
 import { publishToRegistry } from '../../publish/publishToRegistry';
 import type { RepoOptions } from '../../types/BeachballOptions';
 import type { BumpInfo } from '../../types/BumpInfo';
@@ -16,7 +15,6 @@ import type { CommandContext } from '../../types/CommandContext';
 jest.mock('workspace-tools');
 jest.mock('../../bump/bumpInMemory');
 jest.mock('../../publish/bumpAndPush');
-jest.mock('../../publish/getNewPackages');
 jest.mock('../../publish/publishToRegistry');
 
 describe('publish command (all helpers mocked)', () => {
@@ -25,7 +23,6 @@ describe('publish command (all helpers mocked)', () => {
 
   const mockPublishToRegistry = publishToRegistry as jest.MockedFunction<typeof publishToRegistry>;
   const mockBumpAndPush = bumpAndPush as jest.MockedFunction<typeof bumpAndPush>;
-  const mockGetNewPackages = getNewPackages as jest.MockedFunction<typeof getNewPackages>;
   const wsToolsMocks = wsTools as jest.Mocked<typeof wsTools>;
   const matchAny = expect.anything();
   const matchPublishBranch = expect.stringMatching(/^publish_\d+$/);
@@ -55,7 +52,6 @@ describe('publish command (all helpers mocked)', () => {
         bump: true,
         publish: true,
         tag: 'latest',
-        new: false,
         ...repoOptions,
       },
     });
@@ -76,7 +72,6 @@ describe('publish command (all helpers mocked)', () => {
     /* eslint-disable -- require-await, incorrect no-deprecated */
     mockPublishToRegistry.mockImplementation(async () => console.log('fake publishing\n'));
     mockBumpAndPush.mockImplementation(async () => console.log('fake bump and push\n'));
-    mockGetNewPackages.mockImplementation(() => Promise.resolve([]));
     wsToolsMocks.getBranchName.mockReturnValue(defaultBranchName);
     wsToolsMocks.getCurrentHash.mockReturnValue(currentHash);
     wsToolsMocks.git.mockReturnValue({ stdout: '', stderr: '', success: true } as wsTools.GitProcessOutput);
@@ -109,59 +104,6 @@ describe('publish command (all helpers mocked)', () => {
     `);
   });
 
-  it('bumps, pushes, publishes, and checks for new packages when options are all true', async () => {
-    const { options, context } = getOptionsAndContext({
-      packageInfos: { foo: {} },
-      repoOptions: { new: true, branch: 'origin/publish-branch' },
-    });
-
-    await publish(options, context);
-
-    expect(mockPublishToRegistry).toHaveBeenCalledTimes(1);
-    expect(mockBumpAndPush).toHaveBeenCalledTimes(1);
-    expect(mockGetNewPackages).toHaveBeenCalledTimes(1);
-    const logContent = logs.getMockLines('all', { sanitize: true });
-    expect(logContent).toContain('bumps versions before publishing: yes');
-    expect(logContent).toContain('pushes bumps and changelogs to remote git repo: yes');
-    expect(logContent).not.toContain('Skipping git push and tagging');
-
-    // Snapshot all the logs for this test
-    expect(logContent).toMatchInlineSnapshot(`
-      "[log] Preparing to publish
-
-      [log] Publishing with the following configuration:
-
-        registry: fake
-
-        current branch: master
-        current hash: abc123
-        target branch: origin/publish-branch
-        npm dist-tag: latest
-
-        bumps versions before publishing: yes
-        publishes to npm registry: yes
-        pushes bumps and changelogs to remote git repo: yes
-
-
-      [log] Creating temporary publish branch publish_<timestamp>
-
-      [log] Fetching all unmodified packages from the registry to check if there are any newly-added packages that didn't have a change file...
-      (NOTE: If your PR build runs \`beachball check\`, this step is unnecessarily slowing down your publish process. In that case, it's recommended to remove \`new: true\` from your config or remove \`--new\` from your publish command.)
-
-      [log] Bumping versions and publishing packages to npm registry
-
-      [log] fake publishing
-
-      [log]
-      [log] fake bump and push
-
-      [log] Cleaning up
-
-      [log] git checkout master
-      [log] deleting temporary publish branch publish_<timestamp>"
-    `);
-  });
-
   it('skips bumpAndPush when push is false', async () => {
     const { options, context } = getOptionsAndContext({
       repoOptions: { push: false },
@@ -172,7 +114,6 @@ describe('publish command (all helpers mocked)', () => {
 
     expect(mockPublishToRegistry).toHaveBeenCalledTimes(1);
     expect(mockBumpAndPush).not.toHaveBeenCalled();
-    expect(mockGetNewPackages).not.toHaveBeenCalled();
     const logContent = logs.getMockLines('all');
     expect(logContent).toContain('bumps versions before publishing: yes');
     expect(logContent).toContain('pushes bumps and changelogs to remote git repo: no');

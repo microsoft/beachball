@@ -72,7 +72,6 @@ describe('configList', () => {
         gitTimeout: undefined
         ignorePatterns: ["*.test.ts"]
         message: ""
-        new: false
         npmReadConcurrency: 2
         path: ""
         publish: true

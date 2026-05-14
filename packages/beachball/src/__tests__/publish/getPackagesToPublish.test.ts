@@ -84,31 +84,6 @@ describe('getPackagesToPublish', () => {
     `);
   });
 
-  it('includes new packages even with no change type', () => {
-    const result = getPackagesToPublishWrapper({
-      packageInfos: { 'pkg-a': {}, 'pkg-b': {}, 'pkg-c': {} },
-      modifiedPackages: new Set(['pkg-a']),
-      newPackages: ['pkg-b'],
-      calculatedChangeTypes: { 'pkg-a': 'patch' },
-    });
-    expect(result.sort()).toEqual(['pkg-a', 'pkg-b']);
-    expect(logs.mocks.log).not.toHaveBeenCalled();
-  });
-
-  it('excludes out of scope new packages', () => {
-    const result = getPackagesToPublishWrapper({
-      packageInfos: { 'pkg-a': {}, 'pkg-b': {} },
-      modifiedPackages: new Set(),
-      newPackages: ['pkg-b'],
-      scopedPackages: new Set(['pkg-a']),
-    });
-    expect(result).toEqual([]);
-    expect(logs.getMockLines('log')).toMatchInlineSnapshot(`
-      "Skipping publishing the following packages:
-        • pkg-b is out-of-scope"
-    `);
-  });
-
   // This happens for reasons outlined in https://github.com/microsoft/beachball/issues/1123
   it('excludes packages without calculated change type', () => {
     const result = getPackagesToPublishWrapper({

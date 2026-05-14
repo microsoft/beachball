@@ -1,0 +1,11 @@
+{
+  "changes": [
+    {
+      "type": "major",
+      "comment": "Remove the `new` option. This option was never needed if PR builds run `beachball check` (since a new package without a change file would cause an error), and it had a significant negative perf impact since it required checking the registry for ALL unmodified packages.",
+      "packageName": "beachball",
+      "email": "elcraig@microsoft.com",
+      "dependentChangeType": "patch"
+    }
+  ]
+}

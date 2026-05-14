@@ -56,7 +56,6 @@ const repoOptionKeys: Record<string, true> = {
   transform: true,
   groupChanges: true,
   depth: true,
-  new: true,
 } satisfies Record<keyof RepoOptions, true>;
 
 type GroupOptionName = Exclude<keyof VersionGroupOptions, 'name' | 'include' | 'exclude'>;

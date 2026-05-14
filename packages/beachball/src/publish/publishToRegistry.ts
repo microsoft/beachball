@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { getCatalogs } from 'workspace-tools';
 import { performBump } from '../bump/performBump';
-import type { PublishBumpInfo } from '../types/BumpInfo';
+import type { BumpInfo } from '../types/BumpInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { packagePublish } from '../packageManager/packagePublish';
 import { validatePackageVersions } from './validatePackageVersions';
@@ -26,7 +26,7 @@ export type LayerVersionsJson = Record<string, string>[];
  *
  * This will bump packages on the filesystem first if `options.bump` is true.
  */
-export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: BeachballOptions): Promise<void> {
+export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions): Promise<void> {
   const { packToPath, verbose } = options;
   const verb = packToPath ? 'pack' : 'publish';
 

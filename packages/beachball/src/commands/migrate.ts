@@ -1,4 +1,6 @@
-import type { BeachballOptions } from '../types/BeachballOptions';
+import { bulletedList } from '../logging/bulletedList';
+import { BeachballError } from '../types/BeachballError';
+import type { ParsedOptions } from '../types/BeachballOptions';
 
 /**
  * Handles the `beachball migrate` command.
@@ -6,17 +8,19 @@ import type { BeachballOptions } from '../types/BeachballOptions';
  * Checks the config for any settings that need to be updated for v3 and logs them to the console.
  * If no updates are needed, a success message is printed.
  */
-export function migrate(_options: Pick<BeachballOptions, 'path'>): void {
+export function migrate(parsedOptions: ParsedOptions): void {
+  const { options } = parsedOptions;
   const updates: string[] = [];
 
-  // (Future migration checks will be added here)
+  if ((options as { new?: boolean }).new !== undefined) {
+    updates.push('The `new` option has been removed. Please remove it from your config.');
+  }
 
   if (updates.length === 0) {
     console.log('No config updates are needed for v3.');
   } else {
-    console.log('The following updates are needed for v3:');
-    for (const update of updates) {
-      console.log(`  - ${update}`);
-    }
+    console.error('The following updates are needed for v3:');
+    console.error(bulletedList(updates) + '\n');
+    throw new BeachballError('Config updates needed', { alreadyLogged: true });
   }
 }

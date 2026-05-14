@@ -14,7 +14,6 @@ import { bumpAndPush } from '../../publish/bumpAndPush';
 import { publishToRegistry } from '../../publish/publishToRegistry';
 import type { ParsedOptions, RepoOptions } from '../../types/BeachballOptions';
 import { validate } from '../../validation/validate';
-import { getNewPackages } from '../../publish/getNewPackages';
 
 //
 // These tests focus on functionality of the publish() function itself, not its major helpers
@@ -24,7 +23,6 @@ import { getNewPackages } from '../../publish/getNewPackages';
 //
 jest.mock('../../publish/publishToRegistry');
 jest.mock('../../publish/bumpAndPush');
-jest.mock('../../publish/getNewPackages');
 
 describe('publish command', () => {
   // this test uses resetAllMocks, so mock the log methods in beforeEach
@@ -32,7 +30,6 @@ describe('publish command', () => {
 
   const mockPublishToRegistry = publishToRegistry as jest.MockedFunction<typeof publishToRegistry>;
   const mockBumpAndPush = bumpAndPush as jest.MockedFunction<typeof bumpAndPush>;
-  const mockGetNewPackages = getNewPackages as jest.MockedFunction<typeof getNewPackages>;
 
   // These tests reuse factories, so they must NOT actually push changes
   // (even if push is true, bumpAndPush is mocked)
@@ -82,7 +79,6 @@ describe('publish command', () => {
   beforeEach(() => {
     mockPublishToRegistry.mockImplementation(() => Promise.resolve());
     mockBumpAndPush.mockImplementation(() => Promise.resolve());
-    mockGetNewPackages.mockImplementation(() => Promise.resolve([]));
   });
 
   afterEach(() => {

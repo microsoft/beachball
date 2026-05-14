@@ -1,28 +1,24 @@
 import { bulletedList } from '../logging/bulletedList';
-import type { PublishBumpInfo } from '../types/BumpInfo';
+import type { BumpInfo } from '../types/BumpInfo';
 
 /**
- * Determine which of the modified/new packages in bump info should actually be published
+ * Determine which of the modified packages in bump info should actually be published
  * (based only on the bump info, not the registry). Removes packages that are private,
- * out of scope, have change type "none", or have no calculated change type (unless they're new).
+ * out of scope, have change type "none", or have no calculated change type.
  */
 export function getPackagesToPublish(
-  bumpInfo: Pick<
-    PublishBumpInfo,
-    'modifiedPackages' | 'newPackages' | 'packageInfos' | 'calculatedChangeTypes' | 'scopedPackages'
-  >,
+  bumpInfo: Pick<BumpInfo, 'modifiedPackages' | 'packageInfos' | 'calculatedChangeTypes' | 'scopedPackages'>,
   params?: {
     /** If true, log skipped packages and reasons */
     logSkipped?: boolean;
   }
 ): string[] {
-  const { modifiedPackages, newPackages, packageInfos, calculatedChangeTypes, scopedPackages } = bumpInfo;
+  const { modifiedPackages, packageInfos, calculatedChangeTypes, scopedPackages } = bumpInfo;
 
-  const packages = [...modifiedPackages, ...(newPackages || [])];
   const packagesToPublish: string[] = [];
   const skippedPackageReasons: string[] = [];
 
-  for (const pkg of packages) {
+  for (const pkg of modifiedPackages) {
     const packageInfo = packageInfos[pkg];
     const changeType = calculatedChangeTypes[pkg];
 
@@ -33,7 +29,7 @@ export function getPackagesToPublish(
       skipReason = 'is private';
     } else if (!scopedPackages.has(pkg)) {
       skipReason = 'is out-of-scope';
-    } else if (!changeType && !newPackages?.includes(pkg)) {
+    } else if (!changeType) {
       skipReason = 'is not bumped (no calculated change type)';
     }
 

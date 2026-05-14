@@ -74,7 +74,7 @@ import { getPackageGroups } from './monorepo/getPackageGroups';
     }
 
     case 'migrate': {
-      migrate(options);
+      migrate(parsedOptions);
       break;
     }
 

@@ -283,30 +283,6 @@ describe('publish command (e2e)', () => {
     expect(newPackageInfos.baz.version).toBe('1.4.0');
   });
 
-  it('publishes new monorepo packages if requested', async () => {
-    // use a slightly smaller fixture to only publish one extra package
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: { foo: { version: '1.0.0' }, bar: { version: '1.3.4' } },
-      },
-    });
-    repo = repositoryFactory.cloneRepository();
-
-    const { options, parsedOptions } = getOptions({ new: true, fetch: false });
-
-    generateChangeFiles(['foo'], options);
-    repo.push();
-
-    await publishWrapper(parsedOptions);
-
-    expect(npmMock.getPublishedVersions('foo')).toEqual({ versions: ['1.1.0'], 'dist-tags': { latest: '1.1.0' } });
-    expect(npmMock.getPublishedVersions('bar')).toEqual({ versions: ['1.3.4'], 'dist-tags': { latest: '1.3.4' } });
-
-    repo.checkout(defaultBranchName);
-    repo.pull();
-    expect(repo.getCurrentTags()).toEqual(['bar_v1.3.4', 'foo_v1.1.0']);
-  });
-
   it('does not publish an out-of-scope package', async () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();

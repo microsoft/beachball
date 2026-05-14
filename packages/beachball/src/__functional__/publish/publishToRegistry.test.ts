@@ -9,7 +9,7 @@ import { writeJson } from '../../object/writeJson';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
 import { publishToRegistry, type LayerVersionsJson } from '../../publish/publishToRegistry';
 import type { BeachballOptions, HooksOptions } from '../../types/BeachballOptions';
-import type { PublishBumpInfo } from '../../types/BumpInfo';
+import type { BumpInfo } from '../../types/BumpInfo';
 import type { PackageJson } from '../../types/PackageInfo';
 import { writeChangelog } from '../../changelog/writeChangelog';
 
@@ -44,13 +44,11 @@ describe('publishToRegistry', () => {
     jest.clearAllMocks();
   });
 
-  /** Create a minimal PublishBumpInfo where all packages are modified and in scope */
+  /** Create a minimal BumpInfo where all packages are modified and in scope */
   function makeBumpInfo(
     partialPackageInfos: Parameters<typeof makePackageInfos>[0],
-    extra?: Partial<
-      Pick<PublishBumpInfo, 'modifiedPackages' | 'calculatedChangeTypes' | 'scopedPackages' | 'newPackages'>
-    >
-  ): PublishBumpInfo {
+    extra?: Partial<Pick<BumpInfo, 'modifiedPackages' | 'calculatedChangeTypes' | 'scopedPackages'>>
+  ): BumpInfo {
     const packageInfos = makePackageInfos(partialPackageInfos, { path: tempRoot });
 
     // Write package.json files to disk so mock npm publish can read them
@@ -119,22 +117,6 @@ describe('publishToRegistry', () => {
     const publishCalls = npmMock.mock.mock.calls.filter(([args]) => args[0] === 'publish');
     const publishOrder = publishCalls.map(([, opts]) => path.basename(opts.cwd));
     expect(publishOrder).toEqual(['lib', 'app']);
-
-    expect(logs.getMockLines('all', { root: tempRoot })).toMatchSnapshot();
-  });
-
-  it('includes new packages not modified', async () => {
-    const bumpInfo = makeBumpInfo(
-      { foo: {}, bar: {}, baz: {} },
-      { newPackages: ['baz'], modifiedPackages: new Set(['foo']), calculatedChangeTypes: { foo: 'patch' } }
-    );
-
-    await publishToRegistry(bumpInfo, defaultOptions);
-
-    expect(npmMock.getPublishedVersions('foo')?.versions).toEqual(['1.0.0']);
-    expect(npmMock.getPublishedVersions('baz')?.versions).toEqual(['1.0.0']);
-    // bar should not be published since it doesn't have a change type and isn't new
-    expect(npmMock.getPublishedVersions('bar')).toBeUndefined();
 
     expect(logs.getMockLines('all', { root: tempRoot })).toMatchSnapshot();
   });

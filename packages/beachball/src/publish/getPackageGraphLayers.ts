@@ -1,5 +1,5 @@
 import type { BeachballOptions } from '../types/BeachballOptions';
-import type { PublishBumpInfo } from '../types/BumpInfo';
+import type { BumpInfo } from '../types/BumpInfo';
 import { getPackageDependenciesWrapper } from '../monorepo/getPackageGraph';
 import { bulletedList } from '../logging/bulletedList';
 
@@ -14,7 +14,6 @@ import { bulletedList } from '../logging/bulletedList';
  * not sure how to disprove it either...)
  * - `bumpDeps` is false
  * - `scope` is set
- * - There are `newPackages`
  * - Any change has `dependentChangeType` set to "none" when its type is not "none"
  *
  * Currently, there's only VERY basic cycle handling: all cycles are grouped together on a final
@@ -27,7 +26,7 @@ import { bulletedList } from '../logging/bulletedList';
  */
 export function getPackageGraphLayers(params: {
   packagesToPublish: string[];
-  bumpInfo: Pick<PublishBumpInfo, 'changeFileChangeInfos' | 'packageInfos' | 'newPackages'>;
+  bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'packageInfos'>;
   options: Pick<BeachballOptions, 'bumpDeps' | 'scope'>;
 }): string[][] {
   const { packagesToPublish, bumpInfo, options } = params;
@@ -40,7 +39,6 @@ export function getPackageGraphLayers(params: {
   const canConsiderPublishedOnly =
     options.bumpDeps &&
     !options.scope &&
-    !bumpInfo.newPackages?.length &&
     !changeFileChangeInfos.some(
       change => change.change.type !== 'none' && change.change.dependentChangeType === 'none'
     );
