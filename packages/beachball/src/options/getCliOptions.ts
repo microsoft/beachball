@@ -33,7 +33,6 @@ const booleanOptions = [
   'gitTags',
   'help',
   'keepChangeFiles',
-  'new',
   'publish',
   'push',
   'verbose',

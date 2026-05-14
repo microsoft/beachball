@@ -3,10 +3,9 @@ import { getBranchName, getCurrentHash, git, gitFailFast } from 'workspace-tools
 import { bumpInMemory } from '../bump/bumpInMemory';
 import { createCommandContext } from '../monorepo/createCommandContext';
 import { bumpAndPush } from '../publish/bumpAndPush';
-import { getNewPackages } from '../publish/getNewPackages';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import type { PublishBumpInfo } from '../types/BumpInfo';
+import type { BumpInfo } from '../types/BumpInfo';
 import type { CommandContext } from '../types/CommandContext';
 import { checkNpmAuthEnvPassthrough } from '../packageManager/npmAuthEnvPassthrough';
 
@@ -85,21 +84,7 @@ export async function publish(options: BeachballOptions, context?: CommandContex
     console.log(`Gathering info ${options.bump ? 'to bump versions' : 'about versions and changes'}\n`);
     context.bumpInfo = bumpInMemory(options, context);
   }
-  const bumpInfo: PublishBumpInfo = context.bumpInfo;
-
-  // eslint-disable-next-line @ms-cloudpack/no-deprecated
-  if (options.new) {
-    // Publish newly created packages even if they don't have change files
-    // (this is unlikely unless the packages were pushed without a PR that runs "beachball check")
-    console.log(
-      'Fetching all unmodified packages from the registry to check if there are any ' +
-        "newly-added packages that didn't have a change file...\n" +
-        '(NOTE: If your PR build runs `beachball check`, this step is unnecessarily slowing down ' +
-        "your publish process. In that case, it's recommended to remove `new: true` from your " +
-        'config or remove `--new` from your publish command.)\n'
-    );
-    bumpInfo.newPackages = await getNewPackages(bumpInfo, options);
-  }
+  const bumpInfo: BumpInfo = context.bumpInfo;
 
   // Step 1. Bump on disk + npm publish
   // npm / yarn publish

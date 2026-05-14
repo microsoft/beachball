@@ -36,7 +36,6 @@ export interface CliOptions extends Pick<
   | 'gitTimeout'
   | 'keepChangeFiles'
   | 'message'
-  | 'new'
   | 'npmReadConcurrency'
   | 'packToPath'
   | 'path'
@@ -271,17 +270,6 @@ export interface RepoOptions {
   groupChanges?: boolean;
   /** For shallow clones only: Depth of git history to consider when doing fetch */
   depth?: number;
-  /**
-   * For publish: If true, publish all newly added packages in addition to modified packages.
-   * This is rarely needed since new packages *with change files* will always be published
-   * regardless of this option.
-   *
-   * @deprecated This option is not recommended because it will negatively impact perf (it requires
-   * checking the registry for ALL unmodified packages). It also has limited use unless you pushed
-   * new packages directly to the main branch, or your PR build doesn't run `beachball check`.
-   * Normally, `beachball check` will require change files to be created for the new packages.
-   */
-  new: boolean;
 }
 
 export interface PackageOptions extends Partial<

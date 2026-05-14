@@ -30,10 +30,9 @@ describe('getPackageGraphLayers', () => {
     packageInfos: PartialPackageInfos;
     changeSet?: Parameters<typeof generateChangeSet>[0];
     packagesToPublish: string[];
-    newPackages?: string[];
     options?: Partial<Pick<BeachballOptions, 'bumpDeps' | 'scope'>>;
   }): string[][] {
-    const { packageInfos, changeSet, packagesToPublish, newPackages, options = {} } = params;
+    const { packageInfos, changeSet, packagesToPublish, options = {} } = params;
 
     return getPackageGraphLayers({
       packagesToPublish,
@@ -41,7 +40,6 @@ describe('getPackageGraphLayers', () => {
       bumpInfo: {
         packageInfos: makePackageInfos(packageInfos),
         changeFileChangeInfos: generateChangeSet(changeSet || packagesToPublish),
-        newPackages,
       },
     }).map(layer => layer.sort());
   }
@@ -127,7 +125,6 @@ describe('getPackageGraphLayers', () => {
     ['bumpDeps: false', { options: { bumpDeps: false } }],
     // Doesn't matter if the scope includes everything; we conservatively fall back with any scope
     ['scope', { options: { scope: ['**/*'] } }],
-    ['newPackages', { newPackages: ['a'], changeSet: ['c'] }],
     ['dependentChangeType "none"', { changeSet: [{ packageName: 'a', dependentChangeType: 'none' }, 'c'] }],
   ])('with %s, separates layers through unpublished intermediate packages', (_, params) => {
     // Graph: app -> utils -> core -> base, with lib -> core as well

@@ -31,7 +31,6 @@ const noTagBumpInfo: TagBumpInfo = {
   ),
   modifiedPackages: new Set(['foo', 'bar']),
   scopedPackages: new Set(['foo', 'bar']),
-  newPackages: [],
 };
 
 /** foo enables gitTags, bar disables it, repo disables it */
@@ -53,7 +52,6 @@ const emptyBumpInfo: TagBumpInfo = {
   calculatedChangeTypes: {},
   packageInfos: {},
   modifiedPackages: new Set(),
-  newPackages: [],
   scopedPackages: new Set(),
 };
 
@@ -75,18 +73,6 @@ describe('tagPackages', () => {
     expect(gitFailFast).toHaveBeenCalledTimes(1);
 
     // verify git is being called to create new auto tag for foo and bar
-    const newFooTag = generateTag('foo', oneTagBumpInfo.packageInfos['foo'].version);
-    expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters(newFooTag));
-  });
-
-  it('creates package tag for new packages with gitTags=true', () => {
-    tagPackages(
-      { ...oneTagBumpInfo, newPackages: ['foo'], modifiedPackages: new Set() },
-      { path: '', gitTags: false, tag: '' }
-    );
-    expect(gitFailFast).toHaveBeenCalledTimes(1);
-
-    // verify git is being called to create new auto tag for foo
     const newFooTag = generateTag('foo', oneTagBumpInfo.packageInfos['foo'].version);
     expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters(newFooTag));
   });

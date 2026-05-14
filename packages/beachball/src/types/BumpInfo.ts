@@ -54,15 +54,3 @@ export type BumpInfo = {
 
 /** Dependents cache (child points to parents): if A depends on B, then `{ B: [A] }` */
 export type PackageDependents = { readonly [pkgName: string]: ReadonlyArray<string> };
-
-/**
- * Bump info with additional property set/used only during publishing (not while calculating
- * packages to bump).
- */
-export type PublishBumpInfo = BumpInfo & {
-  /**
-   * Set of packages detected in this info which weren't previously published and didn't have
-   * change files. (Only populated if `options.new` is set.)
-   */
-  newPackages?: ReadonlyArray<string>;
-};
