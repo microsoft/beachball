@@ -265,6 +265,5 @@ exports[`publishToRegistry with packToPath packs packages into layer folders 1`]
 
 [log] lib-1.0.0.tgz
 
-[log] Packed lib@1.0.0 to <packPath>/1/lib-1.0.0.tgz
-[log] Wrote versions of packed packages to <packPath>/versions.json"
+[log] Packed lib@1.0.0 to <packPath>/1/lib-1.0.0.tgz"
 `;
