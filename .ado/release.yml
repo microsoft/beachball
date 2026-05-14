@@ -76,7 +76,7 @@ extends:
                 displayName: Get credentials for staging blob storage
                 inputs:
                   # this is the service connection name
-                  azureSubscription: Office-ogx-esrp-infra-bot
+                  azureSubscription: ogx-esrp-infra-bot
                   scriptType: pscore
                   scriptLocation: inlineScript
                   addSpnToEnvironment: true
