@@ -7,28 +7,30 @@ import { getNpmLogLevelArgs } from './npmArgs';
 
 /**
  * Attempts to pack the package and move the tgz to `options.packPath`.
- * Depending on `packInfo.packStyle`, either the filename will be prefixed with a number,
+ * Depending on the options, either the filename will be prefixed with a number,
  * or it will be put in a numbered folder.
  * @returns true if successful, false if not.
  */
 export async function packPackage(
   packageInfo: PackageInfo,
   options: Required<Pick<BeachballOptions, 'packToPath'>> &
-    Pick<BeachballOptions, 'verbose'> & {
-      packInfo:
-        | {
+    Pick<BeachballOptions, 'verbose'> &
+    (
+      | {
+          /** Array of layers of package names returned by `getPackageGraphLayers` */
+          layers: string[][];
+        }
+      | {
+          packInfo: {
             /** Index of this package in the topologically-sorted list to publish */
             index: number;
             /** Total number of packages to publish */
             total: number;
-          }
-        | {
-            /** Array of layers of package names returned by `getPackageGraphLayers` */
-            layers: string[][];
           };
-    }
+        }
+    )
 ): Promise<boolean> {
-  const { packToPath, verbose, packInfo } = options;
+  const { packToPath, verbose } = options;
 
   const packArgs = ['pack', ...getNpmLogLevelArgs(verbose)];
 
@@ -54,13 +56,12 @@ export async function packPackage(
     return false;
   }
 
-  // Prepend a numeric prefix to the pack file (0-padded so basic sorting works).
-  // Or for packStyle: "layer", put the pack file in a subfolder for its dependency tree layer.
+  // Put the pack file in a subfolder for its dependency tree layer, or prepend a numeric prefix.
   // The prefix isn't strictly needed for single packages, but use it for consistency in case of a
   // monorepo which usually publishes multiple packages but sometimes only one has changed.
   let finalPackFilePath: string;
-  if ('layers' in packInfo) {
-    const { layers } = packInfo;
+  if ('layers' in options) {
+    const { layers } = options;
     const packageLayer = layers.findIndex(layer => layer.includes(packageInfo.name));
     if (packageLayer === -1) {
       console.error(`Internal error: package ${packageInfo.name} not found in order of packages to publish\n`);
@@ -69,7 +70,7 @@ export async function packPackage(
     const layerDir = makePrefix({ num: packageLayer, total: layers.length });
     finalPackFilePath = path.join(packToPath, layerDir, packFile);
   } else {
-    const packPrefix = makePrefix({ num: packInfo.index, total: packInfo.total });
+    const packPrefix = makePrefix({ num: options.packInfo.index, total: options.packInfo.total });
     finalPackFilePath = path.join(packToPath, `${packPrefix}-${packFile}`);
   }
 

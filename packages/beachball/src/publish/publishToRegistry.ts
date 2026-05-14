@@ -1,3 +1,4 @@
+import { getCatalogs } from 'workspace-tools';
 import { performBump } from '../bump/performBump';
 import type { PublishBumpInfo } from '../types/BumpInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
@@ -11,9 +12,11 @@ import { callHook } from '../bump/callHook';
 import { getPackageGraph } from '../monorepo/getPackageGraph';
 import type { PackageInfo } from '../types/PackageInfo';
 import { packPackage } from '../packageManager/packPackage';
-import { getCatalogs } from 'workspace-tools';
 import { BeachballError } from '../types/BeachballError';
 import { getPackageGraphLayers } from './getPackageGraphLayers';
+
+/** For each layer, a mapping from package name to version */
+export type LayerVersionsJson = Record<string, string>[];
 
 /**
  * Publish all the bumped packages to the registry, OR if `packToPath` is specified,
@@ -53,8 +56,9 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
     throw new BeachballError('Pre-publish validation failed', { alreadyLogged: true });
   }
 
+  const packStyle = options.packStyle ?? 'layer';
   let layers: string[][] | undefined;
-  if (packToPath && options.packStyle === 'layer') {
+  if (packToPath && packStyle === 'layer') {
     // If packing in layer style, get that ordering instead of toposorting
     layers = getPackageGraphLayers({ packagesToPublish, bumpInfo, options });
   } else if (options.concurrency === 1) {
@@ -78,11 +82,13 @@ export async function publishToRegistry(bumpInfo: PublishBumpInfo, options: Beac
 
   const packagePublishInternal = async (packageInfo: PackageInfo) => {
     let success: boolean;
-    if (packToPath) {
+    if (packToPath && layers) {
+      success = await packPackage(packageInfo, { packToPath, verbose, layers });
+    } else if (packToPath) {
       success = await packPackage(packageInfo, {
         packToPath,
         verbose,
-        packInfo: layers ? { layers } : { index: packIndex++, total: packagesToPublish.length },
+        packInfo: { index: packIndex++, total: packagesToPublish.length },
       });
     } else {
       success = (await packagePublish(packageInfo, options)).success;

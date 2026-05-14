@@ -41,7 +41,9 @@ export function getPackageGraphLayers(params: {
     options.bumpDeps &&
     !options.scope &&
     !bumpInfo.newPackages?.length &&
-    !changeFileChangeInfos.some(change => change.change.dependentChangeType === 'none');
+    !changeFileChangeInfos.some(
+      change => change.change.type !== 'none' && change.change.dependentChangeType === 'none'
+    );
   const packagesToConsider = canConsiderPublishedOnly ? packagesToPublish : Object.keys(packageInfos);
   const packagesToConsiderSet = new Set(packagesToConsider);
 

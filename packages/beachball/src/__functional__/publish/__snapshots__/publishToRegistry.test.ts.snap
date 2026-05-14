@@ -268,7 +268,7 @@ exports[`publishToRegistry with packToPath packs packages into layer folders 1`]
 [log] Packed lib@1.0.0 to <packPath>/1/lib-1.0.0.tgz"
 `;
 
-exports[`publishToRegistry with packToPath packs packages sequentially by default 1`] = `
+exports[`publishToRegistry with packToPath packs packages sequentially when packStyle is sequential 1`] = `
 "[log] Validating new package versions...
 
 [log] Package versions are OK to publish:

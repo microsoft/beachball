@@ -380,13 +380,13 @@ describe('publishToRegistry', () => {
       removeTempDir(packToPath);
     });
 
-    it('packs packages sequentially by default', async () => {
+    it('packs packages sequentially when packStyle is sequential', async () => {
       const bumpInfo = makeBumpInfo({
         app: { dependencies: { lib: '1.0.0' } },
         lib: {},
       });
 
-      await publishToRegistry(bumpInfo, { ...defaultOptions, packToPath });
+      await publishToRegistry(bumpInfo, { ...defaultOptions, packToPath, packStyle: 'sequential' });
 
       // Nothing should be published to the registry
       expect(npmMock.getPublishedVersions('lib')).toBeUndefined();
@@ -411,7 +411,9 @@ describe('publishToRegistry', () => {
         Promise.resolve({ success: false, stdout: '', stderr: 'pack error', all: 'pack error', failed: true })
       );
 
-      await expect(publishToRegistry(bumpInfo, { ...defaultOptions, packToPath })).rejects.toThrow('Error packing');
+      await expect(
+        publishToRegistry(bumpInfo, { ...defaultOptions, packToPath, packStyle: 'sequential' })
+      ).rejects.toThrow('Error packing');
 
       expect(logs.getMockLines('error')).toMatch('Something went wrong with packing packages!');
 
@@ -427,7 +429,7 @@ describe('publishToRegistry', () => {
         lib: {},
       });
 
-      await publishToRegistry(bumpInfo, { ...defaultOptions, packToPath, packStyle: 'layer' });
+      await publishToRegistry(bumpInfo, { ...defaultOptions, packToPath });
 
       // Nothing should be published to the registry
       expect(npmMock.getPublishedVersions('lib')).toBeUndefined();
