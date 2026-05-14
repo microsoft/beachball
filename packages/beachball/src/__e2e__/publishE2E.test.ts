@@ -283,44 +283,6 @@ describe('publish command (e2e)', () => {
     expect(newPackageInfos.baz.version).toBe('1.4.0');
   });
 
-  // Verify the coherent shouldPublish:false semantics: the package is bumped, tagged, and
-  // included in the dependent graph, but it is NOT published to the registry.
-  it('bumps and tags a shouldPublish:false dependent but does not publish it', async () => {
-    repositoryFactory = new RepositoryFactory({
-      folders: {
-        packages: {
-          foo: { version: '1.0.0', dependencies: { bar: '^1.3.4' }, beachball: { shouldPublish: false } },
-          bar: { version: '1.3.4' },
-        },
-      },
-    });
-    repo = repositoryFactory.cloneRepository();
-
-    const { options, parsedOptions } = getOptions({ fetch: false });
-
-    generateChangeFiles(['bar'], options);
-    repo.push();
-
-    await publishWrapper(parsedOptions);
-
-    // bar is bumped and published normally
-    expect(npmMock.getPublishedVersions('bar')).toEqual({
-      versions: ['1.4.0'],
-      'dist-tags': { latest: '1.4.0' },
-    });
-    // foo (shouldPublish: false) is not published, but is still bumped and tagged
-    expect(npmMock.getPublishedVersions('foo')).toBeUndefined();
-
-    repo.checkout(defaultBranchName);
-    repo.pull();
-    expect(repo.getCurrentTags()).toEqual(['bar_v1.4.0', 'foo_v1.0.1']);
-
-    const newPackageInfos = getPackageInfos(parsedOptions);
-    expect(newPackageInfos.foo.version).toBe('1.0.1');
-    expect(newPackageInfos.foo.dependencies?.bar).toBe('^1.4.0');
-    expect(newPackageInfos.bar.version).toBe('1.4.0');
-  });
-
   // A package with shouldPublish: false gets all steps of the publish process except npm publish
   it('handles packages with shouldPublish:false', async () => {
     repositoryFactory = new RepositoryFactory({
