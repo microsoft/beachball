@@ -288,11 +288,6 @@ export interface PackageOptions extends Partial<
   Pick<RepoOptions, 'gitTags' | 'disallowedChangeTypes' | 'defaultNpmTag'>
 > {
   tag?: string | null;
-  /**
-   * Disable publishing a particular package.
-   * (Does NOT work to enable publishing a package that wouldn't otherwise be published.)
-   */
-  shouldPublish?: false;
 }
 
 /**

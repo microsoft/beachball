@@ -1,3 +1,4 @@
+import { isPackageIncluded } from '../changefile/isPackageIncluded';
 import { bulletedList } from '../logging/bulletedList';
 import type { PublishBumpInfo } from '../types/BumpInfo';
 
@@ -26,19 +27,15 @@ export function getPackagesToPublish(
     const packageInfo = packageInfos[pkg];
     const changeType = calculatedChangeTypes[pkg];
 
-    let skipReason = '';
-    if (changeType === 'none') {
-      skipReason = 'has change type none';
-    } else if (packageInfo.private) {
-      skipReason = 'is private';
-    } else if (!scopedPackages.has(pkg)) {
-      skipReason = 'is out-of-scope';
+    // It might not be possible for isPackageIncluded to return false at this point,
+    // but include those checks anyway to be safe
+    const { isIncluded, reason } = isPackageIncluded(packageInfo, scopedPackages);
+    if (!isIncluded) {
+      skippedPackageReasons.push(reason);
+    } else if (changeType === 'none') {
+      skippedPackageReasons.push(`${pkg} has change type "none"`);
     } else if (!changeType && !newPackages?.includes(pkg)) {
-      skipReason = 'is not bumped (no calculated change type)';
-    }
-
-    if (skipReason) {
-      skippedPackageReasons.push(`${pkg} ${skipReason}`);
+      skippedPackageReasons.push(`${pkg} is not bumped (no calculated change type)`);
     } else {
       packagesToPublish.push(pkg);
     }

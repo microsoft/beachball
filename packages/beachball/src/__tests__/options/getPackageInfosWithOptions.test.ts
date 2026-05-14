@@ -104,7 +104,6 @@ describe('getPackageInfosWithOptions', () => {
         gitTags: false,
         disallowedChangeTypes: null,
         defaultNpmTag: '',
-        shouldPublish: false,
       };
 
       const result = getPackageInfosWithOptions([{ ...baseWsPackage, beachball }], null);
@@ -116,6 +115,12 @@ describe('getPackageInfosWithOptions', () => {
       const result = getPackageInfosWithOptions([{ ...baseWsPackage, beachball: {} }], null);
 
       expect(result['test-package']).not.toHaveProperty('packageOptions' satisfies keyof PackageInfo);
+    });
+
+    it('throws if beachball.shouldPublish is used (removed option)', () => {
+      expect(() =>
+        getPackageInfosWithOptions([{ ...baseWsPackage, beachball: { shouldPublish: false } as PackageOptions }], null)
+      ).toThrow(/shouldPublish/);
     });
   });
 
@@ -166,7 +171,6 @@ describe('getPackageInfosWithOptions', () => {
           version: '0.1.0',
           packageJsonPath: '/monorepo/packages/internal/package.json',
           private: true,
-          beachball: { shouldPublish: false },
         },
       ];
 
@@ -183,9 +187,7 @@ describe('getPackageInfosWithOptions', () => {
       });
 
       expect(result['@company/internal'].private).toBe(true);
-      expect(result['@company/internal'].packageOptions).toEqual({
-        shouldPublish: false,
-      });
+      expect(result['@company/internal'].packageOptions).toBeUndefined();
     });
   });
 });

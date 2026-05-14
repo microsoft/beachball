@@ -1,0 +1,11 @@
+{
+  "changes": [
+    {
+      "type": "major",
+      "comment": "Remove `shouldPublish` option. In most cases, you should use `private: true` instead. If this doesn't work, please open an issue with details of your scenario and desired behavior.",
+      "packageName": "beachball",
+      "email": "elcraig@microsoft.com",
+      "dependentChangeType": "patch"
+    }
+  ]
+}

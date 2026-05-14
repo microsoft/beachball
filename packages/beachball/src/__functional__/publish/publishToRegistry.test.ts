@@ -154,7 +154,7 @@ describe('publishToRegistry', () => {
   });
 
   it('returns early when no packages need publishing', async () => {
-    const bumpInfo = makeBumpInfo({ foo: { private: true } }, { calculatedChangeTypes: { foo: 'none' } });
+    const bumpInfo = makeBumpInfo({ foo: {} }, { calculatedChangeTypes: { foo: 'none' } });
 
     await publishToRegistry(bumpInfo, defaultOptions);
 
@@ -163,7 +163,7 @@ describe('publishToRegistry', () => {
 
     expect(logs.getMockLines('all', { root: tempRoot })).toMatchInlineSnapshot(`
       "[log] Skipping publishing the following packages:
-        • foo has change type none
+        • foo has change type "none"
 
       [log] Nothing to publish"
     `);

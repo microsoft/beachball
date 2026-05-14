@@ -3,6 +3,7 @@ import type { PackageOptions, CliOptions } from '../types/BeachballOptions';
 import { getCliOptions } from './getCliOptions';
 import { env } from '../env';
 import { consideredDependencies, type PackageInfo, type PackageInfos } from '../types/PackageInfo';
+import { BeachballError } from '../types/BeachballError';
 
 /**
  * Fill in options to convert `workspace-tools` `PackageInfos` to the format used in this repo,
@@ -58,7 +59,14 @@ export function getPackageInfosWithOptions(
     // Check for package-specific options in the "beachball" key of package.json and
     // merge any overrides from CLI options
     // TODO: merge group options too (group disallowedChangeTypes currently override package)
-    const packageOptions = mergePackageOptions(packageJson.beachball as PackageOptions | undefined, cliOptions);
+    const beachballOptions = packageJson.beachball as (PackageOptions & { shouldPublish?: unknown }) | undefined;
+    if (beachballOptions && 'shouldPublish' in beachballOptions) {
+      throw new BeachballError(
+        `Package "${packageJson.name}" uses the removed "beachball.shouldPublish" option in its package.json. ` +
+          'This option has been removed. To prevent a package from being published, set "private": true in its package.json.'
+      );
+    }
+    const packageOptions = mergePackageOptions(beachballOptions, cliOptions);
     packageOptions && (newPackageInfo.packageOptions = packageOptions);
 
     packageInfos[packageJson.name] = newPackageInfo;
@@ -72,7 +80,6 @@ const packageKeys = Object.keys({
   defaultNpmTag: true,
   disallowedChangeTypes: true,
   gitTags: true,
-  shouldPublish: true,
 } satisfies Record<keyof PackageOptions, true>) as (keyof PackageOptions)[];
 
 /**

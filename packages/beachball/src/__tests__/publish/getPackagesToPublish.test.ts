@@ -68,7 +68,7 @@ describe('getPackagesToPublish', () => {
     expect(result).toEqual(['pkg-c']);
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`
       "Skipping publishing the following packages:
-        • pkg-a has change type none"
+        • pkg-a has change type "none""
     `);
   });
 
@@ -80,7 +80,7 @@ describe('getPackagesToPublish', () => {
     expect(result).toEqual(['pkg-a']);
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`
       "Skipping publishing the following packages:
-        • pkg-b is out-of-scope"
+        • pkg-b is out of scope"
     `);
   });
 
@@ -105,7 +105,7 @@ describe('getPackagesToPublish', () => {
     expect(result).toEqual([]);
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`
       "Skipping publishing the following packages:
-        • pkg-b is out-of-scope"
+        • pkg-b is out of scope"
     `);
   });
 

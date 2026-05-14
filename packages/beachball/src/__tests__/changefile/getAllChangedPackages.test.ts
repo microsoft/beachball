@@ -183,11 +183,12 @@ describe('getAllChangedPackages', () => {
     const packageInfos = monorepoPackageInfos();
     // Update packages so they'll be ignored
     packageInfos.foo.private = true;
-    packageInfos.bar.packageOptions = { shouldPublish: false }; // package.json beachball field
+    packageInfos.bar.private = true;
 
     const result = getAllChangedPackagesWrapper({
       packageInfos,
       repoOptions: { scope: ['!packages/grouped/*'] },
+      extraArgv: ['--verbose'],
       allChangedFiles: [
         'packages/foo/foo.js',
         'packages/bar/bar.js',
@@ -199,6 +200,14 @@ describe('getAllChangedPackages', () => {
 
     expect(result).toEqual(['baz']);
     const logLines = logs.getMockLines('all');
-    expect(logLines).toMatchInlineSnapshot(`""`);
+    expect(logLines).toMatchInlineSnapshot(`
+      "[log] Found 5 changed files in current branch (before filtering)
+      [log]   - ~~packages/foo/foo.js~~ (foo is private)
+      [log]   - ~~packages/bar/bar.js~~ (bar is private)
+      [log]   - packages/baz/baz.js
+      [log]   - ~~packages/grouped/a/grouped.js~~ (grouped/a is out of scope)
+      [log]   - ~~packages/grouped/b/grouped.js~~ (grouped/b is out of scope)
+      [log] Found 1 file in 1 package that should be published"
+    `);
   });
 });

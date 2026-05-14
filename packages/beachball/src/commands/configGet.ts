@@ -11,7 +11,6 @@ const packageOptionKeys: Record<string, true> = {
   defaultNpmTag: true,
   disallowedChangeTypes: true,
   gitTags: true,
-  shouldPublish: true,
 } satisfies Record<keyof PackageOptions, true>;
 
 /** Keys from RepoOptions (the full set of valid config file settings, exhaustive via Record) */
