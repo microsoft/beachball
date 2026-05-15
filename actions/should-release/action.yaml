@@ -2,7 +2,7 @@ name: should-release
 description: Determines whether this release workflow run is needed, and (by default) cancels it if not
 inputs:
   token:
-    description: GitHub token with "actions:write" permission
+    description: GitHub token with "actions:read" permission for query/output mode, or "actions:write" when canceling runs
     required: true
   batch:
     description: |
