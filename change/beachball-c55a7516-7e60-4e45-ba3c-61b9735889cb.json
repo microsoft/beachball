@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Dedupe custom package tags",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

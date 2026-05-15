@@ -1,19 +1,29 @@
 // @ts-check
+
+const { getGitTag, postbumpHook } = require('./scripts/beachballConfigHelpers.cjs');
+
 /** @type {Partial<import('./packages/beachball/src/types/BeachballOptions').RepoOptions>}*/
 const config = {
   access: 'public',
   branch: 'main',
   commit: false,
-  groupChanges: true,
+  ignorePatterns: ['.*ignore', '.eslintrc.js', 'eslint.config.*', 'jest.*.js', 'src/__*/**'],
 
+  // TODO (release): re-enable -- it has to be disabled while releasing actions separately
+  groupChanges: false,
   // TODO (release): change back to major
   disallowedChangeTypes: ['prerelease'],
-  // TODO (release): remove these
-  defaultNpmTag: 'next',
-  gitTags: false,
+  // TODO (release): remove
   canaryName: 'alpha',
 
-  ignorePatterns: ['.*ignore', '.eslintrc.js', 'eslint.config.*', 'jest.*.js', 'src/__*/**'],
+  getGitTag: (pkg, defaultTag) => {
+    // TODO (release): use default tag for beachball
+    return pkg.name === 'beachball' ? null : getGitTag(pkg, defaultTag);
+  },
+
+  hooks: {
+    postbump: postbumpHook,
+  },
 };
 
 module.exports = config;

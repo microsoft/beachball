@@ -7,10 +7,14 @@
   "scripts": {
     "build": "tsc --noEmit",
     "lint:skills": "node ./lintSkills.ts",
-    "lint:versions": "cd .. && yarn syncpack:check"
+    "lint:versions": "cd .. && yarn syncpack:check",
+    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest"
   },
   "devDependencies": {
+    "@ms-cloudpack/esbuild-node-helpers": "patch:@ms-cloudpack/esbuild-node-helpers@npm%3A0.1.2#~/.yarn/patches/@ms-cloudpack-esbuild-node-helpers-npm-0.1.2-3444922d1c.patch",
     "@ms-cloudpack/eslint-plugin-deprecated": "^0.1.5",
+    "cross-env": "^10.1.0",
+    "esbuild": "^0.28.0",
     "eslint": "^9.0.0",
     "typescript": "~6.0.0",
     "typescript-eslint": "^8.52.0",

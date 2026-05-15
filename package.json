@@ -11,6 +11,7 @@
     "node": ">=22.18.0"
   },
   "workspaces": [
+    "actions/*",
     "packages/*",
     "scripts"
   ],
@@ -26,7 +27,8 @@
     "format:check": "prettier --check .",
     "prepare": "husky",
     "lint": "lage lint",
-    "release:canary": "yarn beachball canary -y",
+    "release:canary": "yarn beachball canary -y --scope packages/beachball --tag next",
+    "release:others": "yarn beachball publish -y --scope '!packages/beachball'",
     "release:docs": "echo \"Run this from the docs folder instead\" && exit 1",
     "syncpack:check": "syncpack lint",
     "syncpack:update": "syncpack fix",

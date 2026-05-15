@@ -1,0 +1,11 @@
+name: Install Beachball
+description: Globally installs Beachball version specified in the repo root package.json devDependencies, or latest
+runs:
+  using: composite
+  steps:
+    - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+      with:
+        script: |
+          const beachballVersion = require('./package.json').devDependencies.beachball || 'latest';
+          console.log(`Using beachball@${beachballVersion}...`)
+          await exec.exec('npm', ['i', '-g', `beachball@${beachballVersion}`]);

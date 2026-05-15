@@ -1,0 +1,5 @@
+ignore-path: ../../.gitignore
+
+ignores:
+  # This must use the same version from @actions/github for an instanceof check
+  - '@octokit/request-error'
