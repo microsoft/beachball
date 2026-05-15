@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import * as wsTools from 'workspace-tools';
 import { generateChangeSet } from '../../__fixtures__/changeFiles';
 import { defaultBranchName, defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
@@ -80,10 +80,6 @@ describe('publish command (all helpers mocked)', () => {
 
   afterEach(() => {
     jest.resetAllMocks();
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
   });
 
   it('returns early when there are no change files', async () => {

@@ -42,10 +42,16 @@ function getTransform(moduleType) {
  */
 function getProjectOptions(projectOverrides, moduleType = 'commonjs') {
   return {
+    // This prevents having to call jest.clearAllMocks() after each test.
+    // jestSetup.cjs also calls jest.restoreAllMocks() in afterAll.
+    clearMocks: true,
     injectGlobals: false,
     roots: ['<rootDir>/src'],
+    testPathIgnorePatterns: ['/node_modules/'],
     setupFilesAfterEnv: [path.resolve(__dirname, 'jestSetup.cjs')],
     transform: getTransform(moduleType),
+    transformIgnorePatterns: ['/node_modules/'],
+    watchPathIgnorePatterns: ['/node_modules/'],
     testEnvironment: 'node',
     testEnvironmentOptions: {
       // https://jestjs.io/blog/2025/06/04/jest-30#globals-cleanup-between-test-files

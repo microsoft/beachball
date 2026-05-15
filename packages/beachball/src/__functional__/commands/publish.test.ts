@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { getBranchName, getCurrentHash } from 'workspace-tools';
 import { generateChangeFiles } from '../../__fixtures__/changeFiles';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
@@ -84,10 +84,6 @@ describe('publish command', () => {
   afterEach(() => {
     jest.resetAllMocks();
     repo = undefined;
-  });
-
-  afterAll(() => {
-    jest.restoreAllMocks();
   });
 
   it('bumps and pushes when enabled', async () => {

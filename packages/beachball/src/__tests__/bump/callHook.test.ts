@@ -1,4 +1,4 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { describe, it, expect, jest } from '@jest/globals';
 import { callHook } from '../../bump/callHook';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import type { HooksOptions } from '../../types/BeachballOptions';
@@ -30,10 +30,6 @@ describe('callHook', () => {
   function getHookCallNames(hook: jest.Mock<AnyHook>) {
     return hook.mock.calls.map(call => call[1]);
   }
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
 
   it('does nothing if hook is undefined', async () => {
     await callHook(undefined, ['pkg1'], packageInfos, 1);
