@@ -56,8 +56,8 @@ export type BumpInfo = {
    * It **only** includes the packages valid for tagging per `getPackagesToPublish`
    * (this includes packages with `shouldPublish: false`).
    *
-   * - `undefined` means no tag will be created (`gitTags` disabled for the package and no
-   *   `getGitTag` override, or `getGitTag` returned `null`).
+   * - `undefined` or not set for a package means no tag will be created (`gitTags` disabled
+   *   for the package and no `getGitTag` override, or `getGitTag` returned `null`).
    * - When defined, this is a non-empty array of tag strings. The first entry is the "primary"
    *   tag used in changelog metadata; all entries are created as git tags by `tagPackages`.
    *
