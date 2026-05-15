@@ -119,7 +119,7 @@ extends:
               # TODO (release): change back to:
               # yarn beachball publish --prerelease-prefix test -y --no-push --pack-to-path '$(Build.StagingDirectory)/packed-packages'
               - script: |
-                  yarn release:canary --no-push --pack-to-path '$(Build.StagingDirectory)/out/packed-packages' --registry https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/
+                  yarn release:canary --no-push --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages' --registry https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/
                 displayName: Pack packages (canary)
 
               - script: |
