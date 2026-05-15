@@ -11,7 +11,11 @@ export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
 export interface ParsedOptions {
   /** Only the specified CLI options */
   cliOptions: Partial<CliOptions>;
-  /** Only the repo options (will also include the `branch` filled in) */
+  /**
+   * Only the repo options (will also include the `branch` filled in).
+   * NOTE: This may include values that have been overridden by CLI options.
+   * This object should only be used when you need to specifically check the config file values.
+   */
   repoOptions: Partial<RepoOptions>;
   /** Merged repo-level options (includes repo, CLI, and defaults) */
   options: BeachballOptions;
