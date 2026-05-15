@@ -26207,7 +26207,9 @@ __name(logGithubRequestError, "logGithubRequestError");
 // src/checkForNewerRuns.ts
 async function checkForNewerRuns(token) {
   if (process.env.GITHUB_REF_TYPE !== "branch") {
-    setFailed(`This action only works for runs against branches (this run's ref type: ${process.env.GITHUB_REF_TYPE})`);
+    setFailed(
+      `This action only works for runs against branches (this run's ref type: ${process.env.GITHUB_REF_TYPE})`
+    );
     process.exit(1);
   }
   const octokit = getOctokit(token, { log: console });
@@ -26278,7 +26280,11 @@ async function main() {
     shouldRelease = false;
   }
   if (mode === "cancel") {
-    await cancelRun(token);
+    if (shouldRelease) {
+      info("Should release: yes (continuing run)");
+    } else {
+      await cancelRun(token);
+    }
   } else {
     const result = shouldRelease ? "yes" : "no";
     info(`Should release: ${result}`);

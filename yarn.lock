@@ -2204,6 +2204,7 @@ __metadata:
   dependencies:
     "@ms-cloudpack/esbuild-node-helpers": "patch:@ms-cloudpack/esbuild-node-helpers@npm%3A0.1.2#~/.yarn/patches/@ms-cloudpack-esbuild-node-helpers-npm-0.1.2-3444922d1c.patch"
     "@ms-cloudpack/eslint-plugin-deprecated": "npm:^0.1.5"
+    cross-env: "npm:^10.1.0"
     esbuild: "npm:^0.28.0"
     eslint: "npm:^9.0.0"
     typescript: "npm:~6.0.0"
