@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { getCliOptions } from '../../options/getCliOptions';
 import { findProjectRoot, getDefaultRemoteBranch } from 'workspace-tools';
 
@@ -30,10 +30,6 @@ describe('getCliOptions', () => {
       env: env || {},
     });
   }
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
 
   // start by making sure nothing went wrong with the mock
   it('uses fake project root', () => {

@@ -1,5 +1,5 @@
 /* eslint-disable @ms-cloudpack/no-deprecated -- lots of incorrect warnings about variadic signatures */
-import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import path from 'path';
 import * as wsTools from 'workspace-tools';
 import type { GitProcessOutput } from 'workspace-tools';
@@ -95,10 +95,6 @@ describe('bumpAndPush', () => {
     wsToolsMocks.git.mockReturnValue(makeGitResult({ success: true }));
     mockExeca.mockImplementation(() => makeExecaResult({ success: true }));
     mockPerformBump.mockResolvedValue(undefined);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   it('succeeds on first attempt', async () => {

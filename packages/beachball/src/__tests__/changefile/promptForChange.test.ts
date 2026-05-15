@@ -9,16 +9,18 @@ import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { expectBeachballError } from '../../__fixtures__/expectBeachballError';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
-// so instead we inject a custom mock stdout stream, as well as stdin for entering answers
-let stdin: MockStdin;
-let stdout: MockStdout;
+// so instead we inject a custom mock stdout stream, as well as stdin for entering answers.
+// (babel-plugin-jest-hoist requires variables referenced by `jest.mock()` factories to be
+// prefixed with `mock`, so the locals are named `mockStdin`/`mockStdout`.)
+let mockStdin: MockStdin;
+let mockStdout: MockStdout;
 jest.mock('prompts', () => {
   const realPrompts = jest.requireActual<typeof prompts>('prompts');
 
   return ((questions, options) => {
     const questionsArr = Array.isArray(questions) ? questions : [questions];
     return realPrompts(
-      questionsArr.map(q => ({ ...q, stdin, stdout })),
+      questionsArr.map(q => ({ ...q, stdin: mockStdin, stdout: mockStdout })),
       options
     );
   }) as typeof prompts;
@@ -52,15 +54,15 @@ describe('promptForChange', () => {
   });
 
   beforeEach(() => {
-    stdin = new MockStdin();
-    stdout = new MockStdout();
+    mockStdin = new MockStdin();
+    mockStdout = new MockStdout();
     // Simulate interactive TTY so prompts-based tests work regardless of the actual environment
     process.stdin.isTTY = true;
   });
 
   afterEach(() => {
-    stdin.destroy();
-    stdout.destroy();
+    mockStdin.destroy();
+    mockStdout.destroy();
   });
 
   afterAll(() => {
@@ -96,15 +98,15 @@ describe('promptForChange', () => {
     // verify asking for first package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
     // choose custom options for this package
-    stdin.emitKey({ name: 'down' });
-    await stdin.sendByChar('\n');
-    stdin.emitKey({ name: 'down' });
-    await stdin.sendByChar('\n');
+    mockStdin.emitKey({ name: 'down' });
+    await mockStdin.sendByChar('\n');
+    mockStdin.emitKey({ name: 'down' });
+    await mockStdin.sendByChar('\n');
 
     // verify asking for second package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: bar');
     // choose defaults
-    await stdin.sendByChar('\n\n');
+    await mockStdin.sendByChar('\n\n');
 
     expect(await changeFilesPromise).toEqual([
       expect.objectContaining({ comment: 'commit 1', packageName: 'foo', type: 'minor' }),
@@ -132,11 +134,11 @@ describe('promptForChange', () => {
 
     // use defaults for first package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
-    await stdin.sendByChar('\n\n');
+    await mockStdin.sendByChar('\n\n');
 
     // cancel for second package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: bar');
-    stdin.emitKey({ name: 'c', ctrl: true });
+    mockStdin.emitKey({ name: 'c', ctrl: true });
 
     // nothing is returned
     expect(await changeFilesPromise).toBeUndefined();
@@ -157,12 +159,12 @@ describe('promptForChange', () => {
 
     // enter a valid type for foo
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
-    expect(stdout.getOutput()).toMatch(/enter any type/);
-    await stdin.sendByChar('patch\n');
+    expect(mockStdout.getOutput()).toMatch(/enter any type/);
+    await mockStdin.sendByChar('patch\n');
 
     // enter an invalid type for bar
     expect(logs.mocks.log).toHaveBeenCalledWith('Please describe the changes for: bar');
-    await stdin.sendByChar('invalid\n');
+    await mockStdin.sendByChar('invalid\n');
 
     expect(await changeFilesPromise).toBeUndefined();
     expect(logs.mocks.error).toHaveBeenLastCalledWith('Prompt response contains invalid change type "invalid"');
@@ -170,11 +172,11 @@ describe('promptForChange', () => {
 
   describe('non-interactive detection', () => {
     beforeEach(() => {
-      // Simulate non-interactive environment (stdin is not a TTY)
+      // Simulate non-interactive environment (mockStdin is not a TTY)
       process.stdin.isTTY = false;
     });
 
-    it('throws an error when prompts are needed and stdin is not a TTY', async () => {
+    it('throws an error when prompts are needed and mockStdin is not a TTY', async () => {
       await expectBeachballError(
         promptForChange(defaultParams()),
         'The "change" command is running in a non-interactive context'

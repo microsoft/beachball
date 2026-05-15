@@ -118,7 +118,6 @@ describe('performBump', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
     packageInfos = undefined;
   });
 

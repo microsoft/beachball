@@ -26,7 +26,6 @@ describe('updatePackageJsons', () => {
   }
 
   beforeEach(() => {
-    jest.clearAllMocks();
     mockFs.existsSync.mockReturnValue(true);
     mockReadJson.readJson.mockImplementation(() => {
       throw new Error('Unexpected readJson call');
@@ -34,7 +33,6 @@ describe('updatePackageJsons', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
     jest.resetAllMocks();
   });
 

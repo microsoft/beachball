@@ -95,7 +95,6 @@ describe('getCatalogChangedPackages (mock git)', () => {
     mockFileFromRef = undefined;
     mockCatalogs = undefined;
     mockCatalogFilePathResult = undefined;
-    jest.clearAllMocks();
   });
 
   it('returns empty when no catalog file exists', () => {
@@ -276,7 +275,6 @@ describe('getCatalogChangedPackages', () => {
 
   afterEach(() => {
     repo = undefined;
-    jest.clearAllMocks();
   });
 
   afterAll(() => {

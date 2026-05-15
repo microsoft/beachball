@@ -14,7 +14,10 @@ const config = {
       dependsOn: ['^build'],
       outputs: ['lib/**/*'],
     },
-    bundle: ['build'],
+    bundle: {
+      dependsOn: ['build'],
+      outputs: ['dist/**/*'],
+    },
     lint: ['build', 'depcheck', 'lint:skills', 'lint:versions'],
     'lint:skills': [],
     'lint:versions': [],

@@ -41,7 +41,6 @@ describe('publishToRegistry', () => {
 
   afterEach(() => {
     removeTempDir(tempRoot);
-    jest.clearAllMocks();
   });
 
   /** Create a minimal BumpInfo where all packages are modified and in scope */
