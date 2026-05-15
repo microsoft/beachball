@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc --noEmit",
     "lint:skills": "node ./lintSkills.ts",
-    "lint:versions": "cd .. && yarn syncpack:check"
+    "lint:versions": "cd .. && yarn syncpack:check",
+    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest"
   },
   "devDependencies": {
     "@ms-cloudpack/esbuild-node-helpers": "patch:@ms-cloudpack/esbuild-node-helpers@npm%3A0.1.2#~/.yarn/patches/@ms-cloudpack-esbuild-node-helpers-npm-0.1.2-3444922d1c.patch",
