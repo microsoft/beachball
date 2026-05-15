@@ -4,7 +4,7 @@ import { findPackageRoot, type PackageInfo as WSPackageInfo } from 'workspace-to
 import { bulletedList, type BulletList } from '../logging/bulletedList';
 import { getRawPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballError } from '../types/BeachballError';
-import type { ParsedOptions } from '../types/BeachballOptions';
+import type { BeachballOptions, ParsedOptions } from '../types/BeachballOptions';
 
 /**
  * Handles the `beachball migrate` command.
@@ -29,7 +29,7 @@ export function migrate(parsedOptions: ParsedOptions): void {
 
   if (rawPackageInfos) {
     checkShouldPublish({ rawPackageInfos, warnings, updates });
-    checkChangelogJson({ rawPackageInfos, repoOptions, updates });
+    checkChangelogJson({ rawPackageInfos, options, repoOptions, updates });
   }
 
   if (!updates.length && !warnings.length) {
@@ -77,22 +77,27 @@ function checkShouldPublish(params: {
 
 function checkChangelogJson(params: {
   rawPackageInfos: WSPackageInfo[];
-  repoOptions: Pick<ParsedOptions['repoOptions'], 'generateChangelog'>;
+  options: Pick<BeachballOptions, 'path'>;
+  repoOptions: Pick<ParsedOptions['repoOptions'], 'generateChangelog' | 'changelog'>;
   updates: BulletList;
 }): void {
-  const { rawPackageInfos, repoOptions, updates } = params;
+  const { rawPackageInfos, options, repoOptions, updates } = params;
   if (repoOptions.generateChangelog !== undefined) {
     // skip the check if they have any explicit setting
     return;
   }
 
-  const changelogJsons = rawPackageInfos
-    .map(pkg => path.join(path.dirname(pkg.packageJsonPath), 'CHANGELOG.json'))
-    .filter(file => fs.existsSync(file));
+  const allChangelogJsons = [
+    ...rawPackageInfos.map(pkg => path.join(path.dirname(pkg.packageJsonPath), 'CHANGELOG.json')),
+    ...(repoOptions.changelog?.groups?.map(group =>
+      path.resolve(options.path, group.changelogPath, 'CHANGELOG.json')
+    ) ?? []),
+  ];
+  const changelogJsons = allChangelogJsons.filter(file => fs.existsSync(file));
 
   if (changelogJsons.length) {
     updates.push(
-      'Found packages with existing CHANGELOG.json files. In v3, CHANGELOG.json generation is disabled by default, ' +
+      'Found CHANGELOG.json files. In v3, CHANGELOG.json generation is disabled by default, ' +
         "since most repos don't use them (CHANGELOG.md is still generated).",
       [
         'If you DO want CHANGELOG.json files, set `generateChangelog: true` in your beachball config',

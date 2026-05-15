@@ -29,6 +29,9 @@ describe('migrate command', () => {
 
   it('logs a success message when no config updates are needed', () => {
     tempRoot = createTestFileStructureType('monorepo');
+    // a changelog md file is okay
+    fs.writeFileSync(path.join(tempRoot, 'packages/foo/CHANGELOG.md'), '');
+
     migrate(getOptions());
     expect(logs.getMockLines('log')).toEqual('No config updates are needed for v3.');
   });
@@ -68,11 +71,31 @@ describe('migrate command', () => {
     const output = logs.getMockLines('all', { root: tempRoot });
     expect(output).toMatchInlineSnapshot(`
       "[error] The following updates are needed for v3:
-      [error]   • Found packages with existing CHANGELOG.json files. In v3, CHANGELOG.json generation is disabled by default, since most repos don't use them (CHANGELOG.md is still generated).
+      [error]   • Found CHANGELOG.json files. In v3, CHANGELOG.json generation is disabled by default, since most repos don't use them (CHANGELOG.md is still generated).
           ▪ If you DO want CHANGELOG.json files, set \`generateChangelog: true\` in your beachball config
           ▪ If you are NOT using CHANGELOG.json, delete these files:
             ◦ <root>/packages/baz/CHANGELOG.json
             ◦ <root>/packages/foo/CHANGELOG.json"
+    `);
+  });
+
+  it('errors when groups have CHANGELOG.json files and generateChangelog is unset', () => {
+    tempRoot = createTestFileStructureType('monorepo');
+    fs.mkdirSync(path.join(tempRoot, 'changelogs'));
+    fs.writeFileSync(path.join(tempRoot, 'changelogs/CHANGELOG.json'), '{}');
+    const options = getOptions({
+      changelog: { groups: [{ changelogPath: 'changelogs', include: true, mainPackageName: 'foo' }] },
+    });
+
+    expect(() => migrate(options)).toThrow(BeachballError);
+
+    const output = logs.getMockLines('all', { root: tempRoot });
+    expect(output).toMatchInlineSnapshot(`
+      "[error] The following updates are needed for v3:
+      [error]   • Found CHANGELOG.json files. In v3, CHANGELOG.json generation is disabled by default, since most repos don't use them (CHANGELOG.md is still generated).
+          ▪ If you DO want CHANGELOG.json files, set \`generateChangelog: true\` in your beachball config
+          ▪ If you are NOT using CHANGELOG.json, delete these files:
+            ◦ <root>/changelogs/CHANGELOG.json"
     `);
   });
 
