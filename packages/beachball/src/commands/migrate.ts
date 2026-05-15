@@ -1,8 +1,10 @@
-import type { ParsedOptions } from '../types/BeachballOptions';
+import fs from 'fs';
+import path from 'path';
 import { findPackageRoot, type PackageInfo as WSPackageInfo } from 'workspace-tools';
-import { getRawPackageInfos } from '../monorepo/getPackageInfos';
 import { bulletedList, type BulletList } from '../logging/bulletedList';
+import { getRawPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballError } from '../types/BeachballError';
+import type { ParsedOptions } from '../types/BeachballOptions';
 
 /**
  * Handles the `beachball migrate` command.
@@ -11,7 +13,7 @@ import { BeachballError } from '../types/BeachballError';
  * If no updates are needed, a success message is printed.
  */
 export function migrate(parsedOptions: ParsedOptions): void {
-  const { options } = parsedOptions;
+  const { options, repoOptions } = parsedOptions;
   const updates: BulletList = [];
   const warnings: BulletList = [];
 
@@ -21,12 +23,13 @@ export function migrate(parsedOptions: ParsedOptions): void {
     options,
   });
 
-  if ((options as { new?: boolean }).new !== undefined) {
+  if ((repoOptions as { new?: boolean }).new !== undefined) {
     updates.push('The `new` option has been removed. Please remove it from your config.');
   }
 
   if (rawPackageInfos) {
     checkShouldPublish({ rawPackageInfos, warnings, updates });
+    checkChangelogJson({ rawPackageInfos, repoOptions, updates });
   }
 
   if (!updates.length && !warnings.length) {
@@ -68,6 +71,34 @@ function checkShouldPublish(params: {
       'Found non-private packages using `"shouldPublish": false`. The behavior of this setting has changed--' +
         'please see the v3 migration guide for details and verify it still works for your scenario.',
       publicPackagesWithShouldPublish.map(pkg => pkg.packageJsonPath).sort()
+    );
+  }
+}
+
+function checkChangelogJson(params: {
+  rawPackageInfos: WSPackageInfo[];
+  repoOptions: Pick<ParsedOptions['repoOptions'], 'generateChangelog'>;
+  updates: BulletList;
+}): void {
+  const { rawPackageInfos, repoOptions, updates } = params;
+  if (repoOptions.generateChangelog !== undefined) {
+    // skip the check if they have any explicit setting
+    return;
+  }
+
+  const changelogJsons = rawPackageInfos
+    .map(pkg => path.join(path.dirname(pkg.packageJsonPath), 'CHANGELOG.json'))
+    .filter(file => fs.existsSync(file));
+
+  if (changelogJsons.length) {
+    updates.push(
+      'Found packages with existing CHANGELOG.json files. In v3, CHANGELOG.json generation is disabled by default, ' +
+        "since most repos don't use them (CHANGELOG.md is still generated).",
+      [
+        'If you DO want CHANGELOG.json files, set `generateChangelog: true` in your beachball config',
+        'If you are NOT using CHANGELOG.json, delete these files:',
+        changelogJsons.sort(),
+      ]
     );
   }
 }

@@ -5,6 +5,7 @@ import { getParsedOptions } from '../../options/getOptions';
 import type { RepoOptions } from '../../types/BeachballOptions';
 import { removeTempDir } from '../../__fixtures__/tmpdir';
 import { createTestFileStructureType, updateJsonFile } from '../../__fixtures__/createTestFileStructure';
+import fs from 'fs';
 import { BeachballError } from '../../types/BeachballError';
 import path from 'path';
 
@@ -55,6 +56,33 @@ describe('migrate command', () => {
           ▪ <root>/packages/baz/package.json
           ▪ <root>/packages/foo/package.json"
     `);
+  });
+
+  it('errors when CHANGELOG.json files exist and generateChangelog is unset', () => {
+    tempRoot = createTestFileStructureType('monorepo');
+    fs.writeFileSync(path.join(tempRoot, 'packages/foo/CHANGELOG.json'), '{}');
+    fs.writeFileSync(path.join(tempRoot, 'packages/baz/CHANGELOG.json'), '{}');
+
+    expect(() => migrate(getOptions())).toThrow(BeachballError);
+
+    const output = logs.getMockLines('all', { root: tempRoot });
+    expect(output).toMatchInlineSnapshot(`
+      "[error] The following updates are needed for v3:
+      [error]   • Found packages with existing CHANGELOG.json files. In v3, CHANGELOG.json generation is disabled by default, since most repos don't use them (CHANGELOG.md is still generated).
+          ▪ If you DO want CHANGELOG.json files, set \`generateChangelog: true\` in your beachball config
+          ▪ If you are NOT using CHANGELOG.json, delete these files:
+            ◦ <root>/packages/baz/CHANGELOG.json
+            ◦ <root>/packages/foo/CHANGELOG.json"
+    `);
+  });
+
+  it('does not error on CHANGELOG.json files when generateChangelog is explicitly set', () => {
+    tempRoot = createTestFileStructureType('monorepo');
+    fs.writeFileSync(path.join(tempRoot, 'packages/foo/CHANGELOG.json'), '{}');
+
+    migrate(getOptions({ generateChangelog: true }));
+
+    expect(logs.getMockLines('all')).toEqual('[log] No config updates are needed for v3.');
   });
 
   it('errors on private packages using shouldPublish option', () => {

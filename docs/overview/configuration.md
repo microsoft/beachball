@@ -85,7 +85,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `defaultNpmTag` | `string` | `'latest'` | repo, package | The default `dist-tag` used for NPM publish |
 | `disallowedChangeTypes` | `string[]` | | repo, package | What change types are disallowed |
 | `fetch` | `boolean` | `true` | repo | Fetch from remote before doing diff comparisons |
-| `generateChangelog` | `boolean \| 'md' \| 'json'` | `true` | repo | Whether to generate `CHANGELOG.md/json` (`'md'` or `'json'` to generate only that type) |
+| `generateChangelog` | `boolean \| 'md' \| 'json'` | `'md'` | repo | Whether to generate `CHANGELOG.md/json` (`'md'` or `'json'` to generate only that type) |
 | `getGitTag` | `(pkg, defaultTag) => string \| string[] \| null` | | repo | Get package-specific git tag(s); return `null` to skip tagging a package |
 | `gitTags` | `boolean` | `true` | repo, package | Whether to create git tags for published packages (eg: `foo_v1.0.1`). Note that `getGitTag` is still respected, overriding this option on a per-package basis. |
 | `groups` | [`VersionGroupOptions[]`][3] | | repo | Bump these packages together ([see details][3]) |

@@ -27,6 +27,7 @@ export function getParsedOptions(params: ProcessInfo & { testRepoOptions?: Parti
   const repoOptions = testRepoOptions || getRepoOptions(cliOptions);
   return {
     cliOptions,
+    repoOptions,
     options: mergeRepoOptions({ repoOptions, cliOptions }),
   };
 }

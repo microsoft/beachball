@@ -79,6 +79,7 @@ describe('bump command', () => {
 
     const { options, parsedOptions } = getOptions({
       bumpDeps: false,
+      generateChangelog: true,
     });
     const comment = 'test comment for pkg-1';
     generateChangeFiles([{ packageName: 'pkg-1', comment, type: 'minor' }], options);
@@ -260,6 +261,7 @@ describe('bump command', () => {
     const { options, parsedOptions } = getOptions({
       groups: [{ include: 'packages/grp/*', name: 'grp', disallowedChangeTypes: [] }],
       bumpDeps: true,
+      generateChangelog: true,
     });
     // Bump commonlib, which is not in the group, but triggers a dependent bump of pkg-3,
     // which triggers bump of the whole group and then the app.
@@ -304,6 +306,7 @@ describe('bump command', () => {
 
     const { options, parsedOptions } = getOptions({
       bumpDeps: true,
+      generateChangelog: true,
       scope: ['!packages/bar'],
     });
     // bar depends on baz, so that gives bar an extra chance to get a dependent bump
@@ -340,6 +343,7 @@ describe('bump command', () => {
 
     const { options, parsedOptions } = getOptions({
       bumpDeps: true,
+      generateChangelog: true,
       scope: ['!packages/foo'],
     });
     generateChangeFiles([{ packageName: 'bar', type: 'patch' }], options);
@@ -460,6 +464,7 @@ describe('bump command', () => {
 
     const { options, parsedOptions } = getOptions({
       bumpDeps: true,
+      generateChangelog: true,
     });
     generateChangeFiles([{ packageName: 'pkg-1', type: 'minor' }], options);
     repo.push();
@@ -510,6 +515,7 @@ describe('bump command', () => {
 
     const { options, parsedOptions } = getOptions({
       bumpDeps: true,
+      generateChangelog: true,
     });
     generateChangeFiles([{ packageName: 'pkg-1', type: 'minor' }], options);
     repo.push();
