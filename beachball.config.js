@@ -8,14 +8,13 @@ const config = {
   access: 'public',
   branch: 'main',
   commit: false,
-  groupChanges: true,
   ignorePatterns: ['.*ignore', '.eslintrc.js', 'eslint.config.*', 'jest.*.js', 'src/__*/**'],
 
+  // TODO (release): re-enable -- it has to be disabled while releasing actions separately
+  groupChanges: false,
   // TODO (release): change back to major
   disallowedChangeTypes: ['prerelease'],
-  // TODO (release): remove these
-  defaultNpmTag: 'next',
-  gitTags: false,
+  // TODO (release): remove
   canaryName: 'alpha',
 
   // TODO (release): remove beachball exclusion (but still don't tag the actions common package)

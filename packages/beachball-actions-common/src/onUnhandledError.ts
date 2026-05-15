@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 
-export function onUnhandledError(err: unknown) {
+export function onUnhandledError(err: unknown): void {
   if (err instanceof Error) {
     console.error(err.stack);
     console.error('Full error object: ' + JSON.stringify(err));
