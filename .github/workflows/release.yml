@@ -54,7 +54,7 @@ jobs:
       - run: yarn test --verbose
 
       # TODO (release): switch back to regular release
-      - name: Publish package (canary)
+      - name: Publish packages
         run: |
           git config user.email "kchau@microsoft.com"
           git config user.name "Ken Chau"
@@ -67,5 +67,6 @@ jobs:
           git remote set-url origin "https://$REPO_PAT@github.com/$GITHUB_REPOSITORY"
 
           yarn release:canary
+          yarn release:others
         env:
           REPO_PAT: ${{ secrets.REPO_PAT }}

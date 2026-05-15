@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "yarn run -T tsc --pretty",
-    "bundle": "node ../../scripts/bundleNode.ts"
+    "bundle": "node ../../scripts/bundleNode.ts",
+    "lint": "yarn run -T eslint --color --max-warnings=0 src"
   },
   "beachball": {
     "shouldPublish": false
