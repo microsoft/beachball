@@ -11,9 +11,7 @@ const publishNpmrcPath = path.join(repoRoot, '.npmrc.publish');
 const npmrcPath = path.join(repoRoot, '.npmrc');
 const yarnrcPath = path.join(repoRoot, '.yarnrc.yml');
 
-fs.copyFileSync(publishNpmrcPath, npmrcPath);
-console.log(`Copied ${publishNpmrcPath} to ${npmrcPath}`);
-
+// Find the registry URL
 const npmrcRegistry = fs
   .readFileSync(publishNpmrcPath, 'utf-8')
   .split(/\r?\n/g)
@@ -25,6 +23,11 @@ if (!npmrcRegistry) {
   process.exit(1);
 }
 
+// Copy the .npmrc.publish to .npmrc so the private registry is used
+fs.copyFileSync(publishNpmrcPath, npmrcPath);
+console.log(`Copied ${publishNpmrcPath} to ${npmrcPath}`);
+
+// Add the registry setting to .yarnrc.yml, and enable yarn-plugin-npmrc to read creds from .npmrc
 const yarnrcUpdates = `
 npmRegistryServer: "${npmrcRegistry}"
 npmAlwaysAuth: true
