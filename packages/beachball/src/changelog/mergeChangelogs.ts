@@ -1,16 +1,17 @@
 import type { PackageChangelog } from '../types/ChangeLog';
 import type { PackageInfo } from '../types/PackageInfo';
-import { generateTag } from '../git/generateTag';
 import type { ChangeType } from '../types/ChangeInfo';
 
 /**
  * Merge multiple package changelogs into one.
  * `name` and `version` will use the values from `mainPackage`'s changelog.
- * `comments` are merged. `date` will be now.
+ * `comments` are merged. `date` will be now. `tag` is taken from `mainPackageTag`
+ * (the primary precomputed git tag for `mainPackage`, or `undefined` if no tag will be created).
  */
 export function mergeChangelogs(
   changelogs: PackageChangelog[],
-  mainPackage: PackageInfo
+  mainPackage: PackageInfo,
+  mainPackageTag: string | undefined
 ): PackageChangelog | undefined {
   if (changelogs.length < 1 || !mainPackage) {
     return undefined;
@@ -19,7 +20,7 @@ export function mergeChangelogs(
   const result: PackageChangelog = {
     name: mainPackage.name,
     version: mainPackage.version,
-    tag: generateTag(mainPackage.name, mainPackage.version),
+    ...(mainPackageTag !== undefined && { tag: mainPackageTag }),
     date: new Date(),
     comments: {},
   };

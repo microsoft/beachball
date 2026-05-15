@@ -14,7 +14,10 @@ import { readJson } from '../object/readJson';
 import { writeJson } from '../object/writeJson';
 
 export async function writeChangelog(
-  bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'dependentChangedBy' | 'packageInfos'>,
+  bumpInfo: Pick<
+    BumpInfo,
+    'changeFileChangeInfos' | 'calculatedChangeTypes' | 'dependentChangedBy' | 'packageInfos' | 'packageTags'
+  >,
   options: Pick<BeachballOptions, 'changeDir' | 'changelog' | 'generateChangelog' | 'path'>
 ): Promise<void> {
   const { packageInfos } = bumpInfo;
@@ -45,10 +48,10 @@ export async function writeChangelog(
  * @returns The list of directories where grouped changelogs were written.
  */
 async function writeGroupedChangelog(
-  bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'packageInfos'>,
+  bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'calculatedChangeTypes' | 'packageInfos' | 'packageTags'>,
   options: Pick<BeachballOptions, 'changeDir' | 'changelog' | 'generateChangelog' | 'path'>
 ): Promise<string[]> {
-  const { packageInfos } = bumpInfo;
+  const { packageInfos, packageTags } = bumpInfo;
 
   // Get the changelog groups with absolute paths.
   const changelogGroups = options.changelog?.groups?.map(({ changelogPath, ...rest }) => ({
@@ -98,7 +101,11 @@ async function writeGroupedChangelog(
 
   // Write each grouped changelog if it's not empty
   for (const [groupAbsDir, group] of Object.entries(groupedChangelogs)) {
-    const groupedChangelog = mergeChangelogs(group.changelogs, group.mainPackage);
+    const groupedChangelog = mergeChangelogs(
+      group.changelogs,
+      group.mainPackage,
+      packageTags[group.mainPackage.name]?.[0]
+    );
     if (groupedChangelog) {
       await writeChangelogFiles({
         options,

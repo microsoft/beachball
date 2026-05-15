@@ -1,0 +1,11 @@
+{
+  "changes": [
+    {
+      "packageName": "beachball",
+      "type": "minor",
+      "dependentChangeType": "patch",
+      "comment": "Add `getGitTag` option for custom per-package git tags",
+      "email": "198982749+Copilot@users.noreply.github.com"
+    }
+  ]
+}

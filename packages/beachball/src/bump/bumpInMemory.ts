@@ -8,6 +8,7 @@ import { getDependentsForPackages } from './getDependentsForPackages';
 import { updateRelatedChangeType } from './updateRelatedChangeType';
 import { bumpPackageInfoVersion } from './bumpPackageInfoVersion';
 import { setDependentVersions } from './setDependentVersions';
+import { calculatePackageTags } from './calculatePackageTags';
 
 /**
  * Gather bump info and bump versions in memory.
@@ -22,7 +23,8 @@ export function bumpInMemory(options: BeachballOptions, context: Omit<CommandCon
   const calculatedChangeTypes = initializePackageChangeTypes(context.changeSet);
 
   // (Splitting out a couple properties that aren't modified as initial step of reducing mutation approach)
-  const bumpInfo: Omit<BumpInfo, 'dependentChangedBy' | 'changeFileChangeInfos'> = {
+  // packageTags is calculated at the very end (after final versions are known).
+  const bumpInfo: Omit<BumpInfo, 'dependentChangedBy' | 'changeFileChangeInfos' | 'packageTags'> = {
     calculatedChangeTypes,
     packageInfos: cloneObject(context.originalPackageInfos),
     packageGroups: context.packageGroups,
@@ -75,9 +77,13 @@ export function bumpInMemory(options: BeachballOptions, context: Omit<CommandCon
   // TODO: Rethink all of this... https://github.com/microsoft/beachball/issues/1123
   Object.keys(dependentChangedBy).forEach(pkg => bumpInfo.modifiedPackages.add(pkg));
 
+  // Now that all final versions are known, compute the git tag(s) for each package.
+  const packageTags = calculatePackageTags(bumpInfo, options);
+
   return {
     ...bumpInfo,
     changeFileChangeInfos: context.changeSet,
     dependentChangedBy,
+    packageTags,
   };
 }

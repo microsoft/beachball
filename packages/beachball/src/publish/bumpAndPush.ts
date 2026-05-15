@@ -71,7 +71,7 @@ export async function bumpAndPush(
 
     // create git tags
     console.log('\nCreating git tags for new versions...');
-    tagPackages(bumpInfo, options);
+    tagPackages(bumpInfo.packageTags, options);
 
     // push
     console.log(`\nPushing to ${branch}...`);

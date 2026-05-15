@@ -36,10 +36,11 @@ describe('mergeChangelogs', () => {
 
     const changelogs = [primaryChangelog, getChangelog('foo')];
 
-    const mergedChangelog = mergeChangelogs(changelogs, primaryPackageInfo);
+    const mergedChangelog = mergeChangelogs(changelogs, primaryPackageInfo, 'primary_v1.2.3');
     expect(mergedChangelog).toBeTruthy();
     expect(mergedChangelog!.name).toBe(primaryPackageInfo.name);
     expect(mergedChangelog!.version).toBe(primaryPackageInfo.version);
+    expect(mergedChangelog!.tag).toBe('primary_v1.2.3');
     expect(mergedChangelog!.date).toBeTruthy();
     expect(mergedChangelog!.comments.patch).toHaveLength(2);
   });
@@ -47,11 +48,18 @@ describe('mergeChangelogs', () => {
   it('merge changelogs when primary package has no change', () => {
     const changelogs = [getChangelog('foo')];
 
-    const mergedChangelog = mergeChangelogs(changelogs, primaryPackageInfo);
+    const mergedChangelog = mergeChangelogs(changelogs, primaryPackageInfo, 'primary_v1.2.3');
     expect(mergedChangelog).toBeTruthy();
     expect(mergedChangelog!.name).toBe(primaryPackageInfo.name);
     expect(mergedChangelog!.version).toBe(primaryPackageInfo.version);
+    expect(mergedChangelog!.tag).toBe('primary_v1.2.3');
     expect(mergedChangelog!.date).toBeTruthy();
     expect(mergedChangelog!.comments.patch).toEqual(changelogs[0].comments.patch);
+  });
+
+  it('omits tag when mainPackageTag is undefined', () => {
+    const mergedChangelog = mergeChangelogs([getChangelog('foo')], primaryPackageInfo, undefined);
+    expect(mergedChangelog).toBeTruthy();
+    expect(mergedChangelog!.tag).toBeUndefined();
   });
 });
