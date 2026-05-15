@@ -10,7 +10,7 @@
     "lint:versions": "cd .. && yarn syncpack:check"
   },
   "devDependencies": {
-    "@ms-cloudpack/eslint-plugin-deprecated": "patch:@ms-cloudpack/eslint-plugin-deprecated@npm%3A0.1.4#~/.yarn/patches/@ms-cloudpack-eslint-plugin-deprecated-npm-0.1.4-74fc1f6a58.patch",
+    "@ms-cloudpack/eslint-plugin-deprecated": "^0.1.5",
     "eslint": "^9.0.0",
     "typescript": "~6.0.0",
     "typescript-eslint": "^8.52.0",
