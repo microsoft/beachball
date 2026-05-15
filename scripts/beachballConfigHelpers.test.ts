@@ -1,6 +1,7 @@
 import { jest, describe, it, expect, beforeEach, beforeAll } from '@jest/globals';
 import fs from 'fs';
 import { getActionTags, getGitTag, postbumpHook } from './beachballConfigHelpers.cjs';
+import path from 'path';
 
 describe('getActionTags', () => {
   it('strips the action prefix and builds exact + major tags', () => {
@@ -74,11 +75,12 @@ describe('postbumpHook', () => {
       ].join('\n')
     );
 
-    postbumpHook('/repo/actions/should-release', '@microsoft/beachball-action-should-release', '2.0.0');
+    const packagePath = path.resolve('/repo/actions/should-release');
+    postbumpHook(packagePath, '@microsoft/beachball-action-should-release', '2.0.0');
 
-    expect(readFileSync).toHaveBeenCalledWith('/repo/actions/should-release/README.md', 'utf8');
+    expect(readFileSync).toHaveBeenCalledWith(path.join(packagePath, 'README.md'), 'utf8');
     expect(writeFileSync).toHaveBeenCalledWith(
-      '/repo/actions/should-release/README.md',
+      path.join(packagePath, 'README.md'),
       [
         '# should-release action',
         'Use `uses: microsoft/beachball/actions/should-release@should-release_v2` in your workflow.',
@@ -94,18 +96,20 @@ describe('postbumpHook', () => {
   it('writes the file unchanged when no matching tags are present', () => {
     readFileSync.mockReturnValueOnce('readme with no tag references');
 
-    postbumpHook('/repo/packages/publish', '@microsoft/beachball-action-publish', '5.1.0');
+    const packagePath = path.resolve('/repo/packages/publish');
+    postbumpHook(packagePath, '@microsoft/beachball-action-publish', '5.1.0');
 
-    expect(writeFileSync).toHaveBeenCalledWith('/repo/packages/publish/README.md', 'readme with no tag references');
+    expect(writeFileSync).toHaveBeenCalledWith(path.join(packagePath, 'README.md'), 'readme with no tag references');
   });
 
   it('does not rewrite tags belonging to a different action', () => {
     readFileSync.mockReturnValueOnce('See also publish_v1 for the publish action.');
 
-    postbumpHook('/repo/packages/should-release', '@microsoft/beachball-action-should-release', '2.0.0');
+    const packagePath = path.resolve('/repo/packages/should-release');
+    postbumpHook(packagePath, '@microsoft/beachball-action-should-release', '2.0.0');
 
     expect(writeFileSync).toHaveBeenCalledWith(
-      '/repo/packages/should-release/README.md',
+      path.join(packagePath, 'README.md'),
       'See also publish_v1 for the publish action.'
     );
   });
