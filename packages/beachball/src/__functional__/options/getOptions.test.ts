@@ -121,7 +121,7 @@ describe('getParsedOptions', () => {
 
   it('uses the branch name defined in beachball.config.js', () => {
     const repo = repositoryFactory.cloneRepository();
-    const repoOptions: Partial<RepoOptions> = { branch: 'origin/foo' };
+    const repoOptions: Partial<RepoOptions> = { branch: 'origin/foo', access: 'public' };
     fs.writeFileSync(
       path.join(repo.rootPath, 'beachball.config.js'),
       `module.exports = ${JSON.stringify(repoOptions)};`
@@ -130,6 +130,7 @@ describe('getParsedOptions', () => {
     const parsedOptions = getParsedOptions({ argv: baseArgv(), env: {}, cwd: repo.rootPath });
     expect(parsedOptions).toEqual({
       options: expect.objectContaining({ branch: 'origin/foo' }),
+      repoOptions: { branch: 'origin/foo', access: 'public' },
       cliOptions: { path: repo.rootPath, command: 'stuff' },
     });
   });
@@ -141,6 +142,7 @@ describe('getParsedOptions', () => {
     const parsedOptions = getParsedOptions({ argv: baseArgv(), env: {}, cwd: repo.rootPath });
     expect(parsedOptions).toEqual({
       options: expect.objectContaining({ branch: 'origin/foo' }),
+      repoOptions: { branch: 'origin/foo' },
       cliOptions: { path: repo.rootPath, command: 'stuff' },
     });
   });
@@ -168,20 +170,21 @@ describe('getParsedOptions', () => {
 
   it('overrides repo options with CLI options', () => {
     const repo = repositoryFactory.cloneRepository();
-    const repoOptions: Partial<RepoOptions> = { branch: 'origin/foo' };
+    const repoOptions: Partial<RepoOptions> = { branch: 'origin/foo', bump: false };
     fs.writeFileSync(
       path.join(repo.rootPath, 'beachball.config.js'),
       `module.exports = ${JSON.stringify(repoOptions)};`
     );
 
     const parsedOptions = getParsedOptions({
-      argv: [...baseArgv(), '--branch', 'origin/bar'],
+      argv: [...baseArgv(), '--branch', 'origin/bar', '--bump'],
       cwd: repo.rootPath,
       env: {},
     });
     expect(parsedOptions).toEqual({
       options: expect.objectContaining({ branch: 'origin/bar' }),
-      cliOptions: { path: repo.rootPath, command: 'stuff', branch: 'origin/bar' },
+      repoOptions: { branch: 'origin/foo', bump: false },
+      cliOptions: { path: repo.rootPath, command: 'stuff', branch: 'origin/bar', bump: true },
     });
   });
 

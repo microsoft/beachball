@@ -1,0 +1,11 @@
+{
+  "changes": [
+    {
+      "type": "major",
+      "comment": "Disable CHANGELOG.json generation by default (`generateChangelog` defaults to `'md'`), since most repos don't use JSON changelogs and so it's just unnecessary bloat in git history. If you want to keep generating CHANGELOG.json files, set `generateChangelog: true` in your beachball config.",
+      "packageName": "beachball",
+      "email": "elcraig@microsoft.com",
+      "dependentChangeType": "patch"
+    }
+  ]
+}

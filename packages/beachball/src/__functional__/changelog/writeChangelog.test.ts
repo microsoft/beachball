@@ -35,12 +35,15 @@ describe('writeChangelog', () => {
 
   initMockLogs();
 
+  /**
+   * Note: `generateChangelog` defaults to `true` here
+   */
   function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, cwd?: string) {
     const parsedOptions = getParsedOptions({
       cwd: cwd || repo?.rootPath || '',
       argv: [],
       env: {},
-      testRepoOptions: { branch: defaultRemoteBranchName, ...repoOptions },
+      testRepoOptions: { branch: defaultRemoteBranchName, generateChangelog: true, ...repoOptions },
     });
     const packageInfos = getPackageInfos(parsedOptions);
     return { packageInfos, options: parsedOptions.options, parsedOptions };

@@ -54,14 +54,7 @@ Beachball's changelogs and change files can have a [shockingly large impact](htt
 
 ### Disable `CHANGELOG.json` if not using
 
-If you don't have a workflow that uses `CHANGELOG.json` (most common), set **`generateChangelog: 'md'`** to only generate `CHANGELOG.md`.
-After enabling, you must **manually** delete existing `CHANGELOG.json` files.
-
-```js
-const config = {
-  generateChangelog: 'md',
-};
-```
+As of Beachball v3, `CHANGELOG.json` is disabled by default since most repos don't use it. If you'd previously set `generateChangelog: true` in your repo but don't need `CHANGELOG.json`, change it to `generateChangelog: 'md'` and delete the existing files.
 
 It's also possible to disable changelog generation entirely with `generateChangelog: false`, though this defeats one of the main points of the tool.
 
