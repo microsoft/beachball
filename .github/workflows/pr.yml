@@ -111,31 +111,13 @@ jobs:
 
       - run: yarn build --verbose
 
-      - name: Check for modified files (e.g. action dist updates)
+      - name: Check for modified files
         uses: ./actions/check-for-modified-files
         with:
           extraError: 'If action dist files changed, run "yarn build" and check in the updated dist files.'
 
       - name: e2e - install-beachball
         uses: ./actions/install-beachball
-
-      - name: e2e - batch-runs
-        uses: ./actions/batch-runs
-        id: batchRuns
-        with:
-          mode: output
-          token: ${{ github.token }}
-
-      - name: e2e - batch-runs result
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        with:
-          script: |
-            const shouldCancel = '${{ steps.batchRuns.outputs.shouldCancel }}';
-            if (shouldCancel === 'yes' && process.env.GITHUB_REF_NAME === 'main') {
-              core.info('Newer run is pending for main');
-            } else if (shouldCancel !== 'no') {
-              core.setFailed(`batch-runs unexpectedly returned "${shouldCancel}"`);
-            }
 
       # Note: this is not actually used here to determine if a release is needed
       - name: e2e - should-release

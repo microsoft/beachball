@@ -10,7 +10,7 @@ inputs:
       "concurrency" setting MUST be enabled on the workflow for this to work properly.
     default: false
   changeGlob:
-    description: Glob to check for beachball change files
+    description: Glob to check for beachball change files or other files
     default: 'change/*.json'
   mode:
     description: Whether to cancel the run ("cancel") or set an output variable ("output")

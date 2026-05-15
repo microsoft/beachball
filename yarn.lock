@@ -1198,16 +1198,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/beachball-action-batch-runs@workspace:actions/batch-runs":
-  version: 0.0.0-use.local
-  resolution: "@microsoft/beachball-action-batch-runs@workspace:actions/batch-runs"
-  dependencies:
-    "@actions/core": "catalog:"
-    "@microsoft/beachball-actions-common": "workspace:"
-    "@microsoft/beachball-scripts": "workspace:^"
-  languageName: unknown
-  linkType: soft
-
 "@microsoft/beachball-action-check-for-modified-files@workspace:actions/check-for-modified-files":
   version: 0.0.0-use.local
   resolution: "@microsoft/beachball-action-check-for-modified-files@workspace:actions/check-for-modified-files"
@@ -1224,19 +1214,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@microsoft/beachball-action-should-release@workspace:actions/should-release"
   dependencies:
-    "@actions/core": "catalog:"
-    "@actions/glob": "catalog:"
-    "@microsoft/beachball-actions-common": "workspace:"
-    "@microsoft/beachball-scripts": "workspace:^"
-  languageName: unknown
-  linkType: soft
-
-"@microsoft/beachball-actions-common@workspace:, @microsoft/beachball-actions-common@workspace:packages/beachball-actions-common":
-  version: 0.0.0-use.local
-  resolution: "@microsoft/beachball-actions-common@workspace:packages/beachball-actions-common"
-  dependencies:
-    "@actions/core": "catalog:"
-    "@actions/github": "catalog:"
+    "@actions/core": "npm:^3.0.0"
+    "@actions/github": "npm:^9.0.0"
+    "@actions/glob": "npm:^0.6.0"
     "@microsoft/beachball-scripts": "workspace:^"
   languageName: unknown
   linkType: soft

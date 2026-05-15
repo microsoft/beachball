@@ -1,8 +1,8 @@
 import * as core from '@actions/core';
 import * as glob from '@actions/glob';
-import fs from 'fs';
-import path from 'path';
-import { checkForNewerRuns, cancelRun, getEnumInput, onUnhandledError } from '@microsoft/beachball-actions-common';
+import { getEnumInput } from './getEnumInput.js';
+import { checkForNewerRuns } from './checkForNewerRuns.js';
+import { cancelRun } from './cancelRun.js';
 
 async function main() {
   const batch = core.getBooleanInput('batch');
@@ -12,16 +12,6 @@ async function main() {
 
   let shouldRelease = true;
 
-  core.debug('cwd: ' + process.cwd());
-  const globDir = path.join(process.cwd(), path.dirname(changeGlob));
-  if (fs.existsSync(globDir)) {
-    core.debug(
-      `files in ${globDir}: ${fs
-        .readdirSync(globDir)
-        .map(f => `\n  ${f}`)
-        .join('')}`
-    );
-  }
   const changeFiles = await (await glob.create(changeGlob)).glob();
   if (changeFiles.length === 0) {
     shouldRelease = false;
@@ -39,4 +29,13 @@ async function main() {
   }
 }
 
-main().catch(onUnhandledError);
+main().catch(err => {
+  if (err instanceof Error) {
+    console.error(err.stack);
+    console.error('Full error object: ' + JSON.stringify(err));
+    core.setFailed(err.message);
+  } else {
+    core.setFailed(JSON.stringify(err));
+  }
+  process.exit(1);
+});

@@ -29,6 +29,8 @@
   // For some reason Renovate is detecting that the repo uses semantic commits
   "semanticCommits": "disabled",
 
+  "baseBranchPatterns": ["main", "v2"],
+
   // The post-upgrade tasks must be repeated since in this repo we need to use beachball@latest
   // to ensure it's pulled from the registry rather than trying to use the local version,
   // which isn't built yet in the context of running Renovate.
@@ -54,7 +56,16 @@
     }
   },
 
-  "baseBranchPatterns": ["main", "v2"],
+  "customManagers": [
+    {
+      // Look for "using: 'nodeX'" in action.yaml files
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|\\/)action\\.ya?ml$/"],
+      "matchStrings": ["using: 'node(?<currentValue>\\d+)'"],
+      "depNameTemplate": "@types/node",
+      "datasourceTemplate": "npm"
+    }
+  ],
 
   "packageRules": [
     {
@@ -97,6 +108,11 @@
     {
       "matchManagers": ["npm"],
       "constraintsFiltering": "strict"
+    },
+    {
+      "groupName": "github action packages",
+      "matchPackageNames": ["@actions/*"],
+      "matchManagers": ["npm"]
     }
   ]
 }

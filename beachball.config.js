@@ -17,7 +17,7 @@ const config = {
   // TODO (release): remove
   canaryName: 'alpha',
 
-  // TODO (release): remove beachball exclusion (but still don't tag the actions common package)
+  // TODO (release): remove beachball exclusion
   getGitTag: (pkg, _defaultTag) => {
     if (!pkg.name.startsWith(actionPrefix)) return null;
     const { exactTag, majorTag } = getActionTags(pkg.name, pkg.version);

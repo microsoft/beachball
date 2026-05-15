@@ -8,15 +8,14 @@ import { logGithubRequestError } from './logGithubRequestError.js';
 export async function cancelRun(token: string): Promise<void> {
   core.info('Canceling this workflow run');
 
-  const workflowRun = Number(process.env.GITHUB_RUN_ID);
   try {
     const octokit = github.getOctokit(token, { log: console });
     await octokit.rest.actions.cancelWorkflowRun({
       ...github.context.repo,
-      run_id: workflowRun,
+      run_id: github.context.runId,
     });
   } catch (err) {
-    logGithubRequestError(err, `canceling workflow run ${workflowRun}`);
+    logGithubRequestError(err, `Canceling workflow run ${github.context.runId}`);
     process.exit(1);
   }
 }
