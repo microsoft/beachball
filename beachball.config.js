@@ -17,9 +17,14 @@ const config = {
   // TODO (release): remove
   canaryName: 'alpha',
 
-  // TODO (release): remove beachball exclusion
-  getGitTag: (pkg, _defaultTag) => {
-    if (!pkg.name.startsWith(actionPrefix)) return null;
+  getGitTag: (pkg, defaultTag) => {
+    // TODO (release): use default tag for beachball
+    if (pkg.name === 'beachball') {
+      return null;
+    }
+    if (!pkg.name.startsWith(actionPrefix)) {
+      return defaultTag;
+    }
     const { exactTag, majorTag } = getActionTags(pkg.name, pkg.version);
     return [exactTag, majorTag];
   },

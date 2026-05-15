@@ -2191,7 +2191,6 @@ __metadata:
     jest: "npm:^30.0.0"
     lage: "npm:^2.15.0"
     lint-staged: "npm:^16.0.0"
-    nano-spawn: "npm:^2.1.0"
     prettier: "npm:~3.8.3"
     syncpack: "npm:^14.0.0"
     typescript: "npm:~6.0.0"
@@ -7249,13 +7248,6 @@ __metadata:
     arrify: "npm:^2.0.1"
     minimatch: "npm:^3.0.4"
   checksum: 10c0/252ffae6d19491c169c22fc30cf8a99f6031f94a3495f187d3430b06200e9f05a7efae90ab9d834f090834e0d9c979ab55e7ad21f61a37995d807b4b0ccdcbd1
-  languageName: node
-  linkType: hard
-
-"nano-spawn@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "nano-spawn@npm:2.1.0"
-  checksum: 10c0/3becc67ed9ab630b6572feab69a4ef468891ad1f89d5c8643f14a2044cf32ba64533033506208039b1e3d9ddcb2f5f4f87ec360f13b3c4f0774304aedf0f0290
   languageName: node
   linkType: hard
 

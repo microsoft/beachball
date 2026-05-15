@@ -1,4 +1,10 @@
 {
-  "extends": "@microsoft/beachball-scripts/tsconfig.actions.json",
+  "extends": "@microsoft/beachball-scripts/config/tsconfig.base.json",
+  "compilerOptions": {
+    // this is bundled, so build output doesn't matter
+    "noEmit": true,
+    "module": "preserve",
+    "moduleResolution": "bundler"
+  },
   "include": ["src"]
 }

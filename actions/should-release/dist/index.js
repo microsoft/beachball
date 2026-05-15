@@ -26207,9 +26207,7 @@ __name(logGithubRequestError, "logGithubRequestError");
 // src/checkForNewerRuns.ts
 async function checkForNewerRuns(token) {
   if (process.env.GITHUB_REF_TYPE !== "branch") {
-    setFailed(
-      `This action only works for runs against branches (this run's ref type: ${process.env.GITHUB_REF_TYPE})`
-    );
+    setFailed(`This action only works for runs against branches (this run's ref type: ${process.env.GITHUB_REF_TYPE})`);
     process.exit(1);
   }
   const octokit = getOctokit(token, { log: console });

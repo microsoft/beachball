@@ -19,6 +19,6 @@ runs:
           [ ! -z "$EXTRA_ERROR" ] && echo "::error::$EXTRA_ERROR"
           echo "Check the following output and resolve the problem that caused these files to change."
           echo
-          git diff HEAD
+          git --no-pager diff HEAD --no-color
           exit 1
         fi
