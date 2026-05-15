@@ -1,12 +1,11 @@
 {
-  "name": "@microsoft/should-release",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@microsoft/beachball-action-should-release",
+  "version": "3.0.0",
   "description": "Determines whether this release workflow run is needed, and cancels it if not",
   "type": "module",
   "scripts": {
-    "build": "repo-scripts build",
-    "bundle": "repo-scripts bundle"
+    "build": "yarn run -T tsc --pretty",
+    "bundle": "node ../../scripts/bundleNode.ts"
   },
   "beachball": {
     "shouldPublish": false
@@ -15,7 +14,6 @@
     "@actions/core": "catalog:",
     "@actions/glob": "catalog:",
     "@microsoft/beachball-actions-common": "workspace:",
-    "@microsoft/beachball-actions-scripts": "workspace:",
     "@microsoft/beachball-scripts": "workspace:^"
   }
 }

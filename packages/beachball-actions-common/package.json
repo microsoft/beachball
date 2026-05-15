@@ -1,19 +1,14 @@
 {
   "name": "@microsoft/beachball-actions-common",
   "version": "0.1.0",
-  "private": true,
   "license": "MIT",
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./lib/index.d.ts",
-      "import": "./lib/index.js"
-    }
-  },
+  "exports": "./src/index.ts",
   "scripts": {
-    "build": "repo-scripts build"
+    "build": "yarn run -T tsc --pretty"
   },
   "beachball": {
+    "gitTags": false,
     "shouldPublish": false
   },
   "dependencies": {
@@ -21,7 +16,6 @@
     "@actions/github": "catalog:"
   },
   "devDependencies": {
-    "@microsoft/beachball-actions-scripts": "workspace:",
     "@microsoft/beachball-scripts": "workspace:^"
   }
 }

@@ -198,6 +198,7 @@ export interface RepoOptions {
   /**
    * Get package-specific git tag(s). Return `null` to skip tagging this package.
    * If returning an array, the first tag should be the most specific to this package.
+   * (Tags will only be created once if multiple packages return the same tag.)
    * @param pkg Package being tagged, including the updated version
    * @param defaultTag The default tag that would be generated for this package (e.g. `pkg_v1.2.3`)
    */
@@ -379,6 +380,7 @@ export interface HooksOptions {
   /**
    * Runs for each package, after writing changelog and package.json updates
    * to the filesystem. May be called multiple times during publish.
+   * In the `publish` flow, files written in this hook will be committed automatically.
    *
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json

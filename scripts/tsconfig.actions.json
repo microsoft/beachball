@@ -1,6 +1,8 @@
 {
   "extends": "@tsconfig/node24/tsconfig.json",
   "compilerOptions": {
+    // these are bundled, so their build output doesn't matter
+    "noEmit": true,
     "module": "node16",
     "moduleResolution": "node16",
     "noUnusedLocals": true,

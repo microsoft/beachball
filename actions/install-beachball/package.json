@@ -1,7 +1,6 @@
 {
-  "name": "@microsoft/install-beachball",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@microsoft/beachball-action-install-beachball",
+  "version": "3.0.0",
   "description": "Installs the locally specified version of Beachball",
   "type": "module",
   "beachball": {
