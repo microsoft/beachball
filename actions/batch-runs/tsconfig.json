@@ -1,4 +1,0 @@
-{
-  "extends": "@microsoft/beachball-scripts/tsconfig.actions.json",
-  "include": ["src"]
-}

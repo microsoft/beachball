@@ -2,7 +2,7 @@
 
 Determines whether a release workflow run is needed, and cancels it if not (unless `mode` is `output`). A run is needed if:
 
-- Beachball change files exist
+- Beachball change files exist (or custom `changeGlob` matches)
 - If `batch: true` is set, no newer runs for the same branch exist _(must also enable `concurrency` in workflow; see below)_
 
 ## Getting started
@@ -12,8 +12,8 @@ Determines whether a release workflow run is needed, and cancels it if not (unle
 The most basic way to run this action is as follows. However, this will result in a "red" build if the run is canceled.
 
 ```yaml
-# This setting is required if `batch: true` is set (see below)
-concurrency: ${{ github.ref }}
+# A `concurrency` setting is required if `batch: true` is set (see below)
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
@@ -30,7 +30,7 @@ jobs:
 To get a "green" build, it's necessary to split the `should-release` action into a separate job:
 
 ```yaml
-concurrency: ${{ github.ref }}
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   prerelease:
@@ -66,10 +66,10 @@ jobs:
 
 If true, the action checks whether any newer builds are pending for the branch that triggered this build. (Batching is not supported for tags.)
 
-For this option to work properly, it **MUST be combined with the built-in [`concurrency` option](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#concurrency)** to ensure that only one build runs at a time for each branch. Add this (or some other string that's unique per branch) at the top of your workflow YAML:
+For this option to work properly, it **MUST be combined with the built-in [`concurrency` option](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#concurrency)** to ensure that only one build runs at a time for each branch. Add this (or some other string that's unique per branch and workflow) at the top of your workflow YAML:
 
 ```yaml
-concurrency: ${{ github.ref }}
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 ```
 
 (This may seem redundant with `concurrency`'s `cancel-in-progress` option which cancels any in-progress runs when a new run is queued. However, that option is unsafe for release workflows with side effects: for example, if an old run gets canceled in the middle of `npm publish` or before it can push bumped versions back to git, things end up in an inconsistent state which usually requires manual intervention to fix.)

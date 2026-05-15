@@ -1180,14 +1180,14 @@ var require_util = __commonJS({
         }
         const port = url.port != null ? url.port : url.protocol === "https:" ? 443 : 80;
         let origin = url.origin != null ? url.origin : `${url.protocol || ""}//${url.hostname || ""}:${port}`;
-        let path6 = url.path != null ? url.path : `${url.pathname || ""}${url.search || ""}`;
+        let path5 = url.path != null ? url.path : `${url.pathname || ""}${url.search || ""}`;
         if (origin[origin.length - 1] === "/") {
           origin = origin.slice(0, origin.length - 1);
         }
-        if (path6 && path6[0] !== "/") {
-          path6 = `/${path6}`;
+        if (path5 && path5[0] !== "/") {
+          path5 = `/${path5}`;
         }
-        return new URL(`${origin}${path6}`);
+        return new URL(`${origin}${path5}`);
       }
       if (!isHttpOrHttpsPrefixed(url.origin || url.protocol)) {
         throw new InvalidArgumentError("Invalid URL protocol: the URL must start with `http:` or `https:`.");
@@ -1671,39 +1671,39 @@ var require_diagnostics = __commonJS({
       });
       diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
         const {
-          request: { method, path: path6, origin }
+          request: { method, path: path5, origin }
         } = evt;
-        debuglog("sending request to %s %s/%s", method, origin, path6);
+        debuglog("sending request to %s %s/%s", method, origin, path5);
       });
       diagnosticsChannel.channel("undici:request:headers").subscribe((evt) => {
         const {
-          request: { method, path: path6, origin },
+          request: { method, path: path5, origin },
           response: { statusCode }
         } = evt;
         debuglog(
           "received response to %s %s/%s - HTTP %d",
           method,
           origin,
-          path6,
+          path5,
           statusCode
         );
       });
       diagnosticsChannel.channel("undici:request:trailers").subscribe((evt) => {
         const {
-          request: { method, path: path6, origin }
+          request: { method, path: path5, origin }
         } = evt;
-        debuglog("trailers received from %s %s/%s", method, origin, path6);
+        debuglog("trailers received from %s %s/%s", method, origin, path5);
       });
       diagnosticsChannel.channel("undici:request:error").subscribe((evt) => {
         const {
-          request: { method, path: path6, origin },
+          request: { method, path: path5, origin },
           error: error2
         } = evt;
         debuglog(
           "request to %s %s/%s errored - %s",
           method,
           origin,
-          path6,
+          path5,
           error2.message
         );
       });
@@ -1752,9 +1752,9 @@ var require_diagnostics = __commonJS({
         });
         diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
           const {
-            request: { method, path: path6, origin }
+            request: { method, path: path5, origin }
           } = evt;
-          debuglog("sending request to %s %s/%s", method, origin, path6);
+          debuglog("sending request to %s %s/%s", method, origin, path5);
         });
       }
       diagnosticsChannel.channel("undici:websocket:open").subscribe((evt) => {
@@ -1820,7 +1820,7 @@ var require_request = __commonJS({
         __name(this, "Request");
       }
       constructor(origin, {
-        path: path6,
+        path: path5,
         method,
         body,
         headers,
@@ -1835,11 +1835,11 @@ var require_request = __commonJS({
         expectContinue,
         servername
       }, handler2) {
-        if (typeof path6 !== "string") {
+        if (typeof path5 !== "string") {
           throw new InvalidArgumentError("path must be a string");
-        } else if (path6[0] !== "/" && !(path6.startsWith("http://") || path6.startsWith("https://")) && method !== "CONNECT") {
+        } else if (path5[0] !== "/" && !(path5.startsWith("http://") || path5.startsWith("https://")) && method !== "CONNECT") {
           throw new InvalidArgumentError("path must be an absolute URL or start with a slash");
-        } else if (invalidPathRegex.test(path6)) {
+        } else if (invalidPathRegex.test(path5)) {
           throw new InvalidArgumentError("invalid request path");
         }
         if (typeof method !== "string") {
@@ -1905,7 +1905,7 @@ var require_request = __commonJS({
         this.completed = false;
         this.aborted = false;
         this.upgrade = upgrade || null;
-        this.path = query ? buildURL(path6, query) : path6;
+        this.path = query ? buildURL(path5, query) : path5;
         this.origin = origin;
         this.idempotent = idempotent == null ? method === "HEAD" || method === "GET" : idempotent;
         this.blocking = blocking == null ? false : blocking;
@@ -6578,7 +6578,7 @@ var require_client_h1 = __commonJS({
     }
     __name(shouldSendContentLength, "shouldSendContentLength");
     function writeH1(client, request2) {
-      const { method, path: path6, host, upgrade, blocking, reset } = request2;
+      const { method, path: path5, host, upgrade, blocking, reset } = request2;
       let { body, headers, contentLength } = request2;
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH" || method === "QUERY" || method === "PROPFIND" || method === "PROPPATCH";
       if (util.isFormDataLike(body)) {
@@ -6644,7 +6644,7 @@ var require_client_h1 = __commonJS({
       if (blocking) {
         socket[kBlocking] = true;
       }
-      let header = `${method} ${path6} HTTP/1.1\r
+      let header = `${method} ${path5} HTTP/1.1\r
 `;
       if (typeof host === "string") {
         header += `host: ${host}\r
@@ -7187,7 +7187,7 @@ var require_client_h2 = __commonJS({
     __name(shouldSendContentLength, "shouldSendContentLength");
     function writeH2(client, request2) {
       const session = client[kHTTP2Session];
-      const { method, path: path6, host, upgrade, expectContinue, signal, headers: reqHeaders } = request2;
+      const { method, path: path5, host, upgrade, expectContinue, signal, headers: reqHeaders } = request2;
       let { body } = request2;
       if (upgrade) {
         util.errorRequest(client, request2, new Error("Upgrade not supported for H2"));
@@ -7254,7 +7254,7 @@ var require_client_h2 = __commonJS({
         });
         return true;
       }
-      headers[HTTP2_HEADER_PATH] = path6;
+      headers[HTTP2_HEADER_PATH] = path5;
       headers[HTTP2_HEADER_SCHEME] = "https";
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH";
       if (body && typeof body.read === "function") {
@@ -7621,9 +7621,9 @@ var require_redirect_handler = __commonJS({
           return this.handler.onHeaders(statusCode, headers, resume, statusText);
         }
         const { origin, pathname, search } = util.parseURL(new URL(this.location, this.opts.origin && new URL(this.opts.path, this.opts.origin)));
-        const path6 = search ? `${pathname}${search}` : pathname;
+        const path5 = search ? `${pathname}${search}` : pathname;
         this.opts.headers = cleanRequestHeaders(this.opts.headers, statusCode === 303, this.opts.origin !== origin);
-        this.opts.path = path6;
+        this.opts.path = path5;
         this.opts.origin = origin;
         this.opts.maxRedirections = 0;
         this.opts.query = null;
@@ -8902,10 +8902,10 @@ var require_proxy_agent = __commonJS({
         };
         const {
           origin,
-          path: path6 = "/",
+          path: path5 = "/",
           headers = {}
         } = opts;
-        opts.path = origin + path6;
+        opts.path = origin + path5;
         if (!("host" in headers) && !("Host" in headers)) {
           const { host } = new URL2(origin);
           headers.host = host;
@@ -10892,21 +10892,21 @@ var require_mock_utils = __commonJS({
       return true;
     }
     __name(matchHeaders, "matchHeaders");
-    function safeUrl(path6) {
-      if (typeof path6 !== "string") {
-        return path6;
+    function safeUrl(path5) {
+      if (typeof path5 !== "string") {
+        return path5;
       }
-      const pathSegments = path6.split("?");
+      const pathSegments = path5.split("?");
       if (pathSegments.length !== 2) {
-        return path6;
+        return path5;
       }
       const qp = new URLSearchParams(pathSegments.pop());
       qp.sort();
       return [...pathSegments, qp.toString()].join("?");
     }
     __name(safeUrl, "safeUrl");
-    function matchKey(mockDispatch2, { path: path6, method, body, headers }) {
-      const pathMatch = matchValue(mockDispatch2.path, path6);
+    function matchKey(mockDispatch2, { path: path5, method, body, headers }) {
+      const pathMatch = matchValue(mockDispatch2.path, path5);
       const methodMatch = matchValue(mockDispatch2.method, method);
       const bodyMatch = typeof mockDispatch2.body !== "undefined" ? matchValue(mockDispatch2.body, body) : true;
       const headersMatch = matchHeaders(mockDispatch2, headers);
@@ -10930,7 +10930,7 @@ var require_mock_utils = __commonJS({
     function getMockDispatch(mockDispatches, key) {
       const basePath = key.query ? buildURL(key.path, key.query) : key.path;
       const resolvedPath = typeof basePath === "string" ? safeUrl(basePath) : basePath;
-      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path6 }) => matchValue(safeUrl(path6), resolvedPath));
+      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path5 }) => matchValue(safeUrl(path5), resolvedPath));
       if (matchedMockDispatches.length === 0) {
         throw new MockNotMatchedError(`Mock dispatch not matched for path '${resolvedPath}'`);
       }
@@ -10971,9 +10971,9 @@ var require_mock_utils = __commonJS({
     }
     __name(deleteMockDispatch, "deleteMockDispatch");
     function buildKey(opts) {
-      const { path: path6, method, body, headers, query } = opts;
+      const { path: path5, method, body, headers, query } = opts;
       return {
-        path: path6,
+        path: path5,
         method,
         body,
         headers,
@@ -11464,10 +11464,10 @@ var require_pending_interceptors_formatter = __commonJS({
       }
       format(pendingInterceptors) {
         const withPrettyHeaders = pendingInterceptors.map(
-          ({ method, path: path6, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
+          ({ method, path: path5, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
             Method: method,
             Origin: origin,
-            Path: path6,
+            Path: path5,
             "Status code": statusCode,
             Persistent: persist ? PERSISTENT : NOT_PERSISTENT,
             Invocations: timesInvoked,
@@ -16445,9 +16445,9 @@ var require_util6 = __commonJS({
       }
     }
     __name(validateCookieValue, "validateCookieValue");
-    function validateCookiePath(path6) {
-      for (let i = 0; i < path6.length; ++i) {
-        const code = path6.charCodeAt(i);
+    function validateCookiePath(path5) {
+      for (let i = 0; i < path5.length; ++i) {
+        const code = path5.charCodeAt(i);
         if (code < 32 || // exclude CTLs (0-31)
         code === 127 || // DEL
         code === 59) {
@@ -19194,11 +19194,11 @@ var require_undici = __commonJS({
           if (typeof opts.path !== "string") {
             throw new InvalidArgumentError("invalid opts.path");
           }
-          let path6 = opts.path;
+          let path5 = opts.path;
           if (!opts.path.startsWith("/")) {
-            path6 = `/${path6}`;
+            path5 = `/${path5}`;
           }
-          url = new URL(util.parseOrigin(url).origin + path6);
+          url = new URL(util.parseOrigin(url).origin + path5);
         } else {
           if (!opts) {
             opts = typeof url === "object" ? url : {};
@@ -19508,7 +19508,7 @@ var require_minimatch = __commonJS({
   "../../node_modules/minimatch/minimatch.js"(exports, module) {
     module.exports = minimatch2;
     minimatch2.Minimatch = Minimatch2;
-    var path6 = (function() {
+    var path5 = (function() {
       try {
         return __require("path");
       } catch (e) {
@@ -19516,7 +19516,7 @@ var require_minimatch = __commonJS({
     })() || {
       sep: "/"
     };
-    minimatch2.sep = path6.sep;
+    minimatch2.sep = path5.sep;
     var GLOBSTAR = minimatch2.GLOBSTAR = Minimatch2.GLOBSTAR = {};
     var expand2 = require_brace_expansion();
     var plTypes = {
@@ -19609,8 +19609,8 @@ var require_minimatch = __commonJS({
       assertValidPattern(pattern);
       if (!options) options = {};
       pattern = pattern.trim();
-      if (!options.allowWindowsEscape && path6.sep !== "/") {
-        pattern = pattern.split(path6.sep).join("/");
+      if (!options.allowWindowsEscape && path5.sep !== "/") {
+        pattern = pattern.split(path5.sep).join("/");
       }
       this.options = options;
       this.maxGlobstarRecursion = options.maxGlobstarRecursion !== void 0 ? options.maxGlobstarRecursion : 200;
@@ -19988,8 +19988,8 @@ var require_minimatch = __commonJS({
       if (this.empty) return f === "";
       if (f === "/" && partial) return true;
       var options = this.options;
-      if (path6.sep !== "/") {
-        f = f.split(path6.sep).join("/");
+      if (path5.sep !== "/") {
+        f = f.split(path5.sep).join("/");
       }
       f = f.split(slashSplit);
       this.debug(this.pattern, "split", f);
@@ -22055,8 +22055,8 @@ var SearchState = class {
   static {
     __name(this, "SearchState");
   }
-  constructor(path6, level) {
-    this.path = path6;
+  constructor(path5, level) {
+    this.path = path5;
     this.level = level;
   }
 };
@@ -22353,9 +22353,18 @@ function create(patterns, options) {
 }
 __name(create, "create");
 
-// src/index.ts
-import fs4 from "fs";
-import path5 from "path";
+// src/getEnumInput.ts
+function getEnumInput(inputName, allowedValues, defaultValue) {
+  const required = typeof defaultValue !== "string";
+  const value = getInput(inputName, { required }) || defaultValue || "";
+  if (!allowedValues.includes(value)) {
+    const allowedValuesStr = allowedValues.map((v) => `"${v}"`).join(" or ");
+    setFailed(`Valid options for "${inputName}" are ${allowedValuesStr} (received "${value}")`);
+    process.exit(1);
+  }
+  return value;
+}
+__name(getEnumInput, "getEnumInput");
 
 // ../../node_modules/@actions/github/lib/context.js
 import { readFileSync, existsSync as existsSync2 } from "fs";
@@ -22374,8 +22383,8 @@ var Context = class {
       if (existsSync2(process.env.GITHUB_EVENT_PATH)) {
         this.payload = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, { encoding: "utf8" }));
       } else {
-        const path6 = process.env.GITHUB_EVENT_PATH;
-        process.stdout.write(`GITHUB_EVENT_PATH ${path6} does not exist${EOL5}`);
+        const path5 = process.env.GITHUB_EVENT_PATH;
+        process.stdout.write(`GITHUB_EVENT_PATH ${path5} does not exist${EOL5}`);
       }
     }
     this.eventName = process.env.GITHUB_EVENT_NAME;
@@ -26184,51 +26193,35 @@ function getOctokit(token, options, ...additionalPlugins) {
 }
 __name(getOctokit, "getOctokit");
 
-// ../../packages/beachball-actions-common/src/logGithubRequestError.ts
+// src/logGithubRequestError.ts
 function logGithubRequestError(error2, description, warnOnly) {
   const log = warnOnly ? warning : setFailed;
   if (error2 instanceof RequestError) {
-    log(`Getting ${description} from "${error2.request.url}" failed with code ${error2.status}, ${error2.message}`);
+    log(`${description} from ${error2.request.url} failed with code ${error2.status}: ${error2.message}`);
   } else {
-    log(`Error getting ${description}: ${error2 instanceof Error ? error2.message : JSON.stringify(error2)}`);
+    log(`${description} failed: ${error2 instanceof Error ? error2.message : JSON.stringify(error2)}`);
   }
 }
 __name(logGithubRequestError, "logGithubRequestError");
 
-// ../../packages/beachball-actions-common/src/cancelRun.ts
-async function cancelRun(token) {
-  info("Canceling this workflow run");
-  const workflowRun = Number(process.env.GITHUB_RUN_ID);
-  try {
-    const octokit = getOctokit(token, { log: console });
-    await octokit.rest.actions.cancelWorkflowRun({
-      ...context2.repo,
-      run_id: workflowRun
-    });
-  } catch (err) {
-    logGithubRequestError(err, `canceling workflow run ${workflowRun}`);
-    process.exit(1);
-  }
-}
-__name(cancelRun, "cancelRun");
-
-// ../../packages/beachball-actions-common/src/checkForNewerRuns.ts
+// src/checkForNewerRuns.ts
 async function checkForNewerRuns(token) {
   if (process.env.GITHUB_REF_TYPE !== "branch") {
-    setFailed("This action is only supported for runs against branches.");
+    setFailed(
+      `This action only works for runs against branches (this run's ref type: ${process.env.GITHUB_REF_TYPE})`
+    );
     process.exit(1);
   }
   const octokit = getOctokit(token, { log: console });
   const branchName = process.env.GITHUB_REF_NAME;
-  const runId = Number(process.env.GITHUB_RUN_ID);
   let workflowId;
   try {
     workflowId = (await octokit.rest.actions.getWorkflowRun({
       ...context2.repo,
-      run_id: runId
+      run_id: context2.runId
     })).data.workflow_id;
   } catch (err) {
-    logGithubRequestError(err, `info about workflow run "${runId}"`);
+    logGithubRequestError(err, `Getting info about workflow run ${context2.runId}`);
     process.exit(1);
   }
   let thisBranchRuns;
@@ -26240,7 +26233,7 @@ async function checkForNewerRuns(token) {
       branch: branchName
     })).data;
   } catch (err) {
-    logGithubRequestError(err, `runs of workflow "${workflowId}" for branch "${branchName}"`);
+    logGithubRequestError(err, `Getting runs of workflow "${workflowId}" for branch "${branchName}"`);
     process.exit(1);
   }
   const runCount = thisBranchRuns.workflow_runs.length;
@@ -26256,31 +26249,21 @@ async function checkForNewerRuns(token) {
 }
 __name(checkForNewerRuns, "checkForNewerRuns");
 
-// ../../packages/beachball-actions-common/src/getEnumInput.ts
-function getEnumInput(inputName, allowedValues, defaultValue) {
-  const required = typeof defaultValue !== "string";
-  const value = getInput(inputName, { required }) || defaultValue || "";
-  if (!allowedValues.includes(value)) {
-    const allowedValuesStr = allowedValues.map((v) => `"${v}"`).join(" or ");
-    setFailed(`Valid options for "${inputName}" are ${allowedValuesStr} (received "${value}")`);
+// src/cancelRun.ts
+async function cancelRun(token) {
+  info("Canceling this workflow run");
+  try {
+    const octokit = getOctokit(token, { log: console });
+    await octokit.rest.actions.cancelWorkflowRun({
+      ...context2.repo,
+      run_id: context2.runId
+    });
+  } catch (err) {
+    logGithubRequestError(err, `Canceling workflow run ${context2.runId}`);
     process.exit(1);
   }
-  return value;
 }
-__name(getEnumInput, "getEnumInput");
-
-// ../../packages/beachball-actions-common/src/onUnhandledError.ts
-function onUnhandledError(err) {
-  if (err instanceof Error) {
-    console.error(err.stack);
-    console.error("Full error object: " + JSON.stringify(err));
-    setFailed(err.message);
-  } else {
-    setFailed(JSON.stringify(err));
-  }
-  process.exit(1);
-}
-__name(onUnhandledError, "onUnhandledError");
+__name(cancelRun, "cancelRun");
 
 // src/index.ts
 async function main() {
@@ -26289,14 +26272,6 @@ async function main() {
   const mode = getEnumInput("mode", ["cancel", "output"], "cancel");
   const token = getInput("token", { required: true });
   let shouldRelease = true;
-  debug("cwd: " + process.cwd());
-  const globDir = path5.join(process.cwd(), path5.dirname(changeGlob));
-  if (fs4.existsSync(globDir)) {
-    debug(
-      `files in ${globDir}: ${fs4.readdirSync(globDir).map((f) => `
-  ${f}`).join("")}`
-    );
-  }
   const changeFiles = await (await create(changeGlob)).glob();
   if (changeFiles.length === 0) {
     shouldRelease = false;
@@ -26313,7 +26288,16 @@ async function main() {
   }
 }
 __name(main, "main");
-main().catch(onUnhandledError);
+main().catch((err) => {
+  if (err instanceof Error) {
+    console.error(err.stack);
+    console.error("Full error object: " + JSON.stringify(err));
+    setFailed(err.message);
+  } else {
+    setFailed(JSON.stringify(err));
+  }
+  process.exit(1);
+});
 /*! Bundled license information:
 
 undici/lib/web/fetch/body.js:

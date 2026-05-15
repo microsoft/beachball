@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Move actions to beachball repo",
+  "packageName": "@microsoft/beachball-action-check-for-modified-files",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

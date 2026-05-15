@@ -11,25 +11,26 @@ type WorkflowRunsResult = Awaited<ReturnType<Octokit['rest']['actions']['listWor
  */
 export async function checkForNewerRuns(token: string): Promise<boolean> {
   if (process.env.GITHUB_REF_TYPE !== 'branch') {
-    core.setFailed('This action is only supported for runs against branches.');
+    core.setFailed(
+      `This action only works for runs against branches (this run's ref type: ${process.env.GITHUB_REF_TYPE})`
+    );
     process.exit(1);
   }
 
   const octokit = github.getOctokit(token, { log: console });
 
-  const branchName = process.env.GITHUB_REF_NAME!;
-  const runId = Number(process.env.GITHUB_RUN_ID!);
+  const branchName = process.env.GITHUB_REF_NAME;
   let workflowId: number;
 
   try {
     workflowId = (
       await octokit.rest.actions.getWorkflowRun({
         ...github.context.repo,
-        run_id: runId,
+        run_id: github.context.runId,
       })
     ).data.workflow_id;
   } catch (err) {
-    logGithubRequestError(err, `info about workflow run "${runId}"`);
+    logGithubRequestError(err, `Getting info about workflow run ${github.context.runId}`);
     process.exit(1);
   }
 
@@ -44,7 +45,7 @@ export async function checkForNewerRuns(token: string): Promise<boolean> {
       })
     ).data;
   } catch (err) {
-    logGithubRequestError(err, `runs of workflow "${workflowId}" for branch "${branchName}"`);
+    logGithubRequestError(err, `Getting runs of workflow "${workflowId}" for branch "${branchName}"`);
     process.exit(1);
   }
 
