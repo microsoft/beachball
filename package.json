@@ -51,8 +51,6 @@
     "@typescript-eslint/utils": "^8.52.0",
     "babel-jest": "^30.0.0",
     "depcheck": "^1.4.7",
-    "esbuild": "^0.28.0",
-    "esbuild-plugin-license": "^1.2.3",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.0.0",

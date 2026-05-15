@@ -1,8 +1,4 @@
 {
   "extends": "@microsoft/beachball-scripts/tsconfig.actions.json",
-  "compilerOptions": {
-    "outDir": "lib",
-    "rootDir": "src"
-  },
   "include": ["src"]
 }

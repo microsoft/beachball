@@ -23,7 +23,7 @@ concurrency: ${{ github.ref }}
 jobs:
   build:
     steps:
-      - uses: microsoft/beachball/actions/batch-runs@v3
+      - uses: microsoft/beachball/actions/batch-runs@batch-runs_v3
         with:
           token: ${{ github.token }}
 ```
@@ -38,7 +38,7 @@ jobs:
     outputs:
       shouldCancel: ${{ steps.shouldCancel.outputs.shouldCancel }}
     steps:
-      - uses: microsoft/beachball/actions/batch-runs@v3
+      - uses: microsoft/beachball/actions/batch-runs@batch-runs_v3
         id: shouldCancel
         with:
           token: ${{ github.token }}

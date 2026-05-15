@@ -15,7 +15,7 @@ jobs:
   build:
     steps:
       # at the end of your workflow:
-      - uses: microsoft/beachball/actions/check-for-modified-files@v3
+      - uses: microsoft/beachball/actions/check-for-modified-files@check-for-modified-files_v3
 ```
 
 ## Inputs
