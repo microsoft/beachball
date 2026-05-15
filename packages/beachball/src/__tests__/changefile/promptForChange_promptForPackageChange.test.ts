@@ -8,16 +8,18 @@ import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { getQuestionsForPackage } from '../../changefile/getQuestionsForPackage';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
-// so instead we inject a custom mock stdout stream, as well as stdin for entering answers
-let stdin: MockStdin;
-let stdout: MockStdout;
+// so instead we inject a custom mock stdout stream, as well as stdin for entering answers.
+// (babel-plugin-jest-hoist requires variables referenced by `jest.mock()` factories to be
+// prefixed with `mock`, so the locals are named `mockStdin`/`mockStdout`.)
+let mockStdin: MockStdin;
+let mockStdout: MockStdout;
 jest.mock('prompts', () => {
   const realPrompts = jest.requireActual<typeof prompts>('prompts');
 
   return ((questions, options) => {
     const questionsArr = Array.isArray(questions) ? questions : [questions];
     return realPrompts(
-      questionsArr.map(q => ({ ...q, stdin, stdout })),
+      questionsArr.map(q => ({ ...q, stdin: mockStdin, stdout: mockStdout })),
       options
     );
   }) as typeof prompts;
@@ -59,15 +61,15 @@ describe('promptForChange _promptForPackageChange', () => {
   const logs = initMockLogs();
 
   beforeEach(() => {
-    stdin = new MockStdin();
+    mockStdin = new MockStdin();
     // prompts writes a near-duplicate chunk with ... while it's processing input, so ignore that.
     // Also replace special characters used by `prompts` that will be different between platforms.
-    stdout = new MockStdout({ ignoreChunks: [/ (…|\.\.\.)( |$)/m], replace: 'prompts' });
+    mockStdout = new MockStdout({ ignoreChunks: [/ (…|\.\.\.)( |$)/m], replace: 'prompts' });
   });
 
   afterEach(() => {
-    stdin.destroy();
-    stdout.destroy();
+    mockStdin.destroy();
+    mockStdout.destroy();
   });
 
   it('returns an empty object and logs nothing if there are no questions', async () => {
@@ -83,11 +85,11 @@ describe('promptForChange _promptForPackageChange', () => {
     const answersPromise = _promptForPackageChange(questions!, pkg);
 
     // input: press enter twice to use defaults (with a pause in between to simulate real user input)
-    await stdin.sendByChar('\n\n');
+    await mockStdin.sendByChar('\n\n');
     const answers = await answersPromise;
 
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`"Please describe the changes for: foo"`);
-    expect(stdout.getOutput()).toMatchInlineSnapshot(`
+    expect(mockStdout.getOutput()).toMatchInlineSnapshot(`
         "? Change type » - Use arrow-keys. Return to submit.
         >    Patch      - bug fixes; no API changes.
              Minor      - small feature; backwards compatible API changes.
@@ -110,19 +112,19 @@ describe('promptForChange _promptForPackageChange', () => {
 
     const answerPromise = _promptForPackageChange(questions!, pkg);
     await waitForPrompt();
-    expect(stdout.lastOutput()).toMatchInlineSnapshot(`
+    expect(mockStdout.lastOutput()).toMatchInlineSnapshot(`
         "? Describe changes (type or choose one) »
         >   message"
       `);
-    stdout.clearOutput();
+    mockStdout.clearOutput();
 
     // input: a message which isn't included in the recent commits, sent by individual characters
     // (as if it was typed)
-    await stdin.sendByChar('abc\n');
+    await mockStdin.sendByChar('abc\n');
     const answers = await answerPromise;
 
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`"Please describe the changes for: foo"`);
-    expect(stdout.getOutput()).toMatchInlineSnapshot(`
+    expect(mockStdout.getOutput()).toMatchInlineSnapshot(`
         "? Describe changes (type or choose one) » a
         ? Describe changes (type or choose one) » ab
         ? Describe changes (type or choose one) » abc
@@ -140,20 +142,20 @@ describe('promptForChange _promptForPackageChange', () => {
 
     const answerPromise = _promptForPackageChange(questions!, pkg);
     await waitForPrompt();
-    expect(stdout.lastOutput()).toMatchInlineSnapshot(`
+    expect(mockStdout.lastOutput()).toMatchInlineSnapshot(`
         "? Describe changes (type or choose one) »
         >   message"
       `);
-    stdout.clearOutput();
+    mockStdout.clearOutput();
 
     // input: a message which isn't included in the recent commits, sent all at once
     // (as if it was pasted)
-    stdin.send('abc');
-    await stdin.sendByChar('\n');
+    mockStdin.send('abc');
+    await mockStdin.sendByChar('\n');
     const answers = await answerPromise;
 
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`"Please describe the changes for: foo"`);
-    expect(stdout.getOutput()).toMatchInlineSnapshot(`
+    expect(mockStdout.getOutput()).toMatchInlineSnapshot(`
         "? Describe changes (type or choose one) » abc
         √ Describe changes (type or choose one) » abc"
       `);
@@ -169,19 +171,19 @@ describe('promptForChange _promptForPackageChange', () => {
 
     const answerPromise = _promptForPackageChange(questions!, pkg);
     await waitForPrompt();
-    expect(stdout.lastOutput()).toMatchInlineSnapshot(`
+    expect(mockStdout.lastOutput()).toMatchInlineSnapshot(`
         "? Describe changes (type or choose one) »
         >   message"
       `);
-    stdout.clearOutput();
+    mockStdout.clearOutput();
 
     // input: a message which isn't included in the recent commits, sent all at once
     // (as if it was pasted)
-    stdin.send('abc\n');
+    mockStdin.send('abc\n');
     const answers = await answerPromise;
 
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`"Please describe the changes for: foo"`);
-    expect(stdout.getOutput()).toEqual('');
+    expect(mockStdout.getOutput()).toEqual('');
     expect(answers).toEqual({ comment: 'abc' });
   });
 
@@ -192,14 +194,14 @@ describe('promptForChange _promptForPackageChange', () => {
     const answerPromise = _promptForPackageChange(questions!, pkg);
 
     // arrow down to select the third type
-    stdin.emitKey({ name: 'down' });
-    stdin.emitKey({ name: 'down' });
-    await stdin.sendByChar('\n');
+    mockStdin.emitKey({ name: 'down' });
+    mockStdin.emitKey({ name: 'down' });
+    await mockStdin.sendByChar('\n');
     // and the second message
-    stdin.emitKey({ name: 'down' });
-    await stdin.sendByChar('\n');
+    mockStdin.emitKey({ name: 'down' });
+    await mockStdin.sendByChar('\n');
 
-    expect(stdout.getOutput()).toMatchInlineSnapshot(`
+    expect(mockStdout.getOutput()).toMatchInlineSnapshot(`
         "? Change type » - Use arrow-keys. Return to submit.
         >    Patch      - bug fixes; no API changes.
              Minor      - small feature; backwards compatible API changes.
@@ -241,9 +243,9 @@ describe('promptForChange _promptForPackageChange', () => {
     const answerPromise = _promptForPackageChange(questions!, pkg);
 
     // type "ba" and press enter to select "bar"
-    await stdin.sendByChar('ba\n');
+    await mockStdin.sendByChar('ba\n');
 
-    expect(stdout.getOutput()).toMatchInlineSnapshot(`
+    expect(mockStdout.getOutput()).toMatchInlineSnapshot(`
         "? Describe changes (type or choose one) »
         >   foo
             bar
@@ -271,11 +273,11 @@ describe('promptForChange _promptForPackageChange', () => {
     const answerPromise = _promptForPackageChange(questions!, pkg);
 
     // type "b", press backspace to delete it, press enter to select foo
-    await stdin.sendByChar('b');
-    stdin.emitKey({ name: 'backspace' });
-    await stdin.sendByChar('\n');
+    await mockStdin.sendByChar('b');
+    mockStdin.emitKey({ name: 'backspace' });
+    await mockStdin.sendByChar('\n');
 
-    expect(stdout.getOutput()).toMatchInlineSnapshot(`
+    expect(mockStdout.getOutput()).toMatchInlineSnapshot(`
         "? Describe changes (type or choose one) »
         >   foo
             bar
@@ -301,10 +303,10 @@ describe('promptForChange _promptForPackageChange', () => {
     const answerPromise = _promptForPackageChange(questions!, pkg);
 
     // answer the first question
-    await stdin.sendByChar('\n');
+    await mockStdin.sendByChar('\n');
     // start typing the second answer then cancel
-    await stdin.sendByChar('a');
-    stdin.emitKey({ name: 'c', ctrl: true });
+    await mockStdin.sendByChar('a');
+    mockStdin.emitKey({ name: 'c', ctrl: true });
 
     const answers = await answerPromise;
 
@@ -313,7 +315,7 @@ describe('promptForChange _promptForPackageChange', () => {
         Cancelled, no change files are written"
       `);
 
-    expect(stdout.getOutput()).toMatchInlineSnapshot(`
+    expect(mockStdout.getOutput()).toMatchInlineSnapshot(`
         "? Change type » - Use arrow-keys. Return to submit.
         >    Patch      - bug fixes; no API changes.
              Minor      - small feature; backwards compatible API changes.

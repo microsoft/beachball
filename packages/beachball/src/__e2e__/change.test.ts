@@ -16,15 +16,17 @@ import { createBasicCommandContext } from '../monorepo/createCommandContext';
 import type { ChangeCommandContext } from '../types/CommandContext';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
-// so instead we inject a custom mock stdout stream, as well as stdin for entering answers
-let stdin: MockStdin;
-let stdout: MockStdout;
+// so instead we inject a custom mock stdout stream, as well as stdin for entering answers.
+// (babel-plugin-jest-hoist requires variables referenced by `jest.mock()` factories to be
+// prefixed with `mock`, so the locals are named `mockStdin`/`mockStdout`.)
+let mockStdin: MockStdin;
+let mockStdout: MockStdout;
 jest.mock(
   'prompts',
   (): typeof prompts =>
     ((questions, options) => {
       questions = Array.isArray(questions) ? questions : [questions];
-      questions = questions.map(q => ({ ...q, stdin, stdout }));
+      questions = questions.map(q => ({ ...q, stdin: mockStdin, stdout: mockStdout }));
       return jest.requireActual<typeof prompts>('prompts')(questions, options);
     }) as typeof prompts
 );
@@ -102,15 +104,15 @@ describe('change command', () => {
   });
 
   beforeEach(() => {
-    stdin = new MockStdin();
-    stdout = new MockStdout({ replace: 'prompts' });
+    mockStdin = new MockStdin();
+    mockStdout = new MockStdout({ replace: 'prompts' });
     // Simulate interactive TTY so prompts-based tests work regardless of the actual environment
     Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
   });
 
   afterEach(() => {
-    stdin.destroy();
-    stdout.destroy();
+    mockStdin.destroy();
+    mockStdout.destroy();
     repo = undefined;
     mockBeachballOptions = undefined;
     // Restore the original isTTY value
@@ -147,13 +149,13 @@ describe('change command', () => {
 
     // Use default change type and custom message
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
-    await stdin.sendByChar('\n');
+    await mockStdin.sendByChar('\n');
     // Also verify that the options shown are correct
-    expect(stdout.lastOutput()).toMatchInlineSnapshot(`
+    expect(mockStdout.lastOutput()).toMatchInlineSnapshot(`
       "? Describe changes (type or choose one) »
       >   "file.js""
     `);
-    await stdin.sendByChar('stage me please\n');
+    await mockStdin.sendByChar('stage me please\n');
     await changePromise;
 
     expect(repo.status()).toMatch(/^A  change/);
@@ -177,8 +179,8 @@ describe('change command', () => {
     const changePromise = change(options, context);
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
-    await stdin.sendByChar('\n'); // default change type
-    await stdin.sendByChar('commit me please\n'); // custom message
+    await mockStdin.sendByChar('\n'); // default change type
+    await mockStdin.sendByChar('commit me please\n'); // custom message
     await changePromise;
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith(expect.stringMatching(/^git committed these change files:/));
@@ -205,8 +207,8 @@ describe('change command', () => {
     const changePromise = change(options, context);
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
-    await stdin.sendByChar('\n'); // default change type
-    await stdin.sendByChar('commit me please\n'); // custom message
+    await mockStdin.sendByChar('\n'); // default change type
+    await mockStdin.sendByChar('commit me please\n'); // custom message
     await changePromise;
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith(expect.stringMatching(/^git committed these change files:/));
@@ -234,8 +236,8 @@ describe('change command', () => {
     await waitForPrompt();
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
-    await stdin.sendByChar('\n'); // default change type
-    await stdin.sendByChar('stage me please\n'); // custom message
+    await mockStdin.sendByChar('\n'); // default change type
+    await mockStdin.sendByChar('stage me please\n'); // custom message
     await changePromise;
 
     expect(repo.status()).toMatch(/^A  change/);
@@ -254,19 +256,19 @@ describe('change command', () => {
 
     // use custom values for first package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
-    stdin.emitKey({ name: 'down' });
-    await stdin.sendByChar('\n');
+    mockStdin.emitKey({ name: 'down' });
+    await mockStdin.sendByChar('\n');
     // also verify that the options shown are correct
-    expect(stdout.lastOutput()).toMatchInlineSnapshot(`
+    expect(mockStdout.lastOutput()).toMatchInlineSnapshot(`
       "? Describe changes (type or choose one) »
       >   commit 2
           commit 1"
     `);
-    await stdin.sendByChar('custom\n');
+    await mockStdin.sendByChar('custom\n');
 
     // use defaults for second package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-2');
-    await stdin.sendByChar('\n\n');
+    await mockStdin.sendByChar('\n\n');
 
     await changePromise;
 
@@ -296,13 +298,13 @@ describe('change command', () => {
 
     // use custom values for first package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
-    stdin.emitKey({ name: 'down' });
-    await stdin.sendByChar('\n');
-    await stdin.sendByChar('custom\n');
+    mockStdin.emitKey({ name: 'down' });
+    await mockStdin.sendByChar('\n');
+    await mockStdin.sendByChar('custom\n');
 
     // use defaults for second package
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-2');
-    await stdin.sendByChar('\n\n');
+    await mockStdin.sendByChar('\n\n');
 
     await changePromise;
 
@@ -341,18 +343,18 @@ describe('change command', () => {
     await waitForPrompt();
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-1');
-    expect(stdout.lastOutput()).toMatch(/Change type/);
-    await stdin.sendByChar('\n');
-    expect(stdout.lastOutput()).toMatch(/Describe changes/);
-    await stdin.sendByChar('\n');
+    expect(mockStdout.lastOutput()).toMatch(/Change type/);
+    await mockStdin.sendByChar('\n');
+    expect(mockStdout.lastOutput()).toMatch(/Describe changes/);
+    await mockStdin.sendByChar('\n');
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: pkg-2');
-    expect(stdout.lastOutput()).toMatch(/custom question/);
-    await stdin.sendByChar('stuff\n');
-    expect(stdout.lastOutput()).toMatch(/Change type/);
-    await stdin.sendByChar('\n');
-    expect(stdout.lastOutput()).toMatch(/Describe changes/);
-    await stdin.sendByChar('\n');
+    expect(mockStdout.lastOutput()).toMatch(/custom question/);
+    await mockStdin.sendByChar('stuff\n');
+    expect(mockStdout.lastOutput()).toMatch(/Change type/);
+    await mockStdin.sendByChar('\n');
+    expect(mockStdout.lastOutput()).toMatch(/Describe changes/);
+    await mockStdin.sendByChar('\n');
 
     await changePromise;
 
