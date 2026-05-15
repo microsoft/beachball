@@ -55,12 +55,13 @@ jobs:
 
 ## Inputs
 
-| Name         | Type                 | Required | Default         | Description                                                                    |
-| ------------ | -------------------- | -------- | --------------- | ------------------------------------------------------------------------------ |
-| `token`      | string               | yes      |                 | GitHub token with `actions: read` permission; `actions: write` if canceling runs |
-| `mode`       | `cancel` \| `output` |          | `cancel`        | Whether to cancel the job or only output the result to a variable              |
-| `batch`      | boolean              |          | `false`         | Whether to emulate batched behavior (see below)                                |
-| `changeGlob` | string               |          | `change/*.json` | Glob to check for Beachball change files                                       |
+<!-- prettier-ignore -->
+| Name | Type | Required | Default | Description |
+| ---- | ---- | -------- | ------- | ----------- |
+| `token` | string | yes | | GitHub token with `actions: read` permission; `actions: write` if canceling runs |
+| `mode` | `cancel` \| `output` | | `cancel` | Whether to cancel the job or only output the result to a variable |
+| `batch` | boolean | | `false` | Whether to emulate batched behavior (see below) |
+| `changeGlob` | string | | `change/*.json` | Glob to check for Beachball change files |
 
 ### `batch` option
 

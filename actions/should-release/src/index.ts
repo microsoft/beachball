@@ -21,7 +21,11 @@ async function main() {
   }
 
   if (mode === 'cancel') {
-    await cancelRun(token);
+    if (shouldRelease) {
+      core.info('Should release: yes (continuing run)');
+    } else {
+      await cancelRun(token);
+    }
   } else {
     const result = shouldRelease ? 'yes' : 'no';
     core.info(`Should release: ${result}`);
