@@ -264,18 +264,24 @@ export class ESRPReleaseService {
       );
     }
 
+    // Packages are already published at this point. Fetching details is diagnostic only —
+    // if it fails, log a warning so the caller can still mark the layer published, otherwise
+    // a retry would attempt to republish versions that already exist on npm.
     this.#logger.log(`Release ${submitReleaseResult.operationId} passed; fetching release details`);
-    const releaseDetails = await getReleaseDetails({
-      clientId: this.#clientId,
-      bearerToken: credentials.esrpAccessToken,
-      releaseId: submitReleaseResult.operationId,
-    }).catch(err => {
-      throw new ReleaseError('Release appeared to succeed, but there was an error getting release details', {
-        cause: err,
+    try {
+      const releaseDetails = await getReleaseDetails({
+        clientId: this.#clientId,
+        bearerToken: credentials.esrpAccessToken,
+        releaseId: submitReleaseResult.operationId,
       });
-    });
-
-    this.#logger.log('Release details:', JSON.stringify(redactReleaseRequest(releaseDetails), null, 2));
+      this.#logger.log('Release details:', JSON.stringify(redactReleaseRequest(releaseDetails), null, 2));
+    } catch (err) {
+      this.#logger.warn(
+        `Release ${submitReleaseResult.operationId} succeeded but fetching details failed; ` +
+          `continuing so the layer can be marked published:`,
+        err
+      );
+    }
   }
 
   /**

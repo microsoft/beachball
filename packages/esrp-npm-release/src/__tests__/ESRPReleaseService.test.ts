@@ -254,11 +254,20 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
   it.each([
     ['submitRelease', 'Failed to submit release'],
     ['getReleaseStatus', 'Failed to get release status'],
-    ['getReleaseDetails', 'Release appeared to succeed, but there was an error getting release details'],
   ] as const)('wraps %s failures with ReleaseError', async (method, message) => {
     const originalError = new Error(`${method} failed`);
     mockEsrpHttp[method].mockRejectedValue(originalError);
     await expectReleaseError(message, originalError);
+  });
+
+  it('logs getReleaseDetails failure as a warning but does not fail the release', async () => {
+    mockEsrpHttp.getReleaseStatus.mockResolvedValue({ status: 'pass' });
+    mockEsrpHttp.getReleaseDetails.mockRejectedValue(new Error('details failed'));
+
+    await runCreateRelease(); // should not throw — packages were already published
+    expect(logger.lines.some(l => l.startsWith('[warn]') && l.includes('succeeded but fetching details failed'))).toBe(
+      true
+    );
   });
 
   it('wraps SAS token generation failures with ReleaseError', async () => {
