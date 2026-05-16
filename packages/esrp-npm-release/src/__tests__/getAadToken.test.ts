@@ -23,11 +23,11 @@ const describeIfOpenssl = isOpensslAvailable() ? describe : describe.skip;
 describe('getAadToken', () => {
   let logger: MockLogger;
 
-  const endpoint = 'https://sample.microsoft.com/';
-  const baseParams: Pick<GetAadTokenParams, 'clientId' | 'tenantId' | 'endpoint'> = {
+  const scopes = ['https://sample.microsoft.com/.default'];
+  const baseParams: Pick<GetAadTokenParams, 'clientId' | 'tenantId' | 'scopes'> = {
     clientId: 'client-id',
     tenantId: 'tenant-id',
-    endpoint,
+    scopes,
   };
 
   function makeAuthResult(overrides: Partial<AuthenticationResult> = {}): AuthenticationResult {
@@ -64,9 +64,7 @@ describe('getAadToken', () => {
         authority: 'https://login.microsoftonline.com/tenant-id',
         clientAssertion: 'federated-id-token',
       });
-      expect(acquireTokenByClientCredential).toHaveBeenCalledWith({
-        scopes: [`${endpoint}.default`],
-      });
+      expect(acquireTokenByClientCredential).toHaveBeenCalledWith({ scopes });
     });
 
     it('forwards refreshAfterTimestamp when MSAL returns refreshOn', async () => {
@@ -138,7 +136,7 @@ describe('getAadToken', () => {
 
       expect(err).toBeInstanceOf(ReleaseError);
       expect((err as ReleaseError).message).toEqual(
-        `Failed to acquire token for client "client-id" in tenant "tenant-id" with scope "${endpoint}.default"`
+        `Failed to acquire token for client "client-id" in tenant "tenant-id" with scope ${JSON.stringify(scopes)}`
       );
       expect((err as ReleaseError).cause).toBe(originalError);
     });

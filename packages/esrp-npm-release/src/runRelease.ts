@@ -30,10 +30,10 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
     stagingBlobServiceClient = new BlobServiceClient(storageUrl, {
       // In the vscode example, the pipeline acquires the staging token in a previous step and stores it in
       // PUBLISH_AUTH_TOKENS env, but that appears to only be necessary since multiple steps need the token
-      getToken: () => {
+      getToken: scopes => {
         logger.log(`Acquiring AAD token for staging storage account "${env.staging.storageAccountName}"`);
         return getAadToken({
-          endpoint: storageUrl,
+          scopes: Array.isArray(scopes) ? scopes : [scopes],
           tenantId: env.staging.tenantId,
           clientId: env.staging.clientId,
           auth: { idToken: env.staging.idToken },

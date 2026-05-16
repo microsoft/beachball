@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "license": "UNLICENSED",
   "description": "ESRP npm release helper",
-  "bin": "dist/index.js",
+  "bin": "bin/esrp-npm-release.js",
   "private": true,
   "exports": null,
   "type": "module",
@@ -11,6 +11,7 @@
     "node": ">=22.18.0"
   },
   "files": [
+    "bin",
     "dist",
     "NOTICE.txt"
   ],

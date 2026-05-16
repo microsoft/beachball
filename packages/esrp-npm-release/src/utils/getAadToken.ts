@@ -7,7 +7,8 @@ import { ReleaseError } from './ReleaseError.ts';
 
 export interface GetAadTokenParams extends Pick<ReleaseHttpParams, 'clientId'> {
   tenantId: string;
-  endpoint: string;
+  /** Typically this should be `['<domain>.default']` */
+  scopes: string[];
   auth: { certPfxContent: string } | { idToken: string };
   logger: Logger;
 }
@@ -19,7 +20,7 @@ export type { AccessToken };
  * Throws a `ReleaseError` on failure.
  */
 export async function getAadToken(params: GetAadTokenParams): Promise<AccessToken> {
-  const { clientId, tenantId, auth, endpoint, logger } = params;
+  const { clientId, tenantId, auth, scopes, logger } = params;
 
   const authOptions: NodeAuthOptions = {
     clientId,
@@ -43,11 +44,10 @@ export async function getAadToken(params: GetAadTokenParams): Promise<AccessToke
   }
 
   let result: AuthenticationResult | null;
-  const scope = `${endpoint}.default`;
-  const errorMessageBase = `Failed to acquire token for client "${clientId}" in tenant "${tenantId}" with scope "${scope}"`;
+  const errorMessageBase = `Failed to acquire token for client "${clientId}" in tenant "${tenantId}" with scope ${JSON.stringify(scopes)}`;
   try {
     const cca = new ConfidentialClientApplication({ auth: authOptions });
-    result = await cca.acquireTokenByClientCredential({ scopes: [scope] });
+    result = await cca.acquireTokenByClientCredential({ scopes });
   } catch (ex) {
     throw new ReleaseError(errorMessageBase, { cause: ex });
   }

@@ -169,7 +169,7 @@ export class ESRPReleaseService {
   async #acquireCredentials(): Promise<PerReleaseCredentials> {
     this.#logger.log(`Acquiring AAD access token for ESRP API at ${esrpApiEndpoint}`);
     const esrpAccessToken = await getAadToken({
-      endpoint: esrpApiEndpoint,
+      scopes: [`${esrpApiEndpoint}.default`],
       clientId: this.#clientId,
       tenantId: this.#tenantId,
       auth: { certPfxContent: this.#authCertificatePfx },
@@ -280,7 +280,7 @@ export class ESRPReleaseService {
 
   /**
    * Create and submit a release request.
-   * (This should internally catch any errors and and re-throw an appropriate `ReleaseError`.)
+   * (This should internally catch any errors and re-throw an appropriate `ReleaseError`.)
    */
   async #submitRelease(
     params: Omit<CreateReleaseParams, 'stagingBlobPathPrefix'> & {

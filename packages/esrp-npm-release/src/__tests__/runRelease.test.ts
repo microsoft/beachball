@@ -61,17 +61,11 @@ describe('runRelease', () => {
 
     const packedDir = createPackedDir(temp, layers);
 
-    return createMockEnv({
-      packedPackagesPath: packedDir,
-      packagingFeedId: 'mock-feed-id',
-      ado: {
-        agentTempDirectory: agentTemp,
-        buildSourceVersion: 'commit-1',
-        buildRepositoryName: 'org/repo',
-        systemCollectionUri: 'https://dev.azure.com/mockorg/',
-        systemAccessToken: 'mock-system-access-token',
-      },
-    });
+    const env = createMockEnv();
+    env.packedPackagesPath = packedDir;
+    env.ado.agentTempDirectory = agentTemp;
+    env.ado.buildSourceVersion = 'commit-1';
+    return env;
   }
 
   beforeEach(() => {

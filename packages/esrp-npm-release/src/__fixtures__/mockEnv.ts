@@ -1,10 +1,9 @@
 import type { EnvOptions } from '../getEnvOptions.ts';
 
 /** A complete `EnvOptions` for tests, with sensible defaults. Override fields per-test. */
-export function createMockEnv(overrides: Partial<EnvOptions> = {}): EnvOptions {
+export function createMockEnv(): EnvOptions {
   return {
     packedPackagesPath: '/tmp/packed',
-    packagingFeedId: 'mock-feed-id',
     esrp: {
       productName: 'TestProduct',
       npmTag: undefined,
@@ -16,24 +15,18 @@ export function createMockEnv(overrides: Partial<EnvOptions> = {}): EnvOptions {
       clientId: 'esrp-client',
       authCertificatePfx: 'mock-auth-pfx',
       requestSigningCertificatePfx: 'mock-signing-pfx',
-      ...overrides.esrp,
     },
     staging: {
       storageAccountName: 'stagingaccount',
       clientId: 'staging-client',
       idToken: 'staging-id-token',
       tenantId: 'staging-tenant',
-      ...overrides.staging,
     },
     ado: {
       agentTempDirectory: '/tmp/agent',
       buildSourceVersion: 'abcdef0123456789',
       buildRepositoryName: 'org/repo',
-      systemCollectionUri: 'https://dev.azure.com/mockorg/',
-      systemAccessToken: 'mock-system-access-token',
-      ...overrides.ado,
     },
-    ...overrides,
   };
 }
 
@@ -54,9 +47,6 @@ export function createMockProcessEnv(overrides: Partial<NodeJS.ProcessEnv> = {})
     AGENT_TEMPDIRECTORY: '/tmp/agent',
     BUILD_SOURCEVERSION: 'abcdef0123456789',
     BUILD_REPOSITORY_NAME: 'org/repo',
-    SYSTEM_COLLECTIONURI: 'https://dev.azure.com/mockorg/',
-    SYSTEM_ACCESSTOKEN: 'mock-system-access-token',
-    PACKAGING_FEED_ID: 'mock-feed-id',
     ...overrides,
   };
 }

@@ -9,7 +9,6 @@ describe('getEnvOptions', () => {
 
     expect(env).toEqual({
       packedPackagesPath: '/tmp/packed',
-      packagingFeedId: 'mock-feed-id',
       esrp: {
         productName: 'TestProduct',
         npmTag: undefined,
@@ -32,8 +31,6 @@ describe('getEnvOptions', () => {
         agentTempDirectory: '/tmp/agent',
         buildSourceVersion: 'abcdef0123456789',
         buildRepositoryName: 'org/repo',
-        systemCollectionUri: 'https://dev.azure.com/mockorg/',
-        systemAccessToken: 'mock-system-access-token',
       },
     });
   });

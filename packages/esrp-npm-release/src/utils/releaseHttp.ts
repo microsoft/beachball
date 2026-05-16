@@ -75,13 +75,14 @@ async function doHttpRequest<TResult>(
 
   const body = params.body && JSON.stringify(params.body);
 
-  let response: Response | undefined;
-  let lastError: string;
   const maxRetries = 10;
-  let run = 1;
+  let lastError = '';
+  let responseText = '';
 
-  while (!response) {
+  for (let run = 1; run <= maxRetries; run++) {
+    let response: Response | undefined;
     try {
+      // start the request - resolves when headers are received, and rejects on initial network errors
       response = await fetch(apiUrl, {
         method,
         headers: {
@@ -89,32 +90,45 @@ async function doHttpRequest<TResult>(
           ...(body && { 'Content-Type': 'application/json' }),
         },
         ...(body && { body }),
+        signal: AbortSignal.timeout(60_000),
       });
+      // wait for the whole response body
+      responseText = await response.text();
+      if (response.ok) {
+        break;
+      }
     } catch (err) {
-      lastError = (err as Error).message || String(err);
+      const message = (err as Error).message || String(err);
+      // retry on transient errors, throw otherwise
       if (
         !/fetch failed|terminated|aborted|timeout|TimeoutError|Timeout Error|RestError|Client network socket disconnected|socket hang up|ECONNRESET/i.test(
-          (err as Error).message || ''
+          message
         )
       ) {
-        throw new Error(`Request to ${apiUrl} failed: ${lastError}`);
+        // Intentionally not a ReleaseError so caller can add more context
+        throw new Error(`Request to ${apiUrl} failed: ${message}`);
       }
-
-      if (run === maxRetries) {
-        throw new Error(`Request to ${apiUrl} failed after ${maxRetries} attempts. Last error: ${lastError}`);
-      }
-
-      // maximum delay is ~3 seconds
-      const millis = Math.floor(Math.random() * 200 + 50 * Math.pow(1.5, run));
-      await new Promise(c => setTimeout(c, millis));
-      run++;
+      lastError = message;
     }
-  }
 
-  const responseText = await response.text();
-  if (!response.ok) {
-    // Intentionally not a ReleaseError so caller can add more context
-    throw new Error(`Request to ${apiUrl} failed with status ${response.status}:\n${responseText}`);
+    if (response) {
+      const status = response.status;
+      // ignore transient errors: 408 Request Timeout, 429 Too Many Requests, and any 5xx
+      if (!(status === 408 || status === 429 || (status >= 500 && status < 600))) {
+        // Intentionally not a ReleaseError so caller can add more context
+        throw new Error(`Request to ${apiUrl} failed with status ${status}:\n${responseText}`);
+      } else {
+        lastError = `status ${status}: ${responseText}`;
+      }
+    }
+
+    if (run === maxRetries) {
+      throw new Error(`Request to ${apiUrl} failed after ${maxRetries} attempts. Last error:\n${lastError}`);
+    }
+
+    // schedule a retry (maximum delay is ~3 seconds)
+    const millis = Math.floor(Math.random() * 200 + 50 * Math.pow(1.5, run));
+    await new Promise(c => setTimeout(c, millis));
   }
 
   try {

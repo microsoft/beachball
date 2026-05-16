@@ -155,7 +155,7 @@ templateContext:
 
 The release pipeline is triggered on prepublish pipeline completion, downloads the artifacts from the prepublish pipeline, and runs this tool.
 
-The job should be configured as a `releaseJob` with `isProduction: true` in `templateContext`. It downloads the packed packages and tool as pipeline artifact inputs, and publishes retry state as an output.
+The job should be configured as a `releaseJob` with `isProduction: true` in `templateContext`. It downloads the packed packages and tool as pipeline artifact inputs.
 
 Be sure to fill in all the `<placeholders>`! See https://github.com/microsoft/beachball/blob/main/.ado/release.yml for a full example.
 
@@ -237,9 +237,6 @@ extends:
                 retryCountOnTaskFailure: 3
                 env:
                   PACKED_PACKAGES_PATH: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
-                  # System.AccessToken must be mapped explicitly (it's not auto-injected as an env var).
-                  # Used to authenticate to the ADO Artifacts API for piercing.
-                  SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
                   # Staging storage credentials
                   STAGING_STORAGE_ACCOUNT_NAME: <storage account name>

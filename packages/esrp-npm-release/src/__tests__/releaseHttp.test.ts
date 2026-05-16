@@ -41,6 +41,7 @@ describe('releaseHttp', () => {
         method: 'POST',
         headers: { Authorization: 'Bearer tok', 'Content-Type': 'application/json' },
         body: JSON.stringify(mockRequest),
+        signal: expect.anything(),
       });
     });
   });
@@ -55,6 +56,7 @@ describe('releaseHttp', () => {
       expect(fetchMock).toHaveBeenCalledWith(`${baseUrl}cid/workflows/release/operations/grs/rid`, {
         method: 'GET',
         headers: { Authorization: 'Bearer tok' },
+        signal: expect.anything(),
       });
     });
   });
@@ -69,17 +71,54 @@ describe('releaseHttp', () => {
       expect(fetchMock).toHaveBeenCalledWith(`${baseUrl}cid/workflows/release/operations/grd/rid`, {
         method: 'GET',
         headers: { Authorization: 'Bearer tok' },
+        signal: expect.anything(),
       });
     });
   });
 
   describe('error handling', () => {
-    it('throws when response is not ok, including status and body in message', async () => {
-      fetchMock.mockResolvedValue(makeFetchResponse({ status: 500, body: 'internal server error' }));
+    it('throws immediately on non-transient HTTP status, including status and body in message', async () => {
+      fetchMock.mockResolvedValue(makeFetchResponse({ status: 404, body: 'not found' }));
 
       await expect(getReleaseStatus({ clientId: 'c', bearerToken: 't', releaseId: 'r' })).rejects.toThrow(
-        /failed with status 500[\s\S]*internal server error/
+        /failed with status 404[\s\S]*not found/
       );
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('retries on transient HTTP status and eventually succeeds', async () => {
+      jest.useFakeTimers();
+      try {
+        fetchMock
+          .mockResolvedValueOnce(makeFetchResponse({ status: 503, body: 'unavailable' }))
+          .mockResolvedValueOnce(makeFetchResponse({ status: 429, body: 'slow down' }))
+          .mockResolvedValueOnce(makeFetchResponse({ body: '{"status":"pass"}' }));
+
+        const promise = getReleaseStatus({ clientId: 'c', bearerToken: 't', releaseId: 'r' });
+        await jest.runAllTimersAsync();
+
+        await expect(promise).resolves.toEqual({ status: 'pass' });
+        expect(fetchMock).toHaveBeenCalledTimes(3);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('throws after exhausting retries on transient HTTP status', async () => {
+      jest.useFakeTimers();
+      try {
+        fetchMock.mockResolvedValue(makeFetchResponse({ status: 500, body: 'internal server error' }));
+
+        const promise = getReleaseStatus({ clientId: 'c', bearerToken: 't', releaseId: 'r' });
+        promise.catch(() => undefined);
+
+        await jest.runAllTimersAsync();
+
+        await expect(promise).rejects.toThrow(/failed after 10 attempts.[\s\S]*?status 500: internal server error/);
+        expect(fetchMock).toHaveBeenCalledTimes(10);
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('throws when response body is not valid JSON', async () => {
@@ -119,7 +158,7 @@ describe('releaseHttp', () => {
 
         await jest.runAllTimersAsync();
 
-        await expect(promise).rejects.toThrow(/failed after 10 attempts.*fetch failed/);
+        await expect(promise).rejects.toThrow(/failed after 10 attempts[\s\S]*?fetch failed/);
         expect(fetchMock).toHaveBeenCalledTimes(10);
       } finally {
         jest.useRealTimers();
