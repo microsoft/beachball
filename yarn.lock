@@ -2407,7 +2407,7 @@ __metadata:
     jws: "patch:jws@npm%3A4.0.1#~/.yarn/patches/jws-npm-4.0.1-0d8c257cbe.patch"
     yazl: "npm:^3.3.1"
   bin:
-    esrp-npm-release: dist/index.js
+    esrp-npm-release: bin/esrp-npm-release.js
   languageName: unknown
   linkType: soft
 
