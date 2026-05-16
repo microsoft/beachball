@@ -80,7 +80,7 @@ export function getEnvOptions(env: NodeJS.ProcessEnv = process.env): EnvOptions 
   function getEnv(name: string, options: { isOptional: true }): string | undefined;
   function getEnv(name: string, options?: { defaultValue?: string; isOptional?: boolean }): string | undefined {
     const result = env[name];
-    if (typeof result === 'string') return result;
+    if (result) return result;
     if (options?.defaultValue !== undefined) return options.defaultValue;
     if (options?.isOptional) return undefined;
     // collect all errors and throw at the end

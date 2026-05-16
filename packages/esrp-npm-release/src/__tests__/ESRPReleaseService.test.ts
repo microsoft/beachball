@@ -61,7 +61,9 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
 
   beforeEach(async () => {
     jest.useFakeTimers();
-    mockGetAadToken.mockResolvedValue({ token: 'aad-token', expiresOnTimestamp: Date.now() + 60000 });
+    // Default to a far-future expiry so polling doesn't trigger refresh; specific tests
+    // override this to exercise the refresh path.
+    mockGetAadToken.mockResolvedValue({ token: 'aad-token', expiresOnTimestamp: Date.now() + 24 * 60 * 60 * 1000 });
     mockEsrpHttp.submitRelease.mockResolvedValue({ operationId: 'mock-op-id' });
     mockEsrpHttp.getReleaseStatus.mockResolvedValue({ status: 'pass' });
     mockEsrpHttp.getReleaseDetails.mockResolvedValue({});
@@ -145,8 +147,12 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
     });
     expect(blobClient.delete).toHaveBeenCalledTimes(1);
 
-    // One snapshot of output to verify it looks reasonable (remove large objects)
-    expect(logger.lines.map(line => line.replace(/\{[\s\S]*\}$/, '{ ... }'))).toMatchInlineSnapshot(`
+    // One snapshot of output to verify it looks reasonable (remove large objects and UUIDs)
+    expect(
+      logger.lines
+        .map(line => line.replace(/\{[\s\S]*\}$/, '{ ... }'))
+        .map(line => line.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i, '<uuid>'))
+    ).toMatchInlineSnapshot(`
       [
         "[log] Getting client and ensuring staging container "staging" exists",
         "[log] Extracting request signing key and certificates from PFX",
@@ -155,8 +161,8 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
         "[log] [layer-01] Acquiring fresh credentials for release",
         "[log] [layer-01] Acquiring AAD access token for ESRP API at https://api.esrp.microsoft.com/",
         "[log] [layer-01] Requesting user delegation key for staging storage account "mockaccount"",
-        "[log] [layer-01] Generating SAS token for staging blob access",
         "[log] [layer-01] Uploading <temp>/layer-01-123456789.zip to https://stagingaccount.blob.core.windows.net/staging/r/op-1",
+        "[log] [layer-01] Generating SAS token for staging blob "repo1/<uuid>"",
         "[log] [layer-01] Preparing to submit release",
         "[log] [layer-01] Sending request to ESRP API: { ... }",
         "[log] [layer-01] Successfully submitted release mock-op-id. Polling for completion...",
@@ -200,6 +206,26 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
 
     expect(mockGetAadToken).toHaveBeenCalledTimes(2);
     expect(blobServiceClient.getUserDelegationKey).toHaveBeenCalledTimes(2);
+  });
+
+  it('refreshes AAD access token during polling when near expiry', async () => {
+    // First token: near-expiry (refresh threshold is 5 min before expiry, so this already
+    // qualifies for refresh on the first poll). Second token: far-future.
+    mockGetAadToken
+      .mockResolvedValueOnce({ token: 'aad-token-1', expiresOnTimestamp: Date.now() + 10_000 })
+      .mockResolvedValueOnce({ token: 'aad-token-2', expiresOnTimestamp: Date.now() + 24 * 60 * 60 * 1000 });
+    mockEsrpHttp.queueStatuses(['inprogress', 'pass']);
+
+    await runCreateRelease();
+
+    // Initial acquisition + one refresh during polling.
+    expect(mockGetAadToken).toHaveBeenCalledTimes(2);
+    // Submit happens before polling refresh, so it uses the original token; all status
+    // calls happen after the first refresh check, so they use the refreshed token.
+    expect(mockEsrpHttp.submitRelease.mock.calls[0][0].bearerToken).toBe('aad-token-1');
+    const statusCalls = mockEsrpHttp.getReleaseStatus.mock.calls;
+    expect(statusCalls.every(c => c[0].bearerToken === 'aad-token-2')).toBe(true);
+    expect(logger.lines.some(l => l.includes('AAD access token near expiry, refreshing'))).toBe(true);
   });
 
   it('polls every 5 seconds', async () => {
