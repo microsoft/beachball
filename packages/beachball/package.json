@@ -5,7 +5,8 @@
   "type": "commonjs",
   "repository": {
     "type": "git",
-    "url": "https://github.com/microsoft/beachball"
+    "url": "https://github.com/microsoft/beachball",
+    "directory": "packages/beachball"
   },
   "homepage": "https://microsoft.github.io/beachball/",
   "license": "MIT",
@@ -21,7 +22,6 @@
     "lib/!(__*)/**/*"
   ],
   "scripts": {
-    "beachball": "node ./lib/cli.js",
     "build": "yarn run -T tsc --pretty",
     "depcheck": "yarn run -T depcheck .",
     "lint": "yarn run -T eslint --color --max-warnings=0 src",

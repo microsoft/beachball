@@ -90,7 +90,7 @@ describe('promptForChange _promptForPackageChange', () => {
 
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`"Please describe the changes for: foo"`);
     expect(mockStdout.getOutput()).toMatchInlineSnapshot(`
-        "? Change type » - Use arrow-keys. Return to submit.
+        "? Change type » See https://aka.ms/beachball-change for help. Use arrow keys; return to submit.
         >    Patch      - bug fixes; no API changes.
              Minor      - small feature; backwards compatible API changes.
              None       - this change does not affect the published package in any way.
@@ -100,6 +100,7 @@ describe('promptForChange _promptForPackageChange', () => {
         >   message
         √ Describe changes (type or choose one) » message"
       `);
+
     expect(answers).toEqual({ type: 'patch', comment: 'message' });
   });
 
@@ -202,17 +203,17 @@ describe('promptForChange _promptForPackageChange', () => {
     await mockStdin.sendByChar('\n');
 
     expect(mockStdout.getOutput()).toMatchInlineSnapshot(`
-        "? Change type » - Use arrow-keys. Return to submit.
+        "? Change type » See https://aka.ms/beachball-change for help. Use arrow keys; return to submit.
         >    Patch      - bug fixes; no API changes.
              Minor      - small feature; backwards compatible API changes.
              None       - this change does not affect the published package in any way.
              Major      - major feature; breaking changes.
-        ? Change type » - Use arrow-keys. Return to submit.
+        ? Change type » See https://aka.ms/beachball-change for help. Use arrow keys; return to submit.
              Patch      - bug fixes; no API changes.
         >    Minor      - small feature; backwards compatible API changes.
              None       - this change does not affect the published package in any way.
              Major      - major feature; breaking changes.
-        ? Change type » - Use arrow-keys. Return to submit.
+        ? Change type » See https://aka.ms/beachball-change for help. Use arrow keys; return to submit.
              Patch      - bug fixes; no API changes.
              Minor      - small feature; backwards compatible API changes.
         >    None       - this change does not affect the published package in any way.
@@ -228,6 +229,7 @@ describe('promptForChange _promptForPackageChange', () => {
             third
         √ Describe changes (type or choose one) » second"
       `);
+
 
     const answers = await answerPromise;
     expect(answers).toEqual({ type: 'none', comment: 'second' });
@@ -316,7 +318,7 @@ describe('promptForChange _promptForPackageChange', () => {
       `);
 
     expect(mockStdout.getOutput()).toMatchInlineSnapshot(`
-        "? Change type » - Use arrow-keys. Return to submit.
+        "? Change type » See https://aka.ms/beachball-change for help. Use arrow keys; return to submit.
         >    Patch      - bug fixes; no API changes.
              Minor      - small feature; backwards compatible API changes.
              None       - this change does not affect the published package in any way.
@@ -327,6 +329,7 @@ describe('promptForChange _promptForPackageChange', () => {
         ? Describe changes (type or choose one) » a
         × Describe changes (type or choose one) » a"
       `);
+
 
     expect(answers).toBeUndefined();
   });
