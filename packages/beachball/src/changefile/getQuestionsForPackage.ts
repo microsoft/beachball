@@ -71,6 +71,7 @@ function getChangeTypePrompt(params: {
     type: 'select',
     name: 'type',
     message: 'Change type',
+    hint: 'See https://aka.ms/beachball-change for help. Use arrow keys; return to submit.',
     choices: changeTypeChoices,
   };
 }
