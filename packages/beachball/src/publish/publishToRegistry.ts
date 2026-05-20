@@ -16,6 +16,7 @@ import type { PackageInfo } from '../types/PackageInfo';
 import { packPackage } from '../packageManager/packPackage';
 import { BeachballError } from '../types/BeachballError';
 import { getPackageGraphLayers } from './getPackageGraphLayers';
+import { PGraphError } from 'p-graph';
 
 /** For each layer, a mapping from package name to version */
 export type LayerVersionsJson = Record<string, string>[];
@@ -122,9 +123,9 @@ export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOp
   } catch (error) {
     // p-graph will throw an array of errors if it fails to run all tasks
     let err = error;
-    if (Array.isArray(error)) {
+    if (err instanceof PGraphError) {
       // Dedupe the error messages since they'll usually be the same ("Error publishing! ...")
-      const errorSet = new Set(error.map(e => (e as Error).message || String(e)));
+      const errorSet = new Set(err.errors.map(e => (e as Error).message || String(e)));
       err = new Error(Array.from(errorSet).join('\n\n'));
     }
 
