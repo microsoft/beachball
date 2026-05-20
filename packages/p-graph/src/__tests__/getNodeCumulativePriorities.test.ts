@@ -1,15 +1,16 @@
-import { getNodeCumulativePriorities } from "../getNodeCumulativePriorities";
-import type { PGraphNodeWithDependencies } from "../types";
+import { describe, it, expect } from '@jest/globals';
+import { getNodeCumulativePriorities } from '../getNodeCumulativePriorities';
+import type { PGraphNodeWithDependencies } from '../types';
 
 type PGraphDependencyRecord = Record<string, PGraphNodeWithDependencies>;
 
-describe("getNodeCumulativePriorities", () => {
+describe('getNodeCumulativePriorities', () => {
   function createNode(
     params: {
       priority?: number;
       dependsOn?: string[];
       dependedOnBy?: string[];
-    } = {},
+    } = {}
   ): PGraphNodeWithDependencies {
     const { priority, dependsOn = [], dependedOnBy = [] } = params;
     return {
@@ -26,49 +27,49 @@ describe("getNodeCumulativePriorities", () => {
     return getNodeCumulativePriorities(new Map(Object.entries(dependencyMap)));
   }
 
-  it("returns empty graph for empty map", () => {
+  it('returns empty graph for empty map', () => {
     const result = getNodeCumulativePrioritiesWrapper({});
     expect(result).toEqual({});
   });
 
-  it("returns priority for single leaf node", () => {
+  it('returns priority for single leaf node', () => {
     const result = getNodeCumulativePrioritiesWrapper({
       a: createNode({ priority: 5 }),
     });
     expect(result).toEqual({ a: 5 });
   });
 
-  it("returns 0 for single leaf node with no priority", () => {
+  it('returns 0 for single leaf node with no priority', () => {
     const result = getNodeCumulativePrioritiesWrapper({
       a: createNode(),
     });
     expect(result).toEqual({ a: 0 });
   });
 
-  it("handles single root node with one child", () => {
+  it('handles single root node with one child', () => {
     const dependencyMap: PGraphDependencyRecord = {
-      a: createNode({ priority: 3, dependedOnBy: ["b"] }),
-      b: createNode({ priority: 2, dependsOn: ["a"] }),
+      a: createNode({ priority: 3, dependedOnBy: ['b'] }),
+      b: createNode({ priority: 2, dependsOn: ['a'] }),
     };
 
     const result = getNodeCumulativePrioritiesWrapper(dependencyMap);
     expect(result).toEqual({ a: 5 /* 3+2 */, b: 2 });
   });
 
-  it("handles multiple nodes with undefined priority as 0", () => {
+  it('handles multiple nodes with undefined priority as 0', () => {
     const result = getNodeCumulativePrioritiesWrapper({
-      a: createNode({ dependedOnBy: ["b"] }),
-      b: createNode({ dependsOn: ["a"] }),
+      a: createNode({ dependedOnBy: ['b'] }),
+      b: createNode({ dependsOn: ['a'] }),
     });
     expect(result).toEqual({ b: 0, a: 0 });
   });
 
-  it("handles only one node with non-zero priority", () => {
+  it('handles only one node with non-zero priority', () => {
     // A(0) → B(0) → C(10)
     const dependencyMap: PGraphDependencyRecord = {
-      a: createNode({ priority: 0, dependedOnBy: ["b"] }),
-      b: createNode({ priority: 0, dependsOn: ["a"], dependedOnBy: ["c"] }),
-      c: createNode({ priority: 10, dependsOn: ["b"] }),
+      a: createNode({ priority: 0, dependedOnBy: ['b'] }),
+      b: createNode({ priority: 0, dependsOn: ['a'], dependedOnBy: ['c'] }),
+      c: createNode({ priority: 10, dependsOn: ['b'] }),
     };
 
     const result = getNodeCumulativePrioritiesWrapper(dependencyMap);
@@ -79,14 +80,14 @@ describe("getNodeCumulativePriorities", () => {
     });
   });
 
-  it("accumulates priorities over linear chain", () => {
+  it('accumulates priorities over linear chain', () => {
     // A(1) → B(1) → C(1) → D(1) → E(1)
     const dependencyMap: PGraphDependencyRecord = {
-      a: createNode({ priority: 1, dependedOnBy: ["b"] }),
-      b: createNode({ priority: 1, dependsOn: ["a"], dependedOnBy: ["c"] }),
-      c: createNode({ priority: 1, dependsOn: ["b"], dependedOnBy: ["d"] }),
-      d: createNode({ priority: 1, dependsOn: ["c"], dependedOnBy: ["e"] }),
-      e: createNode({ priority: 1, dependsOn: ["d"] }),
+      a: createNode({ priority: 1, dependedOnBy: ['b'] }),
+      b: createNode({ priority: 1, dependsOn: ['a'], dependedOnBy: ['c'] }),
+      c: createNode({ priority: 1, dependsOn: ['b'], dependedOnBy: ['d'] }),
+      d: createNode({ priority: 1, dependsOn: ['c'], dependedOnBy: ['e'] }),
+      e: createNode({ priority: 1, dependsOn: ['d'] }),
     };
 
     const result = getNodeCumulativePrioritiesWrapper(dependencyMap);
@@ -99,14 +100,14 @@ describe("getNodeCumulativePriorities", () => {
     });
   });
 
-  it("takes max of multiple children in diamond graph", () => {
+  it('takes max of multiple children in diamond graph', () => {
     // A → B → D
     //   → C →
     const dependencyMap: PGraphDependencyRecord = {
-      a: createNode({ priority: 1, dependedOnBy: ["b", "c"] }),
-      b: createNode({ priority: 2, dependsOn: ["a"], dependedOnBy: ["d"] }),
-      c: createNode({ priority: 5, dependsOn: ["a"], dependedOnBy: ["d"] }),
-      d: createNode({ priority: 10, dependsOn: ["b", "c"] }),
+      a: createNode({ priority: 1, dependedOnBy: ['b', 'c'] }),
+      b: createNode({ priority: 2, dependsOn: ['a'], dependedOnBy: ['d'] }),
+      c: createNode({ priority: 5, dependsOn: ['a'], dependedOnBy: ['d'] }),
+      d: createNode({ priority: 10, dependsOn: ['b', 'c'] }),
     };
 
     const result = getNodeCumulativePrioritiesWrapper(dependencyMap);
@@ -118,15 +119,15 @@ describe("getNodeCumulativePriorities", () => {
     });
   });
 
-  it("handles wide graph with many children", () => {
+  it('handles wide graph with many children', () => {
     // A → B, C, D, E, F (all leaves with different priorities)
     const dependencyMap: PGraphDependencyRecord = {
-      a: createNode({ priority: 1, dependedOnBy: ["b", "c", "d", "e", "f"] }),
-      b: createNode({ priority: 10, dependsOn: ["a"] }),
-      c: createNode({ priority: 5, dependsOn: ["a"] }),
-      d: createNode({ priority: 20, dependsOn: ["a"] }),
-      e: createNode({ priority: 3, dependsOn: ["a"] }),
-      f: createNode({ priority: 15, dependsOn: ["a"] }),
+      a: createNode({ priority: 1, dependedOnBy: ['b', 'c', 'd', 'e', 'f'] }),
+      b: createNode({ priority: 10, dependsOn: ['a'] }),
+      c: createNode({ priority: 5, dependsOn: ['a'] }),
+      d: createNode({ priority: 20, dependsOn: ['a'] }),
+      e: createNode({ priority: 3, dependsOn: ['a'] }),
+      f: createNode({ priority: 15, dependsOn: ['a'] }),
     };
 
     const result = getNodeCumulativePrioritiesWrapper(dependencyMap);
@@ -140,15 +141,15 @@ describe("getNodeCumulativePriorities", () => {
     });
   });
 
-  it("handles multiple disconnected components", () => {
+  it('handles multiple disconnected components', () => {
     const dependencyMap: PGraphDependencyRecord = {
       // Component 1: A → B
-      a: createNode({ priority: 1, dependedOnBy: ["b"] }),
-      b: createNode({ priority: 2, dependsOn: ["a"] }),
+      a: createNode({ priority: 1, dependedOnBy: ['b'] }),
+      b: createNode({ priority: 2, dependsOn: ['a'] }),
 
       // Component 2: C → D
-      c: createNode({ priority: 3, dependedOnBy: ["d"] }),
-      d: createNode({ priority: 4, dependsOn: ["c"] }),
+      c: createNode({ priority: 3, dependedOnBy: ['d'] }),
+      d: createNode({ priority: 4, dependsOn: ['c'] }),
     };
 
     const result = getNodeCumulativePrioritiesWrapper(dependencyMap);
@@ -160,16 +161,16 @@ describe("getNodeCumulativePriorities", () => {
     });
   });
 
-  it("handles complex DAG with multiple paths", () => {
+  it('handles complex DAG with multiple paths', () => {
     const dependencyMap: PGraphDependencyRecord = {
       // A → B → D
       // A → C → D
       // B → E
-      a: createNode({ priority: 1, dependedOnBy: ["b", "c"] }),
-      b: createNode({ priority: 2, dependsOn: ["a"], dependedOnBy: ["d", "e"] }),
-      c: createNode({ priority: 3, dependsOn: ["a"], dependedOnBy: ["d"] }),
-      d: createNode({ priority: 4, dependsOn: ["b", "c"] }),
-      e: createNode({ priority: 5, dependsOn: ["b"] }),
+      a: createNode({ priority: 1, dependedOnBy: ['b', 'c'] }),
+      b: createNode({ priority: 2, dependsOn: ['a'], dependedOnBy: ['d', 'e'] }),
+      c: createNode({ priority: 3, dependsOn: ['a'], dependedOnBy: ['d'] }),
+      d: createNode({ priority: 4, dependsOn: ['b', 'c'] }),
+      e: createNode({ priority: 5, dependsOn: ['b'] }),
     };
 
     const result = getNodeCumulativePrioritiesWrapper(dependencyMap);
@@ -182,17 +183,16 @@ describe("getNodeCumulativePriorities", () => {
     });
   });
 
-  it("throws error when cycle is detected", () => {
+  it('throws error when cycle is detected', () => {
     // Create a cycle: A → B → C → A
     const dependencyMap: PGraphDependencyRecord = {
-      a: createNode({ priority: 1, dependsOn: ["c"], dependedOnBy: ["b"] }),
-      b: createNode({ priority: 2, dependsOn: ["a"], dependedOnBy: ["c"] }),
-      c: createNode({ priority: 3, dependsOn: ["b"], dependedOnBy: ["a"] }),
+      a: createNode({ priority: 1, dependsOn: ['c'], dependedOnBy: ['b'] }),
+      b: createNode({ priority: 2, dependsOn: ['a'], dependedOnBy: ['c'] }),
+      c: createNode({ priority: 3, dependsOn: ['b'], dependedOnBy: ['a'] }),
       d: createNode({}),
     };
 
-    expect(() => getNodeCumulativePrioritiesWrapper(dependencyMap))
-      .toThrowErrorMatchingInlineSnapshot(`
+    expect(() => getNodeCumulativePrioritiesWrapper(dependencyMap)).toThrowErrorMatchingInlineSnapshot(`
      "A cycle has been detected including the following nodes:
      a
      b

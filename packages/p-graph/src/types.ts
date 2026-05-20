@@ -8,6 +8,7 @@ export interface PGraphNode {
    * This is optional when creating the graph in case a shared runner function is passed
    * to `PGraph.run`.
    */
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   run?: () => unknown | Promise<unknown>;
 
   /**
@@ -46,6 +47,7 @@ export interface RunOptions {
    *
    * If provided, this overrides the `run()` function provided with any individual node.
    */
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   run?: (nodeId: string) => unknown | Promise<unknown>;
 
   /**

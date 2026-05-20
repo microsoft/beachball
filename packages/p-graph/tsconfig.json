@@ -1,16 +1,8 @@
 {
+  "extends": "@microsoft/beachball-scripts/config/tsconfig.base.json",
   "compilerOptions": {
-    // Node 14 for now (https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping)
-    "target": "ES2020",
-    "declaration": true,
-    "module": "node16",
-    "esModuleInterop": true,
-    "lib": ["ES2020"],
     "outDir": "lib",
-    "noUnusedLocals": true,
-    "strict": true,
-    "isolatedModules": true,
-    "types": ["jest"]
+    "rootDir": "src"
   },
   "include": ["src"]
 }

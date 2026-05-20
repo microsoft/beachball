@@ -100,7 +100,7 @@ function getConfig(overrides) {
   return {
     ...getTopLevelOptions(),
     ...getProjectOptions(),
-    testMatch: ['src/**/*.test.ts'],
+    testMatch: ['<rootDir>/src/**/*.test.ts'],
     ...overrides,
   };
 }
@@ -116,7 +116,7 @@ function getESMConfig(overrides) {
     ...getTopLevelOptions(),
     ...getProjectOptions(undefined, 'es6'),
     extensionsToTreatAsEsm: ['.ts'],
-    testMatch: ['src/**/*.test.ts'],
+    testMatch: ['<rootDir>/src/**/*.test.ts'],
     ...overrides,
   };
 }

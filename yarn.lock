@@ -7486,6 +7486,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"p-graph@workspace:packages/p-graph":
+  version: 0.0.0-use.local
+  resolution: "p-graph@workspace:packages/p-graph"
+  dependencies:
+    "@microsoft/beachball-scripts": "workspace:^"
+    cross-env: "npm:^10.1.0"
+  languageName: unknown
+  linkType: soft
+
 "p-limit@npm:^2.2.0":
   version: 2.3.0
   resolution: "p-limit@npm:2.3.0"

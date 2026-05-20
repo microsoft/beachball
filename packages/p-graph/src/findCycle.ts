@@ -1,4 +1,4 @@
-import type { PGraphNodeWithDependencies } from "./types";
+import type { PGraphNodeWithDependencies } from './types';
 
 /**
  * `getNodeCumulativePriorites` identifies if nodes are connected to a cycle in any way,
@@ -12,7 +12,7 @@ import type { PGraphNodeWithDependencies } from "./types";
  */
 export function findCycle(
   unprocessedNodes: string[],
-  dependencyMap: Map<string, Pick<PGraphNodeWithDependencies, "dependedOnBy">>,
+  dependencyMap: Map<string, Pick<PGraphNodeWithDependencies, 'dependedOnBy'>>
 ): string[] | undefined {
   const visitMap: VisitMap = new Map();
 
@@ -40,9 +40,9 @@ interface StackElement {
 }
 
 const searchForCycleDFS = (
-  graph: Map<string, Pick<PGraphNodeWithDependencies, "dependedOnBy">>,
+  graph: Map<string, Pick<PGraphNodeWithDependencies, 'dependedOnBy'>>,
   visitMap: VisitMap,
-  nodeId: string,
+  nodeId: string
 ): string[] | undefined => {
   const stack: StackElement[] = [{ nodeId, traversing: false }];
   while (stack.length > 0) {
@@ -56,7 +56,7 @@ const searchForCycleDFS = (
       const visitedState = visitMap.get(current.nodeId);
       if (visitedState === true) {
         // The current node has already been visited, hence there is a cycle.
-        const listOfCycle = stack.filter((i) => i.traversing).map((a) => a.nodeId);
+        const listOfCycle = stack.filter(i => i.traversing).map(a => a.nodeId);
         return listOfCycle.slice(listOfCycle.indexOf(current.nodeId));
       } else if (visitedState === false) {
         // The current node has already been fully traversed
@@ -75,7 +75,7 @@ const searchForCycleDFS = (
       }
 
       // Add the current node's dependents to the stack
-      stack.push(...[...node.dependedOnBy].map((n) => ({ nodeId: n, traversing: false })));
+      stack.push(...[...node.dependedOnBy].map(n => ({ nodeId: n, traversing: false })));
     }
   }
 

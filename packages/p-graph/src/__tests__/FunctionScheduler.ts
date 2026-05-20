@@ -1,4 +1,4 @@
-import type { PGraphNodeMap } from "../types";
+import type { PGraphNodeMap } from '../types';
 
 interface MockFunctionDefinition {
   /** A friendly name for the function */
@@ -17,7 +17,7 @@ interface MockFunctionCallRecord {
   name: string;
 
   /** Denotes if this is when the function started or ended execution */
-  state: "start" | "end";
+  state: 'start' | 'end';
 }
 
 /**
@@ -51,12 +51,12 @@ export class FunctionScheduler {
   }
 
   /** Get the max concurrency observed from the call records */
-  public getMaxConcurrency() {
+  public getMaxConcurrency(): number {
     let current = 0;
     let max = 0;
 
     for (const record of this.#callRecords) {
-      current += record.state === "start" ? 1 : -1;
+      current += record.state === 'start' ? 1 : -1;
       max = Math.max(current, max);
     }
 
@@ -66,13 +66,9 @@ export class FunctionScheduler {
   /**
    * Verify that `secondTaskName` was only scheduled after `firstTaskName` completed
    */
-  public hasScheduleOrdering(firstTaskName: string, secondTaskName: string) {
-    const firstIndex = this.#callRecords.findIndex(
-      (item) => item.name === firstTaskName && item.state === "end",
-    );
-    const secondIndex = this.#callRecords.findIndex(
-      (item) => item.name === secondTaskName && item.state === "start",
-    );
+  public hasScheduleOrdering(firstTaskName: string, secondTaskName: string): boolean {
+    const firstIndex = this.#callRecords.findIndex(item => item.name === firstTaskName && item.state === 'end');
+    const secondIndex = this.#callRecords.findIndex(item => item.name === secondTaskName && item.state === 'start');
 
     return firstIndex !== -1 && secondIndex !== -1 && firstIndex < secondIndex;
   }
@@ -80,13 +76,9 @@ export class FunctionScheduler {
   /**
    * Verify that `secondTaskName` was started after `firstTaskName` started
    */
-  public didStartBefore(firstTaskName: string, secondTaskName: string) {
-    const firstIndex = this.#callRecords.findIndex(
-      (item) => item.name === firstTaskName && item.state === "start",
-    );
-    const secondIndex = this.#callRecords.findIndex(
-      (item) => item.name === secondTaskName && item.state === "start",
-    );
+  public didStartBefore(firstTaskName: string, secondTaskName: string): boolean {
+    const firstIndex = this.#callRecords.findIndex(item => item.name === firstTaskName && item.state === 'start');
+    const secondIndex = this.#callRecords.findIndex(item => item.name === secondTaskName && item.state === 'start');
 
     return firstIndex !== -1 && secondIndex !== -1 && firstIndex < secondIndex;
   }
@@ -94,18 +86,18 @@ export class FunctionScheduler {
   /**
    * Verify that `taskName` was completed (started and ended).
    */
-  public didCompleteTask(taskName: string) {
+  public didCompleteTask(taskName: string): boolean {
     return (
-      this.#callRecords.some((item) => item.name === taskName && item.state === "start") &&
-      this.#callRecords.some((item) => item.name === taskName && item.state === "end")
+      this.#callRecords.some(item => item.name === taskName && item.state === 'start') &&
+      this.#callRecords.some(item => item.name === taskName && item.state === 'end')
     );
   }
 
   #runFunction(definition: MockFunctionDefinition): Promise<void> {
     const { name, duration } = definition;
-    this.#callRecords.push({ name, state: "start" });
+    this.#callRecords.push({ name, state: 'start' });
 
-    const promise = new Promise<void>((resolve) => {
+    const promise = new Promise<void>(resolve => {
       this.#currentlyRunningFunctions.push({ name, ticksRemaining: duration, resolve });
     });
 
@@ -118,7 +110,7 @@ export class FunctionScheduler {
     if (this.#tickScheduled) return;
 
     this.#tickScheduled = true;
-    Promise.resolve().then(() => this.#tick());
+    void Promise.resolve().then(() => this.#tick());
   }
 
   #tick() {
@@ -127,16 +119,12 @@ export class FunctionScheduler {
       item.ticksRemaining--;
     }
 
-    const finishedItems = this.#currentlyRunningFunctions.filter(
-      (item) => item.ticksRemaining === 0,
-    );
-    this.#currentlyRunningFunctions = this.#currentlyRunningFunctions.filter(
-      (item) => item.ticksRemaining !== 0,
-    );
+    const finishedItems = this.#currentlyRunningFunctions.filter(item => item.ticksRemaining === 0);
+    this.#currentlyRunningFunctions = this.#currentlyRunningFunctions.filter(item => item.ticksRemaining !== 0);
 
     for (const item of finishedItems) {
       item.resolve();
-      this.#callRecords.push({ name: item.name, state: "end" });
+      this.#callRecords.push({ name: item.name, state: 'end' });
     }
 
     if (this.#currentlyRunningFunctions.length > 0) {

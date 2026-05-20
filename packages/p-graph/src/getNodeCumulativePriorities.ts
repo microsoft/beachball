@@ -1,5 +1,5 @@
-import { findCycle } from "./findCycle";
-import type { PGraphNodeWithDependencies } from "./types";
+import { findCycle } from './findCycle';
+import type { PGraphNodeWithDependencies } from './types';
 
 /**
  * Calculates the "cumulative" priority for each node: the priority of the current node plus the
@@ -12,7 +12,7 @@ import type { PGraphNodeWithDependencies } from "./types";
  * @param dependencyMap - Mapping from node ID to dependency information
  */
 export function getNodeCumulativePriorities(
-  dependencyMap: Map<string, PGraphNodeWithDependencies>,
+  dependencyMap: Map<string, PGraphNodeWithDependencies>
 ): Record<string, number> {
   const nodeCumulativePriorities: Record<string, number> = {};
   const childrenRemainingCount: Record<string, number> = {};
@@ -32,6 +32,7 @@ export function getNodeCumulativePriorities(
   // Process nodes in reverse topological order (leaves → roots)
   let currentNodeId: string | undefined;
   while ((currentNodeId = queue.shift())) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const node = dependencyMap.get(currentNodeId)!;
     const currentNodePriority = node.priority || 0;
 
@@ -40,9 +41,7 @@ export function getNodeCumulativePriorities(
     for (const childId of node.dependedOnBy) {
       const childCumulativePriority = nodeCumulativePriorities[childId];
       if (childCumulativePriority === undefined) {
-        throw new Error(
-          `Expected to have already computed the cumulative priority for node ${childId}`,
-        );
+        throw new Error(`Expected to have already computed the cumulative priority for node ${childId}`);
       }
       maxChildCumulativePriority = Math.max(maxChildCumulativePriority, childCumulativePriority);
     }
@@ -65,17 +64,13 @@ export function getNodeCumulativePriorities(
   // Detect cycles: if not all nodes were processed, there's a cycle
   const processedCount = Object.keys(nodeCumulativePriorities).length;
   if (processedCount !== dependencyMap.size) {
-    const unprocessedNodes = Array.from(dependencyMap.keys()).filter(
-      (nodeId) => !(nodeId in nodeCumulativePriorities),
-    );
+    const unprocessedNodes = Array.from(dependencyMap.keys()).filter(nodeId => !(nodeId in nodeCumulativePriorities));
 
     // Find the first cycle (which might not be the only cycle), or fall back to showing
     // all unprocessed nodes
     const cycleNodes = findCycle(unprocessedNodes, dependencyMap) || unprocessedNodes;
 
-    throw new Error(
-      `A cycle has been detected including the following nodes:\n${cycleNodes.join("\n")}`,
-    );
+    throw new Error(`A cycle has been detected including the following nodes:\n${cycleNodes.join('\n')}`);
   }
 
   return nodeCumulativePriorities;

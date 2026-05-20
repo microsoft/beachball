@@ -1,13 +1,7 @@
-import type {
-  RunOptions,
-  PGraphNodeMap,
-  DependencyList,
-  PGraphNodeWithDependencies,
-  PGraphNodeRecord,
-} from "./types";
-import { PriorityQueue } from "./PriorityQueue";
-import { getNodeCumulativePriorities } from "./getNodeCumulativePriorities";
-import { PGraphError } from "./PGraphError";
+import type { RunOptions, PGraphNodeMap, DependencyList, PGraphNodeWithDependencies, PGraphNodeRecord } from './types';
+import { PriorityQueue } from './PriorityQueue';
+import { getNodeCumulativePriorities } from './getNodeCumulativePriorities';
+import { PGraphError } from './PGraphError';
 
 export class PGraph {
   /** Original dependency map for the graph */
@@ -48,15 +42,11 @@ export class PGraph {
       const dependentNode = dependencyMap.get(dependentId);
 
       if (!subjectNode) {
-        throw new Error(
-          `Dependency graph referenced node with id ${subjectId}, which was not in the node list`,
-        );
+        throw new Error(`Dependency graph referenced node with id ${subjectId}, which was not in the node list`);
       }
 
       if (!dependentNode) {
-        throw new Error(
-          `Dependency graph referenced node with id ${dependentId}, which was not in the node list`,
-        );
+        throw new Error(`Dependency graph referenced node with id ${dependentId}, which was not in the node list`);
       }
 
       subjectNode.dependedOnBy.add(dependentId);
@@ -73,7 +63,7 @@ export class PGraph {
 
     if (!nodesWithNoDependencies.length && entryCount > 0) {
       throw new Error(
-        "We could not find a node in the graph with no dependencies; this likely means there is a cycle including all nodes",
+        'We could not find a node in the graph with no dependencies; this likely means there is a cycle including all nodes'
       );
     }
 
@@ -98,7 +88,7 @@ export class PGraph {
    */
   run(options?: RunOptions): Promise<void> {
     // Copy the dependency map so the graph can be reused
-    const dependencyMap: Map<string, PGraphNodeWithDependencies> = new Map(
+    const dependencyMap = new Map<string, PGraphNodeWithDependencies>(
       [...this.#dependencyMap.entries()].map(([key, node]) => [
         key,
         {
@@ -108,16 +98,14 @@ export class PGraph {
           dependsOn: new Set(node.dependsOn),
           dependedOnBy: new Set(node.dependedOnBy),
         },
-      ]),
+      ])
     );
 
     const nodeCumulativePriorities = this.#nodeCumulativePriorities;
     const concurrency = options?.concurrency;
 
     if (concurrency !== undefined && concurrency < 1) {
-      throw new Error(
-        `concurrency must be either undefined or a positive integer; received ${options?.concurrency}`,
-      );
+      throw new Error(`concurrency must be either undefined or a positive integer; received ${options?.concurrency}`);
     }
 
     const priorityQueue = new PriorityQueue<string>();
@@ -130,11 +118,11 @@ export class PGraph {
 
     const scheduleTask = async () => {
       const taskToRunId = priorityQueue.removeMax();
+      const taskToRun = taskToRunId && dependencyMap.get(taskToRunId);
 
-      if (!taskToRunId) {
-        throw new Error("Tried to schedule a task when there were no pending tasks!");
+      if (!taskToRun) {
+        throw new Error('Tried to schedule a task when there were no pending tasks!');
       }
-      const taskToRun = dependencyMap.get(taskToRunId)!;
 
       try {
         currentlyRunningTaskCount += 1;
@@ -158,6 +146,7 @@ export class PGraph {
 
           // Let's remove this task from all dependent task's dependency array
           for (const dependentId of taskToRun.dependedOnBy) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const dependentNode = dependencyMap.get(dependentId)!;
 
             if (taskToRun.failed) {
@@ -177,7 +166,7 @@ export class PGraph {
     };
 
     return new Promise((resolve, reject) => {
-      let errors: Error[] = [];
+      const errors: Error[] = [];
 
       const trySchedulingTasks = () => {
         if (priorityQueue.isEmpty() && currentlyRunningTaskCount === 0) {
@@ -190,14 +179,12 @@ export class PGraph {
           return;
         }
 
-        while (
-          !priorityQueue.isEmpty() &&
-          (concurrency === undefined || currentlyRunningTaskCount < concurrency)
-        ) {
+        while (!priorityQueue.isEmpty() && (concurrency === undefined || currentlyRunningTaskCount < concurrency)) {
           scheduleTask()
             .then(() => trySchedulingTasks())
-            .catch((e) => {
-              errors.push(e);
+            .catch(e => {
+              const err = e instanceof Error || 'message' in e ? (e as Error) : new Error(String(e));
+              errors.push(err);
 
               // If continue is set, this merely records what errors have been encountered,
               // then continues execution of the remaining tasks not blocked by a failed task.
@@ -205,7 +192,7 @@ export class PGraph {
                 trySchedulingTasks();
               } else {
                 // immediately reject, if not using "continue" option
-                reject(new PGraphError([e]));
+                reject(new PGraphError([err]));
               }
             });
         }

@@ -1,42 +1,30 @@
 {
   "name": "p-graph",
-  "version": "2.0.0",
+  "version": "3.0.0-alpha.0",
   "license": "MIT",
   "description": "Run a promise graph with concurrency control",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/beachball",
+    "directory": "packages/p-graph"
+  },
+  "type": "commonjs",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "start": "tsc -w --preserveWatchOutput",
-    "test": "jest",
-    "release": "beachball publish",
-    "checkchange": "beachball check",
-    "change": "beachball change",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+  "engines": {
+    "node": ">=22.18.0"
   },
-  "repository": {
-    "url": "https://github.com/microsoft/p-graph"
+  "scripts": {
+    "build": "yarn run -T tsc --pretty",
+    "depcheck": "yarn run -T depcheck .",
+    "lint": "yarn run -T eslint --color --max-warnings=0 src",
+    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest",
+    "test:watch": "yarn test --watch",
+    "update-snapshots": "yarn test:unit -u && yarn test:func -u && yarn test:e2e -u"
   },
   "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "beachball": "^2.55.0",
-    "jest": "^30.0.0",
-    "prettier": "^3.6.2",
-    "ts-jest": "^29.0.0",
-    "typescript": "~5.9.2"
-  },
-  "beachball": {
-    "ignorePatterns": [
-      ".*ignore",
-      ".github/**/*",
-      "src/__tests__/**/*",
-      "jest.config.js",
-      "yarn.lock"
-    ]
-  },
-  "prettier": {
-    "printWidth": 100
+    "@microsoft/beachball-scripts": "workspace:^",
+    "cross-env": "^10.1.0"
   },
   "files": [
     "lib/!(__*)",

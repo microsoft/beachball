@@ -35,6 +35,7 @@ export class PriorityQueue<T> {
 
     const max = this.array[0];
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- verified above
     const last = this.array.pop()!;
     if (this.array.length > 0) {
       this.array[0] = last;
@@ -52,17 +53,11 @@ export class PriorityQueue<T> {
       const rightIndex = 2 * index + 2;
       let largest = index;
 
-      if (
-        leftIndex < this.array.length &&
-        this.array[leftIndex].priority > this.array[largest].priority
-      ) {
+      if (leftIndex < this.array.length && this.array[leftIndex].priority > this.array[largest].priority) {
         largest = leftIndex;
       }
 
-      if (
-        rightIndex < this.array.length &&
-        this.array[rightIndex].priority > this.array[largest].priority
-      ) {
+      if (rightIndex < this.array.length && this.array[rightIndex].priority > this.array[largest].priority) {
         largest = rightIndex;
       }
 
