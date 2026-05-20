@@ -68,6 +68,7 @@ export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMess
   const result: ReturnType<typeof gitFetch> = git(
     [
       'fetch',
+      '--no-tags',
       ...extraArgs,
       // If the remote is unknown, don't specify the branch (fetching a branch without a remote is invalid)
       ...(resolvedRefspecs.length ? [remote, ...resolvedRefspecs] : []),
