@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "`PGraphError` now extends `AggregateError`. Errors are available under `.errors` rather than `.taskErrors`.",
+  "packageName": "p-graph",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

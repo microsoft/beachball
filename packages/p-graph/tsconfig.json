@@ -1,0 +1,8 @@
+{
+  "extends": "@microsoft/beachball-scripts/config/tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "lib",
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}

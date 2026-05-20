@@ -1,0 +1,7 @@
+ignore-path: ../../.gitignore
+
+ignores:
+  # used in scripts
+  - cross-env
+  # specified at root
+  - '@jest/globals'

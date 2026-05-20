@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Require Node 22",
+  "packageName": "p-graph",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -1,0 +1,33 @@
+{
+  "name": "p-graph",
+  "version": "3.0.0-alpha.0",
+  "license": "MIT",
+  "description": "Run a promise graph with concurrency control",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/beachball",
+    "directory": "packages/p-graph"
+  },
+  "type": "commonjs",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "build": "yarn run -T tsc --pretty",
+    "depcheck": "yarn run -T depcheck .",
+    "lint": "yarn run -T eslint --color --max-warnings=0 src",
+    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest",
+    "test:watch": "yarn test --watch",
+    "update-snapshots": "yarn test:unit -u && yarn test:func -u && yarn test:e2e -u"
+  },
+  "devDependencies": {
+    "@microsoft/beachball-scripts": "workspace:^",
+    "cross-env": "^10.1.0"
+  },
+  "files": [
+    "lib/!(__*)",
+    "lib/!(__*)/**"
+  ]
+}
