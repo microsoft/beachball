@@ -48,6 +48,7 @@ describe('getQuestionsForPackage', () => {
           { title: expect.stringContaining('Major'), value: 'major' },
         ],
         message: 'Change type',
+        hint: expect.any(String),
         name: 'type',
         type: 'select',
       },
