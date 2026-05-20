@@ -230,7 +230,6 @@ describe('promptForChange _promptForPackageChange', () => {
         √ Describe changes (type or choose one) » second"
       `);
 
-
     const answers = await answerPromise;
     expect(answers).toEqual({ type: 'none', comment: 'second' });
   });
@@ -329,7 +328,6 @@ describe('promptForChange _promptForPackageChange', () => {
         ? Describe changes (type or choose one) » a
         × Describe changes (type or choose one) » a"
       `);
-
 
     expect(answers).toBeUndefined();
   });

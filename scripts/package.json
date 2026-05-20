@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit",
+    "build": "tsc --noEmit --pretty",
     "lint:skills": "node ./lintSkills.ts",
     "lint:versions": "cd .. && yarn syncpack:check",
     "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest"
