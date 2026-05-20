@@ -22,6 +22,7 @@ describe('gitFetch', () => {
   let realRemoteUrl = '';
   let modifiedRemote = false;
 
+  const baseArgs = ['fetch', '--no-tags'];
   const logs = initMockLogs();
 
   /** To speed things up, some tests only check the arguments and skip the git operation */
@@ -74,7 +75,7 @@ describe('gitFetch', () => {
 
   it('fetches and does not log by default', () => {
     const res = gitFetch({ cwd: repo.rootPath, remote: '', branch: defaultBranchName });
-    expect(gitSpy).toHaveBeenCalledWith(['fetch'], { cwd: repo.rootPath, stdio: 'pipe' });
+    expect(gitSpy).toHaveBeenCalledWith(baseArgs, { cwd: repo.rootPath, stdio: 'pipe' });
     expect(res).toMatchObject({ success: true });
     expect(logs.mocks.log).not.toHaveBeenCalled();
   });
@@ -115,7 +116,7 @@ describe('gitFetch', () => {
     const res = gitFetch({ cwd: repo.rootPath, verbose: true, remote: '', branch: defaultBranchName });
     // normally this would be called with stdio: inherit, but it's not done that way in tests
     // because process.stdout/stderr can't be mocked, so the test output would be too spammy
-    expect(gitSpy).toHaveBeenCalledWith(['fetch'], expect.anything());
+    expect(gitSpy).toHaveBeenCalledWith(baseArgs, expect.anything());
     expect(res).toMatchObject({ success: true });
     expect(res.errorMessage).toBeUndefined();
     expect(logs.mocks.log).toHaveBeenCalledWith('Fetching all remotes...');
@@ -128,7 +129,7 @@ describe('gitFetch', () => {
     gitOverride = () => ({ success: false, stdout: 'some logs', stderr: 'oh no', status: 1 } as GitProcessOutput);
 
     const res = gitFetch({ cwd: repo.rootPath, verbose: true, remote: '', branch: defaultBranchName });
-    expect(gitSpy).toHaveBeenCalledWith(['fetch'], expect.anything());
+    expect(gitSpy).toHaveBeenCalledWith(baseArgs, expect.anything());
     expect(res).toMatchObject({
       success: false,
       errorMessage: 'Fetching all remotes failed (code 1) - see above for details',
@@ -147,7 +148,7 @@ describe('gitFetch', () => {
     // refs/heads/ on the source side is unambiguous: bare branch names can be silently
     // misresolved, causing git to treat the ref as absent and delete the local tracking ref.
     const refspec = `+refs/heads/${defaultBranchName}:refs/remotes/${defaultRemoteName}/${defaultBranchName}`;
-    expect(gitSpy).toHaveBeenCalledWith(['fetch', defaultRemoteName, refspec], expect.anything());
+    expect(gitSpy).toHaveBeenCalledWith([...baseArgs, defaultRemoteName, refspec], expect.anything());
     expect(res).toMatchObject({ success: true });
     expect(logs.mocks.log).toHaveBeenCalledWith(
       `Fetching branch "${defaultBranchName}" from remote "${defaultRemoteName}" (${refspec})...`
@@ -170,7 +171,7 @@ describe('gitFetch', () => {
     const refspec1 = `+refs/heads/${defaultBranchName}:refs/remotes/${defaultRemoteName}/${defaultBranchName}`;
     const refspec2 = `+refs/heads/${otherBranch}:refs/remotes/${defaultRemoteName}/${otherBranch}`;
     expect(gitSpy).toHaveBeenCalledWith(
-      ['fetch', '--deepen=5', defaultRemoteName, refspec1, refspec2],
+      [...baseArgs, '--deepen=5', defaultRemoteName, refspec1, refspec2],
       expect.anything()
     );
     expect(res).toMatchObject({ success: true });
@@ -216,7 +217,7 @@ describe('gitFetch', () => {
 
     // The fetch command must target only origin with the correct refspec
     const expectedRefspec = `+refs/heads/${defaultBranchName}:refs/remotes/${defaultRemoteName}/${defaultBranchName}`;
-    expect(gitSpy).toHaveBeenCalledWith(['fetch', defaultRemoteName, expectedRefspec], expect.anything());
+    expect(gitSpy).toHaveBeenCalledWith([...baseArgs, defaultRemoteName, expectedRefspec], expect.anything());
 
     // origin/master must exist and be reachable
     gitFailFast(['rev-parse', '--verify', `refs/remotes/${defaultRemoteName}/${defaultBranchName}`], {
@@ -239,7 +240,7 @@ describe('gitFetch', () => {
     gitOverride = noOpSuccess;
     const res = gitFetch({ cwd: repo.rootPath, depth: 1, verbose: true, remote: '', branch: defaultBranchName });
 
-    expect(gitSpy).toHaveBeenCalledWith(['fetch', '--depth=1'], expect.anything());
+    expect(gitSpy).toHaveBeenCalledWith([...baseArgs, '--depth=1'], expect.anything());
     expect(res).toMatchObject({ success: true });
     expect(logs.mocks.log).toHaveBeenCalledWith(`Fetching all remotes (with --depth=1)...`);
   });
@@ -248,7 +249,7 @@ describe('gitFetch', () => {
     gitOverride = noOpSuccess;
     const res = gitFetch({ cwd: repo.rootPath, deepen: 1, verbose: true, remote: '', branch: defaultBranchName });
 
-    expect(gitSpy).toHaveBeenCalledWith(['fetch', '--deepen=1'], expect.anything());
+    expect(gitSpy).toHaveBeenCalledWith([...baseArgs, '--deepen=1'], expect.anything());
     expect(res).toMatchObject({ success: true });
     expect(logs.mocks.log).toHaveBeenCalledWith(`Fetching all remotes (with --deepen=1)...`);
   });
@@ -257,7 +258,7 @@ describe('gitFetch', () => {
     gitOverride = noOpSuccess;
     const res = gitFetch({ cwd: repo.rootPath, unshallow: true, verbose: true, remote: '', branch: defaultBranchName });
 
-    expect(gitSpy).toHaveBeenCalledWith(['fetch', '--unshallow'], expect.anything());
+    expect(gitSpy).toHaveBeenCalledWith([...baseArgs, '--unshallow'], expect.anything());
     expect(res).toMatchObject({ success: true });
     expect(logs.mocks.log).toHaveBeenCalledWith(`Fetching all remotes (with --unshallow)...`);
   });
