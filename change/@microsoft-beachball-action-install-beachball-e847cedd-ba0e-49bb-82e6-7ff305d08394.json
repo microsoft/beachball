@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update `actions/github-script` to v9 in the install-beachball action",
+  "packageName": "@microsoft/beachball-action-install-beachball",
+  "email": "198982749+Copilot@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}
