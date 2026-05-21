@@ -1,9 +1,9 @@
 import type { AccessToken } from '@azure/core-auth';
 import { ConfidentialClientApplication, type AuthenticationResult, type NodeAuthOptions } from '@azure/msal-node';
-import type { Logger } from './Logger.ts';
-import type { ReleaseHttpParams } from './releaseHttp.ts';
+import type { Logger } from '../utils/Logger.ts';
+import type { ReleaseHttpParams } from '../esrpApi/releaseHttp.ts';
 import { getKeyAndCertificatesFromPFX, getThumbprint } from './signing.ts';
-import { ReleaseError } from './ReleaseError.ts';
+import { ReleaseError } from '../utils/ReleaseError.ts';
 
 export interface GetAadTokenParams extends Pick<ReleaseHttpParams, 'clientId'> {
   tenantId: string;

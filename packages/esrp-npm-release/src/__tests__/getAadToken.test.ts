@@ -3,7 +3,7 @@ import type { AuthenticationResult, ConfidentialClientApplication, NodeAuthOptio
 import { ReleaseError } from '../utils/ReleaseError.ts';
 import { MockLogger } from '../__fixtures__/MockLogger.ts';
 import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
-import type { GetAadTokenParams } from '../utils/getAadToken.ts';
+import type { GetAadTokenParams } from '../auth/getAadToken.ts';
 
 let lastAuthOptions: NodeAuthOptions | undefined;
 const acquireTokenByClientCredential = jest.fn<ConfidentialClientApplication['acquireTokenByClientCredential']>();
@@ -15,7 +15,7 @@ jest.unstable_mockModule('@azure/msal-node', () => ({
   }),
 }));
 
-const { getAadToken } = await import('../utils/getAadToken.ts');
+const { getAadToken } = await import('../auth/getAadToken.ts');
 
 // eslint-disable-next-line no-restricted-properties
 const describeIfOpenssl = isOpensslAvailable() ? describe : describe.skip;

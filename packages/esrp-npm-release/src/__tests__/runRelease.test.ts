@@ -29,7 +29,7 @@ jest.unstable_mockModule('../ESRPReleaseService.ts', () => ({
   ESRPReleaseService: { create: () => releaseService },
 }));
 
-jest.unstable_mockModule<typeof import('../utils/getAadToken.ts')>('../utils/getAadToken.ts', () => ({
+jest.unstable_mockModule<typeof import('../auth/getAadToken.ts')>('../auth/getAadToken.ts', () => ({
   getAadToken: () => Promise.resolve({ token: 'token', expiresOnTimestamp: 0 }),
 }));
 

@@ -11,13 +11,13 @@ import {
   createNpmReleaseRequest,
   redactReleaseRequest,
   type CreateNpmReleaseRequestMessageParams,
-} from './models/npmRelease.ts';
-import type { ReleaseResultMessage, ReleaseSubmitResponse } from './models/types.ts';
-import { getAadToken, type AccessToken } from './utils/getAadToken.ts';
+} from './esrpApi/npmRelease.ts';
+import type { ReleaseResultMessage, ReleaseSubmitResponse } from './esrpApi/types.ts';
+import { esrpApiEndpoint, getReleaseDetails, getReleaseStatus, submitRelease } from './esrpApi/releaseHttp.ts';
+import { getAadToken, type AccessToken } from './auth/getAadToken.ts';
+import { getKeyAndCertificatesFromPFX } from './auth/signing.ts';
 import type { Logger } from './utils/Logger.ts';
 import { ReleaseError } from './utils/ReleaseError.ts';
-import { esrpApiEndpoint, getReleaseDetails, getReleaseStatus, submitRelease } from './utils/releaseHttp.ts';
-import { getKeyAndCertificatesFromPFX } from './utils/signing.ts';
 
 interface PerReleaseCredentials {
   esrpAccessToken: AccessToken;

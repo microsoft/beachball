@@ -3,7 +3,7 @@ import type {
   ReleaseSubmitResponse,
   ReleaseResultMessage,
   ReleaseDetailsMessage,
-} from '../models/types.ts';
+} from './types.ts';
 
 export interface ReleaseHttpParams {
   /** ESRP onboarded AAD app client ID */

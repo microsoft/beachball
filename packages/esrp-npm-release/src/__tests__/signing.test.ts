@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
-import { getKeyAndCertificatesFromPFX, getThumbprint, pemToDer } from '../utils/signing.ts';
+import { getKeyAndCertificatesFromPFX, getThumbprint, pemToDer } from '../auth/signing.ts';
 import { MockLogger } from '../__fixtures__/MockLogger.ts';
 import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
 

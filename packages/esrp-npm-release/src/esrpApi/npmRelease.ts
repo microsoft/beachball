@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { generateJwsToken } from '../utils/generateJwsToken.ts';
+import { generateJwsToken } from '../auth/generateJwsToken.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
 import { hashFileStream } from '../utils/hashFileStream.ts';
 import { FileHashType, type ProductInfo, type ReleaseRequestMessage } from './types.ts';

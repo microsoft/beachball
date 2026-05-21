@@ -5,7 +5,7 @@ import yazl from 'yazl';
 import { ESRPReleaseService } from './ESRPReleaseService.ts';
 import type { EnvOptions } from './getEnvOptions.ts';
 import { ReleaseState } from './ReleaseState.ts';
-import { getAadToken } from './utils/getAadToken.ts';
+import { getAadToken } from './auth/getAadToken.ts';
 import type { Logger } from './utils/Logger.ts';
 import { ReleaseError } from './utils/ReleaseError.ts';
 

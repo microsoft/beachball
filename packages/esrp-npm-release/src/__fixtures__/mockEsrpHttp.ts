@@ -1,10 +1,10 @@
 import { jest } from '@jest/globals';
-import type { ReleaseResultMessage } from '../models/types.ts';
-import type * as releaseHttp from '../utils/releaseHttp.ts';
+import type { ReleaseResultMessage } from '../esrpApi/types.ts';
+import type * as releaseHttp from '../esrpApi/releaseHttp.ts';
 
 /**
  * Programmable fakes for the `releaseHttp` module functions. Use with
- * `jest.unstable_mockModule('../utils/releaseHttp.ts', () => createMockEsrpHttp())`.
+ * `jest.unstable_mockModule('../esrpApi/releaseHttp.ts', () => createMockEsrpHttp())`.
  *
  * Default behavior:
  * - `submitRelease` resolves with `{ operationId: 'mock-op-id' }`

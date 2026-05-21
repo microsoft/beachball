@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import execa from 'execa';
-import type { Logger } from './Logger.ts';
+import type { Logger } from '../utils/Logger.ts';
 
 /**
  * Convert a certificate from PEM format (base64 text with header/footer) into the raw

@@ -17,11 +17,11 @@ import { createMockEsrpHttp } from '../__fixtures__/mockEsrpHttp.ts';
 import { setupTempDir } from '../__fixtures__/tempDir.ts';
 import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
-import type * as getAadTokenModule from '../utils/getAadToken.ts';
-import { esrpApiEndpoint } from '../utils/releaseHttp.ts';
+import type * as getAadTokenModule from '../auth/getAadToken.ts';
+import { esrpApiEndpoint } from '../esrpApi/releaseHttp.ts';
 
 const mockGetAadToken = jest.fn<typeof getAadTokenModule.getAadToken>();
-jest.unstable_mockModule<typeof getAadTokenModule>('../utils/getAadToken.ts', () => ({
+jest.unstable_mockModule<typeof getAadTokenModule>('../auth/getAadToken.ts', () => ({
   getAadToken: mockGetAadToken,
 }));
 
@@ -31,7 +31,7 @@ jest.unstable_mockModule<typeof import('../utils/hashFileStream.ts')>('../utils/
 }));
 
 const mockEsrpHttp = createMockEsrpHttp();
-jest.unstable_mockModule('../utils/releaseHttp.ts', () => mockEsrpHttp);
+jest.unstable_mockModule('../esrpApi/releaseHttp.ts', () => mockEsrpHttp);
 
 // Late import after mocks are registered (required by jest.unstable_mockModule)
 const { ESRPReleaseService } = await import('../ESRPReleaseService.ts');

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { getReleaseDetails, getReleaseStatus, submitRelease } from '../utils/releaseHttp.ts';
-import type { ReleaseRequestMessage } from '../models/types.ts';
+import { getReleaseDetails, getReleaseStatus, submitRelease } from '../esrpApi/releaseHttp.ts';
+import type { ReleaseRequestMessage } from '../esrpApi/types.ts';
 
 describe('releaseHttp', () => {
   let fetchMock: jest.Mock<typeof fetch>;
