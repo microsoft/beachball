@@ -1,5 +1,5 @@
 import jws from 'jws';
-import type { ReleaseRequestMessage } from '../esrpApi/types.ts';
+import type { ReleaseRequestMessage } from '../types/api.ts';
 import { getThumbprint, pemToDer } from './signing.ts';
 
 export interface JwsTokenParams {

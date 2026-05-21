@@ -1,3 +1,5 @@
+// These types are derived from the ESRP OpenAPI specification
+
 // Enums (in a format that allows running TS in Node natively)
 
 export const StatusCode = Object.freeze({

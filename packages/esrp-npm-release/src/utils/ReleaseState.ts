@@ -1,5 +1,5 @@
 import type { ContainerClient, BlobServiceClient } from '@azure/storage-blob';
-import { ReleaseError } from './utils/ReleaseError.ts';
+import { ReleaseError } from './ReleaseError.ts';
 
 const stateContainerName = 'release-state';
 

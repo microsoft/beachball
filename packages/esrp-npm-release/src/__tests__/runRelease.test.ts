@@ -3,11 +3,11 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import fs from 'fs';
 import path from 'path';
 import type { ESRPReleaseService } from '../ESRPReleaseService.ts';
-import type { ReleaseState } from '../ReleaseState.ts';
 import { MockLogger } from '../__fixtures__/MockLogger.ts';
 import { createMockEnv } from '../__fixtures__/mockEnv.ts';
 import { createPackedDir, setupTempDir } from '../__fixtures__/tempDir.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
+import type { ReleaseState } from '../utils/ReleaseState.ts';
 
 //
 // This test mocks all external interactions of runRelease but uses actual zip files.
@@ -20,7 +20,7 @@ jest.unstable_mockModule('@azure/storage-blob', () => ({
 }));
 
 const mockReleaseStateCreate = jest.fn<typeof ReleaseState.create>();
-jest.unstable_mockModule('../ReleaseState.ts', () => ({
+jest.unstable_mockModule('../utils/ReleaseState.ts', () => ({
   ReleaseState: { create: mockReleaseStateCreate },
 }));
 

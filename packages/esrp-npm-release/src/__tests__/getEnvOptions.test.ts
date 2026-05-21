@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { getEnvOptions } from '../getEnvOptions.ts';
-import { ReleaseError } from '../utils/ReleaseError.ts';
 import { createMockProcessEnv } from '../__fixtures__/mockEnv.ts';
+import { getEnvOptions } from '../utils/getEnvOptions.ts';
+import { ReleaseError } from '../utils/ReleaseError.ts';
 
 describe('getEnvOptions', () => {
   it('returns a fully-populated EnvOptions object when all required vars are set', () => {

@@ -3,7 +3,8 @@ import type {
   ReleaseSubmitResponse,
   ReleaseResultMessage,
   ReleaseDetailsMessage,
-} from './types.ts';
+} from '../types/api.ts';
+import { ReleaseError } from '../utils/ReleaseError.ts';
 
 export interface ReleaseHttpParams {
   /** ESRP onboarded AAD app client ID */
@@ -21,33 +22,49 @@ const esrpBaseUrl = `${esrpApiEndpoint}api/v3/releaseservices/clients/`;
 
 /**
  * Submit a release request.
- * Throws an `Error` (not `ReleaseError`) if the request fails or the response can't be parsed.
+ * Throws a `ReleaseError` if the request fails or the response can't be parsed.
  */
-export function submitRelease(
+export async function submitRelease(
   params: Omit<ReleaseHttpParams, 'releaseId'> & { releaseRequest: ReleaseRequestMessage }
-): Promise<ReleaseSubmitResponse> {
+): Promise<ReleaseSubmitResponse & Required<Pick<ReleaseSubmitResponse, 'operationId'>>> {
   const { clientId, bearerToken, releaseRequest } = params;
 
-  return doHttpRequest<ReleaseSubmitResponse>({
-    apiUrl: `${esrpBaseUrl}${clientId}/workflows/release/operations`,
-    bearerToken,
-    method: 'POST',
-    body: releaseRequest,
-  });
+  let response: ReleaseSubmitResponse;
+  try {
+    response = await doHttpRequest<ReleaseSubmitResponse>({
+      apiUrl: `${esrpBaseUrl}${clientId}/workflows/release/operations`,
+      bearerToken,
+      method: 'POST',
+      body: releaseRequest,
+    });
+  } catch (err) {
+    throw new ReleaseError(`Failed to submit release`, { cause: err });
+  }
+
+  if (!response.operationId) {
+    // probably impossible?
+    throw new ReleaseError('Missing operationId on submitReleaseResult');
+  }
+
+  return response as ReleaseSubmitResponse & Required<Pick<ReleaseSubmitResponse, 'operationId'>>;
 }
 
 /**
  * Get the status of a release request.
- * Throws an `Error` (not `ReleaseError`) if the request fails or the response can't be parsed.
+ * Throws a `ReleaseError` if the request fails or the response can't be parsed.
  */
-export function getReleaseStatus(params: ReleaseHttpParams): Promise<ReleaseResultMessage> {
+export async function getReleaseStatus(params: ReleaseHttpParams): Promise<ReleaseResultMessage> {
   const { clientId, bearerToken, releaseId } = params;
 
-  return doHttpRequest<ReleaseResultMessage>({
-    apiUrl: `${esrpBaseUrl}${clientId}/workflows/release/operations/grs/${releaseId}`,
-    bearerToken,
-    method: 'GET',
-  });
+  try {
+    return await doHttpRequest<ReleaseResultMessage>({
+      apiUrl: `${esrpBaseUrl}${clientId}/workflows/release/operations/grs/${releaseId}`,
+      bearerToken,
+      method: 'GET',
+    });
+  } catch (err) {
+    throw new ReleaseError(`Failed to get release status`, { cause: err });
+  }
 }
 
 /**

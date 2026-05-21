@@ -16,9 +16,9 @@ import {
 import { createMockEsrpHttp } from '../__fixtures__/mockEsrpHttp.ts';
 import { setupTempDir } from '../__fixtures__/tempDir.ts';
 import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
-import { ReleaseError } from '../utils/ReleaseError.ts';
 import type * as getAadTokenModule from '../auth/getAadToken.ts';
 import { esrpApiEndpoint } from '../esrpApi/releaseHttp.ts';
+import { ReleaseError } from '../utils/ReleaseError.ts';
 
 const mockGetAadToken = jest.fn<typeof getAadTokenModule.getAadToken>();
 jest.unstable_mockModule<typeof getAadTokenModule>('../auth/getAadToken.ts', () => ({
@@ -296,13 +296,11 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
     expect(mockEsrpHttp.getReleaseStatus).toHaveBeenCalledTimes(720);
   });
 
-  it.each([
-    ['submitRelease', 'Failed to submit release'],
-    ['getReleaseStatus', 'Failed to get release status'],
-  ] as const)('wraps %s failures with ReleaseError', async (method, message) => {
-    const originalError = new Error(`${method} failed`);
+  it.each(['submitRelease', 'getReleaseStatus'] as const)('propagates %s failures', async method => {
+    const originalError = new ReleaseError(`${method} failed`);
     mockEsrpHttp[method].mockRejectedValue(originalError);
-    await expectReleaseError(message, originalError);
+    const err = await runCreateRelease().catch(e => e as unknown);
+    expect(err).toBe(originalError);
   });
 
   it('logs getReleaseDetails failure as a warning but does not fail the release', async () => {

@@ -8,8 +8,8 @@
 // This file owns the only direct touchpoints with `process.env` and `process.exit` in the
 // package; the actual orchestration lives in `runRelease` so it can be unit-tested.
 
-import { getEnvOptions } from './getEnvOptions.ts';
 import { runRelease } from './runRelease.ts';
+import { getEnvOptions } from './utils/getEnvOptions.ts';
 import { Logger } from './utils/Logger.ts';
 import { ReleaseError } from './utils/ReleaseError.ts';
 

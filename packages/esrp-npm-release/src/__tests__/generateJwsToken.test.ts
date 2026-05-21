@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import jws from 'jws';
-import { generateJwsToken } from '../auth/generateJwsToken.ts';
 import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
+import { generateJwsToken } from '../auth/generateJwsToken.ts';
 
 // eslint-disable-next-line no-restricted-properties -- intentional skip when openssl is unavailable
 const describeIfOpenssl = isOpensslAvailable() ? describe : describe.skip;

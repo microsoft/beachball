@@ -1,9 +1,9 @@
-import { beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { AuthenticationResult, ConfidentialClientApplication, NodeAuthOptions } from '@azure/msal-node';
-import { ReleaseError } from '../utils/ReleaseError.ts';
+import { beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { MockLogger } from '../__fixtures__/MockLogger.ts';
 import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
 import type { GetAadTokenParams } from '../auth/getAadToken.ts';
+import { ReleaseError } from '../utils/ReleaseError.ts';
 
 let lastAuthOptions: NodeAuthOptions | undefined;
 const acquireTokenByClientCredential = jest.fn<ConfidentialClientApplication['acquireTokenByClientCredential']>();

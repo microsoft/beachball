@@ -6,8 +6,8 @@ import {
   createMockContainerClient,
   type MockBlockBlobClient,
 } from '../__fixtures__/mockAzure.ts';
-import { ReleaseState } from '../ReleaseState.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
+import { ReleaseState } from '../utils/ReleaseState.ts';
 
 describe('ReleaseState', () => {
   afterEach(() => {

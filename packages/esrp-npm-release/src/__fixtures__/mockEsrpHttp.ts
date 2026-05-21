@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import type { ReleaseResultMessage } from '../esrpApi/types.ts';
+import type { ReleaseResultMessage } from '../types/api.ts';
 import type * as releaseHttp from '../esrpApi/releaseHttp.ts';
 
 /**

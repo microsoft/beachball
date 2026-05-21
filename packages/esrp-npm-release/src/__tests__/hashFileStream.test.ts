@@ -2,8 +2,8 @@ import { beforeAll, describe, expect, it } from '@jest/globals';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { hashFileStream } from '../utils/hashFileStream.ts';
 import { setupTempDir } from '../__fixtures__/tempDir.ts';
+import { hashFileStream } from '../utils/hashFileStream.ts';
 
 describe('hashFileStream', () => {
   const dir = setupTempDir({ cleanup: 'afterAll' });

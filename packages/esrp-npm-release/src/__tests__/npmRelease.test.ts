@@ -2,10 +2,10 @@ import { beforeAll, describe, expect, it } from '@jest/globals';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { createNpmReleaseRequest, redactReleaseRequest } from '../esrpApi/npmRelease.ts';
-import { FileHashType, type ReleaseFileInfo, type ReleaseRequestMessage } from '../esrpApi/types.ts';
-import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
 import { setupTempDir } from '../__fixtures__/tempDir.ts';
+import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
+import { createNpmReleaseRequest, redactReleaseRequest } from '../esrpApi/npmRelease.ts';
+import { FileHashType, type ReleaseFileInfo, type ReleaseRequestMessage } from '../types/api.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
 
 // eslint-disable-next-line no-restricted-properties -- intentional skip when openssl is unavailable

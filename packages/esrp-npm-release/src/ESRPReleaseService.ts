@@ -1,21 +1,21 @@
 import {
+  BlobSASPermissions,
+  generateBlobSASQueryParameters,
   type BlobServiceClient,
   type BlockBlobClient,
   type ContainerClient,
   type UserDelegationKey,
-  BlobSASPermissions,
-  generateBlobSASQueryParameters,
 } from '@azure/storage-blob';
 import { randomUUID } from 'crypto';
+import { getAadToken, type AccessToken } from './auth/getAadToken.ts';
+import { getKeyAndCertificatesFromPFX } from './auth/signing.ts';
 import {
   createNpmReleaseRequest,
   redactReleaseRequest,
   type CreateNpmReleaseRequestMessageParams,
 } from './esrpApi/npmRelease.ts';
-import type { ReleaseResultMessage, ReleaseSubmitResponse } from './esrpApi/types.ts';
 import { esrpApiEndpoint, getReleaseDetails, getReleaseStatus, submitRelease } from './esrpApi/releaseHttp.ts';
-import { getAadToken, type AccessToken } from './auth/getAadToken.ts';
-import { getKeyAndCertificatesFromPFX } from './auth/signing.ts';
+import type { ReleaseResultMessage } from './types/api.ts';
 import type { Logger } from './utils/Logger.ts';
 import { ReleaseError } from './utils/ReleaseError.ts';
 
@@ -231,13 +231,25 @@ export class ESRPReleaseService {
       credentials: PerReleaseCredentials;
     }
   ): Promise<void> {
-    const { credentials } = params;
+    const { filePath, correlationId, sasBlobUrl, releaseRequestParams, credentials } = params;
 
-    const submitReleaseResult = await this.#submitRelease(params);
-    if (!submitReleaseResult.operationId) {
-      // probably impossible?
-      throw new ReleaseError('Missing operationId on submitReleaseResult');
-    }
+    this.#logger.log(`Preparing to submit release`);
+
+    const request = await createNpmReleaseRequest({
+      ...releaseRequestParams,
+      correlationId,
+      requestSigningCertificates: this.#requestSigningCertificates,
+      requestSigningKey: this.#requestSigningKey,
+      file: { path: filePath, sasBlobUrl },
+    });
+
+    this.#logger.log(`Sending request to ESRP API: ${JSON.stringify(redactReleaseRequest(request), null, 2)}`);
+
+    const submitReleaseResult = await submitRelease({
+      clientId: this.#clientId,
+      bearerToken: credentials.esrpAccessToken.token,
+      releaseRequest: request,
+    });
 
     this.#logger.log(`Successfully submitted release ${submitReleaseResult.operationId}. Polling for completion...`);
 
@@ -256,8 +268,6 @@ export class ESRPReleaseService {
         clientId: this.#clientId,
         bearerToken: credentials.esrpAccessToken.token,
         releaseId: submitReleaseResult.operationId,
-      }).catch(err => {
-        throw new ReleaseError(`Failed to get release status`, { cause: err });
       });
 
       // Log only on status changes to avoid spamming the log on every poll
@@ -266,29 +276,8 @@ export class ESRPReleaseService {
         lastLoggedStatus = releaseStatus.status;
       }
 
-      const releaseStr = JSON.stringify(releaseStatus, null, 2);
-      if (releaseStatus.status === 'pass') {
-        this.#logger.log(`Release ${submitReleaseResult.operationId} passed. Last status details: ${releaseStr}`);
+      if (this.#checkReleaseStatus(releaseStatus, submitReleaseResult.operationId)) {
         break;
-      }
-
-      // Check for a 404 on publish and give a specific error
-      const errorDetails = (releaseStatus.errorInfo || releaseStatus.errorinfo)?.details?.errors;
-      if (errorDetails && /^404.*?PUT.*?registry\.npmjs\.org/.test(errorDetails)) {
-        throw new ReleaseError(
-          `Release failed with 404 on npm publish: ${errorDetails}\nThis usually indicates an auth issue, ` +
-            `such as expired credentials or missing permissions. Please contact the ESRP team for help.\n\n` +
-            `Full status API response: ${releaseStr}`
-        );
-      }
-      // TODO: mismatch with values included in provided types
-      if ((releaseStatus.status as unknown) === 'aborted' || releaseStatus.status === 'cancelled') {
-        throw new ReleaseError(`Release was aborted. Full status API response: ${releaseStr}`);
-      }
-      if (releaseStatus.status !== 'inprogress') {
-        throw new ReleaseError(
-          `Unexpected release status "${releaseStatus.status}". Full status API response: ${releaseStr}`
-        );
       }
     }
 
@@ -299,8 +288,7 @@ export class ESRPReleaseService {
     }
 
     // Packages are already published at this point. Fetching details is diagnostic only —
-    // if it fails, log a warning so the caller can still mark the layer published, otherwise
-    // a retry would attempt to republish versions that already exist on npm.
+    // if it fails, log a warning so the caller can still mark the layer published.
     this.#logger.log(`Release ${submitReleaseResult.operationId} passed; fetching release details`);
     try {
       const releaseDetails = await getReleaseDetails({
@@ -319,49 +307,48 @@ export class ESRPReleaseService {
   }
 
   /**
-   * Create and submit a release request.
-   * (This should internally catch any errors and re-throw an appropriate `ReleaseError`.)
+   * AAD client-credential tokens are typically valid for ~1 hour. Since polling can run
+   * for up to 60 minutes (and was preceded by upload + submit), the original token can
+   * expire mid-poll. Refresh proactively when within 5 minutes of expiry.
    */
-  async #submitRelease(
-    params: Omit<CreateReleaseParams, 'stagingBlobPathPrefix'> & {
-      correlationId: string;
-      sasBlobUrl: string;
-      credentials: PerReleaseCredentials;
-    }
-  ): Promise<ReleaseSubmitResponse> {
-    const { filePath, correlationId, sasBlobUrl, releaseRequestParams, credentials } = params;
-
-    this.#logger.log(`Preparing to submit release`);
-
-    const request = await createNpmReleaseRequest({
-      ...releaseRequestParams,
-      correlationId,
-      requestSigningCertificates: this.#requestSigningCertificates,
-      requestSigningKey: this.#requestSigningKey,
-      file: {
-        path: filePath,
-        sasBlobUrl,
-      },
-    });
-
-    this.#logger.log(`Sending request to ESRP API: ${JSON.stringify(redactReleaseRequest(request), null, 2)}`);
-
-    return await submitRelease({
-      clientId: this.#clientId,
-      bearerToken: credentials.esrpAccessToken.token,
-      releaseRequest: request,
-    }).catch(err => {
-      throw new ReleaseError(`Failed to submit release`, { cause: err });
-    });
-  }
-
   async #refreshEsrpAccessTokenIfNeeded(credentials: PerReleaseCredentials): Promise<void> {
     const { expiresOnTimestamp, refreshAfterTimestamp } = credentials.esrpAccessToken;
-    // Refresh 5 minutes before expiry so the next API call doesn't race the boundary.
     const refreshAt = refreshAfterTimestamp ?? expiresOnTimestamp - 5 * 60 * 1000;
     if (Date.now() >= refreshAt) {
       this.#logger.log('AAD access token near expiry, refreshing');
       credentials.esrpAccessToken = await this.#getEsrpAccessToken();
     }
+  }
+
+  /**
+   * Returns true if the release status is 'pass', or false if in progress.
+   * Throws `ReleaseError` on issues.
+   */
+  #checkReleaseStatus(releaseStatus: ReleaseResultMessage, releaseId: string): boolean {
+    const releaseStr = JSON.stringify(releaseStatus, null, 2);
+    const fullStatusApiResponse = `Full status API response: ${releaseStr}`;
+
+    if (releaseStatus.status === 'pass') {
+      this.#logger.log(`Release ${releaseId} passed. Last status details: ${releaseStr}`);
+      return true;
+    }
+
+    // Check for a 404 on publish and give a specific error
+    const errorDetails = (releaseStatus.errorInfo || releaseStatus.errorinfo)?.details?.errors;
+    if (errorDetails && /^404.*?PUT.*?registry\.npmjs\.org/.test(errorDetails)) {
+      throw new ReleaseError(
+        `Release failed with 404 on npm publish: ${errorDetails}\nThis usually indicates an auth issue, ` +
+          `such as expired credentials or missing permissions. Please contact the ESRP team for help.\n\n` +
+          fullStatusApiResponse
+      );
+    }
+    // TODO: mismatch with values included in provided types
+    if ((releaseStatus.status as unknown) === 'aborted' || releaseStatus.status === 'cancelled') {
+      throw new ReleaseError(`Release was aborted. ${fullStatusApiResponse}`);
+    }
+    if (releaseStatus.status !== 'inprogress') {
+      throw new ReleaseError(`Unexpected release status "${releaseStatus.status}". ${fullStatusApiResponse}`);
+    }
+    return false;
   }
 }
