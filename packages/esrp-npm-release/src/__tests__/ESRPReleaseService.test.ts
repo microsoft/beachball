@@ -270,6 +270,25 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
     expect(blobClient.delete).toHaveBeenCalledTimes(1);
   });
 
+  it('throws a custom auth-focused message for npm registry 404 errors', async () => {
+    mockEsrpHttp.getReleaseStatus.mockResolvedValue({
+      // Based on an actual failure response
+      status: 'failDoNotRetry',
+      errorInfo: {
+        details: {
+          errors: '404 Not Found - PUT https://registry.npmjs.org/@microsoft%2fsome-lib - Not found',
+        },
+      },
+    });
+
+    const err = await runCreateRelease().catch(e => e as unknown);
+    expect(err).toBeInstanceOf(ReleaseError);
+    const message = (err as ReleaseError).message;
+    expect(message).toContain('Release failed with 404 on npm publish:');
+    expect(message).toContain('Full status API response');
+    expect(blobClient.delete).toHaveBeenCalledTimes(1);
+  });
+
   it('throws ReleaseError after polling timeout (720 iterations of inprogress)', async () => {
     mockEsrpHttp.getReleaseStatus.mockResolvedValue({ status: 'inprogress' });
 

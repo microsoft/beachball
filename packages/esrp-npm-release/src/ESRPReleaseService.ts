@@ -271,6 +271,16 @@ export class ESRPReleaseService {
         this.#logger.log(`Release ${submitReleaseResult.operationId} passed. Last status details: ${releaseStr}`);
         break;
       }
+
+      // Check for a 404 on publish and give a specific error
+      const errorDetails = (releaseStatus.errorInfo || releaseStatus.errorinfo)?.details?.errors;
+      if (errorDetails && /^404.*?PUT.*?registry\.npmjs\.org/.test(errorDetails)) {
+        throw new ReleaseError(
+          `Release failed with 404 on npm publish: ${errorDetails}\nThis usually indicates an auth issue, ` +
+            `such as expired credentials or missing permissions. Please contact the ESRP team for help.\n\n` +
+            `Full status API response: ${releaseStr}`
+        );
+      }
       // TODO: mismatch with values included in provided types
       if ((releaseStatus.status as unknown) === 'aborted' || releaseStatus.status === 'cancelled') {
         throw new ReleaseError(`Release was aborted. Full status API response: ${releaseStr}`);
