@@ -1,8 +1,18 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Sat, 02 May 2026 01:47:50 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 21 May 2026 00:59:31 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.65.5
+
+Thu, 21 May 2026 00:59:31 GMT
+
+### Patches
+
+- Fetch with --no-tags (elcraig@microsoft.com)
+- Add link to change type help (elcraig@microsoft.com)
+- Change default `packStyle` to `'layer'` and write `versions.json` for layer-style packing (198982749+Copilot@users.noreply.github.com)
 
 ## 2.65.4
 

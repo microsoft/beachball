@@ -2,6 +2,33 @@
   "name": "beachball",
   "entries": [
     {
+      "date": "Thu, 21 May 2026 00:59:31 GMT",
+      "version": "2.65.5",
+      "tag": "beachball_v2.65.5",
+      "comments": {
+        "patch": [
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "27291119906ee89cf2a3bb9f7964d0f8dcce76bd",
+            "comment": "Fetch with --no-tags"
+          },
+          {
+            "author": "elcraig@microsoft.com",
+            "package": "beachball",
+            "commit": "27291119906ee89cf2a3bb9f7964d0f8dcce76bd",
+            "comment": "Add link to change type help"
+          },
+          {
+            "author": "198982749+Copilot@users.noreply.github.com",
+            "package": "beachball",
+            "commit": "27291119906ee89cf2a3bb9f7964d0f8dcce76bd",
+            "comment": "Change default `packStyle` to `'layer'` and write `versions.json` for layer-style packing"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 02 May 2026 01:47:50 GMT",
       "version": "2.65.4",
       "tag": "beachball_v2.65.4",
