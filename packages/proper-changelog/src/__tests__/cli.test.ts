@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { createProgram, parseRepo, run } from '../cli.ts';
+import { createProgram, defaultBaseName, parseRepo, run } from '../cli.ts';
 
 describe('parseRepo', () => {
   it('parses an owner/repo string', () => {
@@ -59,7 +59,7 @@ describe('createProgram', () => {
 
   it('rejects a non-integer --limit', () => {
     expect(() => parse(['--repo', 'microsoft/some-repo', '--limit', 'abc'])).toThrow(
-      'Expected a non-negative integer but got \"abc\"'
+      'Expected a non-negative integer but got "abc"'
     );
   });
 
@@ -69,6 +69,22 @@ describe('createProgram', () => {
 
   it('rejects using --repo and --package together', () => {
     expect(() => parse(['--repo', 'microsoft/some-repo', '--package', 'pkg'])).toThrow(/--repo.*?--package/);
+  });
+});
+
+describe('defaultBaseName', () => {
+  const repo = { owner: 'microsoft', repo: 'beachball' };
+
+  it('uses the repo name when no package is given', () => {
+    expect(defaultBaseName(undefined, repo)).toBe('beachball');
+  });
+
+  it('uses the package name when given', () => {
+    expect(defaultBaseName('lodash', repo)).toBe('lodash');
+  });
+
+  it('sanitizes a scoped package name into a safe filename', () => {
+    expect(defaultBaseName('@fluentui/react', repo)).toBe('fluentui-react');
   });
 });
 

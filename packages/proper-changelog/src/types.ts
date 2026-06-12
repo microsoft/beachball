@@ -13,6 +13,8 @@ export interface RepoId {
 export interface ProperChangelogOptions {
   /** Repository to read releases from, as `owner/repo`. */
   repo: RepoId;
+  /** npm package name the repo was resolved from, if any (used for the changelog heading/filename). */
+  packageName?: string;
   /** Auth token for the GitHub API (optional; requests are rate-limited without one). */
   token?: string;
   /** Include prerelease releases (default: false). Draft releases are always excluded. */

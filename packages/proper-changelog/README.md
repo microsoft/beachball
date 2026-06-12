@@ -14,7 +14,7 @@ npx proper-changelog --package <package-name>
 
 Exactly one of `--repo` or `--package` is required, and they cannot be used together.
 
-By default this writes the changelog to `<repo>-changelog.md` in the current directory. Use `--stdout` to print it instead, or `--out` to choose a different file name.
+By default this writes the changelog to `CHANGELOG-<package-or-repo>.md` in the current directory (using the package name when `--package` is given, otherwise the repo name). Use `--stdout` to print it instead, or `--out` to choose a different file name.
 
 ```bash
 # Write to a custom file
@@ -39,17 +39,18 @@ If no token is found, the tool prints a warning and continues unauthenticated.
 
 ## Options
 
-| Option                  | Description                                                                                                                                                        |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--repo <owner/repo>`   | GitHub repository to read releases from. Required unless `--package` is given; cannot be used with it.                                                             |
-| `--package <name>`      | npm package whose GitHub repository should be used (read from the latest published version's manifest). Required unless `--repo` is given; cannot be used with it. |
-| `-o, --out <file>`      | Output file name (default: `<repo>-changelog.md`). Cannot be used with `--stdout`.                                                                                 |
-| `--stdout`              | Write the changelog to stdout instead of a file. Cannot be used with `--out`.                                                                                      |
-| `--token <token>`       | GitHub token (see [Authentication](#authentication)).                                                                                                              |
-| `--include-prereleases` | Include prerelease releases. Draft releases are always excluded.                                                                                                   |
-| `--from <tag>`          | Include releases up to and including this tag.                                                                                                                     |
-| `--to <tag>`            | Include releases down to and including this tag.                                                                                                                   |
-| `--limit <n>`           | Maximum number of releases to include.                                                                                                                             |
+<!-- prettier-ignore -->
+| Option | Description |
+| ------ | ----------- |
+| `--repo <owner/repo>` | GitHub repository to read releases from. Required unless `--package` is given; cannot be used with it. |
+| `--package <name>` | npm package whose GitHub repository should be used (read from the latest published version's manifest). Required unless `--repo` is given; cannot be used with it. Note that for a monorepo, this does **not** do any filtering of releases by package. |
+| `-o, --out <file>` | Output file name (default: `CHANGELOG-<package-or-repo>.md`). Cannot be used with `--stdout`. |
+| `--stdout` | Write the changelog to stdout instead of a file. Cannot be used with `--out`. |
+| `--token <token>` | GitHub token (see [Authentication](#authentication)). |
+| `--include-prereleases` | Include prerelease releases. Draft releases are always excluded. |
+| `--from <tag>` | Include releases up to and including this tag. |
+| `--to <tag>` | Include releases down to and including this tag. |
+| `--limit <n>` | Maximum number of releases to include. |
 
 Releases are listed newest-first by published date. Draft releases are always excluded, and prereleases are excluded unless `--include-prereleases` is passed.
 

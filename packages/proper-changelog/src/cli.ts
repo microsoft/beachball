@@ -48,7 +48,9 @@ export function createProgram(): Command {
         .conflicts('package')
     )
     .addOption(new Option('--package <name>', 'npm package whose GitHub repository should be used').conflicts('repo'))
-    .addOption(new Option('-o, --out <file>', 'output file name (default: <repo>-changelog.md)').conflicts('stdout'))
+    .addOption(
+      new Option('-o, --out <file>', 'output file name (default: CHANGELOG-<package-or-repo>.md)').conflicts('stdout')
+    )
     .addOption(new Option('--stdout', 'write the changelog to stdout instead of a file').conflicts('out'))
     .option('--token <token>', 'GitHub token (falls back to GITHUB_TOKEN/GH_TOKEN, then `gh auth token`)')
     .option('--include-prereleases', 'include prerelease releases (drafts are always excluded)')
@@ -95,6 +97,7 @@ export async function run(
 
   const options: ProperChangelogOptions = {
     repo,
+    packageName: raw.package,
     token,
     includePrereleases: raw.includePrereleases,
     from: raw.from,
@@ -110,9 +113,16 @@ export async function run(
     return;
   }
 
-  const outFile = raw.out ?? `${repo.repo}-changelog.md`;
+  const outFile = raw.out ?? `CHANGELOG-${defaultBaseName(raw.package, repo)}.md`;
   await write(outFile, changelog);
   warn(`Wrote changelog to ${outFile}`);
+}
+
+/** Derive the default changelog file base name from the package name (if given) or repo name. */
+export function defaultBaseName(packageName: string | undefined, repo: RepoId): string {
+  const base = packageName ?? repo.repo;
+  // Strip a leading npm scope and replace path separators so the result is a safe single filename.
+  return base.replace(/^@/, '').replace(/\//g, '-');
 }
 
 /** Run the CLI and handle top-level errors. Intended to be called from the bin script. */
