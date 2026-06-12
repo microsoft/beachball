@@ -2,7 +2,7 @@ import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals
 import { fetchReleases } from '../fetchReleases.ts';
 import { makeRelease } from '../__fixtures__/makeRelease.ts';
 
-const repo = { owner: 'o', repo: 'r' };
+const repo = { owner: 'microsoft', repo: 'some-repo' };
 
 describe('fetchReleases', () => {
   const originalFetch = global.fetch;
@@ -38,7 +38,7 @@ describe('fetchReleases', () => {
 
     expect(releases.map(r => r.tag_name)).toEqual(['v1.0.0']);
     const [url, requestInit] = fetchMock.mock.calls[0];
-    expect(url).toBe('https://api.github.com/repos/o/r/releases?per_page=100');
+    expect(url).toBe('https://api.github.com/repos/microsoft/some-repo/releases?per_page=100');
     const headers = (requestInit as RequestInit).headers as Record<string, string>;
     expect(headers.Authorization).toBeUndefined();
   });
@@ -58,7 +58,7 @@ describe('fetchReleases', () => {
     fetchMock
       .mockResolvedValueOnce(
         mockResponse([makeRelease({ tag_name: 'v2.0.0' })], {
-          link: '<https://api.github.com/repos/o/r/releases?per_page=100&page=2>; rel="next"',
+          link: '<https://api.github.com/repos/microsoft/some-repo/releases?per_page=100&page=2>; rel="next"',
         })
       )
       .mockResolvedValueOnce(mockResponse([makeRelease({ tag_name: 'v1.0.0' })]));
@@ -67,13 +67,15 @@ describe('fetchReleases', () => {
 
     expect(releases.map(r => r.tag_name)).toEqual(['v2.0.0', 'v1.0.0']);
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock.mock.calls[1][0]).toBe('https://api.github.com/repos/o/r/releases?per_page=100&page=2');
+    expect(fetchMock.mock.calls[1][0]).toBe(
+      'https://api.github.com/repos/microsoft/some-repo/releases?per_page=100&page=2'
+    );
   });
 
   it('throws a descriptive error on a non-OK response', async () => {
     const fetchMock = global.fetch as jest.MockedFunction<typeof fetch>;
     fetchMock.mockResolvedValueOnce(mockResponse({ message: 'Not Found' }, { ok: false, status: 404 }));
 
-    await expect(fetchReleases(repo)).rejects.toThrow('Failed to fetch releases for o/r: 404');
+    await expect(fetchReleases(repo)).rejects.toThrow('Failed to fetch releases for microsoft/some-repo: 404');
   });
 });

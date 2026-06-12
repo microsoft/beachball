@@ -7,8 +7,8 @@ import type { GitHubRelease } from '../types.ts';
 export function makeRelease(overrides: Partial<GitHubRelease> = {}): GitHubRelease {
   const tag = overrides.tag_name ?? 'v1.0.0';
   return {
-    url: 'https://api.github.com/repos/o/r/releases/1',
-    html_url: `https://github.com/o/r/releases/tag/${tag}`,
+    url: 'https://api.github.com/repos/microsoft/some-repo/releases/1',
+    html_url: `https://github.com/microsoft/some-repo/releases/tag/${tag}`,
     assets_url: '',
     upload_url: '',
     tarball_url: null,
@@ -23,26 +23,7 @@ export function makeRelease(overrides: Partial<GitHubRelease> = {}): GitHubRelea
     prerelease: false,
     created_at: '2024-01-01T00:00:00Z',
     published_at: '2024-01-01T00:00:00Z',
-    author: {
-      login: 'octocat',
-      id: 1,
-      node_id: 'u',
-      avatar_url: '',
-      gravatar_id: null,
-      url: '',
-      html_url: '',
-      followers_url: '',
-      following_url: '',
-      gists_url: '',
-      starred_url: '',
-      subscriptions_url: '',
-      organizations_url: '',
-      repos_url: '',
-      events_url: '',
-      received_events_url: '',
-      type: 'User',
-      site_admin: false,
-    },
+    author: {} as GitHubRelease['author'], // not used
     assets: [],
     ...overrides,
   };

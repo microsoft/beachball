@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { createProgram, parseRepo } from '../cli.ts';
+import { createProgram, parseRepo, run } from '../cli.ts';
 
 describe('parseRepo', () => {
   it('parses an owner/repo string', () => {
@@ -19,15 +19,15 @@ describe('createProgram', () => {
   }
 
   it('parses --repo into a RepoId and applies defaults', () => {
-    const opts = parse(['--repo', 'o/r']);
-    expect(opts.repo).toEqual({ owner: 'o', repo: 'r' });
+    const opts = parse(['--repo', 'microsoft/some-repo']);
+    expect(opts.repo).toEqual({ owner: 'microsoft', repo: 'some-repo' });
     expect(opts.includePrereleases).toBeUndefined();
   });
 
   it('parses all options', () => {
     const opts = parse([
       '--repo',
-      'o/r',
+      'microsoft/some-repo',
       '--out',
       'changes.md',
       '--token',
@@ -41,7 +41,7 @@ describe('createProgram', () => {
       '5',
     ]);
     expect(opts).toMatchObject({
-      repo: { owner: 'o', repo: 'r' },
+      repo: { owner: 'microsoft', repo: 'some-repo' },
       out: 'changes.md',
       token: 't',
       includePrereleases: true,
@@ -51,15 +51,31 @@ describe('createProgram', () => {
     });
   });
 
-  it('requires --repo', () => {
-    expect(() => parse([])).toThrow();
+  it('parses --package', () => {
+    const opts = parse(['--package', '@scope/pkg']);
+    expect(opts.package).toBe('@scope/pkg');
+    expect(opts.repo).toBeUndefined();
   });
 
   it('rejects a non-integer --limit', () => {
-    expect(() => parse(['--repo', 'o/r', '--limit', 'abc'])).toThrow();
+    expect(() => parse(['--repo', 'microsoft/some-repo', '--limit', 'abc'])).toThrow(
+      'Expected a non-negative integer but got \"abc\"'
+    );
   });
 
   it('rejects using --out and --stdout together', () => {
-    expect(() => parse(['--repo', 'o/r', '--out', 'x.md', '--stdout'])).toThrow();
+    expect(() => parse(['--repo', 'microsoft/some-repo', '--out', 'x.md', '--stdout'])).toThrow(/--out.*?--stdout/);
+  });
+
+  it('rejects using --repo and --package together', () => {
+    expect(() => parse(['--repo', 'microsoft/some-repo', '--package', 'pkg'])).toThrow(/--repo.*?--package/);
+  });
+});
+
+describe('run', () => {
+  it('throws when neither --repo nor --package is provided', async () => {
+    await expect(run({}, { log() {}, warn() {}, write: () => Promise.resolve() })).rejects.toThrow(
+      'Exactly one of --repo or --package is required.'
+    );
   });
 });

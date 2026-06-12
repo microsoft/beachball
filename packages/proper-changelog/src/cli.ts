@@ -2,6 +2,7 @@ import { writeFile } from 'fs/promises';
 import { Command, Option, InvalidArgumentError } from 'commander';
 import { fetchReleases } from './fetchReleases.ts';
 import { renderChangelog } from './renderChangelog.ts';
+import { resolveRepoFromPackage } from './resolveRepoFromPackage.ts';
 import { resolveToken } from './resolveToken.ts';
 import type { ProperChangelogOptions, RepoId } from './types.ts';
 
@@ -24,7 +25,8 @@ function parsePositiveInt(value: string): number {
 }
 
 interface RawCliOptions {
-  repo: RepoId;
+  repo?: RepoId;
+  package?: string;
   out?: string;
   stdout?: boolean;
   token?: string;
@@ -40,16 +42,32 @@ export function createProgram(): Command {
   program
     .name('proper-changelog')
     .description('Generate a single markdown changelog from a GitHub repository\u2019s releases.')
-    .requiredOption('--repo <owner/repo>', 'GitHub repository to read releases from', parseRepo)
+    .addOption(
+      new Option('--repo <owner/repo>', 'GitHub repository to read releases from')
+        .argParser(parseRepo)
+        .conflicts('package')
+    )
+    .addOption(new Option('--package <name>', 'npm package whose GitHub repository should be used').conflicts('repo'))
     .addOption(new Option('-o, --out <file>', 'output file name (default: <repo>-changelog.md)').conflicts('stdout'))
     .addOption(new Option('--stdout', 'write the changelog to stdout instead of a file').conflicts('out'))
     .option('--token <token>', 'GitHub token (falls back to GITHUB_TOKEN/GH_TOKEN, then `gh auth token`)')
     .option('--include-prereleases', 'include prerelease releases (drafts are always excluded)')
-    .option('--from <tag>', 'include releases up to and including this tag')
-    .option('--to <tag>', 'include releases down to and including this tag')
+    .option('--from <tag>', 'include releases up to and including this tag (based on date, not semver)')
+    .option('--to <tag>', 'include releases down to and including this tag (based on date, not semver)')
     .option('--limit <n>', 'maximum number of releases to include', parsePositiveInt)
     .allowExcessArguments(false);
   return program;
+}
+
+/** Resolve the target repository from either `--repo` or `--package`. */
+async function resolveRepo(raw: RawCliOptions): Promise<RepoId> {
+  if (raw.repo) {
+    return raw.repo;
+  }
+  if (raw.package) {
+    return resolveRepoFromPackage(raw.package);
+  }
+  throw new Error('Exactly one of --repo or --package is required.');
 }
 
 /** Generate the changelog and write it to a file or stdout based on the parsed options. */
@@ -65,6 +83,8 @@ export async function run(
   const warn = deps.warn ?? ((message: string) => console.warn(message));
   const write = deps.write ?? ((file: string, content: string) => writeFile(file, content, 'utf8'));
 
+  const repo = await resolveRepo(raw);
+
   const token = await resolveToken(raw.token);
   if (!token) {
     warn(
@@ -74,7 +94,7 @@ export async function run(
   }
 
   const options: ProperChangelogOptions = {
-    repo: raw.repo,
+    repo,
     token,
     includePrereleases: raw.includePrereleases,
     from: raw.from,
@@ -82,7 +102,7 @@ export async function run(
     limit: raw.limit,
   };
 
-  const releases = await fetchReleases(raw.repo, token);
+  const releases = await fetchReleases(repo, token);
   const changelog = renderChangelog(releases, options);
 
   if (raw.stdout) {
@@ -90,21 +110,18 @@ export async function run(
     return;
   }
 
-  const outFile = raw.out ?? `${raw.repo.repo}-changelog.md`;
+  const outFile = raw.out ?? `${repo.repo}-changelog.md`;
   await write(outFile, changelog);
   warn(`Wrote changelog to ${outFile}`);
 }
 
-/** CLI entry point: parse argv and run, setting a non-zero exit code on failure. */
-export async function main(argv: string[]): Promise<void> {
-  const program = createProgram();
-  program.parse(argv);
-  await run(program.opts<RawCliOptions>());
-}
-
 /** Run the CLI and handle top-level errors. Intended to be called from the bin script. */
 export function cli(argv: string[] = process.argv): void {
-  main(argv).catch((error: unknown) => {
+  (async () => {
+    const program = createProgram();
+    program.parse(argv);
+    await run(program.opts<RawCliOptions>());
+  })().catch((error: unknown) => {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
   });

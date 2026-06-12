@@ -3,21 +3,6 @@ import type { GitHubRelease, RepoId } from './types.ts';
 const apiBase = 'https://api.github.com';
 const perPage = 100;
 
-/** Parse the `Link` response header and return the URL with `rel="next"`, if any. */
-function getNextLink(linkHeader: string | null): string | undefined {
-  if (!linkHeader) {
-    return undefined;
-  }
-
-  for (const part of linkHeader.split(',')) {
-    const match = part.match(/<([^>]+)>;\s*rel="([^"]+)"/);
-    if (match && match[2] === 'next') {
-      return match[1];
-    }
-  }
-  return undefined;
-}
-
 /**
  * Fetch all releases for a repository from the GitHub REST API, following pagination.
  *
@@ -27,7 +12,7 @@ function getNextLink(linkHeader: string | null): string | undefined {
 export async function fetchReleases(repo: RepoId, token?: string): Promise<GitHubRelease[]> {
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28',
+    'X-GitHub-Api-Version': '2026-03-10',
     'User-Agent': 'proper-changelog',
   };
   if (token) {
@@ -54,4 +39,19 @@ export async function fetchReleases(repo: RepoId, token?: string): Promise<GitHu
   }
 
   return releases;
+}
+
+/** Parse the `Link` response header and return the URL with `rel="next"`, if any. */
+function getNextLink(linkHeader: string | null): string | undefined {
+  if (!linkHeader) {
+    return undefined;
+  }
+
+  for (const part of linkHeader.split(',')) {
+    const match = part.match(/<([^>]+)>;\s*rel="([^"]+)"/);
+    if (match?.[2] === 'next') {
+      return match[1];
+    }
+  }
+  return undefined;
 }
