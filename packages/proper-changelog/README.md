@@ -45,7 +45,7 @@ Either `--package` or `--repo` is required, and they're mutually exclusive.
 | `--from <tag>` | Include releases up to and including this tag (based on date, **not** semver). |
 | `--to <tag>` | Include releases down to and including this tag (based on date, **not** semver). |
 | `--limit <n>` | Maximum number of releases to include. |
-| `--filter <pattern>` | Only include releases whose **tag** matches `<pattern>`. A plain string matches tags containing it (case-insensitive); wrap the value in slashes (e.g. `/^v1\./i`) to match with a regular expression. Useful for monorepos that tag releases per package. |
+| `--filter <pattern>` | Only include releases whose **tag** matches `<pattern>`. A plain string matches tags containing it (case-insensitive); wrap the value in slashes (e.g. `/^v1\./i`) to match with a regular expression. Useful for monorepos that tag releases per package. (Warning: this is _not_ sanitized, so ReDOS yourself at will.) |
 | `--since <date>` | Only include releases published after this date. Accepts any value parseable by `new Date()`, such as `2024-01-01`. |
 
 ## Authentication
