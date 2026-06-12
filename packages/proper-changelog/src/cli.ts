@@ -24,6 +24,15 @@ function parsePositiveInt(value: string): number {
   return parsed;
 }
 
+/** Validate a date option value (any format parseable by `new Date()`). */
+function parseDate(value: string): Date {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new InvalidArgumentError(`Expected a date but got "${value}".`);
+  }
+  return date;
+}
+
 interface RawCliOptions {
   repo?: RepoId;
   package?: string;
@@ -34,6 +43,8 @@ interface RawCliOptions {
   from?: string;
   to?: string;
   limit?: number;
+  filter?: string;
+  since?: Date;
 }
 
 /** Build the commander program. Exported for testing. */
@@ -57,6 +68,8 @@ export function createProgram(): Command {
     .option('--from <tag>', 'include releases up to and including this tag (based on date, not semver)')
     .option('--to <tag>', 'include releases down to and including this tag (based on date, not semver)')
     .option('--limit <n>', 'maximum number of releases to include', parsePositiveInt)
+    .option('--filter <pattern>', 'only include releases whose tag matches this substring or /regex/')
+    .option('--since <date>', 'only include releases published after this date (e.g. 2024-01-01)', parseDate)
     .allowExcessArguments(false);
   return program;
 }
@@ -103,6 +116,8 @@ export async function run(
     from: raw.from,
     to: raw.to,
     limit: raw.limit,
+    filter: raw.filter,
+    since: raw.since,
   };
 
   const releases = await fetchReleases(repo, token);

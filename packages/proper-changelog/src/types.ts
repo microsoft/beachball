@@ -25,4 +25,11 @@ export interface ProperChangelogOptions {
   to?: string;
   /** Maximum number of releases to include. */
   limit?: number;
+  /**
+   * Filter releases by tag name. A plain string matches tags that contain it (case-insensitive);
+   * a value wrapped in slashes (e.g. `/^v1\./i`) is treated as a regular expression.
+   */
+  filter?: string;
+  /** Only include releases published after this date. */
+  since?: Date;
 }

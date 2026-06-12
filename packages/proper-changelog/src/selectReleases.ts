@@ -12,6 +12,19 @@ export function selectReleases(releases: GitHubRelease[], options: ProperChangel
     selected = selected.filter(release => !release.prerelease);
   }
 
+  if (options.filter) {
+    const matchesTag = makeTagMatcher(options.filter);
+    selected = selected.filter(release => matchesTag(release.tag_name));
+  }
+
+  if (options.since) {
+    const sinceTime = options.since.getTime();
+    selected = selected.filter(release => {
+      const time = release.published_at ? new Date(release.published_at).getTime() : NaN;
+      return !Number.isNaN(time) && time > sinceTime;
+    });
+  }
+
   selected.sort((a, b) => {
     const aTime = (a.published_at && Date.parse(a.published_at)) || 0;
     const bTime = (b.published_at && Date.parse(b.published_at)) || 0;
@@ -43,4 +56,25 @@ function indexOfTag(releases: GitHubRelease[], tag: string): number {
     throw new Error(`No release found with tag "${tag}".`);
   }
   return index;
+}
+
+/**
+ * Build a tag-matching predicate from a filter string. A value wrapped in slashes (optionally with
+ * trailing regex flags, e.g. `/^v1\./i`) is treated as a regular expression; otherwise it is a
+ * case-insensitive substring match.
+ */
+function makeTagMatcher(filter: string): (tag: string) => boolean {
+  const regexMatch = filter.match(/^\/(.*)\/([a-z]*)$/s);
+  if (regexMatch) {
+    let regex: RegExp;
+    try {
+      regex = new RegExp(regexMatch[1], regexMatch[2]);
+    } catch (error) {
+      throw new Error(`Invalid --filter regular expression "${filter}": ${(error as Error).message}`);
+    }
+    return tag => regex.test(tag);
+  }
+
+  const needle = filter.toLowerCase();
+  return tag => tag.toLowerCase().includes(needle);
 }

@@ -39,6 +39,10 @@ describe('createProgram', () => {
       'v1.0.0',
       '--limit',
       '5',
+      '--filter',
+      '/^v2\\./',
+      '--since',
+      '2024-01-01',
     ]);
     expect(opts).toMatchObject({
       repo: { owner: 'microsoft', repo: 'some-repo' },
@@ -48,6 +52,8 @@ describe('createProgram', () => {
       from: 'v2.0.0',
       to: 'v1.0.0',
       limit: 5,
+      filter: '/^v2\\./',
+      since: new Date('2024-01-01'),
     });
   });
 
@@ -61,6 +67,10 @@ describe('createProgram', () => {
     expect(() => parse(['--repo', 'microsoft/some-repo', '--limit', 'abc'])).toThrow(
       'Expected a non-negative integer but got "abc"'
     );
+  });
+
+  it('rejects an invalid --since date', () => {
+    expect(() => parse(['--repo', 'microsoft/some-repo', '--since', 'nope'])).toThrow('Expected a date but got "nope"');
   });
 
   it('rejects using --out and --stdout together', () => {
