@@ -9,7 +9,9 @@
     "directory": "packages/proper-changelog"
   },
   "license": "MIT",
-  "exports": null,
+  "exports": {
+    ".": null
+  },
   "bin": "./bin/proper-changelog.js",
   "engines": {
     "node": ">=22.18.0"

@@ -18,8 +18,8 @@ export function parseRepo(value: string): RepoId {
 /** Parse a non-negative integer option value. */
 function parsePositiveInt(value: string): number {
   const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed < 0) {
-    throw new InvalidArgumentError(`Expected a non-negative integer but got "${value}".`);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new InvalidArgumentError(`Expected a positive integer but got "${value}".`);
   }
   return parsed;
 }

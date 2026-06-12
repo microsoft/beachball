@@ -65,7 +65,7 @@ describe('createProgram', () => {
 
   it('rejects a non-integer --limit', () => {
     expect(() => parse(['--repo', 'microsoft/some-repo', '--limit', 'abc'])).toThrow(
-      'Expected a non-negative integer but got "abc"'
+      'Expected a positive integer but got "abc"'
     );
   });
 
