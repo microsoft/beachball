@@ -1,4 +1,4 @@
-import { selectReleases } from './selectReleases.ts';
+import { selectReleases, type SelectReleasesOptions } from './selectReleases.ts';
 import type { GitHubRelease, ProperChangelogOptions } from './types.ts';
 
 const maxHeadingLevel = 6;
@@ -13,12 +13,14 @@ interface BodyHeading {
   text: string;
 }
 
+export type RenderChangelogOptions = SelectReleasesOptions & Pick<ProperChangelogOptions, 'package' | 'repo'>;
+
 /**
  * Render a full markdown changelog from GitHub releases, applying the given options.
  */
-export function renderChangelog(releases: GitHubRelease[], options: ProperChangelogOptions): string {
+export function renderChangelog(releases: GitHubRelease[], options: RenderChangelogOptions): string {
   const selected = selectReleases(releases, options);
-  const heading = `# Changelog - ${options.packageName || options.repo.repo}`;
+  const heading = `# Changelog - ${options.package || options.repo.repo}`;
 
   if (selected.length === 0) {
     return `${heading}\n\nNo releases found.\n`;

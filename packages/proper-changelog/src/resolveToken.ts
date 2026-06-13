@@ -9,8 +9,8 @@ import spawn from 'nano-spawn';
  * Returns `undefined` if no token could be resolved.
  */
 export async function resolveToken(
-  explicitToken?: string,
-  env: NodeJS.ProcessEnv = process.env
+  explicitToken: string | undefined,
+  env: NodeJS.ProcessEnv
 ): Promise<string | undefined> {
   if (explicitToken) {
     return explicitToken;

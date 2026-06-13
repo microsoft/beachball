@@ -9,12 +9,12 @@ export interface RepoId {
   repo: string;
 }
 
-/** Options controlling changelog generation. */
-export interface ProperChangelogOptions {
-  /** Repository to read releases from, as `owner/repo`. */
-  repo: RepoId;
+/** Options as returned by `program.parse().opts()`. */
+export interface RawCliOptions {
+  /** Repository to read releases from. */
+  repo?: RepoId;
   /** npm package name the repo was resolved from, if any (used for the changelog heading/filename). */
-  packageName?: string;
+  package?: string;
   /** Auth token for the GitHub API (optional; requests are rate-limited without one). */
   token?: string;
   /** Include prerelease releases (default: false). Draft releases are always excluded. */
@@ -32,4 +32,16 @@ export interface ProperChangelogOptions {
   filter?: string;
   /** Only include releases published after this date. */
   since?: Date;
+  /** Write output to this file */
+  out?: string;
+  /** If true, write to stdout instead of a file */
+  stdout?: boolean;
+}
+
+/** Options controlling changelog generation. */
+export type ProperChangelogOptions = Required<Pick<RawCliOptions, 'repo'>> & RawCliOptions;
+
+/** Throw this to indicate an expected error (stack won't be logged) */
+export class ChangelogError extends Error {
+  name = 'ChangelogError';
 }

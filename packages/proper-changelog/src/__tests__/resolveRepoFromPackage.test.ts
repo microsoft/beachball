@@ -1,7 +1,7 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-import { parseGitHubRepo, resolveRepoFromPackage } from '../resolveRepoFromPackage.ts';
+import { _parseGitHubRepo, resolveRepoFromPackage } from '../resolveRepoFromPackage.ts';
 
-describe('parseGitHubRepo', () => {
+describe('_parseGitHubRepo', () => {
   const expected = { owner: 'microsoft', repo: 'beachball' };
 
   it.each([
@@ -14,17 +14,17 @@ describe('parseGitHubRepo', () => {
     'microsoft/beachball',
     'https://github.com/microsoft/beachball.git#main',
   ])('parses %p', url => {
-    expect(parseGitHubRepo(url, 'beachball')).toEqual(expected);
+    expect(_parseGitHubRepo(url, 'beachball')).toEqual(expected);
   });
 
   it('parses the object form with a url', () => {
     expect(
-      parseGitHubRepo({ type: 'git', url: 'git+https://github.com/microsoft/beachball.git' }, 'beachball')
+      _parseGitHubRepo({ type: 'git', url: 'git+https://github.com/microsoft/beachball.git' }, 'beachball')
     ).toEqual(expected);
   });
 
   it('throws when no repository is specified', () => {
-    expect(() => parseGitHubRepo(undefined, 'beachball')).toThrow(
+    expect(() => _parseGitHubRepo(undefined, 'beachball')).toThrow(
       'npm package "beachball" does not specify a repository.'
     );
   });
@@ -32,7 +32,9 @@ describe('parseGitHubRepo', () => {
   it.each(['gitlab:owner/repo', 'https://gitlab.com/owner/repo.git', 'https://bitbucket.org/owner/repo.git'])(
     'throws for non-github.com repository %p',
     url => {
-      expect(() => parseGitHubRepo(url, 'pkg')).toThrow('is not on github.com');
+      expect(() => _parseGitHubRepo(url, 'pkg')).toThrow(
+        `npm package "pkg" repository is "${url}" which does not appear to be on github.com`
+      );
     }
   );
 });

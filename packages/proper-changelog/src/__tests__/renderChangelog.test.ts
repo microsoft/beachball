@@ -1,11 +1,10 @@
 import { describe, it, expect } from '@jest/globals';
-import { renderChangelog } from '../renderChangelog.ts';
+import { renderChangelog, type RenderChangelogOptions } from '../renderChangelog.ts';
 import { makeRelease } from '../__fixtures__/makeRelease.ts';
-import type { ProperChangelogOptions } from '../types.ts';
 
 const repo = { owner: 'microsoft', repo: 'some-repo' };
 
-function options(overrides: Partial<ProperChangelogOptions> = {}): ProperChangelogOptions {
+function options(overrides: Partial<RenderChangelogOptions> = {}): RenderChangelogOptions {
   return { repo, ...overrides };
 }
 
@@ -150,7 +149,7 @@ describe('renderChangelog', () => {
   });
 
   it('uses the package name in the heading when provided', () => {
-    expect(renderChangelog([], options({ packageName: '@scope/some-pkg' }))).toMatchInlineSnapshot(`
+    expect(renderChangelog([], options({ package: '@scope/some-pkg' }))).toMatchInlineSnapshot(`
       "# Changelog - @scope/some-pkg
 
       No releases found.

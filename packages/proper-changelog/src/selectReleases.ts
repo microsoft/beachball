@@ -1,11 +1,16 @@
 import type { GitHubRelease, ProperChangelogOptions } from './types.ts';
 
+export type SelectReleasesOptions = Pick<
+  ProperChangelogOptions,
+  'includePrereleases' | 'filter' | 'since' | 'from' | 'to' | 'limit'
+>;
+
 /**
  * Filter, sort, and slice releases according to the provided options.
  * Draft releases are always excluded; prereleases are excluded unless `includePrereleases`.
  * Releases are returned newest-first by published date.
  */
-export function selectReleases(releases: GitHubRelease[], options: ProperChangelogOptions): GitHubRelease[] {
+export function selectReleases(releases: GitHubRelease[], options: SelectReleasesOptions): GitHubRelease[] {
   let selected = releases.filter(release => !release.draft);
 
   if (!options.includePrereleases) {

@@ -1,26 +1,24 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 
 type SpawnFn = (file: string, args: string[]) => Promise<{ stdout: string }>;
-
 const mockSpawn = jest.fn<SpawnFn>();
-
 jest.unstable_mockModule('nano-spawn', () => ({
   default: mockSpawn,
 }));
 
 const { resolveToken } = await import('../resolveToken.ts');
 
-/** Configure the mocked spawn to succeed with the given stdout. */
-function mockGhSuccess(stdout: string): void {
-  mockSpawn.mockResolvedValue({ stdout });
-}
-
-/** Configure the mocked spawn to fail (e.g. gh not installed). */
-function mockGhFailure(): void {
-  mockSpawn.mockRejectedValue(new Error('gh: command not found'));
-}
-
 describe('resolveToken', () => {
+  /** Configure the mocked spawn to succeed with the given stdout. */
+  function mockGhSuccess(stdout: string): void {
+    mockSpawn.mockResolvedValue({ stdout });
+  }
+
+  /** Configure the mocked spawn to fail (e.g. gh not installed). */
+  function mockGhFailure(): void {
+    mockSpawn.mockRejectedValue(new Error('gh: command not found'));
+  }
+
   beforeEach(() => {
     mockSpawn.mockReset();
   });
