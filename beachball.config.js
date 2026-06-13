@@ -7,7 +7,7 @@ const config = {
   access: 'public',
   branch: 'main',
   commit: false,
-  ignorePatterns: ['.*ignore', '.eslintrc.js', 'eslint.config.*', 'jest.*.js', 'src/__*/**'],
+  ignorePatterns: ['.*ignore', '.eslintrc.js', 'eslint.config.*', 'jest.*.js', '**/__*/**'],
 
   // TODO (release): re-enable -- it has to be disabled while releasing actions separately
   groupChanges: false,

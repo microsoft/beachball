@@ -1,4 +1,3 @@
-/* eslint-disable @ms-cloudpack/no-deprecated -- lots of incorrect warnings about variadic signatures */
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import path from 'path';
 import * as wsTools from 'workspace-tools';
