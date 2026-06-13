@@ -71,29 +71,13 @@ describe('selectReleases', () => {
     expect(selectReleases(releases, { filter: 'APP' }).map(r => r.tag_name)).toEqual(['app_v2.0.0']);
   });
 
-  it('filters by a /regex/ when the value is wrapped in slashes', () => {
+  it('filters by a RegExp', () => {
     const releases = [
       makeRelease({ tag_name: 'v2.1.0', published_at: '2024-03-01T00:00:00Z' }),
       makeRelease({ tag_name: 'v2.0.0', published_at: '2024-02-01T00:00:00Z' }),
       makeRelease({ tag_name: 'v1.0.0', published_at: '2024-01-01T00:00:00Z' }),
     ];
-    expect(selectReleases(releases, { filter: '/^v2\\./' }).map(r => r.tag_name)).toEqual(['v2.1.0', 'v2.0.0']);
-  });
-
-  it('supports regex flags such as case-insensitivity', () => {
-    const releases = [
-      makeRelease({ tag_name: 'Release-A', published_at: '2024-02-01T00:00:00Z' }),
-      makeRelease({ tag_name: 'release-b', published_at: '2024-01-01T00:00:00Z' }),
-    ];
-    expect(selectReleases(releases, { filter: '/^release-/i' }).map(r => r.tag_name)).toEqual([
-      'Release-A',
-      'release-b',
-    ]);
-  });
-
-  it('throws a helpful error for an invalid /regex/ filter', () => {
-    const releases = [makeRelease({ tag_name: 'v1.0.0' })];
-    expect(() => selectReleases(releases, { filter: '/[/' })).toThrow(/Invalid --filter regular expression/);
+    expect(selectReleases(releases, { filter: /^v2\./ }).map(r => r.tag_name)).toEqual(['v2.1.0', 'v2.0.0']);
   });
 
   it('includes only releases published after the --since date', () => {

@@ -3,6 +3,7 @@ import { fetchReleases } from '../fetchReleases.ts';
 import { makeRelease } from '../__fixtures__/makeRelease.ts';
 
 const repo = { owner: 'microsoft', repo: 'some-repo' };
+const apiUrl = `https://api.github.com/repos/${repo.owner}/${repo.repo}/releases?per_page=100`;
 
 describe('fetchReleases', () => {
   const originalFetch = global.fetch;
@@ -38,7 +39,7 @@ describe('fetchReleases', () => {
 
     expect(releases.map(r => r.tag_name)).toEqual(['v1.0.0']);
     const [url, requestInit] = fetchMock.mock.calls[0];
-    expect(url).toBe('https://api.github.com/repos/microsoft/some-repo/releases?per_page=100');
+    expect(url).toBe(apiUrl);
     const headers = (requestInit as RequestInit).headers as Record<string, string>;
     expect(headers.Authorization).toBeUndefined();
   });
@@ -58,7 +59,7 @@ describe('fetchReleases', () => {
     fetchMock
       .mockResolvedValueOnce(
         mockResponse([makeRelease({ tag_name: 'v2.0.0' })], {
-          link: '<https://api.github.com/repos/microsoft/some-repo/releases?per_page=100&page=2>; rel="next"',
+          link: `<${apiUrl}&page=2>; rel="next"`,
         })
       )
       .mockResolvedValueOnce(mockResponse([makeRelease({ tag_name: 'v1.0.0' })]));
@@ -67,9 +68,7 @@ describe('fetchReleases', () => {
 
     expect(releases.map(r => r.tag_name)).toEqual(['v2.0.0', 'v1.0.0']);
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock.mock.calls[1][0]).toBe(
-      'https://api.github.com/repos/microsoft/some-repo/releases?per_page=100&page=2'
-    );
+    expect(fetchMock.mock.calls[1][0]).toBe(`${apiUrl}&page=2`);
   });
 
   it('throws a descriptive error on a non-OK response', async () => {

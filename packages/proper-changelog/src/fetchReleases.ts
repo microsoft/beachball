@@ -1,4 +1,4 @@
-import type { GitHubRelease, RepoId } from './types.ts';
+import { ChangelogError, type GitHubRelease, type RepoId } from './types.ts';
 
 const apiBase = 'https://api.github.com';
 const perPage = 100;
@@ -26,7 +26,7 @@ export async function fetchReleases(repo: RepoId, token?: string): Promise<GitHu
     const response: Response = await fetch(url, { headers });
     if (!response.ok) {
       const body = await response.text().catch(() => '');
-      throw new Error(
+      throw new ChangelogError(
         `Failed to fetch releases for ${repo.owner}/${repo.repo}: ${response.status} ${response.statusText}` +
           (body ? `\n${body}` : '')
       );

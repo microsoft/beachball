@@ -1,4 +1,4 @@
-import type { GitHubRelease, ProperChangelogOptions } from './types.ts';
+import { ChangelogError, type GitHubRelease, type ProperChangelogOptions } from './types.ts';
 
 export type SelectReleasesOptions = Pick<
   ProperChangelogOptions,
@@ -58,26 +58,18 @@ export function selectReleases(releases: GitHubRelease[], options: SelectRelease
 function indexOfTag(releases: GitHubRelease[], tag: string): number {
   const index = releases.findIndex(release => release.tag_name === tag);
   if (index === -1) {
-    throw new Error(`No release found with tag "${tag}".`);
+    throw new ChangelogError(`No release found with tag "${tag}".`);
   }
   return index;
 }
 
 /**
- * Build a tag-matching predicate from a filter string. A value wrapped in slashes (optionally with
- * trailing regex flags, e.g. `/^v1\./i`) is treated as a regular expression; otherwise it is a
- * case-insensitive substring match.
+ * Build a tag-matching predicate from a filter. A `RegExp` matches tags that satisfy it;
+ * a string matches tags that contain it (case-insensitive).
  */
-function makeTagMatcher(filter: string): (tag: string) => boolean {
-  const regexMatch = filter.match(/^\/(.*)\/([a-z]*)$/s);
-  if (regexMatch) {
-    let regex: RegExp;
-    try {
-      regex = new RegExp(regexMatch[1], regexMatch[2]);
-    } catch (error) {
-      throw new Error(`Invalid --filter regular expression "${filter}": ${(error as Error).message}`);
-    }
-    return tag => regex.test(tag);
+function makeTagMatcher(filter: string | RegExp): (tag: string) => boolean {
+  if (filter instanceof RegExp) {
+    return tag => filter.test(tag);
   }
 
   const needle = filter.toLowerCase();

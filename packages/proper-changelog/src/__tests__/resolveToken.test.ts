@@ -14,11 +14,6 @@ describe('resolveToken', () => {
     mockSpawn.mockResolvedValue({ stdout });
   }
 
-  /** Configure the mocked spawn to fail (e.g. gh not installed). */
-  function mockGhFailure(): void {
-    mockSpawn.mockRejectedValue(new Error('gh: command not found'));
-  }
-
   beforeEach(() => {
     mockSpawn.mockReset();
   });
@@ -44,7 +39,7 @@ describe('resolveToken', () => {
   });
 
   it('returns undefined when gh is unavailable', async () => {
-    mockGhFailure();
+    mockSpawn.mockRejectedValue(new Error('gh: command not found'));
     expect(await resolveToken(undefined, {})).toBeUndefined();
   });
 
