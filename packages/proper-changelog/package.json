@@ -1,0 +1,40 @@
+{
+  "name": "proper-changelog",
+  "version": "0.1.0",
+  "description": "Make a readable changelog from GitHub releases",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/beachball",
+    "directory": "packages/proper-changelog"
+  },
+  "license": "MIT",
+  "exports": {
+    ".": null
+  },
+  "bin": "./bin/proper-changelog.js",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "files": [
+    "bin",
+    "lib/!(__*)",
+    "lib/!(__*)/**/*"
+  ],
+  "scripts": {
+    "build": "yarn run -T tsc --pretty",
+    "depcheck": "yarn run -T depcheck .",
+    "lint": "yarn run -T eslint --color --max-warnings=0 src",
+    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest",
+    "update-snapshots": "yarn test -u"
+  },
+  "devDependencies": {
+    "@microsoft/beachball-scripts": "workspace:^",
+    "@octokit/openapi-types": "^27.0.0",
+    "cross-env": "^10.1.0"
+  },
+  "dependencies": {
+    "commander": "^15.0.0",
+    "nano-spawn": "^2.1.0"
+  }
+}

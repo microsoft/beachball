@@ -1,1 +1,1 @@
-skills/beachball-change-file/SKILL.md
+../../../skills/beachball-change-file/SKILL.md

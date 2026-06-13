@@ -63,13 +63,18 @@ export function getConfig(dirname: string, ...configs: eslint.Config[]) {
           },
         ],
         '@typescript-eslint/prefer-for-of': 'error',
-        '@typescript-eslint/no-restricted-imports': [
+        'no-restricted-imports': [
           'error',
           {
             paths: [
               {
                 name: 'node:test',
                 message: 'You probably meant to import from "@jest/globals"',
+              },
+              {
+                name: '@jest/globals',
+                importNames: ['xdescribe', 'xit', 'xtest'],
+                message: 'Do not commit disabled tests (disable this rule if needed)',
               },
             ],
           },
@@ -161,19 +166,6 @@ export function getConfig(dirname: string, ...configs: eslint.Config[]) {
               { object: func, property: 'skip', message: 'Do not commit .skip() tests (disable this rule if needed)' },
             ])
             .flat(),
-        ],
-        // Use the ESLint version of the rule to avoid overriding the restricted imports from the base config
-        'no-restricted-imports': [
-          'error',
-          {
-            paths: [
-              {
-                name: '@jest/globals',
-                importNames: ['xdescribe', 'xit', 'xtest'],
-                message: 'Do not commit disabled tests (disable this rule if needed)',
-              },
-            ],
-          },
         ],
       },
     },

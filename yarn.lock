@@ -4200,6 +4200,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"commander@npm:^15.0.0":
+  version: 15.0.0
+  resolution: "commander@npm:15.0.0"
+  checksum: 10c0/539229c171914ea1ccd45ee5f10d924289a12a684ea3a7a44147abe54003c35ed6de9ae4ad198d88c29fdf403dca0428451a388234e6dc01b6faa978fb207206
+  languageName: node
+  linkType: hard
+
 "compressible@npm:~2.0.18":
   version: 2.0.18
   resolution: "compressible@npm:2.0.18"
@@ -7252,6 +7259,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"nano-spawn@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "nano-spawn@npm:2.1.0"
+  checksum: 10c0/3becc67ed9ab630b6572feab69a4ef468891ad1f89d5c8643f14a2044cf32ba64533033506208039b1e3d9ddcb2f5f4f87ec360f13b3c4f0774304aedf0f0290
+  languageName: node
+  linkType: hard
+
 "nanoid@npm:^3.3.11":
   version: 3.3.11
   resolution: "nanoid@npm:3.3.11"
@@ -7859,6 +7873,20 @@ __metadata:
   checksum: 10c0/16f1ac2977b19fe2cf53f8411cc98db7a3c8b115c479b2ca5c82b5527cd937aa405fa04f9a5960abeb9daef53191b53b4d13e35c1f5d50e8718c76917c5f1ea4
   languageName: node
   linkType: hard
+
+"proper-changelog@workspace:packages/proper-changelog":
+  version: 0.0.0-use.local
+  resolution: "proper-changelog@workspace:packages/proper-changelog"
+  dependencies:
+    "@microsoft/beachball-scripts": "workspace:^"
+    "@octokit/openapi-types": "npm:^27.0.0"
+    commander: "npm:^15.0.0"
+    cross-env: "npm:^10.1.0"
+    nano-spawn: "npm:^2.1.0"
+  bin:
+    proper-changelog: ./bin/proper-changelog.js
+  languageName: unknown
+  linkType: soft
 
 "protocols@npm:^2.0.0, protocols@npm:^2.0.1":
   version: 2.0.2

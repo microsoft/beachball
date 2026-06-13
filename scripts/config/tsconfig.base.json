@@ -5,6 +5,8 @@
     // Use CJS output for now
     "module": "node20",
     "moduleResolution": "node16",
+    "rewriteRelativeImportExtensions": true,
+    "allowImportingTsExtensions": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
