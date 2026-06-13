@@ -1,17 +1,17 @@
 # @microsoft/esrp-npm-release
 
-Helper for teams within Microsoft that would like to [use ESRP to release npm packages](https://eng.ms/docs/microsoft-security/identity/trust-and-security-services/tss-release-distribute/tss-release-esrp-parent/oss-publishing/releasing-open-source/npmjs) in the correct order.
+Helper for teams within Microsoft that would like to use ESRP to release npm packages in the correct order.
 
 This tool replaces the `EsrpRelease` ADO task with a direct ESRP API integration that (when used together with `beachball`) respects **dependency-topological ordering** of packages. This means that if publishing fails partway through, or someone accidentally installs a new version while publishing is still in progress, there will never be any dependency references to package versions that don't yet exist on the registry. The tool also supports retrying the release stage in ADO without repeating already-published layers.
 
-One unfortunate thing about using the API is that it only accepts blob storage URLs, so it requires an extra step of temporarily uploading files to a "staging" storage account. This tool automates that process (including cleanup), but you'll need to create an extra storage account and service connection.
+One unfortunate thing about using the ESRP API is that it only accepts blob storage URLs, so it requires an extra step of temporarily uploading files to a "staging" storage account. This tool automates that process (including cleanup), but you'll need to create an extra storage account and service connection.
 
 ## Overview
 
 This tool relies on the following:
 
 - Output folder from `beachball publish --pack-to-path <path>` or [in the same format](#packed-packages-format)
-- ESRP Azure resources configured per their guides
+- ESRP Azure resources configured per their guides (see docs on eng.ms)
   - An ESRP-onboarded app registration in a production tenant (need client ID and tenant ID)
   - Production tenant key vault storing the ESRP auth certificate and request signing certificate (PFX format, base64-encoded)
   - ADO Azure Resource Manager service connection with access to the app registration and key vault
@@ -19,8 +19,6 @@ This tool relies on the following:
   - Azure Blob Storage account in your team's subscription (in the corp tenant) to temporarily host zips of packages
   - Managed identity with the right RBAC roles on the storage account
   - ADO Azure Resource Manager service connection configured to use that identity
-
-<!-- TODO add info about internal feed setup -->
 
 ## Packed packages format
 
@@ -129,26 +127,123 @@ This tool is designed to run in an Azure DevOps release pipeline using [1ES Pipe
 
 ### Prepublish pipeline (CI/build)
 
-The prepublish pipeline builds the repo, packs the packages, and publishes them as a pipeline artifact. It should:
+The prepublish pipeline builds the repo, packs the packages, and publishes them as a pipeline artifact.
 
-1. Build and test the repo
-2. Run `beachball publish --pack-to-path '$(Build.StagingDirectory)/packed-packages'` to create a folder with numbered subdirectories containing package `.tgz` files in dependency-topological layers
-3. Publish two pipeline artifacts via `templateContext.outputs`:
-   - `packed-packages`: the packed `.tgz` files (the output of `--pack-to-path`)
-   - `release-api-tool`: the bundled `dist/index.js` from this package
+#### Prerequisite: Internal feed setup
+
+Production pipeline template policies restrict network access, so it's necessary to configure the prepublish pipeline to use an internal npm feed. These steps assume `yarn`, but most of them also apply to `npm` and `pnpm` with some modifications.
+
+1. Choose a feed in your project (or create a new one) that has the public npm registry as an upstream source, and note its URL.
+1. Create a file `.npmrc.publish` at the repo root with the corresponding `registry` setting: e.g. `registry=https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/`
+1. Add `.npmrc` to `.gitignore`
+1. For `yarn` 4, add and commit the plugin [`yarn-plugin-npmrc`](https://github.com/ecraig12345/yarn-plugins/tree/main/plugins/npmrc) so that `yarn` will pick up credentials from `.npmrc` (but don't set the `npmrcAuthEnabled` setting)
+1. Make a copy of [`scripts/preparePublishRegistry.ts`](https://github.com/microsoft/beachball/blob/main/scripts/preparePublishRegistry.ts) in your repo. It must run before deps are installed: it copies `.npmrc.publish` to `.npmrc`, and updates `.yarnrc.yml` with registry and auth settings.
+   - If using `npm` or `pnpm`, modify as needed. If the manager saves resolved URLs in the lock file, you'll also need a step to update those to point to the private registry.
+
+#### Prepublish pipeline file
 
 See https://github.com/microsoft/beachball/blob/main/.ado/publish.yml for a full example.
 
-```yaml
-templateContext:
-  outputs:
-    - output: pipelineArtifact
-      artifactName: packed-packages
-      targetPath: $(Build.StagingDirectory)/packed-packages
-    - output: pipelineArtifact
-      artifactName: release-api-tool
-      # or the appropriate path in your repo
-      targetPath: $(Build.SourcesDirectory)/node_modules/@microsoft/esrp-npm-release/dist/index.js
+TODO: add info about how to update committed files post-publish
+
+```yml
+# build number/name - modify as desired
+name: <name>-prepublish-$(Date:yyyy-MM-dd).$(Rev:rr)
+
+pr: none
+trigger: none
+
+resources:
+  repositories:
+    # fill in per 1ES PT instructions for your org
+    - repository: <template repo>
+      type: git
+      name: <template repo name>
+      ref: <release tag>
+
+variables:
+  - name: tags
+    value: production
+    readonly: true
+  # set as desired
+  - name: nodeVersion
+    value: 24
+  - name: npmVersion
+    value: 11
+  # update with your registry
+  - name: registryUrl
+    value: https://pkgs.dev.azure.com/<org>/_packaging/<project>/<feed>/registry/
+
+extends:
+  template: <1ES PT template>
+  parameters:
+    pool:
+      name: <pool name>
+      vmImage: windows-latest
+      os: windows # some scans require windows
+
+    stages:
+      # divide and name stages and jobs as desired
+      - stage: main
+        jobs:
+          - job: build
+            displayName: Build, test, pack
+
+            pool:
+              name: Azure-Pipelines-1ESPT-ExDShared
+              # could also use windows
+              image: ubuntu-latest
+              os: linux
+
+            workspace:
+              clean: all
+
+            templateContext:
+              outputs:
+                # your packed packages
+                - output: pipelineArtifact
+                  artifactName: packed-packages
+                  targetPath: $(Build.StagingDirectory)/packed-packages
+                # the release tool so it doesn't need to be installed (update path as needed)
+                - output: pipelineArtifact
+                  artifactName: release-api-tool
+                  targetPath: $(Build.SourcesDirectory)/node_modules/@microsoft/esrp-npm-release/dist/index.js
+
+            steps:
+              - checkout: self
+
+              - task: UseNode@1
+                displayName: Install Node.js ${{ variables.nodeVersion }}
+                retryCountOnTaskFailure: 1
+                inputs:
+                  version: ${{ variables.nodeVersion }}.x
+                  checkLatest: false
+
+              # Configure the private registry (update script path as needed)
+              - script: node scripts/preparePublishRegistry.ts
+                displayName: Prepare npm registry settings
+
+              # Authenticate with the private registry, using .npmrc.publish copied to .npmrc
+              - task: npmAuthenticate@0
+                displayName: npm authenticate
+                inputs:
+                  workingFile: $(Build.SourcesDirectory)/.npmrc
+
+              # This isn't used, it's just a clear way to check that auth is working
+              # (yarn install's auth errors can be very unclear)
+              - script: yarn npm info beachball
+                displayName: Get package to verify registry auth
+
+              - script: yarn --immutable
+                displayName: Install dependencies
+
+              # TODO: insert steps to run your build, tests, etc
+
+              # Bump and pack packages (update command and registry as needed).
+              # This could also run some other script that outputs packages in the same format.
+              # TODO read registry from npmrc
+              - script: yarn beachball bump --pack-to-path '$(Build.StagingDirectory)/packed-packages' --registry https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/
+                displayName: Pack packages
 ```
 
 ### Release pipeline
@@ -160,6 +255,9 @@ The job should be configured as a `releaseJob` with `isProduction: true` in `tem
 Be sure to fill in all the `<placeholders>`! See https://github.com/microsoft/beachball/blob/main/.ado/release.yml for a full example.
 
 ```yaml
+# build number/name - modify as desired
+name: <name>-release-$(Date:yyyy-MM-dd).$(Rev:rr)
+
 resources:
   pipelines:
     # "prepublish" is an arbitrary name which must match publishPipelineAlias below

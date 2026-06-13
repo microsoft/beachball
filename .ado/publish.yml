@@ -25,6 +25,8 @@ variables:
     value: 24
   - name: npmVersion
     value: 11
+  - name: registryUrl
+    value: https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/
   - name: tags
     value: production
     readonly: true
@@ -119,7 +121,7 @@ extends:
               # TODO (release): change back to:
               # yarn beachball publish --prerelease-prefix test -y --no-push --pack-to-path '$(Build.StagingDirectory)/packed-packages'
               - script: |
-                  yarn release:canary --no-push --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages' --registry https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/
+                  yarn release:canary --no-push --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages' --registry ${{ variables.registryUrl }}
                 displayName: Pack packages (canary)
 
               - script: |
