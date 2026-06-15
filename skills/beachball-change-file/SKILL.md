@@ -2,7 +2,7 @@
 name: beachball-change-file
 description: How to create a Beachball change file. ONLY use this skill when the user asks to generate change files, before pushing a branch, or before creating a PR.
 metadata:
-  version: 1.0.3
+  version: 1.0.4
   source: https://github.com/microsoft/beachball/blob/main/skills/beachball-change-file/SKILL.md
 ---
 
@@ -12,7 +12,7 @@ Beachball normally uses a CLI with an interactive prompt to create change files,
 
 ## Prerequisites
 
-- Deterine the root directory: this is almost always the git root, but the user might specify a different folder. (The root usually contains `beachball.config.*` or `.beachballrc.*` or has a `"beachball"` key in `package.json`.)
+- Determine the root directory: this is almost always the git root, but the user might specify a different folder. (The root usually contains `beachball.config.*` or `.beachballrc.*` or has a `"beachball"` key in `package.json`.)
 - Determine the package manager for the repo (`npm`, `yarn`, `pnpm`). The example commands below assume `yarn`, but substitute the appropriate command runner syntax for a different package manager.
 - Check the root `package.json` `scripts` for scripts that run `beachball change` and `beachball check`.
   - The examples below assume `scripts` called `change` and `checkchange` respectively, but substitute the appropriate script names if found.
