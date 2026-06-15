@@ -298,6 +298,34 @@ describe('bumpInMemory', () => {
     expect(packageInfos['pkg-3'].dependencies).toEqual({ 'pkg-2': 'workspace:^1.0.1', other: 'npm:lodash' });
   });
 
+  // https://github.com/microsoft/beachball/discussions/940
+  it('keeps workspace: devDependency when the same dependency is versioned in peerDependencies', () => {
+    const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({
+      packageFolders: {
+        'local-dep': { version: '3.6.1' },
+        'package-with-deps': {
+          version: '1.0.0',
+          devDependencies: { 'local-dep': 'workspace:^' },
+          peerDependencies: { 'local-dep': '^3.6.1' },
+        },
+      },
+      repoOptions: { bumpDeps: true },
+      changes: ['local-dep'],
+    });
+
+    const { packageInfos, modifiedPackages, calculatedChangeTypes, dependentChangedBy } = bumpInfo;
+    expect(modifiedPackages).toEqual(new Set(['local-dep', 'package-with-deps']));
+    expect(calculatedChangeTypes).toEqual({ 'local-dep': 'minor', 'package-with-deps': 'patch' });
+    expect(dependentChangedBy).toEqual({ 'package-with-deps': new Set(['local-dep']) });
+
+    expect(packageInfos['local-dep'].version).toBe('3.7.0');
+    expect(packageInfos['package-with-deps'].version).toBe('1.0.1');
+    expect(packageInfos['package-with-deps'].devDependencies).toEqual(
+      originalPackageInfos['package-with-deps'].devDependencies
+    );
+    expect(packageInfos['package-with-deps'].peerDependencies).toEqual({ 'local-dep': '^3.7.0' });
+  });
+
   it('bumps dependents with catalog: deps', () => {
     const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({
       // Say there's a catalog like this:
