@@ -1,4 +1,4 @@
-import type { EnvOptions } from '../types/EnvOptions';
+import type { EnvOptions } from '../types/EnvOptions.ts';
 
 /** A complete `EnvOptions` for tests, with sensible defaults. Override fields per-test. */
 export function createMockEnv(): EnvOptions {

@@ -2,8 +2,9 @@
 const path = require('path');
 
 /** @import { TransformOptions as BabelConfig } from '@babel/core' */
-/** @typedef {import('@jest/types').Config.InitialProjectOptions} InitialProjectOptions */
-/** @typedef {import('@jest/types').Config.InitialOptions} InitialOptions */
+/** @import { Config } from '@jest/types' */
+/** @typedef {Config.InitialProjectOptions} InitialProjectOptions */
+/** @typedef {Config.InitialOptions} InitialOptions */
 
 /**
  * Build a `transform` entry for `babel-jest`. Babel only strips types; it does not type-check
@@ -15,20 +16,15 @@ const path = require('path');
 function getTransform(moduleType) {
   /** @type {BabelConfig} */
   const babelConfig = {
-    presets: [
-      [
-        '@babel/preset-env',
-        {
-          targets: { node: 'current' },
-          modules: moduleType === 'es6' ? false : 'commonjs',
-          // Preserve native `import()` so ESM-only deps (e.g. `get-port`) can be dynamically
-          // imported from CJS tests; otherwise this would be rewritten to `require(...)`.
-          exclude: ['proposal-dynamic-import'],
-        },
-      ],
-      ['@babel/preset-typescript', { allowDeclareFields: true }],
-    ],
+    // allowDeclareFields is only needed for `declare protected _readableState` in packages/beachball/src/__fixtures__/mockStdin.ts
+    presets: [['@babel/preset-typescript', { allowDeclareFields: true }]],
   };
+
+  if (moduleType === 'commonjs') {
+    // transform import/export to CJS syntax (full @babel/preset-env isn't needed here)
+    babelConfig.plugins = ['@babel/plugin-transform-modules-commonjs'];
+  }
+
   return {
     '^.+\\.[cm]?ts$': ['babel-jest', babelConfig],
   };

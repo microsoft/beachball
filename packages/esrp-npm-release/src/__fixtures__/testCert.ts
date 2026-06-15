@@ -2,7 +2,7 @@ import execa from 'execa';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { removeTempDir } from './tempDir';
+import { removeTempDir } from './tempDir.ts';
 
 let opensslAvailableCache: boolean | undefined;
 

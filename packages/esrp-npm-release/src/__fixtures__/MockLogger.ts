@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { Logger, type LogMethod } from '../utils/Logger';
+import { Logger, type LogMethod } from '../utils/Logger.ts';
 
 type LogMocks = {
   [K in LogMethod]: jest.Mock<Logger[K]>;

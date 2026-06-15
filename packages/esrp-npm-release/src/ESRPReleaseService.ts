@@ -143,13 +143,13 @@ export class ESRPReleaseService {
       throw new ReleaseError(`Error initializing blob client for staging upload`, { cause: err });
     }
 
-    // filePath is <layerNum>-<timestamp>.zip
-    this.#logger.log(`Uploading ${filePath} to ${blobClient.url}`);
-    await blobClient.uploadFile(filePath).catch(err => {
-      throw new ReleaseError(`Error uploading file to staging storage`, { cause: err });
-    });
-
     try {
+      // filePath is <layerNum>-<timestamp>.zip
+      this.#logger.log(`Uploading ${filePath} to ${blobClient.url}`);
+      await blobClient.uploadFile(filePath).catch(err => {
+        throw new ReleaseError(`Error uploading file to staging storage`, { cause: err });
+      });
+
       await this.#submitAndPollRelease({
         filePath,
         correlationId,

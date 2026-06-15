@@ -5,7 +5,9 @@
   "description": "ESRP npm release helper",
   "bin": "bin/esrp-npm-release.js",
   "private": true,
-  "exports": null,
+  "exports": {
+    ".": null
+  },
   "type": "module",
   "engines": {
     "node": ">=22.18.0"
