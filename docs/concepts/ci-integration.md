@@ -15,36 +15,37 @@ To automate the bumping of package versions based on change files, you'll need t
 
 ## Authentication
 
-Automated publishing from a GitHub repo to the public npm registry (`registry.npmjs.org`) typically uses personal access tokens (and/or trusted publishing) for authentication. These tokens are stored as secrets in your CI system. You should ensure that these secrets are only available to release builds.
+Automated publishing from a GitHub repo to the public npm registry (`registry.npmjs.org`) typically uses personal access tokens (and/or npm trusted publishing) for authentication. Tokens should have the minimum necessary permissions and are stored as secrets in your CI system. You should ensure that these secrets are only available to release builds.
 
 For Azure DevOps repos publishing to a private registry, there are other possible approaches (such as using a service account with credentials stored in a key vault) which are not currently covered by these docs.
 
-### Generating tokens
+### npm trusted publishing or token (public registry)
 
-#### npm token
+If publishing to the public npm registry (`registry.npmjs.org`) from GitHub Actions or another supported CI platform, you should [configure **trusted publishing**](https://docs.npmjs.com/trusted-publishers) instead of using a token.
 
-If publishing to the public npm registry (`registry.npmjs.org`) from a platform that supports [trusted publishing](https://docs.npmjs.com/trusted-publishers), such as GitHub Actions, you should use trusted publishing instead of a token.
+Azure DevOps unfortunately doesn't support trusted publishing, so in that case it's still necessary to [create a granular access token](https://docs.npmjs.com/creating-and-viewing-access-tokens) with write access to **only** the relevant package(s) and/or scope(s).
 
-Azure DevOps unfortunately doesn't support trusted publishing, so there it's still necessary to [create a granular access token](https://docs.npmjs.com/creating-and-viewing-access-tokens#creating-granular-access-tokens-on-the-website) with write access to **only** the relevant package(s) and/or scope(s).
+### GitHub token
 
-#### GitHub token
+Since a repo's `main`/`master` branch should have branch protection rules, this creates some difficulties for pushing changes back during automated publishing. There are a few options:
 
-Since a repo's `main`/`master` branch should be protected, this creates some difficulties for pushing changes back during automated publishing. There are a few options:
-
-- Traditional approach: use a [**fine-grained** personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) (PAT) with write permissions for **only** the specific repo. (If the repo is in an org that doesn't allow persistent admin access, see [these instructions](https://github.com/microsoft/beachball/issues/1008).)
-  - Variant: create a fine-grained PAT with a "machine user" account. Create a new account with an alternate email or [subaddress](https://en.wikipedia.org/wiki/Email_address#Subaddressing) (`+` address), give it contributor permissions to only this repo, and add it under "Restrict who can push to matching branches" in the branch protection rule.
-- Alternative if publishing via GitHub Actions: use [`actions/create-github-app-token`](https://github.com/actions/create-github-app-token) to generate short-lived tokens. For this purpose, an "app" is essentially just an identity with permissions; you don't need to define any logic or endpoints. Create a GitHub app, install it in your repo, give it permission to bypass policies, and pass its ID and key to the action.
+- Traditional approach: use a [**fine-grained personal access token**](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) (PAT) with write permissions for **only** the specific repo.
+  - The user creating the token must have admin access or permission to bypass branch protection rules.
+  - Variant: create a fine-grained PAT with a "machine user" account. Create a new account with an alternate email or [subaddress](https://en.wikipedia.org/wiki/Email_address#Subaddressing) (`+` address), give it contributor permissions to only this repo, and give it permission to bypass rules.
+- Alternative: use a **GitHub app installation token**. For this purpose, an "app" is essentially just an _identity with permissions_; you don't need to define any logic or endpoints. Create a GitHub app, install it in your repo, and give it permission to bypass policies. Store its private key [as a secret](#storing-secrets), then update your publish workflow to get a short-lived installation token:
+  - For GitHub Actions, use [`actions/create-github-app-token`](https://github.com/actions/create-github-app-token)
+  - For Azure DevOps or other platforms, locally implement [similar logic as the action](https://github.com/actions/create-github-app-token/blob/main/lib/main.js)
 
 (Note that the [built-in `GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication) won't work for publishing because that actor can't be given permission to bypass policies.)
 
-### Storing tokens
+### Storing secrets
 
 <h4 id="secrets-github-actions">GitHub Actions</h4>
 
 To restrict secret access to appropriate branches, use an **[environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment)**. (The docs for environments focus on cloud deployments or resources, but environments can also be used only for secret storage.)
 
 1. [Create an environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#creating-an-environment).
-2. Restrict [deployment branches](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#deployment-branches) to "Selected branches" and add a rule to allow only your release branch(es) (often `main`/`master`).
+2. Restrict [deployment branches](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#deployment-branches) to "Selected branches" and add a rule to allow only your release branch(es) (e.g. `main`/`master`).
 3. [Add secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-an-environment) for the npm and GitHub tokens.
 4. To [use the environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#using-an-environment), add a key `environment: your-env-name` in your release workflow job. (Full example below.)
 
@@ -57,37 +58,27 @@ There are a couple of options here:
 
 ## Setting options for publishing
 
-### Providing an npm token
+### npm authentication
 
 As mentioned above, if possible you should use [trusted publishing](https://docs.npmjs.com/trusted-publishers) to remove the need for tokens.
 
-Other options:
+Other options if trusted publishing isn't available:
 
 - Set the `NPM_TOKEN` environment variable while running `beachball`
 - Run `npm login` first (or a task which does the same)
 - Manually set the token in [`.npmrc`](https://docs.npmjs.com/cli/v11/configuring-npm/npmrc#auth-related-configuration), possibly referencing an environment variable
-- Old way: use `--token <token>` on the command line (not recommended)
+- Old way (not recommended): use `--token <token>` on the command line
 
 ### Other options
 
-If you're passing any custom options besides the npm token to `beachball publish`, it's recommended to set them in either the `beachball` config (if they don't interfere with other commands), or a `package.json` script (if specific to `publish`).
+Most [`beachball publish` options](../cli/publish#options) such as `--access` and `--registry` can be set in the [`beachball` config](../overview/configuration) if they don't interfere with other commands. (If you're publishing to a private feed, `registry` should be set in the config, since it's also used by the `sync` command.)
 
-For example, the following script could be used for publishing public scoped packages (`access` is also safe to set in the beachball config):
+If you need to set options that are specific to publishing, it's recommended to set them in a `package.json` script. For example, the following script could be used to customize the commit message for publishing, avoiding a conflict with the `--message` arg for `change`:
 
 ```json
 {
   "scripts": {
-    "release": "beachball publish --access public"
-  }
-}
-```
-
-If you're publishing to a private feed, `registry` should be set in the overall `beachball` config, since it's also used by the `sync` command. For example, if your beachball config is in the root `package.json` (or it works the same in a config file):
-
-```json
-{
-  "beachball": {
-    "registry": "https://pkgs.dev.azure.com/some-org/_packaging/some-feed/npm/registry/"
+    "release": "beachball publish --message \"Bump package versions\""
   }
 }
 ```
@@ -102,7 +93,7 @@ The exact publishing setup will vary depending on your CI setup, but the overall
    git config user.email "someone@example.com"
    ```
 2. Set up git authentication. This could use tokens (covered below), SSH keys, or some other non-interactive method.
-3. Set up npm authentication. This could use [trusted publishing](https://docs.npmjs.com/trusted-publishers), tokens set in `.npmrc`, tokens passed on the command line (covered below), or some other method.
+3. [Set up npm authentication](#npm-authentication) as described above.
 4. Run `beachball publish`!
 
 ### GitHub repo + GitHub Actions
@@ -111,7 +102,7 @@ Here's a sample setup for publishing from a GitHub repo using GitHub actions. Th
 
 This sample assumes the following:
 
-- An environment called `release` (set up [as described above](#storing-tokens)) with the following secrets:
+- An environment called `release` (set up [as described above](#storing-secrets)) with the following secrets:
   - `REPO_PAT`: A GitHub fine-grained personal access token with write access ([as described above](#github-token))
 - [Trusted publishing](https://docs.npmjs.com/trusted-publishers) is enabled for the package(s), linked to this workflow, and given access to the `release` environment.
 - A repo root `package.json` script `release` which runs `beachball publish`
@@ -163,7 +154,7 @@ This sample assumes the following:
 
 - A variable group called `Beachball secrets` (set up [as described above](#secrets-azure-pipelines)) with the following secrets:
   - `REPO_PAT`: A GitHub fine-grained personal access token with write access ([as described above](#github-token))
-  - `NPM_TOKEN`: An npm token with write access to the package(s) and/or scope(s), such as a [fine-grained token for public npm](#npm-token)
+  - `NPM_TOKEN`: An npm token with write access to the package(s) and/or scope(s), such as a [fine-grained token for public npm](#npm-trusted-publishing-or-token-public-registry)
 - A repo root `package.json` script `release` which runs `beachball publish`
 
 ```yml

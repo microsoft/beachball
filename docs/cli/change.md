@@ -18,14 +18,17 @@ $ beachball change
 
 Some [general options](./options) including `--branch` and `--scope` also apply for this command.
 
-| Option                    | Alias | Default            | Description                                                                |
-| ------------------------- | ----- | ------------------ | -------------------------------------------------------------------------- |
-| `--message`               | `-m`  | (prompt)           | Description for all change files                                           |
-| `--type`                  |       | (prompt)           | Type for all the change files (must be valid for each package)             |
-| `--package`               |       | (changed packages) | Generate change files for these packages (can be specified multiple times) |
-| `--all`                   |       | false              | Generate change files for all packages, even without detected changes      |
-| `--dependent-change-type` |       | `patch`            | Use this change type for dependent packages (rarely modified)              |
-| `--no-commit`             |       | false              | Stage the change files rather than committing                              |
+Most options can also be specified in the [configuration file](../overview/configuration), which is generally preferable as it's easier to read and maintain.
+
+<!-- prettier-ignore -->
+| Option | Alias | Default | Description |
+| ------ | ----- | ------- | ----------- |
+| `--message` | `-m` | (prompt) | Description for all change files |
+| `--type` | | (prompt) | Type for all the change files (must be valid for each package) |
+| `--package` | | (changed packages) | Generate change files for these packages (can be specified multiple times) |
+| `--all` | | false | Generate change files for all packages, even without detected changes |
+| `--dependent-change-type` | | `patch` | Use this change type for dependent packages (rarely modified) |
+| `--no-commit` | | false | Stage the change files rather than committing |
 
 ### Examples
 

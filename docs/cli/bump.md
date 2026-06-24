@@ -20,7 +20,10 @@ $ beachball bump
 
 [General options](./options) also apply for this command.
 
-| Option                | Description                                                                      |
-| --------------------- | -------------------------------------------------------------------------------- |
-| `--keep-change-files` | don't delete the change files from disk after bumping                            |
+Most options can also be specified in the [configuration file](../overview/configuration), which is generally preferable as it's easier to read and maintain.
+
+<!-- prettier-ignore -->
+| Option | Description |
+| ------ | ----------- |
+| `--keep-change-files` | don't delete the change files from disk after bumping |
 | `--prerelease-prefix` | prerelease prefix (e.g. `beta`) for packages that will receive a prerelease bump |
