@@ -1,0 +1,7 @@
+{
+  "comment": "Update internal logic for parsing remote branch",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

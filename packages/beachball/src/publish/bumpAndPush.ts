@@ -1,10 +1,11 @@
 import { performBump } from '../bump/performBump';
 import type { BumpInfo } from '../types/BumpInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import { revertLocalChanges, parseRemoteBranch } from 'workspace-tools';
+import { revertLocalChanges } from 'workspace-tools';
 import { tagPackages } from './tagPackages';
 import { displayManualRecovery } from './displayManualRecovery';
 import { gitFetch } from '../git/fetch';
+import { getRemoteBranch } from '../git/getRemoteBranch';
 import { gitAsync } from '../git/gitAsync';
 import { BeachballError } from '../types/BeachballError';
 
@@ -26,7 +27,7 @@ export async function bumpAndPush(
   bumpPushRetries = defaultBumpPushRetries
 ): Promise<void> {
   const { path: cwd, branch, depth, gitTimeout } = options;
-  const { remote, remoteBranch } = parseRemoteBranch({ branch, cwd });
+  const { remote, remoteBranch } = getRemoteBranch(options);
 
   let completed = false;
   let tryNumber = 0;

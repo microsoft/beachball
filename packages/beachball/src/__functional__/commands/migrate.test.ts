@@ -12,7 +12,7 @@ import path from 'path';
 jest.mock('workspace-tools', () => ({
   ...jest.requireActual<typeof import('workspace-tools')>('workspace-tools'),
   // not currently used (can add realistic mock if needed)
-  resolveRemoteAndBranch: jest.fn(() => ({ remote: 'origin', branch: 'main' })),
+  resolveRemoteAndBranch: jest.fn(() => ({ remote: 'origin', remoteBranch: 'main' })),
 }));
 
 describe('migrate command', () => {
