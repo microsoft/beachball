@@ -1549,14 +1549,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@microsoft/beachball-scripts@workspace:scripts"
   dependencies:
-    "@ms-cloudpack/esbuild-node-helpers": "patch:@ms-cloudpack/esbuild-node-helpers@npm%3A0.1.2#~/.yarn/patches/@ms-cloudpack-esbuild-node-helpers-npm-0.1.2-3444922d1c.patch"
+    "@ms-cloudpack/esbuild-node-helpers": "npm:0.1.6"
     "@ms-cloudpack/eslint-plugin-deprecated": "npm:^0.1.5"
     cross-env: "npm:^10.1.0"
     esbuild: "npm:^0.28.1"
     eslint: "npm:^9.0.0"
     typescript: "npm:~6.0.0"
     typescript-eslint: "npm:^8.52.0"
-    workspace-tools: "npm:^0.41.6"
+    workspace-tools: "catalog:prod"
   languageName: unknown
   linkType: soft
 
@@ -1579,38 +1579,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@ms-cloudpack/environment@npm:^0.1.5":
+"@ms-cloudpack/environment@npm:^0.1.7":
   version: 0.1.7
   resolution: "@ms-cloudpack/environment@npm:0.1.7"
   checksum: 10c0/fdfb70ff0fd8810a5cf036aaef279ea58fb0a0e0b35722ef2f4582eb06b8cc5c7a9018c3cb7cddd0499852fbd04ae4bb53e3afa749440e8bf8111cdee71f5730
   languageName: node
   linkType: hard
 
-"@ms-cloudpack/esbuild-node-helpers@npm:0.1.2":
-  version: 0.1.2
-  resolution: "@ms-cloudpack/esbuild-node-helpers@npm:0.1.2"
+"@ms-cloudpack/esbuild-node-helpers@npm:0.1.6":
+  version: 0.1.6
+  resolution: "@ms-cloudpack/esbuild-node-helpers@npm:0.1.6"
   dependencies:
-    "@ms-cloudpack/environment": "npm:^0.1.5"
+    "@ms-cloudpack/environment": "npm:^0.1.7"
     hosted-git-info: "npm:^9.0.0"
     picocolors: "npm:^1.1.1"
     validate-npm-package-license: "npm:^3.0.4"
   peerDependencies:
     esbuild: ">=0.28.0"
-  checksum: 10c0/233e3bcc6414cfc6463cc201a432c0d637b50f4603980397bb5b703551d1027a989279b72648ac0a8dd4346debe472ad29bb5eb4dfa20167107a2f3defde1296
-  languageName: node
-  linkType: hard
-
-"@ms-cloudpack/esbuild-node-helpers@patch:@ms-cloudpack/esbuild-node-helpers@npm%3A0.1.2#~/.yarn/patches/@ms-cloudpack-esbuild-node-helpers-npm-0.1.2-3444922d1c.patch":
-  version: 0.1.2
-  resolution: "@ms-cloudpack/esbuild-node-helpers@patch:@ms-cloudpack/esbuild-node-helpers@npm%3A0.1.2#~/.yarn/patches/@ms-cloudpack-esbuild-node-helpers-npm-0.1.2-3444922d1c.patch::version=0.1.2&hash=d586db"
-  dependencies:
-    "@ms-cloudpack/environment": "npm:^0.1.5"
-    hosted-git-info: "npm:^9.0.0"
-    picocolors: "npm:^1.1.1"
-    validate-npm-package-license: "npm:^3.0.4"
-  peerDependencies:
-    esbuild: ">=0.28.0"
-  checksum: 10c0/8da740e6d0554aaecf0e9fcf91642c55c081e9422bc60fb6116d0184ace45835008f7b2fc3e4ef2bf5b5530282ce4e1fb95bcec8c40bee6c3f2980e845d06667
+  checksum: 10c0/a927afb7eede8d30b732442e0c2ba78d2961bcdc5113854563ea5a2b9aead73653d3c3953bc2119d97e20e06d207c6b207e284fd9a2c675622a39b9a487e4b4a
   languageName: node
   linkType: hard
 
@@ -3146,7 +3132,7 @@ __metadata:
     verdaccio: "npm:^6.5.2"
     verdaccio-auth-memory: "npm:^13.0.0"
     verdaccio-memory: "npm:^10.4.3"
-    workspace-tools: "npm:^0.41.6"
+    workspace-tools: "catalog:prod"
     yargs-parser: "npm:^21.1.1"
   bin:
     beachball: ./bin/beachball.js
@@ -6000,7 +5986,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:^4.1.0, js-yaml@npm:^4.1.1":
+"js-yaml@npm:^4.1.0, js-yaml@npm:^4.1.1, js-yaml@npm:^4.2.0":
   version: 4.2.0
   resolution: "js-yaml@npm:4.2.0"
   dependencies:
@@ -8899,17 +8885,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workspace-tools@npm:^0.41.6":
-  version: 0.41.7
-  resolution: "workspace-tools@npm:0.41.7"
+"workspace-tools@npm:^0.41.9":
+  version: 0.41.9
+  resolution: "workspace-tools@npm:0.41.9"
   dependencies:
     "@yarnpkg/lockfile": "npm:^1.1.0"
     fast-glob: "npm:^3.3.3"
     git-url-parse: "npm:^16.1.0"
     jju: "npm:^1.4.0"
-    js-yaml: "npm:^4.1.1"
+    js-yaml: "npm:^4.2.0"
     micromatch: "npm:^4.0.8"
-  checksum: 10c0/2bc9b8371711b75e2b0b29052bf2f06130f09701d4d3515d5fcf4b4f772cbfceb17e4317e324fdbe2cfaf9f8a0e3fe1cd912ff034960ff8ed5723f60f507f139
+  checksum: 10c0/803acc4530afba938413d658795a0fc943fb663b802765b43a8a301877b3738827d79b5239caac67f19255f40dadaf96d374aa9784bc58bc16ce4b96f56b067b
   languageName: node
   linkType: hard
 

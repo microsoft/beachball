@@ -43,7 +43,7 @@
     "p-limit": "^3.1.0",
     "prompts": "^2.4.2",
     "semver": "^7.7.4",
-    "workspace-tools": "^0.41.6",
+    "workspace-tools": "catalog:prod",
     "yargs-parser": "^21.1.1"
   },
   "devDependencies": {
