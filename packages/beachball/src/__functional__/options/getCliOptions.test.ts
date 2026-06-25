@@ -6,10 +6,10 @@ jest.mock('workspace-tools', () => {
   return {
     resolveRemoteAndBranch: jest.fn((options: { branch?: string }) => {
       if (options.branch?.includes('/')) {
-        const [remote, branch] = options.branch.split('/');
-        return { remote, branch };
+        const [remote, remoteBranch] = options.branch.split('/');
+        return { remote, remoteBranch };
       }
-      return { remote: 'origin', branch: options.branch || 'main' };
+      return { remote: 'origin', remoteBranch: options.branch || 'main' };
     }),
     findProjectRoot: jest.fn(() => 'fake-root'),
   };
@@ -164,7 +164,7 @@ describe('getCliOptions', () => {
   });
 
   it('uses provided branch with remote', () => {
-    // resolveRemoteAndBranch is mocked to use branch.split('/') as remote and branch
+    // resolveRemoteAndBranch is mocked to use branch.split('/') as remote and remoteBranch
     const options = getCliOptionsTest(['--branch', 'someremote/foo']);
     expect(options).toEqual({ ...defaults, branch: 'someremote/foo' });
     expect(resolveRemoteAndBranch).toHaveBeenCalled();

@@ -2,6 +2,7 @@ import { findProjectRoot, resolveRemoteAndBranch } from 'workspace-tools';
 import parser from 'yargs-parser';
 import { env } from '../env';
 import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
+import { cacheRemoteBranch } from '../git/getRemoteBranch';
 
 export interface ProcessInfo {
   /** Complete argv (node and script path aren't used but elements must be present) */
@@ -220,5 +221,7 @@ export function resolveBranchOption(rawOptions: Partial<Pick<CliOptions, 'branch
     verbose: rawOptions.verbose,
     strict: true,
   });
-  return `${branchResult.remote}/${branchResult.branch}`;
+  cacheRemoteBranch(branchResult, cwd);
+
+  return `${branchResult.remote}/${branchResult.remoteBranch}`;
 }

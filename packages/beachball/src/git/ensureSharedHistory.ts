@@ -1,6 +1,7 @@
-import { git, parseRemoteBranch } from 'workspace-tools';
+import { git } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { gitFetch } from './fetch';
+import { getRemoteBranch, type RemoteBranch } from './getRemoteBranch';
 import { bulletedList, type BulletList } from '../logging/bulletedList';
 import { BeachballError } from '../types/BeachballError';
 
@@ -21,8 +22,7 @@ export function ensureSharedHistory(
   options: Pick<BeachballOptions, 'fetch' | 'path' | 'branch' | 'depth' | 'verbose'>
 ): void {
   const { fetch, path: cwd, branch, depth, verbose } = options;
-  // The config-reading logic ensures that `branch` always includes a remote
-  const { remote, remoteBranch } = parseRemoteBranch({ branch, cwd });
+  const { remote, remoteBranch } = getRemoteBranch(options);
 
   // Ensure the comparison branch ref exists
   if (!hasBranchRef(branch, cwd)) {
@@ -86,14 +86,14 @@ export function ensureSharedHistory(
  * Returns true if a common commit can be found after fetching more history.
  * Throws if there's any issue
  */
-function deepenHistory(params: {
-  remote: string;
-  remoteBranch: string;
-  branch: string;
-  depth: number | undefined;
-  cwd: string;
-  verbose?: boolean;
-}): boolean {
+function deepenHistory(
+  params: RemoteBranch & {
+    branch: string;
+    depth: number | undefined;
+    cwd: string;
+    verbose?: boolean;
+  }
+): boolean {
   const { remote, remoteBranch, branch, cwd, verbose } = params;
   const depth = params.depth || 100;
 
