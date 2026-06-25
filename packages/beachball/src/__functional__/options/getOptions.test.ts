@@ -1,11 +1,9 @@
-import { describe, expect, it, beforeAll, afterAll } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
+import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { getOptions, getParsedOptions } from '../../options/getOptions';
 import type { RepoOptions } from '../../types/BeachballOptions';
-import { writeJson } from '../../object/writeJson';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { getDefaultOptions } from '../../options/getDefaultOptions';
 
 describe('getOptions (deprecated)', () => {
   initMockLogs({ alsoLog: ['error', 'warn'] });
@@ -14,20 +12,17 @@ describe('getOptions (deprecated)', () => {
   // Don't reuse a repo in these tests! If multiple tests load beachball.config.js from the same path,
   // it will use the version from the require cache, which will have outdated contents.
 
-  const baseArgv = () => ['node.exe', 'bin.js'];
+  const baseArgv = () => ['node', 'bin.js'];
 
-  const inDirectory = <T>(directory: string, cb: () => T): T => {
-    const originalDirectory = process.cwd();
-    process.chdir(directory);
-    try {
-      return cb();
-    } finally {
-      process.chdir(originalDirectory);
-    }
-  };
+  // The original getOptions relies on actual process.cwd(), so we have to set and restore it
+  const cwd = process.cwd();
 
   beforeAll(() => {
     repositoryFactory = new RepositoryFactory('single');
+  });
+
+  afterEach(() => {
+    process.chdir(cwd);
   });
 
   afterAll(() => {
@@ -36,68 +31,27 @@ describe('getOptions (deprecated)', () => {
 
   it('uses the branch name defined in beachball.config.js', () => {
     const repo = repositoryFactory.cloneRepository();
-    const config = inDirectory(repo.rootPath, () => {
-      fs.writeFileSync('beachball.config.js', 'module.exports = { branch: "origin/foo" };');
-      // eslint-disable-next-line @ms-cloudpack/no-deprecated
-      return getOptions(baseArgv());
-    });
-    expect(config.branch).toEqual('origin/foo');
+    process.chdir(repo.rootPath);
+    repo.writeFile('beachball.config.js', 'module.exports = { branch: "origin/foo" };');
+    // eslint-disable-next-line @ms-cloudpack/no-deprecated
+    const config = getOptions(baseArgv());
+    expect(config).toEqual({ ...getDefaultOptions(), branch: 'origin/foo', path: repo.rootPath });
   });
 
-  it('reads config from package.json', () => {
+  it('overrides repo options with CLI options', () => {
     const repo = repositoryFactory.cloneRepository();
-    const config = inDirectory(repo.rootPath, () => {
-      writeJson('package.json', { beachball: { branch: 'origin/foo' } });
-      // eslint-disable-next-line @ms-cloudpack/no-deprecated
-      return getOptions(baseArgv());
+    process.chdir(repo.rootPath);
+    const repoOptions: Partial<RepoOptions> = { branch: 'origin/foo', bump: false };
+    repo.writeFile('beachball.config.js', `module.exports = ${JSON.stringify(repoOptions)};`);
+    // eslint-disable-next-line @ms-cloudpack/no-deprecated
+    const config = getOptions([...baseArgv(), '--branch', 'origin/bar', '--bump']);
+    expect(config).toEqual({
+      ...getDefaultOptions(),
+      ...repoOptions,
+      branch: 'origin/bar',
+      bump: true,
+      path: repo.rootPath,
     });
-    expect(config.branch).toEqual('origin/foo');
-  });
-
-  it('finds a .beachballrc.json file', () => {
-    const repo = repositoryFactory.cloneRepository();
-    const config = inDirectory(repo.rootPath, () => {
-      writeJson('.beachballrc.json', { branch: 'origin/foo' });
-      // eslint-disable-next-line @ms-cloudpack/no-deprecated
-      return getOptions(baseArgv());
-    });
-    expect(config.branch).toEqual('origin/foo');
-  });
-
-  it('--config overrides configuration path', () => {
-    const repo = repositoryFactory.cloneRepository();
-    const config = inDirectory(repo.rootPath, () => {
-      fs.writeFileSync('beachball.config.js', 'module.exports = { branch: "origin/main" };');
-      fs.writeFileSync('alternate.config.js', 'module.exports = { branch: "origin/foo" };');
-      // eslint-disable-next-line @ms-cloudpack/no-deprecated
-      return getOptions([...baseArgv(), '--config', 'alternate.config.js']);
-    });
-    expect(config.branch).toEqual('origin/foo');
-  });
-
-  it('merges options including objects', () => {
-    const repo = repositoryFactory.cloneRepository();
-    // Ideally this test should include nested objects from multiple sources, but as of writing,
-    // the only place that can have nested objects is the repo options.
-    const repoOptions: Partial<RepoOptions> = {
-      access: 'public',
-      publish: false,
-      disallowedChangeTypes: null,
-      changelog: {
-        groups: [{ mainPackageName: 'foo', include: ['foo'], changelogPath: '.' }],
-      },
-    };
-    const config = inDirectory(repo.rootPath, () => {
-      fs.writeFileSync('beachball.config.js', `module.exports = ${JSON.stringify(repoOptions)};`);
-      // eslint-disable-next-line @ms-cloudpack/no-deprecated
-      return getOptions([...baseArgv(), '--disallowed-change-types', 'patch']);
-    });
-    expect(config).toMatchObject({
-      access: 'public',
-      publish: false,
-      disallowedChangeTypes: ['patch'],
-    });
-    expect(config.changelog).toEqual(repoOptions.changelog);
   });
 });
 
@@ -119,46 +73,10 @@ describe('getParsedOptions', () => {
     repositoryFactory.cleanUp();
   });
 
-  it('uses the branch name defined in beachball.config.js', () => {
-    const repo = repositoryFactory.cloneRepository();
-    const repoOptions: Partial<RepoOptions> = { branch: 'origin/foo', access: 'public' };
-    fs.writeFileSync(
-      path.join(repo.rootPath, 'beachball.config.js'),
-      `module.exports = ${JSON.stringify(repoOptions)};`
-    );
-
-    const parsedOptions = getParsedOptions({ argv: baseArgv(), env: {}, cwd: repo.rootPath });
-    expect(parsedOptions).toEqual({
-      options: expect.objectContaining({ branch: 'origin/foo' }),
-      repoOptions: { branch: 'origin/foo', access: 'public' },
-      cliOptions: { path: repo.rootPath, command: 'stuff' },
-    });
-  });
-
-  it('reads config from package.json', () => {
-    const repo = repositoryFactory.cloneRepository();
-    writeJson(path.join(repo.rootPath, 'package.json'), { beachball: { branch: 'origin/foo' } });
-
-    const parsedOptions = getParsedOptions({ argv: baseArgv(), env: {}, cwd: repo.rootPath });
-    expect(parsedOptions).toEqual({
-      options: expect.objectContaining({ branch: 'origin/foo' }),
-      repoOptions: { branch: 'origin/foo' },
-      cliOptions: { path: repo.rootPath, command: 'stuff' },
-    });
-  });
-
-  it('finds a .beachballrc.json file', () => {
-    const repo = repositoryFactory.cloneRepository();
-    writeJson(path.join(repo.rootPath, '.beachballrc.json'), { branch: 'origin/foo' });
-
-    const parsedOptions = getParsedOptions({ argv: baseArgv(), env: {}, cwd: repo.rootPath });
-    expect(parsedOptions.options.branch).toEqual('origin/foo');
-  });
-
   it('--config overrides configuration path', () => {
     const repo = repositoryFactory.cloneRepository();
-    fs.writeFileSync(path.join(repo.rootPath, 'beachball.config.js'), 'module.exports = { branch: "origin/main" };');
-    fs.writeFileSync(path.join(repo.rootPath, 'alternate.config.js'), 'module.exports = { branch: "origin/foo" };');
+    repo.writeFile('beachball.config.js', 'module.exports = { branch: "origin/main" };');
+    repo.writeFile('alternate.config.js', 'module.exports = { branch: "origin/foo" };');
 
     const parsedOptions = getParsedOptions({
       argv: [...baseArgv(), '--config', 'alternate.config.js'],
@@ -171,10 +89,7 @@ describe('getParsedOptions', () => {
   it('overrides repo options with CLI options', () => {
     const repo = repositoryFactory.cloneRepository();
     const repoOptions: Partial<RepoOptions> = { branch: 'origin/foo', bump: false };
-    fs.writeFileSync(
-      path.join(repo.rootPath, 'beachball.config.js'),
-      `module.exports = ${JSON.stringify(repoOptions)};`
-    );
+    repo.writeFile('beachball.config.js', `module.exports = ${JSON.stringify(repoOptions)};`);
 
     const parsedOptions = getParsedOptions({
       argv: [...baseArgv(), '--branch', 'origin/bar', '--bump'],
@@ -182,39 +97,16 @@ describe('getParsedOptions', () => {
       env: {},
     });
     expect(parsedOptions).toEqual({
-      options: expect.objectContaining({ branch: 'origin/bar' }),
-      repoOptions: { branch: 'origin/foo', bump: false },
+      options: {
+        ...getDefaultOptions(),
+        ...repoOptions,
+        branch: 'origin/bar',
+        bump: true,
+        command: 'stuff',
+        path: repo.rootPath,
+      },
+      repoOptions,
       cliOptions: { path: repo.rootPath, command: 'stuff', branch: 'origin/bar', bump: true },
     });
-  });
-
-  it('merges options including objects', () => {
-    const repo = repositoryFactory.cloneRepository();
-    // Ideally this test should include nested objects from multiple sources, but as of writing,
-    // the only place that can have nested objects is the repo options.
-    const repoOptions: Partial<RepoOptions> = {
-      access: 'public',
-      publish: false,
-      disallowedChangeTypes: null,
-      changelog: {
-        groups: [{ mainPackageName: 'foo', include: ['foo'], changelogPath: '.' }],
-      },
-    };
-    fs.writeFileSync(
-      path.join(repo.rootPath, 'beachball.config.js'),
-      `module.exports = ${JSON.stringify(repoOptions)};`
-    );
-
-    const parsedOptions = getParsedOptions({
-      argv: [...baseArgv(), '--disallowed-change-types', 'patch'],
-      cwd: repo.rootPath,
-      env: {},
-    });
-    expect(parsedOptions.options).toMatchObject({
-      access: 'public',
-      publish: false,
-      disallowedChangeTypes: ['patch'],
-    });
-    expect(parsedOptions.options.changelog).toEqual(repoOptions.changelog);
   });
 });

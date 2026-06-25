@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Update logic for determining the comparison remote and branch: even if the `branch` option contains a `/`, use a relatively inexpensive `git config` check to verify whether it matches a known remote name. If there's no remote name configured, always use the default remote. Also be more strict about errors: throw if no remotes are defined, or if the root package.json specifies a `repository` field but no matching remote is found.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

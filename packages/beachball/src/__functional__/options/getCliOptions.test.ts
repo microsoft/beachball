@@ -1,10 +1,16 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { getCliOptions } from '../../options/getCliOptions';
-import { findProjectRoot, getDefaultRemoteBranch } from 'workspace-tools';
+import { findProjectRoot, resolveRemoteAndBranch } from 'workspace-tools';
 
 jest.mock('workspace-tools', () => {
   return {
-    getDefaultRemoteBranch: jest.fn((options: { branch?: string }) => `origin/${options.branch || 'main'}`),
+    resolveRemoteAndBranch: jest.fn((options: { branch?: string }) => {
+      if (options.branch?.includes('/')) {
+        const [remote, branch] = options.branch.split('/');
+        return { remote, branch };
+      }
+      return { remote: 'origin', branch: options.branch || 'main' };
+    }),
     findProjectRoot: jest.fn(() => 'fake-root'),
   };
 });
@@ -157,18 +163,22 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, path: 'somewhere' });
   });
 
-  it('uses provided branch if it contains a slash', () => {
+  it('uses provided branch with remote', () => {
+    // resolveRemoteAndBranch is mocked to use branch.split('/') as remote and branch
     const options = getCliOptionsTest(['--branch', 'someremote/foo']);
     expect(options).toEqual({ ...defaults, branch: 'someremote/foo' });
-    // this is mocked at the top of the file
-    expect(getDefaultRemoteBranch).not.toHaveBeenCalled();
+    expect(resolveRemoteAndBranch).toHaveBeenCalled();
   });
 
-  it('adds default remote to branch without slash', () => {
+  it('adds default remote to branch without remote', () => {
     const options = getCliOptionsTest(['--branch', 'foo']);
     expect(options).toEqual({ ...defaults, branch: 'origin/foo' });
-    // eslint-disable-next-line -- variadic signature issues (incorrect deprecated flag and incorrect jest inference)
-    expect(getDefaultRemoteBranch).toHaveBeenCalledWith({ branch: 'foo', verbose: undefined, cwd: projectRoot } as any);
+    expect(resolveRemoteAndBranch).toHaveBeenCalledWith({
+      branch: 'foo',
+      verbose: undefined,
+      cwd: projectRoot,
+      strict: true,
+    });
   });
 
   it('preserves additional string options', () => {

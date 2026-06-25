@@ -21,9 +21,7 @@ export function ensureSharedHistory(
   options: Pick<BeachballOptions, 'fetch' | 'path' | 'branch' | 'depth' | 'verbose'>
 ): void {
   const { fetch, path: cwd, branch, depth, verbose } = options;
-  // `branch` should *usually* include a remote, but it's not guaranteed (see doc comment).
-  // `remote` is the remote name (e.g. "origin") or "" if `branch` was missing a remote.
-  // `remoteBranch` is the comparison branch name (e.g. "main").
+  // The config-reading logic ensures that `branch` always includes a remote
   const { remote, remoteBranch } = parseRemoteBranch({ branch, cwd });
 
   // Ensure the comparison branch ref exists
@@ -36,15 +34,6 @@ export function ensureSharedHistory(
       throw new BeachballError(`Target branch "${branch}" does not exist locally, and fetching is disabled`, {
         alreadyLogged: true,
       });
-    }
-
-    if (!remote) {
-      // If the remote isn't specified, even if fetching is allowed, it will be unclear what to
-      // compare against, so throw an error.
-      throw new BeachballError(
-        `Target branch "${branch}" doesn't exist locally, and a remote name wasn't specified and couldn't be inferred. ` +
-          'Please set "repository" in your root package.json or include a remote in the beachball "branch" setting.'
-      );
     }
   }
 
@@ -157,7 +146,7 @@ function logError(
 
   switch (error) {
     case 'missing-branch':
-      // Due to checks in the calling method, "remote" should be non-empty here
+      // The config-reading logic ensures "remote" is non-empty here
       mainError = `Target branch "${branch}" does not exist locally, and fetching is disabled.`;
       mitigationSteps = [
         `Fetch the branch manually:\n  git remote set-branches --add ${remote} ${remoteBranch} && git fetch ${remote}`,

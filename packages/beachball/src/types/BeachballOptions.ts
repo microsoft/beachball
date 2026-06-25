@@ -105,8 +105,7 @@ export interface RepoOptions {
    * - The default branch is the remote's default branch if defined, falling back to
    *   `git config init.defaultBranch` or `master`.
    *
-   * (In the resolved config used internally, the remote name should *usually* be included,
-   * unless neither a remote name nor `package.json` `repository` was specified.)
+   * (In the resolved config used internally, the remote name will **always** be included.)
    */
   branch: string;
   /**

@@ -4,12 +4,12 @@ import { getGitEnv } from './gitAsync';
 type GitFetchParams = {
   cwd: string;
   /**
-   * Remote to fetch from. This should almost always be set but might be an empty string
-   * if the repo somehow has no remotes configured.
+   * Remote to fetch from. The config reading logic ensures this is a non-empty string (with the
+   * fallback of `origin` if no remotes were detected, though in that case fetching will likely fail).
    */
   remote: string;
   /**
-   * Branch(es) to fetch. Each will be converted to a full refspec for fetching:
+   * Branch(es) to fetch, **without** a remote prefix. Each will be converted to a full refspec for fetching:
    * e.g. `branch: 'main', remote: 'origin'` will be converted to `+refs/heads/main:refs/remotes/origin/main`.
    * Pass an array to fetch multiple branches in a single git invocation, which lets a single
    * `--deepen` or `--unshallow` apply to all of them (saves network round-trips when both HEAD
@@ -52,29 +52,21 @@ export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMess
   //   causing git to treat the ref as absent and delete the local tracking ref.
   // - <dst> refs/remotes/${remote}/${branch} is resolved locally and only moves the tracking ref
   //   for the remote branch, not the local refs/heads/${branch} or its tracking config.
-  const resolvedRefspecs = remote ? branches.map(b => `+refs/heads/${b}:refs/remotes/${remote}/${b}`) : [];
+  const resolvedRefspecs = branches.map(b => `+refs/heads/${b}:refs/remotes/${remote}/${b}`);
 
   const branchLabel =
     branches.length > 1 ? `branches ${branches.map(b => `"${b}"`).join(', ')}` : `branch "${branches[0]}"`;
-  const shortDescription = `Fetching ${
-    resolvedRefspecs.length ? `${branchLabel} from remote "${remote}"` : 'all remotes'
-  }`;
+  const shortDescription = `Fetching ${branchLabel} from remote "${remote}"`;
 
   let description = shortDescription;
   resolvedRefspecs.length && (description += ` (${resolvedRefspecs.join(' ')})`);
   extraArgs.length && (description += ` (with ${extraArgs.join(' ')})`);
   shouldLog && console.log(description + '...');
 
-  const result: ReturnType<typeof gitFetch> = git(
-    [
-      'fetch',
-      '--no-tags',
-      ...extraArgs,
-      // If the remote is unknown, don't specify the branch (fetching a branch without a remote is invalid)
-      ...(resolvedRefspecs.length ? [remote, ...resolvedRefspecs] : []),
-    ],
-    { cwd, stdio: shouldLog === 'live' ? 'inherit' : 'pipe' }
-  );
+  const result: ReturnType<typeof gitFetch> = git(['fetch', '--no-tags', ...extraArgs, remote, ...resolvedRefspecs], {
+    cwd,
+    stdio: shouldLog === 'live' ? 'inherit' : 'pipe',
+  });
 
   const log = result.success ? console.log : console.warn;
 

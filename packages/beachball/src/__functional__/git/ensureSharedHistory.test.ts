@@ -85,20 +85,6 @@ describe('ensureSharedHistory', () => {
     expect(allLogs).not.toMatch('warning');
   });
 
-  it('fetches and succeeds if remote is not specified but local branch is available', () => {
-    const repo = repositoryFactory.cloneRepository();
-    repo.checkout(testBranch);
-    gitSpy.mockClear();
-
-    ensureSharedHistory({ path: repo.rootPath, verbose: true, branch: defaultBranchName, fetch: true });
-    expect(filteredGitCalls()).toContain('fetch --no-tags');
-
-    const allLogs = logs.getMockLines('all');
-    expect(allLogs).toMatch('Fetching all remotes...');
-    expect(allLogs).toMatch('Fetching all remotes completed successfully');
-    expect(allLogs).not.toMatch('warning');
-  });
-
   it('succeeds with fetching disabled if adequate history is available', () => {
     const repo = repositoryFactory.cloneRepository();
     repo.checkout(testBranch);
@@ -140,20 +126,6 @@ describe('ensureSharedHistory', () => {
         • If this is a CI build, ensure that adequate history is being fetched
           ▪ For GitHub Actions (actions/checkout), add the option "fetch-depth: 0" in the checkout step."
     `);
-  });
-
-  it('errors if remote is not specified and target branch does not exist locally', () => {
-    const repo = repositoryFactory.cloneRepository({ depth: 1, branch: testBranch, singleBranch: true });
-    gitSpy.mockClear();
-
-    expect(() =>
-      ensureSharedHistory({ path: repo.rootPath, verbose: true, branch: defaultBranchName, fetch: true })
-    ).toThrow(
-      `Target branch "master" doesn't exist locally, and a remote name wasn't specified and couldn't be inferred. ` +
-        `Please set "repository" in your root package.json or include a remote in the beachball "branch" setting.`
-    );
-    expect(filteredGitCalls()).not.toContain(expect.stringMatching(/^fetch/));
-    expect(logs.getMockLines('all')).toEqual('');
   });
 
   it('errors if fetching fails even if the branch exists locally', () => {
