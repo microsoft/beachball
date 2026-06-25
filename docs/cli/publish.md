@@ -6,7 +6,7 @@ category: doc
 
 # `publish`
 
-Publishing automates all the bumping and synchronizing of package versions in the git remote as well as the npm registry.
+Bumps package versions, publishes to the npm registry, and pushes file updates and tags to the git remote.
 
 ### Options
 
@@ -32,9 +32,9 @@ Most options can also be specified in the [configuration file](../overview/confi
 | `--verbose` | | `false` | prints additional information to the console |
 | `--yes` | `-y` | if CI detected, `true` | skips the prompts for publish |
 
-### Authentication
+### CI integration
 
-See the [CI integration page](../concepts/ci-integration) for details about how to handle git and npm authentication while publishing.
+See the [CI integration page](../concepts/ci-integration) for details about how to handle git and npm authentication while publishing, as well as complete example workflows.
 
 Note that if running `beachball publish` manually on your local machine, there's the additional option of authenticating with `npm` via `npm login`.
 
@@ -62,10 +62,6 @@ The `publish` command is designed to run steps in an order that minimizes the ch
    8. Push the changes and tags
 
 It might be surprising that `beachball publish` does so many steps, especially the step about reverting changes! In most version bumping systems that automate syncing the git repo and npm registry, they assume that the source code is still fresh once it's time to push changes back to the git repository. This is rarely the case for large repos with many developers. So, `beachball` fetches the latest changes before pushing back to the target branch to avoid merge conflicts.
-
-### Example CI workflow
-
-See the [CI integration page](../concepts/ci-integration) details and examples for how to run `beachball publish` in CI.
 
 ### Recovering from failed publish
 

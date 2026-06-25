@@ -13,30 +13,97 @@ There are two parts to CI integration with `beachball`:
 
 To automate the bumping of package versions based on change files, you'll need to configure your release workflow/pipeline so that `beachball publish` has write access to the git repo and npm registry. The exact steps will vary between CI systems, but general concepts as well as steps for some common setups are outlined below.
 
+## Setting options for publishing
+
+Most [`beachball publish` options](../cli/publish#options) such as `--access` and `--registry` can be set in the [`beachball` config](../overview/configuration) if they don't interfere with other commands. (If you're publishing to a private feed, `registry` should be set in the config, since it's also used by the `sync` command.) For example:
+
+```js
+/** @type {Partial<import('beachball').RepoOptions>} */
+const config = {
+  // this should almost always be set
+  access: 'public',
+  // only set if a custom registry is needed
+  registry: 'https://pkgs.dev.azure.com/some-org/_packaging/some-feed/npm/registry/',
+  // ... other options ...
+};
+module.exports = config;
+```
+
+If you need to set options that are specific to publishing, it's recommended to set them in a `package.json` script. For example, the following script could be used to customize the commit message for publishing, avoiding a conflict with the `--message` arg for `change`:
+
+```json
+{
+  "scripts": {
+    "release": "beachball publish --message \"Bump package versions\""
+  }
+}
+```
+
+Providing the npm token (`--token` or `-n`) on the command line is no longer recommended. See [npm authentication](#npm-authentication) below for alternatives.
+
 ## Authentication
 
-Automated publishing from a GitHub repo to the public npm registry (`registry.npmjs.org`) typically uses personal access tokens (and/or npm trusted publishing) for authentication. Tokens should have the minimum necessary permissions and are stored as secrets in your CI system. You should ensure that these secrets are only available to release builds.
+In the most common workflow, `beachball publish` requires authenticating with:
 
-For Azure DevOps repos publishing to a private registry, there are other possible approaches (such as using a service account with credentials stored in a key vault) which are not currently covered by these docs.
+- [`npm` to publish packages](#npm-authentication)
+- [`git` to push changes](#git-authentication) (version bumps, changelog updates, change file cleanup) back to the target branch
 
-### npm trusted publishing or token (public registry)
+If using personal access tokens for authentication, they should have the minimum necessary permissions and be [stored as secrets](#storing-secrets) that are only available to release builds.
 
-If publishing to the public npm registry (`registry.npmjs.org`) from GitHub Actions or another supported CI platform, you should [configure **trusted publishing**](https://docs.npmjs.com/trusted-publishers) instead of using a token.
+### npm authentication
 
-Azure DevOps unfortunately doesn't support trusted publishing, so in that case it's still necessary to [create a granular access token](https://docs.npmjs.com/creating-and-viewing-access-tokens) with write access to **only** the relevant package(s) and/or scope(s).
+#### Trusted publishing (preferred)
 
-### GitHub token
+If publishing to the public npm registry (`registry.npmjs.org`) from GitHub Actions or another supported CI platform, you should [configure trusted publishing](https://docs.npmjs.com/trusted-publishers) instead of using a token. (Azure DevOps isn't supported as of June 2026, so in that case you'll need to [use a token](#token-based-authentication).)
 
-Since a repo's `main`/`master` branch should have branch protection rules, this creates some difficulties for pushing changes back during automated publishing. There are a few options:
+With trusted publishing, no extra npm auth configuration is needed for `beachball publish`.
 
-- Traditional approach: use a [**fine-grained personal access token**](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) (PAT) with write permissions for **only** the specific repo.
+#### Token-based authentication
+
+If publishing to the public npm registry (`registry.npmjs.org`) from Azure DevOps or another CI platform that doesn't support trusted publishing, [create a granular access token](https://docs.npmjs.com/creating-and-viewing-access-tokens) with write access to **only** the relevant package(s) and/or scope(s), and [store it as a secret](#storing-secrets).
+
+Token authentication can potentially also be used for publishing to private registries, but setup details will vary.
+
+To pass an npm token to `beachball publish`, do one of the following:
+
+- Set the `NPM_TOKEN` environment variable while running `beachball publish`
+- Manually set the token in [`.npmrc`](https://docs.npmjs.com/cli/v11/configuring-npm/npmrc#auth-related-configuration), possibly referencing an environment variable
+- Old way (not recommended): use `--token <token>` on the command line
+
+#### Other approaches
+
+For Azure DevOps repos publishing to a private registry, the most common approach is to run the `npmAuthenticate` task prior to `beachball publish` (which will pick up that credential automatically). Alternatively, you can pass a token using one of the approaches described in the previous section.
+
+If manually running `beachball publish` locally, you can run `npm login` beforehand, and `beachball` will use those credentials.
+
+### git authentication
+
+By default, `beachball publish` pushes changes (version bumps, changelog updates, change file cleanup) back to `main`/`master` or the configured `branch` option. Since this branch should be protected, there's typically some extra configuration needed for pushing changes back during automated publishing.
+
+#### GitHub repos
+
+The [built-in `GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication) can't be given permission to bypass branch protection rules, so you'll need to manually create credentials using one of the following approaches:
+
+- Traditional approach: use a [**fine-grained personal access token**](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) (PAT) with write permissions for **only** the specific repo, and store it [as a secret](#storing-secrets).
   - The user creating the token must have admin access or permission to bypass branch protection rules.
   - Variant: create a fine-grained PAT with a "machine user" account. Create a new account with an alternate email or [subaddress](https://en.wikipedia.org/wiki/Email_address#Subaddressing) (`+` address), give it contributor permissions to only this repo, and give it permission to bypass rules.
 - Alternative: use a **GitHub app installation token**. For this purpose, an "app" is essentially just an _identity with permissions_; you don't need to define any logic or endpoints. Create a GitHub app, install it in your repo, and give it permission to bypass policies. Store its private key [as a secret](#storing-secrets), then update your publish workflow to get a short-lived installation token:
   - For GitHub Actions, use [`actions/create-github-app-token`](https://github.com/actions/create-github-app-token)
   - For Azure DevOps or other platforms, locally implement [similar logic as the action](https://github.com/actions/create-github-app-token/blob/main/lib/main.js)
 
-(Note that the [built-in `GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication) won't work for publishing because that actor can't be given permission to bypass policies.)
+After creating the token, there are various ways it can be passed through to the `git` commands run within `beachball publish`. The most common approach is to set it as the git remote URL. For example, if the token is in an environment variable called `REPO_PAT`, and the remote is called `origin`:
+
+```bash
+git remote set-url origin "https://$REPO_PAT@github.com/your-org/your-repo"
+# `git commit` also requires these to be set
+git config user.name "someone"
+git config user.email "someone@example.com"
+# then some command to run beachball publish
+```
+
+#### Azure DevOps or other repos
+
+For Azure DevOps repos publishing to a private registry, there are other possible approaches (such as using a service account with credentials stored in a key vault) which are not currently covered by these docs.
 
 ### Storing secrets
 
@@ -55,33 +122,6 @@ There are a couple of options here:
 
 - Use [secret variables in your release pipeline](https://learn.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables).
 - Use [secrets in a variable group](https://learn.microsoft.com/en-us/azure/devops/pipelines/library/variable-groups?view=azure-devops&tabs=classic), which can optionally be linked to a key vault. Ensure that this variable group is only accessible to your release pipeline.
-
-## Setting options for publishing
-
-### npm authentication
-
-As mentioned above, if possible you should use [trusted publishing](https://docs.npmjs.com/trusted-publishers) to remove the need for tokens.
-
-Other options if trusted publishing isn't available:
-
-- Set the `NPM_TOKEN` environment variable while running `beachball`
-- Run `npm login` first (or a task which does the same)
-- Manually set the token in [`.npmrc`](https://docs.npmjs.com/cli/v11/configuring-npm/npmrc#auth-related-configuration), possibly referencing an environment variable
-- Old way (not recommended): use `--token <token>` on the command line
-
-### Other options
-
-Most [`beachball publish` options](../cli/publish#options) such as `--access` and `--registry` can be set in the [`beachball` config](../overview/configuration) if they don't interfere with other commands. (If you're publishing to a private feed, `registry` should be set in the config, since it's also used by the `sync` command.)
-
-If you need to set options that are specific to publishing, it's recommended to set them in a `package.json` script. For example, the following script could be used to customize the commit message for publishing, avoiding a conflict with the `--message` arg for `change`:
-
-```json
-{
-  "scripts": {
-    "release": "beachball publish --message \"Bump package versions\""
-  }
-}
-```
 
 ## Publishing
 
@@ -103,7 +143,7 @@ Here's a sample setup for publishing from a GitHub repo using GitHub actions. Th
 This sample assumes the following:
 
 - An environment called `release` (set up [as described above](#storing-secrets)) with the following secrets:
-  - `REPO_PAT`: A GitHub fine-grained personal access token with write access ([as described above](#github-token))
+  - `REPO_PAT`: A GitHub fine-grained personal access token with write access ([as described above](#github-repos))
 - [Trusted publishing](https://docs.npmjs.com/trusted-publishers) is enabled for the package(s), linked to this workflow, and given access to the `release` environment.
 - A repo root `package.json` script `release` which runs `beachball publish`
 
@@ -141,7 +181,7 @@ steps:
     env:
       REPO_PAT: ${{ secrets.REPO_PAT }}
 
-  # No token needed with trusted publishing
+  # No npm token needed with trusted publishing
   - name: Publish
     run: npm run release
 ```
@@ -153,8 +193,8 @@ Here's a sample setup for publishing from a GitHub repo using Azure Pipelines. T
 This sample assumes the following:
 
 - A variable group called `Beachball secrets` (set up [as described above](#secrets-azure-pipelines)) with the following secrets:
-  - `REPO_PAT`: A GitHub fine-grained personal access token with write access ([as described above](#github-token))
-  - `NPM_TOKEN`: An npm token with write access to the package(s) and/or scope(s), such as a [fine-grained token for public npm](#npm-trusted-publishing-or-token-public-registry)
+  - `REPO_PAT`: A GitHub fine-grained personal access token with write access ([as described above](#github-repos))
+  - `NPM_TOKEN`: An npm token with write access to the package(s) and/or scope(s), such as a [fine-grained token for public npm](#trusted-publishing-preferred)
 - A repo root `package.json` script `release` which runs `beachball publish`
 
 ```yml
