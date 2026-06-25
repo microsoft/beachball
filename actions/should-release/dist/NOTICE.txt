@@ -739,7 +739,7 @@ THE SOFTWARE.
 
 ----
 
-undici 6.26.0 - MIT
+undici 6.27.0 - MIT
 https://undici.nodejs.org
 
 Contributors:
