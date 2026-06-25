@@ -22,7 +22,7 @@ describe('getActionTags', () => {
 });
 
 describe('getGitTag', () => {
-  it('returns the default tag for non-action packages', () => {
+  it('returns the default tag for non-action, non-skill packages', () => {
     expect(getGitTag({ name: 'foo', version: '3.0.0' }, 'foo_v3.0.0')).toBe('foo_v3.0.0');
   });
 
@@ -33,11 +33,10 @@ describe('getGitTag', () => {
     ]);
   });
 
-  it('ignores defaultTag for action packages', () => {
-    expect(getGitTag({ name: '@microsoft/beachball-action-publish', version: '2.0.0' }, 'unused-default')).toEqual([
-      'publish_v2.0.0',
-      'publish_v2',
-    ]);
+  it('returns tag for skill package', () => {
+    expect(getGitTag({ name: '@microsoft/beachball-change-file-skill', version: '1.0.4' }, 'default')).toBe(
+      'skill_v1.0.4'
+    );
   });
 });
 
@@ -58,7 +57,7 @@ describe('postbumpHook', () => {
     writeFileSync.mockImplementation(() => undefined);
   });
 
-  it('does nothing for non-action packages', () => {
+  it('does nothing for non-action, non-skill packages', () => {
     postbumpHook('/some/path', 'beachball', '3.0.0');
 
     expect(readFileSync).not.toHaveBeenCalled();
@@ -111,6 +110,27 @@ describe('postbumpHook', () => {
     expect(writeFileSync).toHaveBeenCalledWith(
       path.join(packagePath, 'README.md'),
       'See also publish_v1 for the publish action.'
+    );
+  });
+
+  it('replaces skill version in SKILL.md frontmatter', () => {
+    const skillMdContent = `---
+name: beachball-change-file
+description: How to create a Beachball change file. ONLY use this skill when the user asks to generate change files, before pushing a branch, or before creating a PR.
+license: MIT
+metadata:
+  version: 1.0.3
+  source: https://github.com/microsoft/beachball/blob/main/skills/beachball-change-file/SKILL.md
+---
+
+some skill content`;
+    readFileSync.mockReturnValueOnce(skillMdContent);
+
+    const skillsPath = path.resolve('/repo/skills');
+    postbumpHook(skillsPath, '@microsoft/beachball-change-file-skill', '1.0.4');
+    expect(writeFileSync).toHaveBeenCalledWith(
+      path.join(skillsPath, 'beachball-change-file/SKILL.md'),
+      skillMdContent.replace('version: 1.0.3', 'version: 1.0.4')
     );
   });
 });

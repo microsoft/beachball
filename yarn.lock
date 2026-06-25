@@ -1511,6 +1511,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@microsoft/beachball-change-file-skill@workspace:skills":
+  version: 0.0.0-use.local
+  resolution: "@microsoft/beachball-change-file-skill@workspace:skills"
+  languageName: unknown
+  linkType: soft
+
 "@microsoft/beachball-monorepo@workspace:.":
   version: 0.0.0-use.local
   resolution: "@microsoft/beachball-monorepo@workspace:."

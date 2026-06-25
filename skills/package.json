@@ -1,0 +1,11 @@
+{
+  "name": "@microsoft/beachball-change-file-skill",
+  "version": "1.0.4",
+  "description": "fake package (see readme)",
+  "scripts": {
+    "lint": "cd .. && gh skill publish --dry-run"
+  },
+  "beachball": {
+    "shouldPublish": false
+  }
+}
