@@ -1549,7 +1549,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@microsoft/beachball-scripts@workspace:scripts"
   dependencies:
-    "@ms-cloudpack/esbuild-node-helpers": "npm:0.1.6"
+    "@ms-cloudpack/esbuild-node-helpers": "npm:0.1.7"
     "@ms-cloudpack/eslint-plugin-deprecated": "npm:^0.1.5"
     cross-env: "npm:^10.1.0"
     esbuild: "npm:^0.28.1"
@@ -1586,9 +1586,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ms-cloudpack/esbuild-node-helpers@npm:0.1.6":
-  version: 0.1.6
-  resolution: "@ms-cloudpack/esbuild-node-helpers@npm:0.1.6"
+"@ms-cloudpack/esbuild-node-helpers@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@ms-cloudpack/esbuild-node-helpers@npm:0.1.7"
   dependencies:
     "@ms-cloudpack/environment": "npm:^0.1.7"
     hosted-git-info: "npm:^9.0.0"
@@ -1596,7 +1596,7 @@ __metadata:
     validate-npm-package-license: "npm:^3.0.4"
   peerDependencies:
     esbuild: ">=0.28.0"
-  checksum: 10c0/a927afb7eede8d30b732442e0c2ba78d2961bcdc5113854563ea5a2b9aead73653d3c3953bc2119d97e20e06d207c6b207e284fd9a2c675622a39b9a487e4b4a
+  checksum: 10c0/599acd0474b43b72c91a39f10444216d48aa82abab242f6c3023693de10297e711781f287cbff13defd760052b6fd1fdb27ecea878f155144f9606d9ac68ceaa
   languageName: node
   linkType: hard
 
