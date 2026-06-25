@@ -22,7 +22,7 @@ export type MockEsrpHttp = jest.Mocked<typeof releaseHttp> & {
 export function createMockEsrpHttp(): MockEsrpHttp {
   const getReleaseStatus = jest.fn(() => Promise.resolve({ status: 'pass' } as ReleaseResultMessage));
   return {
-    esrpApiEndpoint: 'https://api.esrp.microsoft.com/',
+    esrpApiScope: 'https://msazurecloud.onmicrosoft.com/api.esrp.microsoft.com/',
     submitRelease: jest.fn(() => Promise.resolve({ operationId: 'mock-op-id' })),
     getReleaseStatus,
     getReleaseDetails: jest.fn(() => Promise.resolve({})),

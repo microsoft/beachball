@@ -14,7 +14,7 @@ import {
   redactReleaseRequest,
   type CreateNpmReleaseRequestMessageParams,
 } from './esrpApi/npmRelease.ts';
-import { esrpApiEndpoint, getReleaseDetails, getReleaseStatus, submitRelease } from './esrpApi/releaseHttp.ts';
+import { esrpApiScope, getReleaseDetails, getReleaseStatus, submitRelease } from './esrpApi/releaseHttp.ts';
 import type { ReleaseResultMessage } from './types/api.ts';
 import type { Logger } from './utils/Logger.ts';
 import { ReleaseError } from './utils/ReleaseError.ts';
@@ -190,9 +190,9 @@ export class ESRPReleaseService {
   }
 
   async #getEsrpAccessToken(): Promise<AccessToken> {
-    this.#logger.log(`Acquiring AAD access token for ESRP API at ${esrpApiEndpoint}`);
+    this.#logger.log(`Acquiring AAD access token for ESRP API under scope ${esrpApiScope}`);
     return await getAadToken({
-      scopes: [`${esrpApiEndpoint}.default`],
+      scopes: [`${esrpApiScope}.default`],
       clientId: this.#clientId,
       tenantId: this.#tenantId,
       auth: { certPfxContent: this.#authCertificatePfx },

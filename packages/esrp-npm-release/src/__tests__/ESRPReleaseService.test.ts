@@ -17,7 +17,7 @@ import { createMockEsrpHttp } from '../__fixtures__/mockEsrpHttp.ts';
 import { setupTempDir } from '../__fixtures__/tempDir.ts';
 import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
 import type * as getAadTokenModule from '../auth/getAadToken.ts';
-import { esrpApiEndpoint } from '../esrpApi/releaseHttp.ts';
+import { esrpApiScope } from '../esrpApi/releaseHttp.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
 
 const mockGetAadToken = jest.fn<typeof getAadTokenModule.getAadToken>();
@@ -131,7 +131,7 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
     await runCreateRelease();
 
     expect(mockGetAadToken).toHaveBeenCalledWith({
-      scopes: [`${esrpApiEndpoint}.default`],
+      scopes: [`${esrpApiScope}.default`],
       clientId: 'cid',
       tenantId: 'tid',
       auth: { certPfxContent: 'auth-pfx-not-parsed' },
