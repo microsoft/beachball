@@ -16,10 +16,11 @@ After syncing, be sure to commit and push the changes.
 
 In addition to the options below, certain [common options](./options) also apply.
 
-#### `--force`
+Most options can also be specified in the [configuration file](../overview/configuration), which is generally preferable as it's easier to read and maintain.
 
-Force the sync command to skip the version comparison and use the version in the registry as is.
-
-#### `--tag, -t`
-
-Sync with the version this `dist-tag` points to. Defaults to the tag from repo, group, or package level beachball configs if present, falling back to `latest`.
+<!-- prettier-ignore -->
+| Option | Alias | Default | Description |
+| ------ | ----- | ------- | ----------- |
+| `--force` | | `false` | Skip the version comparison and use the version from the registry as-is. |
+| `--registry` | `-r` | `'https://registry.npmjs.org'` | Custom/private registry to use. You may also need to [configure authentication](../concepts/ci-integration#npm-authentication) using options shared with the `publish` command. |
+| `--tag` | `-t` | `tag` from repo, group, or package level beachball configs if present, falling back to `'latest'` | Sync with the version this `dist-tag` points to. |

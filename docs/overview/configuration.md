@@ -95,13 +95,12 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `package` | `string` | | repo | Specifies which package the command relates to (overrides change detection based on `git diff`) |
 | `prereleasePrefix` | `string` | | repo | Prerelease prefix, e.g. `"beta"`. Note that if this is specified, packages with change type major/minor/patch will be bumped as prerelease instead. |
 | `packToPath` | `string` | | repo | Instead of publishing to npm, pack packages to tgz files in numbered subfolders under this path, based on dependency tree layers (leaves first). |
-| `packToPath` | `string` | | repo | Instead of publishing to npm, pack packages to tgz files under the specified path. |
 | `publish` | `boolean` | `true` | repo | Whether to publish to npm registry |
 | `push` | `boolean` | `true` | repo | Whether to push to the remote git branch |
 | `registry` | `string` | | repo | Publish to this npm registry |
 | `retries` | `number` | `3` | repo | Number of retries for a package publish before failing |
 | `scope` | `string[]` | | repo | Only consider package paths matching these patterns ([see details](#scoping)) |
-| `shouldPublish` | `false \| undefined` | | package | Manually disable publishing of a package by beachball (does not work to force publishing) |
+| `shouldPublish` | `false \| undefined` | | package | Manually disable publishing of a package by beachball (does not work to force publishing). In most cases you should use `private: true` in `package.json` instead. |
 | `tag` | `string` | `'latest'` | repo, package | `dist-tag` for npm when published |
 | `transform` | [`TransformOptions`][4] | | repo | Transformations for change files |
 
