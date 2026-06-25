@@ -1,7 +1,7 @@
+import { findProjectRoot, resolveRemoteAndBranch } from 'workspace-tools';
 import parser from 'yargs-parser';
-import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
-import { getDefaultRemoteBranch, findProjectRoot } from 'workspace-tools';
 import { env } from '../env';
+import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
 
 export interface ProcessInfo {
   /** Complete argv (node and script path aren't used but elements must be present) */
@@ -166,15 +166,8 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
   // (yargs-parser doesn't support positional arguments directly)
   const extraPositionalArgs = positionalArgs.length > 1 ? positionalArgs.slice(1).map(String) : undefined;
 
-  const branchArg = args.branch as string | undefined;
-  if (branchArg) {
-    // TODO: This logic assumes the first segment of any branch name with a slash must be the remote,
-    // which is not necessarily accurate. Ideally we should check if a remote with that name exists,
-    // and if not, perform the default remote lookup.
-    cliOptions.branch =
-      branchArg.indexOf('/') > -1
-        ? branchArg
-        : getDefaultRemoteBranch({ branch: branchArg, verbose: args.verbose as boolean | undefined, cwd });
+  if (args.branch) {
+    cliOptions.branch = resolveBranchOption(args as Partial<Pick<CliOptions, 'branch' | 'verbose'>>, cwd);
   }
 
   if (cliOptions.command === 'canary') {
@@ -214,4 +207,18 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
   }
 
   return cliOptions;
+}
+
+/**
+ * Resolves `rawOptions.branch` if provided to ensure it includes the remote name.
+ * If no branch is provided, returns the default branch.
+ */
+export function resolveBranchOption(rawOptions: Partial<Pick<CliOptions, 'branch' | 'verbose'>>, cwd: string): string {
+  const branchResult = resolveRemoteAndBranch({
+    branch: rawOptions.branch,
+    cwd,
+    verbose: rawOptions.verbose,
+    strict: true,
+  });
+  return `${branchResult.remote}/${branchResult.branch}`;
 }

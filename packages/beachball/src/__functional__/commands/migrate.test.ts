@@ -11,7 +11,8 @@ import path from 'path';
 
 jest.mock('workspace-tools', () => ({
   ...jest.requireActual<typeof import('workspace-tools')>('workspace-tools'),
-  getDefaultRemoteBranch: jest.fn((options: { branch?: string }) => `origin/${options.branch || 'main'}`),
+  // not currently used (can add realistic mock if needed)
+  resolveRemoteAndBranch: jest.fn(() => ({ remote: 'origin', branch: 'main' })),
 }));
 
 describe('migrate command', () => {

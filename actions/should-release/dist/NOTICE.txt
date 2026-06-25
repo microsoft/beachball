@@ -64,7 +64,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ----
 
-@actions/http-client 4.0.1 - MIT
+@actions/http-client 3.0.2 - MIT
 https://github.com/actions/toolkit/tree/main/packages/http-client
 
 Actions Http Client for Node.js
@@ -91,7 +91,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ----
 
-@actions/http-client 3.0.2 - MIT
+@actions/http-client 4.0.1 - MIT
 https://github.com/actions/toolkit/tree/main/packages/http-client
 
 Actions Http Client for Node.js
