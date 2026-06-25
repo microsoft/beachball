@@ -6,15 +6,18 @@ category: doc
 
 # `publish`
 
-Publishing automates all the bumping and synchronizing of package versions in the git remote as well as the npm registry.
+Bumps package versions, publishes to the npm registry, and pushes file updates and tags to the git remote.
 
 ### Options
 
 [General options](./options) also apply for this command.
 
+Most options can also be specified in the [configuration file](../overview/configuration), which is generally preferable as it's easier to read and maintain.
+
 <!-- prettier-ignore -->
 | Option | Alias | Default | Description |
 | ------ | ----- | ------- | ----------- |
+| `--access` | | `'restricted'` | Publish [access level](https://docs.npmjs.com/cli/v11/commands/npm-publish#access): `'restricted'` or `'public'`. This should **almost always** be set to `'public'`. |
 | `--auth-type` | `-a` | `'authtoken'` | npm auth type for `NPM_TOKEN` or `--token`: `'authtoken'` or `'password'` |
 | `--git-tags`, `--no-git-tags` | | `true` (`--git-tags`) | whether to create git tags for published package versions |
 | `--keep-change-files` | | | don't delete the change files from disk after bumping |
@@ -29,20 +32,13 @@ Publishing automates all the bumping and synchronizing of package versions in th
 | `--verbose` | | `false` | prints additional information to the console |
 | `--yes` | `-y` | if CI detected, `true` | skips the prompts for publish |
 
-#### Providing a token
+### CI integration
 
-There are a few different ways to handle npm authentication for `beachball publish`.
+See the [CI integration page](../concepts/ci-integration) for details about how to handle git and npm authentication while publishing, as well as complete example workflows.
 
-In CI, you should use [trusted publishing](https://docs.npmjs.com/trusted-publishers) if supported to remove the need for tokens. Unfortunately this isn't available in Azure DevOps.
+Note that if running `beachball publish` manually on your local machine, there's the additional option of authenticating with `npm` via `npm login`.
 
-If trusted publishing is unavailable or you're running `beachball` locally, you can do any of the following:
-
-- Set the `NPM_TOKEN` environment variable (`beachball` passes this through to `npm`)
-- Run `npm login` first (or a task which does the same)
-- Manually set the token in [`.npmrc`](https://docs.npmjs.com/cli/v11/configuring-npm/npmrc#auth-related-configuration), possibly referencing an environment variable
-- Old way: use `--token <token>` on the command line (not recommended)
-
-### Algorithm
+### Publish algorithm
 
 The `publish` command is designed to run steps in an order that minimizes the chances of mid-publish failure by doing validation upfront.
 
@@ -53,8 +49,8 @@ The `publish` command is designed to run steps in an order that minimizes the ch
    1. Bump the package versions locally
    2. Generate the changelog files (unless disabled)
    3. Delete change files locally (unless disabled)
-   4. Validate that nothing to be published depends on a private package
-   5. Publish packages to npm in topological order based on the dependency graph (to reduce the chances that if there's a failure partway through, a published package might require unpublished versions)
+   4. Validate that the package versions to be published don't already exist in the registry and don't depend on any private packages
+   5. Publish packages to npm in topological order based on the dependency graph (so if there's a failure partway through, a published package won't reference unpublished versions)
 3. Bump and push to git (unless bumping or pushing is disabled):
    1. Revert any previous changes (from the publish step)
    2. Merge the latest changes from the remote branch to avoid merge conflicts (unless fetching is disabled)
@@ -66,10 +62,6 @@ The `publish` command is designed to run steps in an order that minimizes the ch
    8. Push the changes and tags
 
 It might be surprising that `beachball publish` does so many steps, especially the step about reverting changes! In most version bumping systems that automate syncing the git repo and npm registry, they assume that the source code is still fresh once it's time to push changes back to the git repository. This is rarely the case for large repos with many developers. So, `beachball` fetches the latest changes before pushing back to the target branch to avoid merge conflicts.
-
-### Example CI workflow
-
-See the [CI integration page](../concepts/ci-integration) details and examples for how to run `beachball publish` in CI.
 
 ### Recovering from failed publish
 

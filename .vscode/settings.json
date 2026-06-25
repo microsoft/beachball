@@ -13,6 +13,8 @@
     "**/node_modules": true,
     "**/lib": true,
     "**/dist": true,
+    "**/.cache": true, // vuepress
+    "**/.temp": true, // vuepress
     "**/*.svg": true,
     "**/.yarn": true
   },

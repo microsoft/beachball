@@ -22,10 +22,13 @@ This command also checks for misconfigurations that would result in problems whe
 
 [General options](./options) also apply for this command.
 
-| Option                            | Default                                            | Description                                                               |
-| --------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------- |
-| `--changehint`                    | `'Run "beachball change" to create a change file'` | Hint message if the developer forgot to add a change file.                |
-| `--disallow-deleted-change-files` | `false`                                            | verifies that no change files were deleted between head and target branch |
+Most options can also be specified in the [configuration file](../overview/configuration), which is generally preferable as it's easier to read and maintain.
+
+<!-- prettier-ignore -->
+| Option | Default | Description |
+| ------ | ------- | ----------- |
+| `--changehint` | `'Run "beachball change" to create a change file'` | Hint message if the developer forgot to add a change file. |
+| `--disallow-deleted-change-files` | `false` | verifies that no change files were deleted between head and target branch |
 
 ### Where should `check` be run?
 
