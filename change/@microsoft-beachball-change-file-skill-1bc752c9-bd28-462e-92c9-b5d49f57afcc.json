@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add license",
-  "packageName": "@microsoft/beachball-change-file-skill",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -3,7 +3,7 @@ name: beachball-change-file
 description: How to create a Beachball change file. ONLY use this skill when the user asks to generate change files, before pushing a branch, or before creating a PR.
 license: MIT
 metadata:
-  version: 1.0.4
+  version: 1.0.5
   source: https://github.com/microsoft/beachball/blob/main/skills/beachball-change-file/SKILL.md
 ---
 

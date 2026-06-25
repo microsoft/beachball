@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Move actions to beachball repo",
-  "packageName": "@microsoft/beachball-action-install-beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

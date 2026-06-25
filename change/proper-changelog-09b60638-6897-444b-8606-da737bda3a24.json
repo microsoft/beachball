@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Initial release",
-  "packageName": "proper-changelog",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
