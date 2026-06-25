@@ -159,7 +159,7 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
         "[log] Found 2 certificate(s) in PFX; leaf is at index 0 (using as-is)",
         "[log] ##[group]Releasing layer 01",
         "[log] [layer-01] Acquiring fresh credentials for release",
-        "[log] [layer-01] Acquiring AAD access token for ESRP API at https://api.esrp.microsoft.com/",
+        "[log] [layer-01] Acquiring AAD access token for ESRP API (scope: https://msazurecloud.onmicrosoft.com/api.esrp.microsoft.com/.default)",
         "[log] [layer-01] Requesting user delegation key for staging storage account "mockaccount"",
         "[log] [layer-01] Uploading <temp>/layer-01-123456789.zip to https://stagingaccount.blob.core.windows.net/staging/r/op-1",
         "[log] [layer-01] Generating SAS token for staging blob "repo1/<uuid>"",

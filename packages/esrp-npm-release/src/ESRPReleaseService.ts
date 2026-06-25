@@ -190,9 +190,10 @@ export class ESRPReleaseService {
   }
 
   async #getEsrpAccessToken(): Promise<AccessToken> {
-    this.#logger.log(`Acquiring AAD access token for ESRP API under scope ${esrpApiScope}`);
+    const scope = `${esrpApiScope}.default`;
+    this.#logger.log(`Acquiring AAD access token for ESRP API (scope: ${scope})`);
     return await getAadToken({
-      scopes: [`${esrpApiScope}.default`],
+      scopes: [scope],
       clientId: this.#clientId,
       tenantId: this.#tenantId,
       auth: { certPfxContent: this.#authCertificatePfx },

@@ -9,6 +9,8 @@
  */
 const config = {
   npmClient: 'yarn',
+  // use fancy reporter locally and platform-specific ones for CI
+  reporter: process.env.CI || process.env.TF_BUILD ? undefined : 'fancy',
   pipeline: {
     build: {
       dependsOn: ['^build'],
