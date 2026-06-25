@@ -20,10 +20,10 @@ gh skill install microsoft/beachball beachball-change-file
 
 This installs the skill for any compatible AI agent (GitHub Copilot, Claude Code, etc.).
 
-Note that the skill does not have dedicated tags, so if you want to pin the version, it's best to use a SHA:
+If you want to pin the version, use tags of the format `skill_vX.Y.Z`, e.g.:
 
 ```sh
-gh skill install microsoft/beachball beachball-change-file --pin abc123
+gh skill install microsoft/beachball beachball-change-file --pin skill_v1.2.3
 ```
 
 To update:

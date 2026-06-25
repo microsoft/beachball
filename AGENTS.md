@@ -101,7 +101,7 @@ All these paths refer to the `beachball` package under `packages/beachball`.
 
 ### Required before creating a PR
 
-- Use `/beachball-change-files` to generate a Beachball change file.
+- Use `/beachball-change-file` to generate a Beachball change file.
 - Check whether any documentation site or help text updates are needed for the change.
 
 ## Testing

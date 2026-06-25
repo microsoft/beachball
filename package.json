@@ -13,7 +13,8 @@
   "workspaces": [
     "actions/*",
     "packages/*",
-    "scripts"
+    "scripts",
+    "skills"
   ],
   "scripts": {
     "beachball": "node ./packages/beachball/lib/cli.js",
