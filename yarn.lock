@@ -1536,7 +1536,7 @@ __metadata:
     eslint-config-prettier: "npm:^10.1.8"
     husky: "npm:^9.0.0"
     jest: "npm:^30.0.0"
-    lage: "npm:^2.15.0"
+    lage: "npm:^2.15.16"
     lint-staged: "npm:^16.0.0"
     prettier: "npm:~3.8.3"
     syncpack: "npm:^14.0.0"
@@ -1549,7 +1549,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@microsoft/beachball-scripts@workspace:scripts"
   dependencies:
-    "@ms-cloudpack/esbuild-node-helpers": "npm:0.1.6"
+    "@ms-cloudpack/esbuild-node-helpers": "npm:0.1.7"
     "@ms-cloudpack/eslint-plugin-deprecated": "npm:^0.1.5"
     cross-env: "npm:^10.1.0"
     esbuild: "npm:^0.28.1"
@@ -1586,9 +1586,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ms-cloudpack/esbuild-node-helpers@npm:0.1.6":
-  version: 0.1.6
-  resolution: "@ms-cloudpack/esbuild-node-helpers@npm:0.1.6"
+"@ms-cloudpack/esbuild-node-helpers@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@ms-cloudpack/esbuild-node-helpers@npm:0.1.7"
   dependencies:
     "@ms-cloudpack/environment": "npm:^0.1.7"
     hosted-git-info: "npm:^9.0.0"
@@ -1596,7 +1596,7 @@ __metadata:
     validate-npm-package-license: "npm:^3.0.4"
   peerDependencies:
     esbuild: ">=0.28.0"
-  checksum: 10c0/a927afb7eede8d30b732442e0c2ba78d2961bcdc5113854563ea5a2b9aead73653d3c3953bc2119d97e20e06d207c6b207e284fd9a2c675622a39b9a487e4b4a
+  checksum: 10c0/599acd0474b43b72c91a39f10444216d48aa82abab242f6c3023693de10297e711781f287cbff13defd760052b6fd1fdb27ecea878f155144f9606d9ac68ceaa
   languageName: node
   linkType: hard
 
@@ -6162,9 +6162,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lage@npm:^2.15.0":
-  version: 2.15.12
-  resolution: "lage@npm:2.15.12"
+"lage@npm:^2.15.16":
+  version: 2.15.16
+  resolution: "lage@npm:2.15.16"
   dependencies:
     fsevents: "npm:~2.3.2"
     glob-hasher: "npm:^1.4.2"
@@ -6174,7 +6174,7 @@ __metadata:
   bin:
     lage: dist/lage.js
     lage-server: dist/lage-server.js
-  checksum: 10c0/1bf1cc296a326647a69ea97c3c71004b4e02ee94b92e01b69c4e8e87ae74455b700f0dd65f5ad08598e6e178f4ab4aa25b7d2252b2963528847a283e4ccdf0f5
+  checksum: 10c0/6ca8a090e18885a045a6a2b66ffe88ce124c4b412e19a106f3c1dcea898b33fd614338f7873ea0e712be25b9cf3256e6745f9a17a6489b8b3409d1d5aad55074
   languageName: node
   linkType: hard
 

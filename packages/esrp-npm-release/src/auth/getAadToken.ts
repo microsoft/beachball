@@ -7,7 +7,6 @@ import { ReleaseError } from '../utils/ReleaseError.ts';
 
 export interface GetAadTokenParams extends Pick<ReleaseHttpParams, 'clientId'> {
   tenantId: string;
-  /** Typically this should be `['<domain>.default']` */
   scopes: string[];
   auth: { certPfxContent: string } | { idToken: string };
   logger: Logger;

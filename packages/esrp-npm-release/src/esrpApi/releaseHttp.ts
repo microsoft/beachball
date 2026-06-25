@@ -15,9 +15,10 @@ export interface ReleaseHttpParams {
   releaseId: string;
 }
 
-export const esrpApiEndpoint = 'https://api.esrp.microsoft.com/';
+const esrpApiDomain = 'api.esrp.microsoft.com';
+export const esrpApiScope = `https://msazurecloud.onmicrosoft.com/${esrpApiDomain}/`;
 
-const esrpBaseUrl = `${esrpApiEndpoint}api/v3/releaseservices/clients/`;
+const esrpBaseUrl = `https://${esrpApiDomain}/api/v3/releaseservices/clients/`;
 // const esrpBaseUrl = 'https://ppe.api.esrp.microsoft.com/api/v3/releaseservices/clients/';
 
 /**

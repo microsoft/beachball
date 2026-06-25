@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "update build output",
+  "packageName": "@microsoft/beachball-action-should-release",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}

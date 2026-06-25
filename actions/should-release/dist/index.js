@@ -1,11 +1,9 @@
 // @ts-nocheck
 /* eslint-disable */
-import { createRequire as topLevelCreateRequire } from 'node:module';
-import topLevelPath from 'node:path';
-import topLevelUrl from 'node:url';
-const require = topLevelCreateRequire(import.meta.url);
-const __filename = topLevelUrl.fileURLToPath(import.meta.url);
-const __dirname = topLevelPath.dirname(__filename);
+import { createRequire as esbuildNodeHelpersCreateRequire } from 'node:module';
+var require = esbuildNodeHelpersCreateRequire(import.meta.url);
+var __filename = import.meta.filename;
+var __dirname = import.meta.dirname;
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
