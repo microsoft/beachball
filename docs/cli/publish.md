@@ -28,7 +28,7 @@ Most options can also be specified in the [configuration file](../overview/confi
 | `--registry` | `-r` | `'https://registry.npmjs.org'` | npm registry for publishing |
 | `--retries` | | `3` | number of retries for a package publish before failing |
 | `--tag` | `-t` | `'latest'` | dist-tag for npm publishes |
-| `--token` | `-n` | | Not recommended; see alternatives below |
+| `--token` | `-n` | | Not recommended; [see alternatives](../concepts/ci-integration#npm-authentication) |
 | `--verbose` | | `false` | prints additional information to the console |
 | `--yes` | `-y` | if CI detected, `true` | skips the prompts for publish |
 
