@@ -56,7 +56,7 @@ export async function promptForChange(params: {
     if ((await determineAgent()).isAgent) {
       lines.push(
         '',
-        'For AI agents, you can ask the user to add the "beachball-change-files" skill ' +
+        'For AI agents, you can ask the user to add the "beachball-change-file" skill ' +
           '(see https://microsoft.github.io/beachball/concepts/ai-integration) ' +
           'for better manual instructions about creating change files.'
       );
