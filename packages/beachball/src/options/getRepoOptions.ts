@@ -29,10 +29,8 @@ export function getRepoOptions(cliOptions: ParsedOptions['cliOptions']): Partial
   }
   const configExplorer = cosmiconfigSync('beachball', {
     cache: false,
-    // cosmiconfig v9 doesn't search up by default. To preserve most of the old behavior plus
-    // some of the efficiency gains, search up to the git root (if available, since realistically
-    // this is the farthest up that a config file is likely to be) or fall back to searching up
-    // to the filesystem root (probably the old behavior).
+    // cosmiconfig v9 doesn't search up by default. For a mix of preserving old behavior and
+    // improving efficiency, only search up to the git root (if available) or cwd.
     stopDir: rootDir,
     searchStrategy: 'global',
   });
