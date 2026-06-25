@@ -1,0 +1,7 @@
+{
+  "comment": "Fix skill name in change prompt",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
