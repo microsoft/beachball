@@ -13,26 +13,24 @@ describe('updateRelatedChangeType', () => {
    * Call `updateRelatedChangeType` once for each of `changes`.
    * Returns the updated bump info.
    */
-  function callUpdateRelatedChangeType(
-    options: Partial<Pick<BeachballOptions, 'bumpDeps'>> & {
-      changes: Array<Pick<ChangeInfo, 'packageName' | 'type' | 'dependentChangeType'>>;
-      /**
-       * All the packages used in this fixture, including any per-package beachball options.
-       * Must include any dependencies (all versions are 1.0.0).
-       */
-      packages: PartialPackageInfos;
-      /** Repo disallowed change types */
-      options?: Pick<BeachballOptions, 'disallowedChangeTypes'>;
-      /**
-       * Initial calculated change types before updates. This is **required** if `packageGroups`
-       * is specified (since the initial calculation is complex) but otherwise a default can be
-       * calculated from `changes`.
-       */
-      calculatedChangeTypes?: { [packageName: string]: ChangeType };
-      packageGroups?: PackageGroups;
-    }
-  ) {
-    const { packages, packageGroups, bumpDeps = true } = options;
+  function callUpdateRelatedChangeType(options: {
+    changes: Array<Pick<ChangeInfo, 'packageName' | 'type' | 'dependentChangeType'>>;
+    /**
+     * All the packages used in this fixture, including any per-package beachball options.
+     * Must include any dependencies (all versions are 1.0.0).
+     */
+    packages: PartialPackageInfos;
+    /** Repo disallowed change types */
+    options?: Pick<BeachballOptions, 'disallowedChangeTypes'>;
+    /**
+     * Initial calculated change types before updates. This is **required** if `packageGroups`
+     * is specified (since the initial calculation is complex) but otherwise a default can be
+     * calculated from `changes`.
+     */
+    calculatedChangeTypes?: { [packageName: string]: ChangeType };
+    packageGroups?: PackageGroups;
+  }) {
+    const { packages, packageGroups } = options;
 
     if (packageGroups && !options.calculatedChangeTypes) {
       throw new Error('calculatedChangeTypes must be specified if packageGroups is used');
@@ -46,6 +44,14 @@ describe('updateRelatedChangeType', () => {
     }));
 
     const packageInfos = makePackageInfos(packages);
+    const packageToGroup: Record<string, string> = {};
+    if (packageGroups) {
+      for (const [groupName, group] of Object.entries(packageGroups)) {
+        for (const packageName of group.packageNames) {
+          packageToGroup[packageName] = groupName;
+        }
+      }
+    }
 
     const params: RelatedChangeTypeParams = {
       bumpInfo: {
@@ -57,9 +63,8 @@ describe('updateRelatedChangeType', () => {
       options: { disallowedChangeTypes: null, ...options.options },
       // Dependents are confusing to reason about directly (or specify in fixtures) since they're
       // backwards from dependencies, so just reuse the actual helper that calculates them
-      dependents: bumpDeps
-        ? getDependentsForPackages({ packageInfos, scopedPackages: new Set(Object.keys(packageInfos)) })
-        : undefined,
+      dependents: getDependentsForPackages({ packageInfos, scopedPackages: new Set(Object.keys(packageInfos)) }),
+      packageToGroup,
     };
 
     for (const change of changes) {
@@ -82,19 +87,6 @@ describe('updateRelatedChangeType', () => {
       foo: 'patch',
       bar: 'minor',
     });
-  });
-
-  it('does not bump dependents with bumpDeps: false', () => {
-    const bumpInfo = callUpdateRelatedChangeType({
-      bumpDeps: false,
-      changes: [{ packageName: 'foo', type: 'patch', dependentChangeType: 'minor' }],
-      packages: {
-        bar: { dependencies: { foo: '1.0.0' } },
-        foo: {},
-      },
-    });
-
-    expect(bumpInfo.calculatedChangeTypes).toEqual({ foo: 'patch' });
   });
 
   it("respects bumped dependent package's own change type if higher than dependentChangeType", () => {
@@ -165,10 +157,29 @@ describe('updateRelatedChangeType', () => {
     });
   });
 
+  it('bumps all grouped packages, if a dependency was bumped and group was not previously bumped', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'dep', type: 'major', dependentChangeType: 'minor' }],
+      calculatedChangeTypes: { dep: 'major' },
+      packages: {
+        foo: { dependencies: { dep: '1.0.0' } },
+        bar: {},
+        dep: {},
+      },
+      packageGroups: { grp: { packageNames: ['foo', 'bar'], disallowedChangeTypes: null } },
+    });
+
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      dep: 'major',
+      foo: 'minor',
+      bar: 'minor',
+    });
+  });
+
   // bumpInPlace sets calculatedChangeTypes for all packages in a group to the same type.
   // So the meaningful thing to test is that a bump of a dependency *outside* the group
   // propagates in to bump the group.
-  it('bumps all grouped packages, if a dependency was bumped', () => {
+  it('bumps all grouped packages, if a dependency was bumped and group had lower bump type', () => {
     const bumpInfo = callUpdateRelatedChangeType({
       packageGroups: { grp: { packageNames: ['foo', 'bar'], disallowedChangeTypes: null } },
       // Suppose there was some additional change file that already patch bumped the group packages
@@ -282,25 +293,24 @@ describe('updateRelatedChangeType', () => {
     });
   });
 
-  // currently fails
-  // it('respects disallowed change type from group', () => {
-  //   const bumpInfo = callUpdateRelatedChangeType({
-  //     changes: [{ packageName: 'dep', type: 'major', dependentChangeType: 'minor' }],
-  //     calculatedChangeTypes: { dep: 'major' },
-  //     packages: {
-  //       foo: { dependencies: { dep: '1.0.0' } },
-  //       bar: {},
-  //       dep: {},
-  //     },
-  //     packageGroups: { grp: { packageNames: ['foo', 'bar'], disallowedChangeTypes: ['major', 'minor'] } },
-  //   });
-  //
-  //   expect(bumpInfo.calculatedChangeTypes).toEqual({
-  //     dep: 'major',
-  //     foo: 'preminor',
-  //     bar: 'preminor',
-  //   });
-  // });
+  it('respects disallowed change type from group', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'dep', type: 'major', dependentChangeType: 'minor' }],
+      calculatedChangeTypes: { dep: 'major' },
+      packages: {
+        foo: { dependencies: { dep: '1.0.0' } },
+        bar: {},
+        dep: {},
+      },
+      packageGroups: { grp: { packageNames: ['foo', 'bar'], disallowedChangeTypes: ['major', 'minor'] } },
+    });
+
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      dep: 'major',
+      foo: 'preminor',
+      bar: 'preminor',
+    });
+  });
 
   it('does not bump any dependents when dependentChangeType is none', () => {
     const bumpInfo = callUpdateRelatedChangeType({
@@ -336,33 +346,20 @@ describe('updateRelatedChangeType', () => {
     });
   });
 
-  it('bumps package with devDependency on the changed package', () => {
+  it('bumps package with devDependency or peerDependency on the changed package', () => {
     const bumpInfo = callUpdateRelatedChangeType({
-      changes: [{ packageName: 'dep', type: 'patch', dependentChangeType: 'minor' }],
+      changes: [{ packageName: 'dep', type: 'minor', dependentChangeType: 'patch' }],
       packages: {
         dep: {},
         consumer: { devDependencies: { dep: '1.0.0' } },
+        peerConsumer: { peerDependencies: { dep: '1.0.0' } },
       },
     });
 
     expect(bumpInfo.calculatedChangeTypes).toEqual({
-      dep: 'patch',
-      consumer: 'minor',
-    });
-  });
-
-  it('bumps package with peerDependency on the changed package', () => {
-    const bumpInfo = callUpdateRelatedChangeType({
-      changes: [{ packageName: 'dep', type: 'patch', dependentChangeType: 'minor' }],
-      packages: {
-        dep: {},
-        consumer: { peerDependencies: { dep: '1.0.0' } },
-      },
-    });
-
-    expect(bumpInfo.calculatedChangeTypes).toEqual({
-      dep: 'patch',
-      consumer: 'minor',
+      dep: 'minor',
+      consumer: 'patch',
+      peerConsumer: 'patch',
     });
   });
 
@@ -475,6 +472,27 @@ describe('updateRelatedChangeType', () => {
       g1b: 'minor',
       g2a: 'minor',
       g2b: 'minor',
+    });
+  });
+
+  it('does not re-bump group members of the changed package via dependentChangeType', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'foo', type: 'patch', dependentChangeType: 'minor' }],
+      calculatedChangeTypes: { foo: 'patch', bar: 'patch' },
+      packages: {
+        foo: {},
+        bar: {},
+        external: { dependencies: { foo: '1.0.0' } },
+      },
+      packageGroups: { grp: { packageNames: ['foo', 'bar'], disallowedChangeTypes: null } },
+    });
+
+    // 'bar' stays at 'patch' — the startKey check skips group expansion for the initial package.
+    // 'external' gets 'minor' because it depends on 'foo'.
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      foo: 'patch',
+      bar: 'patch',
+      external: 'minor',
     });
   });
 });
