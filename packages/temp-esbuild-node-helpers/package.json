@@ -1,0 +1,25 @@
+{
+  "name": "temp-esbuild-node-helpers",
+  "version": "0.1.7",
+  "description": "Helpers for creating a bundle for Node with esbuild",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    }
+  },
+  "publishConfig": {},
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "dependencies": {
+    "@ms-cloudpack/environment": "^0.1.7",
+    "esbuild": "^0.28.1",
+    "hosted-git-info": "^9.0.0",
+    "picocolors": "^1.1.1",
+    "validate-npm-package-license": "^3.0.4"
+  }
+}

@@ -1,8 +1,10 @@
 import { describe, expect, it, jest } from '@jest/globals';
+import { findProjectRoot } from 'workspace-tools';
+import { resolveRemoteAndBranch } from '../../git/tempGetDefaultRemoteBranch';
 import { getCliOptions } from '../../options/getCliOptions';
-import { findProjectRoot, resolveRemoteAndBranch } from 'workspace-tools';
 
-jest.mock('workspace-tools', () => {
+jest.mock('../../git/tempGetDefaultRemoteBranch', () => {
+  // jest.mock('workspace-tools', () => {
   return {
     resolveRemoteAndBranch: jest.fn((options: { branch?: string }) => {
       if (options.branch?.includes('/')) {
@@ -11,9 +13,11 @@ jest.mock('workspace-tools', () => {
       }
       return { remote: 'origin', remoteBranch: options.branch || 'main' };
     }),
-    findProjectRoot: jest.fn(() => 'fake-root'),
   };
 });
+jest.mock('workspace-tools', () => ({
+  findProjectRoot: jest.fn(() => 'fake-root'),
+}));
 
 //
 // These tests cover a mix of built-in parser behavior, provided options, and custom overrides.

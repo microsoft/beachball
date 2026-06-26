@@ -1,8 +1,9 @@
-import { findProjectRoot, resolveRemoteAndBranch } from 'workspace-tools';
+import { findProjectRoot } from 'workspace-tools';
 import parser from 'yargs-parser';
 import { env } from '../env';
 import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
 import { cacheRemoteBranch } from '../git/getRemoteBranch';
+import { resolveRemoteAndBranch } from '../git/tempGetDefaultRemoteBranch';
 
 export interface ProcessInfo {
   /** Complete argv (node and script path aren't used but elements must be present) */

@@ -57,7 +57,7 @@
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.0.0",
     "jest": "^30.0.0",
-    "lage": "^2.15.16",
+    "lage": "^2.15.0",
     "lint-staged": "^16.0.0",
     "prettier": "~3.8.3",
     "syncpack": "^14.0.0",
