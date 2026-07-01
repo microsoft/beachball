@@ -59,7 +59,7 @@
     "jest": "^30.0.0",
     "lage": "^2.15.0",
     "lint-staged": "^16.0.0",
-    "prettier": "~3.8.3",
+    "prettier": "~3.9.0",
     "syncpack": "^14.0.0",
     "typescript": "~6.0.0",
     "typescript-eslint": "^8.52.0"
