@@ -138,8 +138,8 @@ extends:
                   trap "git config --unset-all http.https://github.com/.extraheader" EXIT
                   git config http.https://github.com/.extraheader "AUTHORIZATION: basic $authHeader"
 
-                  yarn release:others --no-tags --no-publish --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
-                # ^ TODO re-enable tagging and publishing
+                  yarn release:others --no-tags --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
+                # ^ TODO re-enable tagging
                 # yarn release:others
                 displayName: Publish packages (non-prerelease)
                 env:
