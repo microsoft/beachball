@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "fix notice ordering",
-  "packageName": "@microsoft/beachball-action-should-release",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}
