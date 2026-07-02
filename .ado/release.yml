@@ -13,11 +13,11 @@ resources:
     - pipeline: prepublish
       project: ISS
       source: beachball - prepublish
-      trigger:
-        branches:
-          include:
-            - main
-            - user/elcraig/1es-pt-migration-publish
+      # trigger:
+      #   branches:
+      #     include:
+      #       - main
+      #       - user/elcraig/1es-pt-migration-publish
 
   repositories:
     - repository: OfficePipelineTemplates

@@ -11,28 +11,33 @@ const publishNpmrcPath = path.join(repoRoot, '.npmrc.publish');
 const npmrcPath = path.join(repoRoot, '.npmrc');
 const yarnrcPath = path.join(repoRoot, '.yarnrc.yml');
 
-// Find the registry URL
-const npmrcRegistry = fs
-  .readFileSync(publishNpmrcPath, 'utf-8')
-  .split(/\r?\n/g)
-  .find((line: string) => line.startsWith('registry='))
-  ?.replace(/^registry="?([^"]+).*/, '$1');
-
-if (!npmrcRegistry) {
-  console.error(`No registry found in ${publishNpmrcPath}`);
-  process.exit(1);
+/** Find the registry URL in .npmrc.publish */
+export function getPublishRegistry(): string | undefined {
+  return fs
+    .readFileSync(publishNpmrcPath, 'utf-8')
+    .split(/\r?\n/g)
+    .find((line: string) => line.startsWith('registry='))
+    ?.replace(/^registry="?([^"]+).*/, '$1');
 }
 
-// Copy the .npmrc.publish to .npmrc so the private registry is used
-fs.copyFileSync(publishNpmrcPath, npmrcPath);
-console.log(`Copied ${publishNpmrcPath} to ${npmrcPath}`);
+if (import.meta.main) {
+  const npmrcRegistry = getPublishRegistry();
+  if (!npmrcRegistry) {
+    console.error(`No registry found in ${publishNpmrcPath}`);
+    process.exit(1);
+  }
 
-// Add the registry setting to .yarnrc.yml, and enable yarn-plugin-npmrc to read creds from .npmrc
-const yarnrcUpdates = `
+  // Copy the .npmrc.publish to .npmrc so the private registry is used
+  fs.copyFileSync(publishNpmrcPath, npmrcPath);
+  console.log(`Copied ${publishNpmrcPath} to ${npmrcPath}\n`);
+
+  // Add the registry setting to .yarnrc.yml, and enable yarn-plugin-npmrc to read creds from .npmrc
+  const yarnrcUpdates = `
 npmRegistryServer: "${npmrcRegistry}"
 npmAlwaysAuth: true
 npmrcAuthEnabled: true
 `;
-console.log(`Updating ${yarnrcPath} with private registry settings:\n${yarnrcUpdates}`);
-const yarnrcContent = fs.readFileSync(yarnrcPath, 'utf-8');
-fs.writeFileSync(yarnrcPath, `${yarnrcContent}\n${yarnrcUpdates}`, 'utf-8');
+  console.log(`Updating ${yarnrcPath} with private registry settings:\n${yarnrcUpdates}`);
+  const yarnrcContent = fs.readFileSync(yarnrcPath, 'utf-8');
+  fs.writeFileSync(yarnrcPath, `${yarnrcContent}\n${yarnrcUpdates}`, 'utf-8');
+}
