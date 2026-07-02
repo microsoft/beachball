@@ -86,9 +86,7 @@ extends:
                   echo "node: `node -v`"
                   echo "yarn: `yarn -v`"
                   echo "npm: `npm -v`"
-                  echo
                   printenv | sort
-                  echo
                   git --no-pager config list
                 displayName: Show environment
 
@@ -124,6 +122,7 @@ extends:
                 env:
                   APP_CLIENT_ID: Iv23ligBoU5jc9SIFnGR
                   KEY_ID: https://ogx-oss-release-keyvault.vault.azure.net/keys/office-ogx-auth-helper-key
+                  # TODO: make a way to use BUILD_REPOSITORY_ID=microsoft/beachball
                   OWNER: microsoft
                   REPOSITORIES: beachball
                   PERMISSIONS: contents:write
@@ -133,7 +132,7 @@ extends:
               # TODO (release): switch back to regular release
               # (temporarily add yarn release:canary when ready)
               - script: |
-                  set +x
+                  set -x
                   git config user.email "2742274+office-ogx-auth-helper[bot]@users.noreply.github.com"
                   git config user.name "OGX bot"
 
@@ -148,10 +147,15 @@ extends:
                     exit 1
                   fi
 
+                  # Unset all extra headers
+                  git config --name-only --get-regexp '\.extraheader$' | while read -r key; do
+                    git config --unset-all "$key"
+                  done
+
                   # Set a temporary auth header for git operations and clean it up when done
                   authHeader=$(printf "x-access-token:%s" "$REPO_PAT" | base64 | tr -d '\n')
-                  trap "git config --unset-all http.https://github.com/.extraheader" EXIT
-                  git config http.https://github.com/.extraheader "AUTHORIZATION: basic $authHeader"
+                  trap "git config --unset-all \"http.$BUILD_REPOSITORY_URI.extraheader\"" EXIT
+                  git config "http.$BUILD_REPOSITORY_URI.extraheader" "AUTHORIZATION: basic $authHeader"
 
                   yarn release:others --git-tags=false --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
                 # ^ TODO re-enable tagging
