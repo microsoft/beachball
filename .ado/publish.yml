@@ -86,7 +86,10 @@ extends:
                   echo "node: `node -v`"
                   echo "yarn: `yarn -v`"
                   echo "npm: `npm -v`"
+                  echo
                   printenv | sort
+                  echo
+                  git --no-pager config list
                 displayName: Show environment
 
               - script: node scripts/preparePublishRegistry.ts
@@ -133,6 +136,17 @@ extends:
                   set +x
                   git config user.email "2742274+office-ogx-auth-helper[bot]@users.noreply.github.com"
                   git config user.name "OGX bot"
+
+                  # Fail fast if the token wasn't produced or isn't a GitHub App installation token.
+                  # GitHub App installation tokens start with "ghs_".
+                  if [[ -z "$REPO_PAT" ]]; then
+                    echo "error: REPO_PAT is empty; the token creation step did not produce a token" >&2
+                    exit 1
+                  fi
+                  if [[ "$REPO_PAT" != ghs_* ]]; then
+                    echo "error: REPO_PAT is not in the expected GitHub App installation token format (ghs_...)" >&2
+                    exit 1
+                  fi
 
                   # Set a temporary auth header for git operations and clean it up when done
                   authHeader=$(printf "x-access-token:%s" "$REPO_PAT" | base64 | tr -d '\n')
