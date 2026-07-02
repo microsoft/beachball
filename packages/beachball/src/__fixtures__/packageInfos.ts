@@ -29,14 +29,12 @@ export type PartialPackageInfos = {
 export function makePackageInfos(packageInfos: PartialPackageInfos, cliOptions?: Partial<CliOptions>): PackageInfos {
   const cwd = cliOptions?.path || '';
   return getPackageInfosWithOptions(
-    Object.entries(packageInfos).map(
-      ([name, info]): WSPackageInfo => ({
-        name,
-        version: '1.0.0',
-        packageJsonPath: path.join(cwd, 'packages', path.basename(name), 'package.json'),
-        ...info,
-      })
-    ),
+    Object.entries(packageInfos).map(([name, info]): WSPackageInfo => ({
+      name,
+      version: '1.0.0',
+      packageJsonPath: path.join(cwd, 'packages', path.basename(name), 'package.json'),
+      ...info,
+    })),
     { path: cwd, ...cliOptions }
   );
 }
