@@ -65,6 +65,19 @@ extends:
 
             steps:
               - checkout: self
+                # Don't set http.<url>.extraheader (this should default to false, but was observed to be set)
+                persistCredentials: false
+
+              # Fail fast if the checkout left any credentials in git config.
+              # With persistCredentials: false, no extraheader should be persisted.
+              - script: |
+                  if git config --get-regexp '\.extraheader$' >/dev/null 2>&1; then
+                    echo "##[error]Found persisted credentials (extraheader) in git config after checkout:"
+                    git config --show-origin --get-regexp '\.extraheader$'
+                    exit 1
+                  fi
+                  echo "No persisted credentials found in git config."
+                displayName: Verify no persisted credentials
 
               - task: UseNode@1
                 displayName: Install Node.js ${{ variables.nodeVersion }}
@@ -132,28 +145,20 @@ extends:
               # TODO (release): switch back to regular release
               # (temporarily add yarn release:canary when ready)
               - script: |
-                  set -x
-                  git config user.email "2742274+office-ogx-auth-helper[bot]@users.noreply.github.com"
+                  git config user.email "257645319+office-ogx-auth-helper[bot]@users.noreply.github.com"
                   git config user.name "OGX bot"
 
                   # Fail fast if the token wasn't produced or isn't a GitHub App installation token.
                   # GitHub App installation tokens start with "ghs_".
-                  if [[ -z "$REPO_PAT" ]]; then
-                    echo "error: REPO_PAT is empty; the token creation step did not produce a token" >&2
-                    exit 1
-                  fi
                   if [[ "$REPO_PAT" != ghs_* ]]; then
-                    echo "error: REPO_PAT is not in the expected GitHub App installation token format (ghs_...)" >&2
+                    echo "error: REPO_PAT is not in the expected GitHub App installation token format (ghs_...); starts with '${REPO_PAT:0:4}'" >&2
                     exit 1
                   fi
-
-                  # Unset all extra headers
-                  git config --name-only --get-regexp '\.extraheader$' | while read -r key; do
-                    git config --unset-all "$key"
-                  done
 
                   # Set a temporary auth header for git operations and clean it up when done
                   authHeader=$(printf "x-access-token:%s" "$REPO_PAT" | base64 | tr -d '\n')
+                  # Register the auth header value so it's masked in subsequent log output.
+                  echo "##vso[task.setsecret]$authHeader"
                   trap "git config --unset-all \"http.$BUILD_REPOSITORY_URI.extraheader\"" EXIT
                   git config "http.$BUILD_REPOSITORY_URI.extraheader" "AUTHORIZATION: basic $authHeader"
 
