@@ -130,6 +130,7 @@ extends:
               # TODO (release): switch back to regular release
               # (temporarily add yarn release:canary when ready)
               - script: |
+                  set +x
                   git config user.email "2742274+office-ogx-auth-helper[bot]@users.noreply.github.com"
                   git config user.name "OGX bot"
 
@@ -138,9 +139,8 @@ extends:
                   trap "git config --unset-all http.https://github.com/.extraheader" EXIT
                   git config http.https://github.com/.extraheader "AUTHORIZATION: basic $authHeader"
 
-                  yarn release:others --no-tags --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
+                  yarn release:others --git-tags=false --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
                 # ^ TODO re-enable tagging
-                # yarn release:others
                 displayName: Publish packages (non-prerelease)
                 env:
                   REPO_PAT: $(REPO_PAT)
