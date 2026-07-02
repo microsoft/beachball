@@ -23,8 +23,6 @@ resources:
 variables:
   - name: nodeVersion
     value: 24
-  - name: npmVersion
-    value: 11
   - name: registryUrl
     value: https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/
   - name: tags
@@ -104,7 +102,7 @@ extends:
               # This isn't used, it's just a clear way to check that auth is working
               # (yarn install's auth errors can be very unclear)
               - script: yarn npm info beachball
-                displayName: Get package to verify registry auth
+                displayName: Get package to verify yarn auth
 
               - script: yarn --immutable
                 displayName: Install dependencies
@@ -115,14 +113,48 @@ extends:
               - script: yarn test --verbose
                 displayName: Test
 
-              # TODO: figure out if this should bump or not (currently does bump)
-              # and currently uses a prerelease prefix of 'test' to avoid interfering with real versions
-              # TODO: update beachball to read the registry from .npmrc and/or .yarnrc.yml
-              # TODO (release): change back to:
-              # yarn beachball publish --prerelease-prefix test -y --no-push --pack-to-path '$(Build.StagingDirectory)/packed-packages'
+              - task: AzureCLI@2
+                displayName: Create GitHub App token
+                inputs:
+                  azureSubscription: ogx-oss-release-bot
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: node scripts/create-github-app-token.cjs
+                env:
+                  APP_CLIENT_ID: Iv23ligBoU5jc9SIFnGR
+                  KEY_ID: https://ogx-oss-release-keyvault.vault.azure.net/keys/office-ogx-auth-helper-key
+                  OWNER: microsoft
+                  REPOSITORIES: beachball
+                  PERMISSIONS: contents:write
+                  OUTPUT: azure-pipelines
+                  AZURE_TOKEN_VARIABLE: REPO_PAT
+
+              # TODO (release): switch back to regular release
+              # (temporarily add yarn release:canary when ready)
               - script: |
-                  yarn release:canary --no-push --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages' --registry ${{ variables.registryUrl }}
-                displayName: Pack packages (canary)
+                  git config user.email "2742274+office-ogx-auth-helper[bot]@users.noreply.github.com"
+                  git config user.name "OGX bot"
+
+                  # Set a temporary auth header for git operations and clean it up when done
+                  authHeader=$(printf "x-access-token:%s" "$REPO_PAT" | base64 | tr -d '\n')
+                  trap "git config --unset-all http.https://github.com/.extraheader" EXIT
+                  git config http.https://github.com/.extraheader "AUTHORIZATION: basic $authHeader"
+
+                  yarn release:others --no-tags --no-publish --no-push
+                # ^ TODO re-enable tagging and publishing
+                # yarn release:others
+                displayName: Publish packages (non-prerelease)
+                env:
+                  REPO_PAT: $(REPO_PAT)
+
+              # # TODO: figure out if this should bump or not (currently does bump)
+              # # and currently uses a prerelease prefix of 'test' to avoid interfering with real versions
+              # # TODO: update beachball to read the registry from .npmrc and/or .yarnrc.yml
+              # # TODO (release): change back to:
+              # # yarn beachball publish --prerelease-prefix test -y --no-push --pack-to-path '$(Build.StagingDirectory)/packed-packages'
+              # - script: |
+              #     yarn release:canary --no-push --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages' --registry ${{ variables.registryUrl }}
+              #   displayName: Pack packages (canary)
 
               - script: |
                   mkdir -p $(Build.StagingDirectory)/out/release-api-tool

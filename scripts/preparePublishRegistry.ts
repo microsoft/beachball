@@ -25,7 +25,7 @@ if (!npmrcRegistry) {
 
 // Copy the .npmrc.publish to .npmrc so the private registry is used
 fs.copyFileSync(publishNpmrcPath, npmrcPath);
-console.log(`Copied ${publishNpmrcPath} to ${npmrcPath}`);
+console.log(`Copied ${publishNpmrcPath} to ${npmrcPath}\n`);
 
 // Add the registry setting to .yarnrc.yml, and enable yarn-plugin-npmrc to read creds from .npmrc
 const yarnrcUpdates = `
