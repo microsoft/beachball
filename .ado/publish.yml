@@ -23,8 +23,6 @@ resources:
 variables:
   - name: nodeVersion
     value: 24
-  - name: registryUrl
-    value: https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/
   - name: tags
     value: production
     readonly: true
@@ -140,7 +138,7 @@ extends:
                   trap "git config --unset-all http.https://github.com/.extraheader" EXIT
                   git config http.https://github.com/.extraheader "AUTHORIZATION: basic $authHeader"
 
-                  yarn release:others --no-tags --no-publish --no-push
+                  yarn release:others --no-tags --no-publish --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
                 # ^ TODO re-enable tagging and publishing
                 # yarn release:others
                 displayName: Publish packages (non-prerelease)
@@ -151,9 +149,9 @@ extends:
               # # and currently uses a prerelease prefix of 'test' to avoid interfering with real versions
               # # TODO: update beachball to read the registry from .npmrc and/or .yarnrc.yml
               # # TODO (release): change back to:
-              # # yarn beachball publish --prerelease-prefix test -y --no-push --pack-to-path '$(Build.StagingDirectory)/packed-packages'
+              # # yarn beachball publish --prerelease-prefix test --no-push --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
               # - script: |
-              #     yarn release:canary --no-push --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages' --registry ${{ variables.registryUrl }}
+              #     yarn release:canary --no-push --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
               #   displayName: Pack packages (canary)
 
               - script: |
