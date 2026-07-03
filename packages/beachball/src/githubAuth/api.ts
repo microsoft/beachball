@@ -1,97 +1,26 @@
+import { createAzureCliKeyVaultSigner } from './azureCliSigner';
+import { GitHubRequestError, requestJson, requestNoContent, retryTransient } from './requestHelpers';
+import type { GetInstallationTokenOptions, GitHubAppAuthOptions, InstallationToken } from './types';
+import {
+  assertValue,
+  defaultGitHubApiUrl,
+  isRecord,
+  normalizeRepositoryTarget,
+  requiredIntegerProperty,
+  requiredStringProperty,
+  splitList,
+  validatePermissions,
+} from './validationHelpers';
+
 const defaultRefreshWindowMs = 5 * 60 * 1000;
-const defaultGitHubApiUrl = 'https://api.github.com';
-const transientRetryCount = 3;
-
-export type PermissionLevel = 'read' | 'write' | 'admin';
-export type Permissions = Record<string, PermissionLevel>;
-
-/**
- * Signs the JWT signing input and returns the base64url-encoded raw RSA signature.
- */
-export type GitHubAppJwtSigner = (signingInput: string) => Promise<string>;
-
-export interface GitHubAppAuthOptions {
-  appClientId: string;
-  signer: GitHubAppJwtSigner;
-  defaultOwner?: string;
-  refreshWindowMs?: number;
-  githubApiUrl?: string;
-}
-
-export interface GetInstallationTokenOptions {
-  owner?: string;
-  repositories?: string[] | string;
-  repositoryNames?: string[] | string;
-  enterprise?: string;
-  permissions?: Permissions;
-}
-
-export interface InstallationToken {
-  token: string;
-  expiresAt: string;
-  installationId: number;
-  appSlug: string;
-  repositories: string[];
-  permissions: Permissions | Record<string, unknown>;
-}
 
 export interface GitHubAppAuth {
   getInstallationToken(options: GetInstallationTokenOptions): Promise<InstallationToken>;
-  getToken(options: GetInstallationTokenOptions): Promise<string>;
   revokeToken(token: string): Promise<void>;
-}
-
-class GitHubRequestError extends Error {
-  status: number;
-  constructor(message: string, status: number) {
-    super(message);
-    this.status = status;
-  }
-}
-
-function assertValue<T>(value: T | null | undefined, message: string): T {
-  if (!value) {
-    throw new Error(message);
-  }
-  return value;
 }
 
 function base64url(value: string | Uint8Array): string {
   return Buffer.from(value).toString('base64url');
-}
-
-async function sleep(ms: number): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function isRetryableError(error: unknown): boolean {
-  return error instanceof GitHubRequestError ? error.status >= 500 : error instanceof TypeError;
-}
-
-async function retryTransient<T>(operation: () => Promise<T>): Promise<T> {
-  for (let attempt = 0; ; attempt++) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (attempt >= transientRetryCount || !isRetryableError(error)) {
-        throw error;
-      }
-      await sleep(2 ** attempt * 1000);
-    }
-  }
-}
-
-export function splitRepositoryNames(repositories: string[] | string | undefined): string[] {
-  if (Array.isArray(repositories)) {
-    return repositories.map(repo => `${repo}`.trim()).filter(Boolean);
-  }
-  if (typeof repositories === 'string') {
-    return repositories
-      .split(/[,\n]/)
-      .map(repo => repo.trim())
-      .filter(Boolean);
-  }
-  return [];
 }
 
 function stableObject(value: unknown): unknown {
@@ -115,129 +44,31 @@ function githubHeaders(token: string, json = false): Record<string, string> {
   };
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function requiredIntegerProperty(value: unknown, property: string, failureMessage: string): number {
-  const propertyValue = isRecord(value) ? value[property] : undefined;
-  if (typeof propertyValue !== 'number' || !Number.isInteger(propertyValue)) {
-    throw new Error(failureMessage);
-  }
-  return propertyValue;
-}
-
-function requiredStringProperty(value: unknown, property: string, failureMessage: string): string {
-  const propertyValue = isRecord(value) ? value[property] : undefined;
-  if (typeof propertyValue !== 'string' || !propertyValue) {
-    throw new Error(failureMessage);
-  }
-  return propertyValue;
-}
-
-function validatePermissionName(key: string): void {
-  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) {
-    throw new Error(`Invalid permission name: ${key}`);
-  }
-}
-
-function validatePermissionLevel(key: string, level: unknown): PermissionLevel {
-  if (level !== 'read' && level !== 'write' && level !== 'admin') {
-    throw new Error(`Invalid permission level for ${key}: ${level}`);
-  }
-  return level;
-}
-
-function validatePermissions(value: unknown): Permissions | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
-  if (!isRecord(value)) {
-    throw new Error('permissions must be an object');
-  }
-
-  const permissions: Permissions = {};
-  for (const [key, level] of Object.entries(value)) {
-    validatePermissionName(key);
-    permissions[key] = validatePermissionLevel(key, level);
-  }
-
-  return Object.keys(permissions).length === 0 ? undefined : permissions;
-}
-
-async function requestJson(url: string | URL, init: RequestInit, failureMessage: string): Promise<unknown> {
-  const response = await fetch(url, init);
-  const body = await response.text();
-  if (!response.ok) {
-    throw new GitHubRequestError(
-      `${failureMessage}: ${response.status} ${response.statusText}: ${body}`,
-      response.status
-    );
-  }
-  try {
-    return JSON.parse(body);
-  } catch {
-    throw new Error(`${failureMessage}: GitHub returned invalid JSON`);
-  }
-}
-
-async function requestNoContent(url: string | URL, init: RequestInit, failureMessage: string): Promise<void> {
-  const response = await fetch(url, init);
-  if (!response.ok) {
-    const body = await response.text();
-    throw new GitHubRequestError(
-      `${failureMessage}: ${response.status} ${response.statusText}: ${body}`,
-      response.status
-    );
-  }
-}
-
 type InstallationTarget =
   | { type: 'enterprise'; enterprise: string }
   | { type: 'owner'; owner: string }
   | { type: 'repository'; owner: string; repositories: string[] };
 
-export function parseRepositoryInput(input: string): { input: string; owner?: string; name: string } {
-  const parts = input.split('/');
-  if (parts.length === 1 && parts[0]) {
-    return { input, name: parts[0] };
+function resolveInstallationTarget(options: GetInstallationTokenOptions): InstallationTarget {
+  const repositories = splitList(options.repositories);
+
+  if (options.enterprise) {
+    if (options.owner || repositories.length > 0) {
+      throw new Error("Cannot use 'enterprise' with 'owner' or 'repositories'");
+    }
+    return { type: 'enterprise', enterprise: options.enterprise };
   }
-  if (parts.length === 2 && parts[0] && parts[1]) {
-    return { input, owner: parts[0], name: parts[1] };
+
+  if (repositories.length > 0) {
+    return { type: 'repository', ...normalizeRepositoryTarget(options.owner, repositories) };
   }
-  throw new Error(`Invalid repository '${input}'. Expected 'repository' or 'owner/repository'.`);
+
+  const owner = assertValue(options.owner, 'owner is required to discover installation ID');
+  return { type: 'owner', owner };
 }
 
-export function normalizeRepositoryTarget(
-  owner: string | undefined,
-  repositories: string[],
-  defaultOwner: string | undefined
-): { owner: string; repositories: string[] } {
-  const parsedRepositories = repositories.map(parseRepositoryInput);
-  const repositoryOwner = parsedRepositories.find(repository => repository.owner)?.owner;
-  const parsedOwner = owner || defaultOwner || repositoryOwner;
-  if (!parsedOwner) {
-    throw new Error('owner is required when repositories are provided');
-  }
-
-  const mismatchedRepository = parsedRepositories.find(
-    repository => repository.owner && repository.owner.toLowerCase() !== parsedOwner.toLowerCase()
-  );
-
-  if (mismatchedRepository) {
-    throw new Error(
-      `Repository '${mismatchedRepository.input}' includes owner '${mismatchedRepository.owner}', which does not match the resolved owner '${parsedOwner}'.`
-    );
-  }
-
-  return {
-    owner: parsedOwner,
-    repositories: parsedRepositories.map(repository => repository.name),
-  };
-}
-
-export async function revokeToken(params: { githubApiUrl: string; token: string }): Promise<void> {
-  const { githubApiUrl, token } = params;
+export async function revokeToken(params: { githubApiUrl?: string; token: string }): Promise<void> {
+  const { githubApiUrl = defaultGitHubApiUrl, token } = params;
   await requestNoContent(
     `${githubApiUrl}/installation/token`,
     {
@@ -248,35 +79,17 @@ export async function revokeToken(params: { githubApiUrl: string; token: string 
   );
 }
 
-function resolveInstallationTarget(
-  options: GetInstallationTokenOptions,
-  defaultOwner: string | undefined
-): InstallationTarget {
-  const repositories = splitRepositoryNames(options.repositories ?? options.repositoryNames);
-
-  if (options.enterprise) {
-    if (options.owner || repositories.length > 0) {
-      throw new Error("Cannot use 'enterprise' with 'owner' or 'repositories'");
-    }
-    return { type: 'enterprise', enterprise: options.enterprise };
-  }
-
-  const owner = assertValue(options.owner ?? defaultOwner, 'owner is required to discover installation ID');
-
-  if (repositories.length === 0) {
-    return { type: 'owner', owner };
-  }
-
-  return { type: 'repository', owner, repositories };
-}
-
 export function createGitHubAppAuth(options: GitHubAppAuthOptions): GitHubAppAuth {
   assertValue(options.appClientId, 'appClientId is required');
-  assertValue(options.signer, 'signer is required');
+  if (options.signer && options.keyId) {
+    throw new Error("Cannot use both 'signer' and 'keyId'");
+  }
+  if (!options.signer && !options.keyId) {
+    throw new Error("Either 'signer' or 'keyId' is required");
+  }
 
   const appClientId = options.appClientId;
-  const signer = options.signer;
-  const defaultOwner = options.defaultOwner;
+  const signer = options.signer ?? createAzureCliKeyVaultSigner(assertValue(options.keyId, "'keyId' is required"));
   const refreshWindowMs = options.refreshWindowMs ?? defaultRefreshWindowMs;
   const githubApiUrl = options.githubApiUrl ?? defaultGitHubApiUrl;
   const installationCache = new Map<string, { id: number; appSlug: string }>();
@@ -293,14 +106,17 @@ export function createGitHubAppAuth(options: GitHubAppAuthOptions): GitHubAppAut
     return `${signingInput}.${signature}`;
   }
 
-  async function discoverInstallation(target: InstallationTarget): Promise<{ id: number; appSlug: string }> {
+  async function discoverInstallation(
+    target: InstallationTarget,
+    getJwt: () => Promise<string>
+  ): Promise<{ id: number; appSlug: string }> {
     const cacheKey = JSON.stringify(target);
     const cached = installationCache.get(cacheKey);
     if (cached !== undefined) {
       return cached;
     }
 
-    const jwt = await createJwt();
+    const jwt = await getJwt();
     let installation: unknown;
     switch (target.type) {
       case 'enterprise':
@@ -350,10 +166,14 @@ export function createGitHubAppAuth(options: GitHubAppAuthOptions): GitHubAppAut
   }
 
   async function getInstallationToken(opts: GetInstallationTokenOptions): Promise<InstallationToken> {
-    const target = resolveInstallationTarget(opts, defaultOwner);
+    const target = resolveInstallationTarget(opts);
     const permissions = validatePermissions(opts.permissions);
     return retryTransient(async () => {
-      const installation = await discoverInstallation(target);
+      // Reuse a single JWT per attempt across installation discovery and token creation.
+      let jwtPromise: Promise<string> | undefined;
+      const getJwt = () => (jwtPromise ??= createJwt());
+
+      const installation = await discoverInstallation(target, getJwt);
       const repositories = target.type === 'repository' ? target.repositories : [];
       const cacheKey = JSON.stringify({
         installationId: installation.id,
@@ -365,12 +185,16 @@ export function createGitHubAppAuth(options: GitHubAppAuthOptions): GitHubAppAut
         return cached;
       }
 
-      const jwt = await createJwt();
+      const jwt = await getJwt();
       const body = {
         ...(repositories.length > 0 ? { repositories } : {}),
         ...(permissions ? { permissions } : {}),
       };
-      const token = await requestJson(
+      const token = await requestJson<{
+        token?: string;
+        expires_at?: string;
+        permissions?: Record<string, unknown>;
+      }>(
         `${githubApiUrl}/app/installations/${installation.id}/access_tokens`,
         {
           method: 'POST',
@@ -390,20 +214,15 @@ export function createGitHubAppAuth(options: GitHubAppAuthOptions): GitHubAppAut
         installationId: installation.id,
         appSlug: installation.appSlug,
         repositories,
-        permissions: isRecord(token) && isRecord(token['permissions']) ? token['permissions'] : (permissions ?? {}),
+        permissions: isRecord(token?.permissions) ? token.permissions : (permissions ?? {}),
       };
       tokenCache.set(cacheKey, result);
       return result;
     });
   }
 
-  async function getToken(opts: GetInstallationTokenOptions): Promise<string> {
-    return (await getInstallationToken(opts)).token;
-  }
-
   return {
     getInstallationToken,
-    getToken,
     revokeToken: (token: string) => revokeToken({ githubApiUrl, token }),
   };
 }

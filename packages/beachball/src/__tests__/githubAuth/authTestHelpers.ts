@@ -1,5 +1,6 @@
 import { install, MockAgent, setGlobalDispatcher, type Interceptable } from 'undici';
-import { createGitHubAppAuth, type GitHubAppAuth, type GitHubAppAuthOptions } from '../../githubAuth/api.js';
+import { createGitHubAppAuth, type GitHubAppAuth } from '../../githubAuth/api';
+import type { GitHubAppAuthOptions } from '../../githubAuth/types';
 
 install();
 

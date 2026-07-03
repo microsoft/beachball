@@ -6,34 +6,30 @@ The GitHub App private key is imported into Key Vault and used only through the 
 
 ## Entry points
 
-| Entry point          | Use when                                               | Signing implementation           |
-| -------------------- | ------------------------------------------------------ | -------------------------------- |
-| CLI (`dist/cli.cjs`) | Running outside GitHub Actions                         | Azure CLI `az keyvault key sign` |
-| API (`src/api.ts`)   | Copying the token flow into another TypeScript project | Caller-provided JWT signer       |
+<!-- prettier-ignore -->
+| Entry point | Use when | Signing implementation |
+| ----------- | -------- | ---------------------- |
+| CLI (`dist/create-github-app-token.cjs`) | Running outside GitHub Actions | Azure CLI `az keyvault key sign` |
+| API (`lib/unstableGithubAuthApi`) | Using the token flow in another project | Default (above) or caller-provided JWT signer |
 
 ## Prerequisites
 
 1. Create a GitHub App and install it on the organization, enterprise, or repositories that should receive tokens.
-2. Import the GitHub App private key into Azure Key Vault as a key that supports the `RS256` sign operation. GitHub issues the key as an RSA PEM file, which you can import with the Azure CLI:
-
-   ```bash
-   az keyvault key import \
-     --vault-name my-vault \
-     --name my-github-app-key \
-     --pem-file github-app-private-key.pem \
-     --ops sign
-   ```
-
-   This will output a versioned key. Use the versionless key ID (`https://my-vault.vault.azure.net/keys/my-github-app-key`, with no trailing version) as `KEY_ID` so signing follows key rotation automatically.
-
-3. Grant the workflow identity permission to sign with that Key Vault key. See [`infra/`](infra/) for Bicep templates that grant a user-assigned managed identity signing access (RBAC or access policies).
-4. Use the GitHub App client ID (`client-id` / `APP_CLIENT_ID`) as the JWT issuer.
+2. Navigate to the app settings page:
+   - **Org-owned app:** GitHub → your org → Settings → Developer settings → GitHub Apps → your app → Edit.
+   - **User-owned app:** GitHub → your profile Settings → Developer settings → GitHub Apps → your app.
+3. On the app settings page:
+   - Generate a private key for the app (the file will be saved locally).
+   - Copy the app's **Client ID** value to use as `APP_CLIENT_ID` later. Note that the client ID is not a secret, and is distinct from the numeric "App ID" shown on the same page.
+4. [Set up Azure resources](#azure-resource-setup) (see below):
+   - Import the GitHub App private key into Azure Key Vault as a key that supports the `RS256` sign operation. Use the versionless key ID (`https://my-vault.vault.azure.net/keys/my-github-app-key`, with no trailing version) as `KEY_ID` so signing follows key rotation automatically.
+   - If using Azure Pipelines, create a managed identity (or use one associated with an existing service connection) and give it permission to sign with that Key Vault key.
 
 ## Standalone CLI
 
 The CLI is a bundled (copy-pastable) Node.js script with no Azure SDK dependency; it signs with the already-authenticated Azure CLI by running `az keyvault key sign`.
 
-Copy `dist/cli.cjs` into the repository or pipeline workspace that needs a token, or download it from this repository before running it.
+Copy `dist/create-github-app-token.cjs` into the repository or pipeline workspace that needs a token, or download it from this repository before running it.
 
 The CLI requires Node.js 24 or newer and the Azure CLI (`az`) on `PATH`. The Azure CLI must already be authenticated as an identity with permission to sign with the Key Vault key. There are two ways to provide that identity:
 
@@ -44,10 +40,8 @@ If `HTTPS_PROXY` or `HTTP_PROXY` is set, also set `NODE_USE_ENV_PROXY=1`.
 
 ### Azure Pipelines usage
 
-To use a service connection for signing:
-
 1. Create an [Azure Resource Manager service connection](https://learn.microsoft.com/azure/devops/pipelines/library/connect-to-azure) in your Azure DevOps project.
-2. Grant that service connection's identity permission to sign with the Key Vault key — for example the "Key Vault Crypto User" role (RBAC) or a key `sign` permission (access policies) on the vault.
+2. [Grant that service connection's identity permission](#azure-resource-setup) to sign with the Key Vault key — for example the "Key Vault Crypto User" role (RBAC) or a key `sign` permission (access policies) on the vault.
 3. Reference the service connection as `azureSubscription` in the `AzureCLI@2` task, and run the CLI as that task's `inlineScript`.
 
 Example Azure Pipelines usage:
@@ -59,7 +53,7 @@ steps:
       azureSubscription: Production Azure
       scriptType: bash
       scriptLocation: inlineScript
-      inlineScript: node dist/cli.cjs
+      inlineScript: node dist/create-github-app-token.cjs
     env:
       APP_CLIENT_ID: $(MY_GITHUB_APP_CLIENT_ID)
       KEY_ID: $(MY_GITHUB_APP_KEY_ID)
@@ -89,24 +83,25 @@ GH_TOKEN="$(
   REPOSITORIES=example-repo \
   PERMISSIONS=contents:read \
   OUTPUT=stdout \
-  node dist/cli.cjs
+  node dist/create-github-app-token.cjs
 )"
 ```
 
 ### CLI environment variables
 
-| Variable               | Required                                                                            | Description                                                                                                                                    |
-| ---------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `APP_CLIENT_ID`        | Yes                                                                                 | GitHub App client ID.                                                                                                                          |
-| `KEY_ID`               | Yes                                                                                 | Full Azure Key Vault key ID, for example `https://my-vault.vault.azure.net/keys/my-github-app-key/0123456789abcdef0123456789abcdef`.           |
-| `OWNER`                | Required unless `ENTERPRISE` is set or `REPOSITORIES` contains `owner/repo` entries | Installation owner. If set without `REPOSITORIES`, creates a token for every repository available to that owner installation.                  |
-| `REPOSITORIES`         | No                                                                                  | Comma- or newline-separated repositories. Entries may be `repo` or `owner/repo`.                                                               |
-| `ENTERPRISE`           | No                                                                                  | Enterprise slug. Mutually exclusive with `OWNER` and `REPOSITORIES`.                                                                           |
-| `PERMISSIONS`          | No                                                                                  | Comma- or newline-separated `permission:level` entries, such as `contents:read,pull_requests:write`. Omit to inherit installation permissions. |
-| `OUTPUT`               | No                                                                                  | `azure`, `azure-pipelines`, or `stdout`. Defaults to `stdout`.                                                                                 |
-| `AZURE_TOKEN_VARIABLE` | Required for `OUTPUT=azure` or `OUTPUT=azure-pipelines`                             | Azure Pipelines variable name used for the secret token output.                                                                                |
-| `GITHUB_API_URL`       | No                                                                                  | GitHub REST API URL. Defaults to `https://api.github.com`.                                                                                     |
-| `REVOKE_TOKEN`         | No                                                                                  | If set, revokes the given token and exits. No other variables are required.                                                                    |
+<!-- prettier-ignore -->
+| Variable | Required | Description |
+| -------- | -------- | ----------- |
+| `APP_CLIENT_ID` | Yes | GitHub App client ID (not a secret). See [Prerequisites](#prerequisites) for where to find it in the UI. |
+| `KEY_ID` | Yes | Full Azure Key Vault key ID, for example `https://my-vault.vault.azure.net/keys/my-github-app-key/0123456789abcdef0123456789abcdef`. |
+| `OWNER` | Required unless `ENTERPRISE` is set or `REPOSITORIES` contains `owner/repo` entries | Installation owner. If set without `REPOSITORIES`, creates a token for every repository available to that owner installation. |
+| `REPOSITORIES` | No | Comma- or newline-separated repositories. Entries may be `repo` or `owner/repo`. |
+| `ENTERPRISE` | No | Enterprise slug. Mutually exclusive with `OWNER` and `REPOSITORIES`. |
+| `PERMISSIONS` | No | Comma- or newline-separated `permission:level` entries, such as `contents:read,pull_requests:write`. Omit to inherit installation permissions. |
+| `OUTPUT` | No | `azure`, `azure-pipelines`, or `stdout`. Defaults to `stdout`. |
+| `AZURE_TOKEN_VARIABLE` | Required for `OUTPUT=azure` or `OUTPUT=azure-pipelines` | Azure Pipelines variable name used for the secret token output. |
+| `GITHUB_API_URL` | No | GitHub REST API URL. Defaults to `https://api.github.com`. |
+| `REVOKE_TOKEN` | No | If set, revokes the given token and exits. No other variables are required. |
 
 To create a token for every repository available to the installation owner, set `OWNER` and omit `REPOSITORIES`. To target an enterprise installation, set `ENTERPRISE`; it cannot be combined with `OWNER` or `REPOSITORIES`.
 
@@ -116,24 +111,40 @@ When `REVOKE_TOKEN` is set, the CLI revokes the token by calling `DELETE /instal
 
 ## Reusable API
 
-The reusable token flow is in `src/api.ts`. It has no Azure SDK dependency and only needs a signer that returns the base64url-encoded RSA signature for a JWT signing input. For example, sign with the Azure Key Vault SDK inline:
+The reusable token flow is in `lib/unstableGithubAuthApi`. `createGitHubAppAuth` requires `appClientId` plus exactly one of:
+
+- **`keyId`** — an Azure Key Vault key ID. The JWT is signed via the Azure CLI (`az keyvault key sign`), so the Azure CLI must be installed and authenticated with `Default (above) or callerpermission on the key. Prefer the versionless key ID so signing follows key rotation. This is the low-dependency path (no Azure SDK):
+
+  ```ts
+  import { createGitHubAppAuth } from 'beachball/lib/unstableGithubAuthApi';
+
+  const auth = createGitHubAppAuth({
+    appClientId: process.env.APP_CLIENT_ID!,
+    keyId: 'https://my-vault.vault.azure.net/keys/my-github-app-key',
+  });
+  ```
+
+- **`signer`** — a callback that returns the base64url-encoded RSA signature for a JWT signing input. Provide this to sign with your own key provider. For example, sign with the Azure Key Vault SDK inline:
+
+  ```ts
+  import { DefaultAzureCredential } from '@azure/identity';
+  import { CryptographyClient } from '@azure/keyvault-keys';
+  import { createGitHubAppAuth } from 'beachball/lib/unstableGithubAuthApi';
+
+  const cryptographyClient = new CryptographyClient(process.env.KEY_ID!, new DefaultAzureCredential());
+
+  const auth = createGitHubAppAuth({
+    appClientId: process.env.APP_CLIENT_ID!,
+    signer: async signingInput => {
+      const signature = await cryptographyClient.signData('RS256', Buffer.from(signingInput));
+      return Buffer.from(signature.result).toString('base64url');
+    },
+  });
+  ```
+
+Once created, request tokens with:
 
 ```ts
-import { DefaultAzureCredential } from '@azure/identity';
-import { CryptographyClient } from '@azure/keyvault-keys';
-
-import { createGitHubAppAuth } from './api';
-
-const cryptographyClient = new CryptographyClient(process.env.KEY_ID!, new DefaultAzureCredential());
-
-const auth = createGitHubAppAuth({
-  appClientId: process.env.APP_CLIENT_ID!,
-  signer: async signingInput => {
-    const signature = await cryptographyClient.signData('RS256', Buffer.from(signingInput));
-    return Buffer.from(signature.result).toString('base64url');
-  },
-});
-
 const installationToken = await auth.getInstallationToken({
   owner: 'octo-org',
   repositories: ['example-repo'],
@@ -144,26 +155,78 @@ const installationToken = await auth.getInstallationToken({
 });
 ```
 
-Use `src/azureCliSigner.ts` when you want the low-dependency Azure CLI signing path, or provide your own signer for another key provider.
+## Azure resource setup
 
-## Contributing
+The following instructions outline how to import the key and grant an identity permissions to use it.
 
-This project welcomes contributions and suggestions. Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit [Contributor License Agreements](https://cla.opensource.microsoft.com).
+> ⚠️ If you get "conditional access token protection policy" errors with any commands below, try running from https://shell.azure.com instead.
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (for example, status check or comment). Follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+The examples share these variables:
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+```bash
+EMAIL=user@microsoft.com
+SUBSCRIPTION="Azure subscription name"
+RESOURCE_GROUP=my-vault-rg
+KEY_VAULT=my-vault
+KEY_NAME=my-github-app-key
+LOCAL_KEY_FILE=github-app-private-key.pem
+MANAGED_IDENTITY=my-pipeline-identity
 
-## Trademarks
+az account set --subscription "$SUBSCRIPTION"
+VAULT_ID=$(az keyvault show --name "$KEY_VAULT" --query id --output tsv)
+```
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
-trademarks or logos is subject to and must follow
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+### 1. Grant yourself key vault access (temporary)
+
+Key vault perms don't inherit from the subscription. If you don't already have permission to import keys and set their RBAC perms, temporarily give yourself the **Key Vault Administrator** role:
+
+```bash
+az role assignment create \
+  --assignee "$EMAIL" \
+  --role "Key Vault Administrator" \
+  --scope "$VAULT_ID"
+```
+
+### 2. Import the key
+
+```bash
+az keyvault key import \
+  --vault-name "$KEY_VAULT" \
+  --name "$KEY_NAME" \
+  --pem-file "$LOCAL_KEY_FILE" \
+  --ops sign
+```
+
+Use the versionless key ID (`https://$KEY_VAULT.vault.azure.net/keys/$KEY_NAME`, with no trailing version) as `KEY_ID` for the token creation tool so signing follows key rotation automatically.
+
+### 3. Grant the signing identity access
+
+Grant the managed identity or service principal that runs the CLI permission to sign with the key.
+
+For a vault using **RBAC**, assign **Key Vault Crypto User**, scoped to the single key for least privilege:
+
+```bash
+MI_PRINCIPAL_ID=$(az identity show \
+  --name "$MANAGED_IDENTITY" \
+  --resource-group "$RESOURCE_GROUP" \
+  --query principalId --output tsv)
+
+az role assignment create \
+  --assignee-object-id "$MI_PRINCIPAL_ID" \
+  --assignee-principal-type ServicePrincipal \
+  --role "Key Vault Crypto User" \
+  --scope "$VAULT_ID/keys/$KEY_NAME"
+```
+
+(For a vault using legacy access policies, you can manually grant `sign` permission to the managed identity for the entire vault.)
+
+### 4. Revoke your key-import access
+
+Remove the temporary roles once the import is done so you don't retain standing access:
+
+```bash
+az role assignment delete \
+  --assignee "$EMAIL" \
+  --role "Key Vault Administrator" \
+  --scope "$VAULT_ID"
+```

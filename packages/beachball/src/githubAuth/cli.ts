@@ -1,166 +1,147 @@
-import {
-  createGitHubAppAuth,
-  type GetInstallationTokenOptions,
-  type InstallationToken,
-  normalizeRepositoryTarget,
-  type PermissionLevel,
-  type Permissions,
-  revokeToken,
-  splitRepositoryNames,
-} from './api.js';
-import { createAzureCliKeyVaultSigner } from './azureCliSigner.js';
+import { createGitHubAppAuth, revokeToken } from './api';
+import { createAzureCliKeyVaultSigner } from './azureCliSigner';
+import type { GetInstallationTokenOptions, GitHubAppAuthOptions } from './types';
+import { assertValue, defaultGitHubApiUrl, parsePermissions, splitList } from './validationHelpers';
 
 type OutputMode = 'azure' | 'azure-pipelines' | 'stdout';
+const validOutput: OutputMode[] = ['azure', 'azure-pipelines', 'stdout'];
 
-const proxyEnvironmentKeys = ['https_proxy', 'HTTPS_PROXY', 'http_proxy', 'HTTP_PROXY'] as const;
+/** Parsed environment variables used by the CLI. */
+export interface CliEnv {
+  // used directly
+  githubApiUrl: string;
+  revokeToken?: string;
 
-function ensureNativeProxySupport(): void {
-  if (proxyEnvironmentKeys.some(key => process.env[key]) && process.env['NODE_USE_ENV_PROXY'] !== '1') {
-    throw new Error(
-      'A proxy environment variable is set, but Node.js native proxy support is not enabled. Set NODE_USE_ENV_PROXY=1 before running this tool.'
-    );
-  }
+  // processed by getOtherOptions
+  appClientId?: string;
+  keyId?: string;
+  output: string;
+  azureTokenVariable?: string;
+
+  // processed by getTokenOptions
+  owner?: string;
+  enterprise?: string;
+  repositories?: string;
+  permissions?: string;
+
+  // used for initial validation
+  hasHttpProxy: boolean;
+  nodeUseEnvProxy?: string;
 }
 
-function requiredEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`${name} must be set`);
-  }
-  return value;
+/** Read the CLI options from environment variables (defaults to `process.env`). */
+export function readEnv(source: NodeJS.ProcessEnv = process.env): CliEnv {
+  return {
+    githubApiUrl: source['GITHUB_API_URL'] || defaultGitHubApiUrl,
+    revokeToken: source['REVOKE_TOKEN'],
+
+    appClientId: source['APP_CLIENT_ID'],
+    keyId: source['KEY_ID'],
+    output: source['OUTPUT'] || 'stdout',
+    azureTokenVariable: source['AZURE_TOKEN_VARIABLE'],
+
+    owner: source['OWNER'],
+    enterprise: source['ENTERPRISE'],
+    repositories: source['REPOSITORIES'],
+    permissions: source['PERMISSIONS'],
+
+    hasHttpProxy: !!(source['https_proxy'] || source['HTTPS_PROXY'] || source['http_proxy'] || source['HTTP_PROXY']),
+    nodeUseEnvProxy: source['NODE_USE_ENV_PROXY'],
+  };
 }
 
-function getAppClientId(): string {
-  const appClientId = process.env['APP_CLIENT_ID'];
-  if (!appClientId) {
-    throw new Error('APP_CLIENT_ID must be set');
+export function getOtherOptions(env: CliEnv): Required<Pick<GitHubAppAuthOptions, 'appClientId' | 'keyId'>> & {
+  outputMode: OutputMode;
+  /** Always set unless `outputMode` is `'stdout'` */
+  azureTokenVariable?: string;
+} {
+  const output = env.output.trim().toLowerCase();
+  if (!validOutput.includes(output as OutputMode)) {
+    throw new Error(`OUTPUT must be one of: ${validOutput.join(', ')}`);
   }
-  return appClientId;
+  const outputMode = output as OutputMode;
+
+  const azureTokenVariable =
+    outputMode === 'stdout' ? undefined : assertValue(env.azureTokenVariable, 'AZURE_TOKEN_VARIABLE must be set');
+  if (azureTokenVariable && !/^[A-Za-z_]\w*$/.test(azureTokenVariable)) {
+    throw new Error('AZURE_TOKEN_VARIABLE must be an environment-style variable name');
+  }
+
+  return {
+    outputMode,
+    azureTokenVariable,
+    appClientId: assertValue(env.appClientId, 'APP_CLIENT_ID must be set'),
+    keyId: assertValue(env.keyId, 'KEY_ID must be set'),
+  };
 }
 
-function validatePermissionName(key: string): void {
-  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) {
-    throw new Error(`Invalid permission name: ${key}`);
-  }
-}
+export function getTokenOptions(env: CliEnv): GetInstallationTokenOptions {
+  const { enterprise, owner } = env;
+  const repositories = splitList(env.repositories);
+  const permissions = parsePermissions(env.permissions);
 
-function validatePermissionLevel(key: string, level: unknown): PermissionLevel {
-  if (level !== 'read' && level !== 'write' && level !== 'admin') {
-    throw new Error(`Invalid permission level for ${key}: ${level}`);
-  }
-  return level;
-}
-
-function parsePermissions(value: string | undefined): Permissions | undefined {
-  if (!value) {
-    return undefined;
-  }
-
-  const permissions: Permissions = {};
-  for (const entry of splitRepositoryNames(value)) {
-    const parts = entry.split(':');
-    if (parts.length !== 2) {
-      throw new Error(`Permission entry must include an explicit level: ${entry}`);
-    }
-
-    const key = parts[0]?.trim();
-    const rawLevel = parts[1]?.trim();
-    if (!key) {
-      throw new Error(`Permission entry must include a permission name: ${entry}`);
-    }
-    validatePermissionName(key);
-    if (Object.hasOwn(permissions, key)) {
-      throw new Error(`Duplicate permission: ${key}`);
-    }
-    permissions[key] = validatePermissionLevel(key, rawLevel);
-  }
-
-  return Object.keys(permissions).length === 0 ? undefined : permissions;
-}
-
-function validateVariableName(name: string, envName: string): void {
-  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) {
-    throw new Error(`${envName} must be an environment-style variable name`);
-  }
-}
-
-function parseOutputMode(value: string | undefined): OutputMode {
-  const output = (value || 'stdout').trim().toLowerCase();
-  if (output === 'azure' || output === 'azure-pipelines' || output === 'stdout') {
-    return output;
-  }
-  throw new Error('OUTPUT must be "azure", "azure-pipelines", or "stdout"');
-}
-
-function getTokenOptions(): GetInstallationTokenOptions {
-  const enterprise = process.env['ENTERPRISE'];
-  const owner = process.env['OWNER'];
-  const repositories = splitRepositoryNames(process.env['REPOSITORIES']);
-  const permissions = parsePermissions(process.env['PERMISSIONS']);
-
+  let tokenOptions: GetInstallationTokenOptions;
   if (enterprise) {
-    if (owner || repositories.length > 0) {
+    if (owner || repositories.length) {
       throw new Error('Cannot use ENTERPRISE with OWNER or REPOSITORIES');
     }
-    return { enterprise, permissions };
+    tokenOptions = { enterprise, permissions };
+  } else if (repositories.length) {
+    tokenOptions = { owner, repositories, permissions };
+  } else if (owner) {
+    tokenOptions = { owner, permissions };
+  } else {
+    throw new Error('OWNER, REPOSITORIES, or ENTERPRISE must be set');
   }
-
-  if (repositories.length > 0) {
-    return { ...normalizeRepositoryTarget(owner, repositories, undefined), permissions };
-  }
-
-  if (owner) {
-    return { owner, permissions };
-  }
-
-  throw new Error('OWNER, REPOSITORIES, or ENTERPRISE must be set');
-}
-
-function writeAzurePipelinesOutput(installationToken: InstallationToken): void {
-  const variableName = requiredEnv('AZURE_TOKEN_VARIABLE');
-  validateVariableName(variableName, 'AZURE_TOKEN_VARIABLE');
-  process.stdout.write(`##vso[task.setvariable variable=${variableName};isSecret=true]${installationToken.token}\n`);
-}
-
-function writeOutput(installationToken: InstallationToken, output: OutputMode): void {
-  switch (output) {
-    case 'azure':
-    case 'azure-pipelines':
-      writeAzurePipelinesOutput(installationToken);
-      break;
-    case 'stdout':
-      process.stdout.write(`${installationToken.token}\n`);
-      break;
-  }
+  return tokenOptions;
 }
 
 function reportError(error: unknown): void {
   const message = error instanceof Error ? error.message : String(error);
-  console.error(`error: ${message}`);
+  const errorPrefix = process.env.TF_BUILD ? '##vso[task.logissue type=error]' : 'error:';
+  console.error(`${errorPrefix} ${message}`);
 }
 
 async function main(): Promise<void> {
-  ensureNativeProxySupport();
+  const env = readEnv();
 
-  const githubApiUrl = process.env['GITHUB_API_URL'] || 'https://api.github.com';
+  if (env.hasHttpProxy && env.nodeUseEnvProxy !== '1') {
+    throw new Error(
+      'A proxy environment variable is set, but Node.js native proxy support is not enabled. Set NODE_USE_ENV_PROXY=1 before running this tool.'
+    );
+  }
 
-  const revokeTokenValue = process.env['REVOKE_TOKEN'];
+  const { githubApiUrl, revokeToken: revokeTokenValue } = env;
+
   if (revokeTokenValue) {
     await revokeToken({ githubApiUrl, token: revokeTokenValue });
     return;
   }
 
+  // Do all env option validation first
+  const tokenOptions = getTokenOptions(env);
+  const { appClientId, keyId, outputMode, azureTokenVariable } = getOtherOptions(env);
+
   const githubAuth = createGitHubAppAuth({
-    appClientId: getAppClientId(),
-    signer: createAzureCliKeyVaultSigner(requiredEnv('KEY_ID')),
+    appClientId,
+    signer: createAzureCliKeyVaultSigner(keyId),
     githubApiUrl,
   });
 
-  const installationToken = await githubAuth.getInstallationToken(getTokenOptions());
-  writeOutput(installationToken, parseOutputMode(process.env['OUTPUT']));
+  const installationToken = await githubAuth.getInstallationToken(tokenOptions);
+
+  if (outputMode === 'stdout') {
+    process.stdout.write(`${installationToken.token}\n`);
+  } else {
+    process.stdout.write(
+      `##vso[task.setvariable variable=${azureTokenVariable};isSecret=true]${installationToken.token}\n`
+    );
+  }
 }
 
-void main().catch((error: unknown) => {
-  reportError(error);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  void main().catch((error: unknown) => {
+    reportError(error);
+    process.exitCode = 1;
+  });
+}
