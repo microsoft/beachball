@@ -1549,7 +1549,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@microsoft/beachball-scripts@workspace:scripts"
   dependencies:
-    "@ms-cloudpack/esbuild-node-helpers": "workspace:packages/temp-esbuild-node-helpers"
+    "@ms-cloudpack/esbuild-node-helpers": "npm:^0.1.7"
     "@ms-cloudpack/eslint-plugin-deprecated": "npm:^0.1.5"
     cross-env: "npm:^10.1.0"
     esbuild: "npm:^0.28.1"
@@ -1586,17 +1586,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ms-cloudpack/esbuild-node-helpers@workspace:packages/temp-esbuild-node-helpers, temp-esbuild-node-helpers@workspace:packages/temp-esbuild-node-helpers":
-  version: 0.0.0-use.local
-  resolution: "temp-esbuild-node-helpers@workspace:packages/temp-esbuild-node-helpers"
+"@ms-cloudpack/esbuild-node-helpers@npm:^0.1.7":
+  version: 0.1.7
+  resolution: "@ms-cloudpack/esbuild-node-helpers@npm:0.1.7"
   dependencies:
     "@ms-cloudpack/environment": "npm:^0.1.7"
-    esbuild: "npm:^0.28.1"
     hosted-git-info: "npm:^9.0.0"
     picocolors: "npm:^1.1.1"
     validate-npm-package-license: "npm:^3.0.4"
-  languageName: unknown
-  linkType: soft
+  peerDependencies:
+    esbuild: ">=0.28.0"
+  checksum: 10c0/599acd0474b43b72c91a39f10444216d48aa82abab242f6c3023693de10297e711781f287cbff13defd760052b6fd1fdb27ecea878f155144f9606d9ac68ceaa
+  languageName: node
+  linkType: hard
 
 "@ms-cloudpack/eslint-plugin-deprecated@npm:^0.1.5":
   version: 0.1.5
@@ -8883,9 +8885,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workspace-tools@npm:^0.41.8":
-  version: 0.41.8
-  resolution: "workspace-tools@npm:0.41.8"
+"workspace-tools@npm:^0.41.10":
+  version: 0.41.10
+  resolution: "workspace-tools@npm:0.41.10"
   dependencies:
     "@yarnpkg/lockfile": "npm:^1.1.0"
     fast-glob: "npm:^3.3.3"
@@ -8893,7 +8895,7 @@ __metadata:
     jju: "npm:^1.4.0"
     js-yaml: "npm:^4.2.0"
     micromatch: "npm:^4.0.8"
-  checksum: 10c0/20e3c4860c9d68ae7bf7a02ecfc5940199f5c1eca600229cb191e4c446dc22c26fe1d27d5bfb329c7bce3df595ae39a7b7705e1d41c1b46e36d345add4a50688
+  checksum: 10c0/2a6e7bad84e1855afb63854d76eb9129e2ca06abb2936251988924a852c071fd7f276b557587a052665cca1800bee0c1dec82804e47e89ceebebd45a6305cb2c
   languageName: node
   linkType: hard
 
