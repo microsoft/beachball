@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Migrate CLI option parsing from `yargs-parser` to `commander`. Documented parsing behavior is preserved, with one intentional breaking change: `-?` is no longer accepted as an alias for `--help` (use `-h` or `--help`).",
+  "packageName": "beachball",
+  "email": "198982749+Copilot@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}
