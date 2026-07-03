@@ -113,6 +113,58 @@ allKeysOfType<keyof CliOptions>()(
   '_extraPositionalArgs'
 );
 
+/**
+ * Short descriptions for each option, shown in commander's help output. Sourced from `help.ts`
+ * and the doc comments in `BeachballOptions`. (Keyed by every parseable option name to require a
+ * description whenever a new option is added.)
+ */
+const optionDescriptions: Record<(typeof allOptionNames)[number], string> = {
+  // array options
+  disallowedChangeTypes: 'change types that are not allowed',
+  package: 'force creating a change file for this package (can be specified multiple times)',
+  scope: 'only consider package paths matching this pattern (can be specified multiple times; supports negations)',
+  // boolean options
+  all: 'generate change files for all packages',
+  bump: 'bump versions during publish (use --no-bump to skip)',
+  bumpDeps: 'bump dependent packages during publish (use --no-bump-deps to skip)',
+  commit: 'commit change files after "change" (use --no-commit to only stage them)',
+  disallowDeletedChangeFiles: 'verify that no change files were deleted between head and target branch',
+  fetch: 'fetch from the remote before determining changes (use --no-fetch to skip)',
+  forceVersions: "for 'sync': use the version from the registry even if it's older than local",
+  gitTags: 'create git tags for each published package version (use --no-git-tags to skip)',
+  help: 'show usage information',
+  keepChangeFiles: "don't delete the change files from disk after bumping",
+  publish: 'publish to the npm registry (use --no-publish to skip)',
+  push: 'push changes back to the remote git branch (use --no-push to skip)',
+  verbose: 'print additional information to the console',
+  version: 'show the beachball version',
+  yes: 'skip the confirmation prompts',
+  // number options
+  concurrency: 'maximum concurrency for write operations such as publishing (default: 1)',
+  depth: 'for shallow clones: depth of git history to consider when fetching',
+  npmReadConcurrency: 'maximum concurrency for reading package versions from the registry (default: 5)',
+  gitTimeout: 'timeout in ms for git push operations',
+  retries: 'number of retries for an npm publish before failing (default: 3)',
+  timeout: 'timeout in ms for npm operations (other than install)',
+  // string options
+  access: 'npm publish access level: "public" or "restricted"',
+  authType: 'npm auth type for NPM_TOKEN: "authtoken" or "password"',
+  branch: 'target branch from remote (default: git config init.defaultBranch)',
+  canaryName: 'dist-tag and version name to use for canary publishes',
+  changehint: 'customized hint message shown when a change file is needed but missing',
+  changeDir: 'name of the directory to store change files (default: change)',
+  configPath: 'custom beachball config path (default: cosmiconfig standard paths)',
+  dependentChangeType: 'change type to use for dependent packages (default: patch)',
+  fromRef: 'consider changes or change files since this git ref (branch name, commit SHA)',
+  message: 'for "change", the change description; for "publish", the commit message',
+  packToPath: 'pack packages to tgz files under this path instead of publishing to npm',
+  prereleasePrefix: 'prerelease prefix for packages that will receive a prerelease bump',
+  registry: 'npm registry (default: https://registry.npmjs.org)',
+  tag: 'npm dist-tag for publishes (default: "latest")',
+  token: 'npm auth token (defaults to the NPM_TOKEN environment variable)',
+  type: 'type of change: e.g. major, minor, patch, none (instead of prompting)',
+};
+
 /** Short single-character aliases for certain options (option name => short flag without dash). */
 const shortAliases: Partial<Record<keyof CliOptions, string>> = {
   authType: 'a',
@@ -283,20 +335,22 @@ function addAllOptions(command: Command): void {
   };
 
   for (const name of stringOptions) {
-    command.addOption(new Option(flags(name, '<value>')).argParser(parseSingle(name)));
+    command.addOption(new Option(flags(name, '<value>'), optionDescriptions[name]).argParser(parseSingle(name)));
   }
 
   for (const name of numberOptions) {
-    command.addOption(new Option(flags(name, '<value>')).argParser(parseSingle(name, parseNumber(name))));
+    command.addOption(
+      new Option(flags(name, '<value>'), optionDescriptions[name]).argParser(parseSingle(name, parseNumber(name)))
+    );
   }
 
   for (const name of arrayOptions) {
     // Variadic to allow multiple space-separated values, plus a collector for repeated usage.
-    command.addOption(new Option(flags(name, '<values...>')).argParser(collectArray));
+    command.addOption(new Option(flags(name, '<values...>'), optionDescriptions[name]).argParser(collectArray));
   }
 
   for (const name of booleanOptions) {
-    command.addOption(new Option(flags(name)));
+    command.addOption(new Option(flags(name), optionDescriptions[name]));
     // Negated form (e.g. `--no-fetch`).
     command.addOption(new Option(`--no-${toDashed(name)}`));
   }
