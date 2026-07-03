@@ -1,5 +1,5 @@
 import { findProjectRoot } from 'workspace-tools';
-import { Command, Option } from 'commander';
+import { Command, Option, type OptionValues } from 'commander';
 import { env } from '../env';
 import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
 import { cacheRemoteBranch } from '../git/getRemoteBranch';
@@ -22,14 +22,24 @@ export interface ProcessInfo {
   env: NodeJS.ProcessEnv | { NPM_TOKEN?: string };
 }
 
-// NOTE: This file is being migrated from yargs-parser to commander@14. For now, all options are
-// defined on a single command, and commander is used only for option parsing (not for dispatching
-// to command implementations). A later change will split up which options apply to which commands.
+// NOTE: This file is being migrated from yargs-parser to commander@14. Commander is currently used
+// only for option parsing (not for dispatching to command implementations).
 //
-// This first step defines each option in its canonical dashed form only. Additional forms that
+// Options are defined on proper sub-commands, one per beachball command. For now, every option is
+// added to each sub-command as well as to the parent command, so options can be specified either
+// before the command (as "global" options on the parent) or after it (on the sub-command). A later
+// change will split up which options apply to which commands.
+//
+// This step defines each option in its canonical dashed form only. Additional forms that
 // yargs-parser accepted today (camelCase flags, extra long aliases, boolean values passed as a
 // separate token, arbitrary unknown options, "specified multiple times" errors, etc.) are not yet
 // handled here; see the migration plan for the proposed workarounds.
+
+/** All beachball commands. Each becomes a commander sub-command. */
+const commands = ['change', 'check', 'publish', 'bump', 'canary', 'sync', 'init', 'config', 'migrate'] as const;
+
+/** Command run when none is specified on the command line. */
+const defaultCommand = 'change';
 
 const arrayOptions = ['disallowedChangeTypes', 'package', 'scope'] as const;
 const booleanOptions = [
@@ -105,27 +115,8 @@ function collectArray(value: string, previous: string[] | undefined): string[] {
   return previous ? [...previous, value] : [value];
 }
 
-/**
- * Build a commander `Command` with all beachball options defined (dashed forms only for now).
- * Commander is currently used only for parsing, so this single command holds every option.
- */
-function buildCommand(): Command {
-  const program = new Command();
-
-  // Throw instead of calling process.exit() or writing to stdout/stderr on error, so callers and
-  // tests can handle failures.
-  program.exitOverride();
-  program.configureOutput({ writeOut: () => {}, writeErr: () => {} }); // suppress commander output
-
-  // The command name and any extra positional args (e.g. `config get <name>`).
-  program.argument('[command]', 'beachball command to run');
-  program.argument('[extraArgs...]', 'extra positional arguments (e.g. for `config get <name>`)');
-
-  // Allow options we haven't explicitly defined to pass through without erroring.
-  // (Full parsing of arbitrary unknown options is handled in a later step; see the plan.)
-  program.allowUnknownOption();
-  program.allowExcessArguments();
-
+/** Add every beachball option (dashed forms only for now) to the given command. */
+function addAllOptions(command: Command): void {
   const flags = (name: string, valuePlaceholder?: string): string => {
     const dashed = toDashed(name);
     const short = shortAliases[name as keyof CliOptions];
@@ -134,25 +125,75 @@ function buildCommand(): Command {
   };
 
   for (const name of stringOptions) {
-    program.addOption(new Option(flags(name, '<value>')));
+    command.addOption(new Option(flags(name, '<value>')));
   }
 
   for (const name of numberOptions) {
-    program.addOption(new Option(flags(name, '<value>')).argParser(parseNumber(name)));
+    command.addOption(new Option(flags(name, '<value>')).argParser(parseNumber(name)));
   }
 
   for (const name of arrayOptions) {
     // Variadic to allow multiple space-separated values, plus a collector for repeated usage.
-    program.addOption(new Option(flags(name, '<values...>')).argParser(collectArray));
+    command.addOption(new Option(flags(name, '<values...>')).argParser(collectArray));
   }
 
   for (const name of booleanOptions) {
-    program.addOption(new Option(flags(name)));
+    command.addOption(new Option(flags(name)));
     // Negated form (e.g. `--no-fetch`).
-    program.addOption(new Option(`--no-${toDashed(name)}`));
+    command.addOption(new Option(`--no-${toDashed(name)}`));
+  }
+}
+
+/** Result captured from whichever sub-command commander dispatches to. */
+interface ParseResult {
+  command: string;
+  options: OptionValues;
+  extraArgs: string[];
+}
+
+/**
+ * Build a commander program with one sub-command per beachball command. All options are added to
+ * both the parent (so they can be given before the command) and each sub-command (so they can be
+ * given after it). Commander is currently used only for parsing, not command dispatch.
+ *
+ * @returns The program plus a getter for the parse result (populated by the matched sub-command's
+ * action handler when `program.parse()` is called).
+ */
+function buildProgram(): { program: Command; getResult: () => ParseResult } {
+  const program = new Command();
+
+  // Throw instead of calling process.exit() or writing to stdout/stderr on error, so callers and
+  // tests can handle failures.
+  program.exitOverride();
+  program.configureOutput({ writeOut: () => {}, writeErr: () => {} }); // suppress commander output
+
+  // Allow options we haven't explicitly defined to pass through without erroring.
+  // (Full parsing of arbitrary unknown options is handled in a later step; see the plan.)
+  program.allowUnknownOption();
+
+  // Add all options to the parent so they can be specified before the command name.
+  addAllOptions(program);
+
+  let result: ParseResult = { command: defaultCommand, options: {}, extraArgs: [] };
+
+  for (const name of commands) {
+    const subcommand = program.command(name, { isDefault: name === defaultCommand });
+    addAllOptions(subcommand);
+    subcommand.allowUnknownOption();
+    // Capture any extra positional args (e.g. `config get <name>`). A consistent error for
+    // non-config commands with extra args is produced later in getCliOptions.
+    subcommand.argument('[extraArgs...]', 'extra positional arguments (e.g. for `config get <name>`)');
+    subcommand.action(() => {
+      result = {
+        command: name,
+        // Merge parent ("global") options with this sub-command's options.
+        options: subcommand.optsWithGlobals(),
+        extraArgs: (subcommand.processedArgs[0] as string[] | undefined) ?? [],
+      };
+    });
   }
 
-  return program;
+  return { program, getResult: () => result };
 }
 
 /**
@@ -170,11 +211,9 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
   // Be careful not to mutate the input argv
   const trimmedArgv = processInfo.argv.slice(2);
 
-  const program = buildCommand();
+  const { program, getResult } = buildProgram();
   program.parse(trimmedArgv, { from: 'user' });
-
-  const options = program.opts();
-  const [command, extraPositionalArgs = []] = program.processedArgs as [string | undefined, string[] | undefined];
+  const { command, options, extraArgs: extraPositionalArgs } = getResult();
 
   let cwd = processInfo.cwd;
   try {
@@ -195,12 +234,12 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
 
   const cliOptions: ParsedOptions['cliOptions'] = {
     ...options,
-    command: command || 'change',
+    command,
     path: cwd,
   };
 
   if (cliOptions.branch) {
-    cliOptions.branch = resolveBranchOption(cliOptions as Partial<Pick<CliOptions, 'branch' | 'verbose'>>, cwd);
+    cliOptions.branch = resolveBranchOption(cliOptions, cwd);
   }
 
   if (cliOptions.command === 'canary') {
