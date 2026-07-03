@@ -1,7 +1,8 @@
 # Plan: migrate CLI option parsing from yargs-parser to commander@14
 
-> **This is a temporary planning document.** It should be deleted before the migration is
-> considered complete (or moved into a permanent doc/issue if we want to keep it).
+> **This is a temporary planning document.** It should be deleted as part of the final cleanup
+> (step 7 below), once the migration is complete (or moved into a permanent doc/issue if we want to
+> keep it).
 
 ## Goal and scope
 

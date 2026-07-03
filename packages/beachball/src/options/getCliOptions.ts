@@ -93,7 +93,7 @@ function toDashed(name: string): string {
 function parseNumber(name: string): (value: string) => number {
   return (value: string) => {
     const num = Number(value);
-    if (isNaN(num)) {
+    if (Number.isNaN(num)) {
       throw new Error(`Non-numeric value passed for numeric option "${name}"`);
     }
     return num;
@@ -115,7 +115,7 @@ function buildCommand(): Command {
   // Throw instead of calling process.exit() or writing to stdout/stderr on error, so callers and
   // tests can handle failures.
   program.exitOverride();
-  program.configureOutput({ writeOut: () => {}, writeErr: () => {} });
+  program.configureOutput({ writeOut: () => {}, writeErr: () => {} }); // suppress commander output
 
   // The command name and any extra positional args (e.g. `config get <name>`).
   program.argument('[command]', 'beachball command to run');
