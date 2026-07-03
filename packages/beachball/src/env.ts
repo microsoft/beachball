@@ -9,8 +9,7 @@ export const env = Object.freeze({
   isJest,
 
   /** Whether this is one of the beachball repo's official release pipelines */
-  isBeachballAdoRelease:
-    adoBuildNumber?.startsWith('beachball-prepublish') || adoBuildNumber?.startsWith('beachball-release'),
+  isBeachballAdoRelease: adoBuildNumber?.startsWith('beachball-release'),
 
   /**
    * @deprecated This should likely be replaced with a different strategy (it's never set)

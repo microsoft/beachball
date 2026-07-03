@@ -12,6 +12,7 @@ app_client_id="Iv23ligBoU5jc9SIFnGR"
 git_user_email="257645319+office-ogx-auth-helper[bot]@users.noreply.github.com"
 git_user_name="OGX bot"
 pack_dir="$BUILD_STAGINGDIRECTORY/out/packed-packages"
+gha_token_cli="scripts/create-github-app-token.cjs"
 
 # Derive owner/repo from BUILD_REPOSITORY_ID (format: owner/repo)
 # %% removes the longest matches of the pattern /* from the end of the string, leaving the owner
@@ -27,7 +28,7 @@ token="$(
   REPOSITORIES="$repositories" \
   PERMISSIONS="contents:write" \
   OUTPUT=stdout \
-  node scripts/create-github-app-token.cjs
+  node "$gha_token_cli"
 )"
 
 # Configure the git author identity.
@@ -61,8 +62,13 @@ for entry in "${saved_extraheaders[@]}"; do
   extraheader_keys+=("${entry%%$'\n'*}")
 done
 
-# On exit: remove our temporary header and any leftovers, then restore the originals.
-restore_git_config() {
+# On exit: revoke the temporary token, remove our temporary header and any leftovers,
+# then restore the originals.
+cleanup() {
+  if [[ -n "${token:-}" ]]; then
+    REVOKE_TOKEN="$token" OUTPUT=stdout node "$gha_token_cli" >/dev/null || echo "warning: token revoke failed" >&2
+  fi
+
   git config --unset-all "http.$BUILD_REPOSITORY_URI.extraheader" 2>/dev/null || true
   for key in "${extraheader_keys[@]}"; do
     git config --unset-all "$key" 2>/dev/null || true
@@ -71,7 +77,7 @@ restore_git_config() {
     git config --add "${entry%%$'\n'*}" "${entry#*$'\n'}"
   done
 }
-trap restore_git_config EXIT
+trap cleanup EXIT
 
 # Clear the saved extraheaders, then set our own so it's the only one on the wire.
 for key in "${extraheader_keys[@]}"; do
