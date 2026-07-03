@@ -1,5 +1,5 @@
 import { findProjectRoot } from 'workspace-tools';
-import parser from 'yargs-parser';
+import { Command, Option } from 'commander';
 import { env } from '../env';
 import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
 import { cacheRemoteBranch } from '../git/getRemoteBranch';
@@ -22,7 +22,15 @@ export interface ProcessInfo {
   env: NodeJS.ProcessEnv | { NPM_TOKEN?: string };
 }
 
-// For camelCased options, yargs will automatically accept them with-dashes too.
+// NOTE: This file is being migrated from yargs-parser to commander@14. For now, all options are
+// defined on a single command, and commander is used only for option parsing (not for dispatching
+// to command implementations). A later change will split up which options apply to which commands.
+//
+// This first step defines each option in its canonical dashed form only. Additional forms that
+// yargs-parser accepted today (camelCase flags, extra long aliases, boolean values passed as a
+// separate token, arbitrary unknown options, "specified multiple times" errors, etc.) are not yet
+// handled here; see the migration plan for the proposed workarounds.
+
 const arrayOptions = ['disallowedChangeTypes', 'package', 'scope'] as const;
 const booleanOptions = [
   'all',
@@ -61,69 +69,91 @@ const stringOptions = [
   'type',
 ] as const;
 
-type AtLeastOne<T> = [T, ...T[]];
-/** Type hack to verify that an array includes all keys of a type */
-const allKeysOfType =
-  <T extends string>() =>
-  <L extends AtLeastOne<T>>(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ...x: L extends any ? (Exclude<T, L[number]> extends never ? L : Exclude<T, L[number]>[]) : never
-  ) =>
-    x;
-
-// Verify that all the known CLI options have types specified, to ensure correct parsing.
-//
-// NOTE: If a prop is missing, this will have a somewhat misleading error:
-//   Argument of type '"disallowedChangeTypes"' is not assignable to parameter of type '"tag" | "version"'
-//
-// To fix, add the missing names after "parameter of type" ("tag" and "version" in this example)
-// to the appropriate array above.
-const knownOptions = allKeysOfType<keyof CliOptions>()(
-  ...arrayOptions,
-  ...booleanOptions,
-  ...numberOptions,
-  ...stringOptions,
-  // these options are filled in below, not respected from the command line
-  'path',
-  'command',
-  '_extraPositionalArgs'
-);
-
-const parserOptions: parser.Options = {
-  configuration: {
-    'boolean-negation': true,
-    'camel-case-expansion': true,
-    'dot-notation': false,
-    'duplicate-arguments-array': true,
-    'flatten-duplicate-arrays': true,
-    'greedy-arrays': true, // for now; we might want to change this to false in the future
-    'parse-numbers': true,
-    'parse-positional-numbers': false,
-    'short-option-groups': false,
-    'strip-aliased': true,
-    'strip-dashed': true,
-  },
-  // spread to get rid of readonly...
-  array: [...arrayOptions],
-  boolean: [...booleanOptions],
-  number: [...numberOptions],
-  string: [...stringOptions],
-  alias: {
-    authType: ['a'],
-    branch: ['b'],
-    configPath: ['c', 'config'],
-    forceVersions: ['force'],
-    fromRef: ['since'],
-    help: ['h', '?'],
-    message: ['m'],
-    package: ['p'],
-    registry: ['r'],
-    tag: ['t'],
-    token: ['n'],
-    version: ['v'],
-    yes: ['y'],
-  },
+/** Short single-character aliases for certain options (option name => short flag without dash). */
+const shortAliases: Partial<Record<keyof CliOptions, string>> = {
+  authType: 'a',
+  branch: 'b',
+  configPath: 'c',
+  help: 'h',
+  message: 'm',
+  package: 'p',
+  registry: 'r',
+  tag: 't',
+  token: 'n',
+  version: 'v',
+  yes: 'y',
 };
+
+/** Convert a camelCase option name to its dashed CLI flag form (e.g. `gitTags` => `git-tags`). */
+function toDashed(name: string): string {
+  return name.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+}
+
+/** Coerce a value to a number, throwing if it's not numeric (matches previous yargs behavior). */
+function parseNumber(name: string): (value: string) => number {
+  return (value: string) => {
+    const num = Number(value);
+    if (isNaN(num)) {
+      throw new Error(`Non-numeric value passed for numeric option "${name}"`);
+    }
+    return num;
+  };
+}
+
+/** Collector for array options: accumulate repeated/variadic values into a single array. */
+function collectArray(value: string, previous: string[] | undefined): string[] {
+  return previous ? [...previous, value] : [value];
+}
+
+/**
+ * Build a commander `Command` with all beachball options defined (dashed forms only for now).
+ * Commander is currently used only for parsing, so this single command holds every option.
+ */
+function buildCommand(): Command {
+  const program = new Command();
+
+  // Throw instead of calling process.exit() or writing to stdout/stderr on error, so callers and
+  // tests can handle failures.
+  program.exitOverride();
+  program.configureOutput({ writeOut: () => {}, writeErr: () => {} });
+
+  // The command name and any extra positional args (e.g. `config get <name>`).
+  program.argument('[command]', 'beachball command to run');
+  program.argument('[extraArgs...]', 'extra positional arguments (e.g. for `config get <name>`)');
+
+  // Allow options we haven't explicitly defined to pass through without erroring.
+  // (Full parsing of arbitrary unknown options is handled in a later step; see the plan.)
+  program.allowUnknownOption();
+  program.allowExcessArguments();
+
+  const flags = (name: string, valuePlaceholder?: string): string => {
+    const dashed = toDashed(name);
+    const short = shortAliases[name as keyof CliOptions];
+    const long = valuePlaceholder ? `--${dashed} ${valuePlaceholder}` : `--${dashed}`;
+    return short ? `-${short}, ${long}` : long;
+  };
+
+  for (const name of stringOptions) {
+    program.addOption(new Option(flags(name, '<value>')));
+  }
+
+  for (const name of numberOptions) {
+    program.addOption(new Option(flags(name, '<value>')).argParser(parseNumber(name)));
+  }
+
+  for (const name of arrayOptions) {
+    // Variadic to allow multiple space-separated values, plus a collector for repeated usage.
+    program.addOption(new Option(flags(name, '<values...>')).argParser(collectArray));
+  }
+
+  for (const name of booleanOptions) {
+    program.addOption(new Option(flags(name)));
+    // Negated form (e.g. `--no-fetch`).
+    program.addOption(new Option(`--no-${toDashed(name)}`));
+  }
+
+  return program;
+}
 
 /**
  * Gets CLI options. Also gets the `NPM_TOKEN` environment variable if present.
@@ -140,9 +170,12 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
   // Be careful not to mutate the input argv
   const trimmedArgv = processInfo.argv.slice(2);
 
-  const args = parser(trimmedArgv, parserOptions);
+  const program = buildCommand();
+  program.parse(trimmedArgv, { from: 'user' });
 
-  const { _: positionalArgs, ...options } = args;
+  const options = program.opts();
+  const [command, extraPositionalArgs = []] = program.processedArgs as [string | undefined, string[] | undefined];
+
   let cwd = processInfo.cwd;
   try {
     // If a non-empty cwd is provided, find the project root from there.
@@ -154,22 +187,20 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
     // use the provided cwd
   }
 
-  if (positionalArgs.length > 1 && String(positionalArgs[0]) !== 'config') {
-    throw new Error(`Only one positional argument (the command) is allowed. Received: ${positionalArgs.join(' ')}`);
+  if (extraPositionalArgs.length && command !== 'config') {
+    throw new Error(
+      `Only one positional argument (the command) is allowed. Received: ${[command, ...extraPositionalArgs].join(' ')}`
+    );
   }
 
   const cliOptions: ParsedOptions['cliOptions'] = {
     ...options,
-    command: positionalArgs.length ? String(positionalArgs[0]) : 'change',
+    command: command || 'change',
     path: cwd,
   };
 
-  // Save extra positional args for commands that support subcommands (e.g. 'config get <name>')
-  // (yargs-parser doesn't support positional arguments directly)
-  const extraPositionalArgs = positionalArgs.length > 1 ? positionalArgs.slice(1).map(String) : undefined;
-
-  if (args.branch) {
-    cliOptions.branch = resolveBranchOption(args as Partial<Pick<CliOptions, 'branch' | 'verbose'>>, cwd);
+  if (cliOptions.branch) {
+    cliOptions.branch = resolveBranchOption(cliOptions as Partial<Pick<CliOptions, 'branch' | 'verbose'>>, cwd);
   }
 
   if (cliOptions.command === 'canary') {
@@ -177,28 +208,13 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
   }
 
   for (const key of Object.keys(cliOptions) as (keyof CliOptions)[]) {
-    const value = cliOptions[key];
-    if (value === undefined) {
+    if (cliOptions[key] === undefined) {
       delete cliOptions[key];
-    } else if (typeof value === 'number' && isNaN(value)) {
-      throw new Error(`Non-numeric value passed for numeric option "${key}"`);
-    } else if (knownOptions.includes(key)) {
-      if (Array.isArray(value) && !arrayOptions.includes(key as (typeof arrayOptions)[number])) {
-        throw new Error(`Option "${key}" only accepts a single value. Received: ${value.join(' ')}`);
-      }
-    } else if (value === 'true') {
-      // For unknown arguments like --foo=true or --bar=false, yargs will handle the value as a string.
-      // Convert it to a boolean to avoid subtle bugs.
-      // eslint-disable-next-line
-      (cliOptions as any)[key] = true;
-    } else if (value === 'false') {
-      // eslint-disable-next-line
-      (cliOptions as any)[key] = false;
     }
   }
 
-  // Set extra positional args after the validation loop (it's an internal array, not from CLI parsing)
-  if (extraPositionalArgs) {
+  // Save extra positional args for commands that support subcommands (e.g. 'config get <name>').
+  if (extraPositionalArgs.length) {
     cliOptions._extraPositionalArgs = extraPositionalArgs;
   }
 

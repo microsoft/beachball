@@ -3117,6 +3117,7 @@ __metadata:
     "@types/yargs-parser": "npm:^21.0.0"
     "@vercel/detect-agent": "npm:^1.2.1"
     "@verdaccio/types": "npm:^13.0.0"
+    commander: "npm:^14.0.3"
     cosmiconfig: "npm:^9.0.1"
     cross-env: "npm:^10.1.0"
     execa: "npm:^5.1.1"
