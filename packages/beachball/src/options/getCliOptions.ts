@@ -344,7 +344,7 @@ function buildProgram(): { program: Command; getResult: () => ParseResult } {
   const configCommand = program.command('config');
   configCommand.argument('[args...]', 'config subcommand and arguments (e.g. `get <name>` or `list`)');
   configCommand.action((args: string[]) => {
-    result = { command: 'config', options: program.opts(), extraArgs: args ?? [] };
+    result = { command: 'config', options: program.opts(), extraArgs: args };
   });
 
   return { program, getResult: () => result };
