@@ -34,32 +34,32 @@ untyped. The gaps are all in yargs' permissive behaviors.
 
 Legend: ✅ native, ⚙️ needs a workaround, ❌ not feasible / propose dropping.
 
-| # | Behavior (from `getCliOptions.test.ts`) | Example | Commander support |
-|---|------------------------------------------|---------|-------------------|
-| 1 | Command as first positional (default `change`) | `beachball check` | ✅ `.argument('[command]')` |
-| 2 | String option, separate & `=` forms | `--type patch`, `--access=public` | ✅ `--type <value>` |
-| 3 | Number option + reject non-numeric | `--depth 1`, `--depth foo` throws | ✅ via `.argParser` coercion |
-| 4 | Boolean flag | `--fetch` | ✅ `--fetch` |
-| 5 | Negated boolean | `--no-fetch` | ✅ define `--no-fetch` alongside `--fetch` |
-| 6 | Array: greedy multiple values | `--scope foo bar` | ✅ variadic `<values...>` |
-| 7 | Array: repeated flag | `--scope foo --scope bar` | ⚙️ variadic + collector fn |
-| 8 | Array: single value via `=` becomes array | `--scope=foo` -> `['foo']` | ⚙️ collector fn |
-| 9 | Commas NOT split | `--scope a,b` -> `['a,b']` | ✅ (commander never splits) |
-| 10 | Boolean value as separate token | `--yes false`, `-y false` | ⚙️ argv preprocessing (see below) |
-| 11 | Boolean value via `=` | `--fetch=false`, `--fetch=true` | ⚙️ argv preprocessing (see below) |
-| 12 | Throw if non-array option repeated | `--tag a --tag b` throws | ⚙️ collector-style detector fn |
-| 13 | camelCase accepted for dashed option | `--gitTags`, `--dependentChangeType` | ⚙️ argv normalization pass |
-| 14 | dashed accepted for camelCase option | `--git-tags` | ✅ (declare dashed as canonical) |
-| 15 | Negated camelCase | `--no-git-tags` (option `gitTags`) | ✅ declare `--no-git-tags` |
-| 16 | Short aliases | `-t`, `-r`, `-y`, `-a`, `-b`, `-m`, `-p`, `-n`, `-v`, `-h` | ✅ in flags string |
-| 17 | Extra long aliases | `--config`, `--force`, `--since` | ⚙️ argv normalization or dup options |
-| 18 | Arbitrary unknown string option | `--foo bar`, `--foo=bar` | ⚙️ custom leftover parser |
-| 19 | Arbitrary unknown boolean flag | `--foo`, `--no-bar` | ⚙️ custom leftover parser |
-| 20 | Unknown value type inference | `--foo true` -> bool, `--foo 1` -> number | ⚙️ custom leftover parser |
-| 21 | Unknown repeated -> array | `--foo bar --foo baz` -> `['bar','baz']` | ⚙️ custom leftover parser |
-| 22 | `-?` alias for help | `-?` | ❌ commander rejects `?` as a short flag; drop or normalize |
-| 23 | `config get <name>` subcommand args | `config get branch` | ✅ variadic `[extraArgs...]` |
-| 24 | canary tag override, `NPM_TOKEN`, branch resolution | (post-parse) | ✅ unchanged post-parse logic |
+| #   | Behavior (from `getCliOptions.test.ts`)             | Example                                                    | Commander support                                           |
+| --- | --------------------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------- |
+| 1   | Command as first positional (default `change`)      | `beachball check`                                          | ✅ `.argument('[command]')`                                 |
+| 2   | String option, separate & `=` forms                 | `--type patch`, `--access=public`                          | ✅ `--type <value>`                                         |
+| 3   | Number option + reject non-numeric                  | `--depth 1`, `--depth foo` throws                          | ✅ via `.argParser` coercion                                |
+| 4   | Boolean flag                                        | `--fetch`                                                  | ✅ `--fetch`                                                |
+| 5   | Negated boolean                                     | `--no-fetch`                                               | ✅ define `--no-fetch` alongside `--fetch`                  |
+| 6   | Array: greedy multiple values                       | `--scope foo bar`                                          | ✅ variadic `<values...>`                                   |
+| 7   | Array: repeated flag                                | `--scope foo --scope bar`                                  | ⚙️ variadic + collector fn                                  |
+| 8   | Array: single value via `=` becomes array           | `--scope=foo` -> `['foo']`                                 | ⚙️ collector fn                                             |
+| 9   | Commas NOT split                                    | `--scope a,b` -> `['a,b']`                                 | ✅ (commander never splits)                                 |
+| 10  | Boolean value as separate token                     | `--yes false`, `-y false`                                  | ⚙️ argv preprocessing (see below)                           |
+| 11  | Boolean value via `=`                               | `--fetch=false`, `--fetch=true`                            | ⚙️ argv preprocessing (see below)                           |
+| 12  | Throw if non-array option repeated                  | `--tag a --tag b` throws                                   | ⚙️ collector-style detector fn                              |
+| 13  | camelCase accepted for dashed option                | `--gitTags`, `--dependentChangeType`                       | ⚙️ argv normalization pass                                  |
+| 14  | dashed accepted for camelCase option                | `--git-tags`                                               | ✅ (declare dashed as canonical)                            |
+| 15  | Negated camelCase                                   | `--no-git-tags` (option `gitTags`)                         | ✅ declare `--no-git-tags`                                  |
+| 16  | Short aliases                                       | `-t`, `-r`, `-y`, `-a`, `-b`, `-m`, `-p`, `-n`, `-v`, `-h` | ✅ in flags string                                          |
+| 17  | Extra long aliases                                  | `--config`, `--force`, `--since`                           | ⚙️ argv normalization or dup options                        |
+| 18  | Arbitrary unknown string option                     | `--foo bar`, `--foo=bar`                                   | ⚙️ custom leftover parser                                   |
+| 19  | Arbitrary unknown boolean flag                      | `--foo`, `--no-bar`                                        | ⚙️ custom leftover parser                                   |
+| 20  | Unknown value type inference                        | `--foo true` -> bool, `--foo 1` -> number                  | ⚙️ custom leftover parser                                   |
+| 21  | Unknown repeated -> array                           | `--foo bar --foo baz` -> `['bar','baz']`                   | ⚙️ custom leftover parser                                   |
+| 22  | `-?` alias for help                                 | `-?`                                                       | ❌ commander rejects `?` as a short flag; drop or normalize |
+| 23  | `config get <name>` subcommand args                 | `config get branch`                                        | ✅ variadic `[extraArgs...]`                                |
+| 24  | canary tag override, `NPM_TOKEN`, branch resolution | (post-parse)                                               | ✅ unchanged post-parse logic                               |
 
 ## Proposed workarounds
 

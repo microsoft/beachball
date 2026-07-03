@@ -75,7 +75,6 @@ export interface CliOptions extends Pick<
 
   /**
    * Extra positional arguments after the command (for subcommands like `config get <name>`).
-   * This is a workaround for `yargs-parser`'s lack of positional argument support.
    * @internal
    */
   _extraPositionalArgs?: string[];

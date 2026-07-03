@@ -3114,7 +3114,6 @@ __metadata:
     "@types/prompts": "npm:^2.4.2"
     "@types/semver": "npm:^7.3.13"
     "@types/tmp": "npm:^0.2.3"
-    "@types/yargs-parser": "npm:^21.0.0"
     "@vercel/detect-agent": "npm:^1.2.1"
     "@verdaccio/types": "npm:^13.0.0"
     commander: "npm:^14.0.3"
@@ -3134,7 +3133,6 @@ __metadata:
     verdaccio-auth-memory: "npm:^13.0.0"
     verdaccio-memory: "npm:^10.4.3"
     workspace-tools: "catalog:prod"
-    yargs-parser: "npm:^21.1.1"
   bin:
     beachball: ./bin/beachball.js
   languageName: unknown

@@ -44,8 +44,7 @@
     "p-limit": "^3.1.0",
     "prompts": "^2.4.2",
     "semver": "^7.7.4",
-    "workspace-tools": "catalog:prod",
-    "yargs-parser": "^21.1.1"
+    "workspace-tools": "catalog:prod"
   },
   "devDependencies": {
     "@microsoft/beachball-scripts": "workspace:^",
@@ -54,7 +53,6 @@
     "@types/prompts": "^2.4.2",
     "@types/semver": "^7.3.13",
     "@types/tmp": "^0.2.3",
-    "@types/yargs-parser": "^21.0.0",
     "@verdaccio/types": "^13.0.0",
     "cross-env": "^10.1.0",
     "get-port": "^7.0.0",
