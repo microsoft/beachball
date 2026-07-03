@@ -211,37 +211,21 @@ describe('getCliOptions', () => {
     });
   });
 
-  it('preserves additional string options', () => {
-    const options = getCliOptionsTest(['--foo', 'bar', '--baz=qux']);
-    expect(options).toEqual({ ...defaults, foo: 'bar', baz: 'qux' });
+  it('throws on unknown long option', () => {
+    // Unlike yargs-parser, commander errors on unknown options (intentional breaking change for v3)
+    expect(() => getCliOptionsTest(['--foo', 'bar'])).toThrow("unknown option '--foo'");
   });
 
-  it('handles additional boolean flags as booleans', () => {
-    const options = getCliOptionsTest(['--foo', '--no-bar']);
-    expect(options).toEqual({ ...defaults, foo: true, bar: false });
+  it('throws on unknown boolean flag', () => {
+    expect(() => getCliOptionsTest(['--foo'])).toThrow("unknown option '--foo'");
   });
 
-  it('handles additional boolean text values as booleans', () => {
-    const options = getCliOptionsTest(['--foo', 'true', '--bar=false']);
-    expect(options).toEqual({ ...defaults, foo: true, bar: false });
+  it('throws on unknown negated boolean flag', () => {
+    expect(() => getCliOptionsTest(['--no-bar'])).toThrow("unknown option '--no-bar'");
   });
 
-  it('handles additional numeric values as numbers', () => {
-    const options = getCliOptionsTest(['--foo', '1', '--bar=2']);
-    expect(options).toEqual({ ...defaults, foo: 1, bar: 2 });
-  });
-
-  it('handles additional option specified multiple times as array', () => {
-    const options = getCliOptionsTest(['--foo', 'bar', '--foo', 'baz']);
-    expect(options).toEqual({ ...defaults, foo: ['bar', 'baz'] });
-  });
-
-  // documenting current behavior (doesn't have to stay this way)
-  it('for additional options, does not handle multiple values as part of array', () => {
-    // in this case the trailing value "baz" would be treated as the command since it's the first
-    // positional option
-    const options = getCliOptionsTest(['--foo', 'bar', 'baz']);
-    expect(options).toEqual({ ...defaults, foo: 'bar', command: 'baz' });
+  it('throws on unknown option combined with a valid option', () => {
+    expect(() => getCliOptionsTest(['--tag', 'foo', '--bar=2'])).toThrow("unknown option '--bar=2'");
   });
 
   it('gets NPM_TOKEN from environment', () => {
@@ -275,10 +259,8 @@ describe('getCliOptions', () => {
       });
     });
 
-    it('still throws for non-config command with extra positional args', () => {
-      expect(() => getCliOptionsTest(['check', 'extra'])).toThrow(
-        'Only one positional argument (the command) is allowed'
-      );
+    it('throws for non-config command with extra positional args', () => {
+      expect(() => getCliOptionsTest(['check', 'extra'])).toThrow('too many arguments');
     });
   });
 });

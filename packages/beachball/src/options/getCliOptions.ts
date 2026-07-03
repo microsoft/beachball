@@ -26,19 +26,21 @@ export interface ProcessInfo {
 // for option parsing (not for dispatching to command implementations); the existing `cli.ts`
 // dispatch (switch on `cliOptions.command`) is unchanged.
 //
-// A single commander command declares every option (so options can be given before or after the
-// command name) plus two positional arguments: the command name and any extra positional args
-// (e.g. `config get <name>`). A later change will split up which options apply to which commands.
+// The parent command declares every option (so options can be given before or after the command
+// name) plus a positional `[command]` argument. The `config` command is declared as a commander
+// subcommand so its extra positional args (e.g. `config get <name>`) are handled natively, while
+// commander errors on excess positional args for all other commands.
 //
-// Each option is declared in its canonical dashed form. Commander is a schema-first parser, so
-// several permissive behaviors that yargs-parser accepted are reproduced with small argv
-// preprocessing passes (see `normalizeArgv`) plus a mini-parser for arbitrary unknown options
-// (`extractUnknownOptions`):
+// Unlike yargs-parser (which accepted arbitrary unknown flags), commander errors on unknown
+// options. This is an intentional breaking change for v3.
+//
+// Each option is declared in its canonical dashed form. Commander is a schema-first parser, so a
+// few permissive behaviors that yargs-parser accepted are reproduced with small argv preprocessing
+// passes (see `normalizeArgv`):
 //   - camelCase flags (`--gitTags`) and extra long aliases (`--config`, `--force`, `--since`)
 //     are normalized to their canonical dashed form before parsing.
 //   - boolean values passed via `=` or as a separate token (`--fetch=false`, `--yes false`) are
 //     rewritten to commander's flag / `--no-` negation form.
-//   - arbitrary unknown options are parsed with yargs-like type inference.
 //   - non-array options specified more than once throw (matching yargs).
 
 /** Command run when none is specified on the command line. */
@@ -81,6 +83,35 @@ const stringOptions = [
   'token',
   'type',
 ] as const;
+
+type AtLeastOne<T> = [T, ...T[]];
+/** Type hack to verify that an array includes all keys of a type */
+const allKeysOfType =
+  <T extends string>() =>
+  <L extends AtLeastOne<T>>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ...x: L extends any ? (Exclude<T, L[number]> extends never ? L : Exclude<T, L[number]>[]) : never
+  ) =>
+    x;
+
+// Verify that all the known CLI options have types specified, to ensure correct parsing.
+// Otherwise it's possible that new CliOptions could be introduced without corresponding parsers.
+//
+// NOTE: If a prop is missing, this will have a somewhat misleading error:
+//   Argument of type '"disallowedChangeTypes"' is not assignable to parameter of type '"tag" | "version"'
+//
+// To fix, add the missing names after "parameter of type" ("tag" and "version" in this example)
+// to the appropriate array above.
+allKeysOfType<keyof CliOptions>()(
+  ...arrayOptions,
+  ...booleanOptions,
+  ...numberOptions,
+  ...stringOptions,
+  // these options are filled in below, not respected from the command line
+  'path',
+  'command',
+  '_extraPositionalArgs'
+);
 
 /** Short single-character aliases for certain options (option name => short flag without dash). */
 const shortAliases: Partial<Record<keyof CliOptions, string>> = {
@@ -146,14 +177,6 @@ function collectArray(value: string, previous: string[] | undefined): string[] {
   return previous ? [...previous, value] : [value];
 }
 
-/** Infer the type of an unknown option's value the way yargs-parser did. */
-function inferUnknownValue(value: string): string | number | boolean {
-  if (value === 'true') return true;
-  if (value === 'false') return false;
-  if (value !== '' && !Number.isNaN(Number(value))) return Number(value);
-  return value;
-}
-
 /**
  * Map of alternate long-flag spellings to their canonical dashed flag (without leading `--`).
  * Covers camelCase spellings of dashed options (`gitTags` => `git-tags`) and extra long aliases
@@ -183,18 +206,6 @@ const shortToName: Record<string, keyof CliOptions> = (() => {
     map[short] = name as keyof CliOptions;
   }
   return map;
-})();
-
-/** All known long flag names (dashed), including `no-*` negations for boolean options. */
-const knownLongSet: Set<string> = (() => {
-  const set = new Set<string>();
-  for (const name of allOptionNames) {
-    set.add(toDashed(name));
-  }
-  for (const name of booleanOptions) {
-    set.add(`no-${toDashed(name)}`);
-  }
-  return set;
 })();
 
 /** Split a `--flag` or `--flag=value` token into its name and (optional) inline value. */
@@ -262,68 +273,6 @@ function normalizeArgv(argv: string[]): string[] {
   return result;
 }
 
-/**
- * Extract arbitrary unknown options from argv, reproducing yargs-parser's type inference (boolean
- * for bare flags, number for numeric strings, string otherwise, array when repeated). Known options
- * and positionals are left in place for commander to parse.
- *
- * @returns the remaining argv (known options + positionals) and a map of the parsed unknown options.
- */
-function extractUnknownOptions(argv: string[]): { remaining: string[]; unknown: Record<string, unknown> } {
-  const remaining: string[] = [];
-  const unknown: Record<string, unknown> = {};
-
-  const record = (name: string, value: unknown): void => {
-    if (name in unknown) {
-      const prev = unknown[name];
-      unknown[name] = Array.isArray(prev) ? [...(prev as unknown[]), value] : [prev, value];
-    } else {
-      unknown[name] = value;
-    }
-  };
-
-  for (let i = 0; i < argv.length; i++) {
-    const token = argv[i];
-
-    if (token.startsWith('--')) {
-      const { name, value } = splitLongFlag(token);
-
-      // Known options (including `no-*` negations) are handled by commander.
-      if (knownLongSet.has(name)) {
-        remaining.push(token);
-        continue;
-      }
-
-      // Unknown negated boolean (e.g. `--no-bar` => `bar: false`).
-      if (name.startsWith('no-')) {
-        record(name.slice(3), false);
-        continue;
-      }
-
-      // Unknown option with an inline value (e.g. `--foo=bar`).
-      if (value !== undefined) {
-        record(name, inferUnknownValue(value));
-        continue;
-      }
-
-      // Unknown option; consume the next token as its value unless it's another flag.
-      const next = argv[i + 1];
-      if (next !== undefined && !next.startsWith('-')) {
-        record(name, inferUnknownValue(next));
-        i++; // consume the value token
-      } else {
-        record(name, true);
-      }
-      continue;
-    }
-
-    // Known/unknown short flags and positionals are left for commander.
-    remaining.push(token);
-  }
-
-  return { remaining, unknown };
-}
-
 /** Add every beachball option (in its canonical dashed form) to the given command. */
 function addAllOptions(command: Command): void {
   const flags = (name: string, valuePlaceholder?: string): string => {
@@ -361,41 +310,41 @@ interface ParseResult {
 }
 
 /**
- * Build a single commander command with every option (so options can be given before or after the
- * command name) plus positional arguments for the command name and any extra positional args.
+ * Build the commander program. Every option is declared on the parent command (so options can be
+ * given before or after the command name), plus a positional `[command]` argument. The `config`
+ * command is declared as a subcommand so its extra positional args (`config get <name>`) are
+ * handled natively and commander errors on excess positional args for all other commands.
  * Commander is currently used only for parsing, not command dispatch.
  *
- * @returns The program plus a getter for the parse result (populated by the action handler when
+ * @returns The program plus a getter for the parse result (populated by the action handlers when
  * `program.parse()` is called).
  */
 function buildProgram(): { program: Command; getResult: () => ParseResult } {
   const program = new Command();
 
   // Throw instead of calling process.exit() or writing to stdout/stderr on error, so callers and
-  // tests can handle failures.
+  // tests can handle failures. (This also makes commander error on unknown options and excess
+  // positional args, which is an intentional breaking change from yargs-parser.)
   program.exitOverride();
   program.configureOutput({ writeOut: () => {}, writeErr: () => {} }); // suppress commander output
 
-  // Allow any short flags not explicitly defined to pass through without erroring. (Unknown long
-  // options are pulled out beforehand by `extractUnknownOptions`.)
-  program.allowUnknownOption();
-  program.allowExcessArguments();
-
   addAllOptions(program);
 
-  // The first positional is the command name (any value; validated by the caller/cli.ts), and any
-  // remaining positionals are extra args (e.g. for `config get <name>`).
+  // The single positional is the command name (any value; validated by the caller/cli.ts).
   program.argument('[command]', 'beachball command to run');
-  program.argument('[extraArgs...]', 'extra positional arguments (e.g. for `config get <name>`)');
 
   let result: ParseResult = { command: defaultCommand, options: {}, extraArgs: [] };
 
-  program.action((command: string | undefined, extraArgs: string[]) => {
-    result = {
-      command: command ?? defaultCommand,
-      options: program.opts(),
-      extraArgs: extraArgs ?? [],
-    };
+  program.action((command: string | undefined) => {
+    result = { command: command ?? defaultCommand, options: program.opts(), extraArgs: [] };
+  });
+
+  // The `config` command takes extra positional args (its subcommand and arguments, e.g.
+  // `config get <name>` or `config list`), which are validated by the config command itself.
+  const configCommand = program.command('config');
+  configCommand.argument('[args...]', 'config subcommand and arguments (e.g. `get <name>` or `list`)');
+  configCommand.action((args: string[]) => {
+    result = { command: 'config', options: program.opts(), extraArgs: args ?? [] };
   });
 
   return { program, getResult: () => result };
@@ -417,13 +366,11 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
   const trimmedArgv = processInfo.argv.slice(2);
 
   // Preprocess argv to reproduce yargs-parser behaviors commander doesn't support natively:
-  // normalize alternate flag spellings and boolean values, then pull out arbitrary unknown options
-  // (with type inference) so they don't interfere with commander's positional/command detection.
+  // normalize alternate flag spellings and boolean values.
   const normalizedArgv = normalizeArgv(trimmedArgv);
-  const { remaining, unknown } = extractUnknownOptions(normalizedArgv);
 
   const { program, getResult } = buildProgram();
-  program.parse(remaining, { from: 'user' });
+  program.parse(normalizedArgv, { from: 'user' });
   const { command, options, extraArgs: extraPositionalArgs } = getResult();
 
   let cwd = processInfo.cwd;
@@ -437,14 +384,7 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
     // use the provided cwd
   }
 
-  if (extraPositionalArgs.length && command !== 'config') {
-    throw new Error(
-      `Only one positional argument (the command) is allowed. Received: ${[command, ...extraPositionalArgs].join(' ')}`
-    );
-  }
-
   const cliOptions: ParsedOptions['cliOptions'] = {
-    ...unknown,
     ...options,
     command,
     path: cwd,
