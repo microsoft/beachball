@@ -188,6 +188,9 @@ function buildProgram(): { program: Command; getResult: () => ParseResult } {
         command: name,
         // Merge parent ("global") options with this sub-command's options.
         options: subcommand.optsWithGlobals(),
+        // processedArgs is positional in declaration order; index 0 is the `[extraArgs...]`
+        // variadic declared above, which commander populates as a string array (or undefined
+        // when no extra args were given).
         extraArgs: (subcommand.processedArgs[0] as string[] | undefined) ?? [],
       };
     });
