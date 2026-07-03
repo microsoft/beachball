@@ -119,19 +119,15 @@ In your ADO project, create an **Azure Resource Manager** service connection:
 - **Azure scope**: Choose the same subscription and resource group
 - **Service Connection Name**: Choose any name and make note of it for later
 
-The release pipeline (later) passes the connection's name to `AzureCLI@2` as `azureSubscription`. It uses the option `addSpnToEnvironment: true` to obtain a federated `idToken` that this tool exchanges for an AAD access token at runtime — there are no long-lived secrets to manage.
+The release stage (later) passes the connection's name to `AzureCLI@2` as `azureSubscription`. It uses the option `addSpnToEnvironment: true` to obtain a federated `idToken` that this tool exchanges for an AAD access token at runtime — there are no long-lived secrets to manage.
 
 ## Pipeline setup
 
-This tool is designed to run in an Azure DevOps release pipeline using [1ES Pipeline Templates](https://eng.ms/docs/coreai/devdiv/one-engineering-system-1es/1es-docs/1es-pipeline-templates/overview). The typical setup uses two pipelines:
+This tool is designed to run in Azure DevOps using [1ES Pipeline Templates](https://eng.ms/docs/coreai/devdiv/one-engineering-system-1es/1es-docs/1es-pipeline-templates/overview). The recommended setup is a single pipeline with separate build and release stages.
 
-### Prepublish pipeline (CI/build)
+### Prerequisite: Internal feed setup
 
-The prepublish pipeline builds the repo, packs the packages, and publishes them as a pipeline artifact.
-
-#### Prerequisite: Internal feed setup
-
-Production pipeline template policies restrict network access, so it's necessary to configure the prepublish pipeline to use an internal npm feed. These steps assume `yarn`, but most of them also apply to `npm` and `pnpm` with some modifications.
+Production pipeline template policies restrict network access, so it's necessary to configure the build stage to use an internal npm feed. These steps assume `yarn`, but most of them also apply to `npm` and `pnpm` with some modifications.
 
 1. Choose a feed in your project (or create a new one) that has the public npm registry as an upstream source, and note its URL.
 1. Create a file `.npmrc.publish` at the repo root with the corresponding `registry` setting: e.g. `registry=https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/`
@@ -140,15 +136,20 @@ Production pipeline template policies restrict network access, so it's necessary
 1. Make a copy of [`scripts/preparePublishRegistry.ts`](https://github.com/microsoft/beachball/blob/main/scripts/preparePublishRegistry.ts) in your repo. It must run before deps are installed: it copies `.npmrc.publish` to `.npmrc`, and updates `.yarnrc.yml` with registry and auth settings.
    - If using `npm` or `pnpm`, modify as needed. If the manager saves resolved URLs in the lock file, you'll also need a step to update those to point to the private registry.
 
-#### Prepublish pipeline file
+#### Pipeline file
 
-See https://github.com/microsoft/beachball/blob/main/.ado/publish.yml for a full example.
+The pipeline has two stages:
+
+1. **build**: builds the repo, packs the packages, and publishes pipeline artifacts consumed by the release stage.
+2. **publish**: runs the release tool to publish the packages via ESRP. The release stage should always use a separate `releaseJob` (with `isProduction: true`) and consume build outputs as `pipelineArtifact` inputs instead of running checkout/package restore directly in the release job.
+
+Be sure to fill in all the `<placeholders>`! See https://github.com/microsoft/beachball/blob/main/.ado/release.yml for a full example.
 
 TODO: add info about how to update committed files post-publish
 
 ```yml
-# build number/name - modify as desired
-name: <name>-prepublish-$(Date:yyyy-MM-dd).$(Rev:rr)
+# Build number/name - modify as desired
+name: <name>-release-$(Date:yyyy-MM-dd).$(Rev:rr)
 
 pr: none
 trigger: none
@@ -162,17 +163,10 @@ resources:
       ref: <release tag>
 
 variables:
-  - name: tags
-    value: production
-    readonly: true
-  # set as desired
-  - name: nodeVersion
-    value: 24
-  - name: npmVersion
-    value: 11
-  # update with your registry
-  - name: registryUrl
-    value: https://pkgs.dev.azure.com/<org>/_packaging/<project>/<feed>/registry/
+  tags: production
+  nodeVersion: 24
+  packagesArtifactName: packed-packages
+  releaseApiToolArtifactName: release-api-tool
 
 extends:
   template: <1ES PT template>
@@ -184,7 +178,8 @@ extends:
 
     stages:
       # divide and name stages and jobs as desired
-      - stage: main
+      - stage: build
+        displayName: Build artifacts
         jobs:
           - job: build
             displayName: Build, test, pack
@@ -202,11 +197,11 @@ extends:
               outputs:
                 # your packed packages
                 - output: pipelineArtifact
-                  artifactName: packed-packages
+                  artifactName: ${{ variables.packagesArtifactName }}
                   targetPath: $(Build.StagingDirectory)/packed-packages
                 # the release tool so it doesn't need to be installed (update path as needed)
                 - output: pipelineArtifact
-                  artifactName: release-api-tool
+                  artifactName: ${{ variables.releaseApiToolArtifactName }}
                   targetPath: $(Build.SourcesDirectory)/node_modules/@microsoft/esrp-npm-release/dist/index.js
 
             steps:
@@ -244,47 +239,10 @@ extends:
               # TODO read registry from npmrc
               - script: yarn beachball bump --pack-to-path '$(Build.StagingDirectory)/packed-packages' --registry https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/
                 displayName: Pack packages
-```
 
-### Release pipeline
-
-The release pipeline is triggered on prepublish pipeline completion, downloads the artifacts from the prepublish pipeline, and runs this tool.
-
-The job should be configured as a `releaseJob` with `isProduction: true` in `templateContext`. It downloads the packed packages and tool as pipeline artifact inputs.
-
-Be sure to fill in all the `<placeholders>`! See https://github.com/microsoft/beachball/blob/main/.ado/release.yml for a full example.
-
-```yaml
-# build number/name - modify as desired
-name: <name>-release-$(Date:yyyy-MM-dd).$(Rev:rr)
-
-resources:
-  pipelines:
-    # "prepublish" is an arbitrary name which must match publishPipelineAlias below
-    - pipeline: prepublish
-      project: <your ADO project>
-      source: <publish pipeline name from the UI>
-      trigger:
-        branches:
-          include:
-            - main
-
-variables:
-  publishPipelineAlias: prepublish
-  packagesArtifactName: packed-packages
-  releaseApiToolArtifactName: release-api-tool
-
-extends:
-  template: <1ES PT template>
-  parameters:
-    pool:
-      name: <pool name>
-      vmImage: windows-latest
-      os: windows
-
-    stages:
-      - stage: main_release
+      - stage: release
         displayName: Publish packages
+        dependsOn: build
         jobs:
           - job: npm_release
             displayName: NPM to npmjs.com
@@ -293,11 +251,9 @@ extends:
               isProduction: true
               inputs:
                 - input: pipelineArtifact
-                  pipeline: ${{ variables.publishPipelineAlias }}
                   artifactName: ${{ variables.packagesArtifactName }}
                   targetPath: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
                 - input: pipelineArtifact
-                  pipeline: ${{ variables.publishPipelineAlias }}
                   artifactName: ${{ variables.releaseApiToolArtifactName }}
                   targetPath: $(Agent.BuildDirectory)\${{ variables.releaseApiToolArtifactName }}
 
