@@ -67,6 +67,16 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, command: 'publish', tag: 'foo' });
   });
 
+  it('parses string option in separate and combined forms', () => {
+    const options = getCliOptionsTest(['--type', 'patch', '--access=public']);
+    expect(options).toEqual({ ...defaults, type: 'patch', access: 'public' });
+  });
+
+  it('parses number option in separate and combined forms', () => {
+    const options = getCliOptionsTest(['--depth', '1', '--concurrency=2']);
+    expect(options).toEqual({ ...defaults, depth: 1, concurrency: 2 });
+  });
+
   it('parses array options with multiple values', () => {
     const options = getCliOptionsTest(['--scope', 'foo', 'bar']);
     expect(options).toEqual({ ...defaults, scope: ['foo', 'bar'] });
@@ -75,6 +85,16 @@ describe('getCliOptions', () => {
   it('parses array option specified multiple times', () => {
     const options = getCliOptionsTest(['--scope', 'foo', '--scope', 'bar']);
     expect(options).toEqual({ ...defaults, scope: ['foo', 'bar'] });
+  });
+
+  it('parses array option with a single value in combined syntax', () => {
+    const options = getCliOptionsTest(['--scope=foo']);
+    expect(options).toEqual({ ...defaults, scope: ['foo'] });
+  });
+
+  it('parses array option with a mix of combined, separate, and multiple values', () => {
+    const options = getCliOptionsTest(['--scope=foo', '--scope', 'bar', 'baz']);
+    expect(options).toEqual({ ...defaults, scope: ['foo', 'bar', 'baz'] });
   });
 
   // documenting that this is not currently supported (could change in the future if desired)
@@ -90,6 +110,12 @@ describe('getCliOptions', () => {
   it('parses negated boolean option', () => {
     const options = getCliOptionsTest(['--no-fetch']);
     expect(options).toEqual({ ...defaults, fetch: false });
+  });
+
+  it('parses negated boolean option with camelCase name', () => {
+    // gitTags is a camelCase option, and yargs also accepts the hyphenated negation form
+    const options = getCliOptionsTest(['--no-git-tags']);
+    expect(options).toEqual({ ...defaults, gitTags: false });
   });
 
   it('parses valid boolean option values', () => {
