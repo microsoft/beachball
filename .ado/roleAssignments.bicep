@@ -12,9 +12,10 @@ Preview changes:
   az deployment group what-if ...
 */
 
-// Name of the user-assigned managed identity to create and grant storage roles to.
+@description('Name of the user-assigned managed identity to create and grant storage roles to.')
 param managedIdentityName string
 
+@description('Name of the storage account used for temporary storage of package artifacts and state.')
 param stagingStorageName string
 
 // Built-in role definition IDs.

@@ -52,15 +52,20 @@ extends:
             workspace:
               clean: all
 
+            variables:
+              artifactPath: $(Build.StagingDirectory)/out
+              packagesArtifactPath: ${{ variables.artifactPath }}/packed-packages
+              releaseApiToolPath: ${{ variables.artifactPath }}/release-api-tool
+
             templateContext:
-              outputParentDirectory: $(Build.StagingDirectory)/out
+              outputParentDirectory: ${{ variables.artifactPath }}
               outputs:
                 - output: pipelineArtifact
                   artifactName: ${{ variables.packagesArtifactName }}
-                  path: $(Build.StagingDirectory)/out/packed-packages
+                  path: ${{ variables.packagesArtifactPath }}
                 - output: pipelineArtifact
                   artifactName: ${{ variables.releaseApiToolArtifactName }}
-                  path: $(Build.StagingDirectory)/out/release-api-tool
+                  path: ${{ variables.releaseApiToolPath }}
 
             steps:
               - checkout: self
@@ -120,11 +125,11 @@ extends:
                   scriptPath: scripts/publish-with-github-app-token.sh
 
               - script: |
-                  mkdir -p $(Build.StagingDirectory)/out/release-api-tool
-                  cp -r packages/esrp-npm-release/dist/index.js $(Build.StagingDirectory)/out/release-api-tool
+                  mkdir -p ${{ variables.releaseApiToolPath }}
+                  cp -r packages/esrp-npm-release/dist/index.js ${{ variables.releaseApiToolPath }}
                 displayName: Copy release API tool to staging directory
 
-              - script: ls -R '$(Build.StagingDirectory)/out'
+              - script: ls -R '${{ variables.artifactPath }}'
                 displayName: Show all output files
 
       - stage: publish
@@ -133,16 +138,21 @@ extends:
         jobs:
           - job: npm_publish
             displayName: NPM to npmjs.com
+
+            variables:
+              packagesArtifactPath: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
+              releaseApiToolPath: $(Agent.BuildDirectory)\${{ variables.releaseApiToolArtifactName }}
+
             templateContext:
               type: releaseJob
               isProduction: true
               inputs:
                 - input: pipelineArtifact
                   artifactName: ${{ variables.packagesArtifactName }}
-                  targetPath: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
+                  targetPath: ${{ variables.packagesArtifactPath }}
                 - input: pipelineArtifact
                   artifactName: ${{ variables.releaseApiToolArtifactName }}
-                  targetPath: $(Agent.BuildDirectory)\${{ variables.releaseApiToolArtifactName }}
+                  targetPath: ${{ variables.releaseApiToolPath }}
 
             # Use ESRP Release to securely publish to npmjs.com.
             steps:
@@ -153,8 +163,8 @@ extends:
                   version: ${{ variables.nodeVersion }}.x
                   checkLatest: false
 
-              - script: dir /S $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
-                displayName: Show directory contents
+              - script: dir /S ${{ variables.packagesArtifactPath }}
+                displayName: Show packages artifact contents
 
               # Get credentials that will be used to temporarily upload zips to ogxesrptempstorage
               # in the OGX azure subscription
@@ -182,11 +192,11 @@ extends:
                   # "authcertname" and "signcertname" from EsrpRelease task
                   SecretsFilter: OGX-JSHost-Auth4,OGX-JSHost-Sign3
 
-              - script: node $(Agent.BuildDirectory)\${{ variables.releaseApiToolArtifactName }}\index.js
+              - script: node ${{ variables.releaseApiToolPath }}\index.js
                 displayName: Publish to npmjs.com using ESRP Release API wrapper
                 retryCountOnTaskFailure: 3
                 env:
-                  PACKED_PACKAGES_PATH: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
+                  PACKED_PACKAGES_PATH: ${{ variables.packagesArtifactPath }}
                   ESRP_PRODUCT_NAME: beachball
                   ESRP_NPM_TAG: test
                   ESRP_USER: elcraig@microsoft.com
