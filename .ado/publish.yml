@@ -65,19 +65,6 @@ extends:
 
             steps:
               - checkout: self
-                # Don't set http.<url>.extraheader (this should default to false, but was observed to be set)
-                persistCredentials: false
-
-              # Fail fast if the checkout left any credentials in git config.
-              # With persistCredentials: false, no extraheader should be persisted.
-              - script: |
-                  if git config --get-regexp '\.extraheader$' >/dev/null 2>&1; then
-                    echo "##[error]Found persisted credentials (extraheader) in git config after checkout:"
-                    git config --show-origin --get-regexp '\.extraheader$'
-                    exit 1
-                  fi
-                  echo "No persisted credentials found in git config."
-                displayName: Verify no persisted credentials
 
               - task: UseNode@1
                 displayName: Install Node.js ${{ variables.nodeVersion }}
@@ -126,56 +113,12 @@ extends:
                 displayName: Test
 
               - task: AzureCLI@2
-                displayName: Create GitHub App token
+                displayName: Get token and publish packages
                 inputs:
                   azureSubscription: ogx-oss-release-bot
                   scriptType: bash
-                  scriptLocation: inlineScript
-                  inlineScript: node scripts/create-github-app-token.cjs
-                env:
-                  APP_CLIENT_ID: Iv23ligBoU5jc9SIFnGR
-                  KEY_ID: https://ogx-oss-release-keyvault.vault.azure.net/keys/office-ogx-auth-helper-key
-                  # TODO: make a way to use BUILD_REPOSITORY_ID=microsoft/beachball
-                  OWNER: microsoft
-                  REPOSITORIES: beachball
-                  PERMISSIONS: contents:write
-                  OUTPUT: azure-pipelines
-                  AZURE_TOKEN_VARIABLE: REPO_PAT
-
-              # TODO (release): switch back to regular release
-              # (temporarily add yarn release:canary when ready)
-              - script: |
-                  git config user.email "257645319+office-ogx-auth-helper[bot]@users.noreply.github.com"
-                  git config user.name "OGX bot"
-
-                  # Fail fast if the token wasn't produced or isn't a GitHub App installation token.
-                  # GitHub App installation tokens start with "ghs_".
-                  if [[ "$REPO_PAT" != ghs_* ]]; then
-                    echo "error: REPO_PAT is not in the expected GitHub App installation token format (ghs_...); starts with '${REPO_PAT:0:4}'" >&2
-                    exit 1
-                  fi
-
-                  # Set a temporary auth header for git operations and clean it up when done
-                  authHeader=$(printf "x-access-token:%s" "$REPO_PAT" | base64 | tr -d '\n')
-                  # Register the auth header value so it's masked in subsequent log output.
-                  echo "##vso[task.setsecret]$authHeader"
-                  trap "git config --unset-all \"http.$BUILD_REPOSITORY_URI.extraheader\"" EXIT
-                  git config "http.$BUILD_REPOSITORY_URI.extraheader" "AUTHORIZATION: basic $authHeader"
-
-                  yarn release:others --git-tags=false --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
-                # ^ TODO re-enable tagging
-                displayName: Publish packages (non-prerelease)
-                env:
-                  REPO_PAT: $(REPO_PAT)
-
-              # # TODO: figure out if this should bump or not (currently does bump)
-              # # and currently uses a prerelease prefix of 'test' to avoid interfering with real versions
-              # # TODO: update beachball to read the registry from .npmrc and/or .yarnrc.yml
-              # # TODO (release): change back to:
-              # # yarn beachball publish --prerelease-prefix test --no-push --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
-              # - script: |
-              #     yarn release:canary --no-push --verbose --pack-to-path '$(Build.StagingDirectory)/out/packed-packages'
-              #   displayName: Pack packages (canary)
+                  scriptLocation: scriptPath
+                  scriptPath: scripts/publish-with-github-app-token.sh
 
               - script: |
                   mkdir -p $(Build.StagingDirectory)/out/release-api-tool

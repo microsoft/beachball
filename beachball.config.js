@@ -10,6 +10,7 @@ const config = {
   commit: false,
   ignorePatterns: ['.*ignore', '.eslintrc.js', 'eslint.config.*', 'jest.*.js', '**/__*/**'],
   // Currently, only the publish build runs in ADO
+  // TODO: update beachball to read the registry from .npmrc and/or .yarnrc.yml
   registry: process.env.TF_BUILD ? getPublishRegistry() : 'https://registry.npmjs.org/',
 
   // TODO (release): re-enable -- it has to be disabled while releasing actions separately

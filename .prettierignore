@@ -2,6 +2,7 @@
 *.bicep
 *.log
 *.patch
+*.sh
 *.snap
 *.styl
 *.svg
