@@ -10,7 +10,7 @@ import { MockStdout } from '../__fixtures__/mockStdout';
 import { MockStdin } from '../__fixtures__/mockStdin';
 import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import type { Repository } from '../__fixtures__/repository';
-import { getParsedOptions } from '../options/getOptions';
+import { getOptions } from '../options/getOptions';
 import { readJson } from '../object/readJson';
 import { createBasicCommandContext } from '../monorepo/createCommandContext';
 import type { ChangeCommandContext } from '../types/CommandContext';
@@ -82,7 +82,7 @@ describe('change command', () => {
 
   /** Get options and context (`changedPackages` is not filled) */
   function getOptionsAndContext(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
-    const parsedOptions = getParsedOptions({
+    const parsedOptions = getOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'change', ...(extraArgv ?? [])],
       env: {},

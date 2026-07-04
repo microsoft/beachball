@@ -12,7 +12,7 @@ import { sync } from './commands/sync';
 
 import { showVersion, showHelp } from './help';
 import { getPackageInfos } from './monorepo/getPackageInfos';
-import { getParsedOptions } from './options/getOptions';
+import { getOptions } from './options/getOptions';
 import { validate } from './validation/validate';
 import { getScopedPackages } from './monorepo/getScopedPackages';
 import { BeachballError } from './types/BeachballError';
@@ -27,7 +27,7 @@ import { getPackageGroups } from './monorepo/getPackageGroups';
   }
 
   // eslint-disable-next-line no-restricted-properties -- this is the top level
-  const parsedOptions = getParsedOptions({ cwd: process.cwd(), argv: process.argv, env: process.env });
+  const parsedOptions = getOptions({ cwd: process.cwd(), argv: process.argv, env: process.env });
   const options = parsedOptions.options;
 
   if (options.help) {

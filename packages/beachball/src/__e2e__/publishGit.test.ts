@@ -12,7 +12,7 @@ import { publish } from '../commands/publish';
 import { bumpInMemory } from '../bump/bumpInMemory';
 import type { ChangeFileInfo } from '../types/ChangeInfo';
 import type { PackageJson } from '../types/PackageInfo';
-import { getParsedOptions } from '../options/getOptions';
+import { getOptions as _getOptions } from '../options/getOptions';
 import { readJson } from '../object/readJson';
 import { createCommandContext } from '../monorepo/createCommandContext';
 import type { RepoOptions } from '../types/BeachballOptions';
@@ -25,7 +25,7 @@ describe('publish command (git)', () => {
 
   function getOptions(repoOptions?: Partial<RepoOptions>) {
     const cwd = repoOptions?.path || repo!.rootPath;
-    const parsedOptions = getParsedOptions({
+    const parsedOptions = _getOptions({
       cwd,
       argv: ['node', 'beachball', 'publish', '--yes'],
       env: {},

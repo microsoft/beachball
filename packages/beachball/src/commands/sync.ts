@@ -1,8 +1,6 @@
-import type { BeachballOptions } from '../types/BeachballOptions';
-import { getScopedPackages } from '../monorepo/getScopedPackages';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { listPackageVersionsByTag } from '../packageManager/listPackageVersions';
 import semver from 'semver';
+import type { BeachballOptions } from '../types/BeachballOptions';
+import { listPackageVersionsByTag } from '../packageManager/listPackageVersions';
 import { setDependentVersions } from '../bump/setDependentVersions';
 import { updateLockFile } from '../bump/updateLockFile';
 import { updatePackageJsons } from '../bump/updatePackageJsons';
@@ -13,13 +11,8 @@ export type SyncCommandContext = Pick<BasicCommandContext, 'originalPackageInfos
 /**
  * Sync with the latest versions on the registry.
  */
-export async function sync(options: BeachballOptions, context: SyncCommandContext): Promise<void>;
-/** @deprecated Use other signature */
-export async function sync(options: BeachballOptions): Promise<void>;
-export async function sync(options: BeachballOptions, context?: SyncCommandContext): Promise<void> {
-  // eslint-disable-next-line @ms-cloudpack/no-deprecated
-  const packageInfos = context?.originalPackageInfos ?? getPackageInfos(options.path);
-  const scopedPackages = context?.scopedPackages ?? getScopedPackages(options, packageInfos);
+export async function sync(options: BeachballOptions, context: SyncCommandContext): Promise<void> {
+  const { originalPackageInfos: packageInfos, scopedPackages } = context;
 
   const infos = new Map(Object.entries(packageInfos).filter(([pkg, info]) => !info.private && scopedPackages.has(pkg)));
 

@@ -5,7 +5,7 @@ import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { validate, type ValidateOptions } from '../validation/validate';
 import type { Repository } from '../__fixtures__/repository';
-import { getParsedOptions } from '../options/getOptions';
+import { getOptions } from '../options/getOptions';
 import { BeachballError } from '../types/BeachballError';
 
 describe('validate', () => {
@@ -14,7 +14,7 @@ describe('validate', () => {
   const logs = initMockLogs();
 
   function validateWrapper(validateOptions?: ValidateOptions) {
-    const parsedOptions = getParsedOptions({
+    const parsedOptions = getOptions({
       cwd: repo!.rootPath,
       argv: [],
       env: {},
@@ -76,7 +76,7 @@ describe('validate', () => {
     repo.updateJsonFile('packages/foo/package.json', { beachball: { shouldPublish: false } });
     repo.updateJsonFile('packages/bar/package.json', { private: true });
 
-    const parsedOptions = getParsedOptions({
+    const parsedOptions = getOptions({
       cwd: repo.rootPath,
       argv: [],
       env: {},

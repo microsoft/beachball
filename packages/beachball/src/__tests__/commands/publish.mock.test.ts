@@ -5,7 +5,7 @@ import { defaultBranchName, defaultRemoteBranchName } from '../../__fixtures__/g
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
 import { publish } from '../../commands/publish';
-import { getParsedOptions } from '../../options/getOptions';
+import { getOptions } from '../../options/getOptions';
 import { bumpAndPush } from '../../publish/bumpAndPush';
 import { publishToRegistry } from '../../publish/publishToRegistry';
 import type { RepoOptions } from '../../types/BeachballOptions';
@@ -40,7 +40,7 @@ describe('publish command (all helpers mocked)', () => {
   }) {
     const { repoOptions, packageInfos, context: partialContext } = params;
 
-    const parsedOptions = getParsedOptions({
+    const parsedOptions = getOptions({
       cwd: '',
       argv: ['node', 'beachball', 'publish', '--yes'],
       env: {},

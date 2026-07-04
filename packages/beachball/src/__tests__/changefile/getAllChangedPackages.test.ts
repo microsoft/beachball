@@ -5,7 +5,7 @@ import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { getAllChangedPackages } from '../../changefile/getAllChangedPackages';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
-import { getParsedOptions } from '../../options/getOptions';
+import { getOptions } from '../../options/getOptions';
 import type { RepoOptions } from '../../types/BeachballOptions';
 import type { PackageInfos } from '../../types/PackageInfo';
 
@@ -35,7 +35,7 @@ describe('getAllChangedPackages', () => {
     allChangedFiles?: string[];
   }) {
     const { repoOptions, extraArgv = [], packageInfos } = params;
-    const parsedOptions = getParsedOptions({
+    const parsedOptions = getOptions({
       cwd: fakeRoot,
       argv: ['node', 'beachball', 'change', ...extraArgv],
       env: {},

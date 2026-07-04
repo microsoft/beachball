@@ -5,7 +5,7 @@ import type { RepoOptions } from '../../types/BeachballOptions';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
 import type { BumpInfo } from '../../types/BumpInfo';
-import { getParsedOptions } from '../../options/getOptions';
+import { getOptions } from '../../options/getOptions';
 import { performBump } from '../../bump/performBump';
 import type { ChangeSet, ChangeFileInfo } from '../../types/ChangeInfo';
 import { consideredDependencies, type PackageInfos, type PackageJson } from '../../types/PackageInfo';
@@ -69,7 +69,7 @@ describe('performBump', () => {
     changeFileNames?: string[];
     repoOptions?: Partial<RepoOptions>;
   }) {
-    const opts = getParsedOptions({
+    const opts = getOptions({
       cwd: fakeRoot,
       argv: [],
       env: {},

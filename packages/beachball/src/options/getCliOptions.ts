@@ -256,15 +256,7 @@ function buildProgram(): { program: Command; getResult: () => ParseResult } {
 /**
  * Gets CLI options. Also gets the `NPM_TOKEN` environment variable if present.
  */
-export function getCliOptions(processInfo: ProcessInfo): ParsedOptions['cliOptions'];
-/** @deprecated Pass full process info */
-export function getCliOptions(argv: string[]): ParsedOptions['cliOptions'];
-export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOptions['cliOptions'] {
-  const processInfo = Array.isArray(processOrArgv)
-    ? // eslint-disable-next-line no-restricted-properties -- legacy API
-      { argv: processOrArgv, cwd: env.isJest ? '' : process.cwd(), env: process.env }
-    : processOrArgv;
-
+export function getCliOptions(processInfo: ProcessInfo): ParsedOptions['cliOptions'] {
   // Be careful not to mutate the input argv
   const trimmedArgv = processInfo.argv.slice(2);
 

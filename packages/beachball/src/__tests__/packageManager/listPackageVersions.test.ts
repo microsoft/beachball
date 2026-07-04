@@ -4,7 +4,7 @@ import type { NpmOptions } from '../../types/NpmOptions';
 import { initNpmMock } from '../../__fixtures__/mockNpm';
 import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
 import type { RepoOptions } from '../../types/BeachballOptions';
-import { getParsedOptions } from '../../options/getOptions';
+import { getOptions } from '../../options/getOptions';
 import { _npmShowProperties } from '../../packageManager/getNpmPackageInfo';
 
 jest.mock('../../packageManager/npm');
@@ -117,7 +117,7 @@ describe('list npm versions', () => {
       /** Options to override the defaults */
       repoOptions?: Partial<RepoOptions>;
     }) {
-      const parsedOptions = getParsedOptions({
+      const parsedOptions = getOptions({
         argv: ['node', 'beachball', ...(params.extraArgv || [])],
         env: {},
         cwd: '',

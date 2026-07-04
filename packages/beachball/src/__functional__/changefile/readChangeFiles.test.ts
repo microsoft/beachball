@@ -10,7 +10,7 @@ import type { RepoOptions } from '../../types/BeachballOptions';
 import type { Repository } from '../../__fixtures__/repository';
 import type { ChangeInfo, ChangeSet } from '../../types/ChangeInfo';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
-import { getParsedOptions } from '../../options/getOptions';
+import { getOptions } from '../../options/getOptions';
 import { removeTempDir } from '../../__fixtures__/tmpdir';
 import path from 'path';
 import { createTestFileStructureType } from '../../__fixtures__/createTestFileStructure';
@@ -39,7 +39,7 @@ describe('readChangeFiles', () => {
   function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>) {
     const cwd = repoOptions?.path || tempRoot;
     expect(cwd).toBeTruthy();
-    const parsedOptions = getParsedOptions({
+    const parsedOptions = getOptions({
       cwd: cwd!,
       argv: [],
       env: {},

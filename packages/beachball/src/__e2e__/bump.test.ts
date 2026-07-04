@@ -9,7 +9,7 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import type { HooksOptions, ParsedOptions, RepoOptions } from '../types/BeachballOptions';
 import type { Repository } from '../__fixtures__/repository';
 import type { PackageJson } from '../types/PackageInfo';
-import { getParsedOptions } from '../options/getOptions';
+import { getOptions as _getOptions } from '../options/getOptions';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { readJson } from '../object/readJson';
 import { validate } from '../validation/validate';
@@ -35,7 +35,7 @@ describe('bump command', () => {
    * Defaults to `fetch: false` since fetching is rarely relevant for these tests and is slow.
    */
   function getOptions(repoOptions?: Partial<RepoOptions>, cwd?: string) {
-    const parsedOptions = getParsedOptions({
+    const parsedOptions = _getOptions({
       cwd: cwd || repo?.rootPath || '',
       argv: [],
       env: {},

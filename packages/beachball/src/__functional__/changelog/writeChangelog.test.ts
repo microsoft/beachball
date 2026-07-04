@@ -19,7 +19,7 @@ import type { BumpInfo } from '../../types/BumpInfo';
 import { getMaxChangeType } from '../../changefile/changeTypes';
 import { getChangePath } from '../../paths';
 import { trimmedVersionsNote } from '../../changelog/renderChangelog';
-import { getParsedOptions } from '../../options/getOptions';
+import { getOptions } from '../../options/getOptions';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 import type { PackageInfos } from '../../types/PackageInfo';
 import { writeJson } from '../../object/writeJson';
@@ -39,7 +39,7 @@ describe('writeChangelog', () => {
    * Note: `generateChangelog` defaults to `true` here
    */
   function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, cwd?: string) {
-    const parsedOptions = getParsedOptions({
+    const parsedOptions = getOptions({
       cwd: cwd || repo?.rootPath || '',
       argv: [],
       env: {},
