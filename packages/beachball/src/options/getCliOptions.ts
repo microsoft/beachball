@@ -1,9 +1,8 @@
 import { findProjectRoot } from 'workspace-tools';
-import { Command, Option, type OptionValues } from 'commander';
+import { Command, type OptionValues } from 'commander';
 import { env } from '../env';
 import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
-import { cacheRemoteBranch } from '../git/getRemoteBranch';
-import { resolveRemoteAndBranch } from '../git/tempGetDefaultRemoteBranch';
+import { addAllOptions, normalizeArgv, resolveBranchOption } from './cliOptionsHelpers';
 
 export interface ProcessInfo {
   /** Complete argv (node and script path aren't used but elements must be present) */
@@ -118,7 +117,7 @@ allKeysOfType<keyof CliOptions>()(
  * and the doc comments in `BeachballOptions`. (Keyed by every parseable option name to require a
  * description whenever a new option is added.)
  */
-const optionDescriptions: Record<(typeof allOptionNames)[number], string> = {
+const optionDescriptions: Record<keyof CliOptions, string> = {
   // array options
   disallowedChangeTypes: 'change types that are not allowed',
   package: 'force creating a change file for this package (can be specified multiple times)',
@@ -163,6 +162,10 @@ const optionDescriptions: Record<(typeof allOptionNames)[number], string> = {
   tag: 'npm dist-tag for publishes (default: "latest")',
   token: 'npm auth token (defaults to the NPM_TOKEN environment variable)',
   type: 'type of change: e.g. major, minor, patch, none (instead of prompting)',
+  // not handled by commander parsing
+  _extraPositionalArgs: '',
+  command: '',
+  path: '',
 };
 
 /** Short single-character aliases for certain options (option name => short flag without dash). */
@@ -194,168 +197,6 @@ const longAliases: Record<string, keyof CliOptions> = {
 /** All option names (any value type). */
 const allOptionNames = [...arrayOptions, ...booleanOptions, ...numberOptions, ...stringOptions];
 
-/** Convert a camelCase option name to its dashed CLI flag form (e.g. `gitTags` => `git-tags`). */
-function toDashed(name: string): string {
-  return name.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
-}
-
-/** Coerce a value to a number, throwing if it's not numeric (matches previous yargs behavior). */
-function parseNumber(name: string): (value: string) => number {
-  return (value: string) => {
-    const num = Number(value);
-    if (Number.isNaN(num)) {
-      throw new Error(`Non-numeric value passed for numeric option "${name}"`);
-    }
-    return num;
-  };
-}
-
-/**
- * Build an `argParser` for a non-array option that throws if the option is specified more than once
- * (commander passes the previously-parsed value as the second argument). This matches yargs-parser,
- * which errored on repeated single-value options. An optional `coerce` transforms each value.
- */
-function parseSingle<T>(name: string, coerce?: (value: string) => T): (value: string, previous: unknown) => T | string {
-  return (value: string, previous: unknown) => {
-    if (previous !== undefined) {
-      throw new Error(`Option "${name}" can only be specified once`);
-    }
-    return coerce ? coerce(value) : value;
-  };
-}
-
-/** Collector for array options: accumulate repeated/variadic values into a single array. */
-function collectArray(value: string, previous: string[] | undefined): string[] {
-  return previous ? [...previous, value] : [value];
-}
-
-/**
- * Map of alternate long-flag spellings to their canonical dashed flag (without leading `--`).
- * Covers camelCase spellings of dashed options (`gitTags` => `git-tags`) and extra long aliases
- * (`config` => `config-path`).
- */
-const flagAliasMap: Record<string, string> = (() => {
-  const map: Record<string, string> = {};
-  for (const name of allOptionNames) {
-    const dashed = toDashed(name);
-    if (name !== dashed) {
-      map[name] = dashed; // camelCase spelling => dashed canonical
-    }
-  }
-  for (const [alias, name] of Object.entries(longAliases)) {
-    map[alias] = toDashed(name);
-  }
-  return map;
-})();
-
-/** Dashed names of boolean options (e.g. `git-tags`). */
-const booleanDashedSet = new Set<string>(booleanOptions.map(toDashed));
-
-/** Short flag character => camelCase option name (e.g. `y` => `yes`). */
-const shortToName: Record<string, keyof CliOptions> = (() => {
-  const map: Record<string, keyof CliOptions> = {};
-  for (const [name, short] of Object.entries(shortAliases)) {
-    map[short] = name as keyof CliOptions;
-  }
-  return map;
-})();
-
-/** Split a `--flag` or `--flag=value` token into its name and (optional) inline value. */
-function splitLongFlag(token: string): { name: string; value?: string } {
-  const rest = token.slice(2);
-  const eq = rest.indexOf('=');
-  return eq === -1 ? { name: rest } : { name: rest.slice(0, eq), value: rest.slice(eq + 1) };
-}
-
-/**
- * Preprocess argv to reproduce yargs-parser behaviors that commander doesn't support natively:
- * - normalize camelCase and long-alias long flags to their canonical dashed form;
- * - rewrite boolean values passed via `=` or as a separate `true`/`false` token to commander's
- *   flag / `--no-` negation form.
- */
-function normalizeArgv(argv: string[]): string[] {
-  const result: string[] = [];
-
-  for (let i = 0; i < argv.length; i++) {
-    const token = argv[i];
-
-    if (token.startsWith('--')) {
-      const split = splitLongFlag(token);
-      const { value } = split;
-      // Normalize alternate long-flag spellings to the canonical dashed form.
-      const name = flagAliasMap[split.name] ?? split.name;
-
-      // Boolean value passed via `=` (e.g. `--fetch=false` => `--no-fetch`).
-      if (value !== undefined && booleanDashedSet.has(name) && (value === 'true' || value === 'false')) {
-        result.push(value === 'true' ? `--${name}` : `--no-${name}`);
-        continue;
-      }
-
-      // Boolean value passed as a separate token (e.g. `--yes false` => `--no-yes`).
-      if (value === undefined && booleanDashedSet.has(name)) {
-        const next = argv[i + 1];
-        if (next === 'true' || next === 'false') {
-          result.push(next === 'true' ? `--${name}` : `--no-${name}`);
-          i++; // consume the value token
-          continue;
-        }
-      }
-
-      // Push the (possibly renamed) flag, preserving any inline value.
-      result.push(value === undefined ? `--${name}` : `--${name}=${value}`);
-      continue;
-    }
-
-    // Short boolean flag with a separate `true`/`false` value (e.g. `-y false` => `--no-yes`).
-    if (token.length === 2 && token[0] === '-' && token[1] !== '-') {
-      const optionName = shortToName[token[1]];
-      if (optionName && (booleanOptions as readonly string[]).includes(optionName)) {
-        const next = argv[i + 1];
-        if (next === 'true' || next === 'false') {
-          result.push(next === 'true' ? `--${toDashed(optionName)}` : `--no-${toDashed(optionName)}`);
-          i++; // consume the value token
-          continue;
-        }
-      }
-    }
-
-    result.push(token);
-  }
-
-  return result;
-}
-
-/** Add every beachball option (in its canonical dashed form) to the given command. */
-function addAllOptions(command: Command): void {
-  const flags = (name: string, valuePlaceholder?: string): string => {
-    const dashed = toDashed(name);
-    const short = shortAliases[name as keyof CliOptions];
-    const long = valuePlaceholder ? `--${dashed} ${valuePlaceholder}` : `--${dashed}`;
-    return short ? `-${short}, ${long}` : long;
-  };
-
-  for (const name of stringOptions) {
-    command.addOption(new Option(flags(name, '<value>'), optionDescriptions[name]).argParser(parseSingle(name)));
-  }
-
-  for (const name of numberOptions) {
-    command.addOption(
-      new Option(flags(name, '<value>'), optionDescriptions[name]).argParser(parseSingle(name, parseNumber(name)))
-    );
-  }
-
-  for (const name of arrayOptions) {
-    // Variadic to allow multiple space-separated values, plus a collector for repeated usage.
-    command.addOption(new Option(flags(name, '<values...>'), optionDescriptions[name]).argParser(collectArray));
-  }
-
-  for (const name of booleanOptions) {
-    command.addOption(new Option(flags(name), optionDescriptions[name]));
-    // Negated form (e.g. `--no-fetch`).
-    command.addOption(new Option(`--no-${toDashed(name)}`));
-  }
-}
-
 /** Result captured from parsing. */
 interface ParseResult {
   command: string;
@@ -382,7 +223,15 @@ function buildProgram(): { program: Command; getResult: () => ParseResult } {
   program.exitOverride();
   program.configureOutput({ writeOut: () => {}, writeErr: () => {} }); // suppress commander output
 
-  addAllOptions(program);
+  addAllOptions({
+    command: program,
+    stringOptions,
+    numberOptions,
+    arrayOptions,
+    booleanOptions,
+    optionDescriptions,
+    shortAliases,
+  });
 
   // The single positional is the command name (any value; validated by the caller/cli.ts).
   program.argument('[command]', 'beachball command to run');
@@ -421,7 +270,13 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
 
   // Preprocess argv to reproduce yargs-parser behaviors commander doesn't support natively:
   // normalize alternate flag spellings and boolean values.
-  const normalizedArgv = normalizeArgv(trimmedArgv);
+  const normalizedArgv = normalizeArgv({
+    argv: trimmedArgv,
+    allOptionNames,
+    longAliases,
+    booleanOptions,
+    shortAliases,
+  });
 
   const { program, getResult } = buildProgram();
   program.parse(normalizedArgv, { from: 'user' });
@@ -470,20 +325,4 @@ export function getCliOptions(processOrArgv: ProcessInfo | string[]): ParsedOpti
   }
 
   return cliOptions;
-}
-
-/**
- * Resolves `rawOptions.branch` if provided to ensure it includes the remote name.
- * If no branch is provided, returns the default branch.
- */
-export function resolveBranchOption(rawOptions: Partial<Pick<CliOptions, 'branch' | 'verbose'>>, cwd: string): string {
-  const branchResult = resolveRemoteAndBranch({
-    branch: rawOptions.branch,
-    cwd,
-    verbose: rawOptions.verbose,
-    strict: true,
-  });
-  cacheRemoteBranch(branchResult, cwd);
-
-  return `${branchResult.remote}/${branchResult.remoteBranch}`;
 }

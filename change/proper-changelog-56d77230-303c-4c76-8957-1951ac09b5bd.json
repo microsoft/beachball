@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Downgrade commander to v14 to match other beachball-related packages",
+  "packageName": "proper-changelog",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

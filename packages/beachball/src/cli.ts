@@ -1,3 +1,4 @@
+import { CommanderError } from 'commander';
 import { findGitRoot } from 'workspace-tools';
 import { bump } from './commands/bump';
 import { canary } from './commands/canary';
@@ -124,6 +125,9 @@ import { getPackageGroups } from './monorepo/getPackageGroups';
     // Error details were already printed -- just exit
   } else if (e instanceof BeachballError) {
     // Expected error, not yet logged -- print the message (no stack trace)
+    console.error(e.message);
+  } else if (e instanceof CommanderError) {
+    // Commander error -- print the message (no stack trace)
     console.error(e.message);
   } else {
     // Unexpected error -- print full details including stack
