@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { InvalidArgumentError } from 'commander';
+import { InvalidArgumentError, type OptionValues } from 'commander';
 import {
   _normalizeFlagName,
   _parseNumber,
@@ -7,7 +7,6 @@ import {
   addAllOptions,
   FlexibleCommand,
   FlexibleOption,
-  normalizeArgv,
   type OptionDefinition,
 } from '../../options/cliOptionsHelpers';
 
@@ -57,68 +56,63 @@ describe('_normalizeFlagName', () => {
   });
 });
 
-describe('normalizeArgv', () => {
-  const params = {
-    optionDefinitions: {
-      fetch: { type: 'boolean', desc: '' },
-      yes: { type: 'boolean', short: 'y', desc: '' },
-      gitTags: { type: 'boolean', alias: 'force', desc: '' },
-      configPath: { type: 'string', alias: 'config', desc: '' },
-      fromRef: { type: 'string', alias: 'since', desc: '' },
-    } satisfies Record<string, OptionDefinition>,
+describe('FlexibleCommand boolean value rewriting', () => {
+  const optionDefinitions = {
+    fetch: { type: 'boolean', desc: '' },
+    yes: { type: 'boolean', short: 'y', desc: '' },
+    gitTags: { type: 'boolean', alias: 'force', desc: '' },
+    branch: { type: 'string', short: 'b', desc: '' },
+    configPath: { type: 'string', alias: 'config', desc: '' },
+  } satisfies Record<string, OptionDefinition>;
+
+  /** Parse args with a fresh command (with a positional to absorb non-option tokens) and return its option values. */
+  const parse = (argv: string[]): OptionValues => {
+    const command = new FlexibleCommand();
+    command.exitOverride();
+    command.configureOutput({ writeErr: () => {}, writeOut: () => {} });
+    addAllOptions({ command, optionDefinitions });
+    command.argument('[command]');
+    command.parse(argv, { from: 'user' });
+    return command.opts();
   };
 
-  const normalize = (argv: string[]) => normalizeArgv({ ...params, argv });
-
   it('leaves already-canonical args unchanged', () => {
-    expect(normalize(['check', '--branch', 'main'])).toEqual(['check', '--branch', 'main']);
-  });
-
-  it('leaves camelCase and alias flags unchanged (matched natively by FlexibleOption)', () => {
-    expect(normalize(['--gitTags'])).toEqual(['--gitTags']);
-    expect(normalize(['--config', 'foo'])).toEqual(['--config', 'foo']);
-    expect(normalize(['--config=foo'])).toEqual(['--config=foo']);
+    expect(parse(['check', '--branch', 'main'])).toEqual({ branch: 'main' });
   });
 
   it('rewrites a boolean value passed via = to flag/negation form', () => {
-    expect(normalize(['--fetch=false'])).toEqual(['--no-fetch']);
-    expect(normalize(['--fetch=true'])).toEqual(['--fetch']);
+    expect(parse(['--fetch=false'])).toEqual({ fetch: false });
+    expect(parse(['--fetch=true'])).toEqual({ fetch: true });
   });
 
   it('rewrites a boolean value passed as a separate token', () => {
-    expect(normalize(['--yes', 'false'])).toEqual(['--no-yes']);
-    expect(normalize(['--yes', 'true'])).toEqual(['--yes']);
+    expect(parse(['--yes', 'false'])).toEqual({ yes: false });
+    expect(parse(['--yes', 'true'])).toEqual({ yes: true });
   });
 
-  it('rewrites a camelCase boolean flag with a separate value token, preserving spelling', () => {
-    expect(normalize(['--gitTags', 'false'])).toEqual(['--no-gitTags']);
+  it('rewrites a camelCase boolean flag with a separate value token', () => {
+    expect(parse(['--gitTags', 'false'])).toEqual({ gitTags: false });
   });
 
-  it('rewrites a boolean alias flag value, preserving the alias spelling', () => {
-    expect(normalize(['--force=false'])).toEqual(['--no-force']);
+  it('rewrites a boolean alias flag value', () => {
+    expect(parse(['--force=false'])).toEqual({ gitTags: false });
   });
 
   it('leaves a boolean flag alone if the next token is not true/false', () => {
-    expect(normalize(['--fetch', 'check'])).toEqual(['--fetch', 'check']);
+    expect(parse(['--fetch', 'check'])).toEqual({ fetch: true });
   });
 
   it('does not treat = values on non-boolean options as negations', () => {
-    expect(normalize(['--branch=false'])).toEqual(['--branch=false']);
+    expect(parse(['--branch=false'])).toEqual({ branch: 'false' });
   });
 
   it('rewrites a short boolean flag with a separate value token', () => {
-    expect(normalize(['-y', 'false'])).toEqual(['--no-yes']);
-    expect(normalize(['-y', 'true'])).toEqual(['--yes']);
+    expect(parse(['-y', 'false'])).toEqual({ yes: false });
+    expect(parse(['-y', 'true'])).toEqual({ yes: true });
   });
 
   it('leaves a short boolean flag alone if the next token is not true/false', () => {
-    expect(normalize(['-y', 'other'])).toEqual(['-y', 'other']);
-  });
-
-  it('does not mutate the input argv', () => {
-    const argv = ['--gitTags', 'false'];
-    normalizeArgv({ ...params, argv });
-    expect(argv).toEqual(['--gitTags', 'false']);
+    expect(parse(['-y', 'other'])).toEqual({ yes: true });
   });
 });
 
@@ -237,7 +231,7 @@ describe('FlexibleOption', () => {
     expect(option2.description).toBe('scope pattern');
   });
 
-  it('does not add a default to the negated form', () => {
+  it('has no description on the negated form', () => {
     const option = new FlexibleOption({
       name: 'fetch',
       type: 'boolean',
@@ -245,7 +239,7 @@ describe('FlexibleOption', () => {
       negated: true,
       defaultValue: true,
     });
-    expect(option.description).toBe('fetch first');
+    expect(option.description).toBe('');
   });
 });
 

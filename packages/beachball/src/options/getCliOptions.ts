@@ -2,13 +2,7 @@ import type { Command, OptionValues, OutputConfiguration } from 'commander';
 import { findProjectRoot } from 'workspace-tools';
 import { env } from '../env';
 import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
-import {
-  addAllOptions,
-  FlexibleCommand,
-  normalizeArgv,
-  resolveBranchOption,
-  type OptionDefinition,
-} from './cliOptionsHelpers';
+import { addAllOptions, FlexibleCommand, resolveBranchOption, type OptionDefinition } from './cliOptionsHelpers';
 
 export interface ProgramContext {
   /** Complete argv (node and script path aren't used but elements must be present) */
@@ -48,8 +42,8 @@ export interface ProgramContext {
 //   - camelCase flags (`--gitTags`) and extra long aliases (`--config`, `--force`, `--since`) are
 //     matched natively by the `FlexibleOption`/`FlexibleCommand` subclasses.
 //   - boolean values passed via `=` or as a separate token (`--fetch=false`, `--yes false`) are
-//     rewritten to commander's flag / `--no-` negation form by a small argv preprocessing pass
-//     (see `normalizeArgv`).
+//     rewritten to commander's flag / `--no-` negation form during parsing by
+//     `FlexibleCommand.parseOptions`.
 
 /** Command run when none is specified on the command line. */
 const defaultCommand = 'change';
@@ -199,15 +193,8 @@ export function getCliOptions(programContext: ProgramContext): ParsedOptions['cl
   // Be careful not to mutate the input argv
   const trimmedArgv = programContext.argv.slice(2);
 
-  // Preprocess argv to reproduce yargs-parser behaviors commander doesn't support natively:
-  // normalize alternate flag spellings and boolean values.
-  const normalizedArgv = normalizeArgv({
-    argv: trimmedArgv,
-    optionDefinitions,
-  });
-
   const { program, getResult } = buildProgram(programContext);
-  program.parse(normalizedArgv, { from: 'user' });
+  program.parse(trimmedArgv, { from: 'user' });
   const { command, options, extraArgs: extraPositionalArgs } = getResult();
 
   let cwd = programContext.cwd;

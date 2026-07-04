@@ -1,4 +1,4 @@
-import { Command, Option, InvalidArgumentError, type Help } from 'commander';
+import { Command, Option, InvalidArgumentError, type Help, type ParseOptionsResult } from 'commander';
 import { resolveRemoteAndBranch } from 'workspace-tools';
 import type { CliOptions } from '../types/BeachballOptions';
 import { cacheRemoteBranch } from '../git/getRemoteBranch';
@@ -126,88 +126,62 @@ export class FlexibleCommand extends Command {
     help.optionTerm = option => (option as FlexibleOption).displayTerm ?? originalOptionTerm(option);
     return help;
   }
-}
-
-/**
- * Preprocess argv to rewrite boolean values that commander doesn't accept natively: values passed
- * via `=` or as a separate `true`/`false` token (`--fetch=false`, `--yes false`, `-y false`) are
- * rewritten to commander's flag / `--no-` negation form. Alternate flag spellings (camelCase and
- * aliases) are matched natively by {@link FlexibleOption}, so the rewritten token preserves the
- * user's original spelling.
- */
-export function normalizeArgv(params: {
-  argv: string[];
-  optionDefinitions: Record<string, OptionDefinition>;
-}): string[] {
-  const { argv, optionDefinitions } = params;
-  const result: string[] = [];
 
   /**
-   * Long-flag names (camelCase, dashed, or alias spelling) of boolean options, and short flag
-   * char => dashed name for boolean options. Used to detect which flags a `true`/`false` value
-   * should be rewritten for.
+   * Rewrite boolean values that commander doesn't accept natively before it parses: a `true`/`false`
+   * value passed via `=` or as a separate token (`--fetch=false`, `--yes false`, `-y false`) is
+   * rewritten to commander's flag / `--no-` negation form. This runs as part of parsing (rather than
+   * a separate preprocessing pass) so it can reuse each option's own `is()` to recognize any spelling
+   * (camelCase, alias, or short) instead of re-deriving the set of boolean flag names.
    */
-  const booleanNames = new Set<string>();
-  const shortBooleanToDashed = new Map<string, string>();
-  for (const [name, def] of Object.entries(optionDefinitions)) {
-    if (def.type !== 'boolean') {
-      continue;
-    }
-    booleanNames.add(name); // camelCase
-    booleanNames.add(_toDashed(name)); // dashed
-    if (def.alias) {
-      booleanNames.add(_toDashed(def.alias));
-    }
-    if (def.short) {
-      shortBooleanToDashed.set(def.short, _toDashed(name));
-    }
+  override parseOptions(argv: string[]): ParseOptionsResult {
+    return super.parseOptions(this._rewriteBooleanValues(argv));
   }
 
-  for (let i = 0; i < argv.length; i++) {
-    const token = argv[i];
+  /** Find a non-negated boolean option matching `flag` in any spelling, or `undefined`. */
+  private _findBooleanOption(flag: string): Option | undefined {
+    const option = this.options.find(opt => (opt as FlexibleOption).is(flag));
+    return option?.isBoolean() ? option : undefined;
+  }
 
-    if (token.startsWith('--')) {
-      // Split a `--flag` or `--flag=value` token into its name and (optional) inline value.
-      const [name, value] = token.slice(2).split('=', 2);
+  private _rewriteBooleanValues(argv: string[]): string[] {
+    const result: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+      const token = argv[i];
 
-      if (booleanNames.has(name)) {
-        // Boolean value passed via `=` (e.g. `--fetch=false` => `--no-fetch`).
-        if (value === 'true' || value === 'false') {
-          result.push(value === 'true' ? `--${name}` : `--no-${name}`);
-          continue;
-        }
-        // Boolean value passed as a separate token (e.g. `--yes false` => `--no-yes`).
-        if (value === undefined) {
-          const next = argv[i + 1];
-          if (next === 'true' || next === 'false') {
-            result.push(next === 'true' ? `--${name}` : `--no-${name}`);
-            i++; // consume the value token
-            continue;
-          }
-        }
+      // Stop rewriting at the `--` end-of-options marker.
+      if (token === '--') {
+        result.push(...argv.slice(i));
+        break;
       }
 
-      result.push(token);
-      continue;
-    }
+      if (!token.startsWith('-')) {
+        result.push(token);
+        continue;
+      }
 
-    // Short boolean flag with a separate `true`/`false` value (e.g. `-y false` => `--no-yes`).
-    if (token.length === 2 && token[0] === '-' && token[1] !== '-') {
-      const dashed = shortBooleanToDashed.get(token[1]);
-      if (dashed) {
+      const [eqFlag, eqValue] = token.split('=', 2);
+      let option = eqValue === 'true' || eqValue === 'false' ? this._findBooleanOption(eqFlag) : undefined;
+      if (option) {
+        // boolean value passed via `=` (e.g. `--fetch=false` => `--no-fetch`).
+        result.push(_toBooleanFlag(option, eqValue as 'true' | 'false'));
+      } else if (eqValue !== undefined) {
+        // non-boolean value passed via `=`
+        result.push(token);
+      } else {
+        // boolean value passed as a separate `true`/`false` token (e.g. `--yes false`, `-y false`).
         const next = argv[i + 1];
-        if (next === 'true' || next === 'false') {
-          result.push(next === 'true' ? `--${dashed}` : `--no-${dashed}`);
+        option = next === 'true' || next === 'false' ? this._findBooleanOption(token) : undefined;
+        if (option) {
+          result.push(_toBooleanFlag(option, next as 'true' | 'false'));
           i++; // consume the value token
-          continue;
+        } else {
+          result.push(token);
         }
       }
     }
-
-    result.push(token);
+    return result;
   }
-
-  return result;
 }
 
 /**
@@ -230,6 +204,11 @@ export function addAllOptions(params: { command: Command; optionDefinitions: Rec
 /** Convert a camelCase option name to its dashed CLI flag form (e.g. `gitTags` => `git-tags`). */
 export function _toDashed(name: string): string {
   return name.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+}
+
+/** Build the flag (`--foo`) or negation (`--no-foo`) form for a boolean option and `true`/`false` value. */
+function _toBooleanFlag(option: Option, value: 'true' | 'false'): string {
+  return value === 'true' ? `--${option.name()}` : `--no-${option.name()}`;
 }
 
 /** Coerce a value to a number, throwing `InvalidArgumentError` if it's not numeric. */

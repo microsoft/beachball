@@ -159,6 +159,11 @@ describe('getCliOptions', () => {
     });
   });
 
+  it('supports camel case combined with an = value', () => {
+    const options = getCliOptionsTest({ args: ['--dependentChangeType=patch'] });
+    expect(options).toEqual({ ...defaults, dependentChangeType: 'patch' });
+  });
+
   it('parses short option aliases', () => {
     const options = getCliOptionsTest({ args: ['publish', '-t', 'test', '-r', 'http://whatever', '-y'] });
     expect(options).toEqual({ ...defaults, command: 'publish', tag: 'test', registry: 'http://whatever', yes: true });
