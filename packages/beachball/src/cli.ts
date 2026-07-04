@@ -1,4 +1,3 @@
-import { CommanderError } from 'commander';
 import { findGitRoot, findPackageRoot, getPackageInfo } from 'workspace-tools';
 import { bump } from './commands/bump';
 import { canary } from './commands/canary';
@@ -124,14 +123,6 @@ const version = getPackageInfo(findPackageRoot(processCwd)!)?.version;
   } else if (e instanceof BeachballError) {
     // Expected error, not yet logged -- print the message (no stack trace)
     console.error(e.message);
-  } else if (e instanceof CommanderError) {
-    if (e.exitCode === 0) {
-      // If the code is 0, it's a help or version message
-      console.log(e.message);
-    } else {
-      // Option parsing error -- print the message (no stack trace)
-      console.error(e.message);
-    }
   } else {
     // Unexpected error -- print full details including stack
     console.log(`beachball v${version}`);

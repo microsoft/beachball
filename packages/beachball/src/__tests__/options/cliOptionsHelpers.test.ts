@@ -149,10 +149,10 @@ describe('FlexibleOption', () => {
     expect(option.long).toBe('--git-tags');
   });
 
-  it('uses a variadic placeholder for string-array options', () => {
+  it('uses a variadic placeholder for array options', () => {
     const option = new FlexibleOption({
       name: 'scope',
-      type: 'string-array',
+      type: 'array',
       desc: '',
       defaultValue: undefined,
     });
@@ -230,7 +230,7 @@ describe('FlexibleOption', () => {
     expect(option1.description).toBe('target branch');
     const option2 = new FlexibleOption({
       name: 'scope',
-      type: 'string-array',
+      type: 'array',
       desc: 'scope pattern',
       defaultValue: null,
     });
@@ -259,7 +259,7 @@ describe('addAllOptions', () => {
         branch: { type: 'string', short: 'b', desc: 'target branch' },
         configPath: { type: 'string', alias: 'config', desc: 'config path' },
         depth: { type: 'number', desc: 'clone depth' },
-        scope: { type: 'string-array', desc: 'scope pattern' },
+        scope: { type: 'array', desc: 'scope pattern' },
         fetch: { type: 'boolean', desc: 'fetch first' },
         forceVersions: { type: 'boolean', alias: 'force', desc: 'force versions' },
       },

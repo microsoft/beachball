@@ -9,14 +9,11 @@ import fs from 'fs';
 import { BeachballError } from '../../types/BeachballError';
 import path from 'path';
 
-jest.mock('../../git/tempGetDefaultRemoteBranch', () => ({
+jest.mock('workspace-tools', () => ({
+  ...jest.requireActual<typeof import('workspace-tools')>('workspace-tools'),
+  // not currently used (can add realistic mock if needed)
   resolveRemoteAndBranch: jest.fn(() => ({ remote: 'origin', remoteBranch: 'main' })),
 }));
-// jest.mock('workspace-tools', () => ({
-//   ...jest.requireActual<typeof import('workspace-tools')>('workspace-tools'),
-//   // not currently used (can add realistic mock if needed)
-//   resolveRemoteAndBranch: jest.fn(() => ({ remote: 'origin', remoteBranch: 'main' })),
-// }));
 
 describe('migrate command', () => {
   const logs = initMockLogs();

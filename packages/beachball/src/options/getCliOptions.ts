@@ -1,5 +1,5 @@
+import type { Command, OptionValues, OutputConfiguration } from 'commander';
 import { findProjectRoot } from 'workspace-tools';
-import type { Command, OptionValues } from 'commander';
 import { env } from '../env';
 import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
 import {
@@ -10,7 +10,7 @@ import {
   type OptionDefinition,
 } from './cliOptionsHelpers';
 
-export interface ProcessInfo {
+export interface ProgramContext {
   /** Complete argv (node and script path aren't used but elements must be present) */
   argv: string[];
   /**
@@ -27,6 +27,8 @@ export interface ProcessInfo {
   env: NodeJS.ProcessEnv | { NPM_TOKEN?: string };
   /** Beachball version (optional in tests) */
   version?: string;
+  /** Output options override (mainly for testing) */
+  outputOptions?: OutputConfiguration;
 }
 
 // NOTE: This file was migrated from yargs-parser to commander@14. Commander is currently used only
@@ -62,80 +64,68 @@ const optionDefinitions: Record<
   OptionDefinition
 > = {
   // array options
-  disallowedChangeTypes: { type: 'string-array', desc: 'change types that are not allowed' },
+  disallowedChangeTypes: { type: 'array', desc: 'change types that are not allowed' },
   package: {
-    type: 'string-array',
+    type: 'array',
     short: 'p',
     desc: 'force creating a change file for this package (can be specified multiple times)',
   },
   scope: {
-    type: 'string-array',
+    type: 'array',
     desc: 'only consider package paths matching this pattern (can be specified multiple times; supports negations)',
   },
   // boolean options
   all: { type: 'boolean', desc: 'generate change files for all packages' },
-  bump: { type: 'boolean', desc: 'bump versions during publish (use --no-bump to skip)' },
-  bumpDeps: { type: 'boolean', desc: 'bump dependent packages during publish (use --no-bump-deps to skip)' },
-  commit: { type: 'boolean', desc: 'commit change files after "change" (use --no-commit to only stage them)' },
+  bump: { type: 'boolean', desc: 'bump versions during publish' },
+  bumpDeps: { type: 'boolean', desc: 'bump dependent packages during publish' },
+  commit: { type: 'boolean', desc: 'commit change files after "change"' },
   disallowDeletedChangeFiles: {
     type: 'boolean',
     desc: 'verify that no change files were deleted between head and target branch',
   },
-  fetch: { type: 'boolean', desc: 'fetch from the remote before determining changes (use --no-fetch to skip)' },
+  fetch: { type: 'boolean', desc: 'fetch from the remote before determining changes' },
   forceVersions: {
     type: 'boolean',
     alias: 'force',
     desc: "for 'sync': use the version from the registry even if it's older than local",
   },
-  gitTags: {
-    type: 'boolean',
-    desc: 'create git tags for each published package version (use --no-git-tags to skip)',
-  },
+  gitTags: { type: 'boolean', desc: 'create git tags for each published package version' },
   keepChangeFiles: { type: 'boolean', desc: "don't delete the change files from disk after bumping" },
-  publish: { type: 'boolean', desc: 'publish to the npm registry (use --no-publish to skip)' },
-  push: { type: 'boolean', desc: 'push changes back to the remote git branch (use --no-push to skip)' },
+  publish: { type: 'boolean', desc: 'publish to the npm registry' },
+  push: { type: 'boolean', desc: 'push changes back to the remote git branch' },
   verbose: { type: 'boolean', desc: 'print additional information to the console' },
   yes: { type: 'boolean', short: 'y', desc: 'skip the confirmation prompts' },
   // number options
-  concurrency: { type: 'number', desc: 'maximum concurrency for write operations such as publishing (default: 1)' },
+  concurrency: { type: 'number', desc: 'maximum concurrency for write operations such as publishing' },
   depth: { type: 'number', desc: 'for shallow clones: depth of git history to consider when fetching' },
   npmReadConcurrency: {
     type: 'number',
-    desc: 'maximum concurrency for reading package versions from the registry (default: 5)',
+    desc: 'maximum concurrency for reading package versions from the registry',
   },
   gitTimeout: { type: 'number', desc: 'timeout in ms for git push operations' },
-  retries: { type: 'number', desc: 'number of retries for an npm publish before failing (default: 3)' },
+  retries: { type: 'number', desc: 'number of retries for an npm publish before failing' },
   timeout: { type: 'number', desc: 'timeout in ms for npm operations (other than install)' },
   // string options
-  access: { type: 'string', desc: 'npm publish access level: "public" or "restricted"' },
-  authType: { type: 'string', short: 'a', desc: 'npm auth type for NPM_TOKEN: "authtoken" or "password"' },
-  branch: { type: 'string', short: 'b', desc: 'target branch from remote (default: git config init.defaultBranch)' },
-  canaryName: { type: 'string', desc: 'dist-tag and version name to use for canary publishes' },
-  changehint: { type: 'string', desc: 'customized hint message shown when a change file is needed but missing' },
-  changeDir: { type: 'string', desc: 'name of the directory to store change files (default: change)' },
+  access: { desc: 'npm publish access level: "public" or "restricted"' },
+  authType: { short: 'a', desc: 'npm auth type for NPM_TOKEN: "authtoken" or "password"' },
+  branch: { short: 'b', desc: 'target branch from remote (default: git config init.defaultBranch)', omitDefault: true },
+  canaryName: { desc: 'dist-tag and version name to use for canary publishes' },
+  changehint: { desc: 'customized hint message shown when a change file is needed but missing' },
+  changeDir: { desc: 'name of the directory to store change files' },
   configPath: {
-    type: 'string',
     short: 'c',
     alias: 'config',
     desc: 'custom beachball config path (default: cosmiconfig standard paths)',
   },
-  dependentChangeType: { type: 'string', desc: 'change type to use for dependent packages (default: patch)' },
-  fromRef: {
-    type: 'string',
-    alias: 'since',
-    desc: 'consider changes or change files since this git ref (branch name, commit SHA)',
-  },
-  message: {
-    type: 'string',
-    short: 'm',
-    desc: 'for "change", the change description; for "publish", the commit message',
-  },
-  packToPath: { type: 'string', desc: 'pack packages to tgz files under this path instead of publishing to npm' },
-  prereleasePrefix: { type: 'string', desc: 'prerelease prefix for packages that will receive a prerelease bump' },
-  registry: { type: 'string', short: 'r', desc: 'npm registry (default: https://registry.npmjs.org)' },
-  tag: { type: 'string', short: 't', desc: 'npm dist-tag for publishes (default: "latest")' },
-  token: { type: 'string', short: 'n', desc: 'npm auth token (defaults to the NPM_TOKEN environment variable)' },
-  type: { type: 'string', desc: 'type of change: e.g. major, minor, patch, none (instead of prompting)' },
+  dependentChangeType: { desc: 'change type to use for dependent packages (default: patch)' },
+  fromRef: { alias: 'since', desc: 'consider changes or change files since this git ref (branch name, commit SHA)' },
+  message: { short: 'm', desc: 'for "change", the change description; for "publish", the commit message' },
+  packToPath: { desc: 'pack packages to tgz files under this path instead of publishing to npm' },
+  prereleasePrefix: { desc: 'prerelease prefix for packages that will receive a prerelease bump' },
+  registry: { short: 'r', desc: 'npm registry' },
+  tag: { short: 't', desc: 'npm dist-tag for publishes (default: "latest")', omitDefault: true },
+  token: { short: 'n', desc: 'npm auth token (defaults to the NPM_TOKEN environment variable)' },
+  type: { desc: 'type of change: e.g. major, minor, patch, none (instead of prompting)' },
 };
 
 /** Result captured from parsing. */
@@ -152,31 +142,35 @@ interface ParseResult {
  * handled natively and commander errors on excess positional args for all other commands.
  * Commander is currently used only for parsing, not command dispatch.
  *
- * Other configuration:
- * - program description, version, examples
- * - configureOutput to suppress commander output
- * - exitOverride to throw on errors instead of calling process.exit()
- *   (`--help` or `--version` is thrown as an error with `exitCode: 0` which must be logged)
+ * Also configures the description and version. In Jest, it configures commander to throw on error
+ * and write to no-op functions (though passing `outputOptions` is recommended).
  *
  * @returns The program plus a getter for the parse result (populated by the action handlers when
  * `program.parse()` is called).
  */
-function buildProgram(version: string | undefined): { program: Command; getResult: () => ParseResult } {
+function buildProgram(params: Pick<ProgramContext, 'outputOptions' | 'version'>): {
+  program: Command;
+  getResult: () => ParseResult;
+} {
+  const { version } = params;
+
   const program = new FlexibleCommand();
   program.name('beachball');
-  version && program.version(version);
   program.description(`beachball${version ? ` v${version}` : ''} - the sunniest version bumping tool`);
   program.usage('<command> [options]');
 
-  // Throw instead of calling process.exit() or writing to stdout/stderr on error, so callers and
-  // tests can handle failures. (This also makes commander error on unknown options and excess
-  // positional args, which is an intentional breaking change from yargs-parser.)
-  program.configureOutput({ writeOut: () => {}, writeErr: () => {} }); // suppress commander output
-  program.exitOverride(err => {
-    throw err;
-  });
+  let outputOptions = params.outputOptions;
+  if (env.isJest) {
+    program.exitOverride(err => {
+      throw err;
+    });
+    outputOptions ??= { writeOut: () => {}, writeErr: () => {} };
+  }
+  outputOptions && program.configureOutput(outputOptions);
 
   addAllOptions({ command: program, optionDefinitions });
+  // set this last so it's at the end of help
+  version && program.version(version);
 
   // The single positional is the command name (any value; validated by the caller/cli.ts).
   program.argument('[command]', 'beachball command to run');
@@ -201,9 +195,9 @@ function buildProgram(version: string | undefined): { program: Command; getResul
 /**
  * Gets CLI options. Also gets the `NPM_TOKEN` environment variable if present.
  */
-export function getCliOptions(processInfo: ProcessInfo): ParsedOptions['cliOptions'] {
+export function getCliOptions(programContext: ProgramContext): ParsedOptions['cliOptions'] {
   // Be careful not to mutate the input argv
-  const trimmedArgv = processInfo.argv.slice(2);
+  const trimmedArgv = programContext.argv.slice(2);
 
   // Preprocess argv to reproduce yargs-parser behaviors commander doesn't support natively:
   // normalize alternate flag spellings and boolean values.
@@ -212,16 +206,16 @@ export function getCliOptions(processInfo: ProcessInfo): ParsedOptions['cliOptio
     optionDefinitions,
   });
 
-  const { program, getResult } = buildProgram(processInfo.version);
+  const { program, getResult } = buildProgram(programContext);
   program.parse(normalizedArgv, { from: 'user' });
   const { command, options, extraArgs: extraPositionalArgs } = getResult();
 
-  let cwd = processInfo.cwd;
+  let cwd = programContext.cwd;
   try {
     // If a non-empty cwd is provided, find the project root from there.
     // Empty means this is a test without a filesystem.
     if (cwd && !env.isJest) {
-      cwd = findProjectRoot(processInfo.cwd);
+      cwd = findProjectRoot(programContext.cwd);
     }
   } catch {
     // use the provided cwd
@@ -254,8 +248,8 @@ export function getCliOptions(processInfo: ProcessInfo): ParsedOptions['cliOptio
 
   // If both --token and NPM_TOKEN are provided, prefer the CLI token (could go either way, but
   // this is safer for compatibility in case anyone was already using that env name another way)
-  if (processInfo.env.NPM_TOKEN && cliOptions.token === undefined) {
-    cliOptions.token = processInfo.env.NPM_TOKEN;
+  if (programContext.env.NPM_TOKEN && cliOptions.token === undefined) {
+    cliOptions.token = programContext.env.NPM_TOKEN;
   }
 
   return cliOptions;

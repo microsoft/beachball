@@ -1,7 +1,7 @@
-import { Command, Option, InvalidArgumentError } from 'commander';
+import { Command, Option, InvalidArgumentError, type Help } from 'commander';
+import { resolveRemoteAndBranch } from 'workspace-tools';
 import type { CliOptions } from '../types/BeachballOptions';
 import { cacheRemoteBranch } from '../git/getRemoteBranch';
-import { resolveRemoteAndBranch } from '../git/tempGetDefaultRemoteBranch';
 import { getDefaultOptions } from './getDefaultOptions';
 
 /** Definition of a single CLI option, used to build its commander `Option`. */
@@ -15,19 +15,26 @@ export interface OptionDefinition {
    * stored under the canonical name.
    */
   alias?: string;
-  type: 'string' | 'number' | 'boolean' | 'string-array';
+  /**
+   * Value type. `'array'` is currently always a string array.
+   * `'boolean'` values get a negated `--no-` form automatically.
+   * @default 'string'
+   */
+  type?: 'string' | 'number' | 'boolean' | 'array';
   /** Parse the value or throw `InvalidArgumentError` if invalid. */
   parse?: (value: string, previous: unknown) => unknown;
   /** Valid choices, such as for `disallowedChangeTypes`. */
   choices?: string[];
+  /** Omit the default option from `getDefaultOptions` from the help text. */
+  omitDefault?: boolean;
 }
 
 /** Value placeholder shown after each option flag, by option type. */
-const valueSyntax: Record<OptionDefinition['type'], string> = {
+const valueSyntax: Record<NonNullable<OptionDefinition['type']>, string> = {
   string: '<value>',
   number: '<value>',
   boolean: '',
-  'string-array': '<value...>',
+  array: '<value...>',
 };
 
 /**
@@ -53,7 +60,7 @@ export class FlexibleOption extends Option {
       defaultValue: unknown;
     }
   ) {
-    const { name, type, negated, defaultValue } = params;
+    const { name, type = 'string', negated, defaultValue } = params;
     const dashed = _toDashed(name);
     const suffix = valueSyntax[type] ? ` ${valueSyntax[type]}` : '';
     const shortPrefix = params.short && !negated ? `-${params.short}, ` : '';
@@ -61,7 +68,7 @@ export class FlexibleOption extends Option {
     // Show the default value (if any) at the end of the help text, but don't set it as commander's
     // actual default to preserve precedence (CLI > config file > default).
     const defaultSuffix =
-      !negated && defaultValue !== null && defaultValue !== undefined
+      !negated && !params.omitDefault && defaultValue !== null && defaultValue !== undefined
         ? ` (default: ${JSON.stringify(defaultValue)})`
         : '';
     super(`${shortPrefix}${canonicalLong}`, negated ? undefined : `${params.desc}${defaultSuffix}`);
@@ -109,11 +116,11 @@ export class FlexibleOption extends Option {
  * option's `displayTerm` (the alias, if any) instead of the canonical flag.
  */
 export class FlexibleCommand extends Command {
-  createCommand(name?: string): FlexibleCommand {
+  override createCommand(name?: string): FlexibleCommand {
     return new FlexibleCommand(name);
   }
 
-  createHelp(): ReturnType<Command['createHelp']> {
+  override createHelp(): Help {
     const help = super.createHelp();
     const originalOptionTerm = help.optionTerm.bind(help);
     help.optionTerm = option => (option as FlexibleOption).displayTerm ?? originalOptionTerm(option);
