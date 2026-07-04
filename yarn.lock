@@ -3114,9 +3114,9 @@ __metadata:
     "@types/prompts": "npm:^2.4.2"
     "@types/semver": "npm:^7.3.13"
     "@types/tmp": "npm:^0.2.3"
-    "@types/yargs-parser": "npm:^21.0.0"
     "@vercel/detect-agent": "npm:^1.2.1"
     "@verdaccio/types": "npm:^13.0.0"
+    commander: "catalog:prod"
     cosmiconfig: "npm:^9.0.1"
     cross-env: "npm:^10.1.0"
     execa: "npm:^5.1.1"
@@ -3133,7 +3133,6 @@ __metadata:
     verdaccio-auth-memory: "npm:^13.0.0"
     verdaccio-memory: "npm:^10.4.3"
     workspace-tools: "catalog:prod"
-    yargs-parser: "npm:^21.1.1"
   bin:
     beachball: ./bin/beachball.js
   languageName: unknown
@@ -3507,13 +3506,6 @@ __metadata:
   version: 14.0.3
   resolution: "commander@npm:14.0.3"
   checksum: 10c0/755652564bbf56ff2ff083313912b326450d3f8d8c85f4b71416539c9a05c3c67dbd206821ca72635bf6b160e2afdefcb458e86b317827d5cb333b69ce7f1a24
-  languageName: node
-  linkType: hard
-
-"commander@npm:^15.0.0":
-  version: 15.0.0
-  resolution: "commander@npm:15.0.0"
-  checksum: 10c0/539229c171914ea1ccd45ee5f10d924289a12a684ea3a7a44147abe54003c35ed6de9ae4ad198d88c29fdf403dca0428451a388234e6dc01b6faa978fb207206
   languageName: node
   linkType: hard
 
@@ -7259,7 +7251,7 @@ __metadata:
   dependencies:
     "@microsoft/beachball-scripts": "workspace:^"
     "@octokit/openapi-types": "npm:^27.0.0"
-    commander: "npm:^15.0.0"
+    commander: "catalog:prod"
     cross-env: "npm:^10.1.0"
     nano-spawn: "npm:^2.1.0"
   bin:

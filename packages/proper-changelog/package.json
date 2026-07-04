@@ -34,7 +34,7 @@
     "cross-env": "^10.1.0"
   },
   "dependencies": {
-    "commander": "^15.0.0",
+    "commander": "catalog:prod",
     "nano-spawn": "^2.1.0"
   }
 }
