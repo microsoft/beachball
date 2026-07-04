@@ -2,7 +2,7 @@ import { getUntrackedChanges } from 'workspace-tools';
 import { isValidAuthType } from './isValidAuthType';
 import { isValidChangeType } from './isValidChangeType';
 import { isValidGroupedPackageOptions, isValidGroupOptions } from './isValidGroupOptions';
-import type { BeachballOptions, ParsedOptions } from '../types/BeachballOptions';
+import type { ParsedOptions } from '../types/BeachballOptions';
 import { isValidChangelogOptions } from './isValidChangelogOptions';
 import { readChangeFiles } from '../changefile/readChangeFiles';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
@@ -54,15 +54,8 @@ type ValidationResult = {
  * If `validateOptions.checkChangeNeeded` is true, also check whether change files are needed.
  * @returns Various info retrieved during validation which is also needed by other functions.
  */
-export function validate(parsedOptions: ParsedOptions, validateOptions: ValidateOptions): ValidationResult;
-/** @deprecated Use other signature */
-export function validate(options: BeachballOptions, validateOptions?: ValidateOptions): ValidationResult;
-export function validate(
-  _options: BeachballOptions | ParsedOptions,
-  validateOptions?: ValidateOptions
-): ValidationResult {
-  const options = 'options' in _options ? _options.options : _options;
-
+export function validate(parsedOptions: ParsedOptions, validateOptions: ValidateOptions): ValidationResult {
+  const { options } = parsedOptions;
   const { allowMissingChangeFiles, checkChangeNeeded, checkDependencies } = validateOptions || {};
 
   console.log('\nValidating options and change files...');
@@ -83,9 +76,7 @@ export function validate(
     !env.isCI && console.warn('Changes in these files will not trigger a prompt for change descriptions');
   }
 
-  const originalPackageInfos =
-    // eslint-disable-next-line @ms-cloudpack/no-deprecated
-    'cliOptions' in _options ? getPackageInfos(_options) : getPackageInfos(options.path);
+  const originalPackageInfos = getPackageInfos(parsedOptions);
 
   if (options.all && options.package) {
     logValidationError('Cannot specify both "all" and "package" options');

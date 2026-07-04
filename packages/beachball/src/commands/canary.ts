@@ -6,19 +6,12 @@ import { listPackageVersions } from '../packageManager/listPackageVersions';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { CommandContext } from '../types/CommandContext';
-import { createCommandContext } from '../monorepo/createCommandContext';
 
 /**
  * Bump and publish a "canary" prerelease version.
  * @param context Command context from `validate()`
  */
-export async function canary(options: BeachballOptions, context: CommandContext): Promise<void>;
-/** @deprecated Use other signature */
-export async function canary(options: BeachballOptions): Promise<void>;
-export async function canary(options: BeachballOptions, context?: CommandContext): Promise<void> {
-  // eslint-disable-next-line @ms-cloudpack/no-deprecated -- compat code
-  context ??= createCommandContext(options);
-
+export async function canary(options: BeachballOptions, context: CommandContext): Promise<void> {
   const bumpInfo = context.bumpInfo || bumpInMemory(options, context);
   const { originalPackageInfos } = context;
 

@@ -8,7 +8,7 @@ import { getPackageInfos } from '../monorepo/getPackageInfos';
 import type { packagePublish } from '../packageManager/packagePublish';
 import type { RepoOptions } from '../types/BeachballOptions';
 import { initNpmMock } from '../__fixtures__/mockNpm';
-import { getParsedOptions } from '../options/getOptions';
+import { getOptions } from '../options/getOptions';
 import { removeTempDir } from '../__fixtures__/tmpdir';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 
@@ -36,7 +36,7 @@ describe('sync command (e2e)', () => {
   };
 
   function getOptionsAndContext(repoOptions?: Partial<RepoOptions>, extraArgv: string[] = []) {
-    const parsedOptions = getParsedOptions({
+    const parsedOptions = getOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'sync', ...extraArgv],
       env: {},

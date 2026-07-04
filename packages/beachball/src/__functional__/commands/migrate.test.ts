@@ -1,7 +1,7 @@
 import { describe, expect, it, afterEach, jest } from '@jest/globals';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { migrate } from '../../commands/migrate';
-import { getParsedOptions } from '../../options/getOptions';
+import { getOptions as _getOptions } from '../../options/getOptions';
 import type { RepoOptions } from '../../types/BeachballOptions';
 import { removeTempDir } from '../../__fixtures__/tmpdir';
 import { createTestFileStructureType, updateJsonFile } from '../../__fixtures__/createTestFileStructure';
@@ -23,7 +23,7 @@ describe('migrate command', () => {
   let tempRoot = '';
 
   function getOptions(repoOptions?: Partial<RepoOptions>) {
-    return getParsedOptions({ argv: [], env: {}, cwd: tempRoot, testRepoOptions: repoOptions });
+    return _getOptions({ argv: [], env: {}, cwd: tempRoot, testRepoOptions: repoOptions });
   }
 
   afterEach(() => {

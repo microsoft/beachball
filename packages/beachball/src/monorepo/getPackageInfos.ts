@@ -4,7 +4,6 @@ import {
   getPackageInfo as getWSPackageInfo,
   listAllTrackedFiles,
   findPackageRoot,
-  findProjectRoot,
   type PackageInfo as WSPackageInfo,
   type PackageInfos as WSPackageInfos,
 } from 'workspace-tools';
@@ -27,23 +26,16 @@ type PackageInfosOptions = Pick<ParsedOptions, 'cliOptions'> & {
  * into `PackageInfo.packageOptions` without going back through the whole process of
  * getting CLI options.
  */
-export function getPackageInfos(cliOptions: PackageInfosOptions): PackageInfos;
-/** @deprecated Pass the pre-parsed options */
-export function getPackageInfos(cwd: string): PackageInfos;
-export function getPackageInfos(optionsOrCwd: string | PackageInfosOptions): PackageInfos {
-  const parsedOptions = typeof optionsOrCwd === 'string' ? undefined : optionsOrCwd;
-  const cwd = parsedOptions?.options.path || (optionsOrCwd as string);
+export function getPackageInfos(parsedOptions: PackageInfosOptions): PackageInfos {
+  const cwd = parsedOptions?.options.path;
 
   // If cwd comes from processed CLI options, it's already the root
-  const projectRoot = typeof optionsOrCwd === 'string' ? findProjectRoot(cwd) : cwd;
+  const projectRoot = cwd;
   const packageRoot = findPackageRoot(cwd);
 
   const wsPackageInfos = getRawPackageInfos({ projectRoot, packageRoot, options: parsedOptions?.options });
   if (wsPackageInfos) {
-    return parsedOptions
-      ? getPackageInfosWithOptions(wsPackageInfos, parsedOptions.cliOptions)
-      : // eslint-disable-next-line @ms-cloudpack/no-deprecated
-        getPackageInfosWithOptions(wsPackageInfos);
+    return getPackageInfosWithOptions(wsPackageInfos, parsedOptions.cliOptions);
   }
   return {};
 }

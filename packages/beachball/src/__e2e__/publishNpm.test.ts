@@ -11,7 +11,7 @@ import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { removeTempDir, tmpdir } from '../__fixtures__/tmpdir';
 import { publish } from '../commands/publish';
 import { createCommandContext } from '../monorepo/createCommandContext';
-import { getParsedOptions } from '../options/getOptions';
+import { getOptions as _getOptions } from '../options/getOptions';
 import type { ParsedOptions, RepoOptions } from '../types/BeachballOptions';
 import { validate } from '../validation/validate';
 
@@ -39,7 +39,7 @@ describe('publish command (npm)', () => {
    * Get options with defaults including skipping git stuff
    */
   function getOptions(repoOptions?: Partial<RepoOptions>) {
-    const parsedOptions = getParsedOptions({
+    const parsedOptions = _getOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'publish', '--yes'],
       env: {},

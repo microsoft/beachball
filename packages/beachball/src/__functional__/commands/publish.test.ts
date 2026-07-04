@@ -9,7 +9,7 @@ import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { bumpInMemory } from '../../bump/bumpInMemory';
 import { publish } from '../../commands/publish';
 import { createCommandContext } from '../../monorepo/createCommandContext';
-import { getParsedOptions } from '../../options/getOptions';
+import { getOptions as _getOptions } from '../../options/getOptions';
 import { bumpAndPush } from '../../publish/bumpAndPush';
 import { publishToRegistry } from '../../publish/publishToRegistry';
 import type { ParsedOptions, RepoOptions } from '../../types/BeachballOptions';
@@ -38,7 +38,7 @@ describe('publish command', () => {
   let repo: Repository | undefined;
 
   function getOptions(repoOptions?: Partial<RepoOptions>) {
-    const parsedOptions = getParsedOptions({
+    const parsedOptions = _getOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'publish', '--yes'],
       env: {},

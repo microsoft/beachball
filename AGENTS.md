@@ -70,7 +70,7 @@ All these paths refer to the `beachball` package under `packages/beachball`.
 - `src/validation/` - Pre-command validation (change file presence, dependency checks)
 - `src/types/` - TypeScript interfaces (`BeachballOptions` is the central config type)
 
-**Option resolution:** CLI args > `beachball.config.js` (via cosmiconfig) > defaults. `getParsedOptions()` returns both raw `cliOptions` and merged `options`.
+**Option resolution:** CLI args > `beachball.config.js` (via cosmiconfig) > defaults. `getOptions()` returns both raw `cliOptions` and merged `options`.
 
 ## Coding standards
 

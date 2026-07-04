@@ -62,35 +62,10 @@ describe('getPackageInfos', () => {
     multiProjectFactory.cleanUp();
   });
 
-  // This is irrelevant with the new signature because the exception would have been thrown when
-  // the options were being parsed.
-  it('throws if neither project root nor git repo found (old signature)', () => {
-    tempDir = tmpdir();
-    // eslint-disable-next-line @ms-cloudpack/no-deprecated
-    expect(() => getPackageInfos(tempDir!)).toThrow(/not in a git repository/);
-  });
-
   it('returns empty object if no packages are found', () => {
     tempDir = tmpdir();
     gitFailFast(['init'], { cwd: tempDir });
-    // eslint-disable-next-line @ms-cloudpack/no-deprecated
-    expect(getPackageInfos(tempDir)).toEqual({});
     expect(getPackageInfos({ cliOptions: {}, options: { path: tempDir } })).toEqual({});
-  });
-
-  it('works in single-package repo (old signature)', () => {
-    const repo = singleFactory.cloneRepository();
-    // eslint-disable-next-line @ms-cloudpack/no-deprecated
-    const packageInfos = getPackageInfos(repo.rootPath);
-    // Verify all the properties for this case
-    expect(packageInfos).toEqual({
-      foo: {
-        name: 'foo',
-        version: '1.0.0',
-        dependencies: { bar: '1.0.0', baz: '1.0.0' },
-        packageJsonPath: path.join(repo.rootPath, 'package.json'),
-      },
-    });
   });
 
   it('works in single-package repo', () => {
@@ -116,15 +91,6 @@ describe('getPackageInfos', () => {
     // prettier-ignore
     foo: { name: 'foo', version: '1.0.0',  dependencies: { bar: '^1.3.4' }, packageJsonPath: '<root>/packages/foo/package.json' },
   };
-
-  // both yarn and npm define "workspaces" in package.json
-  it('works in yarn/npm monorepo (old signature)', () => {
-    const repo = monorepoFactory.cloneRepository();
-    // Start from another cwd to make sure it works
-    // eslint-disable-next-line @ms-cloudpack/no-deprecated
-    const packageInfos = getPackageInfos(repo.pathTo('packages/foo'));
-    expect(cleanPaths(repo.rootPath, packageInfos)).toEqual(expectedYarnPackages);
-  });
 
   it('works in yarn/npm monorepo', () => {
     // With the new signature, path is assumed to be the root, so git isn't needed

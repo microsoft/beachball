@@ -4,24 +4,10 @@ import { getRepoOptions } from './getRepoOptions';
 import { getDefaultOptions } from './getDefaultOptions';
 
 /**
- * Gets all repo level options (default + root options + cli options)
- * @deprecated Use `getParsedOptions`
- */
-export function getOptions(argv: string[]): BeachballOptions {
-  // eslint-disable-next-line no-restricted-properties -- deprecated API
-  const cliOptions = getCliOptions({ argv, cwd: process.cwd(), env: process.env });
-  return mergeRepoOptions({
-    repoOptions: getRepoOptions(cliOptions),
-    cliOptions,
-  });
-}
-
-/**
  * Get merged and unmerged options, for reuse by `getPackageInfos`.
  * @param testRepoOptions Repo options for testing purposes
  */
-// TODO: rename back to getOptions in a major release
-export function getParsedOptions(params: ProcessInfo & { testRepoOptions?: Partial<RepoOptions> }): ParsedOptions {
+export function getOptions(params: ProcessInfo & { testRepoOptions?: Partial<RepoOptions> }): ParsedOptions {
   const { testRepoOptions, ...processInfo } = params;
   const cliOptions = getCliOptions(processInfo);
   const repoOptions = testRepoOptions || getRepoOptions(cliOptions);

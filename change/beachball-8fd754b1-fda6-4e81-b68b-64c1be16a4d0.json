@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Remove deprecated signatures of non-exported functions that were used by some consumers. Use the new signatures (which pre-calculate and share context) instead.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

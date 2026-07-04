@@ -9,7 +9,7 @@ import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { getCatalogChangedPackages } from '../../changefile/getCatalogChangedPackages';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
-import { getParsedOptions } from '../../options/getOptions';
+import { getOptions } from '../../options/getOptions';
 import type { PackageInfos, ScopedPackages } from '../../types/PackageInfo';
 
 jest.mock('workspace-tools', () => {
@@ -233,7 +233,7 @@ describe('getCatalogChangedPackages', () => {
    * Get changed files (only committed) and options, and call `getCatalogChangedPackages`.
    */
   function getCatalogChangedPackagesWrapper() {
-    const parsedOptions = getParsedOptions({
+    const parsedOptions = getOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'change'],
       env: {},

@@ -5,7 +5,7 @@ import type { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { makePackageInfos, type PartialPackageInfo } from '../../__fixtures__/packageInfos';
 import type { ChangeType } from '../../types/ChangeInfo';
-import { getParsedOptions } from '../../options/getOptions';
+import { getOptions } from '../../options/getOptions';
 import type { PackageGroups } from '../../types/PackageInfo';
 
 type GetQuestionsParams = Parameters<typeof getQuestionsForPackage>[0];
@@ -32,7 +32,7 @@ describe('getQuestionsForPackage', () => {
 
     const packageInfos = makePackageInfos({ [pkg]: packageInfo });
     // fill in default options
-    const { options } = getParsedOptions({ cwd: '', argv: [], env: {}, testRepoOptions: repoOptions });
+    const { options } = getOptions({ cwd: '', argv: [], env: {}, testRepoOptions: repoOptions });
 
     return getQuestionsForPackage({ pkg, packageInfos, packageGroups, options, recentMessages });
   }

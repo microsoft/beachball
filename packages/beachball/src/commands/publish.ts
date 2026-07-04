@@ -1,7 +1,6 @@
 import prompts from 'prompts';
 import { getBranchName, getCurrentHash, git, gitFailFast } from 'workspace-tools';
 import { bumpInMemory } from '../bump/bumpInMemory';
-import { createCommandContext } from '../monorepo/createCommandContext';
 import { bumpAndPush } from '../publish/bumpAndPush';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import type { BeachballOptions } from '../types/BeachballOptions';
@@ -13,15 +12,10 @@ import { checkNpmAuthEnvPassthrough } from '../packageManager/npmAuthEnvPassthro
  * Potentially bump, publish, and push package changes depending on options.
  * @param context Command context from `validate()`
  */
-export async function publish(options: BeachballOptions, context: CommandContext): Promise<void>;
-/** @deprecated Use other signature */
-export async function publish(options: BeachballOptions): Promise<void>;
-export async function publish(options: BeachballOptions, context?: CommandContext): Promise<void> {
+export async function publish(options: BeachballOptions, context: CommandContext): Promise<void> {
   console.log('Preparing to publish\n');
 
   const { path: cwd, branch, registry, tag, packToPath } = options;
-  // eslint-disable-next-line @ms-cloudpack/no-deprecated -- compat code
-  context ??= createCommandContext(options);
 
   // First, validate that we have changes to publish
   const { changeSet: changes } = context;

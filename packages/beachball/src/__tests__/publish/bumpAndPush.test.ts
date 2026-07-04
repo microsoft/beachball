@@ -10,7 +10,7 @@ import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import type { BumpInfo } from '../../types/BumpInfo';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
-import { getParsedOptions } from '../../options/getOptions';
+import { getOptions } from '../../options/getOptions';
 import { BeachballError } from '../../types/BeachballError';
 import type { BeachballOptions } from '../../types/BeachballOptions';
 
@@ -65,7 +65,7 @@ describe('bumpAndPush', () => {
   }
 
   function callBumpAndPush(optionOverrides?: Partial<BeachballOptions>, maxRetries?: number) {
-    const { options } = getParsedOptions({
+    const { options } = getOptions({
       cwd: fakeRoot,
       argv: [],
       env: {},

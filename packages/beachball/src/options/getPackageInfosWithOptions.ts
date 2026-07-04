@@ -1,6 +1,5 @@
 import type { PackageInfo as WSPackageInfo } from 'workspace-tools';
 import type { PackageOptions, CliOptions } from '../types/BeachballOptions';
-import { getCliOptions } from './getCliOptions';
 import { env } from '../env';
 import { consideredDependencies, type PackageInfo, type PackageInfos } from '../types/PackageInfo';
 
@@ -16,20 +15,7 @@ export function getPackageInfosWithOptions(
   wsPackageInfos: WSPackageInfo[],
   cliOptions: Partial<CliOptions> | null,
   enableCombinedOptionsForTests?: boolean
-): PackageInfos;
-/** @deprecated Provide the pre-parsed options */
-export function getPackageInfosWithOptions(wsPackageInfos: WSPackageInfo[]): PackageInfos;
-export function getPackageInfosWithOptions(
-  wsPackageInfos: WSPackageInfo[],
-  cliOptions?: Partial<CliOptions> | null,
-  enableCombinedOptionsForTests?: boolean
 ): PackageInfos {
-  if (cliOptions === undefined) {
-    // Don't use options from process.argv or the beachball repo in tests
-    // eslint-disable-next-line @ms-cloudpack/no-deprecated
-    cliOptions = env.isJest ? null : getCliOptions(process.argv);
-  }
-
   const packageInfos: PackageInfos = {};
 
   for (const packageJson of wsPackageInfos) {

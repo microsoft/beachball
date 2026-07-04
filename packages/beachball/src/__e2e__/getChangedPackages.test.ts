@@ -15,7 +15,7 @@ import { getChangedPackages } from '../changefile/getChangedPackages';
 import { initMockLogs } from '../__fixtures__/mockLogs';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import type { Repository } from '../__fixtures__/repository';
-import { getParsedOptions } from '../options/getOptions';
+import { getOptions as _getOptions } from '../options/getOptions';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 
 //
@@ -50,7 +50,7 @@ describe('getChangedPackages', () => {
 
   function getOptions(params: { repoOptions?: Partial<RepoOptions>; extraArgv?: string[]; cwd?: string } = {}) {
     const { repoOptions, extraArgv = [], cwd = repo!.rootPath } = params;
-    return getParsedOptions({
+    return _getOptions({
       cwd,
       argv: ['node', 'beachball', 'change', ...extraArgv],
       env: {},

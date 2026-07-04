@@ -12,7 +12,7 @@ import { RepositoryFactory, type RepoFixture } from '../__fixtures__/repositoryF
 import { publish } from '../commands/publish';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { readJson } from '../object/readJson';
-import { getParsedOptions } from '../options/getOptions';
+import { getOptions as _getOptions } from '../options/getOptions';
 import type { ParsedOptions, RepoOptions } from '../types/BeachballOptions';
 import type { PackageJson } from '../types/PackageInfo';
 import { validate } from '../validation/validate';
@@ -40,7 +40,7 @@ describe('publish command (e2e)', () => {
   initMockLogs({ alsoLog: ['error'] });
 
   function getOptions(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
-    const parsedOptions = getParsedOptions({
+    const parsedOptions = _getOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'publish', '--yes', ...(extraArgv || [])],
       env: {},
