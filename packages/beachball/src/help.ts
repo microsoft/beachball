@@ -36,7 +36,7 @@ Options supported by all commands except 'config':
 
     --branch, -b      - target branch from remote (default: git config init.defaultBranch)
     --change-dir      - name of the directory to store change files (default: change)
-    --config-path, -c - custom beachball config path (default: cosmiconfig standard paths)
+    --config, -c      - custom beachball config path (default: cosmiconfig standard paths)
     --no-fetch        - skip fetching from the remote before determining changes
     --scope           - only consider package paths matching this pattern
                         (can be specified multiple times; supports negations)

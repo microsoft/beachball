@@ -103,10 +103,6 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, scope: ['a,b', 'c,d'] });
   });
 
-  it('throws if non-array option is specified multiple times', () => {
-    expect(() => getCliOptionsTest(['--tag', 'foo', '--tag', 'baz'])).toThrow();
-  });
-
   it('parses negated boolean option', () => {
     const options = getCliOptionsTest(['--no-fetch']);
     expect(options).toEqual({ ...defaults, fetch: false });

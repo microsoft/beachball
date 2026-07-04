@@ -4,7 +4,6 @@ import type { CliOptions } from '../../types/BeachballOptions';
 import {
   _getFlagAliasMap,
   _parseNumber,
-  _parseSingle,
   _toDashed,
   addAllOptions,
   normalizeArgv,
@@ -35,27 +34,6 @@ describe('_parseNumber', () => {
     expect(() => _parseNumber('abc')).toThrow(InvalidArgumentError);
     expect(() => _parseNumber('abc')).toThrow('Expected numeric value.');
     expect(() => _parseNumber('')).not.toThrow(); // empty string coerces to 0
-  });
-});
-
-describe('_parseSingle', () => {
-  it('returns the value on first use', () => {
-    expect(_parseSingle()('main', undefined)).toBe('main');
-  });
-
-  it('throws InvalidArgumentError if the option is specified more than once', () => {
-    expect(() => _parseSingle()('main', 'other')).toThrow(InvalidArgumentError);
-    expect(() => _parseSingle()('main', 'other')).toThrow('Option can only be specified once.');
-  });
-
-  it('applies the coerce function when provided', () => {
-    const parse = _parseSingle(_parseNumber);
-    expect(parse('5', undefined)).toBe(5);
-  });
-
-  it('applies coerce and still throws on repeated use', () => {
-    const parse = _parseSingle(_parseNumber);
-    expect(() => parse('5', 5)).toThrow('Option can only be specified once.');
   });
 });
 
@@ -185,12 +163,10 @@ describe('addAllOptions', () => {
     expect(opts.depth).toBe(3);
   });
 
-  it('throws when a single-value option is specified twice', () => {
+  it('uses second value when a single-value option is specified twice', () => {
     const command = buildCommand();
     command.exitOverride();
-    expect(() => command.parse(['--branch', 'a', '--branch', 'b'], { from: 'user' })).toThrow(
-      'Option can only be specified once.'
-    );
+    expect(command.parse(['--branch', 'a', '--branch', 'b'], { from: 'user' }).opts().branch).toBe('b');
   });
 
   it('collects array options from repeated and variadic usage', () => {

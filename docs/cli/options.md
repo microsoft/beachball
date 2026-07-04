@@ -19,7 +19,7 @@ The options below apply to most CLI commands.
 | Option | Alias | Default | Description |
 | ------ | ----- | ------- | ----------- |
 | `--branch, -b` | `-b` | | target branch; see [config docs][1] for details |
-| `--config-path` | `-c` | [cosmiconfig][2] defaults | custom beachball config path |
+| `--config` | `-c` | [cosmiconfig][2] defaults | custom beachball config path |
 | `--no-fetch` | | | skip fetching from the remote |
 | `--change-dir` | | `'change'` | name of the directory to store change files |
 | `--scope` | | | only consider matching package paths (can be specified multiple times); see [config docs][3] |

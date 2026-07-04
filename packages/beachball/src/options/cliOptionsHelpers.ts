@@ -18,25 +18,6 @@ export function _parseNumber(value: string): number {
 }
 
 /**
- * Build an `argParser` for a non-array option that throws `InvalidArgumentError` if the option is
- * specified more than once (commander passes the previously-parsed value as the second argument).
- * @param coerce Optional function to transform the value before returning it.
- */
-export function _parseSingle<T>(coerce?: (value: string) => T): (value: string, previous: unknown) => T | string {
-  return (value: string, previous: unknown) => {
-    if (previous !== undefined) {
-      throw new InvalidArgumentError('Option can only be specified once.');
-    }
-    return coerce ? coerce(value) : value;
-  };
-}
-
-/** Collector for array options: accumulate repeated/variadic values into a single array. */
-function collectArray(value: string, previous: string[] | undefined): string[] {
-  return previous ? [...previous, value] : [value];
-}
-
-/**
  * Get a map of alternate long-flag spellings to their canonical dashed flag (without leading `--`).
  * Covers camelCase spellings of dashed options (`gitTags` => `git-tags`) and extra long aliases
  * (`config` => `config-path`).
@@ -156,18 +137,15 @@ export function addAllOptions(params: {
   };
 
   for (const name of stringOptions) {
-    command.addOption(new Option(flags(name, '<value>'), optionDescriptions[name]).argParser(_parseSingle()));
+    command.addOption(new Option(flags(name, '<value>'), optionDescriptions[name]));
   }
 
   for (const name of numberOptions) {
-    command.addOption(
-      new Option(flags(name, '<value>'), optionDescriptions[name]).argParser(_parseSingle(_parseNumber))
-    );
+    command.addOption(new Option(flags(name, '<value>'), optionDescriptions[name]).argParser(_parseNumber));
   }
 
   for (const name of arrayOptions) {
-    // Variadic to allow multiple space-separated values, plus a collector for repeated usage.
-    command.addOption(new Option(flags(name, '<values...>'), optionDescriptions[name]).argParser(collectArray));
+    command.addOption(new Option(flags(name, '<values...>'), optionDescriptions[name]));
   }
 
   for (const name of booleanOptions) {
