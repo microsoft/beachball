@@ -63,14 +63,12 @@ export interface CliOptions extends Pick<
    * For sync: use the version from the registry even if it's older than local.
    */
   forceVersions?: boolean;
-  help?: boolean;
   /** Force change files for these packages */
   package?: string | string[];
   /** Token. This can either come from the CLI option or `NPM_TOKEN` environment variable. */
   token?: string;
   type?: ChangeType | null;
   verbose?: boolean;
-  version?: boolean;
   yes: boolean;
 
   /**

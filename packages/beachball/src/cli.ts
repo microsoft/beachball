@@ -1,5 +1,5 @@
 import { CommanderError } from 'commander';
-import { findGitRoot } from 'workspace-tools';
+import { findGitRoot, findPackageRoot, getPackageInfo } from 'workspace-tools';
 import { bump } from './commands/bump';
 import { canary } from './commands/canary';
 import { change } from './commands/change';
@@ -10,7 +10,6 @@ import { migrate } from './commands/migrate';
 import { publish } from './commands/publish';
 import { sync } from './commands/sync';
 
-import { showVersion, showHelp } from './help';
 import { getPackageInfos } from './monorepo/getPackageInfos';
 import { getOptions } from './options/getOptions';
 import { validate } from './validation/validate';
@@ -18,27 +17,26 @@ import { getScopedPackages } from './monorepo/getScopedPackages';
 import { BeachballError } from './types/BeachballError';
 import { getPackageGroups } from './monorepo/getPackageGroups';
 
+// eslint-disable-next-line no-restricted-properties -- top-level call
+const processCwd = process.cwd();
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const version = getPackageInfo(findPackageRoot(processCwd)!)?.version;
+
 (async () => {
   try {
-    // eslint-disable-next-line no-restricted-properties -- top-level call
-    findGitRoot(process.cwd());
+    findGitRoot(processCwd);
   } catch {
     throw new BeachballError('beachball only works in a git repository. Please initialize git and try again.');
   }
 
-  // eslint-disable-next-line no-restricted-properties -- this is the top level
-  const parsedOptions = getOptions({ cwd: process.cwd(), argv: process.argv, env: process.env });
+  const parsedOptions = getOptions({ cwd: processCwd, argv: process.argv, env: process.env, version });
   const options = parsedOptions.options;
 
-  if (options.help) {
-    showHelp();
-    return;
-  }
-
-  if (options.version) {
-    showVersion();
-    return;
-  }
+  // TODO port remaining help elements and remove help.ts
+  // if (options.help) {
+  //   showHelp();
+  //   return;
+  // }
 
   // Run the commands
   switch (options.command) {
@@ -127,11 +125,16 @@ import { getPackageGroups } from './monorepo/getPackageGroups';
     // Expected error, not yet logged -- print the message (no stack trace)
     console.error(e.message);
   } else if (e instanceof CommanderError) {
-    // Commander error -- print the message (no stack trace)
-    console.error(e.message);
+    if (e.exitCode === 0) {
+      // If the code is 0, it's a help or version message
+      console.log(e.message);
+    } else {
+      // Option parsing error -- print the message (no stack trace)
+      console.error(e.message);
+    }
   } else {
     // Unexpected error -- print full details including stack
-    showVersion();
+    console.log(`beachball v${version}`);
     console.error('Unexpected error while running beachball!');
     console.error((e as Error)?.stack || e);
   }

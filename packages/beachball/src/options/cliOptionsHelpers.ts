@@ -1,7 +1,224 @@
-import { type Command, Option, InvalidArgumentError } from 'commander';
+import { Command, Option, InvalidArgumentError } from 'commander';
 import type { CliOptions } from '../types/BeachballOptions';
 import { cacheRemoteBranch } from '../git/getRemoteBranch';
 import { resolveRemoteAndBranch } from '../git/tempGetDefaultRemoteBranch';
+import { getDefaultOptions } from './getDefaultOptions';
+
+/** Definition of a single CLI option, used to build its commander `Option`. */
+export interface OptionDefinition {
+  desc: string;
+  /** Single-character short flag (without dash), e.g. `b` for `--branch`. */
+  short?: string;
+  /**
+   * Extra long-flag alias (without dashes), e.g. `config` for the `configPath` option. When set,
+   * the alias is shown in help *instead of* the canonical dashed name, but the value is still
+   * stored under the canonical name.
+   */
+  alias?: string;
+  type: 'string' | 'number' | 'boolean' | 'string-array';
+  /** Parse the value or throw `InvalidArgumentError` if invalid. */
+  parse?: (value: string, previous: unknown) => unknown;
+  /** Valid choices, such as for `disallowedChangeTypes`. */
+  choices?: string[];
+}
+
+/** Value placeholder shown after each option flag, by option type. */
+const valueSyntax: Record<OptionDefinition['type'], string> = {
+  string: '<value>',
+  number: '<value>',
+  boolean: '',
+  'string-array': '<value...>',
+};
+
+/**
+ * Custom Commander `Option` that matches camelCase spellings of its dashed flag (`--gitTags`
+ * for `--git-tags`) and any extra long-flag `alias` (`--config` for `--config-path`).
+ */
+export class FlexibleOption extends Option {
+  /** Extra long-flag alias name (without dash or `--no-` prefix), e.g. `config` for `--config-path`. */
+  readonly alias: string | undefined;
+  /** Help term to display instead of `flags` (used to show the alias instead of the canonical name). */
+  readonly displayTerm?: string;
+
+  constructor(
+    params: OptionDefinition & {
+      /** Canonical camelCase option name (a key of `CliOptions`). */
+      name: keyof CliOptions;
+      /** If true, build the negated `--no-` form of a boolean option. */
+      negated?: boolean;
+      /**
+       * If non-null/undefined, show this default value in help text, but DON'T set it as the default
+       * to avoid messing up order of precedence with the config file (CLI > config file > default).
+       */
+      defaultValue: unknown;
+    }
+  ) {
+    const { name, type, negated, defaultValue } = params;
+    const dashed = _toDashed(name);
+    const suffix = valueSyntax[type] ? ` ${valueSyntax[type]}` : '';
+    const shortPrefix = params.short && !negated ? `-${params.short}, ` : '';
+    const canonicalLong = negated ? `--no-${dashed}` : `--${dashed}${suffix}`;
+    // Show the default value (if any) at the end of the help text, but don't set it as commander's
+    // actual default to preserve precedence (CLI > config file > default).
+    const defaultSuffix =
+      !negated && defaultValue !== null && defaultValue !== undefined
+        ? ` (default: ${JSON.stringify(defaultValue)})`
+        : '';
+    super(`${shortPrefix}${canonicalLong}`, negated ? undefined : `${params.desc}${defaultSuffix}`);
+
+    if (params.alias) {
+      this.alias = params.alias;
+      // Show the alias instead of the canonical name in help.
+      const aliasDashed = _toDashed(params.alias);
+      const aliasLong = negated ? `--no-${aliasDashed}` : `--${aliasDashed}${suffix}`;
+      this.displayTerm = `${shortPrefix}${aliasLong}`;
+    }
+
+    if (!negated) {
+      if (params.choices) {
+        this.choices(params.choices);
+      }
+      const parser = params.parse ?? (params.type === 'number' ? _parseNumber : undefined);
+      if (parser) {
+        this.argParser(parser);
+      }
+    }
+  }
+
+  is(arg: string): boolean {
+    // Exact short/long match (the base `Option.is`, which isn't in the public types).
+    if (this.short === arg || this.long === arg) {
+      return true;
+    }
+    // Only extend matching for long flags; short flags are matched exactly above.
+    if (!arg.startsWith('--')) {
+      return false;
+    }
+    const argName = _normalizeFlagName(arg);
+    // Match the option's own long flag in either dashed or camelCase spelling.
+    if (this.long && _normalizeFlagName(this.long) === argName) {
+      return true;
+    }
+    // Match any alias, applying the `--no-` prefix for negated options.
+    return this.alias ? _normalizeFlagName(this.negate ? `--no-${this.alias}` : `--${this.alias}`) === argName : false;
+  }
+}
+
+/**
+ * A {@link Command} whose subcommands are also `FlexibleCommand`s, and whose help renders each
+ * option's `displayTerm` (the alias, if any) instead of the canonical flag.
+ */
+export class FlexibleCommand extends Command {
+  createCommand(name?: string): FlexibleCommand {
+    return new FlexibleCommand(name);
+  }
+
+  createHelp(): ReturnType<Command['createHelp']> {
+    const help = super.createHelp();
+    const originalOptionTerm = help.optionTerm.bind(help);
+    help.optionTerm = option => (option as FlexibleOption).displayTerm ?? originalOptionTerm(option);
+    return help;
+  }
+}
+
+/**
+ * Preprocess argv to rewrite boolean values that commander doesn't accept natively: values passed
+ * via `=` or as a separate `true`/`false` token (`--fetch=false`, `--yes false`, `-y false`) are
+ * rewritten to commander's flag / `--no-` negation form. Alternate flag spellings (camelCase and
+ * aliases) are matched natively by {@link FlexibleOption}, so the rewritten token preserves the
+ * user's original spelling.
+ */
+export function normalizeArgv(params: {
+  argv: string[];
+  optionDefinitions: Record<string, OptionDefinition>;
+}): string[] {
+  const { argv, optionDefinitions } = params;
+  const result: string[] = [];
+
+  /**
+   * Long-flag names (camelCase, dashed, or alias spelling) of boolean options, and short flag
+   * char => dashed name for boolean options. Used to detect which flags a `true`/`false` value
+   * should be rewritten for.
+   */
+  const booleanNames = new Set<string>();
+  const shortBooleanToDashed = new Map<string, string>();
+  for (const [name, def] of Object.entries(optionDefinitions)) {
+    if (def.type !== 'boolean') {
+      continue;
+    }
+    booleanNames.add(name); // camelCase
+    booleanNames.add(_toDashed(name)); // dashed
+    if (def.alias) {
+      booleanNames.add(_toDashed(def.alias));
+    }
+    if (def.short) {
+      shortBooleanToDashed.set(def.short, _toDashed(name));
+    }
+  }
+
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i];
+
+    if (token.startsWith('--')) {
+      // Split a `--flag` or `--flag=value` token into its name and (optional) inline value.
+      const [name, value] = token.slice(2).split('=', 2);
+
+      if (booleanNames.has(name)) {
+        // Boolean value passed via `=` (e.g. `--fetch=false` => `--no-fetch`).
+        if (value === 'true' || value === 'false') {
+          result.push(value === 'true' ? `--${name}` : `--no-${name}`);
+          continue;
+        }
+        // Boolean value passed as a separate token (e.g. `--yes false` => `--no-yes`).
+        if (value === undefined) {
+          const next = argv[i + 1];
+          if (next === 'true' || next === 'false') {
+            result.push(next === 'true' ? `--${name}` : `--no-${name}`);
+            i++; // consume the value token
+            continue;
+          }
+        }
+      }
+
+      result.push(token);
+      continue;
+    }
+
+    // Short boolean flag with a separate `true`/`false` value (e.g. `-y false` => `--no-yes`).
+    if (token.length === 2 && token[0] === '-' && token[1] !== '-') {
+      const dashed = shortBooleanToDashed.get(token[1]);
+      if (dashed) {
+        const next = argv[i + 1];
+        if (next === 'true' || next === 'false') {
+          result.push(next === 'true' ? `--${dashed}` : `--no-${dashed}`);
+          i++; // consume the value token
+          continue;
+        }
+      }
+    }
+
+    result.push(token);
+  }
+
+  return result;
+}
+
+/**
+ * Add every option in `optionDefinitions` to the given command (plus the negated `--no-` form for
+ * each boolean option).
+ */
+export function addAllOptions(params: { command: Command; optionDefinitions: Record<string, OptionDefinition> }): void {
+  const { command, optionDefinitions } = params;
+
+  const defaultOptions = getDefaultOptions();
+
+  for (const [name, def] of Object.entries(optionDefinitions) as [keyof CliOptions, OptionDefinition][]) {
+    command.addOption(new FlexibleOption({ name, ...def, defaultValue: defaultOptions[name] }));
+    if (def.type === 'boolean') {
+      command.addOption(new FlexibleOption({ name, ...def, negated: true, defaultValue: defaultOptions[name] }));
+    }
+  }
+}
 
 /** Convert a camelCase option name to its dashed CLI flag form (e.g. `gitTags` => `git-tags`). */
 export function _toDashed(name: string): string {
@@ -18,141 +235,15 @@ export function _parseNumber(value: string): number {
 }
 
 /**
- * Get a map of alternate long-flag spellings to their canonical dashed flag (without leading `--`).
- * Covers camelCase spellings of dashed options (`gitTags` => `git-tags`) and extra long aliases
- * (`config` => `config-path`).
+ * Normalize a flag to a canonical camelCase key for comparison, so dashed and camelCase spellings
+ * of the same option match (e.g. `--git-tags` and `--gitTags` => `gitTags`; `--no-git-tags` and
+ * `--no-gitTags` => `noGitTags`). Leading dashes are stripped before normalizing.
  */
-export function _getFlagAliasMap(params: {
-  allOptionNames: readonly (keyof CliOptions)[];
-  longAliases: Record<string, keyof CliOptions>;
-}): Record<string, string> {
-  const { allOptionNames, longAliases } = params;
-  const map: Record<string, string> = {};
-  for (const name of allOptionNames) {
-    const dashed = _toDashed(name);
-    if (name !== dashed) {
-      map[name] = dashed; // camelCase spelling => dashed canonical
-    }
-  }
-  for (const [alias, name] of Object.entries(longAliases)) {
-    map[alias] = _toDashed(name);
-  }
-  return map;
-}
-
-/**
- * Preprocess argv to reproduce yargs-parser behaviors that commander doesn't support natively:
- * - normalize camelCase and long-alias long flags to their canonical dashed form;
- * - rewrite boolean values passed via `=` or as a separate `true`/`false` token to commander's
- *   flag / `--no-` negation form.
- */
-export function normalizeArgv(params: {
-  argv: string[];
-  allOptionNames: readonly (keyof CliOptions)[];
-  longAliases: Record<string, keyof CliOptions>;
-  booleanOptions: readonly (keyof CliOptions)[];
-  shortAliases: Partial<Record<keyof CliOptions, string>>;
-}): string[] {
-  const { argv, booleanOptions, shortAliases } = params;
-  const result: string[] = [];
-
-  /** Dashed names of boolean options (e.g. `git-tags`). */
-  const booleanDashedSet = new Set<string>(booleanOptions.map(_toDashed));
-
-  /** map of alternate long-flag spellings to their canonical dashed flag (without leading `--`) */
-  const flagAliasMap = _getFlagAliasMap(params);
-
-  /** Short flag character => camelCase option name mapping (e.g. `y` => `yes`). */
-  const shortToName = Object.fromEntries(
-    Object.entries(shortAliases).map(([name, short]) => [short, name as keyof CliOptions])
-  );
-
-  for (let i = 0; i < argv.length; i++) {
-    const token = argv[i];
-
-    if (token.startsWith('--')) {
-      // Split a `--flag` or `--flag=value` token into its name and (optional) inline value
-      const [splitName, value] = token.slice(2).split('=', 2);
-      // Normalize alternate long-flag spellings to the canonical dashed form.
-      const name = flagAliasMap[splitName] ?? splitName;
-
-      // Boolean value passed via `=` (e.g. `--fetch=false` => `--no-fetch`).
-      if (value !== undefined && booleanDashedSet.has(name) && (value === 'true' || value === 'false')) {
-        result.push(value === 'true' ? `--${name}` : `--no-${name}`);
-        continue;
-      }
-
-      // Boolean value passed as a separate token (e.g. `--yes false` => `--no-yes`).
-      if (value === undefined && booleanDashedSet.has(name)) {
-        const next = argv[i + 1];
-        if (next === 'true' || next === 'false') {
-          result.push(next === 'true' ? `--${name}` : `--no-${name}`);
-          i++; // consume the value token
-          continue;
-        }
-      }
-
-      // Push the (possibly renamed) flag, preserving any inline value.
-      result.push(value === undefined ? `--${name}` : `--${name}=${value}`);
-      continue;
-    }
-
-    // Short boolean flag with a separate `true`/`false` value (e.g. `-y false` => `--no-yes`).
-    if (token.length === 2 && token[0] === '-' && token[1] !== '-') {
-      const optionName = shortToName[token[1]];
-      if (optionName && (booleanOptions as readonly string[]).includes(optionName)) {
-        const next = argv[i + 1];
-        if (next === 'true' || next === 'false') {
-          result.push(next === 'true' ? `--${_toDashed(optionName)}` : `--no-${_toDashed(optionName)}`);
-          i++; // consume the value token
-          continue;
-        }
-      }
-    }
-
-    result.push(token);
-  }
-
-  return result;
-}
-
-/** Add every beachball option (in its canonical dashed form) to the given command. */
-export function addAllOptions(params: {
-  command: Command;
-  stringOptions: readonly (keyof CliOptions)[];
-  numberOptions: readonly (keyof CliOptions)[];
-  arrayOptions: readonly (keyof CliOptions)[];
-  booleanOptions: readonly (keyof CliOptions)[];
-  optionDescriptions: Record<keyof CliOptions, string>;
-  shortAliases: Partial<Record<keyof CliOptions, string>>;
-}): void {
-  const { command, stringOptions, numberOptions, arrayOptions, booleanOptions, optionDescriptions, shortAliases } =
-    params;
-
-  const flags = (name: string, valuePlaceholder?: string): string => {
-    const dashed = _toDashed(name);
-    const short = shortAliases[name as keyof CliOptions];
-    const long = valuePlaceholder ? `--${dashed} ${valuePlaceholder}` : `--${dashed}`;
-    return short ? `-${short}, ${long}` : long;
-  };
-
-  for (const name of stringOptions) {
-    command.addOption(new Option(flags(name, '<value>'), optionDescriptions[name]));
-  }
-
-  for (const name of numberOptions) {
-    command.addOption(new Option(flags(name, '<value>'), optionDescriptions[name]).argParser(_parseNumber));
-  }
-
-  for (const name of arrayOptions) {
-    command.addOption(new Option(flags(name, '<values...>'), optionDescriptions[name]));
-  }
-
-  for (const name of booleanOptions) {
-    command.addOption(new Option(flags(name), optionDescriptions[name]));
-    // Negated form (e.g. `--no-fetch`).
-    command.addOption(new Option(`--no-${_toDashed(name)}`));
-  }
+export function _normalizeFlagName(flag: string): string {
+  return flag
+    .replace(/^--?/, '')
+    .split('-')
+    .reduce((acc, word, i) => (i === 0 ? word : acc + (word ? word[0].toUpperCase() + word.slice(1) : '')), '');
 }
 
 /**

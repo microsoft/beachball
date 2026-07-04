@@ -1,8 +1,14 @@
 import { findProjectRoot } from 'workspace-tools';
-import { Command, type OptionValues } from 'commander';
+import type { Command, OptionValues } from 'commander';
 import { env } from '../env';
 import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
-import { addAllOptions, normalizeArgv, resolveBranchOption } from './cliOptionsHelpers';
+import {
+  addAllOptions,
+  FlexibleCommand,
+  normalizeArgv,
+  resolveBranchOption,
+  type OptionDefinition,
+} from './cliOptionsHelpers';
 
 export interface ProcessInfo {
   /** Complete argv (node and script path aren't used but elements must be present) */
@@ -19,6 +25,8 @@ export interface ProcessInfo {
    * Only `NPM_TOKEN` is currently used.
    */
   env: NodeJS.ProcessEnv | { NPM_TOKEN?: string };
+  /** Beachball version (optional in tests) */
+  version?: string;
 }
 
 // NOTE: This file was migrated from yargs-parser to commander@14. Commander is currently used only
@@ -34,168 +42,101 @@ export interface ProcessInfo {
 // options. This is an intentional breaking change for v3.
 //
 // Each option is declared in its canonical dashed form. Commander is a schema-first parser, so a
-// few permissive behaviors that yargs-parser accepted are reproduced with small argv preprocessing
-// passes (see `normalizeArgv`):
-//   - camelCase flags (`--gitTags`) and extra long aliases (`--config`, `--force`, `--since`)
-//     are normalized to their canonical dashed form before parsing.
+// few permissive behaviors that yargs-parser accepted are reproduced:
+//   - camelCase flags (`--gitTags`) and extra long aliases (`--config`, `--force`, `--since`) are
+//     matched natively by the `FlexibleOption`/`FlexibleCommand` subclasses.
 //   - boolean values passed via `=` or as a separate token (`--fetch=false`, `--yes false`) are
-//     rewritten to commander's flag / `--no-` negation form.
-//   - non-array options specified more than once throw (matching yargs).
+//     rewritten to commander's flag / `--no-` negation form by a small argv preprocessing pass
+//     (see `normalizeArgv`).
 
 /** Command run when none is specified on the command line. */
 const defaultCommand = 'change';
 
-const arrayOptions = ['disallowedChangeTypes', 'package', 'scope'] as const;
-const booleanOptions = [
-  'all',
-  'bump',
-  'bumpDeps',
-  'commit',
-  'disallowDeletedChangeFiles',
-  'fetch',
-  'forceVersions',
-  'gitTags',
-  'help',
-  'keepChangeFiles',
-  'publish',
-  'push',
-  'verbose',
-  'version',
-  'yes',
-] as const;
-const numberOptions = ['concurrency', 'depth', 'npmReadConcurrency', 'gitTimeout', 'retries', 'timeout'] as const;
-const stringOptions = [
-  'access',
-  'authType',
-  'branch',
-  'canaryName',
-  'changehint',
-  'changeDir',
-  'configPath',
-  'dependentChangeType',
-  'fromRef',
-  'message',
-  'packToPath',
-  'prereleasePrefix',
-  'registry',
-  'tag',
-  'token',
-  'type',
-] as const;
-
-type AtLeastOne<T> = [T, ...T[]];
-/** Type hack to verify that an array includes all keys of a type */
-const allKeysOfType =
-  <T extends string>() =>
-  <L extends AtLeastOne<T>>(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ...x: L extends any ? (Exclude<T, L[number]> extends never ? L : Exclude<T, L[number]>[]) : never
-  ) =>
-    x;
-
-// Verify that all the known CLI options have types specified, to ensure correct parsing.
-// Otherwise it's possible that new CliOptions could be introduced without corresponding parsers.
-//
-// NOTE: If a prop is missing, this will have a somewhat misleading error:
-//   Argument of type '"disallowedChangeTypes"' is not assignable to parameter of type '"tag" | "version"'
-//
-// To fix, add the missing names after "parameter of type" ("tag" and "version" in this example)
-// to the appropriate array above.
-allKeysOfType<keyof CliOptions>()(
-  ...arrayOptions,
-  ...booleanOptions,
-  ...numberOptions,
-  ...stringOptions,
-  // these options are filled in below, not respected from the command line
-  'path',
-  'command',
-  '_extraPositionalArgs'
-);
-
 /**
- * Short descriptions for each option, shown in commander's help output. Sourced from `help.ts`
- * and the doc comments in `BeachballOptions`. (Keyed by every parseable option name to require a
- * description whenever a new option is added.)
+ * Single source of truth for every parseable CLI option: its type, description, short flag, and
+ * optional long-flag alias. TypeScript enforces (via the `Record<Exclude<...>>` type) that every
+ * `CliOptions` key except the ones filled in elsewhere has an entry here.
  */
-const optionDescriptions: Record<keyof CliOptions, string> = {
+const optionDefinitions: Record<
+  Exclude<keyof CliOptions, 'path' | 'command' | '_extraPositionalArgs' | 'version' | 'help'>,
+  OptionDefinition
+> = {
   // array options
-  disallowedChangeTypes: 'change types that are not allowed',
-  package: 'force creating a change file for this package (can be specified multiple times)',
-  scope: 'only consider package paths matching this pattern (can be specified multiple times; supports negations)',
+  disallowedChangeTypes: { type: 'string-array', desc: 'change types that are not allowed' },
+  package: {
+    type: 'string-array',
+    short: 'p',
+    desc: 'force creating a change file for this package (can be specified multiple times)',
+  },
+  scope: {
+    type: 'string-array',
+    desc: 'only consider package paths matching this pattern (can be specified multiple times; supports negations)',
+  },
   // boolean options
-  all: 'generate change files for all packages',
-  bump: 'bump versions during publish (use --no-bump to skip)',
-  bumpDeps: 'bump dependent packages during publish (use --no-bump-deps to skip)',
-  commit: 'commit change files after "change" (use --no-commit to only stage them)',
-  disallowDeletedChangeFiles: 'verify that no change files were deleted between head and target branch',
-  fetch: 'fetch from the remote before determining changes (use --no-fetch to skip)',
-  forceVersions: "for 'sync': use the version from the registry even if it's older than local",
-  gitTags: 'create git tags for each published package version (use --no-git-tags to skip)',
-  help: 'show usage information',
-  keepChangeFiles: "don't delete the change files from disk after bumping",
-  publish: 'publish to the npm registry (use --no-publish to skip)',
-  push: 'push changes back to the remote git branch (use --no-push to skip)',
-  verbose: 'print additional information to the console',
-  version: 'show the beachball version',
-  yes: 'skip the confirmation prompts',
+  all: { type: 'boolean', desc: 'generate change files for all packages' },
+  bump: { type: 'boolean', desc: 'bump versions during publish (use --no-bump to skip)' },
+  bumpDeps: { type: 'boolean', desc: 'bump dependent packages during publish (use --no-bump-deps to skip)' },
+  commit: { type: 'boolean', desc: 'commit change files after "change" (use --no-commit to only stage them)' },
+  disallowDeletedChangeFiles: {
+    type: 'boolean',
+    desc: 'verify that no change files were deleted between head and target branch',
+  },
+  fetch: { type: 'boolean', desc: 'fetch from the remote before determining changes (use --no-fetch to skip)' },
+  forceVersions: {
+    type: 'boolean',
+    alias: 'force',
+    desc: "for 'sync': use the version from the registry even if it's older than local",
+  },
+  gitTags: {
+    type: 'boolean',
+    desc: 'create git tags for each published package version (use --no-git-tags to skip)',
+  },
+  keepChangeFiles: { type: 'boolean', desc: "don't delete the change files from disk after bumping" },
+  publish: { type: 'boolean', desc: 'publish to the npm registry (use --no-publish to skip)' },
+  push: { type: 'boolean', desc: 'push changes back to the remote git branch (use --no-push to skip)' },
+  verbose: { type: 'boolean', desc: 'print additional information to the console' },
+  yes: { type: 'boolean', short: 'y', desc: 'skip the confirmation prompts' },
   // number options
-  concurrency: 'maximum concurrency for write operations such as publishing (default: 1)',
-  depth: 'for shallow clones: depth of git history to consider when fetching',
-  npmReadConcurrency: 'maximum concurrency for reading package versions from the registry (default: 5)',
-  gitTimeout: 'timeout in ms for git push operations',
-  retries: 'number of retries for an npm publish before failing (default: 3)',
-  timeout: 'timeout in ms for npm operations (other than install)',
+  concurrency: { type: 'number', desc: 'maximum concurrency for write operations such as publishing (default: 1)' },
+  depth: { type: 'number', desc: 'for shallow clones: depth of git history to consider when fetching' },
+  npmReadConcurrency: {
+    type: 'number',
+    desc: 'maximum concurrency for reading package versions from the registry (default: 5)',
+  },
+  gitTimeout: { type: 'number', desc: 'timeout in ms for git push operations' },
+  retries: { type: 'number', desc: 'number of retries for an npm publish before failing (default: 3)' },
+  timeout: { type: 'number', desc: 'timeout in ms for npm operations (other than install)' },
   // string options
-  access: 'npm publish access level: "public" or "restricted"',
-  authType: 'npm auth type for NPM_TOKEN: "authtoken" or "password"',
-  branch: 'target branch from remote (default: git config init.defaultBranch)',
-  canaryName: 'dist-tag and version name to use for canary publishes',
-  changehint: 'customized hint message shown when a change file is needed but missing',
-  changeDir: 'name of the directory to store change files (default: change)',
-  configPath: 'custom beachball config path (default: cosmiconfig standard paths)',
-  dependentChangeType: 'change type to use for dependent packages (default: patch)',
-  fromRef: 'consider changes or change files since this git ref (branch name, commit SHA)',
-  message: 'for "change", the change description; for "publish", the commit message',
-  packToPath: 'pack packages to tgz files under this path instead of publishing to npm',
-  prereleasePrefix: 'prerelease prefix for packages that will receive a prerelease bump',
-  registry: 'npm registry (default: https://registry.npmjs.org)',
-  tag: 'npm dist-tag for publishes (default: "latest")',
-  token: 'npm auth token (defaults to the NPM_TOKEN environment variable)',
-  type: 'type of change: e.g. major, minor, patch, none (instead of prompting)',
-  // not handled by commander parsing
-  _extraPositionalArgs: '',
-  command: '',
-  path: '',
+  access: { type: 'string', desc: 'npm publish access level: "public" or "restricted"' },
+  authType: { type: 'string', short: 'a', desc: 'npm auth type for NPM_TOKEN: "authtoken" or "password"' },
+  branch: { type: 'string', short: 'b', desc: 'target branch from remote (default: git config init.defaultBranch)' },
+  canaryName: { type: 'string', desc: 'dist-tag and version name to use for canary publishes' },
+  changehint: { type: 'string', desc: 'customized hint message shown when a change file is needed but missing' },
+  changeDir: { type: 'string', desc: 'name of the directory to store change files (default: change)' },
+  configPath: {
+    type: 'string',
+    short: 'c',
+    alias: 'config',
+    desc: 'custom beachball config path (default: cosmiconfig standard paths)',
+  },
+  dependentChangeType: { type: 'string', desc: 'change type to use for dependent packages (default: patch)' },
+  fromRef: {
+    type: 'string',
+    alias: 'since',
+    desc: 'consider changes or change files since this git ref (branch name, commit SHA)',
+  },
+  message: {
+    type: 'string',
+    short: 'm',
+    desc: 'for "change", the change description; for "publish", the commit message',
+  },
+  packToPath: { type: 'string', desc: 'pack packages to tgz files under this path instead of publishing to npm' },
+  prereleasePrefix: { type: 'string', desc: 'prerelease prefix for packages that will receive a prerelease bump' },
+  registry: { type: 'string', short: 'r', desc: 'npm registry (default: https://registry.npmjs.org)' },
+  tag: { type: 'string', short: 't', desc: 'npm dist-tag for publishes (default: "latest")' },
+  token: { type: 'string', short: 'n', desc: 'npm auth token (defaults to the NPM_TOKEN environment variable)' },
+  type: { type: 'string', desc: 'type of change: e.g. major, minor, patch, none (instead of prompting)' },
 };
-
-/** Short single-character aliases for certain options (option name => short flag without dash). */
-const shortAliases: Partial<Record<keyof CliOptions, string>> = {
-  authType: 'a',
-  branch: 'b',
-  configPath: 'c',
-  help: 'h',
-  message: 'm',
-  package: 'p',
-  registry: 'r',
-  tag: 't',
-  token: 'n',
-  version: 'v',
-  yes: 'y',
-};
-
-/**
- * Extra long-flag aliases accepted for certain options (alias => canonical option name).
- * Commander only allows one long flag per option, so these are normalized before parsing rather
- * than declared as real options.
- */
-const longAliases: Record<string, keyof CliOptions> = {
-  config: 'configPath',
-  force: 'forceVersions',
-  since: 'fromRef',
-};
-
-/** All option names (any value type). */
-const allOptionNames = [...arrayOptions, ...booleanOptions, ...numberOptions, ...stringOptions];
 
 /** Result captured from parsing. */
 interface ParseResult {
@@ -211,27 +152,31 @@ interface ParseResult {
  * handled natively and commander errors on excess positional args for all other commands.
  * Commander is currently used only for parsing, not command dispatch.
  *
+ * Other configuration:
+ * - program description, version, examples
+ * - configureOutput to suppress commander output
+ * - exitOverride to throw on errors instead of calling process.exit()
+ *   (`--help` or `--version` is thrown as an error with `exitCode: 0` which must be logged)
+ *
  * @returns The program plus a getter for the parse result (populated by the action handlers when
  * `program.parse()` is called).
  */
-function buildProgram(): { program: Command; getResult: () => ParseResult } {
-  const program = new Command();
+function buildProgram(version: string | undefined): { program: Command; getResult: () => ParseResult } {
+  const program = new FlexibleCommand();
+  program.name('beachball');
+  version && program.version(version);
+  program.description(`beachball${version ? ` v${version}` : ''} - the sunniest version bumping tool`);
+  program.usage('<command> [options]');
 
   // Throw instead of calling process.exit() or writing to stdout/stderr on error, so callers and
   // tests can handle failures. (This also makes commander error on unknown options and excess
   // positional args, which is an intentional breaking change from yargs-parser.)
-  program.exitOverride();
   program.configureOutput({ writeOut: () => {}, writeErr: () => {} }); // suppress commander output
-
-  addAllOptions({
-    command: program,
-    stringOptions,
-    numberOptions,
-    arrayOptions,
-    booleanOptions,
-    optionDescriptions,
-    shortAliases,
+  program.exitOverride(err => {
+    throw err;
   });
+
+  addAllOptions({ command: program, optionDefinitions });
 
   // The single positional is the command name (any value; validated by the caller/cli.ts).
   program.argument('[command]', 'beachball command to run');
@@ -264,13 +209,10 @@ export function getCliOptions(processInfo: ProcessInfo): ParsedOptions['cliOptio
   // normalize alternate flag spellings and boolean values.
   const normalizedArgv = normalizeArgv({
     argv: trimmedArgv,
-    allOptionNames,
-    longAliases,
-    booleanOptions,
-    shortAliases,
+    optionDefinitions,
   });
 
-  const { program, getResult } = buildProgram();
+  const { program, getResult } = buildProgram(processInfo.version);
   program.parse(normalizedArgv, { from: 'user' });
   const { command, options, extraArgs: extraPositionalArgs } = getResult();
 
