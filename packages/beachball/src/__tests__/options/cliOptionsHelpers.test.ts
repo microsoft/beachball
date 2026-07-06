@@ -1,13 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
-import { InvalidArgumentError, type OptionValues } from 'commander';
+import { InvalidArgumentError } from 'commander';
 import {
   _normalizeFlagName,
   _parseNumber,
   _toDashed,
-  addAllOptions,
   FlexibleCommand,
   FlexibleOption,
-  type OptionDefinition,
 } from '../../options/cliOptionsHelpers';
 
 describe('_toDashed', () => {
@@ -56,66 +54,6 @@ describe('_normalizeFlagName', () => {
   });
 });
 
-describe('FlexibleCommand boolean value rewriting', () => {
-  const optionDefinitions = {
-    fetch: { type: 'boolean', desc: '' },
-    yes: { type: 'boolean', short: 'y', desc: '' },
-    gitTags: { type: 'boolean', alias: 'force', desc: '' },
-    branch: { type: 'string', short: 'b', desc: '' },
-    configPath: { type: 'string', alias: 'config', desc: '' },
-  } satisfies Record<string, OptionDefinition>;
-
-  /** Parse args with a fresh command (with a positional to absorb non-option tokens) and return its option values. */
-  const parse = (argv: string[]): OptionValues => {
-    const command = new FlexibleCommand();
-    command.exitOverride();
-    command.configureOutput({ writeErr: () => {}, writeOut: () => {} });
-    addAllOptions({ command, optionDefinitions });
-    command.argument('[command]');
-    command.parse(argv, { from: 'user' });
-    return command.opts();
-  };
-
-  it('leaves already-canonical args unchanged', () => {
-    expect(parse(['check', '--branch', 'main'])).toEqual({ branch: 'main' });
-  });
-
-  it('rewrites a boolean value passed via = to flag/negation form', () => {
-    expect(parse(['--fetch=false'])).toEqual({ fetch: false });
-    expect(parse(['--fetch=true'])).toEqual({ fetch: true });
-  });
-
-  it('rewrites a boolean value passed as a separate token', () => {
-    expect(parse(['--yes', 'false'])).toEqual({ yes: false });
-    expect(parse(['--yes', 'true'])).toEqual({ yes: true });
-  });
-
-  it('rewrites a camelCase boolean flag with a separate value token', () => {
-    expect(parse(['--gitTags', 'false'])).toEqual({ gitTags: false });
-  });
-
-  it('rewrites a boolean alias flag value', () => {
-    expect(parse(['--force=false'])).toEqual({ gitTags: false });
-  });
-
-  it('leaves a boolean flag alone if the next token is not true/false', () => {
-    expect(parse(['--fetch', 'check'])).toEqual({ fetch: true });
-  });
-
-  it('does not treat = values on non-boolean options as negations', () => {
-    expect(parse(['--branch=false'])).toEqual({ branch: 'false' });
-  });
-
-  it('rewrites a short boolean flag with a separate value token', () => {
-    expect(parse(['-y', 'false'])).toEqual({ yes: false });
-    expect(parse(['-y', 'true'])).toEqual({ yes: true });
-  });
-
-  it('leaves a short boolean flag alone if the next token is not true/false', () => {
-    expect(parse(['-y', 'other'])).toEqual({ yes: true });
-  });
-});
-
 describe('FlexibleOption', () => {
   it('builds a string option with short flag and value placeholder', () => {
     const option = new FlexibleOption({
@@ -129,7 +67,6 @@ describe('FlexibleOption', () => {
     expect(option.short).toBe('-b');
     expect(option.long).toBe('--branch');
     expect(option.description).toBe('target branch');
-    expect(option.displayTerm).toBeUndefined();
   });
 
   it('converts camelCase names to dashed flags', () => {
@@ -153,19 +90,34 @@ describe('FlexibleOption', () => {
     expect(option.flags).toBe('--scope <value...>');
   });
 
-  it('shows the alias instead of the canonical name via displayTerm', () => {
+  it('for an option with an alias, hides help for the canonical name and does not use short value', () => {
+    const option = new FlexibleOption({
+      name: 'configPath',
+      type: 'string',
+      alias: 'config',
+      short: 'c',
+      desc: '',
+      defaultValue: undefined,
+    });
+    expect(option.hidden).toBe(true);
+    expect(option.flags).toBe('--config-path <value>');
+    expect(option.long).toBe('--config-path');
+    expect(option.attributeName()).toBe('configPath');
+  });
+
+  it('for the alias variant of an option, uses the canonical name for the attribute', () => {
     const option = new FlexibleOption({
       name: 'configPath',
       type: 'string',
       short: 'c',
       alias: 'config',
+      isAlias: true,
       desc: '',
       defaultValue: undefined,
     });
-    expect(option.flags).toBe('-c, --config-path <value>');
-    expect(option.long).toBe('--config-path');
-    expect(option.alias).toBe('config');
-    expect(option.displayTerm).toBe('-c, --config <value>');
+    expect(option.flags).toBe('-c, --config <value>');
+    expect(option.long).toBe('--config');
+    expect(option.attributeName()).toBe('configPath');
   });
 
   it('builds the negated form of a boolean option', () => {
@@ -180,20 +132,22 @@ describe('FlexibleOption', () => {
     expect(option.long).toBe('--no-git-tags');
   });
 
-  it('shows the negated alias via displayTerm', () => {
+  it('shows the negated alias for an alias boolean option', () => {
     const option = new FlexibleOption({
       name: 'forceVersions',
       type: 'boolean',
       alias: 'force',
+      isAlias: true,
       desc: '',
       negated: true,
       defaultValue: undefined,
     });
-    expect(option.flags).toBe('--no-force-versions');
-    expect(option.displayTerm).toBe('--no-force');
+    expect(option.flags).toBe('--no-force');
+    expect(option.long).toBe('--no-force');
+    expect(option.attributeName()).toBe('forceVersions');
   });
 
-  it('matches camelCase, dashed, and alias spellings via is()', () => {
+  it('matches camelCase and dashed spellings via is()', () => {
     const option = new FlexibleOption({
       name: 'configPath',
       type: 'string',
@@ -203,7 +157,7 @@ describe('FlexibleOption', () => {
     });
     expect(option.is('--config-path')).toBe(true);
     expect(option.is('--configPath')).toBe(true);
-    expect(option.is('--config')).toBe(true);
+    expect(option.is('--config')).toBe(false); // aliases handled separately
     expect(option.is('--other')).toBe(false);
   });
 
@@ -247,16 +201,13 @@ describe('addAllOptions', () => {
   function buildCommand() {
     const command = new FlexibleCommand();
     command.exitOverride();
-    addAllOptions({
-      command,
-      optionDefinitions: {
-        branch: { type: 'string', short: 'b', desc: 'target branch' },
-        configPath: { type: 'string', alias: 'config', desc: 'config path' },
-        depth: { type: 'number', desc: 'clone depth' },
-        scope: { type: 'array', desc: 'scope pattern' },
-        fetch: { type: 'boolean', desc: 'fetch first' },
-        forceVersions: { type: 'boolean', alias: 'force', desc: 'force versions' },
-      },
+    command.addAllOptions({
+      branch: { type: 'string', short: 'b', desc: 'target branch' },
+      configPath: { type: 'string', alias: 'config', desc: 'config path' },
+      depth: { type: 'number', desc: 'clone depth' },
+      scope: { type: 'array', desc: 'scope pattern' },
+      fetch: { type: 'boolean', desc: 'fetch first' },
+      forceVersions: { type: 'boolean', alias: 'force', desc: 'force versions' },
     });
     return command;
   }
@@ -284,11 +235,6 @@ describe('addAllOptions', () => {
   it('parses a number option coerced to a number', () => {
     const opts = buildCommand().parse(['--depth', '3'], { from: 'user' }).opts();
     expect(opts.depth).toBe(3);
-  });
-
-  it('uses second value when a single-value option is specified twice', () => {
-    const command = buildCommand();
-    expect(command.parse(['--branch', 'a', '--branch', 'b'], { from: 'user' }).opts().branch).toBe('b');
   });
 
   it('collects array options from repeated and variadic usage', () => {

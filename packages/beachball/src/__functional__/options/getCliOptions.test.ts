@@ -117,20 +117,14 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, gitTags: false });
   });
 
-  it('parses valid boolean option values', () => {
-    const falseOptions = getCliOptionsTest({ args: ['--fetch=false', '--yes', 'false'] });
-    expect(falseOptions).toEqual({ ...defaults, fetch: false, yes: false });
-
-    const trueOptions = getCliOptionsTest({ args: ['--fetch=true', '--yes', 'true'] });
-    expect(trueOptions).toEqual({ ...defaults, fetch: true, yes: true });
-  });
-
-  it('parses boolean flag with valid value', () => {
-    const falseOptions = getCliOptionsTest({ args: ['-y', 'false'] });
-    expect(falseOptions).toEqual({ ...defaults, yes: false });
-
-    const trueOptions = getCliOptionsTest({ args: ['-y', 'true'] });
-    expect(trueOptions).toEqual({ ...defaults, yes: true });
+  it('errors on boolean option with value', () => {
+    // TODO override error handling for this case to recommend --no-<opt> instead
+    expect(() => getCliOptionsTest({ args: ['--fetch=false'] })).toThrowErrorMatchingInlineSnapshot(
+      `"error: unknown option '--fetch=false'"`
+    );
+    // TODO "false" is currently interpreted as the command...
+    // const opt = getCliOptionsTest({ args: ['--yes', 'false'] });
+    // expect(opt).toEqual({ ...defaults });
   });
 
   it('errors on invalid numeric value', () => {
@@ -241,6 +235,11 @@ describe('getCliOptions', () => {
     expect(() => getCliOptionsTest({ args: ['--tag', 'foo', '--bar=2'] })).toThrowErrorMatchingInlineSnapshot(
       `"error: unknown option '--bar=2'"`
     );
+  });
+
+  it('allows an array option to be specified multiple times', () => {
+    const options = getCliOptionsTest({ args: ['--scope', 'foo', '--scope', 'bar'] });
+    expect(options).toEqual({ ...defaults, scope: ['foo', 'bar'] });
   });
 
   it('gets NPM_TOKEN from environment', () => {

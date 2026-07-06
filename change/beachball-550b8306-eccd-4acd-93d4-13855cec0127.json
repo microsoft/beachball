@@ -1,6 +1,6 @@
 {
   "type": "major",
-  "comment": "Migrate CLI option parsing from `yargs-parser` to `commander`. Most previous parsing behavior is preserved, except:\n  - unknown options now cause an error instead of being passed through\n  - if a non-array option is specified multiple times, the last value is used (instead of throwing an error)",
+  "comment": "Migrate CLI option parsing from `yargs-parser` to `commander`. Most previous parsing behavior is preserved, except:\n  - Unknown options now cause an error instead of being passed through.\n  - If a non-array option is specified multiple times, the last value is used (instead of throwing an error).\n  - Passing `'false'` or `'true'` for boolean option values (e.g. `--push false` or `--push=false`) is no longer supported. Use e.g. `--push` or `--no-push` instead.",
   "packageName": "beachball",
   "email": "198982749+Copilot@users.noreply.github.com",
   "dependentChangeType": "patch"

@@ -2,7 +2,7 @@ import type { Command, OptionValues, OutputConfiguration } from 'commander';
 import { findProjectRoot } from 'workspace-tools';
 import { env } from '../env';
 import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
-import { addAllOptions, FlexibleCommand, resolveBranchOption, type OptionDefinition } from './cliOptionsHelpers';
+import { FlexibleCommand, resolveBranchOption, type OptionDefinition } from './cliOptionsHelpers';
 
 export interface ProgramContext {
   /** Complete argv (node and script path aren't used but elements must be present) */
@@ -162,7 +162,7 @@ function buildProgram(params: Pick<ProgramContext, 'outputOptions' | 'version'>)
   }
   outputOptions && program.configureOutput(outputOptions);
 
-  addAllOptions({ command: program, optionDefinitions });
+  program.addAllOptions(optionDefinitions);
   // set this last so it's at the end of help
   version && program.version(version);
 
