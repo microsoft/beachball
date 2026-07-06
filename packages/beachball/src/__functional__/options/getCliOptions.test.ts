@@ -1,21 +1,17 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import { findProjectRoot } from 'workspace-tools';
-import { resolveRemoteAndBranch } from '../../git/tempGetDefaultRemoteBranch';
-import { getCliOptions } from '../../options/getCliOptions';
+import { findProjectRoot, resolveRemoteAndBranch } from 'workspace-tools';
+import { getCliOptions, type ProgramContext } from '../../options/getCliOptions';
+import { CommanderError } from 'commander';
 
-jest.mock('../../git/tempGetDefaultRemoteBranch', () => {
-  // jest.mock('workspace-tools', () => {
-  return {
-    resolveRemoteAndBranch: jest.fn((options: { branch?: string }) => {
-      if (options.branch?.includes('/')) {
-        const [remote, remoteBranch] = options.branch.split('/');
-        return { remote, remoteBranch };
-      }
-      return { remote: 'origin', remoteBranch: options.branch || 'main' };
-    }),
-  };
-});
 jest.mock('workspace-tools', () => ({
+  ...jest.requireActual<typeof import('workspace-tools')>('workspace-tools'),
+  resolveRemoteAndBranch: jest.fn((options: { branch?: string }) => {
+    if (options.branch?.includes('/')) {
+      const [remote, remoteBranch] = options.branch.split('/');
+      return { remote, remoteBranch };
+    }
+    return { remote: 'origin', remoteBranch: options.branch || 'main' };
+  }),
   findProjectRoot: jest.fn(() => 'fake-root'),
 }));
 
@@ -33,11 +29,18 @@ describe('getCliOptions', () => {
   const defaults = { command: 'change', path: projectRoot };
 
   /** test wrapper for `getCliOptions` which adds common args */
-  function getCliOptionsTest(args: string[], cwd?: string, env?: NodeJS.ProcessEnv) {
+  function getCliOptionsTest(
+    params: {
+      args: string[];
+    } & Omit<Partial<ProgramContext>, 'argv'>
+  ) {
+    const { args, ...rest } = params;
     return getCliOptions({
       argv: ['node', 'beachball', ...args],
-      cwd: cwd || projectRoot,
-      env: env || {},
+      cwd: projectRoot,
+      env: {},
+      outputOptions: { writeOut: jest.fn(), writeErr: jest.fn() },
+      ...rest,
     });
   }
 
@@ -47,111 +50,101 @@ describe('getCliOptions', () => {
   });
 
   it('parses no args (adds path to result)', () => {
-    const options = getCliOptionsTest([]);
+    const options = getCliOptionsTest({ args: [] });
     expect(options).toEqual(defaults);
   });
 
   it('parses command', () => {
-    const options = getCliOptionsTest(['check']);
+    const options = getCliOptionsTest({ args: ['check'] });
     expect(options).toEqual({ ...defaults, command: 'check' });
   });
 
   it('parses options', () => {
     // use a basic option of each value type (except arrays, tested later)
-    const options = getCliOptionsTest(['--type', 'patch', '--access=public', '--fetch', '--depth', '1']);
+    const options = getCliOptionsTest({ args: ['--type', 'patch', '--access=public', '--fetch', '--depth', '1'] });
     expect(options).toEqual({ ...defaults, type: 'patch', access: 'public', fetch: true, depth: 1 });
   });
 
   it('parses command and options', () => {
-    const options = getCliOptionsTest(['publish', '--tag', 'foo']);
+    const options = getCliOptionsTest({ args: ['publish', '--tag', 'foo'] });
     expect(options).toEqual({ ...defaults, command: 'publish', tag: 'foo' });
   });
 
   it('parses string option in separate and combined forms', () => {
-    const options = getCliOptionsTest(['--type', 'patch', '--access=public']);
+    const options = getCliOptionsTest({ args: ['--type', 'patch', '--access=public'] });
     expect(options).toEqual({ ...defaults, type: 'patch', access: 'public' });
   });
 
   it('parses number option in separate and combined forms', () => {
-    const options = getCliOptionsTest(['--depth', '1', '--concurrency=2']);
+    const options = getCliOptionsTest({ args: ['--depth', '1', '--concurrency=2'] });
     expect(options).toEqual({ ...defaults, depth: 1, concurrency: 2 });
   });
 
   it('parses array options with multiple values', () => {
-    const options = getCliOptionsTest(['--scope', 'foo', 'bar']);
+    const options = getCliOptionsTest({ args: ['--scope', 'foo', 'bar'] });
     expect(options).toEqual({ ...defaults, scope: ['foo', 'bar'] });
   });
 
   it('parses array option specified multiple times', () => {
-    const options = getCliOptionsTest(['--scope', 'foo', '--scope', 'bar']);
+    const options = getCliOptionsTest({ args: ['--scope', 'foo', '--scope', 'bar'] });
     expect(options).toEqual({ ...defaults, scope: ['foo', 'bar'] });
   });
 
   it('parses array option with a single value in combined syntax', () => {
-    const options = getCliOptionsTest(['--scope=foo']);
+    const options = getCliOptionsTest({ args: ['--scope=foo'] });
     expect(options).toEqual({ ...defaults, scope: ['foo'] });
   });
 
   it('parses array option with a mix of combined, separate, and multiple values', () => {
-    const options = getCliOptionsTest(['--scope=foo', '--scope', 'bar', 'baz']);
+    const options = getCliOptionsTest({ args: ['--scope=foo', '--scope', 'bar', 'baz'] });
     expect(options).toEqual({ ...defaults, scope: ['foo', 'bar', 'baz'] });
   });
 
   // documenting that this is not currently supported (could change in the future if desired)
   it('does not parse values with commas as separate array entries', () => {
-    const options = getCliOptionsTest(['--scope', 'a,b', '--scope=c,d']);
+    const options = getCliOptionsTest({ args: ['--scope', 'a,b', '--scope=c,d'] });
     expect(options).toEqual({ ...defaults, scope: ['a,b', 'c,d'] });
   });
 
-  it('throws if non-array option is specified multiple times', () => {
-    expect(() => getCliOptionsTest(['--tag', 'foo', '--tag', 'baz'])).toThrow();
-  });
-
   it('parses negated boolean option', () => {
-    const options = getCliOptionsTest(['--no-fetch']);
+    const options = getCliOptionsTest({ args: ['--no-fetch'] });
     expect(options).toEqual({ ...defaults, fetch: false });
   });
 
   it('parses negated boolean option with camelCase name', () => {
     // gitTags is a camelCase option, and yargs also accepts the hyphenated negation form
-    const options = getCliOptionsTest(['--no-git-tags']);
+    const options = getCliOptionsTest({ args: ['--no-git-tags'] });
     expect(options).toEqual({ ...defaults, gitTags: false });
   });
 
-  it('parses valid boolean option values', () => {
-    const falseOptions = getCliOptionsTest(['--fetch=false', '--yes', 'false']);
-    expect(falseOptions).toEqual({ ...defaults, fetch: false, yes: false });
-
-    const trueOptions = getCliOptionsTest(['--fetch=true', '--yes', 'true']);
-    expect(trueOptions).toEqual({ ...defaults, fetch: true, yes: true });
+  it('errors on boolean option with value', () => {
+    // TODO override error handling for this case to recommend --no-<opt> instead
+    expect(() => getCliOptionsTest({ args: ['--fetch=false'] })).toThrowErrorMatchingInlineSnapshot(
+      `"error: unknown option '--fetch=false'"`
+    );
+    // TODO "false" is currently interpreted as the command...
+    // const opt = getCliOptionsTest({ args: ['--yes', 'false'] });
+    // expect(opt).toEqual({ ...defaults });
   });
 
-  it('parses boolean flag with valid value', () => {
-    const falseOptions = getCliOptionsTest(['-y', 'false']);
-    expect(falseOptions).toEqual({ ...defaults, yes: false });
-
-    const trueOptions = getCliOptionsTest(['-y', 'true']);
-    expect(trueOptions).toEqual({ ...defaults, yes: true });
-  });
-
-  it('throws on invalid numeric value', () => {
-    expect(() => getCliOptionsTest(['--depth', 'foo'])).toThrow();
+  it('errors on invalid numeric value', () => {
+    const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
+    expect(() => getCliOptionsTest({ args: ['--depth', 'foo'], outputOptions })).toThrow(CommanderError);
+    expect(outputOptions.writeOut).not.toHaveBeenCalled();
+    expect(outputOptions.writeErr).toHaveBeenCalledWith(
+      "error: option '--depth <num>' argument 'foo' is invalid. Expected numeric value.\n"
+    );
   });
 
   it('converts hyphenated options to camel case', () => {
-    const options = getCliOptionsTest(['--git-tags', '--dependent-change-type', 'patch']);
+    const options = getCliOptionsTest({ args: ['--git-tags', '--dependent-change-type', 'patch'] });
     expect(options).toEqual({ ...defaults, gitTags: true, dependentChangeType: 'patch' });
   });
 
   it('supports camel case for options defined as hyphenated', () => {
-    const options = getCliOptionsTest([
-      '--gitTags',
-      '--dependentChangeType',
-      'patch',
-      '--disallowed-change-types',
-      'major',
-      'minor',
-    ]);
+    const options = getCliOptionsTest({
+      args: ['--gitTags', '--dependentChangeType', 'patch', '--disallowed-change-types', 'major', 'minor'],
+    });
     expect(options).toEqual({
       ...defaults,
       gitTags: true,
@@ -160,28 +153,33 @@ describe('getCliOptions', () => {
     });
   });
 
+  it('supports camel case combined with an = value', () => {
+    const options = getCliOptionsTest({ args: ['--dependentChangeType=patch'] });
+    expect(options).toEqual({ ...defaults, dependentChangeType: 'patch' });
+  });
+
   it('parses short option aliases', () => {
-    const options = getCliOptionsTest(['publish', '-t', 'test', '-r', 'http://whatever', '-y']);
+    const options = getCliOptionsTest({ args: ['publish', '-t', 'test', '-r', 'http://whatever', '-y'] });
     expect(options).toEqual({ ...defaults, command: 'publish', tag: 'test', registry: 'http://whatever', yes: true });
   });
 
   it('parses long option aliases', () => {
-    const options = getCliOptionsTest(['--config', 'path/to/config.json', '--force', '--since', 'main']);
+    const options = getCliOptionsTest({ args: ['--config', 'path/to/config.json', '--force', '--since', 'main'] });
     expect(options).toEqual({ ...defaults, configPath: 'path/to/config.json', forceVersions: true, fromRef: 'main' });
   });
 
   it('for canary command, adds canary tag and ignores regular tag', () => {
-    const options = getCliOptionsTest(['canary', '--tag', 'bar']);
+    const options = getCliOptionsTest({ args: ['canary', '--tag', 'bar'] });
     expect(options).toEqual({ ...defaults, command: 'canary', tag: 'canary' });
   });
 
   it('for canary command, uses canaryName as tag and ignores regular tag', () => {
-    const options = getCliOptionsTest(['canary', '--canary-name', 'foo', '--tag', 'bar']);
+    const options = getCliOptionsTest({ args: ['canary', '--canary-name', 'foo', '--tag', 'bar'] });
     expect(options).toEqual({ ...defaults, command: 'canary', canaryName: 'foo', tag: 'foo' });
   });
 
   it('does not set tag to canaryName for non-canary command', () => {
-    const options = getCliOptionsTest(['publish', '--canary-name', 'foo', '--tag', 'bar']);
+    const options = getCliOptionsTest({ args: ['publish', '--canary-name', 'foo', '--tag', 'bar'] });
     expect(options).toEqual({ ...defaults, command: 'publish', canaryName: 'foo', tag: 'bar' });
   });
 
@@ -189,19 +187,19 @@ describe('getCliOptions', () => {
     mockFindProjectRoot.mockImplementationOnce(() => {
       throw new Error('nope');
     });
-    const options = getCliOptionsTest([], 'somewhere');
+    const options = getCliOptionsTest({ args: [], cwd: 'somewhere' });
     expect(options).toEqual({ ...defaults, path: 'somewhere' });
   });
 
   it('uses provided branch with remote', () => {
     // resolveRemoteAndBranch is mocked to use branch.split('/') as remote and remoteBranch
-    const options = getCliOptionsTest(['--branch', 'someremote/foo']);
+    const options = getCliOptionsTest({ args: ['--branch', 'someremote/foo'] });
     expect(options).toEqual({ ...defaults, branch: 'someremote/foo' });
     expect(resolveRemoteAndBranch).toHaveBeenCalled();
   });
 
   it('adds default remote to branch without remote', () => {
-    const options = getCliOptionsTest(['--branch', 'foo']);
+    const options = getCliOptionsTest({ args: ['--branch', 'foo'] });
     expect(options).toEqual({ ...defaults, branch: 'origin/foo' });
     expect(resolveRemoteAndBranch).toHaveBeenCalledWith({
       branch: 'foo',
@@ -211,46 +209,71 @@ describe('getCliOptions', () => {
     });
   });
 
-  it('throws on unknown long option', () => {
+  it('errors on unknown long option', () => {
     // Unlike yargs-parser, commander errors on unknown options (intentional breaking change for v3)
-    expect(() => getCliOptionsTest(['--foo', 'bar'])).toThrow("unknown option '--foo'");
+    const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
+    expect(() => getCliOptionsTest({ args: ['--foo', 'bar'], outputOptions })).toThrow(CommanderError);
+    expect(outputOptions.writeOut).not.toHaveBeenCalled();
+    expect(outputOptions.writeErr).toHaveBeenCalledWith("error: unknown option '--foo'\n");
   });
 
-  it('throws on unknown boolean flag', () => {
-    expect(() => getCliOptionsTest(['--foo'])).toThrow("unknown option '--foo'");
+  it('errors on unknown boolean flag', () => {
+    const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
+    expect(() => getCliOptionsTest({ args: ['--no-bar'], outputOptions })).toThrow(CommanderError);
+    expect(outputOptions.writeOut).not.toHaveBeenCalled();
+    expect(outputOptions.writeErr).toHaveBeenCalledWith(expect.stringContaining("error: unknown option '--no-bar'"));
   });
 
-  it('throws on unknown negated boolean flag', () => {
-    expect(() => getCliOptionsTest(['--no-bar'])).toThrow("unknown option '--no-bar'");
+  it('errors on unknown negated boolean flag', () => {
+    const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
+    expect(() => getCliOptionsTest({ args: ['--no-bar'], outputOptions })).toThrow(CommanderError);
+    expect(outputOptions.writeOut).not.toHaveBeenCalled();
+    expect(outputOptions.writeErr).toHaveBeenCalledWith(expect.stringContaining("error: unknown option '--no-bar'"));
   });
 
-  it('throws on unknown option combined with a valid option', () => {
-    expect(() => getCliOptionsTest(['--tag', 'foo', '--bar=2'])).toThrow("unknown option '--bar=2'");
+  it('errors on unknown option combined with a valid option', () => {
+    expect(() => getCliOptionsTest({ args: ['--tag', 'foo', '--bar=2'] })).toThrowErrorMatchingInlineSnapshot(
+      `"error: unknown option '--bar=2'"`
+    );
+  });
+
+  it('allows an array option to be specified multiple times', () => {
+    const options = getCliOptionsTest({ args: ['--scope', 'foo', '--scope', 'bar'] });
+    expect(options).toEqual({ ...defaults, scope: ['foo', 'bar'] });
   });
 
   it('gets NPM_TOKEN from environment', () => {
-    const options = getCliOptionsTest([], undefined, { NPM_TOKEN: 'fake-token' });
+    const options = getCliOptionsTest({ args: [], env: { NPM_TOKEN: 'fake-token' } });
     expect(options).toEqual({ ...defaults, token: 'fake-token' });
   });
 
   it('prefers CLI token over NPM_TOKEN environment variable', () => {
-    const options = getCliOptionsTest(['--token', 'cli-token'], undefined, { NPM_TOKEN: 'env-token' });
+    const options = getCliOptionsTest({ args: ['--token', 'cli-token'], env: { NPM_TOKEN: 'env-token' } });
     expect(options).toEqual({ ...defaults, token: 'cli-token' });
   });
 
   it('prefers empty string CLI token over NPM_TOKEN environment variable', () => {
-    const options = getCliOptionsTest(['--token', ''], undefined, { NPM_TOKEN: 'env-token' });
+    const options = getCliOptionsTest({ args: ['--token', ''], env: { NPM_TOKEN: 'env-token' } });
     expect(options).toEqual({ ...defaults, token: '' });
+  });
+
+  it('shows help text', () => {
+    const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
+    expect(() => getCliOptionsTest({ args: ['--help'], outputOptions })).toThrow(CommanderError);
+    expect(outputOptions.writeErr).not.toHaveBeenCalled();
+    expect(outputOptions.writeOut).toHaveBeenCalledTimes(1);
+    // Make sure the help text looks reasonable
+    expect(outputOptions.writeOut.mock.calls[0][0]).toMatchSnapshot();
   });
 
   describe('config command', () => {
     it('parses config get with setting name', () => {
-      const options = getCliOptionsTest(['config', 'get', 'branch']);
+      const options = getCliOptionsTest({ args: ['config', 'get', 'branch'] });
       expect(options).toEqual({ ...defaults, command: 'config', _extraPositionalArgs: ['get', 'branch'] });
     });
 
     it('parses config get with setting name and options', () => {
-      const options = getCliOptionsTest(['config', 'get', 'tag', '--package', 'my-pkg']);
+      const options = getCliOptionsTest({ args: ['config', 'get', 'tag', '--package', 'my-pkg'] });
       expect(options).toEqual({
         ...defaults,
         command: 'config',
@@ -259,8 +282,13 @@ describe('getCliOptions', () => {
       });
     });
 
-    it('throws for non-config command with extra positional args', () => {
-      expect(() => getCliOptionsTest(['check', 'extra'])).toThrow('too many arguments');
+    it('errors for non-config command with extra positional args', () => {
+      const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
+      expect(() => getCliOptionsTest({ args: ['check', 'extra'], outputOptions })).toThrow(CommanderError);
+      expect(outputOptions.writeOut).not.toHaveBeenCalled();
+      expect(outputOptions.writeErr).toHaveBeenCalledWith(
+        'error: too many arguments. Expected 1 argument but got 2.\n'
+      );
     });
   });
 });

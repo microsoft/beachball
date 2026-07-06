@@ -1,6 +1,7 @@
 import type { AuthType } from '../types/Auth';
 
+export const authTypes: AuthType[] = ['authtoken', 'password'] as const;
+
 export function isValidAuthType(authType: string): boolean {
-  const authTypes: AuthType[] = ['authtoken', 'password'];
   return authTypes.includes(authType as AuthType);
 }

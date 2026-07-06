@@ -82,7 +82,6 @@ describe('configList', () => {
         tag: ""
         timeout: undefined
         type: null
-        version: false
         yes: true"
     `);
   });
