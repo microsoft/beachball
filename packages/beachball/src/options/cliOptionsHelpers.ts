@@ -4,6 +4,7 @@ import type { CliOptions } from '../types/BeachballOptions';
 import { cacheRemoteBranch } from '../git/getRemoteBranch';
 import { getDefaultOptions } from './getDefaultOptions';
 import type { OptionDefinition, OptionType } from './cliOptionDefinitions';
+import { env } from '../env';
 
 declare module 'commander' {
   interface Option {
@@ -42,7 +43,7 @@ export class BeachballOption extends Option {
        */
       isAlias?: boolean;
       /**
-       * If non-null/undefined, show this default value in help text, but DON'T set it as the default
+       * If non-null/undefined/`''`, show this default value in help text, but DON'T set it as the default
        * to avoid messing up order of precedence with the config file (CLI > config file > default).
        */
       defaultValue: unknown;
@@ -58,7 +59,7 @@ export class BeachballOption extends Option {
     // Show the default value (if any) at the end of the help text, but don't set it as commander's
     // actual default to preserve precedence (CLI > config file > default).
     const defaultSuffix =
-      !negated && !params.omitDefault && defaultValue !== null && defaultValue !== undefined
+      !negated && !params.desc.includes('(default:') && !([null, undefined, ''] as unknown[]).includes(defaultValue)
         ? ` (default: ${JSON.stringify(defaultValue)})`
         : '';
     super(`${shortPrefix}${canonicalLong}`, negated ? undefined : `${params.desc}${defaultSuffix}`);
@@ -99,6 +100,13 @@ export class BeachballOption extends Option {
 }
 
 class BeachballHelp extends Help {
+  constructor() {
+    super();
+    if (env.isJest) {
+      this.helpWidth = 100;
+    }
+  }
+
   /** Add `--[no-]` prefix for boolean options in help text. */
   override optionTerm(option: Option): string {
     const term = super.optionTerm(option);
@@ -106,10 +114,6 @@ class BeachballHelp extends Help {
   }
 }
 
-/**
- * A {@link Command} whose subcommands are also `BeachballCommand`s, and whose help renders each
- * option's `displayTerm` (the alias, if any) instead of the canonical flag.
- */
 export class BeachballCommand extends Command {
   override createCommand(name?: string): BeachballCommand {
     return new BeachballCommand(name);
@@ -136,7 +140,7 @@ export class BeachballCommand extends Command {
    * Add every option in `optionDefinitions` to the given command, automatically handling aliases and
    * negated `--no-` boolean options.
    */
-  public addAllOptions(optionDefinitions: Record<string, OptionDefinition>): this {
+  public addAllOptions(optionDefinitions: Partial<Record<keyof CliOptions, OptionDefinition>>): this {
     const defaultOptions = getDefaultOptions();
 
     for (const [name, def] of Object.entries(optionDefinitions) as [keyof CliOptions, OptionDefinition][]) {

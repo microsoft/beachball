@@ -7,6 +7,8 @@ import {
   BeachballCommand,
   BeachballOption,
 } from '../../options/cliOptionsHelpers';
+import type { CliOptions } from '../../types/BeachballOptions';
+import type { OptionDefinition } from '../../options/cliOptionDefinitions';
 
 describe('_toDashed', () => {
   it('leaves all-lowercase names unchanged', () => {
@@ -195,9 +197,21 @@ describe('BeachballOption', () => {
     });
     expect(option.description).toBe('');
   });
+
+  // this prevents interference with CLI/config/default precedence
+  it('adds default value to description but not the commander default', () => {
+    const option = new BeachballOption({
+      name: 'tag',
+      type: 'string',
+      desc: 'npm dist-tag',
+      defaultValue: 'latest',
+    });
+    expect(option.description).toBe('npm dist-tag (default: "latest")');
+    expect(option.defaultValue).toBeUndefined();
+  });
 });
 
-describe('addAllOptions', () => {
+describe('BeachballCommand', () => {
   function buildCommand() {
     const command = new BeachballCommand();
     command.exitOverride();
@@ -212,44 +226,101 @@ describe('addAllOptions', () => {
     return command;
   }
 
-  it('parses a string option with its short alias and description', () => {
-    const command = buildCommand();
-    const branchOption = command.options.find(o => o.long === '--branch');
-    expect(branchOption?.short).toBe('-b');
-    // The description may include a `(default: ...)` suffix from the real default options.
-    expect(branchOption?.description).toMatch(/^target branch/);
+  describe('parsing', () => {
+    it('parses a string option with its short alias and description', () => {
+      const command = buildCommand();
+      const branchOption = command.options.find(o => o.long === '--branch');
+      expect(branchOption?.short).toBe('-b');
+      // The description may include a `(default: ...)` suffix from the real default options.
+      expect(branchOption?.description).toMatch(/^target branch/);
 
-    expect(command.parse(['-b', 'main'], { from: 'user' }).opts().branch).toBe('main');
-    expect(buildCommand().parse(['--branch', 'main'], { from: 'user' }).opts().branch).toBe('main');
+      expect(command.parse(['-b', 'main'], { from: 'user' }).opts().branch).toBe('main');
+      expect(buildCommand().parse(['--branch', 'main'], { from: 'user' }).opts().branch).toBe('main');
+    });
+
+    it('matches the camelCase spelling of a dashed flag', () => {
+      expect(buildCommand().parse(['--configPath', 'foo'], { from: 'user' }).opts().configPath).toBe('foo');
+      expect(buildCommand().parse(['--config-path', 'foo'], { from: 'user' }).opts().configPath).toBe('foo');
+    });
+
+    it('matches an extra long-flag alias', () => {
+      expect(buildCommand().parse(['--config', 'foo'], { from: 'user' }).opts().configPath).toBe('foo');
+    });
+
+    it('parses a number option coerced to a number', () => {
+      const opts = buildCommand().parse(['--depth', '3'], { from: 'user' }).opts();
+      expect(opts.depth).toBe(3);
+    });
+
+    it('collects array options from repeated and variadic usage', () => {
+      expect(buildCommand().parse(['--scope', 'a', '--scope', 'b'], { from: 'user' }).opts().scope).toEqual(['a', 'b']);
+      expect(buildCommand().parse(['--scope', 'a', 'b'], { from: 'user' }).opts().scope).toEqual(['a', 'b']);
+    });
+
+    it('parses a boolean option and its negation', () => {
+      expect(buildCommand().parse(['--fetch'], { from: 'user' }).opts().fetch).toBe(true);
+      expect(buildCommand().parse(['--no-fetch'], { from: 'user' }).opts().fetch).toBe(false);
+      expect(buildCommand().parse([], { from: 'user' }).opts().fetch).toBeUndefined();
+    });
+
+    it('matches a boolean alias and its negated alias', () => {
+      expect(buildCommand().parse(['--force'], { from: 'user' }).opts().forceVersions).toBe(true);
+      expect(buildCommand().parse(['--no-force'], { from: 'user' }).opts().forceVersions).toBe(false);
+    });
   });
 
-  it('matches the camelCase spelling of a dashed flag', () => {
-    expect(buildCommand().parse(['--configPath', 'foo'], { from: 'user' }).opts().configPath).toBe('foo');
-    expect(buildCommand().parse(['--config-path', 'foo'], { from: 'user' }).opts().configPath).toBe('foo');
-  });
+  describe('help', () => {
+    function getOptionsHelpText(options: Partial<Record<keyof CliOptions, OptionDefinition>>) {
+      return new BeachballCommand()
+        .helpOption(false)
+        .addAllOptions(options)
+        .helpInformation()
+        .split('Options:\n')[1]
+        .trimEnd();
+    }
 
-  it('matches an extra long-flag alias', () => {
-    expect(buildCommand().parse(['--config', 'foo'], { from: 'user' }).opts().configPath).toBe('foo');
-  });
+    it('handles string option with no default', () => {
+      const optionsHelp = getOptionsHelpText({
+        message: { type: 'string', desc: 'commit message', short: 'm' },
+      });
+      expect(optionsHelp).toMatchInlineSnapshot(`"  -m, --message <value>  commit message"`);
+    });
 
-  it('parses a number option coerced to a number', () => {
-    const opts = buildCommand().parse(['--depth', '3'], { from: 'user' }).opts();
-    expect(opts.depth).toBe(3);
-  });
+    it('handles string option with default', () => {
+      // the default is defined in getDefaultOptions
+      const optionsHelp = getOptionsHelpText({
+        changeDir: { type: 'string', desc: 'change file directory' },
+      });
+      expect(optionsHelp).toMatchInlineSnapshot(`"  --change-dir <value>  change file directory (default: "change")"`);
+    });
 
-  it('collects array options from repeated and variadic usage', () => {
-    expect(buildCommand().parse(['--scope', 'a', '--scope', 'b'], { from: 'user' }).opts().scope).toEqual(['a', 'b']);
-    expect(buildCommand().parse(['--scope', 'a', 'b'], { from: 'user' }).opts().scope).toEqual(['a', 'b']);
-  });
+    it('handles string option with alias', () => {
+      const optionsHelp = getOptionsHelpText({
+        configPath: { type: 'string', desc: 'config path', alias: 'config', short: 'c' },
+      });
+      expect(optionsHelp).toMatchInlineSnapshot(`"  -c, --config <value>  config path"`);
+    });
 
-  it('parses a boolean option and its negation', () => {
-    expect(buildCommand().parse(['--fetch'], { from: 'user' }).opts().fetch).toBe(true);
-    expect(buildCommand().parse(['--no-fetch'], { from: 'user' }).opts().fetch).toBe(false);
-    expect(buildCommand().parse([], { from: 'user' }).opts().fetch).toBeUndefined();
-  });
+    it('omits getDefaultOptions default if description includes "(default:"', () => {
+      const optionsHelp = getOptionsHelpText({
+        branch: { type: 'string', desc: 'target branch (default: something custom)' },
+      });
+      expect(optionsHelp).toMatchInlineSnapshot(`"  --branch <value>  target branch (default: something custom)"`);
+    });
 
-  it('matches a boolean alias and its negated alias', () => {
-    expect(buildCommand().parse(['--force'], { from: 'user' }).opts().forceVersions).toBe(true);
-    expect(buildCommand().parse(['--no-force'], { from: 'user' }).opts().forceVersions).toBe(false);
+    it('handles boolean option (including negated form)', () => {
+      const optionsHelp = getOptionsHelpText({
+        fetch: { type: 'boolean', desc: 'fetch first' },
+      });
+      expect(optionsHelp).toMatchInlineSnapshot(`"  --[no-]fetch  fetch first (default: true)"`);
+    });
+
+    it('handles boolean option with alias', () => {
+      const optionsHelp = getOptionsHelpText({
+        gitTags: { type: 'boolean', desc: 'create git tags', alias: 'tags', short: 't' },
+      });
+      // note: --tags and -t are NOT actually used for --git-tags
+      expect(optionsHelp).toMatchInlineSnapshot(`"  -t, --[no-]tags  create git tags (default: true)"`);
+    });
   });
 });

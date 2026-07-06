@@ -1,4 +1,9 @@
+import { SortedChangeTypes } from '../changefile/changeTypes';
 import type { CliOptions } from '../types/BeachballOptions';
+import { authTypes } from '../validation/isValidAuthType';
+
+export const defaultCommand = 'change';
+export const allCommands = ['change', 'check', 'bump', 'publish', 'sync', 'config', 'canary', 'migrate', 'init'];
 
 export type OptionType = 'string' | 'number' | 'boolean' | 'array';
 
@@ -23,9 +28,7 @@ export interface OptionDefinition {
    */
   type?: OptionType;
   /** Valid choices, such as for `disallowedChangeTypes` (string or array options only). */
-  choices?: string[];
-  /** Omit the default option from `getDefaultOptions` from the help text. */
-  omitDefault?: boolean;
+  choices?: readonly string[];
 }
 
 /**
@@ -38,7 +41,7 @@ export const optionDefinitions: Record<
   OptionDefinition
 > = {
   // array options
-  disallowedChangeTypes: { type: 'array', desc: 'change types that are not allowed' },
+  disallowedChangeTypes: { type: 'array', desc: 'change types that are not allowed', choices: SortedChangeTypes },
   package: {
     type: 'array',
     short: 'p',
@@ -80,9 +83,9 @@ export const optionDefinitions: Record<
   retries: { type: 'number', desc: 'number of retries for an npm publish before failing' },
   timeout: { type: 'number', desc: 'timeout in ms for npm operations (other than install)' },
   // string options
-  access: { desc: 'npm publish access level: "public" or "restricted"' },
-  authType: { short: 'a', desc: 'npm auth type for NPM_TOKEN: "authtoken" or "password"' },
-  branch: { short: 'b', desc: 'target branch from remote (default: git config init.defaultBranch)', omitDefault: true },
+  access: { desc: 'npm publish access level', choices: ['public', 'restricted'] },
+  authType: { short: 'a', desc: 'npm auth type for NPM_TOKEN', choices: authTypes },
+  branch: { short: 'b', desc: 'target branch from remote (default: git config init.defaultBranch)' },
   canaryName: { desc: 'dist-tag and version name to use for canary publishes' },
   changehint: { desc: 'customized hint message shown when a change file is needed but missing' },
   changeDir: { desc: 'name of the directory to store change files' },
@@ -91,13 +94,16 @@ export const optionDefinitions: Record<
     alias: 'config',
     desc: 'custom beachball config path (default: cosmiconfig standard paths)',
   },
-  dependentChangeType: { desc: 'change type to use for dependent packages (default: patch)' },
+  dependentChangeType: {
+    desc: 'change type to use for dependent packages (default: patch)',
+    choices: SortedChangeTypes,
+  },
   fromRef: { alias: 'since', desc: 'consider changes or change files since this git ref (branch name, commit SHA)' },
   message: { short: 'm', desc: 'for "change", the change description; for "publish", the commit message' },
   packToPath: { desc: 'pack packages to tgz files under this path instead of publishing to npm' },
   prereleasePrefix: { desc: 'prerelease prefix for packages that will receive a prerelease bump' },
   registry: { short: 'r', desc: 'npm registry' },
-  tag: { short: 't', desc: 'npm dist-tag for publishes (default: "latest")', omitDefault: true },
+  tag: { short: 't', desc: 'npm dist-tag for publishes (default: "latest")' },
   token: { short: 'n', desc: 'npm auth token (defaults to the NPM_TOKEN environment variable)' },
-  type: { desc: 'type of change: e.g. major, minor, patch, none (instead of prompting)' },
+  type: { desc: 'type of change (instead of prompting)', choices: SortedChangeTypes },
 };

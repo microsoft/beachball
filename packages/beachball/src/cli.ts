@@ -19,7 +19,7 @@ import { getPackageGroups } from './monorepo/getPackageGroups';
 // eslint-disable-next-line no-restricted-properties -- top-level call
 const processCwd = process.cwd();
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const version = getPackageInfo(findPackageRoot(processCwd)!)?.version;
+const version = getPackageInfo(findPackageRoot(__dirname)!)?.version;
 
 (async () => {
   try {

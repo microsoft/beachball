@@ -13,7 +13,7 @@ describe('getOptions', () => {
   // it will use the version from the require cache, which will have outdated contents.
 
   // Return a new object each time since getRepoOptions caches the result based on object identity.
-  const baseArgv = () => ['node', 'beachball', 'stuff'];
+  const baseArgv = () => ['node', 'beachball', 'check'];
 
   beforeAll(() => {
     repositoryFactory = new RepositoryFactory('single');
@@ -52,11 +52,11 @@ describe('getOptions', () => {
         ...repoOptions,
         branch: 'origin/bar',
         bump: true,
-        command: 'stuff',
+        command: 'check',
         path: repo.rootPath,
       },
       repoOptions,
-      cliOptions: { path: repo.rootPath, command: 'stuff', branch: 'origin/bar', bump: true },
+      cliOptions: { path: repo.rootPath, command: 'check', branch: 'origin/bar', bump: true },
     });
   });
 });

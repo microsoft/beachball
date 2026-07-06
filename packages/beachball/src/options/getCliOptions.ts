@@ -3,7 +3,7 @@ import { findProjectRoot } from 'workspace-tools';
 import { env } from '../env';
 import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
 import { BeachballCommand, resolveBranchOption } from './cliOptionsHelpers';
-import { optionDefinitions } from './cliOptionDefinitions';
+import { allCommands, defaultCommand, optionDefinitions } from './cliOptionDefinitions';
 
 export interface ProgramContext {
   /** Complete argv (node and script path aren't used but elements must be present) */
@@ -44,9 +44,6 @@ export interface ProgramContext {
 // - arbitrary unknown options are errors
 // - boolean options do not accept a value (e.g. `--verbose true` is an error)
 
-/** Command run when none is specified on the command line. */
-const defaultCommand = 'change';
-
 /** Result captured from parsing. */
 interface ParseResult {
   command: string;
@@ -80,9 +77,7 @@ function buildProgram(params: Pick<ProgramContext, 'outputOptions' | 'version'>)
 
   let outputOptions = params.outputOptions;
   if (env.isJest) {
-    program.exitOverride(err => {
-      throw err;
-    });
+    program.exitOverride();
     outputOptions ??= { writeOut: () => {}, writeErr: () => {} };
   }
   outputOptions && program.configureOutput(outputOptions);
@@ -93,22 +88,13 @@ function buildProgram(params: Pick<ProgramContext, 'outputOptions' | 'version'>)
 
   // The single positional is the command name (any value; validated by the caller/cli.ts).
   program.addArgument(
-    new Argument('[command]', 'beachball command to run').choices([
-      'change',
-      'check',
-      'bump',
-      'publish',
-      'sync',
-      'config',
-      'canary',
-      'migrate',
-    ])
+    new Argument('[command]', 'beachball command to run').default(defaultCommand).choices(allCommands)
   );
 
   let result: ParseResult = { command: defaultCommand, options: {}, extraArgs: [] };
 
-  program.action((command: string | undefined) => {
-    result = { command: command ?? defaultCommand, options: program.opts(), extraArgs: [] };
+  program.action((command: string) => {
+    result = { command, options: program.opts(), extraArgs: [] };
   });
 
   // The `config` command takes extra positional args (its subcommand and arguments, e.g.

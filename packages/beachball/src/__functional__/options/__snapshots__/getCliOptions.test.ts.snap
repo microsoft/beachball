@@ -6,50 +6,77 @@ exports[`getCliOptions shows help text 1`] = `
 beachball - the sunniest version bumping tool
 
 Arguments:
-  command                               beachball command to run (choices: "change", "check", "bump", "publish", "sync", "config",
-                                        "canary", "migrate")
+  command                               beachball command to run (choices: "change", "check",
+                                        "bump", "publish", "sync", "config", "canary", "migrate",
+                                        "init", default: "change")
 
 Options:
-  --disallowed-change-types <value...>  change types that are not allowed
-  -p, --package <value...>              force creating a change file for this package (can be specified multiple times)
-  --scope <value...>                    only consider package paths matching this pattern (can be specified multiple times; supports
-                                        negations)
+  --disallowed-change-types <value...>  change types that are not allowed (choices: "none",
+                                        "prerelease", "prepatch", "patch", "preminor", "minor",
+                                        "premajor", "major")
+  -p, --package <value...>              force creating a change file for this package (can be
+                                        specified multiple times)
+  --scope <value...>                    only consider package paths matching this pattern (can be
+                                        specified multiple times; supports negations)
   --[no-]all                            generate change files for all packages (default: false)
   --[no-]bump                           bump versions during publish (default: true)
   --[no-]bump-deps                      bump dependent packages during publish (default: true)
   --[no-]commit                         commit change files after "change" (default: true)
-  --[no-]disallow-deleted-change-files  verify that no change files were deleted between head and target branch
-  --[no-]fetch                          fetch from the remote before determining changes (default: true)
-  --[no-]force                          for 'sync': use the version from the registry even if it's older than local
-  --[no-]git-tags                       create git tags for each published package version (default: true)
+  --[no-]disallow-deleted-change-files  verify that no change files were deleted between head and
+                                        target branch
+  --[no-]fetch                          fetch from the remote before determining changes (default:
+                                        true)
+  --[no-]force                          for 'sync': use the version from the registry even if it's
+                                        older than local
+  --[no-]git-tags                       create git tags for each published package version (default:
+                                        true)
   --[no-]keep-change-files              don't delete the change files from disk after bumping
   --[no-]publish                        publish to the npm registry (default: true)
   --[no-]push                           push changes back to the remote git branch (default: true)
   --[no-]verbose                        print additional information to the console
   -y, --[no-]yes                        skip the confirmation prompts (default: false)
-  --concurrency <value>                 maximum concurrency for write operations such as publishing (default: 1)
-  --depth <value>                       for shallow clones: depth of git history to consider when fetching
-  --npm-read-concurrency <value>        maximum concurrency for reading package versions from the registry (default: 2)
+  --concurrency <value>                 maximum concurrency for write operations such as publishing
+                                        (default: 1)
+  --depth <value>                       for shallow clones: depth of git history to consider when
+                                        fetching
+  --npm-read-concurrency <value>        maximum concurrency for reading package versions from the
+                                        registry (default: 2)
   --git-timeout <value>                 timeout in ms for git push operations
-  --retries <value>                     number of retries for an npm publish before failing (default: 3)
+  --retries <value>                     number of retries for an npm publish before failing
+                                        (default: 3)
   --timeout <value>                     timeout in ms for npm operations (other than install)
-  --access <value>                      npm publish access level: "public" or "restricted" (default: "restricted")
-  -a, --auth-type <value>               npm auth type for NPM_TOKEN: "authtoken" or "password" (default: "authtoken")
-  -b, --branch <value>                  target branch from remote (default: git config init.defaultBranch)
+  --access <value>                      npm publish access level (default: "restricted") (choices:
+                                        "public", "restricted")
+  -a, --auth-type <value>               npm auth type for NPM_TOKEN (default: "authtoken") (choices:
+                                        "authtoken", "password")
+  -b, --branch <value>                  target branch from remote (default: git config
+                                        init.defaultBranch)
   --canary-name <value>                 dist-tag and version name to use for canary publishes
-  --changehint <value>                  customized hint message shown when a change file is needed but missing (default: "Run
-                                        \\"beachball change\\" to create a change file")
-  --change-dir <value>                  name of the directory to store change files (default: "change")
-  -c, --config <value>                  custom beachball config path (default: cosmiconfig standard paths)
+  --changehint <value>                  customized hint message shown when a change file is needed
+                                        but missing (default: "Run \\"beachball change\\" to create a
+                                        change file")
+  --change-dir <value>                  name of the directory to store change files (default:
+                                        "change")
+  -c, --config <value>                  custom beachball config path (default: cosmiconfig standard
+                                        paths)
   --dependent-change-type <value>       change type to use for dependent packages (default: patch)
-  --since <value>                       consider changes or change files since this git ref (branch name, commit SHA)
-  -m, --message <value>                 for "change", the change description; for "publish", the commit message (default: "")
-  --pack-to-path <value>                pack packages to tgz files under this path instead of publishing to npm
-  --prerelease-prefix <value>           prerelease prefix for packages that will receive a prerelease bump
+                                        (choices: "none", "prerelease", "prepatch", "patch",
+                                        "preminor", "minor", "premajor", "major")
+  --since <value>                       consider changes or change files since this git ref (branch
+                                        name, commit SHA)
+  -m, --message <value>                 for "change", the change description; for "publish", the
+                                        commit message
+  --pack-to-path <value>                pack packages to tgz files under this path instead of
+                                        publishing to npm
+  --prerelease-prefix <value>           prerelease prefix for packages that will receive a
+                                        prerelease bump
   -r, --registry <value>                npm registry (default: "https://registry.npmjs.org/")
   -t, --tag <value>                     npm dist-tag for publishes (default: "latest")
-  -n, --token <value>                   npm auth token (defaults to the NPM_TOKEN environment variable)
-  --type <value>                        type of change: e.g. major, minor, patch, none (instead of prompting)
+  -n, --token <value>                   npm auth token (defaults to the NPM_TOKEN environment
+                                        variable)
+  --type <value>                        type of change (instead of prompting) (choices: "none",
+                                        "prerelease", "prepatch", "patch", "preminor", "minor",
+                                        "premajor", "major")
   -h, --help                            display help for command
 
 Commands:
