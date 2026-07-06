@@ -257,6 +257,15 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, token: '' });
   });
 
+  it('shows help text', () => {
+    const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
+    expect(() => getCliOptionsTest({ args: ['--help'], outputOptions })).toThrow(CommanderError);
+    expect(outputOptions.writeErr).not.toHaveBeenCalled();
+    expect(outputOptions.writeOut).toHaveBeenCalledTimes(1);
+    // Make sure the help text looks reasonable
+    expect(outputOptions.writeOut.mock.calls[0][0]).toMatchSnapshot();
+  });
+
   describe('config command', () => {
     it('parses config get with setting name', () => {
       const options = getCliOptionsTest({ args: ['config', 'get', 'branch'] });

@@ -4,8 +4,8 @@ import {
   _normalizeFlagName,
   _parseNumber,
   _toDashed,
-  FlexibleCommand,
-  FlexibleOption,
+  BeachballCommand,
+  BeachballOption,
 } from '../../options/cliOptionsHelpers';
 
 describe('_toDashed', () => {
@@ -54,9 +54,9 @@ describe('_normalizeFlagName', () => {
   });
 });
 
-describe('FlexibleOption', () => {
+describe('BeachballOption', () => {
   it('builds a string option with short flag and value placeholder', () => {
-    const option = new FlexibleOption({
+    const option = new BeachballOption({
       name: 'branch',
       type: 'string',
       short: 'b',
@@ -70,7 +70,7 @@ describe('FlexibleOption', () => {
   });
 
   it('converts camelCase names to dashed flags', () => {
-    const option = new FlexibleOption({
+    const option = new BeachballOption({
       name: 'gitTags',
       type: 'boolean',
       desc: '',
@@ -81,7 +81,7 @@ describe('FlexibleOption', () => {
   });
 
   it('uses a variadic placeholder for array options', () => {
-    const option = new FlexibleOption({
+    const option = new BeachballOption({
       name: 'scope',
       type: 'array',
       desc: '',
@@ -91,7 +91,7 @@ describe('FlexibleOption', () => {
   });
 
   it('for an option with an alias, hides help for the canonical name and does not use short value', () => {
-    const option = new FlexibleOption({
+    const option = new BeachballOption({
       name: 'configPath',
       type: 'string',
       alias: 'config',
@@ -106,7 +106,7 @@ describe('FlexibleOption', () => {
   });
 
   it('for the alias variant of an option, uses the canonical name for the attribute', () => {
-    const option = new FlexibleOption({
+    const option = new BeachballOption({
       name: 'configPath',
       type: 'string',
       short: 'c',
@@ -121,7 +121,7 @@ describe('FlexibleOption', () => {
   });
 
   it('builds the negated form of a boolean option', () => {
-    const option = new FlexibleOption({
+    const option = new BeachballOption({
       name: 'gitTags',
       type: 'boolean',
       desc: '',
@@ -133,7 +133,7 @@ describe('FlexibleOption', () => {
   });
 
   it('shows the negated alias for an alias boolean option', () => {
-    const option = new FlexibleOption({
+    const option = new BeachballOption({
       name: 'forceVersions',
       type: 'boolean',
       alias: 'force',
@@ -148,7 +148,7 @@ describe('FlexibleOption', () => {
   });
 
   it('matches camelCase and dashed spellings via is()', () => {
-    const option = new FlexibleOption({
+    const option = new BeachballOption({
       name: 'configPath',
       type: 'string',
       alias: 'config',
@@ -162,21 +162,21 @@ describe('FlexibleOption', () => {
   });
 
   it('appends the default value to the help description', () => {
-    const option1 = new FlexibleOption({ name: 'tag', type: 'string', desc: 'npm dist-tag', defaultValue: 'latest' });
+    const option1 = new BeachballOption({ name: 'tag', type: 'string', desc: 'npm dist-tag', defaultValue: 'latest' });
     expect(option1.description).toBe('npm dist-tag (default: "latest")');
-    const option2 = new FlexibleOption({ name: 'fetch', type: 'boolean', desc: 'fetch first', defaultValue: true });
+    const option2 = new BeachballOption({ name: 'fetch', type: 'boolean', desc: 'fetch first', defaultValue: true });
     expect(option2.description).toBe('fetch first (default: true)');
   });
 
   it('omits the default when it is null or undefined', () => {
-    const option1 = new FlexibleOption({
+    const option1 = new BeachballOption({
       name: 'branch',
       type: 'string',
       desc: 'target branch',
       defaultValue: undefined,
     });
     expect(option1.description).toBe('target branch');
-    const option2 = new FlexibleOption({
+    const option2 = new BeachballOption({
       name: 'scope',
       type: 'array',
       desc: 'scope pattern',
@@ -186,7 +186,7 @@ describe('FlexibleOption', () => {
   });
 
   it('has no description on the negated form', () => {
-    const option = new FlexibleOption({
+    const option = new BeachballOption({
       name: 'fetch',
       type: 'boolean',
       desc: 'fetch first',
@@ -199,7 +199,7 @@ describe('FlexibleOption', () => {
 
 describe('addAllOptions', () => {
   function buildCommand() {
-    const command = new FlexibleCommand();
+    const command = new BeachballCommand();
     command.exitOverride();
     command.addAllOptions({
       branch: { type: 'string', short: 'b', desc: 'target branch' },

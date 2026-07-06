@@ -2,7 +2,7 @@ import type { Command, OptionValues, OutputConfiguration } from 'commander';
 import { findProjectRoot } from 'workspace-tools';
 import { env } from '../env';
 import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
-import { FlexibleCommand, resolveBranchOption, type OptionDefinition } from './cliOptionsHelpers';
+import { BeachballCommand, resolveBranchOption, type OptionDefinition } from './cliOptionsHelpers';
 
 export interface ProgramContext {
   /** Complete argv (node and script path aren't used but elements must be present) */
@@ -34,16 +34,14 @@ export interface ProgramContext {
 // subcommand so its extra positional args (e.g. `config get <name>`) are handled natively, while
 // commander errors on excess positional args for all other commands.
 //
-// Unlike yargs-parser (which accepted arbitrary unknown flags), commander errors on unknown
-// options. This is an intentional breaking change for v3.
+// Certain yargs-parser behaviors are preserved by `BeachballOption`/`BeachballCommand`:
+// - camelCase flags (e.g. `--gitTags`) in addition to dashed flags (e.g. `--git-tags`)
+// - extra long-flag aliases (e.g. `--config` for `--config-path`)
+// - boolean options automatically get a negated `--no-` form
 //
-// Each option is declared in its canonical dashed form. Commander is a schema-first parser, so a
-// few permissive behaviors that yargs-parser accepted are reproduced:
-//   - camelCase flags (`--gitTags`) and extra long aliases (`--config`, `--force`, `--since`) are
-//     matched natively by the `FlexibleOption`/`FlexibleCommand` subclasses.
-//   - boolean values passed via `=` or as a separate token (`--fetch=false`, `--yes false`) are
-//     rewritten to commander's flag / `--no-` negation form during parsing by
-//     `FlexibleCommand.parseOptions`.
+// Other yargs-parser behaviors are NOT preserved:
+// - arbitrary unknown options are errors
+// - boolean options do not accept a value (e.g. `--verbose true` is an error)
 
 /** Command run when none is specified on the command line. */
 const defaultCommand = 'change';
@@ -148,7 +146,7 @@ function buildProgram(params: Pick<ProgramContext, 'outputOptions' | 'version'>)
 } {
   const { version } = params;
 
-  const program = new FlexibleCommand();
+  const program = new BeachballCommand();
   program.name('beachball');
   program.description(`beachball${version ? ` v${version}` : ''} - the sunniest version bumping tool`);
   program.usage('<command> [options]');

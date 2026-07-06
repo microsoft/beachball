@@ -1,4 +1,4 @@
-import { Command, Option, InvalidArgumentError } from 'commander';
+import { Command, Option, InvalidArgumentError, Help } from 'commander';
 import { resolveRemoteAndBranch } from 'workspace-tools';
 import type { CliOptions } from '../types/BeachballOptions';
 import { cacheRemoteBranch } from '../git/getRemoteBranch';
@@ -50,10 +50,12 @@ const valueSyntax: Record<OptionType, string> = {
 };
 
 /**
- * Custom Commander `Option` that matches camelCase spellings of its dashed flag (`--gitTags`
- * for `--git-tags`) and any extra long-flag `alias` (`--config` for `--config-path`).
+ * Custom Commander `Option` that matches camelCase spellings of its dashed flag and has special
+ * handling of other behaviors from `OptionDefinition`.
  */
-export class FlexibleOption extends Option {
+export class BeachballOption extends Option {
+  public readonly type: OptionType;
+
   constructor(
     params: OptionDefinition & {
       /**
@@ -89,6 +91,7 @@ export class FlexibleOption extends Option {
         ? ` (default: ${JSON.stringify(defaultValue)})`
         : '';
     super(`${shortPrefix}${canonicalLong}`, negated ? undefined : `${params.desc}${defaultSuffix}`);
+    this.type = type;
 
     if (alias) {
       if (isAlias) {
@@ -100,7 +103,9 @@ export class FlexibleOption extends Option {
       }
     }
 
-    if (!negated) {
+    if (negated) {
+      this.hideHelp();
+    } else {
       params.choices && this.choices(params.choices);
       const parser = params.parse ?? (params.type === 'number' ? _parseNumber : undefined);
       if (parser) {
@@ -124,22 +129,38 @@ export class FlexibleOption extends Option {
   }
 }
 
+class BeachballHelp extends Help {
+  /** Add `--[no-]` prefix for boolean options in help text. */
+  override optionTerm(option: Option): string {
+    const term = super.optionTerm(option);
+    return option instanceof BeachballOption && option.type === 'boolean' ? term.replace('--', '--[no-]') : term;
+  }
+}
+
 /**
- * A {@link Command} whose subcommands are also `FlexibleCommand`s, and whose help renders each
+ * A {@link Command} whose subcommands are also `BeachballCommand`s, and whose help renders each
  * option's `displayTerm` (the alias, if any) instead of the canonical flag.
  */
-export class FlexibleCommand extends Command {
-  override createCommand(name?: string): FlexibleCommand {
-    return new FlexibleCommand(name);
+export class BeachballCommand extends Command {
+  override createCommand(name?: string): BeachballCommand {
+    return new BeachballCommand(name);
   }
-  /** Not supported--use `addOption(new FlexibleOption(...))` instead. */
+  /** Not supported--use `addAllOptions` instead. */
   override option(): never {
-    throw new Error('not supported by FlexibleCommand');
+    throw new Error('not supported by BeachballCommand');
   }
-  /** Not supported--use `addOption(new FlexibleOption(...))` instead. */
+  /** Not supported--use `addAllOptions` instead. */
   override createOption(flags: string, description?: string): Option {
-    if (flags.endsWith('--help')) return super.createOption(flags, description);
-    throw new Error('not supported by FlexibleCommand');
+    if (/--(help|version)$/.test(flags)) return super.createOption(flags, description);
+    throw new Error('not supported by BeachballCommand');
+  }
+  /** Not supported--use `addAllOptions` instead. */
+  override addOption(): never {
+    throw new Error('not supported by BeachballCommand');
+  }
+
+  override createHelp(): Help {
+    return new BeachballHelp();
   }
 
   /**
@@ -151,11 +172,11 @@ export class FlexibleCommand extends Command {
 
     for (const [name, def] of Object.entries(optionDefinitions) as [keyof CliOptions, OptionDefinition][]) {
       const mainParams = { name, ...def, defaultValue: defaultOptions[name] };
-      this.addOption(new FlexibleOption(mainParams));
-      def.alias && this.addOption(new FlexibleOption({ ...mainParams, isAlias: true }));
+      super.addOption(new BeachballOption(mainParams));
+      def.alias && super.addOption(new BeachballOption({ ...mainParams, isAlias: true }));
       if (def.type === 'boolean') {
-        this.addOption(new FlexibleOption({ ...mainParams, negated: true }));
-        def.alias && this.addOption(new FlexibleOption({ ...mainParams, isAlias: true, negated: true }));
+        super.addOption(new BeachballOption({ ...mainParams, negated: true }));
+        def.alias && super.addOption(new BeachballOption({ ...mainParams, isAlias: true, negated: true }));
       }
     }
 
