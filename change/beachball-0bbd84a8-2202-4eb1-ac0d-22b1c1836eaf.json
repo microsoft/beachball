@@ -1,7 +1,7 @@
 {
-  "type": "none",
-  "comment": "More commander updates (see other change file)",
+  "type": "minor",
+  "comment": "Technically breaking but should have no impact: remove `help` and `version` properties from `BeachballOptions`/`CliOptions`.",
   "packageName": "beachball",
   "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
+  "dependentChangeType": "patch"
 }
