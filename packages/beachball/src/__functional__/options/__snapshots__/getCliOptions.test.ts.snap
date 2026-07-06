@@ -6,7 +6,8 @@ exports[`getCliOptions shows help text 1`] = `
 beachball - the sunniest version bumping tool
 
 Arguments:
-  command                               beachball command to run
+  command                               beachball command to run (choices: "change", "check", "bump", "publish", "sync", "config",
+                                        "canary", "migrate")
 
 Options:
   --disallowed-change-types <value...>  change types that are not allowed

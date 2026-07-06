@@ -3,42 +3,13 @@ import { resolveRemoteAndBranch } from 'workspace-tools';
 import type { CliOptions } from '../types/BeachballOptions';
 import { cacheRemoteBranch } from '../git/getRemoteBranch';
 import { getDefaultOptions } from './getDefaultOptions';
+import type { OptionDefinition, OptionType } from './cliOptionDefinitions';
 
 declare module 'commander' {
   interface Option {
     /** Check if the argument matches this option. (missing from public types) */
     is(arg: string): boolean;
   }
-}
-
-type OptionType = 'string' | 'number' | 'boolean' | 'array';
-
-/** Definition of a single CLI option, used to build its commander `Option`. */
-export interface OptionDefinition {
-  desc: string;
-  /**
-   * Single-character short flag (without dash), e.g. `b` for `--branch`.
-   * For options with an alias, this is only applied to the alias variant of the option.
-   */
-  short?: string;
-  /**
-   * Extra long-flag alias (without dashes), e.g. `config` for the `configPath` option. When set,
-   * the alias is shown in help *instead of* the canonical dashed name, but the value is still
-   * stored under the canonical name.
-   */
-  alias?: string;
-  /**
-   * Value type. `'array'` is currently always a string array.
-   * `'boolean'` values get a negated `--no-` form automatically when added via `addAllOptions`.
-   * @default 'string'
-   */
-  type?: OptionType;
-  /** Parse the value or throw `InvalidArgumentError` if invalid. */
-  parse?: (value: string, previous: unknown) => unknown;
-  /** Valid choices, such as for `disallowedChangeTypes`. */
-  choices?: string[];
-  /** Omit the default option from `getDefaultOptions` from the help text. */
-  omitDefault?: boolean;
 }
 
 /** Value placeholder shown after each option flag, by option type. */
@@ -105,12 +76,10 @@ export class BeachballOption extends Option {
 
     if (negated) {
       this.hideHelp();
+    } else if (type === 'number') {
+      this.argParser(_parseNumber);
     } else {
       params.choices && this.choices(params.choices);
-      const parser = params.parse ?? (params.type === 'number' ? _parseNumber : undefined);
-      if (parser) {
-        this.argParser(parser);
-      }
     }
   }
 
