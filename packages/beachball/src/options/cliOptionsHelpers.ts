@@ -8,7 +8,10 @@ import { env } from '../env';
 
 declare module 'commander' {
   interface Option {
-    /** Check if the argument matches this option. (missing from public types) */
+    /**
+     * Check if the argument matches this option. (missing from public types)
+     * @param arg Flag only, e.g. `--foo` or `-f`
+     */
     is(arg: string): boolean;
   }
 }
@@ -16,7 +19,7 @@ declare module 'commander' {
 /** Value placeholder shown after each option flag, by option type. */
 const valueSyntax: Record<OptionType, string> = {
   string: '<value>',
-  number: '<value>',
+  number: '<num>',
   boolean: '',
   array: '<value...>',
 };
@@ -49,26 +52,33 @@ export class BeachballOption extends Option {
       defaultValue: unknown;
     }
   ) {
-    const { name, alias, isAlias, type = 'string', negated, defaultValue } = params;
-    const showOptionName = (isAlias && alias) || name;
-    const dashed = _toDashed(showOptionName);
-    const suffix = valueSyntax[type] ? ` ${valueSyntax[type]}` : '';
-    // For commands with an alias, only add the short option to the alias variant to avoid conflicts
-    const shortPrefix = params.short && !negated && (!alias || isAlias) ? `-${params.short}, ` : '';
-    const canonicalLong = negated ? `--no-${dashed}` : `--${dashed}${suffix}`;
+    const { name: canonicalName, alias, isAlias, type = 'string', negated, defaultValue, desc } = params;
+
+    // Build short flag prefix. For commands with an alias, only use it for the alias variant to avoid conflicts.
+    let flags = params.short && !negated && (!alias || isAlias) ? `-${params.short}, ` : '';
+
+    // Build dash-case name for the long flag (e.g. `gitTags` => `--git-tags`).
+    // If this is the alias variant of an option, use the alias for the flag.
+    const longFlagName = _toDashed((isAlias && alias) || canonicalName);
+
+    // Add the long flag:
+    // negated ? `--no-foo-bar` : `--foo-bar <value>` (or no value for boolean)
+    flags += negated ? `--no-${longFlagName}` : `--${longFlagName}${valueSyntax[type] ? ` ${valueSyntax[type]}` : ''}`;
+
     // Show the default value (if any) at the end of the help text, but don't set it as commander's
     // actual default to preserve precedence (CLI > config file > default).
-    const defaultSuffix =
+    const descriptionText =
       !negated && !params.desc.includes('(default:') && !([null, undefined, ''] as unknown[]).includes(defaultValue)
-        ? ` (default: ${JSON.stringify(defaultValue)})`
-        : '';
-    super(`${shortPrefix}${canonicalLong}`, negated ? undefined : `${params.desc}${defaultSuffix}`);
+        ? `${desc} (default: ${JSON.stringify(defaultValue)})`
+        : desc;
+
+    super(flags, descriptionText);
     this.type = type;
 
     if (alias) {
       if (isAlias) {
         // For the alias variant of an option, use the actual CliOptions key in the result
-        this.attributeName = () => name;
+        this.attributeName = () => canonicalName;
       } else {
         // Hide help for the literal variant of an option with an alias
         this.hideHelp();
@@ -85,17 +95,8 @@ export class BeachballOption extends Option {
   }
 
   override is(arg: string): boolean {
-    // Exact short/long match
-    if (super.is(arg)) {
-      return true;
-    }
-    // Only extend matching for long flags; short flags are matched exactly above.
-    if (!arg.startsWith('--')) {
-      return false;
-    }
-    const argName = _normalizeFlagName(arg);
-    // Match the option's own long flag in either dashed or camelCase spelling.
-    return this.long ? _normalizeFlagName(this.long) === argName : false;
+    // Also match the camelCase spelling of the long flag
+    return super.is(arg) || arg === `--${this.attributeName()}`;
   }
 }
 
@@ -146,7 +147,14 @@ export class BeachballCommand extends Command {
     for (const [name, def] of Object.entries(optionDefinitions) as [keyof CliOptions, OptionDefinition][]) {
       const mainParams = { name, ...def, defaultValue: defaultOptions[name] };
       super.addOption(new BeachballOption(mainParams));
+      // For aliases, we want to allow both the alias name (shown in help/docs) and the canonical name
+      // to match old behavior. Probably the easiest way to do this while also ensuring correct error
+      // text (including for commander's built-in invalid value errors) is to add a separate option,
+      // with special configuration internally to ensure correct help and parsing.
+      // The parsed value will be stored under the canonical name.
       def.alias && super.addOption(new BeachballOption({ ...mainParams, isAlias: true }));
+
+      // For booleans, commander requires manually adding negated option variants
       if (def.type === 'boolean') {
         super.addOption(new BeachballOption({ ...mainParams, negated: true }));
         def.alias && super.addOption(new BeachballOption({ ...mainParams, isAlias: true, negated: true }));
@@ -169,18 +177,6 @@ export function _parseNumber(value: string): number {
     throw new InvalidArgumentError('Expected numeric value.');
   }
   return num;
-}
-
-/**
- * Normalize a flag to a canonical camelCase key for comparison, so dashed and camelCase spellings
- * of the same option match (e.g. `--git-tags` and `--gitTags` => `gitTags`; `--no-git-tags` and
- * `--no-gitTags` => `noGitTags`). Leading dashes are stripped before normalizing.
- */
-export function _normalizeFlagName(flag: string): string {
-  return flag
-    .replace(/^--?/, '')
-    .split('-')
-    .reduce((acc, word, i) => (i === 0 ? word : acc + (word ? word[0].toUpperCase() + word.slice(1) : '')), '');
 }
 
 /**

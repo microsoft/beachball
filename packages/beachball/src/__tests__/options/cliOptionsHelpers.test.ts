@@ -1,12 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { InvalidArgumentError } from 'commander';
-import {
-  _normalizeFlagName,
-  _parseNumber,
-  _toDashed,
-  BeachballCommand,
-  BeachballOption,
-} from '../../options/cliOptionsHelpers';
+import { _toDashed, _parseNumber, BeachballCommand, BeachballOption } from '../../options/cliOptionsHelpers';
 import type { CliOptions } from '../../types/BeachballOptions';
 import type { OptionDefinition } from '../../options/cliOptionDefinitions';
 
@@ -35,24 +29,6 @@ describe('_parseNumber', () => {
     expect(() => _parseNumber('abc')).toThrow(InvalidArgumentError);
     expect(() => _parseNumber('abc')).toThrow('Expected numeric value.');
     expect(() => _parseNumber('')).not.toThrow(); // empty string coerces to 0
-  });
-});
-
-describe('_normalizeFlagName', () => {
-  it('strips leading dashes and camelCases dashed names', () => {
-    expect(_normalizeFlagName('--git-tags')).toBe('gitTags');
-    expect(_normalizeFlagName('--gitTags')).toBe('gitTags');
-    expect(_normalizeFlagName('--branch')).toBe('branch');
-  });
-
-  it('normalizes negated forms consistently', () => {
-    expect(_normalizeFlagName('--no-git-tags')).toBe('noGitTags');
-    expect(_normalizeFlagName('--no-gitTags')).toBe('noGitTags');
-  });
-
-  it('handles names without leading dashes', () => {
-    expect(_normalizeFlagName('config')).toBe('config');
-    expect(_normalizeFlagName('no-force')).toBe('noForce');
   });
 });
 
@@ -187,7 +163,7 @@ describe('BeachballOption', () => {
     expect(option2.description).toBe('scope pattern');
   });
 
-  it('has no description on the negated form', () => {
+  it('hides the negated form from help', () => {
     const option = new BeachballOption({
       name: 'fetch',
       type: 'boolean',
@@ -195,7 +171,7 @@ describe('BeachballOption', () => {
       negated: true,
       defaultValue: true,
     });
-    expect(option.description).toBe('');
+    expect(option.hidden).toBe(true);
   });
 
   // this prevents interference with CLI/config/default precedence

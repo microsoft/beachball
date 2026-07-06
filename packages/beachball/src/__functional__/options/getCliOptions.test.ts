@@ -132,7 +132,7 @@ describe('getCliOptions', () => {
     expect(() => getCliOptionsTest({ args: ['--depth', 'foo'], outputOptions })).toThrow(CommanderError);
     expect(outputOptions.writeOut).not.toHaveBeenCalled();
     expect(outputOptions.writeErr).toHaveBeenCalledWith(
-      "error: option '--depth <value>' argument 'foo' is invalid. Expected numeric value.\n"
+      "error: option '--depth <num>' argument 'foo' is invalid. Expected numeric value.\n"
     );
   });
 
