@@ -34,7 +34,8 @@ Options:
   --[no-]publish                        publish to the npm registry (default: true)
   --[no-]push                           push changes back to the remote git branch (default: true)
   --[no-]verbose                        print additional information to the console
-  -y, --[no-]yes                        skip the confirmation prompts (default: false)
+  -y, --[no-]yes                        skip the confirmation prompts (default: true in CI, false
+                                        locally)
   --concurrency <value>                 maximum concurrency for write operations such as publishing
                                         (default: 1)
   --depth <value>                       for shallow clones: depth of git history to consider when

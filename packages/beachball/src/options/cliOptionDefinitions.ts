@@ -71,7 +71,7 @@ export const optionDefinitions: Record<
   publish: { type: 'boolean', desc: 'publish to the npm registry' },
   push: { type: 'boolean', desc: 'push changes back to the remote git branch' },
   verbose: { type: 'boolean', desc: 'print additional information to the console' },
-  yes: { type: 'boolean', short: 'y', desc: 'skip the confirmation prompts' },
+  yes: { type: 'boolean', short: 'y', desc: 'skip publish confirmation prompts (default: true in CI, false locally)' },
   // number options
   concurrency: { type: 'number', desc: 'maximum concurrency for write operations such as publishing' },
   depth: { type: 'number', desc: 'for shallow clones: depth of git history to consider when fetching' },
