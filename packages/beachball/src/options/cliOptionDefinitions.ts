@@ -18,7 +18,7 @@ export interface OptionDefinition {
   /**
    * Extra long-flag alias (without dashes), e.g. `config` for the `configPath` option. When set,
    * the alias is shown in help *instead of* the canonical dashed name, but the value is still
-   * stored under the canonical name.
+   * stored under the canonical name, and the canonical name is also accepted as a CLI option.
    */
   alias?: string;
   /**
@@ -29,6 +29,8 @@ export interface OptionDefinition {
   type?: OptionType;
   /** Valid choices, such as for `disallowedChangeTypes` (string or array options only). */
   choices?: readonly string[];
+  /** Custom argument parser/validator */
+  parse?: (value: unknown, previous: unknown) => unknown;
 }
 
 /**

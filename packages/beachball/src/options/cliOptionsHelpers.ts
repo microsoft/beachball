@@ -29,7 +29,7 @@ const valueSyntax: Record<OptionType, string> = {
  * handling of other behaviors from `OptionDefinition`.
  */
 export class BeachballOption extends Option {
-  public readonly type: OptionType;
+  private readonly _allFlags = new Set<string>();
 
   constructor(
     params: OptionDefinition & {
@@ -41,29 +41,31 @@ export class BeachballOption extends Option {
       /** If true, build the negated `--no-` form of a boolean option. */
       negated?: boolean;
       /**
-       * True if this option represents the alias for `name`.
-       * It will still be stored under the canonical `name`, but the alias will be shown in help.
-       */
-      isAlias?: boolean;
-      /**
        * If non-null/undefined/`''`, show this default value in help text, but DON'T set it as the default
        * to avoid messing up order of precedence with the config file (CLI > config file > default).
        */
       defaultValue: unknown;
     }
   ) {
-    const { name: canonicalName, alias, isAlias, type = 'string', negated, defaultValue, desc } = params;
+    const { name: canonicalName, alias, type = 'string', negated, defaultValue, desc } = params;
 
-    // Build short flag prefix. For commands with an alias, only use it for the alias variant to avoid conflicts.
-    let flags = params.short && !negated && (!alias || isAlias) ? `-${params.short}, ` : '';
+    if (alias && (type === 'number' || params.parse)) {
+      // This is restricted because if the user provided the invalid value with the canonical
+      // option name (not the alias), commander's built-in invalid argument error would show the
+      // alias name instead of what they typed, which is confusing. There's not an easy way around
+      // this without adding a separate option for the alias (possible but more complex).
+      // If this is needed in the future, could reconsider whether it's really so bad, or check
+      // commander internals to investigate other customization possibilities.
+      throw new Error(`Internal error: aliases are not supported for options with custom parsing`);
+    }
 
-    // Build dash-case name for the long flag (e.g. `gitTags` => `--git-tags`).
-    // If this is the alias variant of an option, use the alias for the flag.
-    const longFlagName = _toDashed((isAlias && alias) || canonicalName);
+    // Build short flag prefix
+    let flags = params.short && !negated ? `-${params.short}, ` : '';
 
-    // Add the long flag:
-    // negated ? `--no-foo-bar` : `--foo-bar <value>` (or no value for boolean)
-    flags += negated ? `--no-${longFlagName}` : `--${longFlagName}${valueSyntax[type] ? ` ${valueSyntax[type]}` : ''}`;
+    // Add the long flag: use the standard dash-case name, or alias if present.
+    // `--foo-bar <value>` or `--no-foo-bar` (no value for boolean)
+    const prefix = negated ? '--no-' : '--';
+    flags += `${prefix}${_toDashed(alias || canonicalName)}${valueSyntax[type] ? ` ${valueSyntax[type]}` : ''}`;
 
     // Show the default value (if any) at the end of the help text, but don't set it as commander's
     // actual default to preserve precedence (CLI > config file > default).
@@ -73,30 +75,31 @@ export class BeachballOption extends Option {
         : desc;
 
     super(flags, descriptionText);
-    this.type = type;
+
+    // Store all flag variants for option matching (negated if appropriate):
+    // -f, --foo-bar, --fooBar, --some-alias, --someAlias
+    this.short && this._allFlags.add(this.short);
+    this._allFlags.add(`${prefix}${_toDashed(canonicalName)}`);
+    this._allFlags.add(`${prefix}${canonicalName}`);
+    alias && this._allFlags.add(`${prefix}${_toDashed(alias)}`);
+    alias && this._allFlags.add(`${prefix}${alias}`);
 
     if (alias) {
-      if (isAlias) {
-        // For the alias variant of an option, use the actual CliOptions key in the result
-        this.attributeName = () => canonicalName;
-      } else {
-        // Hide help for the literal variant of an option with an alias
-        this.hideHelp();
-      }
+      // Store the aliased option value under the canonical attribute
+      this.attributeName = () => canonicalName;
     }
 
-    if (negated) {
-      this.hideHelp();
-    } else if (type === 'number') {
-      this.argParser(_parseNumber);
-    } else {
-      params.choices && this.choices(params.choices);
-    }
+    // Negated options are hidden since BeachballHelp automatically adds `--[no-]`
+    negated && this.hideHelp();
+
+    params.choices && this.choices(params.choices);
+
+    const parser = params.parse || (type === 'number' ? _parseNumber : undefined);
+    parser && this.argParser(parser);
   }
 
   override is(arg: string): boolean {
-    // Also match the camelCase spelling of the long flag
-    return super.is(arg) || arg === `--${this.attributeName()}`;
+    return this._allFlags.has(arg);
   }
 }
 
@@ -111,7 +114,7 @@ class BeachballHelp extends Help {
   /** Add `--[no-]` prefix for boolean options in help text. */
   override optionTerm(option: Option): string {
     const term = super.optionTerm(option);
-    return option instanceof BeachballOption && option.type === 'boolean' ? term.replace('--', '--[no-]') : term;
+    return option instanceof BeachballOption && option.isBoolean() ? term.replace('--', '--[no-]') : term;
   }
 }
 
@@ -145,19 +148,11 @@ export class BeachballCommand extends Command {
     const defaultOptions = getDefaultOptions();
 
     for (const [name, def] of Object.entries(optionDefinitions) as [keyof CliOptions, OptionDefinition][]) {
-      const mainParams = { name, ...def, defaultValue: defaultOptions[name] };
-      super.addOption(new BeachballOption(mainParams));
-      // For aliases, we want to allow both the alias name (shown in help/docs) and the canonical name
-      // to match old behavior. Probably the easiest way to do this while also ensuring correct error
-      // text (including for commander's built-in invalid value errors) is to add a separate option,
-      // with special configuration internally to ensure correct help and parsing.
-      // The parsed value will be stored under the canonical name.
-      def.alias && super.addOption(new BeachballOption({ ...mainParams, isAlias: true }));
-
+      const params = { name, ...def, defaultValue: defaultOptions[name] };
+      super.addOption(new BeachballOption(params));
       // For booleans, commander requires manually adding negated option variants
       if (def.type === 'boolean') {
-        super.addOption(new BeachballOption({ ...mainParams, negated: true }));
-        def.alias && super.addOption(new BeachballOption({ ...mainParams, isAlias: true, negated: true }));
+        super.addOption(new BeachballOption({ ...params, negated: true }));
       }
     }
 

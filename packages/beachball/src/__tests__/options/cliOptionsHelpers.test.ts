@@ -1,5 +1,5 @@
-import { describe, expect, it } from '@jest/globals';
-import { InvalidArgumentError } from 'commander';
+import { describe, expect, it, jest } from '@jest/globals';
+import { CommanderError, InvalidArgumentError } from 'commander';
 import { _toDashed, _parseNumber, BeachballCommand, BeachballOption } from '../../options/cliOptionsHelpers';
 import type { CliOptions } from '../../types/BeachballOptions';
 import type { OptionDefinition } from '../../options/cliOptionDefinitions';
@@ -68,28 +68,12 @@ describe('BeachballOption', () => {
     expect(option.flags).toBe('--scope <value...>');
   });
 
-  it('for an option with an alias, hides help for the canonical name and does not use short value', () => {
-    const option = new BeachballOption({
-      name: 'configPath',
-      type: 'string',
-      alias: 'config',
-      short: 'c',
-      desc: '',
-      defaultValue: undefined,
-    });
-    expect(option.hidden).toBe(true);
-    expect(option.flags).toBe('--config-path <value>');
-    expect(option.long).toBe('--config-path');
-    expect(option.attributeName()).toBe('configPath');
-  });
-
-  it('for the alias variant of an option, uses the canonical name for the attribute', () => {
+  it('for option with alias, uses the canonical name for the attribute', () => {
     const option = new BeachballOption({
       name: 'configPath',
       type: 'string',
       short: 'c',
       alias: 'config',
-      isAlias: true,
       desc: '',
       defaultValue: undefined,
     });
@@ -115,7 +99,6 @@ describe('BeachballOption', () => {
       name: 'forceVersions',
       type: 'boolean',
       alias: 'force',
-      isAlias: true,
       desc: '',
       negated: true,
       defaultValue: undefined,
@@ -129,14 +112,34 @@ describe('BeachballOption', () => {
     const option = new BeachballOption({
       name: 'configPath',
       type: 'string',
-      alias: 'config',
+      alias: 'configAlias',
+      short: 'c',
       desc: '',
       defaultValue: undefined,
     });
     expect(option.is('--config-path')).toBe(true);
     expect(option.is('--configPath')).toBe(true);
-    expect(option.is('--config')).toBe(false); // aliases handled separately
+    expect(option.is('--config-alias')).toBe(true);
+    expect(option.is('--configAlias')).toBe(true);
+    expect(option.is('-c')).toBe(true);
     expect(option.is('--other')).toBe(false);
+  });
+
+  it('matches negated boolean options via is()', () => {
+    const option = new BeachballOption({
+      name: 'forceVersions',
+      type: 'boolean',
+      alias: 'forceVer',
+      desc: '',
+      negated: true,
+      defaultValue: undefined,
+    });
+    expect(option.is('--no-force-ver')).toBe(true);
+    expect(option.is('--no-force-versions')).toBe(true);
+    expect(option.is('--no-forceVersions')).toBe(true);
+    expect(option.is('--no-forceVer')).toBe(true);
+    expect(option.is('--force-versions')).toBe(false);
+    expect(option.is('--forceVersions')).toBe(false);
   });
 
   it('appends the default value to the help description', () => {
@@ -146,21 +149,15 @@ describe('BeachballOption', () => {
     expect(option2.description).toBe('fetch first (default: true)');
   });
 
-  it('omits the default when it is null or undefined', () => {
-    const option1 = new BeachballOption({
-      name: 'branch',
-      type: 'string',
-      desc: 'target branch',
-      defaultValue: undefined,
-    });
+  it('omits the default when null/undefined/empty', () => {
+    const option1 = new BeachballOption({ name: 'branch', desc: 'target branch', defaultValue: undefined });
     expect(option1.description).toBe('target branch');
-    const option2 = new BeachballOption({
-      name: 'scope',
-      type: 'array',
-      desc: 'scope pattern',
-      defaultValue: null,
-    });
+
+    const option2 = new BeachballOption({ name: 'scope', desc: 'scope pattern', defaultValue: null });
     expect(option2.description).toBe('scope pattern');
+
+    const option3 = new BeachballOption({ name: 'configPath', desc: 'config path', defaultValue: '' });
+    expect(option3.description).toBe('config path');
   });
 
   it('hides the negated form from help', () => {
@@ -242,6 +239,16 @@ describe('BeachballCommand', () => {
     it('matches a boolean alias and its negated alias', () => {
       expect(buildCommand().parse(['--force'], { from: 'user' }).opts().forceVersions).toBe(true);
       expect(buildCommand().parse(['--no-force'], { from: 'user' }).opts().forceVersions).toBe(false);
+    });
+
+    it('throws on invalid number value', () => {
+      const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
+      const command = buildCommand().configureOutput(outputOptions);
+      expect(() => command.parse(['--depth', 'abc'], { from: 'user' })).toThrow(CommanderError);
+      expect(outputOptions.writeOut).not.toHaveBeenCalled();
+      expect(outputOptions.writeErr).toHaveBeenCalledWith(
+        "error: option '--depth <num>' argument 'abc' is invalid. Expected numeric value.\n"
+      );
     });
   });
 
