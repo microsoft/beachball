@@ -185,70 +185,147 @@ describe('BeachballOption', () => {
 });
 
 describe('BeachballCommand', () => {
+  /** Build a command with a standard subset of options */
   function buildCommand() {
-    const command = new BeachballCommand();
-    command.exitOverride();
-    command.addAllOptions({
+    return new BeachballCommand().exitOverride().addAllOptions({
       branch: { type: 'string', short: 'b', desc: 'target branch' },
+      changeDir: { type: 'string', desc: 'change directory' },
       configPath: { type: 'string', alias: 'config', desc: 'config path' },
       depth: { type: 'number', desc: 'clone depth' },
       scope: { type: 'array', desc: 'scope pattern' },
-      fetch: { type: 'boolean', desc: 'fetch first' },
       forceVersions: { type: 'boolean', alias: 'force', desc: 'force versions' },
+      gitTags: { type: 'boolean', desc: 'create git tags' },
+      type: { type: 'string', desc: 'change type', choices: ['patch', 'minor', 'major'] },
+      disallowedChangeTypes: { type: 'array', desc: 'disallowed change types', choices: ['patch', 'minor', 'major'] },
     });
-    return command;
+  }
+
+  /** Build a command with a standard subset of options and parse the given arguments */
+  function buildAndParseOpts(args: string[]) {
+    return buildCommand().parse(args, { from: 'user' }).opts();
+  }
+
+  /** Parse args that should throw an error, verify it throws, and return the message */
+  function buildAndExpectError(args: string[]) {
+    const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
+    const command = buildCommand().configureOutput(outputOptions);
+    let error: unknown;
+    try {
+      command.parse(args, { from: 'user' });
+    } catch (err) {
+      error = err;
+    }
+    expect(error).toBeInstanceOf(CommanderError);
+    expect(outputOptions.writeOut).not.toHaveBeenCalled();
+    expect(outputOptions.writeErr).toHaveBeenCalledTimes(1);
+    return (outputOptions.writeErr.mock.calls[0][0] as string).trim();
   }
 
   describe('parsing', () => {
-    it('parses a string option with its short alias and description', () => {
-      const command = buildCommand();
-      const branchOption = command.options.find(o => o.long === '--branch');
-      expect(branchOption?.short).toBe('-b');
-      // The description may include a `(default: ...)` suffix from the real default options.
-      expect(branchOption?.description).toMatch(/^target branch/);
-
-      expect(command.parse(['-b', 'main'], { from: 'user' }).opts().branch).toBe('main');
-      expect(buildCommand().parse(['--branch', 'main'], { from: 'user' }).opts().branch).toBe('main');
+    it('parses a string option with short alias', () => {
+      expect(buildAndParseOpts(['-b', 'main']).branch).toBe('main');
+      expect(buildAndParseOpts(['--branch', 'main']).branch).toBe('main');
+      expect(buildAndParseOpts(['--branch=main']).branch).toBe('main');
     });
 
-    it('matches the camelCase spelling of a dashed flag', () => {
-      expect(buildCommand().parse(['--configPath', 'foo'], { from: 'user' }).opts().configPath).toBe('foo');
-      expect(buildCommand().parse(['--config-path', 'foo'], { from: 'user' }).opts().configPath).toBe('foo');
+    it('parses valid choice', () => {
+      expect(buildAndParseOpts(['--type', 'minor']).type).toBe('minor');
+      expect(buildAndParseOpts(['--type=major']).type).toBe('major');
     });
 
-    it('matches an extra long-flag alias', () => {
-      expect(buildCommand().parse(['--config', 'foo'], { from: 'user' }).opts().configPath).toBe('foo');
+    it('parses dashed and camelCase spellings of a multi-word option', () => {
+      expect(buildAndParseOpts(['--changeDir', 'foo']).changeDir).toBe('foo');
+      expect(buildAndParseOpts(['--changeDir=foo']).changeDir).toBe('foo');
+      expect(buildAndParseOpts(['--change-dir', 'foo']).changeDir).toBe('foo');
+      expect(buildAndParseOpts(['--change-dir=foo']).changeDir).toBe('foo');
+    });
+
+    it('parses alias and original names', () => {
+      expect(buildAndParseOpts(['--config', 'foo']).configPath).toBe('foo');
+      expect(buildAndParseOpts(['--config=foo']).configPath).toBe('foo');
+      expect(buildAndParseOpts(['--configPath', 'foo']).configPath).toBe('foo');
+      expect(buildAndParseOpts(['--configPath=foo']).configPath).toBe('foo');
+      expect(buildAndParseOpts(['--config-path', 'foo']).configPath).toBe('foo');
+      expect(buildAndParseOpts(['--config-path=foo']).configPath).toBe('foo');
     });
 
     it('parses a number option coerced to a number', () => {
-      const opts = buildCommand().parse(['--depth', '3'], { from: 'user' }).opts();
-      expect(opts.depth).toBe(3);
+      expect(buildAndParseOpts(['--depth', '3']).depth).toBe(3);
+      expect(buildAndParseOpts(['--depth=3']).depth).toBe(3);
     });
 
     it('collects array options from repeated and variadic usage', () => {
-      expect(buildCommand().parse(['--scope', 'a', '--scope', 'b'], { from: 'user' }).opts().scope).toEqual(['a', 'b']);
-      expect(buildCommand().parse(['--scope', 'a', 'b'], { from: 'user' }).opts().scope).toEqual(['a', 'b']);
+      expect(buildAndParseOpts(['--scope', 'a', '--scope', 'b']).scope).toEqual(['a', 'b']);
+      expect(buildAndParseOpts(['--scope', 'a', 'b']).scope).toEqual(['a', 'b']);
+      expect(buildAndParseOpts(['--scope=a', '--depth=3', '--scope', 'b', 'c']).scope).toEqual(['a', 'b', 'c']);
     });
 
-    it('parses a boolean option and its negation', () => {
-      expect(buildCommand().parse(['--fetch'], { from: 'user' }).opts().fetch).toBe(true);
-      expect(buildCommand().parse(['--no-fetch'], { from: 'user' }).opts().fetch).toBe(false);
-      expect(buildCommand().parse([], { from: 'user' }).opts().fetch).toBeUndefined();
+    it('parses valid array choices', () => {
+      const options = buildAndParseOpts(['--disallowedChangeTypes', 'major', '--disallowedChangeTypes', 'minor']);
+      expect(options.disallowedChangeTypes).toEqual(['major', 'minor']);
     });
 
-    it('matches a boolean alias and its negated alias', () => {
-      expect(buildCommand().parse(['--force'], { from: 'user' }).opts().forceVersions).toBe(true);
-      expect(buildCommand().parse(['--no-force'], { from: 'user' }).opts().forceVersions).toBe(false);
+    // documenting that this is not currently supported (could change in the future if desired)
+    it('does not parse values with commas as separate array entries', () => {
+      expect(buildAndParseOpts(['--scope', 'a,b', '--scope=c,d']).scope).toEqual(['a,b', 'c,d']);
     });
 
-    it('throws on invalid number value', () => {
-      const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
-      const command = buildCommand().configureOutput(outputOptions);
-      expect(() => command.parse(['--depth', 'abc'], { from: 'user' })).toThrow(CommanderError);
-      expect(outputOptions.writeOut).not.toHaveBeenCalled();
-      expect(outputOptions.writeErr).toHaveBeenCalledWith(
-        "error: option '--depth <num>' argument 'abc' is invalid. Expected numeric value.\n"
+    it('parses a multi-word boolean option', () => {
+      expect(buildAndParseOpts([]).gitTags).toBeUndefined();
+      expect(buildAndParseOpts(['--git-tags']).gitTags).toBe(true);
+      expect(buildAndParseOpts(['--gitTags']).gitTags).toBe(true);
+      expect(buildAndParseOpts(['--no-git-tags']).gitTags).toBe(false);
+      expect(buildAndParseOpts(['--no-gitTags']).gitTags).toBe(false);
+    });
+
+    it('parses a boolean alias and its negated alias', () => {
+      expect(buildAndParseOpts(['--force']).forceVersions).toBe(true);
+      expect(buildAndParseOpts(['--no-force']).forceVersions).toBe(false);
+      // original names are kept too
+      expect(buildAndParseOpts(['--force-versions']).forceVersions).toBe(true);
+      expect(buildAndParseOpts(['--forceVersions']).forceVersions).toBe(true);
+      expect(buildAndParseOpts(['--no-force-versions']).forceVersions).toBe(false);
+      expect(buildAndParseOpts(['--no-forceVersions']).forceVersions).toBe(false);
+    });
+
+    it('errors on invalid number value', () => {
+      expect(buildAndExpectError(['--depth', 'abc'])).toMatchInlineSnapshot(
+        `"error: option '--depth <num>' argument 'abc' is invalid. Expected numeric value."`
       );
+    });
+
+    it('errors on unknown long option', () => {
+      expect(buildAndExpectError(['--unknown'])).toMatchInlineSnapshot(`"error: unknown option '--unknown'"`);
+    });
+
+    it('errors on unknown short option', () => {
+      expect(buildAndExpectError(['-x'])).toMatchInlineSnapshot(`"error: unknown option '-x'"`);
+    });
+
+    it('errors on unknown option with value', () => {
+      expect(buildAndExpectError(['--unknown', 'foo'])).toMatchInlineSnapshot(`"error: unknown option '--unknown'"`);
+    });
+
+    it('errors on unknown option combined with valid option', () => {
+      expect(buildAndExpectError(['--branch', 'main', '--unknown'])).toMatchInlineSnapshot(
+        `"error: unknown option '--unknown'"`
+      );
+    });
+
+    it('errors on invalid choice', () => {
+      expect(buildAndExpectError(['--type', 'foo'])).toMatchInlineSnapshot(
+        `"error: option '--type <value>' argument 'foo' is invalid. Allowed choices are patch, minor, major."`
+      );
+    });
+
+    it('errors on boolean option with =value', () => {
+      // TODO override error handling for this case to recommend --no-<opt> instead
+      expect(buildAndExpectError(['--fetch=false'])).toMatchInlineSnapshot(`"error: unknown option '--fetch=false'"`);
+    });
+
+    it('errors on boolean option with separate value', () => {
+      // The error message for this will vary depending on argument context
+      buildAndExpectError(['--fetch', 'false']);
     });
   });
 
