@@ -32,7 +32,8 @@ describe('configGet', () => {
 
     const options: BeachballOptions = {
       ...getDefaultOptions(),
-      _extraPositionalArgs: ['get', name],
+      command: 'config get',
+      _extraPositionalArgs: [name],
       ...optionOverrides,
     };
     const originalPackageInfos = makePackageInfos(packageInfos);
@@ -54,19 +55,16 @@ describe('configGet', () => {
     });
 
     it('throws on too many args', async () => {
-      await expectBeachballError(
-        () => configGetArgs(['get', 'branch', 'extra']),
-        'Usage: beachball config get <setting>'
-      );
+      await expectBeachballError(() => configGetArgs(['branch', 'extra']), 'Usage: beachball config get <setting>');
     });
 
     it('throws on unknown config setting', async () => {
-      await expectBeachballError(() => configGetArgs(['get', 'nonExistent']), 'Unknown config setting: "nonExistent"');
+      await expectBeachballError(() => configGetArgs(['nonExistent']), 'Unknown config setting: "nonExistent"');
     });
 
     it('suggests similar config name on typo', async () => {
       await expectBeachballError(
-        () => configGetArgs(['get', 'branc']),
+        () => configGetArgs(['branc']),
         'Unknown config setting: "branc" - did you mean "branch"?'
       );
     });

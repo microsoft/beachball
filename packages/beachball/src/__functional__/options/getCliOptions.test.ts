@@ -59,7 +59,7 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, command: 'check' });
   });
 
-  // More extensive option parsing tests are in cliOptionsHelpers.test.ts
+  // More extensive option parsing tests are in BeachballCommand.test.ts
   it('parses options', () => {
     // use a basic option of each value type (except arrays, tested later)
     const options = getCliOptionsTest({ args: ['--type', 'patch', '--access=public', '--fetch', '--depth', '1'] });
@@ -69,6 +69,11 @@ describe('getCliOptions', () => {
   it('parses command and options', () => {
     const options = getCliOptionsTest({ args: ['publish', '--tag', 'foo'] });
     expect(options).toEqual({ ...defaults, command: 'publish', tag: 'foo' });
+  });
+
+  it('parses options given before the command', () => {
+    const options = getCliOptionsTest({ args: ['--tag', 'foo', 'publish', '--scope', 'bar'] });
+    expect(options).toEqual({ ...defaults, command: 'publish', tag: 'foo', scope: ['bar'] });
   });
 
   it('allows an array option to be specified multiple times', () => {
@@ -153,17 +158,30 @@ describe('getCliOptions', () => {
   describe('config command', () => {
     it('parses config get with setting name', () => {
       const options = getCliOptionsTest({ args: ['config', 'get', 'branch'] });
-      expect(options).toEqual({ ...defaults, command: 'config', _extraPositionalArgs: ['get', 'branch'] });
+      expect(options).toEqual({ ...defaults, command: 'config get', _extraPositionalArgs: ['branch'] });
+    });
+
+    it('parses config list', () => {
+      const options = getCliOptionsTest({ args: ['config', 'list'] });
+      expect(options).toEqual({ ...defaults, command: 'config list' });
     });
 
     it('parses config get with setting name and options', () => {
       const options = getCliOptionsTest({ args: ['config', 'get', 'tag', '--package', 'my-pkg'] });
       expect(options).toEqual({
         ...defaults,
-        command: 'config',
-        _extraPositionalArgs: ['get', 'tag'],
+        command: 'config get',
+        _extraPositionalArgs: ['tag'],
         package: ['my-pkg'],
       });
+    });
+
+    it('errors if config is missing a subcommand', () => {
+      const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
+      expect(() => getCliOptionsTest({ args: ['config'], outputOptions })).toThrow(CommanderError);
+      expect(outputOptions.writeOut).not.toHaveBeenCalled();
+      // this shows the config help text
+      expect(outputOptions.writeErr).toHaveBeenCalledWith(expect.stringMatching(/^Usage:/));
     });
 
     it('errors for non-config command with extra positional args', () => {
@@ -171,7 +189,7 @@ describe('getCliOptions', () => {
       expect(() => getCliOptionsTest({ args: ['check', 'extra'], outputOptions })).toThrow(CommanderError);
       expect(outputOptions.writeOut).not.toHaveBeenCalled();
       expect(outputOptions.writeErr).toHaveBeenCalledWith(
-        'error: too many arguments. Expected 1 argument but got 2.\n'
+        "error: too many arguments for 'check'. Expected 0 arguments but got 1.\n"
       );
     });
   });

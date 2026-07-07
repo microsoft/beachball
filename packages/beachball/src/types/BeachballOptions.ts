@@ -56,7 +56,6 @@ export interface CliOptions extends Pick<
 > {
   /** Consider all packages to have changed */
   all: boolean;
-  command: string;
   configPath?: string;
   dependentChangeType?: ChangeType;
   /**
@@ -71,8 +70,10 @@ export interface CliOptions extends Pick<
   verbose?: boolean;
   yes: boolean;
 
+  /** Command being run (not valid as an option), e.g. `change` or `config get` */
+  command: string;
   /**
-   * Extra positional arguments after the command (for subcommands like `config get <name>`).
+   * Extra positional arguments after the command (e.g. `<name>` for `config get <name>`).
    * @internal
    */
   _extraPositionalArgs?: string[];

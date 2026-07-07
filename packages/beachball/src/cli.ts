@@ -9,12 +9,10 @@ import { migrate } from './commands/migrate';
 import { publish } from './commands/publish';
 import { sync } from './commands/sync';
 
-import { getPackageInfos } from './monorepo/getPackageInfos';
 import { getOptions } from './options/getOptions';
 import { validate } from './validation/validate';
-import { getScopedPackages } from './monorepo/getScopedPackages';
 import { BeachballError } from './types/BeachballError';
-import { getPackageGroups } from './monorepo/getPackageGroups';
+import { createBasicCommandContext } from './monorepo/createCommandContext';
 
 // eslint-disable-next-line no-restricted-properties -- top-level call
 const processCwd = process.cwd();
@@ -76,13 +74,10 @@ const version = getPackageInfo(findPackageRoot(__dirname)!)?.version;
       break;
     }
 
-    case 'sync': {
+    case 'sync':
       // This one is a special case where it doesn't run validate, so calculate the context here
-      const originalPackageInfos = getPackageInfos(parsedOptions);
-      const scopedPackages = getScopedPackages(options, originalPackageInfos);
-      await sync(options, { originalPackageInfos, scopedPackages });
+      await sync(options, createBasicCommandContext(parsedOptions));
       break;
-    }
 
     case 'change': {
       const { isChangeNeeded, context } = validate(parsedOptions, {
@@ -100,19 +95,13 @@ const version = getPackageInfo(findPackageRoot(__dirname)!)?.version;
       break;
     }
 
-    case 'config': {
-      const originalPackageInfos = getPackageInfos(parsedOptions);
-      const scopedPackages = getScopedPackages(options, originalPackageInfos);
-      const packageGroups = getPackageGroups(originalPackageInfos, options.path, options.groups);
-      const configContext = { originalPackageInfos, scopedPackages, packageGroups };
-      const subcommand = options._extraPositionalArgs?.[0];
-      if (subcommand === 'list') {
-        configList(options, configContext);
-      } else {
-        configGet(options, configContext);
-      }
+    case 'config get':
+      configGet(options, createBasicCommandContext(parsedOptions));
       break;
-    }
+
+    case 'config list':
+      configList(options, createBasicCommandContext(parsedOptions));
+      break;
 
     default:
       throw new Error('Invalid command: ' + options.command);

@@ -1,9 +1,10 @@
-import { Argument, type Command, type OptionValues, type OutputConfiguration } from 'commander';
-import { findProjectRoot } from 'workspace-tools';
+import type { OutputConfiguration } from 'commander';
+import { findProjectRoot, resolveRemoteAndBranch } from 'workspace-tools';
 import { env } from '../env';
+import { cacheRemoteBranch } from '../git/getRemoteBranch';
 import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
-import { BeachballCommand, resolveBranchOption } from './cliOptionsHelpers';
-import { allCommands, defaultCommand, optionDefinitions } from './cliOptionDefinitions';
+import { BeachballCommand } from './BeachballCommand';
+import { commandDefinitions, optionDefinitions } from './cliOptionDefinitions';
 
 export interface ProgramContext {
   /** Complete argv (node and script path aren't used but elements must be present) */
@@ -26,105 +27,49 @@ export interface ProgramContext {
   outputOptions?: OutputConfiguration;
 }
 
-// NOTE: This file was migrated from yargs-parser to commander@14. Commander is currently used only
-// for option parsing (not for dispatching to command implementations); the existing `cli.ts`
-// dispatch (switch on `cliOptions.command`) is unchanged.
-//
-// The parent command declares every option (so options can be given before or after the command
-// name) plus a positional `[command]` argument. The `config` command is declared as a commander
-// subcommand so its extra positional args (e.g. `config get <name>`) are handled natively, while
-// commander errors on excess positional args for all other commands.
-//
-// Certain yargs-parser behaviors are preserved by `BeachballOption`/`BeachballCommand`:
-// - camelCase flags (e.g. `--gitTags`) in addition to dashed flags (e.g. `--git-tags`)
-// - extra long-flag aliases (e.g. `--config` for `--config-path`)
-// - boolean options automatically get a negated `--no-` form
-//
-// Other yargs-parser behaviors are NOT preserved:
-// - arbitrary unknown options are errors
-// - boolean options do not accept a value (e.g. `--verbose true` is an error)
-
-/** Result captured from parsing. */
-interface ParseResult {
-  command: string;
-  options: OptionValues;
-  extraArgs: string[];
-}
-
-/**
- * Build the commander program. Every option is declared on the parent command (so options can be
- * given before or after the command name), plus a positional `[command]` argument. The `config`
- * command is declared as a subcommand so its extra positional args (`config get <name>`) are
- * handled natively and commander errors on excess positional args for all other commands.
- * Commander is currently used only for parsing, not command dispatch.
- *
- * Also configures the description and version. In Jest, it configures commander to throw on error
- * and write to no-op functions (though passing `outputOptions` is recommended).
- *
- * @returns The program plus a getter for the parse result (populated by the action handlers when
- * `program.parse()` is called).
- */
-function buildProgram(params: Pick<ProgramContext, 'outputOptions' | 'version'>): {
-  program: Command;
-  getResult: () => ParseResult;
-} {
-  const { version } = params;
-
-  const program = new BeachballCommand();
-  program.name('beachball');
-  program.description(`beachball${version ? ` v${version}` : ''} - the sunniest version bumping tool`);
-  program.usage('<command> [options]');
-
-  let outputOptions = params.outputOptions;
-  if (env.isJest) {
-    program.exitOverride();
-    outputOptions ??= { writeOut: () => {}, writeErr: () => {} };
-  }
-  outputOptions && program.configureOutput(outputOptions);
-
-  program.addAllOptions(optionDefinitions);
-  // set this last so it's at the end of help
-  version && program.version(version);
-
-  // The single positional is the command name (any value; validated by the caller/cli.ts).
-  program.addArgument(
-    new Argument('[command]', 'beachball command to run').default(defaultCommand).choices(allCommands)
-  );
-
-  let result: ParseResult = { command: defaultCommand, options: {}, extraArgs: [] };
-
-  program.action((command: string) => {
-    result = { command, options: program.opts(), extraArgs: [] };
-  });
-
-  // The `config` command takes extra positional args (its subcommand and arguments, e.g.
-  // `config get <name>` or `config list`), which are validated by the config command itself.
-  const configCommand = program.command('config');
-  configCommand.argument('[args...]', 'config subcommand and arguments (e.g. `get <name>` or `list`)');
-  configCommand.action((args: string[]) => {
-    result = { command: 'config', options: program.opts(), extraArgs: args };
-  });
-
-  return { program, getResult: () => result };
-}
-
 /**
  * Gets CLI options. Also gets the `NPM_TOKEN` environment variable if present.
+ *
+ * In v3, parsing was migrated from `yargs-parser` to `commander`. Implementation notes:
+ * - Each beachball command is registered as a commander subcommand, but currently `cli.ts` still
+ *   handles the actual command dispatching (switch on `options.command`).
+ * - The `config` command has commander `get <name>` / `list` subcommands.
+ * - Every option is declared on both the parent command and each subcommand (so options can be
+ *   specified either before or after the command name), following yargs behavior.
+ * - Descriptions/help are handled through commander's built-in help system.
+ * - `--help` and `--version` flags are handled by commander (it will print the info and exit).
+ * - In Jest, commander is configured to throw on error rather than calling `process.exit()`,
+ *   and `outputOptions` (logging) use no-op functions by default.
+ *
+ * Some yargs-parser behaviors are preserved by custom logic in `BeachballOption`/`BeachballCommand`:
+ * - camelCase flags (e.g. `--gitTags`) in addition to dashed flags (e.g. `--git-tags`)
+ * - extra long-flag aliases (e.g. `--config` for `--config-path`)
+ * - boolean options automatically get a negated `--no-` form
+ *
+ * Other yargs-parser behaviors are NOT preserved:
+ * - arbitrary unknown options are errors
+ * - boolean options do not accept a value (e.g. `--verbose true` is an error)
  */
 export function getCliOptions(programContext: ProgramContext): ParsedOptions['cliOptions'] {
-  // Be careful not to mutate the input argv
-  const trimmedArgv = programContext.argv.slice(2);
+  let { cwd } = programContext;
 
-  const { program, getResult } = buildProgram(programContext);
-  program.parse(trimmedArgv, { from: 'user' });
-  const { command, options, extraArgs: extraPositionalArgs } = getResult();
+  const program = BeachballCommand.initProgram({
+    name: 'beachball',
+    desc: 'the sunniest version bumping tool',
+    options: optionDefinitions,
+    commands: commandDefinitions,
+    version: programContext.version,
+    outputOptions: programContext.outputOptions,
+  });
 
-  let cwd = programContext.cwd;
+  // For --help or --version, this will print the info and exit
+  const { command, options, extraArgs: extraPositionalArgs } = program.parse(programContext.argv);
+
   try {
     // If a non-empty cwd is provided, find the project root from there.
     // Empty means this is a test without a filesystem.
     if (cwd && !env.isJest) {
-      cwd = findProjectRoot(programContext.cwd);
+      cwd = findProjectRoot(cwd);
     }
   } catch {
     // use the provided cwd
@@ -162,4 +107,20 @@ export function getCliOptions(programContext: ProgramContext): ParsedOptions['cl
   }
 
   return cliOptions;
+}
+
+/**
+ * Resolves `rawOptions.branch` if provided to ensure it includes the remote name.
+ * If no branch is provided, returns the default branch.
+ */
+export function resolveBranchOption(rawOptions: Partial<Pick<CliOptions, 'branch' | 'verbose'>>, cwd: string): string {
+  const branchResult = resolveRemoteAndBranch({
+    branch: rawOptions.branch,
+    cwd,
+    verbose: rawOptions.verbose,
+    strict: true,
+  });
+  cacheRemoteBranch(branchResult, cwd);
+
+  return `${branchResult.remote}/${branchResult.remoteBranch}`;
 }

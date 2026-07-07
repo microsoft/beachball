@@ -6,8 +6,7 @@ import { getPackageInfos } from './getPackageInfos';
 import { getScopedPackages } from './getScopedPackages';
 
 /**
- * Create a command context for temporary compatibility with private API usage that
- * may not provide it. (Usually now the context is generated during `validate()`.)
+ * Create a command context for commands that don't call `validate()`, or for tests.
  * This skips `changeSet` for commands that don't need it.
  */
 export function createBasicCommandContext(parsedOptions: ParsedOptions): BasicCommandContext {

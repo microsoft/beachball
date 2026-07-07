@@ -1,8 +1,14 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import { CommanderError, InvalidArgumentError } from 'commander';
-import { _toDashed, _parseNumber, BeachballCommand, BeachballOption } from '../../options/cliOptionsHelpers';
+import { CommanderError, InvalidArgumentError, type OutputConfiguration } from 'commander';
+import {
+  _toDashed,
+  _parseNumber,
+  BeachballCommand,
+  BeachballOption,
+  type ParsedCommandResult,
+} from '../../options/BeachballCommand';
 import type { CliOptions } from '../../types/BeachballOptions';
-import type { OptionDefinition } from '../../options/cliOptionDefinitions';
+import type { CommandDefinition, OptionDefinition } from '../../options/cliOptionDefinitions';
 
 describe('_toDashed', () => {
   it('leaves all-lowercase names unchanged', () => {
@@ -185,43 +191,53 @@ describe('BeachballOption', () => {
 });
 
 describe('BeachballCommand', () => {
-  /** Build a command with a standard subset of options */
-  function buildCommand() {
-    return new BeachballCommand().exitOverride().addAllOptions({
-      branch: { type: 'string', short: 'b', desc: 'target branch' },
-      changeDir: { type: 'string', desc: 'change directory' },
-      configPath: { type: 'string', alias: 'config', desc: 'config path' },
-      depth: { type: 'number', desc: 'clone depth' },
-      scope: { type: 'array', desc: 'scope pattern' },
-      forceVersions: { type: 'boolean', alias: 'force', desc: 'force versions' },
-      gitTags: { type: 'boolean', desc: 'create git tags' },
-      type: { type: 'string', desc: 'change type', choices: ['patch', 'minor', 'major'] },
-      disallowedChangeTypes: { type: 'array', desc: 'disallowed change types', choices: ['patch', 'minor', 'major'] },
-    });
-  }
-
-  /** Build a command with a standard subset of options and parse the given arguments */
-  function buildAndParseOpts(args: string[]) {
-    return buildCommand().parse(args, { from: 'user' }).opts();
-  }
-
-  /** Parse args that should throw an error, verify it throws, and return the message */
-  function buildAndExpectError(args: string[]) {
-    const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
-    const command = buildCommand().configureOutput(outputOptions);
-    let error: unknown;
-    try {
-      command.parse(args, { from: 'user' });
-    } catch (err) {
-      error = err;
+  describe('option parsing', () => {
+    /** Build a command with a standard subset of options */
+    function buildCommand(outputOptions?: OutputConfiguration) {
+      return BeachballCommand.initProgram({
+        name: 'beachball',
+        desc: '',
+        commands: {},
+        outputOptions,
+        options: {
+          branch: { type: 'string', short: 'b', desc: 'target branch' },
+          changeDir: { type: 'string', desc: 'change directory' },
+          configPath: { type: 'string', alias: 'config', desc: 'config path' },
+          depth: { type: 'number', desc: 'clone depth' },
+          scope: { type: 'array', desc: 'scope pattern' },
+          forceVersions: { type: 'boolean', alias: 'force', desc: 'force versions' },
+          gitTags: { type: 'boolean', desc: 'create git tags' },
+          type: { type: 'string', desc: 'change type', choices: ['patch', 'minor', 'major'] },
+          disallowedChangeTypes: {
+            type: 'array',
+            desc: 'disallowed change types',
+            choices: ['patch', 'minor', 'major'],
+          },
+        },
+      });
     }
-    expect(error).toBeInstanceOf(CommanderError);
-    expect(outputOptions.writeOut).not.toHaveBeenCalled();
-    expect(outputOptions.writeErr).toHaveBeenCalledTimes(1);
-    return (outputOptions.writeErr.mock.calls[0][0] as string).trim();
-  }
 
-  describe('parsing', () => {
+    /** Build a command with a standard subset of options and parse the given arguments */
+    function buildAndParseOpts(args: string[]) {
+      return buildCommand().parse(args, { from: 'user' }).options;
+    }
+
+    /** Parse args that should throw an error, verify it throws, and return the message */
+    function buildAndExpectError(args: string[]) {
+      const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
+      const command = buildCommand(outputOptions);
+      let error: unknown;
+      try {
+        command.parse(args, { from: 'user' });
+      } catch (err) {
+        error = err;
+      }
+      expect(error).toBeInstanceOf(CommanderError);
+      expect(outputOptions.writeOut).not.toHaveBeenCalled();
+      expect(outputOptions.writeErr).toHaveBeenCalledTimes(1);
+      return (outputOptions.writeErr.mock.calls[0][0] as string).trim();
+    }
+
     it('parses a string option with short alias', () => {
       expect(buildAndParseOpts(['-b', 'main']).branch).toBe('main');
       expect(buildAndParseOpts(['--branch', 'main']).branch).toBe('main');
@@ -329,14 +345,180 @@ describe('BeachballCommand', () => {
     });
   });
 
+  describe('commands', () => {
+    const testOptions: Partial<Record<keyof CliOptions, OptionDefinition>> = {
+      tag: { type: 'string', short: 't', desc: 'npm dist-tag' },
+      package: { type: 'array', short: 'p', desc: 'packages' },
+    };
+
+    const testCommands: Record<string, CommandDefinition> = {
+      change: { desc: 'create change files', isDefault: true },
+      publish: { desc: 'publish packages' },
+      canary: { desc: 'canary publish', hidden: true },
+      config: {
+        desc: 'get or list config settings',
+        subcommands: {
+          get: { desc: 'get a setting', args: '<name>' },
+          list: { desc: 'list settings' },
+        },
+      },
+    };
+
+    /** Build a program with the test commands/options, parse args, and return the reported result. */
+    function buildAndParse(args: string[]): ParsedCommandResult {
+      return BeachballCommand.initProgram({
+        name: 'beachball',
+        desc: '',
+        commands: testCommands,
+        options: testOptions,
+      }).parse(args, { from: 'user' });
+    }
+
+    /** Parse args that should throw, verify it throws a CommanderError, and return the message. */
+    function buildAndExpectError(args: string[]): string {
+      const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
+      const program = BeachballCommand.initProgram({
+        name: 'beachball',
+        desc: '',
+        commands: testCommands,
+        options: testOptions,
+        outputOptions,
+      });
+      let error: unknown;
+      try {
+        program.parse(args, { from: 'user' });
+      } catch (err) {
+        error = err;
+      }
+      expect(error).toBeInstanceOf(CommanderError);
+      expect(outputOptions.writeOut).not.toHaveBeenCalled();
+      expect(outputOptions.writeErr).toHaveBeenCalledTimes(1);
+      return (outputOptions.writeErr.mock.calls[0][0] as string).trim();
+    }
+
+    it('registers each command from the definitions', () => {
+      const program = BeachballCommand.initProgram({
+        name: 'beachball',
+        desc: '',
+        commands: testCommands,
+        options: testOptions,
+      });
+      const names = program.command.commands.map(c => c.name());
+      expect(names).toEqual(['change', 'publish', 'canary', 'config']);
+    });
+
+    it('runs the default command when no command is given', () => {
+      expect(buildAndParse([])).toEqual({ command: 'change', options: {}, extraArgs: [] });
+    });
+
+    it('runs a named command', () => {
+      expect(buildAndParse(['publish'])).toEqual({ command: 'publish', options: {}, extraArgs: [] });
+    });
+
+    it('runs a hidden command', () => {
+      expect(buildAndParse(['canary'])).toEqual({ command: 'canary', options: {}, extraArgs: [] });
+    });
+
+    it('parses options given after the command', () => {
+      expect(buildAndParse(['publish', '-t', 'foo'])).toEqual({
+        command: 'publish',
+        options: { tag: 'foo' },
+        extraArgs: [],
+      });
+    });
+
+    it('parses options given before the command (via the parent)', () => {
+      expect(buildAndParse(['-t', 'foo', 'publish'])).toEqual({
+        command: 'publish',
+        options: { tag: 'foo' },
+        extraArgs: [],
+      });
+    });
+
+    it('merges options given before and after the command', () => {
+      expect(buildAndParse(['-t', 'foo', 'publish', '-p', 'pkg'])).toEqual({
+        command: 'publish',
+        options: { tag: 'foo', package: ['pkg'] },
+        extraArgs: [],
+      });
+    });
+
+    it('reports a nested subcommand with a positional arg as extra args', () => {
+      expect(buildAndParse(['config', 'get', 'tag'])).toEqual({
+        command: 'config get',
+        options: {},
+        extraArgs: ['tag'],
+      });
+    });
+
+    it('reports a nested subcommand without args', () => {
+      expect(buildAndParse(['config', 'list'])).toEqual({
+        command: 'config list',
+        options: {},
+        extraArgs: [],
+      });
+    });
+
+    it('parses options on a nested subcommand', () => {
+      expect(buildAndParse(['config', 'get', 'tag', '-p', 'pkg'])).toEqual({
+        command: 'config get',
+        options: { package: ['pkg'] },
+        extraArgs: ['tag'],
+      });
+    });
+
+    it('errors on excess positional args for a command without args', () => {
+      expect(buildAndExpectError(['publish', 'extra'])).toBe(
+        "error: too many arguments for 'publish'. Expected 0 arguments but got 1."
+      );
+    });
+
+    it('errors on a missing subcommand', () => {
+      expect(buildAndExpectError(['config'])).toMatch(/^Usage:/);
+    });
+
+    it('errors on a missing required subcommand arg', () => {
+      expect(buildAndExpectError(['config', 'get'])).toBe("error: missing required argument 'name'");
+    });
+  });
+
+  describe('version', () => {
+    it('prints the version and exits when --version is given', () => {
+      const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
+      const program = BeachballCommand.initProgram({
+        name: 'beachball',
+        desc: '',
+        commands: { change: { desc: 'create change files', isDefault: true } },
+        options: {},
+        version: '1.2.3',
+        outputOptions,
+      });
+      expect(() => program.parse(['--version'], { from: 'user' })).toThrow(CommanderError);
+      expect(outputOptions.writeErr).not.toHaveBeenCalled();
+      expect(outputOptions.writeOut).toHaveBeenCalledTimes(1);
+      expect(outputOptions.writeOut.mock.calls[0][0]).toBe('1.2.3\n');
+    });
+
+    it('does not register a version option when no version is given', () => {
+      const program = BeachballCommand.initProgram({
+        name: 'beachball',
+        desc: '',
+        commands: { change: { desc: 'create change files', isDefault: true } },
+        options: {},
+      });
+      expect(program.command.helpInformation()).not.toContain('--version');
+    });
+  });
+
   describe('help', () => {
     function getOptionsHelpText(options: Partial<Record<keyof CliOptions, OptionDefinition>>) {
-      return new BeachballCommand()
-        .helpOption(false)
-        .addAllOptions(options)
-        .helpInformation()
-        .split('Options:\n')[1]
-        .trimEnd();
+      const command = BeachballCommand.initProgram({
+        name: 'beachball',
+        desc: '',
+        commands: {},
+        options,
+      });
+      return command.command.helpOption(false).helpInformation().split('Options:\n')[1].trimEnd();
     }
 
     it('handles string option with no default', () => {
@@ -381,6 +563,23 @@ describe('BeachballCommand', () => {
       });
       // note: --tags and -t are NOT actually used for --git-tags
       expect(optionsHelp).toMatchInlineSnapshot(`"  -t, --[no-]tags  create git tags (default: true)"`);
+    });
+
+    it('excludes hidden commands from the command listing', () => {
+      const program = BeachballCommand.initProgram({
+        name: 'beachball',
+        desc: '',
+        commands: {
+          change: { desc: 'create change files', isDefault: true },
+          publish: { desc: 'publish packages' },
+          canary: { desc: 'canary publish', hidden: true },
+        },
+        options: {},
+      });
+      const commandsHelp = program.command.helpInformation().split('Commands:\n')[1];
+      expect(commandsHelp).toContain('change');
+      expect(commandsHelp).toContain('publish');
+      expect(commandsHelp).not.toContain('canary');
     });
   });
 });
