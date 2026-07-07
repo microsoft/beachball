@@ -64,7 +64,7 @@ export function getCliOptions(programContext: ProgramContext): ParsedOptions['cl
   });
 
   // For --help or --version, this will print the info and exit
-  const { command, options, extraArgs: extraPositionalArgs } = program.parse(programContext.argv);
+  const { command, options, extraArgs: extraPositionalArgs } = program.beachballParse(programContext.argv);
 
   try {
     // If a non-empty cwd is provided, find the project root from there.

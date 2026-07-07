@@ -1,6 +1,6 @@
 import { InvalidArgumentError, Option } from 'commander';
 import type { CliOptions } from '../types/BeachballOptions';
-import type { OptionDefinition, OptionType } from './optionDefinitions';
+import { optionGroups, type OptionDefinition, type OptionType } from './optionDefinitions';
 
 declare module 'commander' {
   interface Option {
@@ -89,6 +89,8 @@ export class BeachballOption extends Option {
     negated && this.hideHelp();
 
     params.choices && this.choices(params.choices);
+
+    this.helpGroup(optionGroups[params.group || 'default']);
 
     const parser = params.parse || (type === 'number' ? _parseNumber : undefined);
     parser && this.argParser(parser);

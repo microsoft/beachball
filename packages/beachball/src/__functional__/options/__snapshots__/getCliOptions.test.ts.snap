@@ -6,8 +6,6 @@ exports[`getCliOptions shows change command help text 1`] = `
 create change files in the change/ folder
 
 Options:
-  --[no-]verbose              print additional information to the console
-  -c, --config <value>        custom beachball config path (default: cosmiconfig standard paths)
   -b, --branch <value>        target branch from remote (default: the default remote branch)
   --since <value>             consider changes or change files since this git ref (branch name,
                                 commit SHA)
@@ -27,24 +25,19 @@ Options:
                                 "!negations")
   --[no-]all                  generate change files for all packages (default: false)
   -p, --package <value...>    force creating a change file for the specified package(s)
-  --timeout <num>             timeout in ms for npm operations (other than install)
-  -r, --registry <value>      npm registry (default: "https://registry.npmjs.org/")
-  -n, --token <value>         npm auth token (defaults to the NPM_TOKEN environment variable)
+  -a, --auth-type <value>     npm auth type for NPM_TOKEN (default: "authtoken") (choices:
+                                "authtoken", "password")
   -t, --tag <value>           npm dist-tag for publishing and comparison (default: defaultNpmTag or
                                 "latest")
-  --npm-read-concurrency <num> - maximum concurrency for reading package versions from the registry
-                                (default: 2)
   --[no-]bump                 bump versions during publish (default: true)
   --[no-]publish              publish to the npm registry (default: true)
   --[no-]push                 push changes back to the remote git branch (default: true)
   -y, --[no-]yes              skip publish confirmation prompts (default: true in CI, false locally)
   --git-timeout <num>         timeout in ms for git push operations
-  --retries <num>             number of retries for an npm publish before failing (default: 3)
+  --[no-]git-tags             create git tags for each published package version (default: true)
   --access <value>            npm publish access level (default: "restricted") (choices: "public",
                                 "restricted")
-  -a, --auth-type <value>     npm auth type for NPM_TOKEN (default: "authtoken") (choices:
-                                "authtoken", "password")
-  --[no-]git-tags             create git tags for each published package version (default: true)
+  --retries <num>             number of retries for an npm publish before failing (default: 3)
   --pack-to-path <value>      pack packages to tgz files under this path instead of publishing to
                                 npm
   -m, --message <value>       for "change", the change description; for "publish", the commit
@@ -60,6 +53,17 @@ Options:
   --concurrency <num>         maximum concurrency for write operations (hook calls, npm publish)
                                 (default: 1)
   --canary-name <value>       dist-tag and version name to use for canary publishes
+
+npm options:
+  --timeout <num>             timeout in ms for npm operations (other than install)
+  -r, --registry <value>      npm registry (default: "https://registry.npmjs.org/")
+  -n, --token <value>         npm auth token (defaults to the NPM_TOKEN environment variable)
+  --npm-read-concurrency <num> - maximum concurrency for reading package versions from the registry
+                                (default: 2)
+
+Common options:
+  -c, --config <value>        custom beachball config path (default: cosmiconfig standard paths)
+  --[no-]verbose              print additional information to the console
   -h, --help                  display help for command
 "
 `;
@@ -81,8 +85,6 @@ Commands:
   help [command]              display help for command
 
 Options:
-  --[no-]verbose              print additional information to the console
-  -c, --config <value>        custom beachball config path (default: cosmiconfig standard paths)
   -b, --branch <value>        target branch from remote (default: the default remote branch)
   --since <value>             consider changes or change files since this git ref (branch name,
                                 commit SHA)
@@ -102,24 +104,19 @@ Options:
                                 "!negations")
   --[no-]all                  generate change files for all packages (default: false)
   -p, --package <value...>    force creating a change file for the specified package(s)
-  --timeout <num>             timeout in ms for npm operations (other than install)
-  -r, --registry <value>      npm registry (default: "https://registry.npmjs.org/")
-  -n, --token <value>         npm auth token (defaults to the NPM_TOKEN environment variable)
+  -a, --auth-type <value>     npm auth type for NPM_TOKEN (default: "authtoken") (choices:
+                                "authtoken", "password")
   -t, --tag <value>           npm dist-tag for publishing and comparison (default: defaultNpmTag or
                                 "latest")
-  --npm-read-concurrency <num> - maximum concurrency for reading package versions from the registry
-                                (default: 2)
   --[no-]bump                 bump versions during publish (default: true)
   --[no-]publish              publish to the npm registry (default: true)
   --[no-]push                 push changes back to the remote git branch (default: true)
   -y, --[no-]yes              skip publish confirmation prompts (default: true in CI, false locally)
   --git-timeout <num>         timeout in ms for git push operations
-  --retries <num>             number of retries for an npm publish before failing (default: 3)
+  --[no-]git-tags             create git tags for each published package version (default: true)
   --access <value>            npm publish access level (default: "restricted") (choices: "public",
                                 "restricted")
-  -a, --auth-type <value>     npm auth type for NPM_TOKEN (default: "authtoken") (choices:
-                                "authtoken", "password")
-  --[no-]git-tags             create git tags for each published package version (default: true)
+  --retries <num>             number of retries for an npm publish before failing (default: 3)
   --pack-to-path <value>      pack packages to tgz files under this path instead of publishing to
                                 npm
   -m, --message <value>       for "change", the change description; for "publish", the commit
@@ -135,6 +132,17 @@ Options:
   --concurrency <num>         maximum concurrency for write operations (hook calls, npm publish)
                                 (default: 1)
   --canary-name <value>       dist-tag and version name to use for canary publishes
+
+npm options:
+  --timeout <num>             timeout in ms for npm operations (other than install)
+  -r, --registry <value>      npm registry (default: "https://registry.npmjs.org/")
+  -n, --token <value>         npm auth token (defaults to the NPM_TOKEN environment variable)
+  --npm-read-concurrency <num> - maximum concurrency for reading package versions from the registry
+                                (default: 2)
+
+Common options:
+  -c, --config <value>        custom beachball config path (default: cosmiconfig standard paths)
+  --[no-]verbose              print additional information to the console
   -h, --help                  display help for command
 "
 `;

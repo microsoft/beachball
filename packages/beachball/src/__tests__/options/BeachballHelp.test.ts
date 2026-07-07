@@ -125,8 +125,10 @@ describe('BeachballHelp', () => {
     sub.createHelp = () => new BeachballHelp();
     // The subcommand's own option, the parent option, and help (last) are all shown
     expect(getOptionsHelp(sub)).toMatchInlineSnapshot(`
-      "  --sub-opt     a sub option
-        --parent-opt  a parent option
+      "  --parent-opt  a parent option
+        --sub-opt     a sub option
+
+      Common options:
         -h, --help    display help for command"
     `);
     // The parent option is not actually added to the subcommand
@@ -161,6 +163,8 @@ describe('BeachballHelp', () => {
                                       with a line break
         --some-very-long-long-long-option - with a description with a description with a description with
                                       a description
+
+      Common options:
         -h, --help                  display help for command
       "
     `);

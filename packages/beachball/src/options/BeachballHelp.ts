@@ -1,6 +1,7 @@
-import { Help, type Command, type Option } from 'commander';
+import { Command, Help, type Option } from 'commander';
 import { env } from '../env';
 import { BeachballOption } from './BeachballOption';
+import { optionGroups } from './optionDefinitions';
 
 /**
  * Indent width before each term, or spacer between terms and descriptions (matches commander).
@@ -42,7 +43,7 @@ export class BeachballHelp extends Help {
   }
 
   /**
-   * Include the parent command's options in each subcommand's help. (To match old behavior, all
+   * Include the top-level command's options in each subcommand's help. (To match old behavior, all
    * options are allowed on all commands, but we only add them to the parent command to avoid
    * extra overhead of parsing them on every subcommand.)
    */
@@ -52,17 +53,42 @@ export class BeachballHelp extends Help {
       return options;
     }
 
-    // Collect visible options declared on ancestor commands
-    const globalOptions: Option[] = [];
-    for (let ancestor: Command | null = cmd.parent; ancestor; ancestor = ancestor.parent) {
-      globalOptions.push(
-        ...super.visibleOptions(ancestor).filter(opt => !['help', 'version'].includes(opt.attributeName()))
-      );
+    // Collect visible options declared on the top-level command
+    const globalOptions = super
+      .visibleOptions(cmd.parent?.parent || cmd.parent)
+      .filter(opt => !['help', 'version'].includes(opt.attributeName()));
+
+    // As of writing, subcommands only have the built-in help option, which goes last
+    return [...globalOptions, ...options];
+  }
+
+  /**
+   * Group options or child commands for help.
+   */
+  override groupItems<T extends Command | Option>(
+    unsortedItems: T[],
+    visibleItems: T[],
+    getGroup: (item: T) => string
+  ): Map<string, T[]> {
+    if ((unsortedItems[0] || visibleItems[0]) instanceof Command) {
+      return super.groupItems(unsortedItems, visibleItems, getGroup);
     }
 
-    // Insert before the trailing built-in help option so it stays last.
-    options.splice(Math.max(options.length - 1, 0), 0, ...globalOptions);
-    return options;
+    const groups = super.groupItems(unsortedItems, visibleItems, item =>
+      item.name() === 'help' ? optionGroups.common : getGroup(item)
+    );
+
+    // Sort the groups: anything not listed goes first, followed by groups in the listed order.
+    const expectedGroups = Object.values(optionGroups);
+    const unlistedGroups = [...groups.keys()].filter(g => !expectedGroups.includes(g));
+    const groupOrder = [...unlistedGroups, ...expectedGroups];
+
+    const sortedGroups = new Map<string, T[]>();
+    for (const groupName of groupOrder) {
+      const group = groups.get(groupName);
+      group && sortedGroups.set(groupName, group);
+    }
+    return sortedGroups;
   }
 
   /** Cap the term width so a few very long terms don't push all descriptions far to the right. */
@@ -94,11 +120,11 @@ export class BeachballHelp extends Help {
     // "Commands:", etc). Move the "Commands:" section to just before the "Options:" section.
     const trailingNewlines = help.match(/\n+$/);
     const sections = help.replace(/\n+$/, '').split('\n\n');
-    const optionsIndex = sections.findIndex(section => section.startsWith('Options:'));
+    const firstOptionsIndex = sections.findIndex(section => /^.*?options.*?:\n/i.test(section));
     const commandsIndex = sections.findIndex(section => section.startsWith('Commands:'));
-    if (optionsIndex !== -1 && commandsIndex > optionsIndex) {
+    if (firstOptionsIndex !== -1 && commandsIndex > firstOptionsIndex) {
       const [commandsSection] = sections.splice(commandsIndex, 1);
-      sections.splice(optionsIndex, 0, commandsSection);
+      sections.splice(firstOptionsIndex, 0, commandsSection);
     }
     return sections.join('\n\n') + (trailingNewlines?.[0] || '');
   }

@@ -6,6 +6,18 @@ export type OptionDefinitions = Partial<Record<keyof CliOptions, OptionDefinitio
 
 export type OptionType = 'string' | 'number' | 'boolean' | 'array';
 
+/**
+ * Help group names for options (pass to `option.helpGroup()`).
+ *
+ * The ordering of entries is used to determine the order of sections in help output.
+ */
+export const optionGroups = {
+  default: 'Options:',
+  /** Non-logging options shared between all/most commands */
+  common: 'Common options:',
+};
+export type OptionGroup = keyof typeof optionGroups;
+
 /** Definition of a single CLI option, used to build its commander `Option`. */
 export interface OptionDefinition {
   desc: string;
@@ -26,6 +38,7 @@ export interface OptionDefinition {
    * @default 'string'
    */
   type?: OptionType;
+  group?: OptionGroup;
   /** Valid choices, such as for `disallowedChangeTypes` (string or array options only). */
   choices?: readonly string[];
   /** Custom argument parser/validator */
@@ -39,14 +52,17 @@ export const optionDefinitions: Record<
 > = {
   // migrate may read options but doesn't need any CLI options besides configPath
 
-  // logging
-  verbose: { type: 'boolean', desc: 'print additional information to the console' },
-
-  // everything but init
+  // common
   configPath: {
+    group: 'common',
     short: 'c',
     alias: 'config',
     desc: 'custom beachball config path (default: cosmiconfig standard paths)',
+  },
+  verbose: {
+    group: 'common',
+    type: 'boolean',
+    desc: 'print additional information to the console',
   },
 
   // git options (validation and comparison)
@@ -79,8 +95,10 @@ export const optionDefinitions: Record<
   timeout: { type: 'number', desc: 'timeout in ms for npm operations (other than install)' },
   registry: { short: 'r', desc: 'npm registry' },
   token: { short: 'n', desc: 'npm auth token (defaults to the NPM_TOKEN environment variable)' },
-  tag: { short: 't', desc: 'npm dist-tag for publishing and comparison (default: defaultNpmTag or "latest")' },
+  authType: { short: 'a', desc: 'npm auth type for NPM_TOKEN', choices: authTypes },
   npmReadConcurrency: { type: 'number', desc: 'maximum concurrency for reading package versions from the registry' },
+  // sort of npm group but semantically different
+  tag: { short: 't', desc: 'npm dist-tag for publishing and comparison (default: defaultNpmTag or "latest")' },
 
   // publish only
   bump: { type: 'boolean', desc: 'bump versions during publish' },
@@ -88,10 +106,11 @@ export const optionDefinitions: Record<
   push: { type: 'boolean', desc: 'push changes back to the remote git branch' },
   yes: { type: 'boolean', short: 'y', desc: 'skip publish confirmation prompts (default: true in CI, false locally)' },
   gitTimeout: { type: 'number', desc: 'timeout in ms for git push operations' },
-  retries: { type: 'number', desc: 'number of retries for an npm publish before failing' },
-  access: { desc: 'npm publish access level', choices: ['public', 'restricted'] },
-  authType: { short: 'a', desc: 'npm auth type for NPM_TOKEN', choices: authTypes },
   gitTags: { type: 'boolean', desc: 'create git tags for each published package version' },
+
+  // publish/canary only
+  access: { desc: 'npm publish access level', choices: ['public', 'restricted'] },
+  retries: { type: 'number', desc: 'number of retries for an npm publish before failing' },
   packToPath: { desc: 'pack packages to tgz files under this path instead of publishing to npm' },
 
   // change/publish with different description
