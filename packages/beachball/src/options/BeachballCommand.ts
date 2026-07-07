@@ -135,6 +135,29 @@ class BeachballHelp extends Help {
     const term = super.optionTerm(option);
     return option instanceof BeachballOption && option.isBoolean() ? term.replace('--', '--[no-]') : term;
   }
+
+  /**
+   * Render the help text, moving the "Commands:" section before the "Options:" section for commands
+   * that have sub-commands (so the more relevant commands list is shown first).
+   */
+  override formatHelp(cmd: Command, helper: Help): string {
+    const help = super.formatHelp(cmd, helper);
+    if (!helper.visibleCommands(cmd).length) {
+      return help;
+    }
+
+    // Sections are separated by a blank line and each starts with a title line ("Options:",
+    // "Commands:", etc). Move the "Commands:" section to just before the "Options:" section.
+    const trailingNewline = help.endsWith('\n');
+    const sections = help.replace(/\n+$/, '').split('\n\n');
+    const optionsIndex = sections.findIndex(section => section.startsWith('Options:'));
+    const commandsIndex = sections.findIndex(section => section.startsWith('Commands:'));
+    if (optionsIndex !== -1 && commandsIndex > optionsIndex) {
+      const [commandsSection] = sections.splice(commandsIndex, 1);
+      sections.splice(optionsIndex, 0, commandsSection);
+    }
+    return sections.join('\n\n') + (trailingNewline ? '\n' : '');
+  }
 }
 
 /**

@@ -5,6 +5,17 @@ exports[`getCliOptions shows help text 1`] = `
 
 beachball - the sunniest version bumping tool
 
+Commands:
+  change [options]                      create change files in the change/ folder
+  check [options]                       checks whether a change file is needed for this branch
+  bump [options]                        bumps versions as well as generating changelogs
+  publish [options]                     bumps, publishes to npm registry, and pushes changelogs back
+                                        into the default branch
+  sync [options]                        synchronize published versions of packages from the registry
+                                        with local package.json versions
+  config [options]                      get or list config settings (requires a sub-command)
+  help [command]                        display help for command
+
 Options:
   --disallowed-change-types <value...>  change types that are not allowed (choices: "none",
                                         "prerelease", "prepatch", "patch", "preminor", "minor",
@@ -74,16 +85,5 @@ Options:
                                         "prerelease", "prepatch", "patch", "preminor", "minor",
                                         "premajor", "major")
   -h, --help                            display help for command
-
-Commands:
-  change [options]                      create change files in the change/ folder
-  check [options]                       checks whether a change file is needed for this branch
-  bump [options]                        bumps versions as well as generating changelogs
-  publish [options]                     bumps, publishes to npm registry, and pushes changelogs back
-                                        into the default branch
-  sync [options]                        synchronize published versions of packages from the registry
-                                        with local package.json versions
-  config [options]                      get or list config settings (requires a sub-command)
-  help [command]                        display help for command
 "
 `;
