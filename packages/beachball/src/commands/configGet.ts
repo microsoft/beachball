@@ -82,13 +82,14 @@ export function configGet(options: BeachballOptions, context: BasicCommandContex
   const { originalPackageInfos: packageInfos, scopedPackages } = context;
 
   const extraArgs = options._extraPositionalArgs || [];
-  if (extraArgs[0] !== 'get' || extraArgs.length !== 2) {
+  if (extraArgs.length !== 1) {
+    // should already have been handled by commander
     throw new BeachballError(
       'Usage: beachball config get <setting>\n\nGets the value of the specified config setting.'
     );
   }
 
-  const name = extraArgs[1];
+  const name = extraArgs[0];
   if (!validConfigNames.has(name)) {
     const suggestion = findSimilar(name, [...validConfigNames]);
     throw new BeachballError(

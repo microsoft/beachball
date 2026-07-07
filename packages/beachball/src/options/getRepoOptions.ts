@@ -3,7 +3,7 @@ import path from 'path';
 import { findGitRoot } from 'workspace-tools';
 import { BeachballError } from '../types/BeachballError';
 import type { ParsedOptions, RepoOptions } from '../types/BeachballOptions';
-import { resolveBranchOption } from './cliOptionsHelpers';
+import { resolveBranchOption } from './getCliOptions';
 
 /**
  * Find the beachball config file and return the repo options.

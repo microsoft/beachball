@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "More commander changes (define commands with commander)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}
