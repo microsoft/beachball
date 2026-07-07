@@ -59,11 +59,11 @@ export const optionDefinitions: Record<
   package: {
     type: 'array',
     short: 'p',
-    desc: 'force creating a change file for this package (can be specified multiple times)',
+    desc: 'force creating a change file for the specified package(s)',
   },
   scope: {
     type: 'array',
-    desc: 'only consider package paths matching this pattern (can be specified multiple times; supports negations)',
+    desc: 'only consider package paths matching the pattern(s) (supports "!negations")',
   },
   // boolean options
   all: { type: 'boolean', desc: 'generate change files for all packages' },

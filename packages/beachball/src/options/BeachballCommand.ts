@@ -137,6 +137,27 @@ class BeachballHelp extends Help {
   }
 
   /**
+   * Format a single term/description item, adding a hanging indent so that wrapped description
+   * lines are indented slightly past the start of the description's first line.
+   */
+  override formatItem(term: string, termWidth: number, description: string, helper: Help): string {
+    // Temporarily reduce the help width so wrapping accounts for the extra hanging indent added
+    // to continuation lines below (otherwise those lines could exceed the help width).
+    const hangingIndent = 2;
+    const originalHelpWidth = this.helpWidth;
+    this.helpWidth = (this.helpWidth ?? 80) - hangingIndent;
+    const formatted = super.formatItem(term, termWidth, description, helper);
+    this.helpWidth = originalHelpWidth;
+
+    // Commander indents wrapped description lines to align with the description's first line
+    // (itemIndent + termWidth + spacerWidth). Add extra spaces to those continuation lines.
+    const itemIndent = 2;
+    const spacerWidth = 2;
+    const continuationIndent = ' '.repeat(itemIndent + termWidth + spacerWidth);
+    return formatted.replaceAll(`\n${continuationIndent}`, `\n${continuationIndent}${' '.repeat(hangingIndent)}`);
+  }
+
+  /**
    * Render the help text, moving the "Commands:" section before the "Options:" section for commands
    * that have sub-commands (so the more relevant commands list is shown first).
    */
