@@ -8,25 +8,25 @@ create change files in the change/ folder
 Options:
   --[no-]verbose              print additional information to the console
   -c, --config <value>        custom beachball config path (default: cosmiconfig standard paths)
+  -b, --branch <value>        target branch from remote (default: the default remote branch)
+  --since <value>             consider changes or change files since this git ref (branch name,
+                                commit SHA)
+  --[no-]fetch                fetch from the remote before determining changes (default: true)
+  --depth <num>               for shallow clones: depth of git history to consider when fetching
   --disallowed-change-types <value...> - change types that are not allowed (choices: "none",
                                 "prerelease", "prepatch", "patch", "preminor", "minor", "premajor",
                                 "major")
   --[no-]disallow-deleted-change-files - verify that no change files were deleted between head and
                                 target branch
-  --[no-]fetch                fetch from the remote before determining changes (default: true)
-  --depth <num>               for shallow clones: depth of git history to consider when fetching
-  -b, --branch <value>        target branch from remote (default: the default remote branch)
   --changehint <value>        customized hint message shown when a change file is needed but missing
                                 (default: "Run \\"beachball change\\" to create a change file")
   --change-dir <value>        name of the directory to store change files (default: "change")
-  --since <value>             consider changes or change files since this git ref (branch name,
-                                commit SHA)
   --[no-]bump-deps            bump dependent packages during publish (default: true)
   --prerelease-prefix <value> prerelease prefix for packages that will receive a prerelease bump
-  -p, --package <value...>    force creating a change file for the specified package(s)
   --scope <value...>          only consider package paths matching the pattern(s) (supports
                                 "!negations")
   --[no-]all                  generate change files for all packages (default: false)
+  -p, --package <value...>    force creating a change file for the specified package(s)
   --timeout <num>             timeout in ms for npm operations (other than install)
   -r, --registry <value>      npm registry (default: "https://registry.npmjs.org/")
   -n, --token <value>         npm auth token (defaults to the NPM_TOKEN environment variable)
@@ -83,25 +83,25 @@ Commands:
 Options:
   --[no-]verbose              print additional information to the console
   -c, --config <value>        custom beachball config path (default: cosmiconfig standard paths)
+  -b, --branch <value>        target branch from remote (default: the default remote branch)
+  --since <value>             consider changes or change files since this git ref (branch name,
+                                commit SHA)
+  --[no-]fetch                fetch from the remote before determining changes (default: true)
+  --depth <num>               for shallow clones: depth of git history to consider when fetching
   --disallowed-change-types <value...> - change types that are not allowed (choices: "none",
                                 "prerelease", "prepatch", "patch", "preminor", "minor", "premajor",
                                 "major")
   --[no-]disallow-deleted-change-files - verify that no change files were deleted between head and
                                 target branch
-  --[no-]fetch                fetch from the remote before determining changes (default: true)
-  --depth <num>               for shallow clones: depth of git history to consider when fetching
-  -b, --branch <value>        target branch from remote (default: the default remote branch)
   --changehint <value>        customized hint message shown when a change file is needed but missing
                                 (default: "Run \\"beachball change\\" to create a change file")
   --change-dir <value>        name of the directory to store change files (default: "change")
-  --since <value>             consider changes or change files since this git ref (branch name,
-                                commit SHA)
   --[no-]bump-deps            bump dependent packages during publish (default: true)
   --prerelease-prefix <value> prerelease prefix for packages that will receive a prerelease bump
-  -p, --package <value...>    force creating a change file for the specified package(s)
   --scope <value...>          only consider package paths matching the pattern(s) (supports
                                 "!negations")
   --[no-]all                  generate change files for all packages (default: false)
+  -p, --package <value...>    force creating a change file for the specified package(s)
   --timeout <num>             timeout in ms for npm operations (other than install)
   -r, --registry <value>      npm registry (default: "https://registry.npmjs.org/")
   -n, --token <value>         npm auth token (defaults to the NPM_TOKEN environment variable)
