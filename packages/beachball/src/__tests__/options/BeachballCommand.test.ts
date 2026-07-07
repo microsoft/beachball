@@ -328,7 +328,6 @@ describe('BeachballCommand', () => {
     });
   });
 
-  // This
   describe('help', () => {
     function getOptionsHelpText(options: OptionDefinitions) {
       const command = BeachballCommand.initProgram({

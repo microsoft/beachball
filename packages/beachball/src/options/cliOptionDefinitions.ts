@@ -70,7 +70,7 @@ export const optionDefinitions: Record<
     desc: 'custom beachball config path (default: cosmiconfig standard paths)',
   },
 
-  // Validation and comparision options
+  // Validation and comparison options
   disallowedChangeTypes: { type: 'array', desc: 'change types that are not allowed', choices: SortedChangeTypes },
   disallowDeletedChangeFiles: {
     type: 'boolean',
