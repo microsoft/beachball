@@ -33,9 +33,12 @@ export class BeachballHelp extends Help {
     return option instanceof BeachballOption && option.isBoolean() ? term.replace('--', '--[no-]') : term;
   }
 
-  /** Use the custom usage string in the subcommand term. */
+  /** Use the custom usage string for commands with subcommands */
   override subcommandTerm(cmd: Command): string {
-    return `${cmd.name()} ${cmd.usage()}`;
+    if (cmd.commands.length) {
+      return `${cmd.name()} ${cmd.usage()}`;
+    }
+    return super.subcommandTerm(cmd);
   }
 
   /**

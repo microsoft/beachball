@@ -70,12 +70,12 @@ exports[`getCliOptions shows help text 1`] = `
 beachball - the sunniest version bumping tool
 
 Commands:
-  change [options]            create change files in the change/ folder
-  check [options]             checks whether a change file is needed for this branch
-  bump [options]              bumps versions as well as generating changelogs
-  publish [options]           bumps, publishes to npm registry, and pushes changelogs back into the
+  change                      create change files in the change/ folder
+  check                       checks whether a change file is needed for this branch
+  bump                        bumps versions as well as generating changelogs
+  publish                     bumps, publishes to npm registry, and pushes changelogs back into the
                                 default branch
-  sync [options]              synchronize published versions of packages from the registry with
+  sync                        synchronize published versions of packages from the registry with
                                 local package.json versions
   config <get|list>           get or list config settings (requires a sub-command)
   help [command]              display help for command
