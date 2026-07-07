@@ -1,8 +1,8 @@
 import { Command, Help, type Option } from 'commander';
 import { env } from '../env';
-import type { BeachballCommand } from './BeachballCommand';
 import { BeachballOption } from './BeachballOption';
 import { optionGroups } from './optionDefinitions';
+import type { BeachballCommand } from './BeachballCommand';
 
 /**
  * Indent width before each term, or spacer between terms and descriptions (matches commander).
@@ -17,7 +17,8 @@ export const _maxTermWidth = 26;
 /** Help width used in jest snapshots or if no width can be determined */
 export const _defaultHelpWidth = 100;
 
-const builtInCommands = ['help', 'version'];
+/** help and version */
+const isBuiltInOption = (option: Option) => ['help', 'version'].includes(option.name());
 
 export class BeachballHelp extends Help {
   /** Command name currently being described */
@@ -90,20 +91,17 @@ export class BeachballHelp extends Help {
     if (!cmd.parent) {
       // For the actual top-level beachball command, omit extra options, but allow them for tests
       return cmd.commands.length && beachballCmd
-        ? options.filter(opt => (opt as BeachballOption).group === 'common' || builtInCommands.includes(opt.name()))
+        ? options.filter(opt => (opt as BeachballOption).group === 'common' || isBuiltInOption(opt))
         : options;
     }
 
     // Collect visible options declared on the top-level command
-    const cmdName = cmd.name();
+    const subcommandName = beachballCmd?.subcommandName || cmd.name();
     const globalOptions = super.visibleOptions(cmd.parent?.parent || cmd.parent).filter(opt => {
-      if (builtInCommands.includes(opt.name())) return false;
-      if (opt instanceof BeachballOption) {
-        if (opt.onlyCommands && !opt.onlyCommands.includes(cmdName)) return false;
-        if (beachballCmd?.hideMostOptions && opt.group !== 'common' && !opt.onlyCommands?.includes(cmdName))
-          return false;
-      }
-      return true;
+      // Don't duplicate built-in options with inherited ones
+      if (isBuiltInOption(opt)) return false;
+      // Only show inherited options that are always applicable or specified for this command
+      return !(opt instanceof BeachballOption) || opt.commands === true || opt.commands.includes(subcommandName);
     });
 
     // As of writing, subcommands only have the built-in help option, which goes last
@@ -123,7 +121,7 @@ export class BeachballHelp extends Help {
     }
 
     const groups = super.groupItems(unsortedItems, visibleItems, item =>
-      builtInCommands.includes(item.name()) ? optionGroups.common : getGroup(item)
+      isBuiltInOption(item as Option) ? optionGroups.common : getGroup(item)
     );
 
     // Sort the groups: anything not listed goes first, followed by groups in the listed order.

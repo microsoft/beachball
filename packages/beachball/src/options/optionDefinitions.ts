@@ -1,7 +1,7 @@
 import { SortedChangeTypes } from '../changefile/changeTypes';
 import type { CliOptions } from '../types/BeachballOptions';
 import { authTypes } from '../validation/isValidAuthType';
-import type { CommandName } from './commandDefinitions';
+import { allCommandNames, type CommandName } from './commandDefinitions';
 
 export type OptionDefinitions = Partial<Record<keyof CliOptions, OptionDefinition>>;
 
@@ -48,63 +48,81 @@ export interface OptionDefinition {
   /** Custom argument parser/validator */
   parse?: (value: unknown, previous: unknown) => unknown;
   /**
-   * Only show the option in help for the specified commands.
-   * If a command should *only* show a few options, set `CommandDefinition.hideMostOptions` instead.
+   * Only show the option in help for the specified commands, or `true` for all commands.
+   * Use `defaultCommands` for options that apply to all the "full" commands.
    */
-  only?: readonly CommandName[];
+  commands: readonly CommandName[] | true;
 }
 
-/** Add `group` and/or `only` to a subset of options */
-function options<K extends keyof CliOptions>(
-  group: OptionGroup | undefined,
-  only: readonly CommandName[] | undefined,
-  opts: Record<K, OptionDefinition>
-) {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- inference is broken??
+type OptionNoCommands = Omit<OptionDefinition, 'commands'> & Partial<OptionDefinition>;
+
+/** Add `group` and/or `commands` to a subset of options */
+export function makeOptions<K extends keyof CliOptions>(
+  group: OptionGroup,
+  commands: OptionDefinition['commands'],
+  opts: Record<K, OptionNoCommands>
+): Record<K, OptionDefinition>;
+export function makeOptions<K extends keyof CliOptions>(
+  commands: OptionDefinition['commands'],
+  opts: Record<K, OptionNoCommands>
+): Record<K, OptionDefinition>;
+export function makeOptions<K extends keyof CliOptions>(
+  groupOrCommands: OptionGroup | OptionDefinition['commands'],
+  commandsOrOpts: Record<K, OptionNoCommands> | OptionDefinition['commands'],
+  opts?: Record<K, OptionNoCommands>
+): Record<K, OptionDefinition> {
+  const group = typeof groupOrCommands === 'string' ? groupOrCommands : undefined;
+  const commands =
+    typeof groupOrCommands === 'string' ? (commandsOrOpts as OptionDefinition['commands']) : groupOrCommands;
+  opts ??= commandsOrOpts as Record<K, OptionNoCommands>;
+
   for (const opt of Object.values(opts) as OptionDefinition[]) {
     group && (opt.group ??= group);
-    only && (opt.only ??= only);
+    opt.commands ??= commands;
   }
-  return opts;
+  return opts as Record<K, OptionDefinition>;
 }
+
+/** Commands which should show most options */
+const defaultCommands = ['change', 'check', 'bump', 'publish', 'canary'] as const;
+
+const nonInitCommands = allCommandNames.filter(cmd => cmd !== 'init');
 
 /** All CLI options. */
 export const optionDefinitions: Record<
   Exclude<keyof CliOptions, 'path' | 'command' | '_extraPositionalArgs'>,
   OptionDefinition
 > = {
-  ...options('common', undefined, {
-    configPath: {
-      short: 'c',
-      alias: 'config',
-      desc: 'custom beachball config path (default: cosmiconfig standard paths)',
-    },
-    verbose: { type: 'boolean', desc: 'print additional information to the console' },
-  }),
+  configPath: {
+    commands: nonInitCommands,
+    group: 'common',
+    short: 'c',
+    alias: 'config',
+    desc: 'custom beachball config path (default: cosmiconfig standard paths)',
+  },
+  verbose: { group: 'common', commands: true, type: 'boolean', desc: 'print additional information to the console' },
 
   // git options (validation and comparison)
-  branch: { short: 'b', desc: 'target branch from remote (default: the default remote branch)' },
-  fromRef: { alias: 'since', desc: 'consider changes or change files since this git ref (branch name, commit SHA)' },
-  fetch: { type: 'boolean', desc: 'fetch from the remote before determining changes' },
-  depth: { type: 'number', desc: 'for shallow clones: depth of git history to consider when fetching' },
+  ...makeOptions(defaultCommands, {
+    branch: { short: 'b', desc: 'target branch from remote (default: the default remote branch)' },
+    fromRef: { alias: 'since', desc: 'consider changes or change files since this git ref (branch name, commit SHA)' },
+    fetch: { type: 'boolean', desc: 'fetch from the remote before determining changes' },
+    depth: { type: 'number', desc: 'for shallow clones: depth of git history to consider when fetching' },
 
-  // Validation and comparison options
-  disallowedChangeTypes: {
-    type: 'array',
-    desc: 'change types that are not allowed',
-    choices: SortedChangeTypes,
-  },
+    // Validation and comparison options
+    disallowedChangeTypes: { type: 'array', desc: 'change types that are not allowed', choices: SortedChangeTypes },
+  }),
   disallowDeletedChangeFiles: {
-    only: ['change', 'check'],
+    commands: ['change', 'check'],
     type: 'boolean',
     desc: 'verify that no change files were deleted between head and target branch',
   },
-  changehint: { only: ['check'], desc: 'customized hint message shown when a change file is needed but missing' },
-  changeDir: { desc: 'name of the directory to store change files' },
+  changehint: { commands: ['check'], desc: 'customized hint message shown when a change file is needed but missing' },
+  changeDir: { commands: defaultCommands, desc: 'name of the directory to store change files' },
 
   // bumpDeps/prereleasePrefix are also used by bumpInMemory
   // (bumpDeps might impact validation but probably doesn't need to show in help)
-  ...options(undefined, ['bump', 'publish'], {
+  ...makeOptions(['bump', 'publish'], {
     bumpDeps: { type: 'boolean', desc: 'bump dependent packages during publish' },
     prereleasePrefix: { desc: 'prerelease prefix for packages that will receive a prerelease bump' },
     keepChangeFiles: { type: 'boolean', desc: "don't delete the change files from disk after bumping" },
@@ -112,12 +130,12 @@ export const optionDefinitions: Record<
 
   // scoping?
   scope: {
-    only: ['change', 'check', 'bump', 'publish', 'canary', 'sync'],
+    commands: [...defaultCommands, 'sync'],
     type: 'array',
     desc: 'only consider package paths matching the pattern(s) (supports "!negations")',
   },
   all: {
-    only: ['change', 'canary'],
+    commands: ['change', 'canary'],
     type: 'boolean',
     desc: cmd =>
       (cmd === 'change' && 'generate change files for all packages') ||
@@ -127,13 +145,13 @@ export const optionDefinitions: Record<
   package: {
     type: 'array',
     short: 'p',
-    only: ['change'],
+    commands: ['change'],
     conflicts: ['all'],
     desc: 'force creating a change file for the specified package(s)',
   },
 
   // npm read or write; also init fetches beachball from the registry
-  ...options('npm', ['publish', 'canary', 'sync', 'init'], {
+  ...makeOptions('npm', ['publish', 'canary', 'sync', 'init'], {
     registry: { short: 'r', desc: 'npm registry' },
     token: { short: 'n', desc: 'npm auth token (prefer using NPM_TOKEN environment variable)' },
     authType: { short: 'a', desc: 'npm auth type for NPM_TOKEN', choices: authTypes },
@@ -145,17 +163,17 @@ export const optionDefinitions: Record<
       desc: cmd =>
         `npm dist-tag ${cmd === 'sync' ? 'to sync with' : 'for publishing'} ` +
         `(default: ${cmd === 'canary' ? 'canaryName or "canary"' : 'defaultNpmTag or "latest"'})`,
-      only: ['publish', 'canary', 'sync'],
+      commands: ['publish', 'canary', 'sync'],
     },
   }),
 
-  ...options('npm', ['publish', 'canary'], {
+  ...makeOptions('npm', ['publish', 'canary'], {
     access: { desc: 'npm publish access level', choices: ['public', 'restricted'] },
     retries: { type: 'number', desc: 'number of retries for an npm publish before failing' },
     packToPath: { desc: 'pack packages to tgz files under this path instead of publishing to npm' },
   }),
 
-  ...options(undefined, ['publish'], {
+  ...makeOptions(['publish'], {
     bump: { type: 'boolean', desc: 'bump versions during publish' },
     publish: { type: 'boolean', desc: 'publish to the npm registry' },
     push: { type: 'boolean', desc: 'push changes back to the remote git branch' },
@@ -170,14 +188,14 @@ export const optionDefinitions: Record<
 
   message: {
     short: 'm',
-    only: ['change', 'publish'],
+    commands: ['change', 'publish'],
     desc: cmd =>
       (cmd === 'change' && 'the change description') ||
       (cmd === 'publish' && 'version bump commit description') ||
       'change description or commit description',
   },
 
-  ...options(undefined, ['change'], {
+  ...makeOptions(['change'], {
     type: { desc: 'type of change (instead of prompting)', choices: SortedChangeTypes },
     dependentChangeType: {
       desc: 'change type to use for dependent packages (default: patch)',
@@ -187,17 +205,17 @@ export const optionDefinitions: Record<
   }),
 
   forceVersions: {
-    only: ['sync'],
+    commands: ['sync'],
     type: 'boolean',
     alias: 'force',
     desc: "use the version from the registry even if it's older than local",
   },
 
   concurrency: {
-    only: ['bump', 'publish', 'canary'],
+    commands: ['bump', 'publish', 'canary'],
     type: 'number',
     desc: 'maximum concurrency for write operations (hook calls, npm publish)',
   },
 
-  canaryName: { only: ['canary'], desc: 'dist-tag and version name to use for canary publishes' },
+  canaryName: { commands: ['canary'], desc: 'dist-tag and version name to use for canary publishes' },
 };

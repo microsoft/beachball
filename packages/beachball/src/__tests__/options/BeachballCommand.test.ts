@@ -3,8 +3,7 @@ import { CommanderError, type OutputConfiguration } from 'commander';
 import { BeachballCommand, type ParsedCommandResult } from '../../options/BeachballCommand';
 import { _defaultHelpWidth } from '../../options/BeachballHelp';
 import type { CommandDefinition } from '../../options/commandDefinitions';
-import type { OptionDefinition, OptionDefinitions } from '../../options/optionDefinitions';
-import type { CliOptions } from '../../types/BeachballOptions';
+import { makeOptions, type OptionDefinitions } from '../../options/optionDefinitions';
 
 describe('BeachballCommand', () => {
   describe('option parsing', () => {
@@ -14,21 +13,21 @@ describe('BeachballCommand', () => {
         name: 'test',
         desc: '',
         outputOptions,
-        options: {
-          branch: { type: 'string', short: 'b', desc: 'target branch' },
-          changeDir: { type: 'string', desc: 'change directory' },
-          configPath: { type: 'string', alias: 'config', desc: 'config path' },
+        options: makeOptions(true, {
+          branch: { short: 'b', desc: 'target branch' },
+          changeDir: { desc: 'change directory' },
+          configPath: { alias: 'config', desc: 'config path' },
           depth: { type: 'number', desc: 'clone depth' },
           scope: { type: 'array', desc: 'scope pattern' },
           forceVersions: { type: 'boolean', alias: 'force', desc: 'force versions' },
           gitTags: { type: 'boolean', desc: 'create git tags' },
-          type: { type: 'string', desc: 'change type', choices: ['patch', 'minor', 'major'] },
+          type: { desc: 'change type', choices: ['patch', 'minor', 'major'] },
           disallowedChangeTypes: {
             type: 'array',
             desc: 'disallowed change types',
             choices: ['patch', 'minor', 'major'],
           },
-        },
+        }),
       });
     }
 
@@ -164,10 +163,10 @@ describe('BeachballCommand', () => {
   });
 
   describe('commands', () => {
-    const testOptions: Partial<Record<keyof CliOptions, OptionDefinition>> = {
+    const testOptions = makeOptions(true, {
       tag: { type: 'string', short: 't', desc: 'npm dist-tag' },
       package: { type: 'array', short: 'p', desc: 'packages' },
-    };
+    });
 
     const testCommands: Record<string, CommandDefinition> = {
       change: { desc: 'create change files', isDefault: true },
@@ -336,7 +335,7 @@ describe('BeachballCommand', () => {
 
     it('handles string option with no default', () => {
       const optionsHelp = getOptionsHelpText({
-        message: { type: 'string', desc: 'commit message', short: 'm' },
+        message: { type: 'string', desc: 'commit message', short: 'm', commands: true },
       });
       expect(optionsHelp).toMatchInlineSnapshot(`"  -m, --message <value>  commit message"`);
     });
@@ -344,28 +343,28 @@ describe('BeachballCommand', () => {
     it('handles string option with default', () => {
       // the default is defined in getDefaultOptions
       const optionsHelp = getOptionsHelpText({
-        changeDir: { type: 'string', desc: 'change file directory' },
+        changeDir: { type: 'string', desc: 'change file directory', commands: true },
       });
       expect(optionsHelp).toMatchInlineSnapshot(`"  --change-dir <value>  change file directory (default: "change")"`);
     });
 
     it('handles string option with alias', () => {
       const optionsHelp = getOptionsHelpText({
-        configPath: { type: 'string', desc: 'config path', alias: 'config', short: 'c' },
+        configPath: { type: 'string', desc: 'config path', alias: 'config', short: 'c', commands: true },
       });
       expect(optionsHelp).toMatchInlineSnapshot(`"  -c, --config <value>  config path"`);
     });
 
     it('omits getDefaultOptions default if description includes "(default:"', () => {
       const optionsHelp = getOptionsHelpText({
-        branch: { type: 'string', desc: 'target branch (default: something custom)' },
+        branch: { type: 'string', desc: 'target branch (default: something custom)', commands: true },
       });
       expect(optionsHelp).toMatchInlineSnapshot(`"  --branch <value>  target branch (default: something custom)"`);
     });
 
     it('handles boolean option (including negated form)', () => {
       const optionsHelp = getOptionsHelpText({
-        fetch: { type: 'boolean', desc: 'fetch first' },
+        fetch: { type: 'boolean', desc: 'fetch first', commands: true },
       });
       // the option is technically added twice but shown once
       expect(optionsHelp).toMatchInlineSnapshot(`"  --[no-]fetch  fetch first (default: true)"`);
@@ -373,7 +372,7 @@ describe('BeachballCommand', () => {
 
     it('handles boolean option with alias', () => {
       const optionsHelp = getOptionsHelpText({
-        gitTags: { type: 'boolean', desc: 'create git tags', alias: 'tags', short: 't' },
+        gitTags: { type: 'boolean', desc: 'create git tags', alias: 'tags', short: 't', commands: true },
       });
       // note: --tags and -t are NOT actually used for --git-tags
       expect(optionsHelp).toMatchInlineSnapshot(`"  -t, --[no-]tags  create git tags (default: true)"`);
@@ -396,34 +395,14 @@ describe('BeachballCommand', () => {
       expect(commandsHelp).not.toContain('canary');
     });
 
-    it('respects hideMostOptions', () => {
-      const program = BeachballCommand.initProgram({
-        name: 'beachball',
-        desc: '',
-        commands: {
-          change: { desc: 'change files', isDefault: true },
-          bump: { desc: 'bump versions', hideMostOptions: true },
-        },
-        options: {
-          changeDir: { type: 'string', desc: 'change directory', group: 'common' },
-          package: { type: 'array', desc: 'package(s)', only: ['bump'] },
-          tag: { type: 'string', desc: 'tag' },
-        },
-      });
-      const bumpHelp = program.commands[1].helpInformation();
-      expect(bumpHelp).toContain('--package');
-      expect(bumpHelp).toContain('--change-dir');
-      expect(bumpHelp).not.toContain('--tag');
-    });
-
     it('shows help for child commands', () => {
       const program = BeachballCommand.initProgram({
         name: 'beachball',
         desc: '',
         commands: { change: { desc: 'create change files', isDefault: true } },
         options: {
-          package: { desc: 'some package' },
-          disallowDeletedChangeFiles: { type: 'boolean', desc: 'disallow delete' },
+          package: { desc: 'some package', commands: ['change'] },
+          disallowDeletedChangeFiles: { type: 'boolean', desc: 'disallow delete', commands: ['change'] },
         },
       });
 
@@ -442,6 +421,56 @@ describe('BeachballCommand', () => {
           -h, --help                  display help for command
         "
       `);
+    });
+
+    it('only shows options for the specific command', () => {
+      const program = BeachballCommand.initProgram({
+        name: 'beachball',
+        desc: '',
+        commands: {
+          change: { desc: 'change files', isDefault: true },
+          bump: { desc: 'bump versions' },
+        },
+        options: {
+          changeDir: { desc: 'change directory', group: 'common', commands: true },
+          package: { type: 'array', desc: 'package(s)', commands: ['bump'] },
+          tag: { desc: 'tag', commands: ['change'] },
+        },
+      });
+      const bumpHelp = program.commands[1].helpInformation();
+      expect(bumpHelp).toContain('beachball bump');
+      expect(bumpHelp).toContain('--package');
+      expect(bumpHelp).toContain('--change-dir');
+      expect(bumpHelp).not.toContain('--tag');
+    });
+
+    it('shows options specific to a nested subcommand (config get)', () => {
+      const program = BeachballCommand.initProgram({
+        name: 'beachball',
+        desc: '',
+        commands: {
+          config: {
+            desc: 'config settings',
+            subcommands: {
+              get: { desc: 'get a config setting', args: '<name>' },
+              list: { desc: 'list config settings' },
+            },
+          },
+        },
+        options: {
+          changeDir: { desc: 'change directory', group: 'common', commands: true },
+          package: { type: 'array', desc: 'package(s)', commands: ['config get'] },
+          tag: { desc: 'tag', commands: ['config list'] },
+          access: { desc: 'access', commands: ['config'] },
+        },
+      });
+      const config = program.commands.find(cmd => cmd.name() === 'config')!;
+      const configGetHelp = config.commands.find(cmd => cmd.name() === 'get')!.helpInformation();
+      expect(configGetHelp).toContain('beachball config get');
+      expect(configGetHelp).toContain('--package'); // commands: ['config get']
+      expect(configGetHelp).toContain('--change-dir'); // commands: true
+      expect(configGetHelp).not.toContain('--tag'); // commands: ['config list']
+      expect(configGetHelp).not.toContain('--access'); // commands: ['config']
     });
   });
 });

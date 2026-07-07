@@ -81,6 +81,11 @@ describe('_formatItem', () => {
 
 // These tests are fairly basic since they avoid logic from BeachballOption/BeachballCommand
 describe('BeachballHelp', () => {
+  /** make a BeachballOption applied to all commands */
+  function makeBeachballOption(params: Omit<BeachballOptionParams, 'commands'> & Partial<BeachballOptionParams>) {
+    return new BeachballOption({ commands: true, ...params });
+  }
+
   /** get a command with BeachballHelp */
   function getCommand(helpOption = false, name = 'test') {
     const command = new Command(name).helpOption(helpOption).description('some description');
@@ -93,17 +98,17 @@ describe('BeachballHelp', () => {
   }
 
   it('adds --[no-] prefix for boolean BeachballOptions', () => {
-    const opt = new BeachballOption({ name: 'fetch', type: 'boolean', desc: 'some bool' });
+    const opt = makeBeachballOption({ name: 'fetch', type: 'boolean', desc: 'some bool' });
     const command = getCommand().addOption(opt);
     expect(getOptionsHelp(command)).toMatchInlineSnapshot(`"  --[no-]fetch  some bool"`);
   });
 
   // this logic is in BeachballOption + BeachballHelp
   it('appends BeachballOption default to option description', () => {
-    const opt1 = new BeachballOption({ name: 'tag', desc: 'npm dist-tag', defaultValue: 'latest' });
-    const opt2 = new BeachballOption({ name: 'fetch', type: 'boolean', desc: 'fetch first', defaultValue: true });
-    const opt3 = new BeachballOption({ name: 'bump', type: 'boolean', desc: 'bump first', defaultValue: false });
-    const opt4 = new BeachballOption({ name: 'depth', type: 'number', desc: 'fetch depth', defaultValue: 0 });
+    const opt1 = makeBeachballOption({ name: 'tag', desc: 'npm dist-tag', defaultValue: 'latest' });
+    const opt2 = makeBeachballOption({ name: 'fetch', type: 'boolean', desc: 'fetch first', defaultValue: true });
+    const opt3 = makeBeachballOption({ name: 'bump', type: 'boolean', desc: 'bump first', defaultValue: false });
+    const opt4 = makeBeachballOption({ name: 'depth', type: 'number', desc: 'fetch depth', defaultValue: 0 });
     const command = getCommand().addOption(opt1).addOption(opt2).addOption(opt3).addOption(opt4);
     expect(getOptionsHelp(command)).toMatchInlineSnapshot(`
       "  --tag <value>  npm dist-tag (default: "latest")
@@ -114,7 +119,7 @@ describe('BeachballHelp', () => {
   });
 
   it('does not use BeachballOption default if the description already has a default', () => {
-    const opt = new BeachballOption({ name: 'tag', desc: 'npm dist-tag (default: "latest")', defaultValue: 'other' });
+    const opt = makeBeachballOption({ name: 'tag', desc: 'npm dist-tag (default: "latest")', defaultValue: 'other' });
     expect(opt.defaultValueDescription).toBe('"other"');
     const help = getOptionsHelp(getCommand().addOption(opt));
     expect(help).toMatchInlineSnapshot(`"  --tag <value>  npm dist-tag (default: "latest")"`);
@@ -123,47 +128,32 @@ describe('BeachballHelp', () => {
 
   // this logic is in BeachballOption + BeachballHelp
   it('does not include default for null/undefined/empty', () => {
-    const opt1 = new BeachballOption({ name: 'branch', desc: 'target branch' });
-    const opt2 = new BeachballOption({ name: 'scope', desc: 'scope pattern', defaultValue: null });
-    const opt3 = new BeachballOption({ name: 'configPath', desc: 'config path', defaultValue: '' });
+    const opt1 = makeBeachballOption({ name: 'branch', desc: 'target branch' });
+    const opt2 = makeBeachballOption({ name: 'scope', desc: 'scope pattern', defaultValue: null });
+    const opt3 = makeBeachballOption({ name: 'configPath', desc: 'config path', defaultValue: '' });
     const command = getCommand().addOption(opt1).addOption(opt2).addOption(opt3);
     expect(getOptionsHelp(command)).not.toContain('default:');
   });
 
-  it('omits BeachballOptions with onlyCommands not including the current subcommand', () => {
-    // Global options are declared on the parent but shown (filtered) in each subcommand's help.
-    const publish = getCommand(false, 'publish');
-    const parent = getCommand();
-    parent.addCommand(publish);
-    parent
-      .addOption(new BeachballOption({ name: 'tag', desc: 'npm dist-tag', defaultValue: '' }))
-      .addOption(new BeachballOption({ name: 'message', desc: 'commit message', defaultValue: '', only: ['publish'] }))
-      .addOption(new BeachballOption({ name: 'scope', desc: 'scope pattern', defaultValue: '', only: ['check'] }));
-
-    const help = getOptionsHelp(publish);
-    expect(help).toContain('--tag'); // no onlyCommands => shown on any command
-    expect(help).toContain('--message'); // only publish => shown on publish
-    expect(help).not.toContain('--scope'); // only check => omitted on publish
-  });
-
   const messageOption: BeachballOptionParams = {
     name: 'message',
-    desc: (cmd: string | undefined) => (cmd === 'change' ? 'change description' : 'commit message'),
+    desc: cmd => (cmd === 'change' ? 'change description' : 'commit message'),
+    commands: true,
   };
 
   it('uses command-specific description for the current command', () => {
-    const command = getCommand(false, 'change').addOption(new BeachballOption({ ...messageOption }));
+    const command = getCommand(false, 'change').addOption(makeBeachballOption(messageOption));
     expect(getOptionsHelp(command)).toMatchInlineSnapshot(`"  --message <value>  change description"`);
   });
 
   it('uses command-specific description fallback for other command', () => {
-    const command = getCommand(false, 'publish').addOption(new BeachballOption({ ...messageOption }));
+    const command = getCommand(false, 'publish').addOption(makeBeachballOption(messageOption));
     expect(getOptionsHelp(command)).toMatchInlineSnapshot(`"  --message <value>  commit message"`);
   });
 
   it('appends the default value to the command-specific description', () => {
     const command = getCommand(false, 'change').addOption(
-      new BeachballOption({ ...messageOption, defaultValue: 'hello' })
+      makeBeachballOption({ ...messageOption, defaultValue: 'hello' })
     );
     expect(getOptionsHelp(command)).toMatchInlineSnapshot(
       `"  --message <value>  change description (default: "hello")"`
@@ -190,20 +180,30 @@ describe('BeachballHelp', () => {
     expect(help.indexOf('Commands:')).toBeLessThan(help.match(/options:/i)?.index || -1);
   });
 
-  it('shows parent options in a subcommand help', () => {
-    const command = getCommand(true).option('--parent-opt', 'a parent option');
-    const sub = command.command('sub').description('a subcommand').option('--sub-opt', 'a sub option');
-    sub.createHelp = () => new BeachballHelp();
-    // The subcommand's own option, the parent option, and help (last) are all shown
-    expect(getOptionsHelp(sub)).toMatchInlineSnapshot(`
-      "  --parent-opt  a parent option
-        --sub-opt     a sub option
+  it('omits parent BeachballOptions with commands not including the current subcommand', () => {
+    // Global options are declared on the parent but shown (filtered) in each subcommand's help.
+    const publish = getCommand(true, 'publish');
+    const parent = getCommand();
+    parent.addCommand(publish);
+    parent
+      .addOption(makeBeachballOption({ name: 'tag', desc: 'npm dist-tag', group: 'common' }))
+      .addOption(makeBeachballOption({ name: 'message', desc: 'commit message', commands: ['publish'] }))
+      .addOption(makeBeachballOption({ name: 'scope', desc: 'scope pattern', commands: ['check'] }))
+      .option('--non-beachball-opt', 'a parent option');
+
+    const help = getOptionsHelp(publish);
+    expect(help).toContain('--tag'); // common => shown on any command
+    expect(help).toContain('--message'); // only publish => shown on publish
+    expect(help).not.toContain('--scope'); // only check => omitted on publish
+    expect(help).toContain('--non-beachball-opt'); // not essential, but currently non-BeachballOptions always inherit
+    expect(help).toMatchInlineSnapshot(`
+      "  --message <value>    commit message
+        --non-beachball-opt  a parent option
 
       Common options:
-        -h, --help    display help for command"
+        --tag <value>        npm dist-tag
+        -h, --help           display help for command"
     `);
-    // The parent option is not actually added to the subcommand
-    expect(sub.options.map(opt => opt.long)).toEqual(['--sub-opt']);
   });
 
   it('formats help', () => {

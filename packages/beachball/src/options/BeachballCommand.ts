@@ -23,9 +23,6 @@ export interface ParsedCommandResult {
  * Only `BeachballCommand.initProgram()` and `command.beachballParse()` should be used.
  */
 export class BeachballCommand extends Command {
-  /** Hide all but the common options, or ones specified for this command. */
-  public hideMostOptions: boolean = false;
-
   private _result: ParsedCommandResult | undefined;
 
   /**
@@ -66,6 +63,14 @@ export class BeachballCommand extends Command {
     super(name);
   }
 
+  /**
+   * Get the complete name for this subcommand, e.g. `config get` or `bump`.
+   * Returns an empty string for the top-level command.
+   */
+  public get subcommandName(): string {
+    return this.parent ? (this.parent.parent ? `${this.parent.name()} ${this.name()}` : this.name()) : '';
+  }
+
   /** Parse the arguments and return the parsing result. */
   public beachballParse(argv: string[], options?: ParseOptions): ParsedCommandResult {
     super.parse(argv, options);
@@ -81,7 +86,6 @@ export class BeachballCommand extends Command {
     // Declare every option on the parent so options can precede the command name (and to support the
     // default command, which receives options parsed by the parent).
     options && this._addOptions(options);
-    this.hideMostOptions = !!def.hideMostOptions;
 
     if (def.subcommands) {
       for (const [subName, subDef] of Object.entries(def.subcommands)) {
@@ -95,8 +99,7 @@ export class BeachballCommand extends Command {
       // Currently the result is set as a side effect instead of having proper per-command action handlers.
       this.action(() => {
         this._result = {
-          // 'bump' or 'config get'
-          command: this.parent?.parent ? `${this.parent.name()} ${this.name()}` : this.name(),
+          command: this.subcommandName,
           options: this.optsWithGlobals(),
           extraArgs: this.args,
         };

@@ -195,7 +195,6 @@ npm options:
   --timeout <num>             timeout in ms for npm operations (other than install)
 
 Common options:
-  -c, --config <value>        custom beachball config path (default: cosmiconfig standard paths)
   --[no-]verbose              print additional information to the console
   -h, --help                  display help for command
 "

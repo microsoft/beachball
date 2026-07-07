@@ -43,7 +43,7 @@ const valueSyntax: Record<OptionType, string> = {
 export class BeachballOption extends Option {
   public readonly group: OptionGroup | undefined;
   /** The option is only shown in help for these command names */
-  public readonly onlyCommands: readonly string[] | undefined;
+  public readonly commands: readonly string[] | true;
 
   /** All long and short flag spellings for this item */
   private readonly _allFlags = new Set<string>();
@@ -96,7 +96,7 @@ export class BeachballOption extends Option {
 
     params.choices && this.choices(params.choices);
     params.conflicts && this.conflicts(params.conflicts as string[]);
-    this.onlyCommands = params.only;
+    this.commands = params.commands;
     this.group = params.group;
     this.helpGroup(optionGroups[params.group || 'default']);
 
