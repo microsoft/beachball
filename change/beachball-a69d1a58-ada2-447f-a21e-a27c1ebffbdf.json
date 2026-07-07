@@ -1,7 +1,7 @@
 {
-  "comment": "split help, command, option",
-  "type": "patch",
+  "comment": "Improved commander-based help",
+  "type": "none",
   "packageName": "beachball",
   "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "none"
 }
