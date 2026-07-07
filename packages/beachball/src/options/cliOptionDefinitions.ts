@@ -2,6 +2,8 @@ import { SortedChangeTypes } from '../changefile/changeTypes';
 import type { CliOptions } from '../types/BeachballOptions';
 import { authTypes } from '../validation/isValidAuthType';
 
+export type CommandDefinitions = Record<string, CommandDefinition>;
+
 export interface CommandDefinition {
   desc: string;
   /** If true, this command runs when no command name is given (e.g. `change`). */
@@ -16,6 +18,8 @@ export interface CommandDefinition {
   /** Nested subcommands, e.g. `get`/`list` under `config`. */
   subcommands?: Record<string, CommandDefinition>;
 }
+
+export type OptionDefinitions = Partial<Record<keyof CliOptions, OptionDefinition>>;
 
 export type OptionType = 'string' | 'number' | 'boolean' | 'array';
 

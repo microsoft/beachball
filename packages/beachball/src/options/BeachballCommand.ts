@@ -1,7 +1,12 @@
 import { Command, type OptionValues, type OutputConfiguration, type ParseOptions } from 'commander';
 import { env } from '../env';
 import type { CliOptions } from '../types/BeachballOptions';
-import type { CommandDefinition, OptionDefinition } from './cliOptionDefinitions';
+import type {
+  CommandDefinition,
+  CommandDefinitions,
+  OptionDefinition,
+  OptionDefinitions,
+} from './cliOptionDefinitions';
 import { getDefaultOptions } from './getDefaultOptions';
 import { BeachballHelp } from './BeachballHelp';
 import { BeachballOption } from './BeachballOption';
@@ -15,9 +20,6 @@ export interface ParsedCommandResult {
   /** Extra positional args, e.g. `['get', '<name>']` for `config get <name>`. */
   extraArgs: string[];
 }
-
-type OptionDefinitions = Partial<Record<keyof CliOptions, OptionDefinition>>;
-type CommandDefinitions = Record<string, CommandDefinition>;
 
 /**
  * `Command` wrapper that adds Beachball-specific behaviors.
@@ -62,7 +64,7 @@ export class BeachballCommand {
   private constructor(params: {
     name: string;
     def: CommandDefinition;
-    options: OptionDefinitions;
+    options?: OptionDefinitions;
     parent?: BeachballCommand;
     outputOptions?: OutputConfiguration;
   }) {
@@ -87,11 +89,11 @@ export class BeachballCommand {
 
     // Declare every option on the parent so options can precede the command name (and to support the
     // default command, which receives options parsed by the parent).
-    this._addOptions(options);
+    options && this._addOptions(options);
 
-    // Register each command, inheriting settings from the parent and including the same options.
+    // Register each command, inheriting settings from the parent, but omitting options.
     this._subCommands = Object.entries(def.subcommands || {}).map(
-      ([subName, subDef]) => new BeachballCommand({ name: subName, def: subDef, options, parent: this })
+      ([subName, subDef]) => new BeachballCommand({ name: subName, def: subDef, parent: this })
     );
 
     // If there are sub-commands, skip setting an action to ensure that either a sub-command is run

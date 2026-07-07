@@ -2,7 +2,8 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { CommanderError, type OutputConfiguration } from 'commander';
 import { BeachballCommand, type ParsedCommandResult } from '../../options/BeachballCommand';
 import type { CliOptions } from '../../types/BeachballOptions';
-import type { CommandDefinition, OptionDefinition } from '../../options/cliOptionDefinitions';
+import type { CommandDefinition, OptionDefinition, OptionDefinitions } from '../../options/cliOptionDefinitions';
+import { _defaultHelpWidth } from '../../options/BeachballHelp';
 
 describe('BeachballCommand', () => {
   describe('option parsing', () => {
@@ -327,8 +328,9 @@ describe('BeachballCommand', () => {
     });
   });
 
+  // This
   describe('help', () => {
-    function getOptionsHelpText(options: Partial<Record<keyof CliOptions, OptionDefinition>>) {
+    function getOptionsHelpText(options: OptionDefinitions) {
       const command = BeachballCommand.initProgram({
         name: 'beachball',
         desc: '',
@@ -371,6 +373,7 @@ describe('BeachballCommand', () => {
       const optionsHelp = getOptionsHelpText({
         fetch: { type: 'boolean', desc: 'fetch first' },
       });
+      // the option is technically added twice but shown once
       expect(optionsHelp).toMatchInlineSnapshot(`"  --[no-]fetch  fetch first (default: true)"`);
     });
 
@@ -393,10 +396,33 @@ describe('BeachballCommand', () => {
         },
         options: {},
       });
-      const commandsHelp = program.command.helpInformation().split('Commands:\n')[1];
-      expect(commandsHelp).toContain('change');
-      expect(commandsHelp).toContain('publish');
+      const commandsHelp = program.command.helpInformation();
+      expect(commandsHelp).toContain('create change files');
+      expect(commandsHelp).toContain('publish packages');
       expect(commandsHelp).not.toContain('canary');
+    });
+
+    it('shows help for child commands', () => {
+      const program = BeachballCommand.initProgram({
+        name: 'beachball',
+        desc: '',
+        commands: { change: { desc: 'create change files', isDefault: true } },
+        options: {
+          package: { desc: 'some package' },
+          disallowDeletedChangeFiles: { type: 'boolean', desc: 'disallow delete' },
+        },
+      });
+
+      // TODO this should show inherited options
+      expect(program.command.commands[0].helpInformation()).toMatchInlineSnapshot(`
+        "Usage: beachball change [options]
+
+        create change files
+
+        Options:
+          -h, --help  display help for command
+        "
+      `);
     });
   });
 });

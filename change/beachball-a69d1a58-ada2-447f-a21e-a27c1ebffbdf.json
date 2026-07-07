@@ -1,0 +1,7 @@
+{
+  "comment": "split help, command, option",
+  "type": "patch",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
