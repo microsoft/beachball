@@ -175,7 +175,7 @@ describe('BeachballCommand', () => {
       config: {
         desc: 'get or list config settings',
         subcommands: {
-          get: { desc: 'get a setting', args: '<name>' },
+          get: { desc: 'get a setting', args: { '<name>': 'the name of the config setting' } },
           list: { desc: 'list settings' },
         },
       },
@@ -452,7 +452,7 @@ describe('BeachballCommand', () => {
           config: {
             desc: 'config settings',
             subcommands: {
-              get: { desc: 'get a config setting', args: '<name>' },
+              get: { desc: 'get a config setting', args: { '<name>': '' } },
               list: { desc: 'list config settings' },
             },
           },

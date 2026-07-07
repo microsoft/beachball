@@ -5,10 +5,10 @@ export interface CommandDefinition {
   /** If true, the command is omitted from the top-level help listing. */
   hidden?: boolean;
   /**
-   * Positional argument syntax for the command, e.g. `<name>` for `config get <name>`.
-   * (Only used for commands/subcommands that take positional args.)
+   * Mapping from positional argument syntax to description, in order specified.
+   * e.g. `{ '<name>': 'the name of the config setting' }`
    */
-  args?: string;
+  args?: Record<string, string>;
   /** Nested subcommands, e.g. `get`/`list` under `config`. */
   subcommands?: Record<string, CommandDefinition>;
 }
@@ -32,7 +32,10 @@ export const commandDefinitions: Record<MainCommandName, CommandDefinition> = {
   config: {
     desc: 'get or list config settings (requires a sub-command)',
     subcommands: {
-      get: { desc: 'get the value of a config setting (with any overrides)', args: '<name>' },
+      get: {
+        desc: 'get the value of a config setting (with any overrides)',
+        args: { '<name>': 'beachball config setting name' },
+      },
       list: { desc: 'list all config settings (with any overrides)' },
     },
   },

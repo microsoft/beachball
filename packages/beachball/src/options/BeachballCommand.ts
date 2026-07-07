@@ -13,7 +13,7 @@ export interface ParsedCommandResult {
   command: string;
   /** Merged options (local command options plus inherited global options). */
   options: OptionValues;
-  /** Extra positional args, e.g. `['get', '<name>']` for `config get <name>`. */
+  /** Extra positional args, e.g. `['<name>']` for `config get <name>`. */
   extraArgs: string[];
 }
 
@@ -80,7 +80,9 @@ export class BeachballCommand extends Command {
   }
 
   private _beachballConfigure(def: CommandDefinition, options?: OptionDefinitions): void {
-    def.args && this.arguments(def.args);
+    for (const [argSyntax, argDesc] of Object.entries(def.args || {})) {
+      this.argument(argSyntax, argDesc);
+    }
     this.description(def.desc);
 
     // Declare every option on the parent so options can precede the command name (and to support the

@@ -108,9 +108,7 @@ export class BeachballHelp extends Help {
     return [...globalOptions, ...options];
   }
 
-  /**
-   * Group options or child commands for help.
-   */
+  /** Group options/commands for help, with option group ordering respecting `optionGroups`. */
   override groupItems<T extends Command | Option>(
     unsortedItems: T[],
     visibleItems: T[],

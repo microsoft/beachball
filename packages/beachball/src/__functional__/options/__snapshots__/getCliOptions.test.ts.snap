@@ -144,6 +144,9 @@ exports[`getCliOptions shows "config get" command help text 1`] = `
 
 get the value of a config setting (with any overrides)
 
+Arguments:
+  name                  beachball config setting name
+
 Common options:
   -c, --config <value>  custom beachball config path (default: cosmiconfig standard paths)
   --[no-]verbose        print additional information to the console
