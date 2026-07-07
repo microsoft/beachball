@@ -1,15 +1,11 @@
 import { Command, type OptionValues, type OutputConfiguration, type ParseOptions } from 'commander';
 import { env } from '../env';
 import type { CliOptions } from '../types/BeachballOptions';
-import type {
-  CommandDefinition,
-  CommandDefinitions,
-  OptionDefinition,
-  OptionDefinitions,
-} from './cliOptionDefinitions';
-import { getDefaultOptions } from './getDefaultOptions';
 import { BeachballHelp } from './BeachballHelp';
 import { BeachballOption } from './BeachballOption';
+import type { CommandDefinition } from './commandDefinitions';
+import { getDefaultOptions } from './getDefaultOptions';
+import type { OptionDefinition, OptionDefinitions } from './optionDefinitions';
 
 /** Result reported by a command's action when the CLI is parsed. */
 export interface ParsedCommandResult {
@@ -40,7 +36,7 @@ export class BeachballCommand {
     name: string;
     desc: string;
     options: OptionDefinitions;
-    commands: CommandDefinitions;
+    commands: Record<string, CommandDefinition>;
     version?: string;
     outputOptions?: OutputConfiguration;
   }): BeachballCommand {

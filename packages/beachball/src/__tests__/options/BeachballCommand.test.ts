@@ -1,9 +1,10 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { CommanderError, type OutputConfiguration } from 'commander';
 import { BeachballCommand, type ParsedCommandResult } from '../../options/BeachballCommand';
-import type { CliOptions } from '../../types/BeachballOptions';
-import type { CommandDefinition, OptionDefinition, OptionDefinitions } from '../../options/cliOptionDefinitions';
 import { _defaultHelpWidth } from '../../options/BeachballHelp';
+import type { CommandDefinition } from '../../options/commandDefinitions';
+import type { OptionDefinition, OptionDefinitions } from '../../options/optionDefinitions';
+import type { CliOptions } from '../../types/BeachballOptions';
 
 describe('BeachballCommand', () => {
   describe('option parsing', () => {

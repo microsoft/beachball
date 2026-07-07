@@ -4,7 +4,8 @@ import { env } from '../env';
 import { cacheRemoteBranch } from '../git/getRemoteBranch';
 import type { CliOptions, ParsedOptions } from '../types/BeachballOptions';
 import { BeachballCommand } from './BeachballCommand';
-import { commandDefinitions, optionDefinitions } from './cliOptionDefinitions';
+import { optionDefinitions } from './optionDefinitions';
+import { commandDefinitions } from './commandDefinitions';
 
 export interface ProgramContext {
   /** Complete argv (node and script path aren't used but elements must be present) */

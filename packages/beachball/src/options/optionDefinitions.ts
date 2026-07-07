@@ -2,23 +2,6 @@ import { SortedChangeTypes } from '../changefile/changeTypes';
 import type { CliOptions } from '../types/BeachballOptions';
 import { authTypes } from '../validation/isValidAuthType';
 
-export type CommandDefinitions = Record<string, CommandDefinition>;
-
-export interface CommandDefinition {
-  desc: string;
-  /** If true, this command runs when no command name is given (e.g. `change`). */
-  isDefault?: boolean;
-  /** If true, the command is omitted from the top-level help listing. */
-  hidden?: boolean;
-  /**
-   * Positional argument syntax for the command, e.g. `<name>` for `config get <name>`.
-   * (Only used for commands/subcommands that take positional args.)
-   */
-  args?: string;
-  /** Nested subcommands, e.g. `get`/`list` under `config`. */
-  subcommands?: Record<string, CommandDefinition>;
-}
-
 export type OptionDefinitions = Partial<Record<keyof CliOptions, OptionDefinition>>;
 
 export type OptionType = 'string' | 'number' | 'boolean' | 'array';
@@ -49,11 +32,7 @@ export interface OptionDefinition {
   parse?: (value: unknown, previous: unknown) => unknown;
 }
 
-/**
- * Single source of truth for every parseable CLI option: its type, description, short flag, and
- * optional long-flag alias. TypeScript enforces (via the `Record<Exclude<...>>` type) that every
- * `CliOptions` key except the ones filled in elsewhere has an entry here.
- */
+/** All CLI options. */
 export const optionDefinitions: Record<
   Exclude<keyof CliOptions, 'path' | 'command' | '_extraPositionalArgs'>,
   OptionDefinition
@@ -70,27 +49,31 @@ export const optionDefinitions: Record<
     desc: 'custom beachball config path (default: cosmiconfig standard paths)',
   },
 
+  // git options (validation and comparison)
+  branch: { short: 'b', desc: 'target branch from remote (default: the default remote branch)' },
+  fromRef: { alias: 'since', desc: 'consider changes or change files since this git ref (branch name, commit SHA)' },
+  fetch: { type: 'boolean', desc: 'fetch from the remote before determining changes' },
+  depth: { type: 'number', desc: 'for shallow clones: depth of git history to consider when fetching' },
+
   // Validation and comparison options
   disallowedChangeTypes: { type: 'array', desc: 'change types that are not allowed', choices: SortedChangeTypes },
   disallowDeletedChangeFiles: {
     type: 'boolean',
     desc: 'verify that no change files were deleted between head and target branch',
   },
-  fetch: { type: 'boolean', desc: 'fetch from the remote before determining changes' },
-  depth: { type: 'number', desc: 'for shallow clones: depth of git history to consider when fetching' },
-  branch: { short: 'b', desc: 'target branch from remote (default: the default remote branch)' },
   changehint: { desc: 'customized hint message shown when a change file is needed but missing' },
   changeDir: { desc: 'name of the directory to store change files' },
-  fromRef: { alias: 'since', desc: 'consider changes or change files since this git ref (branch name, commit SHA)' },
 
   // bump/publish but also used by bumpInMemory (potential validation)
   bumpDeps: { type: 'boolean', desc: 'bump dependent packages during publish' },
   prereleasePrefix: { desc: 'prerelease prefix for packages that will receive a prerelease bump' },
 
   // scoping?
-  package: { type: 'array', short: 'p', desc: 'force creating a change file for the specified package(s)' },
   scope: { type: 'array', desc: 'only consider package paths matching the pattern(s) (supports "!negations")' },
+  // should be an error if specified where not supported
   all: { type: 'boolean', desc: 'generate change files for all packages' },
+  // should be an error if specified where not supported
+  package: { type: 'array', short: 'p', desc: 'force creating a change file for the specified package(s)' },
 
   // publish/canary/sync; also init fetches beachball from the registry
   timeout: { type: 'number', desc: 'timeout in ms for npm operations (other than install)' },
@@ -137,22 +120,4 @@ export const optionDefinitions: Record<
 
   // canary only
   canaryName: { desc: 'dist-tag and version name to use for canary publishes' },
-};
-
-export const commandDefinitions: Record<string, CommandDefinition> = {
-  change: { desc: 'create change files in the change/ folder', isDefault: true },
-  check: { desc: 'checks whether a change file is needed for this branch' },
-  bump: { desc: 'bumps versions as well as generating changelogs' },
-  publish: { desc: 'bumps, publishes to npm registry, and pushes changelogs back into the default branch' },
-  sync: { desc: 'synchronize published versions of packages from the registry with local package.json versions' },
-  config: {
-    desc: 'get or list config settings (requires a sub-command)',
-    subcommands: {
-      get: { desc: 'get the value of a config setting (with any overrides)', args: '<name>' },
-      list: { desc: 'list all config settings (with any overrides)' },
-    },
-  },
-  init: { desc: 'initialize a new beachball config file in the current directory', hidden: true },
-  canary: { desc: 'publish prerelease versions of changed or all packages without committing', hidden: true },
-  migrate: { desc: 'help to migrate from beachball v2', hidden: true },
 };

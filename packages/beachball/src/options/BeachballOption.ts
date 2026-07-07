@@ -1,6 +1,6 @@
 import { InvalidArgumentError, Option } from 'commander';
-import type { OptionDefinition, OptionType } from './cliOptionDefinitions';
 import type { CliOptions } from '../types/BeachballOptions';
+import type { OptionDefinition, OptionType } from './optionDefinitions';
 
 declare module 'commander' {
   interface Option {
