@@ -271,6 +271,9 @@ export interface RepoOptions {
   /**
    * npm dist-tag when publishing.
    * If not specified, uses `defaultNpmTag` (which defaults to `'latest'`).
+   *
+   * If `gitTags` isn't disabled and `tag` has a non-default value, a git tag will also be
+   * created on publish with this value.
    */
   tag: string;
   /** Timeout for npm operations (other than install, which is expected to take longer) */

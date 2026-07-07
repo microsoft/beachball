@@ -88,11 +88,11 @@ export function getPackageChangelogs(
   return changelogs;
 }
 
-function createPackageChangelog(packageInfo: PackageInfo, tag: string | undefined): PackageChangelog {
+function createPackageChangelog(packageInfo: PackageInfo, gitTag: string | undefined): PackageChangelog {
   return {
     name: packageInfo.name,
     version: packageInfo.version,
-    ...(tag !== undefined && { tag }),
+    ...(gitTag !== undefined && { tag: gitTag }),
     date: new Date(),
     comments: {},
   };

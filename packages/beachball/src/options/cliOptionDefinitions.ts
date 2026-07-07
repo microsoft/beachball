@@ -54,72 +54,85 @@ export const optionDefinitions: Record<
   Exclude<keyof CliOptions, 'path' | 'command' | '_extraPositionalArgs'>,
   OptionDefinition
 > = {
-  // array options
-  disallowedChangeTypes: { type: 'array', desc: 'change types that are not allowed', choices: SortedChangeTypes },
-  package: {
-    type: 'array',
-    short: 'p',
-    desc: 'force creating a change file for the specified package(s)',
-  },
-  scope: {
-    type: 'array',
-    desc: 'only consider package paths matching the pattern(s) (supports "!negations")',
-  },
-  // boolean options
-  all: { type: 'boolean', desc: 'generate change files for all packages' },
-  bump: { type: 'boolean', desc: 'bump versions during publish' },
-  bumpDeps: { type: 'boolean', desc: 'bump dependent packages during publish' },
-  commit: { type: 'boolean', desc: 'commit change files after "change"' },
-  disallowDeletedChangeFiles: {
-    type: 'boolean',
-    desc: 'verify that no change files were deleted between head and target branch',
-  },
-  fetch: { type: 'boolean', desc: 'fetch from the remote before determining changes' },
-  forceVersions: {
-    type: 'boolean',
-    alias: 'force',
-    desc: "for 'sync': use the version from the registry even if it's older than local",
-  },
-  gitTags: { type: 'boolean', desc: 'create git tags for each published package version' },
-  keepChangeFiles: { type: 'boolean', desc: "don't delete the change files from disk after bumping" },
-  publish: { type: 'boolean', desc: 'publish to the npm registry' },
-  push: { type: 'boolean', desc: 'push changes back to the remote git branch' },
+  // migrate may read options but doesn't need any CLI options besides configPath
+
+  // logging
   verbose: { type: 'boolean', desc: 'print additional information to the console' },
-  yes: { type: 'boolean', short: 'y', desc: 'skip publish confirmation prompts (default: true in CI, false locally)' },
-  // number options
-  concurrency: { type: 'number', desc: 'maximum concurrency for write operations such as publishing' },
-  depth: { type: 'number', desc: 'for shallow clones: depth of git history to consider when fetching' },
-  npmReadConcurrency: {
-    type: 'number',
-    desc: 'maximum concurrency for reading package versions from the registry',
-  },
-  gitTimeout: { type: 'number', desc: 'timeout in ms for git push operations' },
-  retries: { type: 'number', desc: 'number of retries for an npm publish before failing' },
-  timeout: { type: 'number', desc: 'timeout in ms for npm operations (other than install)' },
-  // string options
-  access: { desc: 'npm publish access level', choices: ['public', 'restricted'] },
-  authType: { short: 'a', desc: 'npm auth type for NPM_TOKEN', choices: authTypes },
-  branch: { short: 'b', desc: 'target branch from remote (default: git config init.defaultBranch)' },
-  canaryName: { desc: 'dist-tag and version name to use for canary publishes' },
-  changehint: { desc: 'customized hint message shown when a change file is needed but missing' },
-  changeDir: { desc: 'name of the directory to store change files' },
+
+  // everything but init
   configPath: {
     short: 'c',
     alias: 'config',
     desc: 'custom beachball config path (default: cosmiconfig standard paths)',
   },
+
+  // Validation and comparision options
+  disallowedChangeTypes: { type: 'array', desc: 'change types that are not allowed', choices: SortedChangeTypes },
+  disallowDeletedChangeFiles: {
+    type: 'boolean',
+    desc: 'verify that no change files were deleted between head and target branch',
+  },
+  fetch: { type: 'boolean', desc: 'fetch from the remote before determining changes' },
+  depth: { type: 'number', desc: 'for shallow clones: depth of git history to consider when fetching' },
+  branch: { short: 'b', desc: 'target branch from remote (default: git config init.defaultBranch)' },
+  changehint: { desc: 'customized hint message shown when a change file is needed but missing' },
+  changeDir: { desc: 'name of the directory to store change files' },
+  fromRef: { alias: 'since', desc: 'consider changes or change files since this git ref (branch name, commit SHA)' },
+
+  // bump/publish but also used by bumpInMemory (potential validation)
+  bumpDeps: { type: 'boolean', desc: 'bump dependent packages during publish' },
+  prereleasePrefix: { desc: 'prerelease prefix for packages that will receive a prerelease bump' },
+
+  // scoping?
+  package: { type: 'array', short: 'p', desc: 'force creating a change file for the specified package(s)' },
+  scope: { type: 'array', desc: 'only consider package paths matching the pattern(s) (supports "!negations")' },
+  all: { type: 'boolean', desc: 'generate change files for all packages' },
+
+  // publish/canary/sync; also init fetches beachball from the registry
+  timeout: { type: 'number', desc: 'timeout in ms for npm operations (other than install)' },
+  registry: { short: 'r', desc: 'npm registry' },
+  token: { short: 'n', desc: 'npm auth token (defaults to the NPM_TOKEN environment variable)' },
+  tag: { short: 't', desc: 'npm dist-tag for publishing and comparison (default: defaultNpmTag or "latest")' },
+  npmReadConcurrency: { type: 'number', desc: 'maximum concurrency for reading package versions from the registry' },
+
+  // publish only
+  bump: { type: 'boolean', desc: 'bump versions during publish' },
+  publish: { type: 'boolean', desc: 'publish to the npm registry' },
+  push: { type: 'boolean', desc: 'push changes back to the remote git branch' },
+  yes: { type: 'boolean', short: 'y', desc: 'skip publish confirmation prompts (default: true in CI, false locally)' },
+  gitTimeout: { type: 'number', desc: 'timeout in ms for git push operations' },
+  retries: { type: 'number', desc: 'number of retries for an npm publish before failing' },
+  access: { desc: 'npm publish access level', choices: ['public', 'restricted'] },
+  authType: { short: 'a', desc: 'npm auth type for NPM_TOKEN', choices: authTypes },
+  gitTags: { type: 'boolean', desc: 'create git tags for each published package version' },
+  packToPath: { desc: 'pack packages to tgz files under this path instead of publishing to npm' },
+
+  // change/publish with different description
+  message: { short: 'm', desc: 'for "change", the change description; for "publish", the commit message' },
+
+  // change only
+  type: { desc: 'type of change (instead of prompting)', choices: SortedChangeTypes },
   dependentChangeType: {
     desc: 'change type to use for dependent packages (default: patch)',
     choices: SortedChangeTypes,
   },
-  fromRef: { alias: 'since', desc: 'consider changes or change files since this git ref (branch name, commit SHA)' },
-  message: { short: 'm', desc: 'for "change", the change description; for "publish", the commit message' },
-  packToPath: { desc: 'pack packages to tgz files under this path instead of publishing to npm' },
-  prereleasePrefix: { desc: 'prerelease prefix for packages that will receive a prerelease bump' },
-  registry: { short: 'r', desc: 'npm registry' },
-  tag: { short: 't', desc: 'npm dist-tag for publishes (default: "latest")' },
-  token: { short: 'n', desc: 'npm auth token (defaults to the NPM_TOKEN environment variable)' },
-  type: { desc: 'type of change (instead of prompting)', choices: SortedChangeTypes },
+  commit: { type: 'boolean', desc: 'commit change files after "change"' },
+
+  // sync only
+  forceVersions: {
+    type: 'boolean',
+    alias: 'force',
+    desc: "use the version from the registry even if it's older than local",
+  },
+
+  // bump/publish only
+  keepChangeFiles: { type: 'boolean', desc: "don't delete the change files from disk after bumping" },
+
+  // bump/publish/canary only
+  concurrency: { type: 'number', desc: 'maximum concurrency for write operations (hook calls, npm publish)' },
+
+  // canary only
+  canaryName: { desc: 'dist-tag and version name to use for canary publishes' },
 };
 
 export const commandDefinitions: Record<string, CommandDefinition> = {
