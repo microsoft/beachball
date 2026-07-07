@@ -336,12 +336,15 @@ describe('BeachballCommand', () => {
 
     it('errors on boolean option with =value', () => {
       // TODO override error handling for this case to recommend --no-<opt> instead
-      expect(buildAndExpectError(['--fetch=false'])).toMatchInlineSnapshot(`"error: unknown option '--fetch=false'"`);
+      expect(buildAndExpectError(['--git-tags=false'])).toMatchInlineSnapshot(
+        `"error: unknown option '--git-tags=false'"`
+      );
     });
 
     it('errors on boolean option with separate value', () => {
-      // The error message for this will vary depending on argument context
-      buildAndExpectError(['--fetch', 'false']);
+      expect(buildAndExpectError(['--git-tags', 'false'])).toMatchInlineSnapshot(
+        `"error: too many arguments. Expected 0 arguments but got 1."`
+      );
     });
   });
 
