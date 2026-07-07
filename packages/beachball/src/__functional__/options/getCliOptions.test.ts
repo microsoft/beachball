@@ -148,7 +148,7 @@ describe('getCliOptions', () => {
 
   it('shows help text', () => {
     const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
-    expect(() => getCliOptionsTest({ args: ['--help'], outputOptions })).toThrow(CommanderError);
+    expect(() => getCliOptionsTest({ args: ['--help'], outputOptions, version: 'x.y.z' })).toThrow(CommanderError);
     expect(outputOptions.writeErr).not.toHaveBeenCalled();
     expect(outputOptions.writeOut).toHaveBeenCalledTimes(1);
     // Make sure the help text looks reasonable
@@ -157,7 +157,9 @@ describe('getCliOptions', () => {
 
   it('shows change command help text', () => {
     const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
-    expect(() => getCliOptionsTest({ args: ['change', '--help'], outputOptions })).toThrow(CommanderError);
+    expect(() => getCliOptionsTest({ args: ['change', '--help'], outputOptions, version: 'x.y.z' })).toThrow(
+      CommanderError
+    );
     expect(outputOptions.writeErr).not.toHaveBeenCalled();
     expect(outputOptions.writeOut).toHaveBeenCalledTimes(1);
     // Make sure the help text looks reasonable

@@ -98,6 +98,38 @@ describe('BeachballHelp', () => {
     expect(getOptionsHelp(command)).toMatchInlineSnapshot(`"  --[no-]fetch  some bool"`);
   });
 
+  // this logic is in BeachballOption + BeachballHelp
+  it('appends BeachballOption default to option description', () => {
+    const opt1 = new BeachballOption({ name: 'tag', desc: 'npm dist-tag', defaultValue: 'latest' });
+    const opt2 = new BeachballOption({ name: 'fetch', type: 'boolean', desc: 'fetch first', defaultValue: true });
+    const opt3 = new BeachballOption({ name: 'bump', type: 'boolean', desc: 'bump first', defaultValue: false });
+    const opt4 = new BeachballOption({ name: 'depth', type: 'number', desc: 'fetch depth', defaultValue: 0 });
+    const command = getCommand().addOption(opt1).addOption(opt2).addOption(opt3).addOption(opt4);
+    expect(getOptionsHelp(command)).toMatchInlineSnapshot(`
+      "  --tag <value>  npm dist-tag (default: "latest")
+        --[no-]fetch   fetch first (default: true)
+        --[no-]bump    bump first (default: false)
+        --depth <num>  fetch depth (default: 0)"
+    `);
+  });
+
+  it('does not use BeachballOption default if the description already has a default', () => {
+    const opt = new BeachballOption({ name: 'tag', desc: 'npm dist-tag (default: "latest")', defaultValue: 'other' });
+    expect(opt.defaultValueDescription).toBe('"other"');
+    const help = getOptionsHelp(getCommand().addOption(opt));
+    expect(help).toMatchInlineSnapshot(`"  --tag <value>  npm dist-tag (default: "latest")"`);
+    expect(help).not.toContain('other');
+  });
+
+  // this logic is in BeachballOption + BeachballHelp
+  it('does not include default for null/undefined/empty', () => {
+    const opt1 = new BeachballOption({ name: 'branch', desc: 'target branch', defaultValue: undefined });
+    const opt2 = new BeachballOption({ name: 'scope', desc: 'scope pattern', defaultValue: null });
+    const opt3 = new BeachballOption({ name: 'configPath', desc: 'config path', defaultValue: '' });
+    const command = getCommand().addOption(opt1).addOption(opt2).addOption(opt3);
+    expect(getOptionsHelp(command)).not.toContain('default:');
+  });
+
   it('caps term width for long options', () => {
     const command = getCommand()
       .option('--foo <value>', 'some value')
@@ -112,11 +144,10 @@ describe('BeachballHelp', () => {
   });
 
   it('puts commands before options', () => {
-    const command = getCommand().option('--foo', 'some option');
-    command.command('bar').description('some subcommand');
-    const help = command.helpInformation();
+    const subcommand = getCommand().command('bar').description('some subcommand').option('--foo', 'some option');
+    const help = subcommand.helpInformation();
     // BeachballHelp flips the order of commands and options
-    expect(help.indexOf('Commands:')).toBeLessThan(help.indexOf('Options:'));
+    expect(help.indexOf('Commands:')).toBeLessThan(help.match(/options:/i)?.index || -1);
   });
 
   it('shows parent options in a subcommand help', () => {

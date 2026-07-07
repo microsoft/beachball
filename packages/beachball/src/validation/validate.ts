@@ -78,8 +78,13 @@ export function validate(parsedOptions: ParsedOptions, validateOptions: Validate
 
   const originalPackageInfos = getPackageInfos(parsedOptions);
 
-  if (options.all && options.package) {
-    logValidationError('Cannot specify both "all" and "package" options');
+  // options.all and options.package are marked with .conflicts() in optionDefinitions.
+  // TODO ideally options invalid for command should also be handled in parsing
+  if ((options.all || options.package) && ['publish', 'sync', 'bump', 'canary'].includes(options.command)) {
+    // Error on this specific invalid usage because it may cause significant misunderstanding
+    logValidationError(
+      `"${options.all ? 'all' : 'package'}" option is not supported for the "${options.command}" command`
+    );
   } else if (options.package) {
     // TODO: combine with other package validation logic, including in getChangedPackages
     const packages = Array.isArray(options.package) ? options.package : [options.package];

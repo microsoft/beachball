@@ -1,6 +1,6 @@
 import { InvalidArgumentError, Option } from 'commander';
 import type { CliOptions } from '../types/BeachballOptions';
-import { optionGroups, type OptionDefinition, type OptionType } from './optionDefinitions';
+import { optionGroups, type OptionDefinition, type OptionGroup, type OptionType } from './optionDefinitions';
 
 declare module 'commander' {
   interface Option {
@@ -25,7 +25,11 @@ const valueSyntax: Record<OptionType, string> = {
  * handling of other behaviors from `OptionDefinition`.
  */
 export class BeachballOption extends Option {
+  public readonly group: OptionGroup | undefined;
+
+  /** All long and short flag spellings for this item */
   private readonly _allFlags = new Set<string>();
+  private readonly _descriptionForCommand?: (cmdName: string | undefined) => string;
 
   constructor(
     params: OptionDefinition & {
@@ -56,21 +60,22 @@ export class BeachballOption extends Option {
     }
 
     // Build short flag prefix
-    let flags = params.short && !negated ? `-${params.short}, ` : '';
-
+    const maybeShort = params.short && !negated ? `-${params.short}, ` : '';
     // Add the long flag: use the standard dash-case name, or alias if present.
     // `--foo-bar <value>` or `--no-foo-bar` (no value for boolean)
     const prefix = negated ? '--no-' : '--';
-    flags += `${prefix}${_toDashed(alias || canonicalName)}${valueSyntax[type] ? ` ${valueSyntax[type]}` : ''}`;
+    super(
+      `${maybeShort}${prefix}${_toDashed(alias || canonicalName)}${valueSyntax[type] ? ` ${valueSyntax[type]}` : ''}`
+    );
 
-    // Show the default value (if any) at the end of the help text, but don't set it as commander's
-    // actual default to preserve precedence (CLI > config file > default).
-    const descriptionText =
-      !negated && !params.desc.includes('(default:') && !([null, undefined, ''] as unknown[]).includes(defaultValue)
-        ? `${desc} (default: ${JSON.stringify(defaultValue)})`
-        : desc;
+    this.description = typeof desc === 'function' ? desc(undefined) : desc;
+    this._descriptionForCommand = typeof desc === 'function' ? desc : undefined;
 
-    super(flags, descriptionText);
+    // Save the default value (if any) to show at the end of the help text, but don't set it as
+    // commander's actual default to preserve precedence (CLI > config file > default).
+    if (!negated && !([null, undefined, ''] as unknown[]).includes(defaultValue)) {
+      this.defaultValueDescription = JSON.stringify(defaultValue);
+    }
 
     // Store all flag variants for option matching (negated if appropriate):
     // -f, --foo-bar, --fooBar, --some-alias, --someAlias
@@ -89,7 +94,8 @@ export class BeachballOption extends Option {
     negated && this.hideHelp();
 
     params.choices && this.choices(params.choices);
-
+    params.conflicts && this.conflicts(params.conflicts as string[]);
+    this.group = params.group;
     this.helpGroup(optionGroups[params.group || 'default']);
 
     const parser = params.parse || (type === 'number' ? _parseNumber : undefined);
@@ -98,6 +104,13 @@ export class BeachballOption extends Option {
 
   override is(arg: string): boolean {
     return this._allFlags.has(arg);
+  }
+
+  /** If this option has a custom description function, set the description for the given command. */
+  public setDescriptionForCommand(cmdName: string): void {
+    if (this._descriptionForCommand) {
+      this.description = this._descriptionForCommand(cmdName);
+    }
   }
 }
 

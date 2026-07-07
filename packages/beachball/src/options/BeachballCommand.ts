@@ -53,8 +53,8 @@ export class BeachballCommand extends Command {
     const desc = `${name}${version ? ` v${version}` : ''} - ${params.desc}`;
     program._beachballConfigure({ desc, subcommands: params.commands }, params.options);
 
-    // set this last so it's at the end of help
-    version && program.version(version);
+    // set this last so it's at the end of help (use -v to match yargs behavior)
+    version && program.version(version, '-v, --version');
 
     return program;
   }

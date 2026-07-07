@@ -20,7 +20,7 @@ export type OptionGroup = keyof typeof optionGroups;
 
 /** Definition of a single CLI option, used to build its commander `Option`. */
 export interface OptionDefinition {
-  desc: string;
+  desc: string | ((cmdName: string | undefined) => string);
   /**
    * Single-character short flag (without dash), e.g. `b` for `--branch`.
    * For options with an alias, this is only applied to the alias variant of the option.

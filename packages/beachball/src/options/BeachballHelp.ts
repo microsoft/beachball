@@ -16,12 +16,42 @@ export const _maxTermWidth = 26;
 /** Help width used in jest snapshots or if no width can be determined */
 export const _defaultHelpWidth = 100;
 
+const builtInCommands = ['help', 'version'];
+
 export class BeachballHelp extends Help {
+  /** Command name currently being described */
+  private _currentCommand: string | undefined;
+
   constructor() {
     super();
     if (env.isJest) {
       this.helpWidth = _defaultHelpWidth;
     }
+  }
+
+  override commandDescription(cmd: Command): string {
+    // hack to save current command to use in option descriptions
+    this._currentCommand = cmd.name();
+    return super.commandDescription(cmd);
+  }
+
+  override optionDescription(option: Option): string {
+    if (!(option instanceof BeachballOption)) {
+      return super.optionDescription(option);
+    }
+    // For options with command-specific descriptions, update as a side effect
+    this._currentCommand && option.setDescriptionForCommand(this._currentCommand);
+
+    // For BeachballOption, default values are only included in the description, not set as
+    // actual defaults, so we have to manually add the default description.
+    const description = super.optionDescription(option);
+    if (option.defaultValueDescription && !option.description.includes('(default:')) {
+      const defaultText = `default: ${option.defaultValueDescription}`;
+      return description.endsWith(')')
+        ? `${description.slice(0, -1)}, ${defaultText})`
+        : `${description} (${defaultText})`;
+    }
+    return description;
   }
 
   /**
@@ -43,20 +73,25 @@ export class BeachballHelp extends Help {
   }
 
   /**
-   * Include the top-level command's options in each subcommand's help. (To match old behavior, all
-   * options are allowed on all commands, but we only add them to the parent command to avoid
-   * extra overhead of parsing them on every subcommand.)
+   * Include the top-level command's options in each subcommand's help.
+   * For the top-level command, if it has subcommands, only show "common" options and built-ins.
+   *
+   * (To match old behavior, all options are allowed on all commands, but we only add them to the
+   * parent command to avoid extra overhead of parsing them on every subcommand.)
    */
   override visibleOptions(cmd: Command): Option[] {
     const options = super.visibleOptions(cmd);
     if (!cmd.parent) {
-      return options;
+      // For the actual top-level beachball command, omit extra options, but allow them for tests
+      return cmd.commands.length
+        ? options.filter(opt => (opt as BeachballOption).group === 'common' || builtInCommands.includes(opt.name()))
+        : options;
     }
 
     // Collect visible options declared on the top-level command
     const globalOptions = super
       .visibleOptions(cmd.parent?.parent || cmd.parent)
-      .filter(opt => !['help', 'version'].includes(opt.attributeName()));
+      .filter(opt => !builtInCommands.includes(opt.name()));
 
     // As of writing, subcommands only have the built-in help option, which goes last
     return [...globalOptions, ...options];
@@ -75,7 +110,7 @@ export class BeachballHelp extends Help {
     }
 
     const groups = super.groupItems(unsortedItems, visibleItems, item =>
-      item.name() === 'help' ? optionGroups.common : getGroup(item)
+      builtInCommands.includes(item.name()) ? optionGroups.common : getGroup(item)
     );
 
     // Sort the groups: anything not listed goes first, followed by groups in the listed order.
@@ -98,12 +133,8 @@ export class BeachballHelp extends Help {
 
   /** Format a single term/description item. See {@link _formatItem} for details. */
   override formatItem(term: string, termWidth: number, description: string): string {
-    return _formatItem({
-      term,
-      termWidth,
-      helpWidth: this.helpWidth ?? _defaultHelpWidth,
-      description,
-    });
+    const helpWidth = this.helpWidth ?? _defaultHelpWidth;
+    return _formatItem({ term, termWidth, helpWidth, description });
   }
 
   /**

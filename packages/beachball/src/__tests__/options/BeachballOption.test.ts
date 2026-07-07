@@ -140,22 +140,34 @@ describe('BeachballOption', () => {
     expect(option.is('--forceVersions')).toBe(false);
   });
 
-  it('appends the default value to the help description', () => {
-    const option1 = new BeachballOption({ name: 'tag', type: 'string', desc: 'npm dist-tag', defaultValue: 'latest' });
-    expect(option1.description).toBe('npm dist-tag (default: "latest")');
-    const option2 = new BeachballOption({ name: 'fetch', type: 'boolean', desc: 'fetch first', defaultValue: true });
-    expect(option2.description).toBe('fetch first (default: true)');
+  it('saves default string value description', () => {
+    const opt = new BeachballOption({ name: 'tag', type: 'string', desc: 'npm dist-tag', defaultValue: 'latest' });
+    expect(opt.defaultValueDescription).toBe('"latest"');
+    // commander default is not set to preserve precedence
+    expect(opt.defaultValue).toBeUndefined();
+  });
+
+  it('saves default boolean value description', () => {
+    let opt = new BeachballOption({ name: 'fetch', type: 'boolean', desc: 'fetch first', defaultValue: true });
+    expect(opt.defaultValueDescription).toBe('true');
+    opt = new BeachballOption({ name: 'bump', type: 'boolean', desc: 'bump first', defaultValue: false });
+    expect(opt.defaultValueDescription).toBe('false');
+  });
+
+  it('saves default 0 value description', () => {
+    const opt = new BeachballOption({ name: 'depth', type: 'number', desc: 'fetch depth', defaultValue: 0 });
+    expect(opt.defaultValueDescription).toBe('0');
   });
 
   it('omits the default when null/undefined/empty', () => {
-    const option1 = new BeachballOption({ name: 'branch', desc: 'target branch', defaultValue: undefined });
-    expect(option1.description).toBe('target branch');
+    let opt = new BeachballOption({ name: 'branch', desc: 'target branch', defaultValue: undefined });
+    expect(opt.defaultValueDescription).toBeUndefined();
 
-    const option2 = new BeachballOption({ name: 'scope', desc: 'scope pattern', defaultValue: null });
-    expect(option2.description).toBe('scope pattern');
+    opt = new BeachballOption({ name: 'scope', desc: 'scope pattern', defaultValue: null });
+    expect(opt.defaultValueDescription).toBeUndefined();
 
-    const option3 = new BeachballOption({ name: 'configPath', desc: 'config path', defaultValue: '' });
-    expect(option3.description).toBe('config path');
+    opt = new BeachballOption({ name: 'configPath', desc: 'config path', defaultValue: '' });
+    expect(opt.defaultValueDescription).toBeUndefined();
   });
 
   it('hides the negated form from help', () => {
@@ -167,17 +179,5 @@ describe('BeachballOption', () => {
       defaultValue: true,
     });
     expect(option.hidden).toBe(true);
-  });
-
-  // this prevents interference with CLI/config/default precedence
-  it('adds default value to description but not the commander default', () => {
-    const option = new BeachballOption({
-      name: 'tag',
-      type: 'string',
-      desc: 'npm dist-tag',
-      defaultValue: 'latest',
-    });
-    expect(option.description).toBe('npm dist-tag (default: "latest")');
-    expect(option.defaultValue).toBeUndefined();
   });
 });
