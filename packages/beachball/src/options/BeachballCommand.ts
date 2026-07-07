@@ -56,7 +56,6 @@ export class BeachballCommand {
     });
     // set this last so it's at the end of help
     version && program.command.version(version);
-    program.command.usage('<command> [options]');
 
     return program;
   }
@@ -96,9 +95,11 @@ export class BeachballCommand {
       ([subName, subDef]) => new BeachballCommand({ name: subName, def: subDef, parent: this })
     );
 
-    // If there are sub-commands, skip setting an action to ensure that either a sub-command is run
-    // or a default command is provided.
-    if (!this._subCommands.length) {
+    if (this._subCommands.length) {
+      // If there are sub-commands, skip setting an action to ensure that either a sub-command is run
+      // or a default command is provided. But do set usage info.
+      command.usage(parent ? `<${this._subCommands.map(sub => sub.command.name()).join('|')}>` : '<command> [options]');
+    } else {
       // Currently the result is set as a side effect instead of having proper per-command action handlers.
       command.action(() => {
         this._result = {

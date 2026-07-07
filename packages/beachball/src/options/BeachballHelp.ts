@@ -33,6 +33,11 @@ export class BeachballHelp extends Help {
     return option instanceof BeachballOption && option.isBoolean() ? term.replace('--', '--[no-]') : term;
   }
 
+  /** Use the custom usage string in the subcommand term. */
+  override subcommandTerm(cmd: Command): string {
+    return `${cmd.name()} ${cmd.usage()}`;
+  }
+
   /**
    * Include the parent command's options in each subcommand's help. (To match old behavior, all
    * options are allowed on all commands, but we only add them to the parent command to avoid

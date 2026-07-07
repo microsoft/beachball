@@ -150,7 +150,7 @@ describe('BeachballHelp', () => {
       some description
 
       Commands:
-        foo <arg>                   long long long long long long long long long long long long long long
+        foo [options] <arg>         long long long long long long long long long long long long long long
                                       long long long long long long
         help [command]              display help for command
 

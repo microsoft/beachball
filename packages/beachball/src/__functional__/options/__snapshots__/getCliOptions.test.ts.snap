@@ -15,7 +15,7 @@ Options:
                                 target branch
   --[no-]fetch                fetch from the remote before determining changes (default: true)
   --depth <num>               for shallow clones: depth of git history to consider when fetching
-  -b, --branch <value>        target branch from remote (default: git config init.defaultBranch)
+  -b, --branch <value>        target branch from remote (default: the default remote branch)
   --changehint <value>        customized hint message shown when a change file is needed but missing
                                 (default: "Run \\"beachball change\\" to create a change file")
   --change-dir <value>        name of the directory to store change files (default: "change")
@@ -70,14 +70,14 @@ exports[`getCliOptions shows help text 1`] = `
 beachball - the sunniest version bumping tool
 
 Commands:
-  change                      create change files in the change/ folder
-  check                       checks whether a change file is needed for this branch
-  bump                        bumps versions as well as generating changelogs
-  publish                     bumps, publishes to npm registry, and pushes changelogs back into the
+  change [options]            create change files in the change/ folder
+  check [options]             checks whether a change file is needed for this branch
+  bump [options]              bumps versions as well as generating changelogs
+  publish [options]           bumps, publishes to npm registry, and pushes changelogs back into the
                                 default branch
-  sync                        synchronize published versions of packages from the registry with
+  sync [options]              synchronize published versions of packages from the registry with
                                 local package.json versions
-  config                      get or list config settings (requires a sub-command)
+  config <get|list>           get or list config settings (requires a sub-command)
   help [command]              display help for command
 
 Options:
@@ -90,7 +90,7 @@ Options:
                                 target branch
   --[no-]fetch                fetch from the remote before determining changes (default: true)
   --depth <num>               for shallow clones: depth of git history to consider when fetching
-  -b, --branch <value>        target branch from remote (default: git config init.defaultBranch)
+  -b, --branch <value>        target branch from remote (default: the default remote branch)
   --changehint <value>        customized hint message shown when a change file is needed but missing
                                 (default: "Run \\"beachball change\\" to create a change file")
   --change-dir <value>        name of the directory to store change files (default: "change")

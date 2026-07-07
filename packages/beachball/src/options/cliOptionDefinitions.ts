@@ -78,7 +78,7 @@ export const optionDefinitions: Record<
   },
   fetch: { type: 'boolean', desc: 'fetch from the remote before determining changes' },
   depth: { type: 'number', desc: 'for shallow clones: depth of git history to consider when fetching' },
-  branch: { short: 'b', desc: 'target branch from remote (default: git config init.defaultBranch)' },
+  branch: { short: 'b', desc: 'target branch from remote (default: the default remote branch)' },
   changehint: { desc: 'customized hint message shown when a change file is needed but missing' },
   changeDir: { desc: 'name of the directory to store change files' },
   fromRef: { alias: 'since', desc: 'consider changes or change files since this git ref (branch name, commit SHA)' },
