@@ -119,6 +119,20 @@ describe('BeachballHelp', () => {
     expect(help.indexOf('Commands:')).toBeLessThan(help.indexOf('Options:'));
   });
 
+  it('shows parent options in a subcommand help', () => {
+    const command = getCommand(true).option('--parent-opt', 'a parent option');
+    const sub = command.command('sub').description('a subcommand').option('--sub-opt', 'a sub option');
+    sub.createHelp = () => new BeachballHelp();
+    // The subcommand's own option, the parent option, and help (last) are all shown
+    expect(getOptionsHelp(sub)).toMatchInlineSnapshot(`
+      "  --sub-opt     a sub option
+        --parent-opt  a parent option
+        -h, --help    display help for command"
+    `);
+    // The parent option is not actually added to the subcommand
+    expect(sub.options.map(opt => opt.long)).toEqual(['--sub-opt']);
+  });
+
   it('formats help', () => {
     // The realistic case for this as of writing is "--prerelease-prefix <value>"
     const trickyOption = '--' + 'a'.repeat(_maxTermWidth - 1);

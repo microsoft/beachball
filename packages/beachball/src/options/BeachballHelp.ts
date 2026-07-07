@@ -33,6 +33,30 @@ export class BeachballHelp extends Help {
     return option instanceof BeachballOption && option.isBoolean() ? term.replace('--', '--[no-]') : term;
   }
 
+  /**
+   * Include the parent command's options in each subcommand's help. (To match old behavior, all
+   * options are allowed on all commands, but we only add them to the parent command to avoid
+   * extra overhead of parsing them on every subcommand.)
+   */
+  override visibleOptions(cmd: Command): Option[] {
+    const options = super.visibleOptions(cmd);
+    if (!cmd.parent) {
+      return options;
+    }
+
+    // Collect visible options declared on ancestor commands
+    const globalOptions: Option[] = [];
+    for (let ancestor: Command | null = cmd.parent; ancestor; ancestor = ancestor.parent) {
+      globalOptions.push(
+        ...super.visibleOptions(ancestor).filter(opt => !['help', 'version'].includes(opt.attributeName()))
+      );
+    }
+
+    // Insert before the trailing built-in help option so it stays last.
+    options.splice(Math.max(options.length - 1, 0), 0, ...globalOptions);
+    return options;
+  }
+
   /** Cap the term width so a few very long terms don't push all descriptions far to the right. */
   override padWidth(cmd: Command, helper: Help): number {
     return Math.min(super.padWidth(cmd, helper), _maxTermWidth);

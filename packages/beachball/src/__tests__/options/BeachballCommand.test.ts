@@ -413,14 +413,17 @@ describe('BeachballCommand', () => {
         },
       });
 
-      // TODO this should show inherited options
+      // Options are only declared on the parent program, but they show in child command help too
+      // (see BeachballHelp.visibleOptions).
       expect(program.command.commands[0].helpInformation()).toMatchInlineSnapshot(`
         "Usage: beachball change [options]
 
         create change files
 
         Options:
-          -h, --help  display help for command
+          --package <value>           some package
+          --[no-]disallow-deleted-change-files - disallow delete
+          -h, --help                  display help for command
         "
       `);
     });
