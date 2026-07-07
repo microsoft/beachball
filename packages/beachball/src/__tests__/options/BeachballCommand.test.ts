@@ -396,6 +396,26 @@ describe('BeachballCommand', () => {
       expect(commandsHelp).not.toContain('canary');
     });
 
+    it('respects hideMostOptions', () => {
+      const program = BeachballCommand.initProgram({
+        name: 'beachball',
+        desc: '',
+        commands: {
+          change: { desc: 'change files', isDefault: true },
+          bump: { desc: 'bump versions', hideMostOptions: true },
+        },
+        options: {
+          changeDir: { type: 'string', desc: 'change directory', group: 'common' },
+          package: { type: 'array', desc: 'package(s)', only: ['bump'] },
+          tag: { type: 'string', desc: 'tag' },
+        },
+      });
+      const bumpHelp = program.commands[1].helpInformation();
+      expect(bumpHelp).toContain('--package');
+      expect(bumpHelp).toContain('--change-dir');
+      expect(bumpHelp).not.toContain('--tag');
+    });
+
     it('shows help for child commands', () => {
       const program = BeachballCommand.initProgram({
         name: 'beachball',

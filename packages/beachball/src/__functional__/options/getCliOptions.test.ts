@@ -146,7 +146,7 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, token: '' });
   });
 
-  it('shows help text', () => {
+  it('shows top-level help text', () => {
     const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
     expect(() => getCliOptionsTest({ args: ['--help'], outputOptions, version: 'x.y.z' })).toThrow(CommanderError);
     expect(outputOptions.writeErr).not.toHaveBeenCalled();
@@ -155,11 +155,23 @@ describe('getCliOptions', () => {
     expect(outputOptions.writeOut.mock.calls[0][0]).toMatchSnapshot();
   });
 
-  it('shows change command help text', () => {
+  it.each([
+    'change',
+    'check',
+    'publish',
+    'canary',
+    'bump',
+    'sync',
+    'init',
+    'config',
+    'config get',
+    'config list',
+    'migrate',
+  ])('shows "%s" command help text', cmdName => {
     const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
-    expect(() => getCliOptionsTest({ args: ['change', '--help'], outputOptions, version: 'x.y.z' })).toThrow(
-      CommanderError
-    );
+    expect(() =>
+      getCliOptionsTest({ args: [...cmdName.split(' '), '--help'], outputOptions, version: 'x.y.z' })
+    ).toThrow(CommanderError);
     expect(outputOptions.writeErr).not.toHaveBeenCalled();
     expect(outputOptions.writeOut).toHaveBeenCalledTimes(1);
     // Make sure the help text looks reasonable

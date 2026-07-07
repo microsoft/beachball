@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { InvalidArgumentError } from 'commander';
 import { _toDashed, _parseNumber, BeachballOption } from '../../options/BeachballOption';
+import { optionGroups } from '../../options/optionDefinitions';
 
 describe('_toDashed', () => {
   it('leaves all-lowercase names unchanged', () => {
@@ -32,13 +33,7 @@ describe('_parseNumber', () => {
 
 describe('BeachballOption', () => {
   it('builds a string option with short flag and value placeholder', () => {
-    const option = new BeachballOption({
-      name: 'branch',
-      type: 'string',
-      short: 'b',
-      desc: 'target branch',
-      defaultValue: undefined,
-    });
+    const option = new BeachballOption({ name: 'branch', short: 'b', desc: 'target branch' });
     expect(option.flags).toBe('-b, --branch <value>');
     expect(option.short).toBe('-b');
     expect(option.long).toBe('--branch');
@@ -46,48 +41,25 @@ describe('BeachballOption', () => {
   });
 
   it('converts camelCase names to dashed flags', () => {
-    const option = new BeachballOption({
-      name: 'gitTags',
-      type: 'boolean',
-      desc: '',
-      defaultValue: undefined,
-    });
+    const option = new BeachballOption({ name: 'gitTags', type: 'boolean', desc: '' });
     expect(option.flags).toBe('--git-tags');
     expect(option.long).toBe('--git-tags');
   });
 
   it('uses a variadic placeholder for array options', () => {
-    const option = new BeachballOption({
-      name: 'scope',
-      type: 'array',
-      desc: '',
-      defaultValue: undefined,
-    });
+    const option = new BeachballOption({ name: 'scope', type: 'array', desc: '' });
     expect(option.flags).toBe('--scope <value...>');
   });
 
   it('for option with alias, uses the canonical name for the attribute', () => {
-    const option = new BeachballOption({
-      name: 'configPath',
-      type: 'string',
-      short: 'c',
-      alias: 'config',
-      desc: '',
-      defaultValue: undefined,
-    });
+    const option = new BeachballOption({ name: 'configPath', short: 'c', alias: 'config', desc: '' });
     expect(option.flags).toBe('-c, --config <value>');
     expect(option.long).toBe('--config');
     expect(option.attributeName()).toBe('configPath');
   });
 
   it('builds the negated form of a boolean option', () => {
-    const option = new BeachballOption({
-      name: 'gitTags',
-      type: 'boolean',
-      desc: '',
-      negated: true,
-      defaultValue: undefined,
-    });
+    const option = new BeachballOption({ name: 'gitTags', type: 'boolean', desc: '', negated: true });
     expect(option.flags).toBe('--no-git-tags');
     expect(option.long).toBe('--no-git-tags');
   });
@@ -99,7 +71,6 @@ describe('BeachballOption', () => {
       alias: 'force',
       desc: '',
       negated: true,
-      defaultValue: undefined,
     });
     expect(option.flags).toBe('--no-force');
     expect(option.long).toBe('--no-force');
@@ -107,14 +78,7 @@ describe('BeachballOption', () => {
   });
 
   it('matches camelCase and dashed spellings via is()', () => {
-    const option = new BeachballOption({
-      name: 'configPath',
-      type: 'string',
-      alias: 'configAlias',
-      short: 'c',
-      desc: '',
-      defaultValue: undefined,
-    });
+    const option = new BeachballOption({ name: 'configPath', alias: 'configAlias', short: 'c', desc: '' });
     expect(option.is('--config-path')).toBe(true);
     expect(option.is('--configPath')).toBe(true);
     expect(option.is('--config-alias')).toBe(true);
@@ -130,7 +94,6 @@ describe('BeachballOption', () => {
       alias: 'forceVer',
       desc: '',
       negated: true,
-      defaultValue: undefined,
     });
     expect(option.is('--no-force-ver')).toBe(true);
     expect(option.is('--no-force-versions')).toBe(true);
@@ -160,7 +123,7 @@ describe('BeachballOption', () => {
   });
 
   it('omits the default when null/undefined/empty', () => {
-    let opt = new BeachballOption({ name: 'branch', desc: 'target branch', defaultValue: undefined });
+    let opt = new BeachballOption({ name: 'branch', desc: 'target branch' });
     expect(opt.defaultValueDescription).toBeUndefined();
 
     opt = new BeachballOption({ name: 'scope', desc: 'scope pattern', defaultValue: null });
@@ -179,5 +142,48 @@ describe('BeachballOption', () => {
       defaultValue: true,
     });
     expect(option.hidden).toBe(true);
+  });
+
+  it('applies choices param', () => {
+    const option = new BeachballOption({ name: 'tag', desc: '', choices: ['latest', 'beta'] });
+    expect(option.argChoices).toEqual(['latest', 'beta']);
+  });
+
+  it('applies conflicts param', () => {
+    const option = new BeachballOption({ name: 'tag', desc: '', conflicts: ['bump'] });
+    expect((option as { conflictsWith?: string[] }).conflictsWith).toEqual(['bump']);
+  });
+
+  it('applies option group param', () => {
+    const option = new BeachballOption({ name: 'tag', desc: '', group: 'npm' });
+    expect(option.group).toBe('npm');
+    expect(option.helpGroupHeading).toBe(optionGroups.npm);
+  });
+
+  it('applies onlyCommands from the only param', () => {
+    const option = new BeachballOption({
+      name: 'message',
+      desc: 'commit message',
+      only: ['change', 'publish'],
+    });
+    expect(option.onlyCommands).toEqual(['change', 'publish']);
+  });
+
+  it('applies custom parser for string type', () => {
+    const parse = (value: unknown) => (value as string).toUpperCase();
+    const option = new BeachballOption({ name: 'tag', type: 'string', desc: '', parse });
+    expect(option.parseArg?.('latest', undefined)).toBe('LATEST');
+  });
+
+  it('applies custom parser for number type', () => {
+    const parse = (value: unknown) => parseInt(value as string, 16);
+    const option = new BeachballOption({ name: 'depth', type: 'number', desc: '', parse });
+    expect(option.parseArg?.('10', undefined)).toBe(16);
+  });
+
+  it('initializes description using desc(undefined) for a function desc', () => {
+    const desc = (cmd: string | undefined) => (cmd === 'change' ? 'change description' : 'commit message');
+    const option = new BeachballOption({ name: 'message', desc });
+    expect(option.description).toBe('commit message');
   });
 });

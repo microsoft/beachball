@@ -1,6 +1,7 @@
 import { SortedChangeTypes } from '../changefile/changeTypes';
 import type { CliOptions } from '../types/BeachballOptions';
 import { authTypes } from '../validation/isValidAuthType';
+import type { CommandName } from './commandDefinitions';
 
 export type OptionDefinitions = Partial<Record<keyof CliOptions, OptionDefinition>>;
 
@@ -13,6 +14,7 @@ export type OptionType = 'string' | 'number' | 'boolean' | 'array';
  */
 export const optionGroups = {
   default: 'Options:',
+  npm: 'npm options:',
   /** Non-logging options shared between all/most commands */
   common: 'Common options:',
 };
@@ -41,8 +43,29 @@ export interface OptionDefinition {
   group?: OptionGroup;
   /** Valid choices, such as for `disallowedChangeTypes` (string or array options only). */
   choices?: readonly string[];
+  /** Conflicting option names */
+  conflicts?: readonly (keyof CliOptions)[];
   /** Custom argument parser/validator */
   parse?: (value: unknown, previous: unknown) => unknown;
+  /**
+   * Only show the option in help for the specified commands.
+   * If a command should *only* show a few options, set `CommandDefinition.hideMostOptions` instead.
+   */
+  only?: readonly CommandName[];
+}
+
+/** Add `group` and/or `only` to a subset of options */
+function options<K extends keyof CliOptions>(
+  group: OptionGroup | undefined,
+  only: readonly CommandName[] | undefined,
+  opts: Record<K, OptionDefinition>
+) {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- inference is broken??
+  for (const opt of Object.values(opts) as OptionDefinition[]) {
+    group && (opt.group ??= group);
+    only && (opt.only ??= only);
+  }
+  return opts;
 }
 
 /** All CLI options. */
@@ -50,20 +73,14 @@ export const optionDefinitions: Record<
   Exclude<keyof CliOptions, 'path' | 'command' | '_extraPositionalArgs'>,
   OptionDefinition
 > = {
-  // migrate may read options but doesn't need any CLI options besides configPath
-
-  // common
-  configPath: {
-    group: 'common',
-    short: 'c',
-    alias: 'config',
-    desc: 'custom beachball config path (default: cosmiconfig standard paths)',
-  },
-  verbose: {
-    group: 'common',
-    type: 'boolean',
-    desc: 'print additional information to the console',
-  },
+  ...options('common', undefined, {
+    configPath: {
+      short: 'c',
+      alias: 'config',
+      desc: 'custom beachball config path (default: cosmiconfig standard paths)',
+    },
+    verbose: { type: 'boolean', desc: 'print additional information to the console' },
+  }),
 
   // git options (validation and comparison)
   branch: { short: 'b', desc: 'target branch from remote (default: the default remote branch)' },
@@ -72,71 +89,115 @@ export const optionDefinitions: Record<
   depth: { type: 'number', desc: 'for shallow clones: depth of git history to consider when fetching' },
 
   // Validation and comparison options
-  disallowedChangeTypes: { type: 'array', desc: 'change types that are not allowed', choices: SortedChangeTypes },
+  disallowedChangeTypes: {
+    type: 'array',
+    desc: 'change types that are not allowed',
+    choices: SortedChangeTypes,
+  },
   disallowDeletedChangeFiles: {
+    only: ['change', 'check'],
     type: 'boolean',
     desc: 'verify that no change files were deleted between head and target branch',
   },
-  changehint: { desc: 'customized hint message shown when a change file is needed but missing' },
+  changehint: { only: ['check'], desc: 'customized hint message shown when a change file is needed but missing' },
   changeDir: { desc: 'name of the directory to store change files' },
 
-  // bump/publish but also used by bumpInMemory (potential validation)
-  bumpDeps: { type: 'boolean', desc: 'bump dependent packages during publish' },
-  prereleasePrefix: { desc: 'prerelease prefix for packages that will receive a prerelease bump' },
+  // bumpDeps/prereleasePrefix are also used by bumpInMemory
+  // (bumpDeps might impact validation but probably doesn't need to show in help)
+  ...options(undefined, ['bump', 'publish'], {
+    bumpDeps: { type: 'boolean', desc: 'bump dependent packages during publish' },
+    prereleasePrefix: { desc: 'prerelease prefix for packages that will receive a prerelease bump' },
+    keepChangeFiles: { type: 'boolean', desc: "don't delete the change files from disk after bumping" },
+  }),
 
   // scoping?
-  scope: { type: 'array', desc: 'only consider package paths matching the pattern(s) (supports "!negations")' },
-  // should be an error if specified where not supported
-  all: { type: 'boolean', desc: 'generate change files for all packages' },
-  // should be an error if specified where not supported
-  package: { type: 'array', short: 'p', desc: 'force creating a change file for the specified package(s)' },
-
-  // publish/canary/sync; also init fetches beachball from the registry
-  timeout: { type: 'number', desc: 'timeout in ms for npm operations (other than install)' },
-  registry: { short: 'r', desc: 'npm registry' },
-  token: { short: 'n', desc: 'npm auth token (defaults to the NPM_TOKEN environment variable)' },
-  authType: { short: 'a', desc: 'npm auth type for NPM_TOKEN', choices: authTypes },
-  npmReadConcurrency: { type: 'number', desc: 'maximum concurrency for reading package versions from the registry' },
-  // sort of npm group but semantically different
-  tag: { short: 't', desc: 'npm dist-tag for publishing and comparison (default: defaultNpmTag or "latest")' },
-
-  // publish only
-  bump: { type: 'boolean', desc: 'bump versions during publish' },
-  publish: { type: 'boolean', desc: 'publish to the npm registry' },
-  push: { type: 'boolean', desc: 'push changes back to the remote git branch' },
-  yes: { type: 'boolean', short: 'y', desc: 'skip publish confirmation prompts (default: true in CI, false locally)' },
-  gitTimeout: { type: 'number', desc: 'timeout in ms for git push operations' },
-  gitTags: { type: 'boolean', desc: 'create git tags for each published package version' },
-
-  // publish/canary only
-  access: { desc: 'npm publish access level', choices: ['public', 'restricted'] },
-  retries: { type: 'number', desc: 'number of retries for an npm publish before failing' },
-  packToPath: { desc: 'pack packages to tgz files under this path instead of publishing to npm' },
-
-  // change/publish with different description
-  message: { short: 'm', desc: 'for "change", the change description; for "publish", the commit message' },
-
-  // change only
-  type: { desc: 'type of change (instead of prompting)', choices: SortedChangeTypes },
-  dependentChangeType: {
-    desc: 'change type to use for dependent packages (default: patch)',
-    choices: SortedChangeTypes,
+  scope: {
+    only: ['change', 'check', 'bump', 'publish', 'canary', 'sync'],
+    type: 'array',
+    desc: 'only consider package paths matching the pattern(s) (supports "!negations")',
   },
-  commit: { type: 'boolean', desc: 'commit change files after "change"' },
+  all: {
+    only: ['change', 'canary'],
+    type: 'boolean',
+    desc: cmd =>
+      (cmd === 'change' && 'generate change files for all packages') ||
+      (cmd === 'canary' && 'publish prerelease versions of all packages') ||
+      'apply command to all packages',
+  },
+  package: {
+    type: 'array',
+    short: 'p',
+    only: ['change'],
+    conflicts: ['all'],
+    desc: 'force creating a change file for the specified package(s)',
+  },
 
-  // sync only
+  // npm read or write; also init fetches beachball from the registry
+  ...options('npm', ['publish', 'canary', 'sync', 'init'], {
+    registry: { short: 'r', desc: 'npm registry' },
+    token: { short: 'n', desc: 'npm auth token (prefer using NPM_TOKEN environment variable)' },
+    authType: { short: 'a', desc: 'npm auth type for NPM_TOKEN', choices: authTypes },
+    npmReadConcurrency: { type: 'number', desc: 'maximum concurrency for reading package versions from the registry' },
+    timeout: { type: 'number', desc: 'timeout in ms for npm operations (other than install)' },
+    // TODO sort of npm group but semantically different
+    tag: {
+      short: 't',
+      desc: cmd =>
+        `npm dist-tag ${cmd === 'sync' ? 'to sync with' : 'for publishing'} ` +
+        `(default: ${cmd === 'canary' ? 'canaryName or "canary"' : 'defaultNpmTag or "latest"'})`,
+      only: ['publish', 'canary', 'sync'],
+    },
+  }),
+
+  ...options('npm', ['publish', 'canary'], {
+    access: { desc: 'npm publish access level', choices: ['public', 'restricted'] },
+    retries: { type: 'number', desc: 'number of retries for an npm publish before failing' },
+    packToPath: { desc: 'pack packages to tgz files under this path instead of publishing to npm' },
+  }),
+
+  ...options(undefined, ['publish'], {
+    bump: { type: 'boolean', desc: 'bump versions during publish' },
+    publish: { type: 'boolean', desc: 'publish to the npm registry' },
+    push: { type: 'boolean', desc: 'push changes back to the remote git branch' },
+    yes: {
+      type: 'boolean',
+      short: 'y',
+      desc: 'skip publish confirmation prompts (default: true in CI, false locally)',
+    },
+    gitTimeout: { type: 'number', desc: 'timeout in ms for git push operations' },
+    gitTags: { type: 'boolean', desc: 'create git tags for each published package version' },
+  }),
+
+  message: {
+    short: 'm',
+    only: ['change', 'publish'],
+    desc: cmd =>
+      (cmd === 'change' && 'the change description') ||
+      (cmd === 'publish' && 'version bump commit description') ||
+      'change description or commit description',
+  },
+
+  ...options(undefined, ['change'], {
+    type: { desc: 'type of change (instead of prompting)', choices: SortedChangeTypes },
+    dependentChangeType: {
+      desc: 'change type to use for dependent packages (default: patch)',
+      choices: SortedChangeTypes,
+    },
+    commit: { type: 'boolean', desc: 'commit change files after "change"' },
+  }),
+
   forceVersions: {
+    only: ['sync'],
     type: 'boolean',
     alias: 'force',
     desc: "use the version from the registry even if it's older than local",
   },
 
-  // bump/publish only
-  keepChangeFiles: { type: 'boolean', desc: "don't delete the change files from disk after bumping" },
+  concurrency: {
+    only: ['bump', 'publish', 'canary'],
+    type: 'number',
+    desc: 'maximum concurrency for write operations (hook calls, npm publish)',
+  },
 
-  // bump/publish/canary only
-  concurrency: { type: 'number', desc: 'maximum concurrency for write operations (hook calls, npm publish)' },
-
-  // canary only
-  canaryName: { desc: 'dist-tag and version name to use for canary publishes' },
+  canaryName: { only: ['canary'], desc: 'dist-tag and version name to use for canary publishes' },
 };

@@ -12,6 +12,22 @@ declare module 'commander' {
   }
 }
 
+/** Constructor params for `BeachballOption` */
+export interface BeachballOptionParams extends OptionDefinition {
+  /**
+   * Canonical camelCase option name (a key of `CliOptions`).
+   * If `OptionDefinition.alias` is set, the main option's help will be hidden.
+   */
+  name: keyof CliOptions;
+  /** If true, build the negated `--no-` form of a boolean option. */
+  negated?: boolean;
+  /**
+   * If non-null/undefined/`''`, show this default value in help text, but DON'T set it as the default
+   * to avoid messing up order of precedence with the config file (CLI > config file > default).
+   */
+  defaultValue?: unknown;
+}
+
 /** Value placeholder shown after each option flag, by option type. */
 const valueSyntax: Record<OptionType, string> = {
   string: '<value>',
@@ -26,42 +42,27 @@ const valueSyntax: Record<OptionType, string> = {
  */
 export class BeachballOption extends Option {
   public readonly group: OptionGroup | undefined;
+  /** The option is only shown in help for these command names */
+  public readonly onlyCommands: readonly string[] | undefined;
 
   /** All long and short flag spellings for this item */
   private readonly _allFlags = new Set<string>();
   private readonly _descriptionForCommand?: (cmdName: string | undefined) => string;
 
-  constructor(
-    params: OptionDefinition & {
-      /**
-       * Canonical camelCase option name (a key of `CliOptions`).
-       * If `OptionDefinition.alias` is set, the main option's help will be hidden.
-       */
-      name: keyof CliOptions;
-      /** If true, build the negated `--no-` form of a boolean option. */
-      negated?: boolean;
-      /**
-       * If non-null/undefined/`''`, show this default value in help text, but DON'T set it as the default
-       * to avoid messing up order of precedence with the config file (CLI > config file > default).
-       */
-      defaultValue: unknown;
-    }
-  ) {
+  constructor(params: BeachballOptionParams) {
     const { name: canonicalName, alias, type = 'string', negated, defaultValue, desc } = params;
 
     if (alias && (type === 'number' || params.parse)) {
-      // This is restricted because if the user provided the invalid value with the canonical
-      // option name (not the alias), commander's built-in invalid argument error would show the
-      // alias name instead of what they typed, which is confusing. There's not an easy way around
-      // this without adding a separate option for the alias (possible but more complex).
-      // If this is needed in the future, could reconsider whether it's really so bad, or check
-      // commander internals to investigate other customization possibilities.
+      // If the user provided the invalid value with the canonical option name (not the alias),
+      // commander's built-in invalid argument error would show the alias name instead of what
+      // they typed, which is confusing. There's not an easy way around this without adding a
+      // separate option for the alias (possible but more complex; could reconsider if needed).
       throw new Error(`Internal error: aliases are not supported for options with custom parsing`);
     }
 
     // Build short flag prefix
     const maybeShort = params.short && !negated ? `-${params.short}, ` : '';
-    // Add the long flag: use the standard dash-case name, or alias if present.
+    // Add the primary long flag: use the standard dash-case name, or alias if present.
     // `--foo-bar <value>` or `--no-foo-bar` (no value for boolean)
     const prefix = negated ? '--no-' : '--';
     super(
@@ -95,6 +96,7 @@ export class BeachballOption extends Option {
 
     params.choices && this.choices(params.choices);
     params.conflicts && this.conflicts(params.conflicts as string[]);
+    this.onlyCommands = params.only;
     this.group = params.group;
     this.helpGroup(optionGroups[params.group || 'default']);
 

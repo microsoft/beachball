@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { _formatItem, _defaultHelpWidth, _maxTermWidth, BeachballHelp } from '../../options/BeachballHelp';
 import { Command } from 'commander';
-import { BeachballOption } from '../../options/BeachballOption';
+import { BeachballOption, type BeachballOptionParams } from '../../options/BeachballOption';
 
 /** Verify no lines exceed the maximum help width */
 function expectMaxWidth(str: string) {
@@ -82,8 +82,8 @@ describe('_formatItem', () => {
 // These tests are fairly basic since they avoid logic from BeachballOption/BeachballCommand
 describe('BeachballHelp', () => {
   /** get a command with BeachballHelp */
-  function getCommand(helpOption = false) {
-    const command = new Command('test').helpOption(helpOption).description('some description');
+  function getCommand(helpOption = false, name = 'test') {
+    const command = new Command(name).helpOption(helpOption).description('some description');
     command.createHelp = () => new BeachballHelp();
     return command;
   }
@@ -93,7 +93,7 @@ describe('BeachballHelp', () => {
   }
 
   it('adds --[no-] prefix for boolean BeachballOptions', () => {
-    const opt = new BeachballOption({ name: 'fetch', type: 'boolean', desc: 'some bool', defaultValue: undefined });
+    const opt = new BeachballOption({ name: 'fetch', type: 'boolean', desc: 'some bool' });
     const command = getCommand().addOption(opt);
     expect(getOptionsHelp(command)).toMatchInlineSnapshot(`"  --[no-]fetch  some bool"`);
   });
@@ -123,11 +123,51 @@ describe('BeachballHelp', () => {
 
   // this logic is in BeachballOption + BeachballHelp
   it('does not include default for null/undefined/empty', () => {
-    const opt1 = new BeachballOption({ name: 'branch', desc: 'target branch', defaultValue: undefined });
+    const opt1 = new BeachballOption({ name: 'branch', desc: 'target branch' });
     const opt2 = new BeachballOption({ name: 'scope', desc: 'scope pattern', defaultValue: null });
     const opt3 = new BeachballOption({ name: 'configPath', desc: 'config path', defaultValue: '' });
     const command = getCommand().addOption(opt1).addOption(opt2).addOption(opt3);
     expect(getOptionsHelp(command)).not.toContain('default:');
+  });
+
+  it('omits BeachballOptions with onlyCommands not including the current subcommand', () => {
+    // Global options are declared on the parent but shown (filtered) in each subcommand's help.
+    const publish = getCommand(false, 'publish');
+    const parent = getCommand();
+    parent.addCommand(publish);
+    parent
+      .addOption(new BeachballOption({ name: 'tag', desc: 'npm dist-tag', defaultValue: '' }))
+      .addOption(new BeachballOption({ name: 'message', desc: 'commit message', defaultValue: '', only: ['publish'] }))
+      .addOption(new BeachballOption({ name: 'scope', desc: 'scope pattern', defaultValue: '', only: ['check'] }));
+
+    const help = getOptionsHelp(publish);
+    expect(help).toContain('--tag'); // no onlyCommands => shown on any command
+    expect(help).toContain('--message'); // only publish => shown on publish
+    expect(help).not.toContain('--scope'); // only check => omitted on publish
+  });
+
+  const messageOption: BeachballOptionParams = {
+    name: 'message',
+    desc: (cmd: string | undefined) => (cmd === 'change' ? 'change description' : 'commit message'),
+  };
+
+  it('uses command-specific description for the current command', () => {
+    const command = getCommand(false, 'change').addOption(new BeachballOption({ ...messageOption }));
+    expect(getOptionsHelp(command)).toMatchInlineSnapshot(`"  --message <value>  change description"`);
+  });
+
+  it('uses command-specific description fallback for other command', () => {
+    const command = getCommand(false, 'publish').addOption(new BeachballOption({ ...messageOption }));
+    expect(getOptionsHelp(command)).toMatchInlineSnapshot(`"  --message <value>  commit message"`);
+  });
+
+  it('appends the default value to the command-specific description', () => {
+    const command = getCommand(false, 'change').addOption(
+      new BeachballOption({ ...messageOption, defaultValue: 'hello' })
+    );
+    expect(getOptionsHelp(command)).toMatchInlineSnapshot(
+      `"  --message <value>  change description (default: "hello")"`
+    );
   });
 
   it('caps term width for long options', () => {
@@ -188,7 +228,6 @@ describe('BeachballHelp', () => {
         help [command]              display help for command
 
       Options:
-        -V, --version               output the version number
         --aaaaaaaaaaaaaaaaaaaaaaaaa exact term length before adding "-" separator
         --bar                       some option
                                       with a line break
@@ -196,6 +235,7 @@ describe('BeachballHelp', () => {
                                       a description
 
       Common options:
+        -V, --version               output the version number
         -h, --help                  display help for command
       "
     `);

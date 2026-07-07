@@ -1,5 +1,6 @@
 import { Command, Help, type Option } from 'commander';
 import { env } from '../env';
+import type { BeachballCommand } from './BeachballCommand';
 import { BeachballOption } from './BeachballOption';
 import { optionGroups } from './optionDefinitions';
 
@@ -30,7 +31,7 @@ export class BeachballHelp extends Help {
   }
 
   override commandDescription(cmd: Command): string {
-    // hack to save current command to use in option descriptions
+    // hack to save current command to use in determining option descriptions
     this._currentCommand = cmd.name();
     return super.commandDescription(cmd);
   }
@@ -73,7 +74,9 @@ export class BeachballHelp extends Help {
   }
 
   /**
-   * Include the top-level command's options in each subcommand's help.
+   * Include the top-level command's options in each subcommand's help, excluding options that
+   * are only shown for certain subcommands not including the current one.
+   *
    * For the top-level command, if it has subcommands, only show "common" options and built-ins.
    *
    * (To match old behavior, all options are allowed on all commands, but we only add them to the
@@ -81,17 +84,27 @@ export class BeachballHelp extends Help {
    */
   override visibleOptions(cmd: Command): Option[] {
     const options = super.visibleOptions(cmd);
+    // cmd will be a BeachballCommand in real cases, but maybe not for tests
+    // (don't use instanceof to avoid a circular file reference)
+    const beachballCmd = cmd.constructor.name === 'BeachballCommand' ? (cmd as BeachballCommand) : undefined;
     if (!cmd.parent) {
       // For the actual top-level beachball command, omit extra options, but allow them for tests
-      return cmd.commands.length
+      return cmd.commands.length && beachballCmd
         ? options.filter(opt => (opt as BeachballOption).group === 'common' || builtInCommands.includes(opt.name()))
         : options;
     }
 
     // Collect visible options declared on the top-level command
-    const globalOptions = super
-      .visibleOptions(cmd.parent?.parent || cmd.parent)
-      .filter(opt => !builtInCommands.includes(opt.name()));
+    const cmdName = cmd.name();
+    const globalOptions = super.visibleOptions(cmd.parent?.parent || cmd.parent).filter(opt => {
+      if (builtInCommands.includes(opt.name())) return false;
+      if (opt instanceof BeachballOption) {
+        if (opt.onlyCommands && !opt.onlyCommands.includes(cmdName)) return false;
+        if (beachballCmd?.hideMostOptions && opt.group !== 'common' && !opt.onlyCommands?.includes(cmdName))
+          return false;
+      }
+      return true;
+    });
 
     // As of writing, subcommands only have the built-in help option, which goes last
     return [...globalOptions, ...options];
