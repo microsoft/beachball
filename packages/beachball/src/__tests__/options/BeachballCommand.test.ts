@@ -11,9 +11,8 @@ describe('BeachballCommand', () => {
     /** Build a command with a standard subset of options */
     function buildCommand(outputOptions?: OutputConfiguration) {
       return BeachballCommand.initProgram({
-        name: 'beachball',
+        name: 'test',
         desc: '',
-        commands: {},
         outputOptions,
         options: {
           branch: { type: 'string', short: 'b', desc: 'target branch' },
@@ -35,7 +34,7 @@ describe('BeachballCommand', () => {
 
     /** Build a command with a standard subset of options and parse the given arguments */
     function buildAndParseOpts(args: string[]) {
-      return buildCommand().parse(args, { from: 'user' }).options;
+      return buildCommand().beachballParse(args, { from: 'user' }).options;
     }
 
     /** Parse args that should throw an error, verify it throws, and return the message */
@@ -44,7 +43,7 @@ describe('BeachballCommand', () => {
       const command = buildCommand(outputOptions);
       let error: unknown;
       try {
-        command.parse(args, { from: 'user' });
+        command.beachballParse(args, { from: 'user' });
       } catch (err) {
         error = err;
       }
@@ -190,7 +189,7 @@ describe('BeachballCommand', () => {
         desc: '',
         commands: testCommands,
         options: testOptions,
-      }).parse(args, { from: 'user' });
+      }).beachballParse(args, { from: 'user' });
     }
 
     /** Parse args that should throw, verify it throws a CommanderError, and return the message. */
@@ -205,7 +204,7 @@ describe('BeachballCommand', () => {
       });
       let error: unknown;
       try {
-        program.parse(args, { from: 'user' });
+        program.beachballParse(args, { from: 'user' });
       } catch (err) {
         error = err;
       }
@@ -222,7 +221,7 @@ describe('BeachballCommand', () => {
         commands: testCommands,
         options: testOptions,
       });
-      const names = program.command.commands.map(c => c.name());
+      const names = program.commands.map(c => c.name());
       expect(names).toEqual(['change', 'publish', 'canary', 'config']);
     });
 
@@ -312,7 +311,7 @@ describe('BeachballCommand', () => {
         version: '1.2.3',
         outputOptions,
       });
-      expect(() => program.parse(['--version'], { from: 'user' })).toThrow(CommanderError);
+      expect(() => program.beachballParse(['--version'], { from: 'user' })).toThrow(CommanderError);
       expect(outputOptions.writeErr).not.toHaveBeenCalled();
       expect(outputOptions.writeOut).toHaveBeenCalledTimes(1);
       expect(outputOptions.writeOut.mock.calls[0][0]).toBe('1.2.3\n');
@@ -325,19 +324,14 @@ describe('BeachballCommand', () => {
         commands: { change: { desc: 'create change files', isDefault: true } },
         options: {},
       });
-      expect(program.command.helpInformation()).not.toContain('--version');
+      expect(program.helpInformation()).not.toContain('--version');
     });
   });
 
   describe('help', () => {
     function getOptionsHelpText(options: OptionDefinitions) {
-      const command = BeachballCommand.initProgram({
-        name: 'beachball',
-        desc: '',
-        commands: {},
-        options,
-      });
-      return command.command.helpOption(false).helpInformation().split('Options:\n')[1].trimEnd();
+      const command = BeachballCommand.initProgram({ name: 'beachball', desc: '', options });
+      return command.helpOption(false).helpInformation().split('Options:\n')[1].trimEnd();
     }
 
     it('handles string option with no default', () => {
@@ -396,7 +390,7 @@ describe('BeachballCommand', () => {
         },
         options: {},
       });
-      const commandsHelp = program.command.helpInformation();
+      const commandsHelp = program.helpInformation();
       expect(commandsHelp).toContain('create change files');
       expect(commandsHelp).toContain('publish packages');
       expect(commandsHelp).not.toContain('canary');
@@ -415,7 +409,7 @@ describe('BeachballCommand', () => {
 
       // Options are only declared on the parent program, but they show in child command help too
       // (see BeachballHelp.visibleOptions).
-      expect(program.command.commands[0].helpInformation()).toMatchInlineSnapshot(`
+      expect(program.commands[0].helpInformation()).toMatchInlineSnapshot(`
         "Usage: beachball change [options]
 
         create change files
@@ -423,6 +417,8 @@ describe('BeachballCommand', () => {
         Options:
           --package <value>           some package
           --[no-]disallow-deleted-change-files - disallow delete
+
+        Common options:
           -h, --help                  display help for command
         "
       `);
