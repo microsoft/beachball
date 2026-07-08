@@ -8,7 +8,8 @@ if (!packageRoot) {
   console.error('Unable to find package root from', process.cwd());
   process.exit(1);
 }
-// For compatibility with prior setup, don't use .mjs extension on actions.
+// Don't use .mjs extension on actions (mainly to avoid touching a generated file and re-triggering
+// a bunch of meaningless alerts).
 // Use an explicit .mjs extension on the other bundles since they may be copied.
 const useMjs = !fs.existsSync(path.join(packageRoot, 'action.yaml'));
 

@@ -41,11 +41,11 @@ The CLI has two commands:
 
 Every option can be passed as a command-line flag or through the matching environment variable (a flag takes precedence over its environment variable).
 
-#### Token command
+#### `create` command
 
-The `token` command creates a GitHub App installation token with the given options, and outputs it either to stdout (default) or to an Azure Pipelines secret variable.
+The `create` command creates a GitHub App installation token with the given options, and outputs it either to stdout (default) or to an Azure Pipelines secret variable.
 
-None of the `token` options are secrets. All values can also be specified as environment variables, e.g. `APP_CLIENT_ID` for `--app-client-id`.
+None of the `create` options are secrets. All values can also be specified as environment variables, e.g. `APP_CLIENT_ID` for `--app-client-id`.
 
 <!-- prettier-ignore -->
 | Flag | Description |
@@ -58,7 +58,7 @@ None of the `token` options are secrets. All values can also be specified as env
 | `--azure-token-variable` | Azure Pipelines variable name used for the secret token output. Required for `--output azure`/`azure-pipelines`. |
 | `--github-api-url` | (optional) GitHub REST API URL. Defaults to `https://api.github.com`. |
 
-#### Revoke command
+#### `revoke` command
 
 Run the `revoke` command to revoke a token by calling `DELETE /installation/token` and exit immediately. This does not require Azure CLI authentication, `--app-client-id`, or `--key-id` — the token authenticates its own revocation. Use it in a pipeline cleanup step with `condition: always()` to revoke tokens even on failure.
 

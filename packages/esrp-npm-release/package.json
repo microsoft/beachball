@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "license": "UNLICENSED",
   "description": "ESRP npm release helper",
-  "bin": "bin/esrp-npm-release.js",
+  "bin": "bin/esrp-npm-release.mjs",
   "private": true,
   "exports": {
     ".": null
