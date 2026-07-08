@@ -1,6 +1,7 @@
 import { InvalidArgumentError, Option } from 'commander';
 import type { CliOptions } from '../types/BeachballOptions';
-import { optionGroups, type OptionDefinition, type OptionGroup, type OptionType } from './optionDefinitions';
+import { optionGroups, type OptionDefinition, type OptionType } from './optionDefinitions';
+import type { CommandName } from './commandDefinitions';
 
 declare module 'commander' {
   interface Option {
@@ -41,16 +42,12 @@ const valueSyntax: Record<OptionType, string> = {
  * handling of other behaviors from `OptionDefinition`.
  */
 export class BeachballOption extends Option {
-  public readonly group: OptionGroup | undefined;
-  /** The option is only shown in help for these command names */
-  public readonly commands: readonly string[] | true;
-
+  private readonly _def: Pick<OptionDefinition, 'desc' | 'group' | 'commands'>;
   /** All long and short flag spellings for this item */
   private readonly _allFlags = new Set<string>();
-  private readonly _descriptionForCommand?: (cmdName: string | undefined) => string;
 
   constructor(params: BeachballOptionParams) {
-    const { name: canonicalName, alias, type = 'string', negated, defaultValue, desc } = params;
+    const { name: canonicalName, alias, type = 'string', negated, defaultValue } = params;
 
     if (alias && (type === 'number' || params.parse)) {
       // If the user provided the invalid value with the canonical option name (not the alias),
@@ -69,15 +66,6 @@ export class BeachballOption extends Option {
       `${maybeShort}${prefix}${_toDashed(alias || canonicalName)}${valueSyntax[type] ? ` ${valueSyntax[type]}` : ''}`
     );
 
-    this.description = typeof desc === 'function' ? desc(undefined) : desc;
-    this._descriptionForCommand = typeof desc === 'function' ? desc : undefined;
-
-    // Save the default value (if any) to show at the end of the help text, but don't set it as
-    // commander's actual default to preserve precedence (CLI > config file > default).
-    if (!negated && !([null, undefined, ''] as unknown[]).includes(defaultValue)) {
-      this.defaultValueDescription = JSON.stringify(defaultValue);
-    }
-
     // Store all flag variants for option matching (negated if appropriate):
     // -f, --foo-bar, --fooBar, --some-alias, --someAlias
     this.short && this._allFlags.add(this.short);
@@ -86,19 +74,21 @@ export class BeachballOption extends Option {
     alias && this._allFlags.add(`${prefix}${_toDashed(alias)}`);
     alias && this._allFlags.add(`${prefix}${alias}`);
 
-    if (alias) {
-      // Store the aliased option value under the canonical attribute
-      this.attributeName = () => canonicalName;
+    // Store the aliased option value under the canonical attribute
+    alias && (this.attributeName = () => canonicalName);
+
+    if (negated) {
+      // Negated options are hidden since BeachballHelp automatically adds `--[no-]`
+      this.hideHelp();
+    } else if (!([null, undefined, ''] as unknown[]).includes(defaultValue)) {
+      // Save the default value (if any) to show at the end of the help text, but don't set it as
+      // commander's actual default to preserve precedence (CLI > config file > default).
+      this.defaultValueDescription = JSON.stringify(defaultValue);
     }
 
-    // Negated options are hidden since BeachballHelp automatically adds `--[no-]`
-    negated && this.hideHelp();
-
+    this._def = { desc: params.desc, group: params.group, commands: params.commands };
     params.choices && this.choices(params.choices);
     params.conflicts && this.conflicts(params.conflicts as string[]);
-    this.commands = params.commands;
-    this.group = params.group;
-    this.helpGroup(optionGroups[params.group || 'default']);
 
     const parser = params.parse || (type === 'number' ? _parseNumber : undefined);
     parser && this.argParser(parser);
@@ -108,11 +98,27 @@ export class BeachballOption extends Option {
     return this._allFlags.has(arg);
   }
 
-  /** If this option has a custom description function, set the description for the given command. */
-  public setDescriptionForCommand(cmdName: string): void {
-    if (this._descriptionForCommand) {
-      this.description = this._descriptionForCommand(cmdName);
-    }
+  /**
+   * Get a command-specific description for this option.
+   *
+   * NOTE: BeachballHelp will set `description` as a side effect while generating a command
+   * description, due to internals of the default help formatting.
+   */
+  public getDescriptionForCommand(subcommand: string | undefined): string {
+    return typeof this._def.desc === 'function' ? this._def.desc(subcommand) : this._def.desc;
+  }
+
+  /** Get which group this option goes in for the given command. */
+  public getHelpGroupHeading(subcommand: string | undefined): string {
+    const groupDef = this._def.group;
+    return optionGroups[typeof groupDef === 'function' ? groupDef(subcommand) : groupDef];
+  }
+
+  /** Returns whether this option applies to the given subcommand (probably a {@link CommandName}) */
+  public appliesToCommand(subcommand: string | undefined): boolean {
+    return typeof this._def.commands === 'function'
+      ? this._def.commands(subcommand)
+      : !!subcommand && this._def.commands.includes(subcommand as CommandName);
   }
 }
 

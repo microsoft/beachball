@@ -3,7 +3,7 @@ import { CommanderError, type OutputConfiguration } from 'commander';
 import { BeachballCommand, type ParsedCommandResult } from '../../options/BeachballCommand';
 import { _defaultHelpWidth } from '../../options/BeachballHelp';
 import type { CommandDefinition } from '../../options/commandDefinitions';
-import { makeOptions, type OptionDefinitions } from '../../options/optionDefinitions';
+import { makeOptions, type OptionDefinition, type OptionDefinitions } from '../../options/optionDefinitions';
 
 describe('BeachballCommand', () => {
   describe('option parsing', () => {
@@ -13,7 +13,7 @@ describe('BeachballCommand', () => {
         name: 'test',
         desc: '',
         outputOptions,
-        options: makeOptions(true, {
+        options: makeOptions('primary', () => true, {
           branch: { short: 'b', desc: 'target branch' },
           changeDir: { desc: 'change directory' },
           configPath: { alias: 'config', desc: 'config path' },
@@ -163,8 +163,8 @@ describe('BeachballCommand', () => {
   });
 
   describe('commands', () => {
-    const testOptions = makeOptions(true, {
-      tag: { type: 'string', short: 't', desc: 'npm dist-tag' },
+    const testOptions = makeOptions('primary', () => true, {
+      tag: { short: 't', desc: 'npm dist-tag' },
       package: { type: 'array', short: 'p', desc: 'packages' },
     });
 
@@ -328,6 +328,8 @@ describe('BeachballCommand', () => {
   });
 
   describe('help', () => {
+    const common: Pick<OptionDefinition, 'group' | 'commands'> = { group: 'primary', commands: () => true };
+
     function getOptionsHelpText(options: OptionDefinitions) {
       const command = BeachballCommand.initProgram({ name: 'beachball', desc: '', options });
       return command.helpOption(false).helpInformation().split('Options:\n')[1].trimEnd();
@@ -335,7 +337,7 @@ describe('BeachballCommand', () => {
 
     it('handles string option with no default', () => {
       const optionsHelp = getOptionsHelpText({
-        message: { type: 'string', desc: 'commit message', short: 'm', commands: true },
+        message: { desc: 'commit message', short: 'm', ...common },
       });
       expect(optionsHelp).toMatchInlineSnapshot(`"  -m, --message <value>  commit message"`);
     });
@@ -343,28 +345,28 @@ describe('BeachballCommand', () => {
     it('handles string option with default', () => {
       // the default is defined in getDefaultOptions
       const optionsHelp = getOptionsHelpText({
-        changeDir: { type: 'string', desc: 'change file directory', commands: true },
+        changeDir: { desc: 'change file directory', ...common },
       });
       expect(optionsHelp).toMatchInlineSnapshot(`"  --change-dir <value>  change file directory (default: "change")"`);
     });
 
     it('handles string option with alias', () => {
       const optionsHelp = getOptionsHelpText({
-        configPath: { type: 'string', desc: 'config path', alias: 'config', short: 'c', commands: true },
+        configPath: { desc: 'config path', alias: 'config', short: 'c', ...common },
       });
       expect(optionsHelp).toMatchInlineSnapshot(`"  -c, --config <value>  config path"`);
     });
 
     it('omits getDefaultOptions default if description includes "(default:"', () => {
       const optionsHelp = getOptionsHelpText({
-        branch: { type: 'string', desc: 'target branch (default: something custom)', commands: true },
+        branch: { desc: 'target branch (default: something custom)', ...common },
       });
       expect(optionsHelp).toMatchInlineSnapshot(`"  --branch <value>  target branch (default: something custom)"`);
     });
 
     it('handles boolean option (including negated form)', () => {
       const optionsHelp = getOptionsHelpText({
-        fetch: { type: 'boolean', desc: 'fetch first', commands: true },
+        fetch: { type: 'boolean', desc: 'fetch first', ...common },
       });
       // the option is technically added twice but shown once
       expect(optionsHelp).toMatchInlineSnapshot(`"  --[no-]fetch  fetch first (default: true)"`);
@@ -372,7 +374,7 @@ describe('BeachballCommand', () => {
 
     it('handles boolean option with alias', () => {
       const optionsHelp = getOptionsHelpText({
-        gitTags: { type: 'boolean', desc: 'create git tags', alias: 'tags', short: 't', commands: true },
+        gitTags: { type: 'boolean', desc: 'create git tags', alias: 'tags', short: 't', ...common },
       });
       // note: --tags and -t are NOT actually used for --git-tags
       expect(optionsHelp).toMatchInlineSnapshot(`"  -t, --[no-]tags  create git tags (default: true)"`);
@@ -400,10 +402,10 @@ describe('BeachballCommand', () => {
         name: 'beachball',
         desc: '',
         commands: { change: { desc: 'create change files', isDefault: true } },
-        options: {
+        options: makeOptions('primary', () => true, {
           package: { desc: 'some package', commands: ['change'] },
           disallowDeletedChangeFiles: { type: 'boolean', desc: 'disallow delete', commands: ['change'] },
-        },
+        }),
       });
 
       // Options are only declared on the parent program, but they show in child command help too
@@ -431,11 +433,11 @@ describe('BeachballCommand', () => {
           change: { desc: 'change files', isDefault: true },
           bump: { desc: 'bump versions' },
         },
-        options: {
-          changeDir: { desc: 'change directory', group: 'common', commands: true },
+        options: makeOptions('primary', () => true, {
+          changeDir: { desc: 'change directory', group: 'common' },
           package: { type: 'array', desc: 'package(s)', commands: ['bump'] },
           tag: { desc: 'tag', commands: ['change'] },
-        },
+        }),
       });
       const bumpHelp = program.commands[1].helpInformation();
       expect(bumpHelp).toContain('beachball bump');
@@ -457,12 +459,12 @@ describe('BeachballCommand', () => {
             },
           },
         },
-        options: {
-          changeDir: { desc: 'change directory', group: 'common', commands: true },
+        options: makeOptions('primary', () => true, {
+          changeDir: { desc: 'change directory', group: 'common' },
           package: { type: 'array', desc: 'package(s)', commands: ['config get'] },
           tag: { desc: 'tag', commands: ['config list'] },
           access: { desc: 'access', commands: ['config'] },
-        },
+        }),
       });
       const config = program.commands.find(cmd => cmd.name() === 'config')!;
       const configGetHelp = config.commands.find(cmd => cmd.name() === 'get')!.helpInformation();

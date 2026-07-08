@@ -20,9 +20,20 @@ export const _defaultHelpWidth = 100;
 /** help and version */
 const isBuiltInOption = (option: Option) => ['help', 'version'].includes(option.name());
 
+// don't use instanceof to avoid a circular file reference
+const isBeachballCommand = (cmd: Command): cmd is BeachballCommand => cmd.constructor.name === 'BeachballCommand';
+
+/**
+ * Get the complete name for this subcommand, e.g. `config get` or `bump`.
+ * Returns an empty string for the top-level command.
+ */
+export function getSubcommandName(cmd: Command): string {
+  return cmd.parent ? (cmd.parent.parent ? `${cmd.parent.name()} ${cmd.name()}` : cmd.name()) : '';
+}
+
 export class BeachballHelp extends Help {
-  /** Command name currently being described */
-  private _currentCommand: string | undefined;
+  /** full subcommand currently being described (e.g. `bump` or `config get`) */
+  private _subcommandForOptionDescription: string | undefined;
 
   constructor() {
     super();
@@ -33,7 +44,7 @@ export class BeachballHelp extends Help {
 
   override commandDescription(cmd: Command): string {
     // hack to save current command to use in determining option descriptions
-    this._currentCommand = cmd.name();
+    this._subcommandForOptionDescription = getSubcommandName(cmd);
     return super.commandDescription(cmd);
   }
 
@@ -42,7 +53,8 @@ export class BeachballHelp extends Help {
       return super.optionDescription(option);
     }
     // For options with command-specific descriptions, update as a side effect
-    this._currentCommand && option.setDescriptionForCommand(this._currentCommand);
+    // (super.optionDescription() reads option.description)
+    option.description = option.getDescriptionForCommand(this._subcommandForOptionDescription);
 
     // For BeachballOption, default values are only included in the description, not set as
     // actual defaults, so we have to manually add the default description.
@@ -85,23 +97,23 @@ export class BeachballHelp extends Help {
    */
   override visibleOptions(cmd: Command): Option[] {
     const options = super.visibleOptions(cmd);
-    // cmd will be a BeachballCommand in real cases, but maybe not for tests
-    // (don't use instanceof to avoid a circular file reference)
-    const beachballCmd = cmd.constructor.name === 'BeachballCommand' ? (cmd as BeachballCommand) : undefined;
     if (!cmd.parent) {
       // For the actual top-level beachball command, omit extra options, but allow them for tests
-      return cmd.commands.length && beachballCmd
-        ? options.filter(opt => (opt as BeachballOption).group === 'common' || isBuiltInOption(opt))
+      // (cmd will be a BeachballCommand in real cases, but maybe not for tests)
+      return cmd.commands.length && isBeachballCommand(cmd)
+        ? options.filter(
+            opt => isBuiltInOption(opt) || (opt instanceof BeachballOption && opt.appliesToCommand(undefined))
+          )
         : options;
     }
 
     // Collect visible options declared on the top-level command
-    const subcommandName = beachballCmd?.subcommandName || cmd.name();
+    const subcommandName = getSubcommandName(cmd);
     const globalOptions = super.visibleOptions(cmd.parent?.parent || cmd.parent).filter(opt => {
       // Don't duplicate built-in options with inherited ones
       if (isBuiltInOption(opt)) return false;
       // Only show inherited options that are always applicable or specified for this command
-      return !(opt instanceof BeachballOption) || opt.commands === true || opt.commands.includes(subcommandName);
+      return !(opt instanceof BeachballOption) || opt.appliesToCommand(subcommandName);
     });
 
     // As of writing, subcommands only have the built-in help option, which goes last
@@ -119,7 +131,11 @@ export class BeachballHelp extends Help {
     }
 
     const groups = super.groupItems(unsortedItems, visibleItems, item =>
-      isBuiltInOption(item as Option) ? optionGroups.common : getGroup(item)
+      isBuiltInOption(item as Option)
+        ? optionGroups.common
+        : item instanceof BeachballOption
+          ? item.getHelpGroupHeading(this._subcommandForOptionDescription)
+          : getGroup(item)
     );
 
     // Sort the groups: anything not listed goes first, followed by groups in the listed order.

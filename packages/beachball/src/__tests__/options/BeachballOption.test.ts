@@ -33,10 +33,8 @@ describe('_parseNumber', () => {
 
 describe('BeachballOption', () => {
   /** make a BeachballOption applied to all commands and with an empty description */
-  function makeBeachballOption(
-    params: Omit<BeachballOptionParams, 'commands' | 'desc'> & Partial<BeachballOptionParams>
-  ) {
-    return new BeachballOption({ commands: true, desc: '', ...params });
+  function makeBeachballOption(params: { name: string } & Partial<BeachballOptionParams>) {
+    return new BeachballOption({ commands: () => true, group: 'primary', desc: '', ...params });
   }
 
   it('builds a string option with short flag and value placeholder', () => {
@@ -44,7 +42,8 @@ describe('BeachballOption', () => {
     expect(option.flags).toBe('-b, --branch <value>');
     expect(option.short).toBe('-b');
     expect(option.long).toBe('--branch');
-    expect(option.description).toBe('target branch');
+    expect(option.description).toBe('');
+    expect(option.getDescriptionForCommand(undefined)).toBe('target branch');
   });
 
   it('converts camelCase names to dashed flags', () => {
@@ -143,19 +142,45 @@ describe('BeachballOption', () => {
     expect((option as { conflictsWith?: string[] }).conflictsWith).toEqual(['bump']);
   });
 
+  it('applies desc function', () => {
+    const desc = (cmd: string | undefined) => (cmd === 'change' ? 'change description' : 'commit message');
+    const option = makeBeachballOption({ name: 'message', desc });
+    expect(option.getDescriptionForCommand(undefined)).toBe('commit message');
+    expect(option.getDescriptionForCommand('publish')).toBe('commit message');
+    expect(option.getDescriptionForCommand('change')).toBe('change description');
+  });
+
   it('applies option group param', () => {
     const option = makeBeachballOption({ name: 'tag', group: 'npm' });
-    expect(option.group).toBe('npm');
-    expect(option.helpGroupHeading).toBe(optionGroups.npm);
+    expect(option.getHelpGroupHeading(undefined)).toBe(optionGroups.npm);
+    expect(option.getHelpGroupHeading('change')).toBe(optionGroups.npm);
+  });
+
+  it('applies option group function', () => {
+    const option = makeBeachballOption({ name: 'tag', group: cmd => (cmd === 'change' ? 'common' : 'npm') });
+    expect(option.getHelpGroupHeading(undefined)).toBe(optionGroups.npm);
+    expect(option.getHelpGroupHeading('change')).toBe(optionGroups.common);
   });
 
   it('applies commands param', () => {
-    const option = new BeachballOption({
+    const option = makeBeachballOption({
       name: 'message',
       desc: 'commit message',
       commands: ['change', 'publish'],
     });
-    expect(option.commands).toEqual(['change', 'publish']);
+    expect(option.appliesToCommand('change')).toBe(true);
+    expect(option.appliesToCommand('publish')).toBe(true);
+    expect(option.appliesToCommand('bump')).toBe(false);
+  });
+
+  it('applies commands function', () => {
+    const option = makeBeachballOption({
+      name: 'message',
+      desc: 'commit message',
+      commands: cmd => !!cmd?.startsWith('c'),
+    });
+    expect(option.appliesToCommand('change')).toBe(true);
+    expect(option.appliesToCommand('publish')).toBe(false);
   });
 
   it('applies custom parser for string type', () => {
@@ -168,11 +193,5 @@ describe('BeachballOption', () => {
     const parse = (value: unknown) => parseInt(value as string, 16);
     const option = makeBeachballOption({ name: 'depth', type: 'number', parse });
     expect(option.parseArg?.('10', undefined)).toBe(16);
-  });
-
-  it('initializes description using desc(undefined) for a function desc', () => {
-    const desc = (cmd: string | undefined) => (cmd === 'change' ? 'change description' : 'commit message');
-    const option = makeBeachballOption({ name: 'message', desc });
-    expect(option.description).toBe('commit message');
   });
 });

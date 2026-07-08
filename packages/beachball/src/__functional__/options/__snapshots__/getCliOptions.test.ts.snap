@@ -3,23 +3,30 @@
 exports[`getCliOptions shows "bump" command help text 1`] = `
 "Usage: beachball bump [options]
 
-bump versions and generate changelogs, but don't commit or publish
+Bump versions and generate changelogs, but don't commit or publish
 
 Options:
+  --[no-]bump-deps            bump packages that depend on changed packages (default: true)
+  --prerelease-prefix <value> prerelease prefix for packages that will receive a prerelease bump
+  --[no-]keep-change-files    don't delete the change files from disk after bumping
+
+Change detection options:
   -b, --branch <value>        target branch from remote (default: the default remote branch)
-  --since <value>             consider changes or change files since this git ref (branch name,
-                                commit SHA)
+  --since <value>             consider change files since this git ref (branch name, commit SHA)
   --[no-]fetch                fetch from the remote before determining changes (default: true)
   --depth <num>               for shallow clones: depth of git history to consider when fetching
+
+Package filtering options:
+  --scope <value...>          only consider package paths matching the pattern(s) (supports
+                                "!negations")
+
+Validation options:
   --disallowed-change-types <value...> - change types that are not allowed (choices: "none",
                                 "prerelease", "prepatch", "patch", "preminor", "minor", "premajor",
                                 "major")
-  --change-dir <value>        name of the directory to store change files (default: "change")
-  --[no-]bump-deps            bump dependent packages during publish (default: true)
-  --prerelease-prefix <value> prerelease prefix for packages that will receive a prerelease bump
-  --[no-]keep-change-files    don't delete the change files from disk after bumping
-  --scope <value...>          only consider package paths matching the pattern(s) (supports
-                                "!negations")
+
+Advanced options:
+  --change-dir <value>        directory name or path to store change files (default: "change")
   --concurrency <num>         maximum concurrency for write operations (hook calls, npm publish,
                                 default: 1)
 
@@ -33,24 +40,26 @@ Common options:
 exports[`getCliOptions shows "canary" command help text 1`] = `
 "Usage: beachball canary [options]
 
-publish prerelease versions of changed or all packages without committing
+Publish prerelease versions of changed or all packages without committing
 
 Options:
+  --canary-name <value>       dist-tag and version name to use for canary publishes
+
+Change detection options:
   -b, --branch <value>        target branch from remote (default: the default remote branch)
-  --since <value>             consider changes or change files since this git ref (branch name,
-                                commit SHA)
+  --since <value>             consider change files since this git ref (branch name, commit SHA)
   --[no-]fetch                fetch from the remote before determining changes (default: true)
   --depth <num>               for shallow clones: depth of git history to consider when fetching
-  --disallowed-change-types <value...> - change types that are not allowed (choices: "none",
-                                "prerelease", "prepatch", "patch", "preminor", "minor", "premajor",
-                                "major")
-  --change-dir <value>        name of the directory to store change files (default: "change")
+
+Package filtering options:
   --scope <value...>          only consider package paths matching the pattern(s) (supports
                                 "!negations")
   --[no-]all                  publish prerelease versions of all packages (default: false)
-  --concurrency <num>         maximum concurrency for write operations (hook calls, npm publish,
-                                default: 1)
-  --canary-name <value>       dist-tag and version name to use for canary publishes
+
+Validation options:
+  --disallowed-change-types <value...> - change types that are not allowed (choices: "none",
+                                "prerelease", "prepatch", "patch", "preminor", "minor", "premajor",
+                                "major")
 
 npm options:
   -r, --registry <value>      npm registry (default: "https://registry.npmjs.org/")
@@ -67,6 +76,11 @@ npm options:
   --pack-to-path <value>      pack packages to tgz files under this path instead of publishing to
                                 npm
 
+Advanced options:
+  --change-dir <value>        directory name or path to store change files (default: "change")
+  --concurrency <num>         maximum concurrency for write operations (hook calls, npm publish,
+                                default: 1)
+
 Common options:
   -c, --config <value>        custom beachball config path (default: cosmiconfig standard paths)
   --[no-]verbose              print additional information to the console
@@ -77,31 +91,38 @@ Common options:
 exports[`getCliOptions shows "change" command help text 1`] = `
 "Usage: beachball change [options]
 
-create change files for this branch
+Create change files for this branch
 
 Options:
+  -m, --message <value>       the change description
+  --type <value>              type of change (instead of prompting) (choices: "none", "prerelease",
+                                "prepatch", "patch", "preminor", "minor", "premajor", "major")
+  -p, --package <value...>    force creating a change file for the specified package(s)
+  --[no-]commit               commit change files after "change" (default: true)
+  --dependent-change-type <value> - change type to use for dependent packages (default: patch)
+                                (choices: "none", "prerelease", "prepatch", "patch", "preminor",
+                                "minor", "premajor", "major")
+
+Change detection options:
   -b, --branch <value>        target branch from remote (default: the default remote branch)
-  --since <value>             consider changes or change files since this git ref (branch name,
-                                commit SHA)
+  --since <value>             consider changes since this git ref (branch name, commit SHA)
   --[no-]fetch                fetch from the remote before determining changes (default: true)
   --depth <num>               for shallow clones: depth of git history to consider when fetching
+
+Package filtering options:
+  --scope <value...>          only consider package paths matching the pattern(s) (supports
+                                "!negations")
+  --[no-]all                  generate change files for all packages (default: false)
+
+Validation options:
   --disallowed-change-types <value...> - change types that are not allowed (choices: "none",
                                 "prerelease", "prepatch", "patch", "preminor", "minor", "premajor",
                                 "major")
   --[no-]disallow-deleted-change-files - verify that no change files were deleted between head and
                                 target branch
-  --change-dir <value>        name of the directory to store change files (default: "change")
-  --scope <value...>          only consider package paths matching the pattern(s) (supports
-                                "!negations")
-  --[no-]all                  generate change files for all packages (default: false)
-  -p, --package <value...>    force creating a change file for the specified package(s)
-  -m, --message <value>       the change description
-  --type <value>              type of change (instead of prompting) (choices: "none", "prerelease",
-                                "prepatch", "patch", "preminor", "minor", "premajor", "major")
-  --dependent-change-type <value> - change type to use for dependent packages (default: patch)
-                                (choices: "none", "prerelease", "prepatch", "patch", "preminor",
-                                "minor", "premajor", "major")
-  --[no-]commit               commit change files after "change" (default: true)
+
+Advanced options:
+  --change-dir <value>        directory name or path to store change files (default: "change")
 
 Common options:
   -c, --config <value>        custom beachball config path (default: cosmiconfig standard paths)
@@ -113,24 +134,31 @@ Common options:
 exports[`getCliOptions shows "check" command help text 1`] = `
 "Usage: beachball check [options]
 
-check whether a change file is needed for this branch
+Check whether a change file is needed for this branch
 
 Options:
+  --changehint <value>        customized hint message shown when a change file is needed but missing
+                                (default: "Run \\"beachball change\\" to create a change file")
+
+Change detection options:
   -b, --branch <value>        target branch from remote (default: the default remote branch)
-  --since <value>             consider changes or change files since this git ref (branch name,
-                                commit SHA)
+  --since <value>             consider changes since this git ref (branch name, commit SHA)
   --[no-]fetch                fetch from the remote before determining changes (default: true)
   --depth <num>               for shallow clones: depth of git history to consider when fetching
+
+Package filtering options:
+  --scope <value...>          only consider package paths matching the pattern(s) (supports
+                                "!negations")
+
+Validation options:
   --disallowed-change-types <value...> - change types that are not allowed (choices: "none",
                                 "prerelease", "prepatch", "patch", "preminor", "minor", "premajor",
                                 "major")
   --[no-]disallow-deleted-change-files - verify that no change files were deleted between head and
                                 target branch
-  --changehint <value>        customized hint message shown when a change file is needed but missing
-                                (default: "Run \\"beachball change\\" to create a change file")
-  --change-dir <value>        name of the directory to store change files (default: "change")
-  --scope <value...>          only consider package paths matching the pattern(s) (supports
-                                "!negations")
+
+Advanced options:
+  --change-dir <value>        directory name or path to store change files (default: "change")
 
 Common options:
   -c, --config <value>        custom beachball config path (default: cosmiconfig standard paths)
@@ -142,7 +170,7 @@ Common options:
 exports[`getCliOptions shows "config get" command help text 1`] = `
 "Usage: beachball config get [options] <name>
 
-get the value of a config setting (with any overrides)
+Get the value of a config setting (with any overrides)
 
 Arguments:
   name                  beachball config setting name
@@ -157,7 +185,7 @@ Common options:
 exports[`getCliOptions shows "config list" command help text 1`] = `
 "Usage: beachball config list [options]
 
-list all config settings (with any overrides)
+List all config settings (with any overrides)
 
 Common options:
   -c, --config <value>  custom beachball config path (default: cosmiconfig standard paths)
@@ -169,11 +197,11 @@ Common options:
 exports[`getCliOptions shows "config" command help text 1`] = `
 "Usage: beachball config <get|list>
 
-get or list config settings (requires a sub-command)
+Get or list config settings (requires a sub-command)
 
 Commands:
-  get <name>            get the value of a config setting (with any overrides)
-  list                  list all config settings (with any overrides)
+  get <name>            Get the value of a config setting (with any overrides)
+  list                  List all config settings (with any overrides)
   help [command]        display help for command
 
 Common options:
@@ -186,7 +214,7 @@ Common options:
 exports[`getCliOptions shows "init" command help text 1`] = `
 "Usage: beachball init [options]
 
-initialize a new beachball config file in the current directory
+Initialize a new beachball config file in the current directory
 
 npm options:
   -r, --registry <value>      npm registry (default: "https://registry.npmjs.org/")
@@ -206,7 +234,7 @@ Common options:
 exports[`getCliOptions shows "migrate" command help text 1`] = `
 "Usage: beachball migrate [options]
 
-help to migrate from beachball v2
+Help to migrate from beachball v2
 
 Common options:
   -c, --config <value>  custom beachball config path (default: cosmiconfig standard paths)
@@ -218,32 +246,36 @@ Common options:
 exports[`getCliOptions shows "publish" command help text 1`] = `
 "Usage: beachball publish [options]
 
-bump, publish to npm registry, and push updates back to the target branch
+Bump, publish to npm registry, and push updates back to the target branch
 
 Options:
-  -b, --branch <value>        target branch from remote (default: the default remote branch)
-  --since <value>             consider changes or change files since this git ref (branch name,
-                                commit SHA)
-  --[no-]fetch                fetch from the remote before determining changes (default: true)
-  --depth <num>               for shallow clones: depth of git history to consider when fetching
-  --disallowed-change-types <value...> - change types that are not allowed (choices: "none",
-                                "prerelease", "prepatch", "patch", "preminor", "minor", "premajor",
-                                "major")
-  --change-dir <value>        name of the directory to store change files (default: "change")
-  --[no-]bump-deps            bump dependent packages during publish (default: true)
-  --prerelease-prefix <value> prerelease prefix for packages that will receive a prerelease bump
-  --[no-]keep-change-files    don't delete the change files from disk after bumping
-  --scope <value...>          only consider package paths matching the pattern(s) (supports
-                                "!negations")
+  -m, --message <value>       version bump commit description
   --[no-]bump                 bump versions during publish (default: true)
   --[no-]publish              publish to the npm registry (default: true)
   --[no-]push                 push changes back to the remote git branch (default: true)
   -y, --[no-]yes              skip publish confirmation prompts (default: true in CI, false locally)
   --git-timeout <num>         timeout in ms for git push operations
   --[no-]git-tags             create git tags for each published package version (default: true)
-  -m, --message <value>       version bump commit description
-  --concurrency <num>         maximum concurrency for write operations (hook calls, npm publish,
-                                default: 1)
+
+Change detection options:
+  -b, --branch <value>        target branch from remote (default: the default remote branch)
+  --since <value>             consider change files since this git ref (branch name, commit SHA)
+  --[no-]fetch                fetch from the remote before determining changes (default: true)
+  --depth <num>               for shallow clones: depth of git history to consider when fetching
+
+Package filtering options:
+  --scope <value...>          only consider package paths matching the pattern(s) (supports
+                                "!negations")
+
+Validation options:
+  --disallowed-change-types <value...> - change types that are not allowed (choices: "none",
+                                "prerelease", "prepatch", "patch", "preminor", "minor", "premajor",
+                                "major")
+
+Versioning options:
+  --[no-]bump-deps            bump packages that depend on changed packages (default: true)
+  --prerelease-prefix <value> prerelease prefix for packages that will receive a prerelease bump
+  --[no-]keep-change-files    don't delete the change files from disk after bumping
 
 npm options:
   -r, --registry <value>      npm registry (default: "https://registry.npmjs.org/")
@@ -260,6 +292,11 @@ npm options:
   --pack-to-path <value>      pack packages to tgz files under this path instead of publishing to
                                 npm
 
+Advanced options:
+  --change-dir <value>        directory name or path to store change files (default: "change")
+  --concurrency <num>         maximum concurrency for write operations (hook calls, npm publish,
+                                default: 1)
+
 Common options:
   -c, --config <value>        custom beachball config path (default: cosmiconfig standard paths)
   --[no-]verbose              print additional information to the console
@@ -270,7 +307,7 @@ Common options:
 exports[`getCliOptions shows "sync" command help text 1`] = `
 "Usage: beachball sync [options]
 
-synchronize package versions from the registry with local package.json versions
+Synchronize package versions from the registry with local package.json versions
 
 Options:
   --scope <value...>          only consider package paths matching the pattern(s) (supports
@@ -300,13 +337,13 @@ exports[`getCliOptions shows top-level help text 1`] = `
 beachball vx.y.z - the sunniest version bumping tool
 
 Commands:
-  change                create change files for this branch
-  check                 check whether a change file is needed for this branch
-  bump                  bump versions and generate changelogs, but don't commit or publish
-  publish               bump, publish to npm registry, and push updates back to the target branch
-  sync                  synchronize package versions from the registry with local package.json
+  change                Create change files for this branch
+  check                 Check whether a change file is needed for this branch
+  bump                  Bump versions and generate changelogs, but don't commit or publish
+  publish               Bump, publish to npm registry, and push updates back to the target branch
+  sync                  Synchronize package versions from the registry with local package.json
                           versions
-  config <get|list>     get or list config settings (requires a sub-command)
+  config <get|list>     Get or list config settings (requires a sub-command)
   help [command]        display help for command
 
 Common options:

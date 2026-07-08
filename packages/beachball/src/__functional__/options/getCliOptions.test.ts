@@ -2,6 +2,7 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { findProjectRoot, resolveRemoteAndBranch } from 'workspace-tools';
 import { getCliOptions, type ProgramContext } from '../../options/getCliOptions';
 import { CommanderError } from 'commander';
+import { allCommandNames } from '../../options/commandDefinitions';
 
 jest.mock('workspace-tools', () => ({
   ...jest.requireActual<typeof import('workspace-tools')>('workspace-tools'),
@@ -155,19 +156,7 @@ describe('getCliOptions', () => {
     expect(outputOptions.writeOut.mock.calls[0][0]).toMatchSnapshot();
   });
 
-  it.each([
-    'change',
-    'check',
-    'publish',
-    'canary',
-    'bump',
-    'sync',
-    'init',
-    'config',
-    'config get',
-    'config list',
-    'migrate',
-  ])('shows "%s" command help text', cmdName => {
+  it.each(allCommandNames)('shows "%s" command help text', cmdName => {
     const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
     expect(() =>
       getCliOptionsTest({ args: [...cmdName.split(' '), '--help'], outputOptions, version: 'x.y.z' })

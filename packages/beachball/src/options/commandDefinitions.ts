@@ -21,35 +21,38 @@ export type MainCommandName =
 export type CommandName = MainCommandName | 'config get' | 'config list';
 
 export const commandDefinitions: Record<MainCommandName, CommandDefinition> = {
-  change: { desc: 'create change files for this branch', isDefault: true },
-  check: { desc: 'check whether a change file is needed for this branch' },
-  bump: { desc: "bump versions and generate changelogs, but don't commit or publish" },
-  publish: { desc: 'bump, publish to npm registry, and push updates back to the target branch' },
-  canary: { desc: 'publish prerelease versions of changed or all packages without committing', hidden: true },
+  change: { desc: 'Create change files for this branch', isDefault: true },
+  check: { desc: 'Check whether a change file is needed for this branch' },
+  bump: { desc: "Bump versions and generate changelogs, but don't commit or publish" },
+  publish: { desc: 'Bump, publish to npm registry, and push updates back to the target branch' },
+  canary: { desc: 'Publish prerelease versions of changed or all packages without committing', hidden: true },
   sync: {
-    desc: 'synchronize package versions from the registry with local package.json versions',
+    desc: 'Synchronize package versions from the registry with local package.json versions',
   },
   config: {
-    desc: 'get or list config settings (requires a sub-command)',
+    desc: 'Get or list config settings (requires a sub-command)',
     subcommands: {
       get: {
-        desc: 'get the value of a config setting (with any overrides)',
+        desc: 'Get the value of a config setting (with any overrides)',
         args: { '<name>': 'beachball config setting name' },
       },
-      list: { desc: 'list all config settings (with any overrides)' },
+      list: { desc: 'List all config settings (with any overrides)' },
     },
   },
   init: {
-    desc: 'initialize a new beachball config file in the current directory',
+    desc: 'Initialize a new beachball config file in the current directory',
     hidden: true,
   },
   migrate: {
-    desc: 'help to migrate from beachball v2',
+    desc: 'Help to migrate from beachball v2',
     hidden: true,
   },
 };
 
-/** Main subcommand names */
-export const mainCommandNames = Object.keys(commandDefinitions) as readonly MainCommandName[];
-/** All subcommand names including nested */
-export const allCommandNames: readonly CommandName[] = [...mainCommandNames, 'config get', 'config list'];
+const extraCommandNames = Object.keys({
+  'config get': true,
+  'config list': true,
+} satisfies Record<Exclude<CommandName, MainCommandName>, true>);
+
+/** All command names including nested */
+export const allCommandNames = [...Object.keys(commandDefinitions), ...extraCommandNames] as readonly CommandName[];

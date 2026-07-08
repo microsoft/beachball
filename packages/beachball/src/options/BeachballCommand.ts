@@ -1,7 +1,7 @@
 import { Command, type Help, type OptionValues, type OutputConfiguration, type ParseOptions } from 'commander';
 import { env } from '../env';
 import type { CliOptions } from '../types/BeachballOptions';
-import { BeachballHelp } from './BeachballHelp';
+import { BeachballHelp, getSubcommandName } from './BeachballHelp';
 import { BeachballOption } from './BeachballOption';
 import type { CommandDefinition } from './commandDefinitions';
 import { getDefaultOptions } from './getDefaultOptions';
@@ -63,14 +63,6 @@ export class BeachballCommand extends Command {
     super(name);
   }
 
-  /**
-   * Get the complete name for this subcommand, e.g. `config get` or `bump`.
-   * Returns an empty string for the top-level command.
-   */
-  public get subcommandName(): string {
-    return this.parent ? (this.parent.parent ? `${this.parent.name()} ${this.name()}` : this.name()) : '';
-  }
-
   /** Parse the arguments and return the parsing result. */
   public beachballParse(argv: string[], options?: ParseOptions): ParsedCommandResult {
     super.parse(argv, options);
@@ -101,7 +93,7 @@ export class BeachballCommand extends Command {
       // Currently the result is set as a side effect instead of having proper per-command action handlers.
       this.action(() => {
         this._result = {
-          command: this.subcommandName,
+          command: getSubcommandName(this),
           options: this.optsWithGlobals(),
           extraArgs: this.args,
         };
