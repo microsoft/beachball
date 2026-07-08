@@ -60,6 +60,10 @@ To migrate, simply remove the leading `!` from all `exclude` patterns.
 
 The logic for determining the comparison remote and branch is stricter: beachball now throws if no remotes are defined, or if the root `package.json` specifies a `repository` field but no matching remote is found. If your `branch` option contains a `/`, beachball checks whether the leading segment matches a configured remote name, and falls back to the default remote otherwise.
 
+### `prebump` hook version parameter now matches the docs
+
+In v2, `hooks.prebump` received the post-bump package version even though the hook runs before Beachball writes version changes to disk. In v3, this is corrected to receive the pre-bump version as documented.
+
 ### Custom changelog rendering changes
 
 Only relevant for custom changelog renderers: `PackageChangelog.tag` and `ChangelogJsonEntry.tag` are now `undefined` when the package had no associated git tag (previously a value was always present).
@@ -96,4 +100,6 @@ In v3, `shouldPublish: false` packages are full participants in all steps of the
 
 ### Other changes
 
-- If you're deep importing beachball's internal helpers, some deprecated signatures have been removed. Use the new signatures (which pre-calculate and share context) instead.
+- If you're deep importing beachball's internal helpers:
+  - Some deprecated signatures have been removed. Use the new signatures (which pre-calculate and share context) instead.
+  - `BumpInfo` now contains `originalPackageInfos` for `prebump` hook correctness.
