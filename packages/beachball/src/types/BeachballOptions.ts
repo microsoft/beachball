@@ -144,7 +144,7 @@ export interface RepoOptions {
    *
    * For `publish`, this is overridden by the `--message` CLI option (or `message` config value).
    *
-   * @param options Resolved beachball options
+   * @param options Resolved beachball options (command name is under `.command`)
    * @param packageInfos Metadata about packages (reflecting bumped versions for `publish`). Readonly.
    * @param bumpInfo Bump info, only provided for the `publish` command. Readonly.
    * @returns The commit message (may be a promise)

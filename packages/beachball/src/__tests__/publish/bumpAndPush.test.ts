@@ -221,6 +221,38 @@ describe('bumpAndPush', () => {
     `);
   });
 
+  it('uses custom commitMessage function for the publish commit', async () => {
+    const commitMessage = jest.fn<NonNullable<BeachballOptions['commitMessage']>>(
+      (_options, packageInfos) => `Published foo@${packageInfos.foo.version}`
+    );
+    // clear the default `message` so `commitMessage` is used
+    await callBumpAndPush({ commitMessage, message: '' });
+
+    // commitMessage is called with the options, package infos, and bump info
+    expect(commitMessage).toHaveBeenCalledTimes(1);
+    expect(commitMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({ branch: defaultRemoteBranchName }),
+      expect.objectContaining({ foo: expect.objectContaining({ version: '1.1.0' }) }),
+      expect.objectContaining({ packageInfos: expect.anything() })
+    );
+    expect(getExecaCalls()).toContain('git commit -m Published foo@1.1.0');
+  });
+
+  it('prefers the message option over commitMessage', async () => {
+    const commitMessage = jest.fn<NonNullable<BeachballOptions['commitMessage']>>(() => 'from commitMessage');
+    await callBumpAndPush({ commitMessage, message: 'from message option' });
+
+    // commitMessage is not called because an explicit message was provided
+    expect(commitMessage).not.toHaveBeenCalled();
+    expect(getExecaCalls()).toContain('git commit -m from message option');
+  });
+
+  it('uses default commit message when message is empty and no commitMessage', async () => {
+    await callBumpAndPush({ message: '' });
+
+    expect(getExecaCalls()).toContain('git commit -m applying package updates');
+  });
+
   it('calls precommit hook before merge steps', async () => {
     // eslint-disable-next-line @typescript-eslint/require-await
     const precommit = jest.fn<(cwd: string) => Promise<void>>(async () => console.log('hello from hook'));

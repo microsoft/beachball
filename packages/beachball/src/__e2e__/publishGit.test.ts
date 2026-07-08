@@ -66,52 +66,6 @@ describe('publish command (git)', () => {
     expect(packageJson.version).toBe('1.1.0');
   });
 
-  it('uses custom commitMessage function for the publish commit', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    repo = repositoryFactory.cloneRepository();
-
-    const commitMessage = jest.fn<NonNullable<RepoOptions['commitMessage']>>(
-      (_options, packageInfos) => `Published foo@${packageInfos.foo.version}`
-    );
-    // clear the default `message` so `commitMessage` is used
-    const { options, parsedOptions } = getOptions({ commitMessage, message: '' });
-    generateChangeFiles(['foo'], options);
-    repo.push();
-
-    await publish(options, createCommandContext(parsedOptions));
-
-    // commitMessage is called with the options, post-bump package infos, and bump info
-    expect(commitMessage).toHaveBeenCalledTimes(1);
-    expect(commitMessage).toHaveBeenLastCalledWith(
-      options,
-      expect.objectContaining({ foo: expect.objectContaining({ version: '1.1.0' }) }),
-      expect.objectContaining({ packageInfos: expect.anything() })
-    );
-
-    const newRepo = repositoryFactory.cloneRepository();
-    const message = newRepo.git(['log', '-1', '--pretty=%B']).stdout.trim();
-    expect(message).toBe('Published foo@1.1.0');
-  });
-
-  it('prefers the message option over commitMessage for the publish commit', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    repo = repositoryFactory.cloneRepository();
-
-    const commitMessage = jest.fn<NonNullable<RepoOptions['commitMessage']>>(() => 'from commitMessage');
-    const { options, parsedOptions } = getOptions({ commitMessage, message: 'from message option' });
-    generateChangeFiles(['foo'], options);
-    repo.push();
-
-    await publish(options, createCommandContext(parsedOptions));
-
-    // commitMessage is not called because an explicit message was provided
-    expect(commitMessage).not.toHaveBeenCalled();
-
-    const newRepo = repositoryFactory.cloneRepository();
-    const message = newRepo.git(['log', '-1', '--pretty=%B']).stdout.trim();
-    expect(message).toBe('from message option');
-  });
-
   it('can handle a merge when there are change files present', async () => {
     repositoryFactory = new RepositoryFactory('single');
     // 1. clone a new repo1, write a change file in repo1

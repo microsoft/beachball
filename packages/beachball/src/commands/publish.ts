@@ -99,14 +99,6 @@ export async function publish(options: BeachballOptions, context: CommandContext
   // - reset, fetch latest from origin/master (to ensure less chance of conflict),
   //   then bump on disk again + commit
   if (shouldBumpAndPush) {
-    // Resolve the commit message: an explicit `--message` (or `message` config value) takes
-    // precedence, then the `commitMessage` config function, then the default.
-    options.message =
-      options.message ||
-      (options.commitMessage
-        ? await options.commitMessage(options, bumpInfo.packageInfos, bumpInfo)
-        : 'applying package updates');
-
     // this does its own section logging
     await bumpAndPush(bumpInfo, publishBranch, options);
   } else {
