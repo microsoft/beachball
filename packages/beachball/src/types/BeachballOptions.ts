@@ -142,7 +142,7 @@ export interface RepoOptions {
    * Customize the commit message used when committing changes for the `change` and `publish`
    * commands. This can be used to include metadata such as version numbers in the message.
    *
-   * For `publish`, this is overridden by the `--message` CLI option (or `message` config value).
+   * For `publish`, this is overridden by the `--message` CLI option.
    *
    * @param options Resolved beachball options (command name is under `.command`)
    * @param packageInfos Metadata about packages (reflecting bumped versions for `publish`). Readonly.
