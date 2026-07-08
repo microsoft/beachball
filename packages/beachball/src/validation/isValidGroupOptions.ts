@@ -21,6 +21,18 @@ export function isValidGroupOptions(groups: VersionGroupOptions[]): boolean {
     return false;
   }
 
+  const badExcludeGroups = groups.filter(group => {
+    const exclude = typeof group.exclude === 'string' ? [group.exclude] : group.exclude || [];
+    return exclude.some((pattern: string) => pattern.startsWith('!'));
+  });
+  if (badExcludeGroups.length) {
+    console.error(
+      'ERROR: "groups[*].exclude" patterns must not start with "!". Found invalid groups:\n' +
+        bulletedList(badExcludeGroups.map(group => `${group.name}: ${singleLineStringify(group.exclude)}`))
+    );
+    return false;
+  }
+
   // TODO: validate disallowedChangeTypes? (they're not currently validated anywhere)
 
   return true;

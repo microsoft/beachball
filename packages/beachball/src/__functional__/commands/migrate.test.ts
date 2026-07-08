@@ -8,6 +8,7 @@ import { createTestFileStructureType, updateJsonFile } from '../../__fixtures__/
 import fs from 'fs';
 import { BeachballError } from '../../types/BeachballError';
 import path from 'path';
+import type { ChangelogGroupOptions } from '../../types/ChangelogOptions';
 
 jest.mock('workspace-tools', () => ({
   ...jest.requireActual<typeof import('workspace-tools')>('workspace-tools'),
@@ -29,7 +30,19 @@ describe('migrate command', () => {
   });
 
   it('logs a success message when no config updates are needed', () => {
-    tempRoot = createTestFileStructureType('monorepo');
+    tempRoot = createTestFileStructureType('monorepo', {
+      groups: [{ name: 'test', include: 'packages/test', exclude: ['packages/foo'], disallowedChangeTypes: null }],
+      changelog: {
+        groups: [
+          {
+            mainPackageName: 'test',
+            include: ['packages/test'],
+            exclude: ['packages/bar'],
+            changelogPath: 'packages/test',
+          },
+        ],
+      },
+    });
     // a changelog md file is okay
     fs.writeFileSync(path.join(tempRoot, 'packages/foo/CHANGELOG.md'), '');
 
@@ -128,6 +141,89 @@ describe('migrate command', () => {
       [error]   • Found private packages using \`"shouldPublish": false\`. This setting does nothing with private packages and should be removed.
           ▪ <root>/packages/baz/package.json
           ▪ <root>/packages/foo/package.json"
+    `);
+  });
+
+  it('errors on negated groups[*].exclude', () => {
+    const disallowedChangeTypes = null;
+    tempRoot = createTestFileStructureType('monorepo', {
+      groups: [
+        // the group globs here don't need to make sense; just verify it only checks ! at beginning
+        { name: 'ok', include: true, exclude: 'packages/!(bar)', disallowedChangeTypes },
+        { name: 'badstring', include: true, exclude: '!packages/foo', disallowedChangeTypes },
+        {
+          name: 'badarray',
+          include: true,
+          exclude: ['packages/bar', '!packages/foo', '!packages/baz'],
+          disallowedChangeTypes,
+        },
+      ],
+    });
+    expect(() => migrate(getOptions())).toThrow(BeachballError);
+
+    expect(logs.getMockLines('error')).toMatchInlineSnapshot(`
+      "The following updates are needed for v3:
+        • \`groups\`
+          ▪ Group "badstring"
+            ◦ Remove the leading "!" from these \`exclude\` patterns:
+              ▫ !packages/foo
+          ▪ Group "badarray"
+            ◦ Remove the leading "!" from these \`exclude\` patterns:
+              ▫ !packages/foo
+              ▫ !packages/baz"
+    `);
+  });
+
+  it('errors on changelog.groups[*].masterPackageName', () => {
+    tempRoot = createTestFileStructureType('monorepo', {
+      changelog: {
+        groups: [
+          { masterPackageName: 'test1', changelogPath: '', include: true } as unknown as ChangelogGroupOptions,
+          { mainPackageName: 'test2', changelogPath: '', include: true },
+          { masterPackageName: 'test3', changelogPath: '', include: true } as unknown as ChangelogGroupOptions,
+        ],
+      },
+    });
+    expect(() => migrate(getOptions())).toThrow(BeachballError);
+
+    expect(logs.getMockLines('error')).toMatchInlineSnapshot(`
+      "The following updates are needed for v3:
+        • \`changelog.groups\`
+          ▪ Group for package "test1"
+            ◦ Rename \`masterPackageName\` to \`mainPackageName\`
+          ▪ Group for package "test3"
+            ◦ Rename \`masterPackageName\` to \`mainPackageName\`"
+    `);
+  });
+
+  it('errors on negated changelog.groups[*].exclude and masterPackageName', () => {
+    tempRoot = createTestFileStructureType('monorepo', {
+      changelog: {
+        groups: [
+          {
+            masterPackageName: 'test',
+            include: true,
+            exclude: ['!packages/bar', '!packages/baz'],
+            changelogPath: '',
+          } as Partial<ChangelogGroupOptions> as ChangelogGroupOptions,
+          { mainPackageName: 'test2', include: true, exclude: '!packages/foo', changelogPath: '' },
+          { mainPackageName: 'test3', include: true, exclude: 'packages/!(bar)', changelogPath: '' },
+        ],
+      },
+    });
+    expect(() => migrate(getOptions())).toThrow(BeachballError);
+
+    expect(logs.getMockLines('error')).toMatchInlineSnapshot(`
+      "The following updates are needed for v3:
+        • \`changelog.groups\`
+          ▪ Group for package "test"
+            ◦ Rename \`masterPackageName\` to \`mainPackageName\`
+            ◦ Remove the leading "!" from these \`exclude\` patterns:
+              ▫ !packages/bar
+              ▫ !packages/baz
+          ▪ Group for package "test2"
+            ◦ Remove the leading "!" from these \`exclude\` patterns:
+              ▫ !packages/foo"
     `);
   });
 });
