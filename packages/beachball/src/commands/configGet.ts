@@ -27,6 +27,7 @@ const repoOptionKeys: Record<string, true> = {
   changeDir: true,
   changelog: true,
   commit: true,
+  commitMessage: true,
   concurrency: true,
   npmReadConcurrency: true,
   defaultNpmTag: true,

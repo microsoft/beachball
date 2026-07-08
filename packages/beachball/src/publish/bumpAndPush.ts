@@ -29,6 +29,14 @@ export async function bumpAndPush(
   const { path: cwd, branch, depth, gitTimeout } = options;
   const { remote, remoteBranch } = getRemoteBranch(options);
 
+  // Resolve the commit message: an explicit `--message` (or `message` config value) takes
+  // precedence, then the `commitMessage` config function, then the default.
+  const commitMessage =
+    options.message ||
+    (options.commitMessage
+      ? await options.commitMessage(options, bumpInfo.packageInfos, bumpInfo)
+      : 'applying package updates');
+
   let completed = false;
   let tryNumber = 0;
 
@@ -65,7 +73,7 @@ export async function bumpAndPush(
     await performBump(bumpInfo, options);
 
     // checkin
-    if (!(await mergePublishBranch(publishBranch, options))) {
+    if (!(await mergePublishBranch(publishBranch, commitMessage, options))) {
       logRetryWarning('Merging to target has failed!');
       continue;
     }
@@ -101,14 +109,15 @@ export async function bumpAndPush(
 
 async function mergePublishBranch(
   publishBranch: string,
-  options: Pick<BeachballOptions, 'branch' | 'hooks' | 'message' | 'path'>
+  commitMessage: string,
+  options: Pick<BeachballOptions, 'branch' | 'hooks' | 'path'>
 ): Promise<boolean> {
   await options.hooks?.precommit?.(options.path);
 
   console.log(`\nMerging ${publishBranch} into ${options.branch}...`);
   const mergeSteps = [
     ['add', '.'],
-    ['commit', '-m', options.message],
+    ['commit', '-m', commitMessage],
     ['checkout', options.branch],
     ['merge', '-X', 'ours', publishBranch],
   ];

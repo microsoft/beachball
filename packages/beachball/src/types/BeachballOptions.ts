@@ -1,4 +1,5 @@
 import type { AuthType } from './Auth';
+import type { BumpInfo } from './BumpInfo';
 import type { ChangeInfo, ChangeInfoMultiple, ChangeType } from './ChangeInfo';
 import type { ChangeFilePromptOptions } from './ChangeFilePrompt';
 import type { ChangelogOptions } from './ChangelogOptions';
@@ -137,6 +138,22 @@ export interface RepoOptions {
    * @default true
    */
   commit?: boolean;
+  /**
+   * Customize the commit message used when committing changes for the `change` and `publish`
+   * commands. This can be used to include metadata such as version numbers in the message.
+   *
+   * For `publish`, this is overridden by the `--message` CLI option.
+   *
+   * @param options Resolved beachball options (command name is under `.command`)
+   * @param packageInfos Metadata about packages (reflecting bumped versions for `publish`). Readonly.
+   * @param bumpInfo Bump info, only provided for the `publish` command. Readonly.
+   * @returns The commit message (may be a promise)
+   */
+  commitMessage?: (
+    options: BeachballOptions,
+    packageInfos: Readonly<PackageInfos>,
+    bumpInfo?: Readonly<BumpInfo>
+  ) => string | Promise<string>;
   /**
    * Maximum concurrency for write operations.
    * As of writing, this only applies for calling `hooks` and publishing to npm.

@@ -113,6 +113,24 @@ describe('writeChangeFiles', () => {
     expect(repo.getCurrentHash()).toEqual(previousHead);
   });
 
+  it('uses the default commit message', () => {
+    const options = getOptions();
+
+    writeChangeFiles([{ packageName: 'foo' }] as ChangeFileInfo[], options);
+
+    const message = repo.git(['log', '-1', '--pretty=%B']).stdout.trim();
+    expect(message).toBe('Change files');
+  });
+
+  it('respects a custom commit message', () => {
+    const options = getOptions();
+
+    writeChangeFiles([{ packageName: 'foo' }] as ChangeFileInfo[], options, 'custom message');
+
+    const message = repo.git(['log', '-1', '--pretty=%B']).stdout.trim();
+    expect(message).toBe('custom message');
+  });
+
   it('writes grouped change files', () => {
     const options = getOptions({
       groupChanges: true,
