@@ -21,7 +21,8 @@ export interface ChangelogEntry {
    * Commit hash, if available.
    *
    * Will be undefined if `options.changelog.includeCommitHashes` is false, or if the hash could
-   * not be determined.
+   * not be determined. In beachball v2, dependent bump entries used the placeholder string
+   * `"not available"` instead; that behavior was removed in v3.
    */
   commit?: string;
   /** Package name the change was in */
