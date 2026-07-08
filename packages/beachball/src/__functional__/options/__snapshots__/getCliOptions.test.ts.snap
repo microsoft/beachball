@@ -3,7 +3,10 @@
 exports[`getCliOptions shows "bump" command help text 1`] = `
 "Usage: beachball bump [options]
 
-Bump versions and generate changelogs, but don't commit or publish
+Bump versions and generate changelogs, but don't commit or publish.
+
+Most options can also be specified in the beachball config (command line options override the
+config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 Options:
   --[no-]bump-deps            bump packages that depend on changed packages (default: true)
@@ -40,7 +43,10 @@ Common options:
 exports[`getCliOptions shows "canary" command help text 1`] = `
 "Usage: beachball canary [options]
 
-Publish prerelease versions of changed or all packages without committing
+Publish prerelease versions of changed or all packages without committing.
+
+Most options can also be specified in the beachball config (command line options override the
+config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 Options:
   --canary-name <value>       dist-tag and version name to use for canary publishes
@@ -91,7 +97,10 @@ Common options:
 exports[`getCliOptions shows "change" command help text 1`] = `
 "Usage: beachball change [options]
 
-Create change files for this branch
+Create change files for this branch.
+
+Most options can also be specified in the beachball config (command line options override the
+config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 Options:
   -m, --message <value>       the change description
@@ -134,7 +143,10 @@ Common options:
 exports[`getCliOptions shows "check" command help text 1`] = `
 "Usage: beachball check [options]
 
-Check whether a change file is needed for this branch
+Check whether a change file is needed for this branch.
+
+Most options can also be specified in the beachball config (command line options override the
+config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 Options:
   --changehint <value>        customized hint message shown when a change file is needed but missing
@@ -170,7 +182,10 @@ Common options:
 exports[`getCliOptions shows "config get" command help text 1`] = `
 "Usage: beachball config get [options] <name>
 
-Get the value of a config setting (with any overrides)
+Get the value of a config setting (with any overrides).
+
+Most options can also be specified in the beachball config (command line options override the
+config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 Arguments:
   name                  beachball config setting name
@@ -185,7 +200,10 @@ Common options:
 exports[`getCliOptions shows "config list" command help text 1`] = `
 "Usage: beachball config list [options]
 
-List all config settings (with any overrides)
+List all config settings (with any overrides).
+
+Most options can also be specified in the beachball config (command line options override the
+config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 Common options:
   -c, --config <value>  custom beachball config path (default: cosmiconfig standard paths)
@@ -197,7 +215,10 @@ Common options:
 exports[`getCliOptions shows "config" command help text 1`] = `
 "Usage: beachball config <get|list>
 
-Get or list config settings (requires a sub-command)
+Get or list config settings (requires a sub-command).
+
+Most options can also be specified in the beachball config (command line options override the
+config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 Commands:
   get <name>            Get the value of a config setting (with any overrides)
@@ -214,7 +235,10 @@ Common options:
 exports[`getCliOptions shows "init" command help text 1`] = `
 "Usage: beachball init [options]
 
-Initialize a new beachball config file in the current directory
+Initialize a new beachball config file in the current directory.
+
+Most options can also be specified in the beachball config (command line options override the
+config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 npm options:
   -r, --registry <value>      npm registry (default: "https://registry.npmjs.org/")
@@ -234,7 +258,10 @@ Common options:
 exports[`getCliOptions shows "migrate" command help text 1`] = `
 "Usage: beachball migrate [options]
 
-Help to migrate from beachball v2
+Help to migrate from beachball v2.
+
+Most options can also be specified in the beachball config (command line options override the
+config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 Common options:
   -c, --config <value>  custom beachball config path (default: cosmiconfig standard paths)
@@ -246,7 +273,10 @@ Common options:
 exports[`getCliOptions shows "publish" command help text 1`] = `
 "Usage: beachball publish [options]
 
-Bump, publish to npm registry, and push updates back to the target branch
+Bump, publish to npm registry, and push updates back to the target branch.
+
+Most options can also be specified in the beachball config (command line options override the
+config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 Options:
   -m, --message <value>       version bump commit description
@@ -307,7 +337,10 @@ Common options:
 exports[`getCliOptions shows "sync" command help text 1`] = `
 "Usage: beachball sync [options]
 
-Synchronize package versions from the registry with local package.json versions
+Synchronize package versions from the registry with local package.json versions.
+
+Most options can also be specified in the beachball config (command line options override the
+config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 Options:
   --scope <value...>          only consider package paths matching the pattern(s) (supports
@@ -334,7 +367,7 @@ Common options:
 exports[`getCliOptions shows top-level help text 1`] = `
 "Usage: beachball <command> [options]
 
-beachball vx.y.z - the sunniest version bumping tool
+See https://microsoft.github.io/beachball/ for more documentation.
 
 Commands:
   change                Create change files for this branch

@@ -401,7 +401,7 @@ describe('BeachballCommand', () => {
       const program = BeachballCommand.initProgram({
         name: 'beachball',
         desc: '',
-        commands: { change: { desc: 'create change files', isDefault: true } },
+        commands: { change: { desc: 'Create change files', isDefault: true } },
         options: makeOptions('primary', () => true, {
           package: { desc: 'some package', commands: ['change'] },
           disallowDeletedChangeFiles: { type: 'boolean', desc: 'disallow delete', commands: ['change'] },
@@ -413,7 +413,10 @@ describe('BeachballCommand', () => {
       expect(program.commands[0].helpInformation()).toMatchInlineSnapshot(`
         "Usage: beachball change [options]
 
-        create change files
+        Create change files.
+
+        Most options can also be specified in the beachball config (command line options override the
+        config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
         Options:
           --package <value>           some package

@@ -233,7 +233,10 @@ describe('BeachballHelp', () => {
     expect(help).toMatchInlineSnapshot(`
       "Usage: test [options] [command]
 
-      some description
+      some description.
+
+      Most options can also be specified in the beachball config (command line options override the
+      config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
       Commands:
         foo <arg>                   long long long long long long long long long long long long long long
