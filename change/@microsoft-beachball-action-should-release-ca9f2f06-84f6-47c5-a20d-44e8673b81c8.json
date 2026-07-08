@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "limit dependency hoisting (no runtime impact)",
+  "packageName": "@microsoft/beachball-action-should-release",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}

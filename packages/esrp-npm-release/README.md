@@ -202,7 +202,7 @@ extends:
                 # the release tool so it doesn't need to be installed (update path as needed)
                 - output: pipelineArtifact
                   artifactName: ${{ variables.releaseApiToolArtifactName }}
-                  targetPath: $(Build.SourcesDirectory)/node_modules/@microsoft/esrp-npm-release/dist/index.js
+                  targetPath: $(Build.SourcesDirectory)/node_modules/@microsoft/esrp-npm-release/dist/index.mjs
 
             steps:
               - checkout: self

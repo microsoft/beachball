@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add functionality for creating a GitHub app installation token from a key stored in an Azure key vault (create-github-app-token-via-key-vault fork)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

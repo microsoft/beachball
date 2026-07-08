@@ -89,9 +89,10 @@ The [built-in `GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides
 - Traditional approach: use a [**fine-grained personal access token**](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) (PAT) with write permissions for **only** the specific repo, and store it [as a secret](#storing-secrets).
   - The user creating the token must have admin access or permission to bypass branch protection rules.
   - Variant: create a fine-grained PAT with a "machine user" account. Create a new account with an alternate email or [subaddress](https://en.wikipedia.org/wiki/Email_address#Subaddressing) (`+` address), give it contributor permissions to only this repo, and give it permission to bypass rules.
-- Alternative: use a **GitHub app installation token**. For this purpose, an "app" is essentially just an _identity with permissions_; you don't need to define any logic or endpoints. Create a GitHub app, install it in your repo, and give it permission to bypass policies. Store its private key [as a secret](#storing-secrets), then update your publish workflow to get a short-lived installation token:
-  - For GitHub Actions, use [`actions/create-github-app-token`](https://github.com/actions/create-github-app-token)
-  - For Azure DevOps or other platforms, locally implement [similar logic as the action](https://github.com/actions/create-github-app-token/blob/main/lib/main.js)
+- Alternative: use a **GitHub app installation token**. For this purpose, an "app" is essentially just an _identity with permissions_; you don't need to define any logic or endpoints. Create a GitHub app, install it in your repo, and give it permission to bypass policies, then set up one of the following:
+  - Any CI platform + Azure key vault: [beachball's `github-app-token` helper](https://github.com/microsoft/beachball/blob/main/packages/beachball/src/githubAuth/README.md)
+  - GitHub Actions + Azure key vault: [`microsoft/create-github-app-token-via-key-vault`](https://github.com/microsoft/create-github-app-token-via-key-vault)
+  - GitHub Actions + GitHub environment secrets: [`actions/create-github-app-token`](https://github.com/actions/create-github-app-token)
 
 After creating the token, there are various ways it can be passed through to the `git` commands run within `beachball publish`. The most common approach is to set it as the git remote URL. For example, if the token is in an environment variable called `REPO_PAT`, and the remote is called `origin`:
 

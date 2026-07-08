@@ -11,7 +11,7 @@
     "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest"
   },
   "devDependencies": {
-    "@ms-cloudpack/esbuild-node-helpers": "^0.1.7",
+    "@ms-cloudpack/esbuild-node-helpers": "patch:@ms-cloudpack/esbuild-node-helpers@npm%3A0.1.7#~/.yarn/patches/@ms-cloudpack-esbuild-node-helpers-npm-0.1.7-235443c849.patch",
     "@ms-cloudpack/eslint-plugin-deprecated": "^0.1.5",
     "cross-env": "^10.1.0",
     "esbuild": "^0.28.1",
