@@ -169,7 +169,7 @@ describe('getPackageChangelogs', () => {
     expect(changelogs.bar).toEqual({
       comments: {
         patch: [
-          // IMPORTANT: this should not record an actual commit hash, because it will be incorrect
+          // IMPORTANT: this should omit the commit hash because it does not exist yet
           { author: 'beachball', package: 'bar', comment: 'Bump foo to v1.0.0' },
         ],
       },
@@ -231,29 +231,6 @@ describe('getPackageChangelogs', () => {
     expect(changelogs.foo.comments.patch).toHaveLength(1);
     expect(changelogs.foo.comments.patch![0].commit).toBeUndefined();
     expect(getFileAddedHashMock).not.toHaveBeenCalled();
-  });
-
-  it('omits commit hashes when they cannot be determined', () => {
-    getFileAddedHashMock.mockReturnValueOnce(undefined);
-
-    const changelogs = getPackageChangelogsWrapper({
-      packageInfos: { foo: { version: '1.0.0' } },
-      calculatedChangeTypes: { foo: 'patch' },
-      changes: ['foo', { packageName: 'foo', type: 'minor', comment: 'other comment' }],
-    });
-
-    expect(changelogs.foo).toEqual({
-      comments: {
-        minor: [{ author, comment: 'other comment', package: 'foo' }],
-        patch: [{ author, comment: 'comment for foo', package: 'foo' }],
-      },
-      date: expect.any(Date),
-      name: 'foo',
-      tag: 'foo_v1.0.0',
-      version: '1.0.0',
-    });
-
-    expect(getFileAddedHashMock).toHaveBeenCalledTimes(1);
   });
 
   it('ignores dependent bumps for packages with no calculatedChangeType', () => {

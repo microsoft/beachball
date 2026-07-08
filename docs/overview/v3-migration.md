@@ -66,11 +66,9 @@ Only relevant for custom changelog renderers: `PackageChangelog.tag` and `Change
 
 ### Stop writing placeholder commit hashes
 
-In v2, Beachball could write `"not available"` to the `commit` field in `CHANGELOG.json` when a
-commit hash was unavailable.
+In v2, Beachball could write `"not available"` to the `commit` field in `CHANGELOG.json` when a commit hash was unavailable.
 
-In v3, Beachball omits the `commit` field entirely in those cases instead, including dependent bump
-entries that do not have a real commit hash yet.
+In v3, Beachball omits the `commit` field entirely in those cases instead, including dependent bump entries that do not have a real commit hash yet.
 
 ### `shouldPublish` behavior change
 

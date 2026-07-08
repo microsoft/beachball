@@ -20,18 +20,20 @@ export function getPackageChangelogs(
   const includeCommitHashes = options.changelog?.includeCommitHashes !== false;
 
   const changelogs: Record<string, PackageChangelog> = {};
-  const changeFileCommits: { [changeFile: string]: string | undefined } = {};
+  const changeFileCommits = new Map<string, string | undefined>();
   const changePath = getChangePath(options);
 
   for (const { change, changeFile } of changeFileChangeInfos) {
     const { packageName, type: changeType, dependentChangeType, email, ...rest } = change;
     changelogs[packageName] ??= createPackageChangelog(packageInfos[packageName], packageTags[packageName]?.[0]);
 
-    if (includeCommitHashes && !(changeFile in changeFileCommits)) {
-      changeFileCommits[changeFile] =
-        getFileAddedHash({ filename: path.join(changePath, changeFile), cwd: options.path }) || undefined;
+    if (includeCommitHashes && !changeFileCommits.has(changeFile)) {
+      changeFileCommits.set(
+        changeFile,
+        getFileAddedHash({ filename: path.join(changePath, changeFile), cwd: options.path }) || undefined
+      );
     }
-    const commit = changeFileCommits[changeFile];
+    const commit = changeFileCommits.get(changeFile);
 
     changelogs[packageName].comments ??= {};
     changelogs[packageName].comments[changeType] ??= [];
