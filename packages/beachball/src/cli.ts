@@ -46,8 +46,6 @@ const version = getPackageInfo(findPackageRoot(__dirname)!)?.version;
     case 'publish': {
       const { context } = validate(parsedOptions, { checkDependencies: true });
 
-      // set a default publish message
-      options.message = options.message || 'applying package updates';
       await publish(options, context);
       break;
     }

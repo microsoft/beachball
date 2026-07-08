@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add customizable `commitMessage` config option, a function used to generate the commit message for the `change` and `publish` commands (overridden by `--message` for `publish`)",
+  "packageName": "beachball",
+  "email": "198982749+Copilot@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}

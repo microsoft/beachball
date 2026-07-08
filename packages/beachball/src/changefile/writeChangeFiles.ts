@@ -13,7 +13,8 @@ import { writeJson } from '../object/writeJson';
  */
 export function writeChangeFiles(
   changes: ChangeFileInfo[],
-  options: Pick<BeachballOptions, 'path' | 'groupChanges' | 'changeDir' | 'commit'>
+  options: Pick<BeachballOptions, 'path' | 'groupChanges' | 'changeDir' | 'commit'>,
+  commitMessage: string = 'Change files'
 ): string[] {
   const { path: cwd, groupChanges, commit: commitChangeFiles } = options;
   const changePath = getChangePath(options);
@@ -48,7 +49,7 @@ export function writeChangeFiles(
   if (commitChangeFiles) {
     // only commit change files, ignore other staged files/changes
     const commitOptions = ['--only', path.join(changePath, '*.json')];
-    commit({ message: 'Change files', cwd, options: commitOptions });
+    commit({ message: commitMessage, cwd, options: commitOptions });
   }
 
   console.log(

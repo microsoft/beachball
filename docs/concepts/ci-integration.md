@@ -39,6 +39,8 @@ If you need to set options that are specific to publishing, it's recommended to 
 }
 ```
 
+For a dynamic commit message (for example including version numbers), you can set the [`commitMessage` config option](../overview/configuration) to a function instead.
+
 Providing the npm token (`--token` or `-n`) on the command line is no longer recommended. See [npm authentication](#npm-authentication) below for alternatives.
 
 ## Authentication
