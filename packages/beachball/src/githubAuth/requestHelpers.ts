@@ -1,6 +1,8 @@
+import { AuthError } from './validationHelpers';
+
 const transientRetryCount = 3;
 
-export class GitHubRequestError extends Error {
+export class GitHubRequestError extends AuthError {
   status: number;
   constructor(message: string, status: number) {
     super(message);
@@ -42,7 +44,7 @@ export async function requestJson<T = unknown>(
   try {
     return JSON.parse(body) as T;
   } catch {
-    throw new Error(`${failureMessage}: GitHub returned invalid JSON`);
+    throw new AuthError(`${failureMessage}: GitHub returned invalid JSON`);
   }
 }
 

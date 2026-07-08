@@ -4,7 +4,7 @@ Create GitHub App installation tokens by signing the GitHub App JWT with an Azur
 
 The GitHub App private key is imported into Key Vault and used only through the Key Vault `sign` operation. The key material does not need to be stored in GitHub Actions secrets, Azure Pipelines variables, or checked into a repository.
 
-The CLI is available by running the bundled `beachball/dist/create-github-app-token.cjs`, or copying it into a location in your repo.
+The CLI is available by running the bundled `beachball/dist/create-github-app-token.mjs`, or copying it into a location in your repo.
 
 ## Prerequisites
 
@@ -23,7 +23,7 @@ The CLI is available by running the bundled `beachball/dist/create-github-app-to
 
 The CLI is a bundled (copy-pastable) Node.js script with no Azure SDK dependency; it signs with the already-authenticated Azure CLI by running `az keyvault key sign`.
 
-Copy `dist/create-github-app-token.cjs` into the repository or pipeline workspace that needs a token, or download it from this repository before running it.
+Copy `dist/create-github-app-token.mjs` into the repository or pipeline workspace that needs a token, or download it from this repository before running it.
 
 The CLI requires Node.js 24 or newer and the Azure CLI (`az`) on `PATH`. The Azure CLI must already be authenticated as an identity with permission to sign with the Key Vault key. There are two ways to provide that identity:
 
@@ -47,7 +47,7 @@ steps:
       azureSubscription: Production Azure
       scriptType: bash
       scriptLocation: inlineScript
-      inlineScript: node dist/create-github-app-token.cjs
+      inlineScript: node dist/create-github-app-token.mjs
     env:
       APP_CLIENT_ID: $(MY_GITHUB_APP_CLIENT_ID)
       KEY_ID: $(MY_GITHUB_APP_KEY_ID)
@@ -73,7 +73,7 @@ GH_TOKEN="$(
   REPOSITORY=octo-org/example-repo \
   PERMISSIONS=contents:read \
   OUTPUT=stdout \
-  node dist/create-github-app-token.cjs
+  node dist/create-github-app-token.mjs
 )"
 ```
 
