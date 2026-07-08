@@ -59,6 +59,15 @@ describe('migrate command', () => {
     `);
   });
 
+  it('errors on "packStyle" option', () => {
+    tempRoot = createTestFileStructureType('single');
+    expect(() => migrate(getOptions({ packStyle: 'pack' } as unknown as RepoOptions))).toThrow(BeachballError);
+    expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
+      "[error] The following updates are needed for v3:
+      [error]   • The \`packStyle\` option has been removed (packing always uses the layered style now). Please remove it from your config."
+    `);
+  });
+
   it('warns on public packages using shouldPublish option', () => {
     tempRoot = createTestFileStructureType('monorepo');
     updateJsonFile(path.join(tempRoot, 'packages/foo/package.json'), { beachball: { shouldPublish: false } });
