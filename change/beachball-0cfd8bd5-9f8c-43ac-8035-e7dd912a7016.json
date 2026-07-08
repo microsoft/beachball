@@ -1,0 +1,7 @@
+{
+  "packageName": "beachball",
+  "type": "major",
+  "dependentChangeType": "patch",
+  "comment": "Stop writing placeholder `\"not available\"` commit hashes to `CHANGELOG.json` when the hash is unavailable.",
+  "email": "198982749+Copilot@users.noreply.github.com"
+}

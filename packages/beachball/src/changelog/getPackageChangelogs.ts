@@ -7,11 +7,6 @@ import { getFileAddedHash } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
 
 /**
- * Used for `ChangelogEntry.commit` if the commit hash is not available.
- */
-const commitNotAvailable = 'not available';
-
-/**
  * Get the preliminary changelog info for each modified package, based on change files and
  * possibly dependent bumps. (Omit `dependentChangedBy` to exclude dependent bumps.)
  * @returns Mapping from package name to package changelog.
@@ -25,24 +20,25 @@ export function getPackageChangelogs(
   const includeCommitHashes = options.changelog?.includeCommitHashes !== false;
 
   const changelogs: Record<string, PackageChangelog> = {};
-  const changeFileCommits: { [changeFile: string]: string } = {};
+  const changeFileCommits: { [changeFile: string]: string | undefined } = {};
   const changePath = getChangePath(options);
 
   for (const { change, changeFile } of changeFileChangeInfos) {
     const { packageName, type: changeType, dependentChangeType, email, ...rest } = change;
     changelogs[packageName] ??= createPackageChangelog(packageInfos[packageName], packageTags[packageName]?.[0]);
 
-    if (includeCommitHashes) {
-      changeFileCommits[changeFile] ??=
-        getFileAddedHash({ filename: path.join(changePath, changeFile), cwd: options.path }) || commitNotAvailable;
+    if (includeCommitHashes && !(changeFile in changeFileCommits)) {
+      changeFileCommits[changeFile] =
+        getFileAddedHash({ filename: path.join(changePath, changeFile), cwd: options.path }) || undefined;
     }
+    const commit = changeFileCommits[changeFile];
 
     changelogs[packageName].comments ??= {};
     changelogs[packageName].comments[changeType] ??= [];
     changelogs[packageName].comments[changeType].push({
       author: change.email,
       package: packageName,
-      commit: changeFileCommits[changeFile],
+      ...(commit !== undefined && { commit }),
       // This contains the comment and any extra properties added to the change file by
       // RepoOptions.changeFilePrompt.changePrompt
       ...rest,
@@ -74,12 +70,6 @@ export function getPackageChangelogs(
           author: 'beachball',
           package: dependent,
           comment: `Bump ${dep} to v${packageInfos[dep].version}`,
-          // This change will be made in the commit that is currently being created, so unless we
-          // split publishing into two commits (one for bumps and one for changelog updates),
-          // there's no way to know the hash yet. It's better to record nothing than incorrect info.
-          // TODO: switch to actually writing nothing at all
-          // https://github.com/microsoft/beachball/issues/901
-          ...(includeCommitHashes && { commit: commitNotAvailable }),
         });
       }
     }

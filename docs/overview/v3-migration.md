@@ -40,6 +40,14 @@ To migrate, simply remove the leading `!` from all `exclude` patterns.
 
 To migrate, find and replace `masterPackageName` to `mainPackageName`.
 
+### Stop writing placeholder commit hashes
+
+In v2, Beachball could write `"not available"` to the `commit` field in `CHANGELOG.json` when a
+commit hash was unavailable.
+
+In v3, Beachball omits the `commit` field entirely in those cases instead, including dependent bump
+entries that do not have a real commit hash yet.
+
 ### `shouldPublish` behavior change
 
 > Note: **you should almost never need this option** - in most scenarios, just set `private: true` in `package.json` instead.
