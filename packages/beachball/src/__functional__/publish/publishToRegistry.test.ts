@@ -26,6 +26,7 @@ describe('publishToRegistry', () => {
   const npmMock = initNpmMock();
   const logs = initMockLogs();
 
+  /** Needs a real fake temp root for mock npm publish */
   let tempRoot: string;
   let defaultOptions: BeachballOptions;
 
@@ -61,6 +62,7 @@ describe('publishToRegistry', () => {
     return {
       changeFileChangeInfos: [],
       packageInfos,
+      originalPackageInfos: makePackageInfos(partialPackageInfos, { path: tempRoot }),
       calculatedChangeTypes: Object.fromEntries(names.map(n => [n, 'patch' as const])),
       packageGroups: {},
       modifiedPackages: new Set(names),
@@ -229,10 +231,7 @@ describe('publishToRegistry', () => {
       expect(prebump).toHaveBeenCalledTimes(1);
       expect(postbump).toHaveBeenCalledTimes(1);
       const fooPath = expect.stringMatching(/packages[\\/]foo$/);
-      // BUG: this should use the old version 1.0.0, not the new one
-      // https://github.com/microsoft/beachball/issues/1116
-      expect(prebump as typeof postbump).toHaveBeenCalledWith(fooPath, 'foo', '1.0.1', expect.anything());
-      // this is correct
+      expect(prebump as typeof postbump).toHaveBeenCalledWith(fooPath, 'foo', '1.0.0', expect.anything());
       expect(postbump).toHaveBeenCalledWith(fooPath, 'foo', '1.0.1', expect.anything());
     });
 

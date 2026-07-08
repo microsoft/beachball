@@ -25,6 +25,7 @@ export function bumpInMemory(options: BeachballOptions, context: Omit<CommandCon
   // (Splitting out a couple properties that aren't modified as initial step of reducing mutation approach)
   // packageTags is calculated at the very end (after final versions are known).
   const bumpInfo: Omit<BumpInfo, 'dependentChangedBy' | 'changeFileChangeInfos' | 'packageTags'> = {
+    originalPackageInfos: context.originalPackageInfos,
     calculatedChangeTypes,
     packageInfos: cloneObject(context.originalPackageInfos),
     packageGroups: context.packageGroups,
