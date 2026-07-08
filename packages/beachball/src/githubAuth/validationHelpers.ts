@@ -1,19 +1,14 @@
+import { InvalidArgumentError } from 'commander';
 import type { PermissionLevel, Permissions } from './types';
+
+/** Generic error thrown from this code (don't show the stack) */
+export class AuthError extends Error {}
 
 const permissionLevels = Object.keys({
   read: true,
   write: true,
   admin: true,
 } satisfies Record<PermissionLevel, boolean>);
-
-export const defaultGitHubApiUrl = 'https://api.github.com';
-
-export function assertValue<T>(value: T | null | undefined, message: string): T {
-  if (!value) {
-    throw new Error(message);
-  }
-  return value;
-}
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -22,7 +17,7 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 export function requiredIntegerProperty(value: unknown, property: string, failureMessage: string): number {
   const propertyValue = isRecord(value) ? value[property] : undefined;
   if (typeof propertyValue !== 'number' || !Number.isInteger(propertyValue)) {
-    throw new Error(failureMessage);
+    throw new AuthError(failureMessage);
   }
   return propertyValue;
 }
@@ -30,7 +25,7 @@ export function requiredIntegerProperty(value: unknown, property: string, failur
 export function requiredStringProperty(value: unknown, property: string, failureMessage: string): string {
   const propertyValue = isRecord(value) ? value[property] : undefined;
   if (typeof propertyValue !== 'string' || !propertyValue) {
-    throw new Error(failureMessage);
+    throw new AuthError(failureMessage);
   }
   return propertyValue;
 }
@@ -44,28 +39,37 @@ export function parsePermissions(value: string | undefined): Permissions | undef
   for (const entry of splitList(value)) {
     const parts = entry.split(':');
     if (parts.length !== 2) {
-      throw new Error(`Permission entry must include an explicit level: ${entry}`);
+      throw new AuthError(`Permission entry must include an explicit level: ${entry}`);
     }
 
     const key = parts[0]?.trim();
     const rawLevel = parts[1]?.trim();
     if (!key) {
-      throw new Error(`Permission entry must include a permission name: ${entry}`);
+      throw new AuthError(`Permission entry must include a permission name: ${entry}`);
     }
     if (!/^[A-Za-z_]\w*$/.test(key)) {
-      throw new Error(`Invalid permission name: ${key}`);
+      throw new AuthError(`Invalid permission name: ${key}`);
     }
     if (Object.hasOwn(permissions, key)) {
-      throw new Error(`Duplicate permission: ${key}`);
+      throw new AuthError(`Duplicate permission: ${key}`);
     }
 
     if (!permissionLevels.includes(rawLevel)) {
-      throw new Error(`Invalid permission level for ${key}: ${rawLevel}`);
+      throw new AuthError(`Invalid permission level for ${key}: ${rawLevel}`);
     }
     permissions[key] = rawLevel as PermissionLevel;
   }
 
   return Object.keys(permissions).length === 0 ? undefined : permissions;
+}
+
+/** Parse a `--permissions` value and throw a commander argument error if invalid. */
+export function parsePermissionsArg(value: string): Permissions | undefined {
+  try {
+    return parsePermissions(value);
+  } catch (error) {
+    throw new InvalidArgumentError((error as Error).message);
+  }
 }
 
 /**
@@ -90,5 +94,5 @@ export function parseRepository(repository: string): { owner: string; name: stri
   if (parts.length === 2 && parts[0] && parts[1]) {
     return { owner: parts[0], name: parts[1] };
   }
-  throw new Error(`Invalid repository '${repository}'. Expected 'owner/repository'.`);
+  throw new AuthError(`Invalid repository '${repository}'. Expected 'owner/repository'.`);
 }

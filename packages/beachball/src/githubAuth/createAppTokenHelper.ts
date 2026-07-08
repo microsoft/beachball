@@ -1,20 +1,9 @@
 import { signWithAzureCli } from './signWithAzureCli';
-import { requestJson, requestNoContent, retryTransient } from './requestHelpers';
-import type { GetInstallationTokenOptions, GitHubAppAuthOptions, InstallationToken } from './types';
-import {
-  defaultGitHubApiUrl,
-  isRecord,
-  parseRepository,
-  requiredIntegerProperty,
-  requiredStringProperty,
-} from './validationHelpers';
+import { defaultGitHubApiUrl, githubHeaders, requestJson, retryTransient } from './requestHelpers';
+import type { GetInstallationTokenOptions, AppTokenHelperOptions, InstallationToken, AppTokenHelper } from './types';
+import { isRecord, parseRepository, requiredIntegerProperty, requiredStringProperty } from './validationHelpers';
 
 const defaultRefreshWindowMs = 5 * 60 * 1000;
-
-export interface GitHubAppAuth {
-  getInstallationToken(options: GetInstallationTokenOptions): Promise<InstallationToken>;
-  revokeToken(token: string): Promise<void>;
-}
 
 function base64url(value: string | Uint8Array): string {
   return Buffer.from(value).toString('base64url');
@@ -32,30 +21,11 @@ function stableObject(value: unknown): unknown {
   );
 }
 
-function githubHeaders(token: string, json = false): Record<string, string> {
-  return {
-    Accept: 'application/vnd.github+json',
-    Authorization: `Bearer ${token}`,
-    ...(json ? { 'Content-Type': 'application/json' } : {}),
-    'X-GitHub-Api-Version': '2022-11-28',
-  };
-}
-
-type Repository = { owner: string; name: string };
-
-export async function revokeToken(params: { githubApiUrl?: string; token: string }): Promise<void> {
-  const { githubApiUrl = defaultGitHubApiUrl, token } = params;
-  await requestNoContent(
-    `${githubApiUrl}/installation/token`,
-    {
-      method: 'DELETE',
-      headers: githubHeaders(token),
-    },
-    'Could not revoke GitHub App installation token'
-  );
-}
-
-export function createGitHubAppAuth(options: GitHubAppAuthOptions): GitHubAppAuth {
+/**
+ * Creates a helper function that can be used to get a GitHub App installation token.
+ * The helper caches installation discovery and tokens to avoid unnecessary requests.
+ */
+export function createAppTokenHelper(options: AppTokenHelperOptions): AppTokenHelper {
   const { appClientId, keyId, githubApiUrl = defaultGitHubApiUrl } = options;
   const installationCache = new Map<string, { id: number; appSlug: string }>();
   const tokenCache = new Map<string, InstallationToken>();
@@ -72,7 +42,7 @@ export function createGitHubAppAuth(options: GitHubAppAuthOptions): GitHubAppAut
   }
 
   async function discoverInstallation(
-    repository: Repository,
+    repository: { owner: string; name: string },
     getJwt: () => Promise<string>
   ): Promise<{ id: number; appSlug: string }> {
     const cacheKey = `${repository.owner}/${repository.name}`;
@@ -96,7 +66,7 @@ export function createGitHubAppAuth(options: GitHubAppAuthOptions): GitHubAppAut
     return result;
   }
 
-  async function getInstallationToken(opts: GetInstallationTokenOptions): Promise<InstallationToken> {
+  return async function getInstallationToken(opts: GetInstallationTokenOptions): Promise<InstallationToken> {
     const repository = parseRepository(opts.repository);
     const { permissions } = opts;
 
@@ -151,10 +121,5 @@ export function createGitHubAppAuth(options: GitHubAppAuthOptions): GitHubAppAut
       tokenCache.set(cacheKey, result);
       return result;
     });
-  }
-
-  return {
-    getInstallationToken,
-    revokeToken: (token: string) => revokeToken({ githubApiUrl, token }),
   };
 }

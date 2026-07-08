@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import execa from 'execa';
+import { AuthError } from './validationHelpers';
 
 function base64ToBase64url(value: string): string {
   return value.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
@@ -33,11 +34,11 @@ async function signDigest(keyId: string, digest: string): Promise<string> {
     // `code` is the spawn error code (e.g. `ENOENT`), which isn't on the `ExecaError` type.
     const execaError = error as execa.ExecaError & { code?: string };
     if (execaError.code === 'ENOENT') {
-      throw new Error('Azure CLI (`az`) was not found on PATH');
+      throw new AuthError('Azure CLI (`az`) was not found on PATH');
     }
 
     const output = execaError.all || '';
-    throw new Error(`Azure Key Vault signing failed. ${output ? `Output:\n${output}` : execaError.shortMessage}`);
+    throw new AuthError(`Azure Key Vault signing failed. ${output ? `Output:\n${output}` : execaError.shortMessage}`);
   }
 }
 
@@ -54,13 +55,10 @@ async function signDigest(keyId: string, digest: string): Promise<string> {
  * @returns The base64url-encoded RSA signature.
  */
 export async function signWithAzureCli(keyId: string, signingInput: string): Promise<string> {
-  if (!keyId) {
-    throw new Error('keyId is required');
-  }
   const digest = createHash('sha256').update(signingInput).digest('base64');
   const signature = await signDigest(keyId, digest);
   if (!signature) {
-    throw new Error('Azure Key Vault did not return a signature');
+    throw new AuthError('Azure Key Vault did not return a signature');
   }
   return base64ToBase64url(signature);
 }

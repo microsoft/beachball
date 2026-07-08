@@ -1,5 +1,7 @@
 import { AuthError } from './validationHelpers';
 
+export const defaultGitHubApiUrl = 'https://api.github.com';
+
 const transientRetryCount = 3;
 
 export class GitHubRequestError extends AuthError {
@@ -57,4 +59,13 @@ export async function requestNoContent(url: string | URL, init: RequestInit, fai
       response.status
     );
   }
+}
+
+export function githubHeaders(token: string, json = false): Record<string, string> {
+  return {
+    Accept: 'application/vnd.github+json',
+    Authorization: `Bearer ${token}`,
+    ...(json ? { 'Content-Type': 'application/json' } : {}),
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
 }

@@ -1,7 +1,13 @@
 export type PermissionLevel = 'read' | 'write' | 'admin';
 export type Permissions = Record<string, PermissionLevel>;
 
-export interface GitHubAppAuthOptions {
+/**
+ * Helper function that can be used to get a GitHub App installation token.
+ * It caches installation discovery and tokens to avoid unnecessary requests.
+ */
+export type AppTokenHelper = (options: GetInstallationTokenOptions) => Promise<InstallationToken>;
+
+export interface AppTokenHelperOptions {
   /**
    * GitHub App client ID (a value like `Iv23...`), used as JWT issuer.
    *
@@ -52,4 +58,9 @@ export interface InstallationToken {
   repositories: string[];
   /** Permissions granted to the token, as reported by GitHub. */
   permissions: Record<string, unknown>;
+}
+
+export interface RevokeAppTokenOptions extends Pick<AppTokenHelperOptions, 'githubApiUrl'> {
+  /** Token to revoke */
+  token: string;
 }

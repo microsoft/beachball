@@ -1,6 +1,6 @@
 import { install, MockAgent, setGlobalDispatcher, type Interceptable } from 'undici';
-import { createGitHubAppAuth, type GitHubAppAuth } from '../../githubAuth/appTokenAuth';
-import type { GitHubAppAuthOptions } from '../../githubAuth/types';
+import { createAppTokenHelper } from '../../githubAuth/createAppTokenHelper';
+import type { AppTokenHelper, AppTokenHelperOptions } from '../../githubAuth/types';
 
 install();
 
@@ -50,12 +50,12 @@ export function createTestAuth(
   mockPool: ReturnType<MockAgent['get']>,
   owner: string,
   repo: string,
-  overrides?: Partial<GitHubAppAuthOptions>
-): GitHubAppAuth {
+  overrides?: Partial<AppTokenHelperOptions>
+): AppTokenHelper {
   mockRepoInstallation(mockPool, owner, repo);
   mockAccessToken(mockPool);
 
-  return createGitHubAppAuth({
+  return createAppTokenHelper({
     appClientId: 'Iv1.test-client-id',
     keyId: mockKeyId,
     ...overrides,

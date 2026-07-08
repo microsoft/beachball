@@ -21,10 +21,6 @@ describe('signWithAzureCli', () => {
     mockExeca.mockReset();
   });
 
-  it('rejects a missing keyId', async () => {
-    await expect(signWithAzureCli('', signingInput)).rejects.toThrow(/keyId is required/);
-  });
-
   it('signs the sha256 digest and returns a base64url signature', async () => {
     // Azure CLI returns standard base64 (with +, /, =), which must be converted to base64url.
     mockExeca.mockResolvedValue({ stdout: 'ab+/cd==\n' });
