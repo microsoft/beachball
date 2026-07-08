@@ -23,6 +23,7 @@ export interface ParsedCommandResult {
  * Only `BeachballCommand.initProgram()` and `command.beachballParse()` should be used.
  */
 export class BeachballCommand extends Command {
+  public extraDesc: CommandDefinition['extraDesc'];
   private _result: ParsedCommandResult | undefined;
 
   /**
@@ -76,6 +77,7 @@ export class BeachballCommand extends Command {
       this.argument(argSyntax, argDesc);
     }
     this.description(def.desc);
+    this.extraDesc = def.extraDesc;
 
     // Declare every option on the parent so options can precede the command name (and to support the
     // default command, which receives options parsed by the parent).

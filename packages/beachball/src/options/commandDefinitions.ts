@@ -1,5 +1,7 @@
 export interface CommandDefinition {
   desc: string;
+  /** Extra description shown in command help, appended to the main description (no newline). */
+  extraDesc?: string;
   /** If true, this command runs when no command name is given (e.g. `change`). */
   isDefault?: boolean;
   /** If true, the command is omitted from the top-level help listing. */
@@ -20,12 +22,21 @@ export type MainCommandName =
 /** All subcommand names including nested */
 export type CommandName = MainCommandName | 'config get' | 'config list';
 
+const changeExtra = 'Considers committed and staged changes, but not unstaged or untracked changes.';
+
 export const commandDefinitions: Record<MainCommandName, CommandDefinition> = {
-  change: { desc: 'Create change files for this branch', isDefault: true },
-  check: { desc: 'Check whether a change file is needed for this branch' },
-  bump: { desc: "Bump versions and generate changelogs, but don't commit or publish" },
+  change: {
+    desc: 'Create change file(s) for this branch if needed',
+    extraDesc:
+      changeExtra +
+      '\n\nBy default, an interactive prompt is used to choose the type and message for each changed package. ' +
+      'Use --message and --type (and optionally --package) to skip the prompt. ' +
+      'For help choosing a change type, see https://microsoft.github.io/beachball/concepts/change-types',
+    isDefault: true,
+  },
+  check: { desc: 'Check whether change file(s) are needed for this branch', extraDesc: changeExtra },
   publish: { desc: 'Bump, publish to npm registry, and push updates back to the target branch' },
-  canary: { desc: 'Publish prerelease versions of changed or all packages without committing', hidden: true },
+  bump: { desc: "Bump versions and generate changelogs, but don't commit or publish" },
   sync: {
     desc: 'Synchronize package versions from the registry with local package.json versions',
   },
@@ -39,12 +50,10 @@ export const commandDefinitions: Record<MainCommandName, CommandDefinition> = {
       list: { desc: 'List all config settings (with any overrides)' },
     },
   },
+  migrate: { desc: 'Help to migrate from beachball v2' },
+  canary: { desc: 'Publish prerelease versions of changed or all packages without committing' },
   init: {
     desc: 'Initialize a new beachball config file in the current directory',
-    hidden: true,
-  },
-  migrate: {
-    desc: 'Help to migrate from beachball v2',
     hidden: true,
   },
 };

@@ -149,7 +149,7 @@ export const optionDefinitions: Record<
   changehint: {
     commands: ['check'],
     group: 'primary',
-    desc: 'customized hint message shown when a change file is needed but missing',
+    desc: 'message shown when a change file is needed but missing',
   },
   changeDir: { commands: defaultCommands, group: 'advanced', desc: 'directory name or path to store change files' },
 
@@ -186,14 +186,14 @@ export const optionDefinitions: Record<
     commands: ['change', 'publish'],
     group: 'primary',
     desc: cmd =>
-      (cmd === 'change' && 'the change description') ||
+      (cmd === 'change' && 'change description for all changed packages, instead of prompting') ||
       (cmd === 'publish' && 'version bump commit description') ||
       'change description or commit description',
   },
   type: {
     commands: ['change'],
     group: 'primary',
-    desc: 'type of change (instead of prompting)',
+    desc: 'semver change type for all changed packages, instead of prompting (respects disallowedChangeTypes)',
     choices: SortedChangeTypes,
   },
   package: {
@@ -202,7 +202,7 @@ export const optionDefinitions: Record<
     commands: ['change'],
     group: 'primary',
     conflicts: ['all'],
-    desc: 'force creating a change file for the specified package(s)',
+    desc: 'force creating change file(s) for the specified package(s), regardless of diffs',
   },
   all: {
     commands: ['change', 'canary'],
@@ -213,11 +213,16 @@ export const optionDefinitions: Record<
       (cmd === 'canary' && 'publish prerelease versions of all packages') ||
       'apply command to all packages',
   },
-  commit: { commands: ['change'], group: 'primary', type: 'boolean', desc: 'commit change files after "change"' },
-  dependentChangeType: {
+  commit: {
     commands: ['change'],
     group: 'primary',
-    desc: 'change type to use for dependent packages (default: patch)',
+    type: 'boolean',
+    desc: 'commit change files (if false, only stage them)',
+  },
+  dependentChangeType: {
+    commands: ['change'],
+    group: 'advanced',
+    desc: 'change type to use for dependent packages - should rarely be modified (default: patch)',
     choices: SortedChangeTypes,
   },
 

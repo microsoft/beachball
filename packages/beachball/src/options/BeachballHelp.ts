@@ -45,14 +45,15 @@ export class BeachballHelp extends Help {
   override commandDescription(cmd: Command): string {
     // hack to save current command to use in determining option descriptions
     this._subcommandForOptionDescription = getSubcommandName(cmd);
-    const description = super.commandDescription(cmd);
+    let description = super.commandDescription(cmd);
 
     if (!cmd.parent && cmd.name() === 'beachball') {
       return 'See https://microsoft.github.io/beachball/ for more documentation.';
     }
 
+    description = description.trim().replace(/[^.]$/, '$&.');
     return (
-      (!description || description.endsWith('.') ? description : `${description}.`) +
+      `${description} ${(isBeachballCommand(cmd) && cmd.extraDesc) || ''}`.trim() +
       '\n\nMost options can also be specified in the beachball config ' +
       '(command line options override the config). ' +
       'See https://microsoft.github.io/beachball/overview/configuration for more info.'

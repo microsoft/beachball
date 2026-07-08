@@ -97,20 +97,24 @@ Common options:
 exports[`getCliOptions shows "change" command help text 1`] = `
 "Usage: beachball change [options]
 
-Create change files for this branch.
+Create change file(s) for this branch if needed. Considers committed and staged changes, but not
+unstaged or untracked changes.
+
+By default, an interactive prompt is used to choose the type and message for each changed package.
+Use --message and --type (and optionally --package) to skip the prompt. For help choosing a change
+type, see https://microsoft.github.io/beachball/concepts/change-types
 
 Most options can also be specified in the beachball config (command line options override the
 config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 Options:
-  -m, --message <value>       the change description
-  --type <value>              type of change (instead of prompting) (choices: "none", "prerelease",
+  -m, --message <value>       change description for all changed packages, instead of prompting
+  --type <value>              semver change type for all changed packages, instead of prompting
+                                (respects disallowedChangeTypes) (choices: "none", "prerelease",
                                 "prepatch", "patch", "preminor", "minor", "premajor", "major")
-  -p, --package <value...>    force creating a change file for the specified package(s)
-  --[no-]commit               commit change files after "change" (default: true)
-  --dependent-change-type <value> - change type to use for dependent packages (default: patch)
-                                (choices: "none", "prerelease", "prepatch", "patch", "preminor",
-                                "minor", "premajor", "major")
+  -p, --package <value...>    force creating change file(s) for the specified package(s), regardless
+                                of diffs
+  --[no-]commit               commit change files (if false, only stage them, default: true)
 
 Change detection options:
   -b, --branch <value>        target branch from remote (default: the default remote branch)
@@ -132,6 +136,9 @@ Validation options:
 
 Advanced options:
   --change-dir <value>        directory name or path to store change files (default: "change")
+  --dependent-change-type <value> - change type to use for dependent packages - should rarely be
+                                modified (default: patch) (choices: "none", "prerelease",
+                                "prepatch", "patch", "preminor", "minor", "premajor", "major")
 
 Common options:
   -c, --config <value>        custom beachball config path (default: cosmiconfig standard paths)
@@ -143,14 +150,15 @@ Common options:
 exports[`getCliOptions shows "check" command help text 1`] = `
 "Usage: beachball check [options]
 
-Check whether a change file is needed for this branch.
+Check whether change file(s) are needed for this branch. Considers committed and staged changes, but
+not unstaged or untracked changes.
 
 Most options can also be specified in the beachball config (command line options override the
 config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 Options:
-  --changehint <value>        customized hint message shown when a change file is needed but missing
-                                (default: "Run \\"beachball change\\" to create a change file")
+  --changehint <value>        message shown when a change file is needed but missing (default: "Run
+                                \\"beachball change\\" to create a change file")
 
 Change detection options:
   -b, --branch <value>        target branch from remote (default: the default remote branch)
@@ -370,13 +378,15 @@ exports[`getCliOptions shows top-level help text 1`] = `
 See https://microsoft.github.io/beachball/ for more documentation.
 
 Commands:
-  change                Create change files for this branch
-  check                 Check whether a change file is needed for this branch
-  bump                  Bump versions and generate changelogs, but don't commit or publish
+  change                Create change file(s) for this branch if needed
+  check                 Check whether change file(s) are needed for this branch
   publish               Bump, publish to npm registry, and push updates back to the target branch
+  bump                  Bump versions and generate changelogs, but don't commit or publish
   sync                  Synchronize package versions from the registry with local package.json
                           versions
   config <get|list>     Get or list config settings (requires a sub-command)
+  migrate               Help to migrate from beachball v2
+  canary                Publish prerelease versions of changed or all packages without committing
   help [command]        display help for command
 
 Common options:
