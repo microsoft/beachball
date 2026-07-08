@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { _formatItem, _defaultHelpWidth, _maxTermWidth, BeachballHelp } from '../../options/BeachballHelp';
 import { Command } from 'commander';
-import { BeachballOption } from '../../options/BeachballOption';
+import { BeachballOption, type BeachballOptionParams } from '../../options/BeachballOption';
 
 /** Verify no lines exceed the maximum help width */
 function expectMaxWidth(str: string) {
@@ -81,11 +81,28 @@ describe('_formatItem', () => {
 
 // These tests are fairly basic since they avoid logic from BeachballOption/BeachballCommand
 describe('BeachballHelp', () => {
-  /** get a command with BeachballHelp */
-  function getCommand(helpOption = false) {
-    const command = new Command('test').helpOption(helpOption).description('some description');
-    command.createHelp = () => new BeachballHelp();
-    return command;
+  /** make a BeachballOption applied to all commands */
+  function makeBeachballOption(
+    params: Omit<BeachballOptionParams, 'commands' | 'group'> & Partial<BeachballOptionParams>
+  ) {
+    return new BeachballOption({ commands: () => true, group: 'primary', ...params });
+  }
+
+  /** Command that uses BeachballHelp and disables the `--help` option by default */
+  class TestCommand extends Command {
+    constructor(name = 'test') {
+      super(name);
+      this.helpOption(false);
+    }
+    createCommand(name?: string) {
+      return new TestCommand(name);
+    }
+    createHelp() {
+      return new BeachballHelp();
+    }
+    beachballOption(params: Omit<BeachballOptionParams, 'commands' | 'group'> & Partial<BeachballOptionParams>) {
+      return this.addOption(new BeachballOption({ commands: () => true, group: 'primary', ...params }));
+    }
   }
 
   function getOptionsHelp(command: Command) {
@@ -93,13 +110,70 @@ describe('BeachballHelp', () => {
   }
 
   it('adds --[no-] prefix for boolean BeachballOptions', () => {
-    const opt = new BeachballOption({ name: 'fetch', type: 'boolean', desc: 'some bool', defaultValue: undefined });
-    const command = getCommand().addOption(opt);
-    expect(getOptionsHelp(command)).toMatchInlineSnapshot(`"  --[no-]fetch  some bool"`);
+    const command = new TestCommand().beachballOption({ name: 'fetch', type: 'boolean', desc: 'some bool' });
+    expect(getOptionsHelp(command).trim()).toBe('--[no-]fetch  some bool');
+  });
+
+  // this logic is in BeachballOption + BeachballHelp
+  it('appends BeachballOption default to option description', () => {
+    const command = new TestCommand()
+      .beachballOption({ name: 'tag', desc: 'npm dist-tag', defaultValue: 'latest' })
+      .beachballOption({ name: 'fetch', type: 'boolean', desc: 'fetch first', defaultValue: true })
+      .beachballOption({ name: 'bump', type: 'boolean', desc: 'bump first', defaultValue: false })
+      .beachballOption({ name: 'depth', type: 'number', desc: 'fetch depth', defaultValue: 0 });
+    const help = getOptionsHelp(command);
+    expect(help).toMatchInlineSnapshot(`
+      "  --tag <value>  npm dist-tag (default: "latest")
+        --[no-]fetch   fetch first (default: true)
+        --[no-]bump    bump first (default: false)
+        --depth <num>  fetch depth (default: 0)"
+    `);
+    expect(help.match(/default:/g)).toHaveLength(4);
+  });
+
+  it('does not use BeachballOption default if the description already has a default', () => {
+    const opt = makeBeachballOption({ name: 'tag', desc: 'npm dist-tag (default: "latest")', defaultValue: 'other' });
+    expect(opt.defaultValueDescription).toBe('"other"');
+    const help = getOptionsHelp(new TestCommand().addOption(opt));
+    expect(help).toContain('npm dist-tag (default: "latest")');
+    expect(help).not.toContain('other');
+  });
+
+  // this logic is in BeachballOption + BeachballHelp
+  it('does not include default for null/undefined/empty', () => {
+    const command = new TestCommand()
+      .beachballOption({ name: 'branch', desc: 'target branch' })
+      .beachballOption({ name: 'scope', desc: 'scope pattern', defaultValue: null })
+      .beachballOption({ name: 'configPath', desc: 'config path', defaultValue: '' });
+    const help = getOptionsHelp(command);
+    expect(help).not.toContain('default:');
+  });
+
+  /** uses a special description for "change" */
+  const messageOption: BeachballOptionParams = {
+    name: 'message',
+    desc: cmd => (cmd === 'change' ? 'change description' : 'commit message'),
+    commands: () => true,
+    group: 'primary',
+  };
+
+  it('uses command-specific description for matching command', () => {
+    const change = new TestCommand().beachballOption(messageOption).command('change');
+    expect(getOptionsHelp(change)).toContain('change description');
+  });
+
+  it('uses command-specific description fallback for other command', () => {
+    const publish = new TestCommand().beachballOption(messageOption).command('publish');
+    expect(getOptionsHelp(publish)).toContain('commit message');
+  });
+
+  it('appends the default value to the command-specific description', () => {
+    const change = new TestCommand().beachballOption({ ...messageOption, defaultValue: 'hello' }).command('change');
+    expect(getOptionsHelp(change)).toContain('change description (default: "hello")');
   });
 
   it('caps term width for long options', () => {
-    const command = getCommand()
+    const command = new TestCommand()
       .option('--foo <value>', 'some value')
       .option('--some-very-long-long-long-option <value>', 'some long option');
     const help = getOptionsHelp(command);
@@ -112,32 +186,44 @@ describe('BeachballHelp', () => {
   });
 
   it('puts commands before options', () => {
-    const command = getCommand().option('--foo', 'some option');
-    command.command('bar').description('some subcommand');
-    const help = command.helpInformation();
+    const subcommand = new TestCommand().command('bar').description('some subcommand').option('--foo', 'some option');
+    const help = subcommand.helpInformation();
     // BeachballHelp flips the order of commands and options
-    expect(help.indexOf('Commands:')).toBeLessThan(help.indexOf('Options:'));
+    expect(help.indexOf('Commands:')).toBeLessThan(help.match(/options:/i)?.index || -1);
   });
 
-  it('shows parent options in a subcommand help', () => {
-    const command = getCommand(true).option('--parent-opt', 'a parent option');
-    const sub = command.command('sub').description('a subcommand').option('--sub-opt', 'a sub option');
-    sub.createHelp = () => new BeachballHelp();
-    // The subcommand's own option, the parent option, and help (last) are all shown
-    expect(getOptionsHelp(sub)).toMatchInlineSnapshot(`
-      "  --sub-opt     a sub option
-        --parent-opt  a parent option
-        -h, --help    display help for command"
+  it('shows appropriate options from parent on subcommand', () => {
+    const publish = new TestCommand()
+      .helpOption(true)
+      .beachballOption({ name: 'tag', desc: 'npm dist-tag', group: 'common' })
+      .beachballOption({ name: 'message', desc: 'commit message', commands: ['publish'] })
+      .beachballOption({ name: 'scope', desc: 'scope pattern', commands: ['check'] })
+      .option('--non-beachball-opt', 'a parent option')
+      .command('publish')
+      .helpOption(true);
+
+    const help = getOptionsHelp(publish);
+    expect(help).toContain('--tag'); // common => shown on any command
+    expect(help).toContain('--message'); // only publish => shown on publish
+    expect(help).not.toContain('--scope'); // only check => omitted on publish
+    expect(help).toContain('--non-beachball-opt'); // not essential, but currently non-BeachballOptions always inherit
+    expect(help).toMatchInlineSnapshot(`
+      "  --message <value>    commit message
+        --non-beachball-opt  a parent option
+
+      Common options:
+        --tag <value>        npm dist-tag
+        -h, --help           display help for command"
     `);
-    // The parent option is not actually added to the subcommand
-    expect(sub.options.map(opt => opt.long)).toEqual(['--sub-opt']);
   });
 
   it('formats help', () => {
     // The realistic case for this as of writing is "--prerelease-prefix <value>"
     const trickyOption = '--' + 'a'.repeat(_maxTermWidth - 1);
     expect(trickyOption).toHaveLength(_maxTermWidth + 1);
-    const command = getCommand(true)
+    const command = new TestCommand()
+      .helpOption(true)
+      .description('some description')
       .version('1.2.3')
       .option(trickyOption, 'exact term length before adding "-" separator')
       .option('--bar', 'some option\nwith a line break')
@@ -147,7 +233,10 @@ describe('BeachballHelp', () => {
     expect(help).toMatchInlineSnapshot(`
       "Usage: test [options] [command]
 
-      some description
+      some description.
+
+      Most options can also be specified in the beachball config (command line options override the
+      config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
       Commands:
         foo <arg>                   long long long long long long long long long long long long long long
@@ -155,12 +244,14 @@ describe('BeachballHelp', () => {
         help [command]              display help for command
 
       Options:
-        -V, --version               output the version number
         --aaaaaaaaaaaaaaaaaaaaaaaaa exact term length before adding "-" separator
         --bar                       some option
                                       with a line break
         --some-very-long-long-long-option - with a description with a description with a description with
                                       a description
+
+      Common options:
+        -V, --version               output the version number
         -h, --help                  display help for command
       "
     `);

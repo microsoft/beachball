@@ -2,6 +2,7 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { findProjectRoot, resolveRemoteAndBranch } from 'workspace-tools';
 import { getCliOptions, type ProgramContext } from '../../options/getCliOptions';
 import { CommanderError } from 'commander';
+import { allCommandNames } from '../../options/commandDefinitions';
 
 jest.mock('workspace-tools', () => ({
   ...jest.requireActual<typeof import('workspace-tools')>('workspace-tools'),
@@ -146,18 +147,20 @@ describe('getCliOptions', () => {
     expect(options).toEqual({ ...defaults, token: '' });
   });
 
-  it('shows help text', () => {
+  it('shows top-level help text', () => {
     const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
-    expect(() => getCliOptionsTest({ args: ['--help'], outputOptions })).toThrow(CommanderError);
+    expect(() => getCliOptionsTest({ args: ['--help'], outputOptions, version: 'x.y.z' })).toThrow(CommanderError);
     expect(outputOptions.writeErr).not.toHaveBeenCalled();
     expect(outputOptions.writeOut).toHaveBeenCalledTimes(1);
     // Make sure the help text looks reasonable
     expect(outputOptions.writeOut.mock.calls[0][0]).toMatchSnapshot();
   });
 
-  it('shows change command help text', () => {
+  it.each(allCommandNames)('shows "%s" command help text', cmdName => {
     const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
-    expect(() => getCliOptionsTest({ args: ['change', '--help'], outputOptions })).toThrow(CommanderError);
+    expect(() =>
+      getCliOptionsTest({ args: [...cmdName.split(' '), '--help'], outputOptions, version: 'x.y.z' })
+    ).toThrow(CommanderError);
     expect(outputOptions.writeErr).not.toHaveBeenCalled();
     expect(outputOptions.writeOut).toHaveBeenCalledTimes(1);
     // Make sure the help text looks reasonable
