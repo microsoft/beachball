@@ -64,6 +64,12 @@ The logic for determining the comparison remote and branch is stricter: beachbal
 
 Only relevant for custom changelog renderers: `PackageChangelog.tag` and `ChangelogJsonEntry.tag` are now `undefined` when the package had no associated git tag (previously a value was always present).
 
+### Stop writing placeholder commit hashes
+
+In v2, Beachball could write `"not available"` to the `commit` field in `CHANGELOG.json` when a commit hash was unavailable.
+
+In v3, Beachball omits the `commit` field entirely in those cases instead, including dependent bump entries that do not have a real commit hash yet.
+
 ### `shouldPublish` behavior change
 
 > Note: **you should almost never need this option** - in most scenarios, just set `private: true` in `package.json` instead.

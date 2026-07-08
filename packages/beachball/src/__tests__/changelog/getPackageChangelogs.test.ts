@@ -169,8 +169,8 @@ describe('getPackageChangelogs', () => {
     expect(changelogs.bar).toEqual({
       comments: {
         patch: [
-          // IMPORTANT: this should not record an actual commit hash, because it will be incorrect
-          { author: 'beachball', package: 'bar', comment: 'Bump foo to v1.0.0', commit: 'not available' },
+          // IMPORTANT: this should omit the commit hash because it does not exist yet
+          { author: 'beachball', package: 'bar', comment: 'Bump foo to v1.0.0' },
         ],
       },
       date: expect.any(Date),
