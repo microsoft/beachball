@@ -5,6 +5,8 @@
   "printWidth": 120,
   "arrowParens": "avoid",
   "endOfLine": "lf",
+  // enable @noprettier
+  "checkIgnorePragma": true,
   "overrides": [
     {
       // format .json5 files as jsonc for VS Code support

@@ -2,7 +2,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@j
 import * as authModule from '../../githubAuth/createAppTokenHelper';
 import * as revokeModule from '../../githubAuth/revokeAppToken';
 import type { AppTokenHelper, InstallationToken } from '../../githubAuth/types';
-import { run, type CliContext } from '../../githubAuth/appTokenCli';
+import { runAppTokenCli, type CliContext } from '../../githubAuth/appTokenCli';
 import { CommanderError } from 'commander';
 import { defaultGitHubApiUrl } from '../../githubAuth/requestHelpers';
 
@@ -58,7 +58,7 @@ describe('appTokenCli', () => {
 
     it('creates a token and writes it to stdout by default', async () => {
       const context = getContext([...requiredArgs]);
-      await run(context);
+      await runAppTokenCli(context);
 
       expect(createAppTokenHelper).toHaveBeenCalledWith({
         appClientId: 'Iv1.client',
@@ -76,7 +76,7 @@ describe('appTokenCli', () => {
         REPOSITORY: 'org/repo',
         GITHUB_API_URL: 'https://ghe.example.com/api/v3',
       });
-      await run(context);
+      await runAppTokenCli(context);
 
       expect(createAppTokenHelper).toHaveBeenCalledWith({
         appClientId: 'Iv1.client',
@@ -88,7 +88,7 @@ describe('appTokenCli', () => {
 
     it('parses permissions', async () => {
       const context = getContext([...requiredArgs, '--permissions', 'contents:read  ,foo:write\nbar:admin']);
-      await run(context);
+      await runAppTokenCli(context);
 
       expect(mockGetInstallationToken).toHaveBeenCalledWith({
         repository: 'org/repo',
@@ -98,29 +98,29 @@ describe('appTokenCli', () => {
 
     it('rejects invalid permissions', async () => {
       const context = getContext([...requiredArgs, '--permissions', 'contents:bogus']);
-      await expect(run(context)).rejects.toThrow(/Invalid permission level for contents: bogus/);
+      await expect(runAppTokenCli(context)).rejects.toThrow(/Invalid permission level for contents: bogus/);
     });
 
     it('writes an Azure Pipelines variable command for azure output', async () => {
       const context = getContext([...requiredArgs, '--output', 'azure', '--azure-token-variable', 'MY_TOKEN']);
-      await run(context);
+      await runAppTokenCli(context);
 
       expect(out).toEqual([`##vso[task.setvariable variable=MY_TOKEN;isSecret=true]${mockToken}`]);
     });
 
     it('requires --azure-token-variable for non-stdout output', async () => {
       const context = getContext([...requiredArgs, '--output', 'azure-pipelines']);
-      await expect(run(context)).rejects.toThrow(/--azure-token-variable .* is required/);
+      await expect(runAppTokenCli(context)).rejects.toThrow(/--azure-token-variable .* is required/);
     });
 
     it('rejects an invalid --azure-token-variable name', async () => {
       const context = getContext([...requiredArgs, '--output', 'azure', '--azure-token-variable', 'bad name!']);
-      await expect(run(context)).rejects.toThrow(/environment-style variable name/);
+      await expect(runAppTokenCli(context)).rejects.toThrow(/environment-style variable name/);
     });
 
     it('rejects an invalid --output value', async () => {
       const context = getContext([...requiredArgs, '--output', 'bogus']);
-      await expect(run(context)).rejects.toThrow(CommanderError);
+      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
       expect(err[0].trim()).toMatchInlineSnapshot(
         `"error: option '--output <mode>' argument 'bogus' is invalid. Allowed choices are azure, azure-pipelines, stdout."`
       );
@@ -132,7 +132,7 @@ describe('appTokenCli', () => {
       args.splice(index, 2);
 
       const context = getContext(args);
-      await expect(run(context)).rejects.toThrow(CommanderError);
+      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
       expect(err[0]).toMatch(new RegExp(`error: required option '${missing}.*?' not specified`));
     });
   });
@@ -140,7 +140,7 @@ describe('appTokenCli', () => {
   describe('revoke command', () => {
     it('revokes a token passed as a flag', async () => {
       const context = getContext(['revoke', '--token', 'ghs_revoke_me']);
-      await run(context);
+      await runAppTokenCli(context);
 
       expect(revokeAppToken).toHaveBeenCalledWith({
         githubApiUrl: defaultGitHubApiUrl,
@@ -151,7 +151,7 @@ describe('appTokenCli', () => {
 
     it('reads the token from TOKEN', async () => {
       const context = getContext(['revoke'], { TOKEN: 'ghs_from_env' });
-      await run(context);
+      await runAppTokenCli(context);
 
       expect(revokeAppToken).toHaveBeenCalledWith({
         githubApiUrl: defaultGitHubApiUrl,
@@ -167,7 +167,7 @@ describe('appTokenCli', () => {
         '--github-api-url',
         'https://ghe.example.com/api/v3',
       ]);
-      await run(context);
+      await runAppTokenCli(context);
 
       expect(revokeAppToken).toHaveBeenCalledWith({
         githubApiUrl: 'https://ghe.example.com/api/v3',
@@ -177,7 +177,7 @@ describe('appTokenCli', () => {
 
     it('requires a token', async () => {
       const context = getContext(['revoke']);
-      await expect(run(context)).rejects.toThrow(/--token/);
+      await expect(runAppTokenCli(context)).rejects.toThrow(/--token/);
     });
   });
 });

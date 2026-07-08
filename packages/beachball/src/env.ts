@@ -8,6 +8,8 @@ export const env = Object.freeze({
 
   isJest,
 
+  isAzurePipelines,
+
   /** Whether this is one of the beachball repo's official release pipelines */
   isBeachballAdoRelease: adoBuildNumber?.startsWith('beachball-release'),
 

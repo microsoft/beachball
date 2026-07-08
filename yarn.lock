@@ -1549,7 +1549,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@microsoft/beachball-scripts@workspace:scripts"
   dependencies:
-    "@ms-cloudpack/esbuild-node-helpers": "npm:^0.1.7"
+    "@ms-cloudpack/esbuild-node-helpers": "patch:@ms-cloudpack/esbuild-node-helpers@npm%3A0.1.7#~/.yarn/patches/@ms-cloudpack-esbuild-node-helpers-npm-0.1.7-235443c849.patch"
     "@ms-cloudpack/eslint-plugin-deprecated": "npm:^0.1.5"
     cross-env: "npm:^10.1.0"
     esbuild: "npm:^0.28.1"
@@ -1586,7 +1586,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ms-cloudpack/esbuild-node-helpers@npm:^0.1.7":
+"@ms-cloudpack/esbuild-node-helpers@npm:0.1.7":
   version: 0.1.7
   resolution: "@ms-cloudpack/esbuild-node-helpers@npm:0.1.7"
   dependencies:
@@ -1597,6 +1597,20 @@ __metadata:
   peerDependencies:
     esbuild: ">=0.28.0"
   checksum: 10c0/599acd0474b43b72c91a39f10444216d48aa82abab242f6c3023693de10297e711781f287cbff13defd760052b6fd1fdb27ecea878f155144f9606d9ac68ceaa
+  languageName: node
+  linkType: hard
+
+"@ms-cloudpack/esbuild-node-helpers@patch:@ms-cloudpack/esbuild-node-helpers@npm%3A0.1.7#~/.yarn/patches/@ms-cloudpack-esbuild-node-helpers-npm-0.1.7-235443c849.patch":
+  version: 0.1.7
+  resolution: "@ms-cloudpack/esbuild-node-helpers@patch:@ms-cloudpack/esbuild-node-helpers@npm%3A0.1.7#~/.yarn/patches/@ms-cloudpack-esbuild-node-helpers-npm-0.1.7-235443c849.patch::version=0.1.7&hash=b821e6"
+  dependencies:
+    "@ms-cloudpack/environment": "npm:^0.1.7"
+    hosted-git-info: "npm:^9.0.0"
+    picocolors: "npm:^1.1.1"
+    validate-npm-package-license: "npm:^3.0.4"
+  peerDependencies:
+    esbuild: ">=0.28.0"
+  checksum: 10c0/372e1ebf4ae40d5f94f70ac2e60b32c9fa72c91f35be6d8a9064ca03a00c4d3ae6268a21b97ce810f049d341da151675e4c34bfa9b23218036fbbddf83d0ccdb
   languageName: node
   linkType: hard
 

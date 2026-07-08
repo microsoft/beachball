@@ -1,7 +1,7 @@
 import { bundleNode, unacceptableLicenseTest, BundleError } from '@ms-cloudpack/esbuild-node-helpers';
 import fs from 'fs';
 import path from 'path';
-import { findPackageRoot, getPackageInfo } from 'workspace-tools';
+import { findPackageRoot } from 'workspace-tools';
 
 const packageRoot = findPackageRoot(process.cwd());
 if (!packageRoot) {
@@ -23,8 +23,11 @@ await bundleNode({
   noticeDir: 'dist',
   verifyFiles: false,
   esbuildOptions: {
-    splitting: false,
     outExtension: useMjs ? { '.js': '.mjs' } : undefined,
+    // currently for the packages in this repo, nothing is externalized
+    external: [],
+    // ensure files can be copy-pasted
+    splitting: false,
   },
   unacceptableLicenseTest,
   excludeFromNotice: dep => dep.name.startsWith('@azure/') && dep.license === 'MIT',

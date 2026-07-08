@@ -1,0 +1,54 @@
+diff --git a/lib/bundleNode.js b/lib/bundleNode.js
+index 1c08a19959747f6fce3dec04674a83cc67fc56e9..0e50551c55bc31af35e8f5ce8cdd37430d49a9d1 100644
+--- a/lib/bundleNode.js
++++ b/lib/bundleNode.js
+@@ -16,7 +16,8 @@ import { verifyPackageJson } from "./utils/verifyPackageJson.js";
+  * `var` is used instead of `const` to avoid re-declaration issues if a bundled package applies the
+  * same workaround. The odd `createRequire` import name is for similar reasons.
+  */
+-const cjsGlobalsHeader = `// @ts-nocheck
++const cjsGlobalsHeader = `/** @noprettier - generated file (requires checkIgnorePragma option) */
++// @ts-nocheck
+ /* eslint-disable */
+ import { createRequire as esbuildNodeHelpersCreateRequire } from 'node:module';
+ var require = esbuildNodeHelpersCreateRequire(import.meta.url);
+@@ -24,7 +25,7 @@ var __filename = import.meta.filename;
+ var __dirname = import.meta.dirname;`;
+ /**
+  * Bundle a node package with esbuild. By default it creates an ESM bundle for Node 22+.
+- * `dependencies` will be externalized, but all other referenced deps will be bundled.
++ * By default, `dependencies` will be externalized, but all other referenced deps will be bundled.
+  *
+  * It also writes a `NOTICE.txt` file at the package root with license information for dependencies
+  * from outside the current repo, and if `options.unacceptableLicenseTest` is provided, errors if
+@@ -67,14 +68,7 @@ export async function bundleNode(options) {
+             logLevel: 'info',
+             // less important if not minifying, and bloats package size
+             // sourcemap: true,
+-            ...esbuildOptions,
+-            // Critical options
+-            absWorkingDir: packageRoot,
+-            entryPoints: entryPoints,
+-            outdir: outDir,
+-            platform: 'node',
+-            bundle: true,
+-            format,
++            // PATCH: allow overriding externals
+             // Exclude non-dev dependencies from the bundle. In a bundled package, generally the only
+             // dependencies should be other internal packages and anything with native binaries.
+             // (It appears node built-ins are automatically externalized with platform: 'node'.)
+@@ -86,6 +80,14 @@ export async function bundleNode(options) {
+                 }),
+                 ...(esbuildOptions?.external || []),
+             ],
++            ...esbuildOptions,
++            // Critical options
++            absWorkingDir: packageRoot,
++            entryPoints: entryPoints,
++            outdir: outDir,
++            platform: 'node',
++            bundle: true,
++            format,
+             plugins: [
+                 licensePlugin({
+                     packageName: packageJson.name,

@@ -116,7 +116,7 @@ export function buildProgram(context: CliContext): Command {
 const originalEnv = process.env;
 
 /** Build and run the CLI, wiring commander's error handling to the provided context. */
-export async function run(context: CliContext): Promise<void> {
+export async function runAppTokenCli(context: CliContext): Promise<void> {
   const program = buildProgram(context);
   context.env && (process.env = context.env);
   try {
@@ -124,14 +124,4 @@ export async function run(context: CliContext): Promise<void> {
   } finally {
     process.env = originalEnv;
   }
-}
-
-if (require.main === module) {
-  void run({ argv: process.argv }).catch((err: unknown) => {
-    const message =
-      err instanceof AuthError ? err.message : err instanceof Error ? err.stack || err.message : String(err);
-    const errorPrefix = process.env.TF_BUILD ? '##vso[task.logissue type=error] ' : '';
-    console.error(`${errorPrefix}${message}`);
-    process.exitCode = 1;
-  });
 }
