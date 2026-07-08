@@ -67,6 +67,13 @@ export function migrate(parsedOptions: ParsedOptions): void {
     updates.push('The `new` option has been removed. Please remove it from your config.');
   }
 
+  if ((repoOptions as { packStyle?: unknown }).packStyle !== undefined) {
+    updates.push(
+      'The `packStyle` option has been removed (packing always uses the layered style now). ' +
+        'Please remove it from your config.'
+    );
+  }
+
   if (rawPackageInfos) {
     checkShouldPublish({ rawPackageInfos, warnings, updates });
     checkChangelogJson({ rawPackageInfos, options, repoOptions, updates });
