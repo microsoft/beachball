@@ -13,7 +13,10 @@ export function setDefaultBranchName(cwd: string, isRemoteRepo?: boolean): void 
   if (isRemoteRepo) {
     // Change the name of the default branch on the repo used for the remote
     // (for clones, this is unnecessary and can cause problems)
-    gitFailFast(['symbolic-ref', 'HEAD', 'refs/heads/' + defaultBranchName], { cwd });
+    gitFailFast(['-c', 'safe.bareRepository=all', 'symbolic-ref', 'HEAD', 'refs/heads/' + defaultBranchName], {
+      cwd,
+    });
+    return;
   }
   // This needs to be configured for clones because other code may use it to find the default
   // comparison branch if none is specified

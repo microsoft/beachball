@@ -40,10 +40,12 @@ describe('performBump', () => {
 
   /** Package infos for current test */
   let packageInfos: PackageInfos | undefined;
+  /** "Original" non-bumped package infos for current test */
+  let originalPackageInfos: PackageInfos | undefined;
 
   /** Get the package.json from `packageInfos` for the given package name */
-  function packageJsonFor(pkgName: string) {
-    const pkg = packageInfos?.[pkgName];
+  function packageJsonFor(source: PackageInfos | undefined, pkgName: string) {
+    const pkg = source?.[pkgName];
     if (!pkg) {
       throw new Error(`No package info for ${pkgName}`);
     }
@@ -64,6 +66,7 @@ describe('performBump', () => {
    */
   function performBumpWrapper(params: {
     packageInfos: PartialPackageInfos;
+    originalPackageInfos?: PartialPackageInfos;
     modifiedPackages?: BumpInfo['modifiedPackages'];
     /** Names to generate empty `changeFileChangeInfos` */
     changeFileNames?: string[];
@@ -77,11 +80,14 @@ describe('performBump', () => {
     });
 
     packageInfos = makePackageInfos(params.packageInfos, opts.cliOptions);
+    originalPackageInfos = makePackageInfos(params.originalPackageInfos || params.packageInfos, opts.cliOptions);
 
     return performBump(
       {
-        // performBump only directly uses packageInfos, modifiedPackages, and names from changeFileChangeInfos.
+        // performBump only directly uses packageInfos, originalPackageInfos, modifiedPackages,
+        // and names from changeFileChangeInfos.
         packageInfos,
+        originalPackageInfos,
         modifiedPackages: params.modifiedPackages || new Set(Object.keys(packageInfos)),
         changeFileChangeInfos: (params.changeFileNames || []).map<ChangeSet[number]>(name => ({
           changeFile: name,
@@ -106,19 +112,22 @@ describe('performBump', () => {
     // Only say package.json files exist
     mockFs.existsSync.mockImplementation(filePath => String(filePath).endsWith('package.json'));
 
-    // Mock readFileSync to return package.json based on packageInfos
+    // Mock readFileSync to return package.json content from originalPackageInfos,
+    // representing the pre-bump state still on disk when performBump starts.
     mockFs.readFileSync.mockImplementation((filePath => {
       filePath = String(filePath);
       if (!filePath.endsWith('package.json')) {
         throw new Error(`readFileSync not mocked for ${filePath}`);
       }
-      const packageJson = packageJsonFor(path.basename(path.dirname(filePath)));
+      const packageJson = packageJsonFor(originalPackageInfos, path.basename(path.dirname(filePath)));
+
       return JSON.stringify(packageJson);
     }) as typeof _fs.readFileSync);
   });
 
   afterEach(() => {
     packageInfos = undefined;
+    originalPackageInfos = undefined;
   });
 
   it('updates package.json files for modified packages only', async () => {
@@ -129,8 +138,8 @@ describe('performBump', () => {
 
     const mockCalls = mockWriteJson.mock.calls.filter(call => call[0].endsWith('package.json'));
     expect(mockCalls).toEqual([
-      [packageInfos!.pkg2.packageJsonPath, packageJsonFor('pkg2')],
-      [packageInfos!.pkg3.packageJsonPath, packageJsonFor('pkg3')],
+      [packageInfos!.pkg2.packageJsonPath, packageJsonFor(packageInfos, 'pkg2')],
+      [packageInfos!.pkg3.packageJsonPath, packageJsonFor(packageInfos, 'pkg3')],
     ]);
 
     // other expected mocks
@@ -183,8 +192,6 @@ describe('performBump', () => {
     expect(mockFs.rmSync).not.toHaveBeenCalled();
   });
 
-  // Currently prebump is using the wrong version, so the test/mocks might need updating
-  // https://github.com/microsoft/beachball/issues/1116
   it('calls prebump hook for each package before writing', async () => {
     const hook = jest.fn<PrebumpHook>(() => {
       expect(mockWriteJson).not.toHaveBeenCalled();
@@ -193,13 +200,13 @@ describe('performBump', () => {
     });
 
     await performBumpWrapper({
-      packageInfos: { pkg1: { version: '1.0.0' }, pkg2: { version: '2.0.0' }, pkg3: { version: '1.0.0' } },
+      packageInfos: { pkg1: { version: '1.0.0' }, pkg2: { version: '2.0.1' }, pkg3: { version: '1.1.0' } },
+      originalPackageInfos: { pkg1: { version: '1.0.0' }, pkg2: { version: '2.0.0' }, pkg3: { version: '1.0.0' } },
       modifiedPackages: new Set(['pkg2', 'pkg3']),
       changeFileNames: ['change1', 'change2'],
       repoOptions: { hooks: { prebump: hook } },
     });
 
-    // currently this is getting the extra packageInfos arg even though it's not in signature
     expect(getHookCalls(hook)).toEqual([
       [expect.stringMatching(/pkg2$/), 'pkg2', '2.0.0'],
       [expect.stringMatching(/pkg3$/), 'pkg3', '1.0.0'],

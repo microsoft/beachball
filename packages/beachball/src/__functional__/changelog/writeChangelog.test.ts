@@ -232,7 +232,7 @@ describe('writeChangelog', () => {
       comments: {
         minor: [
           { package: 'foo', comment: 'foo comment', author, commit },
-          { package: 'foo', comment: 'Bump bar to v1.3.5', author: 'beachball', commit },
+          { package: 'foo', comment: 'Bump bar to v1.3.5', author: 'beachball' },
         ],
       },
     });
@@ -241,7 +241,7 @@ describe('writeChangelog', () => {
     expect(barJson).toEqual({ name: 'bar', entries: [expect.anything()] });
     expect(barJson!.entries[0]).toEqual({
       comments: {
-        patch: [{ package: 'bar', comment: 'Bump baz to v1.4.0', author: 'beachball', commit }],
+        patch: [{ package: 'bar', comment: 'Bump baz to v1.4.0', author: 'beachball' }],
       },
       date: '(date)',
       tag: 'bar_v1.3.5',

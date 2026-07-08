@@ -555,9 +555,7 @@ describe('bump command', () => {
         prebump: jest.fn<NonNullable<HooksOptions['prebump']>>(async (packagePath, name, version) => {
           expect(packagePath.endsWith('pkg-1')).toBeTruthy();
           expect(name).toBe('pkg-1');
-          // This is currently wrong--it should still be the old version
-          // https://github.com/microsoft/beachball/issues/1116
-          expect(version).toBe('1.1.0');
+          expect(version).toBe('1.0.0');
 
           await new Promise(resolve => setTimeout(resolve, 0)); // simulate async work
           const jsonPath = path.join(packagePath, 'package.json');

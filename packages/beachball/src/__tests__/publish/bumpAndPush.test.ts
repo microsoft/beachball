@@ -76,6 +76,7 @@ describe('bumpAndPush', () => {
       },
     });
     const bumpInfo: BumpInfo = {
+      originalPackageInfos: makePackageInfos({ foo: { version: '1.0.0' }, bar: { version: '1.0.0' } }),
       packageInfos: makePackageInfos({ foo: { version: '1.1.0' }, bar: { version: '2.0.0' } }),
       modifiedPackages: new Set(['foo', 'bar']),
       changeFileChangeInfos: [],

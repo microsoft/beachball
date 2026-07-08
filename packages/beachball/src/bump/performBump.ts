@@ -14,10 +14,9 @@ import { updateLockFile } from './updateLockFile';
  * @param bumpInfo Bump info produced by `bumpInMemory` which already reflects in-memory bumps
  */
 export async function performBump(bumpInfo: Readonly<BumpInfo>, options: BeachballOptions): Promise<void> {
-  const { modifiedPackages, packageInfos, changeFileChangeInfos } = bumpInfo;
+  const { modifiedPackages, packageInfos, changeFileChangeInfos, originalPackageInfos } = bumpInfo;
 
-  // TODO: this uses the wrong version https://github.com/microsoft/beachball/issues/1116
-  await callHook(options.hooks?.prebump, modifiedPackages, packageInfos, options.concurrency);
+  await callHook(options.hooks?.prebump, modifiedPackages, originalPackageInfos, options.concurrency);
 
   updatePackageJsons(modifiedPackages, packageInfos);
   await updateLockFile(options);
