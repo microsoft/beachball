@@ -33,9 +33,13 @@ extends:
       name: Azure-Pipelines-1ESPT-ExDShared
       image: windows-latest
       os: windows # We need windows because compliance task only run on windows.
+    featureFlags:
+      incrementalSDLSourceAnalysis: true
     sdl:
       codeql:
         runSourceLanguagesInSourceAnalysis: true
+    settings:
+      networkIsolationPolicy: GitHub
 
     stages:
       - stage: build
