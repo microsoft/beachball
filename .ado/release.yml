@@ -24,7 +24,7 @@ variables:
   nodeVersion: 24
   tags: production
   packagesArtifactName: packed-packages
-  releaseApiToolArtifactName: release-api-tool
+  toolArtifactName: release-api-tool
 
 extends:
   template: v1/Office.Official.PipelineTemplate.yml@OfficePipelineTemplates
@@ -54,18 +54,18 @@ extends:
 
             variables:
               artifactPath: $(Build.StagingDirectory)/out
-              packagesArtifactPath: ${{ variables.artifactPath }}/packed-packages
-              releaseApiToolPath: ${{ variables.artifactPath }}/release-api-tool
+              packagesArtifactPath: $(Build.StagingDirectory)/out/${{ variables.packagesArtifactName }}
+              toolArtifactPath: $(Build.StagingDirectory)/out/${{ variables.toolArtifactName }}
 
             templateContext:
-              outputParentDirectory: ${{ variables.artifactPath }}
+              outputParentDirectory: $(artifactPath)
               outputs:
                 - output: pipelineArtifact
                   artifactName: ${{ variables.packagesArtifactName }}
-                  path: ${{ variables.packagesArtifactPath }}
+                  path: $(packagesArtifactPath)
                 - output: pipelineArtifact
-                  artifactName: ${{ variables.releaseApiToolArtifactName }}
-                  path: ${{ variables.releaseApiToolPath }}
+                  artifactName: ${{ variables.toolArtifactName }}
+                  path: $(toolArtifactPath)
 
             steps:
               - checkout: self
@@ -124,12 +124,13 @@ extends:
                   scriptLocation: scriptPath
                   scriptPath: scripts/publish-with-github-app-token.sh
 
+              # main benefit of copying is so SDL scanning can run once on outputParentDirectory
               - script: |
-                  mkdir -p ${{ variables.releaseApiToolPath }}
-                  cp -r packages/esrp-npm-release/dist/index.js ${{ variables.releaseApiToolPath }}
+                  mkdir -p '$(toolArtifactPath)'
+                  cp -r packages/esrp-npm-release/dist/index.mjs '$(toolArtifactPath)'
                 displayName: Copy release API tool to staging directory
 
-              - script: ls -R '${{ variables.artifactPath }}'
+              - script: ls -R '$(artifactPath)'
                 displayName: Show all output files
 
       - stage: publish
@@ -141,7 +142,7 @@ extends:
 
             variables:
               packagesArtifactPath: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
-              releaseApiToolPath: $(Agent.BuildDirectory)\${{ variables.releaseApiToolArtifactName }}
+              toolArtifactPath: $(Agent.BuildDirectory)\${{ variables.toolArtifactName }}
 
             templateContext:
               type: releaseJob
@@ -149,10 +150,10 @@ extends:
               inputs:
                 - input: pipelineArtifact
                   artifactName: ${{ variables.packagesArtifactName }}
-                  targetPath: ${{ variables.packagesArtifactPath }}
+                  targetPath: $(packagesArtifactPath)
                 - input: pipelineArtifact
-                  artifactName: ${{ variables.releaseApiToolArtifactName }}
-                  targetPath: ${{ variables.releaseApiToolPath }}
+                  artifactName: ${{ variables.toolArtifactName }}
+                  targetPath: $(toolArtifactPath)
 
             # Use ESRP Release to securely publish to npmjs.com.
             steps:
@@ -163,7 +164,7 @@ extends:
                   version: ${{ variables.nodeVersion }}.x
                   checkLatest: false
 
-              - script: dir /S ${{ variables.packagesArtifactPath }}
+              - script: dir /S $(packagesArtifactPath)
                 displayName: Show packages artifact contents
 
               # Get credentials that will be used to temporarily upload zips to ogxesrptempstorage
@@ -192,11 +193,11 @@ extends:
                   # "authcertname" and "signcertname" from EsrpRelease task
                   SecretsFilter: OGX-JSHost-Auth4,OGX-JSHost-Sign3
 
-              - script: node ${{ variables.releaseApiToolPath }}\index.js
+              - script: node $(toolArtifactPath)\index.mjs
                 displayName: Publish to npmjs.com using ESRP Release API wrapper
                 retryCountOnTaskFailure: 3
                 env:
-                  PACKED_PACKAGES_PATH: ${{ variables.packagesArtifactPath }}
+                  PACKED_PACKAGES_PATH: $(packagesArtifactPath)
                   ESRP_PRODUCT_NAME: beachball
                   ESRP_NPM_TAG: test
                   ESRP_USER: elcraig@microsoft.com

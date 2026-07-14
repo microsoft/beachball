@@ -166,7 +166,7 @@ variables:
   tags: production
   nodeVersion: 24
   packagesArtifactName: packed-packages
-  releaseApiToolArtifactName: release-api-tool
+  toolArtifactName: release-api-tool
 
 extends:
   template: <1ES PT template>
@@ -193,16 +193,24 @@ extends:
             workspace:
               clean: all
 
+            variables:
+              artifactPath: $(Build.StagingDirectory)/out
+              packagesArtifactPath: $(Build.StagingDirectory)/out/${{ variables.packagesArtifactName }}
+              toolArtifactPath: $(Build.StagingDirectory)/out/${{ variables.toolArtifactName }}
+              # update this path as needed
+              toolBinPath: $(Build.SourcesDirectory)/node_modules/@microsoft/esrp-npm-release/dist/index.mjs
+
             templateContext:
+              outputParentDirectory: $(artifactPath)
               outputs:
                 # your packed packages
                 - output: pipelineArtifact
                   artifactName: ${{ variables.packagesArtifactName }}
-                  targetPath: $(Build.StagingDirectory)/packed-packages
-                # the release tool so it doesn't need to be installed (update path as needed)
+                  path: $(packagesArtifactPath)
+                # the release tool so it doesn't need to be installed
                 - output: pipelineArtifact
-                  artifactName: ${{ variables.releaseApiToolArtifactName }}
-                  targetPath: $(Build.SourcesDirectory)/node_modules/@microsoft/esrp-npm-release/dist/index.mjs
+                  artifactName: ${{ variables.toolArtifactName }}
+                  path: $(toolArtifactPath)
 
             steps:
               - checkout: self
@@ -237,8 +245,14 @@ extends:
               # Bump and pack packages (update command and registry as needed).
               # This could also run some other script that outputs packages in the same format.
               # TODO read registry from npmrc
-              - script: yarn beachball bump --pack-to-path '$(Build.StagingDirectory)/packed-packages' --registry https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/
+              - script: yarn beachball bump --pack-to-path '$(packagesArtifactPath)' --registry https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/
                 displayName: Pack packages
+
+              # main benefit of copying is so SDL scanning can run once on outputParentDirectory
+              - script: |
+                  mkdir -p '$(toolArtifactPath)'
+                  cp -r '$(toolBinPath)' '$(toolArtifactPath)'
+                displayName: Copy release API tool to staging directory
 
       - stage: release
         displayName: Publish packages
@@ -246,16 +260,21 @@ extends:
         jobs:
           - job: npm_release
             displayName: NPM to npmjs.com
+
+            variables:
+              packagesArtifactPath: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
+              toolArtifactPath: $(Agent.BuildDirectory)\${{ variables.toolArtifactName }}
+
             templateContext:
               type: releaseJob
               isProduction: true
               inputs:
                 - input: pipelineArtifact
                   artifactName: ${{ variables.packagesArtifactName }}
-                  targetPath: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
+                  targetPath: $(packagesArtifactPath)
                 - input: pipelineArtifact
-                  artifactName: ${{ variables.releaseApiToolArtifactName }}
-                  targetPath: $(Agent.BuildDirectory)\${{ variables.releaseApiToolArtifactName }}
+                  artifactName: ${{ variables.toolArtifactName }}
+                  targetPath: $(toolArtifactPath)
 
             steps:
               - task: UseNode@1
@@ -286,11 +305,11 @@ extends:
                   SecretsFilter: <auth cert name>,<request signing cert name>
 
               # Run the tool
-              - script: node $(Agent.BuildDirectory)\${{ variables.releaseApiToolArtifactName }}\index.js
+              - script: node $(toolArtifactPath)\index.mjs
                 displayName: Publish using ESRP Release API
                 retryCountOnTaskFailure: 3
                 env:
-                  PACKED_PACKAGES_PATH: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
+                  PACKED_PACKAGES_PATH: $(packagesArtifactPath)
 
                   # Staging storage credentials
                   STAGING_STORAGE_ACCOUNT_NAME: <storage account name>
