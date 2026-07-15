@@ -41,9 +41,13 @@ Run `yarn checkchange --verbose` to get the list of changed packages and files c
 - The list of changed packages is under "Found changes in the following packages" -- you must ONLY include these packages in the change file! (beachball has various settings to ignore packages or files)
 - The list of changed files is under "changed files in current branch". IGNORE any files with `~~` strikethrough formatting.
 
+DO NOT manually check for existing change files.
+
 ### 3. Create the change file(s)
 
 Change files are located under `<changeDir>`. There are two possible structures for change files, determined by the `groupChanges` setting.
+
+When checking diffs to generate change files, DO NOT merge with the target branch; just use the local merge-base.
 
 #### Case 1: Non-grouped format (`groupChanges` is `false` or unset)
 
