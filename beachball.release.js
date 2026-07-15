@@ -16,7 +16,7 @@ const config = {
 
   access: 'public',
   // TODO: update beachball to read the registry from .npmrc and/or .yarnrc.yml
-  registry: getPublishRegistry(),
+  registry: process.env.TF_BUILD ? getPublishRegistry() : 'https://registry.npmjs.org/',
 
   // TODO (release): remove
   // Separate prerelease and non-prerelease packages
