@@ -1,9 +1,17 @@
-# This pipeline has stages to build artifacts and commit to git, then publish packages via ESRP.
-# Based on https://github.com/microsoft/node-api-dotnet/blob/main/.ado/publish.yml
-# see also https://github.com/microsoft/fluentui/blob/master/azure-pipelines.release.yml
-# references:
+# The release pipeline to build, test, and pack NPM packages ("beachball - release").
+# It also waits for the ESRP release pipeline and then pushes back to git.
+#
+# References:
 # https://eng.ms/docs/coreai/devdiv/one-engineering-system-1es/1es-docs/1es-pipeline-templates/overview
 # https://eng.ms/docs/coreai/devdiv/one-engineering-system-1es/1es-docs/1es-pipeline-templates/migration/office-specific-guidance
+# https://github.com/microsoft/node-api-dotnet/blob/main/.ado/publish.yml
+# https://github.com/microsoft/fluentui/blob/master/azure-pipelines.release.yml
+#
+# IMPORTANT: the ESRP release step must be in a separate pipeline (release-esrp.yml).
+# Any pipeline with a job `type: releaseJob` has stricter network isolation policies applied,
+# and 1ES PT networkIsolationPolicy can only be set at the pipeline level.
+# These policies break the GitHub and private npm feed access required for this pipeline.
+# The ESRP pipeline consumes this pipeline's artifacts via a `pipelines` resource.
 
 # Name of the run
 # NOTE: this is referenced in packages/beachball/src/env.ts as BUILD_BUILDNUMBER for some tests
@@ -21,10 +29,15 @@ resources:
       ref: refs/tags/release
 
 variables:
-  nodeVersion: 24
   tags: production
   packagesArtifactName: packed-packages
+  # TODO (release): remove all canary artifacts
+  canaryArtifactName: packed-packages-canary
   toolArtifactName: release-api-tool
+  # ID of the ADO pipeline for release-esrp.yml (definitionId in the URL)
+  esrpPipelineId: 36941
+  # Must match pipelineAlias in release-esrp.yml
+  pipelineAlias: main-release
 
 extends:
   template: v1/Office.Official.PipelineTemplate.yml@OfficePipelineTemplates
@@ -38,10 +51,9 @@ extends:
     sdl:
       codeql:
         runSourceLanguagesInSourceAnalysis: true
-    settings:
-      networkIsolationPolicy: GitHub
 
     stages:
+      # "build" match the stage name trigger in release-esrp.yml
       - stage: build
         displayName: Build artifacts
         jobs:
@@ -59,6 +71,7 @@ extends:
             variables:
               artifactPath: $(Build.StagingDirectory)/out
               packagesArtifactPath: $(Build.StagingDirectory)/out/${{ variables.packagesArtifactName }}
+              canaryArtifactPath: $(Build.StagingDirectory)/out/${{ variables.canaryArtifactName }}
               toolArtifactPath: $(Build.StagingDirectory)/out/${{ variables.toolArtifactName }}
 
             templateContext:
@@ -68,51 +81,14 @@ extends:
                   artifactName: ${{ variables.packagesArtifactName }}
                   path: $(packagesArtifactPath)
                 - output: pipelineArtifact
+                  artifactName: ${{ variables.canaryArtifactName }}
+                  path: $(canaryArtifactPath)
+                - output: pipelineArtifact
                   artifactName: ${{ variables.toolArtifactName }}
                   path: $(toolArtifactPath)
 
             steps:
-              - checkout: self
-
-              - task: UseNode@1
-                displayName: Install Node.js ${{ variables.nodeVersion }}
-                retryCountOnTaskFailure: 1
-                inputs:
-                  version: ${{ variables.nodeVersion }}.x
-                  checkLatest: false
-
-              # For multiline scripts, we want the whole task to fail if any line of the script fails.
-              # ADO doesn't have bash configured this way by default. To fix we override the SHELLOPTS built-in variable.
-              # https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
-              # The options below include ADO defaults (braceexpand:hashall:interactive-comments) plus
-              # errexit:errtrace for better error behavior.
-              - script: |
-                  echo "##vso[task.setvariable variable=shellopts]braceexpand:hashall:interactive-comments:errexit:errtrace"
-                displayName: Force exit on error (bash)
-
-              - script: |
-                  echo "node: `node -v`"
-                  echo "yarn: `yarn -v`"
-                  echo "npm: `npm -v`"
-                  printenv | sort
-                  git --no-pager config list
-                displayName: Show environment
-
-              - script: node scripts/preparePublishRegistry.ts
-                displayName: Prepare npm registry settings
-
-              - task: npmAuthenticate@0
-                displayName: npm authenticate
-                inputs:
-                  workingFile: $(Build.SourcesDirectory)/.npmrc
-
-              # This isn't used, it's just a clear way to check that auth is working
-              # (yarn install's auth errors can be very unclear)
-              - script: yarn npm info beachball
-                displayName: Get package to verify yarn auth
-
-              - script: yarn --immutable
-                displayName: Install dependencies
+              - template: templates/setup.yml
 
               - script: yarn build --verbose
                 displayName: Build
@@ -120,13 +96,14 @@ extends:
               - script: yarn test --verbose
                 displayName: Test
 
-              - task: AzureCLI@2
-                displayName: Get token and publish packages
-                inputs:
-                  azureSubscription: ogx-oss-release-bot
-                  scriptType: bash
-                  scriptLocation: scriptPath
-                  scriptPath: scripts/publish-with-github-app-token.sh
+              - script: mkdir -p "$(canaryArtifactPath)" "$(packagesArtifactPath)"
+                displayName: Create package artifact directories
+
+              - script: yarn beachball:release canary --pack-to-path "$(canaryArtifactPath)"
+                displayName: Pack packages (canary)
+
+              - script: yarn beachball:release publish --no-push --pack-to-path "$(packagesArtifactPath)"
+                displayName: Pack packages (others)
 
               # main benefit of copying is so SDL scanning can run once on outputParentDirectory
               - script: |
@@ -137,82 +114,44 @@ extends:
               - script: ls -R '$(artifactPath)'
                 displayName: Show all output files
 
-      - stage: publish
-        displayName: Publish packages
+      # Wait for the separate ESRP release pipeline to complete (see comment at top for why it's separate)
+      - stage: poll_and_push
+        displayName: Wait for release and push to git
         dependsOn: build
         jobs:
-          - job: npm_publish
-            displayName: NPM to npmjs.com
-
-            variables:
-              packagesArtifactPath: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
-              toolArtifactPath: $(Agent.BuildDirectory)\${{ variables.toolArtifactName }}
-
-            templateContext:
-              type: releaseJob
-              isProduction: true
-              inputs:
-                - input: pipelineArtifact
-                  artifactName: ${{ variables.packagesArtifactName }}
-                  targetPath: $(packagesArtifactPath)
-                - input: pipelineArtifact
-                  artifactName: ${{ variables.toolArtifactName }}
-                  targetPath: $(toolArtifactPath)
-
-            # Use ESRP Release to securely publish to npmjs.com.
+          - job: poll_and_push
+            pool:
+              name: Azure-Pipelines-1ESPT-ExDShared
+              image: ubuntu-latest
+              os: linux
             steps:
-              - task: UseNode@1
-                displayName: Install Node.js ${{ variables.nodeVersion }}
-                retryCountOnTaskFailure: 1
-                inputs:
-                  version: ${{ variables.nodeVersion }}.x
-                  checkLatest: false
+              - template: templates/setup.yml
 
-              - script: dir /S $(packagesArtifactPath)
-                displayName: Show packages artifact contents
-
-              # Get credentials that will be used to temporarily upload zips to ogxesrptempstorage
-              # in the OGX azure subscription
-              - task: AzureCLI@2
-                displayName: Get credentials for staging blob storage
-                inputs:
-                  # this is the service connection name
-                  azureSubscription: ogx-esrp-infra-bot
-                  scriptType: pscore
-                  scriptLocation: inlineScript
-                  addSpnToEnvironment: true
-                  inlineScript: |
-                    Write-Host "##vso[task.setvariable variable=STAGING_TENANT_ID]$env:tenantId"
-                    Write-Host "##vso[task.setvariable variable=STAGING_CLIENT_ID]$env:servicePrincipalId"
-                    Write-Host "##vso[task.setvariable variable=STAGING_ID_TOKEN;issecret=true]$env:idToken"
-
-              # Fetch ESRP certificates from key vault in Torus
-              - task: AzureKeyVault@2
-                displayName: Get ESRP certificates from Key Vault
-                inputs:
-                  # torus service connection name ("connectedservicename" from EsrpRelease task)
-                  azureSubscription: ESRP-JSHost3
-                  # "keyvaultname" from EsrpRelease task
-                  KeyVaultName: OGX-JSHost-KV
-                  # "authcertname" and "signcertname" from EsrpRelease task
-                  SecretsFilter: OGX-JSHost-Auth4,OGX-JSHost-Sign3
-
-              - script: node $(toolArtifactPath)\index.mjs
-                displayName: Publish to npmjs.com using ESRP Release API wrapper
-                retryCountOnTaskFailure: 3
+              - script: node scripts/awaitRelease.ts
+                displayName: Await release completion
                 env:
-                  PACKED_PACKAGES_PATH: $(packagesArtifactPath)
-                  ESRP_PRODUCT_NAME: beachball
-                  ESRP_NPM_TAG: test
-                  ESRP_USER: elcraig@microsoft.com
-                  ESRP_APPROVERS: dannyvv@microsoft.com
-                  # torus tenant ID ("domaintenantid" from EsrpRelease task, same as service connection "ESRP-JSHost3")
-                  ESRP_TENANT_ID: cdc5aeea-15c5-4db6-b079-fcadd2505dc2
-                  # "clientid" from EsrpRelease task
-                  ESRP_CLIENT_ID: 0a35e01f-eadf-420a-a2bf-def002ba898d
-                  ESRP_AUTH_CERT: $(OGX-JSHost-Auth4)
-                  ESRP_REQUEST_SIGNING_CERT: $(OGX-JSHost-Sign3)
-                  STAGING_STORAGE_ACCOUNT_NAME: ogxesrptempstorage
-                  STAGING_CLIENT_ID: $(STAGING_CLIENT_ID)
-                  STAGING_TENANT_ID: $(STAGING_TENANT_ID)
-                  STAGING_ID_TOKEN: $(STAGING_ID_TOKEN)
+                  AUTH_TOKEN: $(System.AccessToken)
+                  ESRP_PIPELINE_ID: $(esrpPipelineId)
+                  PUBLISH_PIPELINE_ALIAS: $(pipelineAlias)
+
+              - task: AzureCLI@2
+                displayName: Get token
+                inputs:
+                  azureSubscription: ogx-oss-release-bot
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: node scripts/create-github-app-token.cjs
+                env:
+                  # office-ogx-auth-helper GitHub App
+                  APP_CLIENT_ID: Iv23ligBoU5jc9SIFnGR
+                  KEY_ID: https://ogx-oss-release-keyvault.vault.azure.net/keys/office-ogx-auth-helper-key
+                  REPOSITORIES: $(Build.Repository.ID)
+                  PERMISSIONS: contents:write
+                  OUTPUT: azure
+                  AZURE_TOKEN_VARIABLE: GITHUB_APP_TOKEN
+
+              # TODO (release): update task name
+              - script: node scripts/publishWithGithubAppToken.ts
+                displayName: Publish non-prerelease packages
+                env:
+                  GITHUB_APP_TOKEN: $(GITHUB_APP_TOKEN)
