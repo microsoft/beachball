@@ -12,23 +12,8 @@
 
 import { adoFail, fetchWithRetry, sleep } from './helpers.ts';
 
-// Verify each required env input is set (builtins like SYSTEM_* and BUILD_BUILDID are agent-provided).
-const missing = ['AUTH_TOKEN', 'ESRP_PIPELINE_ID', 'PUBLISH_PIPELINE_ALIAS'].filter(v => !process.env[v]);
-if (missing.length) {
-  adoFail(`Required env input(s) not set: ${missing.join(' ')}`);
-}
-const {
-  AUTH_TOKEN,
-  ESRP_PIPELINE_ID: esrpPipelineId,
-  PUBLISH_PIPELINE_ALIAS: publishPipelineAlias,
-  SYSTEM_COLLECTIONURI,
-  SYSTEM_TEAMPROJECT,
-  BUILD_BUILDID,
-} = process.env as Record<string, string>;
-const apiReleaseRuns = `${SYSTEM_COLLECTIONURI}${SYSTEM_TEAMPROJECT}/_apis/pipelines/${esrpPipelineId}/runs`;
-
 /** A single ADO pipeline run, as returned by the runs REST API. */
-interface PipelineRun {
+export interface PipelineRun {
   /** The run's unique id. */
   id: number;
   /** Run lifecycle state, e.g. `inProgress` or `completed`. */
@@ -41,16 +26,28 @@ interface PipelineRun {
   };
 }
 
-/**
- * GET an ADO REST URL, adding auth and the api-version query param automatically.
- * Retries up to 3 times with 1s backoff on failure.
- */
-async function apiGet<T>(url: string): Promise<T> {
-  return fetchWithRetry(`${url}?api-version=7.1`, { authHeader: `Bearer ${AUTH_TOKEN}` });
-}
-
 /** Poll for the ESRP release run and gate on its outcome. */
-async function main(): Promise<void> {
+export async function awaitRelease(env = process.env): Promise<void> {
+  // Verify each required env input is set (builtins like SYSTEM_* and BUILD_BUILDID are agent-provided).
+  const missing = ['AUTH_TOKEN', 'ESRP_PIPELINE_ID', 'PUBLISH_PIPELINE_ALIAS'].filter(v => !env[v]);
+  if (missing.length) {
+    adoFail(`Required env input(s) not set: ${missing.join(' ')}`);
+  }
+  const {
+    AUTH_TOKEN,
+    ESRP_PIPELINE_ID: esrpPipelineId,
+    PUBLISH_PIPELINE_ALIAS: publishPipelineAlias,
+    SYSTEM_COLLECTIONURI,
+    SYSTEM_TEAMPROJECT,
+    BUILD_BUILDID,
+  } = env as Record<string, string>;
+  const apiReleaseRuns = `${SYSTEM_COLLECTIONURI}${SYSTEM_TEAMPROJECT}/_apis/pipelines/${esrpPipelineId}/runs`;
+
+  /** Get an ADO REST URL with auth and retries */
+  async function apiGet<T>(url: string): Promise<T> {
+    return fetchWithRetry(`${url}?api-version=7.1`, { authHeader: `Bearer ${AUTH_TOKEN}` });
+  }
+
   // 1. Find the release run triggered by THIS build run (poll until it appears).
   //    The completion trigger records this run's id under resources.pipelines.<alias>.
   //    Polls every 30s for up to 60 tries (~30 minutes) before giving up.
@@ -90,6 +87,8 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(err => {
-  adoFail(err instanceof Error ? err.message : String(err));
-});
+if (import.meta.main) {
+  awaitRelease().catch(err => {
+    adoFail(err instanceof Error ? err.message : String(err));
+  });
+}
