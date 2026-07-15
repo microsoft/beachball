@@ -23,7 +23,7 @@ export async function fetchWithRetry<T>(url: string, options?: { authHeader?: st
       if (!res.ok) {
         throw new Error(`Request failed (${res.status} ${res.statusText})`);
       }
-      return res.json() as Promise<T>;
+      return (await res.json()) as T;
     } catch (err) {
       lastError = err;
       console.warn(`Error fetching ${url} (attempt ${attempt}): ${(err as Error).message || String(err)}`);
