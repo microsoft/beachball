@@ -96,6 +96,9 @@ extends:
               - script: yarn test --verbose
                 displayName: Test
 
+              - script: mkdir -p "$(canaryArtifactPath)" "$(packagesArtifactPath)"
+                displayName: Create package artifact directories
+
               - script: yarn beachball:release canary --pack-to-path "$(canaryArtifactPath)"
                 displayName: Pack packages (canary)
 
