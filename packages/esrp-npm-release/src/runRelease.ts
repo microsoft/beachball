@@ -89,7 +89,10 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
     .filter(name => /^\d+$/.test(name) && fs.statSync(path.join(env.packedPackagesPath, name)).isDirectory());
 
   if (!layers.length) {
-    throw new ReleaseError(`No layer directories found under ${env.packedPackagesPath}`);
+    // An empty artifact is expected when there were no packages that needed publishing,
+    // so warn and succeed rather than failing the release.
+    logger.warn(`No layer directories found under ${env.packedPackagesPath}; nothing to release`);
+    return;
   }
 
   logger.log(`Found ${layers.length} layer(s) to release`);

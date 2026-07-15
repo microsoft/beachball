@@ -181,7 +181,6 @@ extends:
       os: windows # some scans require windows
 
     stages:
-      # "build" must match the stage name that the ESRP pipeline triggers on
       - stage: build
         displayName: Build artifacts
         jobs:
