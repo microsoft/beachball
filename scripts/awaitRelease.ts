@@ -37,7 +37,7 @@ interface PipelineRun {
   result?: string;
   /** Pipeline resources, including the source runs keyed by alias. */
   resources?: {
-    pipelines?: { [alias: string]: { runID?: number } };
+    pipelines?: { [alias: string]: { run?: { id?: number } } };
   };
 }
 
@@ -59,7 +59,7 @@ async function main(): Promise<void> {
     const runs = await apiGet<{ value: PipelineRun[] }>(apiReleaseRuns);
     for (const { id } of runs.value) {
       const run = await apiGet<PipelineRun>(`${apiReleaseRuns}/${id}`);
-      const src = run.resources?.pipelines?.[publishPipelineAlias]?.runID;
+      const src = run.resources?.pipelines?.[publishPipelineAlias]?.run?.id;
       if (String(src) === BUILD_BUILDID) {
         found = id;
         break;
