@@ -123,7 +123,12 @@ The release stage (later) passes the connection's name to `AzureCLI@2` as `azure
 
 ## Pipeline setup
 
-This tool is designed to run in Azure DevOps using [1ES Pipeline Templates](https://eng.ms/docs/coreai/devdiv/one-engineering-system-1es/1es-docs/1es-pipeline-templates/overview). The recommended setup is a single pipeline with separate build and release stages.
+This tool is designed to run in Azure DevOps using [1ES Pipeline Templates](https://eng.ms/docs/coreai/devdiv/one-engineering-system-1es/1es-docs/1es-pipeline-templates/overview). The recommended setup is **two separate pipelines**:
+
+1. A **main release pipeline** that builds the repo, packs the packages, and publishes pipeline artifacts (the packed packages and the release tool).
+2. An **ESRP release pipeline** that consumes those artifacts and runs the release tool to publish via ESRP.
+
+The two must be separate since the ESRP job is tagged with 1ES PT `type: releaseJob`, which applies stricter network isolation policies to the entire pipeline. The ESRP pipeline consumes the main release pipeline's artifacts via a [`pipelines` resource](https://learn.microsoft.com/azure/devops/pipelines/process/pipeline-resource).
 
 ### Prerequisite: Internal feed setup
 
@@ -136,12 +141,9 @@ Production pipeline template policies restrict network access, so it's necessary
 1. Make a copy of [`scripts/preparePublishRegistry.ts`](https://github.com/microsoft/beachball/blob/main/scripts/preparePublishRegistry.ts) in your repo. It must run before deps are installed: it copies `.npmrc.publish` to `.npmrc`, and updates `.yarnrc.yml` with registry and auth settings.
    - If using `npm` or `pnpm`, modify as needed. If the manager saves resolved URLs in the lock file, you'll also need a step to update those to point to the private registry.
 
-#### Pipeline file
+#### Main release pipeline
 
-The pipeline has two stages:
-
-1. **build**: builds the repo, packs the packages, and publishes pipeline artifacts consumed by the release stage.
-2. **publish**: runs the release tool to publish the packages via ESRP. The release stage should always use a separate `releaseJob` (with `isProduction: true`) and consume build outputs as `pipelineArtifact` inputs instead of running checkout/package restore directly in the release job.
+The main release pipeline builds the repo, packs the packages, and publishes two pipeline artifacts that the ESRP pipeline consumes: the **packed packages** and the **release tool itself** (so it doesn't need to be installed in the release job).
 
 Be sure to fill in all the `<placeholders>`! See https://github.com/microsoft/beachball/blob/main/.ado/release.yml for a full example.
 
@@ -167,6 +169,8 @@ variables:
   nodeVersion: 24
   packagesArtifactName: packed-packages
   toolArtifactName: release-api-tool
+  # TODO: remove once beachball supports reading npmrc registry
+  registry: <private registry (same as .npmrc.publish)>
 
 extends:
   template: <1ES PT template>
@@ -177,7 +181,7 @@ extends:
       os: windows # some scans require windows
 
     stages:
-      # divide and name stages and jobs as desired
+      # "build" must match the stage name that the ESRP pipeline triggers on
       - stage: build
         displayName: Build artifacts
         jobs:
@@ -185,7 +189,7 @@ extends:
             displayName: Build, test, pack
 
             pool:
-              name: Azure-Pipelines-1ESPT-ExDShared
+              name: <1ES PT pool name>
               # could also use windows
               image: ubuntu-latest
               os: linux
@@ -197,7 +201,7 @@ extends:
               artifactPath: $(Build.StagingDirectory)/out
               packagesArtifactPath: $(Build.StagingDirectory)/out/${{ variables.packagesArtifactName }}
               toolArtifactPath: $(Build.StagingDirectory)/out/${{ variables.toolArtifactName }}
-              # update this path as needed
+              # update as needed for your install layout
               toolBinPath: $(Build.SourcesDirectory)/node_modules/@microsoft/esrp-npm-release/dist/index.mjs
 
             templateContext:
@@ -217,7 +221,6 @@ extends:
 
               - task: UseNode@1
                 displayName: Install Node.js ${{ variables.nodeVersion }}
-                retryCountOnTaskFailure: 1
                 inputs:
                   version: ${{ variables.nodeVersion }}.x
                   checkLatest: false
@@ -237,15 +240,11 @@ extends:
               - script: yarn npm info beachball
                 displayName: Get package to verify registry auth
 
-              - script: yarn --immutable
-                displayName: Install dependencies
+              # TODO: insert steps to install, build, test, etc
 
-              # TODO: insert steps to run your build, tests, etc
-
-              # Bump and pack packages (update command and registry as needed).
+              # Bump and pack packages (update command as needed).
               # This could also run some other script that outputs packages in the same format.
-              # TODO read registry from npmrc
-              - script: yarn beachball bump --pack-to-path '$(packagesArtifactPath)' --registry https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/
+              - script: yarn beachball publish --no-push --pack-to-path '$(packagesArtifactPath)' --registry '$(registry)'
                 displayName: Pack packages
 
               # main benefit of copying is so SDL scanning can run once on outputParentDirectory
@@ -253,12 +252,61 @@ extends:
                   mkdir -p '$(toolArtifactPath)'
                   cp -r '$(toolBinPath)' '$(toolArtifactPath)'
                 displayName: Copy release API tool to staging directory
+```
 
-      - stage: release
+#### ESRP release pipeline
+
+This pipeline consumes the main release pipeline's artifacts via a `pipelines` resource and runs the release tool in a `type: releaseJob` (with `isProduction: true`). It can only download build artifacts, not run checkout or install directly.
+
+Be sure to fill in all the `<placeholders>`! See https://github.com/microsoft/beachball/blob/main/.ado/release-esrp.yml for a full example.
+
+```yml
+# Build number/name - modify as desired
+name: <name>-esrp-release-$(Date:yyyy-MM-dd).$(Rev:rr)
+
+pr: none
+trigger: none
+
+resources:
+  pipelines:
+    # Consume the main release pipeline's artifacts. The alias must match the pipelineAlias variable below.
+    - pipeline: <main release pipeline alias>
+      project: <project>
+      # must match the UI name of the main release pipeline
+      source: <main release pipeline name>
+      # Auto-trigger this pipeline when the main release pipeline completes
+      trigger:
+        branches:
+          include:
+            - main
+
+  repositories:
+    # fill in per 1ES PT instructions for your org
+    - repository: <template repo>
+      type: git
+      name: <template repo name>
+      ref: <release tag>
+
+variables:
+  tags: production
+  # must match the pipeline alias in the `pipelines` resource above
+  pipelineAlias: <main release pipeline alias>
+  packagesArtifactName: packed-packages
+  toolArtifactName: release-api-tool
+
+extends:
+  template: <1ES PT template>
+  parameters:
+    pool:
+      name: <pool name>
+      vmImage: windows-latest
+      os: windows # some scans require windows
+
+    stages:
+      - stage: publish
         displayName: Publish packages
-        dependsOn: build
         jobs:
-          - job: npm_release
+          - job: npm_publish
             displayName: NPM to npmjs.com
 
             variables:
@@ -270,9 +318,11 @@ extends:
               isProduction: true
               inputs:
                 - input: pipelineArtifact
+                  pipeline: ${{ variables.pipelineAlias }}
                   artifactName: ${{ variables.packagesArtifactName }}
                   targetPath: $(packagesArtifactPath)
                 - input: pipelineArtifact
+                  pipeline: ${{ variables.pipelineAlias }}
                   artifactName: ${{ variables.toolArtifactName }}
                   targetPath: $(toolArtifactPath)
 

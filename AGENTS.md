@@ -13,8 +13,22 @@ Beachball is a CLI tool for automating semantic version bumping, changelog gener
 
 ## Monorepo structure
 
-- `packages/beachball`: `beachball` package
+- `packages/beachball`: main Beachball package
+- `packages/p-graph`: promise graph runner, used by `beachball`
+- `packages/proper-changelog`: changelog/release notes helper
+- `packages/esrp-npm-release`: helper for Microsoft release process
 - `scripts`: repo-internal scripts (`@microsoft/beachball-scripts`)
+- `actions/*`: GitHub actions definitions
+
+## Tooling
+
+- **Node.js:** `>=22.18.0` - scripts should be written in TS to be run natively with Node (no extra flags needed)
+- **Package manager:** Yarn 4 (Berry) with `nodeLinker: node-modules`. Some dependency versions are shared via Yarn catalogs (see `catalogs` in `.yarnrc.yml`).
+- **Language:** TypeScript `~6.0` (mixed output types; `beachball` package is commonjs)
+- **Task runner:** [lage](https://microsoft.github.io/lage/) orchestrates `build`, `test`, and `lint` across workspaces
+- **Testing:** Jest 30 (via Babel). The `beachball` package splits this into `unit`, `functional`, and `e2e` projects; other packages use a single default project.
+- **Linting/formatting:** ESLint (flat config, `typescript-eslint`) and Prettier
+- **Dependency consistency:** syncpack
 
 ## Commands
 
@@ -91,6 +105,7 @@ All these paths refer to the `beachball` package under `packages/beachball`.
 - You must update the documentation site when adding a new option or command
 - Also consider whether documentation site updates are needed for other new features or behavior changes
 - All headings in the documentation site and other markdown files must use sentence case
+- Don't manually wrap prose lines in markdown files
 
 ### Required before each commit
 
@@ -101,7 +116,7 @@ All these paths refer to the `beachball` package under `packages/beachball`.
 
 ### Required before creating a PR
 
-- Use `/beachball-change-file` to generate a Beachball change file.
+- Use `/beachball-change-file` to generate a Beachball change file. (Sometimes no change files are needed, but you should use the skill to check.)
 - Check whether any documentation site or help text updates are needed for the change.
 
 ## Testing
