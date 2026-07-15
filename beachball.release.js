@@ -21,7 +21,7 @@ const config = {
   // TODO (release): remove
   // Separate prerelease and non-prerelease packages
   // e.g. !packages/{beachball,p-graph} for non-prerelease packages
-  scope: [`${isCanary ? '' : ':'}packages/{${prereleasePackages.join(',')}}`],
+  scope: [`${isCanary ? '' : '!'}packages/{${prereleasePackages.join(',')}}`],
   tag: isCanary ? 'next' : 'latest',
   canaryName: 'alpha',
   gitTags: !isCanary,
