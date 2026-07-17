@@ -32,7 +32,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Node.js ${{ env.nodeVersion }}
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: ${{ env.nodeVersion }}
 
