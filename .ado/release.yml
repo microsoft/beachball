@@ -1,5 +1,6 @@
-# The release pipeline to build, test, and pack NPM packages ("beachball - release").
-# It also waits for the ESRP release pipeline and then pushes back to git.
+# Pipeline: "beachball - release"
+# The release pipeline to build, test, and pack NPM packages, publish them via ESRP,
+# and push the resulting changes back to git.
 #
 # References:
 # https://eng.ms/docs/coreai/devdiv/one-engineering-system-1es/1es-docs/1es-pipeline-templates/overview
@@ -7,11 +8,14 @@
 # https://github.com/microsoft/node-api-dotnet/blob/main/.ado/publish.yml
 # https://github.com/microsoft/fluentui/blob/master/azure-pipelines.release.yml
 #
-# IMPORTANT: the ESRP release step must be in a separate pipeline (release-esrp.yml).
-# Any pipeline with a job `type: releaseJob` has stricter network isolation policies applied,
-# and 1ES PT networkIsolationPolicy can only be set at the pipeline level.
-# These policies break the GitHub and private npm feed access required for this pipeline.
-# The ESRP pipeline consumes this pipeline's artifacts via a `pipelines` resource.
+#
+# NOTE: ESRP release should probably be in a job with `type: releaseJob`. This applies stricter
+# network isolation policies to the entire pipeline by default, which are overridden below so the
+# build/push steps work. This isn't ideal, but the current design of a git push stage which runs
+# after the ESRP release stage would require three separate pipelines. (In theory it's possible to
+# trigger an ESRP pipeline on build stage completion, then have a later stage here wait for its
+# completion before pushing back to git, but that setup hits a MOBR global-build-success-validation
+# gate on the release pipeline, since the whole pipeline the artifact comes from hasn't succeeded yet.)
 
 # Name of the run
 # NOTE: this is referenced in packages/beachball/src/env.ts as BUILD_BUILDNUMBER for some tests
@@ -28,32 +32,49 @@ resources:
       name: 1ESPipelineTemplates/OfficePipelineTemplates
       ref: refs/tags/release
 
+# Temporary workaround to publish two groups of packages with different versioning strategies
+# TODO (release): go back to a single publish step
+parameters:
+  - name: npmPublishes
+    type: object
+    default:
+      - groupName: canary
+        artifactPathVariable: canaryArtifactPath
+        npmTag: next
+      - groupName: others
+        artifactPathVariable: packagesArtifactPath
+        npmTag: latest
+
 variables:
+  nodeVersion: 24
   tags: production
-  packagesArtifactName: packed-packages
+  # Single artifact containing all subfolders below (to consolidate compliance auto validation)
+  artifactName: release-artifacts
+  packagesDirName: packed-packages
   # TODO (release): remove all canary artifacts
-  canaryArtifactName: packed-packages-canary
-  toolArtifactName: release-api-tool
-  # ID of the ADO pipeline for release-esrp.yml (definitionId in the URL)
-  esrpPipelineId: 36941
-  # Must match pipelineAlias in release-esrp.yml
-  pipelineAlias: main-release
+  canaryDirName: packed-packages-canary
+  toolDirName: release-api-tool
 
 extends:
   template: v1/Office.Official.PipelineTemplate.yml@OfficePipelineTemplates
   parameters:
     pool:
       name: Azure-Pipelines-1ESPT-ExDShared
+      # the auto-injected SDL source-analysis (Guardian) stage is Windows-only
       image: windows-latest
-      os: windows # We need windows because compliance task only run on windows.
+      os: windows
     featureFlags:
       incrementalSDLSourceAnalysis: true
     sdl:
       codeql:
         runSourceLanguagesInSourceAnalysis: true
+        enabledOnNonDefaultBranches: false
+    settings:
+      # If any job has `type: releaseJob`, it applies strict network isolation to the whole pipeline.
+      # Re-enable the access needed.
+      networkIsolationPolicy: AzureActiveDirectory,AzureKeyVault,AzureResourceManager,AzureStorage,GitHub
 
     stages:
-      # "build" match the stage name trigger in release-esrp.yml
       - stage: build
         displayName: Build artifacts
         jobs:
@@ -70,22 +91,15 @@ extends:
 
             variables:
               artifactPath: $(Build.StagingDirectory)/out
-              packagesArtifactPath: $(Build.StagingDirectory)/out/${{ variables.packagesArtifactName }}
-              canaryArtifactPath: $(Build.StagingDirectory)/out/${{ variables.canaryArtifactName }}
-              toolArtifactPath: $(Build.StagingDirectory)/out/${{ variables.toolArtifactName }}
+              packagesArtifactPath: $(artifactPath)/${{ variables.packagesDirName }}
+              canaryArtifactPath: $(artifactPath)/${{ variables.canaryDirName }}
+              toolArtifactPath: $(artifactPath)/${{ variables.toolDirName }}
 
             templateContext:
-              outputParentDirectory: $(artifactPath)
               outputs:
                 - output: pipelineArtifact
-                  artifactName: ${{ variables.packagesArtifactName }}
-                  path: $(packagesArtifactPath)
-                - output: pipelineArtifact
-                  artifactName: ${{ variables.canaryArtifactName }}
-                  path: $(canaryArtifactPath)
-                - output: pipelineArtifact
-                  artifactName: ${{ variables.toolArtifactName }}
-                  path: $(toolArtifactPath)
+                  artifactName: ${{ variables.artifactName }}
+                  path: $(artifactPath)
 
             steps:
               - template: /.ado/templates/setup.yml@self
@@ -105,7 +119,6 @@ extends:
               - script: yarn beachball:release publish --no-push --pack-to-path "$(packagesArtifactPath)"
                 displayName: Pack packages (others)
 
-              # main benefit of copying is so SDL scanning can run once on outputParentDirectory
               - script: |
                   mkdir -p '$(toolArtifactPath)'
                   cp -r packages/esrp-npm-release/dist/index.mjs '$(toolArtifactPath)'
@@ -114,25 +127,105 @@ extends:
               - script: ls -R '$(artifactPath)'
                 displayName: Show all output files
 
-      # Wait for the separate ESRP release pipeline to complete (see comment at top for why it's separate)
-      - stage: poll_and_push
-        displayName: Wait for release and push to git
+      - stage: publish
+        displayName: Publish
         dependsOn: build
         jobs:
-          - job: poll_and_push
+          - job: npm_publish
+            displayName: Publish npm packages
+
+            pool:
+              name: Azure-Pipelines-1ESPT-ExDShared
+              image: ubuntu-latest
+              os: linux
+
+            variables:
+              artifactPath: $(Agent.BuildDirectory)/${{ variables.artifactName }}
+              packagesArtifactPath: $(artifactPath)/${{ variables.packagesDirName }}
+              canaryArtifactPath: $(artifactPath)/${{ variables.canaryDirName }}
+              toolArtifactBin: $(artifactPath)/${{ variables.toolDirName }}/index.mjs
+
+            templateContext:
+              type: releaseJob
+              isProduction: true
+              inputs:
+                - input: pipelineArtifact
+                  artifactName: ${{ variables.artifactName }}
+                  targetPath: $(artifactPath)
+
+            steps:
+              - task: UseNode@1
+                displayName: Install Node.js ${{ variables.nodeVersion }}
+                retryCountOnTaskFailure: 1
+                inputs:
+                  version: ${{ variables.nodeVersion }}.x
+                  checkLatest: false
+
+              - script: ls -R '$(artifactPath)'
+                displayName: Show artifact contents
+
+              # Get credentials that will be used to temporarily upload zips to ogxesrptempstorage
+              # in the OGX azure subscription
+              - task: AzureCLI@2
+                displayName: Get credentials for staging blob storage
+                inputs:
+                  # this is the service connection name
+                  azureSubscription: ogx-esrp-infra-bot
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  addSpnToEnvironment: true
+                  inlineScript: |
+                    echo "##vso[task.setvariable variable=STAGING_TENANT_ID]$tenantId"
+                    echo "##vso[task.setvariable variable=STAGING_CLIENT_ID]$servicePrincipalId"
+                    echo "##vso[task.setvariable variable=STAGING_ID_TOKEN;issecret=true]$idToken"
+
+              # Fetch ESRP certificates from key vault in Torus
+              - task: AzureKeyVault@2
+                displayName: Get ESRP certificates from Key Vault
+                inputs:
+                  # torus service connection name ("connectedservicename" from EsrpRelease task)
+                  azureSubscription: ESRP-JSHost3
+                  # "keyvaultname" from EsrpRelease task
+                  KeyVaultName: OGX-JSHost-KV
+                  # "authcertname" and "signcertname" from EsrpRelease task
+                  SecretsFilter: OGX-JSHost-Auth4,OGX-JSHost-Sign3
+
+              # Publish each set of packed packages under its npm dist-tag.
+              # (Beachball doesn't really need ordered publishing, but we want to test the helper.)
+              - ${{ each publish in parameters.npmPublishes }}:
+                  - script: node "$(toolArtifactBin)"
+                    displayName: '(${{ publish.groupName }}) npm publish using ESRP Release API'
+                    retryCountOnTaskFailure: 3
+                    env:
+                      PACKED_PACKAGES_PATH: $(${{ publish.artifactPathVariable }})
+                      # ideally would be "beachball" but isn't used anywhere meaningful
+                      ESRP_PRODUCT_NAME: beachball-${{ publish.groupName }}
+                      ESRP_NPM_TAG: ${{ publish.npmTag }}
+                      ESRP_USER: elcraig@microsoft.com
+                      ESRP_APPROVERS: dannyvv@microsoft.com
+                      # torus tenant ID ("domaintenantid" from EsrpRelease task, same as service connection "ESRP-JSHost3")
+                      ESRP_TENANT_ID: cdc5aeea-15c5-4db6-b079-fcadd2505dc2
+                      # "clientid" from EsrpRelease task
+                      ESRP_CLIENT_ID: 0a35e01f-eadf-420a-a2bf-def002ba898d
+                      ESRP_AUTH_CERT: $(OGX-JSHost-Auth4)
+                      ESRP_REQUEST_SIGNING_CERT: $(OGX-JSHost-Sign3)
+                      STAGING_STORAGE_ACCOUNT_NAME: ogxesrptempstorage
+                      STAGING_CLIENT_ID: $(STAGING_CLIENT_ID)
+                      STAGING_TENANT_ID: $(STAGING_TENANT_ID)
+                      STAGING_ID_TOKEN: $(STAGING_ID_TOKEN)
+
+      # After a successful ESRP release, push the resulting changes (bumps, tags, changelogs) to git.
+      - stage: push
+        displayName: Push to git
+        dependsOn: publish
+        jobs:
+          - job: push
             pool:
               name: Azure-Pipelines-1ESPT-ExDShared
               image: ubuntu-latest
               os: linux
             steps:
               - template: /.ado/templates/setup.yml@self
-
-              - script: node scripts/awaitRelease.ts
-                displayName: Await release completion
-                env:
-                  AUTH_TOKEN: $(System.AccessToken)
-                  ESRP_PIPELINE_ID: $(esrpPipelineId)
-                  PUBLISH_PIPELINE_ALIAS: $(pipelineAlias)
 
               - task: AzureCLI@2
                 displayName: Get token
