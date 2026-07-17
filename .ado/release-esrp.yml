@@ -47,9 +47,11 @@ variables:
   nodeVersion: 24
   tags: production
   pipelineAlias: main-release
-  packagesArtifactName: packed-packages
-  canaryArtifactName: packed-packages-canary
-  toolArtifactName: release-api-tool
+  # Must match release.yml
+  artifactName: release-artifacts
+  packagesDirName: packed-packages
+  canaryDirName: packed-packages-canary
+  toolDirName: release-api-tool
 
 extends:
   template: v1/Office.Official.PipelineTemplate.yml@OfficePipelineTemplates
@@ -67,9 +69,10 @@ extends:
             displayName: NPM to npmjs.com
 
             variables:
-              packagesArtifactPath: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
-              canaryArtifactPath: $(Agent.BuildDirectory)\${{ variables.canaryArtifactName }}
-              toolArtifactPath: $(Agent.BuildDirectory)\${{ variables.toolArtifactName }}
+              artifactPath: $(Agent.BuildDirectory)\${{ variables.artifactName }}
+              packagesArtifactPath: $(artifactPath)\${{ variables.packagesDirName }}
+              canaryArtifactPath: $(artifactPath)\${{ variables.canaryDirName }}
+              toolArtifactPath: $(artifactPath)\${{ variables.toolDirName }}
 
             templateContext:
               type: releaseJob
@@ -77,16 +80,7 @@ extends:
               inputs:
                 - input: pipelineArtifact
                   pipeline: ${{ variables.pipelineAlias }}
-                  artifactName: ${{ variables.packagesArtifactName }}
-                  targetPath: $(packagesArtifactPath)
-                - input: pipelineArtifact
-                  pipeline: ${{ variables.pipelineAlias }}
-                  artifactName: ${{ variables.canaryArtifactName }}
-                  targetPath: $(canaryArtifactPath)
-                - input: pipelineArtifact
-                  pipeline: ${{ variables.pipelineAlias }}
-                  artifactName: ${{ variables.toolArtifactName }}
-                  targetPath: $(toolArtifactPath)
+                  targetPath: $(artifactPath)
 
             steps:
               - task: UseNode@1

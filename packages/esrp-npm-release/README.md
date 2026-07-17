@@ -125,7 +125,7 @@ The release stage (later) passes the connection's name to `AzureCLI@2` as `azure
 
 This tool is designed to run in Azure DevOps using [1ES Pipeline Templates](https://eng.ms/docs/coreai/devdiv/one-engineering-system-1es/1es-docs/1es-pipeline-templates/overview). The recommended setup is **two separate pipelines**:
 
-1. A **main release pipeline** that builds the repo, packs the packages, and publishes pipeline artifacts (the packed packages and the release tool).
+1. A **main release pipeline** that builds the repo, packs the packages, and publishes a single pipeline artifact (containing the packed packages and the release tool).
 2. An **ESRP release pipeline** that consumes those artifacts and runs the release tool to publish via ESRP.
 
 The two must be separate since the ESRP job is tagged with 1ES PT `type: releaseJob`, which applies stricter network isolation policies to the entire pipeline. The ESRP pipeline consumes the main release pipeline's artifacts via a [`pipelines` resource](https://learn.microsoft.com/azure/devops/pipelines/process/pipeline-resource).
@@ -143,7 +143,7 @@ Production pipeline template policies restrict network access, so it's necessary
 
 #### Main release pipeline
 
-The main release pipeline builds the repo, packs the packages, and publishes two pipeline artifacts that the ESRP pipeline consumes: the **packed packages** and the **release tool itself** (so it doesn't need to be installed in the release job).
+The main release pipeline builds the repo, packs the packages, and publishes a single pipeline artifact with resources needed in the ESRP pipeline: the **packed packages** and the **release tool itself** (so it doesn't need to be installed in the release job). Using a single consolidated artifact reduces overhead from auto-injected compliance scanning tasks.
 
 Be sure to fill in all the `<placeholders>`! See https://github.com/microsoft/beachball/blob/main/.ado/release.yml for a full example.
 
@@ -167,8 +167,9 @@ resources:
 variables:
   tags: production
   nodeVersion: 24
-  packagesArtifactName: packed-packages
-  toolArtifactName: release-api-tool
+  artifactName: release-artifacts
+  packagesDirName: packed-packages
+  toolDirName: release-api-tool
   # TODO: remove once beachball supports reading npmrc registry
   registry: <private registry (same as .npmrc.publish)>
 
@@ -198,22 +199,17 @@ extends:
 
             variables:
               artifactPath: $(Build.StagingDirectory)/out
-              packagesArtifactPath: $(Build.StagingDirectory)/out/${{ variables.packagesArtifactName }}
-              toolArtifactPath: $(Build.StagingDirectory)/out/${{ variables.toolArtifactName }}
+              packagesArtifactPath: $(artifactPath)/${{ variables.packagesDirName }}
+              toolArtifactPath: $(artifactPath)/${{ variables.toolDirName }}
               # update as needed for your install layout
               toolBinPath: $(Build.SourcesDirectory)/node_modules/@microsoft/esrp-npm-release/dist/index.mjs
 
             templateContext:
-              outputParentDirectory: $(artifactPath)
               outputs:
-                # your packed packages
+                # single artifact containing all subfolders under artifactPath
                 - output: pipelineArtifact
-                  artifactName: ${{ variables.packagesArtifactName }}
-                  path: $(packagesArtifactPath)
-                # the release tool so it doesn't need to be installed
-                - output: pipelineArtifact
-                  artifactName: ${{ variables.toolArtifactName }}
-                  path: $(toolArtifactPath)
+                  artifactName: ${{ variables.artifactName }}
+                  path: $(artifactPath)
 
             steps:
               - checkout: self
@@ -243,10 +239,11 @@ extends:
 
               # Bump and pack packages (update command as needed).
               # This could also run some other script that outputs packages in the same format.
-              - script: yarn beachball publish --no-push --pack-to-path '$(packagesArtifactPath)' --registry '$(registry)'
+              - script: |
+                  mkdir -p '$(packagesArtifactPath)'
+                  yarn beachball publish --no-push --pack-to-path '$(packagesArtifactPath)' --registry '$(registry)'
                 displayName: Pack packages
 
-              # main benefit of copying is so SDL scanning can run once on outputParentDirectory
               - script: |
                   mkdir -p '$(toolArtifactPath)'
                   cp -r '$(toolBinPath)' '$(toolArtifactPath)'
@@ -290,8 +287,10 @@ variables:
   tags: production
   # must match the pipeline alias in the `pipelines` resource above
   pipelineAlias: <main release pipeline alias>
-  packagesArtifactName: packed-packages
-  toolArtifactName: release-api-tool
+  # must match the main release pipeline
+  artifactName: release-artifacts
+  packagesDirName: packed-packages
+  toolDirName: release-api-tool
 
 extends:
   template: <1ES PT template>
@@ -309,8 +308,9 @@ extends:
             displayName: NPM to npmjs.com
 
             variables:
-              packagesArtifactPath: $(Agent.BuildDirectory)\${{ variables.packagesArtifactName }}
-              toolArtifactPath: $(Agent.BuildDirectory)\${{ variables.toolArtifactName }}
+              artifactPath: $(Agent.BuildDirectory)\${{ variables.artifactName }}
+              packagesArtifactPath: $(artifactPath)\${{ variables.packagesDirName }}
+              toolArtifactPath: $(artifactPath)\${{ variables.toolDirName }}
 
             templateContext:
               type: releaseJob
@@ -318,12 +318,8 @@ extends:
               inputs:
                 - input: pipelineArtifact
                   pipeline: ${{ variables.pipelineAlias }}
-                  artifactName: ${{ variables.packagesArtifactName }}
-                  targetPath: $(packagesArtifactPath)
-                - input: pipelineArtifact
-                  pipeline: ${{ variables.pipelineAlias }}
-                  artifactName: ${{ variables.toolArtifactName }}
-                  targetPath: $(toolArtifactPath)
+                  artifactName: ${{ variables.artifactName }}
+                  targetPath: $(artifactPath)
 
             steps:
               - task: UseNode@1

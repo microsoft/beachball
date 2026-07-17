@@ -30,10 +30,12 @@ resources:
 
 variables:
   tags: production
-  packagesArtifactName: packed-packages
+  # Single artifact containing all subfolders below (to consolidate compliance auto validation)
+  artifactName: release-artifacts
+  packagesDirName: packed-packages
   # TODO (release): remove all canary artifacts
-  canaryArtifactName: packed-packages-canary
-  toolArtifactName: release-api-tool
+  canaryDirName: packed-packages-canary
+  toolDirName: release-api-tool
   # ID of the ADO pipeline for release-esrp.yml (definitionId in the URL)
   esrpPipelineId: 36941
   # Must match pipelineAlias in release-esrp.yml
@@ -70,22 +72,15 @@ extends:
 
             variables:
               artifactPath: $(Build.StagingDirectory)/out
-              packagesArtifactPath: $(Build.StagingDirectory)/out/${{ variables.packagesArtifactName }}
-              canaryArtifactPath: $(Build.StagingDirectory)/out/${{ variables.canaryArtifactName }}
-              toolArtifactPath: $(Build.StagingDirectory)/out/${{ variables.toolArtifactName }}
+              packagesArtifactPath: $(artifactPath)/${{ variables.packagesDirName }}
+              canaryArtifactPath: $(artifactPath)/${{ variables.canaryDirName }}
+              toolArtifactPath: $(artifactPath)/${{ variables.toolDirName }}
 
             templateContext:
-              outputParentDirectory: $(artifactPath)
               outputs:
                 - output: pipelineArtifact
-                  artifactName: ${{ variables.packagesArtifactName }}
-                  path: $(packagesArtifactPath)
-                - output: pipelineArtifact
-                  artifactName: ${{ variables.canaryArtifactName }}
-                  path: $(canaryArtifactPath)
-                - output: pipelineArtifact
-                  artifactName: ${{ variables.toolArtifactName }}
-                  path: $(toolArtifactPath)
+                  artifactName: ${{ variables.artifactName }}
+                  path: $(artifactPath)
 
             steps:
               - template: /.ado/templates/setup.yml@self
@@ -105,7 +100,6 @@ extends:
               - script: yarn beachball:release publish --no-push --pack-to-path "$(packagesArtifactPath)"
                 displayName: Pack packages (others)
 
-              # main benefit of copying is so SDL scanning can run once on outputParentDirectory
               - script: |
                   mkdir -p '$(toolArtifactPath)'
                   cp -r packages/esrp-npm-release/dist/index.mjs '$(toolArtifactPath)'
