@@ -68,6 +68,7 @@ extends:
     sdl:
       codeql:
         runSourceLanguagesInSourceAnalysis: true
+        enabledOnNonDefaultBranches: false
     settings:
       # If any job has `type: releaseJob`, it applies strict network isolation to the whole pipeline.
       # Re-enable the access needed.
