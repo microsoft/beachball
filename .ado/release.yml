@@ -32,6 +32,16 @@ resources:
       name: 1ESPipelineTemplates/OfficePipelineTemplates
       ref: refs/tags/release
 
+variables:
+  nodeVersion: 24
+  tags: production
+  # Single artifact containing all subfolders below (to consolidate compliance auto validation)
+  artifactName: release-artifacts
+  packagesDirName: packed-packages
+  # TODO (release): remove all canary artifacts
+  canaryDirName: packed-packages-canary
+  toolDirName: release-api-tool
+
 # Temporary workaround to publish two groups of packages with different versioning strategies
 # TODO (release): go back to a single publish step
 parameters:
@@ -44,16 +54,6 @@ parameters:
       - groupName: others
         artifactPathVariable: packagesArtifactPath
         npmTag: latest
-
-variables:
-  nodeVersion: 24
-  tags: production
-  # Single artifact containing all subfolders below (to consolidate compliance auto validation)
-  artifactName: release-artifacts
-  packagesDirName: packed-packages
-  # TODO (release): remove all canary artifacts
-  canaryDirName: packed-packages-canary
-  toolDirName: release-api-tool
 
 extends:
   template: v1/Office.Official.PipelineTemplate.yml@OfficePipelineTemplates
@@ -243,8 +243,12 @@ extends:
                   OUTPUT: azure
                   AZURE_TOKEN_VARIABLE: GITHUB_APP_TOKEN
 
+              # Have to build local beachball before using it!
+              - script: yarn build --verbose --to beachball
+                displayName: Build
+
               # TODO (release): update task name
               - script: node scripts/publishWithGithubAppToken.ts
-                displayName: Publish non-prerelease packages
+                displayName: Push non-prerelease package updates
                 env:
                   GITHUB_APP_TOKEN: $(GITHUB_APP_TOKEN)
