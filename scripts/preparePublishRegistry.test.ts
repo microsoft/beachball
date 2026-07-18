@@ -20,6 +20,7 @@ describe('preparePublishRegistry', () => {
 
   beforeAll(() => {
     jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   afterAll(() => {
@@ -27,6 +28,7 @@ describe('preparePublishRegistry', () => {
   });
 
   afterEach(() => {
+    jest.clearAllMocks();
     for (const dir of tempDirs.splice(0)) {
       fs.rmSync(dir, { recursive: true, force: true });
     }
@@ -63,21 +65,14 @@ describe('preparePublishRegistry', () => {
     });
   });
 
-  it('copies .npmrc.publish to .npmrc', () => {
-    const dir = setupRepo();
-
-    expect(preparePublishRegistry(dir)).toBe(registry);
-    expect(exists(dir, '.npmrc')).toBe(true);
-    expect(read(dir, '.npmrc')).toBe(read(dir, '.npmrc.publish'));
-  });
-
   it('returns undefined and makes no changes when .npmrc.publish has no registry', () => {
-    const dir = setupRepo({ 'package-lock.json': readFixture('npm.package-lock.json.fixture') }, `always-auth=true\n`);
+    const original = readFixture('npm.package-lock.json.fixture');
+    const dir = setupRepo({ 'package-lock.json': original }, `always-auth=true\n`);
 
     expect(preparePublishRegistry(dir)).toBeUndefined();
     expect(exists(dir, '.npmrc')).toBe(false);
-    // lock file left untouched
-    expect(read(dir, 'package-lock.json')).toBe(readFixture('npm.package-lock.json.fixture'));
+    expect(read(dir, 'package-lock.json')).toBe(original);
+    expect(console.error).toHaveBeenCalledWith(`No registry found in ${path.join(dir, '.npmrc.publish')}`);
   });
 
   it('rewrites registry URLs in an npm package-lock.json', () => {
@@ -104,37 +99,68 @@ describe('preparePublishRegistry', () => {
     expect(updated).toContain(`${registry}is-odd/-/is-odd-3.0.1.tgz`);
   });
 
-  it('updates .yarnrc.yml and leaves the yarn berry lock file unchanged', () => {
-    const original = readFixture('yarn-berry.yarn.lock.fixture');
-    const dir = setupRepo({ '.yarnrc.yml': 'nodeLinker: node-modules\n', 'yarn.lock': original });
+  it('rewrites npm lock file URLs when .npmrc.publish registry omits trailing slash', () => {
+    const original = readFixture('npm.package-lock.json.fixture');
+    const registryNoSlash = registry.slice(0, -1);
+    const dir = setupRepo({ 'package-lock.json': original }, `registry=${registryNoSlash}\n`);
 
     preparePublishRegistry(dir);
 
-    // berry resolves from npmRegistryServer, so its lock file has no URLs to rewrite
-    expect(read(dir, 'yarn.lock')).toBe(original);
-
-    const yarnrc = read(dir, '.yarnrc.yml');
-    expect(yarnrc).toContain('nodeLinker: node-modules');
-    expect(yarnrc).toContain(`npmRegistryServer: "${registry}"`);
-    expect(yarnrc).toContain('npmAlwaysAuth: true');
-    expect(yarnrc).toContain('npmrcAuthEnabled: true');
+    const updated = read(dir, 'package-lock.json');
+    expect(updated).toBe(original.split(npmjsRegistry).join(registry));
+    expect(updated).not.toContain(`${registryNoSlash}is-number/-/is-number-7.0.0.tgz`);
+    expect(updated).toContain(`${registry}is-number/-/is-number-7.0.0.tgz`);
   });
 
-  it('does not create .yarnrc.yml when it does not already exist', () => {
-    const dir = setupRepo({ 'package-lock.json': readFixture('npm.package-lock.json.fixture') });
+  it('rewrites yarn v1 lock file URLs when .npmrc.publish registry omits trailing slash', () => {
+    const original = readFixture('yarn-v1.yarn.lock.fixture');
+    const registryNoSlash = registry.slice(0, -1);
+    const dir = setupRepo({ 'yarn.lock': original }, `registry=${registryNoSlash}\n`);
 
     preparePublishRegistry(dir);
 
-    expect(exists(dir, '.yarnrc.yml')).toBe(false);
+    const updated = read(dir, 'yarn.lock');
+    expect(updated).toBe(original.split(yarnpkgRegistry).join(registry));
+    expect(updated).not.toContain(`${registryNoSlash}is-odd/-/is-odd-3.0.1.tgz`);
+    expect(updated).toContain(`${registry}is-odd/-/is-odd-3.0.1.tgz`);
   });
 
-  it('leaves a pnpm-lock.yaml unchanged (pnpm relies on the .npmrc copy)', () => {
+  it('for yarn berry, emits YARN_* ADO variables and leaves files unchanged', () => {
+    const originalLock = readFixture('yarn-berry.yarn.lock.fixture');
+    const originalYarnrc = 'nodeLinker: node-modules\nplugins:\n  - path: .yarn/plugins/yarn-plugins/npmrc.cjs\n';
+    const dir = setupRepo({ '.yarnrc.yml': originalYarnrc, 'yarn.lock': originalLock });
+
+    expect(preparePublishRegistry(dir)).toBe(registry);
+
+    expect(read(dir, 'yarn.lock')).toBe(originalLock);
+    expect(read(dir, '.yarnrc.yml')).toBe(originalYarnrc);
+
+    const logs = (console.log as jest.Mock).mock.calls.map(args => args.join(' ')).join('\n');
+    expect(logs).toContain(`##fake[task.setvariable variable=YARN_NPM_REGISTRY_SERVER]${registry}`);
+    expect(logs).toContain('##fake[task.setvariable variable=YARN_NPM_ALWAYS_AUTH]true');
+    expect(logs).toContain('##fake[task.setvariable variable=YARN_NPMRC_AUTH_ENABLED]true');
+  });
+
+  it('for yarn berry, fails when yarn-plugin-npmrc is not installed', () => {
+    const originalLock = readFixture('yarn-berry.yarn.lock.fixture');
+    const dir = setupRepo({ '.yarnrc.yml': 'nodeLinker: node-modules\n', 'yarn.lock': originalLock });
+
+    expect(preparePublishRegistry(dir)).toBeUndefined();
+    expect(read(dir, 'yarn.lock')).toBe(originalLock);
+
+    expect(console.error).toHaveBeenCalledWith(
+      `yarn-plugin-npmrc is not installed in ${path.join(dir, '.yarnrc.yml')}\n` +
+        '(add it from https://github.com/microsoft/beachball/tree/main/yarn-plugins/npmrc )'
+    );
+  });
+
+  it('leaves a pnpm-lock.yaml unchanged (pnpm lock rewrite is not needed)', () => {
     const original = readFixture('pnpm.pnpm-lock.yaml.fixture');
     const dir = setupRepo({ 'pnpm-lock.yaml': original });
 
     preparePublishRegistry(dir);
 
-    expect(exists(dir, '.npmrc')).toBe(true);
+    expect(exists(dir, '.npmrc')).toBe(false);
     expect(read(dir, 'pnpm-lock.yaml')).toBe(original);
   });
 });

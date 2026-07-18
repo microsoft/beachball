@@ -24,19 +24,13 @@ export function getPublishRegistry(repoRoot: string = defaultRepoRoot): string |
 }
 
 /**
- * yarn berry (v2+) resolves packages relative to `npmRegistryServer` in `.yarnrc.yml` rather than
- * from URLs in the lock file, so add that setting and enable `yarn-plugin-npmrc` to read `.npmrc`
- * (reusing `.npmrc` for auth makes things simpler with other tools).
+ * Persist a yarn config as a `YARN_*` env var across ADO pipeline steps.
  */
-function updateYarnrcYml(yarnrcPath: string, registry: string): void {
-  const yarnrcUpdates = `
-npmRegistryServer: "${registry}"
-npmAlwaysAuth: true
-npmrcAuthEnabled: true
-`;
-  console.log(`Updating ${yarnrcPath} with private registry settings:\n${yarnrcUpdates}`);
-  const yarnrcContent = fs.readFileSync(yarnrcPath, 'utf-8');
-  fs.writeFileSync(yarnrcPath, `${yarnrcContent}\n${yarnrcUpdates}`, 'utf-8');
+function setAdoYarnVariable(yarnConfigName: string, value: string): void {
+  // avoid accidentally setting variables
+  const prefix = process.env.JEST_WORKER_ID ? '##fake' : '##vso';
+  const varName = `YARN_${yarnConfigName.replace(/[A-Z]/g, c => `_${c}`).toUpperCase()}`;
+  console.log(`${prefix}[task.setvariable variable=${varName}]${value}`);
 }
 
 /**
@@ -78,27 +72,34 @@ export function updateLockFileRegistry(params: {
 
 /**
  * Configure the private registry from `.npmrc.publish` for whichever package manager the repo uses:
- * copy it to `.npmrc`, update `.yarnrc.yml` (yarn berry), and rewrite lock file URLs (npm/yarn v1).
- * @param repoRoot The repo root containing `.npmrc.publish`.
+ * - For yarn berry, ensure `yarn-plugin-npmrc` is installed, and configure relevant settings via
+ *   `YARN_*` env vars persisted across steps (so we don't modify `.yarnrc.yml`).
+ * - For npm or yarn v1, rewrite lock file URLs.
+ *
  * @returns The private registry URL, or `undefined` if none was found in `.npmrc.publish`.
  */
 export function preparePublishRegistry(repoRoot: string = defaultRepoRoot): string | undefined {
   const registry = getPublishRegistry(repoRoot);
   if (!registry) {
+    console.error(`No registry found in ${path.join(repoRoot, '.npmrc.publish')}`);
     return undefined;
   }
 
-  // Copy the .npmrc.publish to .npmrc so the private registry is used for install and auth.
-  // (npm, pnpm, yarn v1, and yarn berry via yarn-plugin-npmrc all read the registry/auth from here.)
-  const publishNpmrcPath = path.join(repoRoot, '.npmrc.publish');
-  const npmrcPath = path.join(repoRoot, '.npmrc');
-  fs.copyFileSync(publishNpmrcPath, npmrcPath);
-  console.log(`Copied ${publishNpmrcPath} to ${npmrcPath}\n`);
-
   const yarnrcPath = path.join(repoRoot, '.yarnrc.yml');
   if (fs.existsSync(yarnrcPath)) {
-    // yarn berry: configure the registry and auth in .yarnrc.yml.
-    updateYarnrcYml(yarnrcPath, registry);
+    // Yarn 4 doesn't respect .npmrc, so verify that this plugin to fix it is installed.
+    const yarnrcContent = fs.readFileSync(yarnrcPath, 'utf-8');
+    if (!yarnrcContent.includes('yarn-plugin-npmrc') && !yarnrcContent.includes('yarn-plugins/npmrc')) {
+      console.error(
+        `yarn-plugin-npmrc is not installed in ${yarnrcPath}\n` +
+          `(add it from https://github.com/microsoft/beachball/tree/main/yarn-plugins/npmrc )`
+      );
+      return undefined;
+    }
+    // Persist config via YARN_* variables so we're not updating a checked-in file.
+    setAdoYarnVariable('npmRegistryServer', registry);
+    setAdoYarnVariable('npmAlwaysAuth', 'true');
+    setAdoYarnVariable('npmrcAuthEnabled', 'true'); // for yarn-plugin-npmrc
   } else {
     // npm / yarn v1: rewrite absolute registry URLs saved in the lock file.
     updateLockFileRegistry({ manager: 'npm', registry, cwd: repoRoot });
@@ -110,7 +111,6 @@ export function preparePublishRegistry(repoRoot: string = defaultRepoRoot): stri
 
 if (import.meta.main) {
   if (!preparePublishRegistry()) {
-    console.error(`No registry found in ${path.join(defaultRepoRoot, '.npmrc.publish')}`);
     process.exit(1);
   }
 }
