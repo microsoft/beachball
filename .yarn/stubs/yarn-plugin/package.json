@@ -1,0 +1,9 @@
+{
+  "name": "yarn-plugin-stub",
+  "version": "4.100.0",
+  "description": "Empty yarn plugin stub to avoid extra dep trees",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "index.js",
+  "dependencies": {}
+}

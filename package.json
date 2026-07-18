@@ -14,7 +14,8 @@
     "actions/*",
     "packages/*",
     "scripts",
-    "skills"
+    "skills",
+    "yarn-plugins/*"
   ],
   "scripts": {
     "beachball": "node ./packages/beachball/lib/cli.js",

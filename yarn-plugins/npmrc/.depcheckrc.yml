@@ -1,0 +1,5 @@
+ignore-path: ../../.gitignore
+
+ignores:
+  # specified at root
+  - '@jest/globals'

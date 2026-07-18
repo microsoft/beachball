@@ -53,6 +53,11 @@ function getProjectOptions(projectOverrides, moduleType = 'commonjs') {
       // https://jestjs.io/blog/2025/06/04/jest-30#globals-cleanup-between-test-files
       globalsCleanup: 'on',
     },
+    // Remap ESM-style `.js` extensions in relative imports to `.ts` sources.
+    // (only used in yarn plugins as of writing)
+    moduleNameMapper: {
+      '^(\\.{1,2}/.*)\\.js$': '$1',
+    },
     ...projectOverrides,
   };
 }

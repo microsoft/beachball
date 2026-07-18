@@ -113,6 +113,28 @@ describe('postbumpHook', () => {
     );
   });
 
+  it('replaces existing yarn plugin tag references with the new version', () => {
+    readFileSync.mockReturnValueOnce(
+      '# yarn-plugin-npmrc\n' +
+        'yarn plugin import https://raw.githubusercontent.com/microsoft/beachball/yarn-plugin-npmrc_v0.4.1/yarn-plugins/npmrc/dist/plugin.js'
+    );
+
+    const packagePath = path.resolve('/repo/yarn-plugins/npmrc');
+    postbumpHook(packagePath, '@microsoft/beachball-yarn-plugin-npmrc', '0.4.2');
+
+    expect(readFileSync).toHaveBeenCalledWith(path.join(packagePath, 'README.md'), 'utf8');
+    expect(writeFileSync).toHaveBeenCalledWith(
+      path.join(packagePath, 'README.md'),
+      '# yarn-plugin-npmrc\n' +
+        'yarn plugin import https://raw.githubusercontent.com/microsoft/beachball/yarn-plugin-npmrc_v0.4.2/yarn-plugins/npmrc/dist/plugin.js',
+      'utf8'
+    );
+
+    expect(consoleLog).toHaveBeenCalledWith(
+      'Updating README.md for @microsoft/beachball-yarn-plugin-npmrc to use new tag yarn-plugin-npmrc_v0.4.2'
+    );
+  });
+
   it('replaces skill version in SKILL.md frontmatter', () => {
     const skillMdContent = `---
 name: beachball-change-file
