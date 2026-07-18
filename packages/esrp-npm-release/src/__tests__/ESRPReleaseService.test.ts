@@ -93,7 +93,7 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
   function releaseParams(overrides?: Partial<CreateReleaseParams>): CreateReleaseParams {
     return {
       filePath: zipFilePath,
-      stagingBlobPathPrefix: 'repo1',
+      repoName: 'repo1',
       releaseRequestParams: {
         createdBy: 'me@example.com',
         driEmail: ['me@example.com'],
@@ -159,8 +159,8 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
         "[log] Found 2 certificate(s) in PFX; leaf is at index 0 (using as-is)",
         "[log] ##[group]Releasing layer 01",
         "[log] [layer-01] Acquiring fresh credentials for release",
-        "[log] [layer-01] Acquiring AAD access token for ESRP API (scope: https://msazurecloud.onmicrosoft.com/api.esrp.microsoft.com/.default)",
         "[log] [layer-01] Requesting user delegation key for staging storage account "mockaccount"",
+        "[log] [layer-01] Acquiring AAD access token for ESRP API (scope: https://msazurecloud.onmicrosoft.com/api.esrp.microsoft.com/.default)",
         "[log] [layer-01] Uploading <temp>/layer-01-123456789.zip to https://stagingaccount.blob.core.windows.net/staging/r/op-1",
         "[log] [layer-01] Generating SAS token for staging blob "repo1/<uuid>"",
         "[log] [layer-01] Preparing to submit release",
@@ -316,7 +316,7 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
   it('wraps SAS token generation failures with ReleaseError', async () => {
     const originalError = new Error('sas failed');
     blobServiceClient.getUserDelegationKey.mockRejectedValue(originalError);
-    await expectReleaseError('Error generating SAS token', originalError);
+    await expectReleaseError('Error acquiring user delegation key for staging blob access', originalError);
   });
 
   it('wraps AAD token failures with ReleaseError', async () => {

@@ -1,5 +1,5 @@
 import type { BlobServiceClient } from '@azure/storage-blob';
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import {
   createMockBlobServiceClient,
   createMockBlockBlobClient,
@@ -10,26 +10,28 @@ import { ReleaseError } from '../utils/ReleaseError.ts';
 import { ReleaseState } from '../utils/ReleaseState.ts';
 
 describe('ReleaseState', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  const params = {
+    repoName: 'repo1',
+    buildSourceVersion: 'abc',
+    productName: 'prod1',
+    npmTag: undefined,
+  };
 
   describe('create', () => {
     it('lists blobs with the expected prefix and populates publishedLayers', async () => {
       const containerClient = createMockContainerClient({
-        blobNames: ['repo1/abc/0', 'repo1/abc/1', 'repo1/abc/2'],
+        blobNames: ['repo1/abc/prod1/0', 'repo1/abc/prod1/1', 'repo1/abc/prod1/2'],
       });
       const blobServiceClient = createMockBlobServiceClient({ containerClient });
 
       const state = await ReleaseState.create({
         blobServiceClient: blobServiceClient as unknown as BlobServiceClient,
-        repoName: 'repo1',
-        sourceVersion: 'abc',
+        ...params,
       });
 
       expect(blobServiceClient.getContainerClient).toHaveBeenCalledWith('release-state');
       expect(containerClient.createIfNotExists).toHaveBeenCalledTimes(1);
-      expect(containerClient.listBlobsFlat).toHaveBeenCalledWith({ prefix: 'repo1/abc/' });
+      expect(containerClient.listBlobsFlat).toHaveBeenCalledWith({ prefix: 'repo1/abc/prod1/' });
       expect(state.publishedCount).toBe(3);
       expect(state.hasPublished('2')).toBe(true);
       expect(state.hasPublished('3')).toBe(false);
@@ -39,11 +41,47 @@ describe('ReleaseState', () => {
       const containerClient = createMockContainerClient({ blobNames: [] });
       const state = await ReleaseState.create({
         blobServiceClient: createMockBlobServiceClient({ containerClient }) as unknown as BlobServiceClient,
-        repoName: 'repo1',
-        sourceVersion: 'abc',
+        ...params,
       });
 
       expect(state.publishedCount).toBe(0);
+    });
+
+    it('includes the npmTag in the prefix when present', async () => {
+      const containerClient = createMockContainerClient({
+        blobNames: ['repo1/abc/prod1/latest/0'],
+      });
+      const state = await ReleaseState.create({
+        blobServiceClient: createMockBlobServiceClient({ containerClient }) as unknown as BlobServiceClient,
+        ...params,
+        npmTag: 'latest',
+      });
+
+      expect(containerClient.listBlobsFlat).toHaveBeenCalledWith({ prefix: 'repo1/abc/prod1/latest/' });
+      expect(state.publishedCount).toBe(1);
+      expect(state.hasPublished('0')).toBe(true);
+    });
+
+    it('isolates state by npmTag so the same product under different tags does not collide', async () => {
+      const containerClient = createMockContainerClient();
+      const blobServiceClient = createMockBlobServiceClient({ containerClient });
+
+      const latest = await ReleaseState.create({
+        blobServiceClient: blobServiceClient as unknown as BlobServiceClient,
+        ...params,
+        npmTag: 'latest',
+      });
+      await latest.markPublished('0');
+      expect(containerClient.getBlockBlobClient).toHaveBeenCalledWith('repo1/abc/prod1/latest/0');
+
+      // Same product + build but a different tag -- should see nothing.
+      const next = await ReleaseState.create({
+        blobServiceClient: blobServiceClient as unknown as BlobServiceClient,
+        ...params,
+        npmTag: 'next',
+      });
+      expect(next.publishedCount).toBe(0);
+      expect(next.hasPublished('0')).toBe(false);
     });
 
     it('wraps errors from getContainerClient with ReleaseError', async () => {
@@ -55,8 +93,7 @@ describe('ReleaseState', () => {
 
       const err = await ReleaseState.create({
         blobServiceClient: blobServiceClient as unknown as BlobServiceClient,
-        repoName: 'repo1',
-        sourceVersion: 'abc',
+        ...params,
       }).catch(e => e as unknown);
       expect(err).toBeInstanceOf(ReleaseError);
       expect((err as ReleaseError).message).toBe(
@@ -75,8 +112,7 @@ describe('ReleaseState', () => {
           accountName: 'myacct',
           containerClient,
         }) as unknown as BlobServiceClient,
-        repoName: 'repo1',
-        sourceVersion: 'abc',
+        ...params,
       }).catch(e => e as unknown);
       expect(err).toBeInstanceOf(ReleaseError);
       expect((err as ReleaseError).message).toBe(
@@ -94,12 +130,11 @@ describe('ReleaseState', () => {
 
       const err = await ReleaseState.create({
         blobServiceClient: createMockBlobServiceClient({ containerClient }) as unknown as BlobServiceClient,
-        repoName: 'repo1',
-        sourceVersion: 'abc',
+        ...params,
       }).catch(e => e as unknown);
       expect(err).toBeInstanceOf(ReleaseError);
       expect((err as ReleaseError).message).toBe(
-        'Error listing blobs with prefix "repo1/abc/" in container "release-state" in storage account "mockaccount"'
+        'Error listing blobs with prefix "repo1/abc/prod1/" in container "release-state" in storage account "mockaccount"'
       );
       expect((err as ReleaseError).cause).toBe(originalError);
     });
@@ -112,8 +147,7 @@ describe('ReleaseState', () => {
       const blobServiceClient = createMockBlobServiceClient({ containerClient });
       const state = await ReleaseState.create({
         blobServiceClient: blobServiceClient as unknown as BlobServiceClient,
-        repoName: 'repo1',
-        sourceVersion: 'abc',
+        ...params,
       });
       return { state, blobClient, containerClient };
     }
@@ -123,7 +157,7 @@ describe('ReleaseState', () => {
 
       await state.markPublished('5');
 
-      expect(containerClient.getBlockBlobClient).toHaveBeenCalledWith('repo1/abc/5');
+      expect(containerClient.getBlockBlobClient).toHaveBeenCalledWith('repo1/abc/prod1/5');
       expect(blobClient.upload).toHaveBeenCalledWith('', 0);
       expect(state.hasPublished('5')).toBe(true);
       expect(state.publishedCount).toBe(1);
@@ -139,8 +173,7 @@ describe('ReleaseState', () => {
           accountName: 'myacct',
           containerClient,
         }) as unknown as BlobServiceClient,
-        repoName: 'repo1',
-        sourceVersion: 'abc',
+        ...params,
       });
 
       const err = await state.markPublished('5').catch(e => e as unknown);
@@ -163,8 +196,7 @@ describe('ReleaseState', () => {
 
       const initial = await ReleaseState.create({
         blobServiceClient: blobServiceClient as unknown as BlobServiceClient,
-        repoName: 'repo1',
-        sourceVersion: 'abc',
+        ...params,
       });
       expect(initial.publishedCount).toBe(0);
 
@@ -174,16 +206,15 @@ describe('ReleaseState', () => {
       // The blob clients are per-name, so each upload was against the right blob.
       const blob0 = containerClient.getBlockBlobClient.mock.results[0].value as MockBlockBlobClient;
       const blob2 = containerClient.getBlockBlobClient.mock.results[1].value as MockBlockBlobClient;
-      expect(blob0.url).toBe('https://mockaccount.blob.core.windows.net/mockcontainer/repo1/abc/0');
-      expect(blob2.url).toBe('https://mockaccount.blob.core.windows.net/mockcontainer/repo1/abc/2');
+      expect(blob0.url).toBe('https://mockaccount.blob.core.windows.net/mockcontainer/repo1/abc/prod1/0');
+      expect(blob2.url).toBe('https://mockaccount.blob.core.windows.net/mockcontainer/repo1/abc/prod1/2');
       expect(blob0.upload).toHaveBeenCalledWith('', 0);
       expect(blob2.upload).toHaveBeenCalledWith('', 0);
 
       // A fresh ReleaseState reading the same container should see both layers.
       const reloaded = await ReleaseState.create({
         blobServiceClient: blobServiceClient as unknown as BlobServiceClient,
-        repoName: 'repo1',
-        sourceVersion: 'abc',
+        ...params,
       });
       expect(reloaded.publishedCount).toBe(2);
       expect(reloaded.hasPublished('0')).toBe(true);
@@ -191,32 +222,54 @@ describe('ReleaseState', () => {
       expect(reloaded.hasPublished('1')).toBe(false);
     });
 
-    it('isolates state by repoName and sourceVersion prefix', async () => {
+    it('isolates state by repoName and buildSourceVersion prefix', async () => {
       const containerClient = createMockContainerClient();
       const blobServiceClient = createMockBlobServiceClient({ containerClient });
 
       const repo1 = await ReleaseState.create({
         blobServiceClient: blobServiceClient as unknown as BlobServiceClient,
-        repoName: 'repo1',
-        sourceVersion: 'abc',
+        ...params,
       });
       await repo1.markPublished('0');
 
       // Different repoName -- should see nothing
       const repo2 = await ReleaseState.create({
         blobServiceClient: blobServiceClient as unknown as BlobServiceClient,
+        ...params,
         repoName: 'repo2',
-        sourceVersion: 'abc',
       });
       expect(repo2.publishedCount).toBe(0);
 
-      // Different sourceVersion -- should see nothing
+      // Different buildSourceVersion -- should see nothing
       const repo1Other = await ReleaseState.create({
         blobServiceClient: blobServiceClient as unknown as BlobServiceClient,
-        repoName: 'repo1',
-        sourceVersion: 'def',
+        ...params,
+        buildSourceVersion: 'def',
       });
       expect(repo1Other.publishedCount).toBe(0);
+    });
+
+    it('isolates state by productName so a second invocation on the same build sees fresh state', async () => {
+      const containerClient = createMockContainerClient();
+      const blobServiceClient = createMockBlobServiceClient({ containerClient });
+
+      // First invocation on this build publishes its layer 0.
+      const canary = await ReleaseState.create({
+        blobServiceClient: blobServiceClient as unknown as BlobServiceClient,
+        ...params,
+        productName: 'beachball-canary',
+      });
+      await canary.markPublished('0');
+
+      // Second invocation on the same build (same repo + buildSourceVersion) but a different set of
+      // packages must NOT see the first invocation's layer 0 as already published.
+      const others = await ReleaseState.create({
+        blobServiceClient: blobServiceClient as unknown as BlobServiceClient,
+        ...params,
+        productName: 'beachball-others',
+      });
+      expect(others.publishedCount).toBe(0);
+      expect(others.hasPublished('0')).toBe(false);
     });
   });
 });

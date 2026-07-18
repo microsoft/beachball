@@ -5,6 +5,11 @@
   "description": "ESRP npm release helper",
   "bin": "bin/esrp-npm-release.mjs",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/beachball",
+    "directory": "packages/esrp-npm-release"
+  },
   "exports": {
     ".": null
   },
