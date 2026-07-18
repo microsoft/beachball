@@ -16,7 +16,7 @@ Use registry authentication settings from `.npmrc` instead of `.yarnrc.yml`.
 
 Each plugin has two build steps, wired into lage's `build` → `bundle` pipeline:
 
-- `build` — standard `tsc` typecheck/emit (to `lib/`, gitignored).
+- `build` — standard `tsc` type-check (no emit).
 - `bundle` — [`scripts/bundleYarnPlugin.ts`](../scripts/bundleYarnPlugin.ts) uses esbuild to produce the single-file plugin bundles in `dist/`:
   - `dist/plugin.js` — minified (loaded by `.yarnrc.yml`).
   - `dist/plugin.dev.js` — unminified, for debugging.
@@ -27,7 +27,7 @@ Because `.yarnrc.yml` loads the built `dist/plugin.js` bundles, a broken or miss
 
 ## Testing
 
-The plugins are referenced by `../yarnrc.yml` as a very basic E2E test, and may also have their own tests.
+The plugins are referenced by `../.yarnrc.yml` as a very basic E2E test, and may also have their own tests.
 
 ## npmrc patch
 
