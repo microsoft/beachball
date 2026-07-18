@@ -135,22 +135,15 @@ const validateProjectAfterInstall: NonNullable<Hooks['validateProjectAfterInstal
   /** deps detected but not yet found/processed */
   const dependenciesQueue: DescriptorHash[] = [];
   const processedDependencies = new Set<DescriptorHash>();
+  /** deps detected as required by at least one manifest */
+  const requiredDependencies = new Set<DescriptorHash>();
   /** deps marked as optional by at least one manifest */
   const optionalDependencies = new Set<DescriptorHash>();
 
   /** Queue a descriptor for processing if not already queued/processed */
   const enqueueDependency = (descriptor: Descriptor, manifest: Manifest) => {
     const pkgName = structUtils.stringifyIdent(descriptor);
-    if (
-      descriptor.range.startsWith('workspace:') ||
-      ignorePackages.includes(pkgName) ||
-      processedDependencies.has(descriptor.descriptorHash) ||
-      dependenciesQueue.includes(descriptor.descriptorHash)
-    ) {
-      return;
-    }
-
-    dependenciesQueue.push(descriptor.descriptorHash);
+    const descriptorHash = descriptor.descriptorHash;
 
     // Check all the places a dep can be specified as optional
     // (it's probably not important to be strict about deps vs peers here)
@@ -160,8 +153,24 @@ const validateProjectAfterInstall: NonNullable<Hooks['validateProjectAfterInstal
       rawManifest.dependenciesMeta?.[pkgName]?.optional === true ||
       rawManifest.peerDependenciesMeta?.[pkgName]?.optional === true
     ) {
-      optionalDependencies.add(descriptor.descriptorHash);
+      if (!requiredDependencies.has(descriptorHash)) {
+        optionalDependencies.add(descriptorHash);
+      }
+    } else {
+      requiredDependencies.add(descriptorHash);
+      optionalDependencies.delete(descriptorHash);
     }
+
+    if (
+      descriptor.range.startsWith('workspace:') ||
+      ignorePackages.includes(pkgName) ||
+      processedDependencies.has(descriptorHash) ||
+      dependenciesQueue.includes(descriptorHash)
+    ) {
+      return;
+    }
+
+    dependenciesQueue.push(descriptorHash);
   };
 
   // Seed with non-dev dependencies from public workspace manifests.
@@ -238,8 +247,14 @@ const validateProjectAfterInstall: NonNullable<Hooks['validateProjectAfterInstal
       fetchResult.releaseFs?.();
     }
     if (!manifest) {
-      // A mocked/disabled package (e.g. incompatible with this platform) has an empty fs, so skip
-      verboseWarning(`Could not read package.json for ${prettyDesc}, skipping...`);
+      const isDisabledLocator =
+        project.disabledLocators.has(pkg.locatorHash) || project.disabledLocators.has(fetchLocator.locatorHash);
+      if (isDisabledLocator) {
+        // A mocked/disabled package (e.g. incompatible with this platform) has an empty fs, so skip
+        verboseWarning(`Could not read package.json for disabled package ${prettyDesc}, skipping...`);
+        continue;
+      }
+      maybeReportError(`Could not read package.json for ${prettyDesc}`);
       continue;
     }
 

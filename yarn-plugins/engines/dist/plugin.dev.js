@@ -183,17 +183,24 @@ var plugin = (() => {
     };
     const dependenciesQueue = [];
     const processedDependencies = /* @__PURE__ */ new Set();
+    const requiredDependencies = /* @__PURE__ */ new Set();
     const optionalDependencies = /* @__PURE__ */ new Set();
     const enqueueDependency = (descriptor, manifest) => {
       const pkgName = import_core.structUtils.stringifyIdent(descriptor);
-      if (descriptor.range.startsWith("workspace:") || ignorePackages.includes(pkgName) || processedDependencies.has(descriptor.descriptorHash) || dependenciesQueue.includes(descriptor.descriptorHash)) {
-        return;
-      }
-      dependenciesQueue.push(descriptor.descriptorHash);
+      const descriptorHash = descriptor.descriptorHash;
       const rawManifest = manifest.raw;
       if (rawManifest.optionalDependencies?.[pkgName] || rawManifest.dependenciesMeta?.[pkgName]?.optional === true || rawManifest.peerDependenciesMeta?.[pkgName]?.optional === true) {
-        optionalDependencies.add(descriptor.descriptorHash);
+        if (!requiredDependencies.has(descriptorHash)) {
+          optionalDependencies.add(descriptorHash);
+        }
+      } else {
+        requiredDependencies.add(descriptorHash);
+        optionalDependencies.delete(descriptorHash);
       }
+      if (descriptor.range.startsWith("workspace:") || ignorePackages.includes(pkgName) || processedDependencies.has(descriptorHash) || dependenciesQueue.includes(descriptorHash)) {
+        return;
+      }
+      dependenciesQueue.push(descriptorHash);
     };
     for (const workspace of project.workspaces) {
       if (workspace.manifest.private && !includeDevDependencies) continue;
@@ -249,7 +256,12 @@ var plugin = (() => {
         fetchResult.releaseFs?.();
       }
       if (!manifest) {
-        verboseWarning(`Could not read package.json for ${prettyDesc}, skipping...`);
+        const isDisabledLocator = project.disabledLocators.has(pkg.locatorHash) || project.disabledLocators.has(fetchLocator.locatorHash);
+        if (isDisabledLocator) {
+          verboseWarning(`Could not read package.json for disabled package ${prettyDesc}, skipping...`);
+          continue;
+        }
+        maybeReportError(`Could not read package.json for ${prettyDesc}`);
         continue;
       }
       const manifestRange = manifest.raw.engines?.node;
