@@ -167,7 +167,7 @@ The pipeline typically uses two Azure Resource Manager service connections:
 1. Choose a feed in your project (or create a new one) that has the public npm registry as an upstream source, and note its URL.
 1. Create a file `.npmrc.publish` at the repo root with the corresponding `registry` setting: e.g. `registry=https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/`
 1. Add `.npmrc` to `.gitignore`
-1. For `yarn` 4, add and commit the plugin [`yarn-plugin-npmrc`](https://github.com/ecraig12345/yarn-plugins/tree/main/plugins/npmrc) so that `yarn` will pick up credentials from `.npmrc` (but don't set the `npmrcAuthEnabled` setting)
+1. For `yarn` 4, add and commit the plugin [`yarn-plugin-npmrc`](https://github.com/microsoft/beachball/tree/main/yarn-plugins/npmrc) so that `yarn` will pick up credentials from `.npmrc` (but don't set the `npmrcAuthEnabled` setting)
 1. Make a copy of [`scripts/preparePublishRegistry.ts`](https://github.com/microsoft/beachball/blob/main/scripts/preparePublishRegistry.ts) in your repo.
 1. If you're using Beachball and a package manager that reflects local package versions in the lock file (and therefore must update and commit the lock file after bumping), you'll also need `hooks.precommit` in `beachball.config.js` to revert the URL changes. See [`scripts/revertPublishRegistryHook.ts`](https://github.com/microsoft/beachball/blob/main/scripts/revertPublishRegistryHook.ts) for a sample hook implementation.
 1. In your pipeline, call the script **before** deps are installed to configure the registry and (if necessary) update URLs in the lock file.

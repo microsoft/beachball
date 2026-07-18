@@ -1,0 +1,28 @@
+{
+  "name": "@microsoft/beachball-yarn-plugin-engines",
+  "version": "0.2.1",
+  "description": "Yarn plugin to enforce the repo-root engines.node requirement across dependencies of published packages",
+  "license": "MIT",
+  "beachball": {
+    "shouldPublish": false
+  },
+  "exports": {
+    ".": null
+  },
+  "scripts": {
+    "build": "yarn run -T tsc --pretty",
+    "bundle": "node ../../scripts/bundleYarnPlugin.ts",
+    "depcheck": "yarn run -T depcheck .",
+    "lint": "yarn run -T eslint --color --max-warnings=0 src",
+    "test": "yarn run -T jest"
+  },
+  "dependencies": {
+    "@yarnpkg/core": "^4.7.0",
+    "@yarnpkg/fslib": "^3.1.5",
+    "semver": "^7.7.4"
+  },
+  "devDependencies": {
+    "@microsoft/beachball-scripts": "workspace:^",
+    "@types/semver": "^7.3.13"
+  }
+}

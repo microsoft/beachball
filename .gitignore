@@ -13,8 +13,9 @@ target
 .copilot/.local
 packages/*/NOTICE.txt
 
-# Allow action dist files to be checked in
+# Allow action and yarn plugin dist files to be checked in
 !actions/*/dist/
+!yarn-plugins/*/dist/
 
 docs/.vuepress/.cache
 docs/.vuepress/.temp
@@ -22,7 +23,10 @@ docs/.yarn
 
 .yarn/*
 !.yarn/patches/
+!.yarn/patches-source/
+!.yarn/patches-source/**/lib/
 !.yarn/plugins/
 !.yarn/releases/
+!.yarn/stubs/
 # Ignore this in case a local .npmrc is added with a token for publishing
 .npmrc

@@ -1,0 +1,30 @@
+{
+  "name": "@microsoft/beachball-yarn-plugin-npmrc",
+  "version": "0.4.1",
+  "description": "Yarn plugin to use registry authentication settings from .npmrc instead of .yarnrc.yml",
+  "license": "MIT",
+  "beachball": {
+    "shouldPublish": false
+  },
+  "exports": {
+    ".": null
+  },
+  "scripts": {
+    "build": "yarn run -T tsc --pretty",
+    "bundle": "node ../../scripts/bundleYarnPlugin.ts",
+    "depcheck": "yarn run -T depcheck .",
+    "lint": "yarn run -T eslint --color --max-warnings=0 src",
+    "test": "yarn run -T jest"
+  },
+  "dependencies": {
+    "@npmcli/config": "patch:@npmcli/config@npm%3A10.7.1#~/.yarn/patches/@npmcli-config-npm-10.7.1-8423a6d567.patch",
+    "@yarnpkg/core": "^4.7.0",
+    "which": "^6.0.1"
+  },
+  "devDependencies": {
+    "@microsoft/beachball-scripts": "workspace:^",
+    "@types/which": "^3.0.4",
+    "@yarnpkg/plugin-npm": "^3.5.0",
+    "@yarnpkg/plugin-pack": "portal:../../.yarn/stubs/yarn-plugin"
+  }
+}

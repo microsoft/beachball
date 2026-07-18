@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Move plugin to beachball repo",
+  "packageName": "@microsoft/beachball-yarn-plugin-npmrc",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

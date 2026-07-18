@@ -65,7 +65,8 @@ Prefer scripts over running binaries directly. If you must run a binary such as 
 - `packages/proper-changelog` — changelog/release notes helper.
 - `packages/esrp-npm-release` — helper for the Microsoft release process.
 - `scripts` — repo-internal scripts (`@microsoft/beachball-scripts`); shared build/test/eslint config lives in [scripts/config](./scripts/config).
-- `actions/*` — GitHub Action definitions (`check-for-modified-files`, `install-beachball`, `should-release`); their `dist/` is committed and must be rebuilt via `yarn build` if `src` changes.
+- `actions/*` — GitHub Action definitions (`check-for-modified-files`, `install-beachball`, `should-release`); their `dist/` is committed and must be rebuilt via `yarn build`+`yarn bundle` if `src` changes.
+- `yarn-plugins/*` — Yarn v4 plugins (`engines`, `npmrc`) loaded by the repo's own [.yarnrc.yml](./.yarnrc.yml). Each builds a bundle via `yarn build`+`yarn bundle` into a committed `dist/plugin.js`, which must be rebuilt and committed if `src` changes. See [yarn-plugins/README.md](./yarn-plugins/README.md).
 - `docs/` — Vuepress documentation site with its own separate Yarn install.
 - `change/` — pending Beachball change files (JSON).
 - Root config: [beachball.config.js](./beachball.config.js), [lage.config.js](./lage.config.js), [syncpack.config.js](./syncpack.config.js), [.prettierrc.json5](./.prettierrc.json5), [.yarnrc.yml](./.yarnrc.yml). Per-package: `tsconfig.json`, `jest.config.js`, `eslint.config.mjs`.

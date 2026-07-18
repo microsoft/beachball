@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "strictNullChecks": false,
+    "target": "esnext",
+    "checkJs": true
+  },
+  "include": ["lib"]
+}

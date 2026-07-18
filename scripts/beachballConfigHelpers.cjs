@@ -3,57 +3,87 @@ const path = require('path');
 
 const actionPrefix = '@microsoft/beachball-action-';
 const skillName = '@microsoft/beachball-change-file-skill';
+const yarnPluginPrefix = '@microsoft/beachball-yarn-plugin-';
 
 /**
  * Matches the `getGitTag` signature from `BeachballOptions`, but can't reference it directly.
  * @param {{ name: string; version: string }} pkg
  * @param {string} defaultTag
  */
-function getGitTag(pkg, defaultTag) {
-  if (pkg.name === skillName) {
-    return `skill_v${pkg.version}`;
+function getGitTag({ name, version }, defaultTag) {
+  if (name === skillName) {
+    return `skill_v${version}`;
   }
-  if (pkg.name.startsWith(actionPrefix)) {
-    const { exactTag, majorTag } = getActionTags(pkg.name, pkg.version);
+  if (name.startsWith(actionPrefix)) {
+    const { exactTag, majorTag } = getActionTags(name, version);
     return [exactTag, majorTag];
+  }
+  if (name.startsWith(yarnPluginPrefix)) {
+    return getYarnPluginTag(name, version);
   }
   return defaultTag;
 }
 
 /**
  * Matches the `postbump` hook signature from `BeachballOptions`, but can't reference it directly.
- * @param {string} packagePath
- * @param {string} name
- * @param {string} version
+ * @typedef {(packagePath: string, name: string, version: string) => void} PostbumpHook
+ * @type {PostbumpHook}
  */
 function postbumpHook(packagePath, name, version) {
   if (name === skillName) {
-    // Update version in SKILL.md
-    const skillMdPath = path.join(packagePath, 'beachball-change-file/SKILL.md');
-    console.log(`Updating ${skillMdPath} to version ${version}`);
-    const content = fs.readFileSync(skillMdPath, 'utf8');
-    const frontmatterMatch = content.match(/^---\r?\n[\s\S]*?\r?\n---/);
-    if (!frontmatterMatch) {
-      throw new Error(`Could not find frontmatter in ${skillMdPath}`);
-    }
-    const versionRegexp = /^(\s+version:\s*)(.*)/m;
-    if (!versionRegexp.test(frontmatterMatch[0])) {
-      throw new Error(`Could not find version field in frontmatter of ${skillMdPath}`);
-    }
-    const newFrontmatter = frontmatterMatch[0].replace(versionRegexp, `$1${version}`);
-    const newContent = content.replace(frontmatterMatch[0], newFrontmatter);
-    fs.writeFileSync(skillMdPath, newContent);
+    updateSkillMd(packagePath, name, version);
   } else if (name.startsWith(actionPrefix)) {
-    // Update action tag in README.md
-    const { actionName, majorTag } = getActionTags(name, version);
-    console.log(`Updating README.md for ${name} to use new tag ${majorTag}`);
-    const readmePath = path.join(packagePath, 'README.md');
-    const actionRef = `microsoft/beachball/actions/${actionName}@`;
-    const readmeContent = fs
-      .readFileSync(readmePath, 'utf8')
-      .replace(new RegExp(`${actionRef}${actionName}_v\\d+`, 'g'), `${actionRef}${majorTag}`);
-    fs.writeFileSync(readmePath, readmeContent);
+    updateActionReadme(packagePath, name, version);
+  } else if (name.startsWith(yarnPluginPrefix)) {
+    updateYarnPluginReadme(packagePath, name, version);
   }
+}
+
+/** Update version in SKILL.md @type {PostbumpHook} */
+function updateSkillMd(packagePath, name, version) {
+  const skillMdPath = path.join(packagePath, 'beachball-change-file/SKILL.md');
+  console.log(`Updating ${skillMdPath} to version ${version}`);
+  const content = fs.readFileSync(skillMdPath, 'utf8');
+  const frontmatterMatch = content.match(/^---\r?\n[\s\S]*?\r?\n---/);
+  if (!frontmatterMatch) {
+    throw new Error(`Could not find frontmatter in ${skillMdPath}`);
+  }
+  const versionRegexp = /^(\s+version:\s*)(.*)/m;
+  if (!versionRegexp.test(frontmatterMatch[0])) {
+    throw new Error(`Could not find version field in frontmatter of ${skillMdPath}`);
+  }
+  const newFrontmatter = frontmatterMatch[0].replace(versionRegexp, `$1${version}`);
+  const newContent = content.replace(frontmatterMatch[0], newFrontmatter);
+  fs.writeFileSync(skillMdPath, newContent);
+}
+
+/** Update action tag in README.md @type {PostbumpHook} */
+function updateActionReadme(packagePath, name, version) {
+  const { actionName, majorTag } = getActionTags(name, version);
+  const actionRef = `microsoft/beachball/actions/${actionName}@`;
+  const newRef = `${actionRef}${majorTag}`;
+  const actionRegex = new RegExp(`${actionRef}${actionName}_v\\d+`, 'g');
+
+  console.log(`Updating README.md for ${name} to use new tag ${majorTag}`);
+  const readmePath = path.join(packagePath, 'README.md');
+  const readmeContent = fs.readFileSync(readmePath, 'utf8').replace(actionRegex, newRef);
+  fs.writeFileSync(readmePath, readmeContent);
+}
+
+/** Update yarn plugin tag in README.md @type {PostbumpHook} */
+function updateYarnPluginReadme(packagePath, name, version) {
+  const newTag = /** @type {string} */ (getGitTag({ name, version }, ''));
+  const tagPrefix = newTag.split('_v')[0];
+  const tagRegex = new RegExp(`${tagPrefix}_v[^/]+`, 'g');
+
+  console.log(`Updating README.md for ${name} to use new tag ${newTag}`);
+  const readmePath = path.join(packagePath, 'README.md');
+  const readmeContent = fs.readFileSync(readmePath, 'utf8').replace(tagRegex, newTag);
+  fs.writeFileSync(readmePath, readmeContent, 'utf8');
+}
+
+function getYarnPluginTag(/** @type {string} */ name, /** @type {string} */ version) {
+  return `${name.replace('@microsoft/beachball-', '')}_v${version}`;
 }
 
 /**

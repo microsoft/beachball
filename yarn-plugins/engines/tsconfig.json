@@ -1,0 +1,7 @@
+{
+  "extends": "@microsoft/beachball-scripts/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["src"]
+}
