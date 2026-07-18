@@ -1,18 +1,21 @@
 import {
-  Cache,
   Manifest,
   SettingsType,
   structUtils,
-  ThrowReport,
   type ConfigurationDefinitionMap,
   type ConfigurationValueMap,
   type Descriptor,
   type DescriptorHash,
-  type FetchOptions,
   type Hooks,
+  type Linker,
+  type Package,
   type Plugin,
+  type Project,
+  type Report,
   type miscUtils,
 } from '@yarnpkg/core';
+import { NodeFS, type PortablePath } from '@yarnpkg/fslib';
+import path from 'path';
 import semver from 'semver';
 import { EnginesProbeLinker } from './linker.js';
 import { isRangeSatisfied, parseRange } from './ranges.js';
@@ -69,6 +72,8 @@ interface RawManifest {
   peerDependenciesMeta?: Record<string, { optional?: boolean }>;
 }
 
+const nodeFs = new NodeFS();
+
 /**
  * Recursively find non-dev dependencies of published packages, and verify that any `engines.node`
  * requirements match the version from the root `package.json`'s `engines.node`.
@@ -118,22 +123,16 @@ const validateProjectAfterInstall: NonNullable<Hooks['validateProjectAfterInstal
     return;
   }
 
-  // Read each package's manifest from the fetch cache (populated during the fetch step) rather than
-  // from the linked node_modules. This is linker-agnostic and doesn't depend on the on-disk layout.
-  const cache = await Cache.find(project.configuration);
-  const fetcher = project.configuration.makeFetcher();
-  const fetchOptions: FetchOptions = {
-    project,
-    cache,
-    fetcher,
-    checksums: project.storedChecksums,
-    report: new ThrowReport(),
-    cacheOptions: {
-      mockedPackages: project.disabledLocators,
-      unstablePackages: project.conditionalLocators,
-      skipIntegrityCheck: true,
-    },
-  };
+  // Get the enabled linker. In practice there's exactly one enabled linker per project,
+  // so we can find the supported linker for any package (a workspace package is most
+  // easily available) and use that for all the others.
+  const linker = project.configuration
+    .getLinkers()
+    .find(l => l.supportsPackage(project.workspaces[0].anchoredPackage, { project }));
+  if (!linker) {
+    reportError('Could not find a supported linker');
+    return;
+  }
 
   /** deps detected but not yet found/processed */
   const dependenciesQueue: DescriptorHash[] = [];
@@ -171,8 +170,17 @@ const validateProjectAfterInstall: NonNullable<Hooks['validateProjectAfterInstal
       optionalDependencies.delete(descriptorHash);
     }
 
+    // Skip workspaces (the repo's own packages, seeded separately above), packages in the ignore
+    // list, and anything already queued/processed. Check the workspace protocol on the
+    // devirtualized descriptor: a workspace with peer dependencies gets a virtual descriptor whose
+    // range is "virtual:...#workspace:^", so a plain range check wouldn't catch it. Matching on the
+    // "workspace:" protocol (rather than the ident) ensures an external package that merely shares a
+    // name with a local workspace is still validated.
+    const devirtDescriptor = structUtils.isVirtualDescriptor(descriptor)
+      ? structUtils.devirtualizeDescriptor(descriptor)
+      : descriptor;
     if (
-      descriptor.range.startsWith('workspace:') ||
+      devirtDescriptor.range.startsWith('workspace:') ||
       ignorePackages.includes(pkgName) ||
       processedDependencies.has(descriptorHash) ||
       dependenciesQueue.includes(descriptorHash)
@@ -247,36 +255,17 @@ const validateProjectAfterInstall: NonNullable<Hooks['validateProjectAfterInstal
       continue;
     }
 
-    // Fetch the package's sources from the cache (a virtual locator's manifest is the same as its
-    // devirtualized locator's, so devirtualize before fetching).
-    const fetchLocator = structUtils.isVirtualLocator(pkg) ? structUtils.devirtualizeLocator(pkg) : pkg;
-    let fetchResult;
-    try {
-      fetchResult = await fetcher.fetch(fetchLocator, fetchOptions);
-    } catch (e) {
-      if (isOptional) {
-        verboseWarning(`Could not fetch optional package ${prettyDesc} from the cache, skipping...`);
-        continue;
-      }
-      reportError(`Could not fetch ${prettyDesc} from the cache: ${e}`);
+    const location = await findPackageLocation(pkg, { project, report, linker, isOptional, verboseWarning });
+    if (!location) {
+      maybeReportError(`Could not find location for ${prettyDesc}`);
       continue;
     }
 
-    let manifest: Manifest | null;
-    try {
-      manifest = await Manifest.tryFind(fetchResult.prefixPath, { baseFs: fetchResult.packageFs });
-    } finally {
-      fetchResult.releaseFs?.();
-    }
+    const manifest = await Manifest.tryFind(location, { baseFs: nodeFs });
     if (!manifest) {
-      const isDisabledLocator =
-        project.disabledLocators.has(pkg.locatorHash) || project.disabledLocators.has(fetchLocator.locatorHash);
-      if (isDisabledLocator) {
-        // A mocked/disabled package (e.g. incompatible with this platform) has an empty fs, so skip
-        verboseWarning(`Could not read package.json for disabled package ${prettyDesc}, skipping...`);
-        continue;
-      }
-      maybeReportError(`Could not read package.json for ${prettyDesc}`);
+      // The package supposedly exists on disk, so even for optional packages, it's an error
+      // if we can't read the package.json
+      reportError(`Could not find package.json for ${prettyDesc} at ${location}`);
       continue;
     }
 
@@ -304,6 +293,56 @@ const validateProjectAfterInstall: NonNullable<Hooks['validateProjectAfterInstal
     );
   }
 };
+
+/**
+ * Find the on-disk location of a package via the enabled linker, with fallbacks for virtual
+ * locators and a direct `node_modules` lookup.
+ */
+async function findPackageLocation(
+  pkg: Package,
+  opts: {
+    project: Project;
+    report: Parameters<typeof validateProjectAfterInstall>[1];
+    linker: Linker;
+    isOptional: boolean;
+    verboseWarning: (message: unknown) => void;
+  }
+): Promise<PortablePath | undefined> {
+  const { project, report, linker, isOptional, verboseWarning } = opts;
+
+  const prettyPkg = structUtils.prettyLocator(project.configuration, pkg);
+
+  // Try the original locator first even if virtualized, since it may be valid.
+  try {
+    return await linker.findPackageLocation(pkg, { project, report: report as Report });
+  } catch (e) {
+    if (isOptional) {
+      verboseWarning(`Could not find location for optional package ${prettyPkg}, skipping...`);
+      return undefined;
+    }
+
+    if (structUtils.isVirtualLocator(pkg)) {
+      verboseWarning(
+        `Could not find location for ${prettyPkg} - trying devirtualized locator... (original error: ${e})`
+      );
+      try {
+        const loc = structUtils.devirtualizeLocator(pkg);
+        return await linker.findPackageLocation(loc, { project, report: report as Report });
+      } catch {
+        // fall through to the node_modules fallback below
+      }
+    }
+  }
+
+  // Fallback: look in node_modules by package name
+  const nmPath = path.join(project.cwd, 'node_modules', structUtils.stringifyIdent(pkg));
+  if (nodeFs.existsSync(nmPath as PortablePath)) {
+    verboseWarning(`Falling back to node_modules path for ${prettyPkg}: ${nmPath}`);
+    return nmPath as PortablePath;
+  }
+
+  return undefined;
+}
 
 const plugin: Plugin = {
   hooks: { validateProjectAfterInstall },

@@ -45,6 +45,8 @@ var plugin = (() => {
     default: () => index_default
   });
   var import_core = __require("@yarnpkg/core");
+  var import_fslib = __require("@yarnpkg/fslib");
+  var import_path = __toESM(__require("path"));
   var import_semver2 = __toESM(__require("semver"));
 
   // src/linker.ts
@@ -132,6 +134,7 @@ var plugin = (() => {
       }
     }
   };
+  var nodeFs = new import_fslib.NodeFS();
   var validateProjectAfterInstall = async (project, report) => {
     const enginesConfig = project.configuration.get("engines");
     const ignorePackages = enginesConfig?.get("ignorePackages") || [];
@@ -167,20 +170,11 @@ var plugin = (() => {
       reportError(`The current Node version ${process.versions.node} does not satisfy ${repoRange.raw}`);
       return;
     }
-    const cache = await import_core.Cache.find(project.configuration);
-    const fetcher = project.configuration.makeFetcher();
-    const fetchOptions = {
-      project,
-      cache,
-      fetcher,
-      checksums: project.storedChecksums,
-      report: new import_core.ThrowReport(),
-      cacheOptions: {
-        mockedPackages: project.disabledLocators,
-        unstablePackages: project.conditionalLocators,
-        skipIntegrityCheck: true
-      }
-    };
+    const linker = project.configuration.getLinkers().find((l) => l.supportsPackage(project.workspaces[0].anchoredPackage, { project }));
+    if (!linker) {
+      reportError("Could not find a supported linker");
+      return;
+    }
     const dependenciesQueue = [];
     const processedDependencies = /* @__PURE__ */ new Set();
     const requiredDependencies = /* @__PURE__ */ new Set();
@@ -204,7 +198,8 @@ var plugin = (() => {
         requiredDependencies.add(descriptorHash);
         optionalDependencies.delete(descriptorHash);
       }
-      if (descriptor.range.startsWith("workspace:") || ignorePackages.includes(pkgName) || processedDependencies.has(descriptorHash) || dependenciesQueue.includes(descriptorHash)) {
+      const devirtDescriptor = import_core.structUtils.isVirtualDescriptor(descriptor) ? import_core.structUtils.devirtualizeDescriptor(descriptor) : descriptor;
+      if (devirtDescriptor.range.startsWith("workspace:") || ignorePackages.includes(pkgName) || processedDependencies.has(descriptorHash) || dependenciesQueue.includes(descriptorHash)) {
         return;
       }
       dependenciesQueue.push(descriptorHash);
@@ -250,31 +245,14 @@ var plugin = (() => {
         maybeReportError(`Could not find an installed package for ${prettyDesc}`);
         continue;
       }
-      const fetchLocator = import_core.structUtils.isVirtualLocator(pkg) ? import_core.structUtils.devirtualizeLocator(pkg) : pkg;
-      let fetchResult;
-      try {
-        fetchResult = await fetcher.fetch(fetchLocator, fetchOptions);
-      } catch (e) {
-        if (isOptional) {
-          verboseWarning(`Could not fetch optional package ${prettyDesc} from the cache, skipping...`);
-          continue;
-        }
-        reportError(`Could not fetch ${prettyDesc} from the cache: ${e}`);
+      const location = await findPackageLocation(pkg, { project, report, linker, isOptional, verboseWarning });
+      if (!location) {
+        maybeReportError(`Could not find location for ${prettyDesc}`);
         continue;
       }
-      let manifest;
-      try {
-        manifest = await import_core.Manifest.tryFind(fetchResult.prefixPath, { baseFs: fetchResult.packageFs });
-      } finally {
-        fetchResult.releaseFs?.();
-      }
+      const manifest = await import_core.Manifest.tryFind(location, { baseFs: nodeFs });
       if (!manifest) {
-        const isDisabledLocator = project.disabledLocators.has(pkg.locatorHash) || project.disabledLocators.has(fetchLocator.locatorHash);
-        if (isDisabledLocator) {
-          verboseWarning(`Could not read package.json for disabled package ${prettyDesc}, skipping...`);
-          continue;
-        }
-        maybeReportError(`Could not read package.json for ${prettyDesc}`);
+        reportError(`Could not find package.json for ${prettyDesc} at ${location}`);
         continue;
       }
       const manifestRange = manifest.raw.engines?.node;
@@ -293,6 +271,34 @@ var plugin = (() => {
       );
     }
   };
+  async function findPackageLocation(pkg, opts) {
+    const { project, report, linker, isOptional, verboseWarning } = opts;
+    const prettyPkg = import_core.structUtils.prettyLocator(project.configuration, pkg);
+    try {
+      return await linker.findPackageLocation(pkg, { project, report });
+    } catch (e) {
+      if (isOptional) {
+        verboseWarning(`Could not find location for optional package ${prettyPkg}, skipping...`);
+        return void 0;
+      }
+      if (import_core.structUtils.isVirtualLocator(pkg)) {
+        verboseWarning(
+          `Could not find location for ${prettyPkg} - trying devirtualized locator... (original error: ${e})`
+        );
+        try {
+          const loc = import_core.structUtils.devirtualizeLocator(pkg);
+          return await linker.findPackageLocation(loc, { project, report });
+        } catch {
+        }
+      }
+    }
+    const nmPath = import_path.default.join(project.cwd, "node_modules", import_core.structUtils.stringifyIdent(pkg));
+    if (nodeFs.existsSync(nmPath)) {
+      verboseWarning(`Falling back to node_modules path for ${prettyPkg}: ${nmPath}`);
+      return nmPath;
+    }
+    return void 0;
+  }
   var plugin = {
     hooks: { validateProjectAfterInstall },
     linkers: [EnginesProbeLinker],
