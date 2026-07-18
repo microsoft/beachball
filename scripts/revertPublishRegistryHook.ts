@@ -25,7 +25,7 @@ const manager: 'yarn1' | 'npm' = 'yarn1';
  * @param cwd The monorepo root path
  */
 export function revertPublishRegistryHook(cwd: string): void {
-  const registry = getPublishRegistry();
+  const registry = getPublishRegistry(cwd);
   if (registry) {
     updateLockFileRegistry({ manager, registry, cwd, revert: true });
   }
