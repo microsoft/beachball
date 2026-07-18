@@ -19,9 +19,13 @@ Beachball is a CLI tool for automating semantic version bumping, changelog gener
 - `main` (default): development for beachball v3 (alpha). Breaking changes allowed.
 - `v2`: current stable release. Non-breaking changes should target `v2`.
 
-## Build and validate — always run in this order
+## Build and validation commands
 
-**Always run `yarn --immutable` first** if dependencies may be out of date. Then, from the repo root:
+**Always run `yarn --immutable` first** if dependencies may be out of date.
+
+## Repo root commands
+
+When validating the entire repo, run the following commands in order:
 
 | Step             | Command                 | Notes / timing (validated)                           |
 | ---------------- | ----------------------- | ---------------------------------------------------- |
@@ -32,7 +36,26 @@ Beachball is a CLI tool for automating semantic version bumping, changelog gener
 | Test (all)       | `yarn test`             | Runs all workspace tests via lage.                   |
 | Update snapshots | `yarn update-snapshots` | Use after intentional output changes.                |
 
-**Do NOT run `jest` or `tsc` directly from the repo root.** `yarn build` and `yarn lint` must succeed with zero warnings; lint uses `--max-warnings=0`.
+**Do NOT run `jest` or `tsc` directly from the repo root.** `yarn build` and `yarn lint` must succeed with zero warnings.
+
+### Package-level commands
+
+When developing in a single package, **use these commands first** before building/validating the entire repo. Run `cd packages/<name>` then:
+
+| Task                                            | Command                    |
+| ----------------------------------------------- | -------------------------- |
+| Build a single package                          | `yarn build`               |
+| Test (packages other than `beachball`)          | `yarn test`                |
+| (`beachball`) All tests, correct order          | `yarn test:all`            |
+| (`beachball`) All unit tests                    | `yarn test:unit` (~3s)     |
+| (`beachball`) All functional tests              | `yarn test:func`           |
+| (`beachball`) All E2E tests                     | `yarn test:e2e` (slow)     |
+| Single test file/name (wraps jest), ANY package | `yarn test <path or name>` |
+| Update snapshots                                | `yarn update-snapshots`    |
+
+In the `beachball` package, do NOT use `test:*` commands to run a single test. Use `yarn test <path or name>`.
+
+Prefer scripts over running binaries directly. If you must run a binary such as `jest`, use `yarn run -T <binary>`.
 
 ### Required before each commit
 
@@ -42,21 +65,6 @@ Run all of: `yarn build`, `yarn test`, `yarn lint`, `yarn format`.
 
 - Use the `/beachball-change-file` skill to generate a Beachball change file if needed. Sometimes it's not needed, but verify by running `yarn checkchange` (CI also runs this).
 - Check whether documentation site or CLI help text updates are needed.
-
-## Package-level commands (`cd packages/<name>`)
-
-Prefer scripts over running binaries directly. If you must run a binary such as `jest`, use `yarn run -T <binary>`.
-
-| Task                                   | Command                                |
-| -------------------------------------- | -------------------------------------- |
-| Build a single package                 | `yarn build`                           |
-| Test (packages other than `beachball`) | `yarn test`                            |
-| Single test file/name (wraps jest)     | `yarn test <path or name>`             |
-| (`beachball`) All tests, correct order | `yarn test:all`                        |
-| (`beachball`) Unit tests only          | `yarn test:unit` (~3s)                 |
-| (`beachball`) Functional tests only    | `yarn test:func`                       |
-| (`beachball`) E2E tests only           | `yarn test:e2e` (slow; uses verdaccio) |
-| Update snapshots                       | `yarn update-snapshots`                |
 
 ## Repo layout
 

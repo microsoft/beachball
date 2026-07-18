@@ -162,15 +162,42 @@ The pipeline typically uses two Azure Resource Manager service connections:
 
 ### Prerequisite: Internal feed setup
 
-1ES PT official templates restrict access to the public npm registry, so it's necessary to configure the build stage to use an internal npm feed. Follow the steps below to configure an internal feed for the publish build only. (The example assumes `yarn`, but similar steps apply for `npm` and `pnpm`.)
+If your repo normally installs packages from `registry.npmjs.org` or `registry.yarnpkg.com`, you'll need to set up an internal feed for the publish build only (since 1ES PT official templates restrict access to public npm). Steps vary depending on your package manager but are outlined below.
+
+#### All package managers
 
 1. Choose a feed in your project (or create a new one) that has the public npm registry as an upstream source, and note its URL.
 1. Create a file `.npmrc.publish` at the repo root with the corresponding `registry` setting: e.g. `registry=https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/`
 1. Add `.npmrc` to `.gitignore`
-1. For `yarn` 4, add and commit the plugin [`yarn-plugin-npmrc`](https://github.com/microsoft/beachball/tree/main/yarn-plugins/npmrc) so that `yarn` will pick up credentials from `.npmrc` (but don't set the `npmrcAuthEnabled` setting)
+1. In your pipeline, add an inline script to copy `.npmrc.publish` to `.npmrc` (or merge them if you already have `.npmrc`), then `npmAuthenticate` if necessary:
+   ```yml
+   - script: cp .npmrc.publish .npmrc
+
+   - task: npmAuthenticate@0
+     inputs:
+       workingFile: $(Build.SourcesDirectory)/.npmrc
+   ```
+
+#### `yarn` berry (v2+)
+
+1. Add and commit the plugin [`yarn-plugin-npmrc`](https://github.com/microsoft/beachball/tree/main/yarn-plugins/npmrc) so that `yarn` will pick up credentials from `.npmrc` (but don't set the `npmrcAuthEnabled` setting).
+1. In your pipeline, add a step after the `.npmrc.publish` update to set Yarn config via `YARN_*` variables (which will persist to later steps): registry, force auth, and enable `yarn-plugin-npmrc`.
+   ```yml
+   - script: |
+       registry="$(npm config get registry)"
+       echo "##vso[task.setvariable variable=YARN_NPM_REGISTRY_SERVER]$registry"
+       echo "##vso[task.setvariable variable=YARN_NPM_ALWAYS_AUTH]true"
+       echo "##vso[task.setvariable variable=YARN_NPMRC_AUTH_ENABLED]true"
+     displayName: Configure private registry for yarn
+   ```
+
+#### `npm` or `yarn` v1
+
+These package managers save resolved URLs in the lock file, which requires an extra step to manually overwrite them before installing.
+
 1. Make a copy of [`scripts/preparePublishRegistry.ts`](https://github.com/microsoft/beachball/blob/main/scripts/preparePublishRegistry.ts) in your repo.
+1. In your pipeline, **before** deps are installed, add a step to run the script.
 1. If you're using Beachball and a package manager that reflects local package versions in the lock file (and therefore must update and commit the lock file after bumping), you'll also need `hooks.precommit` in `beachball.config.js` to revert the URL changes. See [`scripts/revertPublishRegistryHook.ts`](https://github.com/microsoft/beachball/blob/main/scripts/revertPublishRegistryHook.ts) for a sample hook implementation.
-1. In your pipeline, call the script **before** deps are installed to configure the registry and (if necessary) update URLs in the lock file.
 
 ### Example pipeline YAML
 
@@ -262,15 +289,26 @@ extends:
                   version: ${{ variables.nodeVersion }}.x
                   checkLatest: false
 
-              # Configure the private registry (update script path as needed)
-              - script: node scripts/preparePublishRegistry.ts
-                displayName: Prepare npm registry settings
+              - script: cp .npmrc.publish .npmrc
+                displayName: Use private npm registry
 
-              # Authenticate with the private registry, using .npmrc.publish copied to .npmrc
+              # ONLY yarn v4: persist yarn config via YARN_* vars
+              - script: |
+                  registry="$(npm config get registry)"
+                  echo "##vso[task.setvariable variable=YARN_NPM_REGISTRY_SERVER]$registry"
+                  echo "##vso[task.setvariable variable=YARN_NPM_ALWAYS_AUTH]true"
+                  echo "##vso[task.setvariable variable=YARN_NPMRC_AUTH_ENABLED]true"
+                displayName: Configure private registry for yarn
+
               - task: npmAuthenticate@0
                 displayName: npm authenticate
                 inputs:
                   workingFile: $(Build.SourcesDirectory)/.npmrc
+
+              # ONLY for npm / yarn v1: rewrite lock file URLs to the private registry.
+              # (update script path as needed)
+              - script: node scripts/preparePublishRegistry.ts
+                displayName: (npm or yarn v1) Prepare lock file registry settings
 
               # This isn't used, it's just a clear way to check that auth is working
               # (yarn install's auth errors can be very unclear)

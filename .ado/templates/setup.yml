@@ -35,8 +35,13 @@ steps:
       git --no-pager config list
     displayName: Show environment
 
-  - script: node scripts/preparePublishRegistry.ts
-    displayName: Prepare npm registry settings
+  - script: |
+      cp .npmrc.publish .npmrc
+      registry="$(npm config get registry)"
+      echo "##vso[task.setvariable variable=YARN_NPM_REGISTRY_SERVER]$registry"
+      echo "##vso[task.setvariable variable=YARN_NPM_ALWAYS_AUTH]true"
+      echo "##vso[task.setvariable variable=YARN_NPMRC_AUTH_ENABLED]true"
+    displayName: Configure private npm registry
 
   - task: npmAuthenticate@0
     displayName: npm authenticate

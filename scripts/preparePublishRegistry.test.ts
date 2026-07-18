@@ -124,43 +124,4 @@ describe('preparePublishRegistry', () => {
     expect(updated).not.toContain(`${registryNoSlash}is-odd/-/is-odd-3.0.1.tgz`);
     expect(updated).toContain(`${registry}is-odd/-/is-odd-3.0.1.tgz`);
   });
-
-  it('for yarn berry, emits YARN_* ADO variables and leaves files unchanged', () => {
-    const originalLock = readFixture('yarn-berry.yarn.lock.fixture');
-    const originalYarnrc = 'nodeLinker: node-modules\nplugins:\n  - path: .yarn/plugins/yarn-plugins/npmrc.cjs\n';
-    const dir = setupRepo({ '.yarnrc.yml': originalYarnrc, 'yarn.lock': originalLock });
-
-    expect(preparePublishRegistry(dir)).toBe(registry);
-
-    expect(read(dir, 'yarn.lock')).toBe(originalLock);
-    expect(read(dir, '.yarnrc.yml')).toBe(originalYarnrc);
-
-    const logs = (console.log as jest.Mock).mock.calls.map(args => args.join(' ')).join('\n');
-    expect(logs).toContain(`##fake[task.setvariable variable=YARN_NPM_REGISTRY_SERVER]${registry}`);
-    expect(logs).toContain('##fake[task.setvariable variable=YARN_NPM_ALWAYS_AUTH]true');
-    expect(logs).toContain('##fake[task.setvariable variable=YARN_NPMRC_AUTH_ENABLED]true');
-  });
-
-  it('for yarn berry, fails when yarn-plugin-npmrc is not installed', () => {
-    const originalLock = readFixture('yarn-berry.yarn.lock.fixture');
-    const dir = setupRepo({ '.yarnrc.yml': 'nodeLinker: node-modules\n', 'yarn.lock': originalLock });
-
-    expect(preparePublishRegistry(dir)).toBeUndefined();
-    expect(read(dir, 'yarn.lock')).toBe(originalLock);
-
-    expect(console.error).toHaveBeenCalledWith(
-      `yarn-plugin-npmrc is not installed in ${path.join(dir, '.yarnrc.yml')}\n` +
-        '(add it from https://github.com/microsoft/beachball/tree/main/yarn-plugins/npmrc )'
-    );
-  });
-
-  it('leaves a pnpm-lock.yaml unchanged (pnpm lock rewrite is not needed)', () => {
-    const original = readFixture('pnpm.pnpm-lock.yaml.fixture');
-    const dir = setupRepo({ 'pnpm-lock.yaml': original });
-
-    preparePublishRegistry(dir);
-
-    expect(exists(dir, '.npmrc')).toBe(false);
-    expect(read(dir, 'pnpm-lock.yaml')).toBe(original);
-  });
 });
