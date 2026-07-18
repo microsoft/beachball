@@ -147,9 +147,7 @@ describe('runRelease', () => {
     await runRelease({ env, logger });
 
     expect(mockReleaseStateCreate).toHaveBeenCalledWith(expect.objectContaining({ repoName: 'my-repo' }));
-    expect(releaseService.createRelease).toHaveBeenCalledWith(
-      expect.objectContaining({ stagingBlobPathPrefix: 'my-repo' })
-    );
+    expect(releaseService.createRelease).toHaveBeenCalledWith(expect.objectContaining({ repoName: 'my-repo' }));
   });
 
   it('passes the bare repository name through unchanged when there is no "org/" prefix', async () => {

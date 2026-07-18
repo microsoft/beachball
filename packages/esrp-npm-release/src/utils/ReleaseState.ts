@@ -1,4 +1,5 @@
-import type { ContainerClient, BlobServiceClient } from '@azure/storage-blob';
+import type { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
+import type { AdoEnvOptions, EsrpEnvOptions } from '../types/EnvOptions.ts';
 import { ReleaseError } from './ReleaseError.ts';
 
 const stateContainerName = 'release-state';
@@ -11,10 +12,11 @@ const getContainerDesc = (accountName: string) =>
  *
  * State is persisted to Azure Blob Storage in the staging storage account under the
  * `release-state` container. Each successfully-published layer corresponds to one empty
- * marker blob at `{repoName}/{buildSourceVersion}/{layerName}`. This allows the tool to
- * resume from where it left off when ADO retries a failed stage or task, skipping layers
- * that were already published to npm. The repo name prefix isolates state between
- * different repositories sharing the same staging storage account.
+ * marker blob at `{repoName}/{buildSourceVersion}/{productName}/{npmTag?}/{layerName}`. This
+ * allows the tool to resume from where it left off when ADO retries a failed stage or task,
+ * skipping layers that were already published to npm. The repo name prefix isolates state
+ * between different repositories sharing the same staging storage account. The other segments
+ * should ensure uniqueness if the tool is invoked multiple times in the same build.
  *
  * Keying by `buildSourceVersion` (rather than build ID + stage attempt) means state is
  * shared across all retries and reruns for the same git commit, which is what we want
@@ -30,14 +32,18 @@ export class ReleaseState {
 
   /**
    * Initialize the ReleaseState from persisted state in Azure Blob Storage, loading the list of
-   * already-published layers for this `repoName` + `sourceVersion`. Throws `ReleaseError` on any issue.
+   * already-published layers for this `repoName` + `sourceVersion` + `productName` (+ `npmTag`
+   * when present). Throws `ReleaseError` on any issue.
    */
-  public static async create(params: {
-    blobServiceClient: BlobServiceClient;
-    repoName: string;
-    sourceVersion: string;
-  }): Promise<ReleaseState> {
-    const { blobServiceClient, repoName, sourceVersion } = params;
+  public static async create(
+    params: Pick<EsrpEnvOptions, 'productName' | 'npmTag'> &
+      Pick<AdoEnvOptions, 'buildSourceVersion'> & {
+        /** Repo name only (no organization) */
+        repoName: string;
+        blobServiceClient: BlobServiceClient;
+      }
+  ): Promise<ReleaseState> {
+    const { blobServiceClient, repoName, buildSourceVersion: sourceVersion, productName, npmTag } = params;
     const desc = getContainerDesc(blobServiceClient.accountName);
 
     let containerClient: ContainerClient;
@@ -51,7 +57,7 @@ export class ReleaseState {
       throw new ReleaseError(`Error creating or accessing ${desc}`, { cause: err });
     });
 
-    const prefix = `${repoName}/${sourceVersion}/`;
+    const prefix = `${repoName}/${sourceVersion}/${productName}/${npmTag ? `${npmTag}/` : ''}`;
     const publishedLayers = new Set<string>();
     try {
       for await (const blob of containerClient.listBlobsFlat({ prefix })) {

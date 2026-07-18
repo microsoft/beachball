@@ -57,11 +57,15 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
   // Strip any "org/" prefix so only the repo name is used in the staging blob paths.
   const repoName = env.ado.buildRepositoryName.replace(/^.*?\//, '');
 
-  logger.log(`Loading release state for repo "${repoName}" at source version ${env.ado.buildSourceVersion}`);
+  logger.log(
+    `Loading release state for repo "${repoName}" product "${env.esrp.productName}" at source version ${env.ado.buildSourceVersion}`
+  );
   const state = await ReleaseState.create({
     blobServiceClient: stagingBlobServiceClient,
     repoName,
-    sourceVersion: env.ado.buildSourceVersion,
+    buildSourceVersion: env.ado.buildSourceVersion,
+    productName: env.esrp.productName,
+    npmTag: env.esrp.npmTag,
   });
   logger.log(`Release state loaded: ${state.publishedCount} layer(s) already published`);
 
@@ -136,7 +140,7 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
     // with no way to distinguish...
     await releaseService.createRelease({
       filePath: zipPath,
-      stagingBlobPathPrefix: repoName,
+      repoName,
       releaseRequestParams: {
         createdBy: env.esrp.createdBy,
         driEmail: env.esrp.driEmail,

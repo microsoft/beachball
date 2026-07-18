@@ -31,7 +31,7 @@ export interface EsrpEnvOptions {
 
   /** Production tenant ID used for your ESRP app registration */
   tenantId: string;
-  /** Client ID used for your ESRP app registration in a production tenant */
+  /** Client ID for your production tenant ESRP app registration */
   clientId: string;
 
   /** Base64-encoded PFX certificate used for authenticating to ESRP AAD */

@@ -16,38 +16,24 @@ import {
 } from './esrpApi/npmRelease.ts';
 import { esrpApiScope, getReleaseDetails, getReleaseStatus, submitRelease } from './esrpApi/releaseHttp.ts';
 import type { ReleaseResultMessage } from './types/api.ts';
+import type { EsrpEnvOptions } from './types/EnvOptions.ts';
 import type { Logger } from './utils/Logger.ts';
 import { ReleaseError } from './utils/ReleaseError.ts';
 
-interface PerReleaseCredentials {
-  esrpAccessToken: AccessToken;
-  userDelegationKey: UserDelegationKey;
-}
-
-interface CreateESRPReleaseServiceParams {
+interface CreateESRPReleaseServiceParams extends Pick<
+  EsrpEnvOptions,
+  'clientId' | 'tenantId' | 'authCertificatePfx' | 'requestSigningCertificatePfx'
+> {
   logger: Logger;
-
-  /** ESRP Release Service client ID */
-  clientId: string;
-  /** ESRP Release Service tenant ID */
-  tenantId: string;
-  /** ESRP Auth cert PFX content */
-  authCertificatePfx: string;
-  /** ESRP JWS request signing cert PFX content */
-  requestSigningCertificatePfx: string;
-
   /** Azure blob storage client for staging artifact files */
   stagingBlobServiceClient: BlobServiceClient;
 }
 
-interface ESRPReleaseServiceParams extends CreateESRPReleaseServiceParams {
-  stagingContainerClient: ContainerClient;
-}
-
 export interface CreateReleaseParams {
-  /** Local file path to upload */
+  /** Local zip file path to upload (probably `{zipsDir}/layer-{num}-{timestamp}.zip`) */
   filePath: string;
-  stagingBlobPathPrefix: string;
+  /** Repository name only (no organization), used as blob path prefix */
+  repoName: string;
   /** Info for creating the release request */
   releaseRequestParams: Omit<
     CreateNpmReleaseRequestMessageParams,
@@ -80,6 +66,7 @@ export class ESRPReleaseService {
     try {
       logger.log(`Getting client and ensuring staging container "${stagingContainerName}" exists`);
       stagingContainerClient = params.stagingBlobServiceClient.getContainerClient(stagingContainerName);
+      // this async operation can't be done in the constructor
       await stagingContainerClient.createIfNotExists();
     } catch (err) {
       throw new ReleaseError(`Error ensuring staging container "${stagingContainerName}" exists`, { cause: err });
@@ -96,7 +83,7 @@ export class ESRPReleaseService {
   readonly #stagingBlobServiceClient: BlobServiceClient;
   readonly #stagingContainerClient: ContainerClient;
 
-  private constructor(params: ESRPReleaseServiceParams) {
+  private constructor(params: CreateESRPReleaseServiceParams & { stagingContainerClient: ContainerClient }) {
     this.#logger = params.logger;
     this.#clientId = params.clientId;
     this.#tenantId = params.tenantId;
@@ -119,7 +106,7 @@ export class ESRPReleaseService {
    * Steps:
    * 1. Acquire a fresh AAD access token and SAS token (re-acquired per release because
    *    previous releases may have been slow enough that prior tokens are near expiry)
-   * 2. Upload the file to the staging container
+   * 2. Upload the file to the staging container under `{repoName}/{correlationId}`
    * 3. Submit the release request and poll until completion
    * 4. Delete the staged blob
    *
@@ -127,15 +114,17 @@ export class ESRPReleaseService {
    * after a given window (3 days as of writing).
    */
   public async createRelease(params: CreateReleaseParams): Promise<void> {
-    const { filePath, releaseRequestParams, stagingBlobPathPrefix } = params;
+    const { filePath, releaseRequestParams, repoName } = params;
 
     // Acquire fresh credentials for each release in case earlier slow operations caused
-    // the previously-acquired AAD/SAS tokens to expire.
+    // the previously-acquired tokens to expire.
     this.#logger.log('Acquiring fresh credentials for release');
-    const credentials = await this.#acquireCredentials();
+    // Get the credentials upfront, so we fail before uploading if there are any issues
+    const stagingBlobUserKey = await this.#getStagingBlobUserKey();
+    const esrpAccessToken = await this.#getEsrpAccessToken();
 
     const correlationId = randomUUID();
-    const blobName = `${stagingBlobPathPrefix}/${correlationId}`;
+    const blobName = `${repoName}/${correlationId}`;
     let blobClient: BlockBlobClient;
     try {
       blobClient = this.#stagingContainerClient.getBlockBlobClient(blobName);
@@ -144,7 +133,6 @@ export class ESRPReleaseService {
     }
 
     try {
-      // filePath is <layerNum>-<timestamp>.zip
       this.#logger.log(`Uploading ${filePath} to ${blobClient.url}`);
       await blobClient.uploadFile(filePath).catch(err => {
         throw new ReleaseError(`Error uploading file to staging storage`, { cause: err });
@@ -153,9 +141,9 @@ export class ESRPReleaseService {
       await this.#submitAndPollRelease({
         filePath,
         correlationId,
-        sasBlobUrl: `${blobClient.url}?${this.#generateBlobSas(blobName, credentials.userDelegationKey)}`,
+        sasBlobUrl: `${blobClient.url}?${this.#generateBlobSas(blobName, stagingBlobUserKey)}`,
         releaseRequestParams,
-        credentials,
+        esrpAccessToken,
       });
     } finally {
       this.#logger.log(`Deleting blob ${blobClient.url}`);
@@ -167,28 +155,24 @@ export class ESRPReleaseService {
     }
   }
 
-  /** Acquire a fresh AAD token and user delegation key for a single release. */
-  async #acquireCredentials(): Promise<PerReleaseCredentials> {
-    const esrpAccessToken = await this.#getEsrpAccessToken();
-
-    let userDelegationKey: UserDelegationKey;
+  /** Acquire a user delegation key for a single release. */
+  async #getStagingBlobUserKey(): Promise<UserDelegationKey> {
     try {
       const now = Date.now();
       const oneHour = 60 * 60 * 1000;
       this.#logger.log(
         `Requesting user delegation key for staging storage account "${this.#stagingBlobServiceClient.accountName}"`
       );
-      userDelegationKey = await this.#stagingBlobServiceClient.getUserDelegationKey(
+      return await this.#stagingBlobServiceClient.getUserDelegationKey(
         new Date(now - oneHour),
         new Date(now + oneHour)
       );
     } catch (err) {
-      throw new ReleaseError(`Error generating SAS token for staging blob access`, { cause: err });
+      throw new ReleaseError(`Error acquiring user delegation key for staging blob access`, { cause: err });
     }
-
-    return { esrpAccessToken, userDelegationKey };
   }
 
+  /** Get an access token for the ESRP API */
   async #getEsrpAccessToken(): Promise<AccessToken> {
     const scope = `${esrpApiScope}.default`;
     this.#logger.log(`Acquiring AAD access token for ESRP API (scope: ${scope})`);
@@ -203,12 +187,8 @@ export class ESRPReleaseService {
     });
   }
 
-  /**
-   * Generate a SAS token scoped to a single blob (read-only). Scoping to the specific blob
-   * (rather than the container) limits the blast radius if the SAS URL leaks: only this
-   * release's zip is readable, not every blob staged in the container.
-   */
-  #generateBlobSas(blobName: string, userDelegationKey: UserDelegationKey): string {
+  /** Generate a SAS token scoped to a single blob (read-only). */
+  #generateBlobSas(blobName: string, stagingBlobUserKey: UserDelegationKey): string {
     this.#logger.log(`Generating SAS token for staging blob "${blobName}"`);
     const now = Date.now();
     const oneHour = 60 * 60 * 1000;
@@ -220,19 +200,21 @@ export class ESRPReleaseService {
         startsOn: new Date(now - oneHour),
         expiresOn: new Date(now + oneHour),
       },
-      userDelegationKey,
+      stagingBlobUserKey,
       this.#stagingBlobServiceClient.accountName
     ).toString();
   }
 
+  /** Create the release request, submit it to the ESRP API, and poll for completion. */
   async #submitAndPollRelease(
-    params: Omit<CreateReleaseParams, 'stagingBlobPathPrefix'> & {
+    params: Omit<CreateReleaseParams, 'repoName'> & {
       correlationId: string;
       sasBlobUrl: string;
-      credentials: PerReleaseCredentials;
+      esrpAccessToken: AccessToken;
     }
   ): Promise<void> {
-    const { filePath, correlationId, sasBlobUrl, releaseRequestParams, credentials } = params;
+    const { filePath, correlationId, sasBlobUrl, releaseRequestParams } = params;
+    let { esrpAccessToken } = params;
 
     this.#logger.log(`Preparing to submit release`);
 
@@ -248,7 +230,7 @@ export class ESRPReleaseService {
 
     const submitReleaseResult = await submitRelease({
       clientId: this.#clientId,
-      bearerToken: credentials.esrpAccessToken.token,
+      bearerToken: esrpAccessToken.token,
       releaseRequest: request,
     });
 
@@ -263,11 +245,11 @@ export class ESRPReleaseService {
       // AAD client-credential tokens are typically valid for ~1 hour. Since polling can run
       // for up to 60 minutes (and was preceded by upload + submit), the original token can
       // expire mid-poll. Refresh proactively when within 5 minutes of expiry.
-      await this.#refreshEsrpAccessTokenIfNeeded(credentials);
+      esrpAccessToken = await this.#refreshEsrpAccessTokenIfNeeded(esrpAccessToken);
 
       releaseStatus = await getReleaseStatus({
         clientId: this.#clientId,
-        bearerToken: credentials.esrpAccessToken.token,
+        bearerToken: esrpAccessToken.token,
         releaseId: submitReleaseResult.operationId,
       });
 
@@ -294,7 +276,7 @@ export class ESRPReleaseService {
     try {
       const releaseDetails = await getReleaseDetails({
         clientId: this.#clientId,
-        bearerToken: credentials.esrpAccessToken.token,
+        bearerToken: esrpAccessToken.token,
         releaseId: submitReleaseResult.operationId,
       });
       this.#logger.log('Release details:', JSON.stringify(redactReleaseRequest(releaseDetails), null, 2));
@@ -312,13 +294,14 @@ export class ESRPReleaseService {
    * for up to 60 minutes (and was preceded by upload + submit), the original token can
    * expire mid-poll. Refresh proactively when within 5 minutes of expiry.
    */
-  async #refreshEsrpAccessTokenIfNeeded(credentials: PerReleaseCredentials): Promise<void> {
-    const { expiresOnTimestamp, refreshAfterTimestamp } = credentials.esrpAccessToken;
+  async #refreshEsrpAccessTokenIfNeeded(esrpAccessToken: AccessToken): Promise<AccessToken> {
+    const { expiresOnTimestamp, refreshAfterTimestamp } = esrpAccessToken;
     const refreshAt = refreshAfterTimestamp ?? expiresOnTimestamp - 5 * 60 * 1000;
     if (Date.now() >= refreshAt) {
       this.#logger.log('AAD access token near expiry, refreshing');
-      credentials.esrpAccessToken = await this.#getEsrpAccessToken();
+      return await this.#getEsrpAccessToken();
     }
+    return esrpAccessToken;
   }
 
   /**

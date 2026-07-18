@@ -91,7 +91,7 @@ Prefer scripts over running binaries directly. If you must run a binary such as 
 - **Imports:** use `import "fs/promises"` directly (not `fs.promises`) to enable Jest mocking. Use `import type` for type-only imports (enforced).
 - **Naming:** camelCase or PascalCase; unused parameters prefixed with `_`.
 - **Style:** Prettier — single quotes, 120 char width, ES5 trailing commas.
-- Markdown: use sentence case for headings; do not manually wrap prose lines.
+- **Markdown:** use sentence case for headings. NEVER manually wrap lines in `.md` files (except within code blocks).
 
 ## Testing standards
 
