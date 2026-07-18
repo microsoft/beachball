@@ -185,10 +185,17 @@ var plugin = (() => {
     const processedDependencies = /* @__PURE__ */ new Set();
     const requiredDependencies = /* @__PURE__ */ new Set();
     const optionalDependencies = /* @__PURE__ */ new Set();
+    const debugInfo = /* @__PURE__ */ new Map();
     const enqueueDependency = (descriptor, manifest) => {
       const pkgName = import_core.structUtils.stringifyIdent(descriptor);
       const descriptorHash = descriptor.descriptorHash;
       const rawManifest = manifest.raw;
+      debugInfo.set(descriptorHash, {
+        ident: pkgName,
+        range: descriptor.range,
+        pretty: import_core.structUtils.prettyDescriptor(project.configuration, descriptor),
+        parent: `${rawManifest.name}@${rawManifest.version}`
+      });
       if (rawManifest.optionalDependencies?.[pkgName] || rawManifest.dependenciesMeta?.[pkgName]?.optional === true || rawManifest.peerDependenciesMeta?.[pkgName]?.optional === true) {
         if (!requiredDependencies.has(descriptorHash)) {
           optionalDependencies.add(descriptorHash);
@@ -223,7 +230,12 @@ var plugin = (() => {
       const maybeReportError = (message) => !isOptional && reportError(message);
       const desc = project.storedDescriptors.get(descriptorHash);
       if (!desc) {
-        maybeReportError(`Could not find descriptor for hash ${descriptorHash}`);
+        if (!project.storedResolutions.has(descriptorHash)) {
+          continue;
+        }
+        const info = debugInfo.get(descriptorHash);
+        const debugText = info && `[ident="${info.ident}" range="${info.range}" pretty="${info.pretty}" parent="${info.parent}"]`;
+        maybeReportError(`Could not find descriptor for hash ${descriptorHash} ${debugText}`);
         continue;
       }
       const prettyDesc = import_core.structUtils.prettyDescriptor(project.configuration, desc);
@@ -232,6 +244,7 @@ var plugin = (() => {
         maybeReportError(`Could not find a resolved version for ${prettyDesc}`);
         continue;
       }
+      debugInfo.delete(descriptorHash);
       const pkg = project.storedPackages.get(locatorHash);
       if (!pkg) {
         maybeReportError(`Could not find an installed package for ${prettyDesc}`);

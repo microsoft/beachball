@@ -59,7 +59,10 @@ const configurationMap: ConfigurationDefinitionMap<EnginesConfig> &
   },
 };
 
+/** A package.json file */
 interface RawManifest {
+  name?: string;
+  version?: string;
   engines?: { node?: string };
   optionalDependencies?: Record<string, string>;
   dependenciesMeta?: Record<string, { optional?: boolean }>;
@@ -139,15 +142,22 @@ const validateProjectAfterInstall: NonNullable<Hooks['validateProjectAfterInstal
   const requiredDependencies = new Set<DescriptorHash>();
   /** deps marked as optional by at least one manifest */
   const optionalDependencies = new Set<DescriptorHash>();
+  const debugInfo = new Map<DescriptorHash, { ident: string; range: string; pretty: string; parent: string }>();
 
   /** Queue a descriptor for processing if not already queued/processed */
   const enqueueDependency = (descriptor: Descriptor, manifest: Manifest) => {
     const pkgName = structUtils.stringifyIdent(descriptor);
     const descriptorHash = descriptor.descriptorHash;
+    const rawManifest = manifest.raw as RawManifest;
+    debugInfo.set(descriptorHash, {
+      ident: pkgName,
+      range: descriptor.range,
+      pretty: structUtils.prettyDescriptor(project.configuration, descriptor),
+      parent: `${rawManifest.name}@${rawManifest.version}`,
+    });
 
     // Check all the places a dep can be specified as optional
     // (it's probably not important to be strict about deps vs peers here)
-    const rawManifest = manifest.raw as RawManifest;
     if (
       rawManifest.optionalDependencies?.[pkgName] ||
       rawManifest.dependenciesMeta?.[pkgName]?.optional === true ||
@@ -208,7 +218,16 @@ const validateProjectAfterInstall: NonNullable<Hooks['validateProjectAfterInstal
 
     const desc = project.storedDescriptors.get(descriptorHash);
     if (!desc) {
-      maybeReportError(`Could not find descriptor for hash ${descriptorHash}`);
+      // A descriptor with no stored resolution is an unresolved peer dependency (e.g. a workspace's
+      // own peerDependencies, which are never resolved because nothing in the graph provides them).
+      // These can't be validated, so skip them silently rather than reporting a spurious error.
+      if (!project.storedResolutions.has(descriptorHash)) {
+        continue;
+      }
+      const info = debugInfo.get(descriptorHash);
+      const debugText =
+        info && `[ident="${info.ident}" range="${info.range}" pretty="${info.pretty}" parent="${info.parent}"]`;
+      maybeReportError(`Could not find descriptor for hash ${descriptorHash} ${debugText}`);
       continue;
     }
     const prettyDesc = structUtils.prettyDescriptor(project.configuration, desc);
@@ -218,6 +237,9 @@ const validateProjectAfterInstall: NonNullable<Hooks['validateProjectAfterInstal
       maybeReportError(`Could not find a resolved version for ${prettyDesc}`);
       continue;
     }
+
+    // The descriptor resolved successfully, so its debug info is no longer needed.
+    debugInfo.delete(descriptorHash);
 
     const pkg = project.storedPackages.get(locatorHash);
     if (!pkg) {
