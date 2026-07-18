@@ -18,8 +18,8 @@ import { calculatePackageTags } from './calculatePackageTags';
 export function bumpInMemory(options: BeachballOptions, context: Omit<CommandContext, 'bumpInfo'>): BumpInfo {
   const { bumpDeps } = options;
 
-  // Pass 1: calculatedChangeTypes includes ONLY changes direct from the change files
-  // (no dependents, groups, or disallowedChangeTypes)
+  // Pass 1: calculatedChangeTypes includes ONLY changes direct from the change files (no dependents,
+  // groups, or disallowedChangeTypes). "none" changes are removed.
   const calculatedChangeTypes = initializePackageChangeTypes(context.changeSet);
 
   // (Splitting out a couple properties that aren't modified as initial step of reducing mutation approach)
@@ -40,11 +40,15 @@ export function bumpInMemory(options: BeachballOptions, context: Omit<CommandCon
   //       - set the version for all packages in the group in (bumpPackageInfoVersion())
   //       - the main concern is how to capture the bump reason in grouped changelog
 
-  // pass 2: initialize grouped calculatedChangeTypes together
-  for (const group of Object.values(bumpInfo.packageGroups)) {
+  // pass 2: initialize grouped calculatedChangeTypes together (and cache the package to group mapping)
+  const packageToGroup: Record<string, string> = {};
+  for (const [groupName, group] of Object.entries(bumpInfo.packageGroups)) {
     // If any of the group's packages have a change, find the max change type out of any package in the group.
+    // ("none" types were removed by initializePackageChangeTypes).
     const seenTypes = new Set<ChangeType>();
     for (const packageNameInGroup of group.packageNames) {
+      packageToGroup[packageNameInGroup] = groupName;
+
       const changeType = calculatedChangeTypes[packageNameInGroup];
       if (changeType) {
         seenTypes.add(changeType);
@@ -52,7 +56,8 @@ export function bumpInMemory(options: BeachballOptions, context: Omit<CommandCon
     }
 
     if (seenTypes.size) {
-      // Set all packages in the group to the max change type.
+      // Set all packages in the group to the max valid type found, overwriting any previous type
+      // (validate() should have prevented an invalid group type at this step, but check to be safe)
       const maxChangeInGroup = getMaxChangeType([...seenTypes], group.disallowedChangeTypes);
       for (const packageNameInGroup of group.packageNames) {
         calculatedChangeTypes[packageNameInGroup] = maxChangeInGroup;
@@ -60,11 +65,13 @@ export function bumpInMemory(options: BeachballOptions, context: Omit<CommandCon
     }
   }
 
-  // Pass 3: Calculate change types for dependents and groups.
+  // Pass 3: Calculate change types for dependents (propagating dependent bumps through groups).
   // TODO: fix weird behavior - https://github.com/microsoft/beachball/issues/620
-  const dependents = bumpDeps ? getDependentsForPackages(bumpInfo) : undefined;
-  for (const { change } of context.changeSet) {
-    updateRelatedChangeType({ change, bumpInfo, dependents, options });
+  if (bumpDeps) {
+    const dependents = getDependentsForPackages(bumpInfo);
+    for (const { change } of context.changeSet) {
+      updateRelatedChangeType({ change, bumpInfo, dependents, options, packageToGroup });
+    }
   }
 
   // pass 4: actually bump the packages in the bumpInfo in memory (no disk writes at this point)
