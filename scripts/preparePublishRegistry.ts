@@ -60,6 +60,7 @@ export function updateLockFileRegistry(params: {
   revert?: boolean;
 }): void {
   const { manager, registry, cwd, revert } = params;
+  const normalizedRegistry = registry.endsWith('/') ? registry : `${registry}/`;
   const lockFilePath = path.join(cwd, manager === 'yarn1' ? 'yarn.lock' : 'package-lock.json');
   if (!fs.existsSync(lockFilePath)) {
     return;
@@ -67,8 +68,8 @@ export function updateLockFileRegistry(params: {
 
   const content = fs.readFileSync(lockFilePath, 'utf-8');
   const updated = revert
-    ? content.replaceAll(registry, defaultRegistries[manager])
-    : content.replaceAll(defaultRegistries[manager], registry);
+    ? content.replaceAll(normalizedRegistry, defaultRegistries[manager])
+    : content.replaceAll(defaultRegistries[manager], normalizedRegistry);
   if (updated !== content) {
     console.log(`${revert ? 'Reverting' : 'Updating'} registry URLs in ${lockFilePath}`);
     fs.writeFileSync(lockFilePath, updated, 'utf-8');
