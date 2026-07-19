@@ -165,7 +165,7 @@ The pipeline typically uses two Azure Resource Manager service connections:
 
 If your repo normally installs packages from `registry.npmjs.org` or `registry.yarnpkg.com`, you'll need to set up an internal feed for the publish build only, since 1ES PT official templates restrict access to public npm.
 
-Start by choosing a feed in your project (or create a new one) that has the public npm registry as an upstream source. Exact steps may vary by project, but a common setup to use the feed in the release pipeline is as follows:
+Start by choosing a feed in your project (or create a new one) that has the public npm registry as an upstream source. Exact steps may vary by project, but a common setup is to add `.npmrc` to `.gitignore`, then use and authenticate with the feed in the release pipeline is as follows:
 
 ```yml
 variables:
@@ -175,12 +175,17 @@ variables:
   YARN_NPM_ALWAYS_AUTH: 1
   YARN_NPMRC_AUTH_ENABLED: 1 # enables yarn-plugin-npmrc (see below)
 
-- script: echo 'registry=${{ variables.REGISTRY_URL }}' >> .npmrc
-  displayName: Configure npm registry
+# Later in the pipeline (within a job):
+steps:
+  # ...
 
-- task: npmAuthenticate@0
-  inputs:
-    workingFile: $(Build.SourcesDirectory)/.npmrc
+  # WARNING: assumes .npmrc is in .gitignore
+  - script: echo 'registry=${{ variables.REGISTRY_URL }}' >> .npmrc
+    displayName: Configure npm registry
+
+  - task: npmAuthenticate@0
+    inputs:
+      workingFile: $(Build.SourcesDirectory)/.npmrc
 ```
 
 There may also be some extra steps depending on your setup:

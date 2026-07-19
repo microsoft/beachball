@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Remove defaults for `registry` and `access` (implicitly pick up the configured values from npm)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

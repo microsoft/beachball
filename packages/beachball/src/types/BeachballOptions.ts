@@ -85,10 +85,10 @@ export interface CliOptions extends Pick<
 
 export interface RepoOptions {
   /**
-   * Access level for npm publish
-   * @default 'restricted'
+   * Access level for npm publish.
+   * Follows the default behavior from npm, which is `restricted` for scoped packages.
    */
-  access: 'public' | 'restricted';
+  access?: 'public' | 'restricted';
   /**
    * npm publish auth type for `NPM_TOKEN` or `--token`
    * @default 'authtoken'
@@ -269,10 +269,13 @@ export interface RepoOptions {
    */
   push: boolean;
   /**
-   * Target npm registry for publishing
-   * @default 'https://registry.npmjs.org/'
+   * npm registry for getting package info and publishing.
+   * This respects the registry configured for `npm`.
+   *
+   * **Temporary exception:** Due to unfinished features, this is required if you've set
+   * `NPM_TOKEN` or `--token`.
    */
-  registry: string;
+  registry?: string;
   /**
    * Number of retries for a package publish before failing
    * @default 3

@@ -15,33 +15,27 @@ To automate the bumping of package versions based on change files, you'll need t
 
 ## Setting options for publishing
 
-Most [`beachball publish` options](../cli/publish#options) such as `--access` and `--registry` can be set in the [`beachball` config](../overview/configuration) if they don't interfere with other commands. (If you're publishing to a private feed, `registry` should be set in the config, since it's also used by the `sync` command.) For example:
+> ⚠️ **Beachball v3 respects `.npmrc`**, so in many cases it's no longer necessary to manually provide `registry` or a token. (Exception due to unfinished features as of writing: if `NPM_TOKEN` or `--token` is set, you must explicitly set `registry`.)
+
+Most [`beachball publish` options](../cli/publish#options) such as `--access` and `--registry` can be set in the [`beachball` config](../overview/configuration) if they don't interfere with other commands. As of v3, `commitMessage` can also be used to customize `--message` for publish. For example:
 
 ```js
 /** @type {Partial<import('beachball').RepoOptions>} */
 const config = {
   // this should almost always be set
   access: 'public',
-  // only set if a custom registry is needed
-  registry: 'https://pkgs.dev.azure.com/some-org/_packaging/some-feed/npm/registry/',
+  // if you want to customize the commit message
+  commitMessage: (options, packageInfos, bumpInfo) => {
+    return options.command === 'publish' ? 'Bump package versions' : undefined;
+  },
   // ... other options ...
 };
 module.exports = config;
 ```
 
-If you need to set options that are specific to publishing, it's recommended to set them in a `package.json` script. For example, the following script could be used to customize the commit message for publishing, avoiding a conflict with the `--message` arg for `change`:
+If you need to set CLI options that are specific to publishing, it's recommended to use a `package.json` script wrapping `beachball publish`.
 
-```json
-{
-  "scripts": {
-    "release": "beachball publish --message \"Bump package versions\""
-  }
-}
-```
-
-For a dynamic commit message (for example including version numbers), you can set the [`commitMessage` config option](../overview/configuration) to a function instead.
-
-Providing the npm token (`--token` or `-n`) on the command line is no longer recommended. See [npm authentication](#npm-authentication) below for alternatives.
+**Providing the npm token (`--token` or `-n`) on the command line is not recommended.** See [npm authentication](#npm-authentication) below for alternatives.
 
 ## Authentication
 
@@ -53,6 +47,8 @@ In the most common workflow, `beachball publish` requires authenticating with:
 If using personal access tokens for authentication, they should have the minimum necessary permissions and be [stored as secrets](#storing-secrets) that are only available to release builds.
 
 ### npm authentication
+
+> ⚠️ **Beachball v3 respects `.npmrc`**, so in many cases it's no longer necessary to manually provide `registry` or a token. (Exception due to unfinished features as of writing: if `NPM_TOKEN` or `--token` is set, you must explicitly set `registry`.)
 
 #### Trusted publishing (preferred)
 
@@ -69,8 +65,10 @@ Token authentication can potentially also be used for publishing to private regi
 To pass an npm token to `beachball publish`, do one of the following:
 
 - Set the `NPM_TOKEN` environment variable while running `beachball publish`
-- Manually set the token in [`.npmrc`](https://docs.npmjs.com/cli/v11/configuring-npm/npmrc#auth-related-configuration), possibly referencing an environment variable
+- Manually set the token in [`.npmrc`](https://docs.npmjs.com/cli/v11/configuring-npm/npmrc#auth-related-configuration)
 - Old way (not recommended): use `--token <token>` on the command line
+
+**Temporarily, you must also set `registry` if explicitly providing a token.** (This will be picked up from `.npmrc` in the Beachball v3 official release.)
 
 #### Other approaches
 

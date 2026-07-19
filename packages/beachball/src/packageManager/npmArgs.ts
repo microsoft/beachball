@@ -1,4 +1,5 @@
 import { getPackageOption } from '../options/getPackageOption';
+import { BeachballError } from '../types/BeachballError';
 import type { NpmOptions } from '../types/NpmOptions';
 import type { PackageInfo } from '../types/PackageInfo';
 
@@ -15,8 +16,7 @@ export function getNpmPublishArgs(
   const { registry, access } = options;
   const args = [
     'publish',
-    '--registry',
-    registry,
+    ...(registry ? ['--registry', registry] : []),
     '--tag',
     // TODO: unclear what tag=null in PackageOptions was originally supposed to do
     // (most recent logic prior to this also used || which ignores null)
@@ -62,6 +62,10 @@ export function getNpmAuthArgs(options: NpmAuthOptions):
   const { registry, token, authType } = options;
   if (!token) {
     return undefined;
+  }
+  if (!registry) {
+    // Temporary until we support reading the registry from .npmrc
+    throw new BeachballError('The "registry" option is required if an npm token is set.');
   }
 
   const npmKeyword = authType === 'password' ? '_password' : '_authToken';

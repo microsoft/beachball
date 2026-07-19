@@ -58,8 +58,7 @@ export async function getNpmPackageInfo(
     const showResult = await npm(
       [
         'show',
-        '--registry',
-        options.registry,
+        ...(options.registry ? ['--registry', options.registry] : []),
         '--json',
         packageName,
         // Only output the properties we need (npm show fetches everything internally)

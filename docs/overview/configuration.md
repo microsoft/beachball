@@ -74,7 +74,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 <!-- prettier-ignore -->
 | Option | Type | Default | Applies to | Description |
 | ------ | ---- | ------- | ---------- | ----------- |
-| `access` | `'public'` or `'restricted'` | `'restricted'` | repo | Publish access level for scoped package names (e.g. `@foo/bar`) |
+| `access` | `'public'` or `'restricted'` | as configured for npm | repo | Publish access level for scoped package names (e.g. `@foo/bar`) - should **almost always** be `'public'` |
 | `branch` | `string` | [see notes][5] | repo | Target branch; [see notes][5] |
 | `bumpDeps` | `boolean` | `true` | repo | Bump dependent packages during publish (if B is bumped, and A depends on B, also bump A) |
 | `changeFilePrompt` | [`ChangeFilePromptOptions`][1] | | repo | Customize the prompt for change files (can be used to add custom fields) |
@@ -99,7 +99,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `packToPath` | `string` | | repo | Instead of publishing to npm, pack packages to tgz files in numbered subfolders under this path, based on dependency tree layers (leaves first). There will also be a file `versions.json` at the top level with the versions of the packed packages in each layer. |
 | `publish` | `boolean` | `true` | repo | Whether to publish to npm registry |
 | `push` | `boolean` | `true` | repo | Whether to push to the remote git branch |
-| `registry` | `string` | | repo | Publish to this npm registry |
+| `registry` | `string` | as configured for npm | npm registry to use (required if you've explicitly [configured authentication](../concepts/ci-integration#npm-authentication)) |
 | `retries` | `number` | `3` | repo | Number of retries for a package publish before failing |
 | `scope` | `string[]` | | repo | Only consider package paths matching these patterns ([see details](#scoping)) |
 | `shouldPublish` | `false \| undefined` | | package | In most cases you should use `private: true` in `package.json` instead. This option skips the `npm publish` (or `pack`) step for this package, but it's still bumped, tagged, and gets changelog entries. Does not work to force publishing. |

@@ -53,7 +53,6 @@ The formatting is similar to YAML, but is not currently intended to be parsed (k
 ```bash
 $ beachball config list
 # Main options (including defaults):
-#   access: "restricted"
 #   branch: "origin/main"
 #   bump: true
 #   ...

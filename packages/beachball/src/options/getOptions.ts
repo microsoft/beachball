@@ -2,6 +2,7 @@ import type { BeachballOptions, ParsedOptions, RepoOptions } from '../types/Beac
 import { getCliOptions, type ProgramContext } from './getCliOptions';
 import { getRepoOptions } from './getRepoOptions';
 import { getDefaultOptions } from './getDefaultOptions';
+import { BeachballError } from '../types/BeachballError';
 
 /**
  * Get merged and unmerged options, for reuse by `getPackageInfos`.
@@ -11,11 +12,18 @@ export function getOptions(params: ProgramContext & { testRepoOptions?: Partial<
   const { testRepoOptions, ...processInfo } = params;
   const cliOptions = getCliOptions(processInfo);
   const repoOptions = testRepoOptions || getRepoOptions(cliOptions);
-  return {
+  const result: ParsedOptions = {
     cliOptions,
     repoOptions,
     options: mergeRepoOptions({ repoOptions, cliOptions }),
   };
+
+  if (result.options.token && !result.options.registry) {
+    // Temporary until we support reading the registry from .npmrc
+    throw new BeachballError('The "registry" option is required if an npm token is set.');
+  }
+
+  return result;
 }
 
 /** Merge repo-wide options in the proper order. */

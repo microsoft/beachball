@@ -50,7 +50,7 @@ Explicit configuration file to use instead of the configuration automatically de
 
 ### `--registry`, `-r` (config: `registry`)
 
-registry, defaults to https://registry.npmjs.org
+registry, defaults to the registry configured for npm
 
 ### `--tag`, `-t` (config: `tag`)
 

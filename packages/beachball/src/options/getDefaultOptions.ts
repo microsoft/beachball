@@ -6,7 +6,6 @@ import type { BeachballOptions } from '../types/BeachballOptions';
  */
 export function getDefaultOptions(): BeachballOptions {
   return {
-    access: 'restricted',
     all: false,
     authType: 'authtoken',
     branch: 'origin/master',
@@ -30,7 +29,6 @@ export function getDefaultOptions(): BeachballOptions {
     path: '',
     publish: true,
     push: true,
-    registry: 'https://registry.npmjs.org/',
     retries: 3,
     scope: null,
     tag: '',
