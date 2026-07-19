@@ -35,8 +35,9 @@ steps:
       git --no-pager config list
     displayName: Show environment
 
-  - script: node scripts/preparePublishRegistry.ts
-    displayName: Prepare npm registry settings
+  # Configure npm to use the internal feed from REGISTRY_URL.
+  - script: echo 'registry=${{ variables.REGISTRY_URL }}' >> .npmrc
+    displayName: Configure npm registry
 
   - task: npmAuthenticate@0
     displayName: npm authenticate

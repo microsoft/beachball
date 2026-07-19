@@ -68,15 +68,15 @@ Validation options:
                                 "major")
 
 npm options:
-  -r, --registry <value>      npm registry (default: "https://registry.npmjs.org/")
-  -n, --token <value>         npm auth token (prefer using NPM_TOKEN environment variable)
-  -a, --auth-type <value>     npm auth type for NPM_TOKEN (choices: "authtoken", "password",
-                                default: "authtoken")
+  -r, --registry <value>      npm registry (respects npm settings)
+  -n, --token <value>         npm auth token (prefer using NPM_TOKEN env var or existing npm login)
+  -a, --auth-type <value>     npm auth type if manually providing NPM_TOKEN (choices: "authtoken",
+                                "password", default: "authtoken")
   --npm-read-concurrency <num> - maximum concurrency for reading package versions from the registry
                                 (default: 2)
   --timeout <num>             timeout in ms for npm operations (other than install)
   -t, --tag <value>           npm dist-tag for publishing (default: canaryName or "canary")
-  --access <value>            npm publish access level (choices: "public", "restricted", default:
+  --access <value>            npm publish access level (respects npm settings) (choices: "public",
                                 "restricted")
   --retries <num>             number of retries for an npm publish before failing (default: 3)
   --pack-to-path <value>      pack packages to tgz files under this path instead of publishing to
@@ -249,10 +249,10 @@ Most options can also be specified in the beachball config (command line options
 config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 npm options:
-  -r, --registry <value>      npm registry (default: "https://registry.npmjs.org/")
-  -n, --token <value>         npm auth token (prefer using NPM_TOKEN environment variable)
-  -a, --auth-type <value>     npm auth type for NPM_TOKEN (choices: "authtoken", "password",
-                                default: "authtoken")
+  -r, --registry <value>      npm registry (respects npm settings)
+  -n, --token <value>         npm auth token (prefer using NPM_TOKEN env var or existing npm login)
+  -a, --auth-type <value>     npm auth type if manually providing NPM_TOKEN (choices: "authtoken",
+                                "password", default: "authtoken")
   --npm-read-concurrency <num> - maximum concurrency for reading package versions from the registry
                                 (default: 2)
   --timeout <num>             timeout in ms for npm operations (other than install)
@@ -316,15 +316,15 @@ Versioning options:
   --[no-]keep-change-files    don't delete the change files from disk after bumping
 
 npm options:
-  -r, --registry <value>      npm registry (default: "https://registry.npmjs.org/")
-  -n, --token <value>         npm auth token (prefer using NPM_TOKEN environment variable)
-  -a, --auth-type <value>     npm auth type for NPM_TOKEN (choices: "authtoken", "password",
-                                default: "authtoken")
+  -r, --registry <value>      npm registry (respects npm settings)
+  -n, --token <value>         npm auth token (prefer using NPM_TOKEN env var or existing npm login)
+  -a, --auth-type <value>     npm auth type if manually providing NPM_TOKEN (choices: "authtoken",
+                                "password", default: "authtoken")
   --npm-read-concurrency <num> - maximum concurrency for reading package versions from the registry
                                 (default: 2)
   --timeout <num>             timeout in ms for npm operations (other than install)
   -t, --tag <value>           npm dist-tag for publishing (default: defaultNpmTag or "latest")
-  --access <value>            npm publish access level (choices: "public", "restricted", default:
+  --access <value>            npm publish access level (respects npm settings) (choices: "public",
                                 "restricted")
   --retries <num>             number of retries for an npm publish before failing (default: 3)
   --pack-to-path <value>      pack packages to tgz files under this path instead of publishing to
@@ -356,10 +356,10 @@ Options:
   --[no-]force                use the version from the registry even if it's older than local
 
 npm options:
-  -r, --registry <value>      npm registry (default: "https://registry.npmjs.org/")
-  -n, --token <value>         npm auth token (prefer using NPM_TOKEN environment variable)
-  -a, --auth-type <value>     npm auth type for NPM_TOKEN (choices: "authtoken", "password",
-                                default: "authtoken")
+  -r, --registry <value>      npm registry (respects npm settings)
+  -n, --token <value>         npm auth token (prefer using NPM_TOKEN env var or existing npm login)
+  -a, --auth-type <value>     npm auth type if manually providing NPM_TOKEN (choices: "authtoken",
+                                "password", default: "authtoken")
   --npm-read-concurrency <num> - maximum concurrency for reading package versions from the registry
                                 (default: 2)
   --timeout <num>             timeout in ms for npm operations (other than install)

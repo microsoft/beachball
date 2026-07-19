@@ -47,7 +47,6 @@ describe('configList', () => {
     // Check carefully for indentation or extra whitespace issues if this snapshot changes!
     expect(output).toMatchInlineSnapshot(`
       "Main options (including defaults):
-        access: "restricted"
         all: false
         authType: "authtoken"
         branch: "origin/foo"
@@ -76,7 +75,6 @@ describe('configList', () => {
         path: ""
         publish: true
         push: true
-        registry: "https://registry.npmjs.org/"
         retries: 3
         scope: null
         tag: ""

@@ -19,6 +19,8 @@
     // "github>microsoft/m365-renovate-config:restrictNode(22)"
   ],
 
+  "ignorePaths": ["**/node_modules/**", "**/__*/**", "**/.yarn/**"],
+
   "gitAuthor": "Renovate Bot <renovate@whitesourcesoftware.com>",
 
   "labels": ["renovate"],

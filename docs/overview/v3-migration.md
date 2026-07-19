@@ -50,6 +50,16 @@ CLI parsing moved from `yargs-parser` to `commander`. Most behavior is preserved
 - If you rely on `CHANGELOG.json`, set `generateChangelog: true` in your config.
 - If you don't, delete any existing `CHANGELOG.json` files (`beachball migrate` won't do this automatically).
 
+### `registry` and `access` respect npm settings
+
+In v2, Beachball defaulted `registry` to `https://registry.npmjs.org/` and `access` to `restricted`.
+
+In v3, Beachball no longer sets its own defaults for either option:
+
+- `registry` now uses whatever registry `npm` is configured to use.
+  - **Temporary exception:** Due to unfinished features, if you're explicitly providing `NPM_TOKEN` or `--token`, you must explicitly provide `registry`.
+- `access` now uses npm's default publish behavior. Since scoped packages default to `restricted`, you should **almost always** set this to `public` (as most repos with scoped packages already do).
+
 ### Fix group `exclude` negation behavior
 
 Remove the requirement for `groups[*].exclude` and `changelog.groups[*].exclude` patterns to be negated (leading `!`).

@@ -1,7 +1,6 @@
 // @ts-check
 
 const { getGitTag, postbumpHook } = require('./scripts/beachballConfigHelpers.cjs');
-const { getPublishRegistry } = require('./scripts/preparePublishRegistry.ts');
 
 // This config file is used for publish/canary
 
@@ -14,9 +13,8 @@ const prereleasePackages = ['beachball', 'p-graph'];
 const config = {
   ...require('./beachball.config.js'),
 
+  // only needed for non-ESRP
   access: 'public',
-  // TODO: update beachball to read the registry from .npmrc and/or .yarnrc.yml
-  registry: process.env.TF_BUILD ? getPublishRegistry() : 'https://registry.npmjs.org/',
 
   // TODO (release): remove
   // Separate prerelease and non-prerelease packages

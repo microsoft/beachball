@@ -36,15 +36,16 @@ For each layer, the tool:
 The tool relies on the following inputs and resources:
 
 - [**Packed packages**](#packed-packages-format): Output folder from `beachball publish --pack-to-path <path>` or in the same format
+  - ⚠️ If using `beachball`, it's recommended to upgrade to a **v3 prerelease** to take advantage of certain new features, including better registry config handling.
 - **ESRP Azure resources** configured per their guides (see docs on eng.ms):
-  - **ESRP-onboarded app registration** in a production tenant (need client ID and tenant ID)
-  - **Production tenant key vault** storing the ESRP auth certificate and request signing certificate (PFX format, base64-encoded)
-  - **Production tenant managed identity** with access to the app registration and key vault
-  - **ADO Azure Resource Manager service connection** using the managed identity
+  - _ESRP-onboarded app registration_ in a production tenant (need client ID and tenant ID)
+  - _Production tenant key vault_ storing the ESRP auth certificate and request signing certificate (PFX format, base64-encoded)
+  - _Production tenant managed identity_ with access to the app registration and key vault
+  - _ADO Azure Resource Manager service connection_ using the managed identity
 - [**Staging resources**](#staging-resource-setup) specific to this tool (see below for setup details):
-  - **Azure Blob Storage account** in your team's subscription (usually in the corp tenant) to temporarily host zips of packages
-  - **Managed identity** with the right RBAC roles on the storage account (used to create user delegation keys for blob access)
-  - **ADO Azure Resource Manager service connection** using the managed identity
+  - _Azure Blob Storage account_ in your team's subscription (usually in the corp tenant) to temporarily host zips of packages
+  - _Managed identity_ with the right RBAC roles on the storage account (used to create user delegation keys for blob access)
+  - _ADO Azure Resource Manager service connection_ using the managed identity
 
 ## Packed packages format
 
@@ -90,15 +91,18 @@ az group create \
 
 ### 2. Deploy the Bicep template
 
-Use the Bicep template at [`.ado/roleAssignments.bicep`](https://github.com/microsoft/beachball/blob/main/.ado/roleAssignments.bicep) to create the storage account, blob lifecycle policy, user-assigned managed identity, and required RBAC assignments (see notes below about how each piece is used).
+Use the Bicep template at [`bicep/stagingResources.bicep`](./bicep/stagingResources.bicep) to create the storage account, blob lifecycle policy, user-assigned managed identity, and required RBAC assignments (see notes below about how each piece is used).
 
 Preview the changes first. If a storage account with the given name already exists in the resource group, its properties are reconciled to match the template, and this command will show the diff.
 
 ```bash
+# either the path within node_modules, or the local path if you downloaded the file
+BICEP_PATH="node_modules/esrp-npm-release/bicep/stagingResources.bicep"
+
 az deployment group what-if \
   --subscription "$SUBSCRIPTION" \
   --resource-group "$RESOURCE_GROUP" \
-  --template-file roleAssignments.bicep \
+  --template-file "$BICEP_PATH" \
   --parameters \
     stagingStorageName="$STORAGE_ACCOUNT" \
     managedIdentityName="$MANAGED_IDENTITY"
@@ -110,7 +114,7 @@ Apply changes:
 az deployment group create \
   --subscription "$SUBSCRIPTION" \
   --resource-group "$RESOURCE_GROUP" \
-  --template-file roleAssignments.bicep \
+  --template-file "$BICEP_PATH" \
   --parameters \
     stagingStorageName="$STORAGE_ACCOUNT" \
     managedIdentityName="$MANAGED_IDENTITY"
@@ -162,15 +166,60 @@ The pipeline typically uses two Azure Resource Manager service connections:
 
 ### Prerequisite: Internal feed setup
 
-1ES PT official templates restrict access to the public npm registry, so it's necessary to configure the build stage to use an internal npm feed. Follow the steps below to configure an internal feed for the publish build only. (The example assumes `yarn`, but similar steps apply for `npm` and `pnpm`.)
+If your repo normally installs packages from `registry.npmjs.org` or `registry.yarnpkg.com`, you'll need to set up an internal feed for the publish build only, since 1ES PT official templates restrict access to public npm.
 
-1. Choose a feed in your project (or create a new one) that has the public npm registry as an upstream source, and note its URL.
-1. Create a file `.npmrc.publish` at the repo root with the corresponding `registry` setting: e.g. `registry=https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/`
-1. Add `.npmrc` to `.gitignore`
-1. For `yarn` 4, add and commit the plugin [`yarn-plugin-npmrc`](https://github.com/microsoft/beachball/tree/main/yarn-plugins/npmrc) so that `yarn` will pick up credentials from `.npmrc` (but don't set the `npmrcAuthEnabled` setting)
-1. Make a copy of [`scripts/preparePublishRegistry.ts`](https://github.com/microsoft/beachball/blob/main/scripts/preparePublishRegistry.ts) in your repo.
-1. If you're using Beachball and a package manager that reflects local package versions in the lock file (and therefore must update and commit the lock file after bumping), you'll also need `hooks.precommit` in `beachball.config.js` to revert the URL changes. See [`scripts/revertPublishRegistryHook.ts`](https://github.com/microsoft/beachball/blob/main/scripts/revertPublishRegistryHook.ts) for a sample hook implementation.
-1. In your pipeline, call the script **before** deps are installed to configure the registry and (if necessary) update URLs in the lock file.
+Start by choosing a feed in your project (or creating a new one) that has the public npm registry as an upstream source. Exact steps may vary by project, but a common setup is to add `.npmrc` to `.gitignore`, then use and authenticate with the feed in the release pipeline as follows:
+
+```yml
+variables:
+  REGISTRY_URL: '<yourRegistryUrl>/'
+  # ONLY for yarn berry (v2+): it doesn't respect .npmrc, so set config with YARN_* env
+  YARN_NPM_REGISTRY_SERVER: $(REGISTRY_URL)
+  YARN_NPM_ALWAYS_AUTH: 1
+  YARN_NPMRC_AUTH_ENABLED: 1 # enables yarn-plugin-npmrc (see below)
+
+# Later in the pipeline (within a job):
+steps:
+  # ...
+
+  # WARNING: assumes .npmrc is in .gitignore
+  - script: echo 'registry=${{ variables.REGISTRY_URL }}' >> .npmrc
+    displayName: Configure npm registry
+
+  - task: npmAuthenticate@0
+    inputs:
+      workingFile: $(Build.SourcesDirectory)/.npmrc
+```
+
+There may also be some extra steps depending on your setup:
+
+#### If using Beachball
+
+When publishing with ESRP, Beachball still uses `npm` to fetch existing versions for validation. Whether this requires extra settings depends on your Beachball version:
+
+- v2: must provide the `registry` setting (`--registry` arg, or conditionally set in `beachball.config.js`), but auth will be picked up automatically.
+- v3 (prerelease): respects npm's configured `registry` and auth, so no extra steps needed.
+
+#### If using `yarn` berry (v2+)
+
+Since yarn berry (only) doesn't respect `.npmrc`, it requires some extra configuration:
+
+1. Add and commit the plugin [`yarn-plugin-npmrc`](https://github.com/microsoft/beachball/tree/main/yarn-plugins/npmrc) so that `yarn` will pick up credentials from `.npmrc` (but don't set `npmrcAuthEnabled`).
+1. In your pipeline, set the `YARN_*` variables as shown above.
+
+#### If using `npm` or `yarn` v1
+
+These package managers save resolved URLs in the lock file, which requires an extra step to manually overwrite them before installing.
+
+1. Make a copy of [`scripts/updateLockFileRegistry.mts`](https://github.com/microsoft/beachball/blob/main/scripts/updateLockFileRegistry.mts) in your repo.
+1. In your pipeline, **before** deps are installed, add a step to run the script.
+1. `npm` + Beachball only: Beachball must update `package-lock.json` after bumping, so you'll need `hooks.precommit` in `beachball.config.js` to revert the URL changes. The sample `updateLockFileRegistry.mts` linked above exports a function `revertLockFileRegistry` to handle this.
+
+#### If using `pnpm`
+
+There are no currently known extra steps if using `pnpm`.
+
+(Notes: `pnpm`'s `pnpm-lock.yaml` omits tarball URLs for the default registry, and reconstructs them from the `.npmrc` registry at install time. It only stores absolute URLs for non-default registries. `pnpm install --frozen-lockfile` respects the `.npmrc` registry without modifying the lock file. Post-bump, `pnpm install --lockfile-only` _should_ skip registry access provided that `workspace:` deps are used internally.)
 
 ### Example pipeline YAML
 
@@ -203,11 +252,16 @@ resources:
 variables:
   tags: production
   nodeVersion: 24
+  # internal feed with npmjs.org as upstream
+  REGISTRY_URL: '<yourRegistryUrl>/'
+  # ONLY for yarn berry (v2+): it doesn't respect .npmrc, so set config with YARN_* env
+  YARN_NPM_REGISTRY_SERVER: $(REGISTRY_URL)
+  YARN_NPM_ALWAYS_AUTH: 'true'
+  YARN_NPMRC_AUTH_ENABLED: 'true'
+  # names/paths used below
   artifactName: release-artifacts
   packagesDirName: packed-packages
   toolDirName: release-api-tool
-  # TODO: remove once beachball supports reading npmrc registry
-  registry: <private registry (same as .npmrc.publish)>
 
 extends:
   template: <1ES PT template>
@@ -262,15 +316,18 @@ extends:
                   version: ${{ variables.nodeVersion }}.x
                   checkLatest: false
 
-              # Configure the private registry (update script path as needed)
-              - script: node scripts/preparePublishRegistry.ts
-                displayName: Prepare npm registry settings
+              - script: echo 'registry=${{ variables.REGISTRY_URL }}' >> .npmrc
+                displayName: Configure npm registry
 
-              # Authenticate with the private registry, using .npmrc.publish copied to .npmrc
               - task: npmAuthenticate@0
                 displayName: npm authenticate
                 inputs:
                   workingFile: $(Build.SourcesDirectory)/.npmrc
+
+              # ONLY for npm / yarn v1: rewrite lock file URLs to the private registry.
+              # (update script path as needed)
+              - script: node scripts/updateLockFileRegistry.mts
+                displayName: (npm or yarn v1) Prepare lock file registry settings
 
               # This isn't used, it's just a clear way to check that auth is working
               # (yarn install's auth errors can be very unclear)
@@ -283,7 +340,7 @@ extends:
               # This could also run some other script that outputs packages in the same format.
               - script: |
                   mkdir -p '$(packagesArtifactPath)'
-                  yarn beachball publish --no-push --pack-to-path '$(packagesArtifactPath)' --registry '$(registry)'
+                  yarn beachball publish --no-push --pack-to-path '$(packagesArtifactPath)'
                 displayName: Pack packages
 
               - script: |

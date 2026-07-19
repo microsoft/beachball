@@ -228,9 +228,9 @@ export const optionDefinitions: Record<
 
   // npm read or write; also init fetches beachball from the registry
   ...makeOptions('npm', ['publish', 'canary', 'sync', 'init'], {
-    registry: { short: 'r', desc: 'npm registry' },
-    token: { short: 'n', desc: 'npm auth token (prefer using NPM_TOKEN environment variable)' },
-    authType: { short: 'a', desc: 'npm auth type for NPM_TOKEN', choices: authTypes },
+    registry: { short: 'r', desc: 'npm registry (respects npm settings)' },
+    token: { short: 'n', desc: 'npm auth token (prefer using NPM_TOKEN env var or existing npm login)' },
+    authType: { short: 'a', desc: 'npm auth type if manually providing NPM_TOKEN', choices: authTypes },
     npmReadConcurrency: { type: 'number', desc: 'maximum concurrency for reading package versions from the registry' },
     timeout: { type: 'number', desc: 'timeout in ms for npm operations (other than install)' },
     // TODO sort of npm group but semantically different
@@ -244,7 +244,7 @@ export const optionDefinitions: Record<
   }),
 
   ...makeOptions('npm', ['publish', 'canary'], {
-    access: { desc: 'npm publish access level', choices: ['public', 'restricted'] },
+    access: { desc: 'npm publish access level (respects npm settings)', choices: ['public', 'restricted'] },
     retries: { type: 'number', desc: 'number of retries for an npm publish before failing' },
     packToPath: { desc: 'pack packages to tgz files under this path instead of publishing to npm' },
   }),

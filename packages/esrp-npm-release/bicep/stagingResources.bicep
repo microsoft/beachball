@@ -3,7 +3,7 @@ Apply changes:
   az deployment group create \
     --subscription "<sub>" \
     --resource-group "<rg>" \
-    --template-file .ado/roleAssignments.bicep \
+    --template-file stagingResources.bicep \
     --parameters \
         stagingStorageName=<storage> \
         managedIdentityName=<uami-name>
@@ -25,6 +25,7 @@ var roleDefinitions = {
   storageBlobDelegator: 'db58b8e5-c6ad-4a2a-8342-4190687cbf4a'
 }
 
+// Create or update the storage account stagingStorageName.
 // If an account with this name already exists in the resource group, the deployment reconciles
 // its properties to match the values below — make sure they match the existing account, or run
 // `what-if` first to preview.
@@ -44,7 +45,7 @@ resource stagingStorage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   }
 }
 
-// User-assigned managed identity that will be granted storage roles below.
+// Create user-assigned managed identity that will be granted storage roles below.
 // UAMIs are service principals as far as role assignments are concerned.
 resource uami 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: managedIdentityName

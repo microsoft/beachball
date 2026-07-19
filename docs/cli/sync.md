@@ -22,5 +22,5 @@ Most options can also be specified in the [configuration file](../overview/confi
 | Option | Alias | Default | Description |
 | ------ | ----- | ------- | ----------- |
 | `--force` | | `false` | Skip the version comparison and use the version from the registry as-is. |
-| `--registry` | `-r` | `'https://registry.npmjs.org'` | Custom/private registry to use. You may also need to [configure authentication](../concepts/ci-integration#npm-authentication) using options shared with the `publish` command. |
+| `--registry` | `-r` | as configured for npm | npm registry for fetching package versions (required if you've explicitly [configured authentication](../concepts/ci-integration#npm-authentication) for beachball) |
 | `--tag` | `-t` | `tag` from repo, group, or package level beachball configs if present, falling back to `'latest'` | Sync with the version this `dist-tag` points to. |
