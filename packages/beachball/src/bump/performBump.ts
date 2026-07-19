@@ -24,7 +24,7 @@ export async function performBump(bumpInfo: Readonly<BumpInfo>, options: Beachba
 
   // "prebump" receives the bumped version, but is called before writing to disk
   // (seemingly intended by the original PR https://github.com/microsoft/beachball/pull/608)
-  await callHook(options.hooks?.prebump, modifiedPackages, packageInfos, options.concurrency);
+  await callHook('prebump', modifiedPackages, packageInfos, options);
 
   updatePackageJsons(modifiedPackages, packageInfos);
   await updateLockFile(options);
@@ -37,5 +37,5 @@ export async function performBump(bumpInfo: Readonly<BumpInfo>, options: Beachba
   // Unlink changelogs
   unlinkChangeFiles(changeFileChangeInfos, options);
 
-  await callHook(options.hooks?.postbump, modifiedPackages, packageInfos, options.concurrency);
+  await callHook('postbump', modifiedPackages, packageInfos, options);
 }

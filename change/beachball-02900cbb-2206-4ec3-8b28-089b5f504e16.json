@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update to syntax supported by new eslint",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}

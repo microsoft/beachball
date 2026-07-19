@@ -369,7 +369,7 @@ export interface HooksOptions {
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json
    * @param bumpedVersion The **post-bump** version of the package to be published
-   * @param packageInfos Metadata about other packages processed by Beachball after bumping. Readonly.
+   * @param packageInfos **Read-only** info about all packages in the repo after bumping
    */
   prepublish?: (
     packagePath: string,
@@ -385,7 +385,7 @@ export interface HooksOptions {
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json
    * @param bumpedVersion The post-bump version of the package to be published
-   * @param packageInfos Metadata about other packages processed by Beachball after bumping. Readonly.
+   * @param packageInfos **Read-only** info about all packages in the repo after bumping
    */
   postpublish?: (
     packagePath: string,
@@ -412,8 +412,15 @@ export interface HooksOptions {
    * original version prior to bumping, read it from `package.json`.
    * (The hook name `prebump` refers to the hook being called before updates are *written*.)
    */
-  // Using the bumped version seems to have been the intent in the original PR: https://github.com/microsoft/beachball/pull/608
-  prebump?: (packagePath: string, name: string, bumpedVersion: string) => void | Promise<void>;
+  prebump?: (
+    packagePath: string,
+    name: string,
+    // Using the bumped version seems to have been the intent in the original PR: https://github.com/microsoft/beachball/pull/608
+    bumpedVersion: string
+    // This hook does NOT receive PackageInfos, since that's easily misunderstood as being able to
+    // modify it, which won't fully work as expected. Any such scenarios would be better addressed
+    // by opening an issue to figure out a proper solution (likely a new config option).
+  ) => void | Promise<void>;
 
   /**
    * Runs for each bumped package, **after** writing changelog and package.json updates to the
@@ -429,7 +436,7 @@ export interface HooksOptions {
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json
    * @param bumpedVersion The **post-bump** version of the package to be published
-   * @param packageInfos Metadata about other packages processed by Beachball after bumping. Readonly.
+   * @param packageInfos **Read-only** info about all packages in the repo after bumping
    */
   postbump?: (
     packagePath: string,

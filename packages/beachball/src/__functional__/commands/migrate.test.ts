@@ -2,7 +2,7 @@ import { describe, expect, it, afterEach, jest } from '@jest/globals';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { migrate } from '../../commands/migrate';
 import { getOptions as _getOptions } from '../../options/getOptions';
-import type { RepoOptions } from '../../types/BeachballOptions';
+import type { HooksOptions, RepoOptions } from '../../types/BeachballOptions';
 import { removeTempDir } from '../../__fixtures__/tmpdir';
 import { createTestFileStructureType, updateJsonFile } from '../../__fixtures__/createTestFileStructure';
 import fs from 'fs';
@@ -65,6 +65,20 @@ describe('migrate command', () => {
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[error] The following updates are needed for v3:
       [error]   • The \`packStyle\` option has been removed (packing always uses the layered style now). Please remove it from your config."
+    `);
+  });
+
+  it('errors on "hooks.prebump" with more than 3 params', () => {
+    tempRoot = createTestFileStructureType('single');
+    const fn: HooksOptions['postbump'] = (_pth, _name, _version, _pkgInfos) => {};
+    const options = getOptions({
+      hooks: { prebump: fn as HooksOptions['prebump'] },
+    });
+
+    expect(() => migrate(options)).toThrow(BeachballError);
+    expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
+      "[error] The following updates are needed for v3:
+      [error]   • \`hooks.prebump\` no longer receives \`packageInfos\`. See migration guide."
     `);
   });
 

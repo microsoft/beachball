@@ -76,7 +76,7 @@ export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOp
   performPublishOverrides(packagesToPublish, bumpInfo.packageInfos, catalogs);
 
   // if there is a prepublish hook perform a prepublish pass, calling the routine on each package
-  await callHook(options.hooks?.prepublish, packagesToPublish, bumpInfo.packageInfos, options.concurrency);
+  await callHook('prepublish', packagesToPublish, bumpInfo.packageInfos, options);
 
   // finally pass through doing the actual npm publish command
   const succeededPackages = new Set<string>();
@@ -140,5 +140,5 @@ export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOp
   }
 
   // if there is a postpublish hook perform a postpublish pass, calling the routine on each package
-  await callHook(options.hooks?.postpublish, packagesToPublish, bumpInfo.packageInfos, options.concurrency);
+  await callHook('postpublish', packagesToPublish, bumpInfo.packageInfos, options);
 }

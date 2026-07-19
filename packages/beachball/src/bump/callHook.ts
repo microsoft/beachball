@@ -1,5 +1,5 @@
 import path from 'path';
-import type { HooksOptions } from '../types/BeachballOptions';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfo, PackageInfos } from '../types/PackageInfo';
 import { getPackageGraph } from '../monorepo/getPackageGraph';
 
@@ -7,12 +7,12 @@ import { getPackageGraph } from '../monorepo/getPackageGraph';
  * Call a hook for each affected package. Does nothing if the hook is undefined.
  */
 export async function callHook(
-  hook: HooksOptions['prebump' | 'postbump' | 'prepublish' | 'postpublish'],
+  hookName: 'prebump' | 'postbump' | 'prepublish' | 'postpublish',
   affectedPackages: string[] | Set<string>,
   packageInfos: PackageInfos,
-  concurrency: number
+  options: Pick<BeachballOptions, 'hooks' | 'concurrency'>
 ): Promise<void> {
-  if (!hook) {
+  if (!options.hooks?.[hookName]) {
     return;
   }
 
@@ -24,10 +24,16 @@ export async function callHook(
 
   const callHookInternal = async (packageInfo: PackageInfo) => {
     const packagePath = path.dirname(packageInfo.packageJsonPath);
-    await hook(packagePath, packageInfo.name, packageInfo.version, packageInfos);
+    if (hookName === 'prebump') {
+      // prevent consumers from modifying packageInfos, which likely would not fully work
+      // as they intended
+      await options.hooks?.[hookName]?.(packagePath, packageInfo.name, packageInfo.version);
+    } else {
+      await options.hooks?.[hookName]?.(packagePath, packageInfo.name, packageInfo.version, packageInfos);
+    }
   };
 
-  if (concurrency === 1) {
+  if (options.concurrency === 1) {
     for (const pkg of affectedPackages) {
       await callHookInternal(packageInfos[pkg]);
     }
@@ -36,7 +42,7 @@ export async function callHook(
     const packageGraph = getPackageGraph(affectedPackages, packageInfos, callHookInternal);
 
     await packageGraph.run({
-      concurrency: concurrency,
+      concurrency: options.concurrency,
       continue: false,
     });
   }

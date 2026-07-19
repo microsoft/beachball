@@ -94,15 +94,14 @@ In v3, `shouldPublish: false` packages are full participants in all steps of the
 - If a published package has a `shouldPublish: false` package in its production dependencies, Beachball will exit with an error (same as with `private: true` deps)
 - Since `shouldPublish: false` is redundant with `private: true`, `beachball migrate` reports this as an error
 
-### Renamed options
+### `BeachballOptions`/`RepoOptions` updates
 
-- Rename `BeachballOptions.changelog.groups[*].masterPackageName` to `mainPackageName`
-
-### Removed options
-
-- `new`: This option was never needed if PR builds run `beachball check` (a new package without a change file already causes an error), and it had a significant performance cost because it checked the registry for _all_ unmodified packages.
-- `packStyle`: packing always uses the layered style now.
-- `help` and `version` properties: these still work on the command line but were removed from `BeachballOptions`
+- Rename `changelog.groups[*].masterPackageName` to `mainPackageName`.
+- Removed rarely-used options:
+  - `new`: This option was never needed if PR builds run `beachball check` (a new package without a change file already causes an error), and it had a significant performance cost because it checked the registry for _all_ unmodified packages.
+  - `packStyle`: packing always uses the layered style now.
+  - `help` and `version` properties: these still work on the command line but were removed from `BeachballOptions`
+- `hooks.prebump` no longer receives `packageInfos`. This was never in the signature, and trying to modify it may lead to unexpected behavior. Please open an issue if you were using this and we can find an alternative.
 
 ### Other changes
 

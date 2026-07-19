@@ -229,8 +229,7 @@ describe('publishToRegistry', () => {
       expect(prebump).toHaveBeenCalledTimes(1);
       expect(postbump).toHaveBeenCalledTimes(1);
       const fooPath = expect.stringMatching(/packages[\\/]foo$/);
-      // "prebump" receives the bumped version, but is called before writing to disk
-      expect(prebump as typeof postbump).toHaveBeenCalledWith(fooPath, 'foo', '1.0.1', expect.anything());
+      expect(prebump).toHaveBeenCalledWith(fooPath, 'foo', '1.0.1');
       expect(postbump).toHaveBeenCalledWith(fooPath, 'foo', '1.0.1', expect.anything());
     });
 

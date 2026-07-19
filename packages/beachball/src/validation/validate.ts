@@ -142,6 +142,11 @@ export function validate(parsedOptions: ParsedOptions, validateOptions: Validate
     hasError = true; // the helper logs this
   }
 
+  if (options.hooks?.prebump?.length ?? 0 > 3) {
+    logValidationError('prebump hook does not receive packageInfos - see the beachball v3 migration guide');
+    hasError = true;
+  }
+
   const scopedPackages = getScopedPackages(options, originalPackageInfos);
   const changeSet = readChangeFiles(options, originalPackageInfos, scopedPackages);
 
