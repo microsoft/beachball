@@ -153,7 +153,7 @@ export interface RepoOptions {
     options: BeachballOptions,
     packageInfos: Readonly<PackageInfos>,
     bumpInfo?: Readonly<BumpInfo>
-  ) => string;
+  ) => string | undefined;
   /**
    * Maximum concurrency for write operations.
    * As of writing, this only applies for calling `hooks` and publishing to npm.

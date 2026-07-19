@@ -7,6 +7,7 @@
 //
 // This script MUST NOT USE EXTERNAL DEPENDENCIES!
 // It's run before deps are installed in a release pipeline.
+// It assumes the registry URL was set in a REGISTRY_URL variable in the pipeline.
 //
 
 import fs from 'fs';
@@ -14,19 +15,13 @@ import path from 'path';
 
 // ‼️‼️‼️ UPDATE AS NEEDED for your repo's setup ‼️‼️‼️
 const repoRoot = path.resolve(import.meta.dirname, '..');
-const npmrcPath = path.join(repoRoot, '../.npmrc');
+const npmrcPath = path.join(repoRoot, '.npmrc');
 const lockFilePath = path.join(repoRoot, 'package-lock.json');
 const defaultRegistry = 'https://registry.npmjs.org/';
 
-const npmrcContent = fs.readFileSync(npmrcPath, 'utf-8');
-// NOTE: this is VERY basic ini parsing
-const customRegistry =
-  (npmrcContent.split(/\r?\n/g).find((line: string) => line.startsWith('registry=')) || '')
-    .trim()
-    .replace(/^registry="?([^"]+).*/, '$1') || '';
-
+const customRegistry = process.env.REGISTRY_URL || '';
 if (!customRegistry) {
-  console.error(`No registry found in ${npmrcPath}`);
+  console.error('process.env.REGISTRY_URL is not set');
   process.exit(1);
 }
 

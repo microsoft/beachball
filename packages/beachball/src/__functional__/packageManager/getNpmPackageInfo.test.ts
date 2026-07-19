@@ -9,8 +9,8 @@ import { initMockLogs } from '../../__fixtures__/mockLogs';
 import * as npmModule from '../../packageManager/npm';
 import { env } from '../../env';
 
-// These tests mostly get known packages from the public npm registry.
-// There's a tiny chance it could fail if the registry is down, but beachball's developer traffic
+// These tests mostly get known packages from the public npm registry. There's a tiny chance it
+// could fail if the registry is down, but it's not a big concern with low development traffic.
 // (They fail on the ADO release build due to network restrictions.)
 // eslint-disable-next-line no-restricted-properties
 const maybeDescribe = env.isBeachballAdoRelease ? describe.skip : describe;

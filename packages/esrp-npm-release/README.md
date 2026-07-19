@@ -96,10 +96,13 @@ Use the Bicep template at [`bicep/stagingResources.bicep`](./bicep/stagingResour
 Preview the changes first. If a storage account with the given name already exists in the resource group, its properties are reconciled to match the template, and this command will show the diff.
 
 ```bash
+# either the path within node_modules, or the local path if you downloaded the file
+BICEP_PATH="node_modules/esrp-npm-release/bicep/stagingResources.bicep"
+
 az deployment group what-if \
   --subscription "$SUBSCRIPTION" \
   --resource-group "$RESOURCE_GROUP" \
-  --template-file stagingResources.bicep \
+  --template-file "$BICEP_PATH" \
   --parameters \
     stagingStorageName="$STORAGE_ACCOUNT" \
     managedIdentityName="$MANAGED_IDENTITY"
@@ -111,7 +114,7 @@ Apply changes:
 az deployment group create \
   --subscription "$SUBSCRIPTION" \
   --resource-group "$RESOURCE_GROUP" \
-  --template-file stagingResources.bicep \
+  --template-file "$BICEP_PATH" \
   --parameters \
     stagingStorageName="$STORAGE_ACCOUNT" \
     managedIdentityName="$MANAGED_IDENTITY"
@@ -165,7 +168,7 @@ The pipeline typically uses two Azure Resource Manager service connections:
 
 If your repo normally installs packages from `registry.npmjs.org` or `registry.yarnpkg.com`, you'll need to set up an internal feed for the publish build only, since 1ES PT official templates restrict access to public npm.
 
-Start by choosing a feed in your project (or create a new one) that has the public npm registry as an upstream source. Exact steps may vary by project, but a common setup is to add `.npmrc` to `.gitignore`, then use and authenticate with the feed in the release pipeline is as follows:
+Start by choosing a feed in your project (or creating a new one) that has the public npm registry as an upstream source. Exact steps may vary by project, but a common setup is to add `.npmrc` to `.gitignore`, then use and authenticate with the feed in the release pipeline as follows:
 
 ```yml
 variables:
@@ -323,7 +326,7 @@ extends:
 
               # ONLY for npm / yarn v1: rewrite lock file URLs to the private registry.
               # (update script path as needed)
-              - script: node scripts/preparePublishRegistry.ts
+              - script: node scripts/updateLockFileRegistry.mts
                 displayName: (npm or yarn v1) Prepare lock file registry settings
 
               # This isn't used, it's just a clear way to check that auth is working

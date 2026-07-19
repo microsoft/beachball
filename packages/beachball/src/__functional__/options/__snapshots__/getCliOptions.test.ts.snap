@@ -76,7 +76,7 @@ npm options:
                                 (default: 2)
   --timeout <num>             timeout in ms for npm operations (other than install)
   -t, --tag <value>           npm dist-tag for publishing (default: canaryName or "canary")
-  --access <value>            npm publish access level (choices: "public", "restricted", default:
+  --access <value>            npm publish access level (respects npm settings) (choices: "public",
                                 "restricted")
   --retries <num>             number of retries for an npm publish before failing (default: 3)
   --pack-to-path <value>      pack packages to tgz files under this path instead of publishing to
@@ -324,7 +324,7 @@ npm options:
                                 (default: 2)
   --timeout <num>             timeout in ms for npm operations (other than install)
   -t, --tag <value>           npm dist-tag for publishing (default: defaultNpmTag or "latest")
-  --access <value>            npm publish access level (choices: "public", "restricted", default:
+  --access <value>            npm publish access level (respects npm settings) (choices: "public",
                                 "restricted")
   --retries <num>             number of retries for an npm publish before failing (default: 3)
   --pack-to-path <value>      pack packages to tgz files under this path instead of publishing to
