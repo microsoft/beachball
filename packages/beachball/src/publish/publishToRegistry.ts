@@ -62,12 +62,12 @@ export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOp
   let layers: string[][] | undefined;
   if (packToPath) {
     // If packing, get the layers instead of toposorting
-    layers = getPackageGraphLayers({ packagesToPublish, bumpInfo, options });
+    layers = getPackageGraphLayers(packagesToPublish, bumpInfo.packageInfos);
   } else if (options.concurrency === 1) {
     // Otherwise, unless publishing concurrently, toposort the packages in case publishing fails
     // partway through. We can reuse the layer logic for this. (Skip for concurrent publishing
     // since p-graph handles ordering.)
-    packagesToPublish = getPackageGraphLayers({ packagesToPublish, bumpInfo, options }).flat();
+    packagesToPublish = getPackageGraphLayers(packagesToPublish, bumpInfo.packageInfos).flat();
   }
 
   // performing publishConfig and workspace version overrides requires this procedure to

@@ -1,58 +1,42 @@
-import type { BeachballOptions } from '../types/BeachballOptions';
-import type { BumpInfo } from '../types/BumpInfo';
 import { getPackageDependenciesWrapper } from '../monorepo/getPackageGraph';
 import { bulletedList } from '../logging/bulletedList';
+import type { PackageInfos } from '../types/PackageInfo';
 
 /**
  * Given the packages to publish and the full map of packages in the repo, organize the packages into
  * graph layers that can be published in parallel. The first layer will be packages with no deps
  * on other published packages, and the last layer will be root packages that depend on all others.
  *
- * If possible, layers are computed based on only the set of published packages. This should be safe
- * with beachball's default behaviors, but layers will be computed over the full graph under any of
- * the following conditions which might cause missing edges. (Not 100% sure this is necessary, but
- * not sure how to disprove it either...)
- * - `bumpDeps` is false
- * - `scope` is set
- * - Any change has `dependentChangeType` set to "none" when its type is not "none"
- *
  * Currently, there's only VERY basic cycle handling: all cycles are grouped together on a final
  * layer, regardless of any interdependencies. The `toposort` package previously used by beachball
  * doesn't handle cycles at all, so this should be fine for now. (Tarjan's strongly connected
  * components algorithm could be used to break cycles into more layers if needed in the future.)
  *
+ * (Note: layers are computed based on **only** the set of published packages. This *should* be safe
+ * from an ordering standpoint, at least with beachball's default behaviors. When layer support was
+ * initially added, this function would consider all graph edges if `bumpDeps: false`, `scope` set,
+ * or any change had `dependentChangeType: "none", type: "(not none)"`. But logic that predated
+ * layers didn't consider this, so it's probably fine in practice, especially since the layer logic
+ * is mainly to guard against relatively rare mid-publish failures or race conditions.)
+ *
  * @returns An array of layers, where each layer is an array of package names that can be
  * published in parallel.
  */
-export function getPackageGraphLayers(params: {
-  packagesToPublish: string[];
-  bumpInfo: Pick<BumpInfo, 'changeFileChangeInfos' | 'packageInfos'>;
-  options: Pick<BeachballOptions, 'bumpDeps' | 'scope'>;
-}): string[][] {
-  const { packagesToPublish, bumpInfo, options } = params;
-  const { packageInfos, changeFileChangeInfos } = bumpInfo;
-  if (packagesToPublish.length === 0) {
+export function getPackageGraphLayers(packagesToPublish: string[], packageInfos: PackageInfos): string[][] {
+  if (!packagesToPublish.length) {
     return [];
   }
 
-  // See function comment for explanation
-  const canConsiderPublishedOnly =
-    options.bumpDeps &&
-    !options.scope &&
-    !changeFileChangeInfos.some(
-      change => change.change.type !== 'none' && change.change.dependentChangeType === 'none'
-    );
-  const packagesToConsider = canConsiderPublishedOnly ? packagesToPublish : Object.keys(packageInfos);
-  const packagesToConsiderSet = new Set(packagesToConsider);
+  const publishSet = new Set(packagesToPublish);
 
-  // Build internal dependency graph for packagesToConsider
+  // Build internal dependency graph
   const dependentsOf = new Map<string, string[]>();
   const inDegree = new Map<string, number>();
 
-  for (const pkgName of packagesToConsider) {
-    // Get dependencies of this package, filtered to packagesToConsiderSet.
+  for (const pkgName of packagesToPublish) {
+    // Get dependencies of this package, filtered to publishSet.
     // Ignore dev deps since they're not installed by consumers and can't cause ordering issues.
-    const deps = getPackageDependenciesWrapper(packageInfos[pkgName], packagesToConsiderSet);
+    const deps = getPackageDependenciesWrapper(packageInfos[pkgName], publishSet);
     inDegree.set(pkgName, deps.length);
 
     for (const dep of deps) {
@@ -70,16 +54,10 @@ export function getPackageGraphLayers(params: {
   const layers: string[][] = [];
 
   // Seed with all packages that have no in-repo dependencies
-  let currentLayer = packagesToConsider.filter(pkg => (inDegree.get(pkg) ?? 0) === 0);
+  let currentLayer = packagesToPublish.filter(pkg => (inDegree.get(pkg) ?? 0) === 0);
 
-  while (currentLayer.length > 0) {
-    // Filter this layer to only packages being published
-    const publishLayer = canConsiderPublishedOnly
-      ? currentLayer
-      : currentLayer.filter(pkg => packagesToPublish.includes(pkg));
-    if (publishLayer.length > 0) {
-      layers.push(publishLayer);
-    }
+  while (currentLayer.length) {
+    layers.push(currentLayer);
 
     // Mark placed and compute next layer
     const nextLayer: string[] = [];
@@ -98,7 +76,7 @@ export function getPackageGraphLayers(params: {
 
   // Handle cycles: any remaining packages not yet placed
   const cyclic = packagesToPublish.filter(pkg => !placed.has(pkg));
-  if (cyclic.length > 0) {
+  if (cyclic.length) {
     console.warn(
       [
         'Circular dependencies detected among the following packages:',
