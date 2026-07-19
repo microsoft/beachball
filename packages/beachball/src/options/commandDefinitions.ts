@@ -17,10 +17,10 @@ export interface CommandDefinition {
 
 /** Main subcommand names */
 export type MainCommandName =
-  'change' | 'check' | 'bump' | 'publish' | 'sync' | 'config' | 'init' | 'canary' | 'migrate';
+  'change' | 'check' | 'bump' | 'publish' | 'sync' | 'config' | 'init' | 'canary' | 'migrate' | 'publish-helpers';
 
 /** All subcommand names including nested */
-export type CommandName = MainCommandName | 'config get' | 'config list';
+export type CommandName = MainCommandName | 'config get' | 'config list' | 'publish-helpers update-lock-registry';
 
 const changeExtra = 'Considers committed and staged changes, but not unstaged or untracked changes.';
 
@@ -56,11 +56,24 @@ export const commandDefinitions: Record<MainCommandName, CommandDefinition> = {
     desc: 'Initialize a new beachball config file in the current directory',
     hidden: true,
   },
+  'publish-helpers': {
+    desc: 'Experimental helper commands for publishing pipelines (requires a sub-command)',
+    hidden: true,
+    subcommands: {
+      'update-lock-registry': {
+        desc: '(experimental) For npm / yarn v1 only: Update lock file registry URL references to point to the private registry',
+        extraDesc:
+          '\n\nRequires the --registry option. No-op if the command is irrelevant for the package manager ' +
+          'or the registry is already the default. Errors if the lock file does not contain the given registry.',
+      },
+    },
+  },
 };
 
 const extraCommandNames = Object.keys({
   'config get': true,
   'config list': true,
+  'publish-helpers update-lock-registry': true,
 } satisfies Record<Exclude<CommandName, MainCommandName>, true>);
 
 /** All command names including nested */

@@ -228,7 +228,14 @@ export const optionDefinitions: Record<
 
   // npm read or write; also init fetches beachball from the registry
   ...makeOptions('npm', ['publish', 'canary', 'sync', 'init'], {
-    registry: { short: 'r', desc: 'npm registry (respects npm settings)' },
+    registry: {
+      short: 'r',
+      desc: cmd =>
+        cmd === 'publish-helpers update-lock-registry'
+          ? 'npm registry (must be set with option or config file)'
+          : 'npm registry (respects npm settings)',
+      commands: ['publish', 'canary', 'sync', 'init', 'publish-helpers update-lock-registry'],
+    },
     token: { short: 'n', desc: 'npm auth token (prefer using NPM_TOKEN env var or existing npm login)' },
     authType: { short: 'a', desc: 'npm auth type if manually providing NPM_TOKEN', choices: authTypes },
     npmReadConcurrency: { type: 'number', desc: 'maximum concurrency for reading package versions from the registry' },
