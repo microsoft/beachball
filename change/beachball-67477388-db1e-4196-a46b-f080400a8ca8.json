@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update the layer logic to only consider the set of published packages when building its graph",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -59,7 +59,7 @@ export function _getPackageDependencyGraph(packages: string[], packageInfos: Pac
  * Call {@link getPackageDependencies} with consistent options: ignore dev deps,
  * include deps of all other types if included in `packageSet`.
  */
-export function getPackageDependenciesWrapper(packageInfo: PackageInfos[string], packageSet: Set<string>): string[] {
+export function getPackageDependenciesWrapper(packageInfo: PackageInfo, packageSet: Set<string>): string[] {
   return getPackageDependencies(packageInfo, packageSet, {
     withDevDependencies: false,
     withPeerDependencies: true,

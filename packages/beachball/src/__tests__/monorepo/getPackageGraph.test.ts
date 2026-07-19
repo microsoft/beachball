@@ -3,7 +3,6 @@ import type { PackageInfos } from '../../types/PackageInfo';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { _getPackageDependencyGraph, getPackageGraph } from '../../monorepo/getPackageGraph';
 import { getPackageGraphLayers } from '../../publish/getPackageGraphLayers';
-import { generateChangeSet } from '../../__fixtures__/changeFiles';
 
 // These tests cover the helper to get the edges.
 describe('_getPackageDependencyGraph', () => {
@@ -153,11 +152,7 @@ describe('getPackageGraph', () => {
     packageInfos: PackageInfos,
     possibleSolutions: string[][]
   ): Promise<void> {
-    const getPackageGraphLayersOutput = getPackageGraphLayers({
-      packagesToPublish: inputPackages,
-      bumpInfo: { packageInfos, changeFileChangeInfos: generateChangeSet(inputPackages) },
-      options: { bumpDeps: true, scope: null },
-    }).flat();
+    const getPackageGraphLayersOutput = getPackageGraphLayers(inputPackages, packageInfos).flat();
     const getPackageGraphPackageNamesOutput = await getPackageGraphPackageNames(inputPackages, packageInfos);
 
     expect(possibleSolutions).toContainEqual(getPackageGraphLayersOutput);

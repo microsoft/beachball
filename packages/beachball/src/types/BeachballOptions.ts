@@ -134,7 +134,7 @@ export interface RepoOptions {
   changelog?: ChangelogOptions;
   /**
    * If true, commit change files automatically after `beachball change`.
-   * If false, only stage them.
+   * If false, only stage them. (Only applies to the `change` command.)
    * @default true
    */
   commit?: boolean;
@@ -356,15 +356,15 @@ export interface VersionGroupOptions {
 
 export interface HooksOptions {
   /**
-   * Runs for each package after version bumps have been processed and committed to git, but before the actual
-   * publish command.
+   * Runs for each package after version bumps have been processed, but before npm publish
+   * (only for packages that will be published).
    *
-   * This allows for file modifications which will be reflected in the published package but not be reflected in the
-   * repository.
+   * This allows for file modifications which will be reflected in the published package but not be
+   * reflected in the repository. For changes which should also be committed, use `postbump`.
    *
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json
-   * @param version The post-bump version of the package to be published
+   * @param version The **post-bump** version of the package to be published
    * @param packageInfos Metadata about other packages processed by Beachball after bumping. Readonly.
    */
   prepublish?: (
@@ -375,8 +375,8 @@ export interface HooksOptions {
   ) => void | Promise<void>;
 
   /**
-   * Runs for each package after the publish command.
-   * Any file changes made in this step will **not** be committed automatically.
+   * Runs for each package after the npm publish command (only for packages that were published).
+   * Any file changes made in this step will **not** be committed or published.
    *
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json
@@ -391,23 +391,32 @@ export interface HooksOptions {
   ) => void | Promise<void>;
 
   /**
-   * Runs for each package, before writing changelog and package.json updates
-   * to the filesystem. May be called multiple times during publish.
+   * Runs for each bumped package, before writing changelog and package.json updates to the
+   * filesystem. Skipped if `bump: false`.
+   *
+   * In the `bump` flow, this is called once for each package.
+   * In the `publish` flow, it's called:
+   * 1. when generating version bumps and changelogs to commit/push
+   * 2. before publishing to npm
    *
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json
-   * @param version The pre-bump version of the package to be published
+   * @param version The **pre-bump** version of the package to be published
    */
   prebump?: (packagePath: string, name: string, version: string) => void | Promise<void>;
 
   /**
-   * Runs for each package, after writing changelog and package.json updates
-   * to the filesystem. May be called multiple times during publish.
-   * In the `publish` flow, files written in this hook will be committed automatically.
+   * Runs for each bumped package, after writing changelog and package.json updates to the
+   * filesystem. Skipped if `bump: false`.
+   *
+   * In the `bump` flow, this is called once for each package.
+   * In the `publish` flow, it's called:
+   * 1. when generating version bumps and changelogs to commit/push (file changes will be committed)
+   * 2. before publishing to npm, only for packages that will be published (file changes will be published)
    *
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json
-   * @param version The post-bump version of the package to be published
+   * @param version The **post-bump** version of the package to be published
    * @param packageInfos Metadata about other packages processed by Beachball after bumping. Readonly.
    */
   postbump?: (
@@ -418,7 +427,8 @@ export interface HooksOptions {
   ) => void | Promise<void>;
 
   /**
-   * Runs once after all bumps to all packages before committing changes
+   * Runs once after all bumps to all packages before committing changes.
+   * Files modified in this step will be automatically committed (but not published).
    * @param cwd The monorepo root path
    */
   precommit?: (cwd: string) => void | Promise<void>;
