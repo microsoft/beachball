@@ -26,7 +26,6 @@ describe('publishToRegistry', () => {
   const npmMock = initNpmMock();
   const logs = initMockLogs();
 
-  /** Needs a real fake temp root for mock npm publish */
   let tempRoot: string;
   let defaultOptions: BeachballOptions;
 
@@ -62,7 +61,6 @@ describe('publishToRegistry', () => {
     return {
       changeFileChangeInfos: [],
       packageInfos,
-      originalPackageInfos: makePackageInfos(partialPackageInfos, { path: tempRoot }),
       calculatedChangeTypes: Object.fromEntries(names.map(n => [n, 'patch' as const])),
       packageGroups: {},
       modifiedPackages: new Set(names),
@@ -231,7 +229,8 @@ describe('publishToRegistry', () => {
       expect(prebump).toHaveBeenCalledTimes(1);
       expect(postbump).toHaveBeenCalledTimes(1);
       const fooPath = expect.stringMatching(/packages[\\/]foo$/);
-      expect(prebump as typeof postbump).toHaveBeenCalledWith(fooPath, 'foo', '1.0.0', expect.anything());
+      // "prebump" receives the bumped version, but is called before writing to disk
+      expect(prebump as typeof postbump).toHaveBeenCalledWith(fooPath, 'foo', '1.0.1', expect.anything());
       expect(postbump).toHaveBeenCalledWith(fooPath, 'foo', '1.0.1', expect.anything());
     });
 
