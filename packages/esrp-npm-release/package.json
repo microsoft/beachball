@@ -18,9 +18,9 @@
     "node": ">=22.18.0"
   },
   "files": [
+    "bicep",
     "bin",
-    "dist",
-    "NOTICE.txt"
+    "dist"
   ],
   "scripts": {
     "build": "yarn run -T tsc --pretty",
