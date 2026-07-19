@@ -342,6 +342,48 @@ Common options:
 "
 `;
 
+exports[`getCliOptions shows "publish-helpers update-lock-registry" command help text 1`] = `
+"Usage: beachball publish-helpers update-lock-registry [options]
+
+(experimental) For npm / yarn v1 only: Update lock file registry URL references to point to the
+private registry.
+
+Requires the --registry option. No-op if the command is irrelevant for the package manager or the
+registry is already the default. Errors if the lock file does not contain the given registry.
+
+Most options can also be specified in the beachball config (command line options override the
+config). See https://microsoft.github.io/beachball/overview/configuration for more info.
+
+npm options:
+  -r, --registry <value>  npm registry (must be set with option or config file)
+
+Common options:
+  -c, --config <value>    custom beachball config path (default: cosmiconfig standard paths)
+  --[no-]verbose          print additional information to the console
+  -h, --help              display help for command
+"
+`;
+
+exports[`getCliOptions shows "publish-helpers" command help text 1`] = `
+"Usage: beachball publish-helpers <update-lock-registry>
+
+Experimental helper commands for publishing pipelines (requires a sub-command).
+
+Most options can also be specified in the beachball config (command line options override the
+config). See https://microsoft.github.io/beachball/overview/configuration for more info.
+
+Commands:
+  update-lock-registry  (experimental) For npm / yarn v1 only: Update lock file registry URL
+                          references to point to the private registry
+  help [command]        display help for command
+
+Common options:
+  -c, --config <value>  custom beachball config path (default: cosmiconfig standard paths)
+  --[no-]verbose        print additional information to the console
+  -h, --help            display help for command
+"
+`;
+
 exports[`getCliOptions shows "sync" command help text 1`] = `
 "Usage: beachball sync [options]
 

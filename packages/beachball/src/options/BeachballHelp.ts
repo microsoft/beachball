@@ -42,6 +42,7 @@ export class BeachballHelp extends Help {
     }
   }
 
+  /** Only for the individual command help text, add any extra description parts. */
   override commandDescription(cmd: Command): string {
     // hack to save current command to use in determining option descriptions
     this._subcommandForOptionDescription = getSubcommandName(cmd);
@@ -52,12 +53,15 @@ export class BeachballHelp extends Help {
     }
 
     description = description.trim().replace(/[^.]$/, '$&.');
+    let extra = (isBeachballCommand(cmd) && cmd.extraDesc) || '';
+    extra = /^\s/.test(extra) ? extra : ' ' + extra;
     return (
-      `${description} ${(isBeachballCommand(cmd) && cmd.extraDesc) || ''}`.trim() +
+      description +
+      extra +
       '\n\nMost options can also be specified in the beachball config ' +
       '(command line options override the config). ' +
       'See https://microsoft.github.io/beachball/overview/configuration for more info.'
-    ).trim();
+    );
   }
 
   override optionDescription(option: Option): string {

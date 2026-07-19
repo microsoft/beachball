@@ -211,9 +211,16 @@ Since yarn berry (only) doesn't respect `.npmrc`, it requires some extra configu
 
 These package managers save resolved URLs in the lock file, which requires an extra step to manually overwrite them before installing.
 
-1. Make a copy of [`scripts/updateLockFileRegistry.mts`](https://github.com/microsoft/beachball/blob/main/scripts/updateLockFileRegistry.mts) in your repo.
-1. In your pipeline, **before** deps are installed, add a step to run the script.
-1. `npm` + Beachball only: Beachball must update `package-lock.json` after bumping, so you'll need `hooks.precommit` in `beachball.config.js` to revert the URL changes. The sample `updateLockFileRegistry.mts` linked above exports a function `revertLockFileRegistry` to handle this.
+<!-- TODO (release): use @latest -->
+
+1. In your pipeline, _after_ `npmAuthenticate` but _before_ installing dependencies, add a step to update the lock file:
+
+   ```yml
+   - script: npx beachball@next publish-helpers update-lock-registry --registry '$(REGISTRY_URL)'
+     displayName: Prepare npm registry settings
+   ```
+
+1. `npm` + Beachball only, if pushing changes back to git: Beachball must update `package-lock.json` after bumping, so you'll need `hooks.precommit` in `beachball.config.js` to revert the URL changes. See [`revertLockFileRegistry.mts`](https://github.com/microsoft/beachball/blob/main/scripts/revertLockFileRegistry.mts) for an example.
 
 #### If using `pnpm`
 
@@ -325,9 +332,9 @@ extends:
                   workingFile: $(Build.SourcesDirectory)/.npmrc
 
               # ONLY for npm / yarn v1: rewrite lock file URLs to the private registry.
-              # (update script path as needed)
-              - script: node scripts/updateLockFileRegistry.mts
-                displayName: (npm or yarn v1) Prepare lock file registry settings
+              # `npx beachball` is fetched from the private registry.
+              - script: npx beachball@next publish-helpers update-lock-registry --registry '$(REGISTRY_URL)'
+                displayName: (npm or yarn v1) Update registry in lock file
 
               # This isn't used, it's just a clear way to check that auth is working
               # (yarn install's auth errors can be very unclear)
