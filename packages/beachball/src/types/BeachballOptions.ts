@@ -147,13 +147,13 @@ export interface RepoOptions {
    * @param options Resolved beachball options (command name is under `.command`)
    * @param packageInfos Metadata about packages (reflecting bumped versions for `publish`). Readonly.
    * @param bumpInfo Bump info, only provided for the `publish` command. Readonly.
-   * @returns The commit message (may be a promise)
+   * @returns The commit message, or `undefined` to use the default message.
    */
   commitMessage?: (
     options: BeachballOptions,
     packageInfos: Readonly<PackageInfos>,
     bumpInfo?: Readonly<BumpInfo>
-  ) => string | Promise<string>;
+  ) => string;
   /**
    * Maximum concurrency for write operations.
    * As of writing, this only applies for calling `hooks` and publishing to npm.

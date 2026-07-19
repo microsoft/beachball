@@ -32,10 +32,7 @@ export async function bumpAndPush(
   // Resolve the commit message: an explicit `--message` (or `message` config value) takes
   // precedence, then the `commitMessage` config function, then the default.
   const commitMessage =
-    options.message ||
-    (options.commitMessage
-      ? await options.commitMessage(options, bumpInfo.packageInfos, bumpInfo)
-      : 'applying package updates');
+    options.message || options.commitMessage?.(options, bumpInfo.packageInfos, bumpInfo) || 'applying package updates';
 
   let completed = false;
   let tryNumber = 0;

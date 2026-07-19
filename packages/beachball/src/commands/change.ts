@@ -36,9 +36,7 @@ export async function change(options: BeachballOptions, context: ChangeCommandCo
   });
 
   if (changes) {
-    const resolvedCommitMessage = options.commitMessage
-      ? await options.commitMessage(options, packageInfos)
-      : undefined;
+    const resolvedCommitMessage = options.commitMessage?.(options, packageInfos) || undefined;
     writeChangeFiles(changes, options, resolvedCommitMessage);
   }
 }

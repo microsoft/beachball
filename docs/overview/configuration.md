@@ -81,7 +81,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `changehint` | `string` | | repo | Hint message for when change files are not detected but required |
 | `changeDir` | `string` | `change` | repo | Directory where change files are stored (relative to repo root) |
 | `changelog` | [`ChangelogOptions`][2] | | repo | Changelog rendering and grouping options |
-| `commitMessage` | `(options, packageInfos, bumpInfo?) => string \| Promise<string>` | | repo | Customize the commit message for the `change` and `publish` commands. For `publish`, this is overridden by the `--message` CLI option (or `message` config value), and receives the post-bump `packageInfos` and `bumpInfo`. |
+| `commitMessage` | `(options, packageInfos, bumpInfo?) => string` | | repo | Customize the commit message for the `change` and `publish` commands. For `publish`, this is overridden by the `--message` CLI option (or `message` config value), and receives the post-bump `packageInfos` and `bumpInfo`. |
 | `concurrency` | `number` | 1 | repo | Maximum concurrency for write operations, such as npm publish and hook calls, respecting topological order (see also `npmReadConcurrency`) |
 | `defaultNpmTag` | `string` | `'latest'` | repo, package | The default `dist-tag` used for NPM publish |
 | `disallowedChangeTypes` | `string[]` | | repo, package | What change types are disallowed |
