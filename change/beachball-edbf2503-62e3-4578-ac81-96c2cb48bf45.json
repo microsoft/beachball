@@ -1,7 +1,0 @@
-{
-  "comment": "Fix `prebump` hooks to receive the pre-bump package version.",
-  "type": "major",
-  "packageName": "beachball",
-  "email": "198982749+Copilot@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}

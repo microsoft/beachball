@@ -316,8 +316,12 @@ export interface PackageOptions extends Partial<
 > {
   tag?: string | null;
   /**
-   * Disable publishing a particular package.
-   * (Does NOT work to enable publishing a package that wouldn't otherwise be published.)
+   * In most cases, you should use `private: true` to disable publishing a package. This option is
+   * **ONLY** for cases where a package shouldn't be published, but you still want it to require
+   * change files and go through the bumping process (changelogs, version bumps, git tags).
+   * An example in the beachball repo is management of the GitHub actions it provides.
+   *
+   * Does NOT work to enable publishing a package that wouldn't otherwise be published.
    */
   shouldPublish?: false;
 }
@@ -364,13 +368,13 @@ export interface HooksOptions {
    *
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json
-   * @param version The **post-bump** version of the package to be published
-   * @param packageInfos Metadata about other packages processed by Beachball after bumping. Readonly.
+   * @param bumpedVersion The **post-bump** version of the package to be published
+   * @param packageInfos **Read-only** info about all packages in the repo after bumping
    */
   prepublish?: (
     packagePath: string,
     name: string,
-    version: string,
+    bumpedVersion: string,
     packageInfos: Readonly<PackageInfos>
   ) => void | Promise<void>;
 
@@ -380,49 +384,64 @@ export interface HooksOptions {
    *
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json
-   * @param version The post-bump version of the package to be published
-   * @param packageInfos Metadata about other packages processed by Beachball after bumping. Readonly.
+   * @param bumpedVersion The post-bump version of the package to be published
+   * @param packageInfos **Read-only** info about all packages in the repo after bumping
    */
   postpublish?: (
     packagePath: string,
     name: string,
-    version: string,
+    bumpedVersion: string,
     packageInfos: Readonly<PackageInfos>
   ) => void | Promise<void>;
 
   /**
-   * Runs for each bumped package, before writing changelog and package.json updates to the
-   * filesystem. Skipped if `bump: false`.
+   * Runs for each bumped package, **before** writing changelog and package.json updates to the
+   * filesystem (but after bumping in memory). Skipped if `bump: false`.
    *
-   * In the `bump` flow, this is called once for each package.
-   * In the `publish` flow, it's called:
+   * In the `bump` flow, this is called once for each bumped package.
+   * In the `publish` flow, it's called twice:
    * 1. when generating version bumps and changelogs to commit/push
-   * 2. before publishing to npm
+   * 2. before publishing to npm (unless the package has `shouldPublish: false`)
+   *
+   * File changes will be committed (`bump`) or published (`publish`), but will NOT modify
+   * the in-memory version bumps which have already happened.
    *
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json
-   * @param version The **pre-bump** version of the package to be published
+   * @param bumpedVersion The **bumped version** of the package to be published. If you want the
+   * original version prior to bumping, read it from `package.json`.
+   * (The hook name `prebump` refers to the hook being called before updates are *written*.)
    */
-  prebump?: (packagePath: string, name: string, version: string) => void | Promise<void>;
+  prebump?: (
+    packagePath: string,
+    name: string,
+    // Using the bumped version seems to have been the intent in the original PR: https://github.com/microsoft/beachball/pull/608
+    bumpedVersion: string
+    // This hook does NOT receive PackageInfos, since that's easily misunderstood as being able to
+    // modify it, which won't fully work as expected. Any such scenarios would be better addressed
+    // by opening an issue to figure out a proper solution (likely a new config option).
+  ) => void | Promise<void>;
 
   /**
-   * Runs for each bumped package, after writing changelog and package.json updates to the
-   * filesystem. Skipped if `bump: false`.
+   * Runs for each bumped package, **after** writing changelog and package.json updates to the
+   * filesystem, but before pushing or publishing. Skipped if `bump: false`.
    *
-   * In the `bump` flow, this is called once for each package.
-   * In the `publish` flow, it's called:
-   * 1. when generating version bumps and changelogs to commit/push (file changes will be committed)
-   * 2. before publishing to npm, only for packages that will be published (file changes will be published)
+   * In the `bump` flow, this is called once for each bumped package.
+   * In the `publish` flow, it's called twice:
+   * 1. when generating version bumps and changelogs to commit/push
+   * 2. before publishing to npm (unless the package has `shouldPublish: false`)
+   *
+   * File changes will be committed (`bump`) or published (`publish`).
    *
    * @param packagePath The path to the package directory
    * @param name The name of the package as defined in package.json
-   * @param version The **post-bump** version of the package to be published
-   * @param packageInfos Metadata about other packages processed by Beachball after bumping. Readonly.
+   * @param bumpedVersion The **post-bump** version of the package to be published
+   * @param packageInfos **Read-only** info about all packages in the repo after bumping
    */
   postbump?: (
     packagePath: string,
     name: string,
-    version: string,
+    bumpedVersion: string,
     packageInfos: Readonly<PackageInfos>
   ) => void | Promise<void>;
 

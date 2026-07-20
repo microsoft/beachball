@@ -555,11 +555,12 @@ describe('bump command', () => {
         prebump: jest.fn<NonNullable<HooksOptions['prebump']>>(async (packagePath, name, version) => {
           expect(packagePath.endsWith('pkg-1')).toBeTruthy();
           expect(name).toBe('pkg-1');
-          expect(version).toBe('1.0.0');
+          // "prebump" receives the bumped version, but is called before writing to disk
+          expect(version).toBe('1.1.0');
 
           await new Promise(resolve => setTimeout(resolve, 0)); // simulate async work
           const jsonPath = path.join(packagePath, 'package.json');
-          expect(readJson<PackageJson>(jsonPath).version).toBe('1.0.0');
+          expect(readJson<PackageJson>(jsonPath).version).toBe('1.0.0'); // not bumped on disk yet
         }),
         postbump: jest.fn<NonNullable<HooksOptions['postbump']>>(async (packagePath, name, version) => {
           expect(packagePath.endsWith('pkg-1')).toBeTruthy();

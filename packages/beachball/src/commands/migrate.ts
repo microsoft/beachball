@@ -74,6 +74,10 @@ export function migrate(parsedOptions: ParsedOptions): void {
     );
   }
 
+  if (repoOptions.hooks?.prebump?.length ?? 0 > 3) {
+    updates.push('`hooks.prebump` no longer receives `packageInfos`. See migration guide.');
+  }
+
   if (rawPackageInfos) {
     checkShouldPublish({ rawPackageInfos, warnings, updates });
     checkChangelogJson({ rawPackageInfos, options, repoOptions, updates });

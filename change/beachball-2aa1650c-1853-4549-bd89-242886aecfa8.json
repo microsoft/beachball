@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "`hooks.prebump` no longer receives `packageInfos`. This was never in the signature, and trying to modify it is likely to not fully behave as you might expect. Please open an issue if you were using this and we can find an alternative.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

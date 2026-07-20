@@ -70,10 +70,6 @@ To migrate, simply remove the leading `!` from all `exclude` patterns.
 
 The logic for determining the comparison remote and branch is stricter: beachball now throws if no remotes are defined, or if the root `package.json` specifies a `repository` field but no matching remote is found. If your `branch` option contains a `/`, beachball checks whether the leading segment matches a configured remote name, and falls back to the default remote otherwise.
 
-### `prebump` hook version parameter now matches the docs
-
-In v2, `hooks.prebump` received the post-bump package version even though the hook runs before Beachball writes version changes to disk. In v3, this is corrected to receive the pre-bump version as documented.
-
 ### Custom changelog rendering changes
 
 Only relevant for custom changelog renderers: `PackageChangelog.tag` and `ChangelogJsonEntry.tag` are now `undefined` when the package had no associated git tag (previously a value was always present).
@@ -98,18 +94,15 @@ In v3, `shouldPublish: false` packages are full participants in all steps of the
 - If a published package has a `shouldPublish: false` package in its production dependencies, Beachball will exit with an error (same as with `private: true` deps)
 - Since `shouldPublish: false` is redundant with `private: true`, `beachball migrate` reports this as an error
 
-### Renamed options
+### `BeachballOptions`/`RepoOptions` updates
 
-- Rename `BeachballOptions.changelog.groups[*].masterPackageName` to `mainPackageName`
-
-### Removed options
-
-- `new`: This option was never needed if PR builds run `beachball check` (a new package without a change file already causes an error), and it had a significant performance cost because it checked the registry for _all_ unmodified packages.
-- `packStyle`: packing always uses the layered style now.
-- `help` and `version` properties: these still work on the command line but were removed from `BeachballOptions`
+- Rename `changelog.groups[*].masterPackageName` to `mainPackageName`.
+- Removed rarely-used options:
+  - `new`: This option was never needed if PR builds run `beachball check` (a new package without a change file already causes an error), and it had a significant performance cost because it checked the registry for _all_ unmodified packages.
+  - `packStyle`: packing always uses the layered style now.
+  - `help` and `version` properties: these still work on the command line but were removed from `BeachballOptions`
+- `hooks.prebump` no longer receives `packageInfos`. This was never in the signature, and trying to modify it may lead to unexpected behavior. Please open an issue if you were using this and we can find an alternative.
 
 ### Other changes
 
-- If you're deep importing beachball's internal helpers:
-  - Some deprecated signatures have been removed. Use the new signatures (which pre-calculate and share context) instead.
-  - `BumpInfo` now contains `originalPackageInfos` for `prebump` hook correctness.
+- If you're deep importing beachball's internal helpers, some deprecated signatures have been removed. Use the new signatures (which pre-calculate and share context) instead.

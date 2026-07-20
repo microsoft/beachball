@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Tests: update verdaccio to v6",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}

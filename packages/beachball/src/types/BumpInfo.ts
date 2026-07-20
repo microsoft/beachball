@@ -14,9 +14,6 @@ export type BumpInfo = {
    */
   packageInfos: PackageInfos;
 
-  /**  Packages before bumping, which must NOT be mutated. */
-  originalPackageInfos: PackageInfos;
-
   /**
    * Mapping from package name to change type.
    *
