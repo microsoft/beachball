@@ -10,18 +10,19 @@ let hasMatchingRenovate: true | undefined;
 
 /**
  * Run Renovate from the configured working directory. Must call `verifyRenovate` first.
+ * Does not reject on error.
  */
 export function runRenovate(
   bin: 'renovate' | 'renovate-config-validator',
-  params: RenovateEnvParams & { options?: execa.Options }
+  params: RenovateEnvParams & { args?: string[]; options?: execa.Options }
 ): execa.ExecaChildProcess {
-  const { options, ...envParams } = params;
+  const { args = [], options, ...envParams } = params;
 
   if (!hasMatchingRenovate) {
     throw new Error('You must call verifyRenovate() before running Renovate');
   }
 
-  return runBin(bin, [], { env: getRenovateEnv(envParams), ...options });
+  return runBin(bin, args, { env: getRenovateEnv(envParams), reject: false, ...options });
 }
 
 /**

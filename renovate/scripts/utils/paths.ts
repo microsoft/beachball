@@ -4,7 +4,7 @@ import { findProjectRoot } from 'workspace-tools';
 const root = findProjectRoot(process.cwd());
 const renovateRoot = path.join(root, 'renovate');
 const repoRenovateConfigRel = 'renovate.json5';
-const serverConfigRel = 'scripts/serverConfig.js';
+const serverConfigRel = 'scripts/serverConfig.ts';
 
 /** Useful paths, all absolute unless otherwise noted */
 export const paths = {

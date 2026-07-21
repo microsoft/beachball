@@ -32,12 +32,15 @@ const config = {
     extends: tempFilteredPresets.map(p =>
       getExtendsForLocalPreset(p.name, githubBranchName === defaultBranch ? '' : githubBranchName)
     ),
-    // also use the current branch as the base
+    // Use the config from the current branch. Unfortunately this is also merged with the
+    // default branch's current config, with no way to disable.
     ...(githubBranchName &&
       githubBranchName !== defaultBranch && {
         baseBranchPatterns: [githubBranchName],
         useBaseBranchConfig: 'merge',
       }),
+    // perf options
+    prCacheSyncMaxPages: 1,
   },
 };
 

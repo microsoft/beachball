@@ -25,13 +25,13 @@ async function checkFile(preset: ConfigData, hasInvalidRepoConfig: boolean): Pro
   // Use renovate-config-validator to test for blatantly invalid configuration
   // and for configs needing migration.
   const configProcess = runRenovate('renovate-config-validator', {
-    configFile: absolutePath,
+    args: ['--no-global', absolutePath],
     logLevel: 'warn',
     // log as JSON to make it easier to determine if migration is needed
     logFormat: 'json',
     logFile: paths.logFileBasic,
     logFileLevel: 'debug',
-    options: { stdio: 'pipe', reject: false },
+    options: { stdio: 'pipe' },
   });
 
   let migratedConfig: unknown;

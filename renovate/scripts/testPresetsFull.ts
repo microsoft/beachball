@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 import { checkToken, getToken } from './checkToken.ts';
 import serverConfig from './serverConfig.ts';
 import { getEnv } from './utils/getEnv.ts';
@@ -8,8 +7,6 @@ import { paths } from './utils/paths.ts';
 import { logRenovateErrorDetails, readRenovateLogs } from './utils/renovateLogs.ts';
 import { verifyRenovate, runRenovate } from './utils/runRenovate.ts';
 import type { RenovatePresetDebugLog } from './utils/types.ts';
-
-const configFilePath = path.join(import.meta.dirname, 'serverConfig.js');
 
 async function runTests() {
   const repository = getEnv('GITHUB_REPOSITORY', isGithub);
@@ -39,7 +36,7 @@ async function runTests() {
     logLevel: 'info',
     logFile: paths.logFileFull,
     logFileLevel: 'debug',
-    configFile: configFilePath,
+    configFile: paths.serverConfig,
   });
   logEndGroup();
 

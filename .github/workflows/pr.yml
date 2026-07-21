@@ -138,7 +138,7 @@ jobs:
             }
 
   validate-renovate:
-    name: Validate renovate config
+    name: validate renovate
 
     runs-on: ubuntu-latest
 
