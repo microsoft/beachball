@@ -30,7 +30,7 @@ const config = {
     // so extended presets will be fetched from main, not the branch. This is usually
     // fine but will cause an error if a preset extends a newly-added preset in a PR.)
     extends: tempFilteredPresets.map(p =>
-      getExtendsForLocalPreset(p.name, githubBranchName === defaultBranch ? '' : githubBranchName)
+      getExtendsForLocalPreset(p, githubBranchName === defaultBranch ? '' : githubBranchName)
     ),
     // Disable alerts since the PR token doesn't have perms to read them
     vulnerabilityAlerts: { enabled: false },

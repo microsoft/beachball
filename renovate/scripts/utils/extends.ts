@@ -1,5 +1,6 @@
 import path from 'path';
 import { defaultRepo } from './github.ts';
+import type { LocalPresetData } from './types.ts';
 
 export const repoPresetPrefix = `github>${defaultRepo}//renovate/presets/`;
 
@@ -14,10 +15,10 @@ export function getLocalPresetFromExtends(extendsStr: string): string | undefine
 /**
  * Get a reference to a local preset for use in an `extends` config.
  * (Doesn't verify that the preset name exists.)
- * @param preset Preset name or path (basename will be used)
  */
-export function getExtendsForLocalPreset(preset: string, ref?: string): string {
-  const presetName = path.basename(preset, '.json');
+export function getExtendsForLocalPreset(preset: LocalPresetData, ref?: string): string {
+  const presetName = path.basename(preset.name, '.json');
+  const presetArg0 = preset.content.includes('{{arg0}}') ? '(16)' : '';
   const presetRef = ref ? `#${ref}` : '';
-  return `${repoPresetPrefix}${presetName}${presetRef}`;
+  return `${repoPresetPrefix}${presetName}${presetArg0}${presetRef}`;
 }
