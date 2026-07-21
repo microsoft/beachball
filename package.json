@@ -13,6 +13,7 @@
   "workspaces": [
     "actions/*",
     "packages/*",
+    "renovate",
     "scripts",
     "skills",
     "yarn-plugins/*"

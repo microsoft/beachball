@@ -13,6 +13,7 @@
 .nojekyll
 .npmrc.publish
 .nvmrc
+.renovate-version
 docs/.vuepress/.cache/
 docs/.vuepress/.temp/
 docs/.yarn

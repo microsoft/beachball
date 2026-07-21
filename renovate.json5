@@ -7,12 +7,12 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>microsoft/m365-renovate-config",
-    "github>microsoft/m365-renovate-config:disableEsmVersions",
-    "github>microsoft/m365-renovate-config:groupMore",
-    "github>microsoft/m365-renovate-config:groupTypes",
-    "github>microsoft/m365-renovate-config:keepFresh",
-    "github>microsoft/m365-renovate-config:restrictNode(22)"
+    "github>microsoft/beachball//renovate/presets/default",
+    "github>microsoft/beachball//renovate/presets/disableEsmVersions",
+    "github>microsoft/beachball//renovate/presets/groupMore",
+    "github>microsoft/beachball//renovate/presets/groupTypes",
+    "github>microsoft/beachball//renovate/presets/keepFresh",
+    "github>microsoft/beachball//renovate/presets/restrictNode(22)"
   ],
 
   "ignorePaths": ["**/node_modules/**", "**/__*/**", "**/.yarn/**"],
@@ -59,6 +59,14 @@
       "matchStrings": ["using: 'node(?<currentValue>\\d+)'"],
       "depNameTemplate": "@types/node",
       "datasourceTemplate": "npm"
+    },
+    {
+      // Keep renovate/.renovate-version in sync with Renovate releases
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|\\/)renovate\\/.renovate-version$/"],
+      "matchStrings": ["^(?<currentValue>\\S+)$"],
+      "depNameTemplate": "renovate",
+      "datasourceTemplate": "npm"
     }
   ],
 
@@ -67,6 +75,11 @@
       "matchPackageNames": ["workspace-tools"],
       "matchUpdateTypes": ["major", "minor"],
       "dependencyDashboardApproval": false
+    },
+    {
+      // follow npm dependency age policy
+      "matchDepNames": ["renovate"],
+      "minimumReleaseAge": "7 days"
     },
     {
       "matchDepTypes": ["devDependencies"],
@@ -79,6 +92,11 @@
         "fileFilters": ["**/*"],
         "executionMode": "branch"
       }
+    },
+    {
+      "groupName": "github action packages",
+      "matchPackageNames": ["@actions/*"],
+      "matchManagers": ["npm"]
     }
   ]
 }

@@ -4,11 +4,14 @@ const path = require('path');
 const actionPrefix = '@microsoft/beachball-action-';
 const skillName = '@microsoft/beachball-change-file-skill';
 const yarnPluginPrefix = '@microsoft/beachball-yarn-plugin-';
+const renovateName = '@microsoft/m365-renovate-config';
+const normalPackages = ['beachball', 'proper-changelog', 'p-graph', '@microsoft/esrp-npm-release'];
 
 /**
  * Matches the `getGitTag` signature from `BeachballOptions`, but can't reference it directly.
  * @param {{ name: string; version: string }} pkg
  * @param {string} defaultTag
+ * @returns {string | string[] | null}
  */
 function getGitTag({ name, version }, defaultTag) {
   if (name === skillName) {
@@ -21,7 +24,16 @@ function getGitTag({ name, version }, defaultTag) {
   if (name.startsWith(yarnPluginPrefix)) {
     return getYarnPluginTag(name, version);
   }
-  return defaultTag;
+  if (normalPackages.includes(name)) {
+    return defaultTag;
+  }
+  if (name === renovateName) {
+    // The renovate presets do NOT get tags since it would require a multi-step process of
+    // updating all `extends` references and creating tags in a separate branch
+    // https://github.com/microsoft/m365-renovate-config/blob/main/scripts/release/bumpAndRelease.ts#L125
+    return null;
+  }
+  throw new Error(`Unhandled package "${name}" in custom getGitTag`);
 }
 
 /**
@@ -100,4 +112,4 @@ function getActionTags(name, version) {
   };
 }
 
-module.exports = { getGitTag, getActionTags, postbumpHook };
+module.exports = { getGitTag, getActionTags, postbumpHook, normalPackages };

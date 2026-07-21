@@ -47,6 +47,8 @@ The tool relies on the following inputs and resources:
   - _Managed identity_ with the right RBAC roles on the storage account (used to create user delegation keys for blob access)
   - _ADO Azure Resource Manager service connection_ using the managed identity
 
+Credit for the original staging and API integration approach goes to the [VS Code team](https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/common/publish.ts).
+
 ## Packed packages format
 
 Running `beachball publish --pack-to-path <path>` produces a directory with this shape. If there are 10+ layers, the directories must be zero-padded (e.g. `01`, `02`, ..., `10`, etc.) to ensure correct lexical ordering.

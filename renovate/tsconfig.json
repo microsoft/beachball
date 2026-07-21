@@ -1,0 +1,4 @@
+{
+  "extends": "@microsoft/beachball-scripts/config/tsconfig.scripts.json",
+  "include": ["scripts"]
+}

@@ -1,12 +1,5 @@
 {
-  "extends": "./config/tsconfig.base.json",
-  "compilerOptions": {
-    "noEmit": true,
-    "allowJs": true,
-    "checkJs": true,
-    "erasableSyntaxOnly": true,
-    "verbatimModuleSyntax": true
-  },
+  "extends": "./config/tsconfig.scripts.json",
   "include": ["."],
   "exclude": ["node_modules"]
 }
