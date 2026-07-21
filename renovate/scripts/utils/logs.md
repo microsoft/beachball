@@ -6,7 +6,7 @@ Some irrelevant JSON properties are removed throughout.
 
 ## Basic tests (`renovate-config-validator`)
 
-These logs come from `renovate-config-validator` in `testPresetsBasic.js`.
+These logs come from `renovate-config-validator` in `testPresetsBasic.ts`.
 
 ### Invalid property
 
@@ -16,24 +16,13 @@ These logs come from `renovate-config-validator` in `testPresetsBasic.js`.
 [
   {
     "level": 30,
-    // THIS IS WRONG--this line will always show the repo config path even if a
-    // different config was specified via RENOVATE_CONFIG_FILE
-    "msg": "Validating .github/renovate.json5",
+    "msg": "Validating /<path>/renovate/presets/default.json as repo config",
   },
   {
-    "level": 20,
-    "msg": "Checking for config file in /<path>/m365-renovate-config/default.json",
-  },
-  {
-    "level": 40,
-    "configType": "/<path>/m365-renovate-config/default.json",
-    "errors": [
-      {
-        "topic": "Configuration Error",
-        "message": "Configuration option `asdf` should be a json object",
-      },
-    ],
-    "msg": "Config validation errors found",
+    "level": 50,
+    "file": "/<path>/renovate/presets/groupFluent.json",
+    "errors": [{ "topic": "Configuration Error", "message": "Invalid configuration option: asdf" }],
+    "msg": "Found errors in configuration",
   },
 ]
 ```
@@ -44,57 +33,36 @@ These logs come from `renovate-config-validator` in `testPresetsBasic.js`.
 
 ```jsonc
 [
+  { "level": 30, "msg": "Validating /<path>/renovate/presets/default.json as repo config" },
   {
-    "level": 30,
-    // WRONG as above
-    "msg": "Validating .github/renovate.json5",
-  },
-  {
-    "level": 20,
-    "msg": "Checking for config file in /<path>/m365-renovate-config/default.json",
+    "level": 40,
+    "oldConfig": {
+      // whole old config
+    },
+    "newConfig": {
+      // whole migrated config
+    },
+    "msg": "Config migration necessary",
   },
   {
     "level": 40,
-    "configType": "/<path>/m365-renovate-config/default.json",
-    "originalConfig": {
-      "packageRules": [
-        {
-          "matchPackagePatterns": ["*"],
-          "commitMessageTopic": "custom",
-        },
-      ],
-    },
-    "migratedConfig": {
-      "packageRules": [
-        {
-          "commitMessageTopic": "custom",
-          "matchPackageNames": ["*"],
-        },
-      ],
-    },
-    "msg": "Config needs migrating",
-  },
-  // re-validating after migration?
-  {
-    "level": 30,
-    "msg": "Validating /<path>/m365-renovate-config/default.json",
-  },
-  {
-    "level": 30,
-    "msg": "Config validated successfully",
+    // whole formatted diff
+    "msg": "Config migration diff:\n...\"matchPackageNames\": [\n          \"@fluentui/*\",\n          \"foo{/,}**\"\n        ],\n\u001b[31m- \u001b[39m      \"matchPackagePrefixes\": \"foo\",...",
   },
 ]
 ```
 
 ## Full tests (`renovate` dry run)
 
-These logs come from `renovate` in `testPresetsFull.js`.
+These logs come from `renovate` in `testPresetsFull.ts`.
 
 ### Invalid preset name
 
+_(outdated)_
+
 A config extends `github>microsoft/beachball//renovate/presets/oops` which doesn't exist.
 
-If the fetch URL does not include `?ref=...` (e.g. `https://api.github.com/repos/microsoft/m365-renovate-config/contents/newPreset.json`) it probably means some preset extends `newPreset` which was newly-added in this PR (see comment in `serverConfig.js`).
+If the fetch URL does not include `?ref=...` (e.g. `https://api.github.com/repos/microsoft/m365-renovate-config/contents/newPreset.json`) it probably means some preset extends `newPreset` which was newly-added in this PR (see comment in `serverConfig.ts`).
 
 ```jsonc
 [

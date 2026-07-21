@@ -22,8 +22,8 @@ export const paths = {
   serverConfigRel,
   /** Test server config */
   serverConfig: path.join(renovateRoot, serverConfigRel),
-  /** Config validation log file for basic tests */
+  /** Config validation log file for basic tests, uploaded as an artifact */
   logFileBasic: path.join(renovateRoot, 'renovate.validate.log'),
-  /** Dry run log file for full tests */
+  /** Dry run log file for full tests, uploaded as an artifact */
   logFileFull: path.join(renovateRoot, 'renovate.log'),
 };

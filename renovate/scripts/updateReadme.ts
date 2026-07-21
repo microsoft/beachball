@@ -36,7 +36,7 @@ const presetGroups: PresetGroup[] = [
   },
   {
     name: 'Freshness and noise reduction presets',
-    presets: ['keepFresh', 'minorDependencyUpdates', 'scheduleNoisy'],
+    presets: ['keepFresh', 'scheduleNoisy'],
   },
   {
     // This group MUST be last!
@@ -197,7 +197,7 @@ ${comments.extra.end}
     console.log('\nReadme is up to date!\n');
   } else {
     if (check) {
-      git(['--no-page', 'diff', readmePath]);
+      git(['--no-pager', 'diff', readmePath]);
       throw new Error(
         "Readme is out of date (see above for diff). Please run 'yarn update-readme' and commit the changes."
       );

@@ -16,36 +16,11 @@
     {
       "groupName": "Fluent UI React v8 packages",
       "matchCurrentVersion": "/^[1234568]\\./",
-      "matchPackageNames": [
-        "@fluentui/*",
-        "!@fluentui/eslint-plugin",
-        "!@fluentui/react-conformance",
-        "!@fluentui/react-teams"
-      ]
+      "matchPackageNames": ["@fluentui/*", "!@fluentui/eslint-plugin", "!@fluentui/react-conformance"]
     },
     {
       "groupName": "Fluent UI React v8 packages",
       "matchPackageNames": ["@fluentui/react-cards"]
-    },
-    {
-      "groupName": "Fluent UI React Northstar packages",
-      "matchCurrentVersion": "0.x",
-      "matchPackageNames": [
-        "@fluentui/*",
-        "!@fluentui/eslint-plugin",
-        "!@fluentui/react-cards",
-        "!@fluentui/react-conformance",
-        "!@fluentui/public-docsite-setup"
-      ]
-    },
-    {
-      "groupName": "Fabric packages",
-      "matchPackageNames": ["office-ui-fabric-react", "@uifabric/*"]
-    },
-    {
-      "groupName": "Fabric packages",
-      "matchPackageNames": ["@fluentui/react"],
-      "matchCurrentVersion": "^7.0.0"
     }
   ]
 }

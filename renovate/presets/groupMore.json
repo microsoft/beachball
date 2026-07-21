@@ -9,7 +9,6 @@
     "github>microsoft/beachball//renovate/presets/groupActions",
     "github>microsoft/beachball//renovate/presets/groupD3",
     "github>microsoft/beachball//renovate/presets/groupEslint",
-    "github>microsoft/beachball//renovate/presets/groupFixtureUpdates",
     "github>microsoft/beachball//renovate/presets/groupFluent",
     "github>microsoft/beachball//renovate/presets/groupJest",
     "github>microsoft/beachball//renovate/presets/groupLageBackfill",

@@ -6,7 +6,7 @@
   "packageRules": [
     {
       "groupName": "eslint packages",
-      "matchPackageNames": ["/eslint/", "!@typecript-eslint/*"],
+      "matchPackageNames": ["/eslint/", "!@typescript-eslint/*"],
       "schedule": ["before 5am on the 8th and 22nd day of the month"]
     },
     {

@@ -1,111 +1,141 @@
-import assert from 'assert';
 import fs from 'fs';
 import jju from 'jju';
 import path from 'path';
-import { Transform } from 'stream';
 import { updateAndFormat } from './utils/updateAndFormat.ts';
 import { isGithub, logEndGroup, logError, logOther, logGroup } from './utils/github.ts';
 import { paths } from './utils/paths.ts';
 import { readPresetsAndConfigs, specialConfigNames } from './utils/readPresets.ts';
-import { formatRenovateLog } from './utils/renovateLogs.ts';
+import { parseRenovateLogs } from './utils/renovateLogs.ts';
 import { verifyRenovate, runRenovate } from './utils/runRenovate.ts';
-import type { ConfigData, LocalPresetData, RenovateLog } from './utils/types.ts';
+import type { ConfigData, LocalPresetData } from './utils/types.ts';
 
 const presetArgIndex = process.argv.indexOf('--preset');
 const presetArg = presetArgIndex >= 0 ? process.argv[presetArgIndex + 1] : undefined;
 
+const logLocation = isGithub ? 'log artifact' : `log file at ${paths.logFileBasic}`;
+
 type Result = 'error' | 'unknown' | 'ok';
+
+async function runTests() {
+  await verifyRenovate();
+
+  // Create an empty log file before the tests start (renovate will append to this file)
+  fs.writeFileSync(paths.logFileBasic, '');
+
+  const presets = readPresetsAndConfigs();
+
+  const allPresetNames = presets.map(p => p.name);
+  if (presetArg && !allPresetNames.includes(presetArg)) {
+    logError(`Invalid preset name "${presetArg}"`);
+    process.exit(1);
+  }
+
+  const maybeFailedPresets: string[] = [];
+  const failedPresets: string[] = [];
+
+  for (let i = 0; i < presets.length; i++) {
+    const preset = presets[i];
+    if (presetArg && preset.name !== presetArg) {
+      continue;
+    }
+
+    const isServerConfig = preset.name === specialConfigNames.serverConfig;
+    if (isServerConfig && failedPresets.includes(specialConfigNames.repoConfig)) {
+      // The server config validation would probably check the repo config automatically
+      logOther('warning', 'Skipping server config validation because the repo config validation failed.');
+      continue;
+    }
+
+    logGroup(`Validating ${preset.filename}`);
+
+    const configResult = await checkFile(preset, isServerConfig);
+
+    if (configResult === 'error') {
+      failedPresets.push(preset.filename);
+    } else if (configResult === 'unknown') {
+      maybeFailedPresets.push(preset.filename);
+    }
+
+    if (i === 0 && configResult !== 'ok') {
+      console.error('The repo config is invalid, so skipping the other presets.');
+      break;
+    }
+
+    logEndGroup();
+  }
+
+  if (maybeFailedPresets.length) {
+    logOther(
+      'warning',
+      'Validating the following preset(s)/config(s) failed, but this may be due to errors in the repo config:\n' +
+        maybeFailedPresets.map(p => `    - ${p}`).join('\n')
+    );
+  }
+
+  if (failedPresets.length) {
+    logError(
+      `❌ Validating the following preset(s)/config(s) failed (see logs above or ${logLocation} for details):\n` +
+        failedPresets.map(p => `    - ${p}`).join('\n')
+    );
+  }
+
+  console.log();
+  process.exit(failedPresets.length + maybeFailedPresets.length > 0 ? 1 : 0);
+}
 
 /**
  * Validate a preset or config file.
  */
-async function checkFile(preset: ConfigData, hasInvalidRepoConfig: boolean): Promise<Result> {
+async function checkFile(preset: ConfigData, isServerConfig: boolean): Promise<Result> {
   const { absolutePath, filename } = preset;
+
+  // The log file is reused, so include a marker for each config
+  fs.appendFileSync(paths.logFileBasic, `{ "customStartMarker": "${preset.absolutePath}" }\n`);
 
   // Use renovate-config-validator to test for blatantly invalid configuration
   // and for configs needing migration.
-  const configProcess = runRenovate('renovate-config-validator', {
-    args: ['--no-global', absolutePath],
+  const runResult = await runRenovate('renovate-config-validator', {
+    args: [
+      '--strict',
+      // The server config should be validated as a self-hosted config; others shouldn't
+      ...(isServerConfig ? [] : ['--no-global']),
+      absolutePath,
+    ],
     logLevel: 'warn',
-    // log as JSON to make it easier to determine if migration is needed
-    logFormat: 'json',
     logFile: paths.logFileBasic,
-    logFileLevel: 'debug',
-    options: { stdio: 'pipe' },
   });
 
-  let migratedConfig: unknown;
-  let newConfig: unknown;
-  const errorMessages = new Set<string>();
-  // Format the JSON logs as nice text (to be sent to stdout) and detect special properties,
-  // including `migratedConfig` (or `newConfig`) indicating that the config needs migration
-  const logTransform = new Transform({
-    transform(chunk, _encoding, callback) {
-      let logJson: RenovateLog;
-      try {
-        logJson = JSON.parse(String(chunk)) as RenovateLog;
-      } catch {
-        return callback(null, String(chunk));
-      }
+  const { migratedConfig, newConfig, errors, warnings } = parseRenovateLogs(paths.logFileBasic, absolutePath);
 
-      if (logJson.migratedConfig) {
-        // Config migration message
-        migratedConfig = logJson.migratedConfig;
-        callback(null, '');
-      } else if (logJson.newConfig) {
-        // Alternate config migration message...?
-        // (not sure why it's logged twice, but capture both in case it changes in the future)
-        newConfig = logJson.newConfig;
-        callback(null, '');
-      } else if (logJson.errors?.[0]?.message) {
-        // The errors are from this preset/config, so save them to log later
-        // (for the repo config it logs the same errors twice, so use a set)
-        for (const error of logJson.errors) {
-          errorMessages.add(error.message);
-        }
-        callback(null, '');
-      } else {
-        // Unknown log
-        callback(null, formatRenovateLog(logJson, true) + '\n');
-      }
-    },
-  });
-
-  // Redirect formatted logs to stdout, and wait for the process
-  configProcess.all?.pipe(logTransform).pipe(process.stdout);
-  const processFailed = (await configProcess).failed;
-
-  if (errorMessages.size > 0) {
-    logError(`❌ Found errors in ${filename}:\n` + [...errorMessages].map(msg => `    - ${msg}`).join('\n'), filename);
-    return 'error';
-  }
-
-  if (processFailed) {
-    // No errors specific to this preset were logged in the expected format, but the process
-    // exited non-0. If the repo config also failed to validate, that's probably why.
-    // Otherwise it's hard to say or might be a bug in this test.
-    if (hasInvalidRepoConfig) {
-      logOther(
-        'warning',
-        `Validation exited non-0, but this was probably due to repo config errors. ` + 'See logs for details.',
-        filename
-      );
-      return 'unknown';
-    }
-
-    logError(`Unknown error validating ${filename}. See logs for details.`, filename);
-    return 'error';
+  // there could be both errors and migration, so show both
+  let hasError = false;
+  if (errors?.length || warnings?.length) {
+    const allMessages = [...(errors || []), ...(warnings || []).map(w => `[warning] ${w}`)];
+    logError(`❌ Found issues in ${filename}:\n${allMessages.map(msg => `    - ${msg}`).join('\n')}`, filename);
+    hasError = true;
   }
 
   const updatedConfig = migratedConfig || newConfig;
   if (updatedConfig) {
     if (preset.json && preset.content) {
-      return migrateConfig(preset as LocalPresetData, updatedConfig);
+      const migrateResult = await migrateConfig(preset as LocalPresetData, updatedConfig);
+      return hasError ? 'error' : migrateResult;
     }
 
     // The server config can't be auto-migrated because it's JS
     logError(`❌ ${filename} requires migration, but must be updated manually (see logs).`, filename);
     console.log(JSON.stringify(updatedConfig, null, 2));
+    hasError = true;
+  }
+
+  if (hasError) {
+    return 'error';
+  }
+
+  if (runResult.failed) {
+    // No errors specific to this preset were logged in the expected format, but the process
+    // exited non-0. Most likely the log format has changed and parsing has failed.
+    logError(`Unknown error validating ${filename}. See logs for details.`, filename);
     return 'error';
   }
 
@@ -146,73 +176,6 @@ async function migrateConfig(preset: LocalPresetData, migratedConfig: unknown): 
   }
 
   return result;
-}
-
-async function runTests() {
-  await verifyRenovate();
-
-  // Create an empty log file before the tests start (renovate will append to this file)
-  fs.writeFileSync(paths.logFileBasic, '');
-
-  const presets = readPresetsAndConfigs();
-
-  // The repo config must be checked first (and migrated if necessary) because Renovate will
-  // always include it in the other configs
-  assert(
-    presets[0].name === specialConfigNames.repoConfig,
-    'Repo config must be first in the list returned by readPresets'
-  );
-
-  const allPresetNames = presets.map(p => p.name);
-  if (presetArg && !allPresetNames.includes(presetArg)) {
-    logError(`Invalid preset name "${presetArg}"`);
-    process.exit(1);
-  }
-
-  const maybeFailedPresets: string[] = [];
-  const failedPresets: string[] = [];
-
-  for (let i = 0; i < presets.length; i++) {
-    const preset = presets[i];
-    if (presetArg && preset.name !== presetArg) {
-      continue;
-    }
-
-    logGroup(`Validating ${preset.filename}`);
-
-    const configResult = await checkFile(preset, failedPresets.includes(paths.repoRenovateConfigRel));
-
-    if (configResult === 'error') {
-      failedPresets.push(preset.filename);
-    } else if (configResult === 'unknown') {
-      maybeFailedPresets.push(preset.filename);
-    }
-
-    if (i === 0 && configResult !== 'ok') {
-      console.error('The repo config is invalid, so skipping the other presets.');
-      break;
-    }
-
-    logEndGroup();
-  }
-
-  if (maybeFailedPresets.length) {
-    logOther(
-      'warning',
-      'Validating the following preset(s)/config(s) failed, but this may be due to errors in the repo config:\n' +
-        maybeFailedPresets.map(p => `    - ${p}`).join('\n')
-    );
-  }
-
-  if (failedPresets.length) {
-    logError(
-      '❌ Validating the following preset(s)/config(s) failed (see logs above for details):\n' +
-        failedPresets.map(p => `    - ${p}`).join('\n')
-    );
-  }
-
-  console.log();
-  process.exit(failedPresets.length + maybeFailedPresets.length > 0 ? 1 : 0);
 }
 
 runTests().catch(err => {

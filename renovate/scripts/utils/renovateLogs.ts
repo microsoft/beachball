@@ -1,15 +1,6 @@
 import fs from 'fs';
 import { logEndGroup, logGroup } from './github.ts';
-import type { RenovateLog, RenovateLogLevelName, RenovateLogLevelValue } from './types.ts';
-
-const logLevelStrings: Record<RenovateLogLevelValue, string> = {
-  10: 'trace',
-  20: 'debug',
-  30: 'info',
-  40: 'warn',
-  50: 'error',
-  60: 'fatal',
-};
+import type { RenovateLog, RenovateLogLevelName } from './types.ts';
 
 export type RenovateEnvParams = {
   /** Log level for console output (default info) */
@@ -18,35 +9,45 @@ export type RenovateEnvParams = {
   logFormat?: 'json' | 'pretty';
   /** Path to a log file */
   logFile?: string;
-  /** Log level for the log file */
-  logFileLevel?: RenovateLogLevelName;
-  /** Log format for the log file (default json) */
-  logFileFormat?: 'json' | 'pretty';
-  /** Path to the config file */
+  /** Path to the config file (required for `renovate` but not `renovate-config-validator`) */
   configFile?: string;
+};
+
+export type ParsedRenovateLogs = {
+  logs: RenovateLog[];
+  /** migrated config (possibly validation only) */
+  migratedConfig?: unknown;
+  /** new config/alt migration message? (possibly validation only) */
+  newConfig?: unknown;
+  /** final "Repository finished" log with a `result` */
+  resultLog?: RenovateLog & Required<Pick<RenovateLog, 'result'>>;
+  errorRollupLog?: RenovateLog & Required<Pick<RenovateLog, 'loggerErrors'>>;
+  presetErrLogs: Array<RenovateLog & Required<Pick<RenovateLog, 'preset' | 'err'>>>;
+  warnings: string[];
+  errors: string[];
 };
 
 /**
  * @returns Environment variables to set for Renovate
  */
 export function getRenovateEnv(params: RenovateEnvParams): Record<string, string> {
-  const { logLevel, logFormat, logFile, logFileLevel, logFileFormat, configFile } = params;
+  const { logLevel, logFile, configFile } = params;
   return {
     ...(logLevel && { LOG_LEVEL: logLevel }),
-    ...(logFormat && { LOG_FORMAT: logFormat }),
-    ...(logFile && { LOG_FILE: logFile }),
-    ...(logFileLevel && { LOG_FILE_LEVEL: logFileLevel }),
-    ...(logFileFormat && { LOG_FILE_FORMAT: logFileFormat }),
+    // write a JSON log file
+    ...(logFile && { LOG_FILE: logFile, LOG_FILE_LEVEL: 'debug' }),
     ...(configFile && { RENOVATE_CONFIG_FILE: configFile }),
   };
 }
 
 /**
- * Read a Renovate log file, which has entries in JSON format.
+ * Read a Renovate log file, which has entries in JSON format, and look for known contents.
+ * @param startMarker The log file may contain info from multiple validation runs.
+ * If provided, only return logs after the first log with `customStartMarker` as this string.
  */
-export function readRenovateLogs(logFile: string): RenovateLog[] {
+export function parseRenovateLogs(logFile: string, startMarker?: string): ParsedRenovateLogs {
   // Each line in the log file is a JSON blob
-  return fs
+  let logs = fs
     .readFileSync(logFile, 'utf8')
     .trim()
     .split(/\r?\n/g)
@@ -58,6 +59,41 @@ export function readRenovateLogs(logFile: string): RenovateLog[] {
       }
     })
     .filter(l => !!l);
+  const startIndex = startMarker ? logs.findIndex(l => l.customStartMarker === startMarker) : -1;
+  logs = startIndex >= 0 ? logs.slice(startIndex) : logs;
+
+  let migratedConfig: unknown;
+  let newConfig: unknown;
+  const presetErrLogs: ParsedRenovateLogs['presetErrLogs'] = [];
+  const errorMessages: string[] = [];
+  const warningMessages: string[] = [];
+
+  for (const log of logs) {
+    if (log.migratedConfig) {
+      migratedConfig = log.migratedConfig;
+    } else if (log.newConfig) {
+      newConfig = log.newConfig;
+    } else if (log.errors?.[0]?.message) {
+      errorMessages.push(...log.errors.map(e => e.message));
+    } else if (log.warnings?.[0]?.message) {
+      warningMessages.push(...log.warnings.map(w => w.message));
+    }
+    if (log.preset && log.err) {
+      presetErrLogs.push(log as RenovateLog & Required<Pick<RenovateLog, 'preset' | 'err'>>);
+    }
+  }
+
+  return {
+    logs,
+    migratedConfig,
+    newConfig,
+    resultLog: logs.findLast(l => l.msg === 'Repository finished' && l.result) as ParsedRenovateLogs['resultLog'],
+    errorRollupLog: logs.findLast(l => l.loggerErrors?.length) as ParsedRenovateLogs['errorRollupLog'],
+    presetErrLogs,
+    // dedupe messages
+    warnings: [...new Set(warningMessages)],
+    errors: [...new Set(errorMessages)],
+  };
 }
 
 export function logRenovateErrorDetails(log: RenovateLog): void {
@@ -85,23 +121,4 @@ export function logRenovateErrorDetails(log: RenovateLog): void {
   }
 
   logEndGroup();
-}
-
-/**
- * @param all whether to print all the extra properties
- * (exception: for logs with errors, always prints all properties)
- */
-export function formatRenovateLog(log: RenovateLog, all?: boolean): string {
-  // destructure a bunch of extra properties to get rid of them from the logged object
-  const { msg, level, time, name, hostname, pid, logContext, v, ...rest } = log;
-
-  // basic message and level (like what Renovate logs)
-  let res = `${logLevelStrings[level].padEnd(5)} ${msg}`;
-
-  if ((all && Object.keys(rest).length) || rest.err) {
-    // add the extra properties in a format similar to what Renovate uses
-    // (JSON but with start and end braces removed)
-    res += '\n' + JSON.stringify(rest, null, 2).split('\n').slice(1, -1).join('\n');
-  }
-  return res;
 }

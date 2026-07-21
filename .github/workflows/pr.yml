@@ -195,6 +195,8 @@ jobs:
 
       - name: Renovate dry run with all presets
         run: yarn presets:full
+        # The preset name replacement won't work for fork PRs, and token might not have permission
+        if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
         working-directory: ./renovate
         id: dryRun
         env:

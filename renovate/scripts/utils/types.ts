@@ -9,20 +9,18 @@ export type RenovateLogLevels = {
 
 export type RenovateLogLevelName = keyof RenovateLogLevels;
 
-/**
- * - 10 = trace
- * - 20 = debug
- * - 30 = info
- * - 40 = warn
- * - 50 = error
- * - 60 = fatal
- */
-export type RenovateLogLevelValue = RenovateLogLevels[keyof RenovateLogLevels];
-
 /** Entry in Renovate's log file */
 export type RenovateLog = {
   msg: string;
-  level: RenovateLogLevelValue;
+  /**
+   * - 10 = trace
+   * - 20 = debug
+   * - 30 = info
+   * - 40 = warn
+   * - 50 = error
+   * - 60 = fatal
+   */
+  level: RenovateLogLevels[keyof RenovateLogLevels];
   time: string;
   err?: Error & { err?: Error };
 
@@ -34,21 +32,29 @@ export type RenovateLog = {
   v: 0;
 
   // properties for some log types
+  /** migrated config */
+  newConfig?: unknown;
+  /** old or different context name for migrated config (see `newConfig`) */
   migratedConfig?: unknown;
-  newConfig?: unknown; // seems equivalent to migratedConfig
   /** Config file path or config type for certain logs */
   configType?: string;
   /** Errors in config validation logs (for general caught exceptions, see `err`) */
   errors?: Array<{ topic: string; message: string }>;
+  /** Warnings in config validation logs */
+  warnings?: Array<{ topic: string; message: string }>;
   /** Errors while running renovate */
   loggerErrors?: RenovateLog[];
+  /** Result code (msg: "Repository finished") on one of the last logs */
+  result?: string;
+  /** Preset debug log */
+  preset?: string;
+
+  /** Custom preset start marker from `testPresetsBasic` */
+  customStartMarker?: string;
 
   // arbitrary properties allowed
   [key: string]: unknown;
 };
-
-/** Renovate log file entry for preset validation */
-export type RenovatePresetDebugLog = RenovateLog & { preset: string };
 
 /** Basic data for a config file or preset */
 export type ConfigData = {
@@ -74,7 +80,7 @@ export type ConfigData = {
  */
 export type BasicRenovateConfig = {
   $schema?: string;
-  description?: string;
+  description?: string | string[];
   extends?: string[];
   ignorePresets?: string[];
 };

@@ -5,7 +5,10 @@ export const defaultRepo = 'microsoft/beachball';
 export const defaultBranch = 'main';
 export const isGithub = !!process.env.CI;
 /** Branch name if running on github */
-export const githubBranchName = getEnv('GITHUB_HEAD_REF', isGithub);
+export const githubBranchName =
+  getEnv('GITHUB_EVENT_NAME', isGithub) === 'pull_request'
+    ? getEnv('GITHUB_HEAD_REF', isGithub)
+    : getEnv('GITHUB_REF_NAME', isGithub);
 
 /**
  * In CI, log an error with the github workflow command format so it shows up in the summary

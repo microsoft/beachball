@@ -1,24 +1,16 @@
 import fs from 'fs';
 import { checkToken, getToken } from './checkToken.ts';
 import serverConfig from './serverConfig.ts';
-import { getEnv } from './utils/getEnv.ts';
-import { defaultRepo, isGithub, logEndGroup, logError, logGroup, logOther } from './utils/github.ts';
+import { defaultRepo, isGithub, logEndGroup, logError, logGroup } from './utils/github.ts';
 import { paths } from './utils/paths.ts';
-import { logRenovateErrorDetails, readRenovateLogs } from './utils/renovateLogs.ts';
+import { logRenovateErrorDetails, parseRenovateLogs, type ParsedRenovateLogs } from './utils/renovateLogs.ts';
 import { verifyRenovate, runRenovate } from './utils/runRenovate.ts';
-import type { RenovatePresetDebugLog } from './utils/types.ts';
 
 async function runTests() {
-  const repository = getEnv('GITHUB_REPOSITORY', isGithub);
-
-  if (!isGithub || repository !== defaultRepo) {
-    // This is possible to test against a github branch in the main repo, but won't work with fork PRs
-    // or locally. In that case, exit with a warning.
-    logOther(
-      'warning',
-      'Skipping full Renovate test run (only works after configs are checked in ' + 'or for branches in the main repo)'
-    );
-    process.exit(0);
+  if (!isGithub) {
+    // In the real run, config content is pulled from the repo, so this can only run after
+    logError("Can't run full Renovate test locally (only works after configs are pushed)");
+    process.exit(1);
   }
 
   await checkToken(getToken(true) || '');
@@ -33,34 +25,33 @@ async function runTests() {
 
   logGroup('Running Renovate');
   const result = await runRenovate('renovate', {
-    logLevel: 'info',
     logFile: paths.logFileFull,
-    logFileLevel: 'debug',
     configFile: paths.serverConfig,
   });
   logEndGroup();
 
-  if (result.failed) {
-    logRenovateError(paths.logFileFull);
+  const parsed = parseRenovateLogs(paths.logFileFull);
+  if (result.failed || parsed.errors.length || parsed.warnings.length) {
+    logRenovateError(parsed);
     process.exit(1);
   }
 }
 
-function logRenovateError(logFile: string) {
-  const logs = readRenovateLogs(logFile);
+function logRenovateError(parsed: ParsedRenovateLogs) {
+  const repositoryResult = parsed.resultLog?.result;
+  if (typeof repositoryResult === 'string' && repositoryResult !== 'done') {
+    logError(`Renovate repository result was "${repositoryResult}"`);
+  }
 
   // If a preset fails to validate while running renovate, there's a special message config-presets-invalid.
   // (Unclear if there can be multiple of these logs, but check anyway.)
+  const { logs, presetErrLogs, errorRollupLog } = parsed;
   const invalidPresetLogs = logs.filter(l => !!l.err && l.msg === 'config-presets-invalid');
   if (invalidPresetLogs.length) {
     // As of writing, there's only a debug log which directly includes the name of the preset that
     // failed to validate (it's not included in any of the higher-severity logs).
-    const presetDebugLogs = logs.filter(
-      l => !!l.err && (l as RenovatePresetDebugLog).preset
-    ) as RenovatePresetDebugLog[];
-
-    if (presetDebugLogs.length) {
-      for (const log of presetDebugLogs) {
+    if (presetErrLogs.length) {
+      for (const log of presetErrLogs) {
         const maybeHttpError = log.err?.err as
           { response?: { statusCode?: number }; options?: { url?: string } } | undefined;
         if (maybeHttpError?.response?.statusCode === 404) {
@@ -85,16 +76,13 @@ function logRenovateError(logFile: string) {
         logRenovateErrorDetails(log);
       }
     }
-  } else {
-    const errorRollupLog = logs.find(l => l.loggerErrors);
-    if (errorRollupLog?.loggerErrors?.length) {
-      logError('Error while running Renovate');
-      for (const log of errorRollupLog.loggerErrors) {
-        logRenovateErrorDetails(log);
-      }
-    } else {
-      logError('Running Renovate failed for an unknown reason (see logs)');
+  } else if (errorRollupLog?.loggerErrors?.length) {
+    logError('Error while running Renovate');
+    for (const log of errorRollupLog.loggerErrors) {
+      logRenovateErrorDetails(log);
     }
+  } else {
+    logError('Running Renovate failed for an unknown reason (see logs)');
   }
 
   logError('For debug logs, see the renovate-dry-run-log artifact.');
