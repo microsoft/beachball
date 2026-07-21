@@ -107,7 +107,8 @@ export class Registry {
       this.isLoggedIn = true;
     } catch (err) {
       throw new Error(
-        `Error logging in to registry: ${(err as Error).stack || err}\n${(err as execa.ExecaError).stderr}`
+        `Error logging in to registry: ${(err as Error).stack || err}\n${(err as execa.ExecaError).stderr}`,
+        { cause: err }
       );
     }
   }

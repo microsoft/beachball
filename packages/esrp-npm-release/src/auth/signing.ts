@@ -39,7 +39,7 @@ export function getKeyAndCertificatesFromPFX(
     result = execa.sync('openssl', ['pkcs12', '-nodes', '-passin', 'pass:'], { input: pfxCertificate });
   } catch (_err) {
     const err = _err as execa.ExecaSyncError;
-    throw new Error(`Error processing PFX with \`${err.command}\`:\n${err.message}`);
+    throw new Error(`Error processing PFX with \`${err.command}\`:\n${err.message}`, { cause: _err });
   }
 
   const key = result.stdout.match(/-----BEGIN PRIVATE KEY-----[\s\S]+?-----END PRIVATE KEY-----/)?.[0];

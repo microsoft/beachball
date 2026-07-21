@@ -124,7 +124,7 @@ async function doHttpRequest<TResult>(
         )
       ) {
         // Intentionally not a ReleaseError so caller can add more context
-        throw new Error(`Request to ${apiUrl} failed: ${message}`);
+        throw new Error(`Request to ${apiUrl} failed: ${message}`, { cause: err });
       }
       lastError = message;
     }
