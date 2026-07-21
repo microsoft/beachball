@@ -3,16 +3,15 @@ import { logEndGroup, logGroup } from './github.ts';
 import type { RenovateLog, RenovateLogLevelName } from './types.ts';
 
 export type RenovateEnvParams = {
-  /** Log level for console output (default info) */
+  /** Log level for pretty console output (default warn) */
   logLevel?: RenovateLogLevelName;
   /** Path to a log file */
-  logFile?: string;
+  logFile: string;
   /** Path to the config file (required for `renovate` but not `renovate-config-validator`) */
   configFile?: string;
 };
 
 export type ParsedRenovateLogs = {
-  logs: RenovateLog[];
   /** migrated config (possibly validation only) */
   migratedConfig?: unknown;
   /** new config/alt migration message? (possibly validation only) */
@@ -21,6 +20,7 @@ export type ParsedRenovateLogs = {
   resultLog?: RenovateLog & Required<Pick<RenovateLog, 'result'>>;
   errorRollupLog?: RenovateLog & Required<Pick<RenovateLog, 'loggerErrors'>>;
   presetErrLogs: Array<RenovateLog & Required<Pick<RenovateLog, 'preset' | 'err'>>>;
+  repoProblems?: string[];
   warnings: string[];
   errors: string[];
 };
@@ -29,11 +29,12 @@ export type ParsedRenovateLogs = {
  * @returns Environment variables to set for Renovate
  */
 export function getRenovateEnv(params: RenovateEnvParams): Record<string, string> {
-  const { logLevel, logFile, configFile } = params;
+  const { logLevel = 'warn', logFile, configFile } = params;
   return {
-    ...(logLevel && { LOG_LEVEL: logLevel }),
+    LOG_LEVEL: logLevel,
     // write a JSON log file
-    ...(logFile && { LOG_FILE: logFile, LOG_FILE_LEVEL: 'debug' }),
+    LOG_FILE: logFile,
+    LOG_FILE_LEVEL: 'debug',
     ...(configFile && { RENOVATE_CONFIG_FILE: configFile }),
   };
 }
@@ -76,18 +77,21 @@ export function parseRenovateLogs(logFile: string, startMarker?: string): Parsed
     } else if (log.warnings?.[0]?.message) {
       warningMessages.push(...log.warnings.map(w => w.message));
     }
+    // As of writing, there's only a debug log which directly includes the name of the preset that
+    // failed to validate (it's not included in any of the higher-severity logs).
+    // (the err-presets-invalid thing might be old)
     if (log.preset && log.err) {
       presetErrLogs.push(log as RenovateLog & Required<Pick<RenovateLog, 'preset' | 'err'>>);
     }
   }
 
   return {
-    logs,
     migratedConfig,
     newConfig,
     resultLog: logs.findLast(l => l.msg === 'Repository finished' && l.result) as ParsedRenovateLogs['resultLog'],
     errorRollupLog: logs.findLast(l => l.loggerErrors?.length) as ParsedRenovateLogs['errorRollupLog'],
     presetErrLogs,
+    repoProblems: logs.findLast(l => l.repoProblems?.length)?.repoProblems,
     // dedupe messages
     warnings: [...new Set(warningMessages)],
     errors: [...new Set(errorMessages)],

@@ -31,7 +31,7 @@ async function runTests() {
   logEndGroup();
 
   const parsed = parseRenovateLogs(paths.logFileFull);
-  if (result.failed || parsed.errors.length || parsed.warnings.length) {
+  if (result.failed || parsed.errors.length || parsed.warnings.length || parsed.repoProblems?.length) {
     logRenovateError(parsed);
     process.exit(1);
   }
@@ -43,38 +43,32 @@ function logRenovateError(parsed: ParsedRenovateLogs) {
     logError(`Renovate repository result was "${repositoryResult}"`);
   }
 
-  // If a preset fails to validate while running renovate, there's a special message config-presets-invalid.
-  // (Unclear if there can be multiple of these logs, but check anyway.)
-  const { logs, presetErrLogs, errorRollupLog } = parsed;
-  const invalidPresetLogs = logs.filter(l => !!l.err && l.msg === 'config-presets-invalid');
-  if (invalidPresetLogs.length) {
-    // As of writing, there's only a debug log which directly includes the name of the preset that
-    // failed to validate (it's not included in any of the higher-severity logs).
-    if (presetErrLogs.length) {
-      for (const log of presetErrLogs) {
-        const maybeHttpError = log.err?.err as
-          { response?: { statusCode?: number }; options?: { url?: string } } | undefined;
-        if (maybeHttpError?.response?.statusCode === 404) {
-          const url = maybeHttpError.options?.url;
-          if (url?.includes(defaultRepo) && !url.includes('?ref=')) {
-            logError(
-              `Preset "${log.preset}" not found at URL: ${url}\n` +
-                'This is expected if the preset was added in this PR and another preset extends it.'
-            );
-          } else {
-            logError(`Preset "${log.preset}" not found (404)`);
-            logRenovateErrorDetails(log);
-          }
+  // It's not at all clear which of these appear when...
+  const { presetErrLogs, errorRollupLog } = parsed;
+  if (presetErrLogs.length) {
+    for (const log of presetErrLogs) {
+      const maybeHttpError = log.err?.err as
+        { response?: { statusCode?: number }; options?: { url?: string } } | undefined;
+      if (maybeHttpError?.response?.statusCode === 404) {
+        const url = maybeHttpError.options?.url;
+        if (url?.includes(defaultRepo) && !url.includes('?ref=')) {
+          logError(
+            `Preset "${log.preset}" not found at URL: ${url}\n` +
+              'This is expected if the preset was added in this PR and another preset extends it.'
+          );
         } else {
-          logError(`Preset "${log.preset}" is invalid`);
+          logError(`Preset "${log.preset}" not found (404)`);
           logRenovateErrorDetails(log);
         }
-      }
-    } else {
-      logError('One or more presets failed to validate');
-      for (const log of invalidPresetLogs) {
+      } else {
+        logError(`Preset "${log.preset}" is invalid`);
         logRenovateErrorDetails(log);
       }
+    }
+  } else if (parsed.repoProblems?.length) {
+    logError('Renovate reported problems with the repository:');
+    for (const problem of parsed.repoProblems) {
+      console.log(`  - ${problem}`);
     }
   } else if (errorRollupLog?.loggerErrors?.length) {
     logError('Error while running Renovate');

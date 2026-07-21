@@ -44,6 +44,8 @@ export type RenovateLog = {
   warnings?: Array<{ topic: string; message: string }>;
   /** Errors while running renovate */
   loggerErrors?: RenovateLog[];
+  /** Summary of problems at end of logs */
+  repoProblems?: string[];
   /** Result code (msg: "Repository finished") on one of the last logs */
   result?: string;
   /** Preset debug log */

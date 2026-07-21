@@ -32,6 +32,8 @@ const config = {
     extends: tempFilteredPresets.map(p =>
       getExtendsForLocalPreset(p.name, githubBranchName === defaultBranch ? '' : githubBranchName)
     ),
+    // Disable alerts since the PR token doesn't have perms to read them
+    vulnerabilityAlerts: { enabled: false },
     // Use the config from the current branch. Unfortunately this is also merged with the
     // default branch's current config, with no way to disable.
     ...(githubBranchName &&
