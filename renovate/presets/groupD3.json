@@ -1,0 +1,12 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Group D3 updates.",
+
+  "packageRules": [
+    {
+      "groupName": "D3 packages",
+      "matchPackageNames": ["d3-*", "@types/d3-*"]
+    }
+  ]
+}

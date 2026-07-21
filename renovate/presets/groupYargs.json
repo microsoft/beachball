@@ -1,0 +1,12 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Group yargs, yargs-parser, and their types.",
+
+  "packageRules": [
+    {
+      "groupName": "yargs packages",
+      "matchPackageNames": ["yargs", "yargs-parser", "@types/yargs", "@types/yargs-parser"]
+    }
+  ]
+}

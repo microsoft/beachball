@@ -1,0 +1,16 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Group Lage and Backfill packages (separate group for each).",
+
+  "packageRules": [
+    {
+      "groupName": "lage monorepo",
+      "matchSourceUrls": ["https://github.com/microsoft/lage"]
+    },
+    {
+      "groupName": "backfill monorepo",
+      "matchSourceUrls": ["https://github.com/microsoft/backfill"]
+    }
+  ]
+}

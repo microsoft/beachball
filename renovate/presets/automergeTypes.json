@@ -1,0 +1,16 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Auto-merge minor and patch updates to `@types` `devDependencies` (if the build passes).",
+
+  "packageRules": [
+    {
+      "matchPackageNames": ["@types/*", "!@types/react", "!@types/react-dom"],
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "platformAutomerge": true
+    }
+  ]
+}

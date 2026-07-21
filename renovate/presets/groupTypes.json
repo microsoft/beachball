@@ -1,0 +1,37 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Group minor and patch updates to `@types` `devDependencies`.",
+
+  "packageRules": [
+    {
+      "groupName": "@types devDependencies",
+      "schedule": ["before 5am on the 1st and 15th day of the month"],
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": ">1.0.0",
+      "matchPackageNames": [
+        "@types/*",
+        "!@types/d3-*",
+        "!@types/jest-*",
+        "!@types/jest",
+        "!@types/react",
+        "!@types/react-dom",
+        "!@types/react-is",
+        "!@types/react-test-renderer",
+        "!@types/scheduler",
+        "!@types/yargs",
+        "!@types/yargs-parser"
+      ]
+    },
+    {
+      "groupName": "@types devDependencies",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@types/*"],
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch"],
+      "matchCurrentVersion": "0.x"
+    }
+  ]
+}

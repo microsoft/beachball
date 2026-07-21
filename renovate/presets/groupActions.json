@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Group and auto-update official GitHub Actions.",
+
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions (official)",
+      "matchPackageNames": ["actions/*", "github/*"],
+      "matchDepTypes": ["action"],
+      "dependencyDashboardApproval": false
+    }
+  ]
+}

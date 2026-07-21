@@ -1,0 +1,34 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "For dependencies, explicitly pick up minor updates, and ignore patch updates if in-range.",
+
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["dependencies"],
+      "rangeStrategy": "bump"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["dependencies"],
+      "matchCurrentValue": "/^[~^][1-9]/",
+      "matchUpdateTypes": ["minor"],
+      "schedule": ["before 5am on Tuesday"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["dependencies"],
+      "matchCurrentVersion": "0.x",
+      "matchUpdateTypes": ["patch"],
+      "schedule": ["before 5am on Tuesday"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["dependencies"],
+      "matchCurrentValue": "/^[~^][1-9]/",
+      "matchUpdateTypes": ["patch"],
+      "enabled": false
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Recommended config for library repos which use Beachball for publishing.",
+
+  "extends": [
+    "github>microsoft/m365-renovate-config//renovate/presets/default",
+    "github>microsoft/beachball//renovate/presets/beachballPostUpgrade"
+  ]
+}

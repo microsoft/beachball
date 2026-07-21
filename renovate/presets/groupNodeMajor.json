@@ -1,0 +1,13 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Group major updates of Node and its types.",
+
+  "packageRules": [
+    {
+      "groupName": "Node",
+      "matchPackageNames": ["@types/node", "node", "nodejs/node"],
+      "matchUpdateTypes": ["major"]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Group and schedule jest, ts-jest, jest types, and related packages.",
+
+  "ignorePresets": ["monorepo:jest", "group:jestMonorepo", "group:jestPlusTypes", "group:jestPlusTsJest"],
+
+  "packageRules": [
+    {
+      "groupName": "Jest packages",
+      "matchSourceUrls": ["https://github.com/facebook/jest"],
+      "schedule": ["before 5am on the 8th and 22nd day of the month"]
+    },
+    {
+      "groupName": "Jest packages",
+      "matchPackageNames": ["@types/jest", "ts-jest", "@types/jest-*", "jest-*"],
+      "schedule": ["before 5am on the 8th and 22nd day of the month"]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Apply all the groupings from this repo (except groupTypes).",
+
+  "extends": [
+    "group:monorepos",
+    "group:recommended",
+    "github>microsoft/beachball//renovate/presets/groupActions",
+    "github>microsoft/beachball//renovate/presets/groupD3",
+    "github>microsoft/beachball//renovate/presets/groupEslint",
+    "github>microsoft/beachball//renovate/presets/groupFixtureUpdates",
+    "github>microsoft/beachball//renovate/presets/groupFluent",
+    "github>microsoft/beachball//renovate/presets/groupJest",
+    "github>microsoft/beachball//renovate/presets/groupLageBackfill",
+    "github>microsoft/beachball//renovate/presets/groupNodeMajor",
+    "github>microsoft/beachball//renovate/presets/groupReact",
+    "github>microsoft/beachball//renovate/presets/groupRollup",
+    "github>microsoft/beachball//renovate/presets/groupYargs"
+  ]
+}

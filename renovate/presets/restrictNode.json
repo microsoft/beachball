@@ -1,0 +1,16 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Restrict Node version to the range `arg0` and ignore updates incompatible with your repo's `engines.node`.",
+
+  "packageRules": [
+    {
+      "matchPackageNames": ["@types/node", "node", "nodejs/node", "node-version"],
+      "allowedVersions": "{{arg0}}"
+    },
+    {
+      "matchManagers": ["npm"],
+      "constraintsFiltering": "strict"
+    }
+  ]
+}

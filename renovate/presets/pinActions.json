@@ -1,0 +1,21 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Pin action versions.",
+
+  "packageRules": [
+    {
+      "matchDepTypes": ["action"],
+      "pinDigests": true
+    },
+    {
+      "groupName": "Pin GitHub Actions versions",
+      "matchDepTypes": ["action"],
+      "matchUpdateTypes": ["pin", "pinDigest"],
+      "group": {
+        "commitMessageTopic": "GitHub Actions versions",
+        "commitMessageExtra": ""
+      }
+    }
+  ]
+}

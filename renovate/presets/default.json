@@ -1,0 +1,37 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": ["Recommended config which is intended to be appropriate for most projects."],
+
+  "extends": [
+    "config:recommended",
+    "github>microsoft/beachball//renovate/presets/dependencyDashboardMajor",
+    "github>microsoft/beachball//renovate/presets/groupReact",
+    "github>microsoft/beachball//renovate/presets/newConfigWarningIssue",
+    "github>microsoft/beachball//renovate/presets/pinActions"
+  ],
+
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 2,
+
+  "minimumReleaseAge": "3 days",
+
+  "printConfig": true,
+
+  "timezone": "America/Los_Angeles",
+
+  "vulnerabilityAlerts": {
+    "enabled": true
+  },
+
+  "packageRules": [
+    {
+      "matchDepTypes": ["devDependencies"],
+      "commitMessageTopic": "devDependency {{{depName}}}"
+    },
+    {
+      "matchManagers": ["npm"],
+      "minimumReleaseAge": "7 days"
+    }
+  ]
+}

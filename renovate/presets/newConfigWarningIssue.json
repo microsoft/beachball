@@ -1,0 +1,5 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Always create a new issue if there's a config problem (for visibility).",
+  "configWarningReuseIssue": false
+}
