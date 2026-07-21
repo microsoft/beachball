@@ -1,5 +1,4 @@
 import path from 'path';
-import { getEnv } from './getEnv.ts';
 
 export const defaultRepo = 'microsoft/beachball';
 export const defaultBranch = 'main';
@@ -9,6 +8,19 @@ export const githubBranchName =
   getEnv('GITHUB_EVENT_NAME', isGithub) === 'pull_request'
     ? getEnv('GITHUB_HEAD_REF', isGithub)
     : getEnv('GITHUB_REF_NAME', isGithub);
+
+/**
+ * @param envName name of value from `process.env`
+ * @returns the value
+ */
+export function getEnv(envName: string, required?: boolean): string | undefined {
+  const env = process.env[envName];
+  if (required && !env) {
+    logError(`process.env.${envName} is missing`);
+    process.exit(1);
+  }
+  return env;
+}
 
 /**
  * In CI, log an error with the github workflow command format so it shows up in the summary

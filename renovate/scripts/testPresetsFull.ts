@@ -4,7 +4,7 @@ import serverConfig from './serverConfig.ts';
 import { defaultRepo, isGithub, logEndGroup, logError, logGroup } from './utils/github.ts';
 import { paths } from './utils/paths.ts';
 import { logRenovateErrorDetails, parseRenovateLogs, type ParsedRenovateLogs } from './utils/renovateLogs.ts';
-import { verifyRenovate, runRenovate } from './utils/runRenovate.ts';
+import { runRenovate, verifyRenovate } from './utils/runBin.ts';
 
 async function runTests() {
   if (!isGithub) {

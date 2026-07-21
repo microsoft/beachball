@@ -1,12 +1,11 @@
 import fs from 'fs';
 import jju from 'jju';
 import path from 'path';
-import { updateAndFormat } from './utils/updateAndFormat.ts';
-import { isGithub, logEndGroup, logError, logOther, logGroup } from './utils/github.ts';
+import { isGithub, logEndGroup, logError, logGroup, logOther } from './utils/github.ts';
 import { paths } from './utils/paths.ts';
 import { readPresetsAndConfigs, specialConfigNames } from './utils/readPresets.ts';
 import { parseRenovateLogs } from './utils/renovateLogs.ts';
-import { verifyRenovate, runRenovate } from './utils/runRenovate.ts';
+import { runRenovate, updateAndFormat, verifyRenovate } from './utils/runBin.ts';
 import type { ConfigData, LocalPresetData } from './utils/types.ts';
 
 const presetArgIndex = process.argv.indexOf('--preset');
@@ -24,8 +23,7 @@ async function runTests() {
 
   const presets = readPresetsAndConfigs();
 
-  const allPresetNames = presets.map(p => p.name);
-  if (presetArg && !allPresetNames.includes(presetArg)) {
+  if (presetArg && !presets.some(p => p.name === presetArg)) {
     logError(`Invalid preset name "${presetArg}"`);
     process.exit(1);
   }
@@ -33,8 +31,7 @@ async function runTests() {
   const maybeFailedPresets: string[] = [];
   const failedPresets: string[] = [];
 
-  for (let i = 0; i < presets.length; i++) {
-    const preset = presets[i];
+  for (const preset of presets) {
     if (presetArg && preset.name !== presetArg) {
       continue;
     }
@@ -54,11 +51,6 @@ async function runTests() {
       failedPresets.push(preset.filename);
     } else if (configResult === 'unknown') {
       maybeFailedPresets.push(preset.filename);
-    }
-
-    if (i === 0 && configResult !== 'ok') {
-      console.error('The repo config is invalid, so skipping the other presets.');
-      break;
     }
 
     logEndGroup();

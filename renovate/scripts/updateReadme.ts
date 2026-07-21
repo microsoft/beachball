@@ -1,11 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { git } from 'workspace-tools';
-import { updateAndFormat } from './utils/updateAndFormat.ts';
 import { logError } from './utils/github.ts';
 import { getComments, getHeadingText, getMarkedSection, slugify, splitByHeading } from './utils/markdown.ts';
 import { paths } from './utils/paths.ts';
 import { readPresets } from './utils/readPresets.ts';
+import { updateAndFormat } from './utils/runBin.ts';
 
 const readmePath = path.join(paths.renovateRoot, 'README.md');
 
@@ -27,16 +27,16 @@ const presetGroups: PresetGroup[] = [
     presets: ['default', 'beachball'],
   },
   {
-    name: 'Grouping presets',
-    presets: ['groupMore', /^group/],
-  },
-  {
     name: 'Compatibility presets',
     presets: ['disableEsmVersions', 'restrictNode'],
   },
   {
-    name: 'Freshness and noise reduction presets',
-    presets: ['keepFresh', 'scheduleNoisy'],
+    name: 'Scheduling and control presets',
+    presets: ['keepFresh', 'scheduleNoisy', 'dependencyDashboardMajor'],
+  },
+  {
+    name: 'Grouping presets',
+    presets: ['groupMore', /^group/],
   },
   {
     // This group MUST be last!

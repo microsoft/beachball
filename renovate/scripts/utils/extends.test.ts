@@ -10,8 +10,8 @@ describe('getLocalPresetFromExtends', () => {
   });
 
   it.each<[desc: string, preset: string, extnds: string]>([
-    ['simple name', 'automergeTypes', 'automergeTypes'],
-    ['simple name with ref', 'automergeTypes', 'automergeTypes#v1.2.3'],
+    ['simple name', 'groupFoo', 'groupFoo'],
+    ['simple name with ref', 'groupFoo', 'groupFoo#v1.2.3'],
     ['name with argument', 'restrictNode', 'restrictNode(14)'],
     ['name with argument and ref', 'restrictNode', 'restrictNode(14)#v1.2.3'],
   ])('converts %s', (_, preset, extnds) => {
@@ -21,12 +21,12 @@ describe('getLocalPresetFromExtends', () => {
 
 describe('getExtendsForLocalPreset', () => {
   it('gets extends without ref', () => {
-    expect(getExtendsForLocalPreset('automergeTypes')).toBe(repoPresetPrefix + 'automergeTypes');
+    expect(getExtendsForLocalPreset('groupFoo')).toBe(repoPresetPrefix + 'groupFoo');
     expect(getExtendsForLocalPreset('restrictNode(14)')).toBe(repoPresetPrefix + 'restrictNode(14)');
   });
 
   it('gets extends with ref', () => {
-    expect(getExtendsForLocalPreset('automergeTypes', 'v1.2.3')).toBe(repoPresetPrefix + 'automergeTypes#v1.2.3');
+    expect(getExtendsForLocalPreset('groupFoo', 'v1.2.3')).toBe(repoPresetPrefix + 'groupFoo#v1.2.3');
     expect(getExtendsForLocalPreset('restrictNode(14)', 'v1.2.3')).toBe(repoPresetPrefix + 'restrictNode(14)#v1.2.3');
   });
 });

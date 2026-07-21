@@ -1,7 +1,4 @@
-import { getEnv } from './utils/getEnv.ts';
-import { defaultRepo, logError } from './utils/github.ts';
-
-const checkUrl = 'https://api.github.com/repos/' + defaultRepo;
+import { defaultRepo, getEnv, logError } from './utils/github.ts';
 
 /**
  * Get the TOKEN environment variable, if set. Throws if `required` is true and the token is not present.
@@ -22,6 +19,7 @@ export async function checkToken(token: string): Promise<void> {
     throw new Error(`Value starting with "${token.slice(0, 4)}" is not a GitHub token`);
   }
 
+  const checkUrl = 'https://api.github.com/repos/' + defaultRepo;
   let result: Response;
   try {
     result = await fetch(checkUrl, { headers: { Authorization: `Bearer ${token}` } });

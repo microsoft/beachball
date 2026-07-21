@@ -5,9 +5,11 @@
 
   "extends": [
     "config:recommended",
+    "docker:pinDigests",
+    "helpers:pinGitHubActionDigests",
+    ":configMigration",
     "github>microsoft/beachball//renovate/presets/dependencyDashboardMajor",
-    "github>microsoft/beachball//renovate/presets/groupReact",
-    "github>microsoft/beachball//renovate/presets/pinActions"
+    "github>microsoft/beachball//renovate/presets/groupReact"
   ],
 
   "prConcurrentLimit": 10,

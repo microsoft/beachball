@@ -40,7 +40,7 @@ export function readPresets(params: { exclude?: string[] } = {}): LocalPresetDat
 
 /**
  * Get the contents of the repo config, preset files, and server config.
- * The repo config will always be first in the array.
+ * The repo config will always be first in the array and server config is last.
  * All properties will be included for the presets and repo config.
  * The contents are omitted from the server config since it's JS.
  */

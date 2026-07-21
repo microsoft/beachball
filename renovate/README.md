@@ -50,6 +50,13 @@ In this section, ONLY edit between "extra content" marker comments!
 - [Full config presets](#full-config-presets)
   - [default](#default)
   - [beachball](#beachball)
+- [Compatibility presets](#compatibility-presets)
+  - [disableEsmVersions](#disableesmversions)
+  - [restrictNode](#restrictnodearg0)
+- [Scheduling and control presets](#scheduling-and-control-presets)
+  - [keepFresh](#keepfresh)
+  - [scheduleNoisy](#schedulenoisy)
+  - [dependencyDashboardMajor](#dependencydashboardmajor)
 - [Grouping presets](#grouping-presets)
   - [groupMore](#groupmore)
   - [groupActions](#groupactions)
@@ -63,18 +70,7 @@ In this section, ONLY edit between "extra content" marker comments!
   - [groupRollup](#grouprollup)
   - [groupTypes](#grouptypes)
   - [groupYargs](#groupyargs)
-- [Compatibility presets](#compatibility-presets)
-  - [disableEsmVersions](#disableesmversions)
-  - [restrictNode](#restrictnodearg0)
-- [Freshness and noise reduction presets](#freshness-and-noise-reduction-presets)
-  - [keepFresh](#keepfresh)
-  - [scheduleNoisy](#schedulenoisy)
 - [Other presets](#other-presets)
-  - [automergeDevLock](#automergedevlock)
-  - [automergeTypes](#automergetypes)
-  - [beachballPostUpgrade](#beachballpostupgrade)
-  - [dependencyDashboardMajor](#dependencydashboardmajor)
-  - [pinActions](#pinactions)
   <!-- end presets TOC -->
 
 <!-- start presets -->
@@ -91,9 +87,11 @@ Recommended config which is intended to be appropriate for most projects.
 {
   "extends": [
     "config:recommended",
+    "docker:pinDigests",
+    "helpers:pinGitHubActionDigests",
+    ":configMigration",
     "github>microsoft/beachball//renovate/presets/dependencyDashboardMajor",
-    "github>microsoft/beachball//renovate/presets/groupReact",
-    "github>microsoft/beachball//renovate/presets/pinActions"
+    "github>microsoft/beachball//renovate/presets/groupReact"
   ],
   "prConcurrentLimit": 10,
   "prHourlyLimit": 2,
@@ -132,13 +130,14 @@ Extended presets from this repo:
 
 - [`groupReact`](#groupreact): Group React-related packages and types
 - [`dependencyDashboardMajor`](#dependencydashboardmajor): Require dependency dashboard approval for major upgrades (not supported for Azure DevOps)
-- [`pinActions`](#pinactions): Pin action versions as a security best practice
 
 Other settings:
 
+- Extend configs to pin GitHub Actions and Docker digests
 - PR limits (`prHourlyLimit` and `prConcurrentLimit`): Prevent Renovate from creating an overwhelming number of PRs all at once. It's _highly encouraged_ to adjust these in your repo to fit your team's needs!
 - `minimumReleaseAge`: Wait 3 or 7 days to auto-create PRs for new releases (they'll be shown on the dependency dashboard earlier), mainly in case of security issues. You should also apply a similar package manager setting to restrict lock file updates from pulling in new versions.
 - `printConfig`: Log the final resolved config to make debugging easier
+- `configMigration`: Automatically make PRs to migrate deprecated config options
 - `configWarningReuseIssue: false`: Always make a new issue in case of config warnings, so they're more obvious
 - `timezone`: Run schedules relative to Pacific time, since many M365 repos are based in that time zone (see [time zone list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)).
 - `vulnerabilityAlerts`: Enable PRs to address security vulnerabilities. Note that this only works for GitHub and has limitations.
@@ -156,9 +155,48 @@ Recommended config for library repos which use Beachball for publishing.
 
 ```json
 {
-  "extends": [
-    "github>microsoft/beachball//renovate/presets/default",
-    "github>microsoft/beachball//renovate/presets/beachballPostUpgrade"
+  "extends": ["github>microsoft/beachball//renovate/presets/default"],
+  "gitAuthor": "Renovate Bot <renovate@whitesourcesoftware.com>",
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["!lockFileMaintenance"],
+      "postUpgradeTasks": {
+        "commands": [
+          "git add --all",
+          "npx beachball change --no-fetch --no-commit --type patch --message '{{{commitMessage}}}'",
+          "git reset"
+        ],
+        "fileFilters": ["change/*"],
+        "executionMode": "branch"
+      }
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "postUpgradeTasks": {
+        "commands": [
+          "git add --all",
+          "npx beachball change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
+          "git reset"
+        ],
+        "fileFilters": ["change/*"],
+        "executionMode": "branch"
+      }
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["devDependencies"],
+      "postUpgradeTasks": {
+        "commands": [
+          "git add --all",
+          "npx beachball change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
+          "git reset"
+        ],
+        "fileFilters": ["change/*"],
+        "executionMode": "branch"
+      }
+    }
   ]
 }
 ```
@@ -167,12 +205,225 @@ Recommended config for library repos which use Beachball for publishing.
 
 <!-- start extra content (EDITABLE between these comments) -->
 
-This is a full config preset which extends the [default preset](#default) and adds [`beachballPostUpgrade`](#beachballpostupgrade) to generate appropriate change files after upgrades:
+This is a full config preset which extends the [default preset](#default) and adds settings to generate appropriate change files after upgrades:
 
 - Change type `none` for updating `devDependencies`
 - Change type `patch` for all other changes
 
 These change types will be correct the majority of the time, but if a different change type is appropriate, you can always edit the change file in the PR before it merges.
+
+Note that in the GitHub app, commands in [`postUpgradeTasks`](https://docs.renovatebot.com/configuration-options/#postupgradetasks) are limited to a specific set of strings for security reasons. As of writing, only the specific commands used in this config are allowed (though `--no-fetch` can optionally be removed).
+
+<!-- end extra content -->
+
+---
+
+### Compatibility presets
+
+#### `disableEsmVersions`
+
+Disable upgrades to package versions that have been converted to ES modules.
+
+<details><summary><b>Show config JSON</b></summary>
+
+```json
+{
+  "packageRules": [
+    {
+      "matchPackageNames": ["p-limit"],
+      "allowedVersions": "<4.0.0"
+    },
+    {
+      "matchPackageNames": ["chalk"],
+      "allowedVersions": "<5.0.0"
+    },
+    {
+      "matchPackageNames": ["ansi-regex", "execa", "find-up", "pretty-bytes"],
+      "allowedVersions": "<6.0.0"
+    },
+    {
+      "matchPackageNames": ["strip-ansi"],
+      "allowedVersions": "<7.0.0"
+    },
+    {
+      "matchPackageNames": ["supports-color"],
+      "allowedVersions": "<9.0.0"
+    },
+    {
+      "matchPackageNames": ["globby"],
+      "allowedVersions": "<12.0.0"
+    }
+  ]
+}
+```
+
+</details>
+
+<!-- start extra content (EDITABLE between these comments) -->
+
+While ES modules are the new standard, migrating immediately may not be practical, in particular for libraries whose main consumers can't immediately migrate. This preset is a stopgap to prevent having to verify that every major update does not include an ESM conversion.
+
+<!-- end extra content -->
+
+---
+
+#### `restrictNode(<arg0>)`
+
+Restrict Node version to the range `arg0` and ignore updates incompatible with your repo's `engines.node`.
+
+<details><summary><b>Show config JSON</b></summary>
+
+```json
+{
+  "packageRules": [
+    {
+      "matchPackageNames": ["@types/node", "node", "nodejs/node", "node-version"],
+      "allowedVersions": "{{arg0}}"
+    },
+    {
+      "matchManagers": ["npm"],
+      "constraintsFiltering": "strict"
+    }
+  ]
+}
+```
+
+</details>
+
+<!-- start extra content (EDITABLE between these comments) -->
+
+This preset should work for the Node version as defined by `@types/node` dependency, `engines.node` in `package.json`, `.nvmrc`, or `.node-version`.
+
+It does NOT work for `actions/setup-node` (GitHub workflows) or `NodeTool` (Azure Pipelines). To ensure the Node version stays in sync for GitHub actions, it's recommended to either:
+
+- Specify `engines.node` in `package.json` and specify `node-version-file: package.json` in the action, or
+- Create a `.nvmrc` file and specify `node-version-file: .nvmrc` in the action
+
+The preset also enables [`constraintsFiltering: "strict"`](https://docs.renovatebot.com/configuration-options/#constraintsfiltering) to prevent installing deps that are incompatible with your repo's `engines.node` setting.
+
+<!-- end extra content -->
+
+---
+
+### Scheduling and control presets
+
+#### `keepFresh`
+
+Keep locally-used dependency versions updated and deduplicated.
+
+<details><summary><b>Show config JSON</b></summary>
+
+```json
+{
+  "lockFileMaintenance": {
+    "enabled": true,
+    "rebaseWhen": "behind-base-branch",
+    "schedule": ["before 5am on the 1st and 15th day of the month"]
+  },
+  "postUpdateOptions": ["yarnDedupeFewer", "npmDedupe"],
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "rangeStrategy": "replace"
+    }
+  ]
+}
+```
+
+</details>
+
+<!-- start extra content (EDITABLE between these comments) -->
+
+- [`lockFileMaintenance`](https://docs.renovatebot.com/configuration-options/#lockfilemaintenance): Completely re-create lock files twice a month. This will update direct and indirect dependency versions used _only within the repo_ to the latest versions that satisfy semver.
+  - [`rebaseWhen`](https://docs.renovatebot.com/configuration-options/#rebasewhen): If the lock file maintenance PR gets out of date, rebase it even if there aren't conflicts.
+- [`postUpdateOptions`](https://docs.renovatebot.com/configuration-options/#postupdateoptions):
+  - `yarnDedupeFewer`: If using yarn, run `yarn-deduplicate --strategy fewer` after updates.
+  - `npmDedupe`: If using npm, run `npm dedupe` after updates. WARNING: This may slow down Renovate runs significantly.
+  - `rangeStrategy: "replace"` is now set for all `npm` dependencies.
+
+With `dependencies` and/or `devDependencies` specified as ranges (unpinned), by default Renovate will make individual lockfile-only update PRs for in-range updates. These PRs are redundant when `lockFileMaintenance` is also enabled, so setting `rangeStrategy` to `replace` will reduce unnecessary PRs.
+
+(To unpin your `devDependencies` that Renovate previously pinned, run `npx better-deps unpin-dev-deps`.)
+
+It's **highly recommended** to manually run the deduplication command (`npx yarn-deduplicate --strategy fewer` or `npm dedupe`) before enabling this preset. In a large repo that hasn't been regularly deduplicated or had its lock file refreshed, it's likely that initial deduplication will cause build breaks due to implicit reliance on subtle interactions between particular old versions.
+
+<!-- end extra content -->
+
+---
+
+#### `scheduleNoisy`
+
+Update "noisy" (frequently-updating) packages once every other week.
+
+<details><summary><b>Show config JSON</b></summary>
+
+```json
+{
+  "packageRules": [
+    {
+      "matchPackageNames": ["@microsoft/api-extractor*", "github/codeql-action"],
+      "schedule": ["before 5am on the 8th and 22nd day of the month"]
+    }
+  ]
+}
+```
+
+</details>
+
+<!-- start extra content (EDITABLE between these comments) -->
+
+Certain packages tend to publish updates multiple times per week, and getting a PR for every one of those updates can be annoying. This rule includes a list of packages known to update frequently and spreads them out throughout the week (to avoid attempting to create too many PRs at once and being rate limited).
+
+<!-- end extra content -->
+
+---
+
+#### `dependencyDashboardMajor`
+
+Require dependency dashboard approval for major upgrades, 0.x upgrades, and minor upgrades of deps known not to follow semver.
+
+<details><summary><b>Show config JSON</b></summary>
+
+```json
+{
+  "dependencyDashboard": true,
+  "major": {
+    "dependencyDashboardApproval": true
+  },
+  "packageRules": [
+    {
+      "matchPackageNames": ["go", "typescript"],
+      "matchUpdateTypes": ["minor"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "matchCurrentVersion": ">=0.1.0 <1.0.0-0",
+      "matchUpdateTypes": ["minor"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}
+```
+
+</details>
+
+<!-- start extra content (EDITABLE between these comments) -->
+
+Note: The dependency dashboard feature doesn't work in Azure DevOps as of writing due to [lack of issue creation support](https://github.com/renovatebot/renovate/issues/9592) in Renovate (and lack of markdown checkbox support in Azure DevOps).
+
+Major upgrades of certain dependencies may be disruptive or require extra validation, so to avoid the PRs sitting for a long time, it may be desirable to manually approve upgrades.
+
+This policy is also applied for certain _minor_ upgrades that may contain breaking changes:
+
+- Packages with `0.x` versions (allowed per semver)
+- Packages that don't respect major/minor semver: so far, `typescript` and `go`
+
+The downside of setting this policy for all major upgrades is that it reduces the visibility of available upgrades, if nobody is checking the dashboard regularly.
+
+Some alternative strategies which would need to be configured per repo (see [Renovate docs](https://docs.renovatebot.com/configuration-options/#dependencydashboardapproval) for examples):
+
+- Create a `packageRules` group which requires dependency dashboard approval for only major upgrades of specific packages that are known to be high risk/effort.
+- Set [schedules](https://docs.renovatebot.com/configuration-options/#schedule) for individual `packageRules` groups to avoid the upgrades being forgotten.
 
 <!-- end extra content -->
 
@@ -584,389 +835,6 @@ Group yargs, yargs-parser, and their types.
 
 ---
 
-### Compatibility presets
-
-#### `disableEsmVersions`
-
-Disable upgrades to package versions that have been converted to ES modules.
-
-<details><summary><b>Show config JSON</b></summary>
-
-```json
-{
-  "packageRules": [
-    {
-      "matchPackageNames": ["p-limit"],
-      "allowedVersions": "<4.0.0"
-    },
-    {
-      "matchPackageNames": ["chalk"],
-      "allowedVersions": "<5.0.0"
-    },
-    {
-      "matchPackageNames": ["ansi-regex", "execa", "find-up", "pretty-bytes"],
-      "allowedVersions": "<6.0.0"
-    },
-    {
-      "matchPackageNames": ["strip-ansi"],
-      "allowedVersions": "<7.0.0"
-    },
-    {
-      "matchPackageNames": ["supports-color"],
-      "allowedVersions": "<9.0.0"
-    },
-    {
-      "matchPackageNames": ["globby"],
-      "allowedVersions": "<12.0.0"
-    }
-  ]
-}
-```
-
-</details>
-
-<!-- start extra content (EDITABLE between these comments) -->
-
-While ES modules are the new standard, migrating immediately may not be practical, in particular for libraries whose main consumers can't immediately migrate. This preset is a stopgap to prevent having to verify that every major update does not include an ESM conversion.
-
-<!-- end extra content -->
-
----
-
-#### `restrictNode(<arg0>)`
-
-Restrict Node version to the range `arg0` and ignore updates incompatible with your repo's `engines.node`.
-
-<details><summary><b>Show config JSON</b></summary>
-
-```json
-{
-  "packageRules": [
-    {
-      "matchPackageNames": ["@types/node", "node", "nodejs/node", "node-version"],
-      "allowedVersions": "{{arg0}}"
-    },
-    {
-      "matchManagers": ["npm"],
-      "constraintsFiltering": "strict"
-    }
-  ]
-}
-```
-
-</details>
-
-<!-- start extra content (EDITABLE between these comments) -->
-
-This preset should work for the Node version as defined by `@types/node` dependency, `engines.node` in `package.json`, `.nvmrc`, or `.node-version`.
-
-It does NOT work for `actions/setup-node` (GitHub workflows) or `NodeTool` (Azure Pipelines). To ensure the Node version stays in sync for GitHub actions, it's recommended to either:
-
-- Specify `engines.node` in `package.json` and specify `node-version-file: package.json` in the action, or
-- Create a `.nvmrc` file and specify `node-version-file: .nvmrc` in the action
-
-The preset also enables [`constraintsFiltering: "strict"`](https://docs.renovatebot.com/configuration-options/#constraintsfiltering) to prevent installing deps that are incompatible with your repo's `engines.node` setting.
-
-<!-- end extra content -->
-
----
-
-### Freshness and noise reduction presets
-
-#### `keepFresh`
-
-Keep locally-used dependency versions updated and deduplicated.
-
-<details><summary><b>Show config JSON</b></summary>
-
-```json
-{
-  "lockFileMaintenance": {
-    "enabled": true,
-    "rebaseWhen": "behind-base-branch",
-    "schedule": ["before 5am on the 1st and 15th day of the month"]
-  },
-  "postUpdateOptions": ["yarnDedupeFewer", "npmDedupe"],
-  "packageRules": [
-    {
-      "matchManagers": ["npm"],
-      "rangeStrategy": "replace"
-    }
-  ]
-}
-```
-
-</details>
-
-<!-- start extra content (EDITABLE between these comments) -->
-
-- [`lockFileMaintenance`](https://docs.renovatebot.com/configuration-options/#lockfilemaintenance): Completely re-create lock files twice a month. This will update direct and indirect dependency versions used _only within the repo_ to the latest versions that satisfy semver.
-  - [`rebaseWhen`](https://docs.renovatebot.com/configuration-options/#rebasewhen): If the lock file maintenance PR gets out of date, rebase it even if there aren't conflicts.
-- [`postUpdateOptions`](https://docs.renovatebot.com/configuration-options/#postupdateoptions):
-  - `yarnDedupeFewer`: If using yarn, run `yarn-deduplicate --strategy fewer` after updates.
-  - `npmDedupe`: If using npm, run `npm dedupe` after updates. WARNING: This may slow down Renovate runs significantly.
-  - `rangeStrategy: "replace"` is now set for all `npm` dependencies.
-
-With `dependencies` and/or `devDependencies` specified as ranges (unpinned), by default Renovate will make individual lockfile-only update PRs for in-range updates. These PRs are redundant when `lockFileMaintenance` is also enabled, so setting `rangeStrategy` to `replace` will reduce unnecessary PRs.
-
-(To unpin your `devDependencies` that Renovate previously pinned, run `npx better-deps unpin-dev-deps`.)
-
-It's **highly recommended** to manually run the deduplication command (`npx yarn-deduplicate --strategy fewer` or `npm dedupe`) before enabling this preset. In a large repo that hasn't been regularly deduplicated or had its lock file refreshed, it's likely that initial deduplication will cause build breaks due to implicit reliance on subtle interactions between particular old versions.
-
-<!-- end extra content -->
-
----
-
-#### `scheduleNoisy`
-
-Update "noisy" (frequently-updating) packages once every other week.
-
-<details><summary><b>Show config JSON</b></summary>
-
-```json
-{
-  "packageRules": [
-    {
-      "matchPackageNames": ["@microsoft/api-extractor*", "github/codeql-action"],
-      "schedule": ["before 5am on the 8th and 22nd day of the month"]
-    }
-  ]
-}
-```
-
-</details>
-
-<!-- start extra content (EDITABLE between these comments) -->
-
-Certain packages tend to publish updates multiple times per week, and getting a PR for every one of those updates can be annoying. This rule includes a list of packages known to update frequently and spreads them out throughout the week (to avoid attempting to create too many PRs at once and being rate limited).
-
-<!-- end extra content -->
-
----
-
 ### Other presets
-
-#### `automergeDevLock`
-
-Auto-merge minor and patch updates to `devDependencies` and lock file maintenance (if the build passes).
-
-<details><summary><b>Show config JSON</b></summary>
-
-```json
-{
-  "lockFileMaintenance": {
-    "automerge": true,
-    "platformAutomerge": true
-  },
-  "packageRules": [
-    {
-      "matchDepTypes": ["devDependencies"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "automerge": true,
-      "platformAutomerge": true,
-      "internalChecksFilter": "strict",
-      "matchPackageNames": ["!typescript"]
-    }
-  ]
-}
-```
-
-</details>
-
-<!-- start extra content (EDITABLE between these comments) -->
-
-Any branch policies will be respected, including required status checks and required reviewers. If you have a required reviewers policy, this will prevent the PRs from merging in an entirely automated manner.
-
-<!-- end extra content -->
-
----
-
-#### `automergeTypes`
-
-Auto-merge minor and patch updates to `@types` `devDependencies` (if the build passes).
-
-<details><summary><b>Show config JSON</b></summary>
-
-```json
-{
-  "packageRules": [
-    {
-      "matchPackageNames": ["@types/*", "!@types/react", "!@types/react-dom"],
-      "matchManagers": ["npm"],
-      "matchDepTypes": ["devDependencies"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "automerge": true,
-      "platformAutomerge": true
-    }
-  ]
-}
-```
-
-</details>
-
-<!-- start extra content (EDITABLE between these comments) -->
-
-Any branch policies will be respected, including required status checks and required reviewers. If you have a required reviewers policy, this will prevent the PRs from merging in an entirely automated manner.
-
-<!-- end extra content -->
-
----
-
-#### `beachballPostUpgrade`
-
-Run `beachball change` as a post-upgrade task.
-
-<details><summary><b>Show config JSON</b></summary>
-
-```json
-{
-  "gitAuthor": "Renovate Bot <renovate@whitesourcesoftware.com>",
-  "packageRules": [
-    {
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["!lockFileMaintenance"],
-      "postUpgradeTasks": {
-        "commands": [
-          "git add --all",
-          "npx beachball change --no-fetch --no-commit --type patch --message '{{{commitMessage}}}'",
-          "git reset"
-        ],
-        "fileFilters": ["change/*"],
-        "executionMode": "branch"
-      }
-    },
-    {
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["lockFileMaintenance"],
-      "postUpgradeTasks": {
-        "commands": [
-          "git add --all",
-          "npx beachball change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
-          "git reset"
-        ],
-        "fileFilters": ["change/*"],
-        "executionMode": "branch"
-      }
-    },
-    {
-      "matchManagers": ["npm"],
-      "matchDepTypes": ["devDependencies"],
-      "postUpgradeTasks": {
-        "commands": [
-          "git add --all",
-          "npx beachball change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
-          "git reset"
-        ],
-        "fileFilters": ["change/*"],
-        "executionMode": "branch"
-      }
-    }
-  ]
-}
-```
-
-</details>
-
-<!-- start extra content (EDITABLE between these comments) -->
-
-Generate appropriate change files after upgrades:
-
-- Change type `none` for updating `devDependencies` or `lockFileMaintenance`
-- Change type `patch` for all other changes
-
-These change types will be correct the majority of the time, but if a different change type is appropriate, you can always edit the change file in the PR before it merges.
-
-Note that in the GitHub app, commands in [`postUpgradeTasks`](https://docs.renovatebot.com/configuration-options/#postupgradetasks) are limited to a specific set of strings for security reasons. As of writing, only the specific commands used in this config are allowed (though `--no-fetch` can optionally be removed).
-
-<!-- end extra content -->
-
----
-
-#### `dependencyDashboardMajor`
-
-Require dependency dashboard approval for major upgrades, 0.x upgrades, and minor upgrades of deps known not to follow semver.
-
-<details><summary><b>Show config JSON</b></summary>
-
-```json
-{
-  "dependencyDashboard": true,
-  "major": {
-    "dependencyDashboardApproval": true
-  },
-  "packageRules": [
-    {
-      "matchPackageNames": ["go", "typescript"],
-      "matchUpdateTypes": ["minor"],
-      "dependencyDashboardApproval": true
-    },
-    {
-      "matchCurrentVersion": ">=0.1.0 <1.0.0-0",
-      "matchUpdateTypes": ["minor"],
-      "dependencyDashboardApproval": true
-    }
-  ]
-}
-```
-
-</details>
-
-<!-- start extra content (EDITABLE between these comments) -->
-
-Note: The dependency dashboard feature doesn't work in Azure DevOps as of writing due to [lack of issue creation support](https://github.com/renovatebot/renovate/issues/9592) in Renovate (and lack of markdown checkbox support in Azure DevOps).
-
-Major upgrades of certain dependencies may be disruptive or require extra validation, so to avoid the PRs sitting for a long time, it may be desirable to manually approve upgrades.
-
-This policy is also applied for certain _minor_ upgrades that may contain breaking changes:
-
-- Packages with `0.x` versions (allowed per semver)
-- Packages that don't respect major/minor semver: so far, `typescript` and `go`
-
-The downside of setting this policy for all major upgrades is that it reduces the visibility of available upgrades, if nobody is checking the dashboard regularly.
-
-Some alternative strategies which would need to be configured per repo (see [Renovate docs](https://docs.renovatebot.com/configuration-options/#dependencydashboardapproval) for examples):
-
-- Create a `packageRules` group which requires dependency dashboard approval for only major upgrades of specific packages that are known to be high risk/effort.
-- Set [schedules](https://docs.renovatebot.com/configuration-options/#schedule) for individual `packageRules` groups to avoid the upgrades being forgotten.
-
-<!-- end extra content -->
-
----
-
-#### `pinActions`
-
-Pin action versions.
-
-<details><summary><b>Show config JSON</b></summary>
-
-```json
-{
-  "packageRules": [
-    {
-      "matchDepTypes": ["action"],
-      "pinDigests": true
-    },
-    {
-      "groupName": "Pin GitHub Actions versions",
-      "matchDepTypes": ["action"],
-      "matchUpdateTypes": ["pin", "pinDigest"],
-      "group": {
-        "commitMessageTopic": "GitHub Actions versions",
-        "commitMessageExtra": ""
-      }
-    }
-  ]
-}
-```
-
-</details>
-
-<!-- start extra content (EDITABLE between these comments) -->
-
-Actions should be pinned to a specific immutable commit hash for security.
-
-<!-- end extra content -->
-
----
 
 <!-- end presets -->
