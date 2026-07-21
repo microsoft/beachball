@@ -13,12 +13,12 @@
   "devDependencies": {
     "@ms-cloudpack/esbuild-node-helpers": "patch:@ms-cloudpack/esbuild-node-helpers@npm%3A0.1.7#~/.yarn/patches/@ms-cloudpack-esbuild-node-helpers-npm-0.1.7-235443c849.patch",
     "@ms-cloudpack/eslint-plugin-deprecated": "^0.2.0",
-    "cross-env": "^10.1.0",
+    "cross-env": "catalog:dev",
     "esbuild": "^0.28.1",
-    "eslint": "^10.0.0",
+    "eslint": "catalog:dev",
+    "eslint-config-prettier": "^10.1.8",
     "globals": "^17.7.0",
-    "ts7": "npm:typescript@~7.0.0",
-    "typescript": "npm:@typescript/typescript6@^6.0.0",
+    "typescript": "catalog:dev",
     "typescript-eslint": "^8.52.0",
     "workspace-tools": "catalog:prod"
   }

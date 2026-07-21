@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Use catalog dependencies",
+  "packageName": "@microsoft/beachball-yarn-plugin-npmrc",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}

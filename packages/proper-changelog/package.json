@@ -31,7 +31,7 @@
   "devDependencies": {
     "@microsoft/beachball-scripts": "workspace:^",
     "@octokit/openapi-types": "^27.0.0",
-    "cross-env": "^10.1.0"
+    "cross-env": "catalog:dev"
   },
   "dependencies": {
     "commander": "catalog:prod",
