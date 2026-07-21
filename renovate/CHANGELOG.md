@@ -2,6 +2,44 @@
 
 <!-- Start content -->
 
+## 3.0.0
+
+July 21, 2026
+
+Version 3 is the migration from `microsoft/m365-renovate-config` into this repo. There are a few breaking changes.
+
+### Preset reference format
+
+The `extends` reference format has changed due to nested subfolders:
+
+```jsonc
+// before
+"github>microsoft/m365-renovate-config",
+"github>microsoft/m365-renovate-config:foo",
+// after
+"github>microsoft/beachball//renovate/presets/default",
+"github>microsoft/beachball//renovate/presets/foo",
+```
+
+Note that **pinning to a ref/tag won't work** if the preset `extends` any other local presets, since those would be pulled from `main` by default. That was done in the `m365-renovate-config` repo and could be brought back if necessary, but it requires an extra branch and [several extra steps](https://github.com/microsoft/m365-renovate-config/blob/main/scripts/release/bumpAndRelease.ts#L125) to update all references and create a corresponding commit (please open an issue if interested).
+
+### Removed presets
+
+The following presets have been removed:
+
+- `automergeDevLock`, `automergeTypes` - manually set auto-merge instead
+- `beachballPostUpgrade` - merged with `beachball`
+- `groupFixtureUpdates` - minimally useful
+- `minorDependencyUpdates` - didn't work as desired (it's better to go understand Renovate's [`rangeStrategy`](https://docs.renovatebot.com/configuration-options/#rangestrategy) for yourself and pick what you want)
+- `newConfigWarningIssue` - included in `default`
+- `pinActions` - included in `default` via `helpers:pinGitHubActionDigests`
+
+### Updated behavior
+
+- [`default`](#default) includes `docker:pinDigests`, `helpers:pinGitHubActionDigests`, and `configMigration`
+- [`beachball`](#beachball) includes the old `beachballPostUpgrade` behavior directly (use `default` if you don't want that)
+- [`groupFluent`](#groupfluent): outdated Fluent-family packages were removed
+
 ## 2.8.4
 
 [Compare source](https://github.com/microsoft/m365-renovate-config/compare/v2.8.3...v2.8.4) - July 20, 2026 at 4:52 PM PDT

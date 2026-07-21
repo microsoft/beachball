@@ -29,7 +29,7 @@ export type ParsedRenovateLogs = {
  * @returns Environment variables to set for Renovate
  */
 export function getRenovateEnv(params: RenovateEnvParams): Record<string, string> {
-  const { logLevel = 'warn', logFile, configFile } = params;
+  const { logLevel = 'info', logFile, configFile } = params;
   return {
     LOG_LEVEL: logLevel,
     // write a JSON log file

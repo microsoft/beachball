@@ -97,6 +97,7 @@ async function checkFile(preset: ConfigData, isServerConfig: boolean): Promise<R
       ...(isServerConfig ? [] : ['--no-global']),
       absolutePath,
     ],
+    logLevel: 'warn',
     logFile: paths.logFileBasic,
   });
 

@@ -15,7 +15,10 @@ export const specialConfigNames = {
  */
 export function readPresets(params: { exclude?: string[] } = {}): LocalPresetData[] {
   const excludePresets = params?.exclude ?? [];
-  const presetFiles = fs.readdirSync(paths.presetsRoot).filter(file => /^[^.].*\.json$/.test(file));
+  const presetFiles = fs
+    .readdirSync(paths.presetsRoot)
+    .filter(file => /^[^.].*\.json$/.test(file))
+    .sort();
 
   if (!presetFiles.length) {
     logError('No presets found under ' + paths.presetsRoot);
