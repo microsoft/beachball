@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@microsoft/beachball-scripts": "workspace:^",
-    "cross-env": "^10.1.0"
+    "cross-env": "catalog:dev"
   },
   "files": [
     "lib/!(__*)",

@@ -17,12 +17,12 @@
     "test": "yarn run -T jest"
   },
   "dependencies": {
-    "@yarnpkg/core": "^4.7.0",
+    "@yarnpkg/core": "catalog:prod",
     "@yarnpkg/fslib": "^3.1.5",
-    "semver": "^7.7.4"
+    "semver": "catalog:prod"
   },
   "devDependencies": {
     "@microsoft/beachball-scripts": "workspace:^",
-    "@types/semver": "^7.3.13"
+    "@types/semver": "catalog:dev"
   }
 }

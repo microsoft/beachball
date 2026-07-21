@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@npmcli/config": "patch:@npmcli/config@npm%3A10.7.1#~/.yarn/patches/@npmcli-config-npm-10.7.1-8423a6d567.patch",
-    "@yarnpkg/core": "^4.7.0",
+    "@yarnpkg/core": "catalog:prod",
     "which": "^6.0.1"
   },
   "devDependencies": {

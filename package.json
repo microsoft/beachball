@@ -53,17 +53,15 @@
     "@typescript-eslint/utils": "^8.52.0",
     "babel-jest": "^30.0.0",
     "depcheck": "^1.4.7",
-    "eslint": "^10.0.0",
-    "eslint-config-prettier": "^10.1.8",
+    "eslint": "catalog:dev",
     "husky": "^9.0.0",
     "jest": "^30.0.0",
     "lage": "^2.15.0",
     "lint-staged": "^16.0.0",
     "prettier": "~3.9.0",
     "syncpack": "^14.0.0",
-    "ts7": "npm:typescript@~7.0.0",
-    "typescript": "npm:@typescript/typescript6@^6.0.0",
-    "typescript-eslint": "^8.52.0"
+    "ts7": "catalog:dev",
+    "typescript": "catalog:dev"
   },
   "resolutions": {
     "@types/node": "^22.0.0",
