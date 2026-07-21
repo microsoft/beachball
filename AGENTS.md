@@ -77,7 +77,7 @@ Run all of: `yarn build`, `yarn test`, `yarn lint`, `yarn format`.
 - `yarn-plugins/*` — Yarn v4 plugins (`engines`, `npmrc`) loaded by the repo's own [.yarnrc.yml](./.yarnrc.yml). Each builds a bundle via `yarn build`+`yarn bundle` into a committed `dist/plugin.js`, which must be rebuilt and committed if `src` changes. See [yarn-plugins/README.md](./yarn-plugins/README.md).
 - `docs/` — Vuepress documentation site with its own separate Yarn install.
 - `change/` — pending Beachball change files (JSON).
-- Root config: [beachball.config.js](./beachball.config.js), [lage.config.js](./lage.config.js), [syncpack.config.js](./syncpack.config.js), [.prettierrc.json5](./.prettierrc.json5), [.yarnrc.yml](./.yarnrc.yml). Per-package: `tsconfig.json`, `jest.config.js`, `eslint.config.mjs`.
+- Root config: [beachball.config.js](./beachball.config.js), [lage.config.js](./lage.config.js), [syncpack.config.js](./syncpack.config.js), [.prettierrc.json5](./.prettierrc.json5), [.yarnrc.yml](./.yarnrc.yml). Per-package: `tsconfig.json`, `jest.config.js`, `eslint.config.*`.
 
 ### `beachball` package architecture (paths under `packages/beachball`)
 

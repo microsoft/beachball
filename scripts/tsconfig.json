@@ -4,7 +4,6 @@
     "noEmit": true,
     "allowJs": true,
     "checkJs": true,
-    "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true
   },

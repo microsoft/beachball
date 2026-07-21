@@ -1,19 +1,20 @@
-import globals from 'globals';
-import { includeIgnoreFile } from '@eslint/compat';
 import pluginJs from '@eslint/js';
-import eslint from 'eslint/config';
-import prettier from 'eslint-config-prettier/flat';
-import tseslint from 'typescript-eslint';
-import path from 'path';
 import deprecated from '@ms-cloudpack/eslint-plugin-deprecated';
+import prettier from 'eslint-config-prettier/flat';
+import eslint from 'eslint/config';
+import globals from 'globals';
+import path from 'path';
+import tseslint from 'typescript-eslint';
+
+type ConfigWithExtendsArray = Parameters<typeof eslint.defineConfig>;
 
 const repoRoot = path.resolve(import.meta.dirname, '../..');
 
-export function getConfig(dirname: string, ...configs: eslint.Config[]) {
+export function getConfig(dirname: string, ...configs: ConfigWithExtendsArray) {
   return eslint.defineConfig(
     // ignores must be in separate objects to be properly respected
-    includeIgnoreFile(path.join(repoRoot, '.gitignore')),
-    includeIgnoreFile(path.join(repoRoot, '.prettierignore')),
+    eslint.includeIgnoreFile(path.join(repoRoot, '.gitignore')),
+    eslint.includeIgnoreFile(path.join(repoRoot, '.prettierignore')),
     { ignores: ['lib/**/*', 'bin/**/*', '.eslintrc.js', '*.config.*'] },
 
     pluginJs.configs.recommended,
@@ -172,6 +173,9 @@ export function getConfig(dirname: string, ...configs: eslint.Config[]) {
     {
       files: ['**/*.{js,cjs,mjs}'],
       extends: [tseslint.configs.disableTypeChecked],
+      rules: {
+        '@ms-cloudpack/no-deprecated': 'off',
+      },
     },
     ...configs
   );

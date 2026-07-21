@@ -277,7 +277,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ----
 
-@octokit/request 10.0.10 - MIT
+@octokit/request 10.0.11 - MIT
 https://github.com/octokit/request.js
 
 Author: Gregor Martynus (https://github.com/gr2m)
@@ -573,7 +573,7 @@ Apache License
 
 ----
 
-brace-expansion 1.1.15 - MIT
+brace-expansion 1.1.16 - MIT
 https://github.com/juliangruber/brace-expansion
 
 Author: Julian Gruber <mail@juliangruber.com> (http://juliangruber.com)
@@ -658,7 +658,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ----
 
-json-with-bigint 3.5.8 - MIT
+json-with-bigint 3.5.10 - MIT
 https://github.com/Ivan-Korolenko/json-with-bigint
 
 Author: Ivan Korolenko <iam@ivankorolenko.com>
