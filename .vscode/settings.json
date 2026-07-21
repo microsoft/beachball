@@ -6,9 +6,9 @@
   "eslint.enable": true,
   "files.trimTrailingWhitespace": true,
   "js/ts.preferences.quoteStyle": "single",
-  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.path": "node_modules/typescript",
+  "js/ts.experimental.useTsgo": true,
   "jest.runMode": "on-demand",
-  "eslint.workingDirectories": [{ "pattern": "./packages/*" }, { "pattern": "./actions/*" }],
   "search.exclude": {
     "**/node_modules": true,
     "**/lib": true,
