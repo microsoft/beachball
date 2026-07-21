@@ -38,29 +38,21 @@ export function readPresets(params: { exclude?: string[] } = {}): LocalPresetDat
     });
 }
 
-/**
- * Get the contents of the repo config, preset files, and server config.
- * The repo config will always be first in the array and server config is last.
- * All properties will be included for the presets and repo config.
- * The contents are omitted from the server config since it's JS.
- */
-export function readPresetsAndConfigs(): ConfigData[] {
-  const repoConfigContent = fs.readFileSync(paths.repoRenovateConfig, 'utf8');
-  return [
-    {
-      // repo config
-      absolutePath: paths.repoRenovateConfig,
-      filename: paths.repoRenovateConfigRel,
-      content: repoConfigContent,
-      json: jju.parse(repoConfigContent) as BasicRenovateConfig,
-      name: specialConfigNames.repoConfig,
-    },
-    ...readPresets(),
-    {
-      // server config (omit contents)
-      absolutePath: paths.serverConfig,
-      name: specialConfigNames.serverConfig,
-      filename: paths.serverConfigRel,
-    },
-  ];
+/** Read the repo `renovate.json5` */
+export function readRepoConfig(): LocalPresetData {
+  const content = fs.readFileSync(paths.repoRenovateConfig, 'utf8');
+  return {
+    absolutePath: paths.repoRenovateConfig,
+    content,
+    name: specialConfigNames.repoConfig,
+    json: jju.parse(content) as BasicRenovateConfig,
+  };
+}
+
+/** Get server config info without contents */
+export function getServerConfig(): ConfigData {
+  return {
+    absolutePath: paths.serverConfig,
+    name: specialConfigNames.serverConfig,
+  };
 }

@@ -11,7 +11,7 @@ Shared Renovate presets for use in M365 projects, migrated from [`microsoft/m365
 
 ## Using presets
 
-To reference a preset from this repo in your Renovate config ([syntax reference](https://docs.renovatebot.com/config-presets/#github)):
+To reference a preset from this repo in your Renovate config ([syntax reference](https://docs.renovatebot.com/config-presets/#github)). ⚠️ **Note the format change from `m365-renovate-config`!**
 
 ```jsonc
 {
@@ -23,6 +23,36 @@ To reference a preset from this repo in your Renovate config ([syntax reference]
 ```
 
 Note that **pinning to a ref/tag won't work** if the preset `extends` any other local presets, since those would be pulled from `main` by default. That was done in the `m365-renovate-config` repo and could be brought back if necessary, but it requires an extra branch and [several extra steps](https://github.com/microsoft/m365-renovate-config/blob/main/scripts/release/bumpAndRelease.ts#L125) to update all references and create a corresponding commit (please open an issue if interested).
+
+## Version 3 updates
+
+<!-- TODO move most of this into the changelog -->
+
+Version 3 is the migration from `microsoft/m365-renovate-config` into this repo. There are a few breaking changes.
+
+### Preset reference format
+
+The `extends` reference format has changed due to nested subfolders. Find/replace:
+
+- `microsoft/m365-renovate-config:` to `microsoft/beachball//renovate/presets/`
+- Implicit default preset: `microsoft/m365-renovate-config` to `microsoft/beachball//renovate/presets/default`
+
+### Removed presets
+
+The following presets have been removed:
+
+- `automergeDevLock`, `automergeTypes` - manually set auto-merge instead
+- `beachballPostUpgrade` - merged with `beachball`
+- `groupFixtureUpdates` - minimally useful
+- `minorDependencyUpdates` - didn't work as desired (it's better to go understand Renovate's [`rangeStrategy`](https://docs.renovatebot.com/configuration-options/#rangestrategy) for yourself and pick what you want)
+- `newConfigWarningIssue` - included in `default`
+- `pinActions` - included in `default` via `helpers:pinGitHubActionDigests`
+
+### Updated behavior
+
+- [`default`](#default) includes `docker:pinDigests`, `helpers:pinGitHubActionDigests`, and `configMigration`
+- [`beachball`](#beachball) includes the old `beachballPostUpgrade` behavior directly (use `default` if you don't want that)
+- [`groupFluent`](#groupfluent): outdated Fluent-family packages were removed
 
 ## Development notes
 
@@ -97,6 +127,7 @@ Recommended config which is intended to be appropriate for most projects.
   "prHourlyLimit": 2,
   "minimumReleaseAge": "3 days",
   "printConfig": true,
+  "configMigration": true,
   "configWarningReuseIssue": false,
   "timezone": "America/Los_Angeles",
   "vulnerabilityAlerts": {

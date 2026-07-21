@@ -19,6 +19,8 @@
 
   "printConfig": true,
 
+  "configMigration": true,
+
   "configWarningReuseIssue": false,
 
   "timezone": "America/Los_Angeles",

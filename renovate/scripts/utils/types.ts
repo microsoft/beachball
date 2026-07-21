@@ -60,10 +60,8 @@ export type RenovateLog = {
 export type ConfigData = {
   /** Absolute path to the preset file */
   absolutePath: string;
-  /** Name of the preset (no extension) */
+  /** Friendly name of the preset (no extension) */
   name: string;
-  /** Filename with extension (relative path in the case of .github/renovate.json5) */
-  filename: string;
   /** Content of the preset file. Undefined for server config. */
   content?: string;
   /**

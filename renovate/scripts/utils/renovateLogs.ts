@@ -5,8 +5,6 @@ import type { RenovateLog, RenovateLogLevelName } from './types.ts';
 export type RenovateEnvParams = {
   /** Log level for console output (default info) */
   logLevel?: RenovateLogLevelName;
-  /** Log format for console output (default pretty) */
-  logFormat?: 'json' | 'pretty';
   /** Path to a log file */
   logFile?: string;
   /** Path to the config file (required for `renovate` but not `renovate-config-validator`) */
