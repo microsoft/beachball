@@ -43,7 +43,7 @@ describe('getExtendsForLocalPreset', () => {
 
   it('adds numeric arg0 placeholder with ref when needed', () => {
     expect(getExtendsForLocalPreset(createPreset('restrictNode', '{"description":"{{arg0}}"}'), 'v1.2.3')).toBe(
-      repoPresetPrefix + 'restrictNode(16)#v1.2.3'
+      repoPresetPrefix + 'restrictNode#v1.2.3(16)'
     );
   });
 });

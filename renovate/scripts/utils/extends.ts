@@ -20,5 +20,5 @@ export function getExtendsForLocalPreset(preset: LocalPresetData, ref?: string):
   const presetName = path.basename(preset.name, '.json');
   const presetArg0 = preset.content.includes('{{arg0}}') ? '(16)' : '';
   const presetRef = ref ? `#${ref}` : '';
-  return `${repoPresetPrefix}${presetName}${presetArg0}${presetRef}`;
+  return `${repoPresetPrefix}${presetName}${presetRef}${presetArg0}`;
 }
