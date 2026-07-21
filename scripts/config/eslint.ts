@@ -10,7 +10,20 @@ type ConfigWithExtendsArray = Parameters<typeof eslint.defineConfig>;
 
 const repoRoot = path.resolve(import.meta.dirname, '../..');
 
-export function getConfig(dirname: string, ...configs: ConfigWithExtendsArray) {
+export function getConfig(
+  rootOrOptions:
+    | string
+    | {
+        /** package root directory with tsconfig */
+        tsconfigRootDir: string;
+        /** package source files directory */
+        src: string;
+      },
+  ...configs: ConfigWithExtendsArray
+) {
+  const { tsconfigRootDir, src } =
+    typeof rootOrOptions === 'string' ? { tsconfigRootDir: rootOrOptions, src: 'src' } : rootOrOptions;
+
   return eslint.defineConfig(
     // ignores must be in separate objects to be properly respected
     eslint.includeIgnoreFile(path.join(repoRoot, '.gitignore')),
@@ -24,10 +37,7 @@ export function getConfig(dirname: string, ...configs: ConfigWithExtendsArray) {
     {
       languageOptions: {
         globals: globals.node, // switch to nodeBuiltin if using ESM
-        parserOptions: {
-          projectService: true,
-          tsconfigRootDir: dirname,
-        },
+        parserOptions: { projectService: true, tsconfigRootDir },
       },
       linterOptions: {
         reportUnusedDisableDirectives: 'error',
@@ -150,13 +160,13 @@ export function getConfig(dirname: string, ...configs: ConfigWithExtendsArray) {
       },
     },
     {
-      files: ['src/**/*.test.ts'],
+      files: [`${src}/**/*.test.ts`],
       rules: {
         '@typescript-eslint/no-non-null-assertion': 'off',
       },
     },
     {
-      files: ['src/__*/**/*'],
+      files: [`${src}/__*/**/*`],
       rules: {
         '@typescript-eslint/no-empty-function': 'off',
         'no-restricted-properties': [

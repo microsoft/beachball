@@ -1,7 +1,7 @@
-import { jest, describe, it, expect, beforeEach, beforeAll } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs';
-import { getActionTags, getGitTag, postbumpHook } from './beachballConfigHelpers.cjs';
 import path from 'path';
+import { getActionTags, getGitTag, normalPackages, postbumpHook } from './beachballConfigHelpers.cjs';
 
 describe('getActionTags', () => {
   it('strips the action prefix and builds exact + major tags', () => {
@@ -22,8 +22,9 @@ describe('getActionTags', () => {
 });
 
 describe('getGitTag', () => {
-  it('returns the default tag for non-action, non-skill packages', () => {
-    expect(getGitTag({ name: 'foo', version: '3.0.0' }, 'foo_v3.0.0')).toBe('foo_v3.0.0');
+  it.each(normalPackages)('returns the default tag for %s', name => {
+    const defaultTag = name + '_v3.0.0';
+    expect(getGitTag({ name, version: '3.0.0' }, defaultTag)).toBe(defaultTag);
   });
 
   it('returns [exactTag, majorTag] for action packages', () => {
@@ -33,9 +34,20 @@ describe('getGitTag', () => {
     ]);
   });
 
+  it('returns null for renovate package', () => {
+    expect(getGitTag({ name: '@microsoft/m365-renovate-config', version: '1.2.3' }, 'default')).toBeNull();
+  });
+
   it('returns tag for skill package', () => {
     expect(getGitTag({ name: '@microsoft/beachball-change-file-skill', version: '1.0.4' }, 'default')).toBe(
       'skill_v1.0.4'
+    );
+  });
+
+  // ensure new packages get proper tags
+  it('throws on unrecognized package', () => {
+    expect(() => getGitTag({ name: 'foo', version: '3.0.0' }, 'foo_v3.0.0')).toThrow(
+      'Unhandled package "foo" in custom getGitTag'
     );
   });
 });

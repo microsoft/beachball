@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Group Fluent UI and related package updates.",
+
+  "packageRules": [
+    {
+      "groupName": "Fluent UI React v9 packages",
+      "matchPackageNames": ["@fluentui/*"],
+      "matchCurrentVersion": ">=9.0.0-alpha.0"
+    },
+    {
+      "groupName": "Fluent UI React v9 packages",
+      "matchPackageNames": ["@griffel/*"]
+    },
+    {
+      "groupName": "Fluent UI React v8 packages",
+      "matchCurrentVersion": "/^[1234568]\\./",
+      "matchPackageNames": ["@fluentui/*", "!@fluentui/eslint-plugin", "!@fluentui/react-conformance"]
+    },
+    {
+      "groupName": "Fluent UI React v8 packages",
+      "matchPackageNames": ["@fluentui/react-cards"]
+    }
+  ]
+}

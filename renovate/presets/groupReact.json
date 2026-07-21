@@ -1,0 +1,18 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Group React packages and types.",
+
+  "packageRules": [
+    {
+      "groupName": "react monorepo",
+      "matchPackageNames": [
+        "@types/react",
+        "@types/react-dom",
+        "@types/react-test-renderer",
+        "@types/react-is",
+        "@types/scheduler"
+      ]
+    }
+  ]
+}

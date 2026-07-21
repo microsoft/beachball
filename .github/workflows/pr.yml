@@ -48,7 +48,6 @@ jobs:
       - name: Install Node.js ${{ matrix.node }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          cache: yarn
           node-version: ${{ matrix.node }}
 
       # Guarantee a predictable version of npm
@@ -103,7 +102,6 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          cache: yarn
           # This should match the node version from "runs: using:" in the action.yaml files
           node-version: 24
 
@@ -139,6 +137,78 @@ jobs:
               core.info(`should-release returned shouldRelease: "${shouldRelease}"`);
             }
 
+  validate-renovate:
+    name: validate renovate
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: renovate/.nvmrc
+
+      - run: yarn --immutable
+
+      - name: Install Renovate
+        run: |
+          renovate_version="$(tr -d '\n' < renovate/.renovate-version)"
+          echo "Renovate version: $renovate_version"
+          npm i --min-release-age=7 -g "renovate@$renovate_version"
+
+      - name: Check token
+        run: yarn check-token "$TOKEN"
+        working-directory: ./renovate
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check readme
+        run: yarn update-readme --check
+        working-directory: ./renovate
+
+      - run: yarn build
+        working-directory: ./renovate
+
+      - run: yarn lint
+        working-directory: ./renovate
+
+      - run: yarn test
+        working-directory: ./renovate
+
+      - name: Basic preset validation
+        run: yarn presets:basic
+        working-directory: ./renovate
+        id: validate
+
+      - name: Upload validation logs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() && steps.validate.outcome != 'skipped' }}
+        with:
+          path: renovate/renovate.validate.log
+          name: renovate-validate-log
+
+      - name: Renovate dry run with all presets
+        run: yarn presets:full
+        # The preset name replacement won't work for fork PRs, and token might not have permission
+        if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
+        working-directory: ./renovate
+        id: dryRun
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload dry run logs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() && steps.dryRun.outcome != 'skipped' }}
+        with:
+          path: renovate/renovate.log
+          name: renovate-dry-run-log
+
   # The docs have a separate installation
   docs:
     name: build docs
@@ -152,7 +222,6 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          cache: yarn
           node-version-file: .nvmrc
 
       - run: yarn --immutable

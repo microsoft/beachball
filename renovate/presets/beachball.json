@@ -1,0 +1,51 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Recommended config for library repos which use Beachball for publishing.",
+
+  "extends": ["github>microsoft/beachball//renovate/presets/default"],
+
+  "gitAuthor": "Renovate Bot <renovate@whitesourcesoftware.com>",
+
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["!lockFileMaintenance"],
+      "postUpgradeTasks": {
+        "commands": [
+          "git add --all",
+          "npx beachball change --no-fetch --no-commit --type patch --message '{{{commitMessage}}}'",
+          "git reset"
+        ],
+        "fileFilters": ["change/*"],
+        "executionMode": "branch"
+      }
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "postUpgradeTasks": {
+        "commands": [
+          "git add --all",
+          "npx beachball change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
+          "git reset"
+        ],
+        "fileFilters": ["change/*"],
+        "executionMode": "branch"
+      }
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["devDependencies"],
+      "postUpgradeTasks": {
+        "commands": [
+          "git add --all",
+          "npx beachball change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
+          "git reset"
+        ],
+        "fileFilters": ["change/*"],
+        "executionMode": "branch"
+      }
+    }
+  ]
+}

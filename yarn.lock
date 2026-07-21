@@ -1586,6 +1586,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@microsoft/m365-renovate-config@workspace:renovate":
+  version: 0.0.0-use.local
+  resolution: "@microsoft/m365-renovate-config@workspace:renovate"
+  dependencies:
+    "@microsoft/beachball-scripts": "workspace:^"
+    "@types/jju": "npm:^1.4.2"
+    "@types/semver": "catalog:dev"
+    cross-env: "catalog:dev"
+    execa: "catalog:prod"
+    jju: "npm:^1.4.0"
+    semver: "catalog:prod"
+    workspace-tools: "catalog:prod"
+  languageName: unknown
+  linkType: soft
+
 "@ms-cloudpack/environment@npm:^0.1.7":
   version: 0.1.7
   resolution: "@ms-cloudpack/environment@npm:0.1.7"
@@ -2169,6 +2184,13 @@ __metadata:
   dependencies:
     "@types/istanbul-lib-report": "npm:*"
   checksum: 10c0/1647fd402aced5b6edac87274af14ebd6b3a85447ef9ad11853a70fd92a98d35f81a5d3ea9fcb5dbb5834e800c6e35b64475e33fcae6bfa9acc70d61497c54ee
+  languageName: node
+  linkType: hard
+
+"@types/jju@npm:^1.4.2":
+  version: 1.4.5
+  resolution: "@types/jju@npm:1.4.5"
+  checksum: 10c0/17840460a2ec18550089a727ee466da5cc5e5a44e381b95bc4c8e47253472e8f545630c89207953bf4a3c52e22b0971e4d80a3c16264a802f5a0ec7de6ffb21d
   languageName: node
   linkType: hard
 

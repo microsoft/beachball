@@ -1,0 +1,20 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "Keep locally-used dependency versions updated and deduplicated.",
+
+  "lockFileMaintenance": {
+    "enabled": true,
+    "rebaseWhen": "behind-base-branch",
+    "schedule": ["before 5am on the 1st and 15th day of the month"]
+  },
+
+  "postUpdateOptions": ["yarnDedupeFewer", "npmDedupe"],
+
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "rangeStrategy": "replace"
+    }
+  ]
+}

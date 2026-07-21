@@ -1,0 +1,20 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Require dependency dashboard approval for major upgrades, 0.x upgrades, and minor upgrades of deps known not to follow semver.",
+  "dependencyDashboard": true,
+  "major": {
+    "dependencyDashboardApproval": true
+  },
+  "packageRules": [
+    {
+      "matchPackageNames": ["go", "typescript"],
+      "matchUpdateTypes": ["minor"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "matchCurrentVersion": ">=0.1.0 <1.0.0-0",
+      "matchUpdateTypes": ["minor"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}

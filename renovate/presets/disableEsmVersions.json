@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Disable upgrades to package versions that have been converted to ES modules.",
+  "packageRules": [
+    { "matchPackageNames": ["p-limit"], "allowedVersions": "<4.0.0" },
+    { "matchPackageNames": ["chalk"], "allowedVersions": "<5.0.0" },
+    {
+      "matchPackageNames": ["ansi-regex", "execa", "find-up", "pretty-bytes"],
+      "allowedVersions": "<6.0.0"
+    },
+    { "matchPackageNames": ["strip-ansi"], "allowedVersions": "<7.0.0" },
+    { "matchPackageNames": ["supports-color"], "allowedVersions": "<9.0.0" },
+    { "matchPackageNames": ["globby"], "allowedVersions": "<12.0.0" }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Move to beachball repo, with some fixes and removals of unused or no longer recommended presets.",
+  "packageName": "@microsoft/m365-renovate-config",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

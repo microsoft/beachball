@@ -1,0 +1,30 @@
+{
+  "name": "@microsoft/m365-renovate-config",
+  "version": "2.8.4",
+  "license": "MIT",
+  "description": "Shared Renovate presets for use in M365 projects",
+  "beachball": {
+    "gitTags": false,
+    "shouldPublish": false
+  },
+  "type": "module",
+  "scripts": {
+    "build": "yarn run -T tsc --pretty",
+    "check-token": "node ./scripts/checkToken.ts",
+    "lint": "yarn run -T eslint --color --max-warnings=0 scripts",
+    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest",
+    "presets:basic": "node ./scripts/testPresetsBasic.ts",
+    "presets:full": "node ./scripts/testPresetsFull.ts",
+    "update-readme": "node ./scripts/updateReadme.ts"
+  },
+  "devDependencies": {
+    "@microsoft/beachball-scripts": "workspace:^",
+    "@types/jju": "^1.4.2",
+    "@types/semver": "catalog:dev",
+    "cross-env": "catalog:dev",
+    "execa": "catalog:prod",
+    "jju": "^1.4.0",
+    "semver": "catalog:prod",
+    "workspace-tools": "catalog:prod"
+  }
+}
