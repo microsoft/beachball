@@ -7,7 +7,7 @@
  */
 export class BeachballError extends Error {
   /** If true, detailed error info was already logged via console.error before throwing. */
-  public alreadyLogged: boolean;
+  public readonly alreadyLogged: boolean;
 
   public constructor(message: string, options?: { alreadyLogged?: boolean }) {
     super(message);
