@@ -5,9 +5,6 @@ import { readPresets } from './utils/readPresets.ts';
 
 const presets = readPresets();
 
-// TODO: REVERT THIS (see comment where it's used about why it's temporarily done)
-const tempFilteredPresets = githubBranchName === 'renovate-configs' ? presets.filter(p => !p.json?.extends) : presets;
-
 /**
  * Renovate self-hosted (server) config for testPresetsFull.ts
  * https://docs.renovatebot.com/self-hosted-configuration/
@@ -29,9 +26,7 @@ const config = {
     // (Note this will NOT fix the names of extended presets within another preset,
     // so extended presets will be fetched from main, not the branch. This is usually
     // fine but will cause an error if a preset extends a newly-added preset in a PR.)
-    extends: tempFilteredPresets.map(p =>
-      getExtendsForLocalPreset(p, githubBranchName === defaultBranch ? '' : githubBranchName)
-    ),
+    extends: presets.map(p => getExtendsForLocalPreset(p, githubBranchName === defaultBranch ? '' : githubBranchName)),
     // Disable alerts since the PR token doesn't have perms to read them
     vulnerabilityAlerts: { enabled: false },
     // Use the config from the current branch. Unfortunately this is also merged with the
