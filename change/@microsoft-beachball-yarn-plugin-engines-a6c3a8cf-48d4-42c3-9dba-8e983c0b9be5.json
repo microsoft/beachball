@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Use catalog dependencies",
-  "packageName": "@microsoft/beachball-yarn-plugin-engines",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}

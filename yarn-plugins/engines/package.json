@@ -1,6 +1,6 @@
 {
   "name": "@microsoft/beachball-yarn-plugin-engines",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Yarn plugin to enforce the repo-root engines.node requirement across dependencies of published packages",
   "license": "MIT",
   "beachball": {

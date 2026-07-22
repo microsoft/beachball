@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "update dep paths in bundle",
-  "packageName": "@microsoft/beachball-yarn-plugin-npmrc",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}
