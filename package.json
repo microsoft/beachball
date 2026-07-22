@@ -60,7 +60,7 @@
     "lage": "^2.15.0",
     "lint-staged": "^16.0.0",
     "prettier": "~3.9.0",
-    "syncpack": "^14.0.0",
+    "syncpack": "^15.0.0",
     "ts7": "catalog:dev",
     "typescript": "catalog:dev"
   },
