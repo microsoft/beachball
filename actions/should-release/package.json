@@ -18,10 +18,12 @@
   "rationale": {
     "installConfig": "Only hoist dependencies to this package root to avoid duplication. Otherwise, beachball's reference to undici causes massive duplicates of nested older undici from @actions/*."
   },
-  "devDependencies": {
+  "dependencies": {
     "@actions/core": "^3.0.0",
     "@actions/github": "^9.0.0",
-    "@actions/glob": "^0.6.0",
+    "@actions/glob": "^0.7.0"
+  },
+  "devDependencies": {
     "@microsoft/beachball-scripts": "workspace:^"
   }
 }
