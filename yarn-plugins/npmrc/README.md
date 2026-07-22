@@ -9,13 +9,13 @@ Pulling credentials from `.npmrc` can be helpful for repos migrating from anothe
 Usually you'll want the minified version of the plugin:
 
 ```
-yarn plugin import https://raw.githubusercontent.com/microsoft/beachball/yarn-plugin-npmrc_v0.4.1/yarn-plugins/npmrc/dist/plugin.js
+yarn plugin import https://raw.githubusercontent.com/microsoft/beachball/yarn-plugin-npmrc_v0.5.0/yarn-plugins/npmrc/dist/plugin.js
 ```
 
 If you'd like a non-minified version for debugging:
 
 ```
-yarn plugin import https://raw.githubusercontent.com/microsoft/beachball/yarn-plugin-npmrc_v0.4.1/yarn-plugins/npmrc/dist/plugin.dev.js
+yarn plugin import https://raw.githubusercontent.com/microsoft/beachball/yarn-plugin-npmrc_v0.5.0/yarn-plugins/npmrc/dist/plugin.dev.js
 ```
 
 ## Usage

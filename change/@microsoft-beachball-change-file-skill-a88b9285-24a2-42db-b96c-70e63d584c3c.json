@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update skill to warn against manual change file checks or merging with the target",
-  "packageName": "@microsoft/beachball-change-file-skill",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

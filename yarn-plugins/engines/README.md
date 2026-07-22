@@ -7,13 +7,13 @@ Recursively find non-dev dependencies of published packages within the repo, and
 Usually you'll want the minified version of the plugin:
 
 ```
-yarn plugin import https://raw.githubusercontent.com/microsoft/beachball/yarn-plugin-engines_v0.2.1/yarn-plugins/engines/dist/plugin.js
+yarn plugin import https://raw.githubusercontent.com/microsoft/beachball/yarn-plugin-engines_v0.3.0/yarn-plugins/engines/dist/plugin.js
 ```
 
 If you'd like a non-minified version for debugging:
 
 ```
-yarn plugin import https://raw.githubusercontent.com/microsoft/beachball/yarn-plugin-engines_v0.2.1/yarn-plugins/engines/dist/plugin.dev.js
+yarn plugin import https://raw.githubusercontent.com/microsoft/beachball/yarn-plugin-engines_v0.3.0/yarn-plugins/engines/dist/plugin.dev.js
 ```
 
 ## Options
