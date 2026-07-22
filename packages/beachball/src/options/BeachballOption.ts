@@ -46,7 +46,7 @@ export class BeachballOption extends Option {
   /** All long and short flag spellings for this item */
   private readonly _allFlags = new Set<string>();
 
-  constructor(params: BeachballOptionParams) {
+  public constructor(params: BeachballOptionParams) {
     const { name: canonicalName, alias, type = 'string', negated, defaultValue } = params;
 
     if (alias && (type === 'number' || params.parse)) {
@@ -94,7 +94,7 @@ export class BeachballOption extends Option {
     parser && this.argParser(parser);
   }
 
-  override is(arg: string): boolean {
+  public override is(arg: string): boolean {
     return this._allFlags.has(arg);
   }
 

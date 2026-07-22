@@ -90,17 +90,17 @@ describe('BeachballHelp', () => {
 
   /** Command that uses BeachballHelp and disables the `--help` option by default */
   class TestCommand extends Command {
-    constructor(name = 'test') {
+    public constructor(name = 'test') {
       super(name);
       this.helpOption(false);
     }
-    createCommand(name?: string) {
+    public createCommand(name?: string) {
       return new TestCommand(name);
     }
-    createHelp() {
+    public createHelp() {
       return new BeachballHelp();
     }
-    beachballOption(params: Omit<BeachballOptionParams, 'commands' | 'group'> & Partial<BeachballOptionParams>) {
+    public beachballOption(params: Omit<BeachballOptionParams, 'commands' | 'group'> & Partial<BeachballOptionParams>) {
       return this.addOption(new BeachballOption({ commands: () => true, group: 'primary', ...params }));
     }
   }

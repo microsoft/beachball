@@ -32,7 +32,7 @@ export class Registry {
   private token: string | undefined;
   private isLoggedIn = false;
 
-  constructor(filename: string) {
+  public constructor(filename: string) {
     this.testName = path.basename(filename, '.test.ts');
     if (!knownTests.includes(this.testName)) {
       throw new Error(`Please add ${this.testName} to knownTests in registry.ts`);
@@ -221,7 +221,7 @@ export class Registry {
     });
   }
 
-  stop(): void {
+  public stop(): void {
     if (this.server) {
       this.server.kill();
       this.server = undefined;

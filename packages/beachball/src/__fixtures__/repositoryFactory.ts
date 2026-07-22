@@ -177,7 +177,7 @@ export class RepositoryFactory {
    * (Note that there's currently no way to create a custom multi-project fixture,
    * because that hasn't been needed so far.)
    */
-  constructor(fixtureParam: FixtureType | RepoFixture) {
+  public constructor(fixtureParam: FixtureType | RepoFixture) {
     let initialFixtures: { [parentFolder: string]: RepoFixture };
     if (fixtureParam === 'multi-project') {
       initialFixtures = getMultiProjectFixture();
@@ -264,7 +264,7 @@ export class RepositoryFactory {
     tmpRepo.cleanUp();
   }
 
-  cloneRepository(options?: RepositoryCloneOptions): Repository {
+  public cloneRepository(options?: RepositoryCloneOptions): Repository {
     if (!this.root) throw new Error('Factory was already cleaned up');
 
     const newRepo = new Repository(this.root, this.tempDescription, options);
@@ -278,7 +278,7 @@ export class RepositoryFactory {
    * Doing this in CI is unnecessary because all the fixtures use unique temp directories (no collisions)
    * and the agents are wiped after each job, so manually deleting the files just slows things down.
    */
-  cleanUp(): void {
+  public cleanUp(): void {
     if (!this.root) return;
 
     removeTempDir(this.root);

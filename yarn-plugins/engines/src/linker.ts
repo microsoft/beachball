@@ -15,28 +15,28 @@ export class EnginesProbeLinker implements Linker {
    * Returns whether the link step ran for the given project.
    * If not, its files aren't available on disk.
    */
-  static wasProjectLinked(project: Project): boolean {
+  public static wasProjectLinked(project: Project): boolean {
     return EnginesProbeLinker.linkedProjectCwds.has(project.cwd);
   }
 
   /** Called at the start of every link step, and used to determine whether linking occurred */
-  makeInstaller(opts: { project: Project }): Installer {
+  public makeInstaller(opts: { project: Project }): Installer {
     EnginesProbeLinker.linkedProjectCwds.add(opts.project.cwd);
     return new EnginesProbeInstaller();
   }
-  supportsPackage = (): boolean => false;
-  findPackageLocation = (): Promise<never> => {
+  public supportsPackage = (): boolean => false;
+  public findPackageLocation = (): Promise<never> => {
     throw new Error('Assertion failed: this code should never be called');
   };
-  findPackageLocator = (): Promise<null> => Promise.resolve(null);
-  getCustomDataKey = (): string => 'yarn-plugin-engines-probe';
+  public findPackageLocator = (): Promise<null> => Promise.resolve(null);
+  public getCustomDataKey = (): string => 'yarn-plugin-engines-probe';
 }
 
 /** Never used since the corresponding linker never installs anything */
 class EnginesProbeInstaller implements Installer {
-  attachCustomData = () => {};
-  installPackage = () => Promise.resolve({ packageLocation: null, buildRequest: null });
-  attachInternalDependencies = async () => {};
-  attachExternalDependents = async () => {};
-  finalizeInstall = async () => {};
+  public attachCustomData = () => {};
+  public installPackage = () => Promise.resolve({ packageLocation: null, buildRequest: null });
+  public attachInternalDependencies = async () => {};
+  public attachExternalDependents = async () => {};
+  public finalizeInstall = async () => {};
 }

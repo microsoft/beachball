@@ -57,5 +57,5 @@ export interface CliContext {
 
 /** Throw this to indicate an expected error (stack won't be logged) */
 export class ChangelogError extends Error {
-  name = 'ChangelogError';
+  public readonly name = 'ChangelogError';
 }

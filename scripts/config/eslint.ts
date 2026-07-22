@@ -49,6 +49,7 @@ export function getConfig(
         '@typescript-eslint/consistent-type-assertions': 'error',
         '@typescript-eslint/consistent-type-imports': ['error', { disallowTypeAnnotations: false }],
         '@typescript-eslint/consistent-type-exports': 'error',
+        '@typescript-eslint/explicit-member-accessibility': ['error', { accessibility: 'explicit' }],
         '@typescript-eslint/explicit-module-boundary-types': 'error',
         '@typescript-eslint/naming-convention': [
           'error',

@@ -5,7 +5,7 @@
  * (For validation failures outside of task execution, `p-graph` will throw a regular `Error`.)
  */
 export class PGraphError extends AggregateError {
-  constructor(errors: unknown[]) {
+  public constructor(errors: unknown[]) {
     super(errors, 'Error(s) occurred during task execution:\n' + errors.map(e => `- ${String(e)}`).join('\n'));
   }
 }
