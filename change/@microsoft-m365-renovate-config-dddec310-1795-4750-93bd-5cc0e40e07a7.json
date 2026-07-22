@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Disable non-standard characters in branch names, and work around bug with Yarn resolutions with a version in the key",
+  "comment": "Disable non-standard characters in branch names",
   "packageName": "@microsoft/m365-renovate-config",
   "email": "elcraig@microsoft.com",
   "dependentChangeType": "patch"

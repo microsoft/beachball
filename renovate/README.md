@@ -114,11 +114,6 @@ Recommended config which is intended to be appropriate for most projects.
     {
       "matchManagers": ["npm"],
       "minimumReleaseAge": "7 days"
-    },
-    {
-      "matchDepTypes": ["resolutions"],
-      "matchDepNames": ["/^[~^]?\\d+\\.\\d+\\.\\d+$/"],
-      "enabled": false
     }
   ]
 }
@@ -152,7 +147,6 @@ Other settings:
 - `timezone`: Run schedules relative to Pacific time, since many M365 repos are based in that time zone (see [time zone list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)).
 - `vulnerabilityAlerts`: Enable PRs to address security vulnerabilities. Note that this only works for GitHub and has limitations.
 - For `devDependencies`: Use "devDependencies" in commit messages (instead of the default "dependencies") to be clearer about what is being modified
-- For Yarn `resolutions` with a version in the key, work around a [Renovate bug](https://github.com/renovatebot/renovate/discussions/44768) which causes the version to be treated as a dependency name
 
 <!-- end extra content -->
 

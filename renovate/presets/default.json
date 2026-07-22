@@ -37,11 +37,6 @@
     {
       "matchManagers": ["npm"],
       "minimumReleaseAge": "7 days"
-    },
-    {
-      "matchDepTypes": ["resolutions"],
-      "matchDepNames": ["/^[~^]?\\d+\\.\\d+\\.\\d+$/"],
-      "enabled": false
     }
   ]
 }
