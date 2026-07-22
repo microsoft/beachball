@@ -18,6 +18,7 @@ const config = {
   dryRun: 'extract',
   repositories: [defaultRepo],
   hostRules: [{ abortOnError: true }],
+  username: 'fake-user-do-not-match-prs',
   // For the basic config test to pass, the token must be a string
   token: getToken() || '',
   force: {
