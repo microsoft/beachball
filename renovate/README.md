@@ -97,6 +97,7 @@ Recommended config which is intended to be appropriate for most projects.
   ],
   "prConcurrentLimit": 10,
   "prHourlyLimit": 2,
+  "branchNameStrict": true,
   "minimumReleaseAge": "3 days",
   "printConfig": true,
   "configMigration": true,
@@ -113,6 +114,11 @@ Recommended config which is intended to be appropriate for most projects.
     {
       "matchManagers": ["npm"],
       "minimumReleaseAge": "7 days"
+    },
+    {
+      "matchDepTypes": ["resolutions"],
+      "matchDepNames": ["/^[~^]?\\d+\\.\\d+\\.\\d+$/"],
+      "enabled": false
     }
   ]
 }
@@ -138,6 +144,7 @@ Other settings:
 
 - Extend configs to pin GitHub Actions and Docker digests
 - PR limits (`prHourlyLimit` and `prConcurrentLimit`): Prevent Renovate from creating an overwhelming number of PRs all at once. It's _highly encouraged_ to adjust these in your repo to fit your team's needs!
+- `branchNameStrict`: Prevent special characters in branch names
 - `minimumReleaseAge`: Wait 3 or 7 days to auto-create PRs for new releases (they'll be shown on the dependency dashboard earlier), mainly in case of security issues. You should also apply a similar package manager setting to restrict lock file updates from pulling in new versions.
 - `printConfig`: Log the final resolved config to make debugging easier
 - `configMigration`: Automatically make PRs to migrate deprecated config options
@@ -145,6 +152,7 @@ Other settings:
 - `timezone`: Run schedules relative to Pacific time, since many M365 repos are based in that time zone (see [time zone list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)).
 - `vulnerabilityAlerts`: Enable PRs to address security vulnerabilities. Note that this only works for GitHub and has limitations.
 - For `devDependencies`: Use "devDependencies" in commit messages (instead of the default "dependencies") to be clearer about what is being modified
+- For Yarn `resolutions` with a version in the key, work around a [Renovate bug](https://github.com/renovatebot/renovate/discussions/44768) which causes the version to be treated as a dependency name
 
 <!-- end extra content -->
 
