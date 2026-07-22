@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add public visibility modifiers to types of class members (same behavior as before)",
+  "packageName": "proper-changelog",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}

@@ -52,7 +52,7 @@ export class Repository {
    * Clone the given remote repo into a temp directory and configure settings that are needed
    * by certain tests (user name+email and default branch).
    */
-  constructor(clonePath: string, tempDescription = 'repository', options: RepositoryCloneOptions = {}) {
+  public constructor(clonePath: string, tempDescription = 'repository', options: RepositoryCloneOptions = {}) {
     const { depth, branch, singleBranch } = options;
 
     this.root = tmpdir({ prefix: `beachball-${tempDescription}-cloned-` });
@@ -87,7 +87,7 @@ export class Repository {
   }
 
   /** Root temp directory for the repo (throws if already cleaned up) */
-  get rootPath(): string {
+  public get rootPath(): string {
     if (!this.root) {
       throw new Error('Repo has been cleaned up');
     }
@@ -103,7 +103,7 @@ export class Repository {
    * cause flaky tests. (e.g. Mac temp files are under `/private/var` which is symlinked as `/var`,
    * and Windows can use either standard paths or short DOS paths.)
    */
-  pathTo(...segments: string[]): string {
+  public pathTo(...segments: string[]): string {
     const filename = path.join(...segments);
     if (path.isAbsolute(filename)) {
       throw new Error('Path must be relative: ' + filename);
@@ -117,7 +117,7 @@ export class Repository {
   }
 
   /** Git helper that throws on error */
-  git(args: string[], options?: Partial<Parameters<typeof git>[1]>): GitProcessOutput {
+  public git(args: string[], options?: Partial<Parameters<typeof git>[1]>): GitProcessOutput {
     const gitResult = git(args, { cwd: this.rootPath, ...options });
     if (!gitResult.success) {
       throw new Error(`git command failed: git ${args.join(' ')}
@@ -131,7 +131,7 @@ ${gitResult.stderr.toString()}`);
    * Create (or update) a file, creating the intermediate directories if necessary.
    * Automatically uses root path; do not pass absolute paths here.
    */
-  writeFile(relativePath: string, content: string | object = '', options?: { dirMustExist?: boolean }): void {
+  public writeFile(relativePath: string, content: string | object = '', options?: { dirMustExist?: boolean }): void {
     const filePath = this.pathTo(relativePath);
     if (options?.dirMustExist && !fs.existsSync(path.dirname(filePath))) {
       throw new Error(`Parent directory of file does not exist: ${relativePath}`);
@@ -144,7 +144,7 @@ ${gitResult.stderr.toString()}`);
    * Create (or update) and stage a file, creating the intermediate directories if necessary.
    * Automatically uses root path; do not pass absolute paths here.
    */
-  stageChange(relativePath: string, content?: string | object): void {
+  public stageChange(relativePath: string, content?: string | object): void {
     this.writeFile(relativePath, content);
     this.git(['add', relativePath]);
   }
@@ -153,13 +153,13 @@ ${gitResult.stderr.toString()}`);
    * Commit a change, creating the intermediate directories if necessary.
    * Automatically uses root path; do not pass absolute paths here.
    */
-  commitChange(relativePath: string, content?: string | object): void {
+  public commitChange(relativePath: string, content?: string | object): void {
     this.stageChange(relativePath, content);
     this.git(['commit', '-m', `"${relativePath}"`]);
   }
 
   /** Commit all changes to tracked and untracked files. */
-  commitAll(message = 'Committing everything'): void {
+  public commitAll(message = 'Committing everything'): void {
     this.git(['add', '-A']);
     this.git(['commit', '-m', message]);
   }
@@ -171,7 +171,7 @@ ${gitResult.stderr.toString()}`);
    * This is useful if you'd like to mostly use a built-in fixture but change one package,
    * such as making it private.
    */
-  updateJsonFile(filename: string, updates: object, options?: { commit?: boolean }): void {
+  public updateJsonFile(filename: string, updates: object, options?: { commit?: boolean }): void {
     updateJsonFile(this.pathTo(filename), updates);
     if (options?.commit) {
       this.git(['add', filename]);
@@ -180,47 +180,47 @@ ${gitResult.stderr.toString()}`);
   }
 
   /** Get the current HEAD sha1 */
-  getCurrentHash(): string {
+  public getCurrentHash(): string {
     const result = this.git(['rev-parse', 'HEAD']);
     return result.stdout.trim();
   }
 
   /** Get sorted list of tags pointing to the current HEAD commit */
-  getCurrentTags(): string[] {
+  public getCurrentTags(): string[] {
     const tagsResult = this.git(['tag', '--points-at', 'HEAD']);
     const trimmedResult = tagsResult.stdout.trim();
     return trimmedResult ? trimmedResult.split('\n').sort() : [];
   }
 
   /** Get status with `--porcelain` */
-  status(): string {
+  public status(): string {
     return this.git(['status', '--porcelain']).stdout.trim();
   }
 
   /** Check out a branch. Args can be the name and/or any options. */
-  checkout(...args: string[]): void {
+  public checkout(...args: string[]): void {
     this.git(['checkout', ...args]);
   }
 
   /** Check out a branch based on the default branch, with a name matching the current test name */
-  checkoutTestBranch(): void {
+  public checkoutTestBranch(): void {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const branchName = expect.getState().currentTestName!.replace(/\W+/g, '-');
     this.checkout('-b', branchName, defaultBranchName);
   }
 
   /** Pull from the default remote and branch.  */
-  pull(): void {
+  public pull(): void {
     this.git(['pull', defaultRemoteName, `HEAD:${defaultBranchName}`]);
   }
 
   /** Push to the default remote. */
-  push(branchName: string = defaultBranchName): void {
+  public push(branchName: string = defaultBranchName): void {
     this.git(['push', defaultRemoteName, `HEAD:${branchName}`]);
   }
 
   /** `git reset --hard <ref>` and `git clean -dfx` */
-  resetAndClean(ref: string = defaultRemoteBranchName): void {
+  public resetAndClean(ref: string = defaultRemoteBranchName): void {
     this.git(['reset', '--hard', ref]);
     this.git(['clean', '-dfx']);
   }
@@ -231,7 +231,7 @@ ${gitResult.stderr.toString()}`);
    * Doing this in CI is unnecessary because all the fixtures use unique temp directories (no collisions)
    * and the agents are wiped after each job, so manually deleting the files just slows things down.
    */
-  cleanUp(): void {
+  public cleanUp(): void {
     removeTempDir(this.root);
     this.root = undefined;
   }

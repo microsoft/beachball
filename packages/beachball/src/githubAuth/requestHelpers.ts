@@ -5,8 +5,8 @@ export const defaultGitHubApiUrl = 'https://api.github.com';
 const transientRetryCount = 3;
 
 export class GitHubRequestError extends AuthError {
-  status: number;
-  constructor(message: string, status: number) {
+  public readonly status: number;
+  public constructor(message: string, status: number) {
     super(message);
     this.status = status;
   }

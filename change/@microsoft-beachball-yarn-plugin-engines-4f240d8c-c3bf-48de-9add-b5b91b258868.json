@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add public visibility modifiers to types of class members (same behavior as before)",
+  "packageName": "@microsoft/beachball-yarn-plugin-engines",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "none"
+}

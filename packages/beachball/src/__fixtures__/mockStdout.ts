@@ -27,28 +27,28 @@ export class MockStdout extends stream.Writable {
   private ignoreChunks: RegExp[];
   private replace: [RegExp, string][];
 
-  constructor(options: { ignoreChunks?: RegExp[]; replace?: [RegExp, string][] | 'prompts' } = {}) {
+  public constructor(options: { ignoreChunks?: RegExp[]; replace?: [RegExp, string][] | 'prompts' } = {}) {
     super();
     this.ignoreChunks = options.ignoreChunks || [];
     this.replace = options.replace === 'prompts' ? promptsFigures : options.replace || [];
   }
 
   /** Gets non-empty output chunks that have been written to the stream, joined with newlines */
-  getOutput(): string {
+  public getOutput(): string {
     return this.chunks.join('\n');
   }
 
   /** Gets the last non-empty output chunk written to the stream */
-  lastOutput(): string {
+  public lastOutput(): string {
     return this.chunks.slice(-1)[0];
   }
 
   /** Clears the record of output to the stream */
-  clearOutput(): void {
+  public clearOutput(): void {
     this.chunks = [];
   }
 
-  _write(chunk: unknown, encoding: string, callback: (error?: Error | null) => void): void {
+  public _write(chunk: unknown, encoding: string, callback: (error?: Error | null) => void): void {
     // Trim each line so that if it's used in a snapshot, there won't be trailing whitespace issues
     let text = stripAnsi(String(chunk))
       .split('\n')

@@ -135,11 +135,11 @@ export class BeachballCommand extends Command {
   }
 
   // must be overridden for .command() to call to inherit parent info
-  override createCommand(name?: string): BeachballCommand {
+  public override createCommand(name?: string): BeachballCommand {
     return new BeachballCommand(name);
   }
 
-  override createHelp(): Help {
+  public override createHelp(): Help {
     return new BeachballHelp();
   }
 }

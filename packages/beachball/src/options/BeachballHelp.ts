@@ -35,7 +35,7 @@ export class BeachballHelp extends Help {
   /** full subcommand currently being described (e.g. `bump` or `config get`) */
   private _subcommandForOptionDescription: string | undefined;
 
-  constructor() {
+  public constructor() {
     super();
     if (env.isJest) {
       this.helpWidth = _defaultHelpWidth;
@@ -43,7 +43,7 @@ export class BeachballHelp extends Help {
   }
 
   /** Only for the individual command help text, add any extra description parts. */
-  override commandDescription(cmd: Command): string {
+  public override commandDescription(cmd: Command): string {
     // hack to save current command to use in determining option descriptions
     this._subcommandForOptionDescription = getSubcommandName(cmd);
     let description = super.commandDescription(cmd);
@@ -64,7 +64,7 @@ export class BeachballHelp extends Help {
     );
   }
 
-  override optionDescription(option: Option): string {
+  public override optionDescription(option: Option): string {
     if (!(option instanceof BeachballOption)) {
       return super.optionDescription(option);
     }
@@ -89,13 +89,13 @@ export class BeachballHelp extends Help {
    * (NOTE: This assumes the logic in `BeachballCommand`/`BeachballOption` which adds both positive
    * and negated variants and hides the negated one from help.)
    */
-  override optionTerm(option: Option): string {
+  public override optionTerm(option: Option): string {
     const term = super.optionTerm(option);
     return option instanceof BeachballOption && option.isBoolean() ? term.replace('--', '--[no-]') : term;
   }
 
   /** Use the custom usage string for commands with subcommands */
-  override subcommandTerm(cmd: Command): string {
+  public override subcommandTerm(cmd: Command): string {
     return cmd.commands.length ? `${cmd.name()} ${cmd.usage()}` : super.subcommandTerm(cmd);
   }
 
@@ -108,7 +108,7 @@ export class BeachballHelp extends Help {
    * (To match old behavior, all options are allowed on all commands, but we only add them to the
    * parent command to avoid extra overhead of parsing them on every subcommand.)
    */
-  override visibleOptions(cmd: Command): Option[] {
+  public override visibleOptions(cmd: Command): Option[] {
     const options = super.visibleOptions(cmd);
     if (!cmd.parent) {
       // For the actual top-level beachball command, omit extra options, but allow them for tests
@@ -134,7 +134,7 @@ export class BeachballHelp extends Help {
   }
 
   /** Group options/commands for help, with option group ordering respecting `optionGroups`. */
-  override groupItems<T extends Command | Option>(
+  public override groupItems<T extends Command | Option>(
     unsortedItems: T[],
     visibleItems: T[],
     getGroup: (item: T) => string
@@ -165,12 +165,12 @@ export class BeachballHelp extends Help {
   }
 
   /** Cap the term width so a few very long terms don't push all descriptions far to the right. */
-  override padWidth(cmd: Command, helper: Help): number {
+  public override padWidth(cmd: Command, helper: Help): number {
     return Math.min(super.padWidth(cmd, helper), _maxTermWidth);
   }
 
   /** Format a single term/description item. See {@link _formatItem} for details. */
-  override formatItem(term: string, termWidth: number, description: string): string {
+  public override formatItem(term: string, termWidth: number, description: string): string {
     const helpWidth = this.helpWidth ?? _defaultHelpWidth;
     return _formatItem({ term, termWidth, helpWidth, description });
   }
@@ -179,7 +179,7 @@ export class BeachballHelp extends Help {
    * Render the help text, moving the "Commands:" section before the "Options:" section for commands
    * that have sub-commands (so the more relevant commands list is shown first).
    */
-  override formatHelp(cmd: Command, helper: Help): string {
+  public override formatHelp(cmd: Command, helper: Help): string {
     const help = super.formatHelp(cmd, helper);
     if (!helper.visibleCommands(cmd).length) {
       return help;

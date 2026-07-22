@@ -23,7 +23,7 @@ export class PGraph {
    * @param dependencies Each tuple describes a dependency between two nodes in the p-graph:
    * the first task must complete before the second one begins.
    */
-  constructor(nodeMap: PGraphNodeMap | PGraphNodeRecord, dependencies: DependencyList) {
+  public constructor(nodeMap: PGraphNodeMap | PGraphNodeRecord, dependencies: DependencyList) {
     const entries = nodeMap instanceof Map ? nodeMap.entries() : Object.entries(nodeMap);
     const entryCount = nodeMap instanceof Map ? nodeMap.size : (entries as unknown[]).length;
     const dependencyMap = new Map<string, PGraphNodeWithDependencies>();
@@ -86,7 +86,7 @@ export class PGraph {
    * - If `continue` is true and a task fails, any tasks not dependent on the failed task will
    *   continue running, and a `PGraphError` containing all original errors will be thrown at the end.
    */
-  run(options?: RunOptions): Promise<void> {
+  public run(options?: RunOptions): Promise<void> {
     // Copy the dependency map so the graph can be reused
     const dependencyMap = new Map<string, PGraphNodeWithDependencies>(
       [...this.#dependencyMap.entries()].map(([key, node]) => [
