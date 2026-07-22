@@ -80,9 +80,10 @@
       "dependencyDashboardApproval": false
     },
     {
-      // follow npm dependency age policy
+      // follow npm dependency age policy and schedule updates
       "matchDepNames": ["renovate"],
-      "minimumReleaseAge": "7 days"
+      "minimumReleaseAge": "7 days",
+      "schedule": ["before 5am on the 1st and 15th day of the month"]
     },
     {
       "matchDepTypes": ["devDependencies"],
