@@ -16,7 +16,7 @@ for (const log of logs) {
     delete log[prop];
   }
 }
-const outPath = filePath.replace(/\\.log$/, '') + '.json';
+const outPath = filePath.replace(/\.log$/, '') + '.json';
 await updateAndFormat(outPath, JSON.stringify(logs));
 
 console.log(`Wrote logs to "${outPath}"`);
