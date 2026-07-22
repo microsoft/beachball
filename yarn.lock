@@ -10014,9 +10014,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workspace-tools@npm:^0.41.10":
-  version: 0.41.10
-  resolution: "workspace-tools@npm:0.41.10"
+"workspace-tools@npm:^0.42.0":
+  version: 0.42.0
+  resolution: "workspace-tools@npm:0.42.0"
   dependencies:
     "@yarnpkg/lockfile": "npm:^1.1.0"
     fast-glob: "npm:^3.3.3"
@@ -10024,7 +10024,7 @@ __metadata:
     jju: "npm:^1.4.0"
     js-yaml: "npm:^4.2.0"
     micromatch: "npm:^4.0.8"
-  checksum: 10c0/2a6e7bad84e1855afb63854d76eb9129e2ca06abb2936251988924a852c071fd7f276b557587a052665cca1800bee0c1dec82804e47e89ceebebd45a6305cb2c
+  checksum: 10c0/a39edf688de49f3e183ab57ffd0b0740350048b2c5fc656bfee93ec9c438bd90b07b98033e52709f8d92b7eef65fc5c8c70632e47f972601650706819db3d114
   languageName: node
   linkType: hard
 

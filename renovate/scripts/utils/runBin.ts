@@ -33,8 +33,7 @@ let hasMatchingRenovate: true | undefined;
 
 /**
  * Run Renovate from the configured working directory. Must call `verifyRenovate` first.
- * Does not reject on error, and the log level defaults to `warn` (avoiding a giant log
- * of the entire merged config in the main build logs).
+ * Does not reject on error.
  */
 export function runRenovate(
   bin: 'renovate' | 'renovate-config-validator',
