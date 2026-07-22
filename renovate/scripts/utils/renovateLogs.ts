@@ -3,7 +3,7 @@ import { logEndGroup, logGroup } from './github.ts';
 import type { RenovateLog, RenovateLogLevelName } from './types.ts';
 
 export type RenovateEnvParams = {
-  /** Log level for pretty console output (default warn) */
+  /** Log level for pretty console output (default info) */
   logLevel?: RenovateLogLevelName;
   /** Path to a log file */
   logFile: string;
@@ -12,6 +12,7 @@ export type RenovateEnvParams = {
 };
 
 export type ParsedRenovateLogs = {
+  logs: RenovateLog[];
   /** migrated config (possibly validation only) */
   migratedConfig?: unknown;
   /** new config/alt migration message? (possibly validation only) */
@@ -86,6 +87,7 @@ export function parseRenovateLogs(logFile: string, startMarker?: string): Parsed
   }
 
   return {
+    logs,
     migratedConfig,
     newConfig,
     resultLog: logs.findLast(l => l.msg === 'Repository finished' && l.result) as ParsedRenovateLogs['resultLog'],

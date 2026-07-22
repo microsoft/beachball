@@ -51,6 +51,9 @@
     }
   },
 
+  // Only check these managers for efficiency
+  "enabledManagers": ["custom.regex", "azure-pipelines", "bicep", "github-actions", "npm", "nvm"],
+
   "customManagers": [
     {
       // Look for "using: 'nodeX'" in action.yaml files

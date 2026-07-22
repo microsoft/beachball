@@ -36,9 +36,9 @@ The following presets have been removed:
 
 ### Updated behavior
 
-- [`default`](#default) includes `docker:pinDigests`, `helpers:pinGitHubActionDigests`, and `configMigration`
-- [`beachball`](#beachball) includes the old `beachballPostUpgrade` behavior directly (use `default` if you don't want that)
-- [`groupFluent`](#groupfluent): outdated Fluent-family packages were removed
+- [`default`](./README.md#default) includes `docker:pinDigests`, `helpers:pinGitHubActionDigests`, and `configMigration`
+- [`beachball`](./README.md#beachball) includes the old `beachballPostUpgrade` behavior directly (use `default` if you don't want that)
+- [`groupFluent`](./README.md#groupfluent): outdated Fluent-family packages were removed
 
 ## 2.8.4
 

@@ -15,6 +15,7 @@
     "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest",
     "presets:basic": "node ./scripts/testPresetsBasic.ts",
     "presets:full": "node ./scripts/testPresetsFull.ts",
+    "process-log": "node ./scripts/processLog.ts",
     "update-readme": "node ./scripts/updateReadme.ts"
   },
   "devDependencies": {
