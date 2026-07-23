@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
-import { getActionTags, getGitTag, normalPackages, postbumpHook } from './beachballConfigHelpers.cjs';
+import { getActionTags, getGitTag, normalPackages, postbumpHook } from './beachballConfigHelpers.ts';
 
 describe('getActionTags', () => {
   it('strips the action prefix and builds exact + major tags', () => {

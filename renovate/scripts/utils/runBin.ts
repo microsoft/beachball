@@ -16,8 +16,7 @@ const defaults: execa.Options = {
 /**
  * Run a binary provided by a node module (see {@link defaults})
  */
-export function runBin(bin: string, args: string[], opts?: execa.Options): execa.ExecaChildProcess {
-  console.log(`Running: ${bin} ${args.join(' ')}`);
+function runBin(bin: string, args: string[], opts?: execa.Options): execa.ExecaChildProcess {
   return execa(bin, args, { ...defaults, ...opts });
 }
 
@@ -25,6 +24,7 @@ export function runBin(bin: string, args: string[], opts?: execa.Options): execa
  * Update the file contents and format with Prettier
  */
 export async function updateAndFormat(file: string, newContents: string): Promise<void> {
+  console.log(`Updating and formatting ${file}`);
   fs.writeFileSync(file, newContents);
   await runBin('prettier', ['--write', '--log-level=warn', file]);
 }
@@ -44,6 +44,9 @@ export function runRenovate(
   if (!hasMatchingRenovate) {
     throw new Error('You must call verifyRenovate() before running Renovate');
   }
+
+  const env = getRenovateEnv(envParams);
+  console.log(`Running: "${[bin, ...args].join(' ')}" with env ${JSON.stringify(env)}`);
 
   return runBin(bin, args, { env: getRenovateEnv(envParams), reject: false });
 }

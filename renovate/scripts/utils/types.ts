@@ -83,6 +83,23 @@ export type BasicRenovateConfig = {
   description?: string | string[];
   extends?: string[];
   ignorePresets?: string[];
+  customManagers?: CustomManagerConfig[];
+  packageRules?: PackageRule[];
+};
+
+type CustomManagerConfig = {
+  customType?: 'regex' | 'jsonata'; // props below are for regex
+  managerFilePatterns: string[];
+  matchStrings?: string[]; // required for regex
+  datasourceTemplate?: string;
+  versioningTemplate?: string;
+};
+
+// just includes the ones currenly used in tests/etc
+type PackageRule = {
+  matchManagers?: string[];
+  matchCurrentValue?: string;
+  enabled?: boolean;
 };
 
 export type LocalPresetData = Required<ConfigData>;
