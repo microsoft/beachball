@@ -18,13 +18,15 @@ To reference a preset from this repo in your Renovate config ([syntax reference]
   "extends": [
     "github>microsoft/beachball//renovate/presets/default",
     "github>microsoft/beachball//renovate/presets/somePreset",
+    // Only for presets without `extends` pointing to other presets in this repo (see below)
+    "github>microsoft/beachball//renovate/presets/somePreset#renovate_v3",
   ],
 }
 ```
 
-Note that **pinning to a ref/tag won't work** if the preset `extends` any other local presets, since those would be pulled from `main` by default. That was done in the `m365-renovate-config` repo and could be brought back if necessary, but it requires an extra branch and [several extra steps](https://github.com/microsoft/m365-renovate-config/blob/main/scripts/release/bumpAndRelease.ts#L125) to update all references and create a corresponding commit (please open an issue if interested).
+Renovate presets are published with the tags `renovate_v<major>` and `renovate_v<version>`, e.g. `renovate_v3`. You can **only** pin presets to a tag if they don't have `extends` references to other presets in this repo, since the `beachball publish` workflow for tagging doesn't update those references (doing so would require an extra branch and [several extra steps](https://github.com/microsoft/m365-renovate-config/blob/main/scripts/release/bumpAndRelease.ts#L125)). The workaround is to reference lower-level presets like [`base`](#base) directly.
 
-See the [changelog](./CHANGELOG.md#300) for more details of what changed in the repo move.
+See the [changelog](./CHANGELOG.md#300) for more details of what changed in the repo move and breaking changes in preset version 3.
 
 ## Development notes
 
@@ -51,6 +53,7 @@ In this section, ONLY edit between "extra content" marker comments!
 
 - [Full config presets](#full-config-presets)
   - [default](#default)
+  - [base](#base)
   - [beachball](#beachball)
 - [Compatibility presets](#compatibility-presets)
   - [disableEsmVersions](#disableesmversions)
@@ -73,6 +76,8 @@ In this section, ONLY edit between "extra content" marker comments!
   - [groupTypes](#grouptypes)
   - [groupYargs](#groupyargs)
 - [Other presets](#other-presets)
+  - [beachballPostUpgrade](#beachballpostupgrade)
+  - [customTagActions](#customtagactions)
   <!-- end presets TOC -->
 
 <!-- start presets -->
@@ -81,6 +86,11 @@ In this section, ONLY edit between "extra content" marker comments!
 
 #### `default`
 
+```jsonc
+// ⚠️ This preset can't be pinned to a #tag
+"extends": ["github>microsoft/beachball//renovate/presets/default"]
+```
+
 Recommended config which is intended to be appropriate for most projects.
 
 <details><summary><b>Show config JSON</b></summary>
@@ -88,13 +98,44 @@ Recommended config which is intended to be appropriate for most projects.
 ```json
 {
   "extends": [
-    "config:recommended",
-    "docker:pinDigests",
-    "helpers:pinGitHubActionDigests",
-    ":configMigration",
+    "github>microsoft/beachball//renovate/presets/base",
+    "github>microsoft/beachball//renovate/presets/customTagActions",
     "github>microsoft/beachball//renovate/presets/dependencyDashboardMajor",
     "github>microsoft/beachball//renovate/presets/groupReact"
-  ],
+  ]
+}
+```
+
+</details>
+
+<!-- start extra content (EDITABLE between these comments) -->
+
+This preset includes all the other presets which are generally recommended:
+
+- [`base`](#base): Renovate's [`config:recommended`](https://docs.renovatebot.com/presets-config/#configrecommended) plus other common settings
+- [`dependencyDashboardMajor`](#dependencydashboardmajor): Require dependency dashboard approval for major upgrades (not supported for Azure DevOps)
+- [`groupReact`](#groupreact): Group React-related packages and types
+- [`customTagActions`](#customtagactions): Support updating actions that use a `<name>_v<major>` tag naming scheme, like `microsoft/beachball/actions/should-release@abc123 # should-release_v3`
+
+(You should reference this preset instead of `base` unless you're pinning presets to a specific `#tag`.)
+
+<!-- end extra content -->
+
+---
+
+#### `base`
+
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/base"]
+```
+
+`default` preset contents, without the references to presets from this repo. Only use directly if pinning presets to a tag!
+
+<details><summary><b>Show config JSON</b></summary>
+
+```json
+{
+  "extends": ["config:recommended", "docker:pinDigests", "helpers:pinGitHubActionDigests", ":configMigration"],
   "prConcurrentLimit": 10,
   "prHourlyLimit": 2,
   "branchNameStrict": true,
@@ -114,11 +155,6 @@ Recommended config which is intended to be appropriate for most projects.
     {
       "matchManagers": ["npm"],
       "minimumReleaseAge": "7 days"
-    },
-    {
-      "matchDepTypes": ["resolutions"],
-      "matchDepNames": ["/^[~^]?\\d+\\.\\d+\\.\\d+$/"],
-      "enabled": false
     }
   ]
 }
@@ -137,9 +173,6 @@ This preset extends Renovate's [`config:recommended`](https://docs.renovatebot.c
 
 Extended presets from this repo:
 
-- [`groupReact`](#groupreact): Group React-related packages and types
-- [`dependencyDashboardMajor`](#dependencydashboardmajor): Require dependency dashboard approval for major upgrades (not supported for Azure DevOps)
-
 Other settings:
 
 - Extend configs to pin GitHub Actions and Docker digests
@@ -152,7 +185,6 @@ Other settings:
 - `timezone`: Run schedules relative to Pacific time, since many M365 repos are based in that time zone (see [time zone list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)).
 - `vulnerabilityAlerts`: Enable PRs to address security vulnerabilities. Note that this only works for GitHub and has limitations.
 - For `devDependencies`: Use "devDependencies" in commit messages (instead of the default "dependencies") to be clearer about what is being modified
-- For Yarn `resolutions` with a version in the key, work around a [Renovate bug](https://github.com/renovatebot/renovate/discussions/44768) which causes the version to be treated as a dependency name
 
 <!-- end extra content -->
 
@@ -160,54 +192,20 @@ Other settings:
 
 #### `beachball`
 
+```jsonc
+// ⚠️ This preset can't be pinned to a #tag
+"extends": ["github>microsoft/beachball//renovate/presets/beachball"]
+```
+
 Recommended config for library repos which use Beachball for publishing.
 
 <details><summary><b>Show config JSON</b></summary>
 
 ```json
 {
-  "extends": ["github>microsoft/beachball//renovate/presets/default"],
-  "gitAuthor": "Renovate Bot <renovate@whitesourcesoftware.com>",
-  "packageRules": [
-    {
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["!lockFileMaintenance"],
-      "postUpgradeTasks": {
-        "commands": [
-          "git add --all",
-          "npx beachball change --no-fetch --no-commit --type patch --message '{{{commitMessage}}}'",
-          "git reset"
-        ],
-        "fileFilters": ["change/*"],
-        "executionMode": "branch"
-      }
-    },
-    {
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["lockFileMaintenance"],
-      "postUpgradeTasks": {
-        "commands": [
-          "git add --all",
-          "npx beachball change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
-          "git reset"
-        ],
-        "fileFilters": ["change/*"],
-        "executionMode": "branch"
-      }
-    },
-    {
-      "matchManagers": ["npm"],
-      "matchDepTypes": ["devDependencies"],
-      "postUpgradeTasks": {
-        "commands": [
-          "git add --all",
-          "npx beachball change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
-          "git reset"
-        ],
-        "fileFilters": ["change/*"],
-        "executionMode": "branch"
-      }
-    }
+  "extends": [
+    "github>microsoft/beachball//renovate/presets/default",
+    "github>microsoft/beachball//renovate/presets/beachballPostUpgrade"
   ]
 }
 ```
@@ -216,14 +214,12 @@ Recommended config for library repos which use Beachball for publishing.
 
 <!-- start extra content (EDITABLE between these comments) -->
 
-This is a full config preset which extends the [default preset](#default) and adds settings to generate appropriate change files after upgrades:
+This is a full config preset which extends the [default preset](#default), plus [`beachballPostUpgrade`](#beachballpostupgrade) to generate appropriate Beachball change files:
 
 - Change type `none` for updating `devDependencies`
 - Change type `patch` for all other changes
 
 These change types will be correct the majority of the time, but if a different change type is appropriate, you can always edit the change file in the PR before it merges.
-
-Note that in the GitHub app, commands in [`postUpgradeTasks`](https://docs.renovatebot.com/configuration-options/#postupgradetasks) are limited to a specific set of strings for security reasons. As of writing, only the specific commands used in this config are allowed (though `--no-fetch` can optionally be removed).
 
 <!-- end extra content -->
 
@@ -232,6 +228,10 @@ Note that in the GitHub app, commands in [`postUpgradeTasks`](https://docs.renov
 ### Compatibility presets
 
 #### `disableEsmVersions`
+
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/disableEsmVersions"]
+```
 
 Disable upgrades to package versions that have been converted to ES modules.
 
@@ -280,6 +280,10 @@ While ES modules are the new standard, migrating immediately may not be practica
 
 #### `restrictNode(<arg0>)`
 
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/restrictNode"]
+```
+
 Restrict Node version to the range `arg0` and ignore updates incompatible with your repo's `engines.node`.
 
 <details><summary><b>Show config JSON</b></summary>
@@ -319,6 +323,10 @@ The preset also enables [`constraintsFiltering: "strict"`](https://docs.renovate
 ### Scheduling and control presets
 
 #### `keepFresh`
+
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/keepFresh"]
+```
 
 Keep locally-used dependency versions updated and deduplicated.
 
@@ -364,6 +372,10 @@ It's **highly recommended** to manually run the deduplication command (`npx yarn
 
 #### `scheduleNoisy`
 
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/scheduleNoisy"]
+```
+
 Update "noisy" (frequently-updating) packages once every other week.
 
 <details><summary><b>Show config JSON</b></summary>
@@ -390,6 +402,10 @@ Certain packages tend to publish updates multiple times per week, and getting a 
 ---
 
 #### `dependencyDashboardMajor`
+
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/dependencyDashboardMajor"]
+```
 
 Require dependency dashboard approval for major upgrades, 0.x upgrades, and minor upgrades of deps known not to follow semver.
 
@@ -444,6 +460,11 @@ Some alternative strategies which would need to be configured per repo (see [Ren
 
 #### `groupMore`
 
+```jsonc
+// ⚠️ This preset can't be pinned to a #tag
+"extends": ["github>microsoft/beachball//renovate/presets/groupMore"]
+```
+
 Apply all the groupings from this repo (except groupTypes).
 
 <details><summary><b>Show config JSON</b></summary>
@@ -479,6 +500,10 @@ To use this preset but disable an individual grouping, add its name to the `igno
 
 #### `groupActions`
 
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/groupActions"]
+```
+
 Group and auto-update official GitHub Actions.
 
 <details><summary><b>Show config JSON</b></summary>
@@ -509,6 +534,10 @@ This is set to only `matchDepTypes: ["action"]` because of [newer "actions" depe
 
 #### `groupD3`
 
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/groupD3"]
+```
+
 Group D3 updates.
 
 <details><summary><b>Show config JSON</b></summary>
@@ -533,6 +562,10 @@ Group D3 updates.
 ---
 
 #### `groupEslint`
+
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/groupEslint"]
+```
 
 Group and schedule all eslint-related updates.
 
@@ -564,6 +597,10 @@ Group and schedule all eslint-related updates.
 ---
 
 #### `groupFluent`
+
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/groupFluent"]
+```
 
 Group Fluent UI and related package updates.
 
@@ -609,6 +646,10 @@ This config creates the following groups:
 
 #### `groupJest`
 
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/groupJest"]
+```
+
 Group and schedule jest, ts-jest, jest types, and related packages.
 
 <details><summary><b>Show config JSON</b></summary>
@@ -643,6 +684,10 @@ This replaces the built-in presets [`group:jestMonorepo`](https://docs.renovateb
 
 #### `groupLageBackfill`
 
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/groupLageBackfill"]
+```
+
 Group Lage and Backfill packages (separate group for each).
 
 <details><summary><b>Show config JSON</b></summary>
@@ -671,6 +716,10 @@ Group Lage and Backfill packages (separate group for each).
 ---
 
 #### `groupNodeMajor`
+
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/groupNodeMajor"]
+```
 
 Group major updates of Node and its types.
 
@@ -701,6 +750,10 @@ It does NOT work for `actions/setup-node` (GitHub workflows) or `NodeTool` (Azur
 ---
 
 #### `groupReact`
+
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/groupReact"]
+```
 
 Group React packages and types.
 
@@ -735,6 +788,10 @@ This uses the same name as (and therefore extends) the built-in config [`group:r
 
 #### `groupRollup`
 
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/groupRollup"]
+```
+
 Group all Rollup-related updates.
 
 <details><summary><b>Show config JSON</b></summary>
@@ -759,6 +816,10 @@ Group all Rollup-related updates.
 ---
 
 #### `groupTypes`
+
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/groupTypes"]
+```
 
 Group minor and patch updates to `@types` `devDependencies`.
 
@@ -823,6 +884,10 @@ If you want to exclude a package from this group, add a new `packageRules` entry
 
 #### `groupYargs`
 
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/groupYargs"]
+```
+
 Group yargs, yargs-parser, and their types.
 
 <details><summary><b>Show config JSON</b></summary>
@@ -847,5 +912,136 @@ Group yargs, yargs-parser, and their types.
 ---
 
 ### Other presets
+
+#### `beachballPostUpgrade`
+
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/beachballPostUpgrade"]
+```
+
+Adds post-upgrade tasks to generate Beachball change files.
+
+<details><summary><b>Show config JSON</b></summary>
+
+```json
+{
+  "gitAuthor": "Renovate Bot <renovate@whitesourcesoftware.com>",
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["!lockFileMaintenance"],
+      "postUpgradeTasks": {
+        "commands": [
+          "git add --all",
+          "npx beachball change --no-fetch --no-commit --type patch --message '{{{commitMessage}}}'",
+          "git reset"
+        ],
+        "fileFilters": ["change/*"],
+        "executionMode": "branch"
+      }
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "postUpgradeTasks": {
+        "commands": [
+          "git add --all",
+          "npx beachball change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
+          "git reset"
+        ],
+        "fileFilters": ["change/*"],
+        "executionMode": "branch"
+      }
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["devDependencies"],
+      "postUpgradeTasks": {
+        "commands": [
+          "git add --all",
+          "npx beachball change --no-fetch --no-commit --type none --message '{{{commitMessage}}}'",
+          "git reset"
+        ],
+        "fileFilters": ["change/*"],
+        "executionMode": "branch"
+      }
+    }
+  ]
+}
+```
+
+</details>
+
+<!-- start extra content (EDITABLE between these comments) -->
+
+Configure a git author and post-upgrade tasks to generate appropriate change files:
+
+- Change type `none` for updating `devDependencies`
+- Change type `patch` for all other changes
+
+These change types will be correct the majority of the time, but if a different change type is appropriate, you can always edit the change file in the PR before it merges.
+
+Note that in the GitHub app, commands in [`postUpgradeTasks`](https://docs.renovatebot.com/configuration-options/#postupgradetasks) are limited to a specific set of strings for security reasons. As of writing, only the specific commands used in this config are allowed (though `--no-fetch` can optionally be removed).
+
+<!-- end extra content -->
+
+---
+
+#### `customTagActions`
+
+```jsonc
+"extends": ["github>microsoft/beachball//renovate/presets/customTagActions"]
+```
+
+Update GitHub Actions in subfolders that use a `<name>_v<version>` tag naming scheme (e.g. `foo_v1` or `foo_v1.2.3`).
+
+<details><summary><b>Show config JSON</b></summary>
+
+```json
+{
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.github/(workflows|actions)/.+\\.ya?ml$/", "/(^|/)action\\.ya?ml$/"],
+      "matchStrings": [
+        "uses:\\s+(?<depName>(?<packageName>[^/\\s]+/[^/\\s]+)/[^@\\s]+)@(?<currentValue>[\\w.-]+_v\\d+(?:\\.\\d+){0,2})\\r?\\n",
+        "uses:\\s+(?<depName>(?<packageName>[^/\\s]+/[^/\\s]+)/[^@\\s]+)@(?<currentDigest>[0-9a-f]{40})[ \t]+#\\s*(?<currentValue>[\\w.-]+_v\\d+(?:\\.\\d+){0,2})\\r?\\n"
+      ],
+      "datasourceTemplate": "github-tags",
+      "versioningTemplate": "regex:^(?<compatibility>[\\w.-]+)_v(?<major>\\d+)(?:\\.(?<minor>\\d+))?(?:\\.(?<patch>\\d+))?$"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Disable the built-in github-actions manager for `<name>_v<major>`-tagged refs, to avoid double processing.",
+      "matchManagers": ["github-actions"],
+      "matchCurrentValue": "/^[\\w.-]+_v\\d+(?:\\.\\d+){0,2}$/",
+      "enabled": false
+    }
+  ]
+}
+```
+
+</details>
+
+<!-- start extra content (EDITABLE between these comments) -->
+
+Some repos publish multiple actions and tag each one with a `<name>_v<version>` scheme (e.g. `foo_v1` or `foo_v1.2.3`) rather than a plain `v1`. Renovate's built-in [`github-actions` manager](https://docs.renovatebot.com/modules/manager/github-actions/) already understands actions in a repo subdirectory, but it can't follow this custom tag scheme: the tag isn't a version it recognizes, and all of the repo's action tags are mixed together. This [custom manager](https://docs.renovatebot.com/configuration-options/#custommanagers) handles tags with names, such as the following:
+
+```yaml
+- uses: microsoft/beachball/actions/should-release@should-release_v3
+- uses: microsoft/beachball/actions/should-release@826cebb873f064d29134f1bbf39f2b7634cb47cb # should-release_v3
+```
+
+The custom manager pulls out each piece of the reference to achieve similar behavior to the built-in `github-actions` manager: update the digest when a moving tag (like `_v3`) moves, and propose version-update PRs as new semver tags in the same family appear. How the pieces map:
+
+- `depName` is the full action path (`microsoft/beachball/actions/should-release`), used only for display.
+- `packageName` is the repo (`microsoft/beachball`), which is what the [`github-tags` datasource](https://docs.renovatebot.com/modules/datasource/github-tags/) actually queries, since tags live on the repo rather than the subdirectory.
+- `currentDigest` is the pinned SHA, and `currentValue` is the tag to follow (`should-release_v3`).
+- The [`regex` `versioningTemplate`](https://docs.renovatebot.com/modules/versioning/#regex-versioning) parses the `<currentValue>` (`foo_v1` or `foo_v1.2.3`): it uses the name as `<compatibility>` (separating different action names within the same repo) and the number(s) after `_v` as the version.
+
+<!-- end extra content -->
+
+---
 
 <!-- end presets -->

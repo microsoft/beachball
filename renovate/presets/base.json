@@ -1,0 +1,35 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "description": "`default` preset contents, without the references to presets from this repo. Only use directly if pinning presets to a tag!",
+
+  "extends": ["config:recommended", "docker:pinDigests", "helpers:pinGitHubActionDigests", ":configMigration"],
+
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 2,
+
+  "branchNameStrict": true,
+
+  "minimumReleaseAge": "3 days",
+
+  "printConfig": true,
+  "configMigration": true,
+  "configWarningReuseIssue": false,
+
+  "timezone": "America/Los_Angeles",
+
+  "vulnerabilityAlerts": {
+    "enabled": true
+  },
+
+  "packageRules": [
+    {
+      "matchDepTypes": ["devDependencies"],
+      "commitMessageTopic": "devDependency {{{depName}}}"
+    },
+    {
+      "matchManagers": ["npm"],
+      "minimumReleaseAge": "7 days"
+    }
+  ]
+}

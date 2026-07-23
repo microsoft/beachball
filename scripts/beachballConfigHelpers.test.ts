@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
-import { getActionTags, getGitTag, normalPackages, postbumpHook } from './beachballConfigHelpers.cjs';
+import { getActionTags, getGitTag, normalPackages, postbumpHook } from './beachballConfigHelpers.ts';
 
 describe('getActionTags', () => {
   it('strips the action prefix and builds exact + major tags', () => {
@@ -34,8 +34,11 @@ describe('getGitTag', () => {
     ]);
   });
 
-  it('returns null for renovate package', () => {
-    expect(getGitTag({ name: '@microsoft/m365-renovate-config', version: '1.2.3' }, 'default')).toBeNull();
+  it('returns [exactTag, majorTag] for renovate package', () => {
+    expect(getGitTag({ name: '@microsoft/m365-renovate-config', version: '1.2.3' }, 'default')).toEqual([
+      'renovate_v1.2.3',
+      'renovate_v1',
+    ]);
   });
 
   it('returns tag for skill package', () => {

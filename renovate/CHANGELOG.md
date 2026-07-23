@@ -21,7 +21,7 @@ The `extends` reference format has changed due to nested subfolders:
 "github>microsoft/beachball//renovate/presets/foo",
 ```
 
-Note that **pinning to a ref/tag won't work** if the preset `extends` any other local presets, since those would be pulled from `main` by default. That was done in the `m365-renovate-config` repo and could be brought back if necessary, but it requires an extra branch and [several extra steps](https://github.com/microsoft/m365-renovate-config/blob/main/scripts/release/bumpAndRelease.ts#L125) to update all references and create a corresponding commit (please open an issue if interested).
+As of 3.1.0: Renovate presets are published with the tags `renovate_v<major>` and `renovate_v<version>`, e.g. `renovate_v3`. You can **only** pin presets to a tag if they don't have `extends` references to other presets in this repo, since the `beachball publish` workflow for tagging doesn't update those references (doing so would require an extra branch and [several extra steps](https://github.com/microsoft/m365-renovate-config/blob/main/scripts/release/bumpAndRelease.ts#L125)). The workaround is to reference lower-level presets like `base` directly.
 
 ### Removed presets
 

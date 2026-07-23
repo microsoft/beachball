@@ -1,7 +1,7 @@
 import { describe, it, expect } from '@jest/globals';
-import { readPresets, readRepoConfig } from './utils/readPresets.ts';
-import { getLocalPresetFromExtends } from './utils/extends.ts';
-import type { BasicRenovateConfig } from './utils/types.ts';
+import { readPresets, readRepoConfig } from '../utils/readPresets.ts';
+import { getLocalPresetFromExtends } from '../utils/extends.ts';
+import type { BasicRenovateConfig } from '../utils/types.ts';
 
 // This is more of a lint rule than a test, but it's much easier to hook it in to Jest
 describe('lint presets', () => {
