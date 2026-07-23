@@ -993,7 +993,7 @@ Note that in the GitHub app, commands in [`postUpgradeTasks`](https://docs.renov
 "extends": ["github>microsoft/beachball//renovate/presets/customTagActions"]
 ```
 
-Update GitHub Actions that use a `<name>_v<version>` tag naming scheme (e.g. `foo_v1` or `foo_v1.2.3`).
+Update GitHub Actions in subfolders that use a `<name>_v<version>` tag naming scheme (e.g. `foo_v1` or `foo_v1.2.3`).
 
 <details><summary><b>Show config JSON</b></summary>
 
@@ -1004,8 +1004,8 @@ Update GitHub Actions that use a `<name>_v<version>` tag naming scheme (e.g. `fo
       "customType": "regex",
       "managerFilePatterns": ["/^\\.github/(workflows|actions)/.+\\.ya?ml$/", "/(^|/)action\\.ya?ml$/"],
       "matchStrings": [
-        "uses:\\s+(?<depName>(?<packageName>[^/\\s]+/[^/\\s]+)/[^@\\s]+)@(?<currentDigest>[0-9a-f]{40})[ \t]+#\\s*(?<currentValue>[\\w.-]+_v\\d+(?:\\.\\d+){0,2})",
-        "uses:\\s+(?<depName>(?<packageName>[^/\\s]+/[^/\\s]+)/[^@\\s]+)@(?<currentValue>[\\w.-]+_v\\d+(?:\\.\\d+){0,2})"
+        "uses:\\s+(?<depName>(?<packageName>[^/\\s]+/[^/\\s]+)/[^@\\s]+)@(?<currentValue>[\\w.-]+_v\\d+(?:\\.\\d+){0,2})\\r?\\n",
+        "uses:\\s+(?<depName>(?<packageName>[^/\\s]+/[^/\\s]+)/[^@\\s]+)@(?<currentDigest>[0-9a-f]{40})[ \t]+#\\s*(?<currentValue>[\\w.-]+_v\\d+(?:\\.\\d+){0,2})\\r?\\n"
       ],
       "datasourceTemplate": "github-tags",
       "versioningTemplate": "regex:^(?<compatibility>[\\w.-]+)_v(?<major>\\d+)(?:\\.(?<minor>\\d+))?(?:\\.(?<patch>\\d+))?$"
