@@ -6,7 +6,7 @@ const customTagPreset = readPresets().find(p => p.name === 'customTagActions')!.
 
 const customManager = customTagPreset.customManagers![0];
 // The two match strings: digest pin + tag comment, then plain tag ref
-const [digestRe, tagRe] = customManager.matchStrings!.map(s => new RegExp(s));
+const [tagRe, digestRe] = customManager.matchStrings!.map(s => new RegExp(s));
 // versioningTemplate is prefixed with "regex:"
 const versioningRe = new RegExp(customManager.versioningTemplate!.replace(/^regex:/, ''));
 // matchCurrentValue is wrapped in slashes to indicate a regex
@@ -15,11 +15,69 @@ const disableValueRe = new RegExp(disableRule.matchCurrentValue!.replace(/^\/|\/
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 const sha = '826cebb873f064d29134f1bbf39f2b7634cb47cb';
+const actionPath = 'microsoft/beachball/actions/should-release';
+const shortPath = 'foo/actions/bar';
 
 describe('customTagActions', () => {
+  describe('tag-ref match string', () => {
+    /** Match `tagRe` against the action reference with semi-realistic context */
+    function getTagMatch(actionRef: string) {
+      return tagRe.exec(`stuff\nuses: ${actionRef}\nnext`);
+    }
+
+    it('supports a plain tag ref', () => {
+      const match = getTagMatch(`${actionPath}@should-release_v3`);
+      expect(match?.groups).toEqual({
+        depName: 'microsoft/beachball/actions/should-release',
+        packageName: 'microsoft/beachball',
+        currentValue: 'should-release_v3',
+      });
+    });
+
+    it('supports a major.minor.patch tag ref', () => {
+      const match = getTagMatch(`${actionPath}@should-release_v1.2.3`);
+      expect(match?.groups).toEqual({
+        depName: 'microsoft/beachball/actions/should-release',
+        packageName: 'microsoft/beachball',
+        currentValue: 'should-release_v1.2.3',
+      });
+    });
+
+    it('supports single folder with tag ref', () => {
+      const match = getTagMatch(`${shortPath}@bar_v3`);
+      expect(match?.groups).toEqual({
+        depName: 'foo/actions/bar',
+        packageName: 'foo/actions',
+        currentValue: 'bar_v3',
+      });
+    });
+
+    it('does not match a digest-pinned ref', () => {
+      expect(getTagMatch(`${actionPath}@${sha} # should-release_v3`)).toBeNull();
+    });
+
+    it('does not match a prerelease tag ref', () => {
+      // could maybe be added if needed, but it complicates the regex
+      expect(getTagMatch(`${actionPath}@should-release_v3-beta`)).toBeNull();
+    });
+
+    it('does not match a ref without a newline', () => {
+      expect(tagRe.exec(`uses: ${actionPath}@should-release_v3`)).toBeNull();
+    });
+
+    it('does not match a top-level action tag ref', () => {
+      expect(getTagMatch('actions/checkout@v4')).toBeNull();
+    });
+  });
+
   describe('digest-pinned match string', () => {
-    it('extracts all groups from a digest pin with a tag comment', () => {
-      const match = digestRe.exec(`uses: microsoft/beachball/actions/should-release@${sha} # should-release_v3`);
+    /** Match `digestRe` against the action reference with semi-realistic context */
+    function getDigestMatch(actionRef: string) {
+      return digestRe.exec(`stuff\nuses: ${actionRef}\nnext`);
+    }
+
+    it('supports a major version tag comment', () => {
+      const match = getDigestMatch(`microsoft/beachball/actions/should-release@${sha} # should-release_v3`);
       expect(match?.groups).toEqual({
         depName: 'microsoft/beachball/actions/should-release',
         packageName: 'microsoft/beachball',
@@ -29,7 +87,7 @@ describe('customTagActions', () => {
     });
 
     it('supports a major.minor.patch tag comment', () => {
-      const match = digestRe.exec(`uses: microsoft/beachball/actions/should-release@${sha} # should-release_v1.2.3`);
+      const match = getDigestMatch(`microsoft/beachball/actions/should-release@${sha} # should-release_v1.2.3`);
       expect(match?.groups).toEqual({
         depName: 'microsoft/beachball/actions/should-release',
         packageName: 'microsoft/beachball',
@@ -38,52 +96,36 @@ describe('customTagActions', () => {
       });
     });
 
+    it('supports single folder with tag ref', () => {
+      const match = getDigestMatch(`foo/actions/bar@${sha} # bar_v3`);
+      expect(match?.groups).toEqual({
+        depName: 'foo/actions/bar',
+        packageName: 'foo/actions',
+        currentDigest: sha,
+        currentValue: 'bar_v3',
+      });
+    });
+
     it('requires the comment on the same line as the ref', () => {
       // The comment is on the following line, so it must not be matched
-      expect(
-        digestRe.exec(`uses: microsoft/beachball/actions/should-release@${sha}\n  # should-release_v3`)
-      ).toBeNull();
+      expect(getDigestMatch(`microsoft/beachball/actions/should-release@${sha}\n# should-release_v3`)).toBeNull();
     });
 
     it('does not match a digest pin without a version comment', () => {
-      expect(digestRe.exec(`uses: microsoft/beachball/actions/should-release@${sha}`)).toBeNull();
+      expect(getDigestMatch(`microsoft/beachball/actions/should-release@${sha}`)).toBeNull();
     });
 
-    it('does not match a top-level action (only owner/repo)', () => {
-      expect(digestRe.exec(`uses: actions/checkout@${sha} # v7`)).toBeNull();
+    it('does not match a comment without a newline', () => {
+      expect(digestRe.exec(`uses: microsoft/beachball/actions/should-release@${sha} # should-release_v3`)).toBeNull();
+    });
+
+    it('does not match a top-level action', () => {
+      expect(getDigestMatch(`actions/checkout@${sha} # v7`)).toBeNull();
     });
 
     it('does not match a subdir action with a plain version comment', () => {
       // e.g. github/codeql-action/init uses a normal `# v3` comment, handled by the built-in manager
-      expect(digestRe.exec(`uses: github/codeql-action/init@${sha} # v3`)).toBeNull();
-    });
-  });
-
-  describe('tag-ref match string', () => {
-    it('extracts groups from a plain tag ref', () => {
-      const match = tagRe.exec('uses: microsoft/beachball/actions/should-release@should-release_v3');
-      expect(match?.groups).toEqual({
-        depName: 'microsoft/beachball/actions/should-release',
-        packageName: 'microsoft/beachball',
-        currentValue: 'should-release_v3',
-      });
-    });
-
-    it('supports a major.minor.patch tag ref', () => {
-      const match = tagRe.exec('uses: microsoft/beachball/actions/should-release@should-release_v1.2.3');
-      expect(match?.groups).toEqual({
-        depName: 'microsoft/beachball/actions/should-release',
-        packageName: 'microsoft/beachball',
-        currentValue: 'should-release_v1.2.3',
-      });
-    });
-
-    it('does not match a digest-pinned ref', () => {
-      expect(tagRe.exec(`uses: microsoft/beachball/actions/should-release@${sha} # should-release_v3`)).toBeNull();
-    });
-
-    it('does not match a top-level action tag ref', () => {
-      expect(tagRe.exec('uses: actions/checkout@v4')).toBeNull();
+      expect(getDigestMatch(`github/codeql-action/init@${sha} # v3`)).toBeNull();
     });
   });
 

@@ -1026,24 +1026,19 @@ Update GitHub Actions that use a `<name>_v<version>` tag naming scheme (e.g. `fo
 
 <!-- start extra content (EDITABLE between these comments) -->
 
-Some repos publish multiple actions from a single repo and tag each one with a `<name>_v<major>` scheme (e.g. `foo_v1` or `foo_v1.2.3`) rather than a plain `v1`. Renovate's built-in [`github-actions` manager](https://docs.renovatebot.com/modules/manager/github-actions/) already understands actions in a repo subdirectory, but it can't follow this custom tag scheme: the tag isn't a version it recognizes, and all of the repo's action tags are mixed together. This [custom manager](https://docs.renovatebot.com/configuration-options/#custommanagers) handles that, matching digest-pinned lines such as:
+Some repos publish multiple actions and tag each one with a `<name>_v<version>` scheme (e.g. `foo_v1` or `foo_v1.2.3`) rather than a plain `v1`. Renovate's built-in [`github-actions` manager](https://docs.renovatebot.com/modules/manager/github-actions/) already understands actions in a repo subdirectory, but it can't follow this custom tag scheme: the tag isn't a version it recognizes, and all of the repo's action tags are mixed together. This [custom manager](https://docs.renovatebot.com/configuration-options/#custommanagers) handles tags with names, such as the following:
 
 ```yaml
-- uses: microsoft/beachball/actions/should-release@826cebb873f064d29134f1bbf39f2b7634cb47cb # should-release_v3
 - uses: microsoft/beachball/actions/should-release@should-release_v3
+- uses: microsoft/beachball/actions/should-release@826cebb873f064d29134f1bbf39f2b7634cb47cb # should-release_v3
 ```
 
-The custom manager pulls out the different pieces of the reference to achieve similar behavior to the built-in `github-actions` manager: update the digest when a moving tag (like `_v3`) moves, and propose version-update PRs as new semver tags in the same family appear. How the pieces map:
+The custom manager pulls out each piece of the reference to achieve similar behavior to the built-in `github-actions` manager: update the digest when a moving tag (like `_v3`) moves, and propose version-update PRs as new semver tags in the same family appear. How the pieces map:
 
 - `depName` is the full action path (`microsoft/beachball/actions/should-release`), used only for display.
 - `packageName` is the repo (`microsoft/beachball`), which is what the [`github-tags` datasource](https://docs.renovatebot.com/modules/datasource/github-tags/) actually queries, since tags live on the repo rather than the subdirectory.
 - `currentDigest` is the pinned SHA, and `currentValue` is the tag to follow (`should-release_v3`).
 - The [`regex` `versioningTemplate`](https://docs.renovatebot.com/modules/versioning/#regex-versioning) parses the `<currentValue>` (`foo_v1` or `foo_v1.2.3`): it uses the name as `<compatibility>` (separating different action names within the same repo) and the number(s) after `_v` as the version.
-
-Limitations:
-
-- Only matches actions pinned to a full 40-character commit digest with a comment of the form `# <name>_v<major>[.<minor>[.<patch>]]`. Refs pinned directly to a tag/branch, or without the version comment, are left to the built-in manager.
-- The version comment must exactly match a tag name, since that's what Renovate follows.
 
 <!-- end extra content -->
 

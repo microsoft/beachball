@@ -31,7 +31,7 @@ export function getGitTag(pkg: { name: string; version: string }, defaultTag: st
     // references and creating tags in a separate branch, which likely isn't necessary, but could
     // be re-implemented based on this logic if needed:
     // https://github.com/microsoft/m365-renovate-config/blob/main/scripts/release/bumpAndRelease.ts#L125
-    const { exactTag, majorTag } = getExactAndMajorTags(name, version);
+    const { exactTag, majorTag } = getExactAndMajorTags('renovate', version);
     return [exactTag, majorTag];
   }
   throw new Error(`Unhandled package "${name}" in custom getGitTag`);

@@ -95,7 +95,7 @@ type CustomManagerConfig = {
   versioningTemplate?: string;
 };
 
-// just includes the ones currenly used in tests/etc
+// just includes the ones currently used in tests/etc
 type PackageRule = {
   matchManagers?: string[];
   matchCurrentValue?: string;
