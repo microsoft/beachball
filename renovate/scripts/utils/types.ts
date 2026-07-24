@@ -71,7 +71,11 @@ export type ConfigData = {
    * @see https://docs.renovatebot.com/configuration-options/
    */
   json?: BasicRenovateConfig;
+  /** Sample values for any preset args, e.g. `['16']` */
+  argValues?: string[];
 };
+
+export type LocalPresetData = ConfigData & Required<Pick<ConfigData, 'content' | 'json'>>;
 
 /**
  * Subset of Renovate config properties used (types are exported from `renovate/dist/config/types.js`
@@ -101,5 +105,3 @@ type PackageRule = {
   matchCurrentValue?: string;
   enabled?: boolean;
 };
-
-export type LocalPresetData = Required<ConfigData>;

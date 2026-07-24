@@ -6,7 +6,7 @@ import { getComments, getHeadingText, getMarkedSection, slugify, splitByHeading 
 import { paths } from './utils/paths.ts';
 import { readPresets } from './utils/readPresets.ts';
 import { updateAndFormat } from './utils/runBin.ts';
-import { extendsLocalPreset, repoPresetPrefix } from './utils/extends.ts';
+import { extendsLocalPreset, getExtendsForLocalPreset } from './utils/extends.ts';
 
 const readmePath = path.join(paths.renovateRoot, 'README.md');
 
@@ -104,7 +104,8 @@ export async function updateReadme(check?: boolean): Promise<void> {
   const presetExtraTexts = getPresetExtraTexts(presetNames, presetsSection);
 
   // Generate preset sections based on the descriptions, custom text, and other JSON
-  const newPresets = presets.map(({ name, content, json }): PresetSection => {
+  const newPresets = presets.map((preset): PresetSection => {
+    const { name, content, json } = preset;
     const presetArgs = content.match(/{{arg\d}}/g);
     const presetNameWithArgs = presetArgs
       ? `${name}(${presetArgs.map(arg => `<${arg.slice(2, -2)}>`).join(', ')})`
@@ -121,7 +122,7 @@ export async function updateReadme(check?: boolean): Promise<void> {
 #### \`${presetNameWithArgs}\`
 
 \`\`\`jsonc${extendsLocalPreset(json) ? "\n// ⚠️ This preset can't be pinned to a #tag" : ''}
-"extends": ["${repoPresetPrefix}${name}"]
+"extends": ["${getExtendsForLocalPreset(preset)}"]
 \`\`\`
 
 ${description || ''}

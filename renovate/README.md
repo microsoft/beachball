@@ -281,7 +281,7 @@ While ES modules are the new standard, migrating immediately may not be practica
 #### `restrictNode(<arg0>)`
 
 ```jsonc
-"extends": ["github>microsoft/beachball//renovate/presets/restrictNode"]
+"extends": ["github>microsoft/beachball//renovate/presets/restrictNode(<arg0>)"]
 ```
 
 Restrict Node version to the range `arg0` and ignore updates incompatible with your repo's `engines.node`.
@@ -1004,8 +1004,8 @@ Update GitHub Actions in subfolders that use a `<name>_v<version>` tag naming sc
       "customType": "regex",
       "managerFilePatterns": ["/^\\.github/(workflows|actions)/.+\\.ya?ml$/", "/(^|/)action\\.ya?ml$/"],
       "matchStrings": [
-        "uses:\\s+(?<depName>(?<packageName>[^/\\s]+/[^/\\s]+)/[^@\\s]+)@(?<currentValue>[\\w.-]+_v\\d+(?:\\.\\d+){0,2})\\r?\\n",
-        "uses:\\s+(?<depName>(?<packageName>[^/\\s]+/[^/\\s]+)/[^@\\s]+)@(?<currentDigest>[0-9a-f]{40})[ \t]+#\\s*(?<currentValue>[\\w.-]+_v\\d+(?:\\.\\d+){0,2})\\r?\\n"
+        "(?m)\\s*uses:\\s+(?<depName>(?<packageName>[^/\\s]+/[^/\\s]+)/[^@\\s]+)@(?<currentValue>[\\w.-]+_v\\d+(?:\\.\\d+){0,2})$",
+        "(?m)\\s*uses:\\s+(?<depName>(?<packageName>[^/\\s]+/[^/\\s]+)/[^@\\s]+)@(?<currentDigest>[0-9a-f]{40})[ \t]+#\\s*(?<currentValue>[\\w.-]+_v\\d+(?:\\.\\d+){0,2})$"
       ],
       "datasourceTemplate": "github-tags",
       "versioningTemplate": "regex:^(?<compatibility>[\\w.-]+)_v(?<major>\\d+)(?:\\.(?<minor>\\d+))?(?:\\.(?<patch>\\d+))?$"

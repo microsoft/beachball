@@ -28,7 +28,6 @@ As of 3.1.0: Renovate presets are published with the tags `renovate_v<major>` an
 The following presets have been removed:
 
 - `automergeDevLock`, `automergeTypes` - manually set auto-merge instead
-- `beachballPostUpgrade` - merged with `beachball`
 - `groupFixtureUpdates` - minimally useful
 - `minorDependencyUpdates` - didn't work as desired (it's better to go understand Renovate's [`rangeStrategy`](https://docs.renovatebot.com/configuration-options/#rangestrategy) for yourself and pick what you want)
 - `newConfigWarningIssue` - included in `default`
@@ -37,7 +36,6 @@ The following presets have been removed:
 ### Updated behavior
 
 - [`default`](./README.md#default) includes `docker:pinDigests`, `helpers:pinGitHubActionDigests`, and `configMigration`
-- [`beachball`](./README.md#beachball) includes the old `beachballPostUpgrade` behavior directly (use `default` if you don't want that)
 - [`groupFluent`](./README.md#groupfluent): outdated Fluent-family packages were removed
 
 ## 2.8.4

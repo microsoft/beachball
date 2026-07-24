@@ -10,7 +10,7 @@ describe('lint presets', () => {
   const repoConfig = readRepoConfig();
 
   describe.each([repoConfig, ...presets])('$name', preset => {
-    const { json } = preset;
+    const { json, content } = preset;
 
     it('has required properties', () => {
       expect(json).toHaveProperty('$schema', schema);
@@ -36,6 +36,14 @@ describe('lint presets', () => {
           // See comment in extends.ts getExtendsForServerConfig
           expect(rest).toEqual({});
         }
+      });
+
+    // This tests behavior in readPresets, but logically goes here
+    const argMatches = content.match(/{{arg\d}}/g);
+    argMatches &&
+      it('readPresets has matching arg values for any args in the content', () => {
+        // update presetArgs in readPresets.ts if something is missing
+        expect(preset.argValues).toHaveLength(argMatches.length);
       });
   });
 });

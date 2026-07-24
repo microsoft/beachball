@@ -30,28 +30,28 @@ describe('getLocalPresetFromExtends', () => {
 });
 
 describe('getExtendsForLocalPreset', () => {
-  function createPreset(name: string, content: string): LocalPresetData {
-    return { absolutePath: '', name, content, json: {} };
-  }
+  type PartialPreset = Parameters<typeof getExtendsForLocalPreset>[0];
+  const groupFoo: PartialPreset = { name: 'groupFoo' };
+  const restrictNode: PartialPreset = { name: 'restrictNode', argValues: ['16'] };
 
   it('gets extends without ref', () => {
-    expect(getExtendsForLocalPreset(createPreset('groupFoo', '{"extends":[]}'))).toBe(repoPresetPrefix + 'groupFoo');
-  });
-
-  it('adds numeric arg0 placeholder without ref when needed', () => {
-    expect(getExtendsForLocalPreset(createPreset('restrictNode', '{"description":"{{arg0}}"}'))).toBe(
-      repoPresetPrefix + 'restrictNode(16)'
-    );
+    expect(getExtendsForLocalPreset(groupFoo)).toBe(repoPresetPrefix + 'groupFoo');
   });
 
   it('gets extends with ref', () => {
-    expect(getExtendsForLocalPreset(createPreset('groupFoo', '{"extends":[]}'), 'v1.2.3')).toBe(
-      repoPresetPrefix + 'groupFoo#v1.2.3'
-    );
+    expect(getExtendsForLocalPreset(groupFoo, { ref: 'v1.2.3' })).toBe(repoPresetPrefix + 'groupFoo#v1.2.3');
   });
 
-  it('adds numeric arg0 placeholder with ref when needed', () => {
-    expect(getExtendsForLocalPreset(createPreset('restrictNode', '{"description":"{{arg0}}"}'), 'v1.2.3')).toBe(
+  it('adds specific value placeholder without ref when needed', () => {
+    expect(getExtendsForLocalPreset(restrictNode, { specificArgs: true })).toBe(repoPresetPrefix + 'restrictNode(16)');
+  });
+
+  it('adds generic value placeholder without ref when needed', () => {
+    expect(getExtendsForLocalPreset(restrictNode)).toBe(repoPresetPrefix + 'restrictNode(<arg0>)');
+  });
+
+  it('adds placeholder with ref when needed', () => {
+    expect(getExtendsForLocalPreset(restrictNode, { specificArgs: true, ref: 'v1.2.3' })).toBe(
       repoPresetPrefix + 'restrictNode#v1.2.3(16)'
     );
   });

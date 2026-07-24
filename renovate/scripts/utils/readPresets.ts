@@ -10,6 +10,11 @@ export const specialConfigNames = {
   repoConfig: 'repo config',
 };
 
+/** Example argument values for each preset with arguments */
+const presetArgs: Record<string, string[]> = {
+  restrictNode: ['16'],
+};
+
 /**
  * Get the contents of the preset files.
  */
@@ -37,6 +42,7 @@ export function readPresets(params: { exclude?: string[] } = {}): LocalPresetDat
         filename: preset,
         content,
         json: JSON.parse(content) as BasicRenovateConfig,
+        argValues: presetArgs[presetName],
       };
     });
 }
