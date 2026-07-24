@@ -18,7 +18,7 @@ export const paths = {
   repoRenovateConfigRel,
   /** The repo's own renovate config (absolute) */
   repoRenovateConfig: path.join(root, repoRenovateConfigRel),
-  /** Relative path from repo root to test server config (absolute) */
+  /** Relative path from repo root to test server config */
   serverConfigRel,
   /** Test server config (absolute) */
   serverConfig: path.join(renovateRoot, serverConfigRel),

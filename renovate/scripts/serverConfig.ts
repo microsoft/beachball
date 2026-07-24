@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { getToken } from './checkToken.ts';
 import { getServerConfigExtends } from './utils/extends.ts';
 import { defaultBranch, defaultRepo, githubBranchName, isPullRequest } from './utils/github.ts';
@@ -7,7 +8,7 @@ import { readPresets } from './utils/readPresets.ts';
 // runs on main can use all presets, but full renovate dry runs in a PR must omit any presets which
 // reference other local presets (see getServerConfigExtends comment).
 const presets = readPresets();
-const isBasicValidate = process.argv.includes('renovate-config-validator');
+const isBasicValidate = process.argv.some(arg => path.basename(arg).startsWith('renovate-config-validator'));
 const extnds =
   isBasicValidate || !githubBranchName || githubBranchName === defaultBranch
     ? getServerConfigExtends(presets)

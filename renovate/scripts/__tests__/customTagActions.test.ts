@@ -59,7 +59,12 @@ describe('customTagActions', () => {
     });
 
     it('supports indented tag ref', () => {
-      const match = tagRe.exec(`stuff\n  uses: ${actionPath}@should-release_v3\nnext`);
+      const match = tagRe.exec(`stuff\n \t uses: ${actionPath}@should-release_v3\nnext`);
+      expect(match).not.toBeNull();
+    });
+
+    it('supports tag ref with comment after', () => {
+      const match = tagRe.exec(`uses: ${actionPath}@should-release_v3 # comment`);
       expect(match).not.toBeNull();
     });
 

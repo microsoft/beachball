@@ -197,18 +197,14 @@ ${comments.extra.end}
     readmePath,
     originalReadme.replace(presetsSection, newPresetGroups.map(g => g.content).join('\n')).replace(oldToc, newToc)
   );
-  const newReadme = fs.readFileSync(readmePath, 'utf8').replace(/\r?\n/g, '\n');
 
-  if (newReadme.trim() === originalReadme.trim()) {
-    console.log('\nReadme is up to date!\n');
-  } else {
-    if (check) {
+  if (check) {
+    const newReadme = fs.readFileSync(readmePath, 'utf8').replace(/\r?\n/g, '\n');
+    if (newReadme.trim() !== originalReadme.trim()) {
       git(['--no-pager', 'diff', readmePath]);
       throw new Error(
         "Readme is out of date (see above for diff). Please run 'yarn update-readme' and commit the changes."
       );
-    } else {
-      console.log('\nUpdated readme!\n');
     }
   }
 }
