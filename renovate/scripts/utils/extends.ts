@@ -19,17 +19,17 @@ export function getLocalPresetFromExtends(extendsStr: string): string | undefine
 export function getExtendsForLocalPreset(
   preset: Pick<LocalPresetData, 'name' | 'argValues'>,
   options?: {
-    /** If true, use `preset.argValues` instead of generic `<argN>` placeholders for presets with args */
-    specificArgs?: boolean;
+    /** If true, use generic `<argN>` placeholders instead of `preset.argValues` for presets with args */
+    placeholderArgs?: boolean;
     /** Optional ref to append */
     ref?: string;
   }
 ): string {
   const presetName = path.basename(preset.name, '.json');
   const presetArgs = preset.argValues?.length
-    ? options?.specificArgs
-      ? preset.argValues
-      : preset.argValues.map((_, i) => `<arg${i}>`)
+    ? options?.placeholderArgs
+      ? preset.argValues.map((_, i) => `<arg${i}>`)
+      : preset.argValues
     : [];
   const presetRef = options?.ref ? `#${options.ref}` : '';
   return `${repoPresetPrefix}${presetName}${presetRef}${presetArgs.length ? `(${presetArgs.join(', ')})` : ''}`;
@@ -76,8 +76,5 @@ export function getServerConfigExtends(presets: LocalPresetData[], branchRef?: s
       filteredPresets.push(preset);
     }
   }
-  return [
-    ...extraExtends,
-    ...filteredPresets.map(p => getExtendsForLocalPreset(p, { specificArgs: true, ref: branchRef })),
-  ];
+  return [...extraExtends, ...filteredPresets.map(p => getExtendsForLocalPreset(p, { ref: branchRef }))];
 }

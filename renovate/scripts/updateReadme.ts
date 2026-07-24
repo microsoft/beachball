@@ -122,7 +122,7 @@ export async function updateReadme(check?: boolean): Promise<void> {
 #### \`${presetNameWithArgs}\`
 
 \`\`\`jsonc${extendsLocalPreset(json) ? "\n// ⚠️ This preset can't be pinned to a #tag" : ''}
-"extends": ["${getExtendsForLocalPreset(preset)}"]
+"extends": ["${getExtendsForLocalPreset(preset, { placeholderArgs: true })}"]
 \`\`\`
 
 ${description || ''}

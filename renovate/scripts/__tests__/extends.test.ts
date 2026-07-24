@@ -43,15 +43,17 @@ describe('getExtendsForLocalPreset', () => {
   });
 
   it('adds specific value placeholder without ref when needed', () => {
-    expect(getExtendsForLocalPreset(restrictNode, { specificArgs: true })).toBe(repoPresetPrefix + 'restrictNode(16)');
+    expect(getExtendsForLocalPreset(restrictNode)).toBe(repoPresetPrefix + 'restrictNode(16)');
   });
 
   it('adds generic value placeholder without ref when needed', () => {
-    expect(getExtendsForLocalPreset(restrictNode)).toBe(repoPresetPrefix + 'restrictNode(<arg0>)');
+    expect(getExtendsForLocalPreset(restrictNode, { placeholderArgs: true })).toBe(
+      repoPresetPrefix + 'restrictNode(<arg0>)'
+    );
   });
 
   it('adds placeholder with ref when needed', () => {
-    expect(getExtendsForLocalPreset(restrictNode, { specificArgs: true, ref: 'v1.2.3' })).toBe(
+    expect(getExtendsForLocalPreset(restrictNode, { ref: 'v1.2.3' })).toBe(
       repoPresetPrefix + 'restrictNode#v1.2.3(16)'
     );
   });
