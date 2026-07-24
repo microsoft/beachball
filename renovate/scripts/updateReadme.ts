@@ -6,7 +6,7 @@ import { getComments, getHeadingText, getMarkedSection, slugify, splitByHeading 
 import { paths } from './utils/paths.ts';
 import { readPresets } from './utils/readPresets.ts';
 import { updateAndFormat } from './utils/runBin.ts';
-import { repoPresetPrefix } from './utils/extends.ts';
+import { extendsLocalPreset, repoPresetPrefix } from './utils/extends.ts';
 
 const readmePath = path.join(paths.renovateRoot, 'README.md');
 
@@ -113,7 +113,6 @@ export async function updateReadme(check?: boolean): Promise<void> {
 
     const { description, $schema, ...otherJson } = json;
     const modifiedJson = JSON.stringify(otherJson, null, 2);
-    const hasInRepoExtends = !!json.extends?.some((e: string) => e.startsWith(repoPresetPrefix));
 
     return {
       name,
@@ -121,7 +120,7 @@ export async function updateReadme(check?: boolean): Promise<void> {
       content: `
 #### \`${presetNameWithArgs}\`
 
-\`\`\`jsonc${hasInRepoExtends ? "\n// ⚠️ This preset can't be pinned to a #tag" : ''}
+\`\`\`jsonc${extendsLocalPreset(json) ? "\n// ⚠️ This preset can't be pinned to a #tag" : ''}
 "extends": ["${repoPresetPrefix}${name}"]
 \`\`\`
 

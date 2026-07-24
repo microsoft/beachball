@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
 
-  "description": "Apply all the groupings from this repo (except groupTypes).",
+  "description": "Apply major groupings from Renovate and all the groupings from this repo (except groupTypes).",
 
   "extends": [
     "group:monorepos",

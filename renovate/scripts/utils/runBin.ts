@@ -45,8 +45,7 @@ export function runRenovate(
     throw new Error('You must call verifyRenovate() before running Renovate');
   }
 
-  const env = getRenovateEnv(envParams);
-  console.log(`Running: "${[bin, ...args].join(' ')}" with env ${JSON.stringify(env)}`);
+  console.log(`Running: ${[bin, ...args].join(' ')}`);
 
   return runBin(bin, args, { env: getRenovateEnv(envParams), reject: false });
 }

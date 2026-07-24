@@ -465,7 +465,7 @@ Some alternative strategies which would need to be configured per repo (see [Ren
 "extends": ["github>microsoft/beachball//renovate/presets/groupMore"]
 ```
 
-Apply all the groupings from this repo (except groupTypes).
+Apply major groupings from Renovate and all the groupings from this repo (except groupTypes).
 
 <details><summary><b>Show config JSON</b></summary>
 

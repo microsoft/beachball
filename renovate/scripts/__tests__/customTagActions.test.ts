@@ -58,7 +58,7 @@ describe('customTagActions', () => {
 
     it('does not match a prerelease tag ref', () => {
       // could maybe be added if needed, but it complicates the regex
-      expect(getTagMatch(`${actionPath}@should-release_v3-beta`)).toBeNull();
+      expect(getTagMatch(`${actionPath}@should-release_v3.2.1-beta`)).toBeNull();
     });
 
     it('does not match a ref without a newline', () => {
@@ -165,11 +165,19 @@ describe('customTagActions', () => {
       expect(disableRule.enabled).toBe(false);
     });
 
-    it.each(['should-release_v3', 'should-release_v1.2.3'])('matches custom tag value %s', value => {
-      expect(disableValueRe.test(value)).toBe(true);
+    it('matches custom tag with full version', () => {
+      expect(disableValueRe.test('should-release_v1.2.3')).toBe(true);
     });
 
-    it.each(['v7', '1.2.3', 'should-release_v3-beta'])('does not match unrelated value %s', value => {
+    it('matches custom tag with major-only version', () => {
+      expect(disableValueRe.test('should-release_v3')).toBe(true);
+    });
+
+    it('does not match custom tag with prerelease', () => {
+      expect(disableValueRe.test('should-release_v3.2.1-beta')).toBe(false);
+    });
+
+    it.each(['v7', 'v1.2.3', '1.2.3'])('does not match other value %s', value => {
       expect(disableValueRe.test(value)).toBe(false);
     });
   });
