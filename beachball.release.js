@@ -1,6 +1,6 @@
 // @ts-check
 
-const { getGitTag, postbumpHook } = require('./scripts/beachballConfigHelpers.cjs');
+const { getGitTag, postbumpHook } = require('./scripts/beachballConfigHelpers.ts');
 
 // This config file is used for publish/canary
 

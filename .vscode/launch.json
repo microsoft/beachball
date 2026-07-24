@@ -12,10 +12,10 @@
       "program": "${workspaceRoot}/scripts/debugTests.ts",
       "cwd": "${fileDirname}",
       "runtimeArgs": ["--nolazy", "--inspect", "--experimental-vm-modules"],
-      "args": ["--", "--runInBand", "--watch", "--testTimeout=1000000", "${file}"],
+      "args": ["--runInBand", "--watch", "--testTimeout=1000000", "--", "${fileBasename}"],
       "sourceMaps": true,
       "outputCapture": "std",
-      // "runtimeVersion": "22",
+      "runtimeVersion": "22",
       "console": "integratedTerminal"
     },
     {

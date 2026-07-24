@@ -71,7 +71,11 @@ export type ConfigData = {
    * @see https://docs.renovatebot.com/configuration-options/
    */
   json?: BasicRenovateConfig;
+  /** Sample values for any preset args, e.g. `['16']` */
+  argValues?: string[];
 };
+
+export type LocalPresetData = ConfigData & Required<Pick<ConfigData, 'content' | 'json'>>;
 
 /**
  * Subset of Renovate config properties used (types are exported from `renovate/dist/config/types.js`
@@ -83,6 +87,21 @@ export type BasicRenovateConfig = {
   description?: string | string[];
   extends?: string[];
   ignorePresets?: string[];
+  customManagers?: CustomManagerConfig[];
+  packageRules?: PackageRule[];
 };
 
-export type LocalPresetData = Required<ConfigData>;
+type CustomManagerConfig = {
+  customType?: 'regex' | 'jsonata'; // props below are for regex
+  managerFilePatterns: string[];
+  matchStrings?: string[]; // required for regex
+  datasourceTemplate?: string;
+  versioningTemplate?: string;
+};
+
+// just includes the ones currently used in tests/etc
+type PackageRule = {
+  matchManagers?: string[];
+  matchCurrentValue?: string;
+  enabled?: boolean;
+};

@@ -6,6 +6,7 @@ import { getComments, getHeadingText, getMarkedSection, slugify, splitByHeading 
 import { paths } from './utils/paths.ts';
 import { readPresets } from './utils/readPresets.ts';
 import { updateAndFormat } from './utils/runBin.ts';
+import { extendsLocalPreset, getExtendsForLocalPreset } from './utils/extends.ts';
 
 const readmePath = path.join(paths.renovateRoot, 'README.md');
 
@@ -24,7 +25,7 @@ type PresetExtraTexts = { [presetName: string]: string };
 const presetGroups: PresetGroup[] = [
   {
     name: 'Full config presets',
-    presets: ['default', 'beachball'],
+    presets: ['default', 'base', 'beachball'],
   },
   {
     name: 'Compatibility presets',
@@ -103,7 +104,8 @@ export async function updateReadme(check?: boolean): Promise<void> {
   const presetExtraTexts = getPresetExtraTexts(presetNames, presetsSection);
 
   // Generate preset sections based on the descriptions, custom text, and other JSON
-  const newPresets = presets.map(({ name, content, json }) => {
+  const newPresets = presets.map((preset): PresetSection => {
+    const { name, content, json } = preset;
     const presetArgs = content.match(/{{arg\d}}/g);
     const presetNameWithArgs = presetArgs
       ? `${name}(${presetArgs.map(arg => `<${arg.slice(2, -2)}>`).join(', ')})`
@@ -118,6 +120,10 @@ export async function updateReadme(check?: boolean): Promise<void> {
       nameWithArgs: presetNameWithArgs,
       content: `
 #### \`${presetNameWithArgs}\`
+
+\`\`\`jsonc${extendsLocalPreset(json) ? "\n// ⚠️ This preset can't be pinned to a #tag" : ''}
+"extends": ["${getExtendsForLocalPreset(preset, { placeholderArgs: true })}"]
+\`\`\`
 
 ${description || ''}
 
@@ -191,18 +197,14 @@ ${comments.extra.end}
     readmePath,
     originalReadme.replace(presetsSection, newPresetGroups.map(g => g.content).join('\n')).replace(oldToc, newToc)
   );
-  const newReadme = fs.readFileSync(readmePath, 'utf8').replace(/\r?\n/g, '\n');
 
-  if (newReadme.trim() === originalReadme.trim()) {
-    console.log('\nReadme is up to date!\n');
-  } else {
-    if (check) {
+  if (check) {
+    const newReadme = fs.readFileSync(readmePath, 'utf8').replace(/\r?\n/g, '\n');
+    if (newReadme.trim() !== originalReadme.trim()) {
       git(['--no-pager', 'diff', readmePath]);
       throw new Error(
         "Readme is out of date (see above for diff). Please run 'yarn update-readme' and commit the changes."
       );
-    } else {
-      console.log('\nUpdated readme!\n');
     }
   }
 }

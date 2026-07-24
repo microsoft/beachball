@@ -4,7 +4,6 @@
   "license": "MIT",
   "description": "Shared Renovate presets for use in M365 projects",
   "beachball": {
-    "gitTags": false,
     "shouldPublish": false
   },
   "type": "module",

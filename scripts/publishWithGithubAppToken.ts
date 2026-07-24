@@ -8,7 +8,6 @@
 import { spawnSync } from 'child_process';
 import path from 'path';
 import { findGitRoot, git, type GitProcessOutput } from 'workspace-tools';
-import { adoFail, adoWarn } from './helpers.ts';
 
 const repoRoot = findGitRoot(process.cwd());
 
@@ -33,6 +32,16 @@ if (!token) {
 function runGit(args: string[], options?: { throwOnError?: boolean; logArgs?: string[] }): GitProcessOutput {
   console.log(`git ${(options?.logArgs ?? args).join(' ')}`);
   return git(args, { cwd: repoRoot, throwOnError: options?.throwOnError });
+}
+
+/** Log an ADO pipeline error and exit with a non-zero code. */
+function adoFail(message: string): never {
+  console.log(`##vso[task.logissue type=error]${message}`);
+  process.exit(1);
+}
+
+function adoWarn(message: string): void {
+  console.log(`##vso[task.logissue type=warning]${message}`);
 }
 
 // Configure the git author identity.

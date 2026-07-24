@@ -11,10 +11,11 @@ import type { ConfigData, LocalPresetData } from './utils/types.ts';
 const presetArgIndex = process.argv.indexOf('--preset');
 const presetArg = presetArgIndex >= 0 ? process.argv[presetArgIndex + 1] : undefined;
 
-const logLocation = isGithub ? 'log artifact' : `log file at ${paths.logFileBasic}`;
-
 type Result = 'error' | 'unknown' | 'ok';
 
+/**
+ * Run Renovate's basic schema validation on all presets and the repo and server configs.
+ */
 async function runTests() {
   await verifyRenovate();
 
@@ -68,6 +69,7 @@ async function runTests() {
   }
 
   if (failedPresets.length) {
+    const logLocation = isGithub ? 'log artifact' : `log file at ${paths.logFileBasic}`;
     logError(
       `❌ Validating the following preset(s)/config(s) failed (see logs above or ${logLocation} for details):\n` +
         failedPresets.map(p => `    - ${p}`).join('\n')

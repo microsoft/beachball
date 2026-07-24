@@ -1,9 +1,18 @@
+import path from 'node:path';
 import { getToken } from './checkToken.ts';
-import { getExtendsForLocalPreset } from './utils/extends.ts';
-import { defaultBranch, defaultRepo, githubBranchName } from './utils/github.ts';
+import { getServerConfigExtends } from './utils/extends.ts';
+import { defaultBranch, defaultRepo, githubBranchName, isPullRequest } from './utils/github.ts';
 import { readPresets } from './utils/readPresets.ts';
 
+// Force an "extends" config with most or all presets from this repo. The basic validation step or
+// runs on main can use all presets, but full renovate dry runs in a PR must omit any presets which
+// reference other local presets (see getServerConfigExtends comment).
 const presets = readPresets();
+const isBasicValidate = process.argv.some(arg => path.basename(arg).startsWith('renovate-config-validator'));
+const extnds =
+  isBasicValidate || !githubBranchName || githubBranchName === defaultBranch
+    ? getServerConfigExtends(presets)
+    : getServerConfigExtends(presets, githubBranchName);
 
 /**
  * Renovate self-hosted (server) config for testPresetsFull.ts
@@ -23,18 +32,16 @@ const config = {
   token: getToken() || '',
   force: {
     printConfig: true,
-    // Force an "extends" config with all the presets from this repo.
-    // (Note this will NOT fix the names of extended presets within another preset,
-    // so extended presets will be fetched from main, not the branch. This is usually
-    // fine but will cause an error if a preset extends a newly-added preset in a PR.)
-    extends: presets.map(p => getExtendsForLocalPreset(p, githubBranchName === defaultBranch ? '' : githubBranchName)),
+    extends: extnds,
     // Disable alerts since the PR token doesn't have perms to read them
     vulnerabilityAlerts: { enabled: false },
     // Use the config from the current branch. Unfortunately this is also merged with the
     // default branch's current config, with no way to disable.
     ...(githubBranchName &&
-      githubBranchName !== defaultBranch && {
+      isPullRequest && {
         baseBranchPatterns: [githubBranchName],
+        // Unfortunately there's no way to make renovate entirely ignore the default branch's config.
+        // Best we can do is force it to merge the given base branch's config.
         useBaseBranchConfig: 'merge',
       }),
     // perf options

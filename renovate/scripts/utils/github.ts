@@ -3,11 +3,11 @@ import path from 'path';
 export const defaultRepo = 'microsoft/beachball';
 export const defaultBranch = 'main';
 export const isGithub = !!process.env.CI;
+export const isPullRequest = getEnv('GITHUB_EVENT_NAME', isGithub) === 'pull_request';
 /** Branch name if running on github */
-export const githubBranchName =
-  getEnv('GITHUB_EVENT_NAME', isGithub) === 'pull_request'
-    ? getEnv('GITHUB_HEAD_REF', isGithub)
-    : getEnv('GITHUB_REF_NAME', isGithub);
+export const githubBranchName = isPullRequest
+  ? getEnv('GITHUB_HEAD_REF', isGithub)
+  : getEnv('GITHUB_REF_NAME', isGithub);
 
 /**
  * @param envName name of value from `process.env`
