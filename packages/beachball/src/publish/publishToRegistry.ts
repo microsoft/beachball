@@ -68,13 +68,6 @@ export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOp
   // Given the packages to publish and the full map of packages in the repo, organize the packages into
   // graph layers that can be published in parallel. The first layer will be packages with no deps
   // on other published packages, and the last layer will be root packages that depend on all others.
-  //
-  // (Note: layers are computed based on ONLY the set of published packages. This *should* be safe
-  // from an ordering standpoint, at least with beachball's default behaviors. When layer support was
-  // initially added, getPackageGraphLayers would consider all graph edges if `bumpDeps: false`, `scope`
-  // set, or any change had `dependentChangeType: "none", type: "(not none)"`. But logic that predated
-  // layers didn't consider this, so it's probably fine in practice, especially since the layer logic
-  // is mainly to guard against relatively rare mid-publish failures or race conditions.)
   const layers = packageGraph.getLayers();
   // This is the toposorted list of packages to publish
   packagesToPublish = layers.flat();

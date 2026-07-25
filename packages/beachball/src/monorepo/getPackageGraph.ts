@@ -10,8 +10,12 @@ import type { PackageInfos, PackageInfo } from '../types/PackageInfo';
  * When creating the graph, only non-dev dependencies are considered.
  * Dev dependencies can be omitted since they don't impact publishing or installation.
  *
- * Note that this version only considers dependencies of `affectedPackages` (see comment
- * on `getPackageGraphLayers` for why this might matter).
+ * Note that this version only considers dependencies of `affectedPackages` (published and/or bumped).
+ * This *should* be safe from an ordering standpoint, at least with beachball's default behaviors.
+ * When layer support was initially added, getPackageGraphLayers would consider all graph edges if
+ * `bumpDeps: false`, `scope` set, or any change had `dependentChangeType: "none", type: "(not none)"`.
+ * But logic that predated layers didn't consider this, so it's probably fine in practice, especially
+ * since the layer logic mostly guards against less-common mid-publish failures or race conditions.)
  *
  * @param affectedPackages Packages to include
  * @param packageInfos All packages in the repo

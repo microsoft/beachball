@@ -14,7 +14,7 @@ export async function packPackage(
   packageInfo: PackageInfo,
   options: Required<Pick<BeachballOptions, 'packToPath'>> &
     Pick<BeachballOptions, 'verbose'> & {
-      /** Array of layers of package names returned by `getPackageGraphLayers` */
+      /** Array of layers of package names returned by `PGraph.getLayers()` */
       layers: string[][];
     }
 ): Promise<boolean> {
