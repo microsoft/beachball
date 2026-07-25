@@ -157,6 +157,7 @@ describe('publish command (npm)', () => {
 
       [log] Removing change files:
       [log] - publicpkg-<guid>.json
+      [log]
       [log] Validating new package versions...
 
       [log] Package versions are OK to publish:

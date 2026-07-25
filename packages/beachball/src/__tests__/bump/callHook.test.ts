@@ -1,8 +1,9 @@
-import { describe, it, expect, jest } from '@jest/globals';
-import { callHook } from '../../bump/callHook';
-import { makePackageInfos } from '../../__fixtures__/packageInfos';
-import type { HooksOptions } from '../../types/BeachballOptions';
+import { describe, expect, it, jest } from '@jest/globals';
 import path from 'path';
+import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import { callHook } from '../../bump/callHook';
+import { getPackageGraph } from '../../monorepo/getPackageGraph';
+import type { HooksOptions } from '../../types/BeachballOptions';
 
 type PostbumpHook = NonNullable<HooksOptions['postbump']>;
 type PrebumpHook = NonNullable<HooksOptions['prebump']>;
@@ -28,12 +29,22 @@ describe('callHook', () => {
   }
 
   it('does nothing if hook is undefined', async () => {
-    await callHook('prebump', ['pkg1'], packageInfos, { hooks: {}, concurrency: 1 });
+    const graph = getPackageGraph(['pkg1'], packageInfos);
+    const runSpy = jest.spyOn(graph, 'run');
+    await callHook('postbump', graph, packageInfos, { concurrency: 1 });
+    expect(runSpy).not.toHaveBeenCalled();
+  });
+
+  it('does nothing if packageGraph is undefined', async () => {
+    const mockHook = jest.fn<PostbumpHook>();
+    await callHook('postbump', undefined, packageInfos, { hooks: { postbump: mockHook }, concurrency: 1 });
+    expect(mockHook).not.toHaveBeenCalled();
   });
 
   it('does nothing if no affected packages', async () => {
     const mockHook = jest.fn<PostbumpHook>();
-    await callHook('postbump', [], packageInfos, { hooks: { postbump: mockHook }, concurrency: 1 });
+    const graph = getPackageGraph([], packageInfos);
+    await callHook('postbump', graph, packageInfos, { hooks: { postbump: mockHook }, concurrency: 1 });
     expect(mockHook).not.toHaveBeenCalled();
   });
 
@@ -41,54 +52,43 @@ describe('callHook', () => {
   // (might make sense to either add here or remove for concurrent hooks)
   it('calls hook for each affected package in order with concurrency=1', async () => {
     const mockHook = jest.fn<PostbumpHook>();
-
-    await callHook('postbump', ['pkg3', 'pkg2', 'pkg5'], packageInfos, {
-      hooks: { postbump: mockHook },
-      concurrency: 1,
-    });
+    const graph = getPackageGraph(['pkg2', 'pkg4', 'pkg5'], packageInfos);
+    await callHook('postbump', graph, packageInfos, { hooks: { postbump: mockHook }, concurrency: 1 });
 
     // Verify the exact args of one call
     expect(mockHook).toHaveBeenCalledWith(path.join(root, 'packages/pkg2'), 'pkg2', '2.0.0', packageInfos);
 
-    expect(getHookCallNames(mockHook)).toEqual(['pkg3', 'pkg2', 'pkg5']);
+    expect(getHookCallNames(mockHook)).toEqual(['pkg5', 'pkg4', 'pkg2']);
     // Most of the tests omit the very large final packageInfos arg for better diffs on error,
     // but test it here once
     expect(mockHook.mock.calls).toEqual([
-      [path.join(root, 'packages/pkg3'), 'pkg3', '1.0.0', packageInfos],
-      [path.join(root, 'packages/pkg2'), 'pkg2', '2.0.0', packageInfos],
       [path.join(root, 'packages/pkg5'), 'pkg5', '1.0.0', packageInfos],
+      [path.join(root, 'packages/pkg4'), 'pkg4', '1.0.0', packageInfos],
+      [path.join(root, 'packages/pkg2'), 'pkg2', '2.0.0', packageInfos],
     ]);
   });
 
   it('works with Set of affected packages', async () => {
     const mockHook = jest.fn<PostbumpHook>();
-    const affected = new Set(['pkg3', 'pkg2']);
-    await callHook('postbump', affected, packageInfos, { hooks: { postbump: mockHook }, concurrency: 1 });
+    const graph = getPackageGraph(new Set(['pkg3', 'pkg2']), packageInfos);
+    await callHook('postbump', graph, packageInfos, { hooks: { postbump: mockHook }, concurrency: 1 });
     expect(getHookCallNames(mockHook)).toEqual(['pkg3', 'pkg2']);
   });
 
   it.each(['postbump', 'prepublish', 'postpublish'] as const)('calls %s hook with PackageInfos', async hookName => {
     const mockHook = jest.fn<PostbumpHook>();
-    await callHook(hookName, ['pkg1'], packageInfos, { hooks: { [hookName]: mockHook }, concurrency: 1 });
+    const graph = getPackageGraph(['pkg1'], packageInfos);
+    await callHook(hookName, graph, packageInfos, { hooks: { [hookName]: mockHook }, concurrency: 1 });
     expect(mockHook).toHaveBeenCalledTimes(1);
     expect(mockHook).toHaveBeenCalledWith(path.join(root, 'packages/pkg1'), 'pkg1', '1.0.0', packageInfos);
   });
 
   it('calls prebump hook without PackageInfos', async () => {
     const mockHook = jest.fn<PrebumpHook>();
-    await callHook('prebump', ['pkg1'], packageInfos, { hooks: { prebump: mockHook }, concurrency: 1 });
+    const graph = getPackageGraph(['pkg1'], packageInfos);
+    await callHook('prebump', graph, packageInfos, { hooks: { prebump: mockHook }, concurrency: 1 });
     expect(mockHook).toHaveBeenCalledTimes(1);
     expect(mockHook).toHaveBeenCalledWith(path.join(root, 'packages/pkg1'), 'pkg1', '1.0.0');
-  });
-
-  // really should have been validated already
-  it('ignores nonexistent package with concurrency=1', async () => {
-    const mockHook = jest.fn<PostbumpHook>();
-    await callHook('postbump', ['pkg1', 'nonexistent', 'pkg4'], packageInfos, {
-      hooks: { postbump: mockHook },
-      concurrency: 1,
-    });
-    expect(mockHook).toHaveBeenCalledTimes(2);
   });
 
   it('calls hook sequentially when concurrency=1', async () => {
@@ -99,10 +99,11 @@ describe('callHook', () => {
       callOrder.push(`end-${name}`);
     });
 
-    await callHook('postbump', ['pkg1', 'pkg2'], packageInfos, { hooks: { postbump: mockHook }, concurrency: 1 });
+    const graph = getPackageGraph(['pkg1', 'pkg2'], packageInfos);
+    await callHook('postbump', graph, packageInfos, { hooks: { postbump: mockHook }, concurrency: 1 });
 
     // With concurrency=1, should be fully sequential
-    expect(callOrder).toEqual(['start-pkg1', 'end-pkg1', 'start-pkg2', 'end-pkg2']);
+    expect(callOrder).toEqual(['start-pkg2', 'end-pkg2', 'start-pkg1', 'end-pkg1']);
   });
 
   // sync/async shouldn't be any different here
@@ -111,8 +112,9 @@ describe('callHook', () => {
       if (name === 'pkg2') throw new Error('oh no');
     });
 
+    const graph = getPackageGraph(['pkg1', 'pkg2', 'pkg3'], packageInfos);
     await expect(() =>
-      callHook('postbump', ['pkg1', 'pkg2', 'pkg3'], packageInfos, { hooks: { postbump: mockHook }, concurrency: 1 })
+      callHook('postbump', graph, packageInfos, { hooks: { postbump: mockHook }, concurrency: 1 })
     ).rejects.toThrow('oh no');
     // failed on second call, does not continue
     expect(mockHook).toHaveBeenCalledTimes(2);
@@ -126,8 +128,9 @@ describe('callHook', () => {
       }
     });
 
+    const graph = getPackageGraph(['pkg1', 'pkg2', 'pkg3'], packageInfos);
     await expect(() =>
-      callHook('postbump', ['pkg1', 'pkg2', 'pkg3'], packageInfos, { hooks: { postbump: mockHook }, concurrency: 1 })
+      callHook('postbump', graph, packageInfos, { hooks: { postbump: mockHook }, concurrency: 1 })
     ).rejects.toThrow('async oh no');
     expect(mockHook).toHaveBeenCalledTimes(2);
   });
@@ -135,23 +138,13 @@ describe('callHook', () => {
   it('calls hook with concurrency > 1 in topological order', async () => {
     const mockHook = jest.fn<PostbumpHook>();
 
-    await callHook('postbump', ['pkg1', 'pkg5', 'pkg4', 'pkg2', 'pkg3'], packageInfos, {
+    const graph = getPackageGraph(['pkg1', 'pkg5', 'pkg4', 'pkg2', 'pkg3'], packageInfos);
+    await callHook('postbump', graph, packageInfos, {
       hooks: { postbump: mockHook },
       concurrency: 2,
     });
 
     expect(getHookCallNames(mockHook)).toEqual(['pkg5', 'pkg4', 'pkg3', 'pkg2', 'pkg1']);
-  });
-
-  it('ignores nonexistent packages with concurrency > 1', async () => {
-    const mockHook = jest.fn<PostbumpHook>();
-
-    await callHook('postbump', ['pkg1', 'nonexistent', 'pkg2'], packageInfos, {
-      hooks: { postbump: mockHook },
-      concurrency: 3,
-    });
-
-    expect(getHookCallNames(mockHook)).toEqual(['pkg2', 'pkg1']);
   });
 
   it('calls hook for each affected package in order and respecting max concurrency', async () => {
@@ -167,7 +160,8 @@ describe('callHook', () => {
       callOrder.push(`end-${name}`);
     });
 
-    await callHook('postbump', ['pkg1', 'pkg2', 'pkg3', 'pkg4', 'pkg5'], packageInfos, {
+    const graph = getPackageGraph(['pkg1', 'pkg2', 'pkg3', 'pkg4', 'pkg5'], packageInfos);
+    await callHook('postbump', graph, packageInfos, {
       hooks: { postbump: mockHook },
       concurrency: 3,
     });
@@ -191,8 +185,9 @@ describe('callHook', () => {
     });
 
     // this will be in topological order so pkg2 is the third call
+    const graph = getPackageGraph(['pkg1', 'pkg2', 'pkg3', 'pkg4'], packageInfos);
     await expect(() =>
-      callHook('postbump', ['pkg1', 'pkg2', 'pkg3', 'pkg4'], packageInfos, {
+      callHook('postbump', graph, packageInfos, {
         hooks: { postbump: mockHook },
         concurrency: 2,
       })
@@ -210,8 +205,9 @@ describe('callHook', () => {
     });
 
     // this will be in topological order so pkg2 is the third call
+    const graph = getPackageGraph(['pkg1', 'pkg2', 'pkg3', 'pkg4'], packageInfos);
     await expect(() =>
-      callHook('postbump', ['pkg1', 'pkg2', 'pkg3', 'pkg4'], packageInfos, {
+      callHook('postbump', graph, packageInfos, {
         hooks: { postbump: mockHook },
         concurrency: 2,
       })

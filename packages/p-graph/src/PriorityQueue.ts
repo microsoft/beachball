@@ -1,17 +1,33 @@
-interface PriorityQueueItem<T> {
-  item: T;
+import type { IQueue } from './BasicQueue';
+
+interface PriorityQueueItem {
+  item: string;
   priority: number;
 }
 
-export class PriorityQueue<T> {
+export class PriorityQueue implements IQueue {
   /** @internal public for testing */
-  public readonly array: PriorityQueueItem<T>[] = [];
+  public readonly array: PriorityQueueItem[] = [];
+  readonly #priorities?: Record<string, number>;
+
+  public constructor(priorities?: Record<string, number>) {
+    this.#priorities = priorities;
+  }
 
   public isEmpty(): boolean {
     return this.array.length === 0;
   }
 
-  public insert(item: T, priority: number): void {
+  /**
+   * Insert an item in priority order.
+   * If `priority` is not provided, it must exist in the `priorities` passed to the constructor.
+   */
+  public insert(item: string, priority?: number): void {
+    priority ??= this.#priorities?.[item];
+    if (priority === undefined) {
+      throw new Error(`Priorities were specified upfront, but "${item}" is missing a priority`);
+    }
+
     this.array.push({ item, priority });
 
     // Heapify up
@@ -28,7 +44,8 @@ export class PriorityQueue<T> {
     }
   }
 
-  public removeMax(): T | undefined {
+  /** Remove the max priority element. */
+  public removeNext(): string | undefined {
     if (this.array.length === 0) {
       return undefined;
     }

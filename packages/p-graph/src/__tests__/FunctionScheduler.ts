@@ -4,8 +4,11 @@ interface MockFunctionDefinition {
   /** A friendly name for the function */
   name: string;
 
-  /** How many ticks this function should take to simulate the duration of the function execution */
-  duration: number;
+  /**
+   * How many ticks this function should take to simulate the duration of the function execution.
+   * @default 1
+   */
+  duration?: number;
 
   /** Priority value to pass to the PGraphNode that is created */
   priority?: number;
@@ -50,6 +53,14 @@ export class FunctionScheduler {
     });
   }
 
+  /** @see {@link addNode} */
+  public addNodes(nodes: Record<string, Omit<MockFunctionDefinition, 'name'>> | string[]): void {
+    nodes = Array.isArray(nodes) ? Object.fromEntries(nodes.map(name => [name, {}])) : nodes;
+    for (const [name, definition] of Object.entries(nodes)) {
+      this.addNode({ name, ...definition });
+    }
+  }
+
   /** Get the max concurrency observed from the call records */
   public getMaxConcurrency(): number {
     let current = 0;
@@ -83,14 +94,9 @@ export class FunctionScheduler {
     return firstIndex !== -1 && secondIndex !== -1 && firstIndex < secondIndex;
   }
 
-  /**
-   * Verify that `taskName` was completed (started and ended).
-   */
-  public didCompleteTask(taskName: string): boolean {
-    return (
-      this.#callRecords.some(item => item.name === taskName && item.state === 'start') &&
-      this.#callRecords.some(item => item.name === taskName && item.state === 'end')
-    );
+  /** Get all completed task names. */
+  public getCompletedTasks(): string[] {
+    return this.#callRecords.filter(item => item.state === 'end').map(item => item.name);
   }
 
   #runFunction(definition: MockFunctionDefinition): Promise<void> {
@@ -98,7 +104,7 @@ export class FunctionScheduler {
     this.#callRecords.push({ name, state: 'start' });
 
     const promise = new Promise<void>(resolve => {
-      this.#currentlyRunningFunctions.push({ name, ticksRemaining: duration, resolve });
+      this.#currentlyRunningFunctions.push({ name, ticksRemaining: duration ?? 1, resolve });
     });
 
     this.#ensureTickScheduled();

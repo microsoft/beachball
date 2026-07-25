@@ -401,7 +401,7 @@ export interface HooksOptions {
    * In the `bump` flow, this is called once for each bumped package.
    * In the `publish` flow, it's called twice:
    * 1. when generating version bumps and changelogs to commit/push
-   * 2. before publishing to npm (unless the package has `shouldPublish: false`)
+   * 2. before publishing to npm
    *
    * File changes will be committed (`bump`) or published (`publish`), but will NOT modify
    * the in-memory version bumps which have already happened.
@@ -429,7 +429,7 @@ export interface HooksOptions {
    * In the `bump` flow, this is called once for each bumped package.
    * In the `publish` flow, it's called twice:
    * 1. when generating version bumps and changelogs to commit/push
-   * 2. before publishing to npm (unless the package has `shouldPublish: false`)
+   * 2. before publishing to npm
    *
    * File changes will be committed (`bump`) or published (`publish`).
    *

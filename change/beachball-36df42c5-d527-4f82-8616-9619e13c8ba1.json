@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Use `p-graph` v3 for both concurrent and non-concurrent publishing, and for generating graph layers when packing",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

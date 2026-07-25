@@ -12,10 +12,8 @@ import { performPublishOverrides } from './performPublishOverrides';
 import { getPackagesToPublish } from './getPackagesToPublish';
 import { callHook } from '../bump/callHook';
 import { getPackageGraph } from '../monorepo/getPackageGraph';
-import type { PackageInfo } from '../types/PackageInfo';
 import { packPackage } from '../packageManager/packPackage';
 import { BeachballError } from '../types/BeachballError';
-import { getPackageGraphLayers } from './getPackageGraphLayers';
 import { PGraphError } from 'p-graph';
 
 /** For each layer, a mapping from package name to version */
@@ -32,8 +30,11 @@ export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOp
   const verb = packToPath ? 'pack' : 'publish';
 
   // bumpInfo already reflects in-memory bumps, but they're only written to disk if bump=true
+  // (this uses a separate package graph of all bumped packages, which was probably not intentional,
+  // but will stay that way for now)
   if (options.bump) {
     await performBump(bumpInfo, options);
+    console.log();
   }
 
   // Get the packages to publish, reducing the set by packages that don't need publishing.
@@ -60,16 +61,23 @@ export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOp
     throw new BeachballError('Pre-publish validation failed', { alreadyLogged: true });
   }
 
-  let layers: string[][] | undefined;
-  if (packToPath) {
-    // If packing, get the layers instead of toposorting
-    layers = getPackageGraphLayers(packagesToPublish, bumpInfo.packageInfos);
-  } else if (options.concurrency === 1) {
-    // Otherwise, unless publishing concurrently, toposort the packages in case publishing fails
-    // partway through. We can reuse the layer logic for this. (Skip for concurrent publishing
-    // since p-graph handles ordering.)
-    packagesToPublish = getPackageGraphLayers(packagesToPublish, bumpInfo.packageInfos).flat();
-  }
+  // Build the package graph, used for both running hooks and publishing.
+  // It's also used to compute graph layers and sort packages to publish if needed.
+  const packageGraph = getPackageGraph(packagesToPublish, bumpInfo.packageInfos);
+
+  // Given the packages to publish and the full map of packages in the repo, organize the packages into
+  // graph layers that can be published in parallel. The first layer will be packages with no deps
+  // on other published packages, and the last layer will be root packages that depend on all others.
+  //
+  // (Note: layers are computed based on ONLY the set of published packages. This *should* be safe
+  // from an ordering standpoint, at least with beachball's default behaviors. When layer support was
+  // initially added, getPackageGraphLayers would consider all graph edges if `bumpDeps: false`, `scope`
+  // set, or any change had `dependentChangeType: "none", type: "(not none)"`. But logic that predated
+  // layers didn't consider this, so it's probably fine in practice, especially since the layer logic
+  // is mainly to guard against relatively rare mid-publish failures or race conditions.)
+  const layers = packageGraph.getLayers();
+  // This is the toposorted list of packages to publish
+  packagesToPublish = layers.flat();
 
   // performing publishConfig and workspace version overrides requires this procedure to
   // ONLY be run right before npm publish, but NOT in the git push
@@ -77,40 +85,33 @@ export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOp
   performPublishOverrides(packagesToPublish, bumpInfo.packageInfos, catalogs);
 
   // if there is a prepublish hook perform a prepublish pass, calling the routine on each package
-  await callHook('prepublish', packagesToPublish, bumpInfo.packageInfos, options);
+  await callHook('prepublish', packageGraph, bumpInfo.packageInfos, options);
 
   // finally pass through doing the actual npm publish command
   const succeededPackages = new Set<string>();
 
-  const packagePublishInternal = async (packageInfo: PackageInfo) => {
-    let success: boolean;
-    if (packToPath && layers) {
-      success = await packPackage(packageInfo, { packToPath, verbose, layers });
-    } else {
-      success = (await packagePublish(packageInfo, options)).success;
-    }
-
-    if (success) {
-      succeededPackages.add(packageInfo.name);
-    } else {
-      throw new Error(`Error ${verb}ing! Refer to the previous logs for recovery instructions.`);
-    }
-  };
-
   try {
-    if (options.concurrency === 1) {
-      for (const pkg of packagesToPublish) {
-        await packagePublishInternal(bumpInfo.packageInfos[pkg]);
-      }
-    } else {
-      const packageGraph = getPackageGraph(packagesToPublish, bumpInfo.packageInfos, packagePublishInternal);
-      await packageGraph.run({
-        concurrency: options.concurrency,
-        // This option is set to true to ensure that all tasks that are started are awaited,
-        // this doesn't actually start tasks for packages of which dependencies have failed.
-        continue: true,
-      });
-    }
+    await packageGraph.run({
+      concurrency: options.concurrency,
+      // This option is set to true to ensure that all tasks that are started are awaited,
+      // but it doesn't start tasks for packages of which dependencies have failed.
+      continue: true,
+      run: async pkgName => {
+        const packageInfo = bumpInfo.packageInfos[pkgName];
+        let success: boolean;
+        if (packToPath) {
+          success = await packPackage(packageInfo, { packToPath, verbose, layers });
+        } else {
+          success = (await packagePublish(packageInfo, options)).success;
+        }
+
+        if (success) {
+          succeededPackages.add(pkgName);
+        } else {
+          throw new Error(`Error ${verb}ing! Refer to the previous logs for recovery instructions.`);
+        }
+      },
+    });
 
     if (packToPath && layers) {
       const layerVersions: LayerVersionsJson = layers.map(layer =>
@@ -121,7 +122,6 @@ export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOp
       console.log(`Wrote versions of packed packages to ${versionsPath}`);
     }
   } catch (error) {
-    // p-graph will throw an array of errors if it fails to run all tasks
     let err = error;
     if (err instanceof PGraphError) {
       // Dedupe the error messages since they'll usually be the same ("Error publishing! ...")
@@ -141,5 +141,5 @@ export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOp
   }
 
   // if there is a postpublish hook perform a postpublish pass, calling the routine on each package
-  await callHook('postpublish', packagesToPublish, bumpInfo.packageInfos, options);
+  await callHook('postpublish', packageGraph, bumpInfo.packageInfos, options);
 }
