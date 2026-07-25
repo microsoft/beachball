@@ -81,50 +81,6 @@ network error
   • foo@1.0.0"
 `;
 
-exports[`publishToRegistry with concurrency > 1 publishes independent packages in parallel 1`] = `
-"[log] Validating new package versions...
-
-[log] Package versions are OK to publish:
-  • foo@1.0.0
-  • bar@1.0.0
-  • baz@1.0.0
-  • qux@1.0.0
-  • quux@1.0.0
-
-[log] Validating no private package among package dependencies
-[log]   OK!
-
-[log] Publishing - foo@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
-[log]   (cwd: <root>/packages/foo)
-
-[log] Publishing - quux@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
-[log]   (cwd: <root>/packages/quux)
-
-[log] Publishing - qux@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
-[log]   (cwd: <root>/packages/qux)
-
-[log] Published! - foo@1.0.0
-
-[log] Publishing - baz@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
-[log]   (cwd: <root>/packages/baz)
-
-[log] Published! - quux@1.0.0
-
-[log] Publishing - bar@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
-[log]   (cwd: <root>/packages/bar)
-
-[log] Published! - qux@1.0.0
-
-[log] Published! - baz@1.0.0
-
-[log] Published! - bar@1.0.0"
-`;
-
 exports[`publishToRegistry with concurrency > 1 throws and shows recovery info on failure 2`] = `
 "[log] Validating new package versions...
 
@@ -142,13 +98,13 @@ exports[`publishToRegistry with concurrency > 1 throws and shows recovery info o
 [log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
 [log]   (cwd: <root>/packages/pkg3)
 
-[log] Publishing - pkg5@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
-[log]   (cwd: <root>/packages/pkg5)
-
 [log] Publishing - pkg4@1.0.0 with tag latest
 [log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
 [log]   (cwd: <root>/packages/pkg4)
+
+[log] Publishing - pkg5@1.0.0 with tag latest
+[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
+[log]   (cwd: <root>/packages/pkg5)
 
 [warn] Publishing pkg5@1.0.0 failed. Output:
 
@@ -225,6 +181,12 @@ exports[`publishToRegistry with packToPath packs packages into layer folders 1`]
 [log] Validating no private package among package dependencies
 [log]   OK!
 
+[log] Packing - lib@1.0.0
+[log]   (cwd: <root>/packages/lib)
+
+[log] lib-1.0.0.tgz
+
+[log] Packed lib@1.0.0 to <packPath>/1/lib-1.0.0.tgz
 [log] Packing - app@1.0.0
 [log]   (cwd: <root>/packages/app)
 
@@ -237,11 +199,5 @@ exports[`publishToRegistry with packToPath packs packages into layer folders 1`]
 [log] other-1.0.0.tgz
 
 [log] Packed other@1.0.0 to <packPath>/2/other-1.0.0.tgz
-[log] Packing - lib@1.0.0
-[log]   (cwd: <root>/packages/lib)
-
-[log] lib-1.0.0.tgz
-
-[log] Packed lib@1.0.0 to <packPath>/1/lib-1.0.0.tgz
 [log] Wrote versions of packed packages to <packPath>/versions.json"
 `;

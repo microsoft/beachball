@@ -3691,8 +3691,8 @@ __metadata:
     execa: "catalog:prod"
     get-port: "npm:^7.0.0"
     minimatch: "npm:^3.1.5"
-    normalized-tmpdir: "npm:1.1.0"
-    p-graph: "npm:^1.3.0"
+    normalized-tmpdir: "npm:^1.1.0"
+    p-graph: "workspace:^"
     p-limit: "npm:^3.1.0"
     prompts: "npm:^2.4.2"
     semver: "catalog:prod"
@@ -7604,7 +7604,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"normalized-tmpdir@npm:1.1.0":
+"normalized-tmpdir@npm:^1.1.0":
   version: 1.1.0
   resolution: "normalized-tmpdir@npm:1.1.0"
   checksum: 10c0/e9aece277b9fe753baf5c61cf07b6fe241a6b66c4f45783353f1fdc72686f264af28c6494d2d28991c1289fb4ec78e4cd3b7e6b5d705042ae405d5099c9cd0ed
@@ -7745,14 +7745,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p-graph@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "p-graph@npm:1.3.0"
-  checksum: 10c0/cb8cf29ae956fd697afc656e1c753991ff2c6e1fde170ee8a31399a89f883901ae34f5e564b7e99de523215a7d85c307fa92a7b9f90f895e78940ccadd31b1ad
-  languageName: node
-  linkType: hard
-
-"p-graph@workspace:packages/p-graph":
+"p-graph@workspace:^, p-graph@workspace:packages/p-graph":
   version: 0.0.0-use.local
   resolution: "p-graph@workspace:packages/p-graph"
   dependencies:

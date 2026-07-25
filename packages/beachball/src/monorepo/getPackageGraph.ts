@@ -1,26 +1,30 @@
 import { type PGraphNodeMap, PGraph } from 'p-graph';
 import { getPackageDependencies } from 'workspace-tools';
-import type { PackageInfo, PackageInfos } from '../types/PackageInfo';
+import type { PackageInfos, PackageInfo } from '../types/PackageInfo';
 
 /**
- * Get a PGraph of `affectedPackages` which will run a function in dependency topological order.
- * Note that this version only considers dependencies listed directly in the graph (see comment
- * on `getPackageGraphLayers` for why this might matter).
+ * Get a PGraph of `affectedPackages` for running operations in dependency topological order.
+ * The caller provides the actual operation via `packageGraph.run({ run: ... })`, which allows
+ * reusing the same graph for multiple operations.
+ *
+ * When creating the graph, only non-dev dependencies are considered.
+ * Dev dependencies can be omitted since they don't impact publishing or installation.
+ *
+ * Note that this version only considers dependencies of `affectedPackages` (published and/or bumped).
+ * This *should* be safe from an ordering standpoint, at least with beachball's default behaviors.
+ * When layer support was initially added, getPackageGraphLayers would consider all graph edges if
+ * `bumpDeps: false`, `scope` set, or any change had `dependentChangeType: "none", type: "(not none)"`.
+ * But logic that predated layers didn't consider this, so it's probably fine in practice, especially
+ * since the layer logic mostly guards against less-common mid-publish failures or race conditions.)
+ *
  * @param affectedPackages Packages to include
  * @param packageInfos All packages in the repo
- * @param runHook Function to run for each package
  * @returns The graph ready to run
  */
-export function getPackageGraph(
-  affectedPackages: string[],
-  packageInfos: PackageInfos,
-  runHook: (packageInfo: PackageInfo) => void | Promise<void>
-): PGraph {
+export function getPackageGraph(affectedPackages: string[] | Set<string>, packageInfos: PackageInfos): PGraph {
   const nodeMap: PGraphNodeMap = new Map();
-  for (const packageToBump of affectedPackages) {
-    nodeMap.set(packageToBump, {
-      run: async () => await runHook(packageInfos[packageToBump]),
-    });
+  for (const pkg of affectedPackages) {
+    nodeMap.set(pkg, {});
   }
 
   const dependencyGraph = _getPackageDependencyGraph(affectedPackages, packageInfos);
@@ -28,13 +32,15 @@ export function getPackageGraph(
 }
 
 /**
- * Get the graph of non-dev dependencies within the repo.
- * Dev dependencies can be omitted since they don't impact publishing or installation.
+ * Get the graph of non-dev dependencies within the repo, starting from the given `packages`.
  *
  * @returns Each element is a tuple of `[dependency, dependent]` where `dependent` depends on `dependency`.
  * These are the edges of the dependency graph.
  */
-export function _getPackageDependencyGraph(packages: string[], packageInfos: PackageInfos): [string, string][] {
+export function _getPackageDependencyGraph(
+  packages: string[] | Set<string>,
+  packageInfos: PackageInfos
+): [string, string][] {
   const packageSet = new Set(packages);
   const dependencyGraph: [string, string][] = [];
 

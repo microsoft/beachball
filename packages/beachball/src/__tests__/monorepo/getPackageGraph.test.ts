@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
+import type { PGraph } from 'p-graph';
 import type { PackageInfos } from '../../types/PackageInfo';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { _getPackageDependencyGraph, getPackageGraph } from '../../monorepo/getPackageGraph';
-import { getPackageGraphLayers } from '../../publish/getPackageGraphLayers';
 
 // These tests cover the helper to get the edges.
 describe('_getPackageDependencyGraph', () => {
@@ -130,34 +130,38 @@ describe('getPackageGraph', () => {
    * Run the PGraph returned by `getPackageGraph`, and return the package names in the order that
    * they were visited.
    */
-  async function getPackageGraphPackageNames(
-    affectedPackages: string[],
-    packageInfos: PackageInfos
-  ): Promise<string[]> {
+  async function getPackageGraphOrder(packageGraph: PGraph): Promise<string[]> {
     const visitedPackages: string[] = [];
-    const packageGraph = getPackageGraph(affectedPackages, packageInfos, packageInfo => {
-      visitedPackages.push(packageInfo.name);
+    await packageGraph.run({
+      concurrency: 1,
+      run: pkgName => {
+        visitedPackages.push(pkgName);
+      },
     });
-    await packageGraph.run({ concurrency: 1 });
-
     return visitedPackages;
   }
 
   /**
-   * Ensure that both `getPackageGraph` and `getPackageGraphLayers` return a valid ordering of packages,
-   * considering the same dependency types.
+   * Validate that both running the graph and getting its layers return a valid ordering of packages.
+   * (Less relevant now that both are handled within PGraph, but doesn't hurt.)
    */
   async function validateOrdering(
     inputPackages: string[],
     packageInfos: PackageInfos,
     possibleSolutions: string[][]
   ): Promise<void> {
-    const getPackageGraphLayersOutput = getPackageGraphLayers(inputPackages, packageInfos).flat();
-    const getPackageGraphPackageNamesOutput = await getPackageGraphPackageNames(inputPackages, packageInfos);
+    const packageGraph = getPackageGraph(inputPackages, packageInfos);
+    const packageGraphResult = await getPackageGraphOrder(packageGraph);
+    expect(possibleSolutions).toContainEqual(packageGraphResult);
 
-    expect(possibleSolutions).toContainEqual(getPackageGraphLayersOutput);
-    expect(possibleSolutions).toContainEqual(getPackageGraphPackageNamesOutput);
+    const packageLayersResult = packageGraph.getLayers().flat();
+    expect(possibleSolutions).toContainEqual(packageLayersResult);
   }
+
+  it('returns an empty graph if no packages are affected', async () => {
+    const packageInfos: PackageInfos = makePackageInfos({});
+    await validateOrdering([], packageInfos, [[]]);
+  });
 
   it('sorts packages without dependencies', async () => {
     const packageInfos: PackageInfos = makePackageInfos({ foo: {}, bar: {} });
@@ -193,17 +197,25 @@ describe('getPackageGraph', () => {
     }
   );
 
-  it('does not consider devDependencies', async () => {
+  it('ignores devDependencies', async () => {
     const packageInfos = makePackageInfos({
       foo: { devDependencies: { foo3: '1.0.0' } },
       foo2: {},
       foo3: { dependencies: { foo2: '1.0.0' } },
     });
-
+    // foo3 would be before foo if considering devDependencies
     await validateOrdering(['foo', 'foo2', 'foo3'], packageInfos, [['foo', 'foo2', 'foo3']]);
   });
 
-  it('sort packages with different kinds of dependencies', async () => {
+  it('ignores external dependencies', async () => {
+    const packageInfos = makePackageInfos({
+      foo: { dependencies: { external: '1.0.0' } },
+      bar: {},
+    });
+    await validateOrdering(['foo', 'bar'], packageInfos, [['foo', 'bar']]);
+  });
+
+  it('sorts packages with different kinds of dependencies', async () => {
     const packageInfos = makePackageInfos({
       foo: { dependencies: { foo3: '1.0.0' }, peerDependencies: { foo4: '1.0.0', bar: '1.0.0' } },
       foo2: {},
@@ -239,25 +251,25 @@ describe('getPackageGraph', () => {
     await validateOrdering(['foo', 'foo3'], packageInfos, [['foo3', 'foo']]);
   });
 
-  it('throws on circular dependencies inside affected packages', async () => {
+  it('throws on circular dependencies inside affected packages', () => {
     const packageInfos = makePackageInfos({
       foo: { dependencies: { bar: '1.0.0' } },
       bar: { dependencies: { foo: '1.0.0' } },
     });
 
-    await expect(() => getPackageGraphPackageNames(['foo', 'bar'], packageInfos)).rejects.toThrow(
-      /We could not find a node in the graph with no dependencies; this likely means there is a cycle including all nodes/
+    expect(() => getPackageGraph(['foo', 'bar'], packageInfos)).toThrow(
+      'Could not find a node in the graph with no dependencies'
     );
   });
 
-  it('throws on circular dependencies', async () => {
+  it('throws on circular dependencies', () => {
     const packageInfos = makePackageInfos({
       foo: { dependencies: { bar: '1.0.0', bar2: '1.0.0' } },
       bar: { dependencies: { foo: '1.0.0' } },
     });
 
-    await expect(() => getPackageGraphPackageNames(['foo', 'bar'], packageInfos)).rejects.toThrow(
-      /We could not find a node in the graph with no dependencies; this likely means there is a cycle including all nodes/
+    expect(() => getPackageGraph(['foo', 'bar'], packageInfos)).toThrow(
+      'Could not find a node in the graph with no dependencies'
     );
   });
 
@@ -269,12 +281,11 @@ describe('getPackageGraph', () => {
       bar3: { dependencies: { bar2: '1.0.0', bar: '1.0.0' } },
     });
 
-    await getPackageGraphPackageNames(['foo', 'bar'], packageInfos);
+    const packageGraph = getPackageGraph(['foo', 'bar'], packageInfos);
+    await getPackageGraphOrder(packageGraph);
   });
 
-  it('throws if package info is missing', async () => {
-    await expect(() => getPackageGraphPackageNames(['foo', 'bar'], {})).rejects.toThrow(
-      `Package info is missing for foo.`
-    );
+  it('throws if package info is missing', () => {
+    expect(() => getPackageGraph(['foo', 'bar'], {})).toThrow(`Package info is missing for foo.`);
   });
 });

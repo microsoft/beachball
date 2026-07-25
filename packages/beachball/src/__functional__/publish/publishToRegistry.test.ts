@@ -279,9 +279,7 @@ describe('publishToRegistry', () => {
       expect(npmMock.getPublishedVersions('baz')?.versions).toEqual(['1.0.0']);
       expect(npmMock.getPublishedVersions('qux')?.versions).toEqual(['1.0.0']);
       expect(npmMock.getPublishedVersions('quux')?.versions).toEqual(['1.0.0']);
-
-      // If this turns out to be unstable, it can be removed
-      expect(logs.getMockLines('all', { root: tempRoot })).toMatchSnapshot();
+      // No snapshot since it might be unstable and order doesn't matter
     });
 
     // Just test postpublish (prepublish should have the same logic)

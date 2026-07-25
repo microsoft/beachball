@@ -1,13 +1,6 @@
 // @ts-check
 /** @type {import('syncpack').RcFile} */
 const config = {
-  versionGroups: [
-    {
-      // temporarily ignore p-graph
-      packages: ['beachball'],
-      dependencies: ['p-graph'],
-      isIgnored: true,
-    },
-  ],
+  // currently a placeholder
 };
 module.exports = config;

@@ -1,10 +1,12 @@
+import type { PGraph } from 'p-graph';
 import { unlinkChangeFiles } from '../changefile/unlinkChangeFiles';
 import { writeChangelog } from '../changelog/writeChangelog';
-import type { BumpInfo } from '../types/BumpInfo';
+import { getPackageGraph } from '../monorepo/getPackageGraph';
 import type { BeachballOptions } from '../types/BeachballOptions';
+import type { BumpInfo } from '../types/BumpInfo';
 import { callHook } from './callHook';
-import { updatePackageJsons } from './updatePackageJsons';
 import { updateLockFile } from './updateLockFile';
+import { updatePackageJsons } from './updatePackageJsons';
 
 /**
  * Write the bump results to the filesystem (but don't commit yet):
@@ -22,9 +24,17 @@ import { updateLockFile } from './updateLockFile';
 export async function performBump(bumpInfo: Readonly<BumpInfo>, options: BeachballOptions): Promise<void> {
   const { modifiedPackages, packageInfos, changeFileChangeInfos } = bumpInfo;
 
+  // Build the graph once so it can be reused across the prebump and postbump hooks.
+  // Following previous behavior, this runs for ALL modified packages (not just ones that will be
+  // published, even in the publishToRegistry flow) - could be modified if needed.
+  let packageGraph: PGraph | undefined;
+  if (options.hooks?.prebump || options.hooks?.postbump) {
+    packageGraph = getPackageGraph(modifiedPackages, packageInfos);
+  }
+
   // "prebump" receives the bumped version, but is called before writing to disk
   // (seemingly intended by the original PR https://github.com/microsoft/beachball/pull/608)
-  await callHook('prebump', modifiedPackages, packageInfos, options);
+  await callHook('prebump', packageGraph, packageInfos, options);
 
   updatePackageJsons(modifiedPackages, packageInfos);
   await updateLockFile(options);
@@ -37,5 +47,5 @@ export async function performBump(bumpInfo: Readonly<BumpInfo>, options: Beachba
   // Unlink changelogs
   unlinkChangeFiles(changeFileChangeInfos, options);
 
-  await callHook('postbump', modifiedPackages, packageInfos, options);
+  await callHook('postbump', packageGraph, packageInfos, options);
 }
