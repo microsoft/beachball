@@ -377,7 +377,6 @@ describe('PGraph', () => {
         ['B', 'C'],
       ];
 
-      // Nodes are sorted alphabetically within each layer
       const layers = new PGraph(nodeMap, dependencies).getLayers();
       expect(layers).toEqual([['E'], ['A', 'B', 'D'], ['C']]);
     });

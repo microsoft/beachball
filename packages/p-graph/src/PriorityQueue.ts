@@ -25,7 +25,7 @@ export class PriorityQueue implements IQueue {
   public insert(item: string, priority?: number): void {
     priority ??= this.#priorities?.[item];
     if (priority === undefined) {
-      throw new Error(`Priorities were specified upfront, but "${item}" is missing a priority`);
+      throw new Error(`No priority was provided for "${item}"`);
     }
 
     this.array.push({ item, priority });
