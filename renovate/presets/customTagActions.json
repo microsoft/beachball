@@ -5,14 +5,15 @@
 
   "customManagers": [
     {
+      "description": "GitHub Actions using a `<name>_v<major>` or `<name>_v<major>.<minor>.<patch>` tag (digest refresh + version updates)",
       "customType": "regex",
       "managerFilePatterns": ["/^\\.github/(workflows|actions)/.+\\.ya?ml$/", "/(^|/)action\\.ya?ml$/"],
       "matchStrings": [
-        "(?m)^\\s*uses:\\s+(?<depName>(?<packageName>[^/\\s]+/[^/\\s]+)/[^@\\s]+)@(?<currentValue>[\\w.-]+_v\\d+(?:\\.\\d+){0,2})[ \t]*($|#)",
-        "(?m)^\\s*uses:\\s+(?<depName>(?<packageName>[^/\\s]+/[^/\\s]+)/[^@\\s]+)@(?<currentDigest>[0-9a-f]{40})[ \t]+#\\s*(?<currentValue>[\\w.-]+_v\\d+(?:\\.\\d+){0,2})$"
+        "(?m)^[ \t]*(?:-[ \t]+)?uses:[ \t]+[\"']?(?<depName>(?<packageName>[^/\\s\"']+/[^/\\s\"']+)/[^@\\s\"']+)@(?<currentValue>[\\w.-]+_v(?<version>\\d+(?:\\.\\d+\\.\\d+)?))[\"']?($|[\\s#])",
+        "(?m)^[ \t]*(?:-[ \t]+)?uses:[ \t]+[\"']?(?<depName>(?<packageName>[^/\\s\"']+/[^/\\s\"']+)/[^@\\s\"']+)@(?<currentDigest>[0-9a-f]{40})[\"']?[ \t]+#[ \t]*(?<currentValue>[\\w.-]+_v(?<version>\\d+(?:\\.\\d+\\.\\d+)?))$"
       ],
       "datasourceTemplate": "github-tags",
-      "versioningTemplate": "regex:^(?<compatibility>[\\w.-]+)_v(?<major>\\d+)(?:\\.(?<minor>\\d+))?(?:\\.(?<patch>\\d+))?$"
+      "versioningTemplate": "regex:^(?<compatibility>[\\w.-]+)_v(?<major>\\d+){{#if (containsString version '.')}}\\.(?<minor>\\d+)\\.(?<patch>\\d+){{/if}}$"
     }
   ],
 

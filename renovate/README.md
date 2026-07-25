@@ -1001,14 +1001,15 @@ Update GitHub Actions in subfolders that use a `<name>_v<version>` tag naming sc
 {
   "customManagers": [
     {
+      "description": "GitHub Actions using a `<name>_v<major>` or `<name>_v<major>.<minor>.<patch>` tag (digest refresh + version updates)",
       "customType": "regex",
       "managerFilePatterns": ["/^\\.github/(workflows|actions)/.+\\.ya?ml$/", "/(^|/)action\\.ya?ml$/"],
       "matchStrings": [
-        "(?m)^\\s*uses:\\s+(?<depName>(?<packageName>[^/\\s]+/[^/\\s]+)/[^@\\s]+)@(?<currentValue>[\\w.-]+_v\\d+(?:\\.\\d+){0,2})[ \t]*($|#)",
-        "(?m)^\\s*uses:\\s+(?<depName>(?<packageName>[^/\\s]+/[^/\\s]+)/[^@\\s]+)@(?<currentDigest>[0-9a-f]{40})[ \t]+#\\s*(?<currentValue>[\\w.-]+_v\\d+(?:\\.\\d+){0,2})$"
+        "(?m)^[ \t]*(?:-[ \t]+)?uses:[ \t]+[\"']?(?<depName>(?<packageName>[^/\\s\"']+/[^/\\s\"']+)/[^@\\s\"']+)@(?<currentValue>[\\w.-]+_v(?<version>\\d+(?:\\.\\d+\\.\\d+)?))[\"']?($|[\\s#])",
+        "(?m)^[ \t]*(?:-[ \t]+)?uses:[ \t]+[\"']?(?<depName>(?<packageName>[^/\\s\"']+/[^/\\s\"']+)/[^@\\s\"']+)@(?<currentDigest>[0-9a-f]{40})[\"']?[ \t]+#[ \t]*(?<currentValue>[\\w.-]+_v(?<version>\\d+(?:\\.\\d+\\.\\d+)?))$"
       ],
       "datasourceTemplate": "github-tags",
-      "versioningTemplate": "regex:^(?<compatibility>[\\w.-]+)_v(?<major>\\d+)(?:\\.(?<minor>\\d+))?(?:\\.(?<patch>\\d+))?$"
+      "versioningTemplate": "regex:^(?<compatibility>[\\w.-]+)_v(?<major>\\d+){{#if (containsString version '.')}}\\.(?<minor>\\d+)\\.(?<patch>\\d+){{/if}}$"
     }
   ],
   "packageRules": [
@@ -1026,19 +1027,30 @@ Update GitHub Actions in subfolders that use a `<name>_v<version>` tag naming sc
 
 <!-- start extra content (EDITABLE between these comments) -->
 
-Some repos publish multiple actions and tag each one with a `<name>_v<version>` scheme (e.g. `foo_v1` or `foo_v1.2.3`) rather than a plain `v1`. Renovate's built-in [`github-actions` manager](https://docs.renovatebot.com/modules/manager/github-actions/) already understands actions in a repo subdirectory, but it can't follow this custom tag scheme: the tag isn't a version it recognizes, and all of the repo's action tags are mixed together. This [custom manager](https://docs.renovatebot.com/configuration-options/#custommanagers) handles tags with names, such as the following:
+Some repos publish multiple actions and tag each one with a `<name>_v<version>` scheme (e.g. `foo_v1` or `foo_v1.2.3`) rather than a plain `v1`. For example:
 
 ```yaml
 - uses: microsoft/beachball/actions/should-release@should-release_v3
 - uses: microsoft/beachball/actions/should-release@826cebb873f064d29134f1bbf39f2b7634cb47cb # should-release_v3
 ```
 
-The custom manager pulls out each piece of the reference to achieve similar behavior to the built-in `github-actions` manager: update the digest when a moving tag (like `_v3`) moves, and propose version-update PRs as new semver tags in the same family appear. How the pieces map:
+Renovate's built-in [`github-actions` manager](https://docs.renovatebot.com/modules/manager/github-actions/) already understands actions in a repo subdirectory, but it can't follow this custom tag scheme. This preset uses a [custom manager](https://docs.renovatebot.com/configuration-options/#custommanagers) to implement similar behavior for tags with a name prefix: update the digest when a moving tag (like `_v3`) moves, and open a separate version-update PR only when a genuinely newer tag in the same family appears. It can also follow a tag with an exact version (like `_v1.2.3`) and provide all version-bump PRs.
 
-- `depName` is the full action path (`microsoft/beachball/actions/should-release`), used only for display.
-- `packageName` is the repo (`microsoft/beachball`), which is what the [`github-tags` datasource](https://docs.renovatebot.com/modules/datasource/github-tags/) actually queries, since tags live on the repo rather than the subdirectory.
-- `currentDigest` is the pinned SHA, and `currentValue` is the tag to follow (`should-release_v3`).
-- The [`regex` `versioningTemplate`](https://docs.renovatebot.com/modules/versioning/#regex-versioning) parses the `<currentValue>` (`foo_v1` or `foo_v1.2.3`): it uses the name as `<compatibility>` (separating different action names within the same repo) and the number(s) after `_v` as the version.
+**Implementation details:** The `matchStrings` setting uses the [regex custom manager](https://docs.renovatebot.com/modules/manager/regex/)'s named capture groups to extract each piece of the reference:
+
+- `<depName>` is the full action path (`microsoft/beachball/actions/should-release`), used only for display.
+- `<packageName>` is the repo (`microsoft/beachball`), which is what the [`github-tags` datasource](https://docs.renovatebot.com/modules/datasource/github-tags/) queries.
+- `<currentDigest>` is the pinned SHA, if relevant.
+- `<currentValue>` is the tag to follow (`should-release_v3` or `should-release_v1.2.3`).
+- The non-standard named group `<version>` is just the numeric part of the tag (`3` or `1.2.3`), which the `versioningTemplate` uses to pick a scheme (see below).
+
+The `versioningTemplate` translates `<currentValue>` into a version using Renovate's [`regex` versioning](https://docs.renovatebot.com/modules/versioning/regex/):
+
+- `<compatibility>` is the action name prefix (e.g. `should-release`), which keeps different actions in the same repo separate.
+- `<major>` is the major version.
+- Since `regex` versioning translates an empty minor/patch to `0`, the `.<minor>.<patch>` is gated by a [template condition](https://docs.renovatebot.com/templates/) on whether `<version>` (see above) contains `.`. Otherwise Renovate would consider `_v3.1.1` newer than `_v3` and open a redundant version-bump PR.
+
+The preset also contains a rule disabling the `github-actions` manager for matching tag references, to prevent double PRs.
 
 <!-- end extra content -->
 
