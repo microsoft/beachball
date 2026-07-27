@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Use catalog dependencies",
-  "packageName": "proper-changelog",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}
