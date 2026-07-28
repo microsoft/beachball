@@ -35,8 +35,8 @@ describe('sync command (e2e)', () => {
     npmReadConcurrency: 2,
   };
 
-  function getOptionsAndContext(repoOptions?: Partial<RepoOptions>, extraArgv: string[] = []) {
-    const parsedOptions = getOptions({
+  async function getOptionsAndContext(repoOptions?: Partial<RepoOptions>, extraArgv: string[] = []) {
+    const parsedOptions = await getOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'sync', ...extraArgv],
       env: {},
@@ -91,7 +91,7 @@ describe('sync command (e2e)', () => {
     mockNpm.publishPackage({ name: 'barpkg', version: '3.0.0' });
 
     // sync repo to published versions
-    const { options, parsedOptions, context } = getOptionsAndContext();
+    const { options, parsedOptions, context } = await getOptionsAndContext();
     await sync(options, context);
 
     const packageInfosAfterSync = getPackageInfos(parsedOptions);
@@ -121,7 +121,7 @@ describe('sync command (e2e)', () => {
     mockNpm.publishPackage({ name: 'apkg', version: '2.0.0' }, 'beta');
     mockNpm.publishPackage({ name: 'bpkg', version: '3.0.0' });
 
-    const { options, parsedOptions, context } = getOptionsAndContext({
+    const { options, parsedOptions, context } = await getOptionsAndContext({
       tag: 'beta',
     });
     await sync(options, context);
@@ -154,7 +154,7 @@ describe('sync command (e2e)', () => {
     mockNpm.publishPackage({ name: 'epkg', version: '1.0.0-1' }, 'prerelease');
     mockNpm.publishPackage({ name: 'fpkg', version: '3.0.0' });
 
-    const { options, parsedOptions, context } = getOptionsAndContext({}, ['--tag', 'prerelease', '--force']);
+    const { options, parsedOptions, context } = await getOptionsAndContext({}, ['--tag', 'prerelease', '--force']);
     await sync(options, context);
 
     const packageInfosAfterSync = getPackageInfos(parsedOptions);

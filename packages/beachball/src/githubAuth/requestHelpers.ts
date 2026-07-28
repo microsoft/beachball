@@ -1,10 +1,10 @@
-import { AuthError } from './validationHelpers';
+import { BeachballError } from '../types/BeachballError';
 
 export const defaultGitHubApiUrl = 'https://api.github.com';
 
 const transientRetryCount = 3;
 
-export class GitHubRequestError extends AuthError {
+export class GitHubRequestError extends BeachballError {
   public readonly status: number;
   public constructor(message: string, status: number) {
     super(message);
@@ -46,7 +46,7 @@ export async function requestJson<T = unknown>(
   try {
     return JSON.parse(body) as T;
   } catch {
-    throw new AuthError(`${failureMessage}: GitHub returned invalid JSON`);
+    throw new BeachballError(`${failureMessage}: GitHub returned invalid JSON`);
   }
 }
 

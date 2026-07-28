@@ -13,12 +13,12 @@ describe('bumpInMemory', () => {
   initMockLogs();
   const cwd = path.resolve('/fake-root');
 
-  function gatherBumpInfoWrapper(params: {
+  async function gatherBumpInfoWrapper(params: {
     packageFolders: { [folder: string]: PartialPackageInfo };
     repoOptions?: Partial<RepoOptions>;
     changes: (string | PartialChangeFile)[];
   }) {
-    const { cliOptions, options } = getOptions({
+    const { cliOptions, options } = await getOptions({
       cwd,
       argv: [],
       env: {},
@@ -38,8 +38,8 @@ describe('bumpInMemory', () => {
     return { bumpInfo, options, originalPackageInfos };
   }
 
-  it('bumps only packages with change files with bumpDeps: false', () => {
-    const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({
+  it('bumps only packages with change files with bumpDeps: false', async () => {
+    const { bumpInfo, originalPackageInfos } = await gatherBumpInfoWrapper({
       packageFolders: {
         'pkg-1': { version: '1.0.0' },
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
@@ -70,8 +70,8 @@ describe('bumpInMemory', () => {
     expect(packageInfos['pkg-5']).toEqual(originalPackageInfos['pkg-5']);
   });
 
-  it('bumps all dependent packages with bumpDeps: true', () => {
-    const { bumpInfo } = gatherBumpInfoWrapper({
+  it('bumps all dependent packages with bumpDeps: true', async () => {
+    const { bumpInfo } = await gatherBumpInfoWrapper({
       packageFolders: {
         'pkg-1': { version: '1.0.0' },
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
@@ -113,8 +113,8 @@ describe('bumpInMemory', () => {
     expect(packageInfos['pkg-5'].optionalDependencies!['pkg-4']).toBe(dependentNewVersion);
   });
 
-  it('bumps all grouped packages', () => {
-    const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({
+  it('bumps all grouped packages', async () => {
+    const { bumpInfo, originalPackageInfos } = await gatherBumpInfoWrapper({
       packageFolders: {
         'packages/pkg-1': { version: '1.0.0' },
         'packages/pkg-2': { version: '1.0.0' },
@@ -144,8 +144,8 @@ describe('bumpInMemory', () => {
     expect(packageInfos['unrelated'].version).toBe(originalPackageInfos['unrelated'].version);
   });
 
-  it('bumps all grouped packages to the greatest change type in the group, regardless of change file order', () => {
-    const { bumpInfo } = gatherBumpInfoWrapper({
+  it('bumps all grouped packages to the greatest change type in the group, regardless of change file order', async () => {
+    const { bumpInfo } = await gatherBumpInfoWrapper({
       packageFolders: {
         'packages/commonlib': { name: 'commonlib' },
         'packages/pkg-1': { version: '1.0.0', dependencies: { commonlib: '1.0.0' } },
@@ -167,9 +167,9 @@ describe('bumpInMemory', () => {
     expect(packageInfos['commonlib'].version).toBe('1.1.0');
   });
 
-  it('bumps all grouped AND dependent packages', () => {
+  it('bumps all grouped AND dependent packages', async () => {
     // This is covered E2E in bump.test.ts too
-    const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({
+    const { bumpInfo, originalPackageInfos } = await gatherBumpInfoWrapper({
       packageFolders: {
         'packages/app': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
         'packages/commonlib': { version: '1.0.0' },
@@ -216,8 +216,8 @@ describe('bumpInMemory', () => {
 
   // Scope filtering of original changes happens in the readChangeFiles step (so must be tested E2E),
   // but scope filtering of *dependents* happens in the bump step.
-  it('should not bump out-of-scope package and its dependencies even if dependency of the package has change', () => {
-    const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({
+  it('should not bump out-of-scope package and its dependencies even if dependency of the package has change', async () => {
+    const { bumpInfo, originalPackageInfos } = await gatherBumpInfoWrapper({
       packageFolders: {
         'packages/foo': { name: 'foo', version: '1.0.0', dependencies: { bar: '^1.3.4' } },
         'packages/bar': { name: 'bar', version: '1.3.4', dependencies: { baz: '^1.3.4' } },
@@ -246,8 +246,8 @@ describe('bumpInMemory', () => {
     expect(packageInfos['foo'].dependencies!['bar']).toBe('^1.3.4');
   });
 
-  it('bumps dependents with file: deps', () => {
-    const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({
+  it('bumps dependents with file: deps', async () => {
+    const { bumpInfo, originalPackageInfos } = await gatherBumpInfoWrapper({
       packageFolders: {
         'pkg-1': { version: '1.0.0' },
         'pkg-2': { version: '0.0.0', dependencies: { 'pkg-1': 'file:../pkg-1' } },
@@ -270,8 +270,8 @@ describe('bumpInMemory', () => {
     expect(packageInfos['pkg-3']).toEqual({ ...originalPackageInfos['pkg-3'], version: '0.0.1' });
   });
 
-  it('bumps dependents with workspace: deps', () => {
-    const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({
+  it('bumps dependents with workspace: deps', async () => {
+    const { bumpInfo, originalPackageInfos } = await gatherBumpInfoWrapper({
       packageFolders: {
         'pkg-1': { version: '1.0.0' },
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': 'workspace:~', extra: '~1.2.3' } },
@@ -299,8 +299,8 @@ describe('bumpInMemory', () => {
   });
 
   // https://github.com/microsoft/beachball/discussions/940
-  it('keeps workspace: devDependency when the same dependency is versioned in peerDependencies', () => {
-    const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({
+  it('keeps workspace: devDependency when the same dependency is versioned in peerDependencies', async () => {
+    const { bumpInfo, originalPackageInfos } = await gatherBumpInfoWrapper({
       packageFolders: {
         'local-dep': { version: '3.6.1' },
         'package-with-deps': {
@@ -326,8 +326,8 @@ describe('bumpInMemory', () => {
     expect(packageInfos['package-with-deps'].peerDependencies).toEqual({ 'local-dep': '^3.7.0' });
   });
 
-  it('bumps dependents with catalog: deps', () => {
-    const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({
+  it('bumps dependents with catalog: deps', async () => {
+    const { bumpInfo, originalPackageInfos } = await gatherBumpInfoWrapper({
       // Say there's a catalog like this:
       // catalog:
       //   pkg-1: workspace:~
@@ -356,8 +356,8 @@ describe('bumpInMemory', () => {
     expect(packageInfos['pkg-3']).toEqual({ ...originalPackageInfos['pkg-3'], version: '1.0.1' });
   });
 
-  it('bumps to prerelease using prefix, and uses prerelease version for dependents', () => {
-    const { bumpInfo } = gatherBumpInfoWrapper({
+  it('bumps to prerelease using prefix, and uses prerelease version for dependents', async () => {
+    const { bumpInfo } = await gatherBumpInfoWrapper({
       packageFolders: {
         'pkg-1': {},
         'pkg-2': { dependencies: { 'pkg-1': '1.0.0' } },
@@ -383,8 +383,8 @@ describe('bumpInMemory', () => {
     expect(packageInfos['pkg-3'].peerDependencies!['pkg-2']).toBe(newVersion);
   });
 
-  it('bumps to prerelease and uses the specified identifier base', () => {
-    const { bumpInfo } = gatherBumpInfoWrapper({
+  it('bumps to prerelease and uses the specified identifier base', async () => {
+    const { bumpInfo } = await gatherBumpInfoWrapper({
       packageFolders: {
         'pkg-1': {},
         'pkg-2': { dependencies: { 'pkg-1': '1.0.0' } },
@@ -407,8 +407,8 @@ describe('bumpInMemory', () => {
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(newVersion);
   });
 
-  it('bumps to prerelease with no identifier base', () => {
-    const { bumpInfo } = gatherBumpInfoWrapper({
+  it('bumps to prerelease with no identifier base', async () => {
+    const { bumpInfo } = await gatherBumpInfoWrapper({
       packageFolders: {
         'pkg-1': {},
         'pkg-2': { dependencies: { 'pkg-1': '1.0.0' } },
@@ -431,8 +431,8 @@ describe('bumpInMemory', () => {
     expect(packageInfos['pkg-2'].dependencies!['pkg-1']).toBe(newVersion);
   });
 
-  it('bumps all packages and increments prefixed versions in dependents', () => {
-    const { bumpInfo } = gatherBumpInfoWrapper({
+  it('bumps all packages and increments prefixed versions in dependents', async () => {
+    const { bumpInfo } = await gatherBumpInfoWrapper({
       packageFolders: {
         'pkg-1': { version: '1.0.1-beta.0' },
         'pkg-2': { version: '1.0.0', dependencies: { 'pkg-1': '1.0.0' } },
@@ -458,9 +458,9 @@ describe('bumpInMemory', () => {
     expect(packageInfos['pkg-3'].devDependencies!['pkg-2']).toBe(othersNewVersion);
   });
 
-  it('does not modify dependency ranges of packages that are not bumped', () => {
+  it('does not modify dependency ranges of packages that are not bumped', async () => {
     // This was probably the scenario from https://github.com/microsoft/beachball/issues/1033
-    const { bumpInfo, originalPackageInfos } = gatherBumpInfoWrapper({
+    const { bumpInfo, originalPackageInfos } = await gatherBumpInfoWrapper({
       packageFolders: {
         'pkg-1': { version: '1.0.0' },
         // pkg-2 was bumped to 1.2.3 at some point (with a manual or scoped bump)

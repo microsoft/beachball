@@ -1,8 +1,6 @@
 import { InvalidArgumentError } from 'commander';
 import type { PermissionLevel, Permissions } from './types';
-
-/** Generic error thrown from this code (don't show the stack) */
-export class AuthError extends Error {}
+import { BeachballError } from '../types/BeachballError';
 
 const permissionLevels = Object.keys({
   read: true,
@@ -17,7 +15,7 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 export function requiredIntegerProperty(value: unknown, property: string, failureMessage: string): number {
   const propertyValue = isRecord(value) ? value[property] : undefined;
   if (typeof propertyValue !== 'number' || !Number.isInteger(propertyValue)) {
-    throw new AuthError(failureMessage);
+    throw new BeachballError(failureMessage);
   }
   return propertyValue;
 }
@@ -25,7 +23,7 @@ export function requiredIntegerProperty(value: unknown, property: string, failur
 export function requiredStringProperty(value: unknown, property: string, failureMessage: string): string {
   const propertyValue = isRecord(value) ? value[property] : undefined;
   if (typeof propertyValue !== 'string' || !propertyValue) {
-    throw new AuthError(failureMessage);
+    throw new BeachballError(failureMessage);
   }
   return propertyValue;
 }
@@ -39,23 +37,23 @@ export function parsePermissions(value: string | undefined): Permissions | undef
   for (const entry of splitList(value)) {
     const parts = entry.split(':');
     if (parts.length !== 2) {
-      throw new AuthError(`Permission entry must include an explicit level: ${entry}`);
+      throw new BeachballError(`Permission entry must include an explicit level: ${entry}`);
     }
 
     const key = parts[0]?.trim();
     const rawLevel = parts[1]?.trim();
     if (!key) {
-      throw new AuthError(`Permission entry must include a permission name: ${entry}`);
+      throw new BeachballError(`Permission entry must include a permission name: ${entry}`);
     }
     if (!/^[A-Za-z_]\w*$/.test(key)) {
-      throw new AuthError(`Invalid permission name: ${key}`);
+      throw new BeachballError(`Invalid permission name: ${key}`);
     }
     if (Object.hasOwn(permissions, key)) {
-      throw new AuthError(`Duplicate permission: ${key}`);
+      throw new BeachballError(`Duplicate permission: ${key}`);
     }
 
     if (!permissionLevels.includes(rawLevel)) {
-      throw new AuthError(`Invalid permission level for ${key}: ${rawLevel}`);
+      throw new BeachballError(`Invalid permission level for ${key}: ${rawLevel}`);
     }
     permissions[key] = rawLevel as PermissionLevel;
   }
@@ -94,5 +92,5 @@ export function parseRepository(repository: string): { owner: string; name: stri
   if (parts.length === 2 && parts[0] && parts[1]) {
     return { owner: parts[0], name: parts[1] };
   }
-  throw new AuthError(`Invalid repository '${repository}'. Expected 'owner/repository'.`);
+  throw new BeachballError(`Invalid repository '${repository}'. Expected 'owner/repository'.`);
 }

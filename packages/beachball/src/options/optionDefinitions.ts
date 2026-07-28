@@ -109,7 +109,7 @@ export const optionDefinitions: Record<
     group: 'common',
     short: 'c',
     alias: 'config',
-    desc: 'custom beachball config path (default: cosmiconfig standard paths)',
+    desc: 'custom beachball config path (default: cosmiconfig-like paths)',
   },
   verbose: {
     commands: () => true,

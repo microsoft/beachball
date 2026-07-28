@@ -110,14 +110,14 @@ describe('list npm versions', () => {
   });
 
   describe('listPackageVersionsByTag', () => {
-    function getOptionsAndPackages(params: {
+    async function getOptionsAndPackages(params: {
       packages: PartialPackageInfos;
       /** CLI options which override any package-specific options */
       extraArgv?: string[];
       /** Options to override the defaults */
       repoOptions?: Partial<RepoOptions>;
     }) {
-      const parsedOptions = getOptions({
+      const parsedOptions = await getOptions({
         argv: ['node', 'beachball', ...(params.extraArgv || [])],
         env: {},
         cwd: '',
@@ -135,7 +135,7 @@ describe('list npm versions', () => {
 
     describe('defaults and repo options', () => {
       it('succeeds with no packages', async () => {
-        const { packages, options } = getOptionsAndPackages({ packages: {} });
+        const { packages, options } = await getOptionsAndPackages({ packages: {} });
         expect(await listPackageVersionsByTag(packages, options)).toEqual({});
         expect(npmMock.mock).not.toHaveBeenCalled();
         // expect(npmMock.mockFetchJson).not.toHaveBeenCalled();
@@ -143,7 +143,7 @@ describe('list npm versions', () => {
 
       it('returns latest tag by default', async () => {
         npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: { foo: {} },
         });
         // currently this is how the default to "latest" works in realistic scenarios
@@ -164,7 +164,7 @@ describe('list npm versions', () => {
           foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } },
           bar: { 'dist-tags': { latest: '1.0.0', beta: '3.0.0-beta' } },
         });
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: { foo: {}, bar: {} },
           repoOptions: { tag: 'beta' },
         });
@@ -183,7 +183,7 @@ describe('list npm versions', () => {
         const packages = 'abcdefghij'.split('');
         const showData = Object.fromEntries(packages.map((x, i) => [x, { 'dist-tags': { latest: `${i}.0.0` } }]));
         npmMock.setRegistryData(showData);
-        const { packages: packageInfos, options } = getOptionsAndPackages({
+        const { packages: packageInfos, options } = await getOptionsAndPackages({
           packages: Object.fromEntries(packages.map(x => [x, {}])),
           repoOptions: { tag: 'latest' },
         });
@@ -197,7 +197,7 @@ describe('list npm versions', () => {
 
       it('returns empty if no dist-tags available', async () => {
         npmMock.setRegistryData({});
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: { foo: {} },
         });
 
@@ -209,7 +209,7 @@ describe('list npm versions', () => {
 
       it('returns empty if no matching dist-tags available', async () => {
         npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: { foo: {} },
           repoOptions: { tag: 'missing' },
         });
@@ -222,7 +222,7 @@ describe('list npm versions', () => {
 
       it("omits packages that don't exist in registry", async () => {
         npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0' } } });
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: { foo: {}, bar: {} },
         });
 
@@ -233,7 +233,7 @@ describe('list npm versions', () => {
       });
 
       it('does nothing if both tag and defaultNpmTag are empty', async () => {
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: { foo: {} },
           repoOptions: { tag: '', defaultNpmTag: '' },
         });
@@ -251,7 +251,7 @@ describe('list npm versions', () => {
           foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } },
           bar: { 'dist-tags': { latest: '1.0.0', beta: '3.0.0-beta' } },
         });
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: {
             foo: { beachball: { tag: 'beta', defaultNpmTag: 'nope' } },
             bar: {},
@@ -269,7 +269,7 @@ describe('list npm versions', () => {
           foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } },
           bar: { 'dist-tags': { latest: '1.0.0', beta: '3.0.0-beta' } },
         });
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: { foo: { beachball: { defaultNpmTag: 'beta' } }, bar: {} },
         });
 
@@ -280,7 +280,7 @@ describe('list npm versions', () => {
       });
 
       it('does nothing if package override tag and defaultNpmTag are empty', async () => {
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: { foo: { beachball: { tag: '', defaultNpmTag: '' } } },
           repoOptions: { tag: 'latest', defaultNpmTag: 'latest' },
         });
@@ -296,7 +296,7 @@ describe('list npm versions', () => {
       // it's expected that token is only specified as a CLI arg
       it('respects token auth args', async () => {
         npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: { foo: {} },
           extraArgv: ['--token', 'pass'],
         });
@@ -317,7 +317,7 @@ describe('list npm versions', () => {
 
       it('respects password auth args', async () => {
         npmMock.setRegistryData({ foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } } });
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: { foo: {} },
           extraArgv: ['--authType', 'password', '--token', 'pass'],
         });
@@ -340,7 +340,7 @@ describe('list npm versions', () => {
         npmMock.setRegistryData({
           foo: { 'dist-tags': { latest: '1.0.0', alpha: '1.5.0-alpha', beta: '2.0.0-beta' } },
         });
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: { foo: {} },
           repoOptions: { tag: 'alpha' },
           extraArgv: ['--tag', 'beta'],
@@ -356,7 +356,7 @@ describe('list npm versions', () => {
         npmMock.setRegistryData({
           foo: { 'dist-tags': { latest: '1.0.0', alpha: '1.5.0-alpha', beta: '2.0.0-beta' } },
         });
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: { foo: { beachball: { tag: 'alpha' } } },
           extraArgv: ['--tag', 'beta'], // CLI args should take precedence
         });
@@ -372,7 +372,7 @@ describe('list npm versions', () => {
           foo: { 'dist-tags': { latest: '1.0.0', alpha: '1.5.0-alpha', beta: '2.0.0-beta' } },
           bar: { 'dist-tags': { latest: '1.0.0', beta: '3.0.0-beta' } },
         });
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: { foo: { beachball: { tag: 'alpha' } }, bar: {} },
           extraArgv: ['--tag', 'beta'], // CLI args should take precedence
         });
@@ -388,7 +388,7 @@ describe('list npm versions', () => {
         npmMock.setRegistryData({
           foo: { 'dist-tags': { latest: '1.0.0', beta: '2.0.0-beta' } },
         });
-        const { packages, options } = getOptionsAndPackages({
+        const { packages, options } = await getOptionsAndPackages({
           packages: { foo: { beachball: { tag: '', defaultNpmTag: '' } } },
           extraArgv: ['--tag', 'beta'],
         });

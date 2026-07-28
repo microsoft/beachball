@@ -13,8 +13,8 @@ describe('validate', () => {
   let repo: Repository | undefined;
   const logs = initMockLogs();
 
-  function validateWrapper(validateOptions?: ValidateOptions) {
-    const parsedOptions = getOptions({
+  async function validateWrapper(validateOptions?: ValidateOptions) {
+    const parsedOptions = await getOptions({
       cwd: repo!.rootPath,
       argv: [],
       env: {},
@@ -38,32 +38,32 @@ describe('validate', () => {
     repositoryFactory.cleanUp();
   });
 
-  it('succeeds with no changes', () => {
+  it('succeeds with no changes', async () => {
     repo = repositoryFactory.cloneRepository();
     repo.checkout('-b', 'test');
 
-    const result = validateWrapper({ checkChangeNeeded: true });
+    const result = await validateWrapper({ checkChangeNeeded: true });
 
     expect(result.isChangeNeeded).toBe(false);
     expect(logs.mocks.error).not.toHaveBeenCalled();
     // the success log for the "check" command is done in the main cli file, not validate()
   });
 
-  it('exits with error by default if change files are needed', () => {
+  it('exits with error by default if change files are needed', async () => {
     repo = repositoryFactory.cloneRepository();
     repo.checkout('-b', 'test');
     repo.stageChange('packages/foo/test.js');
 
-    expect(() => validateWrapper({ checkChangeNeeded: true })).toThrow(BeachballError);
+    await expect(validateWrapper({ checkChangeNeeded: true })).rejects.toThrow(BeachballError);
     expect(logs.mocks.error).toHaveBeenCalledWith('ERROR: Change files are needed!');
   });
 
-  it('returns and does not log an error if change files are needed and allowMissingChangeFiles is true', () => {
+  it('returns and does not log an error if change files are needed and allowMissingChangeFiles is true', async () => {
     repo = repositoryFactory.cloneRepository();
     repo.checkout('-b', 'test');
     repo.stageChange('packages/foo/test.js');
 
-    const result = validateWrapper({ checkChangeNeeded: true, allowMissingChangeFiles: true });
+    const result = await validateWrapper({ checkChangeNeeded: true, allowMissingChangeFiles: true });
     expect(result.isChangeNeeded).toBe(true);
     expect(logs.mocks.error).not.toHaveBeenCalled();
   });
@@ -71,12 +71,12 @@ describe('validate', () => {
   // A shouldPublish: false package depending on a private (or shouldPublish: false) package must
   // not be treated as a "published package" during dependency validation. Otherwise `check`
   // produces a false-positive error, since the dependent itself won't be published.
-  it('does not report dependency errors for shouldPublish:false package depending on private package', () => {
+  it('does not report dependency errors for shouldPublish:false package depending on private package', async () => {
     repo = repositoryFactory.cloneRepository();
     repo.updateJsonFile('packages/foo/package.json', { beachball: { shouldPublish: false } });
     repo.updateJsonFile('packages/bar/package.json', { private: true });
 
-    const parsedOptions = getOptions({
+    const parsedOptions = await getOptions({
       cwd: repo.rootPath,
       argv: [],
       env: {},

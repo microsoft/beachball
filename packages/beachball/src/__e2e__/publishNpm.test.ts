@@ -38,8 +38,8 @@ describe('publish command (npm)', () => {
   /**
    * Get options with defaults including skipping git stuff
    */
-  function getOptions(repoOptions?: Partial<RepoOptions>) {
-    const parsedOptions = _getOptions({
+  async function getOptions(repoOptions?: Partial<RepoOptions>) {
+    const parsedOptions = await _getOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'publish', '--yes'],
       env: {},
@@ -87,7 +87,7 @@ describe('publish command (npm)', () => {
     repo = repositoryFactory.cloneRepository();
     packToPath = tmpdir({ prefix: 'beachball-pack-' });
 
-    const { options, parsedOptions } = getOptions({ packToPath });
+    const { options, parsedOptions } = await getOptions({ packToPath });
     generateChangeFiles(['foo'], options);
     await publishWrapper(parsedOptions);
 
@@ -108,7 +108,7 @@ describe('publish command (npm)', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions();
+    const { options, parsedOptions } = await getOptions();
     generateChangeFiles(['foopkg'], options);
 
     // If there's only the private package with a change file, nothing happens
@@ -190,7 +190,7 @@ describe('publish command (npm)', () => {
     npmMock.publishPackage(repositoryFactory.fixture.folders.packages.bar);
     npmMock.publishPackage(repositoryFactory.fixture.folders.packages.baz);
 
-    const { options, parsedOptions } = getOptions();
+    const { options, parsedOptions } = await getOptions();
     generateChangeFiles(['foo', 'bar'], options);
 
     await publishWrapper(parsedOptions);
@@ -208,7 +208,7 @@ describe('publish command (npm)', () => {
 
     repo.updateJsonFile('packages/bar/package.json', { private: true });
 
-    const { options, parsedOptions } = getOptions();
+    const { options, parsedOptions } = await getOptions();
     generateChangeFiles(['bar', 'fake'], options);
 
     // initial validate() isn't relevant here

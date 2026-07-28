@@ -8,10 +8,12 @@ import { BeachballError } from '../types/BeachballError';
  * Get merged and unmerged options, for reuse by `getPackageInfos`.
  * @param testRepoOptions Repo options for testing purposes
  */
-export function getOptions(params: ProgramContext & { testRepoOptions?: Partial<RepoOptions> }): ParsedOptions {
+export async function getOptions(
+  params: ProgramContext & { testRepoOptions?: Partial<RepoOptions> }
+): Promise<ParsedOptions> {
   const { testRepoOptions, ...processInfo } = params;
   const cliOptions = getCliOptions(processInfo);
-  const repoOptions = testRepoOptions || getRepoOptions(cliOptions);
+  const repoOptions = testRepoOptions || (await getRepoOptions(cliOptions));
   const result: ParsedOptions = {
     cliOptions,
     repoOptions,

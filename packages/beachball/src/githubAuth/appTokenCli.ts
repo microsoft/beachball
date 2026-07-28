@@ -1,9 +1,10 @@
 import { Command, Option, type OutputConfiguration } from 'commander';
 import { createAppTokenHelper } from './createAppTokenHelper';
 import type { AppTokenHelperOptions, GetInstallationTokenOptions, RevokeAppTokenOptions } from './types';
-import { AuthError, parsePermissionsArg } from './validationHelpers';
+import { parsePermissionsArg } from './validationHelpers';
 import { defaultGitHubApiUrl } from './requestHelpers';
 import { revokeAppToken } from './revokeAppToken';
+import { BeachballError } from '../types/BeachballError';
 
 /** Injectable dependencies so the CLI can be driven and observed in tests. */
 export interface CliContext {
@@ -28,10 +29,12 @@ async function runCreateToken(options: TokenCliOptions): Promise<void> {
 
   if (output !== 'stdout') {
     if (!azureTokenVariable) {
-      throw new AuthError('--azure-token-variable (AZURE_TOKEN_VARIABLE) is required unless --output is stdout');
+      throw new BeachballError('--azure-token-variable (AZURE_TOKEN_VARIABLE) is required unless --output is stdout');
     }
     if (!/^[A-Za-z_]\w*$/.test(azureTokenVariable)) {
-      throw new AuthError('--azure-token-variable (AZURE_TOKEN_VARIABLE) must be an environment-style variable name');
+      throw new BeachballError(
+        '--azure-token-variable (AZURE_TOKEN_VARIABLE) must be an environment-style variable name'
+      );
     }
   }
 

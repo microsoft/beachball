@@ -28,14 +28,14 @@ describe('getAllChangedPackages', () => {
     );
 
   /** Get options/context and call `getAllChangedPackages` */
-  function getAllChangedPackagesWrapper(params: {
+  async function getAllChangedPackagesWrapper(params: {
     packageInfos: PackageInfos;
     repoOptions?: Partial<RepoOptions>;
     extraArgv?: string[];
     allChangedFiles?: string[];
   }) {
     const { repoOptions, extraArgv = [], packageInfos } = params;
-    const parsedOptions = getOptions({
+    const parsedOptions = await getOptions({
       cwd: fakeRoot,
       argv: ['node', 'beachball', 'change', ...extraArgv],
       env: {},
@@ -54,24 +54,27 @@ describe('getAllChangedPackages', () => {
     });
   }
 
-  it('returns empty list when no changes in single repo', () => {
-    const result = getAllChangedPackagesWrapper({ packageInfos: singlePackageInfo(), extraArgv: ['--verbose'] });
+  it('returns empty list when no changes in single repo', async () => {
+    const result = await getAllChangedPackagesWrapper({ packageInfos: singlePackageInfo(), extraArgv: ['--verbose'] });
     expect(result).toEqual([]);
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`"[log] Found no changed files in current branch"`);
   });
 
-  it('returns empty list when no changes in monorepo', () => {
-    const result = getAllChangedPackagesWrapper({ packageInfos: monorepoPackageInfos() });
+  it('returns empty list when no changes in monorepo', async () => {
+    const result = await getAllChangedPackagesWrapper({ packageInfos: monorepoPackageInfos() });
     expect(result).toEqual([]);
   });
 
-  it('detects changed files in single-package repo', () => {
-    const result = getAllChangedPackagesWrapper({ packageInfos: singlePackageInfo(), allChangedFiles: ['myFilename'] });
+  it('detects changed files in single-package repo', async () => {
+    const result = await getAllChangedPackagesWrapper({
+      packageInfos: singlePackageInfo(),
+      allChangedFiles: ['myFilename'],
+    });
     expect(result).toEqual(['foo']);
   });
 
-  it('detects changed files in monorepo', () => {
-    const result = getAllChangedPackagesWrapper({
+  it('detects changed files in monorepo', async () => {
+    const result = await getAllChangedPackagesWrapper({
       packageInfos: monorepoPackageInfos(),
       extraArgv: ['--verbose'],
       allChangedFiles: ['packages/foo/myFilename', 'not-package/file'],
@@ -85,8 +88,8 @@ describe('getAllChangedPackages', () => {
     `);
   });
 
-  it('ignores CHANGELOG.* in single-package repo', () => {
-    const result = getAllChangedPackagesWrapper({
+  it('ignores CHANGELOG.* in single-package repo', async () => {
+    const result = await getAllChangedPackagesWrapper({
       packageInfos: singlePackageInfo(),
       allChangedFiles: ['CHANGELOG.md', 'CHANGELOG.json'],
       extraArgv: ['--verbose'],
@@ -100,8 +103,8 @@ describe('getAllChangedPackages', () => {
     `);
   });
 
-  it('ignores CHANGELOG.* in monorepo', () => {
-    const result = getAllChangedPackagesWrapper({
+  it('ignores CHANGELOG.* in monorepo', async () => {
+    const result = await getAllChangedPackagesWrapper({
       packageInfos: monorepoPackageInfos(),
       allChangedFiles: ['packages/foo/CHANGELOG.md', 'packages/foo/CHANGELOG.json', 'packages/bar/foo.ts'],
       extraArgv: ['--verbose'],
@@ -117,8 +120,8 @@ describe('getAllChangedPackages', () => {
   });
 
   // change files are outside a package in a monorepo
-  it('ignores change files in single-package repo', () => {
-    const result = getAllChangedPackagesWrapper({
+  it('ignores change files in single-package repo', async () => {
+    const result = await getAllChangedPackagesWrapper({
       packageInfos: singlePackageInfo(),
       allChangedFiles: ['change/change-abc123.json', 'myFilename'],
       extraArgv: ['--verbose'],
@@ -132,8 +135,8 @@ describe('getAllChangedPackages', () => {
     `);
   });
 
-  it('respects ignorePatterns in single-package repo', () => {
-    const result = getAllChangedPackagesWrapper({
+  it('respects ignorePatterns in single-package repo', async () => {
+    const result = await getAllChangedPackagesWrapper({
       packageInfos: singlePackageInfo(),
       // change a default-ignored file too, to ensure the ignore patterns merge
       allChangedFiles: ['src/foo.test.js', 'tests/stuff.js', 'yarn.lock', 'CHANGELOG.md'],
@@ -151,8 +154,8 @@ describe('getAllChangedPackages', () => {
     `);
   });
 
-  it('respects ignorePatterns in monorepo', () => {
-    const result = getAllChangedPackagesWrapper({
+  it('respects ignorePatterns in monorepo', async () => {
+    const result = await getAllChangedPackagesWrapper({
       packageInfos: monorepoPackageInfos(),
       allChangedFiles: [
         'packages/foo/foo.test.js',
@@ -179,13 +182,13 @@ describe('getAllChangedPackages', () => {
   });
 
   // This is tested at a lower level by isPackageIncluded.test.ts
-  it('ignores package changes as appropriate', () => {
+  it('ignores package changes as appropriate', async () => {
     const packageInfos = monorepoPackageInfos();
     // Update packages so they'll be ignored
     packageInfos.foo.private = true;
     packageInfos.bar.packageOptions = { shouldPublish: false }; // package.json beachball field
 
-    const result = getAllChangedPackagesWrapper({
+    const result = await getAllChangedPackagesWrapper({
       packageInfos,
       repoOptions: { scope: ['!packages/grouped/*'] },
       extraArgv: ['--verbose'],

@@ -19,7 +19,7 @@ describe('getQuestionsForPackage', () => {
 
   const logs = initMockLogs();
 
-  function getQuestionsWrapper(
+  async function getQuestionsWrapper(
     params: {
       options?: Partial<GetQuestionsParams['options']>;
       packageInfo?: PartialPackageInfo;
@@ -32,13 +32,13 @@ describe('getQuestionsForPackage', () => {
 
     const packageInfos = makePackageInfos({ [pkg]: packageInfo });
     // fill in default options
-    const { options } = getOptions({ cwd: '', argv: [], env: {}, testRepoOptions: repoOptions });
+    const { options } = await getOptions({ cwd: '', argv: [], env: {}, testRepoOptions: repoOptions });
 
     return getQuestionsForPackage({ pkg, packageInfos, packageGroups, options, recentMessages });
   }
 
-  it('works in basic case', () => {
-    const questions = getQuestionsWrapper();
+  it('works in basic case', async () => {
+    const questions = await getQuestionsWrapper();
     expect(questions).toEqual([
       {
         choices: [
@@ -64,8 +64,8 @@ describe('getQuestionsForPackage', () => {
   });
 
   // it's somewhat debatable if this is correct (maybe --type should be the override for disallowedChangeTypes?)
-  it('errors if options.type is disallowed', () => {
-    const questions = getQuestionsWrapper({
+  it('errors if options.type is disallowed', async () => {
+    const questions = await getQuestionsWrapper({
       packageInfo: { beachball: { disallowedChangeTypes: ['major'] } },
       options: { type: 'major', message: '' },
     });
@@ -73,24 +73,24 @@ describe('getQuestionsForPackage', () => {
     expect(logs.mocks.error).toHaveBeenCalledWith('Change type "major" is not allowed for package "foo"');
   });
 
-  it('errors if there are no valid change types for package', () => {
-    const questions = getQuestionsWrapper({
+  it('errors if there are no valid change types for package', async () => {
+    const questions = await getQuestionsWrapper({
       packageInfo: { beachball: { disallowedChangeTypes: ['major', 'minor', 'patch', 'none'] } },
     });
     expect(questions).toBeUndefined();
     expect(logs.mocks.error).toHaveBeenCalledWith('No valid change types available for package "foo"');
   });
 
-  it('respects disallowedChangeTypes', () => {
-    const questions = getQuestionsWrapper({
+  it('respects disallowedChangeTypes', async () => {
+    const questions = await getQuestionsWrapper({
       packageInfo: { beachball: { disallowedChangeTypes: ['major'] } },
     });
     const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value as ChangeType);
     expect(choices).toEqual(['patch', 'minor', 'none']);
   });
 
-  it('allows prerelease change for package with prerelease version', () => {
-    const questions = getQuestionsWrapper({
+  it('allows prerelease change for package with prerelease version', async () => {
+    const questions = await getQuestionsWrapper({
       packageInfo: { version: '1.0.0-beta.1' },
     });
     const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value as ChangeType);
@@ -98,32 +98,32 @@ describe('getQuestionsForPackage', () => {
   });
 
   // this is a bit weird as well, but documenting current behavior
-  it('excludes prerelease if disallowed', () => {
-    const questions = getQuestionsWrapper({
+  it('excludes prerelease if disallowed', async () => {
+    const questions = await getQuestionsWrapper({
       packageInfo: { version: '1.0.0-beta.1', beachball: { disallowedChangeTypes: ['prerelease'] } },
     });
     const choices = (questions![0].choices as prompts.Choice[]).map(c => c.value as ChangeType);
     expect(choices).toEqual(['patch', 'minor', 'none', 'major']);
   });
 
-  it('excludes the change type question when options.type is specified', () => {
-    const questions = getQuestionsWrapper({
+  it('excludes the change type question when options.type is specified', async () => {
+    const questions = await getQuestionsWrapper({
       options: { type: 'patch', message: '' },
     });
     expect(questions).toHaveLength(1);
     expect(questions![0].name).toBe('comment');
   });
 
-  it('excludes the change type question with only one valid option', () => {
-    const questions = getQuestionsWrapper({
+  it('excludes the change type question with only one valid option', async () => {
+    const questions = await getQuestionsWrapper({
       packageInfo: { beachball: { disallowedChangeTypes: ['major', 'minor', 'none'] } },
     });
     expect(questions).toHaveLength(1);
     expect(questions![0].name).toBe('comment');
   });
 
-  it('excludes the change type question when prerelease is implicitly the only valid option', () => {
-    const questions = getQuestionsWrapper({
+  it('excludes the change type question when prerelease is implicitly the only valid option', async () => {
+    const questions = await getQuestionsWrapper({
       packageInfo: {
         version: '1.0.0-beta.1',
         beachball: { disallowedChangeTypes: ['major', 'minor', 'patch', 'none'] },
@@ -133,19 +133,19 @@ describe('getQuestionsForPackage', () => {
     expect(questions![0].name).toBe('comment');
   });
 
-  it('excludes the comment question when options.message is set', () => {
-    const questions = getQuestionsWrapper({
+  it('excludes the comment question when options.message is set', async () => {
+    const questions = await getQuestionsWrapper({
       options: { message: 'message' },
     });
     expect(questions).toHaveLength(1);
     expect(questions![0].name).toBe('type');
   });
 
-  it('uses options.changeFilePrompt if set', () => {
+  it('uses options.changeFilePrompt if set', async () => {
     const customQuestions: prompts.PromptObject[] = [{ name: 'custom', message: 'custom prompt', type: 'text' }];
     const changePrompt: ChangeFilePromptOptions['changePrompt'] = jest.fn(() => customQuestions);
 
-    const questions = getQuestionsWrapper({
+    const questions = await getQuestionsWrapper({
       options: { changeFilePrompt: { changePrompt } },
     });
 
@@ -163,7 +163,7 @@ describe('getQuestionsForPackage', () => {
   it('does case-insensitive filtering on description suggestions', async () => {
     const recentMessages = ['Foo', 'Bar', 'Baz'];
     const recentMessageChoices = [{ title: 'Foo' }, { title: 'Bar' }, { title: 'Baz' }];
-    const questions = getQuestionsWrapper({ recentMessages });
+    const questions = await getQuestionsWrapper({ recentMessages });
     expect(questions).toEqual([
       expect.anything(),
       expect.objectContaining({

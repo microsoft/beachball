@@ -23,9 +23,9 @@ describe('publish command (git)', () => {
 
   initMockLogs();
 
-  function getOptions(repoOptions?: Partial<RepoOptions>) {
+  async function getOptions(repoOptions?: Partial<RepoOptions>) {
     const cwd = repoOptions?.path || repo!.rootPath;
-    const parsedOptions = _getOptions({
+    const parsedOptions = await _getOptions({
       cwd,
       argv: ['node', 'beachball', 'publish', '--yes'],
       env: {},
@@ -53,7 +53,7 @@ describe('publish command (git)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions();
+    const { options, parsedOptions } = await getOptions();
     generateChangeFiles(['foo'], options);
     repo.push();
 
@@ -70,7 +70,7 @@ describe('publish command (git)', () => {
     repositoryFactory = new RepositoryFactory('single');
     // 1. clone a new repo1, write a change file in repo1
     const repo1 = repositoryFactory.cloneRepository();
-    const { options: options1, parsedOptions: parsedOptions1 } = getOptions({ path: repo1.rootPath });
+    const { options: options1, parsedOptions: parsedOptions1 } = await getOptions({ path: repo1.rootPath });
     generateChangeFiles(['foo'], options1);
     repo1.push();
 
@@ -100,7 +100,7 @@ describe('publish command (git)', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       fetch: false,
       hooks: {
         precommit: jest.fn(async (cwd: string) => {

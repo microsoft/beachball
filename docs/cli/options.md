@@ -19,7 +19,7 @@ The options below apply to most CLI commands.
 | Option | Alias | Default | Description |
 | ------ | ----- | ------- | ----------- |
 | `--branch, -b` | `-b` | | target branch; see [config docs][1] for details |
-| `--config` | `-c` | [cosmiconfig][2] defaults | custom beachball config path |
+| `--config` | `-c` | see [config docs][2] | custom beachball config path |
 | `--no-fetch` | | | skip fetching from the remote |
 | `--change-dir` | | `'change'` | name of the directory to store change files |
 | `--scope` | | | only consider matching package paths (can be specified multiple times); see [config docs][3] |
@@ -27,5 +27,5 @@ The options below apply to most CLI commands.
 | `--verbose` | | | prints additional information to the console |
 
 [1]: ../overview/configuration#specifying-the-target-branch-and-remote
-[2]: https://www.npmjs.com/package/cosmiconfig
+[2]: ../overview/configuration#repository-config
 [3]: ../overview/configuration#scoping

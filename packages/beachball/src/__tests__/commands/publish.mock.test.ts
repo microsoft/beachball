@@ -32,7 +32,7 @@ describe('publish command (all helpers mocked)', () => {
    * Get options and context. The context has a completely empty `bumpInfo`, but the `changeSet`
    * contains a change for each package (since it's looked at directly by logic within `publish()`).
    */
-  function getOptionsAndContext(params: {
+  async function getOptionsAndContext(params: {
     /** bump, push, and publish are true by default */
     repoOptions?: Partial<RepoOptions>;
     packageInfos: PartialPackageInfos;
@@ -40,7 +40,7 @@ describe('publish command (all helpers mocked)', () => {
   }) {
     const { repoOptions, packageInfos, context: partialContext } = params;
 
-    const parsedOptions = getOptions({
+    const parsedOptions = await getOptions({
       cwd: '',
       argv: ['node', 'beachball', 'publish', '--yes'],
       env: {},
@@ -83,7 +83,7 @@ describe('publish command (all helpers mocked)', () => {
   });
 
   it('returns early when there are no change files', async () => {
-    const { options, context } = getOptionsAndContext({
+    const { options, context } = await getOptionsAndContext({
       packageInfos: { foo: {} },
       context: { changeSet: [] },
     });
@@ -101,7 +101,7 @@ describe('publish command (all helpers mocked)', () => {
   });
 
   it('skips bumpAndPush when push is false', async () => {
-    const { options, context } = getOptionsAndContext({
+    const { options, context } = await getOptionsAndContext({
       repoOptions: { push: false },
       packageInfos: { foo: {} },
     });
@@ -118,7 +118,7 @@ describe('publish command (all helpers mocked)', () => {
   });
 
   it('skips bumpAndPush when bump is false', async () => {
-    const { options, context } = getOptionsAndContext({
+    const { options, context } = await getOptionsAndContext({
       repoOptions: { bump: false },
       packageInfos: { foo: {} },
     });
@@ -134,7 +134,7 @@ describe('publish command (all helpers mocked)', () => {
   });
 
   it('skips publishToRegistry when publish is false', async () => {
-    const { options, context } = getOptionsAndContext({
+    const { options, context } = await getOptionsAndContext({
       repoOptions: { publish: false },
       packageInfos: { foo: {} },
     });
@@ -150,7 +150,7 @@ describe('publish command (all helpers mocked)', () => {
   });
 
   it('calls publishToRegistry when packToPath is set even if publish is false', async () => {
-    const { options, context } = getOptionsAndContext({
+    const { options, context } = await getOptionsAndContext({
       repoOptions: { publish: false, packToPath: '/tmp/fake-pack' },
       packageInfos: { foo: {} },
     });
@@ -169,7 +169,7 @@ describe('publish command (all helpers mocked)', () => {
   it('returns to original branch and deletes publish branch after completion', async () => {
     const currentBranch = 'fake-branch';
     wsToolsMocks.getBranchName.mockReturnValue(currentBranch);
-    const { options, context } = getOptionsAndContext({
+    const { options, context } = await getOptionsAndContext({
       packageInfos: { foo: {} },
     });
 
@@ -183,7 +183,7 @@ describe('publish command (all helpers mocked)', () => {
   it('returns to correct hash from detached HEAD', async () => {
     wsToolsMocks.getBranchName.mockReturnValue('HEAD');
 
-    const { options, context } = getOptionsAndContext({ packageInfos: { foo: {} } });
+    const { options, context } = await getOptionsAndContext({ packageInfos: { foo: {} } });
 
     await publish(options, context);
 

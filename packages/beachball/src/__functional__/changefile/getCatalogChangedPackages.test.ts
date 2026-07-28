@@ -232,8 +232,8 @@ describe('getCatalogChangedPackages', () => {
   /**
    * Get changed files (only committed) and options, and call `getCatalogChangedPackages`.
    */
-  function getCatalogChangedPackagesWrapper() {
-    const parsedOptions = getOptions({
+  async function getCatalogChangedPackagesWrapper() {
+    const parsedOptions = await getOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'change'],
       env: {},
@@ -281,16 +281,16 @@ describe('getCatalogChangedPackages', () => {
     catalogFactory.cleanUp();
   });
 
-  it('returns empty when the catalog file is unchanged', () => {
+  it('returns empty when the catalog file is unchanged', async () => {
     repo = getReusedRepoWithBranch();
     repo.commitChange('packages/alpha/src/x.ts');
 
-    expect(getCatalogChangedPackagesWrapper()).toEqual([]);
+    expect(await getCatalogChangedPackagesWrapper()).toEqual([]);
     // skipped the git step since there were no changes to the catalog file
     expect(mockWorkspaceTools.getFileFromRef).not.toHaveBeenCalled();
   });
 
-  it('returns packages referencing a changed default catalog entry', () => {
+  it('returns packages referencing a changed default catalog entry', async () => {
     repo = getReusedRepoWithBranch();
     const updated: Catalogs = {
       default: { foo: '^1.5.0', baz: '^1.0.0' },
@@ -298,7 +298,7 @@ describe('getCatalogChangedPackages', () => {
     };
     repo.commitChange('.yarnrc.yml', catalogsToYaml(updated));
 
-    expect(getCatalogChangedPackagesWrapper()).toEqual(['alpha']);
+    expect(await getCatalogChangedPackagesWrapper()).toEqual(['alpha']);
     expect(mockWorkspaceTools.getFileFromRef).toHaveBeenCalled();
   });
 });
