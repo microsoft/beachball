@@ -103,7 +103,7 @@ function printTree(params: {
     if (!childRoot) {
       const connector = childIsLast ? '└── ' : '├── ';
       console.log(`${childPrefix}${connector}${depName} (unmet)`);
-      return { deduped, duped };
+continue;
     }
     const child = printTree({
       packageRoot: childRoot,
