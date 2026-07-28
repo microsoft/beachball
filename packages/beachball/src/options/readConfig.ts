@@ -53,8 +53,8 @@ export async function readConfig<TConfig = unknown>(params: {
 
 async function searchDir<TConfig>(name: string, dir: string): Promise<ConfigResult<TConfig> | null> {
   const searchPlaces = [
-    `.${name}rc`,
     ...moduleExtensions.map(ext => `${name}.config.${ext}`),
+    `.${name}rc`,
     `.${name}rc.json`,
     ...moduleExtensions.map(ext => `.${name}rc.${ext}`),
   ];
@@ -94,7 +94,7 @@ async function loadConfig<TConfig>(filepath: string): Promise<TConfig> {
     }
   } catch (err) {
     throw new BeachballError(
-      `Failed to load config from ${filepath}: ${err instanceof Error ? err.stack || err.message : String(err)}`,
+      `Failed to load config from ${filepath}: ${err instanceof Error ? err.message : String(err)}`,
       { cause: err }
     );
   }
