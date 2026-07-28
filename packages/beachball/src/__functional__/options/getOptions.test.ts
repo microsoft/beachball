@@ -23,12 +23,12 @@ describe('getOptions', () => {
     repositoryFactory.cleanUp();
   });
 
-  it('--config overrides configuration path', () => {
+  it('--config overrides configuration path', async () => {
     const repo = repositoryFactory.cloneRepository();
     repo.writeFile('beachball.config.js', 'module.exports = { branch: "origin/main" };');
     repo.writeFile('alternate.config.js', 'module.exports = { branch: "origin/foo" };');
 
-    const parsedOptions = getOptions({
+    const parsedOptions = await getOptions({
       argv: [...baseArgv(), '--config', 'alternate.config.js'],
       env: {},
       cwd: repo.rootPath,
@@ -36,12 +36,12 @@ describe('getOptions', () => {
     expect(parsedOptions.options.branch).toEqual('origin/foo');
   });
 
-  it('overrides repo options with CLI options', () => {
+  it('overrides repo options with CLI options', async () => {
     const repo = repositoryFactory.cloneRepository();
     const repoOptions: Partial<RepoOptions> = { branch: 'origin/foo', bump: false };
     repo.writeFile('beachball.config.js', `module.exports = ${JSON.stringify(repoOptions)};`);
 
-    const parsedOptions = getOptions({
+    const parsedOptions = await getOptions({
       argv: [...baseArgv(), '--branch', 'origin/bar', '--bump'],
       cwd: repo.rootPath,
       env: {},

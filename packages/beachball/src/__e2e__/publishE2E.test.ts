@@ -39,8 +39,8 @@ describe('publish command (e2e)', () => {
   // show error logs for these tests
   initMockLogs({ alsoLog: ['error'] });
 
-  function getOptions(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
-    const parsedOptions = _getOptions({
+  async function getOptions(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
+    const parsedOptions = await _getOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'publish', '--yes', ...(extraArgv || [])],
       env: {},
@@ -84,7 +84,7 @@ describe('publish command (e2e)', () => {
 
     // Using fetch: false in tests where it's irrelevant should be a bit faster.
     // Use a git observer to verify that no fetch occurs.
-    const { options, parsedOptions } = getOptions({ fetch: false });
+    const { options, parsedOptions } = await getOptions({ fetch: false });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -115,7 +115,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       push: false,
     });
 
@@ -136,7 +136,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions();
+    const { options, parsedOptions } = await getOptions();
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -181,7 +181,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions();
+    const { options, parsedOptions } = await getOptions();
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -228,7 +228,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({ bump: false, fetch: false });
+    const { options, parsedOptions } = await getOptions({ bump: false, fetch: false });
 
     generateChangeFiles(['foo'], options);
     repo.push();
@@ -252,7 +252,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({ fetch: false });
+    const { options, parsedOptions } = await getOptions({ fetch: false });
 
     // bump baz => dependent bump bar => dependent bump foo
     generateChangeFiles(['baz'], options);
@@ -296,7 +296,7 @@ describe('publish command (e2e)', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({ fetch: false });
+    const { options, parsedOptions } = await getOptions({ fetch: false });
 
     generateChangeFiles(['foo', 'bar'], options);
     repo.push();
@@ -323,7 +323,7 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       scope: ['!packages/foo'],
       fetch: false,
     });
@@ -374,7 +374,7 @@ describe('publish command (e2e)', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({ bumpDeps: true, fetch: false });
+    const { options, parsedOptions } = await getOptions({ bumpDeps: true, fetch: false });
     generateChangeFiles([{ packageName: 'pkg-1', type: 'minor' }], options);
     repo.push();
 
@@ -439,7 +439,7 @@ describe('publish command (e2e)', () => {
 
     let notified: string | undefined;
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       fetch: false,
       hooks: {
         prepublish: (packagePath, name, version) => {

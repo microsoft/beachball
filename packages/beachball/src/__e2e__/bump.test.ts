@@ -34,8 +34,8 @@ describe('bump command', () => {
    * Get options. Defaults to the repository root as cwd.
    * Defaults to `fetch: false` since fetching is rarely relevant for these tests and is slow.
    */
-  function getOptions(repoOptions?: Partial<RepoOptions>, cwd?: string) {
-    const parsedOptions = _getOptions({
+  async function getOptions(repoOptions?: Partial<RepoOptions>, cwd?: string) {
+    const parsedOptions = await _getOptions({
       cwd: cwd || repo?.rootPath || '',
       argv: [],
       env: {},
@@ -77,7 +77,7 @@ describe('bump command', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       bumpDeps: false,
       generateChangelog: true,
     });
@@ -121,9 +121,9 @@ describe('bump command', () => {
 
     const projectARoot = repo.pathTo('project-a');
     const projectBRoot = repo.pathTo('project-b');
-    const infoA = getOptions({ bumpDeps: true }, projectARoot);
+    const infoA = await getOptions({ bumpDeps: true }, projectARoot);
     const optionsA = infoA.options;
-    const infoB = getOptions({ bumpDeps: true }, projectBRoot);
+    const infoB = await getOptions({ bumpDeps: true }, projectBRoot);
     const optionsB = infoB.options;
 
     generateChangeFiles([{ packageName: '@project-a/foo' }], optionsA);
@@ -156,7 +156,7 @@ describe('bump command', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       bumpDeps: false,
       // Incidentally use this to verify generateChangelog: false is respected
       generateChangelog: false,
@@ -203,7 +203,7 @@ describe('bump command', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       bumpDeps: true,
       generateChangelog: true,
     });
@@ -258,7 +258,7 @@ describe('bump command', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       groups: [{ include: 'packages/grp/*', name: 'grp', disallowedChangeTypes: [] }],
       bumpDeps: true,
       generateChangelog: true,
@@ -304,7 +304,7 @@ describe('bump command', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       bumpDeps: true,
       generateChangelog: true,
       scope: ['!packages/bar'],
@@ -341,7 +341,7 @@ describe('bump command', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       bumpDeps: true,
       generateChangelog: true,
       scope: ['!packages/foo'],
@@ -379,7 +379,7 @@ describe('bump command', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       bumpDeps: true,
       generateChangelog: true,
     });
@@ -423,7 +423,7 @@ describe('bump command', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       bumpDeps: true,
       prereleasePrefix: 'beta',
     });
@@ -462,7 +462,7 @@ describe('bump command', () => {
     repositoryFactory = new RepositoryFactory({ folders: monorepo });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       bumpDeps: true,
       generateChangelog: true,
     });
@@ -513,7 +513,7 @@ describe('bump command', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       bumpDeps: true,
       generateChangelog: true,
     });
@@ -549,7 +549,7 @@ describe('bump command', () => {
     });
     repo = repositoryFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({
+    const { options, parsedOptions } = await getOptions({
       bumpDeps: false,
       hooks: {
         prebump: jest.fn<NonNullable<HooksOptions['prebump']>>(async (packagePath, name, version) => {

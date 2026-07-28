@@ -29,7 +29,7 @@ describe('migrate command', () => {
     tempRoot = '';
   });
 
-  it('logs a success message when no config updates are needed', () => {
+  it('logs a success message when no config updates are needed', async () => {
     tempRoot = createTestFileStructureType('monorepo', {
       groups: [{ name: 'test', include: 'packages/test', exclude: ['packages/foo'], disallowedChangeTypes: null }],
       changelog: {
@@ -46,32 +46,34 @@ describe('migrate command', () => {
     // a changelog md file is okay
     fs.writeFileSync(path.join(tempRoot, 'packages/foo/CHANGELOG.md'), '');
 
-    migrate(getOptions());
+    migrate(await getOptions());
     expect(logs.getMockLines('log')).toEqual('No config updates are needed for v3.');
   });
 
-  it('errors on "new" option', () => {
+  it('errors on "new" option', async () => {
     tempRoot = createTestFileStructureType('single');
-    expect(() => migrate(getOptions({ new: true } as unknown as RepoOptions))).toThrow(BeachballError);
+    const options = await getOptions({ new: true } as unknown as RepoOptions);
+    expect(() => migrate(options)).toThrow(BeachballError);
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[error] The following updates are needed for v3:
       [error]   • The \`new\` option has been removed. Please remove it from your config."
     `);
   });
 
-  it('errors on "packStyle" option', () => {
+  it('errors on "packStyle" option', async () => {
     tempRoot = createTestFileStructureType('single');
-    expect(() => migrate(getOptions({ packStyle: 'pack' } as unknown as RepoOptions))).toThrow(BeachballError);
+    const options = await getOptions({ packStyle: 'pack' } as unknown as RepoOptions);
+    expect(() => migrate(options)).toThrow(BeachballError);
     expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
       "[error] The following updates are needed for v3:
       [error]   • The \`packStyle\` option has been removed (packing always uses the layered style now). Please remove it from your config."
     `);
   });
 
-  it('errors on "hooks.prebump" with more than 3 params', () => {
+  it('errors on "hooks.prebump" with more than 3 params', async () => {
     tempRoot = createTestFileStructureType('single');
     const fn: HooksOptions['postbump'] = (_pth, _name, _version, _pkgInfos) => {};
-    const options = getOptions({
+    const options = await getOptions({
       hooks: { prebump: fn as HooksOptions['prebump'] },
     });
 
@@ -82,12 +84,12 @@ describe('migrate command', () => {
     `);
   });
 
-  it('warns on public packages using shouldPublish option', () => {
+  it('warns on public packages using shouldPublish option', async () => {
     tempRoot = createTestFileStructureType('monorepo');
     updateJsonFile(path.join(tempRoot, 'packages/foo/package.json'), { beachball: { shouldPublish: false } });
     updateJsonFile(path.join(tempRoot, 'packages/baz/package.json'), { beachball: { shouldPublish: false } });
 
-    migrate(getOptions());
+    migrate(await getOptions());
 
     const output = logs.getMockLines('all', { root: tempRoot });
     expect(output).toMatchInlineSnapshot(`
@@ -98,12 +100,13 @@ describe('migrate command', () => {
     `);
   });
 
-  it('errors when CHANGELOG.json files exist and generateChangelog is unset', () => {
+  it('errors when CHANGELOG.json files exist and generateChangelog is unset', async () => {
     tempRoot = createTestFileStructureType('monorepo');
     fs.writeFileSync(path.join(tempRoot, 'packages/foo/CHANGELOG.json'), '{}');
     fs.writeFileSync(path.join(tempRoot, 'packages/baz/CHANGELOG.json'), '{}');
+    const options = await getOptions();
 
-    expect(() => migrate(getOptions())).toThrow(BeachballError);
+    expect(() => migrate(options)).toThrow(BeachballError);
 
     const output = logs.getMockLines('all', { root: tempRoot });
     expect(output).toMatchInlineSnapshot(`
@@ -116,11 +119,11 @@ describe('migrate command', () => {
     `);
   });
 
-  it('errors when groups have CHANGELOG.json files and generateChangelog is unset', () => {
+  it('errors when groups have CHANGELOG.json files and generateChangelog is unset', async () => {
     tempRoot = createTestFileStructureType('monorepo');
     fs.mkdirSync(path.join(tempRoot, 'changelogs'));
     fs.writeFileSync(path.join(tempRoot, 'changelogs/CHANGELOG.json'), '{}');
-    const options = getOptions({
+    const options = await getOptions({
       changelog: { groups: [{ changelogPath: 'changelogs', include: true, mainPackageName: 'foo' }] },
     });
 
@@ -136,16 +139,16 @@ describe('migrate command', () => {
     `);
   });
 
-  it('does not error on CHANGELOG.json files when generateChangelog is explicitly set', () => {
+  it('does not error on CHANGELOG.json files when generateChangelog is explicitly set', async () => {
     tempRoot = createTestFileStructureType('monorepo');
     fs.writeFileSync(path.join(tempRoot, 'packages/foo/CHANGELOG.json'), '{}');
 
-    migrate(getOptions({ generateChangelog: true }));
+    migrate(await getOptions({ generateChangelog: true }));
 
     expect(logs.getMockLines('all')).toEqual('[log] No config updates are needed for v3.');
   });
 
-  it('errors on private packages using shouldPublish option', () => {
+  it('errors on private packages using shouldPublish option', async () => {
     tempRoot = createTestFileStructureType('monorepo');
     updateJsonFile(path.join(tempRoot, 'packages/foo/package.json'), {
       private: true,
@@ -155,8 +158,9 @@ describe('migrate command', () => {
       private: true,
       beachball: { shouldPublish: false },
     });
+    const options = await getOptions();
 
-    expect(() => migrate(getOptions())).toThrow(BeachballError);
+    expect(() => migrate(options)).toThrow(BeachballError);
 
     const output = logs.getMockLines('all', { root: tempRoot });
     expect(output).toMatchInlineSnapshot(`
@@ -167,7 +171,7 @@ describe('migrate command', () => {
     `);
   });
 
-  it('errors on negated groups[*].exclude', () => {
+  it('errors on negated groups[*].exclude', async () => {
     const disallowedChangeTypes = null;
     tempRoot = createTestFileStructureType('monorepo', {
       groups: [
@@ -182,7 +186,8 @@ describe('migrate command', () => {
         },
       ],
     });
-    expect(() => migrate(getOptions())).toThrow(BeachballError);
+    const options = await getOptions();
+    expect(() => migrate(options)).toThrow(BeachballError);
 
     expect(logs.getMockLines('error')).toMatchInlineSnapshot(`
       "The following updates are needed for v3:
@@ -197,7 +202,7 @@ describe('migrate command', () => {
     `);
   });
 
-  it('errors on changelog.groups[*].masterPackageName', () => {
+  it('errors on changelog.groups[*].masterPackageName', async () => {
     tempRoot = createTestFileStructureType('monorepo', {
       changelog: {
         groups: [
@@ -207,7 +212,8 @@ describe('migrate command', () => {
         ],
       },
     });
-    expect(() => migrate(getOptions())).toThrow(BeachballError);
+    const options = await getOptions();
+    expect(() => migrate(options)).toThrow(BeachballError);
 
     expect(logs.getMockLines('error')).toMatchInlineSnapshot(`
       "The following updates are needed for v3:
@@ -219,7 +225,7 @@ describe('migrate command', () => {
     `);
   });
 
-  it('errors on negated changelog.groups[*].exclude and masterPackageName', () => {
+  it('errors on negated changelog.groups[*].exclude and masterPackageName', async () => {
     tempRoot = createTestFileStructureType('monorepo', {
       changelog: {
         groups: [
@@ -234,7 +240,8 @@ describe('migrate command', () => {
         ],
       },
     });
-    expect(() => migrate(getOptions())).toThrow(BeachballError);
+    const options = await getOptions();
+    expect(() => migrate(options)).toThrow(BeachballError);
 
     expect(logs.getMockLines('error')).toMatchInlineSnapshot(`
       "The following updates are needed for v3:

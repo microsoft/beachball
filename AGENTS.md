@@ -90,10 +90,10 @@ Run all of: `yarn build`, `yarn test`, `yarn lint`, `yarn format`.
 - `src/monorepo/` — package discovery (workspace-tools), dependency graph, package groups.
 - `src/publish/` — npm publish orchestration, git tagging, dependency-ordered publishing.
 - `src/git/` — git operation wrappers using execa.
-- `src/options/` — CLI arg parsing + config loading (cosmiconfig).
+- `src/options/` — CLI arg parsing + config loading.
 - `src/validation/` — pre-command validation.
 - `src/types/` — TypeScript interfaces (`BeachballOptions` is the central config type).
-- **Option resolution:** CLI args > `beachball.config.js` (cosmiconfig) > defaults. `getOptions()` returns both raw `cliOptions` and merged `options`.
+- **Option resolution:** CLI args > config (usually `beachball.config.js`) > defaults. `getOptions()` returns both raw `cliOptions` and merged `options`.
 
 ## Coding standards
 

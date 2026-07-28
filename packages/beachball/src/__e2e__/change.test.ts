@@ -81,8 +81,8 @@ describe('change command', () => {
   const logs = initMockLogs();
 
   /** Get options and context (`changedPackages` is not filled) */
-  function getOptionsAndContext(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
-    const parsedOptions = getOptions({
+  async function getOptionsAndContext(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
+    const parsedOptions = await getOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'change', ...(extraArgv ?? [])],
       env: {},
@@ -132,7 +132,7 @@ describe('change command', () => {
     repo = singleFactory.cloneRepository();
     checkOutTestBranch(repo);
 
-    const { options, context } = getOptionsAndContext();
+    const { options, context } = await getOptionsAndContext();
     await change(options, context);
 
     expect(getChangeFiles(options)).toHaveLength(0);
@@ -143,7 +143,7 @@ describe('change command', () => {
     checkOutTestBranch(repo);
     repo.commitChange('file.js');
 
-    const { options, context } = getOptionsAndContext({ commit: false });
+    const { options, context } = await getOptionsAndContext({ commit: false });
     const changePromise = change(options, context);
     await waitForPrompt();
 
@@ -175,7 +175,7 @@ describe('change command', () => {
     checkOutTestBranch(repo);
     repo.commitChange('file.js');
 
-    const { options, context } = getOptionsAndContext();
+    const { options, context } = await getOptionsAndContext();
     const changePromise = change(options, context);
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
@@ -201,7 +201,7 @@ describe('change command', () => {
     repo.commitChange('file.js');
 
     const commitMessage = jest.fn<NonNullable<RepoOptions['commitMessage']>>(() => 'custom change commit message');
-    const { options, context } = getOptionsAndContext({ commitMessage });
+    const { options, context } = await getOptionsAndContext({ commitMessage });
     const changePromise = change(options, context);
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
@@ -224,7 +224,7 @@ describe('change command', () => {
     repo.commitChange('file.js');
 
     const testChangedir = 'changeDir';
-    const { options, context } = getOptionsAndContext({
+    const { options, context } = await getOptionsAndContext({
       changeDir: testChangedir,
     });
     const changePromise = change(options, context);
@@ -250,7 +250,7 @@ describe('change command', () => {
     repo = singleFactory.cloneRepository();
     checkOutTestBranch(repo);
 
-    const { options, context } = getOptionsAndContext({}, [
+    const { options, context } = await getOptionsAndContext({}, [
       '--package',
       singleFactory.fixture.rootPackage.name,
       '--no-commit',
@@ -274,7 +274,7 @@ describe('change command', () => {
     checkOutTestBranch(repo);
     makeMonorepoChanges(repo);
 
-    const { options, context } = getOptionsAndContext();
+    const { options, context } = await getOptionsAndContext();
     const changePromise = change(options, context);
 
     // use custom values for first package
@@ -314,7 +314,7 @@ describe('change command', () => {
     checkOutTestBranch(repo);
     makeMonorepoChanges(repo);
 
-    const { options, context } = getOptionsAndContext({
+    const { options, context } = await getOptionsAndContext({
       groupChanges: true,
     });
     const changePromise = change(options, context);
@@ -359,7 +359,7 @@ describe('change command', () => {
       },
     };
 
-    const { options, context } = getOptionsAndContext({
+    const { options, context } = await getOptionsAndContext({
       groupChanges: true,
     });
     const changePromise = change(options, context);

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import execa from 'execa';
-import { AuthError } from './validationHelpers';
+import { BeachballError } from '../types/BeachballError';
 
 function base64ToBase64url(value: string): string {
   return value.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
@@ -34,11 +34,13 @@ async function signDigest(keyId: string, digest: string): Promise<string> {
     // `code` is the spawn error code (e.g. `ENOENT`), which isn't on the `ExecaError` type.
     const execaError = error as execa.ExecaError & { code?: string };
     if (execaError.code === 'ENOENT') {
-      throw new AuthError('Azure CLI (`az`) was not found on PATH');
+      throw new BeachballError('Azure CLI (`az`) was not found on PATH');
     }
 
     const output = execaError.all || '';
-    throw new AuthError(`Azure Key Vault signing failed. ${output ? `Output:\n${output}` : execaError.shortMessage}`);
+    throw new BeachballError(
+      `Azure Key Vault signing failed. ${output ? `Output:\n${output}` : execaError.shortMessage}`
+    );
   }
 }
 
@@ -58,7 +60,7 @@ export async function signWithAzureCli(keyId: string, signingInput: string): Pro
   const digest = createHash('sha256').update(signingInput).digest('base64');
   const signature = await signDigest(keyId, digest);
   if (!signature) {
-    throw new AuthError('Azure Key Vault did not return a signature');
+    throw new BeachballError('Azure Key Vault did not return a signature');
   }
   return base64ToBase64url(signature);
 }

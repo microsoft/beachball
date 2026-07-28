@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Replace `cosmiconfig` with basic custom config loading logic. Support for YAML config files and searching up from the project/repo root is removed, but the config file can now use any JS/TS extension with the same supported names as before (see config docs).",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

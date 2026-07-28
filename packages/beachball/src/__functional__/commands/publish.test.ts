@@ -37,8 +37,8 @@ describe('publish command', () => {
   let monorepoFactory: RepositoryFactory;
   let repo: Repository | undefined;
 
-  function getOptions(repoOptions?: Partial<RepoOptions>) {
-    const parsedOptions = _getOptions({
+  async function getOptions(repoOptions?: Partial<RepoOptions>) {
+    const parsedOptions = await _getOptions({
       cwd: repo!.rootPath,
       argv: ['node', 'beachball', 'publish', '--yes'],
       env: {},
@@ -89,7 +89,7 @@ describe('publish command', () => {
   it('bumps and pushes when enabled', async () => {
     repo = singleRepoFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({ bump: true, push: true });
+    const { options, parsedOptions } = await getOptions({ bump: true, push: true });
     generateChangeFiles(['foo'], options);
     logs.clear();
 
@@ -109,7 +109,7 @@ describe('publish command', () => {
   it('calls publishToRegistry when packToPath is set even if publish is false', async () => {
     repo = singleRepoFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({ publish: false, packToPath: '/tmp/fake-pack' });
+    const { options, parsedOptions } = await getOptions({ publish: false, packToPath: '/tmp/fake-pack' });
     generateChangeFiles(['foo'], options);
     logs.clear();
 
@@ -121,7 +121,7 @@ describe('publish command', () => {
   it('returns to original branch and deletes publish branch after completion', async () => {
     repo = singleRepoFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions();
+    const { options, parsedOptions } = await getOptions();
     generateChangeFiles(['foo'], options);
     logs.clear();
 
@@ -136,7 +136,7 @@ describe('publish command', () => {
   it('returns to correct hash from detached HEAD', async () => {
     repo = singleRepoFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions();
+    const { options, parsedOptions } = await getOptions();
     generateChangeFiles(['foo'], options);
     logs.clear();
 
@@ -152,7 +152,7 @@ describe('publish command', () => {
   it('populates bumpInfo with correct change types', async () => {
     repo = singleRepoFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions();
+    const { options, parsedOptions } = await getOptions();
     generateChangeFiles(['foo'], options);
     logs.clear();
 
@@ -170,7 +170,7 @@ describe('publish command', () => {
   it('passes correct bumpInfo to publishToRegistry in a monorepo', async () => {
     repo = monorepoFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions({ bumpDeps: true });
+    const { options, parsedOptions } = await getOptions({ bumpDeps: true });
     // baz has a minor change; bar depends on baz, foo depends on bar
     generateChangeFiles(['baz'], options);
     logs.clear();
@@ -195,7 +195,7 @@ describe('publish command', () => {
   it('reuses pre-calculated bumpInfo from context', async () => {
     repo = singleRepoFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions();
+    const { options, parsedOptions } = await getOptions();
     generateChangeFiles(['foo'], options);
     logs.clear();
 
@@ -213,7 +213,7 @@ describe('publish command', () => {
   it('logs expected output for a standard publish flow', async () => {
     repo = singleRepoFactory.cloneRepository();
 
-    const { options, parsedOptions } = getOptions();
+    const { options, parsedOptions } = await getOptions();
     generateChangeFiles(['foo'], options);
     logs.clear();
 

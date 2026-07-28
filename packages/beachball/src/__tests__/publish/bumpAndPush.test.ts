@@ -64,8 +64,8 @@ describe('bumpAndPush', () => {
     } as GitProcessOutput;
   }
 
-  function callBumpAndPush(optionOverrides?: Partial<BeachballOptions>, maxRetries?: number) {
-    const { options } = getOptions({
+  async function callBumpAndPush(optionOverrides?: Partial<BeachballOptions>, maxRetries?: number) {
+    const { options } = await getOptions({
       cwd: fakeRoot,
       argv: [],
       env: {},

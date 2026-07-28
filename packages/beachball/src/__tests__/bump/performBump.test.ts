@@ -62,14 +62,14 @@ describe('performBump', () => {
    *
    * `modifiedPackages` defaults to all packages in `packageInfos`.
    */
-  function performBumpWrapper(params: {
+  async function performBumpWrapper(params: {
     packageInfos: PartialPackageInfos;
     modifiedPackages?: BumpInfo['modifiedPackages'];
     /** Names to generate empty `changeFileChangeInfos` */
     changeFileNames?: string[];
     repoOptions?: Partial<RepoOptions>;
   }) {
-    const opts = getOptions({
+    const opts = await getOptions({
       cwd: fakeRoot,
       argv: [],
       env: {},

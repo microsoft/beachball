@@ -27,7 +27,7 @@ const version = getPackageInfo(findPackageRoot(__dirname)!)?.version;
     throw new BeachballError('beachball only works in a git repository. Please initialize git and try again.');
   }
 
-  const parsedOptions = getOptions({ cwd: processCwd, argv: process.argv, env: process.env, version });
+  const parsedOptions = await getOptions({ cwd: processCwd, argv: process.argv, env: process.env, version });
   const options = parsedOptions.options;
 
   // TODO port remaining help elements and remove help.ts

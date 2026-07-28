@@ -15,14 +15,15 @@ There are two types of configurations:
 
 ## Repository config
 
-`beachball` uses [`cosmiconfig`](https://github.com/davidtheclark/cosmiconfig) to read its configuration, so you can specify configuration in several ways (in addition to CLI arguments).
+Most often, Beachball config is stored in `beachball.config.js`, but Beachball will check all the following locations under the project root directory (usually the repo root):
 
 - `"beachball"` key inside `package.json`
-- `.beachballrc`
-- `.beachballrc.json`
-- `beachball.config.js` (CJS or ESM depending on your project setup; explicit `.cjs` or `.mjs` is also supported)
+- `beachball.config.[cm]?[jt]s`
+- `.beachballrc` (JSON) or `.beachballrc.json`
+- `.beachballrc.[cm]?[jt]s`
+- any of the above (except `package.json`) under a `.config` directory
 
-It's most common to use a JavaScript file for the repo-level config, since it's the most flexible and allows comments. Usually this file is at the repo root.
+> ⚠️ Beachball v3 changed the search order and removed support for YAML files and searching up from the project root to find the config file.
 
 The `beachball.config.js` example below uses JSDoc type annotations to enable intellisense in some editors (these are optional).
 

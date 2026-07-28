@@ -38,8 +38,8 @@ describe('writeChangelog', () => {
   /**
    * Note: `generateChangelog` defaults to `true` here
    */
-  function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, cwd?: string) {
-    const parsedOptions = getOptions({
+  async function getOptionsAndPackages(repoOptions?: Partial<RepoOptions>, cwd?: string) {
+    const parsedOptions = await getOptions({
       cwd: cwd || repo?.rootPath || '',
       argv: [],
       env: {},
@@ -121,7 +121,7 @@ describe('writeChangelog', () => {
 
   it('does not write changelogs if there are no changes', async () => {
     repo = sharedSingleRepo;
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, packageInfos } = await getOptionsAndPackages();
 
     await writeChangelogWrapper({ options, packageInfos });
 
@@ -131,7 +131,7 @@ describe('writeChangelog', () => {
 
   it('generates basic changelog', async () => {
     repo = sharedSingleRepo;
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, packageInfos } = await getOptionsAndPackages();
 
     generateChangeFiles([getChange('foo', 'old minor comment')], options);
     generateChangeFiles([getChange('foo', 'patch comment', 'patch')], options);
@@ -178,7 +178,7 @@ describe('writeChangelog', () => {
   it('generates changelog with custom changeDir', async () => {
     repo = sharedSingleRepo;
     const changeDir = 'myChangeDir';
-    const { options, packageInfos } = getOptionsAndPackages({ changeDir });
+    const { options, packageInfos } = await getOptionsAndPackages({ changeDir });
 
     generateChangeFiles([{ packageName: 'foo', comment: 'comment 1' }], options);
     // make sure the setup worked as expected
@@ -192,7 +192,7 @@ describe('writeChangelog', () => {
 
   it('generates changelogs with dependent changes in monorepo', async () => {
     repo = sharedMonoRepo;
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, packageInfos } = await getOptionsAndPackages();
 
     generateChangeFiles([{ packageName: 'foo', comment: 'foo comment' }], options);
     generateChangeFiles([{ packageName: 'baz', comment: 'baz comment' }], options);
@@ -262,7 +262,7 @@ describe('writeChangelog', () => {
 
   it('generates changelog in monorepo with grouped change files (groupChanges)', async () => {
     repo = sharedMonoRepo;
-    const { options, packageInfos } = getOptionsAndPackages({ groupChanges: true });
+    const { options, packageInfos } = await getOptionsAndPackages({ groupChanges: true });
 
     // these will be in one change file
     generateChangeFiles([getChange('foo', 'comment 2'), getChange('bar', 'bar comment')], options);
@@ -299,7 +299,7 @@ describe('writeChangelog', () => {
 
   it('generates grouped changelog in monorepo', async () => {
     repo = sharedMonoRepo;
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, packageInfos } = await getOptionsAndPackages({
       changelog: {
         groups: [
           {
@@ -371,7 +371,7 @@ describe('writeChangelog', () => {
 
   it('generates grouped changelog when path overlaps with regular changelog', async () => {
     repo = sharedMonoRepo;
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, packageInfos } = await getOptionsAndPackages({
       changelog: {
         groups: [
           {
@@ -399,7 +399,7 @@ describe('writeChangelog', () => {
 
   it('does not write grouped changelog if group would only have dependent bumps', async () => {
     repo = sharedMonoRepo;
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, packageInfos } = await getOptionsAndPackages({
       changelog: {
         groups: [{ mainPackageName: 'foo', changelogPath: '.', include: ['packages/foo', 'packages/baz'] }],
       },
@@ -419,7 +419,7 @@ describe('writeChangelog', () => {
 
   it('does not write grouped changelog overlapping regular changelog if it would contain only dependent bumps', async () => {
     repo = sharedMonoRepo;
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, packageInfos } = await getOptionsAndPackages({
       changelog: {
         groups: [
           // The grouped changelog overlaps with the changelog for packages/foo.
@@ -440,7 +440,7 @@ describe('writeChangelog', () => {
 
   it('includes pre* changes', async () => {
     repo = sharedSingleRepo;
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, packageInfos } = await getOptionsAndPackages();
 
     generateChangeFiles(
       [
@@ -463,7 +463,7 @@ describe('writeChangelog', () => {
 
   it('includes pre* changes', async () => {
     repo = repositoryFactory.cloneRepository();
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, packageInfos } = await getOptionsAndPackages();
 
     generateChangeFiles(
       [
@@ -484,7 +484,7 @@ describe('writeChangelog', () => {
 
   it('writes only CHANGELOG.md if generateChangelog is "md"', async () => {
     repo = sharedSingleRepo;
-    const { options, packageInfos } = getOptionsAndPackages({ generateChangelog: 'md' });
+    const { options, packageInfos } = await getOptionsAndPackages({ generateChangelog: 'md' });
 
     generateChangeFiles(['foo'], options);
 
@@ -499,7 +499,7 @@ describe('writeChangelog', () => {
 
   it('writes only CHANGELOG.json if generateChangelog is "json"', async () => {
     repo = sharedSingleRepo;
-    const { options, packageInfos } = getOptionsAndPackages({ generateChangelog: 'json' });
+    const { options, packageInfos } = await getOptionsAndPackages({ generateChangelog: 'json' });
 
     generateChangeFiles(['foo'], options);
 
@@ -516,7 +516,7 @@ describe('writeChangelog', () => {
 
   it('omits tag from grouped CHANGELOG.json when gitTags is disabled', async () => {
     repo = sharedMonoRepo;
-    const { options, packageInfos } = getOptionsAndPackages({
+    const { options, packageInfos } = await getOptionsAndPackages({
       generateChangelog: 'json',
       gitTags: false,
       changelog: {
@@ -539,7 +539,7 @@ describe('writeChangelog', () => {
     // Most of the previous content tests are handled by renderChangelog, but writeChangelog is
     // responsible for reading that content and passing it in.
     repo = sharedSingleRepo;
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, packageInfos } = await getOptionsAndPackages();
 
     // Write some changes and generate changelogs
     generateChangeFiles(['foo'], options);
@@ -570,7 +570,7 @@ describe('writeChangelog', () => {
 
   it('appends to existing changelog when migrating from uniqueFilenames=false to true', async () => {
     repo = sharedSingleRepo;
-    const { options, packageInfos } = getOptionsAndPackages();
+    const { options, packageInfos } = await getOptionsAndPackages();
 
     // Write some changes and generate changelogs
     generateChangeFiles(['foo'], options);
@@ -608,7 +608,7 @@ describe('writeChangelog', () => {
 
   it('trims previous changelog entries over maxVersions', async () => {
     repo = sharedSingleRepo;
-    const { options, packageInfos } = getOptionsAndPackages({ changelog: { maxVersions: 2 } });
+    const { options, packageInfos } = await getOptionsAndPackages({ changelog: { maxVersions: 2 } });
 
     // Bump and write three times
     for (let i = 1; i <= 3; i++) {
