@@ -3,71 +3,57 @@ import path from 'path';
 import { pathToFileURL } from 'url';
 import { getPackageInfo } from 'workspace-tools';
 import { BeachballError } from '../types/BeachballError';
+import type { BeachballOptions } from '../types/BeachballOptions';
+
+const name = 'beachball';
 
 /** Module file extensions supported for config files */
-const moduleExtensions = ['js', 'cjs', 'mjs', 'ts', 'cts', 'mts'];
-
-interface ConfigResult<TConfig> {
-  /** The loaded config value. */
-  config: TConfig;
-  /** Absolute path to the file the config was loaded from. */
-  filepath: string;
-}
+const moduleExtensions = ['json', 'js', 'cjs', 'mjs', 'ts', 'cts', 'mts'];
 
 /**
- * Search `cwd` (only, not parent directories) for a config file for `name`.
+ * Search `cwd` (only, not parent directories) for a `beachball` config file.
  * This implements a subset of `cosmiconfig`'s behavior, considering these locations (in order):
- * - a package.json property `<name>`
- * - a `<name>.config.<ext>` with extensions `.[cm]?[jt]s`
- * - a JSON extensionless "rc file" `.<name>rc`
- * - an "rc file" `.<name>rc.<ext>` with the extensions `.json`, `.[cm]?[jt]s`
+ * - a package.json property `beachball`
+ * - a `beachball.config.<ext>` with extensions `.[cm]?[jt]s`
+ * - a JSON extensionless "rc file" `.beachballrc`
+ * - an "rc file" `.beachballrc.<ext>` with the extensions `.json`, `.[cm]?[jt]s`
  * - any of the above (except package.json) under a `.config` directory
  *
- * @returns The loaded config and the file it came from, or null if no config was found
+ * @returns The loaded config, or undefined if no config was found
  */
-export async function readConfig<TConfig = unknown>(params: {
-  /** The name of the config (e.g., `beachball`) */
-  name: string;
-  /** The directory to search in */
-  cwd: string;
-  /** If provided, read this path instead of searching in `cwd` */
-  customPath?: string;
-}): Promise<ConfigResult<TConfig> | null> {
-  const { name, cwd, customPath } = params;
+export async function readConfig<TConfig = unknown>(
+  options: Pick<BeachballOptions, 'path' | 'configPath'>
+): Promise<TConfig | undefined> {
+  const { path: cwd, configPath: customPath } = options;
 
   if (customPath) {
-    const filepath = path.resolve(cwd, customPath);
-    const config = await loadConfig<TConfig>(filepath);
-    return { config, filepath };
+    return await loadConfig<TConfig>(path.resolve(cwd, customPath));
   }
 
-  // package.json "<name>" property
+  // package.json "beachball" property
   const packageInfo = getPackageInfo(cwd);
   if (packageInfo?.[name]) {
-    return { config: packageInfo?.[name] as TConfig, filepath: packageInfo.packageJsonPath };
+    return packageInfo?.[name] as TConfig;
   }
 
-  const result = await searchDir<TConfig>(name, cwd);
-  return result || (await searchDir<TConfig>(name, path.join(cwd, '.config')));
+  const result = await searchDir<TConfig>(cwd);
+  return result || (await searchDir<TConfig>(path.join(cwd, '.config')));
 }
 
-async function searchDir<TConfig>(name: string, dir: string): Promise<ConfigResult<TConfig> | null> {
+async function searchDir<TConfig>(dir: string): Promise<TConfig | undefined> {
   const searchPlaces = [
     ...moduleExtensions.map(ext => `${name}.config.${ext}`),
     `.${name}rc`,
-    `.${name}rc.json`,
     ...moduleExtensions.map(ext => `.${name}rc.${ext}`),
   ];
 
   for (const searchPlace of searchPlaces) {
     const filepath = path.join(dir, searchPlace);
     if (isFile(filepath)) {
-      const config = await loadConfig<TConfig>(filepath);
-      return { config, filepath };
+      return await loadConfig<TConfig>(filepath);
     }
   }
-
-  return null;
+  return undefined;
 }
 
 /** Whether `filepath` exists and is a regular file. */
@@ -89,8 +75,9 @@ async function loadConfig<TConfig>(filepath: string): Promise<TConfig> {
     } else {
       // import() works most reliably with URLs on Windows
       const url = pathToFileURL(filepath).href;
-      const imported = (await import(url)) as { default?: TConfig };
-      return imported.default ?? (imported as TConfig);
+      const imported = (await import(url)) as { default?: TConfig | { default?: TConfig } };
+      // double default is probably a jest-transform-specific issue
+      return ((imported.default as { default?: TConfig })?.default ?? imported.default ?? imported) as TConfig;
     }
   } catch (err) {
     throw new BeachballError(

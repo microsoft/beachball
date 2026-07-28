@@ -9,19 +9,14 @@ import { readConfig } from './readConfig';
  * and returns an empty object.
  */
 export async function getRepoOptions(cliOptions: ParsedOptions['cliOptions']): Promise<Partial<RepoOptions>> {
-  const { configPath, path: cwd } = cliOptions;
+  const { path: cwd } = cliOptions;
 
   if (!cwd) {
     // If cwd is empty, it's probably running in a test without a filesystem.
     return {};
   }
 
-  const result = await readConfig<Partial<RepoOptions>>({
-    name: 'beachball',
-    cwd,
-    customPath: configPath,
-  });
-  const repoOptions = result?.config || {};
+  const repoOptions = (await readConfig<Partial<RepoOptions>>({ path: cwd, configPath: cliOptions.configPath })) || {};
 
   // Only if the branch isn't specified in cliOptions (which takes precedence), fix it up or add it
   // in repoOptions

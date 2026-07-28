@@ -1,0 +1,144 @@
+import { describe, expect, it, afterEach } from '@jest/globals';
+import path from 'path';
+import { createTestFileStructure } from '../../__fixtures__/createTestFileStructure';
+import { removeTempDir } from '../../__fixtures__/tmpdir';
+import { readConfig } from '../../options/readConfig';
+import { BeachballError } from '../../types/BeachballError';
+
+describe('readConfig', () => {
+  let tempDir = '';
+  const packageJson = { name: 'foo', version: '1.0.0' };
+  const sampleConfig = { branch: 'origin/foo' };
+  const sampleJson = JSON.stringify(sampleConfig);
+  const sampleCjs = 'module.exports = ' + sampleJson;
+  const sampleMjs = 'export default ' + sampleJson;
+
+  // Don't reuse a temp dir across tests! If multiple tests load a JS config from the same path,
+  // it will use the version from the module cache, which will have outdated contents.
+  afterEach(() => {
+    tempDir && removeTempDir(tempDir);
+    tempDir = '';
+  });
+
+  it('returns undefined if no config is found', async () => {
+    tempDir = createTestFileStructure({ 'package.json': packageJson });
+
+    expect(await readConfig({ path: tempDir })).toBeUndefined();
+  });
+
+  it('reads config from a package.json property', async () => {
+    tempDir = createTestFileStructure({
+      'package.json': { ...packageJson, beachball: sampleConfig },
+    });
+
+    expect(await readConfig({ path: tempDir })).toEqual(sampleConfig);
+  });
+
+  // The .cts test isn't realistic because it goes through jest, but it ensures readConfig finds the file
+  const cjsExts = ['.js', '.cjs', '.ts', '.cts'] as const;
+  it.each([...cjsExts.map(ext => `beachball.config${ext}`), ...cjsExts.map(ext => `.beachballrc${ext}`)])(
+    'reads CJS %s',
+    async filename => {
+      tempDir = createTestFileStructure({
+        'package.json': packageJson,
+        [filename]: (filename.endsWith('ts') ? 'const foo: number = 1;\n' : '') + sampleCjs,
+      });
+
+      expect(await readConfig({ path: tempDir })).toEqual(sampleConfig);
+    }
+  );
+
+  const mjsExts = ['.js', '.mjs', '.ts', '.mts'] as const;
+  it.each([...mjsExts.map(ext => `beachball.config${ext}`), ...mjsExts.map(ext => `.beachballrc${ext}`)])(
+    'reads ESM %s',
+    async filename => {
+      tempDir = createTestFileStructure({
+        // type: module ensures it reads the .ts
+        'package.json': { ...packageJson, type: 'module' },
+        [filename]: (filename.endsWith('ts') ? 'const foo: number = 1;\n' : '') + sampleMjs,
+      });
+
+      expect(await readConfig({ path: tempDir })).toEqual(sampleConfig);
+    }
+  );
+
+  it.each(['beachball.config.json', '.beachballrc', '.beachballrc.json'])('reads config from %s', async filename => {
+    tempDir = createTestFileStructure({
+      'package.json': packageJson,
+      [filename]: sampleJson,
+    });
+
+    expect(await readConfig({ path: tempDir })).toEqual(sampleConfig);
+  });
+
+  it('reads config from a .config directory', async () => {
+    tempDir = createTestFileStructure({
+      'package.json': packageJson,
+      '.config/beachball.config.js': sampleCjs,
+    });
+
+    expect(await readConfig({ path: tempDir })).toEqual(sampleConfig);
+  });
+
+  it('prefers the package.json property over other config files', async () => {
+    tempDir = createTestFileStructure({
+      'package.json': { ...packageJson, beachball: { branch: 'origin/from-package-json' } },
+      'beachball.config.js': 'module.exports = { branch: "origin/from-config-js" };',
+    });
+
+    expect(await readConfig({ path: tempDir })).toEqual({ branch: 'origin/from-package-json' });
+  });
+
+  it('prefers the cwd over the .config directory', async () => {
+    tempDir = createTestFileStructure({
+      'package.json': packageJson,
+      'beachball.config.js': 'module.exports = { branch: "origin/from-cwd" };',
+      '.config/beachball.config.js': 'module.exports = { branch: "origin/from-config-dir" };',
+    });
+
+    expect(await readConfig({ path: tempDir })).toEqual({ branch: 'origin/from-cwd' });
+  });
+
+  it('loads config from a relative configPath', async () => {
+    tempDir = createTestFileStructure({
+      'package.json': packageJson,
+      'beachball.config.js': 'module.exports = { branch: "origin/main" };',
+      'alternate.config.js': 'module.exports = { branch: "origin/foo" };',
+    });
+
+    expect(await readConfig({ path: tempDir, configPath: 'alternate.config.js' })).toEqual(sampleConfig);
+  });
+
+  it('loads config from an absolute configPath', async () => {
+    tempDir = createTestFileStructure({
+      'package.json': packageJson,
+      'nested/alternate.config.js': 'module.exports = { branch: "origin/foo" };',
+    });
+    const configPath = path.join(tempDir, 'nested/alternate.config.js');
+
+    expect(await readConfig({ path: tempDir, configPath })).toEqual(sampleConfig);
+  });
+
+  it('throws if configPath could not be loaded', async () => {
+    const configPath = 'bad.config.js';
+    tempDir = createTestFileStructure({
+      'package.json': packageJson,
+      [configPath]: 'throw new Error("oh no")',
+    });
+    const readBad = () => readConfig({ path: tempDir, configPath });
+
+    await expect(readBad()).rejects.toThrow(BeachballError);
+    await expect(readBad()).rejects.toThrow(`Failed to load config from ${path.join(tempDir, configPath)}: oh no`);
+  });
+
+  it('throws if a JSON config is invalid', async () => {
+    tempDir = createTestFileStructure({
+      'package.json': packageJson,
+      '.beachballrc.json': '{ not valid json',
+    });
+
+    await expect(readConfig({ path: tempDir })).rejects.toThrow(
+      `Failed to load config from ${path.join(tempDir, '.beachballrc.json')}`
+    );
+  });
+});
