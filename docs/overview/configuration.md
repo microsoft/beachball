@@ -116,7 +116,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 
 ### Glob matching
 
-Glob matching is implemented using [`minimatch`](https://www.npmjs.com/package/minimatch), which supports most glob syntax.
+Glob matching is implemented using Node's built-in glob support, which is based on [`minimatch`](https://www.npmjs.com/package/minimatch) with [these options](https://github.com/nodejs/node/blob/6a3d80fb49c50494fe987a22708634ce720e9272/lib/internal/fs/glob.js#L112) and supports most glob syntax.
 
 All glob patterns are relative to the repo or monorepo root and must use **forward slashes only**.
 

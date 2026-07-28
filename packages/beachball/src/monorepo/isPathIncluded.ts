@@ -1,7 +1,7 @@
-import minimatch from 'minimatch';
+import path from 'path';
 
 /**
- * Check if a relative package path should be included given include and exclude patterns using minimatch.
+ * Check if a relative package path should be included given include and exclude patterns.
  */
 export function isPathIncluded(params: {
   /** Relative path to the package from the repo root. */
@@ -18,12 +18,12 @@ export function isPathIncluded(params: {
     shouldInclude = true;
   } else {
     const includePatterns = typeof include === 'string' ? [include] : include;
-    shouldInclude = includePatterns.some(pattern => minimatch(relativePath, pattern));
+    shouldInclude = includePatterns.some(pattern => path.matchesGlob(relativePath, pattern));
   }
 
   if (exclude?.length && shouldInclude) {
     const excludePatterns = typeof exclude === 'string' ? [exclude] : exclude;
-    shouldInclude = !excludePatterns.some(pattern => minimatch(relativePath, pattern));
+    shouldInclude = !excludePatterns.some(pattern => path.matchesGlob(relativePath, pattern));
   }
 
   return shouldInclude;

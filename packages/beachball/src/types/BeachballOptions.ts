@@ -223,8 +223,9 @@ export interface RepoOptions {
   /** Custom pre/post publish actions */
   hooks?: HooksOptions;
   /**
-   * Ignore changes in these files (minimatch patterns; negations not supported).
+   * Ignore changes in these files (glob patterns; negations not supported).
    * Patterns are relative to the repo root and must use forward slashes.
+   * Patterns without a `/` will match against filenames at any depth.
    *
    * In repos that don't use a supported monorepo manager (npm/yarn/pnpm workspaces, rush, lerna),
    * this is also applied to `package.json` paths when globbing for packages. The most common case
@@ -282,7 +283,7 @@ export interface RepoOptions {
    */
   retries: number;
   /**
-   * Only apply commands to package paths matching these minimatch patterns.
+   * Only apply commands to package paths matching these glob patterns.
    * Patterns are relative to the monorepo root and must use forward slashes.
    *
    * Negations are supported: e.g. `['packages/foo/*', '!packages/foo/bar']`
@@ -336,14 +337,14 @@ export interface VersionGroupOptions {
   name: string;
 
   /**
-   * minimatch pattern(s) for package paths to include in this group.
+   * Glob pattern(s) for package paths to include in this group.
    * Patterns are relative to the repo root and must use forward slashes.
    * If `true`, include all packages except those matching `exclude`.
    */
   include: string | string[] | true;
 
   /**
-   * minimatch pattern(s) for package paths to exclude from this group.
+   * Glob pattern(s) for package paths to exclude from this group.
    * Patterns are relative to the repo root and must use forward slashes.
    *
    * NOTE: As of v3, you should use non-negated patterns here (the previous bug requiring
