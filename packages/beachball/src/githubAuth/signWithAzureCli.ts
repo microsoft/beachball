@@ -32,9 +32,10 @@ async function signDigest(keyId: string, digest: string): Promise<string> {
     return result.stdout.trim();
   }
 
-  // `code` is the original spawn error code (e.g. `ENOENT`)
-  const cause = result.cause as (Error & { code?: string }) | undefined;
-  if (cause?.code === 'ENOENT' || cause?.message?.includes('ENOENT')) {
+  // `code` is the original spawn error code such as `ENOENT`.
+  // (It's missing on Windows, so that will get the generic error with the stderr output.)
+  const cause = result.cause as { code?: string } | undefined;
+  if (cause?.code === 'ENOENT') {
     throw new BeachballError('Azure CLI (`az`) was not found on PATH');
   }
 

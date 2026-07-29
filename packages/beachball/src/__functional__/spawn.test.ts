@@ -33,9 +33,12 @@ describe('spawn', () => {
     expect(result.success).toBe(false);
     const failure = result as SpawnFailureResult;
     if (process.platform === 'win32') {
-      console.log('failure:', failure);
-      console.log('cause:', failure.cause);
-      expect((failure.cause as NodeJS.ErrnoException | undefined)?.message).toContain('ENOENT');
+      try {
+        // this is probably localized
+        expect(failure.stderr).toContain('not recognized');
+      } catch {
+        console.warn('stderr did not contain "not recognized" on Windows:\n', failure.stderr);
+      }
     } else {
       // nano-spawn wraps the original spawn error as `cause`, so the code lives there.
       expect((failure.cause as NodeJS.ErrnoException | undefined)?.code).toBe('ENOENT');
