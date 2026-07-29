@@ -36,7 +36,7 @@ steps:
     displayName: Show environment
 
   # Configure npm to use the internal feed from REGISTRY_URL.
-  - script: echo 'registry=${{ variables.REGISTRY_URL }}' >> .npmrc
+  - script: echo 'registry=$(REGISTRY_URL)' >> .npmrc
     displayName: Configure npm registry
 
   - task: npmAuthenticate@0
