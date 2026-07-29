@@ -17,26 +17,30 @@ import { findPackageRoot, getPackageInfo } from 'workspace-tools';
  */
 
 /**
- * Resolve the package directory of `depName` as installed relative to `fromDir`,
+ * Resolve the realpath of the package directory of `depName` as installed relative to `fromDir`,
  * walking up parent `node_modules` folders (matching Node's resolution).
  * Returns undefined if it can't be resolved (e.g. an unmet optional dependency).
  */
 function resolvePackage(depName: string, fromDir: string): string | undefined {
   const require = createRequire(path.join(fromDir, 'noop.js'));
+  let result: string | undefined;
   try {
-    return path.dirname(require.resolve(`${depName}/package.json`));
+    result = path.dirname(require.resolve(`${depName}/package.json`));
   } catch {
     try {
       const resolved = require.resolve(depName);
-      return findPackageRoot(resolved);
+      result = findPackageRoot(resolved);
     } catch {
-      // Some packages don't expose package.json via `exports`. Fall back to
-      // walking node_modules folders manually.
+      // continue
+    }
+    if (!result) {
+      // Some packages don't expose package.json via `exports`, so try walking node_modules
       let dir = fromDir;
       while (true) {
         const candidate = path.join(dir, 'node_modules', depName, 'package.json');
         if (fs.existsSync(candidate)) {
-          return path.dirname(fs.realpathSync(candidate));
+          result = path.dirname(candidate);
+          break;
         }
         const parent = path.dirname(dir);
         if (parent === dir) {
@@ -46,6 +50,7 @@ function resolvePackage(depName: string, fromDir: string): string | undefined {
       }
     }
   }
+  return fs.realpathSync(result);
 }
 
 function printTree(params: {
@@ -53,30 +58,37 @@ function printTree(params: {
   includeDev: boolean;
   prefix?: string;
   isLast: boolean;
-  seen?: Set<string>;
-  isRoot: boolean;
-}): boolean {
-  const { packageRoot, includeDev, prefix = '', isLast, seen = new Set(), isRoot } = params;
+  seenPaths?: Set<string>;
+  seenIds?: Set<string>;
+  isRoot?: boolean;
+}): { deduped: boolean; duped: boolean } {
+  const { packageRoot, includeDev, prefix = '', isLast, seenPaths = new Set(), seenIds = new Set(), isRoot } = params;
   const packageInfo = getPackageInfo(packageRoot)!;
   const id = `${packageInfo.name}@${packageInfo.version}`;
 
-  // Whether any node in this render was collapsed because it was already shown.
-  let dedupedAny = false;
+  // Whether any node in this render was collapsed (deduped) or flagged as a
+  // duplicate copy of an already-shown version.
+  let deduped = false;
+  let duped = false;
 
   if (isRoot) {
     console.log(id);
   } else {
     const connector = isLast ? '└── ' : '├── ';
-    // If this exact name@version was already expanded elsewhere, show a
+    // If this exact install location was already expanded elsewhere, show a
     // placeholder instead of repeating the (possibly large) subtree.
-    if (seen.has(id)) {
-      console.log(`${prefix}${connector}${id} (*)`);
-      return true;
+    if (seenPaths.has(packageRoot)) {
+      console.log(`${prefix}${connector}${id} (deduped)`);
+      return { deduped: true, duped: false };
     }
-    console.log(`${prefix}${connector}${id}`);
+    // New install path, but if this exact name@version was already shown at a
+    // different path, it's a duplicate copy of the same version.
+    duped = seenIds.has(id);
+    console.log(`${prefix}${connector}${id}${duped ? ' (❗️ dupe)' : ''}`);
   }
 
-  seen.add(id);
+  seenPaths.add(packageRoot);
+  seenIds.add(id);
 
   const deps = {
     ...packageInfo.dependencies,
@@ -88,26 +100,27 @@ function printTree(params: {
 
   const childPrefix = isRoot ? '' : prefix + (isLast ? '    ' : '│   ');
 
-  names.forEach((depName, index) => {
-    const childIsLast = index === names.length - 1;
+  for (const depName of names) {
+    const childIsLast = depName === names.at(-1);
     const childRoot = resolvePackage(depName, packageRoot);
     if (!childRoot) {
       const connector = childIsLast ? '└── ' : '├── ';
       console.log(`${childPrefix}${connector}${depName} (unmet)`);
-      return;
+      continue;
     }
-    dedupedAny =
-      printTree({
-        packageRoot: childRoot,
-        includeDev,
-        prefix: childPrefix,
-        isLast: childIsLast,
-        seen,
-        isRoot: false,
-      }) || dedupedAny;
-  });
+    const child = printTree({
+      packageRoot: childRoot,
+      includeDev,
+      prefix: childPrefix,
+      isLast: childIsLast,
+      seenPaths,
+      seenIds,
+    });
+    deduped = deduped || child.deduped;
+    duped = duped || child.duped;
+  }
 
-  return dedupedAny;
+  return { deduped, duped };
 }
 
 function main(): void {
@@ -130,10 +143,13 @@ function main(): void {
     }
   }
 
-  const dedupedAny = printTree({ packageRoot, includeDev, isLast: true, isRoot: true });
+  const { deduped, duped } = printTree({ packageRoot, includeDev, isLast: true, isRoot: true });
 
-  if (dedupedAny) {
-    console.log('\n(*) already shown above; subtree omitted to avoid repetition');
+  if (deduped) {
+    console.log('\ndeduped = multiple references to a single copy on disk');
+  }
+  if (duped) {
+    console.log('❗️ dupe = multiple copies of the same name@version installed at different paths');
   }
 }
 

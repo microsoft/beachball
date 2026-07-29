@@ -1,7 +1,5 @@
-import minimatch from 'minimatch';
+import path from 'path';
 import type { BeachballOptions } from '../types/BeachballOptions';
-
-const minimatchOptions: minimatch.IOptions = { matchBase: true };
 
 /**
  * Filter `filePaths` to exclude any paths matching `ignorePatterns`.
@@ -21,7 +19,16 @@ export function filterIgnoredFiles(
 
   const filtered: string[] = [];
   for (const filePath of filePaths) {
-    const ignorePattern = ignorePatterns.find(pattern => minimatch(filePath, pattern, minimatchOptions));
+    const basename = path.basename(filePath);
+    // Emulate the minimatch `matchBase` option:
+    // - Patterns without a slash are matched against the basename, even if under a .dot directory.
+    // - Patterns containing a slash are matched as-is, relative to the repo root.
+    // (Node sets windowsPathsNoEscape to treat \ exclusively as a path separator.)
+    // https://github.com/nodejs/node/blob/6a3d80fb49c50494fe987a22708634ce720e9272/lib/internal/fs/glob.js#L112
+    const ignorePattern = ignorePatterns.find(pattern =>
+      path.matchesGlob(pattern.includes('/') || pattern.includes('\\') ? filePath : basename, pattern)
+    );
+
     if (ignorePattern) {
       logIgnored?.(filePath, `ignored by pattern "${ignorePattern}"`);
     } else {

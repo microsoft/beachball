@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Use `path.matchesGlob` instead of `minimatch`. Behavior should stay the same, but if not, please open an issue.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
