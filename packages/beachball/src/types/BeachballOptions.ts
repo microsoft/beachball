@@ -289,7 +289,6 @@ export interface RepoOptions {
    * Only apply commands to package paths matching these glob patterns.
    * - Negations ARE supported: e.g. `['packages/foo/*', '!packages/foo/bar']`
    * - Patterns are relative to the repo root and should use forward slashes.
-   * - Patterns without a `/` will match against filenames at any depth.
    * - Case-sensitive matching behavior varies by OS, so it's best to ensure the patterns follow
    *   the actual casing used by files.
    *
