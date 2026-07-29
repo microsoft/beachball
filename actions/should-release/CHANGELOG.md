@@ -1,8 +1,17 @@
 # Change Log - @microsoft/beachball-action-should-release
 
-<!-- This log was last generated on Thu, 25 Jun 2026 01:55:16 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 29 Jul 2026 10:04:32 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.1.2
+
+Wed, 29 Jul 2026 10:04:32 GMT
+
+### Patches
+
+- Update dependencies (elcraig@microsoft.com)
+- Update dependency @actions/glob to ^0.7.0 (elcraig@microsoft.com)
 
 ## 3.1.1
 

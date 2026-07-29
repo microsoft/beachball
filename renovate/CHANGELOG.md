@@ -1,6 +1,22 @@
-# @microsoft/m365-renovate-config
+# Change Log - @microsoft/m365-renovate-config
+
+<!-- This log was last generated on Wed, 29 Jul 2026 10:04:32 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.1.0
+
+Wed, 29 Jul 2026 10:04:32 GMT
+
+### Minor changes
+
+- Add customTagActions preset and enable by default (elcraig@microsoft.com)
+
+### Patches
+
+- Fix custom tag action recognition (elcraig@microsoft.com)
+- Replace `execa` with `nano-spawn` (elcraig@microsoft.com)
+- Disable non-standard characters in branch names (elcraig@microsoft.com)
 
 ## 3.0.0
 

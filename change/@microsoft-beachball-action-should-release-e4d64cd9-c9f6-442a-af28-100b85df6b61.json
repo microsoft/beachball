@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update dependency @actions/glob to ^0.7.0",
-  "packageName": "@microsoft/beachball-action-should-release",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
