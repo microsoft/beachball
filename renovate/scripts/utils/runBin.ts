@@ -1,23 +1,22 @@
-import execa from 'execa';
+import type { Options as NanoSpawnOptions, Result as NanoSpawnResult } from 'nano-spawn';
 import fs from 'fs';
 import path from 'path';
 import semver from 'semver';
 import { paths } from './paths.ts';
 import { getRenovateEnv, type RenovateEnvParams } from './renovateLogs.ts';
 
-const defaults: execa.Options = {
+const defaults: NanoSpawnOptions = {
   preferLocal: true,
   cwd: paths.renovateRoot,
   stdio: 'inherit',
-  all: true,
-  reject: true,
 };
 
 /**
  * Run a binary provided by a node module (see {@link defaults})
  */
-function runBin(bin: string, args: string[], opts?: execa.Options): execa.ExecaChildProcess {
-  return execa(bin, args, { ...defaults, ...opts });
+async function runBin(bin: string, args: string[], opts?: NanoSpawnOptions) {
+  const nanoSpawn = (await import('nano-spawn')).default;
+  return nanoSpawn(bin, args, { ...defaults, ...opts });
 }
 
 /**
@@ -34,11 +33,12 @@ let hasMatchingRenovate: true | undefined;
 /**
  * Run Renovate from the configured working directory. Must call `verifyRenovate` first.
  * Does not reject on error.
+ * @returns whether it succeeded
  */
-export function runRenovate(
+export async function runRenovate(
   bin: 'renovate' | 'renovate-config-validator',
   params: RenovateEnvParams & { args?: string[] }
-): execa.ExecaChildProcess {
+): Promise<boolean> {
   const { args = [], ...envParams } = params;
 
   if (!hasMatchingRenovate) {
@@ -47,11 +47,17 @@ export function runRenovate(
 
   console.log(`Running: ${[bin, ...args].join(' ')}`);
 
-  return runBin(bin, args, { env: getRenovateEnv(envParams), reject: false });
+  try {
+    await runBin(bin, args, { env: getRenovateEnv(envParams) });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
  * Verify that Renovate is globally installed and the version is at least `renovate/.renovate-version`.
+ * Throws if not installed.
  */
 export async function verifyRenovate(): Promise<void> {
   if (hasMatchingRenovate) {
@@ -62,12 +68,13 @@ export async function verifyRenovate(): Promise<void> {
 
   console.log(`Verifying that Renovate is globally installed with version >= ${expectedVersion}...`);
 
-  const renovateVersionResult = await runBin('renovate', ['--version'], {
-    cwd: paths.renovateRoot,
-    stdio: 'pipe',
-    reject: false,
-  });
-  if (renovateVersionResult.failed) {
+  let renovateVersionResult: NanoSpawnResult;
+  try {
+    renovateVersionResult = await runBin('renovate', ['--version'], {
+      cwd: paths.renovateRoot,
+      stdio: 'pipe',
+    });
+  } catch {
     throw new Error(
       `Renovate is not installed or not available in PATH. Install Renovate globally and try again:\n` +
         `  npm i --min-release-age=7 -g renovate@${expectedVersion}`

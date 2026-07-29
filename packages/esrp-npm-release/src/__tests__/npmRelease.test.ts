@@ -9,7 +9,7 @@ import { FileHashType, type ReleaseFileInfo, type ReleaseRequestMessage } from '
 import { ReleaseError } from '../utils/ReleaseError.ts';
 
 // eslint-disable-next-line no-restricted-properties -- intentional skip when openssl is unavailable
-const describeIfOpenssl = isOpensslAvailable() ? describe : describe.skip;
+const describeIfOpenssl = (await isOpensslAvailable()) ? describe : describe.skip;
 
 describe('redactReleaseRequest', () => {
   const blobUrl = 'https://acct.blob.core.windows.net/staging/someblob';
@@ -71,8 +71,8 @@ describeIfOpenssl('createNpmReleaseRequest', () => {
   let testCert: TestCert;
   const fileDir = setupTempDir({ cleanup: 'afterAll' });
 
-  beforeAll(() => {
-    testCert = generateTestCert();
+  beforeAll(async () => {
+    testCert = await generateTestCert();
   });
 
   function makeFile(name: string, contents: string): string {

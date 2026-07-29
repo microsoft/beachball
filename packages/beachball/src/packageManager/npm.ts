@@ -1,9 +1,6 @@
-import type { PackageManagerResult } from './packageManager';
 import { packageManager } from './packageManager';
 
 // The npm wrapper for packageManager is preserved for convenience.
-
-export type NpmResult = PackageManagerResult;
 
 /**
  * Run an npm command. Returns the error result instead of throwing on failure.

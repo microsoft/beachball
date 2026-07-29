@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Replace execa with nano-spawn",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

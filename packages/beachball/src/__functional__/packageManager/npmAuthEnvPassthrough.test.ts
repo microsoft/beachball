@@ -54,22 +54,22 @@ describe('checkNpmAuthEnvPassthrough', () => {
     wrapperDir = undefined;
   });
 
-  it('passes when the real node binary is on PATH', async () => {
+  it('passes when the real node binary is on PATH', () => {
     // process.execPath's directory is on PATH in the test environment
-    await checkNpmAuthEnvPassthrough({ ...commonOptions });
+    checkNpmAuthEnvPassthrough({ ...commonOptions });
     expect(logs.getMockLines('error')).toEqual('');
   });
 
-  it('passes when PATH is given explicitly with node on it', async () => {
+  it('passes when PATH is given explicitly with node on it', () => {
     const nodeBinDir = path.dirname(process.execPath);
-    await checkNpmAuthEnvPassthrough({ ...commonOptions, pathEnv: nodeBinDir });
+    checkNpmAuthEnvPassthrough({ ...commonOptions, pathEnv: nodeBinDir });
     expect(logs.getMockLines('error')).toEqual('');
   });
 
   // A shebang-based wrapper only works on POSIX
   // eslint-disable-next-line no-restricted-properties
   const itPosixLike = path.delimiter === ':' ? it : it.skip;
-  itPosixLike('throws when node is wrapped by a script that drops special env vars', async () => {
+  itPosixLike('throws when node is wrapped by a script that drops special env vars', () => {
     wrapperDir = tmpdir({ prefix: 'beachball-test-wrapper-' });
     const wrapperScript = path.join(wrapperDir, 'node');
 
@@ -92,9 +92,7 @@ describe('checkNpmAuthEnvPassthrough', () => {
 
     const pathWithWrapper = wrapperDir + path.delimiter + process.env.PATH!;
 
-    await expect(checkNpmAuthEnvPassthrough({ ...commonOptions, pathEnv: pathWithWrapper })).rejects.toThrow(
-      BeachballError
-    );
+    expect(() => checkNpmAuthEnvPassthrough({ ...commonOptions, pathEnv: pathWithWrapper })).toThrow(BeachballError);
     const errorLogs = logs.getMockLines('error');
     expect(errorLogs).toContain('The environment variable used to pass the npm auth token');
     expect(errorLogs).toContain(`Your PATH:\n${pathWithWrapper}`);

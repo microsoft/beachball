@@ -18,7 +18,7 @@ jest.unstable_mockModule('@azure/msal-node', () => ({
 const { getAadToken } = await import('../auth/getAadToken.ts');
 
 // eslint-disable-next-line no-restricted-properties
-const describeIfOpenssl = isOpensslAvailable() ? describe : describe.skip;
+const describeIfOpenssl = (await isOpensslAvailable()) ? describe : describe.skip;
 
 describe('getAadToken', () => {
   let logger: MockLogger;
@@ -84,8 +84,8 @@ describe('getAadToken', () => {
   describeIfOpenssl('certificate (client-credentials) auth', () => {
     let testCert: TestCert;
 
-    beforeAll(() => {
-      testCert = generateTestCert();
+    beforeAll(async () => {
+      testCert = await generateTestCert();
     });
 
     it('extracts the leaf cert and key from the PFX and passes them as clientCertificate', async () => {

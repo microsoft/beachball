@@ -3,15 +3,16 @@ import fs from 'fs';
 import path from 'path';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { _mockNpmPublish, getMockNpmPackName, initNpmMock } from '../../__fixtures__/mockNpm';
+import { MockSubprocessError } from '../../__fixtures__/mockSpawnResult';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
+import { writeChangelog } from '../../changelog/writeChangelog';
 import { writeJson } from '../../object/writeJson';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
 import { publishToRegistry, type LayerVersionsJson } from '../../publish/publishToRegistry';
 import type { BeachballOptions, HooksOptions } from '../../types/BeachballOptions';
 import type { BumpInfo } from '../../types/BumpInfo';
 import type { PackageJson } from '../../types/PackageInfo';
-import { writeChangelog } from '../../changelog/writeChangelog';
 
 // Mock npm calls (publish, pack, show)
 jest.mock('../../packageManager/npm');
@@ -155,9 +156,7 @@ describe('publishToRegistry', () => {
     const bumpInfo = makeBumpInfo({ foo: {} });
 
     // Make the publish command fail
-    npmMock.setCommandOverride('publish', () =>
-      Promise.resolve({ success: false, stdout: '', stderr: 'network error', all: 'network error', failed: true })
-    );
+    npmMock.setCommandOverride('publish', () => Promise.resolve(new MockSubprocessError({ output: 'network error' })));
 
     await expect(publishToRegistry(bumpInfo, defaultOptions)).rejects.toThrow('Error publishing');
 
@@ -319,7 +318,7 @@ describe('publishToRegistry', () => {
       npmMock.setCommandOverride('publish', async (registryData, args, opts) => {
         const packageName = path.basename(opts.cwd);
         if (packageName === 'pkg2' || packageName === 'pkg5') {
-          return { success: false, stdout: '', stderr: 'oh no', all: 'oh no', failed: true };
+          return new MockSubprocessError({ output: 'oh no' });
         }
         // Use a small delay to verify that the started tasks are awaited even if others fail
         await new Promise(resolve => setTimeout(resolve, 20));

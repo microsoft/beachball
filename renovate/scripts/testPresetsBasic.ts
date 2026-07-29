@@ -130,7 +130,7 @@ async function checkFile(preset: ConfigData, isServerConfig: boolean): Promise<R
     return 'error';
   }
 
-  if (runResult.failed) {
+  if (!runResult) {
     // No errors specific to this preset were logged in the expected format, but the process
     // exited non-0. Most likely the log format has changed and parsing has failed.
     logError(`Unknown error validating ${relPath}. See logs for details.`, relPath);

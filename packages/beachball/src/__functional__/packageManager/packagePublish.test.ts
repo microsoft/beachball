@@ -1,15 +1,16 @@
-import { describe, expect, it, beforeAll, afterAll, beforeEach, jest, afterEach } from '@jest/globals';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import path from 'path';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { mockSpawnSuccess, MockSubprocessError } from '../../__fixtures__/mockSpawnResult';
 import { Registry } from '../../__fixtures__/registry';
 import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
+import { env } from '../../env';
+import { writeJson } from '../../object/writeJson';
+import { getNpmPackageInfo } from '../../packageManager/getNpmPackageInfo';
+import type { npm } from '../../packageManager/npm';
 import * as npmModule from '../../packageManager/npm';
 import { packagePublish } from '../../packageManager/packagePublish';
 import type { PackageInfo } from '../../types/PackageInfo';
-import type { npm, NpmResult } from '../../packageManager/npm';
-import { writeJson } from '../../object/writeJson';
-import { getNpmPackageInfo } from '../../packageManager/getNpmPackageInfo';
-import { env } from '../../env';
 
 type PackagePublishOptions = Parameters<typeof packagePublish>[1];
 
@@ -79,9 +80,7 @@ describe('packagePublish', () => {
 
       // Get the token once upfront (unfortunately verdaccio doesn't support `npm token create`)
       await registry.start();
-      await registry.login();
-      token = registry.getToken();
-      await registry.logout();
+      token = await registry.getToken();
       registry.stop();
 
       // Create a test package.json in a temporary location for use in tests.
@@ -95,10 +94,10 @@ describe('packagePublish', () => {
       jest.clearAllMocks();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
       npmSpy.mockRestore();
       // no-op if already logged out
-      await registry.logout();
+      registry.logout();
       registry.stop();
     });
 
@@ -109,10 +108,6 @@ describe('packagePublish', () => {
 
     // Do a basic publishing test against the real registry
     it('can publish with a token', async () => {
-      // Pass the token as an arg this time to verify it's translated to an environment variable
-      // and picked up by npm
-      expect(await registry.whoami()).toBeFalsy();
-
       const testPackageInfo = getTestPackageInfo();
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
@@ -142,7 +137,7 @@ describe('packagePublish', () => {
     });
 
     it('can publish when logged in', async () => {
-      await registry.login();
+      registry.login();
 
       const testPackageInfo = getTestPackageInfo();
       const publishResult = await packagePublish(testPackageInfo, {
@@ -183,7 +178,7 @@ describe('packagePublish', () => {
     });
 
     it('handles auth error and does not retry', async () => {
-      await registry.logout();
+      registry.logout();
 
       const testPackageInfo = getTestPackageInfo();
       const publishResult = await packagePublish(testPackageInfo, {
@@ -201,7 +196,7 @@ describe('packagePublish', () => {
   describe('with mocked npm', () => {
     it('logs commands and progress', async () => {
       const testPackageInfo = getTestPackageInfo();
-      npmSpy.mockResolvedValue({ success: true, all: 'not logged' } as NpmResult);
+      npmSpy.mockResolvedValue(mockSpawnSuccess({ output: 'not logged' }));
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
@@ -226,12 +221,12 @@ describe('packagePublish', () => {
       // so mock all npm calls for this test.
       const testPackageInfo = getTestPackageInfo();
       // mock success by default, except for the two mocked failures below
-      npmSpy.mockImplementation(() => Promise.resolve({ success: true } as NpmResult));
+      npmSpy.mockImplementation(() => Promise.resolve(mockSpawnSuccess()));
       // first call: arbitrary error
-      npmSpy.mockImplementationOnce(() => Promise.resolve({ success: false, all: 'some errors' } as NpmResult));
+      npmSpy.mockImplementationOnce(() => Promise.resolve(new MockSubprocessError({ output: 'some errors' })));
       // second call: timeout
       npmSpy.mockImplementationOnce(() =>
-        Promise.resolve({ success: false, all: 'sloooow', timedOut: true } as NpmResult)
+        Promise.resolve(new MockSubprocessError({ output: 'sloooow', timedOut: true }))
       );
 
       const publishResult = await packagePublish(testPackageInfo, {
@@ -251,7 +246,7 @@ describe('packagePublish', () => {
 
     it('fails if out of retries', async () => {
       // Again, mock all npm calls for this test instead of simulating an actual error condition.
-      npmSpy.mockImplementation(() => Promise.resolve({ success: false, all: 'some errors' } as NpmResult));
+      npmSpy.mockImplementation(() => Promise.resolve(new MockSubprocessError({ output: 'some errors' })));
 
       const publishResult = await packagePublish(getTestPackageInfo(), {
         ...defaultOptions,
@@ -270,7 +265,7 @@ describe('packagePublish', () => {
     it('does not retry on auth error (mock)', async () => {
       // Mock an auth error
       const testPackageInfo = getTestPackageInfo();
-      npmSpy.mockImplementation(() => Promise.resolve({ success: false, all: 'ERR! code ENEEDAUTH' } as NpmResult));
+      npmSpy.mockImplementation(() => Promise.resolve(new MockSubprocessError({ output: 'ERR! code ENEEDAUTH' })));
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
@@ -288,7 +283,7 @@ describe('packagePublish', () => {
       // E404 most commonly indicates an issue with a token, which is hard to simulate,
       // so just mock the npm call.
       const testPackageInfo = getTestPackageInfo();
-      npmSpy.mockImplementation(() => Promise.resolve({ success: false, all: 'ERR! code E404' } as NpmResult));
+      npmSpy.mockImplementation(() => Promise.resolve(new MockSubprocessError({ output: 'ERR! code E404' })));
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
@@ -302,7 +297,7 @@ describe('packagePublish', () => {
 
     it('does not retry on E403', async () => {
       const testPackageInfo = getTestPackageInfo();
-      npmSpy.mockImplementation(() => Promise.resolve({ success: false, all: 'ERR! code E403' } as NpmResult));
+      npmSpy.mockImplementation(() => Promise.resolve(new MockSubprocessError({ output: 'ERR! code E403' })));
 
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,

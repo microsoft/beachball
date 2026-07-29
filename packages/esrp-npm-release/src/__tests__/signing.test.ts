@@ -4,14 +4,14 @@ import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtur
 import { getKeyAndCertificatesFromPFX, getThumbprint, pemToDer } from '../auth/signing.ts';
 
 // eslint-disable-next-line no-restricted-properties -- intentional skip when openssl is unavailable
-const describeIfOpenssl = isOpensslAvailable() ? describe : describe.skip;
+const describeIfOpenssl = (await isOpensslAvailable()) ? describe : describe.skip;
 
 describeIfOpenssl('signing utilities (openssl-based)', () => {
   let testCert: TestCert;
   let logger: MockLogger;
 
-  beforeAll(() => {
-    testCert = generateTestCert();
+  beforeAll(async () => {
+    testCert = await generateTestCert();
   });
 
   beforeEach(() => {
@@ -19,8 +19,8 @@ describeIfOpenssl('signing utilities (openssl-based)', () => {
   });
 
   describe('getKeyAndCertificatesFromPFX', () => {
-    it('extracts the private key and the full certificate chain from a valid PFX', () => {
-      const { key, certificates } = getKeyAndCertificatesFromPFX(testCert.pfxBase64, logger);
+    it('extracts the private key and the full certificate chain from a valid PFX', async () => {
+      const { key, certificates } = await getKeyAndCertificatesFromPFX(testCert.pfxBase64, logger);
 
       expect(key).toMatch(/^-----BEGIN PRIVATE KEY-----[\s\S]+-----END PRIVATE KEY-----$/);
       expect(certificates).toEqual([
@@ -29,15 +29,15 @@ describeIfOpenssl('signing utilities (openssl-based)', () => {
       ]);
     });
 
-    it('returns certificates with the leaf (key-matching) cert at index 0, regardless of openssl output order', () => {
-      const { certificates } = getKeyAndCertificatesFromPFX(testCert.pfxBase64, logger);
+    it('returns certificates with the leaf (key-matching) cert at index 0, regardless of openssl output order', async () => {
+      const { certificates } = await getKeyAndCertificatesFromPFX(testCert.pfxBase64, logger);
       expect(certificates).toHaveLength(2);
       expect(pemToDer(certificates[0]).toString('hex')).toBe(pemToDer(testCert.leafCertPem).toString('hex'));
       expect(pemToDer(certificates[1]).toString('hex')).toBe(pemToDer(testCert.caCertPem).toString('hex'));
     });
 
-    it('logs which position the leaf was found at', () => {
-      getKeyAndCertificatesFromPFX(testCert.pfxBase64, logger);
+    it('logs which position the leaf was found at', async () => {
+      await getKeyAndCertificatesFromPFX(testCert.pfxBase64, logger);
 
       // Exactly one log line should report the leaf position
       const positionLines = logger.lines.filter(l => l.includes('leaf is at'));
@@ -48,8 +48,8 @@ describeIfOpenssl('signing utilities (openssl-based)', () => {
       expect(positionLines[0]).toContain('Found 2 certificate(s) in PFX');
     });
 
-    it('throws an informative error when the input is not valid base64 PFX content', () => {
-      expect(() => getKeyAndCertificatesFromPFX('not-a-real-pfx', logger)).toThrow(
+    it('throws an informative error when the input is not valid base64 PFX content', async () => {
+      await expect(getKeyAndCertificatesFromPFX('not-a-real-pfx', logger)).rejects.toThrow(
         'Error processing PFX with `openssl'
       );
     });

@@ -30,7 +30,7 @@ export async function getAadToken(params: GetAadTokenParams): Promise<AccessToke
     authOptions.clientAssertion = auth.idToken;
   } else {
     try {
-      const { key, certificates } = getKeyAndCertificatesFromPFX(auth.certPfxContent, logger);
+      const { key, certificates } = await getKeyAndCertificatesFromPFX(auth.certPfxContent, logger);
       const thumbprintSha256 = getThumbprint(certificates[0], 'sha256').toString('hex');
       authOptions.clientCertificate = {
         thumbprintSha256,

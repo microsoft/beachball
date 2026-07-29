@@ -1,4 +1,4 @@
-import execa from 'execa';
+import spawn from 'nano-spawn';
 import { parseRenovateLogs } from './utils/renovateLogs.ts';
 import type { RenovateLog } from './utils/types.ts';
 import { updateAndFormat } from './utils/runBin.ts';
@@ -20,4 +20,4 @@ const outPath = filePath.replace(/\.log$/, '') + '.json';
 await updateAndFormat(outPath, JSON.stringify(logs));
 
 console.log(`Wrote logs to "${outPath}"`);
-open && execa.sync('code', [outPath]);
+open && (await spawn('code', [outPath]));

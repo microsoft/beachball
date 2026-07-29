@@ -3,6 +3,7 @@ import type { NpmOptions } from '../types/NpmOptions';
 import { getNpmAuthEnv, type NpmAuthOptions } from './npmArgs';
 import type { PackageJson } from '../types/PackageInfo';
 import { npm } from './npm';
+import { BeachballError } from '../types/BeachballError';
 
 /** Published versions and dist-tags for a package */
 export interface NpmPackageVersionsData {
@@ -67,20 +68,25 @@ export async function getNpmPackageInfo(
       {
         timeout: options.timeout,
         cwd: options.path,
-        all: true,
-        env: { ...process.env, ...getNpmAuthEnv(options) },
+        env: getNpmAuthEnv(options),
       }
     );
 
-    if (showResult.success && showResult.stdout !== '') {
-      const data = JSON.parse(showResult.stdout) as NpmPackageVersionsData;
+    if (showResult.success) {
+      const stdout = showResult.stdout.trim();
+      if (!stdout) throw new BeachballError(`Error getting info about "${packageName}": npm show returned no output`);
+
+      const data = JSON.parse(stdout) as NpmPackageVersionsData;
       // Weird thing showing up in tests only with npm 8: sometimes `versions` is a single string?
       if (typeof data.versions === 'string') {
         data.versions = [data.versions];
       }
       return data;
     }
-    throw new Error(showResult.all ? `Output:\n${showResult.all}` : 'unknown error');
+
+    throw new BeachballError(`Getting info about "${packageName}" failed. Output:\n${showResult.output}`, {
+      cause: showResult,
+    });
 
     // const result = (await fetch.json(`/${encodeURIComponent(packageName)}`, {
     //   registry: options.registry,

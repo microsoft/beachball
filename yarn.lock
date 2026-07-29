@@ -1578,8 +1578,8 @@ __metadata:
     "@types/jws": "npm:^3.2.11"
     "@types/yazl": "npm:^3.3.1"
     cross-env: "catalog:dev"
-    execa: "catalog:prod"
     jws: "patch:jws@npm%3A4.0.1#~/.yarn/patches/jws-npm-4.0.1-0d8c257cbe.patch"
+    nano-spawn: "catalog:prod"
     yazl: "npm:^3.3.1"
   bin:
     esrp-npm-release: bin/esrp-npm-release.mjs
@@ -1594,8 +1594,8 @@ __metadata:
     "@types/jju": "npm:^1.4.2"
     "@types/semver": "catalog:dev"
     cross-env: "catalog:dev"
-    execa: "catalog:prod"
     jju: "npm:^1.4.0"
+    nano-spawn: "catalog:prod"
     semver: "catalog:prod"
     workspace-tools: "catalog:prod"
   languageName: unknown
@@ -3686,8 +3686,8 @@ __metadata:
     "@verdaccio/types": "npm:^13.0.0"
     commander: "catalog:prod"
     cross-env: "catalog:dev"
-    execa: "catalog:prod"
     get-port: "npm:^7.0.0"
+    nano-spawn: "catalog:prod"
     normalized-tmpdir: "npm:^1.1.0"
     p-graph: "workspace:^"
     p-limit: "npm:^3.1.0"
@@ -8155,7 +8155,7 @@ __metadata:
     "@octokit/openapi-types": "npm:^27.0.0"
     commander: "catalog:prod"
     cross-env: "catalog:dev"
-    nano-spawn: "npm:^2.1.0"
+    nano-spawn: "catalog:prod"
   bin:
     proper-changelog: ./bin/proper-changelog.js
   languageName: unknown

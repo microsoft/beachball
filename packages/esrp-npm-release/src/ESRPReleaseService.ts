@@ -71,7 +71,19 @@ export class ESRPReleaseService {
     } catch (err) {
       throw new ReleaseError(`Error ensuring staging container "${stagingContainerName}" exists`, { cause: err });
     }
-    return new ESRPReleaseService({ ...params, stagingContainerClient });
+
+    try {
+      logger.log('Extracting request signing key and certificates from PFX');
+      const { key, certificates } = await getKeyAndCertificatesFromPFX(params.requestSigningCertificatePfx, logger);
+      return new ESRPReleaseService({
+        ...params,
+        stagingContainerClient,
+        requestSigningKey: key,
+        requestSigningCertificates: certificates,
+      });
+    } catch (err) {
+      throw new ReleaseError(`Error extracting request signing key and certificates from PFX`, { cause: err });
+    }
   }
 
   readonly #logger: Logger;
@@ -83,21 +95,21 @@ export class ESRPReleaseService {
   readonly #stagingBlobServiceClient: BlobServiceClient;
   readonly #stagingContainerClient: ContainerClient;
 
-  private constructor(params: CreateESRPReleaseServiceParams & { stagingContainerClient: ContainerClient }) {
+  private constructor(
+    params: Omit<CreateESRPReleaseServiceParams, 'requestSigningCertificatePfx'> & {
+      stagingContainerClient: ContainerClient;
+      requestSigningKey: string;
+      requestSigningCertificates: string[];
+    }
+  ) {
     this.#logger = params.logger;
     this.#clientId = params.clientId;
     this.#tenantId = params.tenantId;
     this.#authCertificatePfx = params.authCertificatePfx;
     this.#stagingBlobServiceClient = params.stagingBlobServiceClient;
     this.#stagingContainerClient = params.stagingContainerClient;
-    try {
-      this.#logger.log('Extracting request signing key and certificates from PFX');
-      const { key, certificates } = getKeyAndCertificatesFromPFX(params.requestSigningCertificatePfx, this.#logger);
-      this.#requestSigningKey = key;
-      this.#requestSigningCertificates = certificates;
-    } catch (err) {
-      throw new ReleaseError(`Error extracting request signing key and certificates from PFX`, { cause: err });
-    }
+    this.#requestSigningKey = params.requestSigningKey;
+    this.#requestSigningCertificates = params.requestSigningCertificates;
   }
 
   /**

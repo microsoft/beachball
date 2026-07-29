@@ -99,7 +99,7 @@ maybeDescribe('getNpmPackageInfo', () => {
     expect(npmSpy).toHaveBeenCalledTimes(1);
     expect(npmSpy).toHaveBeenCalledWith(
       ['show', '--registry', registry, '--json', shouldNotExist, ..._npmShowProperties],
-      expect.objectContaining({ env: { ...process.env, 'npm_config_//registry.npmjs.org/:_authToken': 'fake' } })
+      expect.objectContaining({ env: { 'npm_config_//registry.npmjs.org/:_authToken': 'fake' } })
     );
 
     // expect(fetchJsonSpy).toHaveBeenCalledTimes(1);
