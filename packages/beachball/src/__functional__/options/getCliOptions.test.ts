@@ -132,19 +132,29 @@ describe('getCliOptions', () => {
     });
   });
 
-  it('gets NPM_TOKEN from environment', () => {
-    const options = getCliOptionsTest({ args: [], env: { NPM_TOKEN: 'fake-token' } });
+  const tokenEnvs = ['NPM_TOKEN', 'BEACHBALL_NPM_TOKEN'] as const;
+  it.each(tokenEnvs)('gets %s from environment', envVar => {
+    const env = { [envVar]: 'fake-token' };
+    const options = getCliOptionsTest({ args: [], env });
     expect(options).toEqual({ ...defaults, token: 'fake-token' });
   });
 
-  it('prefers CLI token over NPM_TOKEN environment variable', () => {
-    const options = getCliOptionsTest({ args: ['--token', 'cli-token'], env: { NPM_TOKEN: 'env-token' } });
+  it.each(tokenEnvs)('prefers CLI token over %s environment variable', envVar => {
+    const options = getCliOptionsTest({ args: ['--token', 'cli-token'], env: { [envVar]: 'env-token' } });
     expect(options).toEqual({ ...defaults, token: 'cli-token' });
   });
 
-  it('prefers empty string CLI token over NPM_TOKEN environment variable', () => {
-    const options = getCliOptionsTest({ args: ['--token', ''], env: { NPM_TOKEN: 'env-token' } });
+  it.each(tokenEnvs)('prefers empty string CLI token over %s environment variable', envVar => {
+    const options = getCliOptionsTest({ args: ['--token', ''], env: { [envVar]: 'env-token' } });
     expect(options).toEqual({ ...defaults, token: '' });
+  });
+
+  it('prefers BEACHBALL_NPM_TOKEN over NPM_TOKEN environment variable', () => {
+    const options = getCliOptionsTest({
+      args: [],
+      env: { NPM_TOKEN: 'env-token', BEACHBALL_NPM_TOKEN: 'beachball-env-token' },
+    });
+    expect(options).toEqual({ ...defaults, token: 'beachball-env-token' });
   });
 
   it('shows top-level help text', () => {
@@ -165,6 +175,11 @@ describe('getCliOptions', () => {
     expect(outputOptions.writeOut).toHaveBeenCalledTimes(1);
     // Make sure the help text looks reasonable
     expect(outputOptions.writeOut.mock.calls[0][0]).toMatchSnapshot();
+  });
+
+  it('gets BEACHBALL_GIT_TOKEN from environment', () => {
+    const options = getCliOptionsTest({ args: [], env: { BEACHBALL_GIT_TOKEN: 'fake-github-token' } });
+    expect(options).toEqual({ ...defaults, gitToken: 'fake-github-token' });
   });
 
   describe('config command', () => {

@@ -258,4 +258,4 @@ extends:
               - script: node scripts/publishWithGithubAppToken.ts
                 displayName: Push non-prerelease package updates
                 env:
-                  GITHUB_APP_TOKEN: $(GITHUB_APP_TOKEN)
+                  BEACHBALL_GIT_TOKEN: $(GITHUB_APP_TOKEN)

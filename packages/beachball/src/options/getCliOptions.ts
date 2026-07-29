@@ -19,9 +19,9 @@ export interface ProgramContext {
   cwd: string;
   /**
    * Environment variables for the process (to easily mock in tests).
-   * Only `NPM_TOKEN` is currently used.
+   * Only the listed names are currently used.
    */
-  env: NodeJS.ProcessEnv | { NPM_TOKEN?: string };
+  env: NodeJS.ProcessEnv | { BEACHBALL_GIT_TOKEN?: string; BEACHBALL_NPM_TOKEN?: string; NPM_TOKEN?: string };
   /** Beachball version (optional in tests) */
   version?: string;
   /** Output options override (mainly for testing) */
@@ -29,7 +29,7 @@ export interface ProgramContext {
 }
 
 /**
- * Gets CLI options. Also gets the `NPM_TOKEN` environment variable if present.
+ * Gets CLI options. Also gets certain environment variables if present.
  *
  * In v3, parsing was migrated from `yargs-parser` to `commander`. Implementation notes:
  * - Each beachball command is registered as a commander subcommand, but currently `cli.ts` still
@@ -103,8 +103,13 @@ export function getCliOptions(programContext: ProgramContext): ParsedOptions['cl
 
   // If both --token and NPM_TOKEN are provided, prefer the CLI token (could go either way, but
   // this is safer for compatibility in case anyone was already using that env name another way)
-  if (programContext.env.NPM_TOKEN && cliOptions.token === undefined) {
-    cliOptions.token = programContext.env.NPM_TOKEN;
+  const envToken = programContext.env.BEACHBALL_NPM_TOKEN ?? programContext.env.NPM_TOKEN;
+  if (envToken && cliOptions.token === undefined) {
+    cliOptions.token = envToken;
+  }
+
+  if (programContext.env.BEACHBALL_GIT_TOKEN) {
+    cliOptions.gitToken = programContext.env.BEACHBALL_GIT_TOKEN;
   }
 
   return cliOptions;

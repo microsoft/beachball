@@ -1,0 +1,11 @@
+{
+  "changes": [
+    {
+      "packageName": "beachball",
+      "type": "minor",
+      "dependentChangeType": "patch",
+      "comment": "Add `gitToken` option (read from the `BEACHBALL_GIT_TOKEN` env var) to securely authenticate `git` fetch and push to GitHub. The token is injected via git's environment-based config at spawn time, so it never lands on the command line or in `.git/config`, and any conflicting `extraheader` auth config (e.g. a CI checkout token) is replaced while other headers are preserved. Also support `BEACHBALL_NPM_TOKEN` env var for npm (in addition to `NPM_TOKEN`).",
+      "email": "elcraig@microsoft.com"
+    }
+  ]
+}

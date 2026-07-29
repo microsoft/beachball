@@ -3,6 +3,7 @@ import * as workspaceTools from 'workspace-tools';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { ensureSharedHistory } from '../../git/ensureSharedHistory';
+import { clearGitAuthEnvCache, getAuthHeaderValue } from '../../git/getGitAuthEnv';
 import { defaultBranchName, defaultRemoteBranchName, optsWithLang } from '../../__fixtures__/gitDefaults';
 
 // required for `jest.spyOn(workspaceTools, git)` to work
@@ -63,6 +64,7 @@ describe('ensureSharedHistory', () => {
   afterEach(() => {
     gitOverride = undefined;
     gitSpy.mockClear();
+    clearGitAuthEnvCache();
   });
 
   afterAll(() => {
@@ -83,6 +85,39 @@ describe('ensureSharedHistory', () => {
     expect(allLogs).toMatch(`Fetching branch "master" from remote "origin" (${defaultRefSpec})...`);
     expect(allLogs).toMatch('Fetching branch "master" from remote "origin" completed successfully');
     expect(allLogs).not.toMatch('warning');
+  });
+
+  it('passes the git auth env to fetch when a gitToken is provided', () => {
+    const repo = repositoryFactory.cloneRepository();
+    repo.checkout(testBranch);
+    gitSpy.mockClear();
+
+    ensureSharedHistory({
+      path: repo.rootPath,
+      verbose: true,
+      branch: defaultRemoteBranchName,
+      fetch: true,
+      gitToken: 'my-token',
+    });
+
+    // The auth header is scoped to the remote's actual URL
+    const remoteUrl = repo.git(['remote', 'get-url', 'origin']).stdout.trim();
+    const remoteKey = `http.${remoteUrl}.extraheader`;
+
+    // The auth env is read via `git config --get-regexp` and passed to the fetch
+    expect(filteredGitCalls()).toContain('config --get-regexp .*\\.extraheader');
+    const fetchEnv = gitSpy.mock.calls.find(call => call[0][0] === 'fetch')?.[1]?.env;
+    // List is reset (empty) then our auth header added, all under the remote URL key
+    expect(fetchEnv).toMatchObject({
+      GIT_CONFIG_COUNT: '2',
+      GIT_CONFIG_KEY_0: remoteKey,
+      GIT_CONFIG_VALUE_0: '',
+      GIT_CONFIG_KEY_1: remoteKey,
+      GIT_CONFIG_VALUE_1: getAuthHeaderValue('my-token'),
+      GIT_TRACE: '0',
+    });
+    // Never place the token on argv
+    expect(filteredGitCalls().join(' ')).not.toContain('my-token');
   });
 
   it('succeeds with fetching disabled if adequate history is available', () => {

@@ -19,9 +19,9 @@ import { BeachballError } from '../types/BeachballError';
  * Throws an error if history is inadequate and cannot be fixed.
  */
 export function ensureSharedHistory(
-  options: Pick<BeachballOptions, 'fetch' | 'path' | 'branch' | 'depth' | 'verbose'>
+  options: Pick<BeachballOptions, 'fetch' | 'path' | 'branch' | 'depth' | 'verbose' | 'gitToken'>
 ): void {
-  const { fetch, path: cwd, branch, depth, verbose } = options;
+  const { fetch, path: cwd, branch, depth, verbose, gitToken } = options;
   const { remote, remoteBranch } = getRemoteBranch(options);
 
   // Ensure the comparison branch ref exists
@@ -45,6 +45,7 @@ export function ensureSharedHistory(
       branch: remoteBranch,
       cwd,
       verbose,
+      gitToken,
       // Only use "depth" if the repo is already shallow, since fetching a normal repo with --depth
       // will convert it to shallow (which is likely not desired and could be confusing)
       depth: depth && isShallowRepository(cwd) ? depth : undefined,
@@ -70,7 +71,7 @@ export function ensureSharedHistory(
       }
 
       // Try fetching more history
-      isConnected = deepenHistory({ remote, remoteBranch, branch, depth, cwd, verbose });
+      isConnected = deepenHistory({ remote, remoteBranch, branch, depth, cwd, verbose, gitToken });
     } else {
       // Repo isn't shallow, so potentially we just need to add a ref to be connected
     }
@@ -92,9 +93,10 @@ function deepenHistory(
     depth: number | undefined;
     cwd: string;
     verbose?: boolean;
+    gitToken: string | undefined;
   }
 ): boolean {
-  const { remote, remoteBranch, branch, cwd, verbose } = params;
+  const { remote, remoteBranch, branch, cwd, verbose, gitToken } = params;
   const depth = params.depth || 100;
 
   console.log(`This is a shallow clone. Deepening to check for changes...`);
@@ -111,7 +113,7 @@ function deepenHistory(
   const maxAttempts = 3;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     console.log(`Deepening by ${depth} more commits (attempt ${attempt}/${maxAttempts})...`);
-    const result = gitFetch({ remote, branch: branchesToFetch, deepen: depth, cwd, verbose });
+    const result = gitFetch({ remote, branch: branchesToFetch, deepen: depth, cwd, verbose, gitToken });
     if (!result.success) {
       throw new BeachballError(`Failed to fetch more history (see above for details)`);
     }
@@ -127,7 +129,7 @@ function deepenHistory(
 
   // No common commit was found and the repo is still shallow, so fully unshallow it
   console.log(`Still didn't find a common commit after deepening by ${depth * maxAttempts}. Unshallowing...`);
-  const result = gitFetch({ remote, branch: branchesToFetch, unshallow: true, cwd, verbose });
+  const result = gitFetch({ remote, branch: branchesToFetch, unshallow: true, cwd, verbose, gitToken });
   if (!result.success) {
     throw new BeachballError(`Failed to unshallow repo (see above for details)`);
   }

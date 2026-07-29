@@ -101,7 +101,14 @@ const defaultCommands = ['change', 'check', 'bump', 'publish', 'canary'] as cons
 
 /** All CLI options. */
 export const optionDefinitions: Record<
-  Exclude<keyof CliOptions, 'path' | 'command' | '_extraPositionalArgs'>,
+  Exclude<
+    keyof CliOptions,
+    | 'path'
+    | 'command'
+    | '_extraPositionalArgs'
+    // not available via CLI, only env
+    | 'gitToken'
+  >,
   OptionDefinition
 > = {
   configPath: {
@@ -236,8 +243,11 @@ export const optionDefinitions: Record<
           : 'npm registry (respects npm settings)',
       commands: ['publish', 'canary', 'sync', 'init', 'publish-helpers update-lock-registry'],
     },
-    token: { short: 'n', desc: 'npm auth token (prefer using NPM_TOKEN env var or existing npm login)' },
-    authType: { short: 'a', desc: 'npm auth type if manually providing NPM_TOKEN', choices: authTypes },
+    token: {
+      short: 'n',
+      desc: 'npm auth token (prefer using BEACHBALL_NPM_TOKEN or NPM_TOKEN env var or existing npm login)',
+    },
+    authType: { short: 'a', desc: 'npm auth type if manually providing an npm token', choices: authTypes },
     npmReadConcurrency: { type: 'number', desc: 'maximum concurrency for reading package versions from the registry' },
     timeout: { type: 'number', desc: 'timeout in ms for npm operations (other than install)' },
     // TODO sort of npm group but semantically different
