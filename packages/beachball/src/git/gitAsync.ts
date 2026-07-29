@@ -10,8 +10,8 @@ type GitAsyncOptions = Omit<SpawnOptions, 'cwd' | 'stdio' | 'stdout' | 'stderr' 
 
 /**
  * Run a git command asynchronously. If `verbose` is true, log the command before starting, and display
- * output on stdout (except in tests) *and* return it in the result. For tests with `verbose`, the output
- * will be logged all together to `console.log` when the command finishes (for easier mocking/capturing).
+ * output on stdout. For tests with `verbose`, the output will be logged all together to `console.log`
+ * when the command finishes (for easier mocking/capturing).
  */
 export async function gitAsync(args: string[], options: GitAsyncOptions): Promise<SpawnResult> {
   const { verbose, ...spawnOpts } = options;
