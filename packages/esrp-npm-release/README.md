@@ -185,7 +185,7 @@ steps:
   # ...
 
   # WARNING: assumes .npmrc is in .gitignore
-  - script: echo 'registry=${{ variables.REGISTRY_URL }}' >> .npmrc
+  - script: echo 'registry=$(REGISTRY_URL)' >> .npmrc
     displayName: Configure npm registry
 
   - task: npmAuthenticate@0
@@ -325,7 +325,7 @@ extends:
                   version: ${{ variables.nodeVersion }}.x
                   checkLatest: false
 
-              - script: echo 'registry=${{ variables.REGISTRY_URL }}' >> .npmrc
+              - script: echo 'registry=$(REGISTRY_URL)' >> .npmrc
                 displayName: Configure npm registry
 
               - task: npmAuthenticate@0
