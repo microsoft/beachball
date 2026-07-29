@@ -3,6 +3,9 @@ import { formatValue } from '../logging/formatValue';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { BasicCommandContext } from '../types/CommandContext';
 
+/** Option keys that hold credentials and must never be printed by `config list`. */
+const secretOptions: (keyof BeachballOptions)[] = ['token', 'gitToken'];
+
 /**
  * Handles the `beachball config list` command.
  * Prints all main settings, then any group overrides, then any per-package overrides.
@@ -12,8 +15,16 @@ export function configList(options: BeachballOptions, context: BasicCommandConte
   const optionsRecord = options as unknown as Record<string, unknown>;
 
   // Print main settings (from repo options and defaults; CLI overrides aren't relevant
-  // but would currently be included automatically since we don't validate args by command)
-  const sortedOptions = Object.fromEntries(Object.entries(optionsRecord).sort(([a], [b]) => a.localeCompare(b)));
+  // but would currently be included automatically since we don't validate args by command).
+  // Redact secret options so credentials aren't printed to the console or logs.
+  const sortedOptions = Object.fromEntries(
+    Object.entries(optionsRecord)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, value]) => [
+        key,
+        secretOptions.includes(key as keyof BeachballOptions) && value !== undefined ? '[hidden]' : value,
+      ])
+  );
   console.log('Main options (including defaults):');
   console.log(formatValue(sortedOptions, { level: 1 }));
 

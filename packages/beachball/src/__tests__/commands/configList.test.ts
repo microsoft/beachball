@@ -135,4 +135,18 @@ describe('configList', () => {
     const output = logs.getMockLines('log');
     expect(output).not.toContain('Package overrides:');
   });
+
+  it('redacts secret options (token, gitToken) instead of printing them', () => {
+    configListWrapper({
+      options: {
+        token: 'super-secret-npm-token',
+        gitToken: 'super-secret-git-token',
+      },
+    });
+    const output = logs.getMockLines('log');
+    expect(output).not.toContain('super-secret-npm-token');
+    expect(output).not.toContain('super-secret-git-token');
+    expect(output).toContain('token: "[hidden]"');
+    expect(output).toContain('gitToken: "[hidden]"');
+  });
 });
