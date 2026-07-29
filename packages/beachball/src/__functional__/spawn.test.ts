@@ -27,12 +27,17 @@ describe('spawn', () => {
     expect((result as SpawnFailureResult).message).toContain('Command failed');
   });
 
+  // this indirectly tests an assumption in signWithAzureCli
   it('returns a failure result with an ENOENT cause for a missing binary', async () => {
     const result = await spawn('beachball-nonexistent-binary-xyz', [], { env: { PATH: '' } });
     expect(result.success).toBe(false);
     const failure = result as SpawnFailureResult;
-    // nano-spawn wraps the original spawn error as `cause`, so the code lives there.
-    expect((failure.cause as NodeJS.ErrnoException | undefined)?.code).toBe('ENOENT');
+    if (process.platform === 'win32') {
+      expect((failure.cause as NodeJS.ErrnoException | undefined)?.message).toContain('ENOENT');
+    } else {
+      // nano-spawn wraps the original spawn error as `cause`, so the code lives there.
+      expect((failure.cause as NodeJS.ErrnoException | undefined)?.code).toBe('ENOENT');
+    }
   });
 
   it('passes the env option, merged with process.env', async () => {
