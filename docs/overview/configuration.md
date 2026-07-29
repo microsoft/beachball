@@ -118,15 +118,17 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 
 Glob matching is implemented using Node's built-in glob support, which is based on [`minimatch`](https://www.npmjs.com/package/minimatch) with [these options](https://github.com/nodejs/node/blob/6a3d80fb49c50494fe987a22708634ce720e9272/lib/internal/fs/glob.js#L112) and supports most glob syntax.
 
-All glob patterns are relative to the repo or monorepo root and must use **forward slashes only**.
-
-Unless otherwise noted (such as for `scope`), using gitignore-style negated patterns to modify previous matches is not supported.
+- Patterns are relative to the repo or project root.
+- Patterns without a `/` will match against filenames at any depth.
+- Patterns should use forward slashes.
+- Case-sensitive matching behavior varies by OS, so it's best to ensure the patterns follow the actual casing used by files.
+- Unless otherwise noted (such as for `scope`), using gitignore-style negated patterns to modify previous matches is not supported.
 
 ### Scoping
 
 The `scope` option allows limiting which packages are considered. You can set it in the config file if it should always apply, or on the command line for a specific operation.
 
-This option takes a list of patterns which are matched against package paths. Patterns are relative to the monorepo root and must use forward slashes. Negations are supported, similar to how gitignore works.
+This option takes a list of patterns which are matched against package paths. Patterns are relative to the monorepo root and should use forward slashes. Negations **are** supported, similar to how gitignore works.
 
 Example: with this config, `beachball` will only consider packages under `packages/foo` (excluding `packages/foo/bar`).
 

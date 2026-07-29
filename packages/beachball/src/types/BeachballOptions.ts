@@ -223,9 +223,12 @@ export interface RepoOptions {
   /** Custom pre/post publish actions */
   hooks?: HooksOptions;
   /**
-   * Ignore changes in these files (glob patterns; negations not supported).
-   * Patterns are relative to the repo root and must use forward slashes.
-   * Patterns without a `/` will match against filenames at any depth.
+   * Ignore changes in these files matching these glob patterns.
+   * - Patterns are relative to the repo root and should use forward slashes.
+   * - Patterns without a `/` will match against filenames at any depth.
+   * - Negations are not supported.
+   * - Case-sensitive matching behavior varies by OS, so it's best to ensure the patterns follow
+   *   the actual casing used by files.
    *
    * In repos that don't use a supported monorepo manager (npm/yarn/pnpm workspaces, rush, lerna),
    * this is also applied to `package.json` paths when globbing for packages. The most common case
@@ -284,9 +287,11 @@ export interface RepoOptions {
   retries: number;
   /**
    * Only apply commands to package paths matching these glob patterns.
-   * Patterns are relative to the monorepo root and must use forward slashes.
-   *
-   * Negations are supported: e.g. `['packages/foo/*', '!packages/foo/bar']`
+   * - Negations ARE supported: e.g. `['packages/foo/*', '!packages/foo/bar']`
+   * - Patterns are relative to the repo root and should use forward slashes.
+   * - Patterns without a `/` will match against filenames at any depth.
+   * - Case-sensitive matching behavior varies by OS, so it's best to ensure the patterns follow
+   *   the actual casing used by files.
    *
    * Note that if you have multiple sets of packages with different scopes,
    * `groupChanges` is not supported.
@@ -338,16 +343,18 @@ export interface VersionGroupOptions {
 
   /**
    * Glob pattern(s) for package paths to include in this group.
-   * Patterns are relative to the repo root and must use forward slashes.
+   * Patterns are relative to the repo root and should use forward slashes.
+   * Negations are handled with `exclude`.
+   *
    * If `true`, include all packages except those matching `exclude`.
    */
   include: string | string[] | true;
 
   /**
    * Glob pattern(s) for package paths to exclude from this group.
-   * Patterns are relative to the repo root and must use forward slashes.
+   * Patterns are relative to the repo root and should use forward slashes.
    *
-   * NOTE: As of v3, you should use non-negated patterns here (the previous bug requiring
+   * NOTE: As of v3, you must use non-negated patterns here (the previous bug requiring
    * negated patterns has been fixed).
    */
   exclude?: string | string[];
