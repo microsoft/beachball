@@ -1,28 +1,28 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+/* eslint-disable @typescript-eslint/require-await -- matching async mock signatures */
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import path from 'path';
-import * as wsTools from 'workspace-tools';
 import type { GitProcessOutput } from 'workspace-tools';
-import _execa from 'execa';
-import { bumpAndPush } from '../../publish/bumpAndPush';
-import { performBump as _performBump } from '../../bump/performBump';
-import { tagPackages as _tagPackages } from '../../publish/tagPackages';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { makePackageInfos } from '../../__fixtures__/packageInfos';
-import type { BumpInfo } from '../../types/BumpInfo';
+import * as wsTools from 'workspace-tools';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { mockSpawnSuccess, MockSubprocessError } from '../../__fixtures__/mockSpawnResult';
+import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import { performBump as _performBump } from '../../bump/performBump';
+import { gitAsync as _gitAsync } from '../../git/gitAsync';
 import { getOptions } from '../../options/getOptions';
+import { bumpAndPush } from '../../publish/bumpAndPush';
+import { tagPackages as _tagPackages } from '../../publish/tagPackages';
+import { spawn as _spawn } from '../../spawn';
 import { BeachballError } from '../../types/BeachballError';
 import type { BeachballOptions } from '../../types/BeachballOptions';
+import type { BumpInfo } from '../../types/BumpInfo';
 
-jest.mock('execa');
 jest.mock('workspace-tools');
 jest.mock('../../bump/performBump'); // this has a bunch of logic which is tested separately
 jest.mock('../../publish/tagPackages');
+jest.mock('../../spawn');
 
-// execa's overloaded types are too complex for jest.Mock, so we cast it to the signature that's used
-const mockExeca = _execa as unknown as jest.MockedFunction<
-  (file: string, args?: readonly string[], options?: _execa.Options) => _execa.ExecaChildProcess
->;
+const mockSpawn = _spawn as jest.MockedFunction<typeof _spawn>;
 const mockPerformBump = _performBump as jest.MockedFunction<typeof _performBump>;
 const mockTagPackages = _tagPackages as jest.MockedFunction<typeof _tagPackages>;
 const wsToolsMocks = wsTools as jest.Mocked<typeof wsTools>;
@@ -33,21 +33,8 @@ describe('bumpAndPush', () => {
   const fakeRoot = path.resolve('/fake/root');
   const publishBranch = 'publish_12345';
 
-  /** Create a mock execa result that resolves like a real ExecaChildProcess */
-  function makeExecaResult(opts: { success: boolean; output?: string; timedOut?: boolean }) {
-    const result = {
-      failed: !opts.success,
-      all: opts.output ?? '',
-      exitCode: opts.success ? 0 : 1,
-      stdout: opts.output ?? '',
-      stderr: '',
-      timedOut: opts.timedOut ?? false,
-    } as _execa.ExecaReturnValue;
-    return Object.assign(Promise.resolve(result), { stdout: null, stderr: null }) as _execa.ExecaChildProcess;
-  }
-
   function getExecaCalls() {
-    return mockExeca.mock.calls.map(([file, args]) => `${file} ${args?.join(' ')}`);
+    return mockSpawn.mock.calls.map(([file, args]) => `${file} ${args?.join(' ')}`);
   }
 
   function getWsToolsGitCalls() {
@@ -92,7 +79,7 @@ describe('bumpAndPush', () => {
     wsToolsMocks.parseRemoteBranch.mockReturnValue({ remote: 'origin', remoteBranch: 'master' });
     wsToolsMocks.revertLocalChanges.mockReturnValue(true);
     wsToolsMocks.git.mockReturnValue(makeGitResult({ success: true }));
-    mockExeca.mockImplementation(() => makeExecaResult({ success: true }));
+    mockSpawn.mockImplementation(() => Promise.resolve(mockSpawnSuccess()));
     mockPerformBump.mockResolvedValue(undefined);
   });
 
@@ -159,13 +146,13 @@ describe('bumpAndPush', () => {
     // First attempt: merge with branch succeeds, but commit in mergePublishBranch fails
     // (merge is call 1, add is call 2, commit is call 3)
     let callCount = 0;
-    mockExeca.mockImplementation(() => {
+    mockSpawn.mockImplementation(async () => {
       callCount++;
       // Fail on 3rd call (commit) in first attempt
       if (callCount === 3) {
-        return makeExecaResult({ success: false, output: 'commit failed' });
+        return new MockSubprocessError({ output: 'commit failed' });
       }
-      return makeExecaResult({ success: true });
+      return mockSpawnSuccess();
     });
 
     await callBumpAndPush();
@@ -175,19 +162,19 @@ describe('bumpAndPush', () => {
 
     expect(logs.getMockLines('warn')).toMatchInlineSnapshot(`
       "commit failed
-      git commit -m apply package updates failed (code 1)
+      Command failed (code 1): git commit -m apply package updates
       [WARN 1/5]: Merging to target has failed! (see above for details)"
     `);
   });
 
   it('retries on push failure then succeeds', async () => {
     let pushCount = 0;
-    mockExeca.mockImplementation((_cmd, args) => {
+    mockSpawn.mockImplementation(async (_cmd, args) => {
       if (args?.[0] === 'push') {
         pushCount++;
-        if (pushCount === 1) return makeExecaResult({ success: false, output: 'push rejected' });
+        if (pushCount === 1) return new MockSubprocessError({ output: 'push rejected' });
       }
-      return makeExecaResult({ success: true });
+      return mockSpawnSuccess();
     });
 
     await callBumpAndPush();
@@ -198,25 +185,26 @@ describe('bumpAndPush', () => {
 
     expect(logs.getMockLines('warn')).toMatchInlineSnapshot(`
       "push rejected
-      git push --no-verify --follow-tags --verbose origin HEAD:master failed (code 1)
+      Command failed (code 1): git push --no-verify --follow-tags --verbose origin HEAD:master
       [WARN 1/5]: Pushing to origin/master has failed! (see above for details)"
     `);
   });
 
   it('shows timeout message on push timeout', async () => {
     let pushCount = 0;
-    mockExeca.mockImplementation((_cmd, args) => {
+    mockSpawn.mockImplementation(async (_cmd, args) => {
       if (args?.[0] === 'push') {
         pushCount++;
-        if (pushCount === 1) return makeExecaResult({ success: false, timedOut: true });
+        if (pushCount === 1) return new MockSubprocessError({ output: 'push timed out', timedOut: true });
       }
-      return makeExecaResult({ success: true });
+      return mockSpawnSuccess();
     });
 
     await callBumpAndPush();
 
     expect(logs.getMockLines('warn')).toMatchInlineSnapshot(`
-      "git push --no-verify --follow-tags --verbose origin HEAD:master failed (code 1)
+      "push timed out
+      Command failed (timed out): git push --no-verify --follow-tags --verbose origin HEAD:master
       [WARN 1/5]: Pushing to origin/master has timed out! (see above for details)"
     `);
   });
@@ -254,7 +242,6 @@ describe('bumpAndPush', () => {
   });
 
   it('calls precommit hook before merge steps', async () => {
-    // eslint-disable-next-line @typescript-eslint/require-await
     const precommit = jest.fn<(cwd: string) => Promise<void>>(async () => console.log('hello from hook'));
     await callBumpAndPush({ hooks: { precommit } });
 
@@ -267,9 +254,10 @@ describe('bumpAndPush', () => {
 
   it('calls precommit hook on each retry', async () => {
     const precommit = jest.fn<(cwd: string) => Promise<void>>();
-    mockExeca.mockImplementation((_cmd, args) =>
-      args?.[0] === 'push' ? makeExecaResult({ success: false, output: 'oh no' }) : makeExecaResult({ success: true })
-    );
+    mockSpawn.mockImplementation(async (_cmd, args) => {
+      if (args?.[0] === 'push') return new MockSubprocessError({ output: 'push rejected' });
+      return mockSpawnSuccess();
+    });
 
     await expect(() => callBumpAndPush({ hooks: { precommit } }, 3)).rejects.toThrow(BeachballError);
 

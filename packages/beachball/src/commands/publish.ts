@@ -64,7 +64,7 @@ export async function publish(options: BeachballOptions, context: CommandContext
 
   if (options.token) {
     // Verify that passing the npm auth token via env vars works (see function comment...)
-    await checkNpmAuthEnvPassthrough(options);
+    checkNpmAuthEnvPassthrough(options);
   }
 
   // checkout publish branch

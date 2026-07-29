@@ -1,14 +1,14 @@
-import { describe, expect, it, beforeEach, jest, afterEach } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { getMockNpmPackName, initNpmMock } from '../../__fixtures__/mockNpm';
+import { mockSpawnSuccess, MockSubprocessError } from '../../__fixtures__/mockSpawnResult';
 import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
+import { writeJson } from '../../object/writeJson';
 import type * as npmModuleType from '../../packageManager/npm';
-import type { NpmResult } from '../../packageManager/npm';
 import { packPackage } from '../../packageManager/packPackage';
 import type { PackageInfo } from '../../types/PackageInfo';
-import { getMockNpmPackName, initNpmMock } from '../../__fixtures__/mockNpm';
-import { writeJson } from '../../object/writeJson';
 
 // Spawning actual npm is slow, so mock it for most of these tests.
 // A couple tests also use the real npm command.
@@ -170,9 +170,7 @@ describe('packPackage', () => {
   it('handles failure packing', async () => {
     const testPkg = getTestPackage('testpkg');
     // It's difficult to simulate actual error conditions, so mock an npm call failure.
-    npmMock.setCommandOverride('pack', () =>
-      Promise.resolve({ success: false, stdout: 'oh no', all: 'oh no' } as NpmResult)
-    );
+    npmMock.setCommandOverride('pack', () => Promise.resolve(new MockSubprocessError({ output: 'oh no' })));
 
     const packResult = await packPackage(testPkg.info, {
       packToPath: tempPackPath,
@@ -190,9 +188,7 @@ describe('packPackage', () => {
 
   it('handles if filename is missing from output', async () => {
     const testPkg = getTestPackage('testpkg');
-    npmMock.setCommandOverride('pack', () =>
-      Promise.resolve({ success: true, stdout: 'not a file', all: 'not a file' } as NpmResult)
-    );
+    npmMock.setCommandOverride('pack', () => Promise.resolve(mockSpawnSuccess({ output: 'not a file' })));
 
     const packResult = await packPackage(testPkg.info, {
       packToPath: tempPackPath,
@@ -210,9 +206,7 @@ describe('packPackage', () => {
 
   it('handles if filename in output does not exist', async () => {
     const testPkg = getTestPackage('testpkg');
-    npmMock.setCommandOverride('pack', () =>
-      Promise.resolve({ success: true, stdout: 'nope.tgz', all: 'nope.tgz' } as NpmResult)
-    );
+    npmMock.setCommandOverride('pack', () => Promise.resolve(mockSpawnSuccess({ output: 'nope.tgz' })));
 
     const packResult = await packPackage(testPkg.info, {
       packToPath: tempPackPath,

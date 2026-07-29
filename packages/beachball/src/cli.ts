@@ -30,12 +30,6 @@ const version = getPackageInfo(findPackageRoot(__dirname)!)?.version;
   const parsedOptions = await getOptions({ cwd: processCwd, argv: process.argv, env: process.env, version });
   const options = parsedOptions.options;
 
-  // TODO port remaining help elements and remove help.ts
-  // if (options.help) {
-  //   showHelp();
-  //   return;
-  // }
-
   // Run the commands
   switch (options.command) {
     case 'check': {

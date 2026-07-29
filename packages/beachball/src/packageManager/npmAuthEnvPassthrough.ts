@@ -1,9 +1,9 @@
-import execa from 'execa';
+import { execFileSync } from 'child_process';
 import path from 'path';
+import { findPackageRoot, getPackageInfo } from 'workspace-tools';
+import { BeachballError } from '../types/BeachballError';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { getNpmAuthEnv } from './npmArgs';
-import { BeachballError } from '../types/BeachballError';
-import { findPackageRoot, getPackageInfo } from 'workspace-tools';
 
 /**
  * Filter PATH for running npm commands, removing entries that contain shell-script node wrappers.
@@ -40,12 +40,19 @@ export function filterPathForNpm(pathEnv: string): string {
  * PATH filtering applied to actual npm commands, so a failure here means the fix in
  * `filterPathForNpm` doesn't cover this platform/environment variant.
  */
-export async function checkNpmAuthEnvPassthrough(
+export function checkNpmAuthEnvPassthrough(
   options: Pick<BeachballOptions, 'registry' | 'path'> & {
     /** PATH override only for testing */
     pathEnv?: string;
   }
-): Promise<void> {
+): void {
+  // Windows doesn't have the special-char env var drop issue, and as of writing yarn doesn't have a
+  // special case for posix-like shells on Windows, so skip the check.
+  // https://github.com/yarnpkg/yarn/blob/c2dda503f3759b5be5f0e24ecd9cf5c97a540147/src/util/portable-script.js#L40
+  if (process.platform === 'win32') {
+    return;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const pathEnv = options.pathEnv ?? process.env.PATH!;
   const fakeToken = 'fake-token';
@@ -55,11 +62,13 @@ export async function checkNpmAuthEnvPassthrough(
 
   const filteredPath = filterPathForNpm(pathEnv);
   try {
-    const result = await execa('node', ['-e', `process.stdout.write(process.env[${JSON.stringify(envName)}] || '')`], {
-      env: { ...tokenEnv, PATH: filteredPath },
-      extendEnv: true,
+    // This must use native execFileSync because nano-spawn's spawn() rewrites `node` to
+    // process.execPath, which would bypass any PATH wrapper we're trying to detect.
+    const result = execFileSync('node', ['-e', `process.stdout.write(process.env[${JSON.stringify(envName)}] || '')`], {
+      env: { ...process.env, ...tokenEnv, PATH: filteredPath },
+      stdio: ['ignore', 'pipe', 'ignore'],
     });
-    if (result.stdout === fakeToken) {
+    if (result.toString() === fakeToken) {
       return;
     }
   } catch {

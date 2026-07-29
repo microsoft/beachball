@@ -89,7 +89,7 @@ Run all of: `yarn build`, `yarn test`, `yarn lint`, `yarn format`.
 - `src/changelog/` — changelog generation (markdown + JSON).
 - `src/monorepo/` — package discovery (workspace-tools), dependency graph, package groups.
 - `src/publish/` — npm publish orchestration, git tagging, dependency-ordered publishing.
-- `src/git/` — git operation wrappers using execa.
+- `src/git/` — git operation wrappers using nano-spawn.
 - `src/options/` — CLI arg parsing + config loading.
 - `src/validation/` — pre-command validation.
 - `src/types/` — TypeScript interfaces (`BeachballOptions` is the central config type).

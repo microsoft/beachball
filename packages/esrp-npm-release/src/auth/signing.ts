@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import execa from 'execa';
+import spawn, { type Result as SpawnResult, type SubprocessError } from 'nano-spawn';
 import type { Logger } from '../utils/Logger.ts';
 
 /**
@@ -29,17 +29,22 @@ export function getThumbprint(certPem: string, algorithm: 'sha1' | 'sha256'): Bu
  *
  * Throws an informative plain `Error` on any failure.
  */
-export function getKeyAndCertificatesFromPFX(
+export async function getKeyAndCertificatesFromPFX(
   pfxContent: string,
   logger: Logger
-): { key: string; certificates: string[] } {
+): Promise<{ key: string; certificates: string[] }> {
   const pfxCertificate = Buffer.from(pfxContent, 'base64');
-  let result: execa.ExecaSyncReturnValue;
+  let result: SpawnResult;
   try {
-    result = execa.sync('openssl', ['pkcs12', '-nodes', '-passin', 'pass:'], { input: pfxCertificate });
+    const subprocess = spawn('openssl', ['pkcs12', '-nodes', '-passin', 'pass:']);
+    // nano-spawn's `{ string }` stdin option writes as utf8 and can't carry binary data
+    // losslessly, so write the raw PFX bytes straight to the child's stdin stream instead.
+    const child = await subprocess.nodeChildProcess;
+    child.stdin?.end(pfxCertificate);
+    result = await subprocess;
   } catch (_err) {
-    const err = _err as execa.ExecaSyncError;
-    throw new Error(`Error processing PFX with \`${err.command}\`:\n${err.message}`, { cause: _err });
+    const err = _err as SubprocessError;
+    throw new Error(`Error processing PFX with \`${err.command}\`:\n${err.stderr}`, { cause: _err });
   }
 
   const key = result.stdout.match(/-----BEGIN PRIVATE KEY-----[\s\S]+?-----END PRIVATE KEY-----/)?.[0];

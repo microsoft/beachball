@@ -5,7 +5,7 @@
 import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs';
 // import fetch from 'npm-registry-fetch';
-import { type NpmResult, npm } from '../packageManager/npm';
+import { npm } from '../packageManager/npm';
 import type { PackageJson } from '../types/PackageInfo';
 import {
   initNpmMock,
@@ -13,10 +13,11 @@ import {
   _mockNpmPack,
   _mockNpmPublish,
   _mockNpmShow,
-  type MockNpmResult,
   type MockNpmCommand,
 } from './mockNpm';
 import * as readJsonModule from '../object/readJson';
+import { mockSpawnSuccess, MockSubprocessError } from './mockSpawnResult';
+import type { SpawnResult } from '../spawn';
 
 jest.mock('fs');
 // jest.mock('npm-registry-fetch');
@@ -95,16 +96,6 @@ describe('_makeRegistryData', () => {
 });
 
 describe('_mockNpmShow', () => {
-  function getErrorResult(errorMessage: string) {
-    return {
-      stdout: '',
-      stderr: errorMessage,
-      all: errorMessage,
-      success: false,
-      failed: true,
-    } as NpmResult;
-  }
-
   function getShowResult(params: { name: string; version: string }) {
     const { name, version } = params;
     const output = JSON.stringify({
@@ -113,13 +104,7 @@ describe('_mockNpmShow', () => {
       versions: Object.keys(data[name].versions),
     });
 
-    return {
-      stdout: output,
-      stderr: '',
-      all: output,
-      success: true,
-      failed: false,
-    } as NpmResult;
+    return mockSpawnSuccess({ output });
   }
 
   const data = _makeRegistryData({
@@ -136,7 +121,7 @@ describe('_mockNpmShow', () => {
   it("errors if package doesn't exist", async () => {
     const emptyData = _makeRegistryData({});
     const result = await _mockNpmShow(emptyData, ['foo'], { cwd: '' });
-    expect(result).toEqual(getErrorResult('[fake] code E404 - foo - not found'));
+    expect(result).toEqual(new MockSubprocessError({ output: '[fake] code E404 - foo - not found' }));
   });
 
   it('returns requested version plus dist-tags and version list', async () => {
@@ -171,7 +156,7 @@ describe('_mockNpmShow', () => {
 
   it("errors if requested version doesn't exist", async () => {
     const result = await _mockNpmShow(data, ['foo@2.0.0'], { cwd: '' });
-    expect(result).toEqual(getErrorResult('[fake] code E404 - foo@2.0.0 - not found'));
+    expect(result).toEqual(new MockSubprocessError({ output: '[fake] code E404 - foo@2.0.0 - not found' }));
   });
 
   // support for this could be added later
@@ -181,17 +166,14 @@ describe('_mockNpmShow', () => {
 });
 
 describe('_mockNpmPublish', () => {
-  function getPublishResult(params: { error?: string; tag?: string }) {
+  function getPublishResult(params: { error?: string; tag?: string }): SpawnResult {
     const { error, tag } = params;
     if (!error && !packageJson) throw new Error('packageJson not set');
-    const stdout = error ? '' : `[fake] published ${packageJson?.name}@${packageJson?.version} with tag ${tag}`;
-    return {
-      stdout,
-      stderr: error || '',
-      all: stdout || error,
-      success: !error,
-      failed: !!error,
-    } as NpmResult;
+    if (error) {
+      return new MockSubprocessError({ output: error });
+    }
+    const output = `[fake] published ${packageJson?.name}@${packageJson?.version} with tag ${tag}`;
+    return mockSpawnSuccess({ output });
   }
 
   let packageJson: PackageJson | undefined;
@@ -317,10 +299,9 @@ describe('_mockNpmPack', () => {
     const registryData = {};
     packageJson = { name: 'foo', version: '1.0.0' };
     const result = await _mockNpmPack(registryData, [], { cwd: 'fake' });
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       success: true,
-      failed: false,
-      all: 'foo-1.0.0.tgz',
+      output: 'foo-1.0.0.tgz',
       stdout: 'foo-1.0.0.tgz',
       stderr: '',
     });
@@ -332,10 +313,9 @@ describe('_mockNpmPack', () => {
     const registryData = {};
     packageJson = { name: '@foo/bar', version: '2.0.0' };
     const result = await _mockNpmPack(registryData, [], { cwd: 'fake' });
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       success: true,
-      failed: false,
-      all: 'foo-bar-2.0.0.tgz',
+      output: 'foo-bar-2.0.0.tgz',
       stdout: 'foo-bar-2.0.0.tgz',
       stderr: '',
     });
@@ -470,10 +450,9 @@ describe('mockNpm', () => {
     it('mocks npm pack command', async () => {
       packageJson = { name: 'foo', version: '2.0.0' };
       const result = await npm(['pack'], { cwd: 'fake' });
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         success: true,
-        failed: false,
-        all: 'foo-2.0.0.tgz',
+        output: 'foo-2.0.0.tgz',
         stdout: 'foo-2.0.0.tgz',
         stderr: '',
       });
@@ -506,7 +485,7 @@ describe('mockNpm', () => {
     const fakePublishResult = 'hi';
 
     it('respects mocked command override', async () => {
-      const mockPublish = jest.fn<MockNpmCommand>(() => Promise.resolve(fakePublishResult as unknown as MockNpmResult));
+      const mockPublish = jest.fn<MockNpmCommand>(() => Promise.resolve(fakePublishResult as unknown as SpawnResult));
       npmMock.setCommandOverride('publish', mockPublish);
       const result = await npm(['publish', 'foo'], { cwd: '' });
       expect(result).toEqual(fakePublishResult);
@@ -514,7 +493,7 @@ describe('mockNpm', () => {
     });
 
     it("respects extra mocked command that's not normally supported", async () => {
-      const mockFoo = jest.fn<MockNpmCommand>(() => Promise.resolve('hi' as unknown as MockNpmResult));
+      const mockFoo = jest.fn<MockNpmCommand>(() => Promise.resolve('hi' as unknown as SpawnResult));
       npmMock.setCommandOverride('foo', mockFoo);
       const result = await npm(['foo'], { cwd: '' });
       expect(result).toEqual('hi');

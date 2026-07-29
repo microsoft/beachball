@@ -31,7 +31,7 @@ async function runTests() {
   logEndGroup();
 
   const parsed = parseRenovateLogs(paths.logFileFull);
-  if (result.failed || parsed.errors.length || parsed.warnings.length || parsed.repoProblems?.length) {
+  if (!result || parsed.errors.length || parsed.warnings.length || parsed.repoProblems?.length) {
     logRenovateError(parsed);
     process.exit(1);
   }

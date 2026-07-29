@@ -1,9 +1,10 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
-import { updateLockFile } from '../../bump/updateLockFile';
-import { packageManager, type PackageManagerResult } from '../../packageManager/packageManager';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { mockSpawnSuccess, MockSubprocessError } from '../../__fixtures__/mockSpawnResult';
+import { updateLockFile } from '../../bump/updateLockFile';
+import { packageManager } from '../../packageManager/packageManager';
 
 jest.mock('fs');
 jest.mock('../../packageManager/packageManager');
@@ -21,7 +22,7 @@ describe('updateLockFile', () => {
   const mockPackageManager = packageManager as jest.MockedFunction<typeof packageManager>;
 
   beforeEach(() => {
-    mockPackageManager.mockResolvedValue({ success: true } as PackageManagerResult);
+    mockPackageManager.mockResolvedValue(mockSpawnSuccess());
     mockFs.existsSync.mockReturnValue(false);
   });
 
@@ -51,8 +52,8 @@ describe('updateLockFile', () => {
 
   it('updates yarn.lock for yarn v2+', async () => {
     mockFs.existsSync.mockImplementation(p => p === path.join(mockRoot, 'yarn.lock'));
-    mockPackageManager.mockResolvedValueOnce({ success: true, stdout: '3.6.0' } as PackageManagerResult);
-    mockPackageManager.mockResolvedValueOnce({ success: true } as PackageManagerResult);
+    mockPackageManager.mockResolvedValueOnce(mockSpawnSuccess({ stdout: '3.6.0' }));
+    mockPackageManager.mockResolvedValueOnce(mockSpawnSuccess());
 
     await updateLockFile({ path: mockRoot });
 
@@ -67,7 +68,7 @@ describe('updateLockFile', () => {
 
   it('skips yarn.lock update for yarn v1', async () => {
     mockFs.existsSync.mockImplementation(p => p === path.join(mockRoot, 'yarn.lock'));
-    mockPackageManager.mockResolvedValue({ success: true, stdout: '1.22.19' } as PackageManagerResult);
+    mockPackageManager.mockResolvedValue(mockSpawnSuccess({ stdout: '1.22.19' }));
 
     await updateLockFile({ path: mockRoot });
 
@@ -79,7 +80,7 @@ describe('updateLockFile', () => {
 
   it('warns when yarn version check fails', async () => {
     mockFs.existsSync.mockImplementation(p => p === path.join(mockRoot, 'yarn.lock'));
-    mockPackageManager.mockResolvedValue({ success: false, stdout: '', stderr: 'error' } as PackageManagerResult);
+    mockPackageManager.mockResolvedValue(new MockSubprocessError({ output: 'error' }));
 
     await updateLockFile({ path: mockRoot });
 
@@ -88,7 +89,7 @@ describe('updateLockFile', () => {
 
   it('warns when lock file update fails', async () => {
     mockFs.existsSync.mockImplementation(p => p === path.join(mockRoot, 'package-lock.json'));
-    mockPackageManager.mockResolvedValue({ success: false, stdout: '', stderr: 'error' } as PackageManagerResult);
+    mockPackageManager.mockResolvedValue(new MockSubprocessError({ output: 'error' }));
 
     await updateLockFile({ path: mockRoot });
 

@@ -1,8 +1,5 @@
-import execa from 'execa';
+import { spawn, type SpawnOptions, type SpawnResult } from '../spawn';
 import { filterPathForNpm } from './npmAuthEnvPassthrough';
-
-export type PackageManagerResult = execa.ExecaReturnValue & { success: boolean };
-export type PackageManagerOptions = execa.Options & { cwd: string };
 
 /**
  * Run a package manager command. Returns the error result instead of throwing on failure.
@@ -14,29 +11,15 @@ export type PackageManagerOptions = execa.Options & { cwd: string };
 export async function packageManager(
   manager: 'npm' | 'yarn' | 'pnpm',
   args: string[],
-  options: PackageManagerOptions
-): Promise<PackageManagerResult> {
+  options: SpawnOptions & { cwd: string }
+): Promise<SpawnResult> {
   let pathEnv = options.env?.PATH || process.env.PATH;
   if (manager === 'npm' && pathEnv) {
     pathEnv = filterPathForNpm(pathEnv);
   }
 
-  try {
-    const result = await execa(manager, args, {
-      ...options,
-      env: { ...options.env, PATH: pathEnv },
-      // This is required for Windows due to https://nodejs.org/en/blog/vulnerability/april-2024-security-releases-2
-      // but only provide it on Windows because it breaks the auth env var on Linux...
-      ...(process.platform === 'win32' && { shell: true }),
-    });
-    return {
-      ...result,
-      success: !result.failed,
-    };
-  } catch (e) {
-    return {
-      ...(e as execa.ExecaError),
-      success: false,
-    };
-  }
+  return await spawn(manager, args, {
+    ...options,
+    env: { ...process.env, ...options.env, PATH: pathEnv },
+  });
 }

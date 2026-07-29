@@ -4,13 +4,13 @@ import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtur
 import { generateJwsToken } from '../auth/generateJwsToken.ts';
 
 // eslint-disable-next-line no-restricted-properties -- intentional skip when openssl is unavailable
-const describeIfOpenssl = isOpensslAvailable() ? describe : describe.skip;
+const describeIfOpenssl = (await isOpensslAvailable()) ? describe : describe.skip;
 
 describeIfOpenssl('generateJwsToken', () => {
   let testCert: TestCert;
 
-  beforeAll(() => {
-    testCert = generateTestCert();
+  beforeAll(async () => {
+    testCert = await generateTestCert();
   });
 
   /** `jws.decode` returns `null | undefined` for invalid tokens; throw to keep test types simple. */

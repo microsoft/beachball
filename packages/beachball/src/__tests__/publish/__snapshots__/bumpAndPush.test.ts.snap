@@ -19,30 +19,30 @@ exports[`bumpAndPush retries on fetch failure then succeeds 2`] = `
 Merging with origin/master...
 [log] Running: git merge -X theirs origin/master
 [log]
-[log] git merge -X theirs origin/master completed successfully
+[log] Command completed: git merge -X theirs origin/master
 [log]
 Bumping versions locally (and writing changelogs if requested)
 [log]
 Merging publish_12345 into origin/master...
 [log] Running: git add .
 [log]
-[log] git add . completed successfully
+[log] Command completed: git add .
 [log] Running: git commit -m apply package updates
 [log]
-[log] git commit -m apply package updates completed successfully
+[log] Command completed: git commit -m apply package updates
 [log] Running: git checkout origin/master
 [log]
-[log] git checkout origin/master completed successfully
+[log] Command completed: git checkout origin/master
 [log] Running: git merge -X ours publish_12345
 [log]
-[log] git merge -X ours publish_12345 completed successfully
+[log] Command completed: git merge -X ours publish_12345
 [log]
 Creating git tags for new versions...
 [log]
 Pushing to origin/master...
 [log] Running: git push --no-verify --follow-tags --verbose origin HEAD:master
 [log]
-[log] git push --no-verify --follow-tags --verbose origin HEAD:master completed successfully"
+[log] Command completed: git push --no-verify --follow-tags --verbose origin HEAD:master"
 `;
 
 exports[`bumpAndPush succeeds on first attempt 1`] = `
@@ -56,30 +56,30 @@ exports[`bumpAndPush succeeds on first attempt 1`] = `
 Merging with origin/master...
 [log] Running: git merge -X theirs origin/master
 [log]
-[log] git merge -X theirs origin/master completed successfully
+[log] Command completed: git merge -X theirs origin/master
 [log]
 Bumping versions locally (and writing changelogs if requested)
 [log]
 Merging publish_12345 into origin/master...
 [log] Running: git add .
 [log]
-[log] git add . completed successfully
+[log] Command completed: git add .
 [log] Running: git commit -m apply package updates
 [log]
-[log] git commit -m apply package updates completed successfully
+[log] Command completed: git commit -m apply package updates
 [log] Running: git checkout origin/master
 [log]
-[log] git checkout origin/master completed successfully
+[log] Command completed: git checkout origin/master
 [log] Running: git merge -X ours publish_12345
 [log]
-[log] git merge -X ours publish_12345 completed successfully
+[log] Command completed: git merge -X ours publish_12345
 [log]
 Creating git tags for new versions...
 [log]
 Pushing to origin/master...
 [log] Running: git push --no-verify --follow-tags --verbose origin HEAD:master
 [log]
-[log] git push --no-verify --follow-tags --verbose origin HEAD:master completed successfully"
+[log] Command completed: git push --no-verify --follow-tags --verbose origin HEAD:master"
 `;
 
 exports[`bumpAndPush throws and calls displayManualRecovery after all retries exhausted 1`] = `

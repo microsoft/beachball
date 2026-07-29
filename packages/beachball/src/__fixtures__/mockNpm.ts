@@ -3,23 +3,22 @@ import fs from 'fs';
 // import fetch from 'npm-registry-fetch';
 import path from 'path';
 import semver from 'semver';
-import { npm, type NpmResult } from '../packageManager/npm';
-import type { PackageJson } from '../types/PackageInfo';
-import type { PackageManagerOptions } from '../packageManager/packageManager';
 import { readJson } from '../object/readJson';
 import {
   _npmShowProperties,
   type NpmPackageVersionsData,
   type NpmRegistryFetchJson,
 } from '../packageManager/getNpmPackageInfo';
+import { npm } from '../packageManager/npm';
+import type { SpawnOptions, SpawnResult } from '../spawn';
+import type { PackageJson } from '../types/PackageInfo';
+import { mockSpawnSuccess, MockSubprocessError } from './mockSpawnResult';
 
 /** Mapping from package name to registry data */
 type MockNpmRegistry = Record<string, NpmRegistryFetchJson>;
 
 /** Mapping from package name to partial registry data (easier to specify in tests) */
 type PartialRegistryData = Record<string, Partial<NpmPackageVersionsData>>;
-
-export type MockNpmResult = Pick<NpmResult, 'stdout' | 'stderr' | 'all' | 'success' | 'failed'>;
 
 /**
  * Mock implementation of an npm command.
@@ -30,8 +29,8 @@ export type MockNpmResult = Pick<NpmResult, 'stdout' | 'stderr' | 'all' | 'succe
 export type MockNpmCommand = (
   registryData: MockNpmRegistry,
   args: string[],
-  opts: PackageManagerOptions
-) => Promise<MockNpmResult>;
+  opts: SpawnOptions & { cwd: string }
+) => Promise<SpawnResult>;
 
 export type NpmMock = {
   /**
@@ -125,7 +124,7 @@ export function initNpmMock(): NpmMock {
       if (!func) {
         throw new Error(`Command not supported by mock npm: ${command}`);
       }
-      return (await func(registryData, args, opts)) as NpmResult;
+      return await func(registryData, args, opts);
     });
 
     // const fetchJson = (url: string): Promise<NpmRegistryFetchJson> => {
@@ -233,8 +232,7 @@ export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
   const pkgData = registryData[name];
 
   if (!pkgData) {
-    const stderr = `[fake] code E404 - ${name} - not found`;
-    return { stdout: '', stderr, all: stderr, success: false, failed: true };
+    return new MockSubprocessError({ output: `[fake] code E404 - ${name} - not found` });
   }
 
   let finalVersion: string | undefined;
@@ -253,8 +251,7 @@ export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
   if (!versionData) {
     // Some versions for this package exist, but the specified version or tag doesn't
     // (note that "E404" matches the actual npm output, but the rest of the message is different)
-    const stderr = `[fake] code E404 - ${name}@${version} - not found`;
-    return { stdout: '', stderr, all: stderr, success: false, failed: true };
+    return new MockSubprocessError({ output: `[fake] code E404 - ${name}@${version} - not found` });
   }
 
   const stdout = JSON.stringify({
@@ -262,7 +259,7 @@ export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
     'dist-tags': pkgData['dist-tags'],
     versions: Object.keys(pkgData.versions),
   });
-  return { stdout, stderr: '', all: stdout, success: true, failed: false };
+  return mockSpawnSuccess({ output: stdout });
 };
 
 /** (exported for testing) Mock npm publish to the registry data */
@@ -280,11 +277,10 @@ export const _mockNpmPublish: MockNpmCommand = async (registryData, args, opts) 
   const tag = args.includes('--tag') ? args[args.indexOf('--tag') + 1] : 'latest';
 
   try {
-    const stdout = mockPublishPackage(registryData, packageJson, tag);
-    return { stdout, stderr: '', all: stdout, success: true, failed: false };
+    const output = mockPublishPackage(registryData, packageJson, tag);
+    return mockSpawnSuccess({ output });
   } catch (err) {
-    const stderr = (err as Error).message;
-    return { stdout: '', stderr, all: stderr, success: false, failed: true };
+    return new MockSubprocessError({ output: (err as Error).message });
   }
 };
 
@@ -329,5 +325,5 @@ export const _mockNpmPack: MockNpmCommand = async (registryData, args, opts) => 
   const packFileName = getMockNpmPackName(packageJson);
   fs.writeFileSync(path.join(opts.cwd, packFileName), 'fake package contents');
 
-  return { stdout: packFileName, stderr: '', all: packFileName, success: true, failed: false };
+  return mockSpawnSuccess({ output: packFileName });
 };

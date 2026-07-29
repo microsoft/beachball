@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import execa from 'execa';
+import { spawn } from '../spawn';
 import { BeachballError } from '../types/BeachballError';
 
 function base64ToBase64url(value: string): string {
@@ -7,41 +7,39 @@ function base64ToBase64url(value: string): string {
 }
 
 async function signDigest(keyId: string, digest: string): Promise<string> {
-  try {
-    // execa (via cross-spawn) handles PATH lookup and Windows `.cmd`/`.bat`/`.exe` resolution.
-    const { stdout } = await execa(
-      'az',
-      [
-        'keyvault',
-        'key',
-        'sign',
-        '--id',
-        keyId,
-        '--algorithm',
-        'RS256',
-        '--digest',
-        digest,
-        '--query',
-        'signature',
-        '--output',
-        'tsv',
-        '--only-show-errors',
-      ],
-      { all: true, stdio: ['ignore', 'pipe', 'pipe'] }
-    );
-    return stdout.trim();
-  } catch (error) {
-    // `code` is the spawn error code (e.g. `ENOENT`), which isn't on the `ExecaError` type.
-    const execaError = error as execa.ExecaError & { code?: string };
-    if (execaError.code === 'ENOENT') {
-      throw new BeachballError('Azure CLI (`az`) was not found on PATH');
-    }
+  const result = await spawn(
+    'az',
+    [
+      'keyvault',
+      'key',
+      'sign',
+      '--id',
+      keyId,
+      '--algorithm',
+      'RS256',
+      '--digest',
+      digest,
+      '--query',
+      'signature',
+      '--output',
+      'tsv',
+      '--only-show-errors',
+    ],
+    { stdio: ['ignore', 'pipe', 'pipe'] }
+  );
 
-    const output = execaError.all || '';
-    throw new BeachballError(
-      `Azure Key Vault signing failed. ${output ? `Output:\n${output}` : execaError.shortMessage}`
-    );
+  if (result.success) {
+    return result.stdout.trim();
   }
+
+  // `code` is the original spawn error code (e.g. `ENOENT`)
+  if ((result.cause as { code?: string } | undefined)?.code === 'ENOENT') {
+    throw new BeachballError('Azure CLI (`az`) was not found on PATH');
+  }
+
+  throw new BeachballError(
+    `Azure Key Vault signing failed. ${result.output ? `Output:\n${result.output}` : result.message}`
+  );
 }
 
 /**

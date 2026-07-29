@@ -39,7 +39,7 @@
   "dependencies": {
     "@vercel/detect-agent": "^1.2.1",
     "commander": "catalog:prod",
-    "execa": "catalog:prod",
+    "nano-spawn": "catalog:prod",
     "p-graph": "workspace:^",
     "p-limit": "^3.1.0",
     "prompts": "^2.4.2",

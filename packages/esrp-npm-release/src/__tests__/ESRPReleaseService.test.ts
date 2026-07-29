@@ -37,7 +37,7 @@ jest.unstable_mockModule('../esrpApi/releaseHttp.ts', () => mockEsrpHttp);
 const { ESRPReleaseService } = await import('../ESRPReleaseService.ts');
 
 // eslint-disable-next-line no-restricted-properties
-const describeIfOpenssl = isOpensslAvailable() ? describe : describe.skip;
+const describeIfOpenssl = (await isOpensslAvailable()) ? describe : describe.skip;
 
 describeIfOpenssl('ESRPReleaseService.createRelease', () => {
   let testCert: TestCert;
@@ -53,8 +53,8 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
   // The staged "zip" file is a real file on disk for e2e testing
   const fileDir = setupTempDir({ cleanup: 'afterAll' });
 
-  beforeAll(() => {
-    testCert = generateTestCert();
+  beforeAll(async () => {
+    testCert = await generateTestCert();
     zipFilePath = path.join(fileDir.getTempDir(), zipName);
     fs.writeFileSync(zipFilePath, 'mock zip contents');
   });

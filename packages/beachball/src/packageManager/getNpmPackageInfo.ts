@@ -67,7 +67,6 @@ export async function getNpmPackageInfo(
       {
         timeout: options.timeout,
         cwd: options.path,
-        all: true,
         env: { ...process.env, ...getNpmAuthEnv(options) },
       }
     );
@@ -80,7 +79,7 @@ export async function getNpmPackageInfo(
       }
       return data;
     }
-    throw new Error(showResult.all ? `Output:\n${showResult.all}` : 'unknown error');
+    throw new Error(showResult.output ? `Output:\n${showResult.output}` : 'unknown error');
 
     // const result = (await fetch.json(`/${encodeURIComponent(packageName)}`, {
     //   registry: options.registry,

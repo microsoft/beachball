@@ -1,4 +1,4 @@
-import execa from 'execa';
+import spawn from 'nano-spawn';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -10,10 +10,10 @@ let opensslAvailableCache: boolean | undefined;
  * Synchronously check whether `openssl` is available on PATH. The result is cached so the
  * subprocess is only spawned once per Jest worker.
  */
-export function isOpensslAvailable(): boolean {
+export async function isOpensslAvailable(): Promise<boolean> {
   if (opensslAvailableCache === undefined) {
     try {
-      execa.sync('openssl', ['version']);
+      await spawn('openssl', ['version']);
       opensslAvailableCache = true;
     } catch {
       opensslAvailableCache = false;
@@ -51,8 +51,8 @@ export interface TestCert {
  *
  * Throws if openssl is not available; callers should skip the suite first.
  */
-export function generateTestCert(): TestCert {
-  if (!isOpensslAvailable()) {
+export async function generateTestCert(): Promise<TestCert> {
+  if (!(await isOpensslAvailable())) {
     throw new Error('openssl is not available on PATH');
   }
 
@@ -68,7 +68,7 @@ export function generateTestCert(): TestCert {
     const pfxPath = path.join(tempDir, 'chain.pfx');
 
     // 1. Generate the CA: self-signed cert + its private key.
-    execa.sync('openssl', [
+    await spawn('openssl', [
       'req',
       '-x509',
       '-newkey',
@@ -85,7 +85,7 @@ export function generateTestCert(): TestCert {
     ]);
 
     // 2. Generate the leaf private key + a CSR for it.
-    execa.sync('openssl', [
+    await spawn('openssl', [
       'req',
       '-newkey',
       'rsa:2048',
@@ -99,7 +99,7 @@ export function generateTestCert(): TestCert {
     ]);
 
     // 3. Sign the leaf CSR with the CA to produce the leaf certificate.
-    execa.sync('openssl', [
+    await spawn('openssl', [
       'x509',
       '-req',
       '-in',
@@ -117,7 +117,7 @@ export function generateTestCert(): TestCert {
 
     // 4. Bundle leaf key + leaf cert + CA cert into a PFX (empty password matches the
     //    `getKeyAndCertificatesFromPFX` invocation).
-    execa.sync('openssl', [
+    await spawn('openssl', [
       'pkcs12',
       '-export',
       '-inkey',
@@ -140,8 +140,8 @@ export function generateTestCert(): TestCert {
     // Independently compute thumbprints of the leaf using openssl so tests don't rely on the
     // implementation under test for expected values. `openssl x509 -fingerprint` emits
     // "sha256 Fingerprint=AB:CD:..." — we strip the colons and lowercase to match `getThumbprint`.
-    const sha1ThumbprintHex = computeFingerprint(leafCertPath, 'sha1');
-    const sha256ThumbprintHex = computeFingerprint(leafCertPath, 'sha256');
+    const sha1ThumbprintHex = await computeFingerprint(leafCertPath, 'sha1');
+    const sha256ThumbprintHex = await computeFingerprint(leafCertPath, 'sha256');
 
     return { leafCertPem, caCertPem, keyPem, pfxBase64, sha1ThumbprintHex, sha256ThumbprintHex };
   } finally {
@@ -149,8 +149,8 @@ export function generateTestCert(): TestCert {
   }
 }
 
-function computeFingerprint(certPath: string, algorithm: 'sha1' | 'sha256'): string {
-  const result = execa.sync('openssl', ['x509', '-in', certPath, '-noout', '-fingerprint', `-${algorithm}`]);
+async function computeFingerprint(certPath: string, algorithm: 'sha1' | 'sha256'): Promise<string> {
+  const result = await spawn('openssl', ['x509', '-in', certPath, '-noout', '-fingerprint', `-${algorithm}`]);
   // Output: "sha256 Fingerprint=AB:CD:..." — extract the hex part and strip colons
   const match = result.stdout.match(/Fingerprint=([A-F0-9:]+)/i);
   if (!match) {

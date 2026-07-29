@@ -23,7 +23,6 @@ export const env = Object.freeze({
 
   // These are borrowed from workspace-tools
   workspaceToolsGitDebug: !!process.env.GIT_DEBUG,
-  workspaceToolsGitMaxBuffer: (process.env.GIT_MAX_BUFFER && parseInt(process.env.GIT_MAX_BUFFER, 10)) || undefined,
   /** @deprecated Use `options.npmReadConcurrency` */
   // if this is removed, default logic should go to getDefaultOptions
   // TODO change back to 10 after https://github.com/microsoft/beachball/issues/1143
