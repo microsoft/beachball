@@ -33,6 +33,8 @@ describe('spawn', () => {
     expect(result.success).toBe(false);
     const failure = result as SpawnFailureResult;
     if (process.platform === 'win32') {
+      console.log('failure:', failure);
+      console.log('cause:', failure.cause);
       expect((failure.cause as NodeJS.ErrnoException | undefined)?.message).toContain('ENOENT');
     } else {
       // nano-spawn wraps the original spawn error as `cause`, so the code lives there.
