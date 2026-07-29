@@ -49,6 +49,7 @@ describe('signWithAzureCli', () => {
   });
 
   it('throws a helpful error when the Azure CLI is not installed', async () => {
+    // This is NOT the error Windows gives, but it's still reasonable to test this path
     const cause = new Error('spawn az ENOENT');
     (cause as { code?: string }).code = 'ENOENT';
     mockSpawn.mockResolvedValue(new MockSubprocessError({ cause }));

@@ -45,7 +45,11 @@ export async function getKeyAndCertificatesFromPFX(
     result = await subprocess;
   } catch (_err) {
     const err = _err as SubprocessError;
-    throw new Error(`Error processing PFX with \`${err.command}\`:\n${err.stderr}`, { cause: _err });
+    // On a normal openssl failure, stderr has the detail. On a startup failure (e.g. ENOENT),
+    // stderr/output are empty and the reason is on the wrapped `cause` (`err.message` only has
+    // the command), so fall back to that.
+    const detail = err.stderr || (err.cause as Error | undefined)?.message || err.message;
+    throw new Error(`Error processing PFX with \`${err.command}\`:\n${detail}`, { cause: _err });
   }
 
   const key = result.stdout.match(/-----BEGIN PRIVATE KEY-----[\s\S]+?-----END PRIVATE KEY-----/)?.[0];
