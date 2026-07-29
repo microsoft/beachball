@@ -6,6 +6,7 @@ import {
   clearGitAuthEnvCache,
   getAuthHeaderValue,
   getTokenFromAuthHeader,
+  type GitAuthEnvParams,
 } from '../../git/getGitAuthEnv';
 import { BeachballError } from '../../types/BeachballError';
 
@@ -53,7 +54,13 @@ describe('getGitAuthEnv', () => {
   const remoteKey = `http.${remoteUrl}.extraheader`;
   const gitToken = 'my-token';
   const gitTokenHeader = getAuthHeaderValue(gitToken);
-  const common = { path: cwd, remote: 'origin', gitToken, env: { FAKE: 'value' } };
+  const common: GitAuthEnvParams = {
+    path: cwd,
+    remote: 'origin',
+    gitToken,
+    env: { FAKE: 'value' },
+    operation: 'fetch',
+  };
 
   afterEach(() => {
     jest.clearAllMocks();
@@ -78,6 +85,14 @@ describe('getGitAuthEnv', () => {
 
     expect(mockGit).toHaveBeenCalledWith(['remote', 'get-url', common.remote], { cwd });
     expect(mockGit).toHaveBeenCalledWith(['config', '--get-regexp', '.*\\.extraheader'], { cwd });
+  });
+
+  it('resolves the push URL (which may differ from the fetch URL) for the push path', () => {
+    setupGitMock({ remoteUrl });
+    getGitAuthEnv({ ...common, operation: 'push' });
+
+    // `get-url --push` returns remote.<name>.pushurl when set, so the header is scoped correctly for push
+    expect(mockGit).toHaveBeenCalledWith(['remote', 'get-url', '--push', common.remote], { cwd });
   });
 
   it('scopes the header to the remote URL and adds Basic auth when there is no existing config', () => {
@@ -238,8 +253,9 @@ describe('getGitAuthEnv', () => {
     const first = getGitAuthEnv({ ...common });
     const second = getGitAuthEnv({ ...common });
 
-    // Same reference returned, and git was only invoked once (get-url + config)
-    expect(second).toBe(first);
+    // Equal result returned, and git was only invoked once (get-url + config); the env is rebuilt
+    // each call (only the git-derived config values are cached), so it's an equal—not same—object.
+    expect(second).toEqual(first);
     expect(mockGit).toHaveBeenCalledTimes(2);
   });
 

@@ -85,7 +85,7 @@ export async function bumpAndPush(
 
     // If BEACHBALL_GIT_TOKEN was provided, build the env used to authenticate the git push (with caching).
     // DO NOT log this value since it contains the encoded token.
-    const authEnv = getGitAuthEnv({ ...options, remote, env: process.env });
+    const authEnv = getGitAuthEnv({ ...options, remote, env: process.env, operation: 'push' });
 
     const pushResult = await gitAsync(
       ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`],

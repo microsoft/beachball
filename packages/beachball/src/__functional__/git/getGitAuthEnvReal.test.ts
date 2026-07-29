@@ -83,7 +83,7 @@ describe('getGitAuthEnv on push (real server)', () => {
     repo.git(['config', '--add', remoteKey, 'X-Beachball-Test: keepme']);
 
     const gitToken = 'my-token';
-    const authEnv = getGitAuthEnv({ gitToken, path: repo.rootPath, remote: 'origin', env: process.env });
+    const authEnv = getGitAuthEnv({ gitToken, path: repo.rootPath, remote: 'origin', env: {}, operation: 'push' });
 
     const result = await gitAsync(
       [
@@ -142,7 +142,7 @@ describe('getGitAuthEnv on push (real server)', () => {
     repo.git(['config', '--add', mismatchedKey, staleAuth]);
 
     const gitToken = 'my-token';
-    const authEnv = getGitAuthEnv({ gitToken, path: repo.rootPath, remote: 'origin', env: process.env });
+    const authEnv = getGitAuthEnv({ gitToken, path: repo.rootPath, remote: 'origin', env: {}, operation: 'push' });
 
     const result = await gitAsync(
       [
@@ -178,5 +178,66 @@ describe('getGitAuthEnv on push (real server)', () => {
     const wire = JSON.stringify(capturedRequests);
     expect(wire).not.toContain(gitToken);
     expect(wire).not.toContain('mismatched-stale-token');
+  });
+
+  it('resets less-specific headers (base + host) but keeps a non-auth header re-added at the remote key', async () => {
+    const repo = repositoryFactory.cloneRepository();
+    repo.git(['remote', 'set-url', 'origin', remoteUrl]);
+
+    // Seed stale auth + a non-auth header at *less-specific* scopes than the exact remote URL:
+    // - the base `http.extraheader` (applies to all URLs)
+    // - a host-scoped `http.<host>/.extraheader` (applies to any path on the host)
+    // Absent our logic, git would send all of these to the remote (extraheader accumulates).
+    const hostKey = `http.${remoteUrl.replace(/repo\.git$/, '')}.extraheader`; // http.http://127.0.0.1:PORT/.extraheader
+    const baseStale = `AUTHORIZATION: basic ${Buffer.from('x-access-token:base-stale-token').toString('base64')}`;
+    const hostStale = `AUTHORIZATION: basic ${Buffer.from('x-access-token:host-stale-token').toString('base64')}`;
+    repo.git(['config', '--add', 'http.extraheader', baseStale]);
+    repo.git(['config', '--add', 'http.extraheader', 'X-Base-Keep: base-value']);
+    repo.git(['config', '--add', hostKey, hostStale]);
+
+    const gitToken = 'my-token';
+    const authEnv = getGitAuthEnv({ gitToken, path: repo.rootPath, remote: 'origin', env: {}, operation: 'push' });
+
+    const result = await gitAsync(
+      [
+        '-c',
+        'credential.helper=',
+        '-c',
+        'credential.interactive=false',
+        'push',
+        '--no-verify',
+        '--follow-tags',
+        '--verbose',
+        'origin',
+        `HEAD:refs/heads/${defaultBranchName}`,
+      ],
+      {
+        cwd: repo.rootPath,
+        env: { ...authEnv, GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'Never' },
+        verbose: false,
+        timeout: 3000,
+      }
+    );
+
+    expect(result.success).toBe(false);
+    expect(capturedRequests.length).toBeGreaterThan(0);
+
+    const headers = firstRequestHeaders();
+
+    // The empty reset lives at the most-specific (remote URL) key, so it wipes the base- and
+    // host-scoped accumulations: only our injected token reaches the wire.
+    const authHeaders = headers.filter(h => h.name === 'authorization');
+    expect(authHeaders).toHaveLength(1);
+    expect(getTokenFromAuthHeader(`Authorization: ${authHeaders[0].value}`)).toBe(gitToken);
+
+    // The base-level non-auth header survives exactly once: its original base occurrence was wiped
+    // by the reset, and it's present only because we re-added it under the remote URL key.
+    expect(headers.filter(h => h.name === 'x-base-keep')).toEqual([{ name: 'x-base-keep', value: 'base-value' }]);
+
+    // Neither the base nor host stale token (nor the real token in plaintext) reaches the wire.
+    const wire = JSON.stringify(capturedRequests);
+    expect(wire).not.toContain(gitToken);
+    expect(wire).not.toContain('base-stale-token');
+    expect(wire).not.toContain('host-stale-token');
   });
 });

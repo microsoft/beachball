@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 //
-// This script configures the git identity, runs `beachball publish --no-push` with BEACHBALL_GIT_TOKEN,
+// This script configures the git identity, runs `beachball publish --no-publish` with BEACHBALL_GIT_TOKEN,
 // and revokes the token on exit. It's meant to be run in ADO pipelines only.
 //
 

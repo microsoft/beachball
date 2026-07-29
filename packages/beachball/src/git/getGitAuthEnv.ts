@@ -3,22 +3,27 @@ import { BeachballError } from '../types/BeachballError';
 import type { BeachballOptions } from '../types/BeachballOptions';
 
 /**
- * Git trace/debug env vars that can cause git or curl to print/log request headers.
+ * Git trace/debug env vars that can cause git or curl to print/log request headers or config values.
  * These are forced off to prevent leaking credentials.
  */
 const traceDisableEnv: NodeJS.ProcessEnv = {
   GIT_TRACE: '0',
   GIT_CURL_VERBOSE: '0',
   GIT_TRACE_CURL: '0',
+  GIT_TRACE2: '0',
+  GIT_TRACE2_EVENT: '0',
+  GIT_TRACE2_PERF: '0',
 };
 
 /**
- * Cache of computed auth envs, keyed by `cwd + remote + token`. The full returned env (including the
- * caller-provided `env`) is cached so the same reference is returned for repeated identical calls.
+ * Cache of the git-derived parts of the auth env (the scoped config key and its ordered values),
+ * keyed by `cwd + remote + push/fetch + token`. In real scenarios, there should be at most two values
+ * (fetch and push) per repo. The merged env is not cached due to the theoretical risk of leaking
+ * another caller's environment or the `GIT_CONFIG_*` offset changing.
  */
-const authEnvCache = new Map<string, NodeJS.ProcessEnv>();
+const authEnvCache = new Map<string, { extraheaderKey: string; values: string[] }>();
 
-type GitAuthEnvParams = Pick<BeachballOptions, 'gitToken' | 'path'> & {
+export type GitAuthEnvParams = Pick<BeachballOptions, 'gitToken' | 'path'> & {
   /**
    * Name of the remote. Its URL is resolved to scope the header. Throws if a token is provided
    * but the remote's URL can't be resolved.
@@ -29,6 +34,8 @@ type GitAuthEnvParams = Pick<BeachballOptions, 'gitToken' | 'path'> & {
    * This is NOT merged with the result, only used to check for existing `GIT_CONFIG_*` entries.
    */
   env: NodeJS.ProcessEnv;
+  /** Which git operation this is for, in case there's a separate `remote.<name>.pushurl`. */
+  operation: 'fetch' | 'push';
 };
 
 /**
@@ -53,43 +60,46 @@ type GitAuthEnvParams = Pick<BeachballOptions, 'gitToken' | 'path'> & {
  * provided (nothing to inject). (Do NOT log the result, since it contains the encoded token.)
  */
 export function getGitAuthEnv(params: GitAuthEnvParams): NodeJS.ProcessEnv | undefined {
-  const { gitToken, path: cwd, remote, env } = params;
+  const { gitToken, path: cwd, remote, env, operation } = params;
   if (!gitToken) {
     return undefined;
   }
-  const cacheKey = `${cwd}\0${remote}\0${gitToken}`;
-  const cached = authEnvCache.get(cacheKey);
-  if (cached) {
-    return cached;
+
+  const cacheKey = `${cwd}\0${remote}\0${operation}\0${gitToken}`;
+  let cached = authEnvCache.get(cacheKey);
+  if (!cached) {
+    // Get the actual remote URL to figure out if any existing headers apply, and how to scope
+    // the new auth header (the push URL when building the env for a push).
+    const remoteUrl = getRemoteUrl(params);
+
+    // Scope the header to the exact remote URL (this means it's only sent to that remote, not redirect targets).
+    // Could revisit later if needed.
+    const extraheaderKey = `http.${remoteUrl}.extraheader`;
+
+    // Non-auth headers that currently apply to the remote URL, which must be preserved.
+    // Existing auth headers are intentionally omitted so only our token is sent.
+    //
+    // These must be re-added under the *remote URL* key (not their original keys): git accumulates
+    // `extraHeader` values by specificity and an empty value resets the whole accumulated list, so the
+    // empty reset below (at the most-specific remote URL key) wipes any header re-added under a
+    // less-specific key (e.g. the base `http.extraheader`). Re-adding under the remote URL key is the
+    // only placement that survives the reset. This narrows a base header to the remote URL, which is
+    // acceptable (and safer against leaking to redirect targets) for a single-remote fetch/push.
+    const preservedHeaders = getExistingHeaders(cwd)
+      .filter(({ key, value }) => _doesHeaderApply({ key, remoteUrl }) && !/^\s*authorization\s*:/i.test(value))
+      .map(({ value }) => value);
+
+    // Rebuild the remote URL's extraHeader list, all under the remote URL config key:
+    // 1. An empty value resets the accumulated list (dropping any existing headers that apply to the
+    //    remote, including those often set by CI checkout).
+    // 2. Re-add the preserved non-auth headers.
+    // 3. Add our auth header last so it's always present.
+    const values = ['', ...preservedHeaders, getAuthHeaderValue(gitToken)];
+    cached = { extraheaderKey, values };
+    authEnvCache.set(cacheKey, cached);
   }
 
-  // Get the actual remote URL to figure out if any existing headers apply, and how to scope
-  // the new auth header
-  const remoteUrl = getRemoteUrl(params);
-
-  // Scope the header to the exact remote URL (this means it's only sent to that remote, not redirect targets).
-  // Could revisit later if needed.
-  const extraheaderKey = `http.${remoteUrl}.extraheader`;
-
-  // Non-auth headers that currently apply to the remote URL, which must be preserved.
-  // Existing auth headers are intentionally omitted so only our token is sent.
-  //
-  // These must be re-added under the *remote URL* key (not their original keys): git accumulates
-  // `extraHeader` values by specificity and an empty value resets the whole accumulated list, so the
-  // empty reset below (at the most-specific remote URL key) wipes any header re-added under a
-  // less-specific key (e.g. the base `http.extraheader`). Re-adding under the remote URL key is the
-  // only placement that survives the reset. This narrows a base header to the remote URL, which is
-  // acceptable (and safer against leaking to redirect targets) for a single-remote fetch/push.
-  const preservedHeaders = getExistingHeaders(cwd)
-    .filter(({ key, value }) => _doesHeaderApply({ key, remoteUrl }) && !/^\s*authorization\s*:/i.test(value))
-    .map(({ value }) => value);
-
-  // Rebuild the remote URL's extraHeader list, all under the remote URL config key:
-  // 1. An empty value resets the accumulated list (dropping any existing headers that apply to the
-  //    remote, including those often set by CI checkout).
-  // 2. Re-add the preserved non-auth headers.
-  // 3. Add our auth header last so it's always present.
-  const values = ['', ...preservedHeaders, getAuthHeaderValue(gitToken)];
+  const { extraheaderKey, values } = cached;
 
   // Respect any existing GIT_CONFIG_* env by appending our entries after the existing count.
   const startCount = Number(env.GIT_CONFIG_COUNT ?? '0') || 0;
@@ -99,9 +109,7 @@ export function getGitAuthEnv(params: GitAuthEnvParams): NodeJS.ProcessEnv | und
     configEnv[`GIT_CONFIG_VALUE_${startCount + i}`] = value;
   });
 
-  const result = { ...env, ...configEnv };
-  authEnvCache.set(cacheKey, result);
-  return result;
+  return { ...env, ...configEnv };
 }
 
 /** Clear the memoized auth env cache. Intended for tests. */
@@ -128,15 +136,16 @@ export function getTokenFromAuthHeader(value: string | undefined): string {
 
 /**
  * Resolve the URL for `remote` (e.g. `origin` -> `https://github.com/org/repo`).
+ * For push, uses the push URL (`remote.<name>.pushurl`) if set, else uses the fetch URL.
  * Throws if the remote can't be resolved to a URL (should never happen).
  */
 function getRemoteUrl(params: GitAuthEnvParams): string {
-  const { remote, path: cwd } = params;
+  const { remote, path: cwd, operation } = params;
   if (!remote) {
     // should never happen in real publishing scenarios
     throw new BeachballError('No git remote could be resolved, so git token auth is not supported.');
   }
-  const result = git(['remote', 'get-url', remote], { cwd });
+  const result = git(['remote', 'get-url', ...(operation === 'push' ? ['--push'] : []), remote], { cwd });
   const url = result.success ? result.stdout.trim() : '';
   if (!url) {
     throw new BeachballError(`The git remote "${remote}" could not be resolved, so git token auth is not supported.`);
@@ -156,17 +165,13 @@ function getExistingHeaders(cwd: string): { key: string; value: string }[] {
   }
 
   // Each line is `<key><space><value>`; the value may itself contain spaces.
-  const lines = gitResult.stdout.split('\n');
-  const result: { key: string; value: string }[] = [];
-  for (let line of lines) {
-    line = line.trim();
-    if (!line) continue;
-    const spaceIndex = line.indexOf(' ');
-    const key = spaceIndex === -1 ? line : line.slice(0, spaceIndex);
-    const value = spaceIndex === -1 ? '' : line.slice(spaceIndex + 1);
-    result.push({ key, value });
-  }
-  return result;
+  return gitResult.stdout
+    .split('\n')
+    .map(line => {
+      const [, key, value] = line.trim().match(/^(\S+) ?(.*)$/) ?? [];
+      return key ? { key, value } : undefined;
+    })
+    .filter(val => !!val);
 }
 
 /**
@@ -176,23 +181,16 @@ function getExistingHeaders(cwd: string): { key: string; value: string }[] {
  */
 export function _doesHeaderApply(params: { key: string; remoteUrl: string }): boolean {
   const { key, remoteUrl } = params;
-  const prefix = 'http.';
-  const suffix = '.extraheader';
   // The URL is the subsection between the section (`http`) and key (`extraheader`).
   // For the base `http.extraheader` (no subsection), this is empty, and the base applies to all URLs.
-  const url = key.slice(prefix.length, key.length - suffix.length);
-  if (!url) {
+  const configUrl = key.slice('http.'.length, key.length - '.extraheader'.length);
+  if (!configUrl) {
     return true;
   }
-  return urlMatchesRemote(url, remoteUrl);
-}
 
-/**
- * Approximate git's `http.<url>.*` URL matching: the config URL matches the remote URL if they share
- * a scheme, host, and port, and the config URL's path is a prefix of the remote URL's path on `/`
- * segment boundaries. (An empty/`/` config path matches any path on the same host.)
- */
-function urlMatchesRemote(configUrl: string, remoteUrl: string): boolean {
+  // Approximate git's `http.<url>.*` URL matching: the config URL matches the remote URL if they share
+  // a scheme, host, and port, and the config URL's path is a prefix of the remote URL's path on `/`
+  // segment boundaries. (An empty or `/` config path matches any path on the same host.)
   let config: URL;
   let remote: URL;
   try {

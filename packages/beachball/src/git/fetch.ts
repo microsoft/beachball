@@ -49,7 +49,7 @@ export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMess
 
   // Get auth config env if relevant.
   // Do NOT log this value since it contains the encoded token.
-  const authEnv = getGitAuthEnv({ gitToken, path: cwd, remote, env });
+  const authEnv = getGitAuthEnv({ gitToken, path: cwd, remote, env, operation: 'fetch' });
 
   if ([depth, deepen, unshallow].filter(v => v !== undefined).length > 1) {
     throw new Error('"depth", "deepen", and "unshallow" are mutually exclusive');
