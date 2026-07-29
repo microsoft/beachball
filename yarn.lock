@@ -1535,6 +1535,7 @@ __metadata:
     eslint: "catalog:dev"
     eslint-config-prettier: "npm:^10.1.8"
     globals: "npm:^17.7.0"
+    nano-spawn: "catalog:prod"
     typescript: "catalog:dev"
     typescript-eslint: "npm:^8.52.0"
     workspace-tools: "catalog:prod"
