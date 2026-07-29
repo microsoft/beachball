@@ -20,6 +20,6 @@ export async function packageManager(
 
   return await spawn(manager, args, {
     ...options,
-    env: { ...process.env, ...options.env, PATH: pathEnv },
+    env: { ...options.env, PATH: pathEnv },
   });
 }

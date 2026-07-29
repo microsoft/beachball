@@ -11,7 +11,7 @@ let nanoSpawn: typeof import('nano-spawn').default | undefined;
 /**
  * Wrapper for `nano-spawn` implementing some `execa`-like behaviors.
  * Instead of rejecting on failure, it returns a result with `success: false` and the error details.
- * (`env` is NOT extended by default.)
+ * Similar to `execa`, internally `nano-spawn` merges the `env` option with `process.env`.
  *
  * Note that if you need the subprocess object, you can't use this wrapper since it must await the
  * module import first.
@@ -26,15 +26,15 @@ export async function spawn(bin: string, args: string[], options?: SpawnOptions)
   }
 
   // Use a signal to precisely track whether the process was aborted due to timeout
-  const signal = options?.timeout ? AbortSignal.timeout(options.timeout) : options?.signal;
+  const timeoutSignal = options?.timeout ? AbortSignal.timeout(options.timeout) : options?.signal;
   try {
-    const result = await nanoSpawn(bin, args, { ...options, timeout: undefined, signal });
+    const result = await nanoSpawn(bin, args, { signal: timeoutSignal, ...options, timeout: undefined });
     return { ...result, success: true };
   } catch (e) {
     const err = e as SpawnFailureResult;
     err.success = false;
     // The only case where timedOut is already set is by MockSubprocessError
-    err.timedOut ??= signal?.aborted;
+    err.timedOut ??= timeoutSignal?.aborted;
     return err;
   }
 }

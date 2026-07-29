@@ -65,7 +65,7 @@ export function checkNpmAuthEnvPassthrough(
     // This must use native execFileSync because nano-spawn's spawn() rewrites `node` to
     // process.execPath, which would bypass any PATH wrapper we're trying to detect.
     const result = execFileSync('node', ['-e', `process.stdout.write(process.env[${JSON.stringify(envName)}] || '')`], {
-      env: { ...process.env, ...tokenEnv, PATH: filteredPath },
+      env: { ...tokenEnv, PATH: filteredPath },
       stdio: ['ignore', 'pipe', 'ignore'],
     });
     if (result.toString() === fakeToken) {

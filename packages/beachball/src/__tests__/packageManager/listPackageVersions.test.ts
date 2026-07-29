@@ -86,7 +86,7 @@ describe('list npm versions', () => {
       expect(versions).toEqual({ foo: ['1.0.0', '1.0.1'] });
       expect(npmMock.mock).toHaveBeenCalledWith(
         [...commonArgs, 'foo', ..._npmShowProperties],
-        expect.objectContaining({ env: { ...process.env, 'npm_config_//fake/:_password': 'pass' } })
+        expect.objectContaining({ env: { 'npm_config_//fake/:_password': 'pass' } })
       );
       // expect(npmMock.mockFetchJson).toHaveBeenCalledWith(
       //   '/foo',
@@ -100,7 +100,7 @@ describe('list npm versions', () => {
       expect(versions).toEqual({ foo: ['1.0.0', '1.0.1'] });
       expect(npmMock.mock).toHaveBeenCalledWith(
         [...commonArgs, 'foo', ..._npmShowProperties],
-        expect.objectContaining({ env: { ...process.env, 'npm_config_//fake/:_authToken': 'pass' } })
+        expect.objectContaining({ env: { 'npm_config_//fake/:_authToken': 'pass' } })
       );
       // expect(npmMock.mockFetchJson).toHaveBeenCalledWith(
       //   '/foo',
@@ -307,7 +307,7 @@ describe('list npm versions', () => {
         expect(versions).toEqual({ foo: '1.0.0' });
         expect(npmMock.mock).toHaveBeenCalledWith(
           [...commonArgs, 'foo', ..._npmShowProperties],
-          expect.objectContaining({ env: { ...process.env, 'npm_config_//fake/:_authToken': 'pass' } })
+          expect.objectContaining({ env: { 'npm_config_//fake/:_authToken': 'pass' } })
         );
         // expect(npmMock.mockFetchJson).toHaveBeenCalledWith(
         //   '/foo',
@@ -327,7 +327,7 @@ describe('list npm versions', () => {
         expect(versions).toEqual({ foo: '1.0.0' });
         expect(npmMock.mock).toHaveBeenCalledWith(
           [...commonArgs, 'foo', ..._npmShowProperties],
-          expect.objectContaining({ env: { ...process.env, 'npm_config_//fake/:_password': 'pass' } })
+          expect.objectContaining({ env: { 'npm_config_//fake/:_password': 'pass' } })
         );
         // expect(npmMock.mockFetchJson).toHaveBeenCalledWith(
         //   '/foo',

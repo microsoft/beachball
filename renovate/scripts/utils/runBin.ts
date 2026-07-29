@@ -48,7 +48,7 @@ export async function runRenovate(
   console.log(`Running: ${[bin, ...args].join(' ')}`);
 
   try {
-    await runBin(bin, args, { env: { ...process.env, ...getRenovateEnv(envParams) } });
+    await runBin(bin, args, { env: getRenovateEnv(envParams) });
     return true;
   } catch {
     return false;

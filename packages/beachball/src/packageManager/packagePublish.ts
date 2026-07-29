@@ -1,10 +1,10 @@
-import type { PackageInfo } from '../types/PackageInfo';
 import path from 'path';
-import { npm } from './npm';
-import type { BeachballOptions } from '../types/BeachballOptions';
-import { getNpmAuthEnv, getNpmPublishArgs } from './npmArgs';
-import type { NpmOptions } from '../types/NpmOptions';
 import type { SpawnResult } from '../spawn';
+import type { BeachballOptions } from '../types/BeachballOptions';
+import type { NpmOptions } from '../types/NpmOptions';
+import type { PackageInfo } from '../types/PackageInfo';
+import { npm } from './npm';
+import { getNpmAuthEnv, getNpmPublishArgs } from './npmArgs';
 
 /**
  * Attempt to publish the package with retries. Returns the result of the final npm publish call
@@ -39,7 +39,7 @@ export async function packagePublish(
       cwd: packageRoot,
       timeout: options.timeout,
       preferLocal: false,
-      env: { ...process.env, ...authEnv },
+      env: authEnv,
     });
 
     if (result.success) {

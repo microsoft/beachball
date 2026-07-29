@@ -37,6 +37,7 @@ export async function getKeyAndCertificatesFromPFX(
   let result: SpawnResult;
   try {
     const subprocess = spawn('openssl', ['pkcs12', '-nodes', '-passin', 'pass:']);
+    subprocess.catch(() => {}); // prevent unhandled rejection if the below throws
     // nano-spawn's `{ string }` stdin option writes as utf8 and can't carry binary data
     // losslessly, so write the raw PFX bytes straight to the child's stdin stream instead.
     const child = await subprocess.nodeChildProcess;

@@ -8,7 +8,6 @@ import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { mockSpawnSuccess, MockSubprocessError } from '../../__fixtures__/mockSpawnResult';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { performBump as _performBump } from '../../bump/performBump';
-import { gitAsync as _gitAsync } from '../../git/gitAsync';
 import { getOptions } from '../../options/getOptions';
 import { bumpAndPush } from '../../publish/bumpAndPush';
 import { tagPackages as _tagPackages } from '../../publish/tagPackages';

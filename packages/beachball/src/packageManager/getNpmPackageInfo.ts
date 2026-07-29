@@ -68,7 +68,7 @@ export async function getNpmPackageInfo(
       {
         timeout: options.timeout,
         cwd: options.path,
-        env: { ...process.env, ...getNpmAuthEnv(options) },
+        env: getNpmAuthEnv(options),
       }
     );
 
