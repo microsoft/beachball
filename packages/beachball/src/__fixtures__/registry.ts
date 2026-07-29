@@ -103,11 +103,15 @@ export class Registry {
   /** Write the auth token to the user .npmrc so npm commands pick it up, or remove it if `token` is null. */
   private writeAuthToken(token: string | null): void {
     const npmrcPath = path.join(os.homedir(), '.npmrc');
-    const lines = fs.existsSync(npmrcPath) ? fs.readFileSync(npmrcPath, 'utf-8').split(/\r?\n/g).filter(Boolean) : [];
+    const npmrcContent = fs.existsSync(npmrcPath) ? fs.readFileSync(npmrcPath, 'utf-8') : '';
+    const eol = npmrcContent.match(/\r?\n/)?.[0] ?? os.EOL;
     const authKey = `${this.getUrl().replace(/^https?:/, '')}/:_authToken`;
-    const filtered = lines.filter(line => !line.startsWith(authKey));
+    const filtered = npmrcContent
+      .trim()
+      .split(/\r?\n/g)
+      .filter(line => !line.startsWith(authKey));
     token && filtered.push(`${authKey}=${token}`);
-    fs.writeFileSync(npmrcPath, filtered.join(os.EOL) + os.EOL);
+    fs.writeFileSync(npmrcPath, filtered.join(eol) + eol);
   }
 
   /** Write the current token to `.npmrc` to emulate logging in. */

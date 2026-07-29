@@ -26,7 +26,7 @@ export async function spawn(bin: string, args: string[], options?: SpawnOptions)
   }
 
   // Use a signal to precisely track whether the process was aborted due to timeout
-  const timeoutSignal = options?.timeout ? AbortSignal.timeout(options.timeout) : options?.signal;
+  const timeoutSignal = options?.timeout ? AbortSignal.timeout(options.timeout) : undefined;
   try {
     const result = await nanoSpawn(bin, args, { signal: timeoutSignal, ...options, timeout: undefined });
     return { ...result, success: true };

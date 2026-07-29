@@ -7,8 +7,8 @@ import { removeTempDir } from './tempDir.ts';
 let opensslAvailableCache: boolean | undefined;
 
 /**
- * Synchronously check whether `openssl` is available on PATH. The result is cached so the
- * subprocess is only spawned once per Jest worker.
+ * Check whether `openssl` is available on PATH.
+ * The result is cached so the subprocess is only spawned once per Jest worker.
  */
 export async function isOpensslAvailable(): Promise<boolean> {
   if (opensslAvailableCache === undefined) {
@@ -44,7 +44,7 @@ export interface TestCert {
  * Used for LOCAL TEST FIXTURES ONLY (not actual authentication).
  *
  * Generate a fresh test certificate chain (leaf signed by a CA), private key, and PFX bundle
- * synchronously via openssl. Use in a `beforeAll` after gating with `isOpensslAvailable()`.
+ * using openssl. Use in a `beforeAll` after gating with `isOpensslAvailable()`.
  *
  * The PFX contains both the leaf and the CA certificate so tests can exercise the multi-cert
  * extraction path in `getKeyAndCertificatesFromPFX` (including its `.reverse()` ordering).
