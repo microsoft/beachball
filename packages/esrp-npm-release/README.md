@@ -38,9 +38,9 @@ The tool relies on the following inputs and resources:
 - [**Packed packages**](#packed-packages-format): Output folder from `beachball publish --pack-to-path <path>` or in the same format
   - ⚠️ If using `beachball`, it's recommended to upgrade to a **v3 prerelease** to take advantage of certain new features, including better registry config handling.
 - **ESRP Azure resources** configured per their guides (see docs on eng.ms):
-  - _ESRP-onboarded app registration_ in a production tenant (need client ID and tenant ID)
-  - _Production tenant key vault_ storing the ESRP auth certificate and request signing certificate (PFX format, base64-encoded)
-  - _Production tenant managed identity_ with access to the app registration and key vault
+  - _ESRP-onboarded identity_ in a production tenant (need client ID and tenant ID): either an app registration with an authentication certificate, or an ESRP-allowlisted managed identity authenticated using workload identity federation
+  - _Production tenant key vault_ storing the request signing certificate and, when using certificate authentication, the ESRP auth certificate (PFX format, base64-encoded)
+  - _Production tenant managed identity_ with access to the key vault
   - _ADO Azure Resource Manager service connection_ using the managed identity
 - [**Staging resources**](#staging-resource-setup) specific to this tool (see below for setup details):
   - _Azure Blob Storage account_ in your team's subscription (usually in the corp tenant) to temporarily host zips of packages
@@ -163,7 +163,7 @@ This tool is designed to run in an Azure DevOps pipeline, presumably using 1ES P
 
 The pipeline typically uses two Azure Resource Manager service connections:
 
-- **ESRP (production tenant)**: access to key vault with the ESRP auth certificate and request signing certificate (see [overview](#overview) and [ESRP resource inputs](#esrp-resources))
+- **ESRP (production tenant)**: access to the key vault containing the request signing certificate and, for certificate authentication, the ESRP auth certificate. For managed identity authentication, this service connection must use the ESRP-allowlisted identity so its federated token can be passed to the tool. (See [overview](#overview) and [ESRP resource inputs](#esrp-resources).)
 - **Staging**: access to staging blob storage (see [staging service connection](#3-create-the-service-connection) and [staging resource inputs](#staging-resources))
 
 ### Prerequisite: Internal feed setup
@@ -404,11 +404,24 @@ extends:
 
               # Fetch ESRP certificates from the production tenant key vault
               - task: AzureKeyVault@2
-                displayName: Get ESRP certificates from Key Vault
+                displayName: Get ESRP request signing certificate from Key Vault
                 inputs:
                   azureSubscription: <ESRP service connection name>
                   KeyVaultName: <key vault name>
-                  SecretsFilter: <auth cert name>,<request signing cert name>
+                  # Include <auth cert name> here when using certificate authentication.
+                  SecretsFilter: <request signing cert name>
+
+              # Managed identity authentication only: capture the federated token from the
+              # ESRP-allowlisted identity used by the service connection.
+              - task: AzureCLI@2
+                displayName: Get credentials for ESRP
+                inputs:
+                  azureSubscription: <ESRP service connection name>
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  addSpnToEnvironment: true
+                  inlineScript: |
+                    echo "##vso[task.setvariable variable=ESRP_ID_TOKEN;issecret=true]$idToken"
 
               # Run the tool (see "Tool inputs" below for details on each variable)
               - script: node '$(toolArtifactBin)'
@@ -424,11 +437,13 @@ extends:
                   STAGING_TENANT_ID: $(STAGING_TENANT_ID)
                   STAGING_ID_TOKEN: $(STAGING_ID_TOKEN)
 
-                  # ESRP credentials (certs fetched above by AzureKeyVault@2)
-                  ESRP_AUTH_CERT: $(<auth cert name>)
+                  # ESRP credentials: set exactly one of ESRP_AUTH_CERT (certificate auth)
+                  # or ESRP_ID_TOKEN (managed identity auth).
+                  # ESRP_AUTH_CERT: $(<auth cert name>)
+                  ESRP_ID_TOKEN: $(ESRP_ID_TOKEN)
                   ESRP_REQUEST_SIGNING_CERT: $(<request signing cert name>)
                   ESRP_TENANT_ID: <production tenant ID>
-                  ESRP_CLIENT_ID: <ESRP app registration client ID>
+                  ESRP_CLIENT_ID: <ESRP app registration or managed identity client ID>
 
                   # Release info (must be unique per invocation if publishing multiple times per build)
                   ESRP_PRODUCT_NAME: <friendly product name>
@@ -477,12 +492,13 @@ ESRP resources are set up per their guides. Correspondence with official `EsrpRe
 <!-- prettier-ignore -->
 | Variable | Description |
 | -------- | ----------- |
-| `ESRP_TENANT_ID` | Production tenant ID for your ESRP app registration. (`EsrpRelease` task: `domaintenantid`) |
-| `ESRP_CLIENT_ID` | Client ID for your production tenant ESRP app registration. (`EsrpRelease` task: `clientid`) |
-| `ESRP_AUTH_CERT` | Base64-encoded PFX certificate for authenticating to ESRP AAD. |
-| `ESRP_REQUEST_SIGNING_CERT` | Base64-encoded PFX certificate for signing JWS release requests. |
+| `ESRP_TENANT_ID` | Production tenant ID for your ESRP app registration or managed identity. (`EsrpRelease` task: `domaintenantid`) |
+| `ESRP_CLIENT_ID` | Client ID for your ESRP app registration or ESRP-allowlisted managed identity. (`EsrpRelease` task: `clientid`) |
+| `ESRP_AUTH_CERT` | Base64-encoded PFX certificate for authenticating to ESRP AAD. Set exactly one of this and `ESRP_ID_TOKEN`. |
+| `ESRP_ID_TOKEN` | Federated ID token for authenticating as an ESRP-allowlisted managed identity. Set exactly one of this and `ESRP_AUTH_CERT`. |
+| `ESRP_REQUEST_SIGNING_CERT` | Base64-encoded PFX certificate for signing JWS release requests. Required for both authentication methods. |
 
-The certificates are typically retrieved by a prior `AzureKeyVault` task step (as shown in the example pipeline above):
+The request signing certificate and optional auth certificate are typically retrieved by a prior `AzureKeyVault` task step (as shown in the example pipeline above):
 
 ```yml
 - task: AzureKeyVault@2
@@ -492,8 +508,23 @@ The certificates are typically retrieved by a prior `AzureKeyVault` task step (a
     azureSubscription: <ESRP service connection name>
     # Key vault name (EsrpRelease task: "keyvaultname")
     KeyVaultName: <key vault name>
-    # Cert content is loaded into secret variables (EsrpRelease task: "authcertname" and "signcertname")
+    # Cert content is loaded into secret variables (EsrpRelease task: "authcertname" and "signcertname").
+    # Omit the auth cert when using managed identity authentication.
     SecretsFilter: <auth cert name>,<request signing cert name>
+```
+
+For managed identity authentication, obtain `ESRP_ID_TOKEN` from the ESRP service connection:
+
+```yml
+- task: AzureCLI@2
+  displayName: Get credentials for ESRP
+  inputs:
+    azureSubscription: <ESRP service connection name>
+    scriptType: bash
+    scriptLocation: inlineScript
+    addSpnToEnvironment: true
+    inlineScript: |
+      echo "##vso[task.setvariable variable=ESRP_ID_TOKEN;issecret=true]$idToken"
 ```
 
 ### Staging resources
