@@ -150,6 +150,12 @@ function getRemoteUrl(params: GitAuthEnvParams): string {
   if (!url) {
     throw new BeachballError(`The git remote "${remote}" could not be resolved, so git token auth is not supported.`);
   }
+  const parsed = parseUrl(url);
+  if (!parsed || (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || !parsed.hostname) {
+    throw new BeachballError(
+      `The git remote "${remote}" resolved to a non-HTTPS URL ("${url}"), so git token auth is not supported.`
+    );
+  }
   return url;
 }
 
@@ -192,12 +198,9 @@ export function _doesHeaderApply(params: { key: string; remoteUrl: string }): bo
   // a scheme, host, port, and username (if the config URL specifies one), and the config URL's path is
   // a prefix of the remote URL's path on `/` segment boundaries. (An empty or `/` config path matches
   // any path on the same host.)
-  let config: URL;
-  let remote: URL;
-  try {
-    config = new URL(configUrl);
-    remote = new URL(remoteUrl);
-  } catch {
+  const config = parseUrl(configUrl);
+  const remote = parseUrl(remoteUrl);
+  if (!config || !remote) {
     return false;
   }
 
@@ -216,4 +219,12 @@ export function _doesHeaderApply(params: { key: string; remoteUrl: string }): bo
 
 function defaultPort(protocol: string): string {
   return protocol === 'https:' ? '443' : protocol === 'http:' ? '80' : '';
+}
+
+function parseUrl(url: string): URL | undefined {
+  try {
+    return new URL(url);
+  } catch {
+    return undefined;
+  }
 }

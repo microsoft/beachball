@@ -158,26 +158,27 @@ This sample assumes the following:
 on:
   workflow_dispatch:
 
-environment: release
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      # Required for trusted publishing
+      id-token: write
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
 
-permissions:
-  # Required for trusted publishing
-  id-token: write
+      # ... Other steps to prepare for publishing (install, build, test, etc) ...
 
-steps:
-  - name: Check out code
-    uses: actions/checkout@v6
-
-  # ... Other steps to prepare for publishing (install, build, test, etc) ...
-
-  - name: Publish
-    run: |
-      git config user.name "someone"
-      git config user.email "someone@example.com"
-      npm run release
-    env:
-      # No npm token needed with trusted publishing
-      BEACHBALL_GIT_TOKEN: ${{ secrets.REPO_PAT }}
+      - name: Publish
+        run: |
+          git config user.name "someone"
+          git config user.email "someone@example.com"
+          npm run release
+        env:
+          # No npm token needed with trusted publishing
+          BEACHBALL_GIT_TOKEN: ${{ secrets.REPO_PAT }}
 ```
 
 ### GitHub repo + Azure Pipelines

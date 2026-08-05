@@ -79,6 +79,14 @@ describe('getGitAuthEnv', () => {
     expect(() => getGitAuthEnv({ ...common, remote: '' })).toThrow(BeachballError);
   });
 
+  it('throws for an SSH remote', () => {
+    // http.extraheader has no effect on SSH transports, so a token would silently do nothing.
+    setupGitMock({ remoteUrl: 'git@github.com:org/repo.git' });
+    expect(() => getGitAuthEnv({ ...common, remote: 'origin1' })).toThrow('non-HTTPS URL');
+    setupGitMock({ remoteUrl: 'ssh://git@github.com/org/repo.git' });
+    expect(() => getGitAuthEnv({ ...common, remote: 'origin2' })).toThrow('non-HTTPS URL');
+  });
+
   it('resolves the remote URL and reads existing extraheaders via --get-regexp', () => {
     setupGitMock({ remoteUrl });
     getGitAuthEnv({ ...common });
