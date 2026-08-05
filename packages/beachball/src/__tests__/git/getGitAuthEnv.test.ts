@@ -188,6 +188,17 @@ describe('getGitAuthEnv', () => {
     expect(JSON.stringify(result)).not.toContain('X-Other');
   });
 
+  it('ignores a header scoped to a different username on the same host', () => {
+    // Git only applies a user-scoped config URL to targets with the same user; our remote URL has no
+    // user, so this header would not be sent to it and must not be re-added under the remote key.
+    setupGitMock({ remoteUrl, configEntries: ['http.https://user@github.com/.extraheader X-User: value'] });
+    const result = getGitAuthEnv({ ...common })!;
+
+    const entries = getConfigEntries(result);
+    expect(entries).toHaveLength(2);
+    expect(JSON.stringify(result)).not.toContain('X-User');
+  });
+
   it('parses values containing spaces and treats auth detection case-insensitively', () => {
     setupGitMock({
       remoteUrl,

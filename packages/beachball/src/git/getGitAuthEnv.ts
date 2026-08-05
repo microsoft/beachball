@@ -189,8 +189,9 @@ export function _doesHeaderApply(params: { key: string; remoteUrl: string }): bo
   }
 
   // Approximate git's `http.<url>.*` URL matching: the config URL matches the remote URL if they share
-  // a scheme, host, and port, and the config URL's path is a prefix of the remote URL's path on `/`
-  // segment boundaries. (An empty or `/` config path matches any path on the same host.)
+  // a scheme, host, port, and username (if the config URL specifies one), and the config URL's path is
+  // a prefix of the remote URL's path on `/` segment boundaries. (An empty or `/` config path matches
+  // any path on the same host.)
   let config: URL;
   let remote: URL;
   try {
@@ -202,6 +203,8 @@ export function _doesHeaderApply(params: { key: string; remoteUrl: string }): bo
 
   if (config.protocol !== remote.protocol) return false;
   if (config.hostname.toLowerCase() !== remote.hostname.toLowerCase()) return false;
+  // Git only applies a user-scoped config URL (e.g. `http://user@host/`) to targets with the same user.
+  if (config.username && config.username !== remote.username) return false;
 
   const configPort = config.port || defaultPort(config.protocol);
   const remotePort = remote.port || defaultPort(remote.protocol);
