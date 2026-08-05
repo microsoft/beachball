@@ -126,17 +126,18 @@ describe('gitFetch', () => {
   });
 
   it('computes and merges the auth env over process.env when a gitToken is provided', () => {
-    // Return the real remote URL for `git remote get-url`; no-op everything else (incl. the fetch)
+    // Token auth requires an https remote (the real remote in these tests is a local path)
+    const httpsRemote = 'https://github.com/microsoft/beachball';
     gitOverride = (args): GitProcessOutput =>
       args[0] === 'remote' && args[1] === 'get-url'
-        ? ({ success: true, stdout: realRemoteUrl, stderr: '', status: 0 } as GitProcessOutput)
+        ? ({ success: true, stdout: httpsRemote, stderr: '', status: 0 } as GitProcessOutput)
         : noOpSuccess();
     gitFetch({ ...commonOptions, cwd: repo.rootPath, gitToken: 'my-token' });
 
     const passedEnv = gitSpy.mock.calls.find(call => call[0][0] === 'fetch')?.[1]?.env;
     expect(passedEnv).toMatchObject({
       // Auth env keys are present, scoped to the actual remote URL...
-      GIT_CONFIG_KEY_0: `http.${realRemoteUrl}.extraheader`,
+      GIT_CONFIG_KEY_0: `http.${httpsRemote}.extraheader`,
       GIT_CONFIG_VALUE_0: '',
       GIT_TRACE: '0',
       // ...and process.env is preserved (spawnSync replaces the whole env otherwise)

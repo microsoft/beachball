@@ -20,6 +20,7 @@ describe('ensureSharedHistory', () => {
   const logs = initMockLogs();
   const testBranch = 'test';
   const defaultRefSpec = `+refs/heads/${defaultBranchName}:refs/remotes/${defaultRemoteBranchName}`;
+  const gitResult = { success: true, stdout: '', stderr: '', status: 0 } as workspaceTools.GitProcessOutput;
 
   const realGit = jest.requireActual<typeof workspaceTools>('workspace-tools').git;
   /**
@@ -90,6 +91,18 @@ describe('ensureSharedHistory', () => {
   it('passes the git auth env to fetch when a gitToken is provided', () => {
     const repo = repositoryFactory.cloneRepository();
     repo.checkout(testBranch);
+
+    // Token auth only works against an https remote, so simulate one for `git remote get-url` and
+    // no-op the fetch itself (its real behavior is covered by the test above). All other git calls
+    // (rev-parse/merge-base/config) run for real against the local clone.
+    const remoteUrl = 'https://github.com/microsoft/beachball';
+    const remoteKey = `http.${remoteUrl}.extraheader`;
+    gitOverride = (args, opts) =>
+      args[0] === 'remote' && args[1] === 'get-url'
+        ? { ...gitResult, stdout: remoteUrl }
+        : args[0] === 'fetch'
+          ? { ...gitResult }
+          : realGit(args, opts);
     gitSpy.mockClear();
 
     ensureSharedHistory({
@@ -99,10 +112,6 @@ describe('ensureSharedHistory', () => {
       fetch: true,
       gitToken: 'my-token',
     });
-
-    // The auth header is scoped to the remote's actual URL
-    const remoteUrl = repo.git(['remote', 'get-url', 'origin']).stdout.trim();
-    const remoteKey = `http.${remoteUrl}.extraheader`;
 
     // The auth env is read via `git config --get-regexp` and passed to the fetch
     expect(filteredGitCalls()).toContain('config --get-regexp .*\\.extraheader');
@@ -169,8 +178,7 @@ describe('ensureSharedHistory', () => {
     gitSpy.mockClear();
 
     // this simulates a network error or something
-    gitOverride = (...args) =>
-      args[0][0] === 'fetch' ? ({ success: false } as workspaceTools.GitProcessOutput) : realGit(...args);
+    gitOverride = (...args) => (args[0][0] === 'fetch' ? { ...gitResult, success: false } : realGit(...args));
 
     expect(() =>
       ensureSharedHistory({ path: repo.rootPath, verbose: true, branch: defaultRemoteBranchName, fetch: true })

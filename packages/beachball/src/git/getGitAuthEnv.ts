@@ -151,9 +151,14 @@ function getRemoteUrl(params: GitAuthEnvParams): string {
     throw new BeachballError(`The git remote "${remote}" could not be resolved, so git token auth is not supported.`);
   }
   const parsed = parseUrl(url);
-  if (!parsed || (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || !parsed.hostname) {
+  const isHttps = parsed?.protocol === 'https:';
+  // Plaintext http is only allowed for localhost/loopback hosts (used by certain tests).
+  // A token must never be sent in plaintext to a real remote server.
+  const isLoopback =
+    parsed?.protocol === 'http:' && ['localhost', '127.0.0.1', '::1', '[::1]'].includes(parsed.hostname);
+  if (!parsed || !parsed.hostname || !(isHttps || isLoopback)) {
     throw new BeachballError(
-      `The git remote "${remote}" resolved to a non-HTTPS URL ("${url}"), so git token auth is not supported.`
+      `The git remote "${remote}" resolved to a non-HTTPS URL "${url}", so git token auth (BEACHBALL_GIT_TOKEN) is not supported.`
     );
   }
   return url;

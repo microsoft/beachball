@@ -79,12 +79,21 @@ describe('getGitAuthEnv', () => {
     expect(() => getGitAuthEnv({ ...common, remote: '' })).toThrow(BeachballError);
   });
 
-  it('throws for an SSH remote', () => {
-    // http.extraheader has no effect on SSH transports, so a token would silently do nothing.
+  it('throws for a remote that is not HTTPS or localhost', () => {
+    // http.extraheader only affects http(s) transports, and a token must never be sent in plaintext to a
+    // real server, so SSH and non-localhost/loopback http remotes are rejected.
     setupGitMock({ remoteUrl: 'git@github.com:org/repo.git' });
-    expect(() => getGitAuthEnv({ ...common, remote: 'origin1' })).toThrow('non-HTTPS URL');
+    expect(() => getGitAuthEnv({ ...common, remote: 'origin1' })).toThrow('non-HTTPS URL "git@');
     setupGitMock({ remoteUrl: 'ssh://git@github.com/org/repo.git' });
-    expect(() => getGitAuthEnv({ ...common, remote: 'origin2' })).toThrow('non-HTTPS URL');
+    expect(() => getGitAuthEnv({ ...common, remote: 'origin2' })).toThrow('non-HTTPS URL "ssh:');
+    setupGitMock({ remoteUrl: 'http://github.com/repo' });
+    expect(() => getGitAuthEnv({ ...common, remote: 'origin3' })).toThrow('non-HTTPS URL "http:');
+  });
+
+  it('allows a loopback http remote (for local testing)', () => {
+    setupGitMock({ remoteUrl: 'http://127.0.0.1:5000/repo.git' });
+    const result = getGitAuthEnv({ ...common })!;
+    expect(result.GIT_CONFIG_KEY_0).toBe('http.http://127.0.0.1:5000/repo.git.extraheader');
   });
 
   it('resolves the remote URL and reads existing extraheaders via --get-regexp', () => {
