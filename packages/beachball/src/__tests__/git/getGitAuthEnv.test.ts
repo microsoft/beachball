@@ -108,8 +108,14 @@ describe('getGitAuthEnv', () => {
     setupGitMock({ remoteUrl });
     getGitAuthEnv({ ...common, operation: 'push' });
 
-    // `get-url --push` returns remote.<name>.pushurl when set, so the header is scoped correctly for push
-    expect(mockGit).toHaveBeenCalledWith(['remote', 'get-url', '--push', common.remote], { cwd });
+    // `get-url --push --all` returns the remote.<name>.pushurl values when set, so the header is scoped
+    // correctly for push (and multiple push URLs can be detected).
+    expect(mockGit).toHaveBeenCalledWith(['remote', 'get-url', '--push', '--all', common.remote], { cwd });
+  });
+
+  it('throws for multiple push URLs (only one destination could be authenticated)', () => {
+    setupGitMock({ remoteUrl: `${remoteUrl}\nhttps://gitlab.com/org/repo.git` });
+    expect(() => getGitAuthEnv({ ...common, operation: 'push' })).toThrow('multiple push URLs');
   });
 
   it('scopes the header to the remote URL and adds Basic auth when there is no existing config', () => {

@@ -141,15 +141,27 @@ export function getTokenFromAuthHeader(value: string | undefined): string {
  */
 function getRemoteUrl(params: GitAuthEnvParams): string {
   const { remote, path: cwd, operation } = params;
+  const notSupportedStr = `so automatic git token auth (BEACHBALL_GIT_TOKEN) is not supported.`;
+
   if (!remote) {
     // should never happen in real publishing scenarios
-    throw new BeachballError('No git remote could be resolved, so git token auth is not supported.');
+    throw new BeachballError(`No git remote could be resolved, ${notSupportedStr}`);
   }
-  const result = git(['remote', 'get-url', ...(operation === 'push' ? ['--push'] : []), remote], { cwd });
-  const url = result.success ? result.stdout.trim() : '';
-  if (!url) {
-    throw new BeachballError(`The git remote "${remote}" could not be resolved, so git token auth is not supported.`);
+  // For push, use `--all` to detect multiple push URLs
+  const result = git(['remote', 'get-url', ...(operation === 'push' ? ['--push', '--all'] : []), remote], { cwd });
+  const urls = result.success
+    ? result.stdout
+        .split('\n')
+        .map(u => u.trim())
+        .filter(Boolean)
+    : [];
+  if (urls.length === 0) {
+    throw new BeachballError(`The git remote "${remote}" could not be resolved, ${notSupportedStr}`);
   }
+  if (urls.length > 1) {
+    throw new BeachballError(`The git remote "${remote}" has multiple push URLs, ${notSupportedStr}`);
+  }
+  const url = urls[0];
   const parsed = parseUrl(url);
   const isHttps = parsed?.protocol === 'https:';
   // Plaintext http is only allowed for localhost/loopback hosts (used by certain tests).
@@ -157,9 +169,7 @@ function getRemoteUrl(params: GitAuthEnvParams): string {
   const isLoopback =
     parsed?.protocol === 'http:' && ['localhost', '127.0.0.1', '::1', '[::1]'].includes(parsed.hostname);
   if (!parsed || !parsed.hostname || !(isHttps || isLoopback)) {
-    throw new BeachballError(
-      `The git remote "${remote}" resolved to a non-HTTPS URL "${url}", so git token auth (BEACHBALL_GIT_TOKEN) is not supported.`
-    );
+    throw new BeachballError(`The git remote "${remote}" resolved to a non-HTTPS URL "${url}", ${notSupportedStr}`);
   }
   return url;
 }

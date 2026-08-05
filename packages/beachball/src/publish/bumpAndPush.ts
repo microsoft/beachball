@@ -38,6 +38,12 @@ export async function bumpAndPush(
   let completed = false;
   let tryNumber = 0;
 
+  // If BEACHBALL_GIT_TOKEN was provided, build the env used to authenticate the git push upfront
+  // so any configuration error (e.g. an unsupported push URL) is surfaced before any mutation.
+  // (Realistically it should have already been calculated and errored unless fetching is disabled.)
+  // DO NOT log this value since it contains the encoded token.
+  const authEnv = getGitAuthEnv({ ...options, remote, env: process.env, operation: 'push' });
+
   /** Log a warning which includes the attempt number */
   const logRetryWarning = (text: string, details = '(see above for details)') =>
     console.warn(`[WARN ${tryNumber}/${bumpPushRetries}]: ${text} ${details}`);
@@ -82,10 +88,6 @@ export async function bumpAndPush(
 
     // push
     console.log(`\nPushing to ${branch}...`);
-
-    // If BEACHBALL_GIT_TOKEN was provided, build the env used to authenticate the git push (with caching).
-    // DO NOT log this value since it contains the encoded token.
-    const authEnv = getGitAuthEnv({ ...options, remote, env: process.env, operation: 'push' });
 
     const pushResult = await gitAsync(
       ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`],
