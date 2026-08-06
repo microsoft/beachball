@@ -452,6 +452,10 @@ Append one of the following stages under `extends.parameters.stages`.
 
 <details><summary><b>2b. Publish stage using managed identity</b></summary>
 
+> Note: id tokens have a lifetime on the order of 1 hour. Because the esrp-npm-release script has no way to refresh this token,
+> if publishing packages takes more than 1 hour, this process may fail. Retrying the pipeline stage is safe and will start where
+> the previous attempt left off.
+
 ```yml
 - stage: publish
   displayName: Publish
