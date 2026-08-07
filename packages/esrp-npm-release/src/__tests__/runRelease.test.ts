@@ -61,11 +61,13 @@ describe('runRelease', () => {
 
     // Build a fake "packed packages" directory containing the requested layers.
     // Each layer is a numbered subdirectory (e.g. "0", "1") with empty `.tgz` files inside.
+    const packedPath = path.join(temp, 'packed');
+    fs.mkdirSync(packedPath, { recursive: true });
     const packedDir = createTestFileStructure(
       Object.fromEntries(
         Object.entries(layers).flatMap(([layerName, files]) => files.map(file => [`${layerName}/${file}`, '']))
       ),
-      { tempDir: path.join(temp, 'packed') }
+      { tempDir: packedPath }
     );
 
     const env = createMockEnv();
