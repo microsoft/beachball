@@ -1610,6 +1610,7 @@ __metadata:
   resolution: "@microsoft/m365-renovate-config@workspace:renovate"
   dependencies:
     "@microsoft/beachball-scripts": "workspace:^"
+    "@microsoft/beachball-test-utilities": "workspace:^"
     "@types/jju": "npm:^1.4.2"
     "@types/semver": "catalog:dev"
     cross-env: "catalog:dev"

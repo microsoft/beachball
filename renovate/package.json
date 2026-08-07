@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@microsoft/beachball-scripts": "workspace:^",
+    "@microsoft/beachball-test-utilities": "workspace:^",
     "@types/jju": "^1.4.2",
     "@types/semver": "catalog:dev",
     "cross-env": "catalog:dev",
