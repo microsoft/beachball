@@ -179,14 +179,6 @@ export const optionDefinitions: Record<
     },
   }),
 
-  // Package filtering (primary for `sync`, secondary elsewhere)
-  scope: {
-    commands: [...defaultCommands, 'sync'],
-    group: cmd => (cmd === 'sync' ? 'primary' : 'filtering'),
-    type: 'array',
-    desc: 'only consider package paths matching the pattern(s) (supports "!negations")',
-  },
-
   // Change file content options (primary for the `change` command, ordered by likelihood of use)
   message: {
     short: 'm',
@@ -206,10 +198,20 @@ export const optionDefinitions: Record<
   package: {
     type: 'array',
     short: 'p',
-    commands: ['change'],
-    group: 'primary',
+    commands: ['change', 'config get'],
+    group: cmd => (cmd === 'change' ? 'primary' : 'filtering'),
     conflicts: ['all'],
-    desc: 'force creating change file(s) for the specified package(s), regardless of diffs',
+    desc: cmd =>
+      cmd === 'change'
+        ? 'force creating change file(s) for the specified package(s), regardless of diffs'
+        : 'get config for the specified package(s)',
+  },
+  // Package filtering (primary for `sync`, secondary elsewhere)
+  scope: {
+    commands: [...defaultCommands, 'sync', 'config get', 'config list'],
+    group: cmd => (cmd === 'sync' ? 'primary' : 'filtering'),
+    type: 'array',
+    desc: 'only consider package paths matching the pattern(s) (supports "!negations")',
   },
   all: {
     commands: ['change', 'canary'],

@@ -7,20 +7,19 @@ metadata:
   source: https://github.com/microsoft/beachball/blob/main/skills/beachball-change-file/SKILL.md
 ---
 
-[Beachball](https://microsoft.github.io/beachball/) is a tool used for managing versioning and changelogs for JS/TS codebases. Every pull request must include a Beachball change file. Change files include the list of packages with public-facing changes in the branch, with the description and semver change type for each package. After the PR is checked in and a release is run, the change files are used to determine version bumps and update changelogs.
+[Beachball](https://microsoft.github.io/beachball/) is a tool used for managing versioning and changelogs for JS/TS codebases. Before creating a pull request, you must check if it requires a Beachball change file. Change files include the list of packages with public-facing changes in the branch, with the description and semver change type for each package. After the PR is checked in and a release is run, the change files are used to determine version bumps and update changelogs.
 
 Beachball normally uses a CLI with an interactive prompt to create change files, but they can also be created manually using the standardized JSON format detailed below.
 
 ## Prerequisites
 
 - Determine the root directory: this is almost always the git root, but the user might specify a different folder. (The root usually contains `beachball.config.*` or `.beachballrc.*` or has a `"beachball"` key in `package.json`.)
-- Determine the package manager for the repo (`npm`, `yarn`, `pnpm`). The example commands below assume `yarn`, but substitute the appropriate command runner syntax for a different package manager.
-- Check the root `package.json` `scripts` for scripts that run `beachball change` and `beachball check`.
-  - The examples below assume `scripts` called `change` and `checkchange` respectively, but substitute the appropriate script names if found.
-  - Using `scripts` if defined is preferred since they may add extra arguments, but it's possible to run the commands directly: `yarn beachball change` and `yarn beachball check` (substituting appropriate command runner)
-- Use `beachball config get` to check the following settings (note: `beachball config get` only exists in versions `>= 2.64.0`)
-  - `yarn beachball config get changeDir`: where to put the change files
-  - `yarn beachball config get branch`: target branch name
+- Determine the package manager for the repo (`npm`, `yarn`, `pnpm`). The example commands below assume `yarn`, but substitute as appropriate.
+- Check the root `package.json` `scripts` for a script that runs `beachball check`.
+  - The examples below assume the name `change:check` (substitute as appropriate).
+  - Using `scripts` if defined is preferred since they may add extra arguments, but it's possible to run the command directly: e.g. `yarn beachball check`.
+- Use `beachball config get` to check the following settings:
+  - `yarn beachball config get changeDir`: where to put the change files (default: `change/`)
   - `yarn beachball config get groupChanges`: whether grouped change files are enabled (true/false/undefined)
 
 ## Creating and validating a change file
@@ -36,7 +35,7 @@ Beachball only considers staged and committed files, so you should check for uns
 
 ### 2. Get changed packages
 
-Run `yarn checkchange --verbose` to get the list of changed packages and files considered by `beachball`:
+Run `yarn change:check --verbose` to get the list of changed packages and files considered by `beachball`:
 
 - The list of changed packages is under "Found changes in the following packages" -- you must ONLY include these packages in the change file! (beachball has various settings to ignore packages or files)
 - The list of changed files is under "changed files in current branch". IGNORE any files with `~~` strikethrough formatting.
@@ -46,8 +45,6 @@ DO NOT manually check for existing change files.
 ### 3. Create the change file(s)
 
 Change files are located under `<changeDir>`. There are two possible structures for change files, determined by the `groupChanges` setting.
-
-When checking diffs to generate change files, DO NOT merge with the target branch; just use the local merge-base.
 
 #### Case 1: Non-grouped format (`groupChanges` is `false` or unset)
 
@@ -91,7 +88,7 @@ If `groupChanges` is `true`, you should create a single change file.
 
 ### 4. Validate the change file(s)
 
-Run `git add <changeDir>`, then re-run `yarn checkchange` to verify.
+Run `git add <changeDir>`, then re-run `yarn change:check` to verify.
 
 ## Change entry values
 
@@ -107,7 +104,7 @@ Each package's entry has the following values:
 
 ### Determining a package's change type
 
-The `type` field is the semantic versioning change type for the package, determined based on the diff content of changed files in that package. There are different options depending on whether the package's current version contains a prerelease suffix or not, and the `disallowedChangeTypes` setting may modify which change types are allowed.
+The `type` field is the semantic versioning change type for the package, determined based on the diff content of changed files in that package. There are different options depending on the `disallowedChangeTypes` setting, and whether the package's current version contains a prerelease suffix or not.
 
 If you're still uncertain about the change type after following the instructions below, ask the user to choose.
 
@@ -115,6 +112,7 @@ For each package, start by checking:
 
 - The current `version` in `package.json`
 - `disallowedChangeTypes` for the specific package: `yarn beachball config get disallowedChangeTypes --package <packageName>`
+- Diff of changes in this package. (When checking diffs, DO NOT merge with the target branch; just use the local merge-base.)
 - Whether the package has a file `<package path>/etc/*.api.md`. If so, the diff of this file will show whether any public API signatures changed.
 
 #### Case 1: Version is 1.0.0 or greater and NOT prerelease
