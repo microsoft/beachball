@@ -4,6 +4,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { removeTempDir, tmpdir } from './tmpdir';
+import { findPackageRoot } from 'workspace-tools';
 
 const verdaccioUser = {
   name: 'fake',
@@ -149,7 +150,13 @@ export class Registry {
       };
 
       try {
-        const verdaccioBin = require.resolve('verdaccio/bin/verdaccio');
+        // verdaccio has an exports map, so we can't resolve verdaccio/bin/verdaccio directly
+        const verdaccioEntry = require.resolve('verdaccio');
+        const verdaccioRoot = findPackageRoot(verdaccioEntry);
+        if (!verdaccioRoot) {
+          throw new Error(`Could not find verdaccio package root for ${verdaccioEntry}`);
+        }
+        const verdaccioBin = require.resolve(path.join(verdaccioRoot, 'bin/verdaccio'));
         this.server = fork(verdaccioBin, ['--listen', String(port), '--config', `./${configName}`], {
           cwd: this.tempRoot,
           stdio: 'pipe',
