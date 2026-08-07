@@ -204,8 +204,8 @@ describe('configGet', () => {
 
         Group overrides:
           my-group:
-            disallowedChangeTypes: ["major"]
-            packageNames: ["pkg-a", "pkg-b"]"
+            Packages in group: ["pkg-a", "pkg-b"]
+            disallowedChangeTypes: ["major"]"
       `);
     });
 

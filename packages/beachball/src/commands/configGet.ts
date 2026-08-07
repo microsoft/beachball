@@ -181,8 +181,8 @@ function printDefault(name: string, options: BeachballOptions, context: BasicCom
     for (const group of options.groups) {
       if (group[groupKey] !== undefined) {
         groupOverrides[group.name] = {
+          'Packages in group': packageGroups[group.name]?.packageNames,
           [groupKey]: group[groupKey],
-          packageNames: packageGroups[group.name]?.packageNames,
         };
       }
     }
