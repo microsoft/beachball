@@ -191,28 +191,36 @@ Common options:
 exports[`getCliOptions shows "config get" command help text 1`] = `
 "Usage: beachball config get [options] <name>
 
-Get the value of a config setting (with any overrides).
+Get the value of a config setting (including any group or package overrides).
 
 Most options can also be specified in the beachball config (command line options override the
 config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 Arguments:
-  name                  beachball config setting name
+  name                      beachball config setting name
+
+Package filtering options:
+  -p, --package <value...>  get config for the specified package(s)
+  --scope <value...>        only consider package paths matching the pattern(s) (supports
+                              "!negations")
 
 Common options:
-  -c, --config <value>  custom beachball config path (default: cosmiconfig-like paths)
-  --[no-]verbose        print additional information to the console
-  -h, --help            display help for command
+  -c, --config <value>      custom beachball config path (default: cosmiconfig-like paths)
+  --[no-]verbose            print additional information to the console
+  -h, --help                display help for command
 "
 `;
 
 exports[`getCliOptions shows "config list" command help text 1`] = `
 "Usage: beachball config list [options]
 
-List all config settings (with any overrides).
+List all config settings (including any group or package overrides).
 
 Most options can also be specified in the beachball config (command line options override the
 config). See https://microsoft.github.io/beachball/overview/configuration for more info.
+
+Package filtering options:
+  --scope <value...>    only consider package paths matching the pattern(s) (supports "!negations")
 
 Common options:
   -c, --config <value>  custom beachball config path (default: cosmiconfig-like paths)
@@ -230,8 +238,8 @@ Most options can also be specified in the beachball config (command line options
 config). See https://microsoft.github.io/beachball/overview/configuration for more info.
 
 Commands:
-  get <name>            Get the value of a config setting (with any overrides)
-  list                  List all config settings (with any overrides)
+  get <name>            Get the value of a config setting (including any group or package overrides)
+  list                  List all config settings (including any group or package overrides)
   help [command]        display help for command
 
 Common options:

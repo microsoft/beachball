@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Clarify skill workflow based on AI feedback",
+  "packageName": "@microsoft/beachball-change-file-skill",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

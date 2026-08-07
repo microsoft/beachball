@@ -44,10 +44,10 @@ export const commandDefinitions: Record<MainCommandName, CommandDefinition> = {
     desc: 'Get or list config settings (requires a sub-command)',
     subcommands: {
       get: {
-        desc: 'Get the value of a config setting (with any overrides)',
+        desc: 'Get the value of a config setting (including any group or package overrides)',
         args: { '<name>': 'beachball config setting name' },
       },
-      list: { desc: 'List all config settings (with any overrides)' },
+      list: { desc: 'List all config settings (including any group or package overrides)' },
     },
   },
   migrate: { desc: 'Help to migrate from beachball v2' },
