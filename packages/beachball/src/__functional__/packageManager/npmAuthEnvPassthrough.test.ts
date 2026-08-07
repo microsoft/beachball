@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { tmpdir, removeTempDir } from '../../__fixtures__/tmpdir';
+import { initMockLogs, removeTempDir, tmpdir } from '@microsoft/beachball-test-utilities';
 import fs from 'node:fs';
 import path from 'node:path';
 import { checkNpmAuthEnvPassthrough, filterPathForNpm } from '../../packageManager/npmAuthEnvPassthrough';

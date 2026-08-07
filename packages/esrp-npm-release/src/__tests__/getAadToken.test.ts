@@ -1,5 +1,6 @@
 import type { AuthenticationResult, ConfidentialClientApplication, NodeAuthOptions } from '@azure/msal-node';
 import { beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { expectError } from '@microsoft/beachball-test-utilities';
 import { MockLogger } from '../__fixtures__/MockLogger.ts';
 import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
 import type { GetAadTokenParams } from '../auth/getAadToken.ts';
@@ -111,14 +112,11 @@ describe('getAadToken', () => {
     });
 
     it('wraps PFX-parsing errors with a "parsing cert info" ReleaseError', async () => {
-      const err = await getAadToken({
-        ...baseParams,
-        auth: { certPfxContent: 'not-a-real-pfx' },
-        logger,
-      }).catch(e => e as unknown);
-
-      expect(err).toBeInstanceOf(ReleaseError);
-      expect((err as ReleaseError).message).toContain('Error parsing cert info to acquire token');
+      await expectError(
+        () => getAadToken({ ...baseParams, auth: { certPfxContent: 'not-a-real-pfx' }, logger }),
+        ReleaseError,
+        'Error parsing cert info to acquire token'
+      );
       expect(acquireTokenByClientCredential).not.toHaveBeenCalled();
     });
   });
@@ -128,39 +126,32 @@ describe('getAadToken', () => {
       const originalError = new Error('oh no');
       acquireTokenByClientCredential.mockRejectedValue(originalError);
 
-      const err = await getAadToken({
-        ...baseParams,
-        auth: { idToken: 'tok' },
-        logger,
-      }).catch(e => e as unknown);
-
-      expect(err).toBeInstanceOf(ReleaseError);
-      expect((err as ReleaseError).message).toEqual(
-        `Failed to acquire token for client "client-id" in tenant "tenant-id" with scope ${JSON.stringify(scopes)}`
+      await expectError(
+        () => getAadToken({ ...baseParams, auth: { idToken: 'tok' }, logger }),
+        ReleaseError,
+        `Failed to acquire token for client "client-id" in tenant "tenant-id" with scope ${JSON.stringify(scopes)}`,
+        originalError
       );
-      expect((err as ReleaseError).cause).toBe(originalError);
     });
 
     it('throws ReleaseError when MSAL returns null (no token)', async () => {
       acquireTokenByClientCredential.mockResolvedValue(null);
 
-      const err = await getAadToken({ ...baseParams, auth: { idToken: 'tok' }, logger }).catch(e => e as unknown);
-
-      expect(err).toBeInstanceOf(ReleaseError);
-      expect((err as ReleaseError).message).toContain('no result returned');
+      await expectError(
+        () => getAadToken({ ...baseParams, auth: { idToken: 'tok' }, logger }),
+        ReleaseError,
+        'no result returned'
+      );
     });
 
     it('throws ReleaseError when MSAL returns a result without expiresOn', async () => {
       acquireTokenByClientCredential.mockResolvedValue({ accessToken: 'tok' } as AuthenticationResult);
 
-      const err = await getAadToken({
-        ...baseParams,
-        auth: { idToken: 'tok' },
-        logger,
-      }).catch(e => e as unknown);
-
-      expect(err).toBeInstanceOf(ReleaseError);
-      expect((err as ReleaseError).message).toContain('no result returned');
+      await expectError(
+        () => getAadToken({ ...baseParams, auth: { idToken: 'tok' }, logger }),
+        ReleaseError,
+        'no result returned'
+      );
     });
   });
 });

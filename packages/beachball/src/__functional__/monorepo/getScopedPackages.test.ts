@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
-import { removeTempDir } from '../../__fixtures__/tmpdir';
-import { createTestFileStructureType } from '../../__fixtures__/createTestFileStructure';
+import { removeTempDir } from '@microsoft/beachball-test-utilities';
+import { createTestFileStructureType } from '../../__fixtures__/createTestFileStructureType';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
 import type { PackageInfos } from '../../types/PackageInfo';

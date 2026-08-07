@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "@microsoft/beachball-scripts": "workspace:^",
+    "@microsoft/beachball-test-utilities": "workspace:^",
     "@types/jws": "^3.2.11",
     "@types/yazl": "^3.3.1",
     "cross-env": "catalog:dev"

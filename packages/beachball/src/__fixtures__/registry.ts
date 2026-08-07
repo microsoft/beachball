@@ -1,4 +1,4 @@
-import { removeTempDir, tmpdir } from './tmpdir';
+import { removeTempDir, tmpdir } from '@microsoft/beachball-test-utilities';
 import { ConfigBuilder } from '@verdaccio/config';
 import { fork, type ChildProcess } from 'node:child_process';
 import fs from 'node:fs';

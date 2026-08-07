@@ -1,5 +1,6 @@
 import type { BlobServiceClient } from '@azure/storage-blob';
 import { describe, expect, it } from '@jest/globals';
+import { expectError } from '@microsoft/beachball-test-utilities';
 import {
   createMockBlobServiceClient,
   createMockBlockBlobClient,
@@ -91,15 +92,12 @@ describe('ReleaseState', () => {
         throw originalError;
       });
 
-      const err = await ReleaseState.create({
-        blobServiceClient: blobServiceClient as unknown as BlobServiceClient,
-        ...params,
-      }).catch(e => e as unknown);
-      expect(err).toBeInstanceOf(ReleaseError);
-      expect((err as ReleaseError).message).toBe(
-        `Error initializing client for container "release-state" in storage account "mockaccount"`
+      await expectError(
+        () => ReleaseState.create({ blobServiceClient: blobServiceClient as unknown as BlobServiceClient, ...params }),
+        ReleaseError,
+        `Error initializing client for container "release-state" in storage account "mockaccount"`,
+        originalError
       );
-      expect((err as ReleaseError).cause).toBe(originalError);
     });
 
     it('wraps errors from createIfNotExists with ReleaseError mentioning the container and account', async () => {
@@ -107,18 +105,19 @@ describe('ReleaseState', () => {
       const originalError = new Error('synthetic createIfNotExists failure');
       containerClient.createIfNotExists.mockRejectedValue(originalError);
 
-      const err = await ReleaseState.create({
-        blobServiceClient: createMockBlobServiceClient({
-          accountName: 'myacct',
-          containerClient,
-        }) as unknown as BlobServiceClient,
-        ...params,
-      }).catch(e => e as unknown);
-      expect(err).toBeInstanceOf(ReleaseError);
-      expect((err as ReleaseError).message).toBe(
-        'Error creating or accessing container "release-state" in storage account "myacct"'
+      await expectError(
+        () =>
+          ReleaseState.create({
+            blobServiceClient: createMockBlobServiceClient({
+              accountName: 'myacct',
+              containerClient,
+            }) as unknown as BlobServiceClient,
+            ...params,
+          }),
+        ReleaseError,
+        'Error creating or accessing container "release-state" in storage account "myacct"',
+        originalError
       );
-      expect((err as ReleaseError).cause).toBe(originalError);
     });
 
     it('wraps errors from listBlobsFlat with ReleaseError mentioning the prefix', async () => {
@@ -128,15 +127,16 @@ describe('ReleaseState', () => {
         throw originalError;
       });
 
-      const err = await ReleaseState.create({
-        blobServiceClient: createMockBlobServiceClient({ containerClient }) as unknown as BlobServiceClient,
-        ...params,
-      }).catch(e => e as unknown);
-      expect(err).toBeInstanceOf(ReleaseError);
-      expect((err as ReleaseError).message).toBe(
-        'Error listing blobs with prefix "repo1/abc/prod1/" in container "release-state" in storage account "mockaccount"'
+      await expectError(
+        () =>
+          ReleaseState.create({
+            blobServiceClient: createMockBlobServiceClient({ containerClient }) as unknown as BlobServiceClient,
+            ...params,
+          }),
+        ReleaseError,
+        'Error listing blobs with prefix "repo1/abc/prod1/" in container "release-state" in storage account "mockaccount"',
+        originalError
       );
-      expect((err as ReleaseError).cause).toBe(originalError);
     });
   });
 
@@ -176,12 +176,12 @@ describe('ReleaseState', () => {
         ...params,
       });
 
-      const err = await state.markPublished('5').catch(e => e as unknown);
-      expect(err).toBeInstanceOf(ReleaseError);
-      expect((err as ReleaseError).message).toBe(
-        'Error marking layer 5 as published in persisted release state (container "release-state" in storage account "myacct")'
+      await expectError(
+        () => state.markPublished('5'),
+        ReleaseError,
+        'Error marking layer 5 as published in persisted release state (container "release-state" in storage account "myacct")',
+        originalError
       );
-      expect((err as ReleaseError).cause).toBe(originalError);
       // Did not record the layer as published since upload failed
       expect(state.hasPublished('5')).toBe(false);
     });

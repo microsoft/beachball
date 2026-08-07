@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { bumpPackageInfoVersion } from '../../bump/bumpPackageInfoVersion';
 import type { BeachballOptions } from '../../types/BeachballOptions';

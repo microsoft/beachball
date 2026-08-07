@@ -40,13 +40,7 @@ describe('BeachballCommand', () => {
     function buildAndExpectError(args: string[]) {
       const outputOptions = { writeOut: jest.fn(), writeErr: jest.fn() };
       const command = buildCommand(outputOptions);
-      let error: unknown;
-      try {
-        command.beachballParse(args, { from: 'user' });
-      } catch (err) {
-        error = err;
-      }
-      expect(error).toBeInstanceOf(CommanderError);
+      expect(() => command.beachballParse(args, { from: 'user' })).toThrow(CommanderError);
       expect(outputOptions.writeOut).not.toHaveBeenCalled();
       expect(outputOptions.writeErr).toHaveBeenCalledTimes(1);
       return (outputOptions.writeErr.mock.calls[0][0] as string).trim();
@@ -201,13 +195,7 @@ describe('BeachballCommand', () => {
         options: testOptions,
         outputOptions,
       });
-      let error: unknown;
-      try {
-        program.beachballParse(args, { from: 'user' });
-      } catch (err) {
-        error = err;
-      }
-      expect(error).toBeInstanceOf(CommanderError);
+      expect(() => program.beachballParse(args, { from: 'user' })).toThrow(CommanderError);
       expect(outputOptions.writeOut).not.toHaveBeenCalled();
       expect(outputOptions.writeErr).toHaveBeenCalledTimes(1);
       return (outputOptions.writeErr.mock.calls[0][0] as string).trim();

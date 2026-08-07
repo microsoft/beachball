@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/require-await -- matching async mock signatures */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import path from 'node:path';
 import type { GitProcessOutput } from 'workspace-tools';
 import * as wsTools from 'workspace-tools';

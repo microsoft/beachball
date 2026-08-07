@@ -1,6 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from '@jest/globals';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { writeJson } from '../../object/writeJson';
+import { initMockLogs, writeJson } from '@microsoft/beachball-test-utilities';
 import fs from 'node:fs';
 import semver from 'semver';
 import { fakeEmail as author, generateChangeFiles, getChange } from '../../__fixtures__/changeFiles';

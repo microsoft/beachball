@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import path from 'node:path';
 import { makePackageInfosByFolder, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
 import { getPackageGroups } from '../../monorepo/getPackageGroups';

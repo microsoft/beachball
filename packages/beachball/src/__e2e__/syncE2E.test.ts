@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { initMockLogs } from '../__fixtures__/mockLogs';
-import { removeTempDir } from '../__fixtures__/tmpdir';
+import { initMockLogs, removeTempDir } from '@microsoft/beachball-test-utilities';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import { initNpmMock } from '../__fixtures__/mockNpm';
 import type { Repository } from '../__fixtures__/repository';

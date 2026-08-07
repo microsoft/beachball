@@ -1,3 +1,5 @@
+import { expect } from '@jest/globals';
+import { readJson } from '@microsoft/beachball-test-utilities';
 import fs from 'node:fs';
 import path from 'node:path';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
@@ -83,4 +85,18 @@ export function generateChangeFiles(
 export function getChangeFiles(options: Pick<BeachballOptions, 'path' | 'changeDir'>): string[] {
   const changePath = getChangePath(options);
   return changePath && fs.existsSync(changePath) ? fs.readdirSync(changePath).map(p => path.join(changePath, p)) : [];
+}
+
+/** Read a change file and assert that it's not a grouped change file */
+export function readSingleChangeFile(changeFilePath: string): ChangeFileInfo {
+  const changeFile = readJson<ChangeFileInfo>(changeFilePath);
+  expect(changeFile).not.toHaveProperty('changes');
+  return changeFile;
+}
+
+/** Read a change file and assert that it's a grouped change file */
+export function readGroupedChangeFile(changeFilePath: string): { changes: ChangeFileInfo[] } {
+  const changeFile = readJson<{ changes: ChangeFileInfo[] }>(changeFilePath);
+  expect(changeFile).toHaveProperty('changes');
+  return changeFile;
 }

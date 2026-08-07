@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { initMockLogs } from '../__fixtures__/mockLogs';
-import { removeTempDir, tmpdir } from '../__fixtures__/tmpdir';
+import { initMockLogs, removeTempDir, tmpdir } from '@microsoft/beachball-test-utilities';
 import fs from 'node:fs';
 import path from 'node:path';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';

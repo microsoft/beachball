@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import { getBranchName, getCurrentHash } from 'workspace-tools';
 import { generateChangeFiles } from '../../__fixtures__/changeFiles';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';

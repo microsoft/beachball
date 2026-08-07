@@ -1,6 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { expectBeachballError } from '../../__fixtures__/expectBeachballError';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { expectErrorSync, initMockLogs } from '@microsoft/beachball-test-utilities';
 import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
 import { configGet } from '../../commands/configGet';
 import { getPackageGroups } from '../../monorepo/getPackageGroups';
@@ -46,25 +45,30 @@ describe('configGet', () => {
   }
 
   describe('argument validation', () => {
-    it('throws on missing subcommand', async () => {
-      await expectBeachballError(() => configGetArgs([]), 'Usage: beachball config get <setting>');
+    it('throws on missing subcommand', () => {
+      expectErrorSync(() => configGetArgs([]), BeachballError, 'Usage: beachball config get <setting>');
     });
 
-    it('throws on wrong subcommand', async () => {
-      await expectBeachballError(() => configGetArgs(['set', 'branch']), 'Usage: beachball config get <setting>');
+    it('throws on wrong subcommand', () => {
+      expectErrorSync(() => configGetArgs(['set', 'branch']), BeachballError, 'Usage: beachball config get <setting>');
     });
 
-    it('throws on too many args', async () => {
-      await expectBeachballError(() => configGetArgs(['branch', 'extra']), 'Usage: beachball config get <setting>');
+    it('throws on too many args', () => {
+      expectErrorSync(
+        () => configGetArgs(['branch', 'extra']),
+        BeachballError,
+        'Usage: beachball config get <setting>'
+      );
     });
 
-    it('throws on unknown config setting', async () => {
-      await expectBeachballError(() => configGetArgs(['nonExistent']), 'Unknown config setting: "nonExistent"');
+    it('throws on unknown config setting', () => {
+      expectErrorSync(() => configGetArgs(['nonExistent']), BeachballError, 'Unknown config setting: "nonExistent"');
     });
 
-    it('suggests similar config name on typo', async () => {
-      await expectBeachballError(
+    it('suggests similar config name on typo', () => {
+      expectErrorSync(
         () => configGetArgs(['branc']),
+        BeachballError,
         'Unknown config setting: "branc" - did you mean "branch"?'
       );
     });

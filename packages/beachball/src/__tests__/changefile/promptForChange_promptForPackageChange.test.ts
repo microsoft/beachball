@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import type prompts from 'prompts';
 import { MockStdin } from '../../__fixtures__/mockStdin';
 import { MockStdout } from '../../__fixtures__/mockStdout';
