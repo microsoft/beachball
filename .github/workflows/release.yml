@@ -49,16 +49,8 @@ jobs:
       # (temporarily add yarn release:canary when ready)
       - name: Publish packages (non-prerelease)
         run: |
-          git config user.email "kchau@microsoft.com"
-          git config user.name "Ken Chau"
-
-          # Get the existing remote URL without creds, and use a trap (like try/finally)
-          # to restore it after this step finishes
-          trap "git remote set-url origin '$(git remote get-url origin)'" EXIT
-
-          # Add a token to the remote URL for auth during release
-          git remote set-url origin "https://$REPO_PAT@github.com/$GITHUB_REPOSITORY"
-
+          git config user.email "257645319+office-ogx-auth-helper[bot]@users.noreply.github.com"
+          git config user.name "OGX bot"
           yarn release:others
         env:
-          REPO_PAT: ${{ secrets.REPO_PAT }}
+          BEACHBALL_GIT_TOKEN: ${{ secrets.REPO_PAT }}

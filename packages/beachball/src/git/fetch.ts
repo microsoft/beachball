@@ -1,7 +1,8 @@
 import { git, type GitProcessOutput } from 'workspace-tools';
 import { getGitEnv } from './gitAsync';
+import { getGitAuthEnv } from './getGitAuthEnv';
 
-type GitFetchParams = {
+export type GitFetchParams = {
   cwd: string;
   /**
    * Remote to fetch from. The config reading logic ensures this is a non-empty string (with the
@@ -22,7 +23,15 @@ type GitFetchParams = {
   deepen?: number;
   /** Convert this from a shallow clone to a full clone (mutually exclusive with `depth` and `deepen`) */
   unshallow?: true;
-  verbose?: boolean;
+  verbose: boolean | undefined;
+  /**
+   * Token to authenticate the fetch (usually from `BEACHBALL_GIT_TOKEN`). When set, an auth header is
+   * injected into the git process env, along with overrides of conflicting `.extraheader` configs.
+   * See {@link getGitAuthEnv} for details.
+   */
+  gitToken: string | undefined;
+  /** Environment override for testing. */
+  env?: NodeJS.ProcessEnv;
 };
 
 /**
@@ -34,9 +43,13 @@ type GitFetchParams = {
  * the remote branch is tracked or not in the local repository.
  */
 export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMessage?: string } {
-  const { remote, depth, deepen, unshallow, cwd, verbose } = params;
+  const { remote, depth, deepen, unshallow, cwd, verbose, gitToken, env = process.env } = params;
   const branches = Array.isArray(params.branch) ? params.branch : [params.branch];
   const { shouldLog } = getGitEnv(verbose);
+
+  // Get auth config env if relevant.
+  // Do NOT log this value since it contains the encoded token.
+  const authEnv = getGitAuthEnv({ gitToken, path: cwd, remote, env, operation: 'fetch' });
 
   if ([depth, deepen, unshallow].filter(v => v !== undefined).length > 1) {
     throw new Error('"depth", "deepen", and "unshallow" are mutually exclusive');
@@ -66,6 +79,8 @@ export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMess
   const result: ReturnType<typeof gitFetch> = git(['fetch', '--no-tags', ...extraArgs, remote, ...resolvedRefspecs], {
     cwd,
     stdio: shouldLog === 'live' ? 'inherit' : 'pipe',
+    // Include the original env since git() uses spawnSync which doesn't inherit process.env
+    ...(authEnv && { env: { ...env, ...authEnv } }),
   });
 
   const log = result.success ? console.log : console.warn;

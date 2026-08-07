@@ -3,6 +3,7 @@ import * as workspaceTools from 'workspace-tools';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { ensureSharedHistory } from '../../git/ensureSharedHistory';
+import { clearGitAuthEnvCache, getAuthHeaderValue } from '../../git/getGitAuthEnv';
 import { defaultBranchName, defaultRemoteBranchName, optsWithLang } from '../../__fixtures__/gitDefaults';
 
 // required for `jest.spyOn(workspaceTools, git)` to work
@@ -19,6 +20,7 @@ describe('ensureSharedHistory', () => {
   const logs = initMockLogs();
   const testBranch = 'test';
   const defaultRefSpec = `+refs/heads/${defaultBranchName}:refs/remotes/${defaultRemoteBranchName}`;
+  const gitResult = { success: true, stdout: '', stderr: '', status: 0 } as workspaceTools.GitProcessOutput;
 
   const realGit = jest.requireActual<typeof workspaceTools>('workspace-tools').git;
   /**
@@ -63,6 +65,7 @@ describe('ensureSharedHistory', () => {
   afterEach(() => {
     gitOverride = undefined;
     gitSpy.mockClear();
+    clearGitAuthEnvCache();
   });
 
   afterAll(() => {
@@ -83,6 +86,47 @@ describe('ensureSharedHistory', () => {
     expect(allLogs).toMatch(`Fetching branch "master" from remote "origin" (${defaultRefSpec})...`);
     expect(allLogs).toMatch('Fetching branch "master" from remote "origin" completed successfully');
     expect(allLogs).not.toMatch('warning');
+  });
+
+  it('passes the git auth env to fetch when a gitToken is provided', () => {
+    const repo = repositoryFactory.cloneRepository();
+    repo.checkout(testBranch);
+
+    // Token auth only works against an https remote, so simulate one for `git remote get-url` and
+    // no-op the fetch itself (its real behavior is covered by the test above). All other git calls
+    // (rev-parse/merge-base/config) run for real against the local clone.
+    const remoteUrl = 'https://github.com/microsoft/beachball';
+    const remoteKey = `http.${remoteUrl}.extraheader`;
+    gitOverride = (args, opts) =>
+      args[0] === 'remote' && args[1] === 'get-url'
+        ? { ...gitResult, stdout: remoteUrl }
+        : args[0] === 'fetch'
+          ? { ...gitResult }
+          : realGit(args, opts);
+    gitSpy.mockClear();
+
+    ensureSharedHistory({
+      path: repo.rootPath,
+      verbose: true,
+      branch: defaultRemoteBranchName,
+      fetch: true,
+      gitToken: 'my-token',
+    });
+
+    // The auth env is read via `git config --get-regexp` and passed to the fetch
+    expect(filteredGitCalls()).toContain('config --get-regexp .*\\.extraheader');
+    const fetchEnv = gitSpy.mock.calls.find(call => call[0][0] === 'fetch')?.[1]?.env;
+    // List is reset (empty) then our auth header added, all under the remote URL key
+    expect(fetchEnv).toMatchObject({
+      GIT_CONFIG_COUNT: '2',
+      GIT_CONFIG_KEY_0: remoteKey,
+      GIT_CONFIG_VALUE_0: '',
+      GIT_CONFIG_KEY_1: remoteKey,
+      GIT_CONFIG_VALUE_1: getAuthHeaderValue('my-token'),
+      GIT_TRACE: '0',
+    });
+    // Never place the token on argv
+    expect(filteredGitCalls().join(' ')).not.toContain('my-token');
   });
 
   it('succeeds with fetching disabled if adequate history is available', () => {
@@ -134,8 +178,7 @@ describe('ensureSharedHistory', () => {
     gitSpy.mockClear();
 
     // this simulates a network error or something
-    gitOverride = (...args) =>
-      args[0][0] === 'fetch' ? ({ success: false } as workspaceTools.GitProcessOutput) : realGit(...args);
+    gitOverride = (...args) => (args[0][0] === 'fetch' ? { ...gitResult, success: false } : realGit(...args));
 
     expect(() =>
       ensureSharedHistory({ path: repo.rootPath, verbose: true, branch: defaultRemoteBranchName, fetch: true })

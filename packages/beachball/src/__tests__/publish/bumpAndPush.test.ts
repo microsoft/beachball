@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await -- matching async mock signatures */
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import path from 'path';
 import type { GitProcessOutput } from 'workspace-tools';
 import * as wsTools from 'workspace-tools';
@@ -15,6 +15,7 @@ import { spawn as _spawn } from '../../spawn';
 import { BeachballError } from '../../types/BeachballError';
 import type { BeachballOptions } from '../../types/BeachballOptions';
 import type { BumpInfo } from '../../types/BumpInfo';
+import { clearGitAuthEnvCache, getTokenFromAuthHeader } from '../../git/getGitAuthEnv';
 
 jest.mock('workspace-tools');
 jest.mock('../../bump/performBump'); // this has a bunch of logic which is tested separately
@@ -34,6 +35,18 @@ describe('bumpAndPush', () => {
 
   function getExecaCalls() {
     return mockSpawn.mock.calls.map(([file, args]) => `${file} ${args?.join(' ')}`);
+  }
+
+  /** Get the options passed to the execa `git push` call (or undefined if push wasn't called). */
+  function getPushCallOptions() {
+    const pushCall = mockSpawn.mock.calls.find(([, args]) => args?.[0] === 'push');
+    return pushCall?.[2];
+  }
+
+  /** Get the options passed to the workspace-tools `git fetch` call (or undefined if not called). */
+  function getFetchCallOptions() {
+    const fetchCall = wsToolsMocks.git.mock.calls.find(([args]) => args[0] === 'fetch');
+    return fetchCall?.[1];
   }
 
   function getWsToolsGitCalls() {
@@ -77,9 +90,19 @@ describe('bumpAndPush', () => {
   beforeEach(() => {
     wsToolsMocks.parseRemoteBranch.mockReturnValue({ remote: 'origin', remoteBranch: 'master' });
     wsToolsMocks.revertLocalChanges.mockReturnValue(true);
-    wsToolsMocks.git.mockReturnValue(makeGitResult({ success: true }));
+    // `git remote get-url` (used to scope the auth header) must return a URL; everything else succeeds.
+    wsToolsMocks.git.mockImplementation((args: string[]) =>
+      args[0] === 'remote' && args[1] === 'get-url'
+        ? makeGitResult({ success: true, output: 'https://github.com/org/repo' })
+        : makeGitResult({ success: true })
+    );
     mockSpawn.mockImplementation(() => Promise.resolve(mockSpawnSuccess()));
     mockPerformBump.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    clearGitAuthEnvCache();
   });
 
   it('succeeds on first attempt', async () => {
@@ -102,6 +125,43 @@ describe('bumpAndPush', () => {
 
     // Beachball's logs are its UI, so snapshots are essentially "visual regression" tests
     expect(logs.getMockLines('all')).toMatchSnapshot();
+  });
+
+  it('does not add git auth env to fetch or push when gitToken is not set', async () => {
+    await callBumpAndPush();
+
+    expect(getPushCallOptions()?.env).toBeUndefined();
+    expect(getFetchCallOptions()?.env).toBeUndefined();
+    // The extraheader config read should not happen when there's no token
+    expect(getWsToolsGitCalls().join('\n')).not.toContain('extraheader');
+  });
+
+  it('injects git auth via GIT_CONFIG_* env on fetch and push when gitToken is set', async () => {
+    await callBumpAndPush({ gitToken: 'my-token' });
+
+    const pushEnv = getPushCallOptions()?.env as NodeJS.ProcessEnv;
+    expect(pushEnv).toBeTruthy();
+    // The list is reset (empty value) then our auth header is added, all under the remote URL key
+    const remoteKey = 'http.https://github.com/org/repo.extraheader';
+    expect(pushEnv.GIT_CONFIG_COUNT).toBe('2');
+    expect(pushEnv.GIT_CONFIG_KEY_0).toBe(remoteKey);
+    expect(pushEnv.GIT_CONFIG_VALUE_0).toBe('');
+    expect(pushEnv.GIT_CONFIG_KEY_1).toBe(remoteKey);
+
+    expect(getTokenFromAuthHeader(pushEnv.GIT_CONFIG_VALUE_1)).toBe('my-token');
+
+    // Trace vars are disabled so the auth header can't leak via git tracing
+    expect(pushEnv.GIT_TRACE).toBe('0');
+
+    // Fetch should be authenticated too, with process.env merged in so PATH etc. are preserved
+    const fetchEnv = getFetchCallOptions()?.env as NodeJS.ProcessEnv;
+    expect(fetchEnv).toBeTruthy();
+    expect(fetchEnv.GIT_CONFIG_KEY_1).toBe(remoteKey);
+    expect(fetchEnv.PATH).toBe(process.env.PATH);
+
+    // The token must never appear on git's argv (push or fetch)
+    expect(getExecaCalls().join('\n')).not.toContain('my-token');
+    expect(getWsToolsGitCalls().join('\n')).not.toContain('my-token');
   });
 
   it('skips fetch when options.fetch is false', async () => {

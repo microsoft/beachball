@@ -7,6 +7,7 @@ import { displayManualRecovery } from './displayManualRecovery';
 import { gitFetch } from '../git/fetch';
 import { getRemoteBranch } from '../git/getRemoteBranch';
 import { gitAsync } from '../git/gitAsync';
+import { getGitAuthEnv } from '../git/getGitAuthEnv';
 import { BeachballError } from '../types/BeachballError';
 
 const defaultBumpPushRetries = 5;
@@ -37,6 +38,12 @@ export async function bumpAndPush(
   let completed = false;
   let tryNumber = 0;
 
+  // If BEACHBALL_GIT_TOKEN was provided, build the env used to authenticate the git push upfront
+  // so any configuration error (e.g. an unsupported push URL) is surfaced before any mutation.
+  // (Realistically it should have already been calculated and errored unless fetching is disabled.)
+  // DO NOT log this value since it contains the encoded token.
+  const authEnv = getGitAuthEnv({ ...options, remote, env: process.env, operation: 'push' });
+
   /** Log a warning which includes the attempt number */
   const logRetryWarning = (text: string, details = '(see above for details)') =>
     console.warn(`[WARN ${tryNumber}/${bumpPushRetries}]: ${text} ${details}`);
@@ -51,7 +58,7 @@ export async function bumpAndPush(
     // pull in latest from origin branch
     if (options.fetch !== false) {
       console.log();
-      const fetchResult = gitFetch({ remote, branch: remoteBranch, depth, cwd, verbose });
+      const fetchResult = gitFetch({ remote, branch: remoteBranch, depth, cwd, verbose, gitToken: options.gitToken });
       if (!fetchResult.success) {
         logRetryWarning(`Fetching from ${branch} has failed!`);
         continue;
@@ -84,7 +91,7 @@ export async function bumpAndPush(
 
     const pushResult = await gitAsync(
       ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`],
-      { cwd, verbose, timeout: gitTimeout }
+      { cwd, verbose, timeout: gitTimeout, ...(authEnv && { env: authEnv }) }
     );
     if (pushResult.success) {
       completed = true;

@@ -4,6 +4,7 @@ import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import type { Repository } from '../../__fixtures__/repository';
 import { gitFetch } from '../../git/fetch';
+import { clearGitAuthEnvCache } from '../../git/getGitAuthEnv';
 import { defaultBranchName, defaultRemoteName } from '../../__fixtures__/gitDefaults';
 import type { GitProcessOutput } from 'workspace-tools';
 
@@ -64,6 +65,20 @@ describe('gitFetch', () => {
   /** To speed things up, some tests only check the arguments and skip the git operation */
   const noOpSuccess = () => ({ success: true, stdout: '', stderr: '', status: 0 }) as GitProcessOutput;
 
+  /**
+   * Default `gitFetch` options to spread into every call. Includes the omittable-but-required
+   * `verbose`/`gitToken` fields (each defaulting to `undefined`) plus the default remote/branch;
+   * individual tests override as needed and add their own `cwd`.
+   */
+  const commonOptions = {
+    remote: defaultRemoteName,
+    branch: defaultBranchName,
+    verbose: undefined,
+    gitToken: undefined,
+  };
+  /** The git args for a default fetch (no extra options). */
+  const baseArgs = fetchArgs();
+
   beforeAll(() => {
     repositoryFactory = new RepositoryFactory('single');
     repo = repositoryFactory.cloneRepository();
@@ -73,6 +88,7 @@ describe('gitFetch', () => {
 
   afterEach(() => {
     gitOverride = undefined;
+    clearGitAuthEnvCache();
     if (modifiedRemote) {
       repo.git(['remote', 'set-url', defaultRemoteName, realRemoteUrl]);
       modifiedRemote = false;
@@ -87,27 +103,55 @@ describe('gitFetch', () => {
 
   it('throws if mutually exclusive options are specified', () => {
     const err = '"depth", "deepen", and "unshallow" are mutually exclusive';
-    const common = { cwd: '', remote: defaultRemoteName, branch: defaultBranchName };
+    const mutexParams = { ...commonOptions, cwd: '' };
     // use 0 for all of the depth/deepen values to verify it's not using falsy checks
-    expect(() => gitFetch({ ...common, depth: 0, deepen: 0 })).toThrow(err);
-    expect(() => gitFetch({ ...common, depth: 0, unshallow: true })).toThrow(err);
-    expect(() => gitFetch({ ...common, deepen: 0, unshallow: true })).toThrow(err);
-    expect(() => gitFetch({ ...common, depth: 0, deepen: 0, unshallow: true })).toThrow(err);
+    expect(() => gitFetch({ ...mutexParams, depth: 0, deepen: 0 })).toThrow(err);
+    expect(() => gitFetch({ ...mutexParams, depth: 0, unshallow: true })).toThrow(err);
+    expect(() => gitFetch({ ...mutexParams, deepen: 0, unshallow: true })).toThrow(err);
+    expect(() => gitFetch({ ...mutexParams, depth: 0, deepen: 0, unshallow: true })).toThrow(err);
     expect(gitSpy).not.toHaveBeenCalled();
   });
 
   it('fetches and does not log by default', () => {
-    const res = gitFetch({ cwd: repo.rootPath, remote: defaultRemoteName, branch: defaultBranchName });
+    const res = gitFetch({ ...commonOptions, cwd: repo.rootPath });
     expect(gitSpy).toHaveBeenCalledWith(fetchArgs(), { cwd: repo.rootPath, stdio: 'pipe' });
     expect(res).toMatchObject({ success: true });
     expect(logs.mocks.log).not.toHaveBeenCalled();
+  });
+
+  it('does not pass an env to git when no gitToken is provided', () => {
+    gitFetch({ ...commonOptions, cwd: repo.rootPath });
+    expect(gitSpy).toHaveBeenCalledWith(baseArgs, { cwd: repo.rootPath, stdio: 'pipe' });
+    expect(gitSpy.mock.calls[0][1]).not.toHaveProperty('env');
+  });
+
+  it('computes and merges the auth env over process.env when a gitToken is provided', () => {
+    // Token auth requires an https remote (the real remote in these tests is a local path)
+    const httpsRemote = 'https://github.com/microsoft/beachball';
+    gitOverride = (args): GitProcessOutput =>
+      args[0] === 'remote' && args[1] === 'get-url'
+        ? ({ success: true, stdout: httpsRemote, stderr: '', status: 0 } as GitProcessOutput)
+        : noOpSuccess();
+    gitFetch({ ...commonOptions, cwd: repo.rootPath, gitToken: 'my-token' });
+
+    const passedEnv = gitSpy.mock.calls.find(call => call[0][0] === 'fetch')?.[1]?.env;
+    expect(passedEnv).toMatchObject({
+      // Auth env keys are present, scoped to the actual remote URL...
+      GIT_CONFIG_KEY_0: `http.${httpsRemote}.extraheader`,
+      GIT_CONFIG_VALUE_0: '',
+      GIT_TRACE: '0',
+      // ...and process.env is preserved (spawnSync replaces the whole env otherwise)
+      PATH: process.env.PATH,
+    });
+    // The raw token is never placed on git's argv
+    expect(gitSpy.mock.calls.map(call => call[0].join(' ')).join(' ')).not.toContain('my-token');
   });
 
   it('returns error but does not throw or log on failure by default', () => {
     // This test uses controlled non-localized fake stdio so we can test the whole output
     gitOverride = () => ({ success: false, stdout: 'some logs', stderr: 'oh no', status: 1 }) as GitProcessOutput;
 
-    const res = gitFetch({ cwd: repo.rootPath, remote: defaultRemoteName, branch: defaultBranchName });
+    const res = gitFetch({ ...commonOptions, cwd: repo.rootPath });
     expect(res).toMatchObject({
       success: false,
       errorMessage: [`${defaultLogPrefix} failed (code 1)`, 'stdout:', 'some logs', 'stderr:', 'oh no'].join('\n'),
@@ -122,7 +166,7 @@ describe('gitFetch', () => {
     repo.git(['remote', 'set-url', defaultRemoteName, 'invalid-url']);
     modifiedRemote = true;
 
-    const res = gitFetch({ cwd: repo.rootPath, branch: defaultBranchName, remote: defaultRemoteName });
+    const res = gitFetch({ ...commonOptions, cwd: repo.rootPath });
     expect(res).toMatchObject({
       success: false,
       errorMessage: expect.stringContaining(`${defaultLogPrefix} failed (code 128)`),
@@ -136,7 +180,7 @@ describe('gitFetch', () => {
     // use predictable output
     gitOverride = () => ({ ...noOpSuccess(), stdout: 'some logs', stderr: 'some debug' });
 
-    const res = gitFetch({ cwd: repo.rootPath, verbose: true, remote: defaultRemoteName, branch: defaultBranchName });
+    const res = gitFetch({ ...commonOptions, cwd: repo.rootPath, verbose: true });
     // normally this would be called with stdio: inherit, but it's not done that way in tests
     // because process.stdout/stderr can't be mocked, so the test output would be too spammy
     expect(gitSpy).toHaveBeenCalledWith(fetchArgs(), expect.anything());
@@ -154,7 +198,7 @@ describe('gitFetch', () => {
   it('logs git output with failed fetch if verbose is true', () => {
     gitOverride = () => ({ success: false, stdout: 'some logs', stderr: 'oh no', status: 1 }) as GitProcessOutput;
 
-    const res = gitFetch({ cwd: repo.rootPath, verbose: true, remote: defaultRemoteName, branch: defaultBranchName });
+    const res = gitFetch({ ...commonOptions, cwd: repo.rootPath, verbose: true });
     expect(gitSpy).toHaveBeenCalledWith(fetchArgs(), expect.anything());
     expect(res).toMatchObject({
       success: false,
@@ -173,8 +217,8 @@ describe('gitFetch', () => {
     gitOverride = noOpSuccess;
     const otherBranch = 'feature';
     const res = gitFetch({
+      ...commonOptions,
       cwd: repo.rootPath,
-      remote: defaultRemoteName,
       branch: [defaultBranchName, otherBranch],
       verbose: true,
     });
@@ -195,7 +239,7 @@ describe('gitFetch', () => {
     // With a bare branch name like 'master' as the refspec source, git can fail to resolve it
     // on the remote and treat it as absent, pruning refs/remotes/origin/master (exit code 0).
     // Using refs/heads/ avoids this. This test runs a real fetch to catch any regression.
-    const res = gitFetch({ cwd: repo.rootPath, remote: defaultRemoteName, branch: defaultBranchName });
+    const res = gitFetch({ ...commonOptions, cwd: repo.rootPath });
     expect(res).toMatchObject({ success: true });
 
     const trackingRef = `refs/remotes/${defaultRemoteName}/${defaultBranchName}`;
@@ -217,7 +261,7 @@ describe('gitFetch', () => {
     expect(upstreamShaBefore).toBeTruthy();
 
     gitSpy.mockClear();
-    const res = gitFetch({ cwd: forkRepo.rootPath, remote: defaultRemoteName, branch: defaultBranchName });
+    const res = gitFetch({ ...commonOptions, cwd: forkRepo.rootPath });
     expect(res).toMatchObject({ success: true });
 
     // The fetch command must target only origin with the correct refspec
@@ -241,11 +285,10 @@ describe('gitFetch', () => {
   it('respects depth option', () => {
     gitOverride = noOpSuccess;
     const res = gitFetch({
+      ...commonOptions,
       cwd: repo.rootPath,
       depth: 1,
       verbose: true,
-      remote: defaultRemoteName,
-      branch: defaultBranchName,
     });
 
     expect(gitSpy).toHaveBeenCalledWith(fetchExtraArgs(['--depth=1']), expect.anything());
@@ -256,11 +299,10 @@ describe('gitFetch', () => {
   it('respects deepen option', () => {
     gitOverride = noOpSuccess;
     const res = gitFetch({
+      ...commonOptions,
       cwd: repo.rootPath,
       deepen: 1,
       verbose: true,
-      remote: defaultRemoteName,
-      branch: defaultBranchName,
     });
 
     expect(gitSpy).toHaveBeenCalledWith(fetchExtraArgs(['--deepen=1']), expect.anything());
@@ -271,11 +313,10 @@ describe('gitFetch', () => {
   it('respects unshallow option', () => {
     gitOverride = noOpSuccess;
     const res = gitFetch({
+      ...commonOptions,
       cwd: repo.rootPath,
       unshallow: true,
       verbose: true,
-      remote: defaultRemoteName,
-      branch: defaultBranchName,
     });
 
     expect(gitSpy).toHaveBeenCalledWith(fetchExtraArgs(['--unshallow']), expect.anything());

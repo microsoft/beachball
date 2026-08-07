@@ -57,7 +57,7 @@ In v2, Beachball defaulted `registry` to `https://registry.npmjs.org/` and `acce
 In v3, Beachball no longer sets its own defaults for either option:
 
 - `registry` now uses whatever registry `npm` is configured to use.
-  - **Temporary exception:** Due to unfinished features, if you're explicitly providing `NPM_TOKEN` or `--token`, you must explicitly provide `registry`.
+  - **Temporary exception:** Due to unfinished features, if you're explicitly providing `BEACHBALL_NPM_TOKEN` or `--token`, you must explicitly provide `registry`.
 - `access` now uses npm's default publish behavior. Since scoped packages default to `restricted`, you should **almost always** set this to `public` (as most repos with scoped packages already do).
 
 ### Fix group `exclude` negation behavior

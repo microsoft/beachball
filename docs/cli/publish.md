@@ -18,17 +18,17 @@ Most options can also be specified in the [configuration file](../overview/confi
 | Option | Alias | Default | Description |
 | ------ | ----- | ------- | ----------- |
 | `--access` | | as configured for npm | Publish [access level](https://docs.npmjs.com/cli/v11/commands/npm-publish#access): `'restricted'` or `'public'`. This should **almost always** be set to `'public'`. |
-| `--auth-type` | `-a` | `'authtoken'` | npm auth type if manually providing `NPM_TOKEN` env var or `--token`: `'authtoken'` or `'password'` |
+| `--auth-type` | `-a` | `'authtoken'` | npm auth type if manually providing `BEACHBALL_NPM_TOKEN` env var or `--token`: `'authtoken'` or `'password'` |
 | `--git-tags`, `--no-git-tags` | | `true` (`--git-tags`) | whether to create git tags for published package versions |
 | `--keep-change-files` | | | don't delete the change files from disk after bumping |
 | `--message` | `-m` | `'applying package updates'` | custom commit message |
 | `--prerelease-prefix` | | | prerelease prefix (e.g. `beta`) for packages that will receive a prerelease bump |
 | `--publish`, `--no-publish` | | `true` (`--publish`) | whether to publish to the npm registry |
 | `--push`, `--no-push` | | `true` (`--push`) | whether to commit changes and push them back to the git remote |
-| `--registry` | `-r` | as configured for npm | npm registry for fetching package versions and/or publishing (must be explicitly set if `NPM_TOKEN` env var or `--token` is provided) |
+| `--registry` | `-r` | as configured for npm | npm registry for fetching package versions and/or publishing (must be explicitly set if `BEACHBALL_NPM_TOKEN` env var or `--token` is provided) |
 | `--retries` | | `3` | number of retries for a package publish before failing |
 | `--tag` | `-t` | `'latest'` | dist-tag for npm publishes |
-| `--token` | `-n` | | Not recommended; [see alternatives](../concepts/ci-integration#npm-authentication) |
+| `--token` | `-n` | | Not recommended; use `BEACHBALL_NPM_TOKEN` env var or [see alternatives](../concepts/ci-integration#npm-authentication) |
 | `--verbose` | | `false` | prints additional information to the console |
 | `--yes` | `-y` | if CI detected, `true` | skips the prompts for publish |
 
