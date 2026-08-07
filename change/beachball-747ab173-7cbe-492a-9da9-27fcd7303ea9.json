@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update config command docs",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

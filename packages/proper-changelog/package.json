@@ -1,8 +1,7 @@
 {
   "name": "proper-changelog",
   "version": "0.1.1",
-  "description": "TODO start publishing again once ownership is fixed - Make a readable changelog from GitHub releases",
-  "private": true,
+  "description": "Make a readable changelog from GitHub releases",
   "type": "module",
   "repository": {
     "type": "git",
