@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'node:fs';
 import { checkToken, getToken } from './checkToken.ts';
 import serverConfig from './serverConfig.ts';
 import { defaultRepo, isGithub, logEndGroup, logError, logGroup } from './utils/github.ts';

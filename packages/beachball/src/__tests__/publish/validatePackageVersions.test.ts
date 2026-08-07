@@ -1,9 +1,9 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import { validatePackageVersions } from '../../publish/validatePackageVersions';
-import type { NpmOptions } from '../../types/NpmOptions';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import { initNpmMock } from '../../__fixtures__/mockNpm';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import { validatePackageVersions } from '../../publish/validatePackageVersions';
+import type { NpmOptions } from '../../types/NpmOptions';
 
 jest.mock('../../packageManager/npm');
 // jest.mock('npm-registry-fetch');

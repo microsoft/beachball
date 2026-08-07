@@ -1,20 +1,20 @@
-import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import fs from 'fs';
-import { updatePackageJsons } from '../../bump/updatePackageJsons';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
-import { consideredDependencies, type PackageInfo } from '../../types/PackageInfo';
+import { updatePackageJsons } from '../../bump/updatePackageJsons';
 import * as readJsonModule from '../../object/readJson';
 import * as writeJsonModule from '../../object/writeJson';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { consideredDependencies, type PackageInfo } from '../../types/PackageInfo';
 
-jest.mock('fs');
+jest.mock('node:fs');
 jest.mock('../../object/readJson');
 jest.mock('../../object/writeJson');
+const mockFs = fs as jest.Mocked<typeof fs>;
+const mockReadJson = readJsonModule as jest.Mocked<typeof readJsonModule>;
+const mockWriteJson = writeJsonModule as jest.Mocked<typeof writeJsonModule>;
 
 describe('updatePackageJsons', () => {
-  const mockFs = fs as jest.Mocked<typeof fs>;
-  const mockReadJson = readJsonModule as jest.Mocked<typeof readJsonModule>;
-  const mockWriteJson = writeJsonModule as jest.Mocked<typeof writeJsonModule>;
   const logs = initMockLogs({ alsoLog: ['error'] });
 
   /**

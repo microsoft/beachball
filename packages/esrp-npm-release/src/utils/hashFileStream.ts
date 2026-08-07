@@ -1,5 +1,5 @@
-import crypto from 'crypto';
-import fs from 'fs';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
 
 /**
  * Hash a file using a stream (in case the file is large).

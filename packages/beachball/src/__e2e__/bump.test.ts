@@ -1,23 +1,20 @@
-import { describe, expect, it, afterEach, jest } from '@jest/globals';
-import path from 'path';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
+import { catalogsToYaml, getPackageInfo, type Catalogs } from 'workspace-tools';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { readChangelogJson, readChangelogMd } from '../__fixtures__/changelog';
-import { initMockLogs } from '../__fixtures__/mockLogs';
-import { type RepoFixture, RepositoryFactory } from '../__fixtures__/repositoryFactory';
-import { bump } from '../commands/bump';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
-import type { HooksOptions, ParsedOptions, RepoOptions } from '../types/BeachballOptions';
-import type { Repository } from '../__fixtures__/repository';
-import type { PackageJson } from '../types/PackageInfo';
-import { getOptions as _getOptions } from '../options/getOptions';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
-import { readJson } from '../object/readJson';
-import { validate } from '../validation/validate';
-import { createCommandContext } from '../monorepo/createCommandContext';
-import type { CommandContext } from '../types/CommandContext';
-import type { BumpInfo } from '../types/BumpInfo';
 import { deepFreeze } from '../__fixtures__/object';
-import { catalogsToYaml, type Catalogs } from 'workspace-tools';
+import type { Repository } from '../__fixtures__/repository';
+import { RepositoryFactory, type RepoFixture } from '../__fixtures__/repositoryFactory';
+import { bump } from '../commands/bump';
+import { createCommandContext } from '../monorepo/createCommandContext';
+import { getPackageInfos } from '../monorepo/getPackageInfos';
+import { getOptions as _getOptions } from '../options/getOptions';
+import type { HooksOptions, ParsedOptions, RepoOptions } from '../types/BeachballOptions';
+import type { BumpInfo } from '../types/BumpInfo';
+import type { CommandContext } from '../types/CommandContext';
+import { validate } from '../validation/validate';
 
 //
 // These tests use git repos and are slow, so besides a few basic scenarios, this file should
@@ -559,8 +556,7 @@ describe('bump command', () => {
           expect(version).toBe('1.1.0');
 
           await new Promise(resolve => setTimeout(resolve, 0)); // simulate async work
-          const jsonPath = path.join(packagePath, 'package.json');
-          expect(readJson<PackageJson>(jsonPath).version).toBe('1.0.0'); // not bumped on disk yet
+          expect(getPackageInfo(packagePath)?.version).toBe('1.0.0'); // not bumped on disk yet
         }),
         postbump: jest.fn<NonNullable<HooksOptions['postbump']>>(async (packagePath, name, version) => {
           expect(packagePath.endsWith('pkg-1')).toBeTruthy();
@@ -568,8 +564,7 @@ describe('bump command', () => {
           expect(version).toBe('1.1.0');
 
           await new Promise(resolve => setTimeout(resolve, 0)); // simulate async work
-          const jsonPath = path.join(packagePath, 'package.json');
-          expect(readJson<PackageJson>(jsonPath).version).toBe('1.1.0');
+          expect(getPackageInfo(packagePath)?.version).toBe('1.1.0'); // bumped on disk
         }),
       },
     });

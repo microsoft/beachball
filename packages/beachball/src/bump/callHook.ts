@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import type { PGraph } from 'p-graph';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfos } from '../types/PackageInfo';

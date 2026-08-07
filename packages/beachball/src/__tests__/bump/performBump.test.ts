@@ -1,20 +1,20 @@
-import { describe, it, expect, jest, afterEach, beforeAll } from '@jest/globals';
-import _fs from 'fs';
-import path from 'path';
-import type { RepoOptions } from '../../types/BeachballOptions';
+import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
+import _fs from 'node:fs';
+import path from 'node:path';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
-import type { BumpInfo } from '../../types/BumpInfo';
-import { getOptions } from '../../options/getOptions';
 import { performBump } from '../../bump/performBump';
-import type { ChangeSet, ChangeFileInfo } from '../../types/ChangeInfo';
-import { consideredDependencies, type PackageInfos, type PackageJson } from '../../types/PackageInfo';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { updateLockFile as _updateLockFile } from '../../bump/updateLockFile';
-import { writeJson as _writeJson, writeJson } from '../../object/writeJson';
 import { writeChangelog as mockWriteChangelog } from '../../changelog/writeChangelog';
+import { writeJson as _writeJson } from '../../object/writeJson';
+import { getOptions } from '../../options/getOptions';
+import type { RepoOptions } from '../../types/BeachballOptions';
+import type { BumpInfo } from '../../types/BumpInfo';
+import type { ChangeFileInfo, ChangeSet } from '../../types/ChangeInfo';
+import { consideredDependencies, type PackageInfos, type PackageJson } from '../../types/PackageInfo';
 
-jest.mock('fs');
+jest.mock('node:fs');
 jest.mock('../../object/writeJson');
 // These tests don't cover writeChangelog
 jest.mock('../../changelog/writeChangelog');
@@ -145,7 +145,7 @@ describe('performBump', () => {
     });
 
     expect(mockWriteChangelog).not.toHaveBeenCalled();
-    expect(writeJson).toHaveBeenCalled(); // the package was updated
+    expect(mockWriteJson).toHaveBeenCalled(); // the package was updated
   });
 
   it('updates lock file after package.jsons', async () => {

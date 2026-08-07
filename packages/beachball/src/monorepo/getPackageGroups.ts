@@ -1,9 +1,9 @@
-import type { VersionGroupOptions } from '../types/BeachballOptions';
-import path from 'path';
-import type { PackageInfos, PackageGroups } from '../types/PackageInfo';
-import { isPathIncluded } from './isPathIncluded';
+import path from 'node:path';
 import { bulletedList } from '../logging/bulletedList';
 import { BeachballError } from '../types/BeachballError';
+import type { VersionGroupOptions } from '../types/BeachballOptions';
+import type { PackageGroups, PackageInfos } from '../types/PackageInfo';
+import { isPathIncluded } from './isPathIncluded';
 
 export function getPackageGroups(
   packageInfos: PackageInfos,

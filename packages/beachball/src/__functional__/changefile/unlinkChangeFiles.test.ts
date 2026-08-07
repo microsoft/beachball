@@ -1,15 +1,13 @@
-import { describe, expect, it, afterEach } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
-import type { ChangeSet } from '../../types/ChangeInfo';
+import { afterEach, describe, expect, it } from '@jest/globals';
+import { initMockLogs, removeTempDir, tmpdir, writeJson } from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
+import path from 'node:path';
+import { getChange } from '../../__fixtures__/changeFiles';
 import { unlinkChangeFiles } from '../../changefile/unlinkChangeFiles';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
-import type { BeachballOptions } from '../../types/BeachballOptions';
 import { getChangePath } from '../../paths';
-import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
-import { getChange } from '../../__fixtures__/changeFiles';
-import { writeJson } from '../../object/writeJson';
+import type { BeachballOptions } from '../../types/BeachballOptions';
+import type { ChangeSet } from '../../types/ChangeInfo';
 
 // These tests could be done with filesystem method mocks, but it's pretty complicated,
 // and testing with the filesystem is fast since it doesn't use git.

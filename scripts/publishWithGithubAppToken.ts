@@ -5,9 +5,9 @@
 // and revokes the token on exit. It's meant to be run in ADO pipelines only.
 //
 
-import { spawnSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
+import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 import { findGitRoot, git, type GitProcessOutput } from 'workspace-tools';
 
 const repoRoot = findGitRoot(process.cwd());

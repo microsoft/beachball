@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
+import { createTestFileStructure, expectError, setupTempDir } from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
+import path from 'node:path';
 import type { ESRPReleaseService } from '../ESRPReleaseService.ts';
 import { MockLogger } from '../__fixtures__/MockLogger.ts';
 import { createMockEnv } from '../__fixtures__/mockEnv.ts';
-import { createPackedDir, setupTempDir } from '../__fixtures__/tempDir.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
 import type { ReleaseState } from '../utils/ReleaseState.ts';
 
@@ -59,7 +59,14 @@ describe('runRelease', () => {
     const agentTemp = path.join(temp, 'agent');
     fs.mkdirSync(agentTemp, { recursive: true });
 
-    const packedDir = createPackedDir(temp, layers);
+    // Build a fake "packed packages" directory containing the requested layers.
+    // Each layer is a numbered subdirectory (e.g. "0", "1") with empty `.tgz` files inside.
+    const packedDir = createTestFileStructure(
+      Object.fromEntries(
+        Object.entries(layers).flatMap(([layerName, files]) => files.map(file => [`${layerName}/${file}`, '']))
+      ),
+      { tempDir: path.join(temp, 'packed') }
+    );
 
     const env = createMockEnv();
     env.packedPackagesPath = packedDir;
@@ -215,9 +222,11 @@ describe('runRelease', () => {
       '2': ['README.md'], // no .tgz
     });
 
-    const err = await runRelease({ env, logger }).catch(e => e as unknown);
-    expect(err).toBeInstanceOf(ReleaseError);
-    expect((err as ReleaseError).message).toMatch(/No \.tgz files found in layer directory.*[/\\]2$/);
+    await expectError(
+      () => runRelease({ env, logger }),
+      ReleaseError,
+      /No \.tgz files found in layer directory.*[/\\]2$/
+    );
     // Layer 1 was released before the failure was hit
     expect(releaseService.createRelease).toHaveBeenCalledTimes(1);
     expect(state.markPublished).toHaveBeenCalledWith('1');

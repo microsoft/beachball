@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'node:fs';
 
 export function writeJson(filePath: string, data: unknown): void {
   const fileContents = JSON.stringify(data, null, 2) + '\n';

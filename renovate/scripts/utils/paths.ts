@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import { findProjectRoot } from 'workspace-tools';
 
 const root = findProjectRoot(process.cwd());

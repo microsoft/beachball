@@ -1,10 +1,8 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
-import { removeTempDir } from '../../__fixtures__/tmpdir';
+import { createTestFileStructure, initMockLogs, removeTempDir } from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
+import path from 'node:path';
 import { prepareChangelogPaths } from '../../changelog/prepareChangelogPaths';
-import { createTestFileStructure } from '../../__fixtures__/createTestFileStructure';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 describe('prepareChangelogPaths', () => {
   // there will be a bunch of ignorable warnings because /faketmpdir doesn't exist

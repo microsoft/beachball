@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
-import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
-import { setupTempDir } from '../__fixtures__/tempDir.ts';
+import { expectError, setupTempDir } from '@microsoft/beachball-test-utilities';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
 import { createNpmReleaseRequest, redactReleaseRequest } from '../esrpApi/npmRelease.ts';
 import { FileHashType, type ReleaseFileInfo, type ReleaseRequestMessage } from '../types/api.ts';
@@ -161,9 +161,10 @@ describeIfOpenssl('createNpmReleaseRequest', () => {
 
   it('throws ReleaseError when the file does not exist', async () => {
     const params = baseParams('/no/such/file/exists.tgz');
-    const err = await createNpmReleaseRequest(params).catch(e => e as unknown);
-
-    expect(err).toBeInstanceOf(ReleaseError);
-    expect((err as ReleaseError).message).toContain('Failed to stat or hash file /no/such/file/exists.tgz');
+    await expectError(
+      () => createNpmReleaseRequest(params),
+      ReleaseError,
+      'Failed to stat or hash file /no/such/file/exists.tgz'
+    );
   });
 });

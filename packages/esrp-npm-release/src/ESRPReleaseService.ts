@@ -6,7 +6,7 @@ import {
   type ContainerClient,
   type UserDelegationKey,
 } from '@azure/storage-blob';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { getAadToken, type AccessToken, type GetAadTokenParams } from './auth/getAadToken.ts';
 import { getKeyAndCertificatesFromPFX } from './auth/signing.ts';
 import {

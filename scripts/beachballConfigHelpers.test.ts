@@ -1,6 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { getActionTags, getGitTag, normalPackages, postbumpHook } from './beachballConfigHelpers.ts';
 
 describe('getActionTags', () => {

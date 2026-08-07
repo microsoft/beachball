@@ -1,17 +1,15 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
-import { addGitObserver, catalogsToYaml, clearGitObservers, type Catalogs } from 'workspace-tools';
+import { initMockLogs, readJson } from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
+import { addGitObserver, catalogsToYaml, clearGitObservers, getPackageInfo, type Catalogs } from 'workspace-tools';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
-import { initMockLogs } from '../__fixtures__/mockLogs';
 import { _mockNpmPublish, initNpmMock } from '../__fixtures__/mockNpm';
 import { deepFreezeProperties } from '../__fixtures__/object';
 import type { Repository } from '../__fixtures__/repository';
 import { RepositoryFactory, type RepoFixture } from '../__fixtures__/repositoryFactory';
 import { publish } from '../commands/publish';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { readJson } from '../object/readJson';
 import { getOptions as _getOptions } from '../options/getOptions';
 import type { ParsedOptions, RepoOptions } from '../types/BeachballOptions';
 import type { PackageJson } from '../types/PackageInfo';
@@ -426,16 +424,12 @@ describe('publish command (e2e)', () => {
     repositoryFactory = new RepositoryFactory('monorepo');
     repo = repositoryFactory.cloneRepository();
 
-    type ExtraPackageJson = PackageJson & {
-      customOnPublish?: { main: string };
-      customAfterPublish?: { notify: string };
+    const extra = {
+      customOnPublish: { main: 'lib/index.js' },
+      customAfterPublish: { notify: 'message' },
     };
-    const fooJsonRelative = 'packages/foo/package.json';
-    const fooJsonPath = repo.pathTo(fooJsonRelative);
-    const fooJsonPre = readJson<ExtraPackageJson>(fooJsonPath);
-    fooJsonPre.customOnPublish = { main: 'lib/index.js' };
-    fooJsonPre.customAfterPublish = { notify: 'message' };
-    repo.commitChange(fooJsonRelative, fooJsonPre);
+    type ExtraPackageJson = PackageJson & Partial<typeof extra>;
+    repo.updateJsonFile('packages/foo/package.json', extra, { commit: true });
 
     let notified: string | undefined;
 
@@ -443,8 +437,7 @@ describe('publish command (e2e)', () => {
       fetch: false,
       hooks: {
         prepublish: (packagePath, name, version) => {
-          const packageJsonPath = path.join(packagePath, 'package.json');
-          const packageJson = readJson<ExtraPackageJson>(packageJsonPath);
+          const { packageJsonPath, ...packageJson } = getPackageInfo(packagePath)!;
           if (name === 'foo') {
             expect(version).toBe('1.1.0');
             expect(packageJson.version).toBe('1.1.0'); // bumped version
@@ -456,10 +449,9 @@ describe('publish command (e2e)', () => {
           }
         },
         postpublish: packagePath => {
-          const packageJsonPath = path.join(packagePath, 'package.json');
-          const packageJson = readJson<ExtraPackageJson>(packageJsonPath);
-          if (packageJson.customAfterPublish) {
-            notified = packageJson.customAfterPublish.notify;
+          const packageInfo = getPackageInfo(packagePath) as ExtraPackageJson;
+          if (packageInfo.customAfterPublish) {
+            notified = packageInfo.customAfterPublish.notify;
           }
         },
       },
@@ -481,7 +473,7 @@ describe('publish command (e2e)', () => {
 
     // All git results should still have previous information
     expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
-    const fooJsonPost = readJson<ExtraPackageJson>(fooJsonPath);
+    const fooJsonPost = getPackageInfo(repo.pathTo('packages/foo')) as ExtraPackageJson;
     expect(fooJsonPost.main).toBe('src/index.ts');
     expect(fooJsonPost.customOnPublish?.main).toBe('lib/index.js');
     expect(notified).toBe(fooJsonPost.customAfterPublish?.notify);

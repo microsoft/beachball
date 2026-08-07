@@ -1,23 +1,20 @@
-import { describe, expect, it, beforeAll, afterAll, afterEach, jest } from '@jest/globals';
-import fs from 'fs';
+import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { initMockLogs, removeTempDir, updateJson } from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
+import path from 'node:path';
 import * as workspaceTools from 'workspace-tools';
 import { generateChangeFiles, getChangeFiles } from '../../__fixtures__/changeFiles';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
-import { getPackageInfos } from '../../monorepo/getPackageInfos';
-import { readChangeFiles } from '../../changefile/readChangeFiles';
-import type { RepoOptions } from '../../types/BeachballOptions';
-import type { Repository } from '../../__fixtures__/repository';
-import type { ChangeInfo, ChangeSet } from '../../types/ChangeInfo';
+import { createTestFileStructureType } from '../../__fixtures__/createTestFileStructureType';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
-import { getOptions } from '../../options/getOptions';
-import { removeTempDir } from '../../__fixtures__/tmpdir';
-import path from 'path';
-import { createTestFileStructureType } from '../../__fixtures__/createTestFileStructure';
-import { readJson } from '../../object/readJson';
-import { writeJson } from '../../object/writeJson';
+import type { Repository } from '../../__fixtures__/repository';
+import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
+import { readChangeFiles } from '../../changefile/readChangeFiles';
+import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
+import { getOptions } from '../../options/getOptions';
 import { getChangePath } from '../../paths';
+import type { RepoOptions } from '../../types/BeachballOptions';
+import type { ChangeInfo, ChangeSet } from '../../types/ChangeInfo';
 
 jest.mock('workspace-tools', () => {
   const actual = jest.requireActual<typeof workspaceTools>('workspace-tools');
@@ -48,13 +45,6 @@ describe('readChangeFiles', () => {
     const packageInfos = getPackageInfos(parsedOptions);
     const scopedPackages = getScopedPackages(parsedOptions.options, packageInfos);
     return { packageInfos, options: parsedOptions.options, parsedOptions, scopedPackages };
-  }
-
-  function updateJsonFile(relativePath: string, json: Record<string, unknown>) {
-    const fullPath = path.join(tempRoot!, relativePath);
-    const diskJson = readJson<Record<string, unknown>>(fullPath);
-    Object.assign(diskJson, json);
-    writeJson(fullPath, diskJson);
   }
 
   /** Get the sorted package names from a list of changes */
@@ -133,7 +123,7 @@ describe('readChangeFiles', () => {
 
   it('excludes invalid change files', async () => {
     tempRoot = createTestFileStructureType('monorepo');
-    updateJsonFile('packages/bar/package.json', { private: true });
+    updateJson(path.join(tempRoot, 'packages/bar/package.json'), { private: true });
 
     const { options, packageInfos, scopedPackages } = await getOptionsAndPackages();
 
@@ -155,7 +145,7 @@ describe('readChangeFiles', () => {
 
   it('excludes invalid changes from grouped change file in monorepo', async () => {
     tempRoot = createTestFileStructureType('monorepo');
-    updateJsonFile('packages/bar/package.json', { private: true });
+    updateJson(path.join(tempRoot, 'packages/bar/package.json'), { private: true });
 
     const { options, packageInfos, scopedPackages } = await getOptionsAndPackages({ groupChanges: true });
 

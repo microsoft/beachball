@@ -1,0 +1,22 @@
+{
+  "name": "@microsoft/beachball-test-utilities",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Internal test utilities",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "yarn run -T tsc --pretty",
+    "depcheck": "yarn run -T depcheck .",
+    "lint": "yarn run -T eslint --color --max-warnings=0 src"
+  },
+  "dependencies": {
+    "normalized-tmpdir": "^1.1.0",
+    "tmp": "^0.2.7"
+  },
+  "devDependencies": {
+    "@microsoft/beachball-scripts": "workspace:^",
+    "@types/tmp": "^0.2.6"
+  }
+}

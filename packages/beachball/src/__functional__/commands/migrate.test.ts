@@ -1,13 +1,12 @@
-import { describe, expect, it, afterEach, jest } from '@jest/globals';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { initMockLogs, removeTempDir, updateJson } from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createTestFileStructureType } from '../../__fixtures__/createTestFileStructureType';
 import { migrate } from '../../commands/migrate';
 import { getOptions as _getOptions } from '../../options/getOptions';
-import type { HooksOptions, RepoOptions } from '../../types/BeachballOptions';
-import { removeTempDir } from '../../__fixtures__/tmpdir';
-import { createTestFileStructureType, updateJsonFile } from '../../__fixtures__/createTestFileStructure';
-import fs from 'fs';
 import { BeachballError } from '../../types/BeachballError';
-import path from 'path';
+import type { HooksOptions, RepoOptions } from '../../types/BeachballOptions';
 import type { ChangelogGroupOptions } from '../../types/ChangelogOptions';
 
 jest.mock('workspace-tools', () => ({
@@ -86,8 +85,8 @@ describe('migrate command', () => {
 
   it('warns on public packages using shouldPublish option', async () => {
     tempRoot = createTestFileStructureType('monorepo');
-    updateJsonFile(path.join(tempRoot, 'packages/foo/package.json'), { beachball: { shouldPublish: false } });
-    updateJsonFile(path.join(tempRoot, 'packages/baz/package.json'), { beachball: { shouldPublish: false } });
+    updateJson(path.join(tempRoot, 'packages/foo/package.json'), { beachball: { shouldPublish: false } });
+    updateJson(path.join(tempRoot, 'packages/baz/package.json'), { beachball: { shouldPublish: false } });
 
     migrate(await getOptions());
 
@@ -150,11 +149,11 @@ describe('migrate command', () => {
 
   it('errors on private packages using shouldPublish option', async () => {
     tempRoot = createTestFileStructureType('monorepo');
-    updateJsonFile(path.join(tempRoot, 'packages/foo/package.json'), {
+    updateJson(path.join(tempRoot, 'packages/foo/package.json'), {
       private: true,
       beachball: { shouldPublish: false },
     });
-    updateJsonFile(path.join(tempRoot, 'packages/baz/package.json'), {
+    updateJson(path.join(tempRoot, 'packages/baz/package.json'), {
       private: true,
       beachball: { shouldPublish: false },
     });

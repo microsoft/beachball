@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { expectError } from '@microsoft/beachball-test-utilities';
 import { getReleaseDetails, getReleaseStatus, submitRelease } from '../esrpApi/releaseHttp.ts';
 import type { ReleaseRequestMessage } from '../types/api.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
@@ -84,10 +85,12 @@ describe('releaseHttp', () => {
     it('throws immediately on non-transient HTTP status, including status and body in message', async () => {
       fetchMock.mockResolvedValue(makeFetchResponse({ status: 403, body: 'auth error' }));
 
-      const err = await getReleaseStatus(defaultGetParams).catch(e => e as unknown);
-      expect(err).toBeInstanceOf(ReleaseError);
-      expect((err as ReleaseError).message).toBe('Failed to get release status');
-      expect(((err as ReleaseError).cause as Error).message).toMatch(/failed with status 403[\s\S]*auth error/);
+      await expectError(
+        () => getReleaseStatus(defaultGetParams),
+        ReleaseError,
+        'Failed to get release status',
+        /failed with status 403[\s\S]*auth error/
+      );
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
@@ -124,10 +127,12 @@ describe('releaseHttp', () => {
     it('throws when response body is not valid JSON', async () => {
       fetchMock.mockResolvedValue(makeFetchResponse({ body: 'not json' }));
 
-      const err = await getReleaseStatus(defaultGetParams).catch(e => e as unknown);
-      expect(err).toBeInstanceOf(ReleaseError);
-      expect((err as ReleaseError).message).toBe('Failed to get release status');
-      expect(((err as ReleaseError).cause as Error).message).toMatch(/did not return valid JSON[\s\S]*not json/);
+      await expectError(
+        () => getReleaseStatus(defaultGetParams),
+        ReleaseError,
+        'Failed to get release status',
+        /did not return valid JSON[\s\S]*not json/
+      );
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
@@ -162,10 +167,12 @@ describe('releaseHttp', () => {
     it('throws immediately on non-retryable errors without retrying', async () => {
       fetchMock.mockRejectedValue(new Error('noooooooooooooo'));
 
-      const err = await getReleaseStatus(defaultGetParams).catch(e => e as unknown);
-      expect(err).toBeInstanceOf(ReleaseError);
-      expect((err as ReleaseError).message).toBe('Failed to get release status');
-      expect(((err as ReleaseError).cause as Error).message).toMatch(/noooooooooooooo/);
+      await expectError(
+        () => getReleaseStatus(defaultGetParams),
+        ReleaseError,
+        'Failed to get release status',
+        /noooooooooooooo/
+      );
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
   });

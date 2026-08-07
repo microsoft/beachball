@@ -1547,6 +1547,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@microsoft/beachball-test-utilities@workspace:^, @microsoft/beachball-test-utilities@workspace:packages/test-utilities":
+  version: 0.0.0-use.local
+  resolution: "@microsoft/beachball-test-utilities@workspace:packages/test-utilities"
+  dependencies:
+    "@microsoft/beachball-scripts": "workspace:^"
+    "@types/tmp": "npm:^0.2.6"
+    normalized-tmpdir: "npm:^1.1.0"
+    tmp: "npm:^0.2.7"
+  languageName: unknown
+  linkType: soft
+
 "@microsoft/beachball-yarn-plugin-engines@workspace:yarn-plugins/engines":
   version: 0.0.0-use.local
   resolution: "@microsoft/beachball-yarn-plugin-engines@workspace:yarn-plugins/engines"
@@ -1581,6 +1592,7 @@ __metadata:
     "@azure/msal-node": "npm:^5.1.5"
     "@azure/storage-blob": "npm:^12.31.0"
     "@microsoft/beachball-scripts": "workspace:^"
+    "@microsoft/beachball-test-utilities": "workspace:^"
     "@types/jws": "npm:^3.2.11"
     "@types/yazl": "npm:^3.3.1"
     cross-env: "catalog:dev"
@@ -2319,7 +2331,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/tmp@npm:^0.2.3":
+"@types/tmp@npm:^0.2.6":
   version: 0.2.6
   resolution: "@types/tmp@npm:0.2.6"
   checksum: 10c0/a11bfa2cd8eaa6c5d62f62a3569192d7a2c28efdc5c17af0b0551db85816b2afc8156f3ca15ac76f0b142ae1403f04f44279871424233a1f3390b2e5fc828cd0
@@ -3689,23 +3701,21 @@ __metadata:
   resolution: "beachball@workspace:packages/beachball"
   dependencies:
     "@microsoft/beachball-scripts": "workspace:^"
+    "@microsoft/beachball-test-utilities": "workspace:^"
     "@types/jsonwebtoken": "npm:^9.0.10"
     "@types/prompts": "npm:^2.4.2"
     "@types/semver": "catalog:dev"
-    "@types/tmp": "npm:^0.2.3"
     "@vercel/detect-agent": "npm:^1.2.1"
     "@verdaccio/types": "npm:^13.0.0"
     commander: "catalog:prod"
     cross-env: "catalog:dev"
     get-port: "npm:^7.0.0"
     nano-spawn: "catalog:prod"
-    normalized-tmpdir: "npm:^1.1.0"
     p-graph: "workspace:^"
     p-limit: "npm:^3.1.0"
     prompts: "npm:^2.4.2"
     semver: "catalog:prod"
     strip-ansi: "npm:^6.0.1"
-    tmp: "npm:^0.2.1"
     undici: "npm:^8.9.0"
     verdaccio: "npm:^6.5.2"
     verdaccio-auth-memory: "npm:^13.0.0"
@@ -9383,7 +9393,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tmp@npm:^0.2.1":
+"tmp@npm:^0.2.7":
   version: 0.2.7
   resolution: "tmp@npm:0.2.7"
   checksum: 10c0/59eb55584f2f07210d3231b6a1f6b5c2b9794d8a7b509c8ee867ed2acad6d2245ee2448b7937b676ffbff3155a70077edde8a69f9d7cf0f90c86a62e8910c357

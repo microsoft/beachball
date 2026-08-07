@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
+import path from 'node:path';
 import { mockSpawnSuccess, MockSubprocessError } from '../../__fixtures__/mockSpawnResult';
 import { updateLockFile } from '../../bump/updateLockFile';
 import { packageManager } from '../../packageManager/packageManager';
 
-jest.mock('fs');
+jest.mock('node:fs');
 jest.mock('../../packageManager/packageManager');
 jest.mock('../../env', () => ({
   env: {
@@ -14,11 +14,11 @@ jest.mock('../../env', () => ({
     isJest: false,
   },
 }));
+const mockFs = fs as jest.Mocked<typeof fs>;
 
 describe('updateLockFile', () => {
   const logs = initMockLogs({ alsoLog: ['error'] });
   const mockRoot = path.resolve('/mock/root');
-  const mockFs = fs as jest.Mocked<typeof fs>;
   const mockPackageManager = packageManager as jest.MockedFunction<typeof packageManager>;
 
   beforeEach(() => {

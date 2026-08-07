@@ -1,11 +1,11 @@
-import type { ChangeFileInfo } from '../types/ChangeInfo';
-import { getChangePath } from '../paths';
-import { stage, commit } from 'workspace-tools';
-import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
-import type { BeachballOptions } from '../types/BeachballOptions';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { commit, stage } from 'workspace-tools';
 import { writeJson } from '../object/writeJson';
+import { getChangePath } from '../paths';
+import type { BeachballOptions } from '../types/BeachballOptions';
+import type { ChangeFileInfo } from '../types/ChangeInfo';
 
 /**
  * Loops through the `changes` and writes out a list of change files

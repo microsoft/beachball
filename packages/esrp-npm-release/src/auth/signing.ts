@@ -1,5 +1,5 @@
-import crypto from 'crypto';
 import spawn, { type Result as SpawnResult, type SubprocessError } from 'nano-spawn';
+import crypto from 'node:crypto';
 import type { Logger } from '../utils/Logger.ts';
 
 /**

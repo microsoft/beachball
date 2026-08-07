@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import { filterIgnoredFiles } from '../monorepo/filterIgnoredFiles';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfo, PackageInfos, ScopedPackages } from '../types/PackageInfo';

@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 /**
  * Sample `hooks.precommit` for `beachball.config.js` to revert URLs to the default registry.

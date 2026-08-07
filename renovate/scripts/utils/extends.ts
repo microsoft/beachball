@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import { defaultRepo } from './github.ts';
 import type { BasicRenovateConfig, LocalPresetData } from './types.ts';
 

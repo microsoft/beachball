@@ -1,8 +1,8 @@
 import { expect } from '@jest/globals';
-import path from 'path';
-import * as fs from 'fs';
+import { removeTempDir, tmpdir, updateJson } from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
+import path from 'node:path';
 import { git, type GitProcessOutput } from 'workspace-tools';
-import { removeTempDir, tmpdir } from './tmpdir';
 import {
   defaultBranchName,
   defaultRemoteBranchName,
@@ -10,7 +10,6 @@ import {
   optsWithLang,
   setDefaultBranchName,
 } from './gitDefaults';
-import { updateJsonFile } from './createTestFileStructure';
 
 /**
  * Clone options. See the docs for details on behavior and interaction of these options.
@@ -167,12 +166,13 @@ ${gitResult.stderr.toString()}`);
   /**
    * Update the content of a JSON file that already exists in the repo.
    * The updates will be shallowly merged with the original. Throws if the file doesn't exist.
+   * Only commits if `options.commit` is true (does not stage).
    *
    * This is useful if you'd like to mostly use a built-in fixture but change one package,
    * such as making it private.
    */
   public updateJsonFile(filename: string, updates: object, options?: { commit?: boolean }): void {
-    updateJsonFile(this.pathTo(filename), updates);
+    updateJson(this.pathTo(filename), updates);
     if (options?.commit) {
       this.git(['add', filename]);
       this.git(['commit', '-m', `"${filename}"`]);

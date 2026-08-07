@@ -1,18 +1,16 @@
-import { describe, expect, it, afterEach, jest, beforeEach, beforeAll, afterAll } from '@jest/globals';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import type prompts from 'prompts';
-import { getChangeFiles } from '../__fixtures__/changeFiles';
-import { initMockLogs } from '../__fixtures__/mockLogs';
+import { getChangeFiles, readGroupedChangeFile, readSingleChangeFile } from '../__fixtures__/changeFiles';
+import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
+import { MockStdin } from '../__fixtures__/mockStdin';
+import { MockStdout } from '../__fixtures__/mockStdout';
+import type { Repository } from '../__fixtures__/repository';
 import { type RepoFixture, RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { change } from '../commands/change';
-import type { BeachballOptions, RepoOptions } from '../types/BeachballOptions';
-import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
-import { MockStdout } from '../__fixtures__/mockStdout';
-import { MockStdin } from '../__fixtures__/mockStdin';
-import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
-import type { Repository } from '../__fixtures__/repository';
-import { getOptions } from '../options/getOptions';
-import { readJson } from '../object/readJson';
 import { createBasicCommandContext } from '../monorepo/createCommandContext';
+import { getOptions } from '../options/getOptions';
+import type { BeachballOptions, RepoOptions } from '../types/BeachballOptions';
 import type { ChangeCommandContext } from '../types/CommandContext';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
@@ -163,7 +161,7 @@ describe('change command', () => {
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
-    expect(readJson(changeFiles[0])).toMatchObject({
+    expect(readSingleChangeFile(changeFiles[0])).toMatchObject({
       comment: 'stage me please',
       packageName: 'foo',
       type: 'patch',
@@ -188,7 +186,7 @@ describe('change command', () => {
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
-    expect(readJson(changeFiles[0])).toMatchObject({
+    expect(readSingleChangeFile(changeFiles[0])).toMatchObject({
       comment: 'commit me please',
       packageName: 'foo',
       type: 'patch',
@@ -239,7 +237,7 @@ describe('change command', () => {
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
-    expect(readJson(changeFiles[0])).toMatchObject({
+    expect(readSingleChangeFile(changeFiles[0])).toMatchObject({
       comment: 'commit me please',
       packageName: 'foo',
       type: 'patch',
@@ -300,7 +298,7 @@ describe('change command', () => {
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(2);
-    const changeFileContents = changeFiles.map(changeFile => readJson<ChangeFileInfo>(changeFile));
+    const changeFileContents = changeFiles.map(changeFile => readSingleChangeFile(changeFile));
     expect(changeFileContents).toContainEqual(
       expect.objectContaining({ comment: 'custom', packageName: 'pkg-1', type: 'minor' })
     );
@@ -336,7 +334,7 @@ describe('change command', () => {
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
-    const contents = readJson<ChangeInfoMultiple>(changeFiles[0]);
+    const contents = readGroupedChangeFile(changeFiles[0]);
     expect(contents.changes).toEqual([
       expect.objectContaining({ comment: 'custom', packageName: 'pkg-1', type: 'minor' }),
       expect.objectContaining({ comment: 'commit 2', packageName: 'pkg-2', type: 'patch' }),
@@ -383,7 +381,7 @@ describe('change command', () => {
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
-    const contents = readJson<ChangeInfoMultiple>(changeFiles[0]);
+    const contents = readGroupedChangeFile(changeFiles[0]);
     expect(contents.changes).toEqual([
       expect.objectContaining({ packageName: 'pkg-1', type: 'patch', comment: 'commit 2' }),
       expect.objectContaining({ packageName: 'pkg-2', type: 'patch', comment: 'commit 2', custom: 'stuff' }),

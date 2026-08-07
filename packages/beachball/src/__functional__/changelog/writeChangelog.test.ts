@@ -1,30 +1,29 @@
-import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
-import fs from 'fs';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from '@jest/globals';
+import { initMockLogs, writeJson } from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
 import semver from 'semver';
-import { generateChangeFiles, getChange, fakeEmail as author } from '../../__fixtures__/changeFiles';
+import { fakeEmail as author, generateChangeFiles, getChange } from '../../__fixtures__/changeFiles';
 import {
+  fakeCommit as commit,
   readChangelogJson,
   readChangelogMd,
-  fakeCommit as commit,
   trimChangelogMd,
 } from '../../__fixtures__/changelog';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
+import type { Repository } from '../../__fixtures__/repository';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
+import { calculatePackageTags } from '../../bump/calculatePackageTags';
+import { getMaxChangeType } from '../../changefile/changeTypes';
+import { readChangeFiles } from '../../changefile/readChangeFiles';
+import { trimmedVersionsNote } from '../../changelog/renderChangelog';
 import { writeChangelog } from '../../changelog/writeChangelog';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
-import { readChangeFiles } from '../../changefile/readChangeFiles';
-import type { BeachballOptions, RepoOptions } from '../../types/BeachballOptions';
-import type { Repository } from '../../__fixtures__/repository';
-import type { BumpInfo } from '../../types/BumpInfo';
-import { getMaxChangeType } from '../../changefile/changeTypes';
-import { getChangePath } from '../../paths';
-import { trimmedVersionsNote } from '../../changelog/renderChangelog';
-import { getOptions } from '../../options/getOptions';
-import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
-import type { PackageInfos } from '../../types/PackageInfo';
-import { writeJson } from '../../object/writeJson';
 import { getScopedPackages } from '../../monorepo/getScopedPackages';
-import { calculatePackageTags } from '../../bump/calculatePackageTags';
+import { getOptions } from '../../options/getOptions';
+import { getChangePath } from '../../paths';
+import type { BeachballOptions, RepoOptions } from '../../types/BeachballOptions';
+import type { BumpInfo } from '../../types/BumpInfo';
+import type { PackageInfos } from '../../types/PackageInfo';
 
 describe('writeChangelog', () => {
   let repositoryFactory: RepositoryFactory;

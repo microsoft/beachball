@@ -1,8 +1,9 @@
 import type { BlobServiceClient } from '@azure/storage-blob';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import fs from 'fs';
+import { expectError, setupTempDir } from '@microsoft/beachball-test-utilities';
 import jws from 'jws';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import type { CreateReleaseParams, ESRPReleaseService as ESRPReleaseServiceType } from '../ESRPReleaseService.ts';
 import { MockLogger } from '../__fixtures__/MockLogger.ts';
 import {
@@ -14,7 +15,6 @@ import {
   type MockContainerClient,
 } from '../__fixtures__/mockAzure.ts';
 import { createMockEsrpHttp } from '../__fixtures__/mockEsrpHttp.ts';
-import { setupTempDir } from '../__fixtures__/tempDir.ts';
 import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
 import type * as getAadTokenModule from '../auth/getAadToken.ts';
 import { esrpApiScope } from '../esrpApi/releaseHttp.ts';
@@ -115,14 +115,7 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
   }
 
   async function expectReleaseError(message: string, originalError?: Error) {
-    const err = await runCreateRelease().catch(e => e as unknown);
-    expect(err).toBeInstanceOf(ReleaseError);
-    expect((err as ReleaseError).message).toContain(message);
-    if (originalError) {
-      expect((err as ReleaseError).cause).toBe(originalError);
-    } else {
-      expect((err as ReleaseError).cause).toBeUndefined();
-    }
+    await expectError(runCreateRelease(), ReleaseError, message, originalError);
   }
 
   it('acquires creds, uploads blob, signs+submits, polls until pass, deletes blob', async () => {
@@ -281,11 +274,11 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
       },
     });
 
-    const err = await runCreateRelease().catch(e => e as unknown);
-    expect(err).toBeInstanceOf(ReleaseError);
-    const message = (err as ReleaseError).message;
-    expect(message).toContain('Release failed with 404 on npm publish:');
-    expect(message).toContain('Full status API response');
+    await expectError(
+      () => runCreateRelease(),
+      ReleaseError,
+      /Release failed with 404 on npm publish:[\s\S]*?Full status API response/
+    );
     expect(blobClient.delete).toHaveBeenCalledTimes(1);
   });
 

@@ -1,8 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import * as workspaceTools from 'workspace-tools';
-import { catalogsToYaml, type Catalogs, getBranchChanges } from 'workspace-tools';
+import { catalogsToYaml, getBranchChanges, type Catalogs } from 'workspace-tools';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import type { Repository } from '../../__fixtures__/repository';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';

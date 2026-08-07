@@ -1,11 +1,11 @@
 import { describe, expect, it, jest } from '@jest/globals';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import type prompts from 'prompts';
-import { getQuestionsForPackage } from '../../changefile/getQuestionsForPackage';
-import type { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { makePackageInfos, type PartialPackageInfo } from '../../__fixtures__/packageInfos';
-import type { ChangeType } from '../../types/ChangeInfo';
+import { getQuestionsForPackage } from '../../changefile/getQuestionsForPackage';
 import { getOptions } from '../../options/getOptions';
+import type { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
+import type { ChangeType } from '../../types/ChangeInfo';
 import type { PackageGroups } from '../../types/PackageInfo';
 
 type GetQuestionsParams = Parameters<typeof getQuestionsForPackage>[0];

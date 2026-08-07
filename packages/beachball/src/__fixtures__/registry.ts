@@ -1,9 +1,9 @@
+import { removeTempDir, tmpdir } from '@microsoft/beachball-test-utilities';
 import { ConfigBuilder } from '@verdaccio/config';
-import { fork, type ChildProcess } from 'child_process';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
-import { removeTempDir, tmpdir } from './tmpdir';
+import { fork, type ChildProcess } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { findPackageRoot } from 'workspace-tools';
 
 const verdaccioUser = {

@@ -1,7 +1,7 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
 import { getPackagesToPublish } from '../../publish/getPackagesToPublish';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 type PartialBumpInfo = Parameters<typeof getPackagesToPublish>[0];
 

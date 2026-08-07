@@ -1,9 +1,9 @@
-import { describe, expect, it, beforeAll, afterAll } from '@jest/globals';
+import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
+import { getDefaultOptions } from '../../options/getDefaultOptions';
 import { getOptions } from '../../options/getOptions';
 import type { RepoOptions } from '../../types/BeachballOptions';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { getDefaultOptions } from '../../options/getDefaultOptions';
 
 describe('getOptions', () => {
   initMockLogs({ alsoLog: ['error', 'warn'] });

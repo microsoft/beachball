@@ -1,5 +1,5 @@
 import NpmConfig from '@npmcli/config';
-import fs from 'fs';
+import fs from 'node:fs';
 import which from 'which';
 import { pluginName } from './constants.js';
 import { throwError } from './errors.js';

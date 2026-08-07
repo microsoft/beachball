@@ -1,15 +1,13 @@
-import { describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
-
-import type { ChangeFileInfo, ChangeInfoMultiple } from '../../types/ChangeInfo';
-import { writeChangeFiles } from '../../changefile/writeChangeFiles';
-import { getChangeFiles } from '../../__fixtures__/changeFiles';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from '@jest/globals';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import { listAllTrackedFiles } from 'workspace-tools';
-import type { BeachballOptions } from '../../types/BeachballOptions';
-import { getDefaultOptions } from '../../options/getDefaultOptions';
+import { getChangeFiles, readGroupedChangeFile, readSingleChangeFile } from '../../__fixtures__/changeFiles';
 import type { Repository } from '../../__fixtures__/repository';
-import { readJson } from '../../object/readJson';
+import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
+import { writeChangeFiles } from '../../changefile/writeChangeFiles';
+import { getDefaultOptions } from '../../options/getDefaultOptions';
+import type { BeachballOptions } from '../../types/BeachballOptions';
+import type { ChangeFileInfo } from '../../types/ChangeInfo';
 
 const uuidRegex = /[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}/;
 const uuidGeneric = '00000000-0000-0000-0000-000000000000';
@@ -71,7 +69,7 @@ describe('writeChangeFiles', () => {
     expect(repo.getCurrentHash()).not.toEqual(previousHead);
 
     // also verify contents of one file
-    const changeFileContents = readJson<ChangeFileInfo>(changeFiles[0]);
+    const changeFileContents = readSingleChangeFile(changeFiles[0]);
     expect(changeFileContents).toEqual({ packageName: 'bar' });
   });
 
@@ -146,7 +144,7 @@ describe('writeChangeFiles', () => {
     const trackedFiles = listAllTrackedFiles({ patterns: ['change/*'], cwd: repo.rootPath });
     expect(cleanChangeFilePaths(repo.rootPath, trackedFiles)).toEqual(expectedFile);
 
-    const changeFileContents = readJson<ChangeInfoMultiple>(changeFiles[0]);
+    const changeFileContents = readGroupedChangeFile(changeFiles[0]);
     expect(changeFileContents).toEqual({
       changes: [{ packageName: 'foo' }, { packageName: 'bar' }],
     });

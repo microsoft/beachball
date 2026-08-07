@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import { expectErrorSync } from '@microsoft/beachball-test-utilities';
 import { createMockProcessEnv } from '../__fixtures__/mockEnv.ts';
 import { getEnvOptions } from '../utils/getEnvOptions.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
@@ -84,17 +85,11 @@ describe('getEnvOptions', () => {
     delete baseEnv.ESRP_PRODUCT_NAME;
     delete baseEnv.STAGING_TENANT_ID;
 
-    let err: unknown;
-    try {
-      getEnvOptions(baseEnv);
-    } catch (e) {
-      err = e;
-    }
-
-    expect(err).toBeInstanceOf(ReleaseError);
-    expect((err as ReleaseError).message).toContain('PACKED_PACKAGES_PATH');
-    expect((err as ReleaseError).message).toContain('ESRP_PRODUCT_NAME');
-    expect((err as ReleaseError).message).toContain('STAGING_TENANT_ID');
+    expectErrorSync(() => getEnvOptions(baseEnv), ReleaseError, [
+      'PACKED_PACKAGES_PATH',
+      'ESRP_PRODUCT_NAME',
+      'STAGING_TENANT_ID',
+    ]);
   });
 
   it('requires no ESRP_USER when individual user fields are all set', () => {
@@ -117,15 +112,11 @@ describe('getEnvOptions', () => {
       ESRP_APPROVERS: undefined,
     });
 
-    let err: unknown;
-    try {
-      getEnvOptions(env);
-    } catch (e) {
-      err = e;
-    }
-
-    expect(err).toBeInstanceOf(ReleaseError);
-    expect((err as ReleaseError).message).toContain('ESRP_CREATED_BY, ESRP_DRI_EMAIL, ESRP_OWNERS, ESRP_APPROVERS');
+    expectErrorSync(
+      () => getEnvOptions(env),
+      ReleaseError,
+      'ESRP_CREATED_BY, ESRP_DRI_EMAIL, ESRP_OWNERS, ESRP_APPROVERS'
+    );
   });
 
   describe('ESRP authentication', () => {

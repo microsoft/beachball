@@ -1,8 +1,7 @@
-import { describe, it, expect, afterEach, beforeAll, jest } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
-import { createTestFileStructure } from '../../__fixtures__/createTestFileStructure';
-import { removeTempDir } from '../../__fixtures__/tmpdir';
+import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { createTestFileStructure, expectErrorSync, removeTempDir } from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
+import path from 'node:path';
 import { updateLockFileRegistry } from '../../commands/updateLockFileRegistry';
 import { BeachballError } from '../../types/BeachballError';
 
@@ -35,8 +34,11 @@ describe('updateLockFileRegistry', () => {
   it('throws when the registry option is missing', () => {
     tempDir = createTestFileStructure({});
 
-    expect(() => updateLockFileRegistry({ path: tempDir, registry: '' })).toThrow(BeachballError);
-    expect(() => updateLockFileRegistry({ path: tempDir, registry: '' })).toThrow('The "registry" option is required');
+    expectErrorSync(
+      () => updateLockFileRegistry({ path: tempDir, registry: '' }),
+      BeachballError,
+      'The "registry" option is required'
+    );
   });
 
   it('skips yarn berry (yarn.lock alongside .yarnrc.yml)', () => {
@@ -78,8 +80,9 @@ describe('updateLockFileRegistry', () => {
   it('throws when the lock file does not contain the default registry', () => {
     tempDir = createTestFileStructure({ 'package-lock.json': '{}\n' });
 
-    expect(() => updateLockFileRegistry({ path: tempDir, registry })).toThrow(BeachballError);
-    expect(() => updateLockFileRegistry({ path: tempDir, registry })).toThrow(
+    expectErrorSync(
+      () => updateLockFileRegistry({ path: tempDir, registry }),
+      BeachballError,
       'does not contain https://registry.npmjs.org/'
     );
   });

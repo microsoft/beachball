@@ -1,10 +1,10 @@
-import path from 'path';
-import type { PackageInfo } from '../types/PackageInfo';
-import type { PackageChangelog } from '../types/ChangeLog';
-import type { BumpInfo } from '../types/BumpInfo';
-import { getChangePath } from '../paths';
+import path from 'node:path';
 import { getFileAddedHash } from 'workspace-tools';
+import { getChangePath } from '../paths';
 import type { BeachballOptions } from '../types/BeachballOptions';
+import type { BumpInfo } from '../types/BumpInfo';
+import type { PackageChangelog } from '../types/ChangeLog';
+import type { PackageInfo } from '../types/PackageInfo';
 
 /**
  * Get the preliminary changelog info for each modified package, based on change files and

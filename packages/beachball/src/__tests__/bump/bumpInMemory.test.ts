@@ -1,13 +1,13 @@
 import { describe, expect, it } from '@jest/globals';
-import path from 'path';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
+import path from 'node:path';
 import { generateChangeSet, type PartialChangeFile } from '../../__fixtures__/changeFiles';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { makePackageInfosByFolder, type PartialPackageInfo } from '../../__fixtures__/packageInfos';
 import { bumpInMemory } from '../../bump/bumpInMemory';
+import { getPackageGroups } from '../../monorepo/getPackageGroups';
+import { getScopedPackages } from '../../monorepo/getScopedPackages';
 import { getOptions } from '../../options/getOptions';
 import type { RepoOptions } from '../../types/BeachballOptions';
-import { getScopedPackages } from '../../monorepo/getScopedPackages';
-import { getPackageGroups } from '../../monorepo/getPackageGroups';
 
 describe('bumpInMemory', () => {
   initMockLogs();

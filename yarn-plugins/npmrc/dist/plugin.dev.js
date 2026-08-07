@@ -1910,7 +1910,7 @@ var plugin = (() => {
   async function loadNpmrc(params) {
     let npmPath = "";
     try {
-      npmPath = import_fs.default.realpathSync(import_which.default.sync("npm"));
+      npmPath = import_node_fs.default.realpathSync(import_which.default.sync("npm"));
     } catch {
       throwError(`Couldn't find "npm" executable to help read the config`);
     }
@@ -1934,12 +1934,12 @@ var plugin = (() => {
       process.off("log", onLog);
     }
   }
-  var import_config, import_fs, import_which;
+  var import_config, import_node_fs, import_which;
   var init_loadNpmrc = __esm({
     "src/loadNpmrc.ts"() {
       "use strict";
       import_config = __toESM(require_lib3());
-      import_fs = __toESM(__require("fs"));
+      import_node_fs = __toESM(__require("node:fs"));
       import_which = __toESM(require_lib4());
       init_constants();
       init_errors();

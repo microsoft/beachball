@@ -1,9 +1,9 @@
-import fs from 'fs';
 import { CommanderError } from 'commander';
+import fs from 'node:fs';
 import { fetchReleases } from './fetchReleases.ts';
+import { parseArgs } from './parseArgs.ts';
 import { renderChangelog } from './renderChangelog.ts';
 import { ChangelogError, type CliContext, type ProperChangelogOptions } from './types.ts';
-import { parseArgs } from './parseArgs.ts';
 
 /** Generate the changelog and write it to a file or stdout. */
 export async function _generateChangelog(options: ProperChangelogOptions, context: CliContext): Promise<void> {

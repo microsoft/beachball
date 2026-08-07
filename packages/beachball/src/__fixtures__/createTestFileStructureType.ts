@@ -1,26 +1,5 @@
-import fs from 'fs';
-import { tmpdir } from './tmpdir';
-import path from 'path';
 import type { RepoOptions } from '../types/BeachballOptions';
-import { readJson } from '../object/readJson';
-import { writeJson } from '../object/writeJson';
-
-/**
- * For each key in `files`, create a test folder and write a file of that filePath, where the
- * content is the value (and create any intermediate folders).
- * @returns path to the test folder
- */
-export function createTestFileStructure(files: Record<string, string | object>): string {
-  const testFolderPath = tmpdir();
-
-  for (const [filename, content] of Object.entries(files)) {
-    const filePath = path.join(testFolderPath, filename);
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, typeof content === 'string' ? content : JSON.stringify(content));
-  }
-
-  return testFolderPath;
-}
+import { createTestFileStructure } from '@microsoft/beachball-test-utilities';
 
 /**
  * Create a test file structure for a named fixture (similar to the ones in `RepositoryFactory`).
@@ -61,19 +40,4 @@ export function createTestFileStructureType(
         'yarn.lock': '',
       });
   }
-}
-
-/**
- * Shallow-merge the given updates with an existing JSON file.
- */
-export function updateJsonFile(filePath: string, updates: object): void {
-  if (!filePath.endsWith('.json')) {
-    throw new Error('This method only works with json files');
-  }
-
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`JSON file does not exist: ${filePath}`);
-  }
-  const oldContent = readJson<object>(filePath);
-  writeJson(filePath, { ...oldContent, ...updates });
 }

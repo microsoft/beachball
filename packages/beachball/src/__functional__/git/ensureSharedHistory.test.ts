@@ -1,10 +1,10 @@
-import { describe, expect, it, beforeAll, afterAll, jest, afterEach } from '@jest/globals';
+import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import * as workspaceTools from 'workspace-tools';
+import { defaultBranchName, defaultRemoteBranchName, optsWithLang } from '../../__fixtures__/gitDefaults';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { ensureSharedHistory } from '../../git/ensureSharedHistory';
 import { clearGitAuthEnvCache, getAuthHeaderValue } from '../../git/getGitAuthEnv';
-import { defaultBranchName, defaultRemoteBranchName, optsWithLang } from '../../__fixtures__/gitDefaults';
 
 // required for `jest.spyOn(workspaceTools, git)` to work
 jest.mock('workspace-tools', () => {

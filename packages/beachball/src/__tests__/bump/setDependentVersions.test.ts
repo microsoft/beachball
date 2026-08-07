@@ -1,8 +1,8 @@
-import { describe, it, expect } from '@jest/globals';
-import { setDependentVersions } from '../../bump/setDependentVersions';
+import { describe, expect, it } from '@jest/globals';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
+import { setDependentVersions } from '../../bump/setDependentVersions';
 import { consideredDependencies } from '../../types/PackageInfo';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
 
 type PartialBumpInfo = Parameters<typeof setDependentVersions>[0]['bumpInfo'];
 

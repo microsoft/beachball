@@ -1,9 +1,9 @@
-import fs from 'fs';
 import jju from 'jju';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { isGithub, logEndGroup, logError, logGroup, logOther } from './utils/github.ts';
 import { paths } from './utils/paths.ts';
-import { readPresets, readRepoConfig, getServerConfig, specialConfigNames } from './utils/readPresets.ts';
+import { getServerConfig, readPresets, readRepoConfig, specialConfigNames } from './utils/readPresets.ts';
 import { parseRenovateLogs } from './utils/renovateLogs.ts';
 import { runRenovate, updateAndFormat, verifyRenovate } from './utils/runBin.ts';
 import type { ConfigData, LocalPresetData } from './utils/types.ts';

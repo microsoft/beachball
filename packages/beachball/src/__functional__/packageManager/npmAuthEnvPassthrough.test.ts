@@ -1,10 +1,9 @@
-import fs from 'fs';
-import path from 'path';
 import { afterEach, describe, expect, it } from '@jest/globals';
+import { initMockLogs, removeTempDir, tmpdir } from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
+import path from 'node:path';
 import { checkNpmAuthEnvPassthrough, filterPathForNpm } from '../../packageManager/npmAuthEnvPassthrough';
 import { BeachballError } from '../../types/BeachballError';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { tmpdir, removeTempDir } from '../../__fixtures__/tmpdir';
 
 describe('filterPathForNpm', () => {
   const makePathEnv = (...parts: string[]) => parts.join(path.delimiter);

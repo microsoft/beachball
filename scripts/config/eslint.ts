@@ -3,7 +3,7 @@ import deprecated from '@ms-cloudpack/eslint-plugin-deprecated';
 import prettier from 'eslint-config-prettier/flat';
 import eslint from 'eslint/config';
 import globals from 'globals';
-import path from 'path';
+import path from 'node:path';
 import tseslint from 'typescript-eslint';
 
 type ConfigWithExtendsArray = Parameters<typeof eslint.defineConfig>;

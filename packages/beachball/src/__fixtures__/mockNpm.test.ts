@@ -3,26 +3,42 @@
 // dependency on actual npm CLI calls and a fake registry (which are very slow).
 
 import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
-import fs from 'fs';
+import fs from 'node:fs';
 // import fetch from 'npm-registry-fetch';
+import * as testUtilsModule from '@microsoft/beachball-test-utilities';
 import { npm } from '../packageManager/npm';
+import type { SpawnResult } from '../spawn';
 import type { PackageJson } from '../types/PackageInfo';
 import {
-  initNpmMock,
   _makeRegistryData,
   _mockNpmPack,
   _mockNpmPublish,
   _mockNpmShow,
+  initNpmMock,
   type MockNpmCommand,
 } from './mockNpm';
-import * as readJsonModule from '../object/readJson';
 import { mockSpawnSuccess, MockSubprocessError } from './mockSpawnResult';
-import type { SpawnResult } from '../spawn';
 
-jest.mock('fs');
+jest.mock('node:fs');
 // jest.mock('npm-registry-fetch');
-jest.mock('../object/readJson');
 jest.mock('../packageManager/npm');
+
+let packageJson: PackageJson | undefined;
+jest.mock('@microsoft/beachball-test-utilities', () => ({
+  ...jest.requireActual<typeof testUtilsModule>('@microsoft/beachball-test-utilities'),
+  readJson: jest.fn(),
+}));
+
+beforeAll(() => {
+  (testUtilsModule.readJson as jest.MockedFunction<typeof testUtilsModule.readJson>).mockImplementation((() => {
+    if (!packageJson) throw new Error('packageJson not set');
+    return packageJson;
+  }) as typeof testUtilsModule.readJson);
+});
+
+afterEach(() => {
+  packageJson = undefined;
+});
 
 describe('_makeRegistryData', () => {
   it('returns empty data', () => {
@@ -176,25 +192,12 @@ describe('_mockNpmPublish', () => {
     return mockSpawnSuccess({ output });
   }
 
-  let packageJson: PackageJson | undefined;
-
-  beforeAll(() => {
-    (readJsonModule.readJson as jest.MockedFunction<typeof readJsonModule.readJson>).mockImplementation((() => {
-      if (!packageJson) throw new Error('packageJson not set');
-      return packageJson;
-    }) as typeof readJsonModule.readJson);
-  });
-
-  afterEach(() => {
-    packageJson = undefined;
-  });
-
   it('throws if cwd is not specified', async () => {
     await expect(() => _mockNpmPublish({}, [], { cwd: '' })).rejects.toThrow('cwd is required for mock npm publish');
   });
 
   it('errors if reading package.json fails', async () => {
-    // this error is from the fs.readJsonSync mock, but it's the same code path as if reading the file fails
+    // this error is from the readJson mock, but it's the same code path as if reading the file fails
     await expect(() => _mockNpmPublish({}, [], { cwd: 'fake' })).rejects.toThrow('packageJson not set');
   });
 
@@ -268,21 +271,15 @@ describe('_mockNpmPublish', () => {
 });
 
 describe('_mockNpmPack', () => {
-  let packageJson: PackageJson | undefined;
   let writtenFiles: (fs.PathLike | number)[] = [];
 
   beforeAll(() => {
-    (readJsonModule.readJson as jest.MockedFunction<typeof readJsonModule.readJson>).mockImplementation((() => {
-      if (!packageJson) throw new Error('packageJson not set');
-      return packageJson;
-    }) as typeof readJsonModule.readJson);
     (fs.writeFileSync as jest.MockedFunction<typeof fs.writeFileSync>).mockImplementation(filePath => {
       writtenFiles.push(String(filePath).replace(/\\/g, '/'));
     });
   });
 
   afterEach(() => {
-    packageJson = undefined;
     writtenFiles = [];
   });
 
@@ -326,18 +323,6 @@ describe('_mockNpmPack', () => {
 
 describe('mockNpm', () => {
   const npmMock = initNpmMock();
-  let packageJson: PackageJson | undefined;
-
-  beforeAll(() => {
-    (readJsonModule.readJson as jest.MockedFunction<typeof readJsonModule.readJson>).mockImplementation((() => {
-      if (!packageJson) throw new Error('packageJson not set');
-      return packageJson;
-    }) as typeof readJsonModule.readJson);
-  });
-
-  afterEach(() => {
-    packageJson = undefined;
-  });
 
   // describe('mockFetchJson', () => {
   //   it('mocks registry fetch', async () => {

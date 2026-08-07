@@ -1,8 +1,8 @@
+import { removeTempDir } from '@microsoft/beachball-test-utilities';
 import spawn from 'nano-spawn';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
-import { removeTempDir } from './tempDir.ts';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 let opensslAvailableCache: boolean | undefined;
 

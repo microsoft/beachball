@@ -46,7 +46,7 @@ var plugin = (() => {
   });
   var import_core = __require("@yarnpkg/core");
   var import_fslib = __require("@yarnpkg/fslib");
-  var import_path = __toESM(__require("path"));
+  var import_node_path = __toESM(__require("node:path"));
   var import_semver2 = __toESM(__require("semver"));
 
   // src/linker.ts
@@ -292,7 +292,7 @@ var plugin = (() => {
         }
       }
     }
-    const nmPath = import_path.default.join(project.cwd, "node_modules", import_core.structUtils.stringifyIdent(pkg));
+    const nmPath = import_node_path.default.join(project.cwd, "node_modules", import_core.structUtils.stringifyIdent(pkg));
     if (nodeFs.existsSync(nmPath)) {
       verboseWarning(`Falling back to node_modules path for ${prettyPkg}: ${nmPath}`);
       return nmPath;

@@ -1,13 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { initMockLogs, removeTempDir, tmpdir, writeJson } from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
+import path from 'node:path';
 import { _mockNpmPublish, getMockNpmPackName, initNpmMock } from '../../__fixtures__/mockNpm';
 import { MockSubprocessError } from '../../__fixtures__/mockSpawnResult';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
-import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
 import { writeChangelog } from '../../changelog/writeChangelog';
-import { writeJson } from '../../object/writeJson';
 import { getDefaultOptions } from '../../options/getDefaultOptions';
 import { publishToRegistry, type LayerVersionsJson } from '../../publish/publishToRegistry';
 import type { BeachballOptions, HooksOptions } from '../../types/BeachballOptions';

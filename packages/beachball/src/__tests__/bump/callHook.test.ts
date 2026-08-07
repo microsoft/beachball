@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import path from 'path';
+import path from 'node:path';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { callHook } from '../../bump/callHook';
 import { getPackageGraph } from '../../monorepo/getPackageGraph';
