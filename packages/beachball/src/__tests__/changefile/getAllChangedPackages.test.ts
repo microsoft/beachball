@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import path from 'path';
+import path from 'node:path';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';

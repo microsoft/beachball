@@ -1,8 +1,9 @@
 import { expect } from '@jest/globals';
-import path from 'path';
-import * as fs from 'fs';
-import { git, type GitProcessOutput } from 'workspace-tools';
 import { removeTempDir, tmpdir } from './tmpdir';
+import { updateJsonFile } from './createTestFileStructure';
+import fs from 'node:fs';
+import path from 'node:path';
+import { git, type GitProcessOutput } from 'workspace-tools';
 import {
   defaultBranchName,
   defaultRemoteBranchName,
@@ -10,7 +11,6 @@ import {
   optsWithLang,
   setDefaultBranchName,
 } from './gitDefaults';
-import { updateJsonFile } from './createTestFileStructure';
 
 /**
  * Clone options. See the docs for details on behavior and interaction of these options.

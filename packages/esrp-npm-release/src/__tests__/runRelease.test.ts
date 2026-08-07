@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import type { ESRPReleaseService } from '../ESRPReleaseService.ts';
 import { MockLogger } from '../__fixtures__/MockLogger.ts';
 import { createMockEnv } from '../__fixtures__/mockEnv.ts';

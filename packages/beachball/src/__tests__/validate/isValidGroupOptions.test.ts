@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
-import { isValidGroupOptions, isValidGroupedPackageOptions } from '../../validation/isValidGroupOptions';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import type { VersionGroupOptions } from '../../types/BeachballOptions';
 import type { PackageGroups } from '../../types/PackageInfo';
-import { makePackageInfos } from '../../__fixtures__/packageInfos';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { isValidGroupOptions, isValidGroupedPackageOptions } from '../../validation/isValidGroupOptions';
 
 describe('isValidGroupOptions', () => {
   const logs = initMockLogs();

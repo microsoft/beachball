@@ -1,8 +1,8 @@
-import path from 'path';
+import path from 'node:path';
 import type { PackageInfo as WSPackageInfo } from 'workspace-tools';
-import type { PackageInfo, PackageInfos } from '../types/PackageInfo';
 import { getPackageInfosWithOptions } from '../options/getPackageInfosWithOptions';
 import type { CliOptions } from '../types/BeachballOptions';
+import type { PackageInfo, PackageInfos } from '../types/PackageInfo';
 
 export type PartialPackageInfo = Omit<Partial<PackageInfo>, 'combinedOptions' | 'packageOptions'> & {
   beachball?: PackageInfo['packageOptions'];

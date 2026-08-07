@@ -1,6 +1,6 @@
-import fs from 'fs';
 import jju from 'jju';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { logError } from './github.ts';
 import { paths } from './paths.ts';
 import type { BasicRenovateConfig, ConfigData, LocalPresetData } from './types.ts';

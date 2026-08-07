@@ -1,8 +1,8 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { getBranchName, getCurrentHash } from 'workspace-tools';
 import { generateChangeFiles } from '../../__fixtures__/changeFiles';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { deepFreezeProperties } from '../../__fixtures__/object';
 import type { Repository } from '../../__fixtures__/repository';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';

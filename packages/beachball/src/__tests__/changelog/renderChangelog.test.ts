@@ -1,13 +1,13 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import {
-  type MarkdownChangelogRenderOptions,
-  renderChangelog,
-  markerComment,
   _trimPreviousLog,
+  type MarkdownChangelogRenderOptions,
+  markerComment,
+  renderChangelog,
   trimmedVersionsNote,
 } from '../../changelog/renderChangelog';
-import type { ChangelogEntry, PackageChangelog, ChangelogJson } from '../../types/ChangeLog';
+import type { ChangelogEntry, ChangelogJson, PackageChangelog } from '../../types/ChangeLog';
 
 /** Make a changelog string with a header and basic content for each version */
 function changelogFromVersions(versions: string[]): string {

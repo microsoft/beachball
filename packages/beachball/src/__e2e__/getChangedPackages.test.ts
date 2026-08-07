@@ -1,22 +1,22 @@
-import { describe, expect, it, afterEach, beforeAll, afterAll, jest } from '@jest/globals';
+import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { initMockLogs } from '../__fixtures__/mockLogs';
 import {
   addGitObserver,
+  catalogsToYaml,
   clearGitObservers,
+  getCatalogs,
   getPackageInfo as getWsPackageInfo,
   type Catalogs,
-  catalogsToYaml,
-  getCatalogs,
 } from 'workspace-tools';
-import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
-import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
-import type { RepoOptions } from '../types/BeachballOptions';
-import { getChangedPackages } from '../changefile/getChangedPackages';
-import { initMockLogs } from '../__fixtures__/mockLogs';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
+import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import type { Repository } from '../__fixtures__/repository';
-import { getOptions as _getOptions } from '../options/getOptions';
+import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
+import { getChangedPackages } from '../changefile/getChangedPackages';
+import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
+import { getOptions as _getOptions } from '../options/getOptions';
+import type { RepoOptions } from '../types/BeachballOptions';
 
 //
 // NOTE: These tests should mostly cover logic specific to getChangePackages itself.

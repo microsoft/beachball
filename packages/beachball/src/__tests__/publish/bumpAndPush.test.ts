@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/require-await -- matching async mock signatures */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import path from 'path';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
+import path from 'node:path';
 import type { GitProcessOutput } from 'workspace-tools';
 import * as wsTools from 'workspace-tools';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
 import { mockSpawnSuccess, MockSubprocessError } from '../../__fixtures__/mockSpawnResult';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { performBump as _performBump } from '../../bump/performBump';
+import { clearGitAuthEnvCache, getTokenFromAuthHeader } from '../../git/getGitAuthEnv';
 import { getOptions } from '../../options/getOptions';
 import { bumpAndPush } from '../../publish/bumpAndPush';
 import { tagPackages as _tagPackages } from '../../publish/tagPackages';
@@ -15,7 +16,6 @@ import { spawn as _spawn } from '../../spawn';
 import { BeachballError } from '../../types/BeachballError';
 import type { BeachballOptions } from '../../types/BeachballOptions';
 import type { BumpInfo } from '../../types/BumpInfo';
-import { clearGitAuthEnvCache, getTokenFromAuthHeader } from '../../git/getGitAuthEnv';
 
 jest.mock('workspace-tools');
 jest.mock('../../bump/performBump'); // this has a bunch of logic which is tested separately

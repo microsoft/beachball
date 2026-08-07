@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const actionPrefix = '@microsoft/beachball-action-';
 const skillName = '@microsoft/beachball-change-file-skill';

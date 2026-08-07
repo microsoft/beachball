@@ -1,3 +1,4 @@
+import path from 'node:path';
 import {
   getCatalogFilePath,
   getCatalogs,
@@ -5,11 +6,10 @@ import {
   getFileFromRef,
   parseCatalogContent,
 } from 'workspace-tools';
-import type { BeachballOptions } from '../types/BeachballOptions';
-import { type PackageInfos, consideredDependencies, type ScopedPackages } from '../types/PackageInfo';
-import { getIncludedLoggers, isPackageIncluded } from './isPackageIncluded';
 import { diffCatalogs } from '../monorepo/diffCatalogs';
-import path from 'path';
+import type { BeachballOptions } from '../types/BeachballOptions';
+import { consideredDependencies, type PackageInfos, type ScopedPackages } from '../types/PackageInfo';
+import { getIncludedLoggers, isPackageIncluded } from './isPackageIncluded';
 
 /**
  * Get the packages that were changed due to catalog version modifications.

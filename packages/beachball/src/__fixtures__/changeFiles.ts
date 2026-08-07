@@ -1,9 +1,9 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { writeChangeFiles } from '../changefile/writeChangeFiles';
 import { getChangePath } from '../paths';
-import type { ChangeFileInfo, ChangeSet, ChangeType } from '../types/ChangeInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
+import type { ChangeFileInfo, ChangeSet, ChangeType } from '../types/ChangeInfo';
 
 /** Change file with `packageName` required and other props optional */
 export type PartialChangeFile = { packageName: string } & Partial<ChangeFileInfo>;

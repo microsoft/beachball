@@ -1,8 +1,8 @@
-import type { ChangeSet } from '../types/ChangeInfo';
+import fs from 'node:fs';
+import path from 'node:path';
 import { getChangePath } from '../paths';
-import fs from 'fs';
-import path from 'path';
 import type { BeachballOptions } from '../types/BeachballOptions';
+import type { ChangeSet } from '../types/ChangeInfo';
 
 /**
  * Unlink only change files that are specified in the `changeSet` param.

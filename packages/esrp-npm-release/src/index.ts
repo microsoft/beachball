@@ -26,6 +26,6 @@ await runRelease({ env: getEnvOptions(), logger }).catch(err => {
     logger.error('Unexpected error while running release!');
     logger.error((err as Error)?.stack || err);
   }
-  // eslint-disable-next-line no-restricted-properties
+  // eslint-disable-next-line n/no-process-exit
   process.exit(1);
 });

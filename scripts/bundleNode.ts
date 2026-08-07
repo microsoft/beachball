@@ -1,6 +1,6 @@
 import { bundleNode, unacceptableLicenseTest, BundleError } from '@ms-cloudpack/esbuild-node-helpers';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { findPackageRoot } from 'workspace-tools';
 
 const packageRoot = findPackageRoot(process.cwd());

@@ -1,9 +1,9 @@
-import fs from 'fs';
 import { CommanderError } from 'commander';
+import fs from 'node:fs';
 import { fetchReleases } from './fetchReleases.ts';
+import { parseArgs } from './parseArgs.ts';
 import { renderChangelog } from './renderChangelog.ts';
 import { ChangelogError, type CliContext, type ProperChangelogOptions } from './types.ts';
-import { parseArgs } from './parseArgs.ts';
 
 /** Generate the changelog and write it to a file or stdout. */
 export async function _generateChangelog(options: ProperChangelogOptions, context: CliContext): Promise<void> {
@@ -47,7 +47,7 @@ export function cli(): void {
     } else {
       console.error(err instanceof Error ? err.stack || err.message : String(err));
     }
-    // eslint-disable-next-line no-restricted-properties -- central handler
+    // eslint-disable-next-line n/no-process-exit -- central handler
     process.exit(1);
   });
 }

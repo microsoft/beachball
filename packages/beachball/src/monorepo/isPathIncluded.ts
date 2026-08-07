@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 
 /**
  * Check if a relative package path should be included given include and exclude patterns.

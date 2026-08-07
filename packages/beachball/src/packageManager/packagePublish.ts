@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import type { SpawnResult } from '../spawn';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { NpmOptions } from '../types/NpmOptions';

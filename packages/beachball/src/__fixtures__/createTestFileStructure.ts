@@ -1,9 +1,9 @@
-import fs from 'fs';
-import { tmpdir } from './tmpdir';
-import path from 'path';
-import type { RepoOptions } from '../types/BeachballOptions';
+import fs from 'node:fs';
+import path from 'node:path';
 import { readJson } from '../object/readJson';
 import { writeJson } from '../object/writeJson';
+import type { RepoOptions } from '../types/BeachballOptions';
+import { tmpdir } from './tmpdir';
 
 /**
  * For each key in `files`, create a test folder and write a file of that filePath, where the

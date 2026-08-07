@@ -1,5 +1,5 @@
 import { build, type BuildResult } from 'esbuild';
-import path from 'path';
+import path from 'node:path';
 import { findPackageRoot, findProjectRoot, getPackageInfo } from 'workspace-tools';
 
 // These can be updated if needed, but the goal is to keep them low to reduce the parse time penalty

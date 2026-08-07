@@ -1,5 +1,5 @@
-import { execFileSync } from 'child_process';
-import path from 'path';
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
 import { findPackageRoot, getPackageInfo } from 'workspace-tools';
 import { BeachballError } from '../types/BeachballError';
 import type { BeachballOptions } from '../types/BeachballOptions';

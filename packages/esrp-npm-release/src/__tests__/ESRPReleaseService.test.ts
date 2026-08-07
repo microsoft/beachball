@@ -1,8 +1,8 @@
 import type { BlobServiceClient } from '@azure/storage-blob';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import fs from 'fs';
 import jws from 'jws';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import type { CreateReleaseParams, ESRPReleaseService as ESRPReleaseServiceType } from '../ESRPReleaseService.ts';
 import { MockLogger } from '../__fixtures__/MockLogger.ts';
 import {

@@ -1,12 +1,12 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import type prompts from 'prompts';
-import { promptForChange } from '../../changefile/promptForChange';
-import type { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
+import type prompts from 'prompts';
 import { MockStdin } from '../../__fixtures__/mockStdin';
 import { MockStdout } from '../../__fixtures__/mockStdout';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import { promptForChange } from '../../changefile/promptForChange';
 import { expectBeachballError } from '../../__fixtures__/expectBeachballError';
+import type { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
 // so instead we inject a custom mock stdout stream, as well as stdin for entering answers.

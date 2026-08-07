@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use `node:` prefix on built-in imports",
+  "packageName": "@microsoft/beachball-yarn-plugin-engines",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'node:fs';
 import { logEndGroup, logGroup } from './github.ts';
 import type { RenovateLog, RenovateLogLevelName } from './types.ts';
 

@@ -1,6 +1,6 @@
 import type { Options as NanoSpawnOptions, Result as NanoSpawnResult } from 'nano-spawn';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import semver from 'semver';
 import { paths } from './paths.ts';
 import { getRenovateEnv, type RenovateEnvParams } from './renovateLogs.ts';

@@ -1,10 +1,10 @@
-import { describe, it, expect } from '@jest/globals';
-import { bumpPackageInfoVersion } from '../../bump/bumpPackageInfoVersion';
-import { makePackageInfos } from '../../__fixtures__/packageInfos';
-import type { ChangeType } from '../../types/ChangeInfo';
+import { describe, expect, it } from '@jest/globals';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import type { PackageInfo } from '../../types/PackageInfo';
+import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import { bumpPackageInfoVersion } from '../../bump/bumpPackageInfoVersion';
 import type { BeachballOptions } from '../../types/BeachballOptions';
+import type { ChangeType } from '../../types/ChangeInfo';
+import type { PackageInfo } from '../../types/PackageInfo';
 
 type PartialBumpInfo = Parameters<typeof bumpPackageInfoVersion>[1];
 
