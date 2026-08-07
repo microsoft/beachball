@@ -69,8 +69,8 @@ Validation options:
 
 npm options:
   -r, --registry <value>      npm registry (respects npm settings)
-  -n, --token <value>         npm auth token (prefer using BEACHBALL_NPM_TOKEN or NPM_TOKEN env var
-                                or existing npm login)
+  -n, --token <value>         npm auth token (prefer using BEACHBALL_NPM_TOKEN env var or existing
+                                npm login)
   -a, --auth-type <value>     npm auth type if manually providing an npm token (choices:
                                 "authtoken", "password", default: "authtoken")
   --npm-read-concurrency <num> - maximum concurrency for reading package versions from the registry
@@ -251,8 +251,8 @@ config). See https://microsoft.github.io/beachball/overview/configuration for mo
 
 npm options:
   -r, --registry <value>      npm registry (respects npm settings)
-  -n, --token <value>         npm auth token (prefer using BEACHBALL_NPM_TOKEN or NPM_TOKEN env var
-                                or existing npm login)
+  -n, --token <value>         npm auth token (prefer using BEACHBALL_NPM_TOKEN env var or existing
+                                npm login)
   -a, --auth-type <value>     npm auth type if manually providing an npm token (choices:
                                 "authtoken", "password", default: "authtoken")
   --npm-read-concurrency <num> - maximum concurrency for reading package versions from the registry
@@ -319,8 +319,8 @@ Versioning options:
 
 npm options:
   -r, --registry <value>      npm registry (respects npm settings)
-  -n, --token <value>         npm auth token (prefer using BEACHBALL_NPM_TOKEN or NPM_TOKEN env var
-                                or existing npm login)
+  -n, --token <value>         npm auth token (prefer using BEACHBALL_NPM_TOKEN env var or existing
+                                npm login)
   -a, --auth-type <value>     npm auth type if manually providing an npm token (choices:
                                 "authtoken", "password", default: "authtoken")
   --npm-read-concurrency <num> - maximum concurrency for reading package versions from the registry
@@ -402,8 +402,8 @@ Options:
 
 npm options:
   -r, --registry <value>      npm registry (respects npm settings)
-  -n, --token <value>         npm auth token (prefer using BEACHBALL_NPM_TOKEN or NPM_TOKEN env var
-                                or existing npm login)
+  -n, --token <value>         npm auth token (prefer using BEACHBALL_NPM_TOKEN env var or existing
+                                npm login)
   -a, --auth-type <value>     npm auth type if manually providing an npm token (choices:
                                 "authtoken", "password", default: "authtoken")
   --npm-read-concurrency <num> - maximum concurrency for reading package versions from the registry

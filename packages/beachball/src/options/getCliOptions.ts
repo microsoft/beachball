@@ -101,9 +101,10 @@ export function getCliOptions(programContext: ProgramContext): ParsedOptions['cl
     cliOptions._extraPositionalArgs = extraPositionalArgs;
   }
 
-  // If both --token and NPM_TOKEN are provided, prefer the CLI token (could go either way, but
-  // this is safer for compatibility in case anyone was already using that env name another way)
-  const envToken = programContext.env.BEACHBALL_NPM_TOKEN ?? programContext.env.NPM_TOKEN;
+  // If both --token and env token are provided, prefer the CLI token (could go either way, but
+  // this is safer for compatibility in case anyone was already using that env name another way).
+  // Also have an empty CLI token override the env token.
+  const envToken = programContext.env.BEACHBALL_NPM_TOKEN || programContext.env.NPM_TOKEN;
   if (envToken && cliOptions.token === undefined) {
     cliOptions.token = envToken;
   }

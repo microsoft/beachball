@@ -245,7 +245,7 @@ export const optionDefinitions: Record<
     },
     token: {
       short: 'n',
-      desc: 'npm auth token (prefer using BEACHBALL_NPM_TOKEN or NPM_TOKEN env var or existing npm login)',
+      desc: 'npm auth token (prefer using BEACHBALL_NPM_TOKEN env var or existing npm login)',
     },
     authType: { short: 'a', desc: 'npm auth type if manually providing an npm token', choices: authTypes },
     npmReadConcurrency: { type: 'number', desc: 'maximum concurrency for reading package versions from the registry' },

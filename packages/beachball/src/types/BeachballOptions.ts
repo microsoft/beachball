@@ -66,8 +66,8 @@ export interface CliOptions extends Pick<
   /** Force change files for these packages */
   package?: string | string[];
   /**
-   * npm token. This can either come from the CLI option or the `BEACHBALL_NPM_TOKEN` or `NPM_TOKEN`
-   * environment variables.
+   * npm token. This can either come from the CLI option or the `BEACHBALL_NPM_TOKEN`
+   * environment variable.
    */
   token?: string;
   /**
@@ -100,7 +100,7 @@ export interface RepoOptions {
    */
   access?: 'public' | 'restricted';
   /**
-   * npm publish auth type for `NPM_TOKEN`/`BEACHBALL_NPM_TOKEN` or `--token`
+   * npm publish auth type for `BEACHBALL_NPM_TOKEN` or `--token`
    * @default 'authtoken'
    */
   authType: AuthType;
@@ -287,7 +287,7 @@ export interface RepoOptions {
    * This respects the registry configured for `npm`.
    *
    * **Temporary exception:** Due to unfinished features, this is required if you've set
-   * `NPM_TOKEN`/`BEACHBALL_NPM_TOKEN` or `--token`.
+   * `BEACHBALL_NPM_TOKEN` or `--token`.
    */
   registry?: string;
   /**
