@@ -1,6 +1,7 @@
-import path from 'path';
+import path from 'node:path';
 import { findProjectRoot } from 'workspace-tools';
 
+// eslint-disable-next-line no-restricted-properties
 const root = findProjectRoot(process.cwd());
 const renovateRoot = path.join(root, 'renovate');
 const repoRenovateConfigRel = 'renovate.json5';

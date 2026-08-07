@@ -1,6 +1,6 @@
 import semver from 'semver';
 import { describe, it, expect } from '@jest/globals';
-import { parseRange, isRangeSatisfied } from './ranges.js';
+import { parseRange, isRangeSatisfied } from './ranges.ts';
 
 describe('parseRange', () => {
   it.each([undefined, null, '', 'invalid'])('returns null for invalid range: %s', input => {

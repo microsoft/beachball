@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'node:fs';
 
 /**
  * Read a JSON file. Throws an informative error if parsing fails.

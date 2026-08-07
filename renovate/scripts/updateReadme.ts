@@ -1,12 +1,12 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { git } from 'workspace-tools';
+import { extendsLocalPreset, getExtendsForLocalPreset } from './utils/extends.ts';
 import { logError } from './utils/github.ts';
 import { getComments, getHeadingText, getMarkedSection, slugify, splitByHeading } from './utils/markdown.ts';
 import { paths } from './utils/paths.ts';
 import { readPresets } from './utils/readPresets.ts';
 import { updateAndFormat } from './utils/runBin.ts';
-import { extendsLocalPreset, getExtendsForLocalPreset } from './utils/extends.ts';
 
 const readmePath = path.join(paths.renovateRoot, 'README.md');
 

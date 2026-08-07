@@ -1,16 +1,16 @@
-import { describe, expect, it, afterEach, jest } from '@jest/globals';
-import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { initMockLogs } from '../__fixtures__/mockLogs';
+import { removeTempDir } from '../__fixtures__/tmpdir';
+import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
+import { initNpmMock } from '../__fixtures__/mockNpm';
 import type { Repository } from '../__fixtures__/repository';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { sync, type SyncCommandContext } from '../commands/sync';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
+import { getScopedPackages } from '../monorepo/getScopedPackages';
+import { getOptions } from '../options/getOptions';
 import type { packagePublish } from '../packageManager/packagePublish';
 import type { RepoOptions } from '../types/BeachballOptions';
-import { initNpmMock } from '../__fixtures__/mockNpm';
-import { getOptions } from '../options/getOptions';
-import { removeTempDir } from '../__fixtures__/tmpdir';
-import { getScopedPackages } from '../monorepo/getScopedPackages';
 
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).

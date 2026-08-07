@@ -1,5 +1,5 @@
-import stream from 'stream';
-import type readline from 'readline';
+import type readline from 'node:readline';
+import stream from 'node:stream';
 
 /**
  * Mock stdin stream. This is a modernized version of https://www.npmjs.com/package/mock-stdin

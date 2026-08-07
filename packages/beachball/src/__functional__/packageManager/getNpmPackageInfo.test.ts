@@ -1,13 +1,13 @@
-import { describe, expect, it, beforeEach, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
 // import fetch from 'npm-registry-fetch';
+import { env } from '../../env';
 import {
   _npmShowProperties,
   _packageContentTypeAccept,
   getNpmPackageInfo,
 } from '../../packageManager/getNpmPackageInfo';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
 import * as npmModule from '../../packageManager/npm';
-import { env } from '../../env';
 
 // These tests mostly get known packages from the public npm registry. There's a tiny chance it
 // could fail if the registry is down, but it's not a big concern with low development traffic.

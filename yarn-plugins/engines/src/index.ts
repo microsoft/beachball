@@ -15,10 +15,10 @@ import {
   type miscUtils,
 } from '@yarnpkg/core';
 import { NodeFS, type PortablePath } from '@yarnpkg/fslib';
-import path from 'path';
+import path from 'node:path';
 import semver from 'semver';
-import { EnginesProbeLinker } from './linker.js';
-import { isRangeSatisfied, parseRange } from './ranges.js';
+import { EnginesProbeLinker } from './linker.ts';
+import { isRangeSatisfied, parseRange } from './ranges.ts';
 
 interface EnginesConfig {
   engines: miscUtils.ToMapValue<{

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use `node:` imports",
+  "packageName": "proper-changelog",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}

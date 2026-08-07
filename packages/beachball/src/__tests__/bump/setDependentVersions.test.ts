@@ -1,8 +1,8 @@
-import { describe, it, expect } from '@jest/globals';
-import { setDependentVersions } from '../../bump/setDependentVersions';
-import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
-import { consideredDependencies } from '../../types/PackageInfo';
+import { describe, expect, it } from '@jest/globals';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
+import { setDependentVersions } from '../../bump/setDependentVersions';
+import { consideredDependencies } from '../../types/PackageInfo';
 
 type PartialBumpInfo = Parameters<typeof setDependentVersions>[0]['bumpInfo'];
 

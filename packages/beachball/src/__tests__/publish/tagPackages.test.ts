@@ -1,6 +1,6 @@
-import { describe, expect, it, jest, beforeEach } from '@jest/globals';
-import { gitFailFast as _gitFailFast } from 'workspace-tools';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { gitFailFast as _gitFailFast } from 'workspace-tools';
 import { tagPackages } from '../../publish/tagPackages';
 import type { BumpInfo } from '../../types/BumpInfo';
 

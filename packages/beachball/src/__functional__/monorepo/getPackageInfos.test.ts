@@ -1,15 +1,15 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
-import { getWorkspaceManagerRoot, gitFailFast } from 'workspace-tools';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
+import { writeJson } from '../../object/writeJson';
+import fs from 'node:fs';
+import path from 'node:path';
+import { getWorkspaceManagerRoot, gitFailFast } from 'workspace-tools';
+import { createTestFileStructureType } from '../../__fixtures__/createTestFileStructure';
+import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { getPackageInfos } from '../../monorepo/getPackageInfos';
 import { cloneObject } from '../../object/cloneObject';
-import { writeJson } from '../../object/writeJson';
 import type { PackageInfo, PackageInfos } from '../../types/PackageInfo';
-import { createTestFileStructureType } from '../../__fixtures__/createTestFileStructure';
 
 /** Replace the root path with `<root>` and normalize slashes */
 function cleanPath(root: string, filePath: string) {

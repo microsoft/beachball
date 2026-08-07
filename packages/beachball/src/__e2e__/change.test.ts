@@ -1,18 +1,18 @@
-import { describe, expect, it, afterEach, jest, beforeEach, beforeAll, afterAll } from '@jest/globals';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { initMockLogs } from '../__fixtures__/mockLogs';
+import { readJson } from '../object/readJson';
+import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
 import type prompts from 'prompts';
 import { getChangeFiles } from '../__fixtures__/changeFiles';
-import { initMockLogs } from '../__fixtures__/mockLogs';
+import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
+import { MockStdin } from '../__fixtures__/mockStdin';
+import { MockStdout } from '../__fixtures__/mockStdout';
+import type { Repository } from '../__fixtures__/repository';
 import { type RepoFixture, RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { change } from '../commands/change';
-import type { BeachballOptions, RepoOptions } from '../types/BeachballOptions';
-import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
-import { MockStdout } from '../__fixtures__/mockStdout';
-import { MockStdin } from '../__fixtures__/mockStdin';
-import type { ChangeFileInfo, ChangeInfoMultiple } from '../types/ChangeInfo';
-import type { Repository } from '../__fixtures__/repository';
-import { getOptions } from '../options/getOptions';
-import { readJson } from '../object/readJson';
 import { createBasicCommandContext } from '../monorepo/createCommandContext';
+import { getOptions } from '../options/getOptions';
+import type { BeachballOptions, RepoOptions } from '../types/BeachballOptions';
 import type { ChangeCommandContext } from '../types/CommandContext';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,

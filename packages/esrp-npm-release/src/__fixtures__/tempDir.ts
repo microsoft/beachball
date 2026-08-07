@@ -1,7 +1,7 @@
 import { afterAll, afterEach } from '@jest/globals';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 /**
  * Per-test temp-directory helper. Returns a `getTempDir()` function that creates a fresh

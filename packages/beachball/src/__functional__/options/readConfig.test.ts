@@ -1,7 +1,7 @@
-import { describe, expect, it, afterEach } from '@jest/globals';
-import path from 'path';
-import { createTestFileStructure } from '../../__fixtures__/createTestFileStructure';
+import { afterEach, describe, expect, it } from '@jest/globals';
 import { removeTempDir } from '../../__fixtures__/tmpdir';
+import { createTestFileStructure } from '../../__fixtures__/createTestFileStructure';
+import path from 'node:path';
 import { readConfig } from '../../options/readConfig';
 import { BeachballError } from '../../types/BeachballError';
 

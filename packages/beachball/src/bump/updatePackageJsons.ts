@@ -1,7 +1,7 @@
-import fs from 'fs';
-import { type PackageInfos, type PackageJson, consideredDependencies } from '../types/PackageInfo';
+import fs from 'node:fs';
 import { readJson } from '../object/readJson';
 import { writeJson } from '../object/writeJson';
+import { type PackageInfos, type PackageJson, consideredDependencies } from '../types/PackageInfo';
 
 /**
  * Update package.json files for modified packages after bumping.

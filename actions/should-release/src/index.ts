@@ -1,8 +1,8 @@
 import * as core from '@actions/core';
 import * as glob from '@actions/glob';
-import { getEnumInput } from './getEnumInput.js';
-import { checkForNewerRuns } from './checkForNewerRuns.js';
-import { cancelRun } from './cancelRun.js';
+import { getEnumInput } from './getEnumInput.ts';
+import { checkForNewerRuns } from './checkForNewerRuns.ts';
+import { cancelRun } from './cancelRun.ts';
 
 async function main() {
   const batch = core.getBooleanInput('batch');

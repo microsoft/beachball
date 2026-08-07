@@ -1,8 +1,8 @@
-import { describe, it, expect, afterEach, beforeAll, jest } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
+import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import { createTestFileStructure } from '../../__fixtures__/createTestFileStructure';
 import { removeTempDir } from '../../__fixtures__/tmpdir';
+import fs from 'node:fs';
+import path from 'node:path';
 import { updateLockFileRegistry } from '../../commands/updateLockFileRegistry';
 import { BeachballError } from '../../types/BeachballError';
 

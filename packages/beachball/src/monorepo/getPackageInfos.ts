@@ -1,15 +1,15 @@
-import path from 'path';
+import path from 'node:path';
 import {
+  findPackageRoot,
   getWorkspaceInfos,
   getPackageInfo as getWSPackageInfo,
   listAllTrackedFiles,
-  findPackageRoot,
   type PackageInfo as WSPackageInfo,
   type PackageInfos as WSPackageInfos,
 } from 'workspace-tools';
-import type { PackageInfos } from '../types/PackageInfo';
 import { getPackageInfosWithOptions } from '../options/getPackageInfosWithOptions';
 import type { BeachballOptions, ParsedOptions } from '../types/BeachballOptions';
+import type { PackageInfos } from '../types/PackageInfo';
 import { filterIgnoredFiles } from './filterIgnoredFiles';
 
 /** Options subset used by `getPackageInfos` */

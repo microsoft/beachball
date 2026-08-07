@@ -1,14 +1,14 @@
-import { describe, expect, it, beforeAll, beforeEach, afterAll } from '@jest/globals';
-import fs from 'fs';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
+import { initMockLogs } from '../../__fixtures__/mockLogs';
+import fs from 'node:fs';
 import { generateChangeFiles } from '../../__fixtures__/changeFiles';
 import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
 import type { Repository } from '../../__fixtures__/repository';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
+import { getDefaultOptions } from '../../options/getDefaultOptions';
+import { getChangePath } from '../../paths';
 import type { BeachballOptions } from '../../types/BeachballOptions';
 import { areChangeFilesDeleted } from '../../validation/areChangeFilesDeleted';
-import { getChangePath } from '../../paths';
-import { getDefaultOptions } from '../../options/getDefaultOptions';
 
 describe('areChangeFilesDeleted', () => {
   let repositoryFactory: RepositoryFactory;

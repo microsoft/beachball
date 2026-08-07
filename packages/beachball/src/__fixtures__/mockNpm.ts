@@ -1,9 +1,9 @@
 import { afterAll, afterEach, beforeAll, jest } from '@jest/globals';
-import fs from 'fs';
-// import fetch from 'npm-registry-fetch';
-import path from 'path';
-import semver from 'semver';
 import { readJson } from '../object/readJson';
+import fs from 'node:fs';
+import path from 'node:path';
+// import fetch from 'npm-registry-fetch';
+import semver from 'semver';
 import {
   _npmShowProperties,
   type NpmPackageVersionsData,

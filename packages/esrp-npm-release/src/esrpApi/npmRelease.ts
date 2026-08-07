@@ -1,9 +1,9 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { generateJwsToken } from '../auth/generateJwsToken.ts';
+import { FileHashType, type ProductInfo, type ReleaseRequestMessage } from '../types/api.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
 import { hashFileStream } from '../utils/hashFileStream.ts';
-import { FileHashType, type ProductInfo, type ReleaseRequestMessage } from '../types/api.ts';
 
 export type GeneratedReleaseRequestMessage = ReleaseRequestMessage &
   Required<

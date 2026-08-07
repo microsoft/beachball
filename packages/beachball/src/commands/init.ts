@@ -1,10 +1,8 @@
-import type { BeachballOptions } from '../types/BeachballOptions';
-import * as fs from 'fs';
-import * as path from 'path';
-import type { PackageJson } from '../types/PackageInfo';
-import { readJson } from '../object/readJson';
+import fs from 'node:fs';
+import { getPackageInfo } from 'workspace-tools';
 import { getNpmPackageInfo } from '../packageManager/getNpmPackageInfo';
 import { BeachballError } from '../types/BeachballError';
+import type { BeachballOptions } from '../types/BeachballOptions';
 
 function throwInitError(message: string): never {
   console.error(message);
@@ -15,24 +13,17 @@ function throwInitError(message: string): never {
 }
 
 export async function init(options: Pick<BeachballOptions, 'path' | 'registry'>): Promise<void> {
-  const packageJsonFilePath = path.join(options.path, 'package.json');
-
-  if (!fs.existsSync(packageJsonFilePath)) {
-    throwInitError(`Cannot find package.json at ${packageJsonFilePath}`);
+  const packageInfo = getPackageInfo(options.path);
+  if (!packageInfo) {
+    throwInitError(`Cannot find package.json under ${options.path}`);
   }
+  const { packageJsonPath, ...packageJson } = packageInfo;
 
   const beachballInfo = await getNpmPackageInfo('beachball', options);
   if (!beachballInfo) {
     throwInitError('Failed to retrieve beachball version from npm');
   }
   const beachballVersion = beachballInfo['dist-tags'].latest;
-
-  let packageJson = {} as PackageJson;
-  try {
-    packageJson = readJson<PackageJson>(packageJsonFilePath);
-  } catch {
-    throwInitError(`Failed to read package.json at ${packageJsonFilePath}`);
-  }
 
   packageJson.devDependencies ??= {};
   packageJson.devDependencies.beachball = beachballVersion;
@@ -41,7 +32,7 @@ export async function init(options: Pick<BeachballOptions, 'path' | 'registry'>)
   packageJson.scripts.change = 'beachball change';
   packageJson.scripts.release = 'beachball publish';
 
-  fs.writeFileSync(packageJsonFilePath, JSON.stringify(packageJson, null, 2));
+  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 
   if (!packageJson.repository) {
     console.warn(

@@ -1,10 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
-import { updateRelatedChangeType } from '../../bump/updateRelatedChangeType';
-import type { ChangeFileInfo, ChangeInfo, ChangeType } from '../../types/ChangeInfo';
 import { makePackageInfos, type PartialPackageInfos } from '../../__fixtures__/packageInfos';
-import type { PackageGroups } from '../../types/PackageInfo';
 import { getDependentsForPackages } from '../../bump/getDependentsForPackages';
+import { updateRelatedChangeType } from '../../bump/updateRelatedChangeType';
 import type { BeachballOptions } from '../../types/BeachballOptions';
+import type { ChangeFileInfo, ChangeInfo, ChangeType } from '../../types/ChangeInfo';
+import type { PackageGroups } from '../../types/PackageInfo';
 
 type RelatedChangeTypeParams = Omit<Parameters<typeof updateRelatedChangeType>[0], 'change'>;
 

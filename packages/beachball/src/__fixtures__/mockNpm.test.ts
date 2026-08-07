@@ -3,23 +3,23 @@
 // dependency on actual npm CLI calls and a fake registry (which are very slow).
 
 import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
-import fs from 'fs';
+import * as readJsonModule from '../object/readJson';
+import fs from 'node:fs';
 // import fetch from 'npm-registry-fetch';
 import { npm } from '../packageManager/npm';
+import type { SpawnResult } from '../spawn';
 import type { PackageJson } from '../types/PackageInfo';
 import {
-  initNpmMock,
   _makeRegistryData,
   _mockNpmPack,
   _mockNpmPublish,
   _mockNpmShow,
+  initNpmMock,
   type MockNpmCommand,
 } from './mockNpm';
-import * as readJsonModule from '../object/readJson';
 import { mockSpawnSuccess, MockSubprocessError } from './mockSpawnResult';
-import type { SpawnResult } from '../spawn';
 
-jest.mock('fs');
+jest.mock('node:fs');
 // jest.mock('npm-registry-fetch');
 jest.mock('../object/readJson');
 jest.mock('../packageManager/npm');

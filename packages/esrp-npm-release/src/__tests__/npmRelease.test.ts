@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
-import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { setupTempDir } from '../__fixtures__/tempDir.ts';
 import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
 import { createNpmReleaseRequest, redactReleaseRequest } from '../esrpApi/npmRelease.ts';

@@ -1,8 +1,8 @@
-import * as fs from 'fs';
-import * as tmp from 'tmp';
-import { normalizedTmpdir } from 'normalized-tmpdir';
 // import console to ensure that warnings are always logged if needed (no mocking)
-import realConsole from 'console';
+import realConsole from 'node:console';
+import fs from 'node:fs';
+import { normalizedTmpdir } from 'normalized-tmpdir';
+import tmp from 'tmp';
 import { env } from '../env';
 
 // tmp is supposed to be able to clean up automatically, but this doesn't always work within jest.

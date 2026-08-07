@@ -1,5 +1,5 @@
 import { expect } from '@jest/globals';
-import { fail } from 'assert';
+import { fail } from 'node:assert';
 import { BeachballError } from '../types/BeachballError';
 
 /**

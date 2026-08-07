@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
-import { _getChangeFileInfoFromResponse, type ChangePromptResponse } from '../../changefile/promptForChange';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { _getChangeFileInfoFromResponse, type ChangePromptResponse } from '../../changefile/promptForChange';
 import type { ChangeType } from '../../types/ChangeInfo';
 
 /**

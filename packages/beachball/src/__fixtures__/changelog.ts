@@ -1,8 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-import type { ChangelogJson } from '../types/ChangeLog';
-import { markerComment } from '../changelog/renderChangelog';
 import { readJson } from '../object/readJson';
+import fs from 'node:fs';
+import path from 'node:path';
+import { markerComment } from '../changelog/renderChangelog';
+import type { ChangelogJson } from '../types/ChangeLog';
 
 /** Placeholder commit as replaced by cleanChangelogJson */
 export const fakeCommit = '(sha1)';

@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
+import { initMockLogs } from '../__fixtures__/mockLogs';
+import { removeTempDir, tmpdir } from '../__fixtures__/tmpdir';
+import fs from 'node:fs';
+import path from 'node:path';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
-import { initMockLogs } from '../__fixtures__/mockLogs';
 import { initNpmMock } from '../__fixtures__/mockNpm';
 import { deepFreezeProperties } from '../__fixtures__/object';
 import type { Repository } from '../__fixtures__/repository';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
-import { removeTempDir, tmpdir } from '../__fixtures__/tmpdir';
 import { publish } from '../commands/publish';
 import { createCommandContext } from '../monorepo/createCommandContext';
 import { getOptions as _getOptions } from '../options/getOptions';

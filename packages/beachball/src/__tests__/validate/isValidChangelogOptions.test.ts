@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { isValidChangelogOptions } from '../../validation/isValidChangelogOptions';
-import type { ChangelogGroupOptions, ChangelogOptions } from '../../types/ChangelogOptions';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
+import type { ChangelogGroupOptions, ChangelogOptions } from '../../types/ChangelogOptions';
+import { isValidChangelogOptions } from '../../validation/isValidChangelogOptions';
 
 describe('isValidChangelogOptions', () => {
   const logs = initMockLogs();

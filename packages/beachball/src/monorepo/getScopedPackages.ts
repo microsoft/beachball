@@ -1,6 +1,6 @@
+import path from 'node:path';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfos, ScopedPackages } from '../types/PackageInfo';
-import path from 'path';
 import { isPathIncluded } from './isPathIncluded';
 
 /**

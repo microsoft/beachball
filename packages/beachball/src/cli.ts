@@ -116,6 +116,6 @@ const version = getPackageInfo(findPackageRoot(__dirname)!)?.version;
     console.error((e as Error)?.stack || e);
   }
 
-  // eslint-disable-next-line no-restricted-properties -- this is the only place that should call process.exit
+  // eslint-disable-next-line n/no-process-exit -- this is the only place that should call process.exit
   process.exit(1);
 });

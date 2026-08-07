@@ -1,6 +1,6 @@
 import { BlobServiceClient } from '@azure/storage-blob';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import yazl from 'yazl';
 import { ESRPReleaseService } from './ESRPReleaseService.ts';
 import { getAadToken } from './auth/getAadToken.ts';

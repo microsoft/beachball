@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { validatePackageDependencies } from '../../publish/validatePackageDependencies';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
+import { validatePackageDependencies } from '../../publish/validatePackageDependencies';
 
 describe('validatePackageDependencies', () => {
   const logs = initMockLogs();

@@ -1,7 +1,7 @@
-import fs from 'fs';
-import path from 'path';
-import { packageManager } from '../packageManager/packageManager';
+import fs from 'node:fs';
+import path from 'node:path';
 import { env } from '../env';
+import { packageManager } from '../packageManager/packageManager';
 import type { BeachballOptions } from '../types/BeachballOptions';
 
 /**

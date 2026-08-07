@@ -1,12 +1,12 @@
-import { describe, expect, it, afterAll, beforeAll, afterEach } from '@jest/globals';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from '@jest/globals';
+import { initMockLogs } from '../__fixtures__/mockLogs';
 import { generateChangeFiles } from '../__fixtures__/changeFiles';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
-import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
-import { initMockLogs } from '../__fixtures__/mockLogs';
-import { validate, type ValidateOptions } from '../validation/validate';
 import type { Repository } from '../__fixtures__/repository';
+import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { getOptions } from '../options/getOptions';
 import { BeachballError } from '../types/BeachballError';
+import { validate, type ValidateOptions } from '../validation/validate';
 
 describe('validate', () => {
   let repositoryFactory: RepositoryFactory;

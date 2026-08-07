@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { findPackageRoot, type PackageInfo as WSPackageInfo } from 'workspace-tools';
 import { bulletedList, type BulletList } from '../logging/bulletedList';
 import { getRawPackageInfos } from '../monorepo/getPackageInfos';

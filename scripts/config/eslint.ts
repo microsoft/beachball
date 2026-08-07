@@ -1,9 +1,10 @@
 import pluginJs from '@eslint/js';
 import deprecated from '@ms-cloudpack/eslint-plugin-deprecated';
 import prettier from 'eslint-config-prettier/flat';
+import node from 'eslint-plugin-n';
 import eslint from 'eslint/config';
 import globals from 'globals';
-import path from 'path';
+import path from 'node:path';
 import tseslint from 'typescript-eslint';
 
 type ConfigWithExtendsArray = Parameters<typeof eslint.defineConfig>;
@@ -44,6 +45,7 @@ export function getConfig(
       },
     },
     {
+      plugins: { n: node },
       rules: {
         '@typescript-eslint/consistent-generic-constructors': 'error',
         '@typescript-eslint/consistent-type-assertions': 'error',
@@ -75,6 +77,10 @@ export function getConfig(
           },
         ],
         '@typescript-eslint/prefer-for-of': 'error',
+        'n/no-deprecated-api': 'error',
+        'n/no-exports-assign': 'error',
+        'n/no-process-exit': 'error',
+        'n/prefer-node-protocol': 'error',
         'no-restricted-imports': [
           'error',
           {
@@ -108,11 +114,6 @@ export function getConfig(
             property: 'chdir',
             message:
               'beachball should not be dependent on the actual process.cwd(). Ensure the proper cwd is passed through instead.',
-          },
-          {
-            object: 'process',
-            property: 'exit',
-            message: 'Errors should be propagated to the top level and handled there.',
           },
         ],
         'no-restricted-syntax': [
