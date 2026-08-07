@@ -20,11 +20,9 @@
   "devDependencies": {
     "@microsoft/beachball-scripts": "workspace:^",
     "@types/jju": "^1.4.2",
-    "@types/semver": "catalog:dev",
     "cross-env": "catalog:dev",
     "jju": "^1.4.0",
     "nano-spawn": "catalog:prod",
-    "semver": "catalog:prod",
     "workspace-tools": "catalog:prod"
   }
 }
