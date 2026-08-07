@@ -77,6 +77,7 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
     clientId: env.esrp.clientId,
     tenantId: env.esrp.tenantId,
     authCertificatePfx: env.esrp.authCertificatePfx,
+    idToken: env.esrp.idToken,
     requestSigningCertificatePfx: env.esrp.requestSigningCertificatePfx,
     stagingBlobServiceClient,
   });

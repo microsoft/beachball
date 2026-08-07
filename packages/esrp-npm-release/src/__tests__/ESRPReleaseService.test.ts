@@ -319,6 +319,31 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
     await expectReleaseError('Error acquiring user delegation key for staging blob access', originalError);
   });
 
+  it('authenticates with a managed identity federated token when configured instead of a certificate', async () => {
+    const managedIdentityService = await ESRPReleaseService.create({
+      logger,
+      clientId: 'cid',
+      tenantId: 'tid',
+      authCertificatePfx: undefined,
+      idToken: 'federated-id-token',
+      requestSigningCertificatePfx: testCert.pfxBase64,
+      stagingBlobServiceClient: blobServiceClient as unknown as BlobServiceClient,
+    });
+
+    const promise = managedIdentityService.createRelease(releaseParams());
+    promise.catch(() => undefined);
+    await jest.runAllTimersAsync();
+    await promise;
+
+    expect(mockGetAadToken).toHaveBeenCalledWith({
+      scopes: [`${esrpApiScope}.default`],
+      clientId: 'cid',
+      tenantId: 'tid',
+      auth: { idToken: 'federated-id-token' },
+      logger,
+    });
+  });
+
   it('wraps AAD token failures with ReleaseError', async () => {
     const originalError = new Error('aad failed');
     mockGetAadToken.mockRejectedValue(originalError);

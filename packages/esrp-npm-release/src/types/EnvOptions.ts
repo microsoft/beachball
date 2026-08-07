@@ -29,13 +29,21 @@ export interface EsrpEnvOptions {
   /** Approver emails (all non-mandatory and auto-approved) */
   approvers: string[];
 
-  /** Production tenant ID used for your ESRP app registration */
+  /** Production tenant ID used for your ESRP app registration or managed identity */
   tenantId: string;
-  /** Client ID for your production tenant ESRP app registration */
+  /** Client ID for your ESRP app registration or ESRP-allowlisted managed identity */
   clientId: string;
 
-  /** Base64-encoded PFX certificate used for authenticating to ESRP AAD */
-  authCertificatePfx: string;
+  /**
+   * Base64-encoded PFX certificate used for authenticating to ESRP AAD.
+   * Provide exactly one of this and `idToken`.
+   */
+  authCertificatePfx: string | undefined;
+  /**
+   * Federated OIDC token used to authenticate as an ESRP-allowlisted managed identity.
+   * Provide exactly one of this and `authCertificatePfx`.
+   */
+  idToken: string | undefined;
   /** Base64-encoded PFX certificate used for signing JWS tokens in release requests */
   requestSigningCertificatePfx: string;
 }

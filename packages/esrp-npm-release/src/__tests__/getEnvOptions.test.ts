@@ -19,6 +19,7 @@ describe('getEnvOptions', () => {
         tenantId: 'esrp-tenant',
         clientId: 'esrp-client',
         authCertificatePfx: 'mock-auth-pfx',
+        idToken: undefined,
         requestSigningCertificatePfx: 'mock-signing-pfx',
       },
       staging: {
@@ -125,5 +126,38 @@ describe('getEnvOptions', () => {
 
     expect(err).toBeInstanceOf(ReleaseError);
     expect((err as ReleaseError).message).toContain('ESRP_CREATED_BY, ESRP_DRI_EMAIL, ESRP_OWNERS, ESRP_APPROVERS');
+  });
+
+  describe('ESRP authentication', () => {
+    it('uses certificate auth by default', () => {
+      const env = getEnvOptions(createMockProcessEnv());
+      expect(env.esrp.authCertificatePfx).toBe('mock-auth-pfx');
+      expect(env.esrp.idToken).toBeUndefined();
+    });
+
+    it('uses managed identity auth when ESRP_ID_TOKEN is set instead of ESRP_AUTH_CERT', () => {
+      const env = getEnvOptions(
+        createMockProcessEnv({ ESRP_AUTH_CERT: undefined, ESRP_ID_TOKEN: 'federated-id-token' })
+      );
+      expect(env.esrp).toEqual({
+        ...env.esrp,
+        authCertificatePfx: undefined,
+        idToken: 'federated-id-token',
+      });
+    });
+
+    it('throws when neither auth method is configured', () => {
+      const env = createMockProcessEnv({ ESRP_AUTH_CERT: undefined, ESRP_ID_TOKEN: undefined });
+      expect(() => getEnvOptions(env)).toThrow(
+        'One of ESRP_AUTH_CERT (certificate auth) or ESRP_ID_TOKEN (managed identity auth) must be set'
+      );
+    });
+
+    it('throws when both auth methods are configured', () => {
+      const env = createMockProcessEnv({ ESRP_AUTH_CERT: 'cert', ESRP_ID_TOKEN: 'token' });
+      expect(() => getEnvOptions(env)).toThrow(
+        'Only one of ESRP_AUTH_CERT (certificate auth) or ESRP_ID_TOKEN (managed identity auth) may be set'
+      );
+    });
   });
 });

@@ -14,6 +14,7 @@ export function createMockEnv(): EnvOptions {
       tenantId: 'esrp-tenant',
       clientId: 'esrp-client',
       authCertificatePfx: 'mock-auth-pfx',
+      idToken: undefined,
       requestSigningCertificatePfx: 'mock-signing-pfx',
     },
     staging: {

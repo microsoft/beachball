@@ -38,9 +38,9 @@ The tool relies on the following inputs and resources:
 - [**Packed packages**](#packed-packages-format): Output folder from `beachball publish --pack-to-path <path>` or in the same format
   - ⚠️ If using `beachball`, it's recommended to upgrade to a **v3 prerelease** to take advantage of certain new features, including better registry config handling.
 - **ESRP Azure resources** configured per their guides (see docs on eng.ms):
-  - _ESRP-onboarded app registration_ in a production tenant (need client ID and tenant ID)
-  - _Production tenant key vault_ storing the ESRP auth certificate and request signing certificate (PFX format, base64-encoded)
-  - _Production tenant managed identity_ with access to the app registration and key vault
+  - _ESRP-onboarded identity_ in a production tenant (need client ID and tenant ID): either an app registration with an authentication certificate, or an ESRP-allowlisted managed identity authenticated using workload identity federation
+  - _Production tenant key vault_ storing the request signing certificate and, when using certificate authentication, the ESRP auth certificate (PFX format, base64-encoded)
+  - _Production tenant managed identity_ with access to the key vault
   - _ADO Azure Resource Manager service connection_ using the managed identity
 - [**Staging resources**](#staging-resource-setup) specific to this tool (see below for setup details):
   - _Azure Blob Storage account_ in your team's subscription (usually in the corp tenant) to temporarily host zips of packages
@@ -163,7 +163,7 @@ This tool is designed to run in an Azure DevOps pipeline, presumably using 1ES P
 
 The pipeline typically uses two Azure Resource Manager service connections:
 
-- **ESRP (production tenant)**: access to key vault with the ESRP auth certificate and request signing certificate (see [overview](#overview) and [ESRP resource inputs](#esrp-resources))
+- **ESRP (production tenant)**: access to the key vault containing the request signing certificate and, for certificate authentication, the ESRP auth certificate. For managed identity authentication, this service connection must use the ESRP-allowlisted identity so its federated token can be passed to the tool. (See [overview](#overview) and [ESRP resource inputs](#esrp-resources).)
 - **Staging**: access to staging blob storage (see [staging service connection](#3-create-the-service-connection) and [staging resource inputs](#staging-resources))
 
 ### Prerequisite: Internal feed setup
@@ -239,9 +239,9 @@ The typical release process using this tool has two main parts, which could be e
 
 In 1ES PT, the presence of a production release job applies stricter network isolation policies to the _entire_ pipeline. If you're using a single pipeline, you'll need to re-enable the access the rest of the pipeline needs (GitHub, Azure) via the `networkIsolationPolicy` setting.
 
-The example below covers a **single pipeline**. Be sure to **fill in all the `<placeholders>`!** See https://github.com/microsoft/beachball/blob/main/.ado/release.yml for a full example, which also pushes updates to GitHub. (For an example of separate pipelines, see this [build pipeline](https://github.com/microsoft/node-api-dotnet/blob/main/.ado/publish.yml) and [publish/release pipeline](https://github.com/microsoft/node-api-dotnet/blob/main/.ado/release.yml). Ignore the parts targeting non-Node platforms.)
+The examples below cover a **single pipeline**. Start with the shared setup and build stage, then append one of the publish stages depending on how you authenticate to ESRP. Be sure to **fill in all the `<placeholders>`!** See https://github.com/microsoft/beachball/blob/main/.ado/release.yml for a full example, which also pushes updates to GitHub. (For an example of separate pipelines, see this [build pipeline](https://github.com/microsoft/node-api-dotnet/blob/main/.ado/publish.yml) and [publish/release pipeline](https://github.com/microsoft/node-api-dotnet/blob/main/.ado/release.yml). Ignore the parts targeting non-Node platforms.)
 
-<details><summary><b>Expand for full pipeline example</b></summary>
+<details><summary><b>1. Shared pipeline setup and build stage</b></summary>
 
 ```yml
 # Build number/name - modify as desired
@@ -356,88 +356,199 @@ extends:
                   mkdir -p '$(toolArtifactPath)'
                   cp -r '$(toolBinPath)' '$(toolArtifactPath)'
                 displayName: Copy release API tool to staging directory
+```
 
-      - stage: publish
-        displayName: Publish
-        dependsOn: build
-        jobs:
-          - job: npm_publish
-            displayName: Publish npm packages
+</details>
 
-            pool:
-              name: <1ES PT pool name>
-              image: ubuntu-latest
-              os: linux
+Append one of the following stages under `extends.parameters.stages`.
 
-            variables:
-              artifactPath: $(Agent.BuildDirectory)/${{ variables.artifactName }}
-              packagesArtifactPath: $(artifactPath)/${{ variables.packagesDirName }}
-              toolArtifactBin: $(artifactPath)/${{ variables.toolDirName }}/index.mjs
+<details><summary><b>2a. Publish stage using an authentication certificate</b></summary>
 
-            templateContext:
-              type: releaseJob
-              isProduction: true
-              inputs:
-                - input: pipelineArtifact
-                  artifactName: ${{ variables.artifactName }}
-                  targetPath: $(artifactPath)
+```yml
+- stage: publish
+  displayName: Publish
+  dependsOn: build
+  jobs:
+    - job: npm_publish
+      displayName: Publish npm packages
 
-            steps:
-              - task: UseNode@1
-                displayName: Install Node.js 24
-                inputs:
-                  version: 24.x
+      pool:
+        name: <1ES PT pool name>
+        image: ubuntu-latest
+        os: linux
 
-              # Get credentials that will be used to temporarily upload zips to the staging storage account
-              # in your team's Azure subscription
-              - task: AzureCLI@2
-                displayName: Get credentials for staging blob storage
-                inputs:
-                  azureSubscription: <staging service connection name>
-                  scriptType: bash
-                  scriptLocation: inlineScript
-                  addSpnToEnvironment: true
-                  inlineScript: |
-                    echo "##vso[task.setvariable variable=STAGING_TENANT_ID]$tenantId"
-                    echo "##vso[task.setvariable variable=STAGING_CLIENT_ID]$servicePrincipalId"
-                    echo "##vso[task.setvariable variable=STAGING_ID_TOKEN;issecret=true]$idToken"
+      variables:
+        artifactPath: $(Agent.BuildDirectory)/${{ variables.artifactName }}
+        packagesArtifactPath: $(artifactPath)/${{ variables.packagesDirName }}
+        toolArtifactBin: $(artifactPath)/${{ variables.toolDirName }}/index.mjs
 
-              # Fetch ESRP certificates from the production tenant key vault
-              - task: AzureKeyVault@2
-                displayName: Get ESRP certificates from Key Vault
-                inputs:
-                  azureSubscription: <ESRP service connection name>
-                  KeyVaultName: <key vault name>
-                  SecretsFilter: <auth cert name>,<request signing cert name>
+      templateContext:
+        type: releaseJob
+        isProduction: true
+        inputs:
+          - input: pipelineArtifact
+            artifactName: ${{ variables.artifactName }}
+            targetPath: $(artifactPath)
 
-              # Run the tool (see "Tool inputs" below for details on each variable)
-              - script: node '$(toolArtifactBin)'
-                displayName: Publish using ESRP Release API
-                retryCountOnTaskFailure: 3
-                env:
-                  PACKED_PACKAGES_PATH: $(packagesArtifactPath)
+      steps:
+        - task: UseNode@1
+          displayName: Install Node.js 24
+          inputs:
+            version: 24.x
 
-                  # Staging storage credentials
-                  STAGING_STORAGE_ACCOUNT_NAME: <storage account name>
-                  # set above by AzureCLI@2 but must be mapped in
-                  STAGING_CLIENT_ID: $(STAGING_CLIENT_ID)
-                  STAGING_TENANT_ID: $(STAGING_TENANT_ID)
-                  STAGING_ID_TOKEN: $(STAGING_ID_TOKEN)
+        # Get credentials that will be used to temporarily upload zips to the staging storage account
+        # in your team's Azure subscription
+        - task: AzureCLI@2
+          displayName: Get credentials for staging blob storage
+          inputs:
+            azureSubscription: <staging service connection name>
+            scriptType: bash
+            scriptLocation: inlineScript
+            addSpnToEnvironment: true
+            inlineScript: |
+              echo "##vso[task.setvariable variable=STAGING_TENANT_ID]$tenantId"
+              echo "##vso[task.setvariable variable=STAGING_CLIENT_ID]$servicePrincipalId"
+              echo "##vso[task.setvariable variable=STAGING_ID_TOKEN;issecret=true]$idToken"
 
-                  # ESRP credentials (certs fetched above by AzureKeyVault@2)
-                  ESRP_AUTH_CERT: $(<auth cert name>)
-                  ESRP_REQUEST_SIGNING_CERT: $(<request signing cert name>)
-                  ESRP_TENANT_ID: <production tenant ID>
-                  ESRP_CLIENT_ID: <ESRP app registration client ID>
+        # Fetch both ESRP certificates from the production tenant key vault
+        - task: AzureKeyVault@2
+          displayName: Get ESRP certificates from Key Vault
+          inputs:
+            azureSubscription: <ESRP service connection name>
+            KeyVaultName: <key vault name>
+            SecretsFilter: <auth cert name>,<request signing cert name>
 
-                  # Release info (must be unique per invocation if publishing multiple times per build)
-                  ESRP_PRODUCT_NAME: <friendly product name>
-                  ESRP_NPM_TAG: <npm dist-tag> # optional
-                  ESRP_USER: <email>
-                  ESRP_CREATED_BY: <email> # optional if ESRP_USER is set
-                  ESRP_APPROVERS: <email> # optional if ESRP_USER is set
-                  ESRP_OWNERS: <email> # optional if ESRP_USER is set
-                  ESRP_DRI_EMAIL: <email> # optional if ESRP_USER is set
+        # Run the tool (see "Tool inputs" below for details on each variable)
+        - script: node '$(toolArtifactBin)'
+          displayName: Publish using ESRP Release API
+          retryCountOnTaskFailure: 3
+          env:
+            PACKED_PACKAGES_PATH: $(packagesArtifactPath)
+
+            # Staging storage credentials
+            STAGING_STORAGE_ACCOUNT_NAME: <storage account name>
+            # set above by AzureCLI@2 but must be mapped in
+            STAGING_CLIENT_ID: $(STAGING_CLIENT_ID)
+            STAGING_TENANT_ID: $(STAGING_TENANT_ID)
+            STAGING_ID_TOKEN: $(STAGING_ID_TOKEN)
+
+            # ESRP credentials using authentication certificate
+            ESRP_AUTH_CERT: $(<auth cert name>)
+            ESRP_REQUEST_SIGNING_CERT: $(<request signing cert name>)
+            ESRP_TENANT_ID: <production tenant ID>
+            ESRP_CLIENT_ID: <ESRP app registration client ID>
+
+            # Release info (must be unique per invocation if publishing multiple times per build)
+            ESRP_PRODUCT_NAME: <friendly product name>
+            ESRP_NPM_TAG: <npm dist-tag> # optional
+            ESRP_USER: <email>
+            ESRP_CREATED_BY: <email> # optional if ESRP_USER is set
+            ESRP_APPROVERS: <email> # optional if ESRP_USER is set
+            ESRP_OWNERS: <email> # optional if ESRP_USER is set
+            ESRP_DRI_EMAIL: <email> # optional if ESRP_USER is set
+```
+
+</details>
+
+<details><summary><b>2b. Publish stage using managed identity</b></summary>
+
+> Note: id tokens have a lifetime on the order of 1 hour. Because the esrp-npm-release script has no way to refresh this token,
+> if publishing packages takes more than 1 hour, this process may fail. Retrying the pipeline stage is safe and will start where
+> the previous attempt left off.
+
+```yml
+- stage: publish
+  displayName: Publish
+  dependsOn: build
+  jobs:
+    - job: npm_publish
+      displayName: Publish npm packages
+
+      pool:
+        name: <1ES PT pool name>
+        image: ubuntu-latest
+        os: linux
+
+      variables:
+        artifactPath: $(Agent.BuildDirectory)/${{ variables.artifactName }}
+        packagesArtifactPath: $(artifactPath)/${{ variables.packagesDirName }}
+        toolArtifactBin: $(artifactPath)/${{ variables.toolDirName }}/index.mjs
+
+      templateContext:
+        type: releaseJob
+        isProduction: true
+        inputs:
+          - input: pipelineArtifact
+            artifactName: ${{ variables.artifactName }}
+            targetPath: $(artifactPath)
+
+      steps:
+        - task: UseNode@1
+          displayName: Install Node.js 24
+          inputs:
+            version: 24.x
+
+        # Get credentials that will be used to temporarily upload zips to the staging storage account
+        # in your team's Azure subscription
+        - task: AzureCLI@2
+          displayName: Get credentials for staging blob storage
+          inputs:
+            azureSubscription: <staging service connection name>
+            scriptType: bash
+            scriptLocation: inlineScript
+            addSpnToEnvironment: true
+            inlineScript: |
+              echo "##vso[task.setvariable variable=STAGING_TENANT_ID]$tenantId"
+              echo "##vso[task.setvariable variable=STAGING_CLIENT_ID]$servicePrincipalId"
+              echo "##vso[task.setvariable variable=STAGING_ID_TOKEN;issecret=true]$idToken"
+
+        # Only the request signing certificate is needed with managed identity authentication
+        - task: AzureKeyVault@2
+          displayName: Get ESRP request signing certificate from Key Vault
+          inputs:
+            azureSubscription: <ESRP service connection name>
+            KeyVaultName: <key vault name>
+            SecretsFilter: <request signing cert name>
+
+        # Capture the federated token from the ESRP-allowlisted identity used by the service connection
+        - task: AzureCLI@2
+          displayName: Get credentials for ESRP
+          inputs:
+            azureSubscription: <ESRP service connection name>
+            scriptType: bash
+            scriptLocation: inlineScript
+            addSpnToEnvironment: true
+            inlineScript: |
+              echo "##vso[task.setvariable variable=ESRP_ID_TOKEN;issecret=true]$idToken"
+
+        # Run the tool (see "Tool inputs" below for details on each variable)
+        - script: node '$(toolArtifactBin)'
+          displayName: Publish using ESRP Release API
+          retryCountOnTaskFailure: 3
+          env:
+            PACKED_PACKAGES_PATH: $(packagesArtifactPath)
+
+            # Staging storage credentials
+            STAGING_STORAGE_ACCOUNT_NAME: <storage account name>
+            # set above by AzureCLI@2 but must be mapped in
+            STAGING_CLIENT_ID: $(STAGING_CLIENT_ID)
+            STAGING_TENANT_ID: $(STAGING_TENANT_ID)
+            STAGING_ID_TOKEN: $(STAGING_ID_TOKEN)
+
+            # ESRP credentials using managed identity
+            ESRP_ID_TOKEN: $(ESRP_ID_TOKEN)
+            ESRP_REQUEST_SIGNING_CERT: $(<request signing cert name>)
+            ESRP_TENANT_ID: <production tenant ID>
+            ESRP_CLIENT_ID: <ESRP-allowlisted managed identity client ID>
+
+            # Release info (must be unique per invocation if publishing multiple times per build)
+            ESRP_PRODUCT_NAME: <friendly product name>
+            ESRP_NPM_TAG: <npm dist-tag> # optional
+            ESRP_USER: <email>
+            ESRP_CREATED_BY: <email> # optional if ESRP_USER is set
+            ESRP_APPROVERS: <email> # optional if ESRP_USER is set
+            ESRP_OWNERS: <email> # optional if ESRP_USER is set
+            ESRP_DRI_EMAIL: <email> # optional if ESRP_USER is set
 ```
 
 </details>
@@ -477,12 +588,13 @@ ESRP resources are set up per their guides. Correspondence with official `EsrpRe
 <!-- prettier-ignore -->
 | Variable | Description |
 | -------- | ----------- |
-| `ESRP_TENANT_ID` | Production tenant ID for your ESRP app registration. (`EsrpRelease` task: `domaintenantid`) |
-| `ESRP_CLIENT_ID` | Client ID for your production tenant ESRP app registration. (`EsrpRelease` task: `clientid`) |
-| `ESRP_AUTH_CERT` | Base64-encoded PFX certificate for authenticating to ESRP AAD. |
-| `ESRP_REQUEST_SIGNING_CERT` | Base64-encoded PFX certificate for signing JWS release requests. |
+| `ESRP_TENANT_ID` | Production tenant ID for your ESRP app registration or managed identity. (`EsrpRelease` task: `domaintenantid`) |
+| `ESRP_CLIENT_ID` | Client ID for your ESRP app registration or ESRP-allowlisted managed identity. (`EsrpRelease` task: `clientid`) |
+| `ESRP_AUTH_CERT` | Base64-encoded PFX certificate for authenticating to ESRP AAD. Set exactly one of this and `ESRP_ID_TOKEN`. |
+| `ESRP_ID_TOKEN` | Federated ID token for authenticating as an ESRP-allowlisted managed identity. Set exactly one of this and `ESRP_AUTH_CERT`. |
+| `ESRP_REQUEST_SIGNING_CERT` | Base64-encoded PFX certificate for signing JWS release requests. Required for both authentication methods. |
 
-The certificates are typically retrieved by a prior `AzureKeyVault` task step (as shown in the example pipeline above):
+The request signing certificate and optional auth certificate are typically retrieved by a prior `AzureKeyVault` task step (as shown in the example pipeline above):
 
 ```yml
 - task: AzureKeyVault@2
@@ -492,8 +604,23 @@ The certificates are typically retrieved by a prior `AzureKeyVault` task step (a
     azureSubscription: <ESRP service connection name>
     # Key vault name (EsrpRelease task: "keyvaultname")
     KeyVaultName: <key vault name>
-    # Cert content is loaded into secret variables (EsrpRelease task: "authcertname" and "signcertname")
+    # Cert content is loaded into secret variables (EsrpRelease task: "authcertname" and "signcertname").
+    # Omit the auth cert when using managed identity authentication.
     SecretsFilter: <auth cert name>,<request signing cert name>
+```
+
+For managed identity authentication, obtain `ESRP_ID_TOKEN` from the ESRP service connection:
+
+```yml
+- task: AzureCLI@2
+  displayName: Get credentials for ESRP
+  inputs:
+    azureSubscription: <ESRP service connection name>
+    scriptType: bash
+    scriptLocation: inlineScript
+    addSpnToEnvironment: true
+    inlineScript: |
+      echo "##vso[task.setvariable variable=ESRP_ID_TOKEN;issecret=true]$idToken"
 ```
 
 ### Staging resources

@@ -7,7 +7,7 @@ import {
   type UserDelegationKey,
 } from '@azure/storage-blob';
 import { randomUUID } from 'crypto';
-import { getAadToken, type AccessToken } from './auth/getAadToken.ts';
+import { getAadToken, type AccessToken, type GetAadTokenParams } from './auth/getAadToken.ts';
 import { getKeyAndCertificatesFromPFX } from './auth/signing.ts';
 import {
   createNpmReleaseRequest,
@@ -22,8 +22,12 @@ import { ReleaseError } from './utils/ReleaseError.ts';
 
 interface CreateESRPReleaseServiceParams extends Pick<
   EsrpEnvOptions,
-  'clientId' | 'tenantId' | 'authCertificatePfx' | 'requestSigningCertificatePfx'
+  'clientId' | 'tenantId' | 'requestSigningCertificatePfx'
 > {
+  /** ESRP authentication certificate. Provide exactly one of this and `idToken`. */
+  authCertificatePfx?: string;
+  /** Federated token for an ESRP-allowlisted managed identity. Provide exactly one of this and `authCertificatePfx`. */
+  idToken?: string;
   logger: Logger;
   /** Azure blob storage client for staging artifact files */
   stagingBlobServiceClient: BlobServiceClient;
@@ -89,7 +93,7 @@ export class ESRPReleaseService {
   readonly #logger: Logger;
   readonly #clientId: string;
   readonly #tenantId: string;
-  readonly #authCertificatePfx: string;
+  readonly #esrpAuth: GetAadTokenParams['auth'];
   readonly #requestSigningCertificates: string[];
   readonly #requestSigningKey: string;
   readonly #stagingBlobServiceClient: BlobServiceClient;
@@ -105,7 +109,16 @@ export class ESRPReleaseService {
     this.#logger = params.logger;
     this.#clientId = params.clientId;
     this.#tenantId = params.tenantId;
-    this.#authCertificatePfx = params.authCertificatePfx;
+    if (params.authCertificatePfx && params.idToken) {
+      throw new ReleaseError('ESRP auth requires exactly one of authCertificatePfx or idToken');
+    }
+    if (params.idToken) {
+      this.#esrpAuth = { idToken: params.idToken };
+    } else if (params.authCertificatePfx) {
+      this.#esrpAuth = { certPfxContent: params.authCertificatePfx };
+    } else {
+      throw new ReleaseError('ESRP auth requires exactly one of authCertificatePfx or idToken');
+    }
     this.#stagingBlobServiceClient = params.stagingBlobServiceClient;
     this.#stagingContainerClient = params.stagingContainerClient;
     this.#requestSigningKey = params.requestSigningKey;
@@ -192,7 +205,7 @@ export class ESRPReleaseService {
       scopes: [scope],
       clientId: this.#clientId,
       tenantId: this.#tenantId,
-      auth: { certPfxContent: this.#authCertificatePfx },
+      auth: this.#esrpAuth,
       logger: this.#logger,
     }).catch(err => {
       throw new ReleaseError(`Error acquiring access token for ESRP API`, { cause: err });

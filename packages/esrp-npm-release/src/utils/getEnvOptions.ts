@@ -38,7 +38,8 @@ export function getEnvOptions(env: NodeJS.ProcessEnv = process.env): EnvOptions 
       approvers: splitString(getEnv('ESRP_APPROVERS', { defaultValue: defaultUser })),
       tenantId: getEnv('ESRP_TENANT_ID'),
       clientId: getEnv('ESRP_CLIENT_ID'),
-      authCertificatePfx: getEnv('ESRP_AUTH_CERT'),
+      authCertificatePfx: getEnv('ESRP_AUTH_CERT', { isOptional: true }),
+      idToken: getEnv('ESRP_ID_TOKEN', { isOptional: true }),
       requestSigningCertificatePfx: getEnv('ESRP_REQUEST_SIGNING_CERT'),
     },
     staging: {
@@ -54,8 +55,21 @@ export function getEnvOptions(env: NodeJS.ProcessEnv = process.env): EnvOptions 
     },
   };
 
+  const validationErrors: string[] = [];
   if (missingEnv.length) {
-    throw new ReleaseError(`Missing required environment variables: ${missingEnv.join(', ')}`);
+    validationErrors.push(`Missing required environment variables: ${missingEnv.join(', ')}`);
+  }
+
+  if (!!result.esrp.authCertificatePfx === !!result.esrp.idToken) {
+    validationErrors.push(
+      result.esrp.authCertificatePfx
+        ? 'Only one of ESRP_AUTH_CERT (certificate auth) or ESRP_ID_TOKEN (managed identity auth) may be set'
+        : 'One of ESRP_AUTH_CERT (certificate auth) or ESRP_ID_TOKEN (managed identity auth) must be set'
+    );
+  }
+
+  if (validationErrors.length) {
+    throw new ReleaseError(validationErrors.join('\n'));
   }
   return result;
 }
