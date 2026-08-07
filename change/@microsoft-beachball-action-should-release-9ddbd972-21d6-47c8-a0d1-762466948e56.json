@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use `node:` imports",
+  "packageName": "@microsoft/beachball-action-should-release",
+  "email": "elcraig@microsoft.com",
+  "dependentChangeType": "patch"
+}
