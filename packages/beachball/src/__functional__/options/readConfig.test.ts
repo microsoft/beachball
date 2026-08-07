@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
-import { removeTempDir } from '../../__fixtures__/tmpdir';
-import { createTestFileStructure } from '../../__fixtures__/createTestFileStructure';
+import { createTestFileStructure, expectError, removeTempDir } from '@microsoft/beachball-test-utilities';
 import path from 'node:path';
 import { readConfig } from '../../options/readConfig';
 import { BeachballError } from '../../types/BeachballError';
@@ -127,8 +126,7 @@ describe('readConfig', () => {
     });
     const readBad = () => readConfig({ path: tempDir, configPath });
 
-    await expect(readBad()).rejects.toThrow(BeachballError);
-    await expect(readBad()).rejects.toThrow(`Failed to load config from ${path.join(tempDir, configPath)}: oh no`);
+    await expectError(readBad(), BeachballError, `Failed to load config from ${path.join(tempDir, configPath)}: oh no`);
   });
 
   it('throws if a JSON config is invalid', async () => {

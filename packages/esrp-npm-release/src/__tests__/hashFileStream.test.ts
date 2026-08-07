@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
+import { setupTempDir } from '@microsoft/beachball-test-utilities';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { setupTempDir } from '../__fixtures__/tempDir.ts';
 import { hashFileStream } from '../utils/hashFileStream.ts';
 
 describe('hashFileStream', () => {

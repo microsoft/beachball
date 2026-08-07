@@ -1,4 +1,4 @@
-import { readJson } from '../object/readJson';
+import { readJson } from '@microsoft/beachball-test-utilities';
 import fs from 'node:fs';
 import path from 'node:path';
 import { markerComment } from '../changelog/renderChangelog';

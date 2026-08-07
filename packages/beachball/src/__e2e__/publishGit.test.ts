@@ -1,12 +1,10 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { initMockLogs } from '../__fixtures__/mockLogs';
-import { readJson } from '../object/readJson';
-import type { ChangeFileInfo } from '../types/ChangeInfo';
-import type { PackageJson } from '../types/PackageInfo';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import fs from 'node:fs';
 import fsPromises from 'node:fs/promises';
 import path from 'node:path';
-import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
+import { getPackageInfo } from 'workspace-tools';
+import { generateChangeFiles, getChangeFiles, readSingleChangeFile } from '../__fixtures__/changeFiles';
 import { defaultBranchName, defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
 import type { Repository } from '../__fixtures__/repository';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
@@ -61,9 +59,8 @@ describe('publish command (git)', () => {
 
     const newRepo = repositoryFactory.cloneRepository();
 
-    const packageJson = readJson<PackageJson>(newRepo.pathTo('package.json'));
-
-    expect(packageJson.version).toBe('1.1.0');
+    const packageInfo = getPackageInfo(newRepo.rootPath);
+    expect(packageInfo?.version).toBe('1.1.0');
   });
 
   it('can handle a merge when there are change files present', async () => {
@@ -92,7 +89,7 @@ describe('publish command (git)', () => {
     const newRepo = repositoryFactory.cloneRepository();
     const changeFiles = getChangeFiles({ ...options1, path: newRepo.rootPath });
     expect(changeFiles).toHaveLength(1);
-    const changeFileContent = readJson<ChangeFileInfo>(changeFiles[0]);
+    const changeFileContent = readSingleChangeFile(changeFiles[0]);
     expect(changeFileContent.packageName).toBe('foo2');
   });
 
@@ -104,7 +101,8 @@ describe('publish command (git)', () => {
       fetch: false,
       hooks: {
         precommit: jest.fn(async (cwd: string) => {
-          expect(readJson<PackageJson>(path.join(cwd, 'packages/foo/package.json')).version).toBe('1.1.0');
+          const packageInfo = getPackageInfo(repo!.pathTo('packages/foo'));
+          expect(packageInfo?.version).toBe('1.1.0');
           const filePath = path.join(cwd, 'foo.txt');
           await fsPromises.writeFile(filePath, 'foo');
         }),

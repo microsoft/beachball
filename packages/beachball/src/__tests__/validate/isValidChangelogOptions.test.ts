@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import type { ChangelogGroupOptions, ChangelogOptions } from '../../types/ChangelogOptions';
 import { isValidChangelogOptions } from '../../validation/isValidChangelogOptions';
 

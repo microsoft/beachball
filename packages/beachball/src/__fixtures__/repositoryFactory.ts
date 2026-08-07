@@ -1,5 +1,4 @@
-import { removeTempDir, tmpdir } from './tmpdir';
-import { writeJson } from '../object/writeJson';
+import { removeTempDir, tmpdir, writeJson } from '@microsoft/beachball-test-utilities';
 import fs from 'node:fs';
 import path from 'node:path';
 import { gitFailFast } from 'workspace-tools';

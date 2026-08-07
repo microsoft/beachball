@@ -1,11 +1,11 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { initMockLogs } from '../../__fixtures__/mockLogs';
+import { expectError, initMockLogs } from '@microsoft/beachball-test-utilities';
 import type prompts from 'prompts';
 import { MockStdin } from '../../__fixtures__/mockStdin';
 import { MockStdout } from '../../__fixtures__/mockStdout';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { promptForChange } from '../../changefile/promptForChange';
-import { expectBeachballError } from '../../__fixtures__/expectBeachballError';
+import { BeachballError } from '../../types/BeachballError';
 import type { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
@@ -177,8 +177,9 @@ describe('promptForChange', () => {
     });
 
     it('throws an error when prompts are needed and mockStdin is not a TTY', async () => {
-      await expectBeachballError(
+      await expectError(
         promptForChange(defaultParams()),
+        BeachballError,
         'The "change" command is running in a non-interactive context'
       );
     });
@@ -204,21 +205,23 @@ describe('promptForChange', () => {
     });
 
     it('throws when only type is provided but message is missing', async () => {
-      await expectBeachballError(
+      await expectError(
         promptForChange({
           ...defaultParams(),
           options: { type: 'minor', message: '', disallowedChangeTypes: null },
         }),
+        BeachballError,
         'The "change" command is running in a non-interactive context'
       );
     });
 
     it('throws when only message is provided but type is missing', async () => {
-      await expectBeachballError(
+      await expectError(
         promptForChange({
           ...defaultParams(),
           options: { message: 'some message', disallowedChangeTypes: null },
         }),
+        BeachballError,
         'The "change" command is running in a non-interactive context'
       );
     });

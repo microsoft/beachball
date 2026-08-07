@@ -1,9 +1,6 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { initMockLogs } from '../__fixtures__/mockLogs';
-import { readJson } from '../object/readJson';
-import path from 'node:path';
-import type { PackageJson } from '../types/PackageInfo';
-import { catalogsToYaml, type Catalogs } from 'workspace-tools';
+import { initMockLogs } from '@microsoft/beachball-test-utilities';
+import { catalogsToYaml, getPackageInfo, type Catalogs } from 'workspace-tools';
 import { generateChangeFiles, getChangeFiles } from '../__fixtures__/changeFiles';
 import { readChangelogJson, readChangelogMd } from '../__fixtures__/changelog';
 import { defaultRemoteBranchName } from '../__fixtures__/gitDefaults';
@@ -559,8 +556,7 @@ describe('bump command', () => {
           expect(version).toBe('1.1.0');
 
           await new Promise(resolve => setTimeout(resolve, 0)); // simulate async work
-          const jsonPath = path.join(packagePath, 'package.json');
-          expect(readJson<PackageJson>(jsonPath).version).toBe('1.0.0'); // not bumped on disk yet
+          expect(getPackageInfo(packagePath)?.version).toBe('1.0.0'); // not bumped on disk yet
         }),
         postbump: jest.fn<NonNullable<HooksOptions['postbump']>>(async (packagePath, name, version) => {
           expect(packagePath.endsWith('pkg-1')).toBeTruthy();
@@ -568,8 +564,7 @@ describe('bump command', () => {
           expect(version).toBe('1.1.0');
 
           await new Promise(resolve => setTimeout(resolve, 0)); // simulate async work
-          const jsonPath = path.join(packagePath, 'package.json');
-          expect(readJson<PackageJson>(jsonPath).version).toBe('1.1.0');
+          expect(getPackageInfo(packagePath)?.version).toBe('1.1.0'); // bumped on disk
         }),
       },
     });
