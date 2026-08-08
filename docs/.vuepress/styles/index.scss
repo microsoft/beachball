@@ -43,3 +43,25 @@ td:first-child code {
   // don't wrap CLI option names
   white-space: nowrap;
 }
+
+.version-banner {
+  box-sizing: border-box;
+  width: min(var(--content-width), calc(100% - 4rem));
+  margin: 1.5rem auto;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--vp-c-accent);
+  border-left-width: 4px;
+  background: var(--graph-node-bg);
+  color: var(--vp-c-text);
+  line-height: 1.6;
+}
+
+.version-banner-v2 {
+  background: var(--vp-c-bg-soft);
+}
+
+@media (max-width: 719px) {
+  .version-banner {
+    width: calc(100% - 2rem);
+  }
+}
