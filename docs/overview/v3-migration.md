@@ -133,7 +133,6 @@ The config file is now **only** resolved at the project root. Support for search
 
 - Use Node's `path.matchesGlob` instead of `minimatch`. Behavior should stay the same, but if not, please open an issue.
 - If you're deep importing beachball's internal helpers, some deprecated signatures have been removed. Use the new signatures (which pre-calculate and share context) instead.
-- Update logic for determining the comparison remote and branch: even if the `branch` option contains a `/`, use a relatively inexpensive `git config` check to verify whether it matches a known remote name. If there's no remote name configured, always use the default remote. Also be more strict about errors: throw if no remotes are defined, or if the root package.json specifies a `repository` field but no matching remote is found.
 
 ## Other changes
 

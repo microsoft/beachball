@@ -25,7 +25,7 @@ This will install beachball v2. To use v3, follow the manual steps.
 ### Manual setup
 
 :::note
-While beachball v3 is in prerelease, you should get the latest version with `npm show beachball@next version` and then install a specific pinned version. See the [migration guide](./v3-migration) for more details.
+While beachball v3 is in prerelease, you should get the latest version with `npm show beachball@next version` and then install a specific pinned version, instead of the latest version as shown below. See the [migration guide](./v3-migration) for more details.
 :::
 
 To get started, install `beachball` as a `devDependency`:
@@ -34,7 +34,7 @@ To get started, install `beachball` as a `devDependency`:
 npm install -D beachball
 ```
 
-or for yarn users (add `-W` if in a monorepo):
+or for yarn users:
 
 ```bash
 yarn add -D beachball

@@ -16,6 +16,7 @@
 [data-theme='dark'] {
   --vp-c-accent: #ffd700;
   --vp-c-accent-bg: #ffd700;
+  --graph-node-bg: color-mix(in srgb, var(--vp-c-accent) 12%, var(--vp-c-bg));
 
   // fix mermaid colors in dark mode
   .clusterLabel .nodeLabel {
@@ -33,6 +34,7 @@ p a code {
   color: var(--vp-c-text);
 }
 
+.version-banner a,
 .vp-sidebar a:hover,
 .vp-hero-action-button:hover {
   // make sidebar and action links more obvious
