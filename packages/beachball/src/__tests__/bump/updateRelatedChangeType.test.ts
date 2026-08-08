@@ -252,11 +252,7 @@ describe('updateRelatedChangeType', () => {
 
     expect(bumpInfo.calculatedChangeTypes).toEqual({
       bar: 'major',
-      // This points out an interesting artifact of the new pre* support that should probably be
-      // better rationalized... (prior to that change, this would have been 'patch', which is
-      // more likely the expected behavior in general)
-      // https://github.com/microsoft/beachball/issues/947
-      foo: 'preminor',
+      foo: 'patch',
     });
   });
 
@@ -274,11 +270,25 @@ describe('updateRelatedChangeType', () => {
 
     expect(bumpInfo.calculatedChangeTypes).toEqual({
       bar: 'major',
-      // This points out an interesting artifact of the new pre* support that should probably be
-      // better rationalized... (prior to that change, this would have been 'patch', which is
-      // more likely the expected behavior in general)
-      // https://github.com/microsoft/beachball/issues/947
-      foo: 'preminor',
+      foo: 'patch',
+    });
+  });
+
+  it('keeps prerelease dependent fallback in the prerelease lane', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'dep', type: 'premajor', dependentChangeType: 'premajor' }],
+      packages: {
+        dep: {},
+        consumer: {
+          dependencies: { dep: '1.0.0' },
+          beachball: { disallowedChangeTypes: ['premajor', 'preminor'] },
+        },
+      },
+    });
+
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      dep: 'premajor',
+      consumer: 'prepatch',
     });
   });
 
@@ -419,12 +429,12 @@ describe('updateRelatedChangeType', () => {
       },
     });
 
-    // 'a' gets preminor because minor is disallowed for it.
-    // 'b' gets minor (not preminor) because the original dependentChangeType propagates,
+    // 'a' gets patch because minor is disallowed for it.
+    // 'b' gets minor (not patch) because the original dependentChangeType propagates,
     // not the downgraded type.
     expect(bumpInfo.calculatedChangeTypes).toEqual({
       dep: 'major',
-      a: 'preminor',
+      a: 'patch',
       b: 'minor',
     });
   });
@@ -448,7 +458,7 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.calculatedChangeTypes).toEqual({
       dep: 'major',
       foo: 'minor',
-      bar: 'preminor',
+      bar: 'patch',
     });
   });
 

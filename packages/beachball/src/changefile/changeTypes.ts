@@ -15,6 +15,15 @@ export const SortedChangeTypes = [
   'major',
 ] as const satisfies readonly ChangeType[];
 
+const stableFallbackTypes = ['none', 'patch', 'minor', 'major'] as const satisfies readonly ChangeType[];
+const prereleaseFallbackTypes = [
+  'none',
+  'prerelease',
+  'prepatch',
+  'preminor',
+  'premajor',
+] as const satisfies readonly ChangeType[];
+
 /** `'none'` change type (smallest weight) */
 export const MinChangeType: ChangeType = 'none';
 
@@ -51,9 +60,13 @@ function getAllowedChangeType(changeType: ChangeType, disallowedChangeTypes: Rea
     return 'none'; // this would be from invalid user input
   }
 
+  const fallbackTypes: readonly ChangeType[] = changeType.startsWith('pre')
+    ? prereleaseFallbackTypes
+    : stableFallbackTypes;
+
   while (disallowedChangeTypes.includes(changeType) && changeType !== 'none') {
-    const nextChangeTypeWeight = ChangeTypeWeights[changeType] - 1;
-    changeType = SortedChangeTypes[nextChangeTypeWeight];
+    const nextChangeTypeWeight = fallbackTypes.indexOf(changeType) - 1;
+    changeType = fallbackTypes[nextChangeTypeWeight];
   }
 
   return changeType;
