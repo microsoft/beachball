@@ -1611,11 +1611,9 @@ __metadata:
   dependencies:
     "@microsoft/beachball-scripts": "workspace:^"
     "@types/jju": "npm:^1.4.2"
-    "@types/semver": "catalog:dev"
     cross-env: "catalog:dev"
     jju: "npm:^1.4.0"
     nano-spawn: "catalog:prod"
-    semver: "catalog:prod"
     workspace-tools: "catalog:prod"
   languageName: unknown
   linkType: soft

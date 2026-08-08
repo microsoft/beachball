@@ -161,10 +161,7 @@ jobs:
       - run: yarn --immutable
 
       - name: Install Renovate
-        run: |
-          renovate_version="$(tr -d '\n' < renovate/.renovate-version)"
-          echo "Renovate version: $renovate_version"
-          npm i --min-release-age=7 -g "renovate@$renovate_version"
+        run: npm i -g renovate
 
       - name: Check token
         run: yarn check-token "$TOKEN"
