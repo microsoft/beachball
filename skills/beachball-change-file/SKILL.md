@@ -74,7 +74,7 @@ For a stable package, use `prerelease`, `premajor`, `preminor`, or `prepatch` on
 Set the remaining values as follows:
 
 - `packageName`: the exact package name reported by Beachball.
-- `dependentChangeType`: `none` when `type` is `none`; otherwise `patch`. Beachball handles the special case of prerelease packages internally.
+- `dependentChangeType`: Only include this if the user explicitly requests non-default dependent bump behavior.
 - `comment`: a concise, user-facing description suitable for a changelog. Emphasize API or behavior changes rather than implementation details, and wrap code identifiers in backticks.
 - `email`: `<EMAIL>`.
 
@@ -90,7 +90,6 @@ If `<GROUP_CHANGES>` is false or unset, create `<CHANGE_DIR>/<packageName>-<uuid
 {
   "packageName": "example-package",
   "type": "patch",
-  "dependentChangeType": "patch",
   "comment": "Fix an issue affecting consumers",
   "email": "user@example.com"
 }
@@ -104,7 +103,6 @@ If `<GROUP_CHANGES>` is true, create one `<CHANGE_DIR>/change-<uuid>.json` conta
     {
       "packageName": "example-package",
       "type": "patch",
-      "dependentChangeType": "patch",
       "comment": "Fix an issue affecting consumers",
       "email": "user@example.com"
     }

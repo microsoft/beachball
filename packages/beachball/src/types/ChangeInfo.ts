@@ -12,8 +12,14 @@ export interface ChangeFileInfo {
   packageName: string;
   /** Author email */
   email: string;
-  /** How to bump packages that depend on this one */
-  dependentChangeType: ChangeType;
+  /**
+   * How to bump packages that depend on this one.
+   * At bump time, it defaults to `none` if type is `none`, or `patch` otherwise.
+   *
+   * As of beachball v3, the default value is no longer written to the change file.
+   */
+  // The default is set in updateRelatedChangeType
+  dependentChangeType?: ChangeType;
   /** Extra info added to the change file via custom prompts */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [extraInfo: string]: any;

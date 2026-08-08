@@ -37,8 +37,10 @@ export function updateRelatedChangeType(params: {
   const { change, bumpInfo, dependents } = params;
   const { calculatedChangeTypes, packageGroups, packageInfos } = bumpInfo;
 
-  // If dependentChangeType is none (or somehow unset), there's nothing to do.
-  const dependentChangeType = getMaxChangeType([change.dependentChangeType]);
+  // Get the user-specified dependentChangeType (rare) or use the default.
+  const dependentChangeType = change.dependentChangeType ?? (change.type === 'none' ? 'none' : 'patch');
+
+  // If dependentChangeType is none, there's nothing to do.
   if (dependentChangeType === 'none') {
     return;
   }

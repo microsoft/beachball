@@ -25,14 +25,13 @@ describe('promptForChange _getChangeFileInfoFromResponse', () => {
       comment,
       packageName: pkg,
       email: 'email not defined',
-      dependentChangeType: 'patch',
     });
     expect(logs.mocks.log).not.toHaveBeenCalled();
   });
 
-  it('uses dependentChangeType none if response.type is none', () => {
+  it('omits dependentChangeType if response.type is none', () => {
     const change = _getChangeFileInfoFromResponse({ ...defaultParams, response: { comment, type: 'none' } });
-    expect(change).toMatchObject({ type: 'none', dependentChangeType: 'none' });
+    expect(change).toEqual({ type: 'none', comment, packageName: pkg, email: 'email not defined' });
     expect(logs.mocks.log).not.toHaveBeenCalled();
   });
 
@@ -42,7 +41,8 @@ describe('promptForChange _getChangeFileInfoFromResponse', () => {
       response: { comment },
       options: { type: 'minor', message: '' },
     });
-    expect(change).toMatchObject({ type: 'minor', dependentChangeType: 'patch' });
+    expect(change).toMatchObject({ type: 'minor' });
+    expect(change).not.toHaveProperty('dependentChangeType');
     expect(logs.mocks.log).not.toHaveBeenCalled();
   });
 
@@ -58,7 +58,8 @@ describe('promptForChange _getChangeFileInfoFromResponse', () => {
 
   it('warns and defaults to none if response.type and options.type are unspecified', () => {
     const change = _getChangeFileInfoFromResponse({ ...defaultParams, response: { comment } });
-    expect(change).toMatchObject({ type: 'none', dependentChangeType: 'none' });
+    expect(change).toMatchObject({ type: 'none' });
+    expect(change).not.toHaveProperty('dependentChangeType');
     expect(logs.mocks.log).toHaveBeenCalledTimes(2);
     expect(logs.getMockLines('log')).toMatchInlineSnapshot(`
         "WARN: change type 'none' assumed by default

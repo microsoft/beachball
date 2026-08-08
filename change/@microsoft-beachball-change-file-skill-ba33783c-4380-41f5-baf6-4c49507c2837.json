@@ -1,0 +1,6 @@
+{
+  "packageName": "@microsoft/beachball-change-file-skill",
+  "type": "patch",
+  "comment": "Omit `dependentChangeType` when generating change files unless the user explicitly requests non-default dependent bump behavior",
+  "email": "elcraig@microsoft.com"
+}
