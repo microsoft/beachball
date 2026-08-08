@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { getMaxChangeType, initializePackageChangeTypes } from '../../changefile/changeTypes';
-import type { ChangeSet } from '../../types/ChangeInfo';
+import type { ChangeSet, ChangeType } from '../../types/ChangeInfo';
 
 describe('getMaxChangeType', () => {
   it('handles empty change type array', () => {
@@ -44,12 +44,27 @@ describe('getMaxChangeType', () => {
     expect(changeType).toBe('minor');
   });
 
-  it('handles prerelease only case', () => {
-    const changeType = getMaxChangeType(
-      ['patch', 'major'],
-      ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch']
-    );
-    expect(changeType).toBe('prerelease');
+  it.each<{ changeType: ChangeType; disallowedChangeTypes: ChangeType[]; expected: ChangeType }>([
+    { changeType: 'major', disallowedChangeTypes: ['major'], expected: 'minor' },
+    { changeType: 'major', disallowedChangeTypes: ['major', 'minor'], expected: 'patch' },
+    { changeType: 'major', disallowedChangeTypes: ['major', 'minor', 'patch'], expected: 'none' },
+    { changeType: 'premajor', disallowedChangeTypes: ['premajor'], expected: 'preminor' },
+    { changeType: 'premajor', disallowedChangeTypes: ['premajor', 'preminor'], expected: 'prepatch' },
+    { changeType: 'premajor', disallowedChangeTypes: ['premajor', 'preminor', 'prepatch'], expected: 'prerelease' },
+    {
+      changeType: 'premajor',
+      disallowedChangeTypes: ['premajor', 'preminor', 'prepatch', 'prerelease'],
+      expected: 'none',
+    },
+  ])(
+    'demotes $changeType only within its lane (disallowed $disallowedChangeTypes)',
+    ({ changeType, disallowedChangeTypes, expected }) => {
+      expect(getMaxChangeType([changeType], disallowedChangeTypes)).toBe(expected);
+    }
+  );
+
+  it('uses the global ordering after demoting within each lane', () => {
+    expect(getMaxChangeType(['major', 'premajor'], ['major', 'premajor'])).toBe('minor');
   });
 });
 

@@ -1,0 +1,7 @@
+{
+  "packageName": "beachball",
+  "type": "major",
+  "comment": "Fix fallback behavior for disallowed change types in dependent and grouped package calculations: stable types now fall back from `major -> minor -> patch -> none`, while prerelease types fall back from `premajor -> preminor -> prepatch -> prerelease -> none`. This prevents a disallowed stable type from unexpectedly producing a prerelease version bump.",
+  "dependentChangeType": "patch",
+  "email": "elcraig@microsoft.com"
+}
