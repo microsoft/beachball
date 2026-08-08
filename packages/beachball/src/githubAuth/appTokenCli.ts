@@ -1,10 +1,9 @@
-import { Command, Option, type OutputConfiguration } from 'commander';
+import { Command, InvalidArgumentError, Option, type OutputConfiguration } from 'commander';
 import { createAppTokenHelper } from './createAppTokenHelper';
 import type { AppTokenHelperOptions, GetInstallationTokenOptions, RevokeAppTokenOptions } from './types';
-import { parsePermissionsArg } from './validationHelpers';
+import { parsePermissions } from './validationHelpers';
 import { defaultGitHubApiUrl } from './requestHelpers';
 import { revokeAppToken } from './revokeAppToken';
-import { BeachballError } from '../types/BeachballError';
 
 /** Injectable dependencies so the CLI can be driven and observed in tests. */
 export interface CliContext {
@@ -16,27 +15,13 @@ export interface CliContext {
   exitOverride?: boolean;
 }
 
-const outputModes = ['azure', 'azure-pipelines', 'stdout'] as const;
-
 /** Options parsed for the default `token` command. */
 interface TokenCliOptions extends AppTokenHelperOptions, GetInstallationTokenOptions {
-  output: (typeof outputModes)[number];
-  azureTokenVariable?: string;
+  secretVariable?: string;
 }
 
 async function runCreateToken(options: TokenCliOptions): Promise<void> {
-  const { output, azureTokenVariable } = options;
-
-  if (output !== 'stdout') {
-    if (!azureTokenVariable) {
-      throw new BeachballError('--azure-token-variable (AZURE_TOKEN_VARIABLE) is required unless --output is stdout');
-    }
-    if (!/^[A-Za-z_]\w*$/.test(azureTokenVariable)) {
-      throw new BeachballError(
-        '--azure-token-variable (AZURE_TOKEN_VARIABLE) must be an environment-style variable name'
-      );
-    }
-  }
+  const { secretVariable } = options;
 
   const getInstallationToken = createAppTokenHelper({
     appClientId: options.appClientId,
@@ -49,10 +34,10 @@ async function runCreateToken(options: TokenCliOptions): Promise<void> {
     permissions: options.permissions,
   });
 
-  if (output === 'stdout') {
-    console.log(token);
+  if (secretVariable) {
+    console.log(`##vso[task.setvariable variable=${secretVariable};isSecret=true]${token}`);
   } else {
-    console.log(`##vso[task.setvariable variable=${azureTokenVariable};isSecret=true]${token}`);
+    console.log(token);
   }
 }
 
@@ -86,20 +71,34 @@ export function buildProgram(context: CliContext): Command {
       new Option('--repository <owner/repo>', 'Repository to scope the token to, in owner/repo format')
         .env('REPOSITORY')
         .makeOptionMandatory()
-    )
-    .addOption(
-      new Option('--permissions <list>', 'Comma- or newline-separated permission:level entries')
-        .env('PERMISSIONS')
-        .argParser(parsePermissionsArg)
-    )
-    .addOption(
-      new Option('--output <mode>', 'Where to write the token').choices(outputModes).default('stdout').env('OUTPUT')
+        .argParser(value => {
+          const parts = value.split('/');
+          if (parts.length === 2 && parts[0] && parts[1]) {
+            return { owner: parts[0], name: parts[1] };
+          }
+          throw new InvalidArgumentError(`Expected format 'owner/repository'.`);
+        })
     )
     .addOption(
       new Option(
-        '--azure-token-variable <name>',
-        'Azure Pipelines variable name for the token (required unless --output is stdout)'
-      ).env('AZURE_TOKEN_VARIABLE')
+        '--permissions <list>',
+        'Comma-separated list of "permission:level" entries (e.g. "contents: read, pull_requests: write")'
+      )
+        .env('PERMISSIONS')
+        .argParser(parsePermissions)
+    )
+    .addOption(
+      new Option(
+        '--secret-variable <NAME>',
+        'For Azure Pipelines: save the token as a secret variable with this name (instead of logging the plain token)'
+      )
+        .env('SECRET_VARIABLE')
+        .argParser(value => {
+          if (!/^[A-Za-z_]\w*$/.test(value)) {
+            throw new InvalidArgumentError('Must be an environment-style variable name.');
+          }
+          return value;
+        })
     )
     .addOption(githubApiUrlOption())
     .action(runCreateToken);

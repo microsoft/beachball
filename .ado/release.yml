@@ -109,49 +109,9 @@ extends:
                   path: $(artifactPath)
 
             steps:
-              - checkout: self
-                fetchTags: false
-
-              - task: UseNode@1
-                displayName: Install Node.js ${{ variables.nodeVersion }}
-                retryCountOnTaskFailure: 1
-                inputs:
-                  version: ${{ variables.nodeVersion }}.x
-                  checkLatest: false
-
-              # For multiline scripts, we want the whole task to fail if any line of the script fails.
-              # ADO doesn't have bash configured this way by default. To fix we override the SHELLOPTS built-in variable.
-              # https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
-              # The options below include ADO defaults (braceexpand:hashall:interactive-comments) plus
-              # errexit:errtrace for better error behavior.
-              - script: |
-                  echo "##vso[task.setvariable variable=shellopts]braceexpand:hashall:interactive-comments:errexit:errtrace"
-                displayName: Force exit on error (bash)
-
-              - script: |
-                  echo "node: `node -v`"
-                  echo "yarn: `yarn -v`"
-                  echo "npm: `npm -v`"
-                  printenv | sort
-                  git --no-pager config list
-                displayName: Show environment
-
-              # Configure npm to use the internal feed from REGISTRY_URL.
-              - script: echo 'registry=$(REGISTRY_URL)' >> .npmrc
-                displayName: Configure npm registry
-
-              - task: npmAuthenticate@0
-                displayName: npm authenticate
-                inputs:
-                  workingFile: $(Build.SourcesDirectory)/.npmrc
-
-              # This isn't used, it's just a clear way to check that auth is working
-              # (yarn install's auth errors can be very unclear)
-              - script: yarn npm info beachball
-                displayName: Get package to verify yarn auth
-
-              - script: yarn --immutable
-                displayName: Install dependencies
+              - template: /.ado/templates/setup.yml@self
+                parameters:
+                  nodeVersion: ${{ variables.nodeVersion }}
 
               - script: yarn build --verbose
                 displayName: Build
@@ -275,6 +235,12 @@ extends:
               os: linux
             steps:
               - template: /.ado/templates/setup.yml@self
+                parameters:
+                  nodeVersion: ${{ variables.nodeVersion }}
+
+              # Have to build local beachball before using it!
+              - script: yarn build --verbose --to beachball
+                displayName: Build beachball
 
               - task: AzureCLI@2
                 displayName: Get token
@@ -282,19 +248,14 @@ extends:
                   azureSubscription: ogx-oss-release-bot
                   scriptType: bash
                   scriptLocation: inlineScript
-                  inlineScript: node scripts/create-github-app-token.cjs
+                  inlineScript: node packages/beachball/dist/github-app-token.mjs
                 env:
                   # office-ogx-auth-helper GitHub App
                   APP_CLIENT_ID: Iv23ligBoU5jc9SIFnGR
                   KEY_ID: https://ogx-oss-release-keyvault.vault.azure.net/keys/office-ogx-auth-helper-key
-                  REPOSITORIES: $(Build.Repository.ID)
+                  REPOSITORY: $(Build.Repository.Name)
                   PERMISSIONS: contents:write
-                  OUTPUT: azure
-                  AZURE_TOKEN_VARIABLE: GITHUB_APP_TOKEN
-
-              # Have to build local beachball before using it!
-              - script: yarn build --verbose --to beachball
-                displayName: Build
+                  SECRET_VARIABLE: GITHUB_APP_TOKEN
 
               # TODO (release): update task name
               - script: node scripts/publishWithGithubAppToken.ts

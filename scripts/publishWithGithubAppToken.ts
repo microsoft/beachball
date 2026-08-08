@@ -8,27 +8,20 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { findGitRoot, git, type GitProcessOutput } from 'workspace-tools';
+import { findGitRoot } from 'workspace-tools';
 
 const repoRoot = findGitRoot(process.cwd());
 
-const token = process.env.BEACHBALL_GIT_TOKEN;
-const gitUserEmail = '257645319+office-ogx-auth-helper[bot]@users.noreply.github.com';
-const gitUserName = 'OGX bot';
 const ghaTokenCli = path.join(repoRoot, 'packages/beachball/dist/github-app-token.mjs');
 if (!fs.existsSync(ghaTokenCli)) {
   adoFail(`GitHub App token CLI not found at ${ghaTokenCli}`);
 }
+
+const token = process.env.BEACHBALL_GIT_TOKEN;
 if (!token) {
   adoFail('BEACHBALL_GIT_TOKEN is not set');
 } else if (!token.startsWith('ghs_')) {
   adoFail(`BEACHBALL_GIT_TOKEN is not in the expected format (ghs_...); starts with '${token.slice(0, 4)}'`);
-}
-
-/** Run a git command against the repo, logging it first. */
-function runGit(args: string[], options?: { throwOnError?: boolean }): GitProcessOutput {
-  console.log(`git ${args.join(' ')}`);
-  return git(args, { cwd: repoRoot, throwOnError: options?.throwOnError });
 }
 
 /** Log an ADO pipeline error and exit with a non-zero code. */
@@ -40,10 +33,6 @@ function adoFail(message: string): never {
 function adoWarn(message: string): void {
   console.log(`##vso[task.logissue type=warning]${message}`);
 }
-
-// Configure the git author identity.
-runGit(['config', 'user.email', gitUserEmail], { throwOnError: true });
-runGit(['config', 'user.name', gitUserName], { throwOnError: true });
 
 // On exit, revoke the token. (Synchronous so it completes within the 'exit' handler.)
 let cleanedUp = false;
@@ -68,8 +57,5 @@ const publish = spawnSync('yarn', args, {
   cwd: repoRoot,
   stdio: 'inherit',
   shell: true, // needed for yarn on windows
-  env: { ...process.env, BEACHBALL_GIT_TOKEN: token },
 });
-if (publish.status !== 0) {
-  process.exit(publish.status ?? 1);
-}
+process.exitCode = publish.status ?? 1;

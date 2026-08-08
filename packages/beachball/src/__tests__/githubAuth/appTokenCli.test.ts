@@ -13,6 +13,7 @@ const { createAppTokenHelper } = authModule as jest.Mocked<typeof authModule>;
 const { revokeAppToken } = revokeModule as jest.Mocked<typeof revokeModule>;
 
 describe('appTokenCli', () => {
+  // This can't use initMockLogs since it aggregates writeOut/writeErr and console logs
   let out: string[] = [];
   let err: string[] = [];
 
@@ -65,7 +66,10 @@ describe('appTokenCli', () => {
         keyId: 'key-id',
         githubApiUrl: defaultGitHubApiUrl,
       });
-      expect(mockGetInstallationToken).toHaveBeenCalledWith({ repository: 'org/repo', permissions: undefined });
+      expect(mockGetInstallationToken).toHaveBeenCalledWith({
+        repository: { owner: 'org', name: 'repo' },
+        permissions: undefined,
+      });
       expect(out).toEqual([mockToken]);
     });
 
@@ -87,43 +91,63 @@ describe('appTokenCli', () => {
     });
 
     it('parses permissions', async () => {
-      const context = getContext([...requiredArgs, '--permissions', 'contents:read  ,foo:write\nbar:admin']);
+      const context = getContext([...requiredArgs, '--permissions', 'contents:read  ,foo:write,bar:admin']);
       await runAppTokenCli(context);
 
       expect(mockGetInstallationToken).toHaveBeenCalledWith({
-        repository: 'org/repo',
+        repository: { owner: 'org', name: 'repo' },
         permissions: { contents: 'read', foo: 'write', bar: 'admin' },
       });
     });
 
     it('rejects invalid permissions', async () => {
       const context = getContext([...requiredArgs, '--permissions', 'contents:bogus']);
-      await expect(runAppTokenCli(context)).rejects.toThrow(/Invalid permission level for contents: bogus/);
+      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
+      expect(err[0]).toMatchInlineSnapshot(
+        `"error: option '--permissions <list>' argument 'contents:bogus' is invalid. Invalid permission level for contents: bogus"`
+      );
     });
 
-    it('writes an Azure Pipelines variable command for azure output', async () => {
-      const context = getContext([...requiredArgs, '--output', 'azure', '--azure-token-variable', 'MY_TOKEN']);
+    it('parses repository', async () => {
+      const context = getContext([...requiredArgs, '--repository', 'my-org/my-repo']);
       await runAppTokenCli(context);
 
+      expect(mockGetInstallationToken).toHaveBeenCalledWith({
+        repository: { owner: 'my-org', name: 'my-repo' },
+        permissions: undefined,
+      });
+    });
+
+    it.each<[string, string]>([
+      ['bare repository name', 'my-repo'],
+      ['empty repository owner', '/my-repo'],
+      ['empty repository name', 'my-org/'],
+      ['too many segments', 'a/b/c'],
+    ])('rejects %s', async (_description, repo) => {
+      const context = getContext([...requiredArgs, '--repository', repo]);
+      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
+      expect(err[0]).toEqual(
+        `error: option '--repository <owner/repo>' argument '${repo}' is invalid. Expected format 'owner/repository'.`
+      );
+    });
+
+    it('rejects invalid variable name', async () => {
+      const context = getContext([...requiredArgs, '--secret-variable', 'bad name!']);
+      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
+      expect(err[0]).toMatchInlineSnapshot(
+        `"error: option '--secret-variable <NAME>' argument 'bad name!' is invalid. Must be an environment-style variable name."`
+      );
+    });
+
+    it('writes an azure pipelines variable command with --secret-variable', async () => {
+      const context = getContext([...requiredArgs, '--secret-variable', 'MY_TOKEN']);
+      await runAppTokenCli(context);
       expect(out).toEqual([`##vso[task.setvariable variable=MY_TOKEN;isSecret=true]${mockToken}`]);
     });
 
-    it('requires --azure-token-variable for non-stdout output', async () => {
-      const context = getContext([...requiredArgs, '--output', 'azure-pipelines']);
-      await expect(runAppTokenCli(context)).rejects.toThrow(/--azure-token-variable .* is required/);
-    });
-
-    it('rejects an invalid --azure-token-variable name', async () => {
-      const context = getContext([...requiredArgs, '--output', 'azure', '--azure-token-variable', 'bad name!']);
+    it('rejects an invalid --secret-variable name', async () => {
+      const context = getContext([...requiredArgs, '--secret-variable', 'bad name!']);
       await expect(runAppTokenCli(context)).rejects.toThrow(/environment-style variable name/);
-    });
-
-    it('rejects an invalid --output value', async () => {
-      const context = getContext([...requiredArgs, '--output', 'bogus']);
-      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
-      expect(err[0].trim()).toMatchInlineSnapshot(
-        `"error: option '--output <mode>' argument 'bogus' is invalid. Allowed choices are azure, azure-pipelines, stdout."`
-      );
     });
 
     it.each(['--app-client-id', '--key-id', '--repository'])('requires %s', async missing => {
@@ -134,6 +158,12 @@ describe('appTokenCli', () => {
       const context = getContext(args);
       await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
       expect(err[0]).toMatch(new RegExp(`error: required option '${missing}.*?' not specified`));
+    });
+
+    it('rejects unknown options', async () => {
+      const context = getContext([...requiredArgs, '--nope']);
+      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
+      expect(err[0]).toMatchInlineSnapshot(`"error: unknown option '--nope'"`);
     });
   });
 
