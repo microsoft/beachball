@@ -17,7 +17,6 @@ export const fakeEmail = 'test@test.com';
  * Generate a change file for the given package.
  * Default values:
  * - `type: 'minor'`
- * - `dependentChangeType: 'patch'`
  * - `comment: '<packageName> comment'`
  * - `email: 'test@test.com'`
  */
@@ -31,7 +30,6 @@ export function getChange(
     email: fakeEmail,
     packageName,
     type,
-    dependentChangeType: 'patch',
   };
 }
 
@@ -68,7 +66,6 @@ export function generateChangeSet(changes: (string | PartialChangeFile)[]): Chan
  *
  * Default change info values:
  * - `type: 'minor'`
- * - `dependentChangeType: 'patch'`
  * - `comment: '<packageName> comment'`
  * - `email: 'test@test.com'`
  *

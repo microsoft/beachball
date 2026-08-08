@@ -77,7 +77,6 @@ describe('readChangeFiles', () => {
       {
         change: {
           comment: 'foo comment',
-          dependentChangeType: 'patch',
           email: 'test@test.com',
           packageName: 'foo',
           type: 'minor',
@@ -87,7 +86,6 @@ describe('readChangeFiles', () => {
       {
         change: {
           comment: 'bar comment',
-          dependentChangeType: 'patch',
           email: 'test@test.com',
           packageName: 'bar',
           type: 'minor',

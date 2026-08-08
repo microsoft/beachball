@@ -1,0 +1,6 @@
+{
+  "packageName": "beachball",
+  "type": "major",
+  "comment": "`dependentChangeType` is omitted from change files unless the user provides a non-default value. The same defaults as before are applied at bump time (`none` for `none` changes and `patch` otherwise).",
+  "email": "elcraig@microsoft.com"
+}

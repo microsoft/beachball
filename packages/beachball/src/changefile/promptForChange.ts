@@ -155,6 +155,6 @@ export function _getChangeFileInfoFromResponse(params: {
     ...(response as Required<ChangePromptResponse>),
     packageName: pkg,
     email: email || 'email not defined',
-    dependentChangeType: options.dependentChangeType || (response.type === 'none' ? 'none' : 'patch'),
+    ...(options.dependentChangeType !== undefined && { dependentChangeType: options.dependentChangeType }),
   };
 }

@@ -101,6 +101,12 @@ In v2, Beachball could write `"not available"` to the `commit` field in `CHANGEL
 
 In v3, Beachball omits the `commit` field entirely in those cases instead, including dependent bump entries that do not have a real commit hash yet.
 
+### Stop writing default `dependentChangeType` in change files
+
+Beachball no longer writes the default `dependentChangeType` values to generated change files. The same defaults as before are applied at bump time (`none` when the change `type` is `none`, or `patch` otherwise). Existing change files which specify `dependentChangeType` are still supported, and `--dependent-change-type` continues to write an explicit override.
+
+Custom tools that read change files should allow `dependentChangeType` to be missing and apply the same defaults. Tools that create change files should omit the field unless non-default dependent bump behavior is intended.
+
 ### Fix fallback behavior for disallowed change types
 
 Fallback behavior for disallowed change types now keeps stable and prerelease types separate. Stable types fall back from `major -> minor -> patch -> none`; prerelease types fall back from `premajor -> preminor -> prepatch -> prerelease -> none`. (Previously, the combined ordering could cause a disallowed stable type to fall back to a prerelease type, such as `minor` becoming `preminor` rather than `patch`.)

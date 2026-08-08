@@ -169,10 +169,10 @@ export function validate(parsedOptions: ParsedOptions, validateOptions: Validate
       hasError = true;
     }
 
-    if (!change.dependentChangeType) {
-      logValidationError(`dependentChangeType is missing in ${changeFile}`);
-      hasError = true;
-    } else if (!isValidDependentChangeType(change.dependentChangeType, disallowedChangeTypes)) {
+    if (
+      change.dependentChangeType !== undefined &&
+      !isValidDependentChangeType(change.dependentChangeType, disallowedChangeTypes)
+    ) {
       logValidationError(`Invalid dependentChangeType detected in ${changeFile}: "${change.dependentChangeType}"`);
       hasError = true;
     }
