@@ -6,7 +6,7 @@ const config = {
   commit: false,
   disallowedChangeTypes: ['major'],
   groupChanges: true,
-  ignorePatterns: ['.*ignore', '.eslintrc.js', 'jest.*.js', 'src/__*/**'],
+  ignorePatterns: ['.*ignore', '.eslintrc.js', 'jest.*.js', 'src/__*/**/*'],
 };
 
 module.exports = config;

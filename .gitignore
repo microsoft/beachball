@@ -10,8 +10,10 @@ package-lock.json
 target
 .copilot/.local
 .claude/settings.local.json
-# ignore when switching between yarn 1/4 branches
-/.yarn
+.yarn/*
+!.yarn/patches/
+!.yarn/plugins/
+!.yarn/releases/
 
 docs/.vuepress/.cache
 docs/.vuepress/.temp

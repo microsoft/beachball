@@ -42,7 +42,7 @@ jobs:
       - name: Install npm@${{ env.npmVersion }}
         run: npm install --global npm@${{ env.npmVersion }}
 
-      - run: yarn --frozen-lockfile
+      - run: yarn --immutable
 
       - run: yarn build --verbose
 

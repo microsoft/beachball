@@ -1,14 +1,15 @@
 import { ConfigBuilder } from '@verdaccio/config';
 import { fork, type ChildProcess } from 'child_process';
-import execa from 'execa';
 import fs from 'fs';
+import fetch from 'node-fetch';
 import getPort from 'get-port';
 import os from 'os';
 import path from 'path';
+import { findPackageRoot } from 'workspace-tools';
 import { removeTempDir, tmpdir } from './tmpdir';
 
 const verdaccioUser = {
-  username: 'fake',
+  name: 'fake',
   password: 'fake',
 };
 
@@ -31,9 +32,8 @@ export class Registry {
   private testName: string;
   private tempRoot: string | undefined;
   private token: string | undefined;
-  private isLoggedIn = false;
 
-  constructor(filename: string) {
+  public constructor(filename: string) {
     this.testName = path.basename(filename, '.test.ts');
     if (!knownTests.includes(this.testName)) {
       throw new Error(`Please add ${this.testName} to knownTests in registry.ts`);
@@ -66,99 +66,61 @@ export class Registry {
     this.port = tryPort;
   }
 
-  /**
-   * Log in as the fake user.
-   */
-  public async login(): Promise<void> {
-    // Something about npm 8 makes publishing fail with anonymous access, so log in with a fake user
-    if (this.isLoggedIn) {
-      console.log('already logged in');
-      return;
-    }
-    try {
-      const registry = this.getUrl();
-      console.log(`logging in to ${registry}`);
-      const npm = execa('npm', ['login', '--registry', registry, '--verbose']);
-      // If this is failing or hanging and you need to debug:
-      //   npm.stdout?.pipe(process.stdout);
-      //   npm.stderr?.pipe(process.stderr);
-      // With Node 22+ and verdaccio 5, the npm login HTTP request fails for some reason.
-      // This is fixed with latest verdaccio, which we can bump when bumping Node.
-
-      // for some reason there's no way to supply the username, password, and email besides stdin
-      npm.stdout?.on('data', chunk => {
-        const chunkStr = String(chunk);
-        if (chunkStr.includes('Username:')) {
-          npm.stdin?.write(verdaccioUser.username + '\r\n');
-        } else if (chunkStr.includes('Password:')) {
-          npm.stdin?.write(verdaccioUser.password + '\r\n');
-        } else if (chunkStr.includes('Email:') || chunkStr.includes('Email (')) {
-          npm.stdin?.write('fake@example.com\r\n');
-        }
-      });
-      await npm;
-      console.log('logged in');
-      this.isLoggedIn = true;
-    } catch (err) {
-      throw new Error(
-        `Error logging in to registry: ${(err as Error).stack || err}\n${(err as execa.ExecaError).stderr}`
-      );
-    }
-  }
-
-  /**
-   * Run `npm whoami` on the fake registry.
-   */
-  public async whoami(): Promise<string | undefined> {
-    try {
-      const registry = this.getUrl();
-      const result = await execa('npm', ['whoami', '--registry', registry]);
-      return result.stdout.trim();
-    } catch (err) {
-      return undefined;
-    }
-  }
-
-  /**
-   * Get the current token after running `npm login` on the fake registry (workaround for lack of
-   * `npm token create` support in verdaccio). Caches the token after first retrieval.
-   */
-  public getToken(): string {
+  /** Get a token for the fake user. */
+  public async getToken(): Promise<string> {
     if (this.token) {
-      // Cache the token even if logged out (it seems to stay the same when logging back in)
       return this.token;
     }
 
-    if (!this.isLoggedIn) {
-      throw new Error('Must be logged in to get the token');
-    }
-
-    const registryUrl = this.getUrl().replace(/^https?:/, '');
-    const npmrcPath = path.join(os.homedir(), '.npmrc');
-    const npmrcContent = fs
-      .readFileSync(npmrcPath, 'utf-8')
-      .split(/\r?\n/g)
-      .find(line => line.startsWith(registryUrl) && line.includes('_authToken'));
-
-    if (!npmrcContent) {
-      throw new Error(`Failed to find auth token in .npmrc for registry ${registryUrl}`);
-    }
-
-    this.token = npmrcContent.split('=')[1].replace(/"/g, '');
-    return this.token;
-  }
-
-  /** Run `npm logout` on the fake registry */
-  public async logout(): Promise<void> {
-    // Conservatively set to false even if it fails partway (logging in again is harmless).
-    // Also go ahead and log out even if not flagged as logged in since it could be out of sync.
-    this.isLoggedIn = false;
     try {
       const registry = this.getUrl();
-      await execa('npm', ['logout', '--registry', registry]);
-    } catch {
-      console.warn('Logging out of registry failed');
+      // There are issues with using stdin to script `npm login`, plus it's slow, so use the
+      // registry API directly to get a token.
+      // https://github.com/npm/registry/blob/main/docs/user/authentication.md#login
+      const response = await fetch(`${registry}/-/user/org.couchdb.user:${verdaccioUser.name}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...verdaccioUser, type: 'user', roles: [], date: new Date().toISOString() }),
+      });
+      if (!response.ok) {
+        throw new Error(`login request failed with ${response.status}: ${await response.text()}`);
+      }
+      const { token } = (await response.json()) as { token: string };
+      if (!token) {
+        throw new Error('login response did not include a token');
+      }
+      this.token = token;
+      return this.token;
+    } catch (err) {
+      throw new Error(`Error logging in to registry: ${(err as Error).stack || err}`);
     }
+  }
+
+  /** Write the auth token to the user .npmrc so npm commands pick it up, or remove it if `token` is null. */
+  private writeAuthToken(token: string | null): void {
+    const npmrcPath = path.join(os.homedir(), '.npmrc');
+    const npmrcContent = fs.existsSync(npmrcPath) ? fs.readFileSync(npmrcPath, 'utf-8') : '';
+    const eol = npmrcContent.match(/\r?\n/)?.[0] ?? os.EOL;
+    const authKey = `${this.getUrl().replace(/^https?:/, '')}/:_authToken`;
+    const filtered = npmrcContent
+      .trim()
+      .split(/\r?\n/g)
+      .filter(line => !line.startsWith(authKey));
+    token && filtered.push(`${authKey}=${token}`);
+    fs.writeFileSync(npmrcPath, filtered.join(eol) + eol);
+  }
+
+  /** Write the current token to `.npmrc` to emulate logging in. */
+  public login(): void {
+    if (!this.token) {
+      throw new Error('No token available (login should have set it)');
+    }
+    this.writeAuthToken(this.token);
+  }
+
+  /** Clear the token from `.npmrc` to emulate logging out. */
+  public logout(): void {
+    this.writeAuthToken(null);
   }
 
   /** Delete the temp directory used for the config file. */
@@ -183,7 +145,12 @@ export class Registry {
       };
 
       try {
-        const verdaccioBin = require.resolve('verdaccio/bin/verdaccio');
+        const verdaccioEntry = require.resolve('verdaccio');
+        const verdaccioRoot = findPackageRoot(verdaccioEntry);
+        if (!verdaccioRoot) {
+          throw new Error(`Could not find verdaccio package root for ${verdaccioEntry}`);
+        }
+        const verdaccioBin = require.resolve(path.join(verdaccioRoot, 'bin/verdaccio'));
         this.server = fork(verdaccioBin, ['--listen', String(port), '--config', `./${configName}`], {
           cwd: this.tempRoot,
           stdio: 'pipe',
@@ -200,7 +167,7 @@ export class Registry {
 
         this.server.stderr?.on('data', data => {
           const dataStr = String(data);
-          if (!dataStr.includes('Debugger attached')) {
+          if (!dataStr.includes('Debugger attached') && !dataStr.includes('Starting inspector')) {
             rejectWrapper(new Error(dataStr));
           }
         });
@@ -214,7 +181,7 @@ export class Registry {
     });
   }
 
-  stop(): void {
+  public stop(): void {
     if (this.server) {
       this.server.kill();
       this.server = undefined;
@@ -270,7 +237,7 @@ export class Registry {
       configBuilder.addLogger({
         type: 'file',
         level: 'trace',
-        format: 'file',
+        format: 'pretty',
         path: path.join(process.cwd(), `verdaccio-${Date.now()}.log`),
       });
     }

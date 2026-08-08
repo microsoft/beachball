@@ -1,4 +1,3 @@
-/* eslint-disable etc/no-deprecated -- lots of incorrect warnings about variadic signatures */
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import path from 'path';
 import * as wsTools from 'workspace-tools';
