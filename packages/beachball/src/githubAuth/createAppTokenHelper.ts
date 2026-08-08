@@ -1,7 +1,7 @@
 import { signWithAzureCli } from './signWithAzureCli';
 import { defaultGitHubApiUrl, githubHeaders, requestJson, retryTransient } from './requestHelpers';
 import type { GetInstallationTokenOptions, AppTokenHelperOptions, InstallationToken, AppTokenHelper } from './types';
-import { isRecord, parseRepository, requiredIntegerProperty, requiredStringProperty } from './validationHelpers';
+import { isRecord, requiredIntegerProperty, requiredStringProperty } from './validationHelpers';
 
 const defaultRefreshWindowMs = 5 * 60 * 1000;
 
@@ -67,8 +67,7 @@ export function createAppTokenHelper(options: AppTokenHelperOptions): AppTokenHe
   }
 
   return async function getInstallationToken(opts: GetInstallationTokenOptions): Promise<InstallationToken> {
-    const repository = parseRepository(opts.repository);
-    const { permissions } = opts;
+    const { permissions, repository } = opts;
 
     return retryTransient(async () => {
       // Reuse a single JWT per attempt across installation discovery and token creation.

@@ -28,10 +28,10 @@ export interface AppTokenHelperOptions {
 
 export interface GetInstallationTokenOptions {
   /**
-   * Repository the token should be scoped to, in `owner/repo` format. Used both to discover the
-   * GitHub App installation and to scope the resulting token to that single repository.
+   * Repository the token should be scoped to. Used both to discover the GitHub App installation
+   * and to scope the resulting token to that single repository.
    */
-  repository: string;
+  repository: { owner: string; name: string };
   /**
    * Permissions to grant the token, e.g. `{ contents: 'read', pull_requests: 'write' }`. Cannot
    * exceed the permissions granted to the app. Omit to inherit all of the installation's permissions.

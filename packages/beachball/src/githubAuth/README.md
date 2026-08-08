@@ -53,9 +53,8 @@ None of the `create` options are secrets. All values can also be specified as en
 | `--app-client-id` | GitHub App client ID. See [Prerequisites](#prerequisites) for where to find it in the UI. |
 | `--key-id` | Full Azure Key Vault key ID, for example `https://my-vault.vault.azure.net/keys/my-github-app-key/0123456789abcdef0123456789abcdef`. |
 | `--repository` | Repository to scope the token to, in `owner/repo` format. Used to discover the installation and scope the token. |
-| `--permissions` | (optional) Comma- or newline-separated `permission:level` entries, such as `contents:read,pull_requests:write`. Omit to inherit installation permissions. |
-| `--output` | (optional) Output type: `stdout` to write to stdout, or `azure`/`azure-pipelines` to output to a secret variable name specified by `--azure-token-variable`. Defaults to `stdout`. |
-| `--azure-token-variable` | Azure Pipelines variable name used for the secret token output. Required for `--output azure`/`azure-pipelines`. |
+| `--permissions` | (optional) Comma-separated list of `permission:level` entries (see [valid `permissions` properties](https://docs.github.com/en/rest/apps/apps?apiVersion=2026-03-10#create-an-installation-access-token-for-an-app)), such as `contents: read,pull_requests: write`. Omit to inherit installation permissions. |
+| `--secret-variable` | (optional) For Azure Pipelines, save the token as a secret variable with this name instead of writing the plain token to stdout. |
 | `--github-api-url` | (optional) GitHub REST API URL. Defaults to `https://api.github.com`. |
 
 #### `revoke` command
@@ -88,8 +87,7 @@ steps:
         node github-app-token.mjs create \
           --repository "octo-org/example-repo" \
           --permissions "contents:read,issues:write" \
-          --output azure \
-          --azure-token-variable GITHUB_PAT
+          --secret-variable MY_TOKEN
     env:
       APP_CLIENT_ID: $(MY_GITHUB_APP_CLIENT_ID)
       KEY_ID: $(MY_GITHUB_APP_KEY_ID)
@@ -97,7 +95,7 @@ steps:
   # some script that uses the token
   - script: node scripts/use-token.js
     env:
-      GITHUB_PAT: $(GITHUB_PAT)
+      GITHUB_TOKEN: $(MY_TOKEN)
 ```
 
 ### Shell usage

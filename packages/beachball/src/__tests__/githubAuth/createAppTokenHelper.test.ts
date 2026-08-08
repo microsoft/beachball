@@ -22,7 +22,7 @@ describe('createAppTokenHelper', () => {
     const getInstallationToken = createTestAuth(mockPool, 'test-owner', 'test-repo');
 
     const result = await getInstallationToken({
-      repository: 'test-owner/test-repo',
+      repository: { owner: 'test-owner', name: 'test-repo' },
       permissions: { contents: 'read' },
     });
 
@@ -32,13 +32,6 @@ describe('createAppTokenHelper', () => {
     expect(result.appSlug).toEqual(mockAppSlug);
     expect(result.repositories).toEqual(['test-repo']);
     expect(result.permissions).toEqual({ contents: 'read' });
-  });
-
-  it('rejects a repository without an owner', async () => {
-    const { mockPool } = createMockPool();
-    const getInstallationToken = createTestAuth(mockPool, 'o', 'r');
-
-    await expect(getInstallationToken({ repository: 'just-a-repo' })).rejects.toThrow(/Invalid repository/);
   });
 
   it('scopes the token to the single repository', async () => {
@@ -51,7 +44,7 @@ describe('createAppTokenHelper', () => {
       keyId: mockKeyId,
     });
 
-    const result = await getInstallationToken({ repository: 'my-org/my-repo' });
+    const result = await getInstallationToken({ repository: { owner: 'my-org', name: 'my-repo' } });
     expect(result.token).toBe(mockToken);
     expect(result.repositories).toEqual(['my-repo']);
   });
@@ -71,7 +64,7 @@ describe('createAppTokenHelper', () => {
     });
 
     const { token } = await getInstallationToken({
-      repository: 'o/r',
+      repository: { owner: 'o', name: 'r' },
     });
     expect(token).toBe(mockToken);
 
@@ -93,7 +86,7 @@ describe('createAppTokenHelper', () => {
       keyId: mockKeyId,
     });
 
-    await expect(getInstallationToken({ repository: 'o/r' })).rejects.toThrow(/403/);
+    await expect(getInstallationToken({ repository: { owner: 'o', name: 'r' } })).rejects.toThrow(/403/);
 
     // A 4xx must not be retried, so exactly one request should have been made.
     const lookups = mockAgent
@@ -123,7 +116,7 @@ describe('createAppTokenHelper', () => {
       githubApiUrl: 'https://ghe.example.com/api/v3',
     });
 
-    const { token } = await getInstallationToken({ repository: 'o/r' });
+    const { token } = await getInstallationToken({ repository: { owner: 'o', name: 'r' } });
     expect(token).toBe(mockToken);
   });
 
@@ -138,8 +131,8 @@ describe('createAppTokenHelper', () => {
       keyId: mockKeyId,
     });
 
-    const { token: t1 } = await getInstallationToken({ repository: 'o/r' });
-    const { token: t2 } = await getInstallationToken({ repository: 'o/r' });
+    const { token: t1 } = await getInstallationToken({ repository: { owner: 'o', name: 'r' } });
+    const { token: t2 } = await getInstallationToken({ repository: { owner: 'o', name: 'r' } });
     expect(t1).toBe(mockToken);
     expect(t2).toBe(mockToken);
 
@@ -161,8 +154,8 @@ describe('createAppTokenHelper', () => {
       keyId: mockKeyId,
     });
 
-    const { token: t1 } = await getInstallationToken({ repository: 'o/r' });
-    const { token: t2 } = await getInstallationToken({ repository: 'o/r' });
+    const { token: t1 } = await getInstallationToken({ repository: { owner: 'o', name: 'r' } });
+    const { token: t2 } = await getInstallationToken({ repository: { owner: 'o', name: 'r' } });
     expect(t1).toBe(mockToken);
     expect(t2).toBe(mockToken);
 
@@ -186,7 +179,7 @@ describe('createAppTokenHelper', () => {
       keyId: mockKeyId,
     });
 
-    await expect(getInstallationToken({ repository: 'o/r' })).rejects.toThrow(/invalid JSON/);
+    await expect(getInstallationToken({ repository: { owner: 'o', name: 'r' } })).rejects.toThrow(/invalid JSON/);
   });
 
   it('propagates a failure when minting the access token', async () => {
@@ -203,6 +196,8 @@ describe('createAppTokenHelper', () => {
       keyId: mockKeyId,
     });
 
-    await expect(getInstallationToken({ repository: 'o/r' })).rejects.toThrow(/Could not create.*403/);
+    await expect(getInstallationToken({ repository: { owner: 'o', name: 'r' } })).rejects.toThrow(
+      /Could not create.*403/
+    );
   });
 });
