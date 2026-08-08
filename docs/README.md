@@ -1,3 +1,3 @@
-# Beachball doc site
+# Beachball doc site - archive
 
-This site is built with Vuepress v2. It uses a separate yarn installation with Node 22 + Yarn 4 to get rid of very outdated deps while keeping beachball v2 on Node 14.
+The v2 doc content has been moved to the `main` branch. It's preserved here **for reference only.** Any edits must be manually copied to `main`.

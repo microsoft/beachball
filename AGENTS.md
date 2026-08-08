@@ -8,7 +8,7 @@ Beachball is a CLI tool for automating semantic version bumping, changelog gener
 
 ## Branches
 
-- `v2`: the current stable release branch from `beachball@latest` and the doc site are published.
+- `v2` (this branch): the current stable release branch from `beachball@latest` and the doc site are published.
 - `main`: contains development work for the next major release of beachball, version 3. Breaking changes are allowed if necessary.
 
 ## Monorepo structure
@@ -125,12 +125,6 @@ Test helpers in `src/__fixtures__/` provide mock factories for repos, logs, pack
 - Beachball's logs are its UI. Often, tests should include complete inline snapshots of output (especially if it's only a few lines).
 - Where reasonable, prefer complete tests of values: `expect(someObj).toEqual({...})` rather than `expect(someObj.foo).toEqual(...)` or `expect(someObj).toMatchObject({...})`, or `expect(someArray).toEqual([...])` rather than `expect(someArray).toContain(...)`
 
-## Documentation site
+## Documentation site archive
 
-The doc site uses Vuepress and is located under `/docs`. It uses a separate yarn installation to keep the docs dependencies separate.
-
-### Editing and validating docs
-
-- If running in a standalone agent environment, you must run `cd docs && yarn` to install dependencies first
-- Doc changes can be validated with `cd docs && yarn docs:build`
-- If adding a new page, you MUST add it to the sidebar in `docs/.vuepress/config.ts`.
+The v2 docs are now published under the `main` branch. The markdown content has been preserved under `/docs` for reference. Any edits must be manually ported to `main` in a follow-up PR.
