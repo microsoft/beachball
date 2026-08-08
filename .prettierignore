@@ -9,9 +9,7 @@
 .nojekyll
 .npmrc.publish
 .nvmrc
-docs/.vuepress/.cache/
-docs/.vuepress/.temp/
-docs/.yarn
+.yarn/
 /CHANGELOG.*
 change/
 dist/

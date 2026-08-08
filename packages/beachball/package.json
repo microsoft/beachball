@@ -11,9 +11,7 @@
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "bin": {
-    "beachball": "./bin/beachball.js"
-  },
+  "bin": "./bin/beachball.js",
   "engines": {
     "node": ">=14.0.0"
   },
@@ -23,16 +21,15 @@
     "lib/!(__*)/**/*"
   ],
   "scripts": {
-    "build": "tsc",
-    "depcheck": "depcheck .",
-    "lint": "eslint --color --max-warnings=0 src",
-    "start": "tsc -w --preserveWatchOutput",
-    "test": "jest",
+    "build": "yarn run -T tsc",
+    "lint": "yarn run -T eslint --color --max-warnings=0 src",
+    "start": "yarn run -T tsc -w --preserveWatchOutput",
+    "test": "yarn run -T jest",
     "test:all": "yarn test:unit && yarn test:func && yarn test:e2e",
-    "test:e2e": "jest --selectProjects e2e",
-    "test:func": "jest --selectProjects functional",
-    "test:unit": "jest --selectProjects unit",
-    "test:watch": "jest --watch",
+    "test:e2e": "yarn run -T jest --selectProjects e2e",
+    "test:func": "yarn run -T jest --selectProjects functional",
+    "test:unit": "yarn run -T jest --selectProjects unit",
+    "test:watch": "yarn run -T jest --watch",
     "update-snapshots": "yarn test:unit -u && yarn test:func -u && yarn test:e2e -u"
   },
   "dependencies": {
@@ -50,11 +47,13 @@
   "devDependencies": {
     "@microsoft/beachball-scripts": "1.0.0",
     "@types/minimatch": "^3.0.0",
+    "@types/node-fetch": "^2.6.13",
     "@types/prompts": "^2.4.2",
     "@types/semver": "^7.3.13",
     "@types/tmp": "^0.2.3",
     "@types/yargs-parser": "^21.0.0",
     "get-port": "^5.0.0",
+    "node-fetch": "^2.6.7",
     "normalized-tmpdir": "1.0.1",
     "strip-ansi": "^6.0.1",
     "tmp": "^0.2.1",

@@ -28,8 +28,7 @@ DO NOT run `jest` or `tsc` directly from the top level!
 | ----------------------------------- | ----------------------- |
 | Build                               | `yarn build`            |
 | Run all tests (NOT a specific test) | `yarn test`             |
-| Lint (code + deps)                  | `yarn lint`             |
-| Lint code only                      | `yarn lint:code`        |
+| Lint                                | `yarn lint`             |
 | Format                              | `yarn format`           |
 | Update snapshots                    | `yarn update-snapshots` |
 
@@ -37,17 +36,17 @@ DO NOT run `jest` or `tsc` directly from the top level!
 
 These commands work in an individual package (`cd packages/<name>`).
 
-| Task                                     | Command                         |
-| ---------------------------------------- | ------------------------------- |
-| Build                                    | `yarn build`                    |
-| Test (packages other than `beachball`)   | `yarn test`                     |
-| Single test file (wraps jest)            | `yarn test <test path or name>` |
-| (`beachball`) All tests in correct order | `yarn test:all`                 |
-| (`beachball`) Unit tests only            | `yarn test:unit`                |
-| (`beachball`) Functional tests only      | `yarn test:func`                |
-| (`beachball`) E2E tests only             | `yarn test:e2e`                 |
-| Lint                                     | `yarn lint`                     |
-| Update snapshots                         | `yarn update-snapshots`         |
+| Task                                   | Command                         |
+| -------------------------------------- | ------------------------------- |
+| Build                                  | `yarn build`                    |
+| Test (packages other than `beachball`) | `yarn test`                     |
+| Single test file (wraps jest)          | `yarn test <test path or name>` |
+| All tests in correct order             | `yarn test:all`                 |
+| Unit tests only                        | `yarn test:unit`                |
+| Functional tests only                  | `yarn test:func`                |
+| E2E tests only                         | `yarn test:e2e`                 |
+| Lint                                   | `yarn lint`                     |
+| Update snapshots                       | `yarn update-snapshots`         |
 
 ## Architecture
 
@@ -95,7 +94,6 @@ All these paths refer to the `beachball` package under `packages/beachball`.
 - `yarn build`
 - `yarn test`
 - `yarn lint`
-- `yarn format`
 
 ### Required before creating a PR
 

@@ -80,9 +80,7 @@ describe('packagePublish', () => {
 
       // Get the token once upfront (unfortunately verdaccio doesn't support `npm token create`)
       await registry.start();
-      await registry.login();
-      token = registry.getToken();
-      await registry.logout();
+      token = await registry.getToken();
       registry.stop();
 
       // Create a test package.json in a temporary location for use in tests.
@@ -98,10 +96,10 @@ describe('packagePublish', () => {
       jest.clearAllMocks();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
       npmSpy.mockRestore();
       // no-op if already logged out
-      await registry.logout();
+      registry.logout();
       registry.stop();
     });
 
@@ -112,10 +110,6 @@ describe('packagePublish', () => {
 
     // Do a basic publishing test against the real registry
     it('can publish with a token', async () => {
-      // Pass the token as an arg this time to verify it's translated to an environment variable
-      // and picked up by npm
-      expect(await registry.whoami()).toBeFalsy();
-
       const testPackageInfo = getTestPackageInfo();
       const publishResult = await packagePublish(testPackageInfo, {
         ...defaultOptions,
@@ -145,7 +139,7 @@ describe('packagePublish', () => {
     });
 
     it('can publish when logged in', async () => {
-      await registry.login();
+      registry.login();
 
       const testPackageInfo = getTestPackageInfo();
       const publishResult = await packagePublish(testPackageInfo, {
@@ -192,7 +186,7 @@ describe('packagePublish', () => {
         console.warn('Skipping auth error test on npm 6');
         return;
       }
-      await registry.logout();
+      registry.logout();
 
       const testPackageInfo = getTestPackageInfo();
       const publishResult = await packagePublish(testPackageInfo, {

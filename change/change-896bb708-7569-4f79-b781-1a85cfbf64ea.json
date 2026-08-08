@@ -1,0 +1,11 @@
+{
+  "changes": [
+    {
+      "type": "none",
+      "comment": "update dev deps",
+      "packageName": "beachball",
+      "email": "elcraig@microsoft.com",
+      "dependentChangeType": "none"
+    }
+  ]
+}

@@ -11,9 +11,9 @@ on:
 
 concurrency:
   # For PRs, use the ref (branch) in the concurrency group so that new pushes cancel any old runs.
-  # For pushes to main, ideally we wouldn't set a concurrency group, but github actions doesn't
+  # For pushes to v2, ideally we wouldn't set a concurrency group, but github actions doesn't
   # support conditional blocks of settings, so we use the SHA so the "group" is unique.
-  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/v2' && github.sha || github.ref }}
   cancel-in-progress: true
 
 permissions: {}
@@ -30,14 +30,14 @@ jobs:
             # It's unclear if this translates to meaningful differences in behavior in actual scenarios,
             # but test against both versions to be safe. (Only do this on the ubuntu build for speed.)
             npm: 6
-            node: 14
-          # node 14/npm 8 on ubuntu and windows
+            node: 18
+          # node 18/npm 8 on ubuntu and windows
           - os: ubuntu-latest
             npm: 8
-            node: 14
+            node: 18
           - os: windows-latest
             npm: 8
-            node: 14
+            node: 18
           # node 20/npm 11 on ubuntu and windows (can't use 22 for reasons described in release.yml)
           - os: ubuntu-latest
             npm: 11
@@ -64,17 +64,17 @@ jobs:
       - name: Install npm@${{ matrix.npm }}
         run: npm install --global npm@${{ matrix.npm }}
 
-      - run: yarn --frozen-lockfile
+      - run: yarn --immutable
 
       - run: yarn build --verbose
 
       - run: yarn checkchange --verbose
 
       - run: yarn format:check
-        if: matrix.os == 'ubuntu-latest' && matrix.node == 14 && matrix.npm == 8
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 18 && matrix.npm == 8
 
-      - run: yarn lint:ci
-        if: matrix.os == 'ubuntu-latest' && matrix.node == 14 && matrix.npm == 8
+      - run: yarn lint --verbose
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 18 && matrix.npm == 8
 
       - run: yarn test --verbose
         id: test

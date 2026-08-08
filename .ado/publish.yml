@@ -99,7 +99,7 @@ extends:
                 inputs:
                   workingFile: '$(Build.SourcesDirectory)/.npmrc'
 
-              - script: yarn --frozen-lockfile
+              - script: yarn --immutable
                 displayName: Install dependencies
 
               - script: yarn build --verbose

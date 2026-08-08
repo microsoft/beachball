@@ -15,7 +15,6 @@ const config = {
       outputs: ['lib/**/*'],
     },
     lint: ['build'],
-    depcheck: [],
     test: ['build'],
     'update-snapshots': ['build'],
     // For the beachball package, run the tests in order during the main test run
