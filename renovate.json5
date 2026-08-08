@@ -62,14 +62,6 @@
       "matchStrings": ["using: 'node(?<currentValue>\\d+)'"],
       "depNameTemplate": "@types/node",
       "datasourceTemplate": "npm"
-    },
-    {
-      // Keep renovate/.renovate-version in sync with Renovate releases
-      "customType": "regex",
-      "managerFilePatterns": ["/(^|\\/)renovate\\/.renovate-version$/"],
-      "matchStrings": ["^(?<currentValue>\\S+)$"],
-      "depNameTemplate": "renovate",
-      "datasourceTemplate": "npm"
     }
   ],
 
@@ -78,12 +70,6 @@
       "matchPackageNames": ["workspace-tools"],
       "matchUpdateTypes": ["major", "minor"],
       "dependencyDashboardApproval": false
-    },
-    {
-      // follow npm dependency age policy and schedule updates
-      "matchDepNames": ["renovate"],
-      "minimumReleaseAge": "7 days",
-      "schedule": ["before 5am on the 1st and 15th day of the month"]
     },
     {
       "matchDepTypes": ["devDependencies"],
