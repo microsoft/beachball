@@ -2,6 +2,7 @@ import { viteBundler } from '@vuepress/bundler-vite';
 import { markdownChartPlugin } from '@vuepress/plugin-markdown-chart';
 import { searchPlugin } from '@vuepress/plugin-search';
 import { defaultTheme } from '@vuepress/theme-default';
+import path from 'node:path';
 import { defineUserConfig } from 'vuepress';
 
 export default defineUserConfig({
@@ -10,9 +11,8 @@ export default defineUserConfig({
   base: '/beachball/',
   bundler: viteBundler(),
   theme: defaultTheme({
+    contributors: false, // don't show contributors on each page
     navbar: [
-      { text: 'Home', link: '/' },
-      { text: 'Getting started', link: '/overview/getting-started' },
       {
         text: 'Versions',
         children: [
@@ -98,6 +98,12 @@ export default defineUserConfig({
     },
   }),
   plugins: [
+    {
+      name: 'version-aware-navbar',
+      alias: {
+        '@theme/useNavbarConfig': path.resolve(import.meta.dirname, 'composables/useNavbarConfig.ts'),
+      },
+    },
     markdownChartPlugin({
       mermaid: true,
     }),

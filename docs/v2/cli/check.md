@@ -18,8 +18,6 @@ This command also checks for misconfigurations that would result in problems whe
 
 ### Options
 
-### Options
-
 [General options](./options) also apply for this command.
 
 Most options can also be specified in the [configuration file](../overview/configuration), which is generally preferable as it's easier to read and maintain.

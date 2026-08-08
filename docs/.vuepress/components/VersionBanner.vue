@@ -1,19 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useRoute, withBase } from 'vuepress/client';
+import { withBase } from 'vuepress/client';
 
-const route = useRoute();
+import { useVersionPaths } from '../composables/useVersionPaths';
 
-const isV2 = computed(() => route.path.startsWith('/v2/'));
+const { counterpartPath, isV2 } = useVersionPaths();
 const migrationGuideLink = withBase('/overview/v3-migration.html');
-const counterpartLink = computed(() => {
-  if (isV2.value) {
-    return withBase(route.path.replace(/^\/v2/, '') || '/');
-  }
-
-  const hasV2Counterpart = route.path !== '/overview/v3-migration.html' && route.path !== '/cli/migrate.html';
-  return withBase(hasV2Counterpart ? `/v2${route.path}` : '/v2/');
-});
+const counterpartLink = computed(() => withBase(counterpartPath.value));
 </script>
 
 <template>

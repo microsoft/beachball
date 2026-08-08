@@ -40,7 +40,7 @@ graph TD
   end
 ```
 
-To modify what the dependent package bumped change type would be (e.g. making `app` also bump with `minor` in the above example), you have to modify the change file to specify this. Here's an example of a change file under `/changes`:
+To modify what the dependent package bumped change type would be (e.g. making `app` also bump with `minor` in the above example), you have to modify the change file to specify this. Here's an example of a change file under `/change`:
 
 ```diff
 {

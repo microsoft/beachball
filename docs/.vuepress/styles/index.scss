@@ -44,6 +44,7 @@ td:first-child code {
   white-space: nowrap;
 }
 
+// Align version notices with page content while keeping space on narrow screens.
 .version-banner {
   box-sizing: border-box;
   width: min(var(--content-width), calc(100% - 4rem));
@@ -56,6 +57,7 @@ td:first-child code {
   line-height: 1.6;
 }
 
+// Visually distinguish archived v2 pages from the v3 prerelease notice.
 .version-banner-v2 {
   background: var(--vp-c-bg-soft);
 }
