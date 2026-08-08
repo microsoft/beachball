@@ -31,12 +31,13 @@ When validating the entire repo, run the following commands in order:
 | ---------------- | ----------------------- | ---------------------------------------------------- |
 | Install          | `yarn --immutable`      | Required before any build/test/lint.                 |
 | Build            | `yarn build`            | ~8s. Runs `lage build bundle` across all workspaces. |
-| Format (fix)     | `yarn format`           | Auto-fixes formatting.                               |
 | Lint             | `yarn lint`             | ~10s. Runs eslint + depcheck + syncpack via lage.    |
 | Test (all)       | `yarn test`             | Runs all workspace tests via lage.                   |
 | Update snapshots | `yarn update-snapshots` | Use after intentional output changes.                |
 
 **Do NOT run `jest` or `tsc` directly from the repo root.** `yarn build` and `yarn lint` must succeed with zero warnings.
+
+The pre-commit hook runs Prettier (`yarn format`) automatically on all staged files using `lint-staged`. Do not manually run `yarn format`, Prettier, or a formatting check after routine edits. Run formatting commands only when explicitly requested, when preparing a PR without committing locally, or when diagnosing a formatting failure.
 
 ### Package-level commands
 
@@ -59,7 +60,7 @@ Prefer scripts over running binaries directly. If you must run a binary such as 
 
 ### Required before each commit
 
-Run all of: `yarn build`, `yarn test`, `yarn lint`, `yarn format`.
+Run all of: `yarn build`, `yarn test`, and `yarn lint`. Prettier runs automatically in the pre-commit hook.
 
 ### Required before creating a PR
 
@@ -116,7 +117,9 @@ Run all of: `yarn build`, `yarn test`, `yarn lint`, `yarn format`.
 
 ## Documentation site
 
-Vuepress site under `docs/` with a **separate** Yarn install. To edit/validate:
+Vuepress site under `docs/` with a **separate** Yarn install. (Ignore `docs/v2/` when reading or updating documentation unless the task explicitly targets the v2 docs.)
+
+To edit/validate:
 
 1. `cd docs && yarn --immutable` (install docs deps first).
 2. `yarn docs:build` to validate.

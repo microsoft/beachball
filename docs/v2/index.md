@@ -5,7 +5,7 @@ heroText: The Sunniest Semantic Version Bumper
 tagline: Makes automating npm publishing a breeze
 actions:
   - text: Get Started →
-    link: /overview/getting-started
+    link: /v2/overview/getting-started
     type: primary
 
 features:

@@ -10,23 +10,13 @@ category: doc
 
 The primary way to use `beachball` is by installing it as a `devDependency` and configuring wrapper scripts. (You can also run `beachball` via `npx`.)
 
-:::note
-In a monorepo, `beachball` should be installed at and run from the repo root only.
-:::
+> Note: In a monorepo, `beachball` should be installed at and run from the repo root only.
 
 ### Automatic setup
 
 Run `npx beachball init` to automatically run the steps outlined below.
 
-:::warning
-This will install beachball v2. To use v3, follow the manual steps.
-:::
-
 ### Manual setup
-
-:::note
-While beachball v3 is in prerelease, you should get the latest version with `npm show beachball@next version` and then install a specific pinned version, instead of the latest version as shown below. See the [migration guide](./v3-migration) for more details.
-:::
 
 To get started, install `beachball` as a `devDependency`:
 
@@ -34,7 +24,7 @@ To get started, install `beachball` as a `devDependency`:
 npm install -D beachball
 ```
 
-or for yarn users:
+or for yarn users (add `-W` if in a monorepo):
 
 ```bash
 yarn add -D beachball

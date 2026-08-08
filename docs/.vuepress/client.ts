@@ -1,4 +1,17 @@
 import { defineMermaidConfig } from '@vuepress/plugin-markdown-chart/client';
+import { defineClientConfig } from 'vuepress/client';
+
+import VersionBanner from './components/VersionBanner.vue';
+import Layout from './layouts/Layout.vue';
+
+export default defineClientConfig({
+  enhance({ app }) {
+    app.component('VersionBanner', VersionBanner);
+  },
+  layouts: {
+    Layout,
+  },
+});
 
 defineMermaidConfig({
   // This can use a CSS variable because text is rendered in HTML tags

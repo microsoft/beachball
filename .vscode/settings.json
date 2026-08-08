@@ -10,6 +10,7 @@
   "js/ts.experimental.useTsgo": true,
   "jest.runMode": "on-demand",
   "search.exclude": {
+    "**/docs/v2": true,
     "**/node_modules": true,
     "**/lib": true,
     "**/dist": true,
