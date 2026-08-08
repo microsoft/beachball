@@ -253,7 +253,7 @@ extends:
                   # office-ogx-auth-helper GitHub App
                   APP_CLIENT_ID: Iv23ligBoU5jc9SIFnGR
                   KEY_ID: https://ogx-oss-release-keyvault.vault.azure.net/keys/office-ogx-auth-helper-key
-                  REPOSITORIES: $(Build.Repository.ID)
+                  REPOSITORY: $(Build.Repository.ID)
                   PERMISSIONS: contents:write
                   SECRET_VARIABLE: GITHUB_APP_TOKEN
 

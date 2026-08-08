@@ -34,7 +34,7 @@ export function requiredStringProperty(value: unknown, property: string, failure
 }
 
 /**
- * Parses comma- and/or newline-separated permission entries into a Permissions object and throws
+ * Parses comma-separated permission entries into a Permissions object and throws
  * `InvalidArgumentError` if any entries are invalid.
  *
  * Example: `"contents:read, issues:write"` becomes `{ contents: 'read', issues: 'write' }`
