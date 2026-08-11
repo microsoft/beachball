@@ -21,8 +21,6 @@ export async function getPackageTagVersions(
   const packageTags = packageInfos
     .map(pkg => ({
       name: pkg.name,
-      // TODO: what was tag=null in packageOptions originally supposed to do?
-      // (most recent logic prior to this also used || which ignores null)
       tag: getPackageOption('tag', pkg, options) || getPackageOption('defaultNpmTag', pkg, options),
     }))
     // Use !! to filter out empty strings as well

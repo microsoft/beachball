@@ -18,8 +18,7 @@ export function getNpmPublishArgs(
     'publish',
     ...(registry ? ['--registry', registry] : []),
     '--tag',
-    // TODO: unclear what tag=null in PackageOptions was originally supposed to do
-    // (most recent logic prior to this also used || which ignores null)
+    // Note: npm itself would implicitly use 'latest' if no tag is specified
     getPackageOption('tag', packageInfo, options) ||
       getPackageOption('defaultNpmTag', packageInfo, options) ||
       'latest',

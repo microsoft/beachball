@@ -5,8 +5,7 @@ import type { ChangeFilePromptOptions } from './ChangeFilePrompt';
 import type { ChangelogOptions } from './ChangelogOptions';
 import type { PackageInfo, PackageInfos } from './PackageInfo';
 
-// TODO: this shouldn't include PackageOptions
-export type BeachballOptions = CliOptions & RepoOptions & PackageOptions;
+export type BeachballOptions = CliOptions & RepoOptions;
 
 /** Separate options objects, returned for reuse in `getPackageInfos`. */
 export interface ParsedOptions {
@@ -18,6 +17,8 @@ export interface ParsedOptions {
    * This object should only be used when you need to specifically check the config file values.
    */
   repoOptions: Partial<RepoOptions>;
+  /** Path to the repo config file */
+  configPath: string | undefined;
   /** Merged repo-level options (includes repo, CLI, and defaults) */
   options: BeachballOptions;
 }
@@ -56,7 +57,7 @@ export interface CliOptions extends Pick<
   | 'timeout'
 > {
   /** Consider all packages to have changed */
-  all: boolean;
+  all?: boolean;
   configPath?: string;
   dependentChangeType?: ChangeType;
   /**
@@ -181,11 +182,15 @@ export interface RepoOptions {
   npmReadConcurrency: number;
   /**
    * The default dist-tag used for npm publish, if no other `tag` is specified.
+   *
+   * WARNING: Setting this to `''` causes a fallback to npm's implicit default of `'latest'`.
+   * It's **not possible** to publish a package without a dist-tag.
+   *
    * @default 'latest'
    */
   defaultNpmTag: string;
   /** What change types are disallowed */
-  disallowedChangeTypes: ChangeType[] | null;
+  disallowedChangeTypes?: ChangeType[] | null;
   disallowDeletedChangeFiles?: boolean;
   /**
    * Fetch from remote before doing diff comparisons
@@ -249,7 +254,7 @@ export interface RepoOptions {
   ignorePatterns?: string[];
   keepChangeFiles?: boolean;
   /** For the `change` command, change message. For the `publish` command, commit message. */
-  message: string;
+  message?: string;
   /**
    * The directory to run beachball in.
    * This is assumed to be the project root (monorepo manager root or git root).
@@ -310,10 +315,13 @@ export interface RepoOptions {
    * npm dist-tag when publishing.
    * If not specified, uses `defaultNpmTag` (which defaults to `'latest'`).
    *
-   * If `gitTags` isn't disabled and `tag` has a non-default value, a git tag will also be
-   * created on publish with this value.
+   * WARNING: Setting this to `''` causes a fallback to `defaultNpmTag` or `'latest'`.
+   * It's **not possible** to publish a package without a dist-tag.
+   *
+   * If this has a non-default value, a corresponding git tag will also be created on publish,
+   * unless `gitTags` is disabled.
    */
-  tag: string;
+  tag?: string;
   /** Timeout for npm operations (other than install, which is expected to take longer) */
   timeout?: number;
   /** Timeout for `git push` operations */
@@ -327,9 +335,8 @@ export interface RepoOptions {
 }
 
 export interface PackageOptions extends Partial<
-  Pick<RepoOptions, 'gitTags' | 'disallowedChangeTypes' | 'defaultNpmTag'>
+  Pick<RepoOptions, 'gitTags' | 'disallowedChangeTypes' | 'defaultNpmTag' | 'tag'>
 > {
-  tag?: string | null;
   /**
    * In most cases, you should use `private: true` to disable publishing a package. This option is
    * **ONLY** for cases where a package shouldn't be published, but you still want it to require

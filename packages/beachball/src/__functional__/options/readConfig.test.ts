@@ -12,6 +12,10 @@ describe('readConfig', () => {
   const sampleCjs = 'module.exports = ' + sampleJson;
   const sampleMjs = 'export default ' + sampleJson;
 
+  function configResult(filename: string, config = sampleConfig) {
+    return { configPath: path.join(tempDir, filename), config };
+  }
+
   // Don't reuse a temp dir across tests! If multiple tests load a JS config from the same path,
   // it will use the version from the module cache, which will have outdated contents.
   afterEach(() => {
@@ -30,7 +34,7 @@ describe('readConfig', () => {
       'package.json': { ...packageJson, beachball: sampleConfig },
     });
 
-    expect(await readConfig({ path: tempDir })).toEqual(sampleConfig);
+    expect(await readConfig({ path: tempDir })).toEqual(configResult('package.json'));
   });
 
   // The .cts test isn't realistic because it goes through jest, but it ensures readConfig finds the file
@@ -43,7 +47,7 @@ describe('readConfig', () => {
         [filename]: (filename.endsWith('ts') ? 'const foo: number = 1;\n' : '') + sampleCjs,
       });
 
-      expect(await readConfig({ path: tempDir })).toEqual(sampleConfig);
+      expect(await readConfig({ path: tempDir })).toEqual(configResult(filename));
     }
   );
 
@@ -57,7 +61,7 @@ describe('readConfig', () => {
         [filename]: (filename.endsWith('ts') ? 'const foo: number = 1;\n' : '') + sampleMjs,
       });
 
-      expect(await readConfig({ path: tempDir })).toEqual(sampleConfig);
+      expect(await readConfig({ path: tempDir })).toEqual(configResult(filename));
     }
   );
 
@@ -67,7 +71,7 @@ describe('readConfig', () => {
       [filename]: sampleJson,
     });
 
-    expect(await readConfig({ path: tempDir })).toEqual(sampleConfig);
+    expect(await readConfig({ path: tempDir })).toEqual(configResult(filename));
   });
 
   it('reads config from a .config directory', async () => {
@@ -76,7 +80,7 @@ describe('readConfig', () => {
       '.config/beachball.config.js': sampleCjs,
     });
 
-    expect(await readConfig({ path: tempDir })).toEqual(sampleConfig);
+    expect(await readConfig({ path: tempDir })).toEqual(configResult('.config/beachball.config.js'));
   });
 
   it('prefers the package.json property over other config files', async () => {
@@ -85,7 +89,9 @@ describe('readConfig', () => {
       'beachball.config.js': 'module.exports = { branch: "origin/from-config-js" };',
     });
 
-    expect(await readConfig({ path: tempDir })).toEqual({ branch: 'origin/from-package-json' });
+    expect(await readConfig({ path: tempDir })).toEqual(
+      configResult('package.json', { branch: 'origin/from-package-json' })
+    );
   });
 
   it('prefers the cwd over the .config directory', async () => {
@@ -95,7 +101,9 @@ describe('readConfig', () => {
       '.config/beachball.config.js': 'module.exports = { branch: "origin/from-config-dir" };',
     });
 
-    expect(await readConfig({ path: tempDir })).toEqual({ branch: 'origin/from-cwd' });
+    expect(await readConfig({ path: tempDir })).toEqual(
+      configResult('beachball.config.js', { branch: 'origin/from-cwd' })
+    );
   });
 
   it('loads config from a relative configPath', async () => {
@@ -105,7 +113,9 @@ describe('readConfig', () => {
       'alternate.config.js': 'module.exports = { branch: "origin/foo" };',
     });
 
-    expect(await readConfig({ path: tempDir, configPath: 'alternate.config.js' })).toEqual(sampleConfig);
+    expect(await readConfig({ path: tempDir, configPath: 'alternate.config.js' })).toEqual(
+      configResult('alternate.config.js')
+    );
   });
 
   it('loads config from an absolute configPath', async () => {
@@ -115,7 +125,7 @@ describe('readConfig', () => {
     });
     const configPath = path.join(tempDir, 'nested/alternate.config.js');
 
-    expect(await readConfig({ path: tempDir, configPath })).toEqual(sampleConfig);
+    expect(await readConfig({ path: tempDir, configPath })).toEqual(configResult('nested/alternate.config.js'));
   });
 
   it('throws if configPath could not be loaded', async () => {

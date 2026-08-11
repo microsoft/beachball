@@ -1,5 +1,6 @@
 import { viteBundler } from '@vuepress/bundler-vite';
 import { markdownChartPlugin } from '@vuepress/plugin-markdown-chart';
+import { redirectPlugin } from '@vuepress/plugin-redirect';
 import { searchPlugin } from '@vuepress/plugin-search';
 import { defaultTheme } from '@vuepress/theme-default';
 import path from 'node:path';
@@ -106,6 +107,14 @@ export default defineUserConfig({
     },
     markdownChartPlugin({
       mermaid: true,
+    }),
+    redirectPlugin({
+      config: {
+        // convenience redirects
+        '/cli': '/cli/options',
+        '/config': '/overview/configuration',
+        '/overview/config': '/overview/configuration',
+      },
     }),
     searchPlugin({
       isSearchable: page => !page.path.startsWith('/v2/'),

@@ -1,0 +1,6 @@
+{
+  "type": "major",
+  "comment": "Remove `null` as a valid value for `tag`: it already caused fallback to `defaultNpmTag` or `'latest'`, and npm doesn't allow publishing a new version without a `dist-tag`. Also update `BeachballConfig` to not include package-level options.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com"
+}

@@ -13,10 +13,13 @@ export async function getOptions(
 ): Promise<ParsedOptions> {
   const { testRepoOptions, ...processInfo } = params;
   const cliOptions = getCliOptions(processInfo);
-  const repoOptions = testRepoOptions || (await getRepoOptions(cliOptions));
+  const { repoOptions, configPath } = testRepoOptions
+    ? { repoOptions: testRepoOptions, configPath: undefined }
+    : await getRepoOptions(cliOptions);
   const result: ParsedOptions = {
     cliOptions,
     repoOptions,
+    configPath,
     options: mergeRepoOptions({ repoOptions, cliOptions }),
   };
 

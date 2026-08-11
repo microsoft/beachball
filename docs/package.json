@@ -4,13 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "docs": "vuepress dev --host localhost",
+    "start": "vuepress dev --host localhost",
     "docs:build": "vuepress build"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@vuepress/bundler-vite": "^2.0.0-rc.18",
     "@vuepress/plugin-markdown-chart": "^2.0.0-rc.109",
+    "@vuepress/plugin-redirect": "^2.0.0-rc.131",
     "@vuepress/plugin-search": "^2.0.0-rc.61",
     "@vuepress/theme-default": "^2.0.0-rc",
     "mermaid": "^11.16.1",

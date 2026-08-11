@@ -147,6 +147,30 @@ describe('migrate command', () => {
     expect(logs.getMockLines('all')).toEqual('[log] No config updates are needed for v3.');
   });
 
+  it('checks tag options', async () => {
+    tempRoot = createTestFileStructureType('monorepo', { defaultNpmTag: '', tag: null as unknown as string });
+    updateJson(path.join(tempRoot, 'packages/foo/package.json'), { beachball: { tag: null } });
+    updateJson(path.join(tempRoot, 'packages/baz/package.json'), { beachball: { tag: '', defaultNpmTag: '' } });
+    const options = await getOptions();
+
+    expect(() => migrate(options)).toThrow(BeachballError);
+
+    const output = logs.getMockLines('all', { root: tempRoot });
+    expect(output).toMatchInlineSnapshot(`
+      "[warn] The following warnings were found for your config:
+      [warn]   • Found setting(s) \`tag: ""\`. This is valid, but it will fall back to defaultNpmTag or "latest". (It's not possible to publish a new version without an npm dist-tag.)
+          ▪ <root>/packages/baz/package.json
+
+      [error] The following updates are needed for v3:
+      [error]   • Found setting(s) \`tag: null\`. This is ignored. (You can set "tag": "" to fall back to defaultNpmTag or "latest", but it's not possible to publish a new version without an npm dist-tag.)
+          ▪ <root>/package.json
+          ▪ <root>/packages/foo/package.json
+        • Found setting(s) \`defaultNpmTag: ""\`. This is invalid. (It's not possible to publish a new version without an npm dist-tag.)
+          ▪ <root>/package.json
+          ▪ <root>/packages/baz/package.json"
+    `);
+  });
+
   it('errors on private packages using shouldPublish option', async () => {
     tempRoot = createTestFileStructureType('monorepo');
     updateJson(path.join(tempRoot, 'packages/foo/package.json'), {

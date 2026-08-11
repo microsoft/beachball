@@ -27,7 +27,7 @@ describe('getRepoOptions', () => {
   });
 
   it('returns empty object if path is not set', async () => {
-    expect(await getRepoOptions(cliOptions())).toEqual({});
+    expect(await getRepoOptions(cliOptions())).toEqual({ repoOptions: {} });
   });
 
   it('reads config from beachball.config.js', async () => {
@@ -35,21 +35,30 @@ describe('getRepoOptions', () => {
     const repoOptions: Partial<RepoOptions> = { branch: 'origin/foo', access: 'public' };
     repo.writeFile('beachball.config.js', `module.exports = ${JSON.stringify(repoOptions)};`);
 
-    expect(await getRepoOptions(cliOptions({ path: repo.rootPath }))).toEqual(repoOptions);
+    expect(await getRepoOptions(cliOptions({ path: repo.rootPath }))).toEqual({
+      repoOptions,
+      configPath: path.join(repo.rootPath, 'beachball.config.js'),
+    });
   });
 
   it('reads config from package.json', async () => {
     const repo = repositoryFactory.cloneRepository();
     repo.updateJsonFile('package.json', { beachball: { branch: 'origin/foo' } });
 
-    expect(await getRepoOptions(cliOptions({ path: repo.rootPath }))).toEqual({ branch: 'origin/foo' });
+    expect(await getRepoOptions(cliOptions({ path: repo.rootPath }))).toEqual({
+      repoOptions: { branch: 'origin/foo' },
+      configPath: path.join(repo.rootPath, 'package.json'),
+    });
   });
 
   it('finds a .beachballrc.json file', async () => {
     const repo = repositoryFactory.cloneRepository();
     repo.writeFile('.beachballrc.json', { branch: 'origin/foo' });
 
-    expect(await getRepoOptions(cliOptions({ path: repo.rootPath }))).toEqual({ branch: 'origin/foo' });
+    expect(await getRepoOptions(cliOptions({ path: repo.rootPath }))).toEqual({
+      repoOptions: { branch: 'origin/foo' },
+      configPath: path.join(repo.rootPath, '.beachballrc.json'),
+    });
   });
 
   it('loads config from configPath', async () => {
@@ -57,8 +66,11 @@ describe('getRepoOptions', () => {
     repo.writeFile('beachball.config.js', 'module.exports = { branch: "origin/main" };');
     repo.writeFile('alternate.config.js', 'module.exports = { branch: "origin/foo" };');
 
-    const repoOptions = await getRepoOptions(cliOptions({ path: repo.rootPath, configPath: 'alternate.config.js' }));
-    expect(repoOptions.branch).toEqual('origin/foo');
+    const result = await getRepoOptions(cliOptions({ path: repo.rootPath, configPath: 'alternate.config.js' }));
+    expect(result).toEqual({
+      repoOptions: { branch: 'origin/foo' },
+      configPath: path.join(repo.rootPath, 'alternate.config.js'),
+    });
   });
 
   it('loads config from absolute configPath', async () => {
@@ -66,10 +78,13 @@ describe('getRepoOptions', () => {
     repo.writeFile('beachball.config.js', 'module.exports = { branch: "origin/main" };');
     repo.writeFile('nested/alternate.config.js', 'module.exports = { branch: "origin/foo" };');
 
-    const repoOptions = await getRepoOptions(
+    const result = await getRepoOptions(
       cliOptions({ path: repo.rootPath, configPath: path.join(repo.rootPath, 'nested/alternate.config.js') })
     );
-    expect(repoOptions.branch).toEqual('origin/foo');
+    expect(result).toEqual({
+      repoOptions: { branch: 'origin/foo' },
+      configPath: path.join(repo.rootPath, 'nested/alternate.config.js'),
+    });
   });
 
   it('throws if configPath could not be loaded', async () => {
@@ -85,14 +100,19 @@ describe('getRepoOptions', () => {
   it('resolves the default branch if no branch is specified', async () => {
     const repo = repositoryFactory.cloneRepository();
 
-    expect(await getRepoOptions(cliOptions({ path: repo.rootPath }))).toEqual({ branch: defaultRemoteBranchName });
+    expect(await getRepoOptions(cliOptions({ path: repo.rootPath }))).toEqual({
+      repoOptions: { branch: defaultRemoteBranchName },
+    });
   });
 
   it('resolves the branch from config to include the remote', async () => {
     const repo = repositoryFactory.cloneRepository();
     repo.writeFile('beachball.config.js', 'module.exports = { branch: "master" };');
 
-    expect(await getRepoOptions(cliOptions({ path: repo.rootPath }))).toEqual({ branch: defaultRemoteBranchName });
+    expect(await getRepoOptions(cliOptions({ path: repo.rootPath }))).toEqual({
+      repoOptions: { branch: defaultRemoteBranchName },
+      configPath: path.join(repo.rootPath, 'beachball.config.js'),
+    });
   });
 
   it('does not modify the branch if specified in cliOptions', async () => {
@@ -100,7 +120,8 @@ describe('getRepoOptions', () => {
     repo.writeFile('beachball.config.js', 'module.exports = { branch: "origin/foo" };');
 
     expect(await getRepoOptions(cliOptions({ path: repo.rootPath, branch: 'origin/bar' }))).toEqual({
-      branch: 'origin/foo',
+      repoOptions: { branch: 'origin/foo' },
+      configPath: path.join(repo.rootPath, 'beachball.config.js'),
     });
   });
 

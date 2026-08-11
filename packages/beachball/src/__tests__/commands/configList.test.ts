@@ -47,12 +47,10 @@ describe('configList', () => {
     // Check carefully for indentation or extra whitespace issues if this snapshot changes!
     expect(output).toMatchInlineSnapshot(`
       "Main options (including defaults):
-        all: false
         authType: "authtoken"
         branch: "origin/foo"
         bump: true
         bumpDeps: true
-        canaryName: undefined
         changeDir: "change"
         changehint: "Run \\"beachball change\\" to create a change file"
         changelog:
@@ -63,23 +61,15 @@ describe('configList', () => {
         commit: true
         concurrency: 1
         defaultNpmTag: "latest"
-        depth: undefined
-        disallowedChangeTypes: null
         fetch: true
         generateChangelog: "md"
         gitTags: true
-        gitTimeout: undefined
         ignorePatterns: ["*.test.ts"]
-        message: ""
         npmReadConcurrency: 2
         path: ""
         publish: true
         push: true
         retries: 3
-        scope: null
-        tag: ""
-        timeout: undefined
-        type: null
         yes: true"
     `);
   });

@@ -23,24 +23,25 @@ const moduleExtensions = ['json', 'js', 'cjs', 'mjs', 'ts', 'cts', 'mts'];
  */
 export async function readConfig<TConfig = unknown>(
   options: Pick<BeachballOptions, 'path' | 'configPath'>
-): Promise<TConfig | undefined> {
+): Promise<{ configPath: string; config: TConfig } | undefined> {
   const { path: cwd, configPath: customPath } = options;
 
   if (customPath) {
-    return await loadConfig<TConfig>(path.resolve(cwd, customPath));
+    const configPath = path.resolve(cwd, customPath);
+    return { configPath, config: await loadConfig<TConfig>(configPath) };
   }
 
   // package.json "beachball" property
   const packageInfo = getPackageInfo(cwd);
   if (packageInfo?.[name]) {
-    return packageInfo?.[name] as TConfig;
+    return { configPath: path.join(cwd, 'package.json'), config: packageInfo?.[name] as TConfig };
   }
 
   const result = await searchDir<TConfig>(cwd);
   return result || (await searchDir<TConfig>(path.join(cwd, '.config')));
 }
 
-async function searchDir<TConfig>(dir: string): Promise<TConfig | undefined> {
+async function searchDir<TConfig>(dir: string): Promise<{ configPath: string; config: TConfig } | undefined> {
   const searchPlaces = [
     ...moduleExtensions.map(ext => `${name}.config.${ext}`),
     `.${name}rc`,
@@ -50,7 +51,8 @@ async function searchDir<TConfig>(dir: string): Promise<TConfig | undefined> {
   for (const searchPlace of searchPlaces) {
     const filepath = path.join(dir, searchPlace);
     if (isFile(filepath)) {
-      return await loadConfig<TConfig>(filepath);
+      const config = await loadConfig<TConfig>(filepath);
+      return { configPath: filepath, config };
     }
   }
   return undefined;

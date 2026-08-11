@@ -60,7 +60,7 @@ Change detection options:
 Package filtering options:
   --scope <value...>          only consider package paths matching the pattern(s) (supports
                                 "!negations")
-  --[no-]all                  publish prerelease versions of all packages (default: false)
+  --[no-]all                  publish prerelease versions of all packages
 
 Validation options:
   --disallowed-change-types <value...> - change types that are not allowed (choices: "none",
@@ -126,7 +126,7 @@ Change detection options:
 Package filtering options:
   --scope <value...>          only consider package paths matching the pattern(s) (supports
                                 "!negations")
-  --[no-]all                  generate change files for all packages (default: false)
+  --[no-]all                  generate change files for all packages
 
 Validation options:
   --disallowed-change-types <value...> - change types that are not allowed (choices: "none",

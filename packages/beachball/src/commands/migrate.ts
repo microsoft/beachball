@@ -4,7 +4,7 @@ import { findPackageRoot, type PackageInfo as WSPackageInfo } from 'workspace-to
 import { bulletedList, type BulletList } from '../logging/bulletedList';
 import { getRawPackageInfos } from '../monorepo/getPackageInfos';
 import { BeachballError } from '../types/BeachballError';
-import type { BeachballOptions, ParsedOptions } from '../types/BeachballOptions';
+import type { BeachballOptions, PackageOptions, ParsedOptions } from '../types/BeachballOptions';
 
 /**
  * Handles the `beachball migrate` command.
@@ -13,7 +13,7 @@ import type { BeachballOptions, ParsedOptions } from '../types/BeachballOptions'
  * If no updates are needed, a success message is printed.
  */
 export function migrate(parsedOptions: ParsedOptions): void {
-  const { options, repoOptions } = parsedOptions;
+  const { options, repoOptions, configPath } = parsedOptions;
   const updates: BulletList = [];
   const warnings: BulletList = [];
 
@@ -81,6 +81,7 @@ export function migrate(parsedOptions: ParsedOptions): void {
   if (rawPackageInfos) {
     checkShouldPublish({ rawPackageInfos, warnings, updates });
     checkChangelogJson({ rawPackageInfos, options, repoOptions, updates });
+    checkNullTag({ rawPackageInfos, repoOptions, configPath, warnings, updates });
   }
 
   if (!updates.length && !warnings.length) {
@@ -155,6 +156,53 @@ function checkChangelogJson(params: {
         'If you are NOT using CHANGELOG.json, delete these files:',
         changelogJsons.sort(),
       ]
+    );
+  }
+}
+
+function checkNullTag(
+  params: Pick<ParsedOptions, 'repoOptions' | 'configPath'> & {
+    rawPackageInfos: WSPackageInfo[];
+    warnings: BulletList;
+    updates: BulletList;
+  }
+): void {
+  const { repoOptions, configPath, rawPackageInfos, warnings, updates } = params;
+
+  const packagesWithNullTag = rawPackageInfos
+    .filter(pkg => (pkg.beachball as PackageOptions)?.tag === null)
+    .map(p => p.packageJsonPath);
+  const packagesWithEmptyTag = rawPackageInfos
+    .filter(pkg => (pkg.beachball as PackageOptions)?.tag === '')
+    .map(p => p.packageJsonPath);
+  const packagesWithEmptyDefaultTag = rawPackageInfos
+    .filter(pkg => (pkg.beachball as PackageOptions)?.defaultNpmTag === '')
+    .map(p => p.packageJsonPath);
+
+  repoOptions.tag === null && packagesWithNullTag.unshift(configPath ?? 'repo config');
+  repoOptions.tag === '' && packagesWithEmptyTag.unshift(configPath ?? 'repo config');
+  repoOptions.defaultNpmTag === '' && packagesWithEmptyDefaultTag.unshift(configPath ?? 'repo config');
+
+  if (packagesWithNullTag.length) {
+    updates.push(
+      'Found setting(s) `tag: null`. This is ignored. ' +
+        '(You can set "tag": "" to fall back to defaultNpmTag or "latest", ' +
+        "but it's not possible to publish a new version without an npm dist-tag.)",
+      packagesWithNullTag.sort()
+    );
+  }
+  if (packagesWithEmptyTag.length) {
+    warnings.push(
+      'Found setting(s) `tag: ""`. This is valid, but it will fall back to defaultNpmTag or "latest". ' +
+        "(It's not possible to publish a new version without an npm dist-tag.)",
+      packagesWithEmptyTag.sort()
+    );
+  }
+  if (packagesWithEmptyDefaultTag.length) {
+    updates.push(
+      'Found setting(s) `defaultNpmTag: ""`. This is invalid. ' +
+        "(It's not possible to publish a new version without an npm dist-tag.)",
+      packagesWithEmptyDefaultTag.sort()
     );
   }
 }

@@ -2,7 +2,7 @@ import type { BeachballOptions, PackageOptions } from '../types/BeachballOptions
 import type { PackageInfo } from '../types/PackageInfo';
 
 /** Subset of main options which are also package options */
-export type BeachballPackageOptions = Pick<BeachballOptions, keyof PackageOptions>;
+export type BeachballPackageOptions = Pick<PackageOptions, Extract<keyof PackageOptions, keyof BeachballOptions>>;
 
 /**
  * Get a value from package-specific options (which already account for CLI overrides as stored)
@@ -15,7 +15,7 @@ export type BeachballPackageOptions = Pick<BeachballOptions, keyof PackageOption
  * @param options All the options
  * @returns Option value
  */
-export function getPackageOption<T extends keyof PackageOptions>(
+export function getPackageOption<T extends keyof BeachballPackageOptions>(
   optionName: T,
   packageInfo: Pick<PackageInfo, 'packageOptions'>,
   options: Partial<Pick<BeachballOptions, T>>
