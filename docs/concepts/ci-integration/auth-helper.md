@@ -28,7 +28,7 @@ This CLI takes inspiration from [`microsoft/create-github-app-token-via-key-vaul
    - **User-owned app:** GitHub → your profile Settings → Developer settings → GitHub Apps → your app.
 3. On the app settings page:
    - Generate a private key for the app (the file is automatically downloaded).
-   - Copy the app's **Client ID** value to use as `--app-client-id` later. This is a 23-character typically starting with `Iv1` or `Iv2`. It's _not_ a secret, and is distinct from the numeric "App ID" shown on the same page.
+   - Copy the app's **Client ID** value to use as `--app-client-id` later. This typically starts with `Iv1` or `Iv2` and is distinct from the numeric "App ID" shown on the same page. It does _not_ need to be treated as a secret.
 4. Choose where to store the app's private key:
    - **Azure Key Vault** + `--key-id` (more secure): the private key is stored in the key vault, passed to the CLI as `--key-id`, and is only used via `az keyvault key sign`. [Full instructions below](#azure-resource-setup).
    - **CI secret** + `PRIVATE_KEY`: Store the PEM-encoded private key as a CI secret, and pass it to the CLI as `PRIVATE_KEY`. In GitHub Actions, you should [use an environment](../ci-integration#storing-secrets) to restrict access.

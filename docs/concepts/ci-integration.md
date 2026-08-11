@@ -88,10 +88,7 @@ The [built-in `GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides
 - Traditional approach: use a [**fine-grained personal access token**](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) (PAT) with write permissions for **only** the specific repo, and store it [as a secret](#storing-secrets).
   - The user creating the token must have admin access or permission to bypass branch protection rules.
   - Variant: create a fine-grained PAT with a "machine user" account. Create a new account with an alternate email or [subaddress](https://en.wikipedia.org/wiki/Email_address#Subaddressing) (`+` address), give it contributor permissions to only this repo, and give it permission to bypass rules.
-- New: use a **GitHub app installation token**. For this purpose, an "app" is essentially just an _identity with permissions_; you don't need to define any logic or endpoints. Create a GitHub app, install it in your repo, and give it permission to bypass policies, then set up one of the following:
-  - Any CI platform + Azure key vault: [beachball v3's `github-app-token` helper](https://github.com/microsoft/beachball/blob/main/packages/beachball/src/githubAuth/README.md)
-  - GitHub Actions + Azure key vault: [`microsoft/create-github-app-token-via-key-vault`](https://github.com/microsoft/create-github-app-token-via-key-vault)
-  - GitHub Actions + GitHub environment secrets: [`actions/create-github-app-token`](https://github.com/actions/create-github-app-token), with the private key stored [as a secret](#storing-secrets)
+- New: use a **GitHub app installation token**. For this purpose, an "app" is essentially just an _identity with permissions_; you don't need to define any logic or endpoints. Create a GitHub app, install it in your repo, and give it permission to bypass policies, then use the [`beachball-auth-helper` CLI](./ci-integration/auth-helper) to create a token.
 
 After creating a GitHub token, it can be passed through to `beachball publish` via the `BEACHBALL_GIT_TOKEN` environment variable. For example:
 

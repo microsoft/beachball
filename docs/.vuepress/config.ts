@@ -107,7 +107,11 @@ export default defineUserConfig({
     {
       name: 'version-aware-navbar',
       define: {
-        __V3_ONLY_PATHS__: ['/overview/v3-migration.html', '/cli/migrate.html'],
+        __V3_ONLY_PATHS__: [
+          '/overview/v3-migration.html',
+          '/cli/migrate.html',
+          '/concepts/ci-integration/auth-helper.html',
+        ],
       },
       alias: {
         '@theme/useNavbarConfig': path.resolve(import.meta.dirname, 'composables/useNavbarConfig.ts'),
