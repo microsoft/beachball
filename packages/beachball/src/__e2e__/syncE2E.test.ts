@@ -17,7 +17,6 @@ import type { RepoOptions } from '../types/BeachballOptions';
 // If an issue is found in the future that could only be caught by this test using real npm,
 // a new test file with a real registry should be created to cover that specific scenario.
 jest.mock('../packageManager/npm');
-// jest.mock('npm-registry-fetch');
 
 describe('sync command (e2e)', () => {
   const mockNpm = initNpmMock();
@@ -28,7 +27,7 @@ describe('sync command (e2e)', () => {
   let repo: Repository | undefined;
 
   const publishOptions: Parameters<typeof packagePublish>[1] = {
-    registry: 'fake',
+    registry: 'https://fake',
     retries: 3,
     path: '',
     npmReadConcurrency: 2,

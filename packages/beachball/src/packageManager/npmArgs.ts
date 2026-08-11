@@ -37,28 +37,6 @@ export function getNpmPublishArgs(
  * Get the environment variable key and value for npm authentication.
  */
 export function getNpmAuthEnv(options: NpmAuthOptions): Record<`npm_config_${string}`, string> | undefined {
-  const authArgs = getNpmAuthArgs(options);
-  if (!authArgs) {
-    return undefined;
-  }
-  return {
-    // npm_config_* env vars are automatically picked up by npm.
-    // getNpmAuthArgs returns the key in the appropriate format, including required trailing slash.
-    [`npm_config_${authArgs.key}`]: authArgs.value,
-  };
-}
-
-/**
- * Get the npm auth args for the given registry and token.
- */
-export function getNpmAuthArgs(options: NpmAuthOptions):
-  | {
-      /** Like `//registry.npmjs.org/:_password` */
-      key: `//${string}:${'_authToken' | '_password'}`;
-      /** The token or password */
-      value: string;
-    }
-  | undefined {
   const { registry, token, authType } = options;
   if (!token) {
     return undefined;
@@ -69,10 +47,10 @@ export function getNpmAuthArgs(options: NpmAuthOptions):
   }
 
   const npmKeyword = authType === 'password' ? '_password' : '_authToken';
-  const shorthand = registry.substring(registry.indexOf('//')) as `//${string}`;
+  // Like `//registry.npmjs.org/` - trailing slash is strictly required for env var form
+  const shorthand = registry.substring(registry.indexOf('//')).replace(/\/?$/, '/');
   return {
-    // It appears that a trailing slash is strictly required for the environment variable form
-    key: `${shorthand}${shorthand.endsWith('/') ? '' : '/'}:${npmKeyword}`,
-    value: token,
+    // npm_config_* env vars are automatically picked up by npm.
+    [`npm_config_${shorthand}:${npmKeyword}`]: token,
   };
 }

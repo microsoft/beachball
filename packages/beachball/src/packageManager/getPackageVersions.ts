@@ -5,10 +5,13 @@ import { getNpmPackageInfo } from './getNpmPackageInfo';
 import { getPackageOption } from '../options/getPackageOption';
 
 /**
- * List versions matching the appropriate tag for each package (based on combined CLI, package, and repo options).
+ * Get the current version for each package's specified tag (respecting CLI, package, and repo options).
  * Respects `options.npmReadConcurrency` for concurrency limiting.
+ *
+ * @returns Mapping from package name to the version for the requested tag (or undefined if no version
+ * exists for that tag)
  */
-export async function listPackageVersionsByTag(
+export async function getPackageTagVersions(
   packageInfos: PackageInfo[],
   options: NpmOptions
 ): Promise<{ [pkg: string]: string }> {
@@ -28,10 +31,9 @@ export async function listPackageVersionsByTag(
   await Promise.all(
     packageTags.map(({ name, tag }) =>
       limit(async () => {
-        const info = await getNpmPackageInfo(name, options);
-        const version = info?.['dist-tags']?.[tag];
-        if (version) {
-          versions[name] = version;
+        const info = await getNpmPackageInfo(name, tag, options);
+        if (info) {
+          versions[name] = info.version;
         }
       })
     )
@@ -41,25 +43,24 @@ export async function listPackageVersionsByTag(
 }
 
 /**
- * List all the versions of each package name.
+ * Check whether each exact package version exists.
  * Respects `options.npmReadConcurrency` for concurrency limiting.
- * @returns List of packages and versions
+ * @returns Mapping from package name to whether its requested version exists
  */
-export async function listPackageVersions(
-  packageList: string[],
+export async function hasPackageVersions(
+  packageVersions: Record<string, string>,
   options: NpmOptions
-): Promise<{ [pkg: string]: string[] }> {
+): Promise<Record<string, boolean>> {
   const limit = pLimit(options.npmReadConcurrency);
-  const versions: { [pkg: string]: string[] } = {};
+  const versionExists: Record<string, boolean> = {};
 
   await Promise.all(
-    packageList.map(pkg =>
+    Object.entries(packageVersions).map(([pkg, version]) =>
       limit(async () => {
-        const info = await getNpmPackageInfo(pkg, options);
-        versions[pkg] = info?.versions || [];
+        versionExists[pkg] = !!(await getNpmPackageInfo(pkg, version, options));
       })
     )
   );
 
-  return versions;
+  return versionExists;
 }

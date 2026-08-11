@@ -1,4 +1,4 @@
-import { listPackageVersions } from '../packageManager/listPackageVersions';
+import { hasPackageVersions } from '../packageManager/getPackageVersions';
 import type { NpmOptions } from '../types/NpmOptions';
 import { bulletedList } from '../logging/bulletedList';
 import type { PackageInfos } from '../types/PackageInfo';
@@ -13,7 +13,10 @@ export async function validatePackageVersions(
 ): Promise<boolean> {
   console.log('Validating new package versions...\n');
 
-  const publishedVersions = await listPackageVersions(packagesToValidate, options);
+  const versionsExist = await hasPackageVersions(
+    Object.fromEntries(packagesToValidate.map(pkg => [pkg, packageInfos[pkg].version])),
+    options
+  );
 
   const okVersions: string[] = [];
   const errorVersions: string[] = [];
@@ -21,7 +24,7 @@ export async function validatePackageVersions(
   for (const pkg of packagesToValidate) {
     const packageInfo = packageInfos[pkg];
     const versionSpec = `${packageInfo.name}@${packageInfo.version}`;
-    if (publishedVersions[pkg].includes(packageInfo.version)) {
+    if (versionsExist[pkg]) {
       errorVersions.push(versionSpec);
     } else {
       okVersions.push(versionSpec);

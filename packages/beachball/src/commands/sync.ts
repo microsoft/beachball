@@ -1,6 +1,6 @@
 import semver from 'semver';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import { listPackageVersionsByTag } from '../packageManager/listPackageVersions';
+import { getPackageTagVersions } from '../packageManager/getPackageVersions';
 import { setDependentVersions } from '../bump/setDependentVersions';
 import { updateLockFile } from '../bump/updateLockFile';
 import { updatePackageJsons } from '../bump/updatePackageJsons';
@@ -14,15 +14,16 @@ export type SyncCommandContext = Pick<BasicCommandContext, 'originalPackageInfos
 export async function sync(options: BeachballOptions, context: SyncCommandContext): Promise<void> {
   const { originalPackageInfos: packageInfos, scopedPackages } = context;
 
-  const infos = new Map(Object.entries(packageInfos).filter(([pkg, info]) => !info.private && scopedPackages.has(pkg)));
+  const infos = Object.values(packageInfos).filter(info => !info.private && scopedPackages.has(info.name));
 
-  console.log(`Getting versions from registry for ${infos.size} package(s)...`);
+  console.log(`Getting versions from registry for ${infos.length} package(s)...`);
 
-  const publishedVersions = await listPackageVersionsByTag([...infos.values()], options);
+  const publishedVersions = await getPackageTagVersions(infos, options);
 
   const modifiedPackages = new Set<string>();
 
-  for (const [pkg, info] of infos.entries()) {
+  for (const info of infos) {
+    const pkg = info.name;
     if (publishedVersions[pkg]) {
       const publishedVersion = publishedVersions[pkg];
 

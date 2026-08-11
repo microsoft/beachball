@@ -11,13 +11,13 @@ exports[`publishToRegistry publishes multiple packages in dependency order 1`] =
 [log]   OK!
 
 [log] Publishing - lib@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
+[log]   publish command: publish --registry http://localhost:59999 --tag latest --loglevel warn
 [log]   (cwd: <root>/packages/lib)
 
 [log] Published! - lib@1.0.0
 
 [log] Publishing - app@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
+[log]   publish command: publish --registry http://localhost:59999 --tag latest --loglevel warn
 [log]   (cwd: <root>/packages/app)
 
 [log] Published! - app@1.0.0"
@@ -36,7 +36,7 @@ exports[`publishToRegistry skips private packages 1`] = `
 [log]   OK!
 
 [log] Publishing - foo@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
+[log]   publish command: publish --registry http://localhost:59999 --tag latest --loglevel warn
 [log]   (cwd: <root>/packages/foo)
 
 [log] Published! - foo@1.0.0"
@@ -52,7 +52,7 @@ exports[`publishToRegistry throws on publish failure 1`] = `
 [log]   OK!
 
 [log] Publishing - foo@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
+[log]   publish command: publish --registry http://localhost:59999 --tag latest --loglevel warn
 [log]   (cwd: <root>/packages/foo)
 
 [warn] Publishing foo@1.0.0 failed. Output:
@@ -95,15 +95,15 @@ exports[`publishToRegistry with concurrency > 1 throws and shows recovery info o
 [log]   OK!
 
 [log] Publishing - pkg3@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
+[log]   publish command: publish --registry http://localhost:59999 --tag latest --loglevel warn
 [log]   (cwd: <root>/packages/pkg3)
 
 [log] Publishing - pkg4@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
+[log]   publish command: publish --registry http://localhost:59999 --tag latest --loglevel warn
 [log]   (cwd: <root>/packages/pkg4)
 
 [log] Publishing - pkg5@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
+[log]   publish command: publish --registry http://localhost:59999 --tag latest --loglevel warn
 [log]   (cwd: <root>/packages/pkg5)
 
 [warn] Publishing pkg5@1.0.0 failed. Output:
@@ -131,7 +131,7 @@ oh no
 [log] Published! - pkg3@1.0.0
 
 [log] Publishing - pkg2@1.0.0 with tag latest
-[log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
+[log]   publish command: publish --registry http://localhost:59999 --tag latest --loglevel warn
 [log]   (cwd: <root>/packages/pkg2)
 
 [warn] Publishing pkg2@1.0.0 failed. Output:

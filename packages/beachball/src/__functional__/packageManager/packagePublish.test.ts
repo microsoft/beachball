@@ -121,17 +121,13 @@ describe('packagePublish', () => {
       expect(allLogs).toMatch('publish command:');
       expect(allLogs).toMatch(`[log] Published!`);
 
-      const realPackage = await getNpmPackageInfo(testPackageInfo.name, {
+      const realPackage = await getNpmPackageInfo(testPackageInfo.name, testTag, {
         registry: registry.getUrl(),
         // Probably less important now that this is a fetch not a shell command, but just in case
         timeout: env.isCI && process.platform === 'win32' ? 4500 : 1500,
         path: tempRoot,
       });
-      expect(realPackage).toEqual({
-        versions: [testVersion],
-        // This will publish the test tag as well as "latest" because it's a new package
-        'dist-tags': { [testTag]: testVersion, latest: testVersion },
-      });
+      expect(realPackage).toEqual({ name: testPackageInfo.name, version: testVersion });
     });
 
     it('can publish when logged in', async () => {
