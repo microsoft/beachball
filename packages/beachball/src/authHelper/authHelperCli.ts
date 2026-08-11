@@ -43,10 +43,10 @@ async function runCreateToken(options: TokenCliOptions, command: Command, env: N
   let token: string;
   if ('privateKey' in otherOptions) {
     const { privateKey, ...tokenOptions } = otherOptions;
-    ({ token } = await createAppToken({ ...tokenOptions, keyInfo: { privateKey } }));
+    token = await createAppToken({ ...tokenOptions, keyInfo: { privateKey } });
   } else if ('keyId' in otherOptions) {
     const { keyId, ...tokenOptions } = otherOptions;
-    ({ token } = await createAppToken({ ...tokenOptions, keyInfo: { keyId } }));
+    token = await createAppToken({ ...tokenOptions, keyInfo: { keyId } });
   } else {
     command.error("error: one of '--key-id' or '--private-key' must be specified");
   }

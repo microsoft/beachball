@@ -5,7 +5,6 @@ import { runAuthHelperCli, type CliContext } from '../../authHelper/authHelperCl
 import * as authModule from '../../authHelper/createAppToken';
 import { defaultGitHubApiUrl } from '../../authHelper/requestHelpers';
 import * as revokeModule from '../../authHelper/revokeAppToken';
-import type { InstallationToken } from '../../authHelper/types';
 
 jest.mock('../../authHelper/createAppToken');
 jest.mock('../../authHelper/revokeAppToken');
@@ -41,13 +40,6 @@ describe('authHelperCli', () => {
 
   describe('token command', () => {
     const mockToken = 'ghs_test_token';
-    const installationToken: InstallationToken = {
-      token: mockToken,
-      expiresAt: '2099-01-01T00:00:00Z',
-      installationId: 123,
-      appSlug: 'test-app',
-      permissions: {},
-    };
     const clientIdArg = ['--app-client-id', 'Iv1.client'];
     const keyIdArg = ['--key-id', 'key-id'];
     const repoArg = ['--repository', 'org/repo'];
@@ -59,7 +51,7 @@ describe('authHelperCli', () => {
     };
 
     beforeEach(() => {
-      createAppToken.mockResolvedValue(installationToken);
+      createAppToken.mockResolvedValue(mockToken);
     });
 
     it('creates a token and writes it to stdout by default', async () => {

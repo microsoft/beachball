@@ -43,7 +43,7 @@ describe('createAppToken', () => {
     jest.useRealTimers();
   });
 
-  it('returns full token info', async () => {
+  it('creates a token', async () => {
     mockRepoInstallation(mockPool, owner, repo);
     mockAccessToken(mockPool);
     const result = await createAppToken({
@@ -52,27 +52,7 @@ describe('createAppToken', () => {
       repository: { owner, name: repo },
       permissions: { contents: 'read' },
     });
-
-    expect(result).toEqual({
-      token: mockToken,
-      expiresAt: mockExpiresAt,
-      installationId: mockInstallationId,
-      appSlug: mockAppSlug,
-      permissions: { contents: 'read' },
-    });
-  });
-
-  it('scopes the token to the single repository', async () => {
-    mockRepoInstallation(mockPool, 'my-org', 'my-repo');
-    mockAccessToken(mockPool);
-
-    const result = await createAppToken({
-      appClientId: 'Iv1.test-client-id',
-      keyInfo: { keyId: mockKeyId },
-      repository: { owner: 'my-org', name: 'my-repo' },
-    });
-
-    expect(result.token).toBe(mockToken);
+    expect(result).toEqual(mockToken);
   });
 
   it('retries on 500 errors', async () => {
@@ -89,8 +69,8 @@ describe('createAppToken', () => {
       repository: { owner: 'o', name: 'r' },
     });
     await Promise.all([tokenPromise, jest.runAllTimersAsync()]);
-    const { token } = await tokenPromise;
-    expect(token).toBe(mockToken);
+    const result = await tokenPromise;
+    expect(result).toBe(mockToken);
 
     // The installation lookup should have been attempted twice (500, then success).
     const lookups = mockAgent
@@ -133,13 +113,12 @@ describe('createAppToken', () => {
       .intercept({ path: `/api/v3/app/installations/${mockInstallationId}/access_tokens`, method: 'POST' })
       .reply(201, { token: mockToken, expires_at: mockExpiresAt }, { headers: { 'content-type': 'application/json' } });
 
-    const { token } = await createAppToken({
+    const token = await createAppToken({
       appClientId: 'Iv1.test-client-id',
       keyInfo: { keyId: mockKeyId },
       githubApiUrl: 'https://ghe.example.com/api/v3',
       repository: { owner: 'o', name: 'r' },
     });
-
     expect(token).toBe(mockToken);
   });
 
@@ -157,7 +136,7 @@ describe('createAppToken', () => {
       repository: { owner: 'o', name: 'r' },
     });
     await jest.runAllTimersAsync();
-    const { token } = await tokenPromise;
+    const token = await tokenPromise;
 
     expect(token).toBe(mockToken);
 

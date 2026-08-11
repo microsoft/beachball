@@ -1,25 +1,31 @@
 import { sign } from 'node:crypto';
 import { defaultGitHubApiUrl, githubHeaders, requestJson, retryTransient } from './requestHelpers';
 import { signWithAzureCli } from './signWithAzureCli';
-import type { CreateAppTokenOptions, InstallationToken } from './types';
-import { isRecord, requiredIntegerProperty, requiredStringProperty } from './validationHelpers';
+import type { CreateAppTokenOptions } from './types';
+import { requiredIntegerProperty, requiredStringProperty } from './validationHelpers';
 
 export type GitHubAppInstallationResponse = { id: number; app_slug: string };
-export type GitHubAccessTokenResponse = { token: string; expires_at: string; permissions?: Record<string, unknown> };
+export type GitHubAccessTokenResponse = {
+  token: string;
+  /** ISO 8601 expiration timestamp. Installation tokens always expire after 60 minutes. */
+  expires_at: string;
+  permissions?: Record<string, unknown>;
+};
 
 /** Create a repository-scoped GitHub App installation token. */
-export async function createAppToken(options: CreateAppTokenOptions): Promise<InstallationToken> {
+export async function createAppToken(options: CreateAppTokenOptions): Promise<string> {
   const { appClientId, githubApiUrl = defaultGitHubApiUrl, permissions, repository, keyInfo } = options;
 
   // Reuse a single JWT across installation discovery and token creation.
   const jwt = await createJwt({ appClientId, keyInfo });
 
-  let installation: { id: number; appSlug: string } | undefined;
+  let installationId: number | undefined;
 
   return retryTransient(async () => {
-    installation ??= await discoverInstallation({ githubApiUrl, repository, jwt });
+    installationId ??= await discoverInstallation({ githubApiUrl, repository, jwt });
+
     const token = await requestJson<GitHubAccessTokenResponse>(
-      `${githubApiUrl}/app/installations/${installation.id}/access_tokens`,
+      `${githubApiUrl}/app/installations/${installationId}/access_tokens`,
       {
         method: 'POST',
         headers: githubHeaders(jwt, true),
@@ -28,13 +34,8 @@ export async function createAppToken(options: CreateAppTokenOptions): Promise<In
       'Could not create GitHub App installation token'
     );
 
-    return {
-      token: requiredStringProperty(token, 'token', 'GitHub did not return an installation token'),
-      expiresAt: requiredStringProperty(token, 'expires_at', 'GitHub did not return an installation token expiration'),
-      installationId: installation.id,
-      appSlug: installation.appSlug,
-      permissions: isRecord(token?.permissions) ? token.permissions : (permissions ?? {}),
-    };
+    // Currently not using expires_at or permissions
+    return requiredStringProperty(token, 'token', 'GitHub did not return an installation token');
   });
 }
 
@@ -72,10 +73,8 @@ async function discoverInstallation(
     'Could not discover GitHub App installation ID'
   );
 
-  return {
-    id: requiredIntegerProperty(result, 'id', 'GitHub did not return an installation ID'),
-    appSlug: requiredStringProperty(result, 'app_slug', 'GitHub did not return an App slug'),
-  };
+  // not currently using app_slug
+  return requiredIntegerProperty(result, 'id', 'GitHub did not return an installation ID');
 }
 
 function base64url(value: string | Uint8Array): string {

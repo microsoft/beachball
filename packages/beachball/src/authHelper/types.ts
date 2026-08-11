@@ -40,23 +40,6 @@ export type AppPrivateKeyInfo =
       privateKey: string;
     };
 
-export interface InstallationToken {
-  /** The installation access token. Authenticate REST/GraphQL requests with `Authorization: Bearer <token>`. */
-  token: string;
-  /**
-   * ISO 8601 expiration timestamp returned by GitHub. Installation tokens always expire 60 minutes
-   * after they are created; this lifetime is fixed by GitHub and cannot be configured on the
-   * create-token request.
-   */
-  expiresAt: string;
-  /** ID of the resolved GitHub App installation. */
-  installationId: number;
-  /** Slug of the GitHub App that issued the token. */
-  appSlug: string;
-  /** Permissions granted to the token, as reported by GitHub. */
-  permissions: Record<string, unknown>;
-}
-
 export interface RevokeAppTokenOptions {
   /** Token to revoke */
   token: string;
