@@ -76,7 +76,12 @@ export default defineUserConfig({
             '/concepts/change-files',
             '/concepts/change-types',
             '/concepts/groups',
-            '/concepts/ci-integration',
+            {
+              text: 'CI integration',
+              link: '/concepts/ci-integration',
+              collapsible: true,
+              children: ['/concepts/ci-integration/auth-helper'],
+            },
             '/concepts/ai-integration',
             '/concepts/large-repos',
           ],
@@ -101,6 +106,9 @@ export default defineUserConfig({
   plugins: [
     {
       name: 'version-aware-navbar',
+      define: {
+        __V3_ONLY_PATHS__: ['/overview/v3-migration.html', '/cli/migrate.html'],
+      },
       alias: {
         '@theme/useNavbarConfig': path.resolve(import.meta.dirname, 'composables/useNavbarConfig.ts'),
       },

@@ -1,4 +1,10 @@
-# github-app-token
+---
+tags:
+  - ci
+category: doc
+---
+
+# Auth helper
 
 Create GitHub App installation tokens by signing the GitHub App JWT with an Azure Key Vault key. Based on https://github.com/microsoft/create-github-app-token-via-key-vault.
 
