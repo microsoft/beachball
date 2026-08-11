@@ -68,7 +68,7 @@ class NpmRegistryError extends BeachballError {
     public readonly status: number,
     options?: ErrorOptions
   ) {
-    super(message);
+    super(message, options);
   }
 }
 
