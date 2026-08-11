@@ -1,0 +1,6 @@
+{
+  "type": "minor",
+  "comment": "Fetch package info from npm registry, not with npm CLI",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com"
+}

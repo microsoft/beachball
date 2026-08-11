@@ -3,9 +3,8 @@
 // dependency on actual npm CLI calls and a fake registry (which are very slow).
 
 import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
-import fs from 'node:fs';
-// import fetch from 'npm-registry-fetch';
 import * as testUtilsModule from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
 import { npm } from '../packageManager/npm';
 import type { SpawnResult } from '../spawn';
 import type { PackageJson } from '../types/PackageInfo';
@@ -20,7 +19,6 @@ import {
 import { mockSpawnSuccess, MockSubprocessError } from './mockSpawnResult';
 
 jest.mock('node:fs');
-// jest.mock('npm-registry-fetch');
 jest.mock('../packageManager/npm');
 
 let packageJson: PackageJson | undefined;
@@ -59,7 +57,6 @@ describe('_makeRegistryData', () => {
     expect(data).toEqual({
       foo: {
         name: 'foo',
-        modified: expect.any(String),
         'dist-tags': { latest: '1.0.1', beta: '2.0.0-beta' },
         versions: {
           '1.0.0': { name: 'foo', version: '1.0.0' },
@@ -69,7 +66,6 @@ describe('_makeRegistryData', () => {
       },
       bar: {
         name: 'bar',
-        modified: expect.any(String),
         'dist-tags': { latest: '1.0.0' },
         versions: {
           '1.0.0': { name: 'bar', version: '1.0.0' },
@@ -223,7 +219,6 @@ describe('_mockNpmPublish', () => {
     expect(result).toEqual(getPublishResult({ tag: 'latest' }));
     expect(data.foo).toEqual({
       name: 'foo',
-      modified: expect.any(String),
       versions: { '1.0.0': packageJson },
       'dist-tags': { latest: '1.0.0' },
     });
@@ -239,7 +234,6 @@ describe('_mockNpmPublish', () => {
     expect(result).toEqual(getPublishResult({ tag: 'latest' }));
     expect(data.foo).toEqual({
       name: 'foo',
-      modified: expect.any(String),
       // latest tag is updated
       'dist-tags': { latest: '2.0.0' },
       versions: {
@@ -259,7 +253,6 @@ describe('_mockNpmPublish', () => {
     expect(result).toEqual(getPublishResult({ tag: 'beta' }));
     expect(data.foo).toEqual({
       name: 'foo',
-      modified: expect.any(String),
       // beta tag updated, latest not updated
       'dist-tags': { beta: '2.0.0', latest: '1.0.0' },
       versions: {
@@ -324,26 +317,6 @@ describe('_mockNpmPack', () => {
 describe('mockNpm', () => {
   const npmMock = initNpmMock();
 
-  // describe('mockFetchJson', () => {
-  //   it('mocks registry fetch', async () => {
-  //     npmMock.setRegistryData({ foo: { versions: ['1.0.0'] } });
-  //     expect(fetch.json).toHaveProperty('mock');
-  //     const result = await fetch.json('/foo');
-  //     expect(result).toEqual({
-  //       name: 'foo',
-  //       modified: expect.any(String),
-  //       versions: { '1.0.0': { name: 'foo', version: '1.0.0' } },
-  //       'dist-tags': { latest: '1.0.0' },
-  //     });
-  //   });
-
-  //   it('resets calls and registry after each test', () => {
-  //     expect(npmMock.mockFetchJson).not.toHaveBeenCalled();
-  //     // registry data for foo was set in the previous test but should have been cleared
-  //     expect(() => fetch.json('/foo')).toThrow('404 Not Found');
-  //   });
-  // });
-
   describe('getPublishedVersions', () => {
     it('gets data for a package', () => {
       npmMock.setRegistryData({ foo: { versions: ['1.0.0', '1.1.0'], 'dist-tags': { bar: '1.0.0' } } });
@@ -404,14 +377,6 @@ describe('mockNpm', () => {
           versions: ['1.0.0'],
         }),
       });
-      // expect(await fetch.json('/foo')).toEqual({
-      //   name: 'foo',
-      //   modified: expect.any(String),
-      //   versions: {
-      //     '1.0.0': { name: 'foo', version: '1.0.0' },
-      //   },
-      //   'dist-tags': { latest: '1.0.0' },
-      // });
     });
   });
 
@@ -456,7 +421,7 @@ describe('mockNpm', () => {
       expect(npmMock.mock).toHaveBeenCalledWith(['foo'], expect.objectContaining({ cwd: '' }));
     });
 
-    it('TEMP mocks npm show command', async () => {
+    it('mocks npm show for registry fallback', async () => {
       npmMock.setRegistryData({ foo: { versions: ['1.0.0'] } });
       const result = await npm(['show', 'foo'], { cwd: '' });
       expect(result).toMatchObject({

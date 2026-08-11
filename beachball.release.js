@@ -13,27 +13,21 @@ const prereleasePackages = ['beachball', 'p-graph'];
 const config = {
   ...require('./beachball.config.js'),
 
-  // only needed for non-ESRP
-  access: 'public',
-
   // TODO (release): remove
   // Separate prerelease and non-prerelease packages
   // e.g. !packages/{beachball,p-graph} for non-prerelease packages
   scope: [`${isCanary ? '' : '!'}packages/{${prereleasePackages.join(',')}}`],
+  // TODO respect this for canary
   tag: isCanary ? 'next' : 'latest',
   canaryName: 'alpha',
-  gitTags: !isCanary,
 
   // Disable fetching to ensure split publish/bump uses the same commits
   fetch: false,
   verbose: true,
 
-  // TODO (release): use default tag for beachball
-  getGitTag: isCanary ? undefined : getGitTag,
+  getGitTag,
 
-  hooks: {
-    postbump: postbumpHook,
-  },
+  hooks: { postbump: postbumpHook },
 };
 
 module.exports = config;

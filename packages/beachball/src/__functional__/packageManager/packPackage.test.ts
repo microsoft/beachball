@@ -11,7 +11,6 @@ import type { PackageInfo } from '../../types/PackageInfo';
 // Spawning actual npm is slow, so mock it for most of these tests.
 // A couple tests also use the real npm command.
 jest.mock('../../packageManager/npm');
-// jest.mock('npm-registry-fetch');
 const { npm: actualNpm } = jest.requireActual<typeof npmModuleType>('../../packageManager/npm');
 
 describe('packPackage', () => {

@@ -23,7 +23,7 @@ export type LayerVersionsJson = Record<string, string>[];
  * Publish all the bumped packages to the registry, OR if `packToPath` is specified,
  * pack the packages to that path instead of publishing.
  *
- * This will bump packages on the filesystem first if `options.bump` is true.
+ * This will bump packages on the filesystem (`performBump`) first if `options.bump` is true.
  */
 export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions): Promise<void> {
   const { packToPath, verbose } = options;

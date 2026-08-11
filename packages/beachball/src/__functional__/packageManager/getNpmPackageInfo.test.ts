@@ -1,115 +1,45 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { initMockLogs } from '@microsoft/beachball-test-utilities';
-// import fetch from 'npm-registry-fetch';
 import { env } from '../../env';
-import {
-  _npmShowProperties,
-  _packageContentTypeAccept,
-  getNpmPackageInfo,
-} from '../../packageManager/getNpmPackageInfo';
-import * as npmModule from '../../packageManager/npm';
+import { getNpmPackageInfo } from '../../packageManager/getNpmPackageInfo';
 
 // These tests mostly get known packages from the public npm registry. There's a tiny chance it
 // could fail if the registry is down, but it's not a big concern with low development traffic.
 // (They fail on the ADO release build due to network restrictions.)
+// TODO: use the configured registry from the machine
 // eslint-disable-next-line no-restricted-properties
 const maybeDescribe = env.isBeachballAdoRelease ? describe.skip : describe;
-maybeDescribe('getNpmPackageInfo', () => {
-  const npmSpy = jest.spyOn(npmModule, 'npm');
-  // const fetchJsonSpy = jest.spyOn(fetch, 'json');
+
+maybeDescribe('getNpmPackageInfo (real registry)', () => {
+  const fetchSpy = jest.spyOn(globalThis, 'fetch');
   const logs = initMockLogs();
   const registry = 'https://registry.npmjs.org/';
   /** In the unlikely event that somebody publishes this package, it can be changed to different nonsense */
   const shouldNotExist = 'asdfsdfsadfsafsafdsafsdfsdafsfsdfsdafsadfsdfsdfasdfsaf';
 
   beforeEach(() => {
-    npmSpy.mockClear();
-    // fetchJsonSpy.mockClear();
+    fetchSpy.mockClear();
   });
 
-  it.each<{ desc: string; name: string; knownVersion: string }>([
-    { desc: 'unscoped', name: 'beachball', knownVersion: '2.60.1' },
-    { desc: 'scoped', name: '@lage-run/cli', knownVersion: '0.33.0' },
-  ])('gets info for $desc package from public npm registry', async ({ name, knownVersion }) => {
-    const timeout = 10000;
-    const result = await getNpmPackageInfo(name, { registry, timeout, path: '' });
+  it.each([
+    { desc: 'unscoped version', name: 'beachball', versionOrTag: '2.60.1', expectedVersion: '2.60.1' },
+    { desc: 'unscoped tag', name: 'beachball', versionOrTag: 'latest', expectedVersion: expect.any(String) },
+    { desc: 'scoped version', name: '@lage-run/cli', versionOrTag: '0.33.0', expectedVersion: '0.33.0' },
+  ])('gets info for package with $desc', async ({ name, versionOrTag, expectedVersion }) => {
+    const result = await getNpmPackageInfo(name, versionOrTag, { registry, timeout: 10000, path: '' });
 
-    expect(npmSpy).toHaveBeenCalledTimes(1);
-    // Verify args format
-    expect(npmSpy).toHaveBeenCalledWith(
-      ['show', '--registry', registry, '--json', name, ..._npmShowProperties],
-      expect.objectContaining({ timeout, cwd: '' })
+    expect(result).toEqual({ name, version: expectedVersion });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy.mock.calls[0][0]).toEqual(
+      new URL(`${registry}${encodeURIComponent(name)}/${encodeURIComponent(versionOrTag)}`)
     );
-    // Verify output format (there's no toHaveResolvedWith matcher, so await the return value)
-    expect(await npmSpy.mock.results[0].value).toMatchObject({
-      success: true,
-      // should have JSON of an array of versions
-      stdout: expect.stringMatching(/"versions":\s?\[/),
-    });
-
-    // expect(fetchJsonSpy).toHaveBeenCalledTimes(1);
-    // // Verify args format
-    // expect(fetchJsonSpy).toHaveBeenCalledWith(`/${encodeURIComponent(name)}`, {
-    //   headers: { accept: _packageContentTypeAccept },
-    //   registry,
-    //   timeout,
-    // });
-    // // Verify API return value format (there's no toHaveResolvedWith matcher, so await the return value)
-    // expect(await fetchJsonSpy.mock.results[0].value).toEqual({
-    //   name,
-    //   modified: expect.any(String),
-    //   versions: expect.objectContaining({
-    //     [knownVersion]: expect.objectContaining({ name, version: knownVersion }),
-    //   }),
-    //   'dist-tags': expect.objectContaining({ latest: expect.any(String) }),
-    // });
-
-    // Verify processed result
-    expect(result).toEqual({
-      versions: expect.arrayContaining([knownVersion]),
-      'dist-tags': expect.objectContaining({ latest: expect.any(String) }),
-    });
   });
 
   it('returns undefined for nonexistent package', async () => {
-    const result = await getNpmPackageInfo(shouldNotExist, { registry, verbose: true, path: '' });
+    const result = await getNpmPackageInfo(shouldNotExist, '1.0.0', { registry, verbose: true, path: '' });
     expect(result).toBeUndefined();
-
-    expect(npmSpy).toHaveBeenCalledTimes(1);
-    // npm show failed
-    expect(await npmSpy.mock.results[0].value).toMatchObject({
-      success: false,
-      stderr: expect.stringMatching('404'),
-    });
-    // expect(fetchJsonSpy).toHaveBeenCalledTimes(1);
-    // // The fetch call rejected with a 404 error
-    // await expect(fetchJsonSpy.mock.results[0].value).rejects.toThrow('404');
-
-    // There's a warning with verbose logging
-    expect(logs.mocks.warn).toHaveBeenCalledTimes(1);
-    expect(logs.mocks.warn).toHaveBeenCalledWith(
-      expect.stringMatching(new RegExp(`Failed to get or parse npm info for ${shouldNotExist}:[\\s\\S]*?404`))
-    );
-  });
-
-  it('passes auth args', async () => {
-    // Don't care about the result in this case
-    await getNpmPackageInfo(shouldNotExist, { registry, token: 'fake', path: '' });
-
-    expect(npmSpy).toHaveBeenCalledTimes(1);
-    expect(npmSpy).toHaveBeenCalledWith(
-      ['show', '--registry', registry, '--json', shouldNotExist, ..._npmShowProperties],
-      expect.objectContaining({ env: { 'npm_config_//registry.npmjs.org/:_authToken': 'fake' } })
-    );
-
-    // expect(fetchJsonSpy).toHaveBeenCalledTimes(1);
-    // expect(fetchJsonSpy).toHaveBeenCalledWith('/' + shouldNotExist, {
-    //   registry,
-    //   headers: { accept: _packageContentTypeAccept },
-    //   alwaysAuth: true,
-    //   '//registry.npmjs.org/:_authToken': 'fake',
-    // });
-    // No warning since verbose wasn't enabled
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    await expect(fetchSpy.mock.results[0].value).resolves.toMatchObject({ status: 404 });
     expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
 });

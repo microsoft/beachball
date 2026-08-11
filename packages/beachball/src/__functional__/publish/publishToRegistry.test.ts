@@ -33,7 +33,7 @@ describe('publishToRegistry', () => {
     defaultOptions = {
       ...getDefaultOptions(),
       path: tempRoot,
-      registry: 'http://localhost:99999',
+      registry: 'http://localhost:59999',
       bump: false,
     };
   });
@@ -93,7 +93,7 @@ describe('publishToRegistry', () => {
       [log]   OK!
 
       [log] Publishing - foo@1.0.0 with tag latest
-      [log]   publish command: publish --registry http://localhost:99999 --tag latest --loglevel warn
+      [log]   publish command: publish --registry http://localhost:59999 --tag latest --loglevel warn
       [log]   (cwd: <root>/packages/foo)
 
       [log] Published! - foo@1.0.0"

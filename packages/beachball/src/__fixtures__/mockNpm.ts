@@ -2,23 +2,23 @@ import { afterAll, afterEach, beforeAll, jest } from '@jest/globals';
 import { readJson } from '@microsoft/beachball-test-utilities';
 import fs from 'node:fs';
 import path from 'node:path';
-// import fetch from 'npm-registry-fetch';
 import semver from 'semver';
-import {
-  _npmShowProperties,
-  type NpmPackageVersionsData,
-  type NpmRegistryFetchJson,
-} from '../packageManager/getNpmPackageInfo';
 import { npm } from '../packageManager/npm';
 import type { SpawnOptions, SpawnResult } from '../spawn';
 import type { PackageJson } from '../types/PackageInfo';
 import { mockSpawnSuccess, MockSubprocessError } from './mockSpawnResult';
 
+interface MockNpmPackageData {
+  name: string;
+  versions: Record<string, PackageJson>;
+  'dist-tags': Record<string, string>;
+}
+
 /** Mapping from package name to registry data */
-type MockNpmRegistry = Record<string, NpmRegistryFetchJson>;
+type MockNpmRegistry = Record<string, MockNpmPackageData>;
 
 /** Mapping from package name to partial registry data (easier to specify in tests) */
-type PartialRegistryData = Record<string, Partial<NpmPackageVersionsData>>;
+type PartialRegistryData = Record<string, Partial<{ versions: string[]; 'dist-tags': Record<string, string> }>>;
 
 /**
  * Mock implementation of an npm command.
@@ -37,10 +37,8 @@ export type NpmMock = {
    * Mocked `npm()` function.
    */
   mock: jest.MockedFunction<typeof npm>;
-  // /**
-  //  * Mocked `fetch.json()` function.
-  //  */
-  // mockFetchJson: jest.MockedFunction<typeof fetch.json>;
+  /** Mocked global `fetch()` function. */
+  mockFetch: jest.MockedFunction<typeof fetch>;
   /**
    * Publish this package version to the mock registry (without needing to read from the filesystem
    * or properly structure the data for `setRegistryData`). This will throw on error.
@@ -61,28 +59,15 @@ export type NpmMock = {
   /**
    * Get the mock-published versions and tags for a package.
    */
-  getPublishedVersions: (packageName: string) => NpmPackageVersionsData | undefined;
+  getPublishedVersions: (
+    packageName: string
+  ) => { versions: string[]; 'dist-tags': Record<string, string> } | undefined;
   /**
    * Get the mock-published manifest for a package.
    * @param versionOrTag Specific version or tag (defaults to `latest`)
    */
   getPublishedPackage: (packageName: string, versionOrTag?: string) => PackageJson | undefined;
 };
-
-// /** This sort of follows the non-exported errors from `npm-registry-fetch` */
-// class MockRegistryFetchError extends Error {
-//   statusCode: number;
-//   code: string;
-//   constructor(message: string, code: number) {
-//     super(message);
-//     this.name = 'MockRegistryFetchError';
-//     this.statusCode = code;
-//     this.code = `E${code}`;
-//   }
-// }
-
-/** Generic modified date for packages (not currently used) */
-const modified = '2025-12-13T08:26:17.647Z';
 
 /**
  * Mock the `npm show` and `npm publish` commands for `npm()` calls.
@@ -101,18 +86,11 @@ export function initNpmMock(): NpmMock {
       "npm() is not currently mocked. You must call jest.mock('<relativePathTo>/packageManager/npm') at the top of your test."
     );
   }
-  const fetchMock = { json: jest.fn() };
-  // const fetchMock = fetch as jest.MockedFunction<typeof fetch>;
-  // if (!fetchMock.mock) {
-  //   throw new Error(
-  //     "npm-registry-fetch is not currently mocked. You must call jest.mock('npm-registry-fetch') at the top of your test."
-  //   );
-  // }
+  const fetchMock = jest.spyOn(globalThis, 'fetch') as jest.MockedFunction<typeof fetch>;
 
   const defaultMocks: Record<string, MockNpmCommand> = {
     publish: _mockNpmPublish,
     pack: _mockNpmPack,
-    // TODO remove show after https://github.com/microsoft/beachball/issues/1143
     show: _mockNpmShow,
   };
   let overrideMocks: Record<string, MockNpmCommand> = {};
@@ -127,33 +105,44 @@ export function initNpmMock(): NpmMock {
       return await func(registryData, args, opts);
     });
 
-    // const fetchJson = (url: string): Promise<NpmRegistryFetchJson> => {
-    //   const packageName = decodeURIComponent(url).replace(/^\//, '');
-    //   const pkgData = registryData[packageName];
-    //   if (!pkgData) {
-    //     throw new MockRegistryFetchError(`404 Not Found - GET ${url}`, 404);
-    //   }
-    //   return Promise.resolve(pkgData);
-    // };
-    // // We skipped the fetch.json.stream property since it's not used
-    // fetchMock.json.mockImplementation(fetchJson as unknown as typeof fetch.json);
+    fetchMock.mockImplementation(input => {
+      const url = new URL(input instanceof URL ? input : typeof input === 'string' ? input : input.url);
+
+      for (const [packageName, packageData] of Object.entries(registryData)) {
+        // Check if this package from the registry data matches the requested package
+        const versionOrTag = decodeURIComponent(url.pathname.split(`/${encodeURIComponent(packageName)}/`)[1] || '');
+        if (!versionOrTag) {
+          continue;
+        }
+        const version = packageData['dist-tags'][versionOrTag] || versionOrTag;
+        const manifest = packageData.versions[version];
+        return Promise.resolve(
+          new Response(manifest ? JSON.stringify(manifest) : undefined, {
+            status: manifest ? 200 : 404,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        );
+      }
+
+      return Promise.resolve(new Response(undefined, { status: 404 }));
+    });
   });
 
   afterEach(() => {
     registryData = {};
     overrideMocks = {};
     npmMock.mockClear();
-    fetchMock.json.mockClear();
+    fetchMock.mockClear();
   });
 
   afterAll(() => {
     npmMock.mockRestore();
-    fetchMock.json.mockRestore();
+    fetchMock.mockRestore();
   });
 
   return {
     mock: npmMock,
-    // mockFetchJson: fetchMock.json,
+    mockFetch: fetchMock,
     publishPackage: (packageJson, tag = 'latest') => {
       mockPublishPackage(registryData, packageJson, tag);
     },
@@ -201,7 +190,6 @@ export function _makeRegistryData(data: PartialRegistryData): MockNpmRegistry {
 
     registry[name] = {
       name,
-      modified,
       // Fill in basic package.json data for each version
       versions: Object.fromEntries(versions.map(version => [version, { name, version }])),
       'dist-tags': distTags,
@@ -211,7 +199,6 @@ export function _makeRegistryData(data: PartialRegistryData): MockNpmRegistry {
   return registry;
 }
 
-// TODO remove show after https://github.com/microsoft/beachball/issues/1143
 /** (exported for testing) Mock npm show based on the registry data */
 // eslint-disable-next-line @typescript-eslint/require-await -- required by signature
 export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
@@ -219,7 +206,7 @@ export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
   // as the last argument except for the properties to show.
   let packageSpec = '';
   for (let i = args.length - 1; i >= 0; i--) {
-    if (!_npmShowProperties.includes(args[i])) {
+    if (!['name', 'version'].includes(args[i])) {
       packageSpec = args[i];
       break;
     }
@@ -293,7 +280,7 @@ function mockPublishPackage(registryData: MockNpmRegistry, packageJson: PackageJ
     throw new Error(`[fake] EPUBLISHCONFLICT ${name}@${version} already exists in registry`);
   }
 
-  registryData[name] ??= { name, modified, versions: {}, 'dist-tags': {} };
+  registryData[name] ??= { name, versions: {}, 'dist-tags': {} };
   registryData[name].versions[version] = packageJson;
   registryData[name]['dist-tags'][tag] = version;
 

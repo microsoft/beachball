@@ -181,7 +181,7 @@ describe('runRelease', () => {
   it('warns and succeeds when no layer directories are found', async () => {
     const env = envWithTempPaths({});
 
-    await expect(runRelease({ env, logger })).resolves.toBeUndefined();
+    expect(await runRelease({ env, logger })).toBeUndefined();
     expect(logger.mocks.warn).toHaveBeenCalledTimes(1);
     expect(logger.lines).toContainEqual(expect.stringContaining('No layer directories found'));
     expect(releaseService.createRelease).not.toHaveBeenCalled();

@@ -19,11 +19,11 @@ export async function init(options: Pick<BeachballOptions, 'path' | 'registry'>)
   }
   const { packageJsonPath, ...packageJson } = packageInfo;
 
-  const beachballInfo = await getNpmPackageInfo('beachball', options);
+  const beachballInfo = await getNpmPackageInfo('beachball', 'latest', options);
   if (!beachballInfo) {
     throwInitError('Failed to retrieve beachball version from npm');
   }
-  const beachballVersion = beachballInfo['dist-tags'].latest;
+  const beachballVersion = beachballInfo.version;
 
   packageJson.devDependencies ??= {};
   packageJson.devDependencies.beachball = beachballVersion;
