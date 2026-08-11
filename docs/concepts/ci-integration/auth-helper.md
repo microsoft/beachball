@@ -6,13 +6,19 @@ category: doc
 
 # Auth helper
 
-Create GitHub App installation tokens by signing the GitHub App JWT with an Azure Key Vault key. Based on https://github.com/microsoft/create-github-app-token-via-key-vault.
+The `beachball` package provides a `beachball-auth-helper` CLI which can create GitHub App installation tokens by signing a JWT with the app's private key, which is stored in either Azure Key Vault or a CI secret. With Azure Key Vault, the private key is imported and used only through the `az keyvault key sign` operation.
 
-The GitHub App private key is imported into Key Vault and used only through the Key Vault `sign` operation. The key material does not need to be stored in GitHub Actions secrets, Azure Pipelines variables, or checked into a repository.
-
-The CLI is available by running the bundled `beachball/dist/github-app-token.mjs`, or copying it into a location in your repo.
+This CLI takes inspiration from [`microsoft/create-github-app-token-via-key-vault`](https://github.com/microsoft/create-github-app-token-via-key-vault) and [`actions/create-github-app-token`](https://github.com/actions/create-github-app-token). Either of those might be easier to use if running via GitHub Actions.
 
 ## Prerequisites
+
+### Dependencies
+
+- Node 22+
+- `beachball` npm package
+- For Azure Key Vault signing (`KEY_ID` option), the `az` Azure CLI must be available and already authenticated
+
+### Setup steps
 
 1. Create a GitHub App and install it on the repository that should receive tokens.
 2. Navigate to the app settings page:
@@ -21,51 +27,48 @@ The CLI is available by running the bundled `beachball/dist/github-app-token.mjs
 3. On the app settings page:
    - Generate a private key for the app (the file will be saved locally).
    - Copy the app's **Client ID** value to use as `APP_CLIENT_ID` later. Note that the client ID is not a secret, and is distinct from the numeric "App ID" shown on the same page.
-4. [Set up Azure resources](#azure-resource-setup) (see below):
-   - Import the GitHub App private key into Azure Key Vault as a key that supports the `RS256` sign operation. Use the versionless key ID (`https://my-vault.vault.azure.net/keys/my-github-app-key`, with no trailing version) as `KEY_ID` so signing follows key rotation automatically.
-   - If using Azure Pipelines, create a managed identity (or use one associated with an existing service connection) and give it permission to sign with that Key Vault key.
+4. Choose where to store the private key:
+   - Azure key vault (more secure):
+     - Import the GitHub App private key into Azure Key Vault as a key that supports the `RS256` sign operation. Use the versionless key ID (`https://my-vault.vault.azure.net/keys/my-github-app-key`, with no trailing version) as `KEY_ID` so signing follows key rotation automatically.
+     - If using Azure Pipelines, create a managed identity (or use one associated with an existing service connection) and give it permission to sign with that Key Vault key. See [Azure resource setup](#azure-resource-setup) for instructions.
+   - Store the PEM-encoded private key as a CI secret, and provide it as `PRIVATE_KEY`.
 
-## CLI usage
+## CLI commands
 
-The CLI is a bundled (copy-pastable) Node.js script with no Azure SDK dependency; it signs with the already-authenticated Azure CLI by running `az keyvault key sign`.
+The CLI has two commands:
 
-Copy `beachball/dist/github-app-token.mjs` into the repository or pipeline workspace that needs a token.
+- `create-gha-token` mints an installation token
+- `revoke-gha-token` revokes a previously minted token
 
-The CLI requires Node.js 22 or newer and the Azure CLI (`az`) on `PATH`. The Azure CLI must already be authenticated as an identity with permission to sign with the Key Vault key. There are two ways to provide that identity:
+Every option can be passed as a command-line flag or through the matching environment variable (a flag takes precedence over its environment variable).
+
+### `create-gha-token`
+
+The `create-gha-token` command creates a GitHub App installation token with the given options, and outputs it either to stdout (default) or to an Azure Pipelines secret variable.
+
+When using `KEY_ID`, the Azure CLI (`az`) must be on `PATH` and already authenticated as an identity with permission to sign with the Key Vault key. There are two ways to provide that identity:
 
 - **Local:** run `az login`
 - **Azure Pipelines:** run the CLI inside an `AzureCLI@2` task, authenticated from the Azure Resource Manager service connection named in `azureSubscription`.
 
 If `HTTPS_PROXY` or `HTTP_PROXY` is set, also set `NODE_USE_ENV_PROXY=1`.
 
-### Commands
-
-The CLI has two commands:
-
-- `create` mints an installation token
-- `revoke` revokes a previously minted token
-
-Every option can be passed as a command-line flag or through the matching environment variable (a flag takes precedence over its environment variable).
-
-#### `create` command
-
-The `create` command creates a GitHub App installation token with the given options, and outputs it either to stdout (default) or to an Azure Pipelines secret variable.
-
-None of the `create` options are secrets. All values can also be specified as environment variables, e.g. `APP_CLIENT_ID` for `--app-client-id`.
+All values can also be specified as environment variables, e.g. `APP_CLIENT_ID` for `--app-client-id`. `PRIVATE_KEY` is a secret and should be supplied through a secret environment variable rather than a command-line argument. Escaped newlines (`\\n`) in the private key are converted to actual newlines.
 
 <!-- prettier-ignore -->
 | Flag | Description |
 | ---- | ----------- |
 | `--app-client-id` | GitHub App client ID. See [Prerequisites](#prerequisites) for where to find it in the UI. |
-| `--key-id` | Full Azure Key Vault key ID, for example `https://my-vault.vault.azure.net/keys/my-github-app-key/0123456789abcdef0123456789abcdef`. |
+| `--key-id` | Azure Key Vault key ID. Mutually exclusive with `--private-key`. |
+| `--private-key` | Prefer providing with `PRIVATE_KEY` environment variable: PEM-encoded GitHub App private key. Mutually exclusive with `--key-id`. |
 | `--repository` | Repository to scope the token to, in `owner/repo` format. Used to discover the installation and scope the token. |
 | `--permissions` | (optional) Comma-separated list of `permission:level` entries (see [valid `permissions` properties](https://docs.github.com/en/rest/apps/apps?apiVersion=2026-03-10#create-an-installation-access-token-for-an-app)), such as `contents: read,pull_requests: write`. Omit to inherit installation permissions. |
-| `--secret-variable` | (optional) For Azure Pipelines, save the token as a secret variable with this name instead of writing the plain token to stdout. |
+| `--output-name` | (optional) Save the token without writing it to stdout. In Azure Pipelines, this creates a **secret variable**. In GitHub Actions, this creates a masked **step output** with the given name through `GITHUB_OUTPUT`. |
 | `--github-api-url` | (optional) GitHub REST API URL. Defaults to `https://api.github.com`. |
 
-#### `revoke` command
+### `revoke-gha-token`
 
-Run the `revoke` command to revoke a token by calling `DELETE /installation/token` and exit immediately. This does not require Azure CLI authentication, `--app-client-id`, or `--key-id` — the token authenticates its own revocation. Use it in a pipeline cleanup step with `condition: always()` to revoke tokens even on failure.
+Run the `revoke-gha-token` command to revoke a token by calling `DELETE /installation/token` and exit immediately. The token authenticates its own revocation. Use it in a pipeline cleanup step with `condition: always()` to revoke tokens even on failure.
 
 <!-- prettier-ignore -->
 | Flag | Variable | Description |
@@ -73,7 +76,38 @@ Run the `revoke` command to revoke a token by calling `DELETE /installation/toke
 | `--token` | `TOKEN` | Installation token to revoke. Recommended to specify as an environment variable. |
 | `--github-api-url` | `GITHUB_API_URL` | (optional) GitHub REST API URL. Defaults to `https://api.github.com`. |
 
-### Azure Pipelines usage
+## Usage
+
+### Shell
+
+Assuming you're logged into Azure locally with `az login`:
+
+```bash
+# create
+GH_TOKEN="$(
+  yarn beachball-auth-helper create-gha \
+    --app-client-id "$APP_CLIENT_ID" \
+    --key-id "$KEY_ID" \
+    --repository "octo-org/example-repo" \
+    --permissions "contents:write"
+)"
+
+# revoke
+TOKEN="$GH_TOKEN" yarn beachball-auth-helper revoke-gha
+```
+
+To sign directly with the app private key instead of Azure Key Vault:
+
+```bash
+GH_TOKEN="$(
+  PRIVATE_KEY="$APP_PRIVATE_KEY" yarn beachball-auth-helper create-gha \
+    --app-client-id "$APP_CLIENT_ID" \
+    --repository "octo-org/example-repo" \
+    --permissions "contents:write"
+)"
+```
+
+### Azure Pipelines
 
 1. Create an [Azure Resource Manager service connection](https://learn.microsoft.com/azure/devops/pipelines/library/connect-to-azure) in your Azure DevOps project.
 2. [Grant that service connection's identity permission](#azure-resource-setup) to sign with the Key Vault key — for example the "Key Vault Crypto User" role (RBAC) or a key `sign` permission (access policies) on the vault.
@@ -90,10 +124,10 @@ steps:
       scriptLocation: inlineScript
       # can use any mix of options and env
       inlineScript: |
-        node github-app-token.mjs create \
+        yarn beachball-auth-helper create-gha \
           --repository "octo-org/example-repo" \
           --permissions "contents:read,issues:write" \
-          --secret-variable MY_TOKEN
+          --output-name MY_TOKEN
     env:
       APP_CLIENT_ID: $(MY_GITHUB_APP_CLIENT_ID)
       KEY_ID: $(MY_GITHUB_APP_KEY_ID)
@@ -102,25 +136,13 @@ steps:
   - script: node scripts/use-token.js
     env:
       GITHUB_TOKEN: $(MY_TOKEN)
+
+  # TODO add revoke step that always runs as cleanup
 ```
 
-### Shell usage
+### GitHub Actions
 
-Assuming you're logged into Azure locally with `az login`:
-
-```bash
-# create
-GH_TOKEN="$(
-  node github-app-token.mjs create \
-    --app-client-id "$APP_CLIENT_ID" \
-    --key-id "$KEY_ID" \
-    --repository "octo-org/example-repo" \
-    --permissions "contents:write"
-)"
-
-# revoke
-TOKEN="$GH_TOKEN" node github-app-token.mjs revoke
-```
+<!-- TODO -->
 
 ## Azure resource setup
 

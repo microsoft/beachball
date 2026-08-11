@@ -1,9 +1,13 @@
 import { Command, InvalidArgumentError, Option, type OutputConfiguration } from 'commander';
-import { createAppTokenHelper } from './createAppTokenHelper';
-import type { AppTokenHelperOptions, GetInstallationTokenOptions, RevokeAppTokenOptions } from './types';
-import { parsePermissions } from './validationHelpers';
+import fs from 'node:fs';
+import { BeachballError } from '../types/BeachballError';
+import { createAppToken } from './createAppToken';
 import { defaultGitHubApiUrl } from './requestHelpers';
 import { revokeAppToken } from './revokeAppToken';
+import type { AppPrivateKeyInfo, CreateAppTokenOptions, RevokeAppTokenOptions } from './types';
+import { parsePermissions } from './validationHelpers';
+
+const authHelperDocsUrl = 'https://microsoft.github.io/beachball/concepts/ci-integration/auth-helper';
 
 /** Injectable dependencies so the CLI can be driven and observed in tests. */
 export interface CliContext {
@@ -16,26 +20,43 @@ export interface CliContext {
 }
 
 /** Options parsed for the default `token` command. */
-interface TokenCliOptions extends AppTokenHelperOptions, GetInstallationTokenOptions {
-  secretVariable?: string;
-}
+type TokenCliOptions = Omit<CreateAppTokenOptions, 'keyInfo'> & AppPrivateKeyInfo & { outputName?: string };
 
-async function runCreateToken(options: TokenCliOptions): Promise<void> {
-  const { secretVariable } = options;
+async function runCreateToken(options: TokenCliOptions, command: Command, env: NodeJS.ProcessEnv): Promise<void> {
+  const { outputName, ...otherOptions } = options;
 
-  const getInstallationToken = createAppTokenHelper({
-    appClientId: options.appClientId,
-    keyId: options.keyId,
-    githubApiUrl: options.githubApiUrl,
-  });
+  let outputCiPlatform: 'azure-pipelines' | 'github-actions' | undefined;
+  let githubOutput: string | undefined;
+  if (outputName) {
+    if (env.GITHUB_ACTIONS) {
+      githubOutput = env.GITHUB_OUTPUT;
+      if (!githubOutput) {
+        throw new BeachballError('GITHUB_OUTPUT is required to set a step output in GitHub Actions');
+      }
+      outputCiPlatform = 'github-actions';
+    } else if (env.TF_BUILD) {
+      outputCiPlatform = 'azure-pipelines';
+    } else {
+      command.error('error: must be run in a CI environment (Azure Pipelines or GitHub Actions)');
+    }
+  }
 
-  const { token } = await getInstallationToken({
-    repository: options.repository,
-    permissions: options.permissions,
-  });
+  let token: string;
+  if ('privateKey' in otherOptions) {
+    const { privateKey, ...tokenOptions } = otherOptions;
+    ({ token } = await createAppToken({ ...tokenOptions, keyInfo: { privateKey } }));
+  } else if ('keyId' in otherOptions) {
+    const { keyId, ...tokenOptions } = otherOptions;
+    ({ token } = await createAppToken({ ...tokenOptions, keyInfo: { keyId } }));
+  } else {
+    command.error("error: one of '--key-id' or '--private-key' must be specified");
+  }
 
-  if (secretVariable) {
-    console.log(`##vso[task.setvariable variable=${secretVariable};isSecret=true]${token}`);
+  if (outputCiPlatform === 'github-actions' && githubOutput) {
+    console.log(`::add-mask::${token}`);
+    fs.appendFileSync(githubOutput, `${outputName}=${token}\n`, 'utf8');
+  } else if (outputCiPlatform === 'azure-pipelines') {
+    console.log(`##vso[task.setvariable variable=${outputName};isSecret=true]${token}`);
   } else {
     console.log(token);
   }
@@ -44,8 +65,12 @@ async function runCreateToken(options: TokenCliOptions): Promise<void> {
 /** Build the commander program with the default `create` command and the `revoke` subcommand. */
 export function buildProgram(context: CliContext): Command {
   const program = new Command()
-    .name('github-app-token')
-    .description('Create or revoke GitHub App installation tokens signed with an Azure Key Vault key.');
+    .name('beachball-auth-helper')
+    .description('Create or revoke repository-scoped GitHub App installation tokens.')
+    .addHelpText(
+      'after',
+      `\nTokens expire after one hour. Create them immediately before use and revoke them when finished.\nFull setup and CI examples: ${authHelperDocsUrl}\n`
+    );
   context.exitOverride && program.exitOverride();
   context.outputOptions && program.configureOutput(context.outputOptions);
 
@@ -54,9 +79,9 @@ export function buildProgram(context: CliContext): Command {
       .env('GITHUB_API_URL')
       .default(defaultGitHubApiUrl);
 
-  program
-    .command('create', { isDefault: true })
-    .description('Create a GitHub App installation token')
+  const createCommand = program
+    .command('create-gha-token', { isDefault: true })
+    .description('Create a repository-scoped GitHub App installation token')
     .addOption(
       new Option('--app-client-id <id>', 'GitHub App client ID (not a secret)')
         .env('APP_CLIENT_ID')
@@ -65,7 +90,15 @@ export function buildProgram(context: CliContext): Command {
     .addOption(
       new Option('--key-id <keyId>', 'Azure Key Vault key ID used to sign the app JWT')
         .env('KEY_ID')
-        .makeOptionMandatory()
+        .conflicts('privateKey')
+    )
+    .addOption(
+      new Option(
+        '--private-key <pem>',
+        'Should be passed as PRIVATE_KEY: PEM-encoded GitHub App private key (escaped newlines are accepted)'
+      )
+        .env('PRIVATE_KEY')
+        .conflicts('keyId')
     )
     .addOption(
       new Option('--repository <owner/repo>', 'Repository to scope the token to, in owner/repo format')
@@ -89,10 +122,10 @@ export function buildProgram(context: CliContext): Command {
     )
     .addOption(
       new Option(
-        '--secret-variable <NAME>',
-        'For Azure Pipelines: save the token as a secret variable with this name (instead of logging the plain token)'
+        '--output-name <NAME>',
+        'Save the token as an Azure Pipelines secret variable or masked GitHub Actions step output'
       )
-        .env('SECRET_VARIABLE')
+        .env('OUTPUT_NAME')
         .argParser(value => {
           if (!/^[A-Za-z_]\w*$/.test(value)) {
             throw new InvalidArgumentError('Must be an environment-style variable name.');
@@ -101,12 +134,34 @@ export function buildProgram(context: CliContext): Command {
         })
     )
     .addOption(githubApiUrlOption())
-    .action(runCreateToken);
+    .action((options: TokenCliOptions, command: Command) =>
+      runCreateToken(options, command, context.env ?? process.env)
+    );
+
+  createCommand.addHelpText(
+    'after',
+    `
+Authentication:
+  Provide exactly one signing source: --key-id/KEY_ID for Azure Key Vault,
+  or PRIVATE_KEY for a PEM-encoded GitHub App private key.
+
+Output:
+  By default, the token is written to stdout. With --output-name, it becomes
+  an Azure Pipelines secret variable or a masked GitHub Actions step output.
+
+All options can be provided as environment variables. Full examples:
+${authHelperDocsUrl}
+`
+  );
 
   program
-    .command('revoke')
+    .command('revoke-gha-token')
     .description('Revoke a GitHub App installation token')
-    .addOption(new Option('--token <token>', 'Installation token to revoke').env('TOKEN').makeOptionMandatory())
+    .addOption(
+      new Option('--token <token>', 'Should be passed as TOKEN: Installation token to revoke')
+        .env('TOKEN')
+        .makeOptionMandatory()
+    )
     .addOption(githubApiUrlOption())
     .action(async (options: RevokeAppTokenOptions) => {
       await revokeAppToken(options);

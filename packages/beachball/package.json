@@ -12,19 +12,20 @@
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "bin": "./bin/beachball.js",
+  "bin": {
+    "beachball": "./bin/beachball.js",
+    "beachball-auth-helper": "./bin/beachball-auth-helper.js"
+  },
   "engines": {
     "node": ">=22.18.0"
   },
   "files": [
     "bin",
-    "dist",
     "lib/!(__*)",
     "lib/!(__*)/**/*"
   ],
   "scripts": {
     "build": "yarn run -T tsc --pretty",
-    "bundle": "node ../../scripts/bundleNode.ts src/githubAuth/appTokenBin.ts github-app-token",
     "depcheck": "yarn run -T depcheck .",
     "lint": "yarn run -T eslint --color --max-warnings=0 src",
     "start": "yarn run -T tsc -w --preserveWatchOutput",

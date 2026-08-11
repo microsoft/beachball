@@ -3763,6 +3763,7 @@ __metadata:
     workspace-tools: "catalog:prod"
   bin:
     beachball: ./bin/beachball.js
+    beachball-auth-helper: ./bin/beachball-auth-helper.js
   languageName: unknown
   linkType: soft
 

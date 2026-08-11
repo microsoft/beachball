@@ -1,16 +1,19 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import * as authModule from '../../githubAuth/createAppTokenHelper';
-import * as revokeModule from '../../githubAuth/revokeAppToken';
-import type { AppTokenHelper, InstallationToken } from '../../githubAuth/types';
-import { runAppTokenCli, type CliContext } from '../../githubAuth/appTokenCli';
 import { CommanderError } from 'commander';
+import fs from 'node:fs';
+import { runAppTokenCli, type CliContext } from '../../githubAuth/appTokenCli';
+import * as authModule from '../../githubAuth/createAppToken';
 import { defaultGitHubApiUrl } from '../../githubAuth/requestHelpers';
+import * as revokeModule from '../../githubAuth/revokeAppToken';
+import type { InstallationToken } from '../../githubAuth/types';
 
-jest.mock('../../githubAuth/createAppTokenHelper');
+jest.mock('../../githubAuth/createAppToken');
 jest.mock('../../githubAuth/revokeAppToken');
+jest.mock('node:fs');
 
-const { createAppTokenHelper } = authModule as jest.Mocked<typeof authModule>;
-const { revokeAppToken } = revokeModule as jest.Mocked<typeof revokeModule>;
+const { createAppToken } = jest.mocked(authModule);
+const { revokeAppToken } = jest.mocked(revokeModule);
+const mockAppendFileSync = jest.mocked(fs.appendFileSync);
 
 describe('appTokenCli', () => {
   // This can't use initMockLogs since it aggregates writeOut/writeErr and console logs
@@ -38,38 +41,32 @@ describe('appTokenCli', () => {
 
   describe('token command', () => {
     const mockToken = 'ghs_test_token';
-    const mockGetInstallationToken = jest.fn<AppTokenHelper>();
     const installationToken: InstallationToken = {
       token: mockToken,
       expiresAt: '2099-01-01T00:00:00Z',
       installationId: 123,
       appSlug: 'test-app',
-      repositories: ['repo'],
       permissions: {},
     };
     const clientIdArg = ['--app-client-id', 'Iv1.client'];
     const keyIdArg = ['--key-id', 'key-id'];
     const repoArg = ['--repository', 'org/repo'];
-    const requiredArgs = ['create', ...clientIdArg, ...keyIdArg, ...repoArg] as const;
+    const requiredArgs = ['create-gha-token', ...clientIdArg, ...keyIdArg, ...repoArg] as const;
+    const defaults = {
+      appClientId: 'Iv1.client',
+      githubApiUrl: defaultGitHubApiUrl,
+      repository: { owner: 'org', name: 'repo' },
+    };
 
     beforeEach(() => {
-      mockGetInstallationToken.mockResolvedValue(installationToken);
-      createAppTokenHelper.mockReturnValue(mockGetInstallationToken);
+      createAppToken.mockResolvedValue(installationToken);
     });
 
     it('creates a token and writes it to stdout by default', async () => {
       const context = getContext([...requiredArgs]);
       await runAppTokenCli(context);
 
-      expect(createAppTokenHelper).toHaveBeenCalledWith({
-        appClientId: 'Iv1.client',
-        keyId: 'key-id',
-        githubApiUrl: defaultGitHubApiUrl,
-      });
-      expect(mockGetInstallationToken).toHaveBeenCalledWith({
-        repository: { owner: 'org', name: 'repo' },
-        permissions: undefined,
-      });
+      expect(createAppToken).toHaveBeenCalledWith({ ...defaults, keyInfo: { keyId: 'key-id' } });
       expect(out).toEqual([mockToken]);
     });
 
@@ -82,11 +79,23 @@ describe('appTokenCli', () => {
       });
       await runAppTokenCli(context);
 
-      expect(createAppTokenHelper).toHaveBeenCalledWith({
-        appClientId: 'Iv1.client',
-        keyId: 'key-id',
+      expect(createAppToken).toHaveBeenCalledWith({
+        ...defaults,
+        keyInfo: { keyId: 'key-id' },
         githubApiUrl: 'https://ghe.example.com/api/v3',
       });
+      expect(out).toEqual([mockToken]);
+    });
+
+    it('creates a token using a private key from an environment variable', async () => {
+      const context = getContext([], {
+        APP_CLIENT_ID: 'Iv1.client',
+        PRIVATE_KEY: 'private-key',
+        REPOSITORY: 'org/repo',
+      });
+      await runAppTokenCli(context);
+
+      expect(createAppToken).toHaveBeenCalledWith({ ...defaults, keyInfo: { privateKey: 'private-key' } });
       expect(out).toEqual([mockToken]);
     });
 
@@ -94,10 +103,9 @@ describe('appTokenCli', () => {
       const context = getContext([...requiredArgs, '--permissions', 'contents:read  ,foo:write,bar:admin']);
       await runAppTokenCli(context);
 
-      expect(mockGetInstallationToken).toHaveBeenCalledWith({
-        repository: { owner: 'org', name: 'repo' },
-        permissions: { contents: 'read', foo: 'write', bar: 'admin' },
-      });
+      expect(createAppToken).toHaveBeenCalledWith(
+        expect.objectContaining({ permissions: { contents: 'read', foo: 'write', bar: 'admin' } })
+      );
     });
 
     it('rejects invalid permissions', async () => {
@@ -112,10 +120,9 @@ describe('appTokenCli', () => {
       const context = getContext([...requiredArgs, '--repository', 'my-org/my-repo']);
       await runAppTokenCli(context);
 
-      expect(mockGetInstallationToken).toHaveBeenCalledWith({
-        repository: { owner: 'my-org', name: 'my-repo' },
-        permissions: undefined,
-      });
+      expect(createAppToken).toHaveBeenCalledWith(
+        expect.objectContaining({ repository: { owner: 'my-org', name: 'my-repo' } })
+      );
     });
 
     it.each<[string, string]>([
@@ -132,25 +139,41 @@ describe('appTokenCli', () => {
     });
 
     it('rejects invalid variable name', async () => {
-      const context = getContext([...requiredArgs, '--secret-variable', 'bad name!']);
+      const context = getContext([...requiredArgs, '--output-name', 'bad name!']);
       await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
       expect(err[0]).toMatchInlineSnapshot(
-        `"error: option '--secret-variable <NAME>' argument 'bad name!' is invalid. Must be an environment-style variable name."`
+        `"error: option '--output-name <NAME>' argument 'bad name!' is invalid. Must be an environment-style variable name."`
       );
     });
 
-    it('writes an azure pipelines variable command with --secret-variable', async () => {
-      const context = getContext([...requiredArgs, '--secret-variable', 'MY_TOKEN']);
+    it('writes an azure pipelines variable command with --output-name', async () => {
+      const context = getContext([...requiredArgs, '--output-name', 'MY_TOKEN'], { TF_BUILD: 'true' });
       await runAppTokenCli(context);
       expect(out).toEqual([`##vso[task.setvariable variable=MY_TOKEN;isSecret=true]${mockToken}`]);
     });
 
-    it('rejects an invalid --secret-variable name', async () => {
-      const context = getContext([...requiredArgs, '--secret-variable', 'bad name!']);
+    it('sets a masked GitHub Actions step output with --output-name', async () => {
+      const context = getContext([...requiredArgs, '--output-name', 'MY_TOKEN'], {
+        GITHUB_ACTIONS: 'true',
+        GITHUB_OUTPUT: '/github/output',
+      });
+      await runAppTokenCli(context);
+
+      expect(out).toEqual([`::add-mask::${mockToken}`]);
+      expect(mockAppendFileSync).toHaveBeenCalledWith('/github/output', `MY_TOKEN=${mockToken}\n`, 'utf8');
+    });
+
+    it('requires GITHUB_OUTPUT to set a GitHub Actions step output', async () => {
+      const context = getContext([...requiredArgs, '--output-name', 'MY_TOKEN'], { GITHUB_ACTIONS: 'true' });
+      await expect(runAppTokenCli(context)).rejects.toThrow(/GITHUB_OUTPUT is required/);
+    });
+
+    it('rejects an invalid --output-name', async () => {
+      const context = getContext([...requiredArgs, '--output-name', 'bad name!']);
       await expect(runAppTokenCli(context)).rejects.toThrow(/environment-style variable name/);
     });
 
-    it.each(['--app-client-id', '--key-id', '--repository'])('requires %s', async missing => {
+    it.each(['--app-client-id', '--repository'])('requires %s', async missing => {
       const args = [...requiredArgs];
       const index = args.indexOf(missing);
       args.splice(index, 2);
@@ -158,6 +181,18 @@ describe('appTokenCli', () => {
       const context = getContext(args);
       await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
       expect(err[0]).toMatch(new RegExp(`error: required option '${missing}.*?' not specified`));
+    });
+
+    it('requires a key ID or private key', async () => {
+      const context = getContext(['create-gha-token', ...clientIdArg, ...repoArg]);
+      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
+      expect(err[0]).toEqual("error: one of '--key-id' or '--private-key' must be specified");
+    });
+
+    it('rejects a key ID combined with a private key', async () => {
+      const context = getContext([...requiredArgs, '--private-key', 'private-key']);
+      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
+      expect(err[0]).toMatch(/option '--key-id <keyId>' cannot be used with option '--private-key <pem>'/);
     });
 
     it('rejects unknown options', async () => {
@@ -169,18 +204,18 @@ describe('appTokenCli', () => {
 
   describe('revoke command', () => {
     it('revokes a token passed as a flag', async () => {
-      const context = getContext(['revoke', '--token', 'ghs_revoke_me']);
+      const context = getContext(['revoke-gha-token', '--token', 'ghs_revoke_me']);
       await runAppTokenCli(context);
 
       expect(revokeAppToken).toHaveBeenCalledWith({
         githubApiUrl: defaultGitHubApiUrl,
         token: 'ghs_revoke_me',
       });
-      expect(createAppTokenHelper).not.toHaveBeenCalled();
+      expect(createAppToken).not.toHaveBeenCalled();
     });
 
     it('reads the token from TOKEN', async () => {
-      const context = getContext(['revoke'], { TOKEN: 'ghs_from_env' });
+      const context = getContext(['revoke-gha-token'], { TOKEN: 'ghs_from_env' });
       await runAppTokenCli(context);
 
       expect(revokeAppToken).toHaveBeenCalledWith({
@@ -191,7 +226,7 @@ describe('appTokenCli', () => {
 
     it('honors --github-api-url', async () => {
       const context = getContext([
-        'revoke',
+        'revoke-gha-token',
         '--token',
         'ghs_revoke_me',
         '--github-api-url',
@@ -206,7 +241,7 @@ describe('appTokenCli', () => {
     });
 
     it('requires a token', async () => {
-      const context = getContext(['revoke']);
+      const context = getContext(['revoke-gha-token']);
       await expect(runAppTokenCli(context)).rejects.toThrow(/--token/);
     });
   });
