@@ -133,7 +133,15 @@ describe('_mockNpmShow', () => {
   it("errors if package doesn't exist", async () => {
     const emptyData = _makeRegistryData({});
     const result = await _mockNpmShow(emptyData, ['foo'], { cwd: '' });
-    expect(result).toEqual(new MockSubprocessError({ output: '[fake] code E404 - foo - not found' }));
+    expect(JSON.parse(result.stdout)).toEqual({
+      error: {
+        code: 'E404',
+        summary: 'No match found for version latest',
+        detail:
+          "'foo@latest' is not in this registry.\n\n" +
+          'Note that you can also install from a\ntarball, folder, http url, or git url.',
+      },
+    });
   });
 
   it('returns requested version plus dist-tags and version list', async () => {
@@ -168,7 +176,15 @@ describe('_mockNpmShow', () => {
 
   it("errors if requested version doesn't exist", async () => {
     const result = await _mockNpmShow(data, ['foo@2.0.0'], { cwd: '' });
-    expect(result).toEqual(new MockSubprocessError({ output: '[fake] code E404 - foo@2.0.0 - not found' }));
+    expect(JSON.parse(result.stdout)).toEqual({
+      error: {
+        code: 'E404',
+        summary: 'No match found for version 2.0.0',
+        detail:
+          "'foo@2.0.0' is not in this registry.\n\n" +
+          'Note that you can also install from a\ntarball, folder, http url, or git url.',
+      },
+    });
   });
 
   // support for this could be added later

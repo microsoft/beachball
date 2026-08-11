@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import { initNpmMock } from '../../__fixtures__/mockNpm';
+import { initNpmMock, mockNpmShowError } from '../../__fixtures__/mockNpm';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { getOptions } from '../../options/getOptions';
 import { _packageContentTypeAccept } from '../../packageManager/getNpmPackageInfo';
@@ -81,6 +81,22 @@ describe('hasPackageVersions', () => {
     expect(npmMock.mock).toHaveBeenCalledWith(
       ['show', '--json', 'foo@1.0.0', 'name', 'version'],
       expect.objectContaining({ cwd: '' })
+    );
+  });
+
+  it('returns false when npm CLI reports E404', async () => {
+    expect(await hasPackageVersions({ foo: '1.0.0' }, { ...npmOptions, registry: undefined })).toEqual({ foo: false });
+  });
+
+  it.each([401, 403])('throws when npm CLI reports E%s', async status => {
+    npmMock.setCommandOverride('show', () =>
+      Promise.resolve(
+        // this is not a realistic message
+        mockNpmShowError('foo', '1.0.0', { code: `E${status}`, summary: `Registry error`, detail: `Registry error` })
+      )
+    );
+    await expect(hasPackageVersions({ foo: '1.0.0' }, { ...npmOptions, registry: undefined })).rejects.toThrow(
+      `Getting info about "foo@1.0.0" failed: E${status} Registry error`
     );
   });
 });

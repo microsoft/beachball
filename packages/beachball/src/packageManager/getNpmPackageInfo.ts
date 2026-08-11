@@ -9,6 +9,15 @@ interface NpmPackageInfo {
   version: string;
 }
 
+/** Error output of `npm show --json` */
+export interface NpmShowJsonError {
+  error?: {
+    code?: `E${number}`;
+    summary?: string;
+    detail?: string;
+  };
+}
+
 const registryReadRetries = 3;
 
 /**
@@ -127,8 +136,8 @@ async function fetchPackage(
 }
 
 /**
- * Use `npm show` to get info about a package.
- *
+ * Use `npm show --json` to get info about an exact package version or dist-tag.
+ * Returns undefined for E404 and throws for invalid output or other failures.
  */
 async function npmShow(
   packageName: string,
@@ -166,7 +175,7 @@ async function npmShow(
   //     "detail": "'beachball@adslkfjsdf' is not in this registry.\n\nNote that you can also install from a\ntarball, folder, http url, or git url."
   //   }
   // }
-  const maybeError = parsed as { error?: { code?: `E${number}`; summary?: string; detail?: string } };
+  const maybeError = parsed as NpmShowJsonError;
   if (maybeError.error?.code && /^E\d+$/.test(maybeError.error.code)) {
     const { code, summary } = maybeError.error;
     if (code === 'E404') {

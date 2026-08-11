@@ -20,6 +20,7 @@ const config = {
   // TODO respect this for canary
   tag: isCanary ? 'next' : 'latest',
   canaryName: 'alpha',
+  generateChangelog: isCanary ? false : 'md',
 
   // Disable fetching to ensure split publish/bump uses the same commits
   fetch: false,

@@ -3,6 +3,7 @@ import { readJson } from '@microsoft/beachball-test-utilities';
 import fs from 'node:fs';
 import path from 'node:path';
 import semver from 'semver';
+import type { NpmShowJsonError } from '../packageManager/getNpmPackageInfo';
 import { npm } from '../packageManager/npm';
 import type { SpawnOptions, SpawnResult } from '../spawn';
 import type { PackageJson } from '../types/PackageInfo';
@@ -219,7 +220,7 @@ export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
   const pkgData = registryData[name];
 
   if (!pkgData) {
-    return new MockSubprocessError({ output: `[fake] code E404 - ${name} - not found` });
+    return mockNpmShowError(name, version);
   }
 
   let finalVersion: string | undefined;
@@ -236,9 +237,7 @@ export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
 
   const versionData = finalVersion ? pkgData.versions[finalVersion] : undefined;
   if (!versionData) {
-    // Some versions for this package exist, but the specified version or tag doesn't
-    // (note that "E404" matches the actual npm output, but the rest of the message is different)
-    return new MockSubprocessError({ output: `[fake] code E404 - ${name}@${version} - not found` });
+    return mockNpmShowError(name, version);
   }
 
   const stdout = JSON.stringify({
@@ -248,6 +247,26 @@ export const _mockNpmShow: MockNpmCommand = async (registryData, args) => {
   });
   return mockSpawnSuccess({ output: stdout });
 };
+
+export function mockNpmShowError(
+  packageName: string,
+  version: string,
+  errorOverride?: NpmShowJsonError['error']
+): MockSubprocessError {
+  const packageSpec = `${packageName}@${version}`;
+  const stdout = JSON.stringify({
+    error: errorOverride || {
+      code: 'E404',
+      summary: `No match found for version ${version}`,
+      detail:
+        `'${packageSpec}' is not in this registry.\n\n` +
+        'Note that you can also install from a\ntarball, folder, http url, or git url.',
+    },
+  } satisfies NpmShowJsonError);
+  const result = new MockSubprocessError({ output: stdout });
+  result.stdout = stdout;
+  return result;
+}
 
 /** (exported for testing) Mock npm publish to the registry data */
 // eslint-disable-next-line @typescript-eslint/require-await -- async required by signature
