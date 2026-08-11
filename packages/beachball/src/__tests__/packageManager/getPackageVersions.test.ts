@@ -163,12 +163,12 @@ describe('getPackageTagVersions', () => {
     expect(versions).toEqual({ foo: '1.0.0' });
   });
 
-  it('does not fetch packages with empty tag options', async () => {
+  it('defaults to latest if package has empty tag options', async () => {
     const { options, packages } = await getOptionsAndPackages({
       packageOptions: { tag: '', defaultNpmTag: '' },
     });
 
     expect(await getPackageTagVersions(packages, options)).toEqual({});
-    expect(npmMock.mockFetch).not.toHaveBeenCalled();
+    expect((npmMock.mockFetch.mock.calls[0][0] as URL).href).toBe('https://fake/foo/latest');
   });
 });
