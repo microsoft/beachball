@@ -69,6 +69,21 @@ describe('updateRelatedChangeType', () => {
     return params.bumpInfo;
   }
 
+  it.each([
+    { type: 'patch' as const, expected: { dep: 'patch', consumer: 'patch' } },
+    { type: 'none' as const, expected: { dep: 'none' } },
+  ])('defaults omitted dependentChangeType for a $type change', ({ type, expected }) => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'dep', type }],
+      packages: {
+        dep: {},
+        consumer: { dependencies: { dep: '1.0.0' } },
+      },
+    });
+
+    expect(bumpInfo.calculatedChangeTypes).toEqual(expected);
+  });
+
   it('should bump dependent packages according to the dependentChangeTypes', () => {
     const bumpInfo = callUpdateRelatedChangeType({
       changes: [{ packageName: 'foo', type: 'patch', dependentChangeType: 'minor' }],
