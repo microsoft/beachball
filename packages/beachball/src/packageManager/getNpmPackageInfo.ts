@@ -32,7 +32,9 @@ export const _packageContentTypeAccept = 'application/vnd.npm.install-v1+json; q
  * Get basic manifest data for an exact package version or dist-tag.
  *
  * If `options.registry` is set, it will fetch directly from the registry.
- * Otherwise it uses `npm show`.
+ * Otherwise it uses `npm show`. A direct fetch which fails authentication also falls back to
+ * `npm show` if no explicit token was provided, allowing npm to use credentials from npmrc.
+ *
  * (TODO: always use the registry once npmrc reading is supported, unless there's a need to allow
  * using the CLI for certificate auth or something)
  *
@@ -49,7 +51,18 @@ export async function getNpmPackageInfo(
   try {
     let data: NpmPackageInfo | undefined;
     if (options.registry && options.authType !== 'password') {
-      data = await fetchPackage(packageName, versionOrTag, { ...options, registry: options.registry });
+      try {
+        data = await fetchPackage(packageName, versionOrTag, { ...options, registry: options.registry });
+      } catch (err) {
+        if (!options.token && err instanceof NpmRegistryError && (err.status === 401 || err.status === 403)) {
+          // npm can use credentials from npmrc which aren't currently available to the direct fetch.
+          // TODO: ideally it should record that this issue has happened once and avoid future fetches,
+          // but this code path is likely to be removed once npmrc reading is supported.
+          data = await npmShow(packageName, versionOrTag, options);
+        } else {
+          throw err;
+        }
+      }
     } else {
       data = await npmShow(packageName, versionOrTag, options);
     }

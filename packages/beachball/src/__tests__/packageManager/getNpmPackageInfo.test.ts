@@ -92,13 +92,26 @@ describe('getNpmPackageInfo (mocked)', () => {
     expect(npmMock.mockFetch).toHaveBeenCalledTimes(1);
   });
 
-  it.each([401, 403])('throws without retrying auth HTTP status %s', async status => {
+  it.each([401, 403])('falls back to npm CLI for auth HTTP status %s without an explicit token', async status => {
+    npmMock.setRegistryData({ foo: { versions: ['1.0.0'] } });
+    npmMock.mockFetch.mockResolvedValueOnce(new Response(undefined, { status }));
+
+    expect(await getNpmPackageInfo('foo', '1.0.0', options)).toEqual({ name: 'foo', version: '1.0.0' });
+    expect(npmMock.mockFetch).toHaveBeenCalledTimes(1);
+    expect(npmMock.mock).toHaveBeenCalledWith(
+      ['show', '--registry', registry, '--json', 'foo@1.0.0', 'name', 'version'],
+      expect.objectContaining({ cwd: '' })
+    );
+  });
+
+  it.each([401, 403])('throws without fallback for auth HTTP status %s with an explicit token', async status => {
     npmMock.mockFetch.mockResolvedValue(new Response(undefined, { status }));
 
-    await expect(getNpmPackageInfo('foo', '1.0.0', options)).rejects.toThrow(
+    await expect(getNpmPackageInfo('foo', '1.0.0', { ...options, token: 'fake' })).rejects.toThrow(
       `Getting info about "foo@1.0.0" failed: ${status}`
     );
     expect(npmMock.mockFetch).toHaveBeenCalledTimes(1);
+    expect(npmMock.mock).not.toHaveBeenCalled();
   });
 
   it('does not retry an invalid successful response', async () => {
