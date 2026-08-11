@@ -68,7 +68,7 @@ To change the `disallowedChangeTypes` for package `foo`, you could add the follo
 
 ## Options
 
-For the latest full list of supported options, see `RepoOptions` [in this file](https://github.com/microsoft/beachball/blob/main/packages/beachball/src/types/BeachballOptions.ts).
+**For the latest full list of supported options, see the [`RepoOptions` source](https://github.com/microsoft/beachball/blob/main/packages/beachball/src/types/BeachballOptions.ts).**
 
 "Applies to" indicates where the settings can be specified: repo-level config or package-level config.
 
@@ -104,7 +104,7 @@ For the latest full list of supported options, see `RepoOptions` [in this file](
 | `retries` | `number` | `3` | repo | Number of retries for a package publish before failing |
 | `scope` | `string[]` | | repo | Only consider package paths matching these patterns ([see details](#scoping)) |
 | `shouldPublish` | `false \| undefined` | | package | In most cases you should use `private: true` in `package.json` instead. This option skips the `npm publish` (or `pack`) step for this package, but it's still bumped, tagged, and gets changelog entries. Does not work to force publishing. |
-| `tag` | `string` | `'latest'` | repo, package | `dist-tag` for npm when published |
+| `tag` | `string` | see notes | repo, package | `dist-tag` for npm when published. Defaults to `defaultNpmTag` or `'latest'` (npm does NOT allow publishing packages without a `dist-tag`). |
 | `transform` | [`TransformOptions`][4] | | repo | Transformations for change files |
 
 [1]: https://github.com/microsoft/beachball/blob/main/packages/beachball/src/types/ChangeFilePrompt.ts

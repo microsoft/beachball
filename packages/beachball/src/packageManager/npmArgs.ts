@@ -1,5 +1,6 @@
 import { getPackageOption } from '../options/getPackageOption';
 import { BeachballError } from '../types/BeachballError';
+import type { BeachballOptions } from '../types/BeachballOptions';
 import type { NpmOptions } from '../types/NpmOptions';
 import type { PackageInfo } from '../types/PackageInfo';
 
@@ -7,6 +8,19 @@ export type NpmAuthOptions = Pick<NpmOptions, 'registry' | 'token' | 'authType'>
 
 export function getNpmLogLevelArgs(verbose: boolean | undefined): string[] {
   return ['--loglevel', verbose ? 'notice' : 'warn'];
+}
+
+/**
+ * Get the package's npm dist-tag, falling back to `defaultNpmTag` or `'latest'` if not set.
+ * (npm itself would implicitly use `'latest'` if no tag is specified.)
+ */
+export function getPackageDistTag(
+  packageInfo: PackageInfo,
+  options: Partial<Pick<BeachballOptions, 'tag' | 'defaultNpmTag'>>
+): string {
+  return (
+    getPackageOption('tag', packageInfo, options) || getPackageOption('defaultNpmTag', packageInfo, options) || 'latest'
+  );
 }
 
 export function getNpmPublishArgs(
@@ -18,11 +32,7 @@ export function getNpmPublishArgs(
     'publish',
     ...(registry ? ['--registry', registry] : []),
     '--tag',
-    // TODO: unclear what tag=null in PackageOptions was originally supposed to do
-    // (most recent logic prior to this also used || which ignores null)
-    getPackageOption('tag', packageInfo, options) ||
-      getPackageOption('defaultNpmTag', packageInfo, options) ||
-      'latest',
+    getPackageDistTag(packageInfo, options),
     ...getNpmLogLevelArgs(options.verbose),
   ];
 

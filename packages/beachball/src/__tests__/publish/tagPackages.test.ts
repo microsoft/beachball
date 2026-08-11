@@ -21,19 +21,19 @@ describe('tagPackages', () => {
   });
 
   it('does nothing when packageTags is empty', () => {
-    tagPackages({}, { path: '', gitTags: false, tag: '' });
+    tagPackages({}, { path: '', gitTags: false });
     expect(gitFailFast).not.toHaveBeenCalled();
   });
 
   it('skips packages whose tag entry is undefined', () => {
     const packageTags: BumpInfo['packageTags'] = { foo: undefined, bar: undefined };
-    tagPackages(packageTags, { path: '', gitTags: true, tag: '' });
+    tagPackages(packageTags, { path: '', gitTags: true });
     expect(gitFailFast).not.toHaveBeenCalled();
   });
 
   it('creates a single tag for each package with one tag entry', () => {
     const packageTags: BumpInfo['packageTags'] = { foo: ['foo_v1.0.0'], bar: ['bar_v2.0.0'] };
-    tagPackages(packageTags, { path: '', gitTags: true, tag: '' });
+    tagPackages(packageTags, { path: '', gitTags: true });
 
     const gitCalls = gitFailFast.mock.calls.map(([args]) => args.join(' '));
     expect(gitCalls).toEqual(['tag -a -f foo_v1.0.0 -m foo_v1.0.0', 'tag -a -f bar_v2.0.0 -m bar_v2.0.0']);
@@ -41,7 +41,7 @@ describe('tagPackages', () => {
 
   it('creates all tags when a package has multiple tag entries', () => {
     const packageTags: BumpInfo['packageTags'] = { foo: ['tag-a', 'tag-b'] };
-    tagPackages(packageTags, { path: '', gitTags: true, tag: '' });
+    tagPackages(packageTags, { path: '', gitTags: true });
 
     expect(gitFailFast).toHaveBeenCalledTimes(2);
     expect(gitFailFast).toHaveBeenCalledWith(...createTagParameters('tag-a'));
@@ -49,7 +49,7 @@ describe('tagPackages', () => {
   });
 
   it('does not create overall git tag for empty dist tag', () => {
-    tagPackages({}, { path: '', gitTags: true, tag: '' });
+    tagPackages({}, { path: '', gitTags: true });
     expect(gitFailFast).not.toHaveBeenCalled();
   });
 
@@ -83,7 +83,7 @@ describe('tagPackages', () => {
 
   it('dedupes tags across packages', () => {
     const packageTags: BumpInfo['packageTags'] = { foo: ['foo@1', 'shared-tag'], bar: ['shared-tag'] };
-    tagPackages(packageTags, { path: '', gitTags: true, tag: '' });
+    tagPackages(packageTags, { path: '', gitTags: true });
 
     expect(gitFailFast).toHaveBeenCalledTimes(2);
     const gitCalls = gitFailFast.mock.calls.map(([args]) => args.join(' '));

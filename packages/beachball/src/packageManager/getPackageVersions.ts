@@ -2,7 +2,7 @@ import pLimit from 'p-limit';
 import type { PackageInfo } from '../types/PackageInfo';
 import type { NpmOptions } from '../types/NpmOptions';
 import { getNpmPackageInfo } from './getNpmPackageInfo';
-import { getPackageOption } from '../options/getPackageOption';
+import { getPackageDistTag } from './npmArgs';
 
 /**
  * Get the current version for each package's specified tag (respecting CLI, package, and repo options).
@@ -19,12 +19,7 @@ export async function getPackageTagVersions(
   const versions: { [pkg: string]: string } = {};
 
   const packageTags = packageInfos
-    .map(pkg => ({
-      name: pkg.name,
-      // TODO: what was tag=null in packageOptions originally supposed to do?
-      // (most recent logic prior to this also used || which ignores null)
-      tag: getPackageOption('tag', pkg, options) || getPackageOption('defaultNpmTag', pkg, options),
-    }))
+    .map(pkg => ({ name: pkg.name, tag: getPackageDistTag(pkg, options) }))
     // Use !! to filter out empty strings as well
     .filter(pkg => !!pkg.tag) as { name: string; tag: string }[];
 

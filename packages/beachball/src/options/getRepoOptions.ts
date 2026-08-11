@@ -8,15 +8,20 @@ import { readConfig } from './readConfig';
  * If `cliOptions.path` is empty, it's assumed to be running in a test without a filesystem
  * and returns an empty object.
  */
-export async function getRepoOptions(cliOptions: ParsedOptions['cliOptions']): Promise<Partial<RepoOptions>> {
+export async function getRepoOptions(cliOptions: ParsedOptions['cliOptions']): Promise<{
+  repoOptions: Partial<RepoOptions>;
+  /** Actual config path, if known */
+  configPath?: string;
+}> {
   const { path: cwd } = cliOptions;
 
   if (!cwd) {
     // If cwd is empty, it's probably running in a test without a filesystem.
-    return {};
+    return { repoOptions: {} };
   }
 
-  const repoOptions = (await readConfig<Partial<RepoOptions>>({ path: cwd, configPath: cliOptions.configPath })) || {};
+  const { config: repoOptions = {}, configPath } =
+    (await readConfig<Partial<RepoOptions>>({ path: cwd, configPath: cliOptions.configPath })) || {};
 
   // Only if the branch isn't specified in cliOptions (which takes precedence), fix it up or add it
   // in repoOptions
@@ -24,5 +29,5 @@ export async function getRepoOptions(cliOptions: ParsedOptions['cliOptions']): P
     repoOptions.branch = resolveBranchOption(repoOptions, cwd);
   }
 
-  return repoOptions;
+  return { repoOptions, configPath };
 }

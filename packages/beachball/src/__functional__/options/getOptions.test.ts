@@ -56,6 +56,7 @@ describe('getOptions', () => {
         path: repo.rootPath,
       },
       repoOptions,
+      configPath: repo.pathTo('beachball.config.js'),
       cliOptions: { path: repo.rootPath, command: 'check', branch: 'origin/bar', bump: true },
     });
   });

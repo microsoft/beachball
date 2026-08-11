@@ -134,6 +134,12 @@ In v3, `shouldPublish: false` packages are full participants in all steps of the
   - `new`: This option was never needed if PR builds run `beachball check` (a new package without a change file already causes an error), and it had a significant performance cost because it checked the registry for _all_ unmodified packages.
   - `packStyle`: packing always uses the layered style now.
 - `hooks.prebump` no longer receives `packageInfos`. This was never in the signature, and trying to modify it may lead to unexpected behavior. Please open an issue if you were using this and we can find an alternative.
+- `tag` and `defaultNpmTag` updates:
+  - `tag` may not be `null`. This was already ignored in the previous version, but now it's removed from the types.
+    - Note that `tag: ''` means fall back to `defaultNpmTag` or `'latest'` (npm doesn't allow publishing a new version without a `dist-tag`).
+    - To disable _git tags_ for a package, set `gitTags: false`.
+  - `defaultNpmTag` should not be `''` for reasons above.
+- Package-level-only options have been removed from `BeachballConfig`.
 
 ### Config loading changes
 
