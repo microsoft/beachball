@@ -118,9 +118,6 @@ jobs:
         with:
           extraError: 'If action or yarn plugin dist files changed, run "yarn build" and check in the updated dist files.'
 
-      - name: e2e - install-beachball
-        uses: ./actions/install-beachball
-
       # Note: this is not actually used here to determine if a release is needed
       - name: e2e - should-release
         uses: ./actions/should-release
