@@ -19,7 +19,6 @@ export interface CliContext {
   exitOverride?: boolean;
 }
 
-/** Options parsed for the default `token` command. */
 type TokenCliOptions = Omit<CreateAppTokenOptions, 'keyInfo'> & AppPrivateKeyInfo & { outputName?: string };
 
 async function runCreateToken(options: TokenCliOptions, command: Command, env: NodeJS.ProcessEnv): Promise<void> {
@@ -56,14 +55,13 @@ async function runCreateToken(options: TokenCliOptions, command: Command, env: N
     console.log(`::add-mask::${token}`);
     fs.appendFileSync(githubOutput, `${outputName}=${token}\n`, 'utf8');
   } else if (outputCiPlatform === 'azure-pipelines') {
-    console.log(`##vso[task.setvariable variable=${outputName};isSecret=true]${token}`);
+    console.log(`##vso[task.setvariable variable=${outputName};isSecret=true;isOutput=true]${token}`);
   } else {
     console.log(token);
   }
 }
 
-/** Build the commander program with the default `create` command and the `revoke` subcommand. */
-export function buildProgram(context: CliContext): Command {
+function buildProgram(context: CliContext): Command {
   const program = new Command()
     .name('beachball-auth-helper')
     .description('Create or revoke repository-scoped GitHub App installation tokens.')
@@ -80,7 +78,7 @@ export function buildProgram(context: CliContext): Command {
       .default(defaultGitHubApiUrl);
 
   const createCommand = program
-    .command('create-gha-token', { isDefault: true })
+    .command('create-gha-token')
     .description('Create a repository-scoped GitHub App installation token')
     .addOption(
       new Option('--app-client-id <id>', 'GitHub App client ID (not a secret)')
@@ -123,7 +121,7 @@ export function buildProgram(context: CliContext): Command {
     .addOption(
       new Option(
         '--output-name <NAME>',
-        'Save the token as an Azure Pipelines secret variable or masked GitHub Actions step output'
+        'Save the token as an Azure Pipelines secret step output or masked GitHub Actions step output'
       )
         .env('OUTPUT_NAME')
         .argParser(value => {
@@ -147,7 +145,7 @@ Authentication:
 
 Output:
   By default, the token is written to stdout. With --output-name, it becomes
-  an Azure Pipelines secret variable or a masked GitHub Actions step output.
+  an Azure Pipelines secret step output or a masked GitHub Actions step output.
 
 All options can be provided as environment variables. Full examples:
 ${authHelperDocsUrl}
@@ -172,8 +170,12 @@ ${authHelperDocsUrl}
 
 const originalEnv = process.env;
 
-/** Build and run the CLI, wiring commander's error handling to the provided context. */
-export async function runAppTokenCli(context: CliContext): Promise<void> {
+/**
+ * Build and run the CLI, wiring commander's error handling to the provided context.
+ *
+ * Final error handling and exit handling is in `authHelperBin.ts`.
+ */
+export async function runAuthHelperCli(context: CliContext): Promise<void> {
   const program = buildProgram(context);
   context.env && (process.env = context.env);
   try {

@@ -1,5 +1,5 @@
 import { install, MockAgent, setGlobalDispatcher, type Interceptable } from 'undici';
-import type { GitHubAccessTokenResponse, GitHubAppInstallationResponse } from '../../githubAuth/createAppToken';
+import type { GitHubAccessTokenResponse, GitHubAppInstallationResponse } from '../../authHelper/createAppToken';
 
 install();
 

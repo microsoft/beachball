@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { generateKeyPairSync, verify } from 'node:crypto';
 import type { Interceptable, MockAgent } from 'undici';
-import { _signWithPrivateKey, createAppToken } from '../../githubAuth/createAppToken';
+import { _signWithPrivateKey, createAppToken } from '../../authHelper/createAppToken';
 import {
   createMockPool,
   mockAccessToken,
@@ -13,7 +13,7 @@ import {
   mockToken,
 } from './authTestHelpers';
 
-jest.mock('../../githubAuth/signWithAzureCli', () => ({
+jest.mock('../../authHelper/signWithAzureCli', () => ({
   signWithAzureCli: () => Promise.resolve('mock-signature-base64url'),
 }));
 

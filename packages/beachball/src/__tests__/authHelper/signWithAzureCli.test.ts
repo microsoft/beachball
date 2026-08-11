@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { createHash } from 'node:crypto';
 import { mockSpawnSuccess, MockSubprocessError } from '../../__fixtures__/mockSpawnResult';
-import { signWithAzureCli } from '../../githubAuth/signWithAzureCli';
+import { signWithAzureCli } from '../../authHelper/signWithAzureCli';
 import { spawn as _spawn } from '../../spawn';
 
 jest.mock('../../spawn');

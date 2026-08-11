@@ -1,28 +1,28 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { CommanderError } from 'commander';
 import fs from 'node:fs';
-import { runAppTokenCli, type CliContext } from '../../githubAuth/appTokenCli';
-import * as authModule from '../../githubAuth/createAppToken';
-import { defaultGitHubApiUrl } from '../../githubAuth/requestHelpers';
-import * as revokeModule from '../../githubAuth/revokeAppToken';
-import type { InstallationToken } from '../../githubAuth/types';
+import { runAuthHelperCli, type CliContext } from '../../authHelper/authHelperCli';
+import * as authModule from '../../authHelper/createAppToken';
+import { defaultGitHubApiUrl } from '../../authHelper/requestHelpers';
+import * as revokeModule from '../../authHelper/revokeAppToken';
+import type { InstallationToken } from '../../authHelper/types';
 
-jest.mock('../../githubAuth/createAppToken');
-jest.mock('../../githubAuth/revokeAppToken');
+jest.mock('../../authHelper/createAppToken');
+jest.mock('../../authHelper/revokeAppToken');
 jest.mock('node:fs');
 
 const { createAppToken } = jest.mocked(authModule);
 const { revokeAppToken } = jest.mocked(revokeModule);
 const mockAppendFileSync = jest.mocked(fs.appendFileSync);
 
-describe('appTokenCli', () => {
+describe('authHelperCli', () => {
   // This can't use initMockLogs since it aggregates writeOut/writeErr and console logs
   let out: string[] = [];
   let err: string[] = [];
 
   function getContext(args: string[], env?: NodeJS.ProcessEnv): CliContext {
     return {
-      argv: ['node', 'appTokenCli.js', ...args],
+      argv: ['node', 'authHelperCli.js', ...args],
       env: env || {},
       outputOptions: { writeOut: message => out.push(message.trim()), writeErr: message => err.push(message.trim()) },
       exitOverride: true,
@@ -64,20 +64,20 @@ describe('appTokenCli', () => {
 
     it('creates a token and writes it to stdout by default', async () => {
       const context = getContext([...requiredArgs]);
-      await runAppTokenCli(context);
+      await runAuthHelperCli(context);
 
       expect(createAppToken).toHaveBeenCalledWith({ ...defaults, keyInfo: { keyId: 'key-id' } });
       expect(out).toEqual([mockToken]);
     });
 
     it('reads options from environment variables', async () => {
-      const context = getContext([], {
+      const context = getContext(['create-gha-token'], {
         APP_CLIENT_ID: 'Iv1.client',
         KEY_ID: 'key-id',
         REPOSITORY: 'org/repo',
         GITHUB_API_URL: 'https://ghe.example.com/api/v3',
       });
-      await runAppTokenCli(context);
+      await runAuthHelperCli(context);
 
       expect(createAppToken).toHaveBeenCalledWith({
         ...defaults,
@@ -88,12 +88,12 @@ describe('appTokenCli', () => {
     });
 
     it('creates a token using a private key from an environment variable', async () => {
-      const context = getContext([], {
+      const context = getContext(['create-gha-token'], {
         APP_CLIENT_ID: 'Iv1.client',
         PRIVATE_KEY: 'private-key',
         REPOSITORY: 'org/repo',
       });
-      await runAppTokenCli(context);
+      await runAuthHelperCli(context);
 
       expect(createAppToken).toHaveBeenCalledWith({ ...defaults, keyInfo: { privateKey: 'private-key' } });
       expect(out).toEqual([mockToken]);
@@ -101,7 +101,7 @@ describe('appTokenCli', () => {
 
     it('parses permissions', async () => {
       const context = getContext([...requiredArgs, '--permissions', 'contents:read  ,foo:write,bar:admin']);
-      await runAppTokenCli(context);
+      await runAuthHelperCli(context);
 
       expect(createAppToken).toHaveBeenCalledWith(
         expect.objectContaining({ permissions: { contents: 'read', foo: 'write', bar: 'admin' } })
@@ -110,7 +110,7 @@ describe('appTokenCli', () => {
 
     it('rejects invalid permissions', async () => {
       const context = getContext([...requiredArgs, '--permissions', 'contents:bogus']);
-      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
+      await expect(runAuthHelperCli(context)).rejects.toThrow(CommanderError);
       expect(err[0]).toMatchInlineSnapshot(
         `"error: option '--permissions <list>' argument 'contents:bogus' is invalid. Invalid permission level for contents: bogus"`
       );
@@ -118,7 +118,7 @@ describe('appTokenCli', () => {
 
     it('parses repository', async () => {
       const context = getContext([...requiredArgs, '--repository', 'my-org/my-repo']);
-      await runAppTokenCli(context);
+      await runAuthHelperCli(context);
 
       expect(createAppToken).toHaveBeenCalledWith(
         expect.objectContaining({ repository: { owner: 'my-org', name: 'my-repo' } })
@@ -132,7 +132,7 @@ describe('appTokenCli', () => {
       ['too many segments', 'a/b/c'],
     ])('rejects %s', async (_description, repo) => {
       const context = getContext([...requiredArgs, '--repository', repo]);
-      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
+      await expect(runAuthHelperCli(context)).rejects.toThrow(CommanderError);
       expect(err[0]).toEqual(
         `error: option '--repository <owner/repo>' argument '${repo}' is invalid. Expected format 'owner/repository'.`
       );
@@ -140,16 +140,16 @@ describe('appTokenCli', () => {
 
     it('rejects invalid variable name', async () => {
       const context = getContext([...requiredArgs, '--output-name', 'bad name!']);
-      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
+      await expect(runAuthHelperCli(context)).rejects.toThrow(CommanderError);
       expect(err[0]).toMatchInlineSnapshot(
         `"error: option '--output-name <NAME>' argument 'bad name!' is invalid. Must be an environment-style variable name."`
       );
     });
 
-    it('writes an azure pipelines variable command with --output-name', async () => {
+    it('writes an Azure Pipelines secret step output with --output-name', async () => {
       const context = getContext([...requiredArgs, '--output-name', 'MY_TOKEN'], { TF_BUILD: 'true' });
-      await runAppTokenCli(context);
-      expect(out).toEqual([`##vso[task.setvariable variable=MY_TOKEN;isSecret=true]${mockToken}`]);
+      await runAuthHelperCli(context);
+      expect(out).toEqual([`##vso[task.setvariable variable=MY_TOKEN;isSecret=true;isOutput=true]${mockToken}`]);
     });
 
     it('sets a masked GitHub Actions step output with --output-name', async () => {
@@ -157,7 +157,7 @@ describe('appTokenCli', () => {
         GITHUB_ACTIONS: 'true',
         GITHUB_OUTPUT: '/github/output',
       });
-      await runAppTokenCli(context);
+      await runAuthHelperCli(context);
 
       expect(out).toEqual([`::add-mask::${mockToken}`]);
       expect(mockAppendFileSync).toHaveBeenCalledWith('/github/output', `MY_TOKEN=${mockToken}\n`, 'utf8');
@@ -165,12 +165,12 @@ describe('appTokenCli', () => {
 
     it('requires GITHUB_OUTPUT to set a GitHub Actions step output', async () => {
       const context = getContext([...requiredArgs, '--output-name', 'MY_TOKEN'], { GITHUB_ACTIONS: 'true' });
-      await expect(runAppTokenCli(context)).rejects.toThrow(/GITHUB_OUTPUT is required/);
+      await expect(runAuthHelperCli(context)).rejects.toThrow(/GITHUB_OUTPUT is required/);
     });
 
     it('rejects an invalid --output-name', async () => {
       const context = getContext([...requiredArgs, '--output-name', 'bad name!']);
-      await expect(runAppTokenCli(context)).rejects.toThrow(/environment-style variable name/);
+      await expect(runAuthHelperCli(context)).rejects.toThrow(/environment-style variable name/);
     });
 
     it.each(['--app-client-id', '--repository'])('requires %s', async missing => {
@@ -179,25 +179,25 @@ describe('appTokenCli', () => {
       args.splice(index, 2);
 
       const context = getContext(args);
-      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
+      await expect(runAuthHelperCli(context)).rejects.toThrow(CommanderError);
       expect(err[0]).toMatch(new RegExp(`error: required option '${missing}.*?' not specified`));
     });
 
     it('requires a key ID or private key', async () => {
       const context = getContext(['create-gha-token', ...clientIdArg, ...repoArg]);
-      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
+      await expect(runAuthHelperCli(context)).rejects.toThrow(CommanderError);
       expect(err[0]).toEqual("error: one of '--key-id' or '--private-key' must be specified");
     });
 
     it('rejects a key ID combined with a private key', async () => {
       const context = getContext([...requiredArgs, '--private-key', 'private-key']);
-      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
+      await expect(runAuthHelperCli(context)).rejects.toThrow(CommanderError);
       expect(err[0]).toMatch(/option '--key-id <keyId>' cannot be used with option '--private-key <pem>'/);
     });
 
     it('rejects unknown options', async () => {
       const context = getContext([...requiredArgs, '--nope']);
-      await expect(runAppTokenCli(context)).rejects.toThrow(CommanderError);
+      await expect(runAuthHelperCli(context)).rejects.toThrow(CommanderError);
       expect(err[0]).toMatchInlineSnapshot(`"error: unknown option '--nope'"`);
     });
   });
@@ -205,7 +205,7 @@ describe('appTokenCli', () => {
   describe('revoke command', () => {
     it('revokes a token passed as a flag', async () => {
       const context = getContext(['revoke-gha-token', '--token', 'ghs_revoke_me']);
-      await runAppTokenCli(context);
+      await runAuthHelperCli(context);
 
       expect(revokeAppToken).toHaveBeenCalledWith({
         githubApiUrl: defaultGitHubApiUrl,
@@ -216,7 +216,7 @@ describe('appTokenCli', () => {
 
     it('reads the token from TOKEN', async () => {
       const context = getContext(['revoke-gha-token'], { TOKEN: 'ghs_from_env' });
-      await runAppTokenCli(context);
+      await runAuthHelperCli(context);
 
       expect(revokeAppToken).toHaveBeenCalledWith({
         githubApiUrl: defaultGitHubApiUrl,
@@ -232,7 +232,7 @@ describe('appTokenCli', () => {
         '--github-api-url',
         'https://ghe.example.com/api/v3',
       ]);
-      await runAppTokenCli(context);
+      await runAuthHelperCli(context);
 
       expect(revokeAppToken).toHaveBeenCalledWith({
         githubApiUrl: 'https://ghe.example.com/api/v3',
@@ -242,7 +242,7 @@ describe('appTokenCli', () => {
 
     it('requires a token', async () => {
       const context = getContext(['revoke-gha-token']);
-      await expect(runAppTokenCli(context)).rejects.toThrow(/--token/);
+      await expect(runAuthHelperCli(context)).rejects.toThrow(/--token/);
     });
   });
 });

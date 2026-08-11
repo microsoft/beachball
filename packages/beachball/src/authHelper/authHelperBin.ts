@@ -1,9 +1,9 @@
 import { env } from '../env';
 import { BeachballError } from '../types/BeachballError';
-import { runAppTokenCli } from './appTokenCli';
+import { runAuthHelperCli } from './authHelperCli';
 
 // This is a separate file so most of the CLI can be tested in Jest
-void runAppTokenCli({ argv: process.argv }).catch((err: unknown) => {
+void runAuthHelperCli({ argv: process.argv }).catch((err: unknown) => {
   let message: string;
   let shouldLog = true;
   if (err instanceof BeachballError) {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { parsePermissions } from '../../githubAuth/validationHelpers';
+import { parsePermissions } from '../../authHelper/validationHelpers';
 
 describe('parsePermissions', () => {
   it('returns undefined for empty input', () => {
