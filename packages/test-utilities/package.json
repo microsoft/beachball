@@ -19,8 +19,7 @@
     "tmp": "^0.2.7",
     "verdaccio": "^6.5.2",
     "verdaccio-auth-memory": "^13.0.0",
-    "verdaccio-memory": "^10.4.3",
-    "workspace-tools": "catalog:prod"
+    "verdaccio-memory": "^10.4.3"
   },
   "devDependencies": {
     "@microsoft/beachball-scripts": "workspace:^",

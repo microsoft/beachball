@@ -1565,7 +1565,6 @@ __metadata:
     verdaccio: "npm:^6.5.2"
     verdaccio-auth-memory: "npm:^13.0.0"
     verdaccio-memory: "npm:^10.4.3"
-    workspace-tools: "catalog:prod"
   languageName: unknown
   linkType: soft
 

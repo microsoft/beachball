@@ -1,7 +1,8 @@
 ignore-path: ../../.gitignore
 
 ignores:
-  # used in registry.ts by partial name
+  # used in registry.ts by name
+  - verdaccio
   - verdaccio-auth-memory
   - verdaccio-memory
   # specified at root
