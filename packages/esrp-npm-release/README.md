@@ -2,7 +2,7 @@
 
 Tool for teams within Microsoft who would like to use ESRP to release npm packages in **dependency-topological order**: always publishing a package's internal dependencies before publishing the package itself. Especially in larger repos with many package consumers, this ordering is critical to ensure that if publishing fails partway through, there are never published packages with dangling references to nonexistent versions (which would cause installation failures in consuming repos).
 
-> **When _not_ to use this tool:** This tool requires extra setup (see below) and isn't owned by the ESRP team. For single packages or smaller monorepos where your team hasn't hit issues with publish ordering, you should use the official `EsrpRelease` task for simplicity. Or if you care about ordering but only have a few packages, it might be possible to manually group them and run the task multiple times.
+> **When _not_ to use this tool:** This tool [requires extra setup](#staging-resource-setup) (below) and isn't owned by the ESRP team. For single packages or smaller monorepos where your team hasn't hit issues with publish ordering, you should use the official `EsrpRelease` task for simplicity. Or if you care about ordering but only have a few packages, it might be reasonable to manually group them and run the `EsrpRelease` task multiple times.
 
 ## Contents
 
@@ -133,7 +133,7 @@ See [staging resource setup](#staging-resource-setup).
 | `STAGING_TENANT_ID` | Tenant ID used for storage account access. |
 | `STAGING_ID_TOKEN` | Federated ID token used for storage account access. |
 
-Aside from `STAGING_STORAGE_ACCOUNT_NAME`, these are typically retrieved by a prior `AzureCLI` task step (as shown in the example pipeline above):
+Aside from `STAGING_STORAGE_ACCOUNT_NAME`, these are typically retrieved by a prior `AzureCLI` task step (as shown in the [example pipeline](#publish-stage)):
 
 ```yml
 - task: AzureCLI@2
