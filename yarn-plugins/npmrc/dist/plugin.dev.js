@@ -54,6 +54,34 @@ var plugin = (() => {
   ));
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
+  // src/helpers.ts
+  function throwError(messageOrError) {
+    throw new import_core.ReportError(import_core.MessageName.UNNAMED, `[${pluginName}] ${messageOrError.message || messageOrError}`);
+  }
+  function makeVerboseLogger(verbose) {
+    const loggedMessages = /* @__PURE__ */ new Set();
+    const log = ((msg, once) => {
+      if (!verbose || once && loggedMessages.has(msg)) {
+        return;
+      }
+      once && loggedMessages.add(msg);
+      console.log(`[${pluginName}] ${msg}`);
+    });
+    log.verbose = verbose;
+    return log;
+  }
+  function logMessage(level, msg) {
+    console[level](`[${pluginName}] ${msg}`);
+  }
+  var import_core, pluginName;
+  var init_helpers = __esm({
+    "src/helpers.ts"() {
+      "use strict";
+      import_core = __require("@yarnpkg/core");
+      pluginName = "yarn-plugin-npmrc";
+    }
+  });
+
   // node_modules/ini/lib/ini.js
   var require_ini = __commonJS({
     "node_modules/ini/lib/ini.js"(exports, module) {
@@ -330,7 +358,7 @@ var plugin = (() => {
   var require_type_defs = __commonJS({
     "node_modules/nopt/lib/type-defs.js"(exports, module) {
       var url = __require("url");
-      var path = __require("path");
+      var path2 = __require("path");
       var Stream = __require("stream").Stream;
       var os = __require("os");
       var debug = require_debug();
@@ -349,9 +377,9 @@ var plugin = (() => {
         const homePattern = isWin ? /^~(\/|\\)/ : /^~\//;
         const home = os.homedir();
         if (home && val.match(homePattern)) {
-          data[k] = path.resolve(home, val.slice(2));
+          data[k] = path2.resolve(home, val.slice(2));
         } else {
-          data[k] = path.resolve(val);
+          data[k] = path2.resolve(val);
         }
         return true;
       }
@@ -402,7 +430,7 @@ var plugin = (() => {
         Boolean: { type: Boolean, validate: validateBoolean },
         url: { type: url, validate: validateUrl },
         Number: { type: Number, validate: validateNumber },
-        path: { type: path, validate: validatePath },
+        path: { type: path2, validate: validatePath },
         Stream: { type: Stream, validate: validateStream },
         Date: { type: Date, validate: validateDate },
         Array: { type: Array }
@@ -1130,7 +1158,7 @@ var plugin = (() => {
       };
       var {
         url: { type: url },
-        path: { type: path }
+        path: { type: path2 }
       } = require_type_defs2();
       var definitions = {
         _auth: new Definition("_auth", {
@@ -1143,7 +1171,7 @@ var plugin = (() => {
         }),
         // the globalconfig has its default defined outside of this module
         globalconfig: new Definition("globalconfig", {
-          type: path,
+          type: path2,
           default: ""
         }),
         location: new Definition("location", {
@@ -1156,7 +1184,7 @@ var plugin = (() => {
         }),
         // `prefix` has its default defined outside of this module
         prefix: new Definition("prefix", {
-          type: path,
+          type: path2,
           default: ""
         }),
         registry: new Definition("registry", {
@@ -1165,7 +1193,7 @@ var plugin = (() => {
         }),
         userconfig: new Definition("userconfig", {
           default: "~/.npmrc",
-          type: path
+          type: path2
         })
       };
       module.exports = definitions;
@@ -1876,57 +1904,33 @@ var plugin = (() => {
     }
   });
 
-  // src/constants.ts
-  var pluginName;
-  var init_constants = __esm({
-    "src/constants.ts"() {
-      "use strict";
-      pluginName = "yarn-plugin-npmrc";
-    }
-  });
-
-  // src/errors.ts
-  var errors_exports = {};
-  __export(errors_exports, {
-    throwError: () => throwError
-  });
-  function throwError(messageOrError) {
-    throw new import_core.ReportError(import_core.MessageName.UNNAMED, `[${pluginName}] ${messageOrError.message || messageOrError}`);
-  }
-  var import_core;
-  var init_errors = __esm({
-    "src/errors.ts"() {
-      "use strict";
-      import_core = __require("@yarnpkg/core");
-      init_constants();
-    }
-  });
-
   // src/loadNpmrc.ts
   var loadNpmrc_exports = {};
   __export(loadNpmrc_exports, {
     loadNpmrc: () => loadNpmrc
   });
   async function loadNpmrc(params) {
+    const { verboseLog: verboseLog2, ...configParams } = params;
     let npmPath = "";
     try {
       npmPath = import_node_fs.default.realpathSync(import_which.default.sync("npm"));
     } catch {
       throwError(`Couldn't find "npm" executable to help read the config`);
     }
-    const logLevels = ["silly", "verbose", "info", "http", "timing", "notice", "warn", "error"];
-    const maxLevelIndex = logLevels.indexOf(process.env.NPM_CONFIG_LOGLEVEL || process.env.npm_config_loglevel || "warn");
+    const logLevels = ["silly", "verbose", "info", "notice", "warn", "error"];
+    const maxLevelIndex = logLevels.indexOf(verboseLog2.verbose ? "silly" : "warn");
     const onLog = (level, ...args) => {
-      if (logLevels.indexOf(level) < maxLevelIndex) {
-        return;
+      const levelIndex = logLevels.indexOf(level);
+      if (levelIndex >= 0 && levelIndex <= maxLevelIndex) {
+        logMessage(level === "error" || level === "warn" ? level : "log", [`[${level}]`, ...args].join(" "));
       }
-      console[level === "error" ? "error" : level === "warn" ? "warn" : "log"](`[${pluginName}][${level}]`, ...args);
     };
     process.on("log", onLog);
     try {
-      const conf = new import_config.default({ npmPath, ...params });
+      const conf = new import_config.default({ npmPath, ...configParams });
       await conf.load();
       conf.validate();
+      verboseLog2.verbose && logConfigSources(conf, verboseLog2);
       return conf;
     } catch (err) {
       throwError(err);
@@ -1934,15 +1938,27 @@ var plugin = (() => {
       process.off("log", onLog);
     }
   }
-  var import_config, import_node_fs, import_which;
+  function logConfigSources(conf, verboseLog2) {
+    verboseLog2("Loaded npm config successfully. Config sources:");
+    for (const [pathOrDesc, loc] of conf.sources.entries()) {
+      verboseLog2(`  ${loc}: ${pathOrDesc}`);
+      const sourceValues = conf.data.get(loc)?.raw || {};
+      for (const key of Object.keys(sourceValues).sort()) {
+        const value = sourceValues[key];
+        const isSecret = !!value && secretSuffixes.some((suffix) => key.endsWith(suffix));
+        verboseLog2(`    ${key} = ${isSecret ? "***" : JSON.stringify(value)}`);
+      }
+    }
+  }
+  var import_config, import_node_fs, import_which, secretSuffixes;
   var init_loadNpmrc = __esm({
     "src/loadNpmrc.ts"() {
       "use strict";
       import_config = __toESM(require_lib3());
       import_node_fs = __toESM(__require("node:fs"));
       import_which = __toESM(require_lib4());
-      init_constants();
-      init_errors();
+      init_helpers();
+      secretSuffixes = ["_authToken", "_password", "_auth", "password", "token"];
     }
   });
 
@@ -1952,23 +1968,68 @@ var plugin = (() => {
     default: () => index_default
   });
   var import_core2 = __require("@yarnpkg/core");
+  var import_node_path = __toESM(__require("node:path"));
+  init_helpers();
+
+  // src/getAuthHeader.ts
+  init_helpers();
+  function getAuthHeader(params) {
+    const { npmrc: npmrc2, verboseLog: verboseLog2, registry, currentHeader } = params;
+    verboseLog2(`Looking up credentials for registry ${registry}`);
+    let credentials = npmrc2.getCredentialsByURI(registry);
+    if (Object.keys(credentials).length === 0 && !registry.endsWith("/")) {
+      credentials = npmrc2.getCredentialsByURI(`${registry}/`);
+    }
+    if (credentials.certfile || credentials.keyfile) {
+      throwError(`This plugin does not support certfile or keyfile auth (for registry "${registry}")`);
+    }
+    if ("token" in credentials) {
+      verboseLog2(`Using npm _authToken`);
+      return `Bearer ${credentials.token}`;
+    }
+    if ("auth" in credentials) {
+      verboseLog2(`Using npm _password or _auth`);
+      return `Basic ${credentials.auth}`;
+    }
+    verboseLog2("No matching npm credentials found; using yarn's auth header");
+    return currentHeader;
+  }
+
+  // src/index.ts
   var configurationMap = {
     npmrcAuthEnabled: {
       description: "Attempt to read auth info from .npmrc for all registry requests",
       type: import_core2.SettingsType.BOOLEAN,
       default: false
+    },
+    npmrcAuthVerbose: {
+      description: "Enable verbose logging",
+      type: import_core2.SettingsType.BOOLEAN,
+      default: false
     }
   };
-  var enabledPropName = "npmrcAuthEnabled";
   var npmrc;
   var npmrcError;
   var cachedHeaders = {};
   var workspaceRoot;
+  var verboseLog;
+  function fixWindowsPath(pth) {
+    return pth && process.platform === "win32" ? import_node_path.default.normalize(pth.replace(/^\/([a-z]:\/)/i, "$1")) : pth;
+  }
+  function getConfigValue(config, key) {
+    return config.get(key);
+  }
   var validateProject = (project) => {
-    workspaceRoot = project.getWorkspaceByCwd(project.cwd).cwd;
+    workspaceRoot = fixWindowsPath(project.getWorkspaceByCwd(project.cwd).cwd);
   };
   var getNpmAuthenticationHeader = async (currentHeader, registry, { configuration }) => {
-    if (!configuration.get(enabledPropName) || !configuration.projectCwd) {
+    verboseLog ??= makeVerboseLogger(getConfigValue(configuration, "npmrcAuthVerbose"));
+    if (!getConfigValue(configuration, "npmrcAuthEnabled")) {
+      verboseLog("npmrcAuthEnabled is false/unset; skipping .npmrc auth header", true);
+      return currentHeader;
+    }
+    if (!configuration.projectCwd) {
+      verboseLog("No projectCwd; skipping .npmrc auth header", true);
       return currentHeader;
     }
     if (registry in cachedHeaders) {
@@ -1978,33 +2039,21 @@ var plugin = (() => {
       throw npmrcError;
     }
     if (!npmrc) {
+      const projectCwd = fixWindowsPath(configuration.projectCwd);
+      verboseLog(`Loading .npmrc for projectCwd=${projectCwd} workspaceRoot=${workspaceRoot}`);
       const { loadNpmrc: loadNpmrc2 } = await Promise.resolve().then(() => (init_loadNpmrc(), loadNpmrc_exports));
       try {
         npmrc = await loadNpmrc2({
-          projectRoot: configuration.projectCwd,
-          workspaceRoot: workspaceRoot || configuration.projectCwd
+          projectRoot: projectCwd,
+          workspaceRoot: workspaceRoot || projectCwd,
+          verboseLog
         });
       } catch (err) {
         npmrcError = err;
         throw npmrcError;
       }
     }
-    let credentials = npmrc.getCredentialsByURI(registry);
-    if (Object.keys(credentials).length === 0 && !registry.endsWith("/")) {
-      credentials = npmrc.getCredentialsByURI(`${registry}/`);
-    }
-    if (credentials.certfile || credentials.keyfile) {
-      const { throwError: throwError2 } = await Promise.resolve().then(() => (init_errors(), errors_exports));
-      throwError2(`This plugin does not support certfile or keyfile auth (for registry "${registry}")`);
-    }
-    let newHeader;
-    if ("token" in credentials) {
-      newHeader = `Bearer ${credentials.token}`;
-    } else if ("auth" in credentials) {
-      newHeader = `Basic ${credentials.auth}`;
-    } else {
-      newHeader = currentHeader;
-    }
+    const newHeader = getAuthHeader({ npmrc, verboseLog, registry, currentHeader });
     cachedHeaders[registry] = newHeader;
     return newHeader;
   };

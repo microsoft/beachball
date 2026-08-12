@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@microsoft/beachball-scripts": "workspace:^",
+    "@microsoft/beachball-test-utilities": "workspace:^",
     "@types/which": "^3.0.4",
     "@yarnpkg/plugin-npm": "^3.5.0",
     "@yarnpkg/plugin-pack": "portal:../../.yarn/stubs/yarn-plugin"

@@ -35,6 +35,23 @@
       "processId": "${command:PickProcess}",
       "sourceMaps": true,
       "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug yarn npmrc auth",
+      "runtimeExecutable": "yarn",
+      "cwd": "${workspaceFolder}",
+      "runtimeArgs": ["npm", "info", "beachball@asdfdsfsdf"],
+      "env": {
+        "YARN_NPMRC_AUTH_ENABLED": "true",
+        "YARN_NPMRC_AUTH_VERBOSE": "true",
+        "YARN_NPM_ALWAYS_AUTH": "true",
+        "YARN_NPM_REGISTRY_SERVER": "https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/"
+      },
+      "sourceMaps": true,
+      "outputCapture": "std",
+      "console": "integratedTerminal"
     }
   ]
 }

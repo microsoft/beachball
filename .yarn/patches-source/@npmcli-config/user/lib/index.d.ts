@@ -75,7 +75,7 @@ declare class Config<Definitions extends Config.DefinitionsObject = Config.Defin
     /**
      * Load the given key from the config stack.
      */
-    get<K extends keyof Definitions>(key: K, where: Config.ConfType): Config.ConfigValueType<Definitions[K]["type"]>;
+    get<K extends keyof Definitions>(key: K, where?: Config.ConfType): Config.ConfigValueType<Definitions[K]["type"]>;
     /**
      * Verify that all known configuration options are set to valid values, and
      * log a warning if they are invalid.

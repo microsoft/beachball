@@ -2593,7 +2593,7 @@ index b5b63bf2fce126bfafd40684a807bfee7115dff0..d7718ffedcea83acd47ccda005819ebb
  }
 diff --git a/lib/index.d.ts b/lib/index.d.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..bc93a9c12c4c8e861ed81f695d2c13e3afa94dbb
+index 0000000000000000000000000000000000000000..08e2aa5fed974b53d06d031d97bbee5a2eb8988e
 --- /dev/null
 +++ b/lib/index.d.ts
 @@ -0,0 +1,175 @@
@@ -2674,7 +2674,7 @@ index 0000000000000000000000000000000000000000..bc93a9c12c4c8e861ed81f695d2c13e3
 +    /**
 +     * Load the given key from the config stack.
 +     */
-+    get<K extends keyof Definitions>(key: K, where: Config.ConfType): Config.ConfigValueType<Definitions[K]["type"]>;
++    get<K extends keyof Definitions>(key: K, where?: Config.ConfType): Config.ConfigValueType<Definitions[K]["type"]>;
 +    /**
 +     * Verify that all known configuration options are set to valid values, and
 +     * log a warning if they are invalid.

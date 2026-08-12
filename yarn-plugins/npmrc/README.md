@@ -18,6 +18,22 @@ If you'd like a non-minified version for debugging:
 yarn plugin import https://raw.githubusercontent.com/microsoft/beachball/yarn-plugin-npmrc_v0.5.0/yarn-plugins/npmrc/dist/plugin.dev.js
 ```
 
+## Options
+
+Configuration in `.yarnrc.yml`:
+
+```yml
+# REQUIRED to enable the plugin
+npmrcAuthEnabled: true
+
+# Optional: enable verbose logs
+npmrcAuthVerbose: true
+
+# See "Usage" below for relevant Yarn settings
+```
+
+Configuration can also be set with Yarn's standard environment variable format, e.g. `YARN_NPMRC_AUTH_ENABLED`. For boolean true, the value can be either `'true'` or `1` (the latter is useful in Azure Pipelines which have odd boolean handling).
+
 ## Usage
 
 If migrating from another package manager or yarn v1:
@@ -34,9 +50,12 @@ In all cases:
 ### Sample `.yarnrc.yml`
 
 ```yml
-npmRegistryServer: https://yourcompany.pkgs.visualstudio.com/_packaging/yourfeed/npm/registry/
-npmAlwaysAuth: true
+# Enable the plugin
 npmrcAuthEnabled: true
+# Registry URL - MUST have a trailing slash
+npmRegistryServer: yourRegistryUrl/
+# Force authenticating requests
+npmAlwaysAuth: true
 ```
 
 ## Notes
@@ -49,6 +68,8 @@ This plugin uses [`@npmcli/config`](https://www.npmjs.com/package/@npmcli/config
 
 The version of `@npmcli/config` is patched locally (with the patch included in the plugin bundle) to address some issues and reduce the plugin bundle size.
 
+<details><summary>Expand for notes on the patching approach</summary>
+
 ### Why patch `@npmcli/config`?
 
 The initial motivation was to get rid of a problematic `require.resolve('node-gyp/bin/node-gyp.js')`, which assumes the code is running within the `npm` package with its dependencies and causes a runtime error if `node-gyp` isn't present locally. That code isn't needed at all for auth, so patching to remove it was the simplest approach.
@@ -56,8 +77,6 @@ The initial motivation was to get rid of a problematic `require.resolve('node-gy
 The other reason for patching is to remove a bunch of code which isn't relevant to auth settings. The patch takes the plugin down from **220k to 28k** (minified), which matters because **Yarn loads _every plugin_ on _every command_**, even if the plugin isn't used by that command. So parsing a plugin with a bunch of unused bundled code is potentially a meaningful perf penalty when running `yarn build` or other commands across many packages in a large repo.
 
 (Arguably at this point the patch has gone a bit overboard and it would be better to just copy the relevant parts of the code, but there's some complex/nuanced behavior for config path modifications using environment variables which would be hard to pull out.)
-
-<details><summary>More details</summary>
 
 #### What's patched
 

@@ -1,4 +1,4 @@
-// NOTE: Only import types (or required yarn internals) here!
+// NOTE: Only import types, required yarn internals, or lightweight files here!
 // Auth isn't needed in many cases, so we shouldn't load bigger dependencies upfront.
 import type NpmConfig from '@npmcli/config';
 import {
@@ -7,11 +7,16 @@ import {
   type Plugin,
   type ConfigurationValueMap,
   type Hooks,
+  type Configuration,
 } from '@yarnpkg/core';
 import type { Hooks as NpmHooks } from '@yarnpkg/plugin-npm';
+import path from 'node:path';
+import { makeVerboseLogger, type VerboseLogger } from './helpers.ts';
+import { getAuthHeader } from './getAuthHeader.ts';
 
 interface NpmrcAuthConfig {
   npmrcAuthEnabled: boolean;
+  npmrcAuthVerbose: boolean;
 }
 
 const configurationMap: ConfigurationDefinitionMap<NpmrcAuthConfig> &
@@ -22,20 +27,35 @@ const configurationMap: ConfigurationDefinitionMap<NpmrcAuthConfig> &
     type: SettingsType.BOOLEAN,
     default: false,
   },
+  npmrcAuthVerbose: {
+    description: 'Enable verbose logging',
+    type: SettingsType.BOOLEAN,
+    default: false,
+  },
 };
-
-const enabledPropName: keyof NpmrcAuthConfig = 'npmrcAuthEnabled';
 
 /** Cached result of reading .npmrc */
 let npmrc: NpmConfig | undefined;
 let npmrcError: unknown;
 const cachedHeaders: Record<string, string | undefined> = {};
-
 let workspaceRoot: string | undefined;
+let verboseLog: VerboseLogger | undefined;
+
+/**
+ * Yarn formats Windows paths like `/C:/path/to/file` which is not valid.
+ * Fix it for use with other tools (remove extra leading slash and normalize slashes).
+ */
+function fixWindowsPath(pth: string) {
+  return pth && process.platform === 'win32' ? path.normalize(pth.replace(/^\/([a-z]:\/)/i, '$1')) : pth;
+}
+
+function getConfigValue<K extends keyof NpmrcAuthConfig>(config: Configuration, key: K): NpmrcAuthConfig[K] {
+  return config.get(key) as NpmrcAuthConfig[K];
+}
 
 const validateProject: Hooks['validateProject'] = project => {
   // Slightly misuse this hook to find the local workspace/package root
-  workspaceRoot = project.getWorkspaceByCwd(project.cwd).cwd;
+  workspaceRoot = fixWindowsPath(project.getWorkspaceByCwd(project.cwd).cwd);
 };
 
 /**
@@ -47,12 +67,20 @@ const getNpmAuthenticationHeader: NpmHooks['getNpmAuthenticationHeader'] = async
   registry,
   { configuration }
 ) => {
-  if (!configuration.get(enabledPropName) || !configuration.projectCwd) {
+  verboseLog ??= makeVerboseLogger(getConfigValue(configuration, 'npmrcAuthVerbose'));
+
+  if (!getConfigValue(configuration, 'npmrcAuthEnabled')) {
+    verboseLog('npmrcAuthEnabled is false/unset; skipping .npmrc auth header', true);
+    return currentHeader;
+  }
+  if (!configuration.projectCwd) {
+    verboseLog('No projectCwd; skipping .npmrc auth header', true);
     return currentHeader;
   }
 
   // Use 'in' because we might have cached undefined
   if (registry in cachedHeaders) {
+    // Verbose logging here would get very noisy for every request
     return cachedHeaders[registry];
   }
 
@@ -64,12 +92,16 @@ const getNpmAuthenticationHeader: NpmHooks['getNpmAuthenticationHeader'] = async
   }
 
   if (!npmrc) {
+    const projectCwd = fixWindowsPath(configuration.projectCwd);
+    verboseLog(`Loading .npmrc for projectCwd=${projectCwd} workspaceRoot=${workspaceRoot}`);
+
     // Delay load this since auth is irrelevant for many commands
     const { loadNpmrc } = await import('./loadNpmrc.ts');
     try {
       npmrc = await loadNpmrc({
-        projectRoot: configuration.projectCwd,
-        workspaceRoot: workspaceRoot || configuration.projectCwd,
+        projectRoot: projectCwd,
+        workspaceRoot: workspaceRoot || projectCwd,
+        verboseLog,
       });
     } catch (err) {
       npmrcError = err;
@@ -77,32 +109,8 @@ const getNpmAuthenticationHeader: NpmHooks['getNpmAuthenticationHeader'] = async
     }
   }
 
-  let credentials = npmrc.getCredentialsByURI(registry);
-  if (Object.keys(credentials).length === 0 && !registry.endsWith('/')) {
-    // try with a trailing slash--otherwise npm config's nerfDart function might remove the last segment
-    credentials = npmrc.getCredentialsByURI(`${registry}/`);
-  }
-
-  if (credentials.certfile || credentials.keyfile) {
-    const { throwError } = await import('./errors.ts');
-    throwError(`This plugin does not support certfile or keyfile auth (for registry "${registry}")`);
-  }
-
-  // Follow logic from npm-registry-fetch (what npm uses internally)
-  // https://github.com/npm/npm-registry-fetch/blob/a50fb07ae60005a6002a9e231a25bba9c88b1c77/lib/index.js#L236-L240
-  // (yarn version for reference: https://github.com/yarnpkg/berry/blob/f6a58c2803d6572af28e118eecd10c795e1228b1/packages/plugin-npm/sources/npmHttpUtils.ts#L459)
-  let newHeader: string | undefined;
-  if ('token' in credentials) {
-    newHeader = `Bearer ${credentials.token}`;
-  } else if ('auth' in credentials) {
-    newHeader = `Basic ${credentials.auth}`;
-  } else {
-    // Fall back to whatever logic yarn is using
-    newHeader = currentHeader;
-  }
-
+  const newHeader = getAuthHeader({ npmrc, verboseLog, registry, currentHeader });
   cachedHeaders[registry] = newHeader;
-
   return newHeader;
 };
 
