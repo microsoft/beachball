@@ -1,5 +1,5 @@
 import { MessageName, ReportError } from '@yarnpkg/core';
-import path from 'node:path';
+import winPath from 'node:path/win32';
 
 const pluginName = 'yarn-plugin-npmrc';
 
@@ -42,5 +42,5 @@ export function logMessage(level: 'log' | 'warn' | 'error', msg: string): void {
  * Fix it for use with other tools (remove extra leading slash and normalize slashes).
  */
 export function fixWindowsPath(pth: string): string {
-  return pth && process.platform === 'win32' ? path.normalize(pth.replace(/^\/([a-z]:\/)/i, '$1')) : pth;
+  return pth && process.platform === 'win32' ? winPath.normalize(pth.replace(/^\/([a-z]:)/i, '$1')) : pth;
 }

@@ -73,11 +73,15 @@ var plugin = (() => {
   function logMessage(level, msg) {
     console[level](`[${pluginName}] ${msg}`);
   }
-  var import_core, pluginName;
+  function fixWindowsPath(pth) {
+    return pth && process.platform === "win32" ? import_win32.default.normalize(pth.replace(/^\/([a-z]:)/i, "$1")) : pth;
+  }
+  var import_core, import_win32, pluginName;
   var init_helpers = __esm({
     "src/helpers.ts"() {
       "use strict";
       import_core = __require("@yarnpkg/core");
+      import_win32 = __toESM(__require("node:path/win32"));
       pluginName = "yarn-plugin-npmrc";
     }
   });
@@ -358,7 +362,7 @@ var plugin = (() => {
   var require_type_defs = __commonJS({
     "node_modules/nopt/lib/type-defs.js"(exports, module) {
       var url = __require("url");
-      var path2 = __require("path");
+      var path = __require("path");
       var Stream = __require("stream").Stream;
       var os = __require("os");
       var debug = require_debug();
@@ -377,9 +381,9 @@ var plugin = (() => {
         const homePattern = isWin ? /^~(\/|\\)/ : /^~\//;
         const home = os.homedir();
         if (home && val.match(homePattern)) {
-          data[k] = path2.resolve(home, val.slice(2));
+          data[k] = path.resolve(home, val.slice(2));
         } else {
-          data[k] = path2.resolve(val);
+          data[k] = path.resolve(val);
         }
         return true;
       }
@@ -430,7 +434,7 @@ var plugin = (() => {
         Boolean: { type: Boolean, validate: validateBoolean },
         url: { type: url, validate: validateUrl },
         Number: { type: Number, validate: validateNumber },
-        path: { type: path2, validate: validatePath },
+        path: { type: path, validate: validatePath },
         Stream: { type: Stream, validate: validateStream },
         Date: { type: Date, validate: validateDate },
         Array: { type: Array }
@@ -1158,7 +1162,7 @@ var plugin = (() => {
       };
       var {
         url: { type: url },
-        path: { type: path2 }
+        path: { type: path }
       } = require_type_defs2();
       var definitions = {
         _auth: new Definition("_auth", {
@@ -1171,7 +1175,7 @@ var plugin = (() => {
         }),
         // the globalconfig has its default defined outside of this module
         globalconfig: new Definition("globalconfig", {
-          type: path2,
+          type: path,
           default: ""
         }),
         location: new Definition("location", {
@@ -1184,7 +1188,7 @@ var plugin = (() => {
         }),
         // `prefix` has its default defined outside of this module
         prefix: new Definition("prefix", {
-          type: path2,
+          type: path,
           default: ""
         }),
         registry: new Definition("registry", {
@@ -1193,7 +1197,7 @@ var plugin = (() => {
         }),
         userconfig: new Definition("userconfig", {
           default: "~/.npmrc",
-          type: path2
+          type: path
         })
       };
       module.exports = definitions;
@@ -1968,8 +1972,6 @@ var plugin = (() => {
     default: () => index_default
   });
   var import_core2 = __require("@yarnpkg/core");
-  var import_node_path = __toESM(__require("node:path"));
-  init_helpers();
 
   // src/getAuthHeader.ts
   init_helpers();
@@ -1996,6 +1998,7 @@ var plugin = (() => {
   }
 
   // src/index.ts
+  init_helpers();
   var configurationMap = {
     npmrcAuthEnabled: {
       description: "Attempt to read auth info from .npmrc for all registry requests",
@@ -2013,9 +2016,6 @@ var plugin = (() => {
   var cachedHeaders = {};
   var workspaceRoot;
   var verboseLog;
-  function fixWindowsPath(pth) {
-    return pth && process.platform === "win32" ? import_node_path.default.normalize(pth.replace(/^\/([a-z]:\/)/i, "$1")) : pth;
-  }
   function getConfigValue(config, key) {
     return config.get(key);
   }
