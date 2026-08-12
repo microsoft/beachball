@@ -1,4 +1,5 @@
 import { MessageName, ReportError } from '@yarnpkg/core';
+import path from 'node:path';
 
 const pluginName = 'yarn-plugin-npmrc';
 
@@ -34,4 +35,12 @@ export function makeVerboseLogger(verbose: boolean): VerboseLogger {
 
 export function logMessage(level: 'log' | 'warn' | 'error', msg: string): void {
   console[level](`[${pluginName}] ${msg}`);
+}
+
+/**
+ * Yarn formats Windows paths like `/C:/path/to/file` which is not valid.
+ * Fix it for use with other tools (remove extra leading slash and normalize slashes).
+ */
+export function fixWindowsPath(pth: string): string {
+  return pth && process.platform === 'win32' ? path.normalize(pth.replace(/^\/([a-z]:\/)/i, '$1')) : pth;
 }

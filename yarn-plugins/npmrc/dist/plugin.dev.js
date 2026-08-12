@@ -1921,7 +1921,7 @@ var plugin = (() => {
     const maxLevelIndex = logLevels.indexOf(verboseLog2.verbose ? "silly" : "warn");
     const onLog = (level, ...args) => {
       const levelIndex = logLevels.indexOf(level);
-      if (levelIndex >= 0 && levelIndex <= maxLevelIndex) {
+      if (levelIndex >= maxLevelIndex) {
         logMessage(level === "error" || level === "warn" ? level : "log", [`[${level}]`, ...args].join(" "));
       }
     };

@@ -3,16 +3,15 @@
 import type NpmConfig from '@npmcli/config';
 import {
   SettingsType,
+  type Configuration,
   type ConfigurationDefinitionMap,
-  type Plugin,
   type ConfigurationValueMap,
   type Hooks,
-  type Configuration,
+  type Plugin,
 } from '@yarnpkg/core';
 import type { Hooks as NpmHooks } from '@yarnpkg/plugin-npm';
-import path from 'node:path';
-import { makeVerboseLogger, type VerboseLogger } from './helpers.ts';
 import { getAuthHeader } from './getAuthHeader.ts';
+import { fixWindowsPath, makeVerboseLogger, type VerboseLogger } from './helpers.ts';
 
 interface NpmrcAuthConfig {
   npmrcAuthEnabled: boolean;
@@ -40,14 +39,6 @@ let npmrcError: unknown;
 const cachedHeaders: Record<string, string | undefined> = {};
 let workspaceRoot: string | undefined;
 let verboseLog: VerboseLogger | undefined;
-
-/**
- * Yarn formats Windows paths like `/C:/path/to/file` which is not valid.
- * Fix it for use with other tools (remove extra leading slash and normalize slashes).
- */
-function fixWindowsPath(pth: string) {
-  return pth && process.platform === 'win32' ? path.normalize(pth.replace(/^\/([a-z]:\/)/i, '$1')) : pth;
-}
 
 function getConfigValue<K extends keyof NpmrcAuthConfig>(config: Configuration, key: K): NpmrcAuthConfig[K] {
   return config.get(key) as NpmrcAuthConfig[K];
