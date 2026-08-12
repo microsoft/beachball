@@ -9,9 +9,10 @@ import {
   type Hooks,
   type Plugin,
 } from '@yarnpkg/core';
+import { npath } from '@yarnpkg/fslib';
 import type { Hooks as NpmHooks } from '@yarnpkg/plugin-npm';
 import { getAuthHeader } from './getAuthHeader.ts';
-import { fixWindowsPath, makeVerboseLogger, type VerboseLogger } from './helpers.ts';
+import { makeVerboseLogger, type VerboseLogger } from './helpers.ts';
 
 interface NpmrcAuthConfig {
   npmrcAuthEnabled: boolean;
@@ -46,7 +47,8 @@ function getConfigValue<K extends keyof NpmrcAuthConfig>(config: Configuration, 
 
 const validateProject: Hooks['validateProject'] = project => {
   // Slightly misuse this hook to find the local workspace/package root
-  workspaceRoot = fixWindowsPath(project.getWorkspaceByCwd(project.cwd).cwd);
+  // (fix yarn's weird PortablePath /C:/some/dir formatting for windows)
+  workspaceRoot = npath.fromPortablePath(project.getWorkspaceByCwd(project.cwd).cwd);
 };
 
 /**
@@ -83,17 +85,14 @@ const getNpmAuthenticationHeader: NpmHooks['getNpmAuthenticationHeader'] = async
   }
 
   if (!npmrc) {
-    const projectCwd = fixWindowsPath(configuration.projectCwd);
+    const projectCwd = npath.fromPortablePath(configuration.projectCwd);
+    workspaceRoot ??= projectCwd;
     verboseLog(`Loading .npmrc for projectCwd=${projectCwd} workspaceRoot=${workspaceRoot}`);
 
     // Delay load this since auth is irrelevant for many commands
     const { loadNpmrc } = await import('./loadNpmrc.ts');
     try {
-      npmrc = await loadNpmrc({
-        projectRoot: projectCwd,
-        workspaceRoot: workspaceRoot || projectCwd,
-        verboseLog,
-      });
+      npmrc = await loadNpmrc({ projectRoot: projectCwd, workspaceRoot, verboseLog });
     } catch (err) {
       npmrcError = err;
       throw npmrcError;

@@ -73,17 +73,6 @@ var plugin = (() => {
   function logMessage(level, msg) {
     console[level](`[${pluginName}] ${msg}`);
   }
-  function fixWindowsPath(pth) {
-    if (process.platform !== "win32") {
-      return pth;
-    }
-    const uncMatch = pth.match(/^\/unc\/(\.dot\/)?(.*)$/);
-    if (uncMatch) {
-      return `//${uncMatch[1] ? "./" : ""}${uncMatch[2]}`;
-    }
-    pth = pth.replace(/^\/([a-z]:)/i, "$1");
-    return /^[a-z]:$/i.test(pth) ? `${pth}/` : pth;
-  }
   var import_core, pluginName;
   var init_helpers = __esm({
     "src/helpers.ts"() {
@@ -1978,6 +1967,7 @@ var plugin = (() => {
     default: () => index_default
   });
   var import_core2 = __require("@yarnpkg/core");
+  var import_fslib = __require("@yarnpkg/fslib");
 
   // src/getAuthHeader.ts
   init_helpers();
@@ -2026,7 +2016,7 @@ var plugin = (() => {
     return config.get(key);
   }
   var validateProject = (project) => {
-    workspaceRoot = fixWindowsPath(project.getWorkspaceByCwd(project.cwd).cwd);
+    workspaceRoot = import_fslib.npath.fromPortablePath(project.getWorkspaceByCwd(project.cwd).cwd);
   };
   var getNpmAuthenticationHeader = async (currentHeader, registry, { configuration }) => {
     verboseLog ??= makeVerboseLogger(getConfigValue(configuration, "npmrcAuthVerbose"));
@@ -2045,15 +2035,12 @@ var plugin = (() => {
       throw npmrcError;
     }
     if (!npmrc) {
-      const projectCwd = fixWindowsPath(configuration.projectCwd);
+      const projectCwd = import_fslib.npath.fromPortablePath(configuration.projectCwd);
+      workspaceRoot ??= projectCwd;
       verboseLog(`Loading .npmrc for projectCwd=${projectCwd} workspaceRoot=${workspaceRoot}`);
       const { loadNpmrc: loadNpmrc2 } = await Promise.resolve().then(() => (init_loadNpmrc(), loadNpmrc_exports));
       try {
-        npmrc = await loadNpmrc2({
-          projectRoot: projectCwd,
-          workspaceRoot: workspaceRoot || projectCwd,
-          verboseLog
-        });
+        npmrc = await loadNpmrc2({ projectRoot: projectCwd, workspaceRoot, verboseLog });
       } catch (err) {
         npmrcError = err;
         throw npmrcError;

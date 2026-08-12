@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import { initMockLogs } from '@microsoft/beachball-test-utilities';
-import { fixWindowsPath, makeVerboseLogger } from '../helpers.ts';
+import { makeVerboseLogger } from '../helpers.ts';
 
 describe('makeVerboseLogger', () => {
   const logs = initMockLogs();
@@ -33,39 +33,5 @@ describe('makeVerboseLogger', () => {
     verboseLog('message', true);
 
     expect(logs.getMockLines('log')).toBe('[yarn-plugin-npmrc] message');
-  });
-});
-
-describe('fixWindowsPath', () => {
-  const platformDescriptor = Object.getOwnPropertyDescriptor(process, 'platform');
-
-  afterEach(() => {
-    platformDescriptor && Object.defineProperty(process, 'platform', platformDescriptor);
-  });
-
-  it('removes the extra leading slash on windows', () => {
-    Object.defineProperty(process, 'platform', { value: 'win32' });
-
-    expect(fixWindowsPath('/C:/path/to/file')).toBe('C:/path/to/file');
-  });
-
-  it('fixes root windows path', () => {
-    Object.defineProperty(process, 'platform', { value: 'win32' });
-
-    expect(fixWindowsPath('/C:')).toBe('C:/');
-    expect(fixWindowsPath('/C:/')).toBe('C:/');
-  });
-
-  it('converts yarn UNC and device paths', () => {
-    Object.defineProperty(process, 'platform', { value: 'win32' });
-
-    expect(fixWindowsPath('/unc/server/share/path')).toBe('//server/share/path');
-    expect(fixWindowsPath('/unc/.dot/PIPE/name')).toBe('//./PIPE/name');
-  });
-
-  it('leaves paths unchanged on non-Windows platforms', () => {
-    Object.defineProperty(process, 'platform', { value: 'darwin' });
-
-    expect(fixWindowsPath('/C:/path/to/file')).toBe('/C:/path/to/file');
   });
 });

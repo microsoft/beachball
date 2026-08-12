@@ -35,19 +35,3 @@ export function makeVerboseLogger(verbose: boolean): VerboseLogger {
 export function logMessage(level: 'log' | 'warn' | 'error', msg: string): void {
   console[level](`[${pluginName}] ${msg}`);
 }
-
-/**
- * Yarn formats Windows paths like `/C:/path/to/file` which is not valid.
- * Fix portable drive and UNC prefixes for use with other tools.
- */
-export function fixWindowsPath(pth: string): string {
-  if (process.platform !== 'win32') {
-    return pth;
-  }
-  const uncMatch = pth.match(/^\/unc\/(\.dot\/)?(.*)$/);
-  if (uncMatch) {
-    return `//${uncMatch[1] ? './' : ''}${uncMatch[2]}`;
-  }
-  pth = pth.replace(/^\/([a-z]:)/i, '$1');
-  return /^[a-z]:$/i.test(pth) ? `${pth}/` : pth;
-}
