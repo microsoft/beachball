@@ -23,7 +23,7 @@ Each plugin has two build steps, wired into lage's `build` → `bundle` pipeline
 
 The `dist/` bundles are **checked into git**. Run `yarn build` from the repo root and commit any changes to `yarn-plugins/*/dist/` after modifying plugin source. Bundle size limits are enforced in `bundleYarnPlugin.ts`.
 
-Because `.yarnrc.yml` loads the built `dist/plugin.dev.js` bundles, a broken or missing bundle can make `yarn` commands fail to start. If that happens, temporarily comment out the local plugins in `.yarnrc.yml` and run `yarn build` to regenerate them.
+Because `.yarnrc.yml` loads the built `dist/plugin.js` bundles, a broken or missing bundle can make `yarn` commands fail to start. If that happens, temporarily comment out the local plugins in `.yarnrc.yml` and run `yarn build` to regenerate them.
 
 ## Testing
 
