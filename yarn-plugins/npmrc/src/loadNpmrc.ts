@@ -10,7 +10,7 @@ import { logMessage, throwError, type VerboseLogger } from './helpers.ts';
  * @returns The loaded and validated config object
  */
 export async function loadNpmrc(
-  params: Partial<Pick<NpmConfig.Options, 'npmPath' | 'cwd' | 'env'>> & {
+  params: Partial<Pick<NpmConfig.Options, 'cwd' | 'env'>> & {
     /** Root of the whole project (location of `yarn.lock` and root `package.json`) */
     projectRoot: string;
     /** Root of the current workspace/package (may be same as `projectRoot`) */
@@ -19,7 +19,7 @@ export async function loadNpmrc(
   }
 ): Promise<NpmConfig> {
   const { verboseLog, ...configParams } = params;
-  let npmPath = '';
+  let npmPath: string;
   try {
     npmPath = fs.realpathSync(which.sync('npm'));
   } catch {
