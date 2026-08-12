@@ -74,7 +74,11 @@ var plugin = (() => {
     console[level](`[${pluginName}] ${msg}`);
   }
   function fixWindowsPath(pth) {
-    return pth && process.platform === "win32" ? import_win32.default.normalize(pth.replace(/^\/([a-z]:)/i, "$1")) : pth;
+    if (process.platform !== "win32") {
+      return pth;
+    }
+    pth = pth.replace(/^\/([a-z]:)/i, "$1");
+    return /^[a-z]:$/i.test(pth) ? pth + "\\" : import_win32.default.normalize(pth);
   }
   var import_core, import_win32, pluginName;
   var init_helpers = __esm({
@@ -1915,9 +1919,9 @@ var plugin = (() => {
   });
   async function loadNpmrc(params) {
     const { verboseLog: verboseLog2, ...configParams } = params;
-    let npmPath;
+    let npmPath = configParams.npmPath;
     try {
-      npmPath = import_node_fs.default.realpathSync(import_which.default.sync("npm"));
+      npmPath ??= import_node_fs.default.realpathSync(import_which.default.sync("npm"));
     } catch {
       throwError(`Couldn't find "npm" executable to help read the config`);
     }
@@ -1931,7 +1935,7 @@ var plugin = (() => {
     };
     process.on("log", onLog);
     try {
-      const conf = new import_config.default({ npmPath, ...configParams });
+      const conf = new import_config.default({ ...configParams, npmPath });
       await conf.load();
       conf.validate();
       if (verboseLog2.verbose) {

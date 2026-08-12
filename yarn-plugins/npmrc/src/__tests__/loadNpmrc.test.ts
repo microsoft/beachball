@@ -22,6 +22,7 @@ describe('loadNpmrc', () => {
     projectRoot = fixture.projectRoot;
 
     const conf = await loadNpmrc({
+      npmPath: fixture.npmPath,
       projectRoot,
       workspaceRoot: projectRoot,
       env: {

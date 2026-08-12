@@ -42,5 +42,9 @@ export function logMessage(level: 'log' | 'warn' | 'error', msg: string): void {
  * Fix it for use with other tools (remove extra leading slash and normalize slashes).
  */
 export function fixWindowsPath(pth: string): string {
-  return pth && process.platform === 'win32' ? winPath.normalize(pth.replace(/^\/([a-z]:)/i, '$1')) : pth;
+  if (process.platform !== 'win32') {
+    return pth;
+  }
+  pth = pth.replace(/^\/([a-z]:)/i, '$1');
+  return /^[a-z]:$/i.test(pth) ? pth + '\\' : winPath.normalize(pth);
 }

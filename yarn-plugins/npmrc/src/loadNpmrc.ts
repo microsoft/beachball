@@ -6,11 +6,11 @@ import { logMessage, throwError, type VerboseLogger } from './helpers.ts';
 /**
  * Read the effective npm config, with the same logic as npm: applying `process.env.npm_config_*`,
  * project config, user config, global config.
- * @param params - Required params plus optional npm config constructor override for testing.
+ * @param params - Required params plus optional npm config constructor option overrides for testing.
  * @returns The loaded and validated config object
  */
 export async function loadNpmrc(
-  params: Partial<Pick<NpmConfig.Options, 'cwd' | 'env'>> & {
+  params: Partial<Pick<NpmConfig.Options, 'cwd' | 'env' | 'npmPath'>> & {
     /** Root of the whole project (location of `yarn.lock` and root `package.json`) */
     projectRoot: string;
     /** Root of the current workspace/package (may be same as `projectRoot`) */
@@ -19,9 +19,9 @@ export async function loadNpmrc(
   }
 ): Promise<NpmConfig> {
   const { verboseLog, ...configParams } = params;
-  let npmPath: string;
+  let npmPath = configParams.npmPath;
   try {
-    npmPath = fs.realpathSync(which.sync('npm'));
+    npmPath ??= fs.realpathSync(which.sync('npm'));
   } catch {
     throwError(`Couldn't find "npm" executable to help read the config`);
   }
@@ -40,7 +40,7 @@ export async function loadNpmrc(
   try {
     // NOTE: This is using a patched API!
     // The patch provides some options by default and adds pre-calculated projectRoot/workspaceRoot.
-    const conf = new NpmConfig({ npmPath, ...configParams });
+    const conf = new NpmConfig({ ...configParams, npmPath });
     await conf.load();
     // This returns false if there are non-auth-related validation issues, but we only care about
     // the auth-related validation here (which is thrown as an error)

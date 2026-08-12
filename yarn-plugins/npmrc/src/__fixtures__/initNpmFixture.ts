@@ -1,7 +1,6 @@
 import { tmpdir } from '@microsoft/beachball-test-utilities';
 import fs from 'node:fs';
 import path from 'node:path';
-import which from 'which';
 
 /**
  * Initialize npmrc files in a temporary directory for testing.
@@ -28,6 +27,10 @@ export function initNpmFixture(params: {
   const globalNpmrcPath = path.join(projectRoot, 'global.npmrc');
   let projectNpmrcPath: string | undefined;
 
+  const npmPath = path.join(projectRoot, 'npm');
+  fs.mkdirSync(npmPath);
+  fs.writeFileSync(path.join(npmPath, 'npmrc'), '');
+
   if (params.userNpmrc) {
     fs.writeFileSync(userNpmrcPath, params.userNpmrc || '');
   }
@@ -45,7 +48,7 @@ export function initNpmFixture(params: {
       npm_config_globalconfig: globalNpmrcPath,
       npm_config_userconfig: userNpmrcPath,
     },
-    npmPath: fs.realpathSync(which.sync('npm')),
+    npmPath,
     projectRoot,
     userNpmrcPath,
     globalNpmrcPath,

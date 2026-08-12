@@ -53,7 +53,7 @@ describe('fixWindowsPath', () => {
   it('fixes root windows path', () => {
     Object.defineProperty(process, 'platform', { value: 'win32' });
 
-    expect(fixWindowsPath('/C:')).toBe(winPath.normalize('C:'));
+    expect(fixWindowsPath('/C:')).toBe(winPath.normalize('C:\\'));
     expect(fixWindowsPath('/C:/')).toBe(winPath.normalize('C:\\'));
   });
 
