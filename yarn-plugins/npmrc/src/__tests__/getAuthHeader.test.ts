@@ -13,12 +13,7 @@ describe('getAuthHeader', () => {
     const fixture = initNpmFixture({ projectNpmrc });
     projectRoot = fixture.projectRoot;
 
-    const npmrc = new NpmConfig({
-      npmPath: fixture.npmPath,
-      projectRoot,
-      workspaceRoot: projectRoot,
-      env: fixture.env,
-    });
+    const npmrc = new NpmConfig({ npmPath: fixture.npmPath, projectRoot, env: fixture.env });
     await npmrc.load();
     return npmrc;
   }

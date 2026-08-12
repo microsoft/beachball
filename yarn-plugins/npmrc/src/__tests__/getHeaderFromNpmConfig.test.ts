@@ -103,7 +103,6 @@ describe('getHeaderFromNpmConfig', () => {
       currentHeader: 'yarn-header',
       registry: 'https://registry.example',
       projectCwd: npath.toPortablePath(projectRoot),
-      workspaceRoot: undefined,
       verboseLog: makeVerboseLogger(false),
     };
 
