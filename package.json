@@ -34,11 +34,6 @@
     "test": "lage test",
     "update-snapshots": "lage update-snapshots"
   },
-  "lint-staged": {
-    "*": [
-      "prettier --write"
-    ]
-  },
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/plugin-transform-modules-commonjs": "^7.26.0",

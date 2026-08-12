@@ -46,28 +46,26 @@ export async function loadNpmrc(
     // the auth-related validation here (which is thrown as an error)
     conf.validate();
 
-    verboseLog.verbose && logConfigSources(conf, verboseLog);
+    if (verboseLog.verbose) {
+      verboseLog('Loaded npm config successfully. Config sources:');
+      // sources maps e.g. someNpmrcPath => "builtin" or "default values" => "default"
+      for (const [pathOrDesc, loc] of conf.sources.entries()) {
+        verboseLog(`  ${loc}: ${pathOrDesc}`);
+      }
+
+      const envKeys = Object.keys(conf.data.get('env')?.raw || {}).sort();
+      if (envKeys.length) {
+        verboseLog('Config loaded from environment variables:');
+        for (const key of envKeys) {
+          verboseLog(`  ${key}`);
+        }
+      }
+    }
 
     return conf;
   } catch (err) {
     throwError(err);
   } finally {
     process.off('log', onLog);
-  }
-}
-
-function logConfigSources(conf: NpmConfig, verboseLog: VerboseLogger): void {
-  verboseLog('Loaded npm config successfully. Config sources:');
-  // sources maps e.g. someNpmrcPath => "builtin" or "default values" => "default"
-  for (const [pathOrDesc, loc] of conf.sources.entries()) {
-    verboseLog(`  ${loc}: ${pathOrDesc}`);
-  }
-
-  const envKeys = Object.keys(conf.data.get('env')?.raw || {}).sort();
-  if (envKeys.length) {
-    verboseLog('Config loaded from environment variables:');
-    for (const key of envKeys) {
-      verboseLog(`  ${key}`);
-    }
   }
 }

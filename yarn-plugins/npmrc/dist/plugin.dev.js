@@ -1915,7 +1915,7 @@ var plugin = (() => {
   });
   async function loadNpmrc(params) {
     const { verboseLog: verboseLog2, ...configParams } = params;
-    let npmPath = "";
+    let npmPath;
     try {
       npmPath = import_node_fs.default.realpathSync(import_which.default.sync("npm"));
     } catch {
@@ -1934,25 +1934,24 @@ var plugin = (() => {
       const conf = new import_config.default({ npmPath, ...configParams });
       await conf.load();
       conf.validate();
-      verboseLog2.verbose && logConfigSources(conf, verboseLog2);
+      if (verboseLog2.verbose) {
+        verboseLog2("Loaded npm config successfully. Config sources:");
+        for (const [pathOrDesc, loc] of conf.sources.entries()) {
+          verboseLog2(`  ${loc}: ${pathOrDesc}`);
+        }
+        const envKeys = Object.keys(conf.data.get("env")?.raw || {}).sort();
+        if (envKeys.length) {
+          verboseLog2("Config loaded from environment variables:");
+          for (const key of envKeys) {
+            verboseLog2(`  ${key}`);
+          }
+        }
+      }
       return conf;
     } catch (err) {
       throwError(err);
     } finally {
       process.off("log", onLog);
-    }
-  }
-  function logConfigSources(conf, verboseLog2) {
-    verboseLog2("Loaded npm config successfully. Config sources:");
-    for (const [pathOrDesc, loc] of conf.sources.entries()) {
-      verboseLog2(`  ${loc}: ${pathOrDesc}`);
-    }
-    const envKeys = Object.keys(conf.data.get("env")?.raw || {}).sort();
-    if (envKeys.length) {
-      verboseLog2("Config loaded from environment variables:");
-      for (const key of envKeys) {
-        verboseLog2(`  ${key}`);
-      }
     }
   }
   var import_config, import_node_fs, import_which;
