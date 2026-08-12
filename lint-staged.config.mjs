@@ -6,6 +6,7 @@ export default {
       [`yarn --cwd ${dir} bundle`, `git add ${dir}/dist`],
     ])
   ),
-  // Applies to all files and shouldn't conflict
+  // This applies to all files and does not conflict with the bundle command above
+  // (the bundled dist files aren't formatted, and formatting shouldn't change output)
   '*': ['prettier --write'],
 };

@@ -56,7 +56,7 @@ describe('npmrc authentication integration', () => {
         'unsafeHttpWhitelist:',
         '  - localhost',
         'plugins:',
-        `  - path: "${pluginPath}"`,
+        `  - path: ${JSON.stringify(pluginPath) /* adds quotes and escapes backslashes */}`,
         '',
       ].join('\n')
     );
