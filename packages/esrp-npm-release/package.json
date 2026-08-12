@@ -32,13 +32,13 @@
     "@azure/core-auth": "^1.10.1",
     "@azure/msal-node": "^5.1.5",
     "@azure/storage-blob": "^12.31.0",
-    "jws": "patch:jws@npm%3A4.0.1#~/.yarn/patches/jws-npm-4.0.1-0d8c257cbe.patch",
-    "nano-spawn": "catalog:prod",
-    "yazl": "^3.3.1",
     "@microsoft/beachball-scripts": "workspace:^",
     "@microsoft/beachball-test-utilities": "workspace:^",
     "@types/jws": "^3.2.11",
     "@types/yazl": "^3.3.1",
-    "cross-env": "catalog:dev"
+    "cross-env": "catalog:dev",
+    "jws": "patch:jws@npm%3A4.0.1#~/.yarn/patches/jws-npm-4.0.1-0d8c257cbe.patch",
+    "nano-spawn": "catalog:prod",
+    "yazl": "^3.3.1"
   }
 }

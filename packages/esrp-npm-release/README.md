@@ -360,9 +360,9 @@ steps:
   - checkout: self
 
   - task: UseNode@1
-    displayName: Install Node.js ${{ variables.nodeVersion }}
+    displayName: Install Node.js ${{ parameters.nodeVersion }}
     inputs:
-      version: ${{ variables.nodeVersion }}.x
+      version: ${{ parameters.nodeVersion }}.x
       checkLatest: false
 
   - script: echo 'registry=$(REGISTRY_URL)' >> .npmrc
