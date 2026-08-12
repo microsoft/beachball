@@ -1601,7 +1601,7 @@ __metadata:
     nano-spawn: "catalog:prod"
     yazl: "npm:^3.3.1"
   bin:
-    esrp-npm-release: dist/index.mjs
+    esrp-npm-release: bin/esrp-npm-release.js
   languageName: unknown
   linkType: soft
 
