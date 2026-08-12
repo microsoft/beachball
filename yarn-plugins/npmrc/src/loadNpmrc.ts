@@ -25,7 +25,7 @@ export async function loadNpmrc(
     throwError(`Couldn't find "npm" executable to help read the config`);
   }
 
-  // handle @npmcli/config's proc-log log events
+  // handle @npmcli/config's proc-log log events (ignore levels not listed)
   const logLevels = ['silly', 'verbose', 'info', 'notice', 'warn', 'error'];
   const maxLevelIndex = logLevels.indexOf(verboseLog.verbose ? 'silly' : 'warn');
   const onLog = (level: string, ...args: unknown[]) => {
