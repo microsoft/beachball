@@ -7,6 +7,7 @@ Tool for teams within Microsoft who would like to use ESRP to release npm packag
 ## Contents
 
 - [Overview](#overview)
+- [Tool inputs](#tool-inputs)
 - [Packed packages format](#packed-packages-format)
 - [Staging resource setup](#staging-resource-setup)
   - [1. Create the resource group](#1-create-the-resource-group)
@@ -18,11 +19,10 @@ Tool for teams within Microsoft who would like to use ESRP to release npm packag
   - [Prerequisite: Service connections](#prerequisite-service-connections)
   - [Prerequisite: Internal feed setup](#prerequisite-internal-feed-setup)
   - [Example pipeline YAML](#example-pipeline-yaml)
-- [Tool inputs](#tool-inputs)
 
 ## Overview
 
-The tool is a bundled CLI (`dist/index.mjs`) that runs during a release job and publishes npm packages through the ESRP release API in the proper order. Since release jobs can't directly download sources or install dependencies, the CLI bundle is meant to be included in a pipeline artifact from the build stage, then consumed and run by the release stage.
+The tool is a bundled CLI (`dist/index.mjs`) that runs during a release job and publishes npm packages through the ESRP release API in the proper order. Since release jobs can't directly download sources or install dependencies, the CLI bundle must be uploaded as a pipeline artifact from the build stage, then consumed and run by the release stage.
 
 The tool itself doesn't calculate dependency order. Instead, it relies on receiving the packages already grouped into [dependency tree layers](#packed-packages-format): numbered subfolders where the packages in each layer depend only on packages in earlier layers. (`beachball publish --pack-to-path` produces this layout, but you could extend other change/release management tools to do the same.) The tool releases the layers in numeric order, so every internal dependency a package references is already published before that package's own layer.
 
@@ -31,23 +31,123 @@ For each layer, the tool:
 1. Zips the layer's package tarballs.
 2. Temporarily uploads the zip to a "staging" blob storage account, since the ESRP release API only accepts blob storage URLs, not files uploaded as request bodies. (See [compliance notes](#managed-identity-and-roles) below.)
 3. Calls the ESRP release API to publish the layer, waiting for it to complete before moving on to the next layer.
-4. Deletes the staged zip (cleanup also has an automated fallback, described [below](#storage-account-and-lifecycle-policy)).
+4. Deletes the staged zip.
 
 The tool relies on the following inputs and resources:
 
-- [**Packed packages**](#packed-packages-format): Output folder from `beachball publish --pack-to-path <path>` or in the same format
-  - ⚠️ If using `beachball`, it's recommended to upgrade to a **v3 prerelease** to take advantage of certain new features, including better registry config handling.
+- [**Packed packages**](#packed-packages-format): Output folder from `beachball publish --pack-to-path <path>` or in the same format.
+  - ⚠️ If using `beachball`, you should upgrade to a **v3 prerelease (`beachball@next`)** to take advantage of certain new features, including better registry config handling. [See migration guide.](https://microsoft.github.io/beachball/overview/v3-migration)
 - **ESRP Azure resources** configured per their guides (see docs on eng.ms):
-  - _ESRP-onboarded identity_ in a production tenant (need client ID and tenant ID): either an app registration with an authentication certificate, or an ESRP-allowlisted managed identity authenticated using workload identity federation
-  - _Production tenant key vault_ storing the request signing certificate and, when using certificate authentication, the ESRP auth certificate (PFX format, base64-encoded)
-  - _Production tenant managed identity_ with access to the key vault
-  - _ADO Azure Resource Manager service connection_ using the managed identity
+  - **ESRP-onboarded identity** in a production tenant (need client ID and tenant ID): either an app registration with an authentication certificate, or an ESRP-allowlisted managed identity authenticated using workload identity federation
+  - **Production tenant key vault** storing the request signing certificate and, when using certificate authentication, the ESRP auth certificate (PFX format, base64-encoded)
+  - **Production tenant managed identity** with access to the key vault
+  - **ADO Azure Resource Manager service connection** using the managed identity
 - [**Staging resources**](#staging-resource-setup) specific to this tool (see below for setup details):
-  - _Azure Blob Storage account_ in your team's subscription (usually in the corp tenant) to temporarily host zips of packages
-  - _Managed identity_ with the right RBAC roles on the storage account (used to create user delegation keys for blob access)
-  - _ADO Azure Resource Manager service connection_ using the managed identity
+  - **Azure Blob Storage account** in your team's subscription (usually in the corp tenant) to temporarily host zips of packages
+  - **Managed identity** with the right RBAC roles on the storage account (used to create user delegation keys for blob access)
+  - **ADO Azure Resource Manager service connection** using the managed identity
 
 Credit for the original staging and API integration approach goes to the [VS Code team](https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/common/publish.ts).
+
+## Tool inputs
+
+The tool is configured using environment variables. All variables are **required** unless noted otherwise.
+
+See setup steps in later sections and [sample pipelines](#publish-stage) at the bottom of this document for details of setup and usage.
+
+### Packages and release info
+
+> ⚠️ If you invoke the tool multiple times in the same pipeline to publish different sets of packages, each invocation must use a different `ESRP_PRODUCT_NAME` or `ESRP_NPM_TAG`. Otherwise the invocations share the same [retry state](#storage-account-and-lifecycle-policy) and later ones will incorrectly assume their packages were already published.
+
+<!-- prettier-ignore -->
+| Variable | Description |
+| -------- | ----------- |
+| `PACKED_PACKAGES_PATH` | Path to the [packed packages](#packed-packages-format) directory. |
+| `ESRP_PRODUCT_NAME` | Friendly product name for the release. This is **not** used as a published package name, just in the ESRP Release UI (and by the tool as a state key). |
+| `ESRP_NPM_TAG` | _Optional._ npm dist-tag for the published packages. Defaults to `latest` or uses each package's `publishConfig`. |
+
+### Contact info
+
+`ESRP_USER` is optional and provides a default value for all the other fields in this group (so those become optional if it's set).
+
+<!-- prettier-ignore -->
+| Variable | Description |
+| -------- | ----------- |
+| `ESRP_USER` | _Optional._ Default value for the fields below. |
+| `ESRP_CREATED_BY` | Email of the user creating the release. |
+| `ESRP_DRI_EMAIL` | Email of the DRI for the team creating the release. |
+| `ESRP_OWNERS` | Owner email(s), comma-separated. |
+| `ESRP_APPROVERS` | Approver email(s), comma-separated (all non-mandatory and auto-approved). |
+
+### ESRP resources
+
+ESRP resources are set up per their guides. Correspondence with official `EsrpRelease` task input names is given to assist with cross-referencing their docs.
+
+<!-- prettier-ignore -->
+| Variable | Description |
+| -------- | ----------- |
+| `ESRP_TENANT_ID` | Production tenant ID for your ESRP app registration or managed identity. (`EsrpRelease` task: `domaintenantid`) |
+| `ESRP_CLIENT_ID` | Client ID for your ESRP app registration or ESRP-allowlisted managed identity. (`EsrpRelease` task: `clientid`) |
+| `ESRP_AUTH_CERT` | Base64-encoded PFX certificate for authenticating to ESRP AAD. Set exactly one of this and `ESRP_ID_TOKEN`. |
+| `ESRP_ID_TOKEN` | Federated ID token for authenticating as an ESRP-allowlisted managed identity. Set exactly one of this and `ESRP_AUTH_CERT`. |
+| `ESRP_REQUEST_SIGNING_CERT` | Base64-encoded PFX certificate for signing JWS release requests. Required for both authentication methods. |
+
+The request signing certificate and optional auth certificate are typically retrieved by a prior `AzureKeyVault` task step (as shown in the [example pipeline](#publish-stage)):
+
+```yml
+- task: AzureKeyVault@2
+  displayName: Get ESRP certificates from Key Vault
+  inputs:
+    # Production tenant service connection name (EsrpRelease task: "connectedservicename")
+    azureSubscription: <ESRP service connection name>
+    # Key vault name (EsrpRelease task: "keyvaultname")
+    KeyVaultName: <key vault name>
+    # Cert content is loaded into secret variables (EsrpRelease task: "authcertname" and "signcertname").
+    # Omit the auth cert when using managed identity authentication.
+    SecretsFilter: <auth cert name>,<request signing cert name>
+```
+
+For managed identity authentication, obtain `ESRP_ID_TOKEN` from the ESRP service connection:
+
+```yml
+- task: AzureCLI@2
+  displayName: Get credentials for ESRP
+  inputs:
+    azureSubscription: <ESRP service connection name>
+    scriptType: bash
+    scriptLocation: inlineScript
+    addSpnToEnvironment: true
+    inlineScript: |
+      echo "##vso[task.setvariable variable=ESRP_ID_TOKEN;issecret=true]$idToken"
+```
+
+### Staging resources
+
+See [staging resource setup](#staging-resource-setup).
+
+<!-- prettier-ignore -->
+| Variable | Description |
+| -------- | ----------- |
+| `STAGING_STORAGE_ACCOUNT_NAME` | Name of the [staging storage account](#staging-resource-setup). |
+| `STAGING_CLIENT_ID` | Client ID used for storage account access. |
+| `STAGING_TENANT_ID` | Tenant ID used for storage account access. |
+| `STAGING_ID_TOKEN` | Federated ID token used for storage account access. |
+
+Aside from `STAGING_STORAGE_ACCOUNT_NAME`, these are typically retrieved by a prior `AzureCLI` task step (as shown in the example pipeline above):
+
+```yml
+- task: AzureCLI@2
+  displayName: Get credentials for staging blob storage
+  inputs:
+    azureSubscription: <staging service connection name>
+    scriptType: bash
+    scriptLocation: inlineScript
+    addSpnToEnvironment: true
+    inlineScript: |
+      echo "##vso[task.setvariable variable=STAGING_TENANT_ID]$tenantId"
+      echo "##vso[task.setvariable variable=STAGING_CLIENT_ID]$servicePrincipalId"
+      echo "##vso[task.setvariable variable=STAGING_ID_TOKEN;issecret=true]$idToken"
+```
 
 ## Packed packages format
 
@@ -232,16 +332,67 @@ There are no currently known extra steps if using `pnpm`.
 
 ### Example pipeline YAML
 
-The typical release process using this tool has two main parts, which could be either stages or separate pipelines depending on your desired setup:
+The typical release process using this tool has multiple parts, which could be either stages or separate pipelines depending on your desired setup:
 
 1. **Build** stage or pipeline: builds the repo, packs the packages, and publishes a single pipeline artifact containing the packed packages and the release tool (since 1ES PT release jobs can't access source code or npm feeds).
 2. **Publish/release** stage or pipeline: consumes those artifacts and runs the release tool to publish via ESRP. The job should use 1ES PT template options `type: releaseJob` and `isProduction: true`.
+3. (optional) **Push** stage: commit and push version bumps and changelogs back to git.
 
 In 1ES PT, the presence of a production release job applies stricter network isolation policies to the _entire_ pipeline. If you're using a single pipeline, you'll need to re-enable the access the rest of the pipeline needs (GitHub, Azure) via the `networkIsolationPolicy` setting.
 
 The examples below cover a **single pipeline**. Start with the shared setup and build stage, then append one of the publish stages depending on how you authenticate to ESRP. Be sure to **fill in all the `<placeholders>`!** See https://github.com/microsoft/beachball/blob/main/.ado/release.yml for a full example, which also pushes updates to GitHub. (For an example of separate pipelines, see this [build pipeline](https://github.com/microsoft/node-api-dotnet/blob/main/.ado/publish.yml) and [publish/release pipeline](https://github.com/microsoft/node-api-dotnet/blob/main/.ado/release.yml). Ignore the parts targeting non-Node platforms.)
 
-<details><summary><b>1. Shared pipeline setup and build stage</b></summary>
+#### Setup template
+
+If your pipeline includes a push stage, it's helpful to put the setup steps between the build and push stages in a shared `setup.yml` template. (These steps can go inline with the build stage if you don't have a push stage.)
+
+In the samples below, the filename for this template is `.ado/templates/setup.yml`.
+
+<details><summary>Expand for setup template</summary>
+
+```yml
+parameters:
+  # Node.js major version to install (e.g. "24").
+  - name: nodeVersion
+    type: string
+
+steps:
+  - checkout: self
+
+  - task: UseNode@1
+    displayName: Install Node.js ${{ variables.nodeVersion }}
+    inputs:
+      version: ${{ variables.nodeVersion }}.x
+      checkLatest: false
+
+  - script: echo 'registry=$(REGISTRY_URL)' >> .npmrc
+    displayName: Configure npm registry
+
+  - task: npmAuthenticate@0
+    displayName: npm authenticate
+    inputs:
+      workingFile: $(Build.SourcesDirectory)/.npmrc
+
+  # ONLY for npm / yarn v1: rewrite lock file URLs to the private registry.
+  # `npx beachball` is fetched from the private registry.
+  - script: npx beachball@next publish-helpers update-lock-registry --registry '$(REGISTRY_URL)'
+    displayName: (npm or yarn v1) Update registry in lock file
+
+  # This isn't used, it's just a clear way to check that auth is working
+  # (yarn install's auth errors can be very unclear)
+  - script: yarn npm info beachball
+    displayName: Get package to verify registry auth
+
+  # Modify as appropriate
+  - script: yarn --immutable
+    displayName: Install dependencies
+```
+
+</details>
+
+#### Shared pipeline setup and build stage
+
+<details><summary>Expand for shared pipeline setup and build stage</summary>
 
 ```yml
 # Build number/name - modify as desired
@@ -264,9 +415,10 @@ variables:
   # internal feed with npmjs.org as upstream
   REGISTRY_URL: '<yourRegistryUrl>/'
   # ONLY for yarn berry (v2+): it doesn't respect .npmrc, so set config with YARN_* env
+  # (using 1 instead of 'true' avoids any issues with weird ADO boolean handling)
   YARN_NPM_REGISTRY_SERVER: $(REGISTRY_URL)
-  YARN_NPM_ALWAYS_AUTH: 'true'
-  YARN_NPMRC_AUTH_ENABLED: 'true'
+  YARN_NPM_ALWAYS_AUTH: 1
+  YARN_NPMRC_AUTH_ENABLED: 1
   # names/paths used below
   artifactName: release-artifacts
   packagesDirName: packed-packages
@@ -317,33 +469,11 @@ extends:
                   path: $(artifactPath)
 
             steps:
-              - checkout: self
+              - template: /.ado/templates/setup.yml@self
+                parameters:
+                  nodeVersion: ${{ variables.nodeVersion }}
 
-              - task: UseNode@1
-                displayName: Install Node.js ${{ variables.nodeVersion }}
-                inputs:
-                  version: ${{ variables.nodeVersion }}.x
-                  checkLatest: false
-
-              - script: echo 'registry=$(REGISTRY_URL)' >> .npmrc
-                displayName: Configure npm registry
-
-              - task: npmAuthenticate@0
-                displayName: npm authenticate
-                inputs:
-                  workingFile: $(Build.SourcesDirectory)/.npmrc
-
-              # ONLY for npm / yarn v1: rewrite lock file URLs to the private registry.
-              # `npx beachball` is fetched from the private registry.
-              - script: npx beachball@next publish-helpers update-lock-registry --registry '$(REGISTRY_URL)'
-                displayName: (npm or yarn v1) Update registry in lock file
-
-              # This isn't used, it's just a clear way to check that auth is working
-              # (yarn install's auth errors can be very unclear)
-              - script: yarn npm info beachball
-                displayName: Get package to verify registry auth
-
-              # TODO: insert steps to install, build, test, etc
+              # TODO: insert steps to build, test, etc
 
               # Bump and pack packages (update command as needed).
               # This could also run some other script that outputs packages in the same format.
@@ -360,9 +490,11 @@ extends:
 
 </details>
 
-Append one of the following stages under `extends.parameters.stages`.
+#### Publish stage
 
-<details><summary><b>2a. Publish stage using an authentication certificate</b></summary>
+Add one of the following publish stages to the pipeline (under `extends.parameters.stages`):
+
+<details><summary>Publish stage using an authentication certificate</summary>
 
 ```yml
 - stage: publish
@@ -450,11 +582,11 @@ Append one of the following stages under `extends.parameters.stages`.
 
 </details>
 
-<details><summary><b>2b. Publish stage using managed identity</b></summary>
+<br/>
 
-> Note: id tokens have a lifetime on the order of 1 hour. Because the esrp-npm-release script has no way to refresh this token,
-> if publishing packages takes more than 1 hour, this process may fail. Retrying the pipeline stage is safe and will start where
-> the previous attempt left off.
+<details><summary>Publish stage using managed identity</summary>
+
+> Note: ID tokens have a lifetime on the order of 1 hour. Because the `esrp-npm-release` script has no way to refresh this token, if publishing packages takes more than 1 hour, this process may fail. Retrying the pipeline stage is safe and will start where the previous attempt left off.
 
 ```yml
 - stage: publish
@@ -553,100 +685,56 @@ Append one of the following stages under `extends.parameters.stages`.
 
 </details>
 
-## Tool inputs
+#### Push stage
 
-The tool is configured using environment variables. All variables are **required** unless noted otherwise. See previous section for a full example.
+If your repo has traditionally pushed packages directly back to GitHub with a personal access token, you can instead use a GitHub app token and the [`beachball-auth-helper` CLI](https://microsoft.github.io/beachball/concepts/ci-integration/auth-helper).
 
-### Packages and release info
-
-> ⚠️ If you invoke the tool multiple times in the same pipeline to publish different sets of packages, each invocation must use a different `ESRP_PRODUCT_NAME` or `ESRP_NPM_TAG`. Otherwise the invocations share the same [retry state](#storage-account-and-lifecycle-policy) and later ones will incorrectly assume their packages were already published.
-
-<!-- prettier-ignore -->
-| Variable | Description |
-| -------- | ----------- |
-| `PACKED_PACKAGES_PATH` | Path to the [packed packages](#packed-packages-format) directory. |
-| `ESRP_PRODUCT_NAME` | Friendly product name for the release. This is **not** used as a published package name, just in the ESRP Release UI (and by the tool as a state key). |
-| `ESRP_NPM_TAG` | _Optional._ npm dist-tag for the published packages. Defaults to `latest` or uses each package's `publishConfig`. |
-
-### Contact info
-
-`ESRP_USER` is optional and provides a default value for all the other fields in this group (so those become optional if it's set).
-
-<!-- prettier-ignore -->
-| Variable | Description |
-| -------- | ----------- |
-| `ESRP_USER` | _Optional._ Default value for the fields below. |
-| `ESRP_CREATED_BY` | Email of the user creating the release. |
-| `ESRP_DRI_EMAIL` | Email of the DRI for the team creating the release. |
-| `ESRP_OWNERS` | Owner email(s), comma-separated. |
-| `ESRP_APPROVERS` | Approver email(s), comma-separated (all non-mandatory and auto-approved). |
-
-### ESRP resources
-
-ESRP resources are set up per their guides. Correspondence with official `EsrpRelease` task input names is given to assist with cross-referencing their docs.
-
-<!-- prettier-ignore -->
-| Variable | Description |
-| -------- | ----------- |
-| `ESRP_TENANT_ID` | Production tenant ID for your ESRP app registration or managed identity. (`EsrpRelease` task: `domaintenantid`) |
-| `ESRP_CLIENT_ID` | Client ID for your ESRP app registration or ESRP-allowlisted managed identity. (`EsrpRelease` task: `clientid`) |
-| `ESRP_AUTH_CERT` | Base64-encoded PFX certificate for authenticating to ESRP AAD. Set exactly one of this and `ESRP_ID_TOKEN`. |
-| `ESRP_ID_TOKEN` | Federated ID token for authenticating as an ESRP-allowlisted managed identity. Set exactly one of this and `ESRP_AUTH_CERT`. |
-| `ESRP_REQUEST_SIGNING_CERT` | Base64-encoded PFX certificate for signing JWS release requests. Required for both authentication methods. |
-
-The request signing certificate and optional auth certificate are typically retrieved by a prior `AzureKeyVault` task step (as shown in the example pipeline above):
+<details><summary>Expand for example push stage</summary>
 
 ```yml
-- task: AzureKeyVault@2
-  displayName: Get ESRP certificates from Key Vault
-  inputs:
-    # Production tenant service connection name (EsrpRelease task: "connectedservicename")
-    azureSubscription: <ESRP service connection name>
-    # Key vault name (EsrpRelease task: "keyvaultname")
-    KeyVaultName: <key vault name>
-    # Cert content is loaded into secret variables (EsrpRelease task: "authcertname" and "signcertname").
-    # Omit the auth cert when using managed identity authentication.
-    SecretsFilter: <auth cert name>,<request signing cert name>
+- stage: push
+  displayName: Push to git
+  dependsOn: publish
+  jobs:
+    - job: push
+      pool:
+        name: <1ES PT pool name>
+        image: ubuntu-latest
+        os: linux
+      steps:
+        - template: /.ado/templates/setup.yml@self
+          parameters:
+            nodeVersion: ${{ variables.nodeVersion }}
+
+        # TODO: add a step to build your packages
+
+        - task: AzureCLI@2
+          name: createToken
+          displayName: Create GitHub App token
+          inputs:
+            azureSubscription: <GitHub App service connection name>
+            scriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: yarn beachball-auth-helper create-gha-token
+          env:
+            APP_CLIENT_ID: <GitHub App client ID>
+            KEY_ID: <key vault key URL>
+            REPOSITORY: $(Build.Repository.Name)
+            PERMISSIONS: contents:write
+            OUTPUT_NAME: GITHUB_APP_TOKEN
+
+        # Run publish without publishing to npm. Beachball reads `BEACHBALL_GIT_TOKEN` to authenticate the git push.
+        # Update the command as needed for your repo.
+        - script: yarn beachball publish --no-publish
+          displayName: Push package updates
+          env:
+            BEACHBALL_GIT_TOKEN: $(createToken.GITHUB_APP_TOKEN)
+
+        - script: yarn beachball-auth-helper revoke-gha-token
+          displayName: Revoke GitHub App token
+          condition: and(always(), ne(variables['createToken.GITHUB_APP_TOKEN'], ''))
+          env:
+            TOKEN: $(createToken.GITHUB_APP_TOKEN)
 ```
 
-For managed identity authentication, obtain `ESRP_ID_TOKEN` from the ESRP service connection:
-
-```yml
-- task: AzureCLI@2
-  displayName: Get credentials for ESRP
-  inputs:
-    azureSubscription: <ESRP service connection name>
-    scriptType: bash
-    scriptLocation: inlineScript
-    addSpnToEnvironment: true
-    inlineScript: |
-      echo "##vso[task.setvariable variable=ESRP_ID_TOKEN;issecret=true]$idToken"
-```
-
-### Staging resources
-
-See [staging resource setup](#staging-resource-setup).
-
-<!-- prettier-ignore -->
-| Variable | Description |
-| -------- | ----------- |
-| `STAGING_STORAGE_ACCOUNT_NAME` | Name of the [staging storage account](#staging-resource-setup). |
-| `STAGING_CLIENT_ID` | Client ID used for storage account access. |
-| `STAGING_TENANT_ID` | Tenant ID used for storage account access. |
-| `STAGING_ID_TOKEN` | Federated ID token used for storage account access. |
-
-Aside from `STAGING_STORAGE_ACCOUNT_NAME`, these are typically retrieved by a prior `AzureCLI` task step (as shown in the example pipeline above):
-
-```yml
-- task: AzureCLI@2
-  displayName: Get credentials for staging blob storage
-  inputs:
-    azureSubscription: <staging service connection name>
-    scriptType: bash
-    scriptLocation: inlineScript
-    addSpnToEnvironment: true
-    inlineScript: |
-      echo "##vso[task.setvariable variable=STAGING_TENANT_ID]$tenantId"
-      echo "##vso[task.setvariable variable=STAGING_CLIENT_ID]$servicePrincipalId"
-      echo "##vso[task.setvariable variable=STAGING_ID_TOKEN;issecret=true]$idToken"
-```
+</details>

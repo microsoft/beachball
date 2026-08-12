@@ -1,10 +1,9 @@
 {
   "name": "@microsoft/esrp-npm-release",
   "version": "0.1.0",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "description": "ESRP npm release helper",
   "bin": "bin/esrp-npm-release.mjs",
-  "private": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/microsoft/beachball",
