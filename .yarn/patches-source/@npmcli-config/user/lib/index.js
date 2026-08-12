@@ -49,12 +49,10 @@ const highestConfType = 'env'
 class Config {
   #loaded = false
   #projectRoot = ''
-  #workspaceRoot = ''
 
   constructor ({
     npmPath,
     projectRoot,
-    workspaceRoot,
 
     // options just to override in tests, mostly
     env = process.env,
@@ -62,12 +60,11 @@ class Config {
     execPath = process.execPath,
     cwd = process.cwd(),
   }) {
-    if (!projectRoot || !workspaceRoot) {
-      throw new Error('must provide projectRoot and workspaceRoot options')
+    if (!projectRoot) {
+      throw new Error('must provide projectRoot option')
     }
 
     this.#projectRoot = projectRoot
-    this.#workspaceRoot = workspaceRoot
 
     // turn the definitions into nopt's weirdo syntax
     /** @type {Record<string, Object>} */
@@ -478,21 +475,11 @@ class Config {
     }
   }
 
-  // RE-WRITTEN to use passed in projectRoot and workspaceRoot
+  // RE-WRITTEN to use passed in projectRoot and omit global/workspaceRoot logic
+  // (yarn berry doesn't support global mode)
   async loadLocalPrefix () {
-    const isGlobal = this.#get('global') || this.#get('location') === 'global'
-
-    if (isGlobal) {
-      // in global mode, use the nearest package.json
-      this.localPrefix = this.#workspaceRoot
-    } else {
-      // see if there's a .npmrc file in the workspace, if so log a warning
-      if (this.#projectRoot !== this.#workspaceRoot && await fileExists(this.#workspaceRoot, '.npmrc')) {
-        log.warn('config', `ignoring workspace config at ${this.#workspaceRoot}/.npmrc`)
-      }
-      // use the project root
-      this.localPrefix = this.#projectRoot
-    }
+    // use the project root
+    this.localPrefix = this.#projectRoot
   }
 
   loadUserConfig () {

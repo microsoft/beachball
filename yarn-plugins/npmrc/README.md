@@ -81,7 +81,7 @@ The other reason for patching is to remove a bunch of code which isn't relevant 
 #### What's patched
 
 - Remove all unneeded option `definitions` (including the one referencing `node-gyp`) and logic specific to those options
-- Pass in the workspace/package and project roots (since yarn has already found these) and remove all the logic and dependencies related to finding `package.json` and matching its `workspaces` globs (allows removing large glob-related dependencies)
+- Pass in the project root (since yarn has already found it) and remove all the logic and dependencies related to finding `package.json` and matching its `workspaces` globs (allows removing large glob-related dependencies)
 - Remove option definition descriptions and related logging code
 - Remove CLI arg support
 - Remove all unused methods

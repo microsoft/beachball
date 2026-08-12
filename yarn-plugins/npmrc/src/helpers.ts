@@ -1,15 +1,7 @@
 import { MessageName, ReportError } from '@yarnpkg/core';
+import type { VerboseLogger } from './types';
 
 const pluginName = 'yarn-plugin-npmrc';
-
-/**
- * If the verbose option is true, log a message to the console with the plugin name as a prefix.
- * @param once If true, only log the message once (subsequent calls with the same message will be ignored)
- */
-export type VerboseLogger = ((msg: string, once?: boolean) => void) & {
-  /** whether verbose logging is enabled */
-  verbose: boolean;
-};
 
 /**
  * Throw an error with a prefix with the plugin name.

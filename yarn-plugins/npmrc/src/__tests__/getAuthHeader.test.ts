@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
-import { removeTempDir } from '@microsoft/beachball-test-utilities';
+import { initMockLogs, removeTempDir } from '@microsoft/beachball-test-utilities';
 import NpmConfig from '@npmcli/config';
 import { getAuthHeader } from '../getAuthHeader.ts';
 import { makeVerboseLogger } from '../helpers.ts';
 import { initNpmFixture } from '../__fixtures__/initNpmFixture.ts';
 
 describe('getAuthHeader', () => {
+  initMockLogs();
   let projectRoot = '';
 
   async function setup(projectNpmrc: string): Promise<NpmConfig> {
@@ -34,7 +35,6 @@ describe('getAuthHeader', () => {
       npmrc,
       verboseLog: makeVerboseLogger(false),
       registry: 'https://token.example',
-      currentHeader: 'yarn-token',
     });
     expect(header).toBe('Bearer secret-token');
   });
@@ -46,7 +46,6 @@ describe('getAuthHeader', () => {
       npmrc,
       verboseLog: makeVerboseLogger(false),
       registry: 'https://token.example/registry',
-      currentHeader: 'yarn-token',
     });
     expect(header).toBe('Bearer path-token');
   });
@@ -60,7 +59,11 @@ describe('getAuthHeader', () => {
     );
     const verboseLog = makeVerboseLogger(false);
 
-    const header = getAuthHeader({ npmrc, verboseLog, registry: 'https://basic.example', currentHeader: 'yarn-token' });
+    const header = getAuthHeader({
+      npmrc,
+      verboseLog,
+      registry: 'https://basic.example',
+    });
     expect(header).toBe(`Basic ${Buffer.from('test-user:secret').toString('base64')}`);
   });
 
@@ -71,8 +74,7 @@ describe('getAuthHeader', () => {
       npmrc,
       verboseLog: makeVerboseLogger(false),
       registry: 'https://unmatched.example',
-      currentHeader: 'yarn-token',
     });
-    expect(header).toBe('yarn-token');
+    expect(header).toBeUndefined();
   });
 });

@@ -1260,7 +1260,6 @@ var plugin = (() => {
         readFile,
         stat
       } = __require("node:fs/promises");
-      var fileExists = (...p) => stat(resolve(...p)).then((st) => st.isFile()).catch(() => false);
       var hasOwnProperty = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
       var typeDefs = require_type_defs2();
       var nerfDart = require_nerf_dart();
@@ -1284,22 +1283,19 @@ var plugin = (() => {
       var Config = class {
         #loaded = false;
         #projectRoot = "";
-        #workspaceRoot = "";
         constructor({
           npmPath,
           projectRoot,
-          workspaceRoot: workspaceRoot2,
           // options just to override in tests, mostly
           env = process.env,
           platform = process.platform,
           execPath = process.execPath,
           cwd = process.cwd()
         }) {
-          if (!projectRoot || !workspaceRoot2) {
-            throw new Error("must provide projectRoot and workspaceRoot options");
+          if (!projectRoot) {
+            throw new Error("must provide projectRoot option");
           }
           this.#projectRoot = projectRoot;
-          this.#workspaceRoot = workspaceRoot2;
           const types = {};
           const defaults = {};
           for (const [key, def] of Object.entries(definitions)) {
@@ -1589,17 +1585,10 @@ var plugin = (() => {
             this.sources.set(this.data.get("project").source, "project");
           }
         }
-        // RE-WRITTEN to use passed in projectRoot and workspaceRoot
+        // RE-WRITTEN to use passed in projectRoot and omit global/workspaceRoot logic
+        // (yarn berry doesn't support global mode)
         async loadLocalPrefix() {
-          const isGlobal = this.#get("global") || this.#get("location") === "global";
-          if (isGlobal) {
-            this.localPrefix = this.#workspaceRoot;
-          } else {
-            if (this.#projectRoot !== this.#workspaceRoot && await fileExists(this.#workspaceRoot, ".npmrc")) {
-              log.warn("config", `ignoring workspace config at ${this.#workspaceRoot}/.npmrc`);
-            }
-            this.localPrefix = this.#projectRoot;
-          }
+          this.localPrefix = this.#projectRoot;
         }
         loadUserConfig() {
           return this.#loadFile(this.#get("userconfig"), "user");
@@ -1967,16 +1956,18 @@ var plugin = (() => {
     default: () => index_default
   });
   var import_core2 = __require("@yarnpkg/core");
+
+  // src/getHeaderFromNpmConfig.ts
   var import_fslib = __require("@yarnpkg/fslib");
 
   // src/getAuthHeader.ts
   init_helpers();
   function getAuthHeader(params) {
-    const { npmrc: npmrc2, verboseLog: verboseLog2, registry, currentHeader } = params;
+    const { npmrc, verboseLog: verboseLog2, registry } = params;
     verboseLog2(`Looking up credentials for registry ${registry}`);
-    let credentials = npmrc2.getCredentialsByURI(registry);
+    let credentials = npmrc.getCredentialsByURI(registry);
     if (Object.keys(credentials).length === 0 && !registry.endsWith("/")) {
-      credentials = npmrc2.getCredentialsByURI(`${registry}/`);
+      credentials = npmrc.getCredentialsByURI(`${registry}/`);
     }
     if (credentials.certfile || credentials.keyfile) {
       throwError(`This plugin does not support certfile or keyfile auth (for registry "${registry}")`);
@@ -1990,7 +1981,30 @@ var plugin = (() => {
       return `Basic ${credentials.auth}`;
     }
     verboseLog2("No matching npm credentials found; using yarn's auth header");
-    return currentHeader;
+  }
+
+  // src/getHeaderFromNpmConfig.ts
+  var cachedHeaders = /* @__PURE__ */ new Map();
+  var npmrcPromise;
+  async function getHeaderFromNpmConfig(params) {
+    const { currentHeader, registry, verboseLog: verboseLog2 } = params;
+    if (!params.projectCwd) {
+      verboseLog2("No projectCwd; skipping .npmrc auth header", true);
+      return currentHeader;
+    }
+    npmrcPromise ??= (async () => {
+      const projectRoot = import_fslib.npath.fromPortablePath(params.projectCwd);
+      verboseLog2(`Loading .npmrc for projectRoot=${projectRoot}`);
+      const { loadNpmrc: loadNpmrc2 } = await Promise.resolve().then(() => (init_loadNpmrc(), loadNpmrc_exports));
+      return await loadNpmrc2({ projectRoot, verboseLog: verboseLog2 });
+    })();
+    const npmrc = await npmrcPromise;
+    if (cachedHeaders.has(registry)) {
+      return cachedHeaders.get(registry) ?? currentHeader;
+    }
+    const result = getAuthHeader({ npmrc, verboseLog: verboseLog2, registry });
+    cachedHeaders.set(registry, result);
+    return result ?? currentHeader;
   }
 
   // src/index.ts
@@ -2007,51 +2021,25 @@ var plugin = (() => {
       default: false
     }
   };
-  var npmrc;
-  var npmrcError;
-  var cachedHeaders = {};
-  var workspaceRoot;
   var verboseLog;
   function getConfigValue(config, key) {
     return config.get(key);
   }
-  var validateProject = (project) => {
-    workspaceRoot = import_fslib.npath.fromPortablePath(project.getWorkspaceByCwd(project.cwd).cwd);
-  };
   var getNpmAuthenticationHeader = async (currentHeader, registry, { configuration }) => {
     verboseLog ??= makeVerboseLogger(getConfigValue(configuration, "npmrcAuthVerbose"));
     if (!getConfigValue(configuration, "npmrcAuthEnabled")) {
       verboseLog("npmrcAuthEnabled is false/unset; skipping .npmrc auth header", true);
       return currentHeader;
     }
-    if (!configuration.projectCwd) {
-      verboseLog("No projectCwd; skipping .npmrc auth header", true);
-      return currentHeader;
-    }
-    if (registry in cachedHeaders) {
-      return cachedHeaders[registry];
-    }
-    if (npmrcError) {
-      throw npmrcError;
-    }
-    if (!npmrc) {
-      const projectCwd = import_fslib.npath.fromPortablePath(configuration.projectCwd);
-      workspaceRoot ??= projectCwd;
-      verboseLog(`Loading .npmrc for projectCwd=${projectCwd} workspaceRoot=${workspaceRoot}`);
-      const { loadNpmrc: loadNpmrc2 } = await Promise.resolve().then(() => (init_loadNpmrc(), loadNpmrc_exports));
-      try {
-        npmrc = await loadNpmrc2({ projectRoot: projectCwd, workspaceRoot, verboseLog });
-      } catch (err) {
-        npmrcError = err;
-        throw npmrcError;
-      }
-    }
-    const newHeader = getAuthHeader({ npmrc, verboseLog, registry, currentHeader });
-    cachedHeaders[registry] = newHeader;
-    return newHeader;
+    return await getHeaderFromNpmConfig({
+      currentHeader,
+      registry,
+      projectCwd: configuration.projectCwd,
+      verboseLog
+    });
   };
   var plugin = {
-    hooks: { validateProject, getNpmAuthenticationHeader },
+    hooks: { getNpmAuthenticationHeader },
     configuration: configurationMap
   };
   var index_default = plugin;

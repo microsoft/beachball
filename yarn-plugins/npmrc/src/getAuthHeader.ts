@@ -1,17 +1,16 @@
 import type NpmConfig from '@npmcli/config';
-import { throwError, type VerboseLogger } from './helpers';
+import { throwError } from './helpers';
+import type { VerboseLogger } from './types';
 
 /**
- * Get the auth header for a given registry, using the provided npm config and Yarn's current
- * auth header as a fallback.
+ * Get the auth header for a given registry from the provided npm config
  */
 export function getAuthHeader(params: {
   npmrc: NpmConfig;
   verboseLog: VerboseLogger;
   registry: string;
-  currentHeader: string | undefined;
 }): string | undefined {
-  const { npmrc, verboseLog, registry, currentHeader } = params;
+  const { npmrc, verboseLog, registry } = params;
 
   verboseLog(`Looking up credentials for registry ${registry}`);
 
@@ -36,7 +35,7 @@ export function getAuthHeader(params: {
     verboseLog(`Using npm _password or _auth`);
     return `Basic ${credentials.auth}`;
   }
-  // Fall back to whatever logic yarn is using
+
+  // The logic to use the fallback header is in the caller, but log it here
   verboseLog("No matching npm credentials found; using yarn's auth header");
-  return currentHeader;
 }

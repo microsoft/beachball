@@ -14,7 +14,7 @@
     "bundle": "node ../../scripts/bundleYarnPlugin.ts",
     "depcheck": "yarn run -T depcheck .",
     "lint": "yarn run -T eslint --color --max-warnings=0 src",
-    "test": "yarn run -T jest"
+    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest"
   },
   "dependencies": {
     "@npmcli/config": "patch:@npmcli/config@npm%3A10.7.1#~/.yarn/patches/@npmcli-config-npm-10.7.1-8423a6d567.patch",
@@ -27,7 +27,8 @@
     "@microsoft/beachball-test-utilities": "workspace:^",
     "@types/which": "^3.0.4",
     "@yarnpkg/plugin-npm": "^3.5.0",
-    "@yarnpkg/plugin-pack": "portal:../../.yarn/stubs/yarn-plugin"
+    "@yarnpkg/plugin-pack": "portal:../../.yarn/stubs/yarn-plugin",
+    "cross-env": "catalog:dev"
   },
   "installConfig": {
     "hoistingLimits": "workspaces"

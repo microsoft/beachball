@@ -24,7 +24,6 @@ describe('loadNpmrc', () => {
     const conf = await loadNpmrc({
       npmPath: fixture.npmPath,
       projectRoot,
-      workspaceRoot: projectRoot,
       env: {
         ...fixture.env,
         npm_config_registry: 'https://env.example/',

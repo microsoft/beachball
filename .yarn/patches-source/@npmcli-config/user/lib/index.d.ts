@@ -141,8 +141,6 @@ declare namespace Config {
 
         /** PATCH: Root of the whole project (location of lock file and root `package.json`) */
         projectRoot: string;
-        /** PATCH: Root of the current workspace/package (may be same as `projectRoot`) */
-        workspaceRoot: string;
 
         cwd?: string;
         env?: NodeJS.ProcessEnv;

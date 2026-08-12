@@ -2593,10 +2593,10 @@ index b5b63bf2fce126bfafd40684a807bfee7115dff0..d7718ffedcea83acd47ccda005819ebb
  }
 diff --git a/lib/index.d.ts b/lib/index.d.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..08e2aa5fed974b53d06d031d97bbee5a2eb8988e
+index 0000000000000000000000000000000000000000..3fb71cd831fc7e991ddefc707e83711c18032c26
 --- /dev/null
 +++ b/lib/index.d.ts
-@@ -0,0 +1,175 @@
+@@ -0,0 +1,173 @@
 +/// <reference types="node" />
 +
 +export = Config;
@@ -2740,8 +2740,6 @@ index 0000000000000000000000000000000000000000..08e2aa5fed974b53d06d031d97bbee5a
 +
 +        /** PATCH: Root of the whole project (location of lock file and root `package.json`) */
 +        projectRoot: string;
-+        /** PATCH: Root of the current workspace/package (may be same as `projectRoot`) */
-+        workspaceRoot: string;
 +
 +        cwd?: string;
 +        env?: NodeJS.ProcessEnv;
@@ -2773,7 +2771,7 @@ index 0000000000000000000000000000000000000000..08e2aa5fed974b53d06d031d97bbee5a
 +    type Credentials = TokenCredentials | AuthCredentials | BaseCredentials;
 +}
 diff --git a/lib/index.js b/lib/index.js
-index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df5382eb53c4 100644
+index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..7da55df5206e40c181c2b99c8991032b82e08a27 100644
 --- a/lib/index.js
 +++ b/lib/index.js
 @@ -1,35 +1,22 @@
@@ -2816,7 +2814,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
  const hasOwnProperty = (obj, key) =>
    Object.prototype.hasOwnProperty.call(obj, key)
  
-@@ -37,80 +24,80 @@ const typeDefs = require('./type-defs.js')
+@@ -37,80 +24,77 @@ const typeDefs = require('./type-defs.js')
  const nerfDart = require('./nerf-dart.js')
  const envReplace = require('./env-replace.js')
  const parseField = require('./parse-field.js')
@@ -2856,7 +2854,6 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
 -    return typeDefs
 -  }
 +  #projectRoot = ''
-+  #workspaceRoot = ''
  
    constructor ({
 -    definitions,
@@ -2865,7 +2862,6 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
 -    nerfDarts = [],
      npmPath,
 +    projectRoot,
-+    workspaceRoot,
  
      // options just to override in tests, mostly
      env = process.env,
@@ -2878,12 +2874,11 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
    }) {
 -    this.nerfDarts = nerfDarts
 -    this.definitions = definitions
-+    if (!projectRoot || !workspaceRoot) {
-+      throw new Error('must provide projectRoot and workspaceRoot options')
++    if (!projectRoot) {
++      throw new Error('must provide projectRoot option')
 +    }
 +
 +    this.#projectRoot = projectRoot
-+    this.#workspaceRoot = workspaceRoot
 +
      // turn the definitions into nopt's weirdo syntax
 -    const { types, defaults, deprecated } = getTypesFromDefinitions(definitions)
@@ -2925,7 +2920,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
      this.data = new Map()
      let parent = null
      for (const where of wheres) {
-@@ -131,9 +118,9 @@ class Config {
+@@ -131,9 +115,9 @@ class Config {
      }
  
      this.#loaded = false
@@ -2936,7 +2931,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
    get list () {
      const list = []
      for (const { data } of this.data.values()) {
-@@ -150,23 +137,10 @@ class Config {
+@@ -150,23 +134,10 @@ class Config {
      return this.#get('global') ? this.globalPrefix : this.localPrefix
    }
  
@@ -2964,7 +2959,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
    get (key, where) {
      if (!this.loaded) {
        throw new Error('call config.load() before reading values')
-@@ -176,68 +150,19 @@ class Config {
+@@ -176,68 +147,19 @@ class Config {
  
    // we need to get values sometimes, so use this internal one to do so
    // while in the process of loading.
@@ -3039,7 +3034,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
    async load () {
      if (this.loaded) {
        throw new Error('attempting to load npm config multiple times')
-@@ -250,7 +175,6 @@ class Config {
+@@ -250,7 +172,6 @@ class Config {
      await this.loadBuiltinConfig()
  
      // cli and env are not async, and can set the prefix, relevant to project
@@ -3047,7 +3042,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
      this.loadEnv()
  
      // next project config, which can affect userconfig location
-@@ -268,8 +192,6 @@ class Config {
+@@ -268,8 +189,6 @@ class Config {
  
      // set proper globalPrefix now that everything is loaded
      this.globalPrefix = this.get('prefix')
@@ -3056,7 +3051,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
    }
  
    loadDefaults () {
-@@ -356,24 +278,6 @@ class Config {
+@@ -356,24 +275,6 @@ class Config {
      this.#loadObject(conf, 'env', 'environment')
    }
  
@@ -3081,7 +3076,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
    get valid () {
      for (const [where, { valid }] of this.data.entries()) {
        if (valid === false || valid === null && !this.validate(where)) {
-@@ -383,6 +287,7 @@ class Config {
+@@ -383,6 +284,7 @@ class Config {
      return true
    }
  
@@ -3089,7 +3084,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
    validate (where) {
      if (!where) {
        let valid = true
-@@ -391,7 +296,7 @@ class Config {
+@@ -391,7 +293,7 @@ class Config {
        for (const entryWhere of this.data.keys()) {
          // no need to validate our defaults, we know they're fine
          // cli was already validated when parsed the first time
@@ -3098,7 +3093,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
            continue
          }
          const ret = this.validate(entryWhere)
-@@ -444,51 +349,18 @@ class Config {
+@@ -444,51 +346,18 @@ class Config {
        const obj = this.data.get(where)
        obj[_valid] = true
  
@@ -3152,7 +3147,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
    // Returns true if the value is coming directly from the source defined
    // in default definitions, if the current value for the key config is
    // coming from any other different source, returns false
-@@ -504,60 +376,19 @@ class Config {
+@@ -504,60 +373,19 @@ class Config {
    }
  
    invalidHandler (k, val, type, source, where) {
@@ -3218,7 +3213,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
    #loadObject (obj, where, source, er = null) {
      // obj is the raw data read from the file
      const conf = this.data.get(where)
-@@ -585,54 +416,21 @@ class Config {
+@@ -585,54 +413,21 @@ class Config {
        for (const [key, value] of Object.entries(obj)) {
          const k = envReplace(key, this.env)
          const v = this.parseField(value, k)
@@ -3278,7 +3273,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
    async #loadFile (file, type) {
      // only catch the error from readFile, not from the loadObject call
      log.silly('config', `load:file:${file}`)
-@@ -660,12 +458,6 @@ class Config {
+@@ -660,12 +455,6 @@ class Config {
      // we return to make sure localPrefix is set
      await this.loadLocalPrefix()
  
@@ -3291,11 +3286,12 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
      if (this.#get('global') === true || this.#get('location') === 'global') {
        this.data.get('project').source = '(global mode enabled, ignored)'
        this.sources.set(this.data.get('project').source, 'project')
-@@ -686,72 +478,20 @@ class Config {
+@@ -686,73 +475,11 @@ class Config {
      }
    }
  
-+  // RE-WRITTEN to use passed in projectRoot and workspaceRoot
++  // RE-WRITTEN to use passed in projectRoot and omit global/workspaceRoot logic
++  // (yarn berry doesn't support global mode)
    async loadLocalPrefix () {
 -    const cliPrefix = this.#get('prefix', 'cli')
 -    if (cliPrefix) {
@@ -3304,8 +3300,8 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
 -    }
 -
 -    const cliWorkspaces = this.#get('workspaces', 'cli')
-     const isGlobal = this.#get('global') || this.#get('location') === 'global'
- 
+-    const isGlobal = this.#get('global') || this.#get('location') === 'global'
+-
 -    for (const p of walkUp(this.cwd)) {
 -      // HACK: this is an option set in tests to stop the local prefix from being set
 -      // on tests that are created inside the npm repo
@@ -3357,24 +3353,18 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
 -            return
 -          }
 -        }
-+    if (isGlobal) {
-+      // in global mode, use the nearest package.json
-+      this.localPrefix = this.#workspaceRoot
-+    } else {
-+      // see if there's a .npmrc file in the workspace, if so log a warning
-+      if (this.#projectRoot !== this.#workspaceRoot && await fileExists(this.#workspaceRoot, '.npmrc')) {
-+        log.warn('config', `ignoring workspace config at ${this.#workspaceRoot}/.npmrc`)
-       }
+-      }
 -    }
 -
 -    if (!this.localPrefix) {
 -      this.localPrefix = this.cwd
-+      // use the project root
-+      this.localPrefix = this.#projectRoot
-     }
+-    }
++    // use the project root
++    this.localPrefix = this.#projectRoot
    }
  
-@@ -763,120 +503,11 @@ class Config {
+   loadUserConfig () {
+@@ -763,120 +490,11 @@ class Config {
      return this.#loadFile(this.#get('globalconfig'), 'global')
    }
  
@@ -3495,7 +3485,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
      const certfileReg = this.get(`${nerfed}:certfile`)
      const keyfileReg = this.get(`${nerfed}:keyfile`)
      if (certfileReg && keyfileReg) {
-@@ -914,54 +545,20 @@ class Config {
+@@ -914,54 +532,20 @@ class Config {
      // at this point, nothing else is usable so just return what we do have
      return creds
    }
@@ -3554,7 +3544,7 @@ index 8520a02b6ed77c91c7c3de6cd4f2adfc77af989b..84468d74650252a6d72f8c43a818df53
      this[_valid] = true
    }
  
-@@ -1007,21 +604,4 @@ class ConfigData {
+@@ -1007,21 +591,4 @@ class ConfigData {
    }
  }
  

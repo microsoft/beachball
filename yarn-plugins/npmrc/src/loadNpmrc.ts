@@ -1,7 +1,8 @@
 import NpmConfig from '@npmcli/config';
 import fs from 'node:fs';
 import which from 'which';
-import { logMessage, throwError, type VerboseLogger } from './helpers.ts';
+import { logMessage, throwError } from './helpers.ts';
+import type { VerboseLogger } from './types.ts';
 
 /**
  * Read the effective npm config, with the same logic as npm: applying `process.env.npm_config_*`,
@@ -13,8 +14,6 @@ export async function loadNpmrc(
   params: Partial<Pick<NpmConfig.Options, 'cwd' | 'env' | 'npmPath'>> & {
     /** Root of the whole project (location of `yarn.lock` and root `package.json`) */
     projectRoot: string;
-    /** Root of the current workspace/package (may be same as `projectRoot`) */
-    workspaceRoot: string;
     verboseLog: VerboseLogger;
   }
 ): Promise<NpmConfig> {
@@ -39,7 +38,7 @@ export async function loadNpmrc(
 
   try {
     // NOTE: This is using a patched API!
-    // The patch provides some options by default and adds pre-calculated projectRoot/workspaceRoot.
+    // The patch provides some options by default and adds pre-calculated projectRoot.
     const conf = new NpmConfig({ ...configParams, npmPath });
     await conf.load();
     // This returns false if there are non-auth-related validation issues, but we only care about
