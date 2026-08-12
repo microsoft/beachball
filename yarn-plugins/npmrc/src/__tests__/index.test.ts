@@ -73,6 +73,6 @@ describe('npmrc authentication integration', () => {
     }
 
     // this is the username configured in registry.ts
-    expect(stdout).toContain('➤ YN0000: fake');
+    expect(stdout).toContain('fake-user');
   });
 });

@@ -3,12 +3,12 @@ import { fork, type ChildProcess } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { findPackageRoot } from 'workspace-tools';
+import { sync as resolveSync } from 'resolve';
 import { removeTempDir, tmpdir } from './tmpdir.ts';
 
 const verdaccioUser = {
-  name: 'fake',
-  password: 'fake',
+  name: 'fake-user',
+  password: 'fake-password',
 };
 
 /** Range of ports tried (increase this if the tests are failing due to ports unavailable) */
@@ -136,13 +136,7 @@ export class Registry {
       };
 
       try {
-        // verdaccio has an exports map, so we can't resolve verdaccio/bin/verdaccio directly
-        const verdaccioEntry = require.resolve('verdaccio');
-        const verdaccioRoot = findPackageRoot(verdaccioEntry);
-        if (!verdaccioRoot) {
-          throw new Error(`Could not find verdaccio package root for ${verdaccioEntry}`);
-        }
-        const verdaccioBin = require.resolve(path.join(verdaccioRoot, 'bin/verdaccio'));
+        const verdaccioBin = resolveSync('verdaccio/bin/verdaccio', { basedir: __dirname });
         this.server = fork(verdaccioBin, ['--listen', String(port), '--config', `./${configName}`], {
           cwd: this.tempRoot,
           stdio: 'pipe',
@@ -208,7 +202,7 @@ export class Registry {
       auth: {
         // This uses verdaccio-auth-memory
         'auth-memory': {
-          users: { fake: verdaccioUser },
+          users: { [verdaccioUser.name]: verdaccioUser },
         },
       },
       // This is the old anonymous access config--it still works for accessing packages, but not for publishing

@@ -1554,11 +1554,13 @@ __metadata:
   dependencies:
     "@microsoft/beachball-scripts": "workspace:^"
     "@types/jsonwebtoken": "npm:^9.0.10"
+    "@types/resolve": "npm:^1.20.6"
     "@types/tmp": "npm:^0.2.6"
     "@verdaccio/config": "npm:^8.2.0"
     "@verdaccio/types": "npm:^13.0.0"
     get-port: "npm:^7.0.0"
     normalized-tmpdir: "npm:^1.1.0"
+    resolve: "npm:^1.22.12"
     tmp: "npm:^0.2.7"
     verdaccio: "npm:^6.5.2"
     verdaccio-auth-memory: "npm:^13.0.0"
@@ -2317,6 +2319,13 @@ __metadata:
     "@types/node": "npm:*"
     kleur: "npm:^3.0.3"
   checksum: 10c0/22fe0da6807681c85e88ba283184f4be4c8a95c744ea12a638865c98c4e0c22e7f733542f6b0f1fbca02245cdc3fe84feacf9c9adf4ddd8bc98a337fd679d8d2
+  languageName: node
+  linkType: hard
+
+"@types/resolve@npm:^1.20.6":
+  version: 1.20.6
+  resolution: "@types/resolve@npm:1.20.6"
+  checksum: 10c0/a9b0549d816ff2c353077365d865a33655a141d066d0f5a3ba6fd4b28bc2f4188a510079f7c1f715b3e7af505a27374adce2a5140a3ece2a059aab3d6e1a4244
   languageName: node
   linkType: hard
 
@@ -8620,7 +8629,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"resolve@npm:^1.22.3":
+"resolve@npm:^1.22.12, resolve@npm:^1.22.3":
   version: 1.22.12
   resolution: "resolve@npm:1.22.12"
   dependencies:
@@ -8634,7 +8643,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"resolve@patch:resolve@npm%3A^1.22.3#optional!builtin<compat/resolve>":
+"resolve@patch:resolve@npm%3A^1.22.12#optional!builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.22.3#optional!builtin<compat/resolve>":
   version: 1.22.12
   resolution: "resolve@patch:resolve@npm%3A1.22.12#optional!builtin<compat/resolve>::version=1.22.12&hash=9bd1a5"
   dependencies:
