@@ -1,5 +1,4 @@
 import { MessageName, ReportError } from '@yarnpkg/core';
-import winPath from 'node:path/win32';
 
 const pluginName = 'yarn-plugin-npmrc';
 
@@ -39,12 +38,16 @@ export function logMessage(level: 'log' | 'warn' | 'error', msg: string): void {
 
 /**
  * Yarn formats Windows paths like `/C:/path/to/file` which is not valid.
- * Fix it for use with other tools (remove extra leading slash and normalize slashes).
+ * Fix portable drive and UNC prefixes for use with other tools.
  */
 export function fixWindowsPath(pth: string): string {
   if (process.platform !== 'win32') {
     return pth;
   }
+  const uncMatch = pth.match(/^\/unc\/(\.dot\/)?(.*)$/);
+  if (uncMatch) {
+    return `//${uncMatch[1] ? './' : ''}${uncMatch[2]}`;
+  }
   pth = pth.replace(/^\/([a-z]:)/i, '$1');
-  return /^[a-z]:$/i.test(pth) ? pth + '\\' : winPath.normalize(pth);
+  return /^[a-z]:$/i.test(pth) ? `${pth}/` : pth;
 }

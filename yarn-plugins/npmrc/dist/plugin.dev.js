@@ -77,15 +77,18 @@ var plugin = (() => {
     if (process.platform !== "win32") {
       return pth;
     }
+    const uncMatch = pth.match(/^\/unc\/(\.dot\/)?(.*)$/);
+    if (uncMatch) {
+      return `//${uncMatch[1] ? "./" : ""}${uncMatch[2]}`;
+    }
     pth = pth.replace(/^\/([a-z]:)/i, "$1");
-    return /^[a-z]:$/i.test(pth) ? pth + "\\" : import_win32.default.normalize(pth);
+    return /^[a-z]:$/i.test(pth) ? `${pth}/` : pth;
   }
-  var import_core, import_win32, pluginName;
+  var import_core, pluginName;
   var init_helpers = __esm({
     "src/helpers.ts"() {
       "use strict";
       import_core = __require("@yarnpkg/core");
-      import_win32 = __toESM(__require("node:path/win32"));
       pluginName = "yarn-plugin-npmrc";
     }
   });
