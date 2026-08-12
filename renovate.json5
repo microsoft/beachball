@@ -84,6 +84,22 @@
       }
     },
     {
+      // These are bundled into @microsoft/esrp-npm-release and must be treated as production dependencies.
+      "matchFileNames": ["packages/esrp-npm-release/package.json"],
+      "matchDepTypes": ["devDependencies"],
+      "matchPackageNames": ["@azure/*", "jws", "nano-spawn", "yazl"],
+      "commitMessageTopic": "dependency {{{depName}}}",
+      "postUpgradeTasks": {
+        "commands": [
+          "git add --all",
+          "npx beachball@latest change --no-fetch --no-commit --type patch --message '{{{commitMessage}}}'",
+          "git reset"
+        ],
+        "fileFilters": ["**/*"],
+        "executionMode": "branch"
+      }
+    },
+    {
       "groupName": "github action packages",
       "matchPackageNames": ["@actions/*"],
       "matchManagers": ["npm"]
