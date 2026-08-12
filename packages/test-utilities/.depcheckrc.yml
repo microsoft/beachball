@@ -1,5 +1,12 @@
 ignore-path: ../../.gitignore
 
 ignores:
+  # used in registry.ts by partial name
+  - verdaccio-auth-memory
+  - verdaccio-memory
   # specified at root
   - '@jest/globals'
+  # needed for type references from verdaccio
+  - '@verdaccio/types'
+  # needed for type references from @verdaccio/types
+  - '@types/jsonwebtoken'

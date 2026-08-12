@@ -1,10 +1,10 @@
-import { removeTempDir, tmpdir } from '@microsoft/beachball-test-utilities';
 import { ConfigBuilder } from '@verdaccio/config';
 import { fork, type ChildProcess } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { findPackageRoot } from 'workspace-tools';
+import { removeTempDir, tmpdir } from './tmpdir.ts';
 
 const verdaccioUser = {
   name: 'fake',
@@ -13,31 +13,17 @@ const verdaccioUser = {
 
 /** Range of ports tried (increase this if the tests are failing due to ports unavailable) */
 const portRange = 1000;
-/**
- * Lists of tests known to use `Registry`. This is used to make each test try a different
- * port range to avoid collisions caused by race conditions with grabbing free ports.
- */
-const knownTests = ['packagePublish'];
 
 // NOTE: If you are getting timeouts and port collisions, set jest.setTimeout to a higher value.
 //       The default value of 5 seconds may not be enough in situations with port collisions.
-//       A value scaled with the number of test modules using Registry should work, starting with 20 seconds or so.
 
 export class Registry {
   private server?: ChildProcess = undefined;
   private port?: number = undefined;
-  private startPort: number;
-  private testName: string;
   private tempRoot: string | undefined;
   private token: string | undefined;
 
-  public constructor(filename: string) {
-    this.testName = path.basename(filename, '.test.ts');
-    if (!knownTests.includes(this.testName)) {
-      throw new Error(`Please add ${this.testName} to knownTests in registry.ts`);
-    }
-    this.startPort = 4873 + knownTests.indexOf(this.testName) * portRange;
-  }
+  public constructor(private readonly startPort: number) {}
 
   /**
    * Start the server but don't log in.
@@ -244,7 +230,7 @@ export class Registry {
         type: 'file',
         level: 'trace',
         format: 'pretty',
-        path: path.join(process.cwd(), `verdaccio-${Date.now()}.log`),
+        path: path.join(path.dirname(configPath), `verdaccio-${Date.now()}.log`),
       });
     }
 

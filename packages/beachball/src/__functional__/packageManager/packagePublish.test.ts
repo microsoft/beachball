@@ -1,8 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { initMockLogs, removeTempDir, tmpdir, writeJson } from '@microsoft/beachball-test-utilities';
+import { initMockLogs, Registry, removeTempDir, tmpdir, writeJson } from '@microsoft/beachball-test-utilities';
 import path from 'node:path';
 import { mockSpawnSuccess, MockSubprocessError } from '../../__fixtures__/mockSpawnResult';
-import { Registry } from '../../__fixtures__/registry';
 import { env } from '../../env';
 import { getNpmPackageInfo } from '../../packageManager/getNpmPackageInfo';
 import type { npm } from '../../packageManager/npm';
@@ -74,7 +73,7 @@ describe('packagePublish', () => {
     let token: string;
 
     beforeAll(async () => {
-      registry = new Registry(__filename);
+      registry = new Registry(4873);
 
       // Get the token once upfront (unfortunately verdaccio doesn't support `npm token create`)
       await registry.start();

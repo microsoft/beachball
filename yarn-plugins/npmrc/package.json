@@ -28,7 +28,9 @@
     "@types/which": "^3.0.4",
     "@yarnpkg/plugin-npm": "^3.5.0",
     "@yarnpkg/plugin-pack": "portal:../../.yarn/stubs/yarn-plugin",
-    "cross-env": "catalog:dev"
+    "cross-env": "catalog:dev",
+    "nano-spawn": "catalog:prod",
+    "workspace-tools": "catalog:prod"
   },
   "installConfig": {
     "hoistingLimits": "workspaces"

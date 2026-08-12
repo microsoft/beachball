@@ -12,11 +12,19 @@
     "lint": "yarn run -T eslint --color --max-warnings=0 src"
   },
   "dependencies": {
+    "@verdaccio/config": "^8.2.0",
+    "get-port": "^7.0.0",
     "normalized-tmpdir": "^1.1.0",
-    "tmp": "^0.2.7"
+    "tmp": "^0.2.7",
+    "verdaccio": "^6.5.2",
+    "verdaccio-auth-memory": "^13.0.0",
+    "verdaccio-memory": "^10.4.3",
+    "workspace-tools": "catalog:prod"
   },
   "devDependencies": {
     "@microsoft/beachball-scripts": "workspace:^",
-    "@types/tmp": "^0.2.6"
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/tmp": "^0.2.6",
+    "@verdaccio/types": "^13.0.0"
   }
 }

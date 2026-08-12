@@ -8,7 +8,7 @@ import { getAuthHeader } from './getAuthHeader.ts';
 /** Mapping from registry URL to cached header */
 const cachedHeaders = new Map<string, string | undefined>();
 /**
- * Shared/cached promised from reading .npmrc. This prevents the initial round of parallel requests
+ * Shared/cached promise from reading .npmrc. This prevents the initial round of parallel requests
  * from trying to all read npmrc at the same time (the symptom was a "too many listeners" error for
  * the `log` listener added by `loadNpmrc`).
  */
