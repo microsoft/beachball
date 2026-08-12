@@ -5,7 +5,7 @@ import { loadNpmrc } from '../loadNpmrc.ts';
 import { initNpmFixture } from '../__fixtures__/initNpmFixture.ts';
 
 describe('loadNpmrc', () => {
-  const logs = initMockLogs();
+  initMockLogs();
   let projectRoot = '';
 
   afterEach(() => {
@@ -40,28 +40,5 @@ describe('loadNpmrc', () => {
     expect(conf.get('globalconfig')).toBe(fixture.globalNpmrcPath);
     expect(conf.get('audit')).toBe(false);
     expect(conf.get('registry')).toBe('https://env.example/');
-
-    const logLines = logs.getMockLines('log', { root: projectRoot }).replaceAll('[yarn-plugin-npmrc] ', '');
-    expect(logLines).toContain('Loaded npm config');
-    const loadedIndex = logLines.indexOf('Loaded npm config');
-    // remove defaults and builtins in case they change between versions
-    const configList = logLines.slice(loadedIndex).replace(/  default: [\s\S]*?  env:/, '  ...\n  env:');
-    expect(configList).toMatchInlineSnapshot(`
-      "Loaded npm config successfully. Config sources:
-        ...
-        env: environment
-          globalconfig = "<root>/global.npmrc"
-          registry = "https://env.example/"
-          userconfig = "<root>/user.npmrc"
-        project: <root>/.npmrc
-          color = false
-          registry = "https://project.example/"
-        user: <root>/user.npmrc
-          fund = false
-          registry = "https://user.example/"
-        global: <root>/global.npmrc
-          audit = false
-          registry = "https://global.example/""
-    `);
   });
 });

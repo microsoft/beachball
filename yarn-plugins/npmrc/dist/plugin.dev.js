@@ -1942,15 +1942,16 @@ var plugin = (() => {
     verboseLog2("Loaded npm config successfully. Config sources:");
     for (const [pathOrDesc, loc] of conf.sources.entries()) {
       verboseLog2(`  ${loc}: ${pathOrDesc}`);
-      const sourceValues = conf.data.get(loc)?.raw || {};
-      for (const key of Object.keys(sourceValues).sort()) {
-        const value = sourceValues[key];
-        const isSecret = !!value && secretSuffixes.some((suffix) => key.endsWith(suffix));
-        verboseLog2(`    ${key} = ${isSecret ? "***" : JSON.stringify(value)}`);
+    }
+    const envKeys = Object.keys(conf.data.get("env")?.raw || {}).sort();
+    if (envKeys.length) {
+      verboseLog2("Config loaded from environment variables:");
+      for (const key of envKeys) {
+        verboseLog2(`  ${key}`);
       }
     }
   }
-  var import_config, import_node_fs, import_which, secretSuffixes;
+  var import_config, import_node_fs, import_which;
   var init_loadNpmrc = __esm({
     "src/loadNpmrc.ts"() {
       "use strict";
@@ -1958,7 +1959,6 @@ var plugin = (() => {
       import_node_fs = __toESM(__require("node:fs"));
       import_which = __toESM(require_lib4());
       init_helpers();
-      secretSuffixes = ["_authToken", "_password", "_auth", "password", "token"];
     }
   });
 

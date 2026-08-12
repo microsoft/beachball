@@ -6,7 +6,7 @@ import { logMessage, throwError, type VerboseLogger } from './helpers.ts';
 /**
  * Read the effective npm config, with the same logic as npm: applying `process.env.npm_config_*`,
  * project config, user config, global config.
- * @param params - Required params plus optional npm config constuctor override for testing.
+ * @param params - Required params plus optional npm config constructor override for testing.
  * @returns The loaded and validated config object
  */
 export async function loadNpmrc(
@@ -56,18 +56,18 @@ export async function loadNpmrc(
   }
 }
 
-const secretSuffixes = ['_authToken', '_password', '_auth', 'password', 'token'];
-
-function logConfigSources(conf: Pick<NpmConfig, 'data' | 'sources'>, verboseLog: VerboseLogger): void {
+function logConfigSources(conf: NpmConfig, verboseLog: VerboseLogger): void {
   verboseLog('Loaded npm config successfully. Config sources:');
   // sources maps e.g. someNpmrcPath => "builtin" or "default values" => "default"
   for (const [pathOrDesc, loc] of conf.sources.entries()) {
     verboseLog(`  ${loc}: ${pathOrDesc}`);
-    const sourceValues = conf.data.get(loc)?.raw || {};
-    for (const key of Object.keys(sourceValues).sort()) {
-      const value = sourceValues[key] as unknown;
-      const isSecret = !!value && secretSuffixes.some(suffix => key.endsWith(suffix));
-      verboseLog(`    ${key} = ${isSecret ? '***' : JSON.stringify(value)}`);
+  }
+
+  const envKeys = Object.keys(conf.data.get('env')?.raw || {}).sort();
+  if (envKeys.length) {
+    verboseLog('Config loaded from environment variables:');
+    for (const key of envKeys) {
+      verboseLog(`  ${key}`);
     }
   }
 }
