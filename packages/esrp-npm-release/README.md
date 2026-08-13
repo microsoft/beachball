@@ -715,13 +715,13 @@ If your repo has traditionally pushed packages directly back to GitHub with a pe
             azureSubscription: <GitHub App service connection name>
             scriptType: bash
             scriptLocation: inlineScript
-            inlineScript: yarn beachball-auth-helper create-gha-token
+            inlineScript: yarn beachball-auth-helper create-github-app-token
           env:
             APP_CLIENT_ID: <GitHub App client ID>
             KEY_ID: <key vault key URL>
             REPOSITORY: $(Build.Repository.Name)
             PERMISSIONS: contents:write
-            OUTPUT_NAME: GITHUB_APP_TOKEN
+            CI_OUTPUT_NAME: GITHUB_APP_TOKEN
 
         # Run publish without publishing to npm. Beachball reads `BEACHBALL_GIT_TOKEN` to authenticate the git push.
         # Update the command as needed for your repo.
@@ -730,7 +730,7 @@ If your repo has traditionally pushed packages directly back to GitHub with a pe
           env:
             BEACHBALL_GIT_TOKEN: $(createToken.GITHUB_APP_TOKEN)
 
-        - script: yarn beachball-auth-helper revoke-gha-token
+        - script: yarn beachball-auth-helper revoke-github-app-token
           displayName: Revoke GitHub App token
           condition: and(always(), ne(variables['createToken.GITHUB_APP_TOKEN'], ''))
           env:

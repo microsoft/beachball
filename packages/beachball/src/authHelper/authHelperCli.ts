@@ -19,10 +19,10 @@ export interface CliContext {
   exitOverride?: boolean;
 }
 
-type TokenCliOptions = Omit<CreateAppTokenOptions, 'keyInfo'> & AppPrivateKeyInfo & { outputName?: string };
+type TokenCliOptions = Omit<CreateAppTokenOptions, 'keyInfo'> & AppPrivateKeyInfo & { ciOutputName?: string };
 
 async function runCreateToken(options: TokenCliOptions, command: Command, env: NodeJS.ProcessEnv): Promise<void> {
-  const { outputName, ...otherOptions } = options;
+  const { ciOutputName: outputName, ...otherOptions } = options;
 
   let outputCiPlatform: 'azure-pipelines' | 'github-actions' | undefined;
   let githubOutput: string | undefined;
@@ -64,11 +64,8 @@ async function runCreateToken(options: TokenCliOptions, command: Command, env: N
 function buildProgram(context: CliContext): Command {
   const program = new Command()
     .name('beachball-auth-helper')
-    .description('Create or revoke repository-scoped GitHub App installation tokens.')
-    .addHelpText(
-      'after',
-      `\nTokens expire after one hour. Create them immediately before use and revoke them when finished.\nFull setup and CI examples: ${authHelperDocsUrl}\n`
-    );
+    .description('Authentication utilities for CI workflows.')
+    .addHelpText('afterAll', `\nFull setup and examples: ${authHelperDocsUrl}\n`);
   context.exitOverride && program.exitOverride();
   context.outputOptions && program.configureOutput(context.outputOptions);
 
@@ -78,7 +75,7 @@ function buildProgram(context: CliContext): Command {
       .default(defaultGitHubApiUrl);
 
   const createCommand = program
-    .command('create-gha-token')
+    .command('create-github-app-token')
     .description('Create a repository-scoped GitHub App installation token')
     .addOption(
       new Option('--app-client-id <id>', 'GitHub App client ID (not a secret)')
@@ -93,7 +90,7 @@ function buildProgram(context: CliContext): Command {
     .addOption(
       new Option(
         '--private-key <pem>',
-        'Should be passed as PRIVATE_KEY: PEM-encoded GitHub App private key (escaped newlines are accepted)'
+        'Provide via PRIVATE_KEY env: PEM-encoded GitHub App private key (escaped newlines are accepted)'
       )
         .env('PRIVATE_KEY')
         .conflicts('keyId')
@@ -120,10 +117,10 @@ function buildProgram(context: CliContext): Command {
     )
     .addOption(
       new Option(
-        '--output-name <NAME>',
+        '--ci-output-name <NAME>',
         'Save the token as an Azure Pipelines secret step output or masked GitHub Actions step output'
       )
-        .env('OUTPUT_NAME')
+        .env('CI_OUTPUT_NAME')
         .argParser(value => {
           if (!/^[A-Za-z_]\w*$/.test(value)) {
             throw new InvalidArgumentError('Must be an environment-style variable name.');
@@ -139,24 +136,20 @@ function buildProgram(context: CliContext): Command {
   createCommand.addHelpText(
     'after',
     `
-Authentication:
-  Provide exactly one signing source: --key-id/KEY_ID for Azure Key Vault,
-  or PRIVATE_KEY for a PEM-encoded GitHub App private key.
+Signing:
+Provide exactly one signing source: --key-id/KEY_ID for Azure Key Vault or PRIVATE_KEY for a PEM-encoded private key.
 
 Output:
-  By default, the token is written to stdout. With --output-name, it becomes
-  an Azure Pipelines secret step output or a masked GitHub Actions step output.
+By default, the token is written to stdout. With --ci-output-name, it is written as a secret Azure Pipelines output or masked GitHub Actions output.
 
-All options can be provided as environment variables. Full examples:
-${authHelperDocsUrl}
-`
+Tokens expire after one hour. Create them immediately before use and revoke them when finished.`
   );
 
   program
-    .command('revoke-gha-token')
+    .command('revoke-github-app-token')
     .description('Revoke a GitHub App installation token')
     .addOption(
-      new Option('--token <token>', 'Should be passed as TOKEN: Installation token to revoke')
+      new Option('--token <token>', 'Provide via TOKEN env: Installation token to revoke')
         .env('TOKEN')
         .makeOptionMandatory()
     )

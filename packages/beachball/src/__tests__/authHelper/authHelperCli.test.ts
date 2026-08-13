@@ -23,7 +23,12 @@ describe('authHelperCli', () => {
     return {
       argv: ['node', 'authHelperCli.js', ...args],
       env: env || {},
-      outputOptions: { writeOut: message => out.push(message.trim()), writeErr: message => err.push(message.trim()) },
+      outputOptions: {
+        writeOut: message => out.push(message.trim()),
+        writeErr: message => err.push(message.trim()),
+        getErrHelpWidth: () => 100,
+        getOutHelpWidth: () => 100,
+      },
       exitOverride: true,
     };
   }
@@ -38,12 +43,22 @@ describe('authHelperCli', () => {
     err = [];
   });
 
+  it.each(['top level', 'create-github-app-token', 'revoke-github-app-token'])(
+    'shows help text for %s',
+    async command => {
+      const context = getContext([...(command === 'top level' ? [] : [command]), '--help']);
+      await expect(runAuthHelperCli(context)).rejects.toThrow(CommanderError);
+      expect(err).toEqual([]);
+      expect(out.join('\n\n')).toMatchSnapshot();
+    }
+  );
+
   describe('token command', () => {
     const mockToken = 'ghs_test_token';
     const clientIdArg = ['--app-client-id', 'Iv1.client'];
     const keyIdArg = ['--key-id', 'key-id'];
     const repoArg = ['--repository', 'org/repo'];
-    const requiredArgs = ['create-gha-token', ...clientIdArg, ...keyIdArg, ...repoArg] as const;
+    const requiredArgs = ['create-github-app-token', ...clientIdArg, ...keyIdArg, ...repoArg] as const;
     const defaults = {
       appClientId: 'Iv1.client',
       githubApiUrl: defaultGitHubApiUrl,
@@ -63,7 +78,7 @@ describe('authHelperCli', () => {
     });
 
     it('reads options from environment variables', async () => {
-      const context = getContext(['create-gha-token'], {
+      const context = getContext(['create-github-app-token'], {
         APP_CLIENT_ID: 'Iv1.client',
         KEY_ID: 'key-id',
         REPOSITORY: 'org/repo',
@@ -80,7 +95,7 @@ describe('authHelperCli', () => {
     });
 
     it('creates a token using a private key from an environment variable', async () => {
-      const context = getContext(['create-gha-token'], {
+      const context = getContext(['create-github-app-token'], {
         APP_CLIENT_ID: 'Iv1.client',
         PRIVATE_KEY: 'private-key',
         REPOSITORY: 'org/repo',
@@ -131,21 +146,21 @@ describe('authHelperCli', () => {
     });
 
     it('rejects invalid variable name', async () => {
-      const context = getContext([...requiredArgs, '--output-name', 'bad name!']);
+      const context = getContext([...requiredArgs, '--ci-output-name', 'bad name!']);
       await expect(runAuthHelperCli(context)).rejects.toThrow(CommanderError);
       expect(err[0]).toMatchInlineSnapshot(
-        `"error: option '--output-name <NAME>' argument 'bad name!' is invalid. Must be an environment-style variable name."`
+        `"error: option '--ci-output-name <NAME>' argument 'bad name!' is invalid. Must be an environment-style variable name."`
       );
     });
 
-    it('writes an Azure Pipelines secret step output with --output-name', async () => {
-      const context = getContext([...requiredArgs, '--output-name', 'MY_TOKEN'], { TF_BUILD: 'true' });
+    it('writes an Azure Pipelines secret step output with --ci-output-name', async () => {
+      const context = getContext([...requiredArgs, '--ci-output-name', 'MY_TOKEN'], { TF_BUILD: 'true' });
       await runAuthHelperCli(context);
       expect(out).toEqual([`##vso[task.setvariable variable=MY_TOKEN;isSecret=true;isOutput=true]${mockToken}`]);
     });
 
-    it('sets a masked GitHub Actions step output with --output-name', async () => {
-      const context = getContext([...requiredArgs, '--output-name', 'MY_TOKEN'], {
+    it('sets a masked GitHub Actions step output with --ci-output-name', async () => {
+      const context = getContext([...requiredArgs, '--ci-output-name', 'MY_TOKEN'], {
         GITHUB_ACTIONS: 'true',
         GITHUB_OUTPUT: '/github/output',
       });
@@ -156,12 +171,12 @@ describe('authHelperCli', () => {
     });
 
     it('requires GITHUB_OUTPUT to set a GitHub Actions step output', async () => {
-      const context = getContext([...requiredArgs, '--output-name', 'MY_TOKEN'], { GITHUB_ACTIONS: 'true' });
+      const context = getContext([...requiredArgs, '--ci-output-name', 'MY_TOKEN'], { GITHUB_ACTIONS: 'true' });
       await expect(runAuthHelperCli(context)).rejects.toThrow(/GITHUB_OUTPUT is required/);
     });
 
-    it('rejects an invalid --output-name', async () => {
-      const context = getContext([...requiredArgs, '--output-name', 'bad name!']);
+    it('rejects an invalid --ci-output-name', async () => {
+      const context = getContext([...requiredArgs, '--ci-output-name', 'bad name!']);
       await expect(runAuthHelperCli(context)).rejects.toThrow(/environment-style variable name/);
     });
 
@@ -176,7 +191,7 @@ describe('authHelperCli', () => {
     });
 
     it('requires a key ID or private key', async () => {
-      const context = getContext(['create-gha-token', ...clientIdArg, ...repoArg]);
+      const context = getContext(['create-github-app-token', ...clientIdArg, ...repoArg]);
       await expect(runAuthHelperCli(context)).rejects.toThrow(CommanderError);
       expect(err[0]).toEqual("error: one of '--key-id' or '--private-key' must be specified");
     });
@@ -196,7 +211,7 @@ describe('authHelperCli', () => {
 
   describe('revoke command', () => {
     it('revokes a token passed as a flag', async () => {
-      const context = getContext(['revoke-gha-token', '--token', 'ghs_revoke_me']);
+      const context = getContext(['revoke-github-app-token', '--token', 'ghs_revoke_me']);
       await runAuthHelperCli(context);
 
       expect(revokeAppToken).toHaveBeenCalledWith({
@@ -207,7 +222,7 @@ describe('authHelperCli', () => {
     });
 
     it('reads the token from TOKEN', async () => {
-      const context = getContext(['revoke-gha-token'], { TOKEN: 'ghs_from_env' });
+      const context = getContext(['revoke-github-app-token'], { TOKEN: 'ghs_from_env' });
       await runAuthHelperCli(context);
 
       expect(revokeAppToken).toHaveBeenCalledWith({
@@ -218,7 +233,7 @@ describe('authHelperCli', () => {
 
     it('honors --github-api-url', async () => {
       const context = getContext([
-        'revoke-gha-token',
+        'revoke-github-app-token',
         '--token',
         'ghs_revoke_me',
         '--github-api-url',
@@ -233,7 +248,7 @@ describe('authHelperCli', () => {
     });
 
     it('requires a token', async () => {
-      const context = getContext(['revoke-gha-token']);
+      const context = getContext(['revoke-github-app-token']);
       await expect(runAuthHelperCli(context)).rejects.toThrow(/--token/);
     });
   });
