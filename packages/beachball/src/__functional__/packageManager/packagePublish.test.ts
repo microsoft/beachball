@@ -73,7 +73,7 @@ describe('packagePublish', () => {
     let token: string;
 
     beforeAll(async () => {
-      registry = new Registry(4873);
+      registry = new Registry(__filename);
 
       // Get the token once upfront (unfortunately verdaccio doesn't support `npm token create`)
       await registry.start();

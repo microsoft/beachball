@@ -1,8 +1,10 @@
-## Validating of change file change type
+## Validating of change file (`change/*.json`) change type
 
-When determining correctness of a package's semver change `type` in a change file (`change/*.json`), first get its current `version` from `package.json`.
+To determine correctness of a package's semver change `type` in a beachball change file, first read its `package.json` to get the `version` and `private` values.
 
-The minimum `type` should be as follows depending on the package's version (the user may also specify a more significant `type`):
+If the package is private, it should not have a change file.
+
+For non-private packages, the minimum `type` should be as follows depending on the package's version (the user may also specify a more significant `type`):
 
 | Package version  | Consumer impact                                                     | Minimum `type` |
 | ---------------- | ------------------------------------------------------------------- | -------------- |

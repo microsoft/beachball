@@ -15,7 +15,7 @@ jest.setTimeout(20_000);
 describe('npmrc authentication integration', () => {
   initMockLogs();
 
-  const registry = new Registry(5874);
+  const registry = new Registry(__filename);
   let projectRoot: string;
 
   afterAll(() => {
@@ -40,8 +40,13 @@ describe('npmrc authentication integration', () => {
       projectNpmrc: `${registryUrl.replace(/^https?:/, '')}/:_authToken=${token}\n`,
     });
     projectRoot = fixture.projectRoot;
-    let env = Object.fromEntries(Object.entries(process.env).filter(([key]) => /^(yarn|npm)_/i.test(key)));
-    env = { ...env, ...fixture.env, FORCE_COLOR: '0' };
+    const env = {
+      // nano-spawn extends process.env, so unset any existing npm/yarn env vars to avoid conflicts
+      ...Object.fromEntries(
+        Object.entries(process.env).map(([key, value]) => (/^(yarn|npm)_/i.test(key) ? [key, undefined] : [key, value]))
+      ),
+      ...fixture.env,
+    };
 
     writeJson(path.join(projectRoot, 'package.json'), { name: 'npmrc-auth-integration', private: true });
 

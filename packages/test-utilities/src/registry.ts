@@ -3,7 +3,7 @@ import { fork, type ChildProcess } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { sync as resolveSync } from 'resolve';
+import resolve from 'resolve';
 import { removeTempDir, tmpdir } from './tmpdir.ts';
 
 const verdaccioUser = {
@@ -13,17 +13,31 @@ const verdaccioUser = {
 
 /** Range of ports tried (increase this if the tests are failing due to ports unavailable) */
 const portRange = 1000;
+/**
+ * Lists of tests known to use `Registry`. This is used to make each test try a different
+ * port range to avoid collisions caused by race conditions with grabbing free ports
+ * (these race conditions could happen across packages depending on lage task ordering).
+ */
+const knownTests = ['packagePublish.test.ts', 'npmrc/src/__tests__/index.test.ts'];
 
 // NOTE: If you are getting timeouts and port collisions, set jest.setTimeout to a higher value.
 //       The default value of 5 seconds may not be enough in situations with port collisions.
 
 export class Registry {
+  private readonly startPort: number;
   private server?: ChildProcess = undefined;
   private port?: number = undefined;
   private tempRoot: string | undefined;
   private token: string | undefined;
 
-  public constructor(private readonly startPort: number) {}
+  public constructor(filename: string) {
+    filename = filename.replace(/\\/g, '/');
+    const testIndex = knownTests.findIndex(test => filename.endsWith(test));
+    if (testIndex === -1) {
+      throw new Error(`Please add ${filename} to knownTests in registry.ts`);
+    }
+    this.startPort = 4873 + testIndex * portRange;
+  }
 
   /**
    * Start the server but don't log in.
@@ -128,42 +142,42 @@ export class Registry {
       this.writeConfig(configPath);
     }
 
-    return new Promise((resolve, reject) => {
-      let hasReturned = false;
-      const rejectWrapper = (err: unknown) => {
-        !hasReturned && reject(err instanceof Error ? err : new Error(String(err)));
+    const verdaccioBin = resolve.sync('verdaccio/bin/verdaccio');
+    this.server = fork(verdaccioBin, ['--listen', String(port), '--config', `./${configName}`], {
+      cwd: this.tempRoot,
+      stdio: 'pipe',
+    });
+
+    const promise = Promise.withResolvers<void>();
+    let hasReturned = false;
+    const rejectWrapper = (err: unknown) => {
+      !hasReturned && promise.reject(err instanceof Error ? err : new Error(String(err)));
+      hasReturned = true;
+    };
+
+    const onMessage = (msg: { verdaccio_started: boolean }) => {
+      if (msg.verdaccio_started) {
         hasReturned = true;
-      };
-
-      try {
-        const verdaccioBin = resolveSync('verdaccio/bin/verdaccio', { basedir: __dirname });
-        this.server = fork(verdaccioBin, ['--listen', String(port), '--config', `./${configName}`], {
-          cwd: this.tempRoot,
-          stdio: 'pipe',
-        });
-
-        this.server.on('message', (msg: { verdaccio_started: boolean }) => {
-          if (msg.verdaccio_started) {
-            hasReturned = true;
-            resolve();
-          } else {
-            rejectWrapper(new Error(`unexpected message from verdaccio: ${JSON.stringify(msg)}`));
-          }
-        });
-
-        this.server.stderr?.on('data', data => {
-          const dataStr = String(data);
-          if (!dataStr.includes('Debugger attached') && !dataStr.includes('Starting inspector')) {
-            rejectWrapper(new Error(dataStr));
-          }
-        });
-
-        this.server.on('error', error => {
-          rejectWrapper(error);
-        });
-      } catch (err) {
-        rejectWrapper(err);
+        promise.resolve();
+      } else {
+        rejectWrapper(`unexpected message from verdaccio: ${JSON.stringify(msg)}`);
       }
+    };
+    const onStderr = (data: unknown) => {
+      const dataStr = String(data);
+      if (!dataStr.includes('Debugger attached') && !dataStr.includes('Starting inspector')) {
+        rejectWrapper(dataStr);
+      }
+    };
+
+    this.server.stderr?.on('data', onStderr);
+    this.server.on('error', rejectWrapper);
+    this.server.on('message', onMessage);
+
+    await promise.promise.finally(() => {
+      this.server?.off('message', onMessage);
+      this.server?.stderr?.off('data', onStderr);
+      this.server?.off('error', rejectWrapper);
     });
   }
 
@@ -224,7 +238,8 @@ export class Registry {
         type: 'file',
         level: 'trace',
         format: 'pretty',
-        path: path.join(path.dirname(configPath), `verdaccio-${Date.now()}.log`),
+        // eslint-disable-next-line no-restricted-properties -- ok to write log to cwd
+        path: path.join(process.cwd(), `verdaccio-${Date.now()}.log`),
       });
     }
 
