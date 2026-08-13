@@ -145,7 +145,6 @@ steps:
       azureSubscription: <your service connection name>
       scriptType: bash
       scriptLocation: inlineScript
-      # can use any mix of options and env
       inlineScript: |
         yarn beachball-auth-helper create-github-app-token \
           --app-client-id "<app client id>" \
@@ -294,5 +293,3 @@ az role assignment delete \
   --role "Key Vault Administrator" \
   --scope "$VAULT_ID"
 ```
-
-### 7. Use the key
