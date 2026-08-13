@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update undici dependency",
-  "packageName": "@microsoft/beachball-action-should-release",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

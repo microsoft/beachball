@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update brace-expansion and minimatch dependencies",
-  "packageName": "@microsoft/beachball-action-should-release",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,6 +1,6 @@
 {
   "name": "@microsoft/beachball-yarn-plugin-npmrc",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Yarn plugin to use registry authentication settings from .npmrc instead of .yarnrc.yml",
   "license": "MIT",
   "beachball": {

@@ -1,8 +1,18 @@
 # Change Log - @microsoft/beachball-action-should-release
 
-<!-- This log was last generated on Wed, 29 Jul 2026 10:04:32 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 13 Aug 2026 03:44:19 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.1.3
+
+Thu, 13 Aug 2026 03:44:19 GMT
+
+### Patches
+
+- Update undici dependency (elcraig@microsoft.com)
+- Update brace-expansion and minimatch dependencies (elcraig@microsoft.com)
+- Use `node:` imports (elcraig@microsoft.com)
 
 ## 3.1.2
 

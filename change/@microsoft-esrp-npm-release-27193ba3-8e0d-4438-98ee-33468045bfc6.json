@@ -1,6 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add esrp-npm-release package",
-  "packageName": "@microsoft/esrp-npm-release",
-  "email": "elcraig@microsoft.com"
-}

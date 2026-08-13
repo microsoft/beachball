@@ -3,7 +3,7 @@ name: beachball-change-file
 description: 'Create and validate Beachball change files. Use when the user asks to generate change files, prepare to push a branch, or prepare or create a pull request. Do not use for ordinary code changes or planning.'
 license: MIT
 metadata:
-  version: 1.0.6
+  version: 1.1.0
   source: https://github.com/microsoft/beachball/blob/main/skills/beachball-change-file/SKILL.md
 ---
 

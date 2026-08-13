@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "restart publishing package",
-  "packageName": "proper-changelog",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "none"
-}
