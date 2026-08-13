@@ -3,17 +3,8 @@ ignore-path: ../../.gitignore
 ignores:
   # used in scripts
   - cross-env
-  # used in __fixtures__/registry.ts by partial name
-  - verdaccio-auth-memory
-  - verdaccio-memory
-  # ok with using implicit dev dep for now (part of verdaccio)
-  - '@verdaccio/config'
   # specified at root
   - '@typescript-eslint/*'
   - 'eslint-*'
   - '@types/node'
   - '@jest/globals'
-  # needed for type references from verdaccio (not listed in deps)
-  - '@verdaccio/types'
-  # needed for type references from @verdaccio/types
-  - '@types/jsonwebtoken'

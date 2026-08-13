@@ -116,7 +116,7 @@ jobs:
       - name: Check for modified files
         uses: ./actions/check-for-modified-files
         with:
-          extraError: 'If action dist files changed, run "yarn build" and check in the updated dist files.'
+          extraError: 'If action or yarn plugin dist files changed, run "yarn build" and check in the updated dist files.'
 
       - name: e2e - install-beachball
         uses: ./actions/install-beachball

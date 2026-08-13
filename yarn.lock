@@ -1553,9 +1553,18 @@ __metadata:
   resolution: "@microsoft/beachball-test-utilities@workspace:packages/test-utilities"
   dependencies:
     "@microsoft/beachball-scripts": "workspace:^"
+    "@types/jsonwebtoken": "npm:^9.0.10"
+    "@types/resolve": "npm:^1.20.6"
     "@types/tmp": "npm:^0.2.6"
+    "@verdaccio/config": "npm:^8.2.0"
+    "@verdaccio/types": "npm:^13.0.0"
+    get-port: "npm:^7.0.0"
     normalized-tmpdir: "npm:^1.1.0"
+    resolve: "npm:^1.22.12"
     tmp: "npm:^0.2.7"
+    verdaccio: "npm:^6.5.2"
+    verdaccio-auth-memory: "npm:^13.0.0"
+    verdaccio-memory: "npm:^10.4.3"
   languageName: unknown
   linkType: soft
 
@@ -1576,12 +1585,17 @@ __metadata:
   resolution: "@microsoft/beachball-yarn-plugin-npmrc@workspace:yarn-plugins/npmrc"
   dependencies:
     "@microsoft/beachball-scripts": "workspace:^"
+    "@microsoft/beachball-test-utilities": "workspace:^"
     "@npmcli/config": "patch:@npmcli/config@npm%3A10.7.1#~/.yarn/patches/@npmcli-config-npm-10.7.1-8423a6d567.patch"
     "@types/which": "npm:^3.0.4"
     "@yarnpkg/core": "catalog:prod"
+    "@yarnpkg/fslib": "npm:^3.1.5"
     "@yarnpkg/plugin-npm": "npm:^3.5.0"
     "@yarnpkg/plugin-pack": "portal:../../.yarn/stubs/yarn-plugin"
+    cross-env: "catalog:dev"
+    nano-spawn: "catalog:prod"
     which: "npm:^6.0.1"
+    workspace-tools: "catalog:prod"
   languageName: unknown
   linkType: soft
 
@@ -1745,7 +1759,7 @@ __metadata:
 
 "@npmcli/config@patch:@npmcli/config@npm%3A10.7.1#~/.yarn/patches/@npmcli-config-npm-10.7.1-8423a6d567.patch":
   version: 10.7.1
-  resolution: "@npmcli/config@patch:@npmcli/config@npm%3A10.7.1#~/.yarn/patches/@npmcli-config-npm-10.7.1-8423a6d567.patch::version=10.7.1&hash=8af27a"
+  resolution: "@npmcli/config@patch:@npmcli/config@npm%3A10.7.1#~/.yarn/patches/@npmcli-config-npm-10.7.1-8423a6d567.patch::version=10.7.1&hash=6e6534"
   dependencies:
     "@npmcli/map-workspaces": "npm:^5.0.0"
     "@npmcli/package-json": "npm:^7.0.0"
@@ -1755,7 +1769,7 @@ __metadata:
     proc-log: "npm:^6.0.0"
     semver: "npm:^7.3.5"
     walk-up-path: "npm:^4.0.0"
-  checksum: 10c0/74f9904c67fb61e4cd07fdf5536cdf14b2055a293303526680554b5a2476de0fa725780d8e13e792efcb89194105c4bdd8f4e53a3edb4e4fc13dd8ed4eb2975b
+  checksum: 10c0/f4044737b282f6569c7a0851cd954bde39e26a2a7af36dd7b48f2a073445f46acc521ab02f23366a24a82e0bf1c47f764a9c48120824c6512e83e59e269718a4
   languageName: node
   linkType: hard
 
@@ -2304,6 +2318,13 @@ __metadata:
     "@types/node": "npm:*"
     kleur: "npm:^3.0.3"
   checksum: 10c0/22fe0da6807681c85e88ba283184f4be4c8a95c744ea12a638865c98c4e0c22e7f733542f6b0f1fbca02245cdc3fe84feacf9c9adf4ddd8bc98a337fd679d8d2
+  languageName: node
+  linkType: hard
+
+"@types/resolve@npm:^1.20.6":
+  version: 1.20.6
+  resolution: "@types/resolve@npm:1.20.6"
+  checksum: 10c0/a9b0549d816ff2c353077365d865a33655a141d066d0f5a3ba6fd4b28bc2f4188a510079f7c1f715b3e7af505a27374adce2a5140a3ece2a059aab3d6e1a4244
   languageName: node
   linkType: hard
 
@@ -2871,6 +2892,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@verdaccio/config@npm:^8.2.0":
+  version: 8.2.1
+  resolution: "@verdaccio/config@npm:8.2.1"
+  dependencies:
+    "@verdaccio/core": "npm:8.2.1"
+    debug: "npm:4.4.3"
+    js-yaml: "npm:5.2.2"
+    lodash: "npm:4.18.1"
+  checksum: 10c0/1e3814da3ce6eea0307d8291ee3146ae2a733ea64017fc0bd896be0b1d8c34cb41baff91bc148ed6ae42e8f5b548f6993ec90194fd78ded67340ec8d3027701e
+  languageName: node
+  linkType: hard
+
 "@verdaccio/core@npm:8.2.0":
   version: 8.2.0
   resolution: "@verdaccio/core@npm:8.2.0"
@@ -2882,6 +2915,20 @@ __metadata:
     process-warning: "npm:1.0.0"
     semver: "npm:7.7.4"
   checksum: 10c0/598cbde28e25938e2fca1944bf8c3e126521315f0a16841bb45f34ed2129621b6338e65ef7542a8bd162912fa4648c6d1693e3b24606a7222ed5cc8be53d105c
+  languageName: node
+  linkType: hard
+
+"@verdaccio/core@npm:8.2.1":
+  version: 8.2.1
+  resolution: "@verdaccio/core@npm:8.2.1"
+  dependencies:
+    ajv: "npm:8.20.0"
+    http-errors: "npm:2.0.1"
+    http-status-codes: "npm:2.3.0"
+    minimatch: "npm:10.2.5"
+    process-warning: "npm:1.0.0"
+    semver: "npm:7.8.5"
+  checksum: 10c0/3fc638faf13192ef9833bbdb86fea420962997180c2fac03d21dc0f38bdcc2f6a0c174ed407e4e62892a3621d8aaffda3e26a89f799f71fc8a1668c00b921776
   languageName: node
   linkType: hard
 
@@ -3330,6 +3377,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ajv@npm:8.20.0, ajv@npm:^8.18.0":
+  version: 8.20.0
+  resolution: "ajv@npm:8.20.0"
+  dependencies:
+    fast-deep-equal: "npm:^3.1.3"
+    fast-uri: "npm:^3.0.1"
+    json-schema-traverse: "npm:^1.0.0"
+    require-from-string: "npm:^2.0.2"
+  checksum: 10c0/5df9a1c8f83863cde1bd3a9ddb426f599718f88e3dc9153616c79fb28e0be455335830d7f21d745576519f057b371352daa31047b6a33d7036fe08777d60cf2a
+  languageName: node
+  linkType: hard
+
 "ajv@npm:^6.14.0":
   version: 6.15.0
   resolution: "ajv@npm:6.15.0"
@@ -3339,18 +3398,6 @@ __metadata:
     json-schema-traverse: "npm:^0.4.1"
     uri-js: "npm:^4.2.2"
   checksum: 10c0/67966499dd272ecde1c2e467084411132891523d057487587879d39ac04207f4351b7b2324c83198013967fbfa632c1612adc960114a30770fbe07a0773b32c2
-  languageName: node
-  linkType: hard
-
-"ajv@npm:^8.18.0":
-  version: 8.20.0
-  resolution: "ajv@npm:8.20.0"
-  dependencies:
-    fast-deep-equal: "npm:^3.1.3"
-    fast-uri: "npm:^3.0.1"
-    json-schema-traverse: "npm:^1.0.0"
-    require-from-string: "npm:^2.0.2"
-  checksum: 10c0/5df9a1c8f83863cde1bd3a9ddb426f599718f88e3dc9153616c79fb28e0be455335830d7f21d745576519f057b371352daa31047b6a33d7036fe08777d60cf2a
   languageName: node
   linkType: hard
 
@@ -3701,14 +3748,11 @@ __metadata:
   dependencies:
     "@microsoft/beachball-scripts": "workspace:^"
     "@microsoft/beachball-test-utilities": "workspace:^"
-    "@types/jsonwebtoken": "npm:^9.0.10"
     "@types/prompts": "npm:^2.4.2"
     "@types/semver": "catalog:dev"
     "@vercel/detect-agent": "npm:^1.2.1"
-    "@verdaccio/types": "npm:^13.0.0"
     commander: "catalog:prod"
     cross-env: "catalog:dev"
-    get-port: "npm:^7.0.0"
     nano-spawn: "catalog:prod"
     p-graph: "workspace:^"
     p-limit: "npm:^3.1.0"
@@ -3716,9 +3760,6 @@ __metadata:
     semver: "catalog:prod"
     strip-ansi: "npm:^6.0.1"
     undici: "npm:^8.9.0"
-    verdaccio: "npm:^6.5.2"
-    verdaccio-auth-memory: "npm:^13.0.0"
-    verdaccio-memory: "npm:^10.4.3"
     workspace-tools: "catalog:prod"
   bin:
     beachball: ./bin/beachball.js
@@ -8587,7 +8628,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"resolve@npm:^1.22.3":
+"resolve@npm:^1.22.12, resolve@npm:^1.22.3":
   version: 1.22.12
   resolution: "resolve@npm:1.22.12"
   dependencies:
@@ -8601,7 +8642,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"resolve@patch:resolve@npm%3A^1.22.3#optional!builtin<compat/resolve>":
+"resolve@patch:resolve@npm%3A^1.22.12#optional!builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.22.3#optional!builtin<compat/resolve>":
   version: 1.22.12
   resolution: "resolve@patch:resolve@npm%3A1.22.12#optional!builtin<compat/resolve>::version=1.22.12&hash=9bd1a5"
   dependencies:

@@ -49,16 +49,10 @@
   "devDependencies": {
     "@microsoft/beachball-scripts": "workspace:^",
     "@microsoft/beachball-test-utilities": "workspace:^",
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/prompts": "^2.4.2",
     "@types/semver": "catalog:dev",
-    "@verdaccio/types": "^13.0.0",
     "cross-env": "catalog:dev",
-    "get-port": "^7.0.0",
     "strip-ansi": "^6.0.1",
-    "undici": "^8.9.0",
-    "verdaccio": "^6.5.2",
-    "verdaccio-auth-memory": "^13.0.0",
-    "verdaccio-memory": "^10.4.3"
+    "undici": "^8.9.0"
   }
 }

@@ -30,6 +30,8 @@ const config = {
       type: 'noop',
       dependsOn: ['test:unit', 'test:func', 'test:e2e'],
     },
+    // One of the tests uses the bundled output
+    '@microsoft/beachball-yarn-plugin-npmrc#test': ['build', 'bundle'],
     // These are not typically run directly, but the dependencies enforce ordering for beachball#test
     'test:unit': ['build'],
     'test:func': ['build', 'test:unit'],

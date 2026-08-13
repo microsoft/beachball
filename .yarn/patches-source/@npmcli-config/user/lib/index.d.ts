@@ -75,7 +75,7 @@ declare class Config<Definitions extends Config.DefinitionsObject = Config.Defin
     /**
      * Load the given key from the config stack.
      */
-    get<K extends keyof Definitions>(key: K, where: Config.ConfType): Config.ConfigValueType<Definitions[K]["type"]>;
+    get<K extends keyof Definitions>(key: K, where?: Config.ConfType): Config.ConfigValueType<Definitions[K]["type"]>;
     /**
      * Verify that all known configuration options are set to valid values, and
      * log a warning if they are invalid.
@@ -141,8 +141,6 @@ declare namespace Config {
 
         /** PATCH: Root of the whole project (location of lock file and root `package.json`) */
         projectRoot: string;
-        /** PATCH: Root of the current workspace/package (may be same as `projectRoot`) */
-        workspaceRoot: string;
 
         cwd?: string;
         env?: NodeJS.ProcessEnv;

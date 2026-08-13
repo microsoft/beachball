@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Fix paths on Windows, and add `npmrcAuthVerbose` option",
+  "packageName": "@microsoft/beachball-yarn-plugin-npmrc",
+  "email": "elcraig@microsoft.com"
+}
