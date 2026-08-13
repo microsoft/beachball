@@ -243,22 +243,28 @@ extends:
                 displayName: Build beachball
 
               - task: AzureCLI@2
-                displayName: Get token
+                name: createToken
+                displayName: Create GitHub App token
                 inputs:
                   azureSubscription: ogx-oss-release-bot
                   scriptType: bash
                   scriptLocation: inlineScript
-                  inlineScript: node packages/beachball/dist/github-app-token.mjs
-                env:
-                  # office-ogx-auth-helper GitHub App
-                  APP_CLIENT_ID: Iv23ligBoU5jc9SIFnGR
-                  KEY_ID: https://ogx-oss-release-keyvault.vault.azure.net/keys/office-ogx-auth-helper-key
-                  REPOSITORY: $(Build.Repository.Name)
-                  PERMISSIONS: contents:write
-                  SECRET_VARIABLE: GITHUB_APP_TOKEN
+                  inlineScript: |
+                    yarn beachball-auth-helper create-github-app-token \
+                      --app-client-id Iv23ligBoU5jc9SIFnGR \
+                      --key-id https://ogx-oss-release-keyvault.vault.azure.net/keys/office-ogx-auth-helper-key \
+                      --repository $(Build.Repository.Name) \
+                      --permissions contents:write \
+                      --ci-output-name GITHUB_APP_TOKEN
 
-              # TODO (release): update task name
-              - script: node scripts/publishWithGithubAppToken.ts
+              # Run publish. Beachball reads `BEACHBALL_GIT_TOKEN` to authenticate the git push.
+              - script: yarn beachball:release publish --no-publish
                 displayName: Push non-prerelease package updates
                 env:
-                  BEACHBALL_GIT_TOKEN: $(GITHUB_APP_TOKEN)
+                  BEACHBALL_GIT_TOKEN: $(createToken.GITHUB_APP_TOKEN)
+
+              - script: yarn beachball-auth-helper revoke-github-app-token
+                displayName: Revoke GitHub App token
+                condition: and(always(), ne(variables['createToken.GITHUB_APP_TOKEN'], ''))
+                env:
+                  TOKEN: $(createToken.GITHUB_APP_TOKEN)

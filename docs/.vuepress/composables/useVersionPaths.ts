@@ -1,7 +1,10 @@
 import { computed } from 'vue';
 import { useRoute } from 'vuepress/client';
 
-const v3OnlyPaths = new Set(['/overview/v3-migration.html', '/cli/migrate.html']);
+// This is from a define option in config.ts
+declare const __V3_ONLY_PATHS__: readonly string[];
+
+const v3OnlyPaths = new Set(__V3_ONLY_PATHS__);
 
 export const useVersionPaths = () => {
   const route = useRoute();

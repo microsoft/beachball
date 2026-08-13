@@ -1517,6 +1517,7 @@ __metadata:
     "@types/yargs-parser": "npm:^21.0.0"
     "@typescript-eslint/utils": "npm:^8.52.0"
     babel-jest: "npm:^30.0.0"
+    beachball: "workspace:^"
     depcheck: "npm:^1.4.7"
     eslint: "catalog:dev"
     husky: "npm:^9.0.0"
@@ -3742,7 +3743,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"beachball@workspace:packages/beachball":
+"beachball@workspace:^, beachball@workspace:packages/beachball":
   version: 0.0.0-use.local
   resolution: "beachball@workspace:packages/beachball"
   dependencies:
@@ -3763,6 +3764,7 @@ __metadata:
     workspace-tools: "catalog:prod"
   bin:
     beachball: ./bin/beachball.js
+    beachball-auth-helper: ./bin/beachball-auth-helper.js
   languageName: unknown
   linkType: soft
 

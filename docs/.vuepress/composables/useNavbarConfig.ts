@@ -20,7 +20,7 @@ export const useNavbarConfig = (): ComputedRef<NavbarItem[]> => {
       }
 
       if (!('children' in item) && item.text === 'GitHub' && isV2.value) {
-        return { ...item, link: 'https://github.com/microsoft/beachball/tree/v2' };
+        return { ...item, link: item.link + '/tree/v2' };
       }
 
       return item;

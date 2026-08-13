@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { createMockPool } from './authTestHelpers';
-import { revokeAppToken } from '../../githubAuth/revokeAppToken';
+import { revokeAppToken } from '../../authHelper/revokeAppToken';
 
 describe('revokeAppToken', () => {
   it('revokeAppToken calls DELETE /installation/token', async () => {

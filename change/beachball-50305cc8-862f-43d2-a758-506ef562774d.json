@@ -1,0 +1,6 @@
+{
+  "type": "minor",
+  "comment": "Add `beachball-auth-helper` CLI to help get github app installation tokens",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com"
+}

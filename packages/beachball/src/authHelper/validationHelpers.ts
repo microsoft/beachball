@@ -9,7 +9,7 @@ const permissionLevels = Object.keys({
 } satisfies Record<PermissionLevel, boolean>);
 
 /** Returns whether the value is a record object */
-export function isRecord(value: unknown): value is Record<string, unknown> {
+function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 

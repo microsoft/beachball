@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`authHelperCli shows help text for create-github-app-token 1`] = `
+"Usage: beachball-auth-helper create-github-app-token [options]
+
+Create a repository-scoped GitHub App installation token
+
+Options:
+  --app-client-id <id>       GitHub App client ID (not a secret)
+  --key-id <keyId>           Azure Key Vault key ID used to sign the app JWT
+  --private-key <pem>        Provide via PRIVATE_KEY env: PEM-encoded GitHub App private key
+                             (escaped newlines are accepted) (env: PRIVATE_KEY)
+  --repository <owner/repo>  Repository to scope the token to, in owner/repo format
+  --permissions <list>       Comma-separated list of "permission:level" entries (e.g. "contents:
+                             read, pull_requests: write")
+  --ci-output-name <NAME>    Save the token as an Azure Pipelines secret step output or masked
+                             GitHub Actions step output
+  --github-api-url <url>     GitHub REST API URL (for GitHub Enterprise Server) (default:
+                             "https://api.github.com")
+  -h, --help                 display help for command
+
+Signing:
+Provide exactly one signing source: --key-id for Azure Key Vault or PRIVATE_KEY for a PEM-encoded private key.
+
+Output:
+By default, the token is written to stdout. With --ci-output-name, it is written as a secret Azure Pipelines output or masked GitHub Actions output.
+
+Tokens expire after one hour. Create them immediately before use and revoke them when finished.
+
+Full setup and examples: https://microsoft.github.io/beachball/concepts/ci-integration/auth-helper"
+`;
+
+exports[`authHelperCli shows help text for revoke-github-app-token 1`] = `
+"Usage: beachball-auth-helper revoke-github-app-token [options]
+
+Revoke a GitHub App installation token
+
+Options:
+  --token <token>         Provide via TOKEN env: Installation token to revoke (env: TOKEN)
+  --github-api-url <url>  GitHub REST API URL (for GitHub Enterprise Server) (default:
+                          "https://api.github.com")
+  -h, --help              display help for command
+
+Full setup and examples: https://microsoft.github.io/beachball/concepts/ci-integration/auth-helper"
+`;
+
+exports[`authHelperCli shows help text for top level 1`] = `
+"Usage: beachball-auth-helper [options] [command]
+
+Authentication utilities for CI workflows.
+
+Options:
+  -h, --help                         display help for command
+
+Commands:
+  create-github-app-token [options]  Create a repository-scoped GitHub App installation token
+  revoke-github-app-token [options]  Revoke a GitHub App installation token
+  help [command]                     display help for command
+
+Full setup and examples: https://microsoft.github.io/beachball/concepts/ci-integration/auth-helper"
+`;
