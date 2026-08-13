@@ -77,13 +77,8 @@ describe('authHelperCli', () => {
       expect(out).toEqual([mockToken]);
     });
 
-    it('reads options from environment variables', async () => {
-      const context = getContext(['create-github-app-token'], {
-        APP_CLIENT_ID: 'Iv1.client',
-        KEY_ID: 'key-id',
-        REPOSITORY: 'org/repo',
-        GITHUB_API_URL: 'https://ghe.example.com/api/v3',
-      });
+    it('honors --github-api-url', async () => {
+      const context = getContext([...requiredArgs, '--github-api-url', 'https://ghe.example.com/api/v3']);
       await runAuthHelperCli(context);
 
       expect(createAppToken).toHaveBeenCalledWith({
@@ -95,15 +90,23 @@ describe('authHelperCli', () => {
     });
 
     it('creates a token using a private key from an environment variable', async () => {
-      const context = getContext(['create-github-app-token'], {
-        APP_CLIENT_ID: 'Iv1.client',
+      const context = getContext(['create-github-app-token', ...clientIdArg, ...repoArg], {
         PRIVATE_KEY: 'private-key',
-        REPOSITORY: 'org/repo',
       });
       await runAuthHelperCli(context);
 
       expect(createAppToken).toHaveBeenCalledWith({ ...defaults, keyInfo: { privateKey: 'private-key' } });
       expect(out).toEqual([mockToken]);
+    });
+
+    it('does not read non-secret options from environment variables', async () => {
+      const context = getContext(['create-github-app-token'], {
+        APP_CLIENT_ID: 'Iv1.client',
+        KEY_ID: 'key-id',
+        REPOSITORY: 'org/repo',
+      });
+      await expect(runAuthHelperCli(context)).rejects.toThrow(CommanderError);
+      expect(err[0]).toMatch(/required option '--app-client-id <id>' not specified/);
     });
 
     it('parses permissions', async () => {

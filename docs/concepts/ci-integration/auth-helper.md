@@ -38,25 +38,25 @@ By default, the token is written to stdout. Use `--ci-output-name` in CI to save
 Besides `PRIVATE_KEY`, none of the other inputs need to be handled as secrets.
 
 <!-- prettier-ignore -->
-| Flag | Variable | Required | Description |
-| ---- | -------- | -------- | ----------- |
-| `--app-client-id` | `APP_CLIENT_ID` | Yes | GitHub App client ID. See [GitHub App setup steps](#github-app-setup) for where to find it in the UI. |
-| `--key-id` | `KEY_ID` | One signing source | Azure Key Vault key ID, e.g. `https://my-vault.vault.azure.net/keys/my-github-app-key` - see [Azure resource setup](#azure-resource-setup). The `az` CLI must be on `PATH` and authenticated to use this option. |
-| | `PRIVATE_KEY` | One signing source | PEM-encoded GitHub App private key. Escaped newlines (`\\n`) in the private key are converted to actual newlines. |
-| `--repository` | `REPOSITORY` | Yes | Repository for the app installation and token scope, in `owner/repo` format. |
-| `--permissions` | `PERMISSIONS` | | Comma-separated `permission:level` entries, such as `contents:read, pull_requests:write` (see [valid `permissions` properties](https://docs.github.com/en/rest/apps/apps?apiVersion=2026-03-10#create-an-installation-access-token-for-an-app) and values). Omit to inherit the installation perms. Requested perms cannot exceed those granted to the app installation. Spaces are ignored. |
-| `--ci-output-name` | `CI_OUTPUT_NAME` | | Instead of writing the token to stdout, save it as an Azure Pipelines secret step output or masked GitHub Actions step output. Must be a valid environment variable name, and only works in CI environments. |
-| `--github-api-url` | `GITHUB_API_URL` | | GitHub REST API URL (customizable for GitHub Enterprise). Defaults to `https://api.github.com`. |
+| Input | Required | Description |
+| ----- | -------- | ----------- |
+| `--app-client-id` | Yes | GitHub App client ID. See [GitHub App setup steps](#github-app-setup) for where to find it in the UI. |
+| `--key-id` | One signing source | Azure Key Vault key ID, e.g. `https://my-vault.vault.azure.net/keys/my-github-app-key` - see [Azure resource setup](#azure-resource-setup). The `az` CLI must be on `PATH` and authenticated to use this option. |
+| `PRIVATE_KEY` (env var) | One signing source | PEM-encoded GitHub App private key. Escaped newlines (`\\n`) in the private key are converted to actual newlines. |
+| `--repository` | Yes | Repository for the app installation and token scope, in `owner/repo` format. |
+| `--permissions` | | Comma-separated `permission:level` entries, such as `contents:read, pull_requests:write` (see [valid `permissions` properties and values](https://docs.github.com/en/rest/apps/apps?apiVersion=2026-03-10#create-an-installation-access-token-for-an-app)). Omit to inherit the installation perms. Requested perms cannot exceed those granted to the app installation. Spaces are ignored. |
+| `--ci-output-name` | | Instead of writing the token to stdout, save it as an Azure Pipelines secret step output or masked GitHub Actions step output. Must be a valid environment variable name. |
+| `--github-api-url` | | GitHub REST API URL (customizable for GitHub Enterprise). Defaults to `https://api.github.com`. |
 
 ### `revoke-github-app-token`
 
 The `revoke-github-app-token` command revokes a token by calling `DELETE /installation/token`. The token authenticates its own revocation. Run this command in an always-running cleanup step (as shown in the [usage examples](#usage-create-github-app-token)) so the token is revoked even if an earlier step fails.
 
 <!-- prettier-ignore -->
-| Flag | Variable | Description |
-| ---- | -------- | ----------- |
-| | `TOKEN` | Installation token to revoke. |
-| `--github-api-url` | `GITHUB_API_URL` | (optional) GitHub REST API URL (customizable for GitHub Enterprise). Defaults to `https://api.github.com`. |
+| Input | Description |
+| ----- | ----------- |
+| `TOKEN` (env var) | Installation token to revoke. |
+| `--github-api-url` | (optional) GitHub REST API URL (customizable for GitHub Enterprise). Defaults to `https://api.github.com`. |
 
 ## Usage: `create-github-app-token`
 
@@ -253,7 +253,7 @@ az keyvault key import \
   --ops sign
 ```
 
-Use the versionless key ID (`https://$KEY_VAULT.vault.azure.net/keys/$KEY_NAME`, with no trailing version) as `--key-id`/`KEY_ID` for the token creation tool so signing follows key rotation automatically.
+Use the versionless key ID (`https://$KEY_VAULT.vault.azure.net/keys/$KEY_NAME`, with no trailing version) as `--key-id` for the token creation tool so signing follows key rotation automatically.
 
 ### 5. Grant the signing identity access
 

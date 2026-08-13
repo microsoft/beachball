@@ -70,22 +70,16 @@ function buildProgram(context: CliContext): Command {
   context.outputOptions && program.configureOutput(context.outputOptions);
 
   const githubApiUrlOption = () =>
-    new Option('--github-api-url <url>', 'GitHub REST API URL (for GitHub Enterprise Server)')
-      .env('GITHUB_API_URL')
-      .default(defaultGitHubApiUrl);
+    new Option('--github-api-url <url>', 'GitHub REST API URL (for GitHub Enterprise Server)').default(
+      defaultGitHubApiUrl
+    );
 
   const createCommand = program
     .command('create-github-app-token')
     .description('Create a repository-scoped GitHub App installation token')
+    .addOption(new Option('--app-client-id <id>', 'GitHub App client ID (not a secret)').makeOptionMandatory())
     .addOption(
-      new Option('--app-client-id <id>', 'GitHub App client ID (not a secret)')
-        .env('APP_CLIENT_ID')
-        .makeOptionMandatory()
-    )
-    .addOption(
-      new Option('--key-id <keyId>', 'Azure Key Vault key ID used to sign the app JWT')
-        .env('KEY_ID')
-        .conflicts('privateKey')
+      new Option('--key-id <keyId>', 'Azure Key Vault key ID used to sign the app JWT').conflicts('privateKey')
     )
     .addOption(
       new Option(
@@ -97,7 +91,6 @@ function buildProgram(context: CliContext): Command {
     )
     .addOption(
       new Option('--repository <owner/repo>', 'Repository to scope the token to, in owner/repo format')
-        .env('REPOSITORY')
         .makeOptionMandatory()
         .argParser(value => {
           const parts = value.split('/');
@@ -111,22 +104,18 @@ function buildProgram(context: CliContext): Command {
       new Option(
         '--permissions <list>',
         'Comma-separated list of "permission:level" entries (e.g. "contents: read, pull_requests: write")'
-      )
-        .env('PERMISSIONS')
-        .argParser(parsePermissions)
+      ).argParser(parsePermissions)
     )
     .addOption(
       new Option(
         '--ci-output-name <NAME>',
         'Save the token as an Azure Pipelines secret step output or masked GitHub Actions step output'
-      )
-        .env('CI_OUTPUT_NAME')
-        .argParser(value => {
-          if (!/^[A-Za-z_]\w*$/.test(value)) {
-            throw new InvalidArgumentError('Must be an environment-style variable name.');
-          }
-          return value;
-        })
+      ).argParser(value => {
+        if (!/^[A-Za-z_]\w*$/.test(value)) {
+          throw new InvalidArgumentError('Must be an environment-style variable name.');
+        }
+        return value;
+      })
     )
     .addOption(githubApiUrlOption())
     .action((options: TokenCliOptions, command: Command) =>
@@ -137,7 +126,7 @@ function buildProgram(context: CliContext): Command {
     'after',
     `
 Signing:
-Provide exactly one signing source: --key-id/KEY_ID for Azure Key Vault or PRIVATE_KEY for a PEM-encoded private key.
+Provide exactly one signing source: --key-id for Azure Key Vault or PRIVATE_KEY for a PEM-encoded private key.
 
 Output:
 By default, the token is written to stdout. With --ci-output-name, it is written as a secret Azure Pipelines output or masked GitHub Actions output.

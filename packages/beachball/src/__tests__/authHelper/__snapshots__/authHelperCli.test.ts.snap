@@ -6,22 +6,21 @@ exports[`authHelperCli shows help text for create-github-app-token 1`] = `
 Create a repository-scoped GitHub App installation token
 
 Options:
-  --app-client-id <id>       GitHub App client ID (not a secret) (env: APP_CLIENT_ID)
-  --key-id <keyId>           Azure Key Vault key ID used to sign the app JWT (env: KEY_ID)
+  --app-client-id <id>       GitHub App client ID (not a secret)
+  --key-id <keyId>           Azure Key Vault key ID used to sign the app JWT
   --private-key <pem>        Provide via PRIVATE_KEY env: PEM-encoded GitHub App private key
                              (escaped newlines are accepted) (env: PRIVATE_KEY)
-  --repository <owner/repo>  Repository to scope the token to, in owner/repo format (env:
-                             REPOSITORY)
+  --repository <owner/repo>  Repository to scope the token to, in owner/repo format
   --permissions <list>       Comma-separated list of "permission:level" entries (e.g. "contents:
-                             read, pull_requests: write") (env: PERMISSIONS)
+                             read, pull_requests: write")
   --ci-output-name <NAME>    Save the token as an Azure Pipelines secret step output or masked
-                             GitHub Actions step output (env: CI_OUTPUT_NAME)
+                             GitHub Actions step output
   --github-api-url <url>     GitHub REST API URL (for GitHub Enterprise Server) (default:
-                             "https://api.github.com", env: GITHUB_API_URL)
+                             "https://api.github.com")
   -h, --help                 display help for command
 
 Signing:
-Provide exactly one signing source: --key-id/KEY_ID for Azure Key Vault or PRIVATE_KEY for a PEM-encoded private key.
+Provide exactly one signing source: --key-id for Azure Key Vault or PRIVATE_KEY for a PEM-encoded private key.
 
 Output:
 By default, the token is written to stdout. With --ci-output-name, it is written as a secret Azure Pipelines output or masked GitHub Actions output.
@@ -39,7 +38,7 @@ Revoke a GitHub App installation token
 Options:
   --token <token>         Provide via TOKEN env: Installation token to revoke (env: TOKEN)
   --github-api-url <url>  GitHub REST API URL (for GitHub Enterprise Server) (default:
-                          "https://api.github.com", env: GITHUB_API_URL)
+                          "https://api.github.com")
   -h, --help              display help for command
 
 Full setup and examples: https://microsoft.github.io/beachball/concepts/ci-integration/auth-helper"

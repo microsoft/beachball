@@ -249,14 +249,13 @@ extends:
                   azureSubscription: ogx-oss-release-bot
                   scriptType: bash
                   scriptLocation: inlineScript
-                  inlineScript: yarn beachball-auth-helper create-github-app-token
-                env:
-                  # office-ogx-auth-helper GitHub App
-                  APP_CLIENT_ID: Iv23ligBoU5jc9SIFnGR
-                  KEY_ID: https://ogx-oss-release-keyvault.vault.azure.net/keys/office-ogx-auth-helper-key
-                  REPOSITORY: $(Build.Repository.Name)
-                  PERMISSIONS: contents:write
-                  CI_OUTPUT_NAME: GITHUB_APP_TOKEN
+                  inlineScript: |
+                    yarn beachball-auth-helper create-github-app-token \
+                      --app-client-id Iv23ligBoU5jc9SIFnGR \
+                      --key-id https://ogx-oss-release-keyvault.vault.azure.net/keys/office-ogx-auth-helper-key \
+                      --repository $(Build.Repository.Name) \
+                      --permissions contents:write \
+                      --ci-output-name GITHUB_APP_TOKEN
 
               # Run publish. Beachball reads `BEACHBALL_GIT_TOKEN` to authenticate the git push.
               - script: yarn beachball:release publish --no-publish
