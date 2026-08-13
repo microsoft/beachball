@@ -1,10 +1,9 @@
 {
   "name": "@microsoft/esrp-npm-release",
   "version": "0.1.0",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "description": "ESRP npm release helper",
-  "bin": "bin/esrp-npm-release.mjs",
-  "private": true,
+  "bin": "bin/esrp-npm-release.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/microsoft/beachball",
@@ -30,19 +29,17 @@
     "start": "node src/index.ts",
     "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest"
   },
-  "dependencies": {
+  "devDependencies": {
     "@azure/core-auth": "^1.10.1",
     "@azure/msal-node": "^5.1.5",
     "@azure/storage-blob": "^12.31.0",
-    "jws": "patch:jws@npm%3A4.0.1#~/.yarn/patches/jws-npm-4.0.1-0d8c257cbe.patch",
-    "nano-spawn": "catalog:prod",
-    "yazl": "^3.3.1"
-  },
-  "devDependencies": {
     "@microsoft/beachball-scripts": "workspace:^",
     "@microsoft/beachball-test-utilities": "workspace:^",
     "@types/jws": "^3.2.11",
     "@types/yazl": "^3.3.1",
-    "cross-env": "catalog:dev"
+    "cross-env": "catalog:dev",
+    "jws": "patch:jws@npm%3A4.0.1#~/.yarn/patches/jws-npm-4.0.1-0d8c257cbe.patch",
+    "nano-spawn": "catalog:prod",
+    "yazl": "^3.3.1"
   }
 }
