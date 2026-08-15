@@ -7,7 +7,7 @@ const { getGitTag, postbumpHook } = require('./scripts/beachballConfigHelpers.ts
 // TODO (release): remove canary-specific logic
 const isCanary = process.argv.includes('canary');
 
-const prereleasePackages = ['beachball', 'p-graph'];
+const prereleasePackages = ['beachball'];
 
 /** @type {Partial<import('./packages/beachball/src/types/BeachballOptions').BeachballOptions>}*/
 const config = {

@@ -3,7 +3,7 @@ import { findPackageRoot } from 'workspace-tools';
 
 const args = process.argv.slice(2);
 
-function start(): Promise<void> {
+async function start(): Promise<void> {
   const packagePath = findPackageRoot(process.cwd()) || process.cwd();
 
   process.chdir(packagePath);

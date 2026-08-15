@@ -63,13 +63,13 @@ export function getEnvOptions(env: NodeJS.ProcessEnv = process.env): EnvOptions 
   if (!!result.esrp.authCertificatePfx === !!result.esrp.idToken) {
     validationErrors.push(
       result.esrp.authCertificatePfx
-        ? 'Only one of ESRP_AUTH_CERT (certificate auth) or ESRP_ID_TOKEN (managed identity auth) may be set'
-        : 'One of ESRP_AUTH_CERT (certificate auth) or ESRP_ID_TOKEN (managed identity auth) must be set'
+        ? 'Only one of ESRP_AUTH_CERT (certificate auth) or ESRP_ID_TOKEN (managed identity auth) may be set.'
+        : 'One of ESRP_AUTH_CERT (certificate auth) or ESRP_ID_TOKEN (managed identity auth) must be set.'
     );
   }
 
   if (validationErrors.length) {
-    throw new ReleaseError(validationErrors.join('\n'));
+    throw new ReleaseError(validationErrors.join('\n\n'));
   }
   return result;
 }

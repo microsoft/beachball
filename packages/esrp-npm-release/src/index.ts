@@ -15,7 +15,9 @@ import { ReleaseError } from './utils/ReleaseError.ts';
 
 const logger = new Logger();
 
-await runRelease({ env: getEnvOptions(), logger }).catch(err => {
+try {
+  await runRelease({ env: getEnvOptions(), logger });
+} catch (err) {
   if (err instanceof ReleaseError && err.alreadyLogged) {
     // Error details were already printed -- just exit
   } else if (err instanceof ReleaseError) {
@@ -28,4 +30,4 @@ await runRelease({ env: getEnvOptions(), logger }).catch(err => {
   }
   // eslint-disable-next-line n/no-process-exit
   process.exit(1);
-});
+}

@@ -129,6 +129,21 @@ describe('runRelease', () => {
     expect(publishCalls).toEqual(['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']);
   });
 
+  it('processes non-contiguous layer names without requiring the missing layer', async () => {
+    const env = envWithTempPaths({
+      '01': ['pkg-a-1.0.0.tgz'],
+      '03': ['pkg-c-3.0.0.tgz'],
+    });
+
+    await runRelease({ env, logger });
+
+    const layerVersions = releaseService.createRelease.mock.calls.map(
+      ([params]) => params.releaseRequestParams.productInfo.version
+    );
+    expect(layerVersions).toEqual(['commit-1-01', 'commit-1-03']);
+    expect(state.markPublished.mock.calls.map(c => c[0])).toEqual(['01', '03']);
+  });
+
   it('skips layers that have already been published', async () => {
     state = makeReleaseState({ alreadyPublished: ['1'] });
 
