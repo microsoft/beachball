@@ -15,8 +15,11 @@ import type { ChangeType } from './ChangeInfo';
 export interface ChangelogEntry {
   /** Change comment */
   comment: string;
-  /** Author email */
-  author: string;
+  /**
+   * Author email. In v2, this was "email not defined" if unavailable.
+   * In v3, it's omitted if unavailable.
+   */
+  author?: string;
   /**
    * Commit hash, if available.
    *

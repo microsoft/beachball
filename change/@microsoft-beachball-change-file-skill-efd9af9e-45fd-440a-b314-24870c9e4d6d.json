@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Handle differences between beachball v2 and v3 change file format",
+  "packageName": "@microsoft/beachball-change-file-skill",
+  "email": "elcraig@microsoft.com"
+}

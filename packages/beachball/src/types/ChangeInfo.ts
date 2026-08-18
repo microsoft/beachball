@@ -10,8 +10,11 @@ export interface ChangeFileInfo {
   comment: string;
   /** Package name the change was in */
   packageName: string;
-  /** Author email */
-  email: string;
+  /**
+   * Author email. In v2, this was "email not defined" if unavailable.
+   * In v3, it's omitted if unavailable.
+   */
+  email?: string;
   /**
    * How to bump packages that depend on this one.
    * At bump time, it defaults to `none` if type is `none`, or `patch` otherwise.

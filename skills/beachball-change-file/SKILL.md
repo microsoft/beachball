@@ -17,12 +17,13 @@ Determine these values once and use them throughout the workflow:
 
 - `<ROOT>`: almost always the git root. It should contain `beachball.config.*` or `.beachballrc.*` or have a `"beachball"` key in `package.json`. If not found, ask the user.
 - `<BEACHBALL_COMMAND>`: the package-manager-specific way to invoke Beachball, such as `yarn beachball`, `pnpm exec beachball`, or `npm exec beachball --`.
+- `<BEACHBALL_VERSION>`: the version from `<BEACHBALL_COMMAND> --version`
 - `<CHECK_COMMAND>`: prefer a root `package.json` script that runs `beachball check`, because it may supply repository-specific arguments. Otherwise use `<BEACHBALL_COMMAND> check`. Include the package-manager-specific argument separator when passing `--verbose` through a script.
 - `<CHANGE_DIR>`: the result of `<BEACHBALL_COMMAND> config get changeDir`, or `change/` if unset.
 - `<GROUP_CHANGES>`: the result of `<BEACHBALL_COMMAND> config get groupChanges`; treat `false` and unset as non-grouped.
 - `<TARGET_BRANCH>`: use the branch specified by the user or pull request. Otherwise use the result of `<BEACHBALL_COMMAND> config get branch`, or the repository's default branch if unset. Ask the user if it cannot be determined reliably.
 - `<MERGE_BASE>`: the local merge-base of `HEAD` and `<TARGET_BRANCH>`. Do not merge the target branch to calculate it.
-- `<EMAIL>`: the result of `git config user.email`, or `email not defined` if unavailable. Never invent an email.
+- `<EMAIL>`: the result of `git config user.email`. Never invent an email.
 
 Run all commands from `<ROOT>` unless the repository's script requires otherwise.
 
@@ -74,9 +75,13 @@ For a stable package, use `prerelease`, `premajor`, `preminor`, or `prepatch` on
 Set the remaining values as follows:
 
 - `packageName`: the exact package name reported by Beachball.
-- `dependentChangeType`: Only include this if the user explicitly requests non-default dependent bump behavior.
+- `dependentChangeType`: Depends on `<BEACHBALL_VERSION>`:
+  - 2.x: unless explicitly requested by the user, use `none` for change type `none`, and `patch` for all other change types.
+  - 3.x: Only include this if the user explicitly requests non-default dependent bump behavior.
 - `comment`: a concise, user-facing description suitable for a changelog. Emphasize API or behavior changes rather than implementation details, and wrap code identifiers in backticks.
-- `email`: `<EMAIL>`.
+- `email`: `<EMAIL>`. If not available, behavior depends on `<BEACHBALL_VERSION>`:
+  - 2.x: use `email not defined`.
+  - 3.x: omit the email
 
 Ask the user only about unresolved classifications and any proposed `major` bump. When multiple packages need input, ask about them together.
 

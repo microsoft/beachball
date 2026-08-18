@@ -24,14 +24,13 @@ describe('promptForChange _getChangeFileInfoFromResponse', () => {
       type: 'patch',
       comment,
       packageName: pkg,
-      email: 'email not defined',
     });
     expect(logs.mocks.log).not.toHaveBeenCalled();
   });
 
   it('omits dependentChangeType if response.type is none', () => {
     const change = _getChangeFileInfoFromResponse({ ...defaultParams, response: { comment, type: 'none' } });
-    expect(change).toEqual({ type: 'none', comment, packageName: pkg, email: 'email not defined' });
+    expect(change).toEqual({ type: 'none', comment, packageName: pkg });
     expect(logs.mocks.log).not.toHaveBeenCalled();
   });
 
