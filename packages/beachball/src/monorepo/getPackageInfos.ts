@@ -1,6 +1,5 @@
 import path from 'node:path';
 import {
-  findPackageRoot,
   getWorkspaceInfos,
   getPackageInfo as getWSPackageInfo,
   listAllTrackedFiles,
@@ -25,17 +24,13 @@ type PackageInfosOptions = Pick<ParsedOptions, 'cliOptions'> & {
  * The CLI options are needed so they can be properly merged with the package options
  * into `PackageInfo.packageOptions` without going back through the whole process of
  * getting CLI options.
+ *
+ * @param rawPackageInfos Can be pre-calculated if the raw version is needed previously
  */
-export function getPackageInfos(parsedOptions: PackageInfosOptions): PackageInfos {
-  const cwd = parsedOptions?.options.path;
-
-  // If cwd comes from processed CLI options, it's already the root
-  const projectRoot = cwd;
-  const packageRoot = findPackageRoot(cwd);
-
-  const wsPackageInfos = getRawPackageInfos({ projectRoot, packageRoot, options: parsedOptions?.options });
-  if (wsPackageInfos) {
-    return getPackageInfosWithOptions(wsPackageInfos, parsedOptions.cliOptions);
+export function getPackageInfos(parsedOptions: PackageInfosOptions, rawPackageInfos?: WSPackageInfo[]): PackageInfos {
+  rawPackageInfos ??= getRawPackageInfos(parsedOptions.options);
+  if (rawPackageInfos) {
+    return getPackageInfosWithOptions(rawPackageInfos, parsedOptions.cliOptions);
   }
   return {};
 }
@@ -43,21 +38,15 @@ export function getPackageInfos(parsedOptions: PackageInfosOptions): PackageInfo
 /**
  * Internal helper to get raw package infos.
  */
-export function getRawPackageInfos(params: {
-  projectRoot: string;
-  packageRoot: string | undefined;
-  options: PackageInfosOptions['options'] | undefined;
-}): WSPackageInfo[] | undefined {
-  const { projectRoot, packageRoot, options } = params;
+export function getRawPackageInfos(options: PackageInfosOptions['options']): WSPackageInfo[] | undefined {
+  // If cwd comes from processed CLI options, it's already the root
+  const projectRoot = options.path;
 
-  let wsPackageInfos: WSPackageInfo[] | undefined;
-  if (projectRoot) {
-    wsPackageInfos =
-      getPackageInfosFromMonorepoManager(projectRoot) || getPackageInfosFromOtherMonorepo(projectRoot, options);
-  }
+  let wsPackageInfos =
+    getPackageInfosFromMonorepoManager(projectRoot) || getPackageInfosFromOtherMonorepo(projectRoot, options);
 
-  if (!wsPackageInfos?.length && packageRoot) {
-    const singlePackage = getWSPackageInfo(packageRoot);
+  if (!wsPackageInfos?.length) {
+    const singlePackage = getWSPackageInfo(projectRoot);
     if (singlePackage) {
       wsPackageInfos = [singlePackage];
     }

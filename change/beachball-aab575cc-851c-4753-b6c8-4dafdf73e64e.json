@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Run migration checks as part of pre-command validation, and fail on migration errors",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com"
+}

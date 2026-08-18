@@ -58,7 +58,7 @@ describe('areChangeFilesDeleted', () => {
     expect(result).toBeTruthy();
   });
 
-  it('deletes change files when changeDir option is specified', () => {
+  it('respects changeDir option', () => {
     const testChangedir = 'changeDir';
     const options = getOptions({ changeDir: testChangedir });
 

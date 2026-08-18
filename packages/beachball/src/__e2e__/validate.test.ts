@@ -90,4 +90,16 @@ describe('validate', () => {
     expect(result.isChangeNeeded).toBe(false);
     expect(logs.mocks.error).not.toHaveBeenCalled();
   });
+
+  it('reports error-level migration checks', async () => {
+    repo = repositoryFactory.cloneRepository();
+    repo.updateJsonFile('packages/foo/package.json', { private: true, beachball: { shouldPublish: false } });
+
+    await expect(validateWrapper()).rejects.toThrow(BeachballError);
+    expect(logs.getMockLines('error', { root: repo.rootPath })).toMatchInlineSnapshot(`
+      "ERROR: The following config updates are needed for v3:
+        • Found private packages using \`"shouldPublish": false\`. This setting does nothing with private packages and should be removed.
+          ▪ <root>/packages/foo/package.json"
+    `);
+  });
 });
