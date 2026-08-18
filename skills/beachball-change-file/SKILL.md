@@ -79,7 +79,7 @@ Set the remaining values as follows:
   - 2.x: unless explicitly requested by the user, use `none` for change type `none`, and `patch` for all other change types.
   - 3.x: Only include this if the user explicitly requests non-default dependent bump behavior.
 - `comment`: a concise, user-facing description suitable for a changelog. Emphasize API or behavior changes rather than implementation details, and wrap code identifiers in backticks.
-- `email`: `<EMAIL>`. If not available, behavior deepnds on `<BEACHBALL_VERSION>`:
+- `email`: `<EMAIL>`. If not available, behavior depends on `<BEACHBALL_VERSION>`:
   - 2.x: use `email not defined`.
   - 3.x: omit the email
 
