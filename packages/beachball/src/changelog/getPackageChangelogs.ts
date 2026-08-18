@@ -38,7 +38,7 @@ export function getPackageChangelogs(
     changelogs[packageName].comments ??= {};
     changelogs[packageName].comments[changeType] ??= [];
     changelogs[packageName].comments[changeType].push({
-      author: change.email,
+      ...(!!email && { author: email }),
       package: packageName,
       ...(commit !== undefined && { commit }),
       // This contains the comment and any extra properties added to the change file by
