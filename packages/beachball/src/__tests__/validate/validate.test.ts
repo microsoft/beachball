@@ -99,6 +99,7 @@ describe('validate', () => {
         changeSet: [],
       },
     });
+    expect(mockGetMigrationIssues).toHaveBeenCalledWith(expect.objectContaining({ skipMigrations: ['changelogJson'] }));
     expect(logs.mocks.error).not.toHaveBeenCalled();
   });
 

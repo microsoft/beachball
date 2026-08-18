@@ -80,8 +80,10 @@ export function getMigrationIssues(params: {
 
 const migrations: Record<MigrationName, Migration> = {
   groups: ({ parsedOptions: { options }, updates }) => {
+    if (!Array.isArray(options.groups)) return;
+
     const groupUpdates: BulletList = [];
-    for (const group of options.groups ?? []) {
+    for (const group of options.groups) {
       const exclude = typeof group.exclude === 'string' ? [group.exclude] : group.exclude || [];
       const negatedExclude = exclude.filter(p => p.startsWith('!'));
       if (negatedExclude.length) {
@@ -96,8 +98,10 @@ const migrations: Record<MigrationName, Migration> = {
     }
   },
   changelogGroups: ({ parsedOptions: { options }, updates }) => {
+    if (!Array.isArray(options.changelog?.groups)) return;
+
     const changelogGroupUpdates: BulletList = [];
-    for (const group of options.changelog?.groups ?? []) {
+    for (const group of options.changelog.groups) {
       const thisGroupUpdates: BulletList = [];
       let mainPkg = group.mainPackageName as string | undefined;
       if (!mainPkg) {

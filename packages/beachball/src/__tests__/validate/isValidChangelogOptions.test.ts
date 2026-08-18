@@ -26,6 +26,15 @@ describe('isValidChangelogOptions', () => {
     expect(logs.mocks.error).not.toHaveBeenCalled();
   });
 
+  it('returns false when groups is not an array', () => {
+    const options = { groups: { mainPackageName: 'package-name' } } as unknown as ChangelogOptions;
+    expect(isValidChangelogOptions(options)).toBe(false);
+    expect(logs.getMockLines('error')).toMatchInlineSnapshot(`
+      "ERROR: Expected "changelog.groups" configuration setting to be an array. Received:
+      { "mainPackageName": "package-name" }"
+    `);
+  });
+
   it('returns false when group is missing changelogPath', () => {
     const options = {
       groups: [
