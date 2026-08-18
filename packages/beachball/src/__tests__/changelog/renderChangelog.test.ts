@@ -132,6 +132,19 @@ describe('renderChangelog', () => {
     expect(result).toMatchSnapshot();
   });
 
+  it.each<[string, string | undefined]>([
+    ['undefined', undefined],
+    ['empty string', ''],
+    ['"email not defined"', 'email not defined'],
+    ['"beachball"', 'beachball'],
+  ])('omits author when value is %s', async (_, author) => {
+    const options = getOptions();
+    options.newVersionChangelog.comments.minor![0].author = author;
+
+    const result = (await renderChangelog(options)).split('\n');
+    expect(result).toContain('- Awesome change');
+  });
+
   it('uses full custom renderer', async () => {
     const options = getOptions();
     options.changelogOptions.renderPackageChangelog = renderInfo =>

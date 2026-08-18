@@ -57,7 +57,7 @@ beachball v3 requires **Node.js 22.18.0** or newer, and its published output use
 
 CLI parsing moved from `yargs-parser` to `commander`. Most behavior is preserved, but a few things changed:
 
-- **Unknown options now cause an error** instead of being silently passed through. This should have no impact unless you were passing extra `BeachballOptions` values on the command line that aren't actually specified in `CliOptions`. (If there's some other value you need as a CLI option, please open an issue or PR.)
+- **Unknown options now cause an error** instead of being silently passed through. This should have no impact unless you were passing extra option values on the command line that aren't specified in beachball's internal `CliOptions`. (If there's some other value you need as a CLI option, please open an issue or PR.)
 - **Repeated non-array options use the last value** instead of throwing an error.
 - **String boolean values are no longer supported**: Specifying boolean values like `--push false` or `--push=false` won't work. Use `--push` / `--no-push` (or similar) instead.
 - If you're using `--camelCase` flags, it's recommended to switch to `--kebab-case`. `camelCase` is not supported by default by `commander`, and `beachball`'s workarounds for this may be removed in a future major version.
@@ -89,23 +89,20 @@ To migrate, simply remove the leading `!` from all `exclude` patterns.
 
 The logic for determining the comparison remote and branch is stricter: beachball now throws if no remotes are defined, or if the root `package.json` specifies a `repository` field but no matching remote is found. If your `branch` option contains a `/`, beachball checks whether the leading segment matches a configured remote name, and falls back to the default remote otherwise.
 
-### Custom changelog rendering changes
+### Change file, custom renderer, and `CHANGELOG.json` changes
 
-Only relevant for custom changelog renderers (or if reading `CHANGELOG.json` later): `PackageChangelog.tag` and `ChangelogJsonEntry.tag` are now `undefined` when the package had no associated git tag (previously a value was always present).
+In **change files**:
 
-`ChangelogEntry.commit` will be `undefined` if the package did not have an associated commit.
+- `email` is omitted if `git user.email` is unset (instead of writing `"email not defined"`).
+- `dependentChangeType` is omitted unless a custom value is specified as `--dependent-change-type`. The same defaults as before are applied at bump time: `none` when the change `type` is `none`, or `patch` otherwise.
 
-### Stop writing placeholder commit hashes in changelog
+For **custom changelog renderers** (`BeachballConfig.changelog`):
 
-In v2, Beachball could write `"not available"` to the `commit` field in `CHANGELOG.json` when a commit hash was unavailable.
+- `PackageChangelog.tag` is omitted if the version had no associated git tag (instead of referencing a tag that didn't exist).
+- `ChangelogEntry.commit` is omitted if the package did not have an associated commit (instead of using `"not available"`).
+- `ChangelogEntry.author` is omitted if the original change file's `email` was unset (instead of using `"email not defined"`).
 
-In v3, Beachball omits the `commit` field entirely in those cases instead, including dependent bump entries that do not have a real commit hash yet.
-
-### Stop writing default `dependentChangeType` in change files
-
-Beachball no longer writes the default `dependentChangeType` values to generated change files. The same defaults as before are applied at bump time (`none` when the change `type` is `none`, or `patch` otherwise). Existing change files which specify `dependentChangeType` are still supported, and `--dependent-change-type` continues to write an explicit override.
-
-Custom tools that read change files should allow `dependentChangeType` to be missing and apply the same defaults. Tools that create change files should omit the field unless non-default dependent bump behavior is intended.
+The corresponding values are also unset if reading `CHANGELOG.json` later.
 
 ### Fix fallback behavior for disallowed change types
 

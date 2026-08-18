@@ -1,0 +1,6 @@
+{
+  "type": "major",
+  "comment": "Omit `email` from change files when not available, and omit `author` from changelog entries",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com"
+}
