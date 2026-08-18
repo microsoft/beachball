@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Update brace-expansion to 5.0.9",
+  "packageName": "@microsoft/beachball-action-should-release",
+  "email": "elcraig@microsoft.com"
+}

@@ -573,7 +573,7 @@ Apache License
 
 ----
 
-brace-expansion 5.0.8 - MIT
+brace-expansion 5.0.9 - MIT
 https://github.com/juliangruber/brace-expansion
 
 MIT License
