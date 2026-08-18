@@ -154,6 +154,20 @@ describe('getPackageChangelogs', () => {
     expect(changelogs.foo.comments.patch![0]).toMatchObject({ extra: 'prop' });
   });
 
+  it('omits the author property when the change has no email', () => {
+    const changelogs = getPackageChangelogsWrapper({
+      packageInfos: { foo: { version: '1.0.0' } },
+      calculatedChangeTypes: { foo: 'patch' },
+      changes: [{ packageName: 'foo', email: undefined }],
+    });
+
+    expect(changelogs.foo.comments.patch![0]).toEqual({
+      comment: 'comment for foo',
+      commit,
+      package: 'foo',
+    });
+  });
+
   it('records dependent bumps', () => {
     const changelogs = getPackageChangelogsWrapper({
       packageInfos: {
