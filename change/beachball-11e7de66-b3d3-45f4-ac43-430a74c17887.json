@@ -1,0 +1,6 @@
+{
+  "type": "minor",
+  "comment": "Support dotted names in `config get`",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com"
+}

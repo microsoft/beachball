@@ -72,6 +72,19 @@ describe('configGet', () => {
         'Unknown config setting: "branc" - did you mean "branch"?'
       );
     });
+
+    it('validates and suggests dotted config names within their parent', () => {
+      expectErrorSync(
+        () => configGetArgs(['changeFile.includeEmai']),
+        BeachballError,
+        'Unknown config setting: "changeFile.includeEmai" - did you mean "changeFile.includeEmail"?'
+      );
+      expectErrorSync(
+        () => configGetArgs(['changeFile.prepublish']),
+        BeachballError,
+        'Unknown config setting: "changeFile.prepublish"'
+      );
+    });
   });
 
   describe('basic values', () => {
@@ -98,6 +111,28 @@ describe('configGet', () => {
     it('displays an empty string config value', () => {
       configGetWrapper('tag', { options: { tag: '' } });
       expect(logs.getMockLines('log')).toBe('""');
+    });
+
+    it('displays a dotted config value', () => {
+      configGetWrapper('changeFile.includeEmail', { options: { changeFile: { includeEmail: false } } });
+      expect(logs.getMockLines('log')).toBe('false');
+    });
+
+    it('displays an unset dotted config value', () => {
+      configGetWrapper('changeFile.includeEmail', { options: {} });
+      expect(logs.getMockLines('log')).toBe('undefined');
+    });
+
+    it('displays a deeply nested config value', () => {
+      configGetWrapper('changelog.customRenderers.renderEntry', {
+        options: { changelog: { customRenderers: { renderEntry: () => '' } } },
+      });
+      expect(logs.getMockLines('log')).toBe('(Function)');
+    });
+
+    it('displays an unset deeply nested config value', () => {
+      configGetWrapper('changelog.customRenderers.renderEntry', { options: {} });
+      expect(logs.getMockLines('log')).toBe('undefined');
     });
   });
 

@@ -23,7 +23,7 @@ Determine these values once and use them throughout the workflow:
 - `<GROUP_CHANGES>`: the result of `<BEACHBALL_COMMAND> config get groupChanges`; treat `false` and unset as non-grouped.
 - `<TARGET_BRANCH>`: use the branch specified by the user or pull request. Otherwise use the result of `<BEACHBALL_COMMAND> config get branch`, or the repository's default branch if unset. Ask the user if it cannot be determined reliably.
 - `<MERGE_BASE>`: the local merge-base of `HEAD` and `<TARGET_BRANCH>`. Do not merge the target branch to calculate it.
-- `<INCLUDE_EMAIL>`: for Beachball 3.x, inspect `<BEACHBALL_COMMAND> config get changeFile`. Set this to `false` if `includeEmail` is explicitly `false`; otherwise set it to `true`. For Beachball 2.x, set this to `true` because the option is unavailable.
+- `<INCLUDE_EMAIL>`: For Beachball 2.x, set this to `true`. For Beachball 3.x, use the result of `<BEACHBALL_COMMAND> config get changeFile.includeEmail`; set this to `false` only if the result is explicitly `false`; otherwise set it to `true`.
 - `<EMAIL>`: the result of `git config user.email`. Never invent an email.
 
 Run all commands from `<ROOT>` unless the repository's script requires otherwise.

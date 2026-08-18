@@ -164,6 +164,10 @@ The config file is now **only** resolved at the project root. Support for search
 
 <!-- - Add functionality for creating a GitHub app installation token from a key stored in an Azure key vault (create-github-app-token-via-key-vault fork) -->
 
+### Other features
+
+- Support dotted names in `config get`.
+
 ### Patches
 
 - In the change prompt, add a link to the [change type help page](../concepts/change-types).
