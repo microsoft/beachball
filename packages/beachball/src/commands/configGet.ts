@@ -2,39 +2,47 @@ import { isPackageIncluded } from '../changefile/isPackageIncluded';
 import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes';
 import { formatValue } from '../logging/formatValue';
 import { BeachballError } from '../types/BeachballError';
-import type {
-  BeachballOptions,
-  HooksOptions,
-  PackageOptions,
-  RepoOptions,
-  TransformOptions,
-  VersionGroupOptions,
-} from '../types/BeachballOptions';
-import type { ChangeFileOptions } from '../types/ChangeFileOptions';
-import type { ChangelogOptions, ChangelogRenderers } from '../types/ChangelogOptions';
+import type { BeachballOptions, PackageOptions, RepoOptions, VersionGroupOptions } from '../types/BeachballOptions';
 import type { BasicCommandContext } from '../types/CommandContext';
 
-/** Keys that can be overridden per-package (exhaustive via Record) */
-const packageOptionKeys: Record<string, true> = {
-  tag: true,
-  defaultNpmTag: true,
-  disallowedChangeTypes: true,
-  gitTags: true,
-  shouldPublish: true,
-} satisfies Record<keyof PackageOptions, true>;
+interface ConfigNameTree {
+  [key: string]: true | ConfigNameTree;
+}
 
-/** Keys from RepoOptions (the full set of valid config file settings, exhaustive via Record) */
-const repoOptionKeys: Record<string, true> = {
+type ConfigNames<T> = {
+  [Key in keyof T]-?: NonNullable<T[Key]> extends readonly unknown[] | ((...args: never[]) => unknown)
+    ? true
+    : NonNullable<T[Key]> extends object
+      ? ConfigNames<NonNullable<T[Key]>>
+      : true;
+};
+
+/** The full set of valid config file settings (recursively exhaustive) */
+const validConfigNames: ConfigNameTree = {
   access: true,
   authType: true,
   branch: true,
   bump: true,
   bumpDeps: true,
   canaryName: true,
-  changeFile: true,
+  changeFile: { changePrompt: true, includeEmail: true },
   changehint: true,
   changeDir: true,
-  changelog: true,
+  changelog: {
+    groups: true,
+    renderPackageChangelog: true,
+    customRenderers: {
+      renderHeader: true,
+      renderChangeTypeSection: true,
+      renderChangeTypeHeader: true,
+      renderEntries: true,
+      renderEntry: true,
+    },
+    renderMainHeader: true,
+    uniqueFilenames: true,
+    maxVersions: true,
+    includeCommitHashes: true,
+  },
   commit: true,
   commitMessage: true,
   concurrency: true,
@@ -48,7 +56,7 @@ const repoOptionKeys: Record<string, true> = {
   getGitTag: true,
   groups: true,
   gitTags: true,
-  hooks: true,
+  hooks: { prepublish: true, postpublish: true, prebump: true, postbump: true, precommit: true },
   ignorePatterns: true,
   keepChangeFiles: true,
   message: true,
@@ -65,54 +73,24 @@ const repoOptionKeys: Record<string, true> = {
   tag: true,
   timeout: true,
   gitTimeout: true,
-  transform: true,
+  transform: { changeFiles: true },
   groupChanges: true,
   depth: true,
-} satisfies Record<keyof RepoOptions, true>;
+} satisfies ConfigNames<RepoOptions>;
 
 type GroupOptionName = Exclude<keyof VersionGroupOptions, 'name' | 'include' | 'exclude'>;
 const groupOptionsKeys: Record<string, true> = {
   disallowedChangeTypes: true,
 } satisfies Record<GroupOptionName, true>;
 
-const validConfigNames: Record<string, true> = {
-  ...repoOptionKeys,
-  ...packageOptionKeys,
-  ...groupOptionsKeys,
-};
-
-const validConfigNamesByParent: Record<string, Record<string, true>> = {
-  changeFile: {
-    changePrompt: true,
-    includeEmail: true,
-  } satisfies Record<keyof ChangeFileOptions, true>,
-  changelog: {
-    groups: true,
-    renderPackageChangelog: true,
-    customRenderers: true,
-    renderMainHeader: true,
-    uniqueFilenames: true,
-    maxVersions: true,
-    includeCommitHashes: true,
-  } satisfies Record<keyof ChangelogOptions, true>,
-  'changelog.customRenderers': {
-    renderHeader: true,
-    renderChangeTypeSection: true,
-    renderChangeTypeHeader: true,
-    renderEntries: true,
-    renderEntry: true,
-  } satisfies Record<keyof ChangelogRenderers, true>,
-  hooks: {
-    prepublish: true,
-    postpublish: true,
-    prebump: true,
-    postbump: true,
-    precommit: true,
-  } satisfies Record<keyof HooksOptions, true>,
-  transform: {
-    changeFiles: true,
-  } satisfies Record<keyof TransformOptions, true>,
-};
+/** Keys that can be overridden per-package (exhaustive via Record) */
+const packageOptionKeys: Record<string, true> = {
+  tag: true,
+  defaultNpmTag: true,
+  disallowedChangeTypes: true,
+  gitTags: true,
+  shouldPublish: true,
+} satisfies Record<keyof PackageOptions, true>;
 
 /**
  * Handles the `beachball config get <name>` command.
@@ -253,12 +231,11 @@ function getConfigValue(options: BeachballOptions, name: string): unknown {
 
 function validateConfigName(name: string): void {
   const keys = name.split('.');
-  let parent = '';
+  let validNames = validConfigNames;
 
   for (const [index, key] of keys.entries()) {
-    const validNames = parent ? validConfigNamesByParent[parent] : validConfigNames;
-    if (!validNames || !Object.hasOwn(validNames, key)) {
-      const similarKey = validNames && findSimilar(key, Object.keys(validNames));
+    if (!Object.hasOwn(validNames, key)) {
+      const similarKey = findSimilar(key, Object.keys(validNames));
       const suggestion = similarKey ? [...keys.slice(0, index), similarKey].join('.') : undefined;
       throw new BeachballError(
         suggestion
@@ -266,7 +243,8 @@ function validateConfigName(name: string): void {
           : `Unknown config setting: "${name}"`
       );
     }
-    parent = parent ? `${parent}.${key}` : key;
+    const childNames = validNames[key];
+    validNames = typeof childNames === 'object' ? childNames : {};
   }
 }
 

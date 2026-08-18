@@ -1,0 +1,6 @@
+{
+  "type": "none",
+  "comment": "Simplify internals of `config get` (also in v2)",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com"
+}
