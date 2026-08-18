@@ -419,10 +419,9 @@ variables:
   YARN_NPM_REGISTRY_SERVER: $(REGISTRY_URL)
   YARN_NPM_ALWAYS_AUTH: 1
   YARN_NPMRC_AUTH_ENABLED: 1
-  # names/paths used below
-  artifactName: release-artifacts
-  packagesDirName: packed-packages
-  toolDirName: release-api-tool
+  # artifact names used below
+  packagesArtifactName: packed-packages
+  releaseToolArtifactName: release-api-tool
 
 extends:
   template: <1ES PT template>
@@ -454,19 +453,18 @@ extends:
               clean: all
 
             variables:
-              artifactPath: $(Build.StagingDirectory)/out
-              packagesArtifactPath: $(artifactPath)/${{ variables.packagesDirName }}
-              toolArtifactPath: $(artifactPath)/${{ variables.toolDirName }}
-              # update as needed for your install layout
-              toolBinPath: $(Build.SourcesDirectory)/node_modules/@microsoft/esrp-npm-release/dist/index.mjs
+              packagesArtifactPath: $(Build.StagingDirectory)/${{ variables.packagesArtifactName }}
+              releaseToolArtifactPath: $(Build.StagingDirectory)/${{ variables.releaseToolArtifactName }}
 
             templateContext:
+              outputParentDirectory: $(Build.StagingDirectory)
               outputs:
-                # single artifact containing all subfolders under artifactPath
-                # (this reduces compliance scanning overhead)
                 - output: pipelineArtifact
-                  artifactName: ${{ variables.artifactName }}
-                  path: $(artifactPath)
+                  artifactName: ${{ variables.packagesArtifactName }}
+                  path: $(packagesArtifactPath)
+                - output: pipelineArtifact
+                  artifactName: ${{ variables.releaseToolArtifactName }}
+                  path: $(releaseToolArtifactPath)
 
             steps:
               - template: /.ado/templates/setup.yml@self
@@ -482,9 +480,10 @@ extends:
                   yarn beachball publish --no-push --pack-to-path '$(packagesArtifactPath)'
                 displayName: Pack packages
 
+              # Update as needed for your install layout
               - script: |
-                  mkdir -p '$(toolArtifactPath)'
-                  cp -r '$(toolBinPath)' '$(toolArtifactPath)'
+                  mkdir -p '$(releaseToolArtifactPath)'
+                  cp -r '$(Build.SourcesDirectory)/node_modules/@microsoft/esrp-npm-release/dist/index.mjs' '$(releaseToolArtifactPath)'
                 displayName: Copy release API tool to staging directory
 ```
 
@@ -510,17 +509,20 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
         os: linux
 
       variables:
-        artifactPath: $(Agent.BuildDirectory)/${{ variables.artifactName }}
-        packagesArtifactPath: $(artifactPath)/${{ variables.packagesDirName }}
-        toolArtifactBin: $(artifactPath)/${{ variables.toolDirName }}/index.mjs
+        packagesArtifactPath: $(Agent.BuildDirectory)/${{ variables.packagesArtifactName }}
+        releaseToolArtifactPath: $(Agent.BuildDirectory)/${{ variables.releaseToolArtifactName }}
+        toolArtifactBin: $(releaseToolArtifactPath)/index.mjs
 
       templateContext:
         type: releaseJob
         isProduction: true
         inputs:
           - input: pipelineArtifact
-            artifactName: ${{ variables.artifactName }}
-            targetPath: $(artifactPath)
+            artifactName: ${{ variables.packagesArtifactName }}
+            targetPath: $(packagesArtifactPath)
+          - input: pipelineArtifact
+            artifactName: ${{ variables.releaseToolArtifactName }}
+            targetPath: $(releaseToolArtifactPath)
 
       steps:
         - task: UseNode@1
@@ -602,17 +604,20 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
         os: linux
 
       variables:
-        artifactPath: $(Agent.BuildDirectory)/${{ variables.artifactName }}
-        packagesArtifactPath: $(artifactPath)/${{ variables.packagesDirName }}
-        toolArtifactBin: $(artifactPath)/${{ variables.toolDirName }}/index.mjs
+        packagesArtifactPath: $(Agent.BuildDirectory)/${{ variables.packagesArtifactName }}
+        releaseToolArtifactPath: $(Agent.BuildDirectory)/${{ variables.releaseToolArtifactName }}
+        toolArtifactBin: $(releaseToolArtifactPath)/index.mjs
 
       templateContext:
         type: releaseJob
         isProduction: true
         inputs:
           - input: pipelineArtifact
-            artifactName: ${{ variables.artifactName }}
-            targetPath: $(artifactPath)
+            artifactName: ${{ variables.packagesArtifactName }}
+            targetPath: $(packagesArtifactPath)
+          - input: pipelineArtifact
+            artifactName: ${{ variables.releaseToolArtifactName }}
+            targetPath: $(releaseToolArtifactPath)
 
       steps:
         - task: UseNode@1

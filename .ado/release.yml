@@ -42,12 +42,10 @@ variables:
   # Using 1 instead of 'true' avoids any issues with weird ADO boolean handling
   YARN_NPM_ALWAYS_AUTH: 1
   YARN_NPMRC_AUTH_ENABLED: 1
-  # Single artifact containing all subfolders below (to consolidate compliance auto validation)
-  artifactName: release-artifacts
-  packagesDirName: packed-packages
+  packagesArtifactName: packed-packages
   # TODO (release): remove all canary artifacts
-  canaryDirName: packed-packages-canary
-  toolDirName: release-api-tool
+  canaryArtifactName: packed-packages-canary
+  releaseToolArtifactName: release-api-tool
 
 # Temporary workaround to publish two groups of packages with different versioning strategies
 # TODO (release): go back to a single publish step
@@ -97,16 +95,22 @@ extends:
               clean: all
 
             variables:
-              artifactPath: $(Build.StagingDirectory)/out
-              packagesArtifactPath: $(artifactPath)/${{ variables.packagesDirName }}
-              canaryArtifactPath: $(artifactPath)/${{ variables.canaryDirName }}
-              toolArtifactPath: $(artifactPath)/${{ variables.toolDirName }}
+              packagesArtifactPath: $(Build.StagingDirectory)/${{ variables.packagesArtifactName }}
+              canaryArtifactPath: $(Build.StagingDirectory)/${{ variables.canaryArtifactName }}
+              releaseToolArtifactPath: $(Build.StagingDirectory)/${{ variables.releaseToolArtifactName }}
 
             templateContext:
+              outputParentDirectory: $(Build.StagingDirectory)
               outputs:
                 - output: pipelineArtifact
-                  artifactName: ${{ variables.artifactName }}
-                  path: $(artifactPath)
+                  artifactName: ${{ variables.packagesArtifactName }}
+                  path: $(packagesArtifactPath)
+                - output: pipelineArtifact
+                  artifactName: ${{ variables.canaryArtifactName }}
+                  path: $(canaryArtifactPath)
+                - output: pipelineArtifact
+                  artifactName: ${{ variables.releaseToolArtifactName }}
+                  path: $(releaseToolArtifactPath)
 
             steps:
               - template: /.ado/templates/setup.yml@self
@@ -129,11 +133,11 @@ extends:
                 displayName: Pack packages (others)
 
               - script: |
-                  mkdir -p '$(toolArtifactPath)'
-                  cp -r packages/esrp-npm-release/dist/index.mjs '$(toolArtifactPath)'
+                  mkdir -p '$(releaseToolArtifactPath)'
+                  cp -r packages/esrp-npm-release/dist/index.mjs '$(releaseToolArtifactPath)'
                 displayName: Copy release API tool to staging directory
 
-              - script: ls -R '$(artifactPath)'
+              - script: ls -R '$(Build.StagingDirectory)'
                 displayName: Show all output files
 
       - stage: publish
@@ -149,18 +153,24 @@ extends:
               os: linux
 
             variables:
-              artifactPath: $(Agent.BuildDirectory)/${{ variables.artifactName }}
-              packagesArtifactPath: $(artifactPath)/${{ variables.packagesDirName }}
-              canaryArtifactPath: $(artifactPath)/${{ variables.canaryDirName }}
-              toolArtifactBin: $(artifactPath)/${{ variables.toolDirName }}/index.mjs
+              packagesArtifactPath: $(Agent.BuildDirectory)/${{ variables.packagesArtifactName }}
+              canaryArtifactPath: $(Agent.BuildDirectory)/${{ variables.canaryArtifactName }}
+              releaseToolArtifactPath: $(Agent.BuildDirectory)/${{ variables.releaseToolArtifactName }}
+              toolArtifactBin: $(releaseToolArtifactPath)/index.mjs
 
             templateContext:
               type: releaseJob
               isProduction: true
               inputs:
                 - input: pipelineArtifact
-                  artifactName: ${{ variables.artifactName }}
-                  targetPath: $(artifactPath)
+                  artifactName: ${{ variables.packagesArtifactName }}
+                  targetPath: $(packagesArtifactPath)
+                - input: pipelineArtifact
+                  artifactName: ${{ variables.canaryArtifactName }}
+                  targetPath: $(canaryArtifactPath)
+                - input: pipelineArtifact
+                  artifactName: ${{ variables.releaseToolArtifactName }}
+                  targetPath: $(releaseToolArtifactPath)
 
             steps:
               - task: UseNode@1
@@ -170,7 +180,10 @@ extends:
                   version: ${{ variables.nodeVersion }}.x
                   checkLatest: false
 
-              - script: ls -R '$(artifactPath)'
+              - script: |
+                  ls -R '$(packagesArtifactPath)'
+                  ls -R '$(canaryArtifactPath)'
+                  ls -R '$(releaseToolArtifactPath)'
                 displayName: Show artifact contents
 
               # Get credentials that will be used to temporarily upload zips to ogxesrptempstorage
