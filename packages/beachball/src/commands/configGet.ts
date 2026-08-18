@@ -256,7 +256,7 @@ function validateConfigName(name: string): void {
 
   for (const [index, key] of keys.entries()) {
     const validNames = parent ? validConfigNamesByParent[parent] : validConfigNames;
-    if (!validNames?.[key]) {
+    if (!validNames || !Object.hasOwn(validNames, key)) {
       const similarKey = validNames && findSimilar(key, Object.keys(validNames));
       const suggestion = similarKey ? [...keys.slice(0, index), similarKey].join('.') : undefined;
       throw new BeachballError(
