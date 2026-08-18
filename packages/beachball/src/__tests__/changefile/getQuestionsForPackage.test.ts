@@ -4,7 +4,7 @@ import type prompts from 'prompts';
 import { makePackageInfos, type PartialPackageInfo } from '../../__fixtures__/packageInfos';
 import { getQuestionsForPackage } from '../../changefile/getQuestionsForPackage';
 import { getOptions } from '../../options/getOptions';
-import type { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
+import type { ChangeFileOptions } from '../../types/ChangeFileOptions';
 import type { ChangeType } from '../../types/ChangeInfo';
 import type { PackageGroups } from '../../types/PackageInfo';
 
@@ -141,12 +141,12 @@ describe('getQuestionsForPackage', () => {
     expect(questions![0].name).toBe('type');
   });
 
-  it('uses options.changeFilePrompt if set', async () => {
+  it('uses options.changeFile if set', async () => {
     const customQuestions: prompts.PromptObject[] = [{ name: 'custom', message: 'custom prompt', type: 'text' }];
-    const changePrompt: ChangeFilePromptOptions['changePrompt'] = jest.fn(() => customQuestions);
+    const changePrompt: ChangeFileOptions['changePrompt'] = jest.fn(() => customQuestions);
 
     const questions = await getQuestionsWrapper({
-      options: { changeFilePrompt: { changePrompt } },
+      options: { changeFile: { changePrompt } },
     });
 
     expect(questions).toEqual(customQuestions);

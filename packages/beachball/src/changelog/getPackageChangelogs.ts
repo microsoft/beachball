@@ -42,7 +42,7 @@ export function getPackageChangelogs(
       package: packageName,
       ...(commit !== undefined && { commit }),
       // This contains the comment and any extra properties added to the change file by
-      // RepoOptions.changeFilePrompt.changePrompt
+      // RepoOptions.changeFile.changePrompt
       ...rest,
     });
   }

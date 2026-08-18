@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Handle new option `changeFile.includeEmail`",
+  "packageName": "@microsoft/beachball-change-file-skill",
+  "email": "elcraig@microsoft.com"
+}

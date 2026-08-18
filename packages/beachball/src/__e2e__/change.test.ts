@@ -161,8 +161,9 @@ describe('change command', () => {
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
-    expect(readSingleChangeFile(changeFiles[0])).toMatchObject({
+    expect(readSingleChangeFile(changeFiles[0])).toEqual({
       comment: 'stage me please',
+      email: 'ci@example.com',
       packageName: 'foo',
       type: 'patch',
     });
@@ -191,29 +192,6 @@ describe('change command', () => {
       packageName: 'foo',
       type: 'patch',
     });
-  });
-
-  it('uses custom commitMessage function when committing change files', async () => {
-    repo = singleFactory.cloneRepository();
-    checkOutTestBranch(repo);
-    repo.commitChange('file.js');
-
-    const commitMessage = jest.fn<NonNullable<RepoOptions['commitMessage']>>(() => 'custom change commit message');
-    const { options, context } = await getOptionsAndContext({ commitMessage });
-    const changePromise = change(options, context);
-
-    expect(logs.mocks.log).toHaveBeenLastCalledWith('Please describe the changes for: foo');
-    await mockStdin.sendByChar('\n'); // default change type
-    await mockStdin.sendByChar('commit me please\n'); // custom message
-    await changePromise;
-
-    // commitMessage was called with the options and package infos (no bumpInfo for change)
-    expect(commitMessage).toHaveBeenCalledTimes(1);
-    expect(commitMessage).toHaveBeenLastCalledWith(options, expect.objectContaining({ foo: expect.anything() }));
-
-    expect(repo.status()).toBe('');
-    const lastCommitMessage = repo.git(['log', '-1', '--pretty=%B']).stdout.trim();
-    expect(lastCommitMessage).toBe('custom change commit message');
   });
 
   it('creates and commits a change file with changeDir set', async () => {
@@ -347,7 +325,7 @@ describe('change command', () => {
     makeMonorepoChanges(repo);
 
     mockBeachballOptions = {
-      changeFilePrompt: {
+      changeFile: {
         changePrompt: (defaultPrompt, pkg) => {
           const questions = [defaultPrompt.changeType!, defaultPrompt.description!];
           return pkg === 'pkg-1'

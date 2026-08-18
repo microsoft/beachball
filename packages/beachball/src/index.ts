@@ -5,7 +5,7 @@ import type { RepoOptions } from './types/BeachballOptions';
 export type BeachballConfig = Partial<RepoOptions>;
 
 export type { VersionGroupOptions } from './types/BeachballOptions';
-export type { ChangeFilePromptOptions } from './types/ChangeFilePrompt';
+export type { ChangeFileOptions } from './types/ChangeFileOptions';
 export type { ChangeType } from './types/ChangeInfo';
 export type { ChangelogEntry, ChangelogJson, ChangelogJsonEntry, PackageChangelog } from './types/ChangeLog';
 export type { PackageInfo } from './types/PackageInfo';

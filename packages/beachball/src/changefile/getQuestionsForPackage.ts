@@ -2,7 +2,7 @@ import type prompts from 'prompts';
 import semver from 'semver';
 import type { ChangeType } from '../types/ChangeInfo';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import type { DefaultPrompt } from '../types/ChangeFilePrompt';
+import type { DefaultPrompt } from '../types/ChangeFileOptions';
 import { getDisallowedChangeTypes } from './getDisallowedChangeTypes';
 import type { PackageGroups, PackageInfos } from '../types/PackageInfo';
 
@@ -14,7 +14,7 @@ export function getQuestionsForPackage(params: {
   pkg: string;
   packageInfos: PackageInfos;
   packageGroups: PackageGroups;
-  options: Pick<BeachballOptions, 'message' | 'type' | 'changeFilePrompt' | 'disallowedChangeTypes'>;
+  options: Pick<BeachballOptions, 'message' | 'type' | 'changeFile' | 'disallowedChangeTypes'>;
   recentMessages: string[];
 }): prompts.PromptObject[] | undefined {
   const { pkg, options, recentMessages } = params;
@@ -29,7 +29,7 @@ export function getQuestionsForPackage(params: {
     description: !options.message ? getDescriptionPrompt(recentMessages) : undefined,
   };
 
-  const questions = options.changeFilePrompt?.changePrompt?.(defaultPrompt, pkg) || Object.values(defaultPrompt);
+  const questions = options.changeFile?.changePrompt?.(defaultPrompt, pkg) || Object.values(defaultPrompt);
 
   return questions.filter((q): q is prompts.PromptObject => !!q);
 }

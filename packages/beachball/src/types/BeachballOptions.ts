@@ -1,7 +1,7 @@
 import type { AuthType } from './Auth';
 import type { BumpInfo } from './BumpInfo';
 import type { ChangeInfo, ChangeInfoMultiple, ChangeType } from './ChangeInfo';
-import type { ChangeFilePromptOptions } from './ChangeFilePrompt';
+import type { ChangeFileOptions } from './ChangeFileOptions';
 import type { ChangelogOptions } from './ChangelogOptions';
 import type { PackageInfo, PackageInfos } from './PackageInfo';
 
@@ -129,8 +129,8 @@ export interface RepoOptions {
    */
   bumpDeps: boolean;
   canaryName?: string;
-  /** Options for customizing change file prompt. */
-  changeFilePrompt?: ChangeFilePromptOptions;
+  /** Options for customizing change files and the change file prompt. */
+  changeFile?: ChangeFileOptions;
   /**
    * Hint message for when change files are not detected but required
    * @default 'Run "beachball change" to create a change file'
@@ -141,7 +141,9 @@ export interface RepoOptions {
    * @default 'change'
    */
   changeDir: string;
-  /** Options for customizing changelog rendering */
+  /**
+   * Options for customizing changelog rendering and info saved in the changelog.
+   */
   changelog?: ChangelogOptions;
   /**
    * If true, commit change files automatically after `beachball change`.

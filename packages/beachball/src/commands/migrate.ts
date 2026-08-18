@@ -74,6 +74,10 @@ export function migrate(parsedOptions: ParsedOptions): void {
     );
   }
 
+  if ((repoOptions as { changeFilePrompt?: unknown }).changeFilePrompt !== undefined) {
+    updates.push('The `changeFilePrompt` option has been renamed to `changeFile`.');
+  }
+
   if (repoOptions.hooks?.prebump?.length ?? 0 > 3) {
     updates.push('`hooks.prebump` no longer receives `packageInfos`. See migration guide.');
   }

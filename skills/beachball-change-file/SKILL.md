@@ -23,6 +23,7 @@ Determine these values once and use them throughout the workflow:
 - `<GROUP_CHANGES>`: the result of `<BEACHBALL_COMMAND> config get groupChanges`; treat `false` and unset as non-grouped.
 - `<TARGET_BRANCH>`: use the branch specified by the user or pull request. Otherwise use the result of `<BEACHBALL_COMMAND> config get branch`, or the repository's default branch if unset. Ask the user if it cannot be determined reliably.
 - `<MERGE_BASE>`: the local merge-base of `HEAD` and `<TARGET_BRANCH>`. Do not merge the target branch to calculate it.
+- `<INCLUDE_EMAIL>`: For Beachball 2.x, set this to `true`. For Beachball 3.x, use the result of `<BEACHBALL_COMMAND> config get changeFile.includeEmail`; set this to `false` only if the result is explicitly `false`; otherwise set it to `true`.
 - `<EMAIL>`: the result of `git config user.email`. Never invent an email.
 
 Run all commands from `<ROOT>` unless the repository's script requires otherwise.
@@ -79,9 +80,9 @@ Set the remaining values as follows:
   - 2.x: unless explicitly requested by the user, use `none` for change type `none`, and `patch` for all other change types.
   - 3.x: Only include this if the user explicitly requests non-default dependent bump behavior.
 - `comment`: a concise, user-facing description suitable for a changelog. Emphasize API or behavior changes rather than implementation details, and wrap code identifiers in backticks.
-- `email`: `<EMAIL>`. If not available, behavior depends on `<BEACHBALL_VERSION>`:
+- `email`: omit this if `<INCLUDE_EMAIL>` is `false`. Otherwise use `<EMAIL>`. If `<EMAIL>` is not available, behavior depends on `<BEACHBALL_VERSION>`:
   - 2.x: use `email not defined`.
-  - 3.x: omit the email
+  - 3.x: omit the email.
 
 Ask the user only about unresolved classifications and any proposed `major` bump. When multiple packages need input, ask about them together.
 

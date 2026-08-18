@@ -6,7 +6,7 @@ import { MockStdout } from '../../__fixtures__/mockStdout';
 import { makePackageInfos } from '../../__fixtures__/packageInfos';
 import { promptForChange } from '../../changefile/promptForChange';
 import { BeachballError } from '../../types/BeachballError';
-import type { ChangeFilePromptOptions } from '../../types/ChangeFilePrompt';
+import type { ChangeFileOptions } from '../../types/ChangeFileOptions';
 
 // prompts writes to stdout (not console) in a way that can't really be mocked with spies,
 // so instead we inject a custom mock stdout stream, as well as stdin for entering answers.
@@ -50,7 +50,7 @@ describe('promptForChange', () => {
     packageGroups: {},
     options: { message: '', disallowedChangeTypes: null },
     recentMessages: ['commit 2', 'commit 1'],
-    email: null,
+    email: undefined,
   });
 
   beforeEach(() => {
@@ -147,12 +147,12 @@ describe('promptForChange', () => {
 
   it('stops partway through if a response is invalid', async () => {
     // this can only happen with custom prompts
-    const changeFilePrompt: ChangeFilePromptOptions = {
+    const changeFile: ChangeFileOptions = {
       changePrompt: () => [{ type: 'text', name: 'type', message: 'enter any type' }],
     };
     const changeFilesPromise = promptForChange({
       ...defaultParams(),
-      options: { message: 'message', changeFilePrompt, disallowedChangeTypes: null },
+      options: { message: 'message', changeFile, disallowedChangeTypes: null },
       changedPackages: ['foo', 'bar'],
     });
     await waitForPrompt();
