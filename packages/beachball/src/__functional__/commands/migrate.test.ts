@@ -69,6 +69,16 @@ describe('migrate command', () => {
     `);
   });
 
+  it('errors on "changeFilePrompt" option', async () => {
+    tempRoot = createTestFileStructureType('single');
+    const options = await getOptions({ changeFilePrompt: {} } as unknown as RepoOptions);
+    expect(() => migrate(options)).toThrow(BeachballError);
+    expect(logs.getMockLines('all')).toMatchInlineSnapshot(`
+      "[error] The following updates are needed for v3:
+      [error]   • The \`changeFilePrompt\` option has been renamed to \`changeFile\`."
+    `);
+  });
+
   it('errors on "hooks.prebump" with more than 3 params', async () => {
     tempRoot = createTestFileStructureType('single');
     const fn: HooksOptions['postbump'] = (_pth, _name, _version, _pkgInfos) => {};

@@ -22,7 +22,7 @@ const repoOptionKeys: Record<string, true> = {
   bump: true,
   bumpDeps: true,
   canaryName: true,
-  changeFilePrompt: true,
+  changeFile: true,
   changehint: true,
   changeDir: true,
   changelog: true,

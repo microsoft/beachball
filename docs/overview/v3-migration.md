@@ -126,6 +126,7 @@ In v3, `shouldPublish: false` packages are full participants in all steps of the
 
 ### `BeachballConfig` and other type updates
 
+- Rename `changeFilePrompt` to `changeFile`, and rename corresponding `ChangeFilePromptOptions` to `ChangeFileOptions`.
 - Rename `changelog.groups[*].masterPackageName` to `mainPackageName`.
 - Removed rarely-used options:
   - `new`: This option was never needed if PR builds run `beachball check` (a new package without a change file already causes an error), and it had a significant performance cost because it checked the registry for _all_ unmodified packages.

@@ -13,7 +13,7 @@ describe('promptForChange _getChangeFileInfoFromResponse', () => {
   const defaultParams: Omit<Parameters<typeof _getChangeFileInfoFromResponse>[0], 'response'> = {
     pkg,
     options: { message: '' },
-    email: null,
+    email: undefined,
   };
 
   const logs = initMockLogs();
@@ -26,6 +26,20 @@ describe('promptForChange _getChangeFileInfoFromResponse', () => {
       packageName: pkg,
     });
     expect(logs.mocks.log).not.toHaveBeenCalled();
+  });
+
+  it('includes email if provided', () => {
+    const change = _getChangeFileInfoFromResponse({
+      ...defaultParams,
+      email: 'user@example.com',
+      response: { comment, type: 'patch' },
+    });
+    expect(change).toEqual({
+      type: 'patch',
+      comment,
+      packageName: pkg,
+      email: 'user@example.com',
+    });
   });
 
   it('omits dependentChangeType if response.type is none', () => {

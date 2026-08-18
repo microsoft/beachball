@@ -17,7 +17,7 @@ export interface ChangelogEntry {
   comment: string;
   /**
    * Author email. In v2, this was "email not defined" if unavailable.
-   * In v3, it's omitted if unavailable.
+   * In v3, it's omitted if unavailable or if `changeFile.includeEmail` is false.
    */
   author?: string;
   /**

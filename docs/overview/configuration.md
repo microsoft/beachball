@@ -78,7 +78,7 @@ To change the `disallowedChangeTypes` for package `foo`, you could add the follo
 | `access` | `'public'` or `'restricted'` | as configured for npm | repo | Publish access level for scoped package names (e.g. `@foo/bar`) - should **almost always** be `'public'` |
 | `branch` | `string` | [see notes][5] | repo | Target branch; [see notes][5] |
 | `bumpDeps` | `boolean` | `true` | repo | Bump dependent packages during publish (if B is bumped, and A depends on B, also bump A) |
-| `changeFilePrompt` | [`ChangeFilePromptOptions`][1] | | repo | Customize the prompt for change files (can be used to add custom fields) |
+| `changeFile` | [`ChangeFileOptions`][1] | | repo | Customize change files, including the prompt and whether to include the git email |
 | `changehint` | `string` | | repo | Hint message for when change files are not detected but required |
 | `changeDir` | `string` | `change` | repo | Directory where change files are stored (relative to repo root) |
 | `changelog` | [`ChangelogOptions`][2] | | repo | Changelog rendering and grouping options |
@@ -107,7 +107,7 @@ To change the `disallowedChangeTypes` for package `foo`, you could add the follo
 | `tag` | `string` | see notes | repo, package | `dist-tag` for npm when published. Defaults to `defaultNpmTag` or `'latest'` (npm does NOT allow publishing packages without a `dist-tag`). |
 | `transform` | [`TransformOptions`][4] | | repo | Transformations for change files |
 
-[1]: https://github.com/microsoft/beachball/blob/main/packages/beachball/src/types/ChangeFilePrompt.ts
+[1]: https://github.com/microsoft/beachball/blob/main/packages/beachball/src/types/ChangeFileOptions.ts
 [2]: https://github.com/microsoft/beachball/blob/main/packages/beachball/src/types/ChangelogOptions.ts
 [3]: ../concepts/groups#version-groups
 [4]: https://github.com/microsoft/beachball/blob/main/packages/beachball/src/types/BeachballOptions.ts

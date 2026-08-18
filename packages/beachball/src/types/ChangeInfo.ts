@@ -12,7 +12,7 @@ export interface ChangeFileInfo {
   packageName: string;
   /**
    * Author email. In v2, this was "email not defined" if unavailable.
-   * In v3, it's omitted if unavailable.
+   * In v3, it's omitted if unavailable or if `changeFile.includeEmail` is false.
    */
   email?: string;
   /**
@@ -34,7 +34,7 @@ export interface ChangeFileInfo {
 export interface ChangeInfo extends ChangeFileInfo {
   /**
    * Commit hash where the change was made, if available.
-   * Will be undefined if `options.change.includeCommitHashes` is false.
+   * Will be undefined if `options.changelog.includeCommitHashes` is false.
    */
   commit?: string;
 }

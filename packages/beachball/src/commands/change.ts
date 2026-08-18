@@ -24,7 +24,7 @@ export async function change(options: BeachballOptions, context: ChangeCommandCo
   }
 
   const recentMessages = getRecentCommitMessages({ branch, cwd });
-  const email = getUserEmail({ cwd });
+  const email = options.changeFile?.includeEmail !== false ? getUserEmail({ cwd }) || undefined : undefined;
 
   const changes = await promptForChange({
     changedPackages,

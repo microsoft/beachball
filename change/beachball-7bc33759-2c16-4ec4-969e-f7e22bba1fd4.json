@@ -1,0 +1,6 @@
+{
+  "packageName": "beachball",
+  "type": "major",
+  "comment": "Rename `changeFilePrompt` to `changeFile` and support omitting author emails from generated change files via `changeFile.includeEmail` config option.",
+  "email": "elcraig@microsoft.com"
+}
