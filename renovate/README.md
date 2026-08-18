@@ -696,12 +696,14 @@ Group Lage and Backfill packages (separate group for each).
 {
   "packageRules": [
     {
-      "groupName": "lage monorepo",
-      "matchSourceUrls": ["https://github.com/microsoft/lage"]
+      "groupName": "lage packages",
+      "matchSourceUrls": ["https://github.com/microsoft/lage"],
+      "matchPackageNames": ["lage", "@lage-run/*"]
     },
     {
-      "groupName": "backfill monorepo",
-      "matchSourceUrls": ["https://github.com/microsoft/backfill"]
+      "groupName": "backfill packages",
+      "matchSourceUrls": ["https://github.com/microsoft/backfill", "https://github.com/microsoft/lage"],
+      "matchPackageNames": ["backfill", "backfill-*"]
     }
   ]
 }
