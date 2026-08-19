@@ -6,6 +6,7 @@ import type { Repository } from '../__fixtures__/repository';
 import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { getOptions } from '../options/getOptions';
 import { BeachballError } from '../types/BeachballError';
+import type { RepoOptions } from '../types/BeachballOptions';
 import { validate, type ValidateOptions } from '../validation/validate';
 
 describe('validate', () => {
@@ -13,13 +14,14 @@ describe('validate', () => {
   let repo: Repository | undefined;
   const logs = initMockLogs();
 
-  async function validateWrapper(validateOptions?: ValidateOptions) {
+  async function validateWrapper(validateOptions?: ValidateOptions, repoOptions?: Partial<RepoOptions>) {
     const parsedOptions = await getOptions({
       cwd: repo!.rootPath,
       argv: [],
       env: {},
       testRepoOptions: {
         branch: defaultRemoteBranchName,
+        ...repoOptions,
       },
     });
     return validate(parsedOptions, validateOptions || {});
@@ -89,5 +91,27 @@ describe('validate', () => {
 
     expect(result.isChangeNeeded).toBe(false);
     expect(logs.mocks.error).not.toHaveBeenCalled();
+  });
+
+  it('reports error-level migration checks', async () => {
+    repo = repositoryFactory.cloneRepository();
+    repo.updateJsonFile('packages/foo/package.json', { private: true, beachball: { shouldPublish: false } });
+
+    await expect(validateWrapper()).rejects.toThrow(BeachballError);
+    expect(logs.getMockLines('error', { root: repo.rootPath })).toMatchInlineSnapshot(`
+      "ERROR: The following config updates are needed for v3:
+        • Found private packages using \`"shouldPublish": false\`. This setting does nothing with private packages and should be removed.
+          ▪ <root>/packages/foo/package.json"
+    `);
+  });
+
+  it('reports malformed groups through validation instead of throwing a TypeError', async () => {
+    repo = repositoryFactory.cloneRepository();
+    const groups = { name: 'group', include: true } as unknown as RepoOptions['groups'];
+
+    await expect(validateWrapper(undefined, { groups })).rejects.toThrow(BeachballError);
+    expect(logs.mocks.error).toHaveBeenCalledWith(
+      expect.stringContaining('Expected "groups" configuration setting to be an array')
+    );
   });
 });

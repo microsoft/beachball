@@ -1,25 +1,26 @@
 import { getUntrackedChanges } from 'workspace-tools';
-import { isValidAuthType } from './isValidAuthType';
-import { isValidChangeType } from './isValidChangeType';
-import { isValidGroupedPackageOptions, isValidGroupOptions } from './isValidGroupOptions';
-import type { ParsedOptions } from '../types/BeachballOptions';
-import { isValidChangelogOptions } from './isValidChangelogOptions';
-import { readChangeFiles } from '../changefile/readChangeFiles';
-import { getPackageInfos } from '../monorepo/getPackageInfos';
-import { getPackageGroups } from '../monorepo/getPackageGroups';
-import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes';
-import { areChangeFilesDeleted } from './areChangeFilesDeleted';
-import { validatePackageDependencies } from '../publish/validatePackageDependencies';
 import { bumpInMemory } from '../bump/bumpInMemory';
-import { isValidDependentChangeType } from './isValidDependentChangeType';
-import { getPackagesToPublish } from '../publish/getPackagesToPublish';
+import { getChangedPackages } from '../changefile/getChangedPackages';
+import { getDisallowedChangeTypes } from '../changefile/getDisallowedChangeTypes';
+import { readChangeFiles } from '../changefile/readChangeFiles';
+import { getMigrationIssues } from '../commands/migrate';
 import { env } from '../env';
 import { bulletedList } from '../logging/bulletedList';
+import { getPackageGroups } from '../monorepo/getPackageGroups';
+import { getPackageInfos, getRawPackageInfos } from '../monorepo/getPackageInfos';
+import { getScopedPackages } from '../monorepo/getScopedPackages';
+import { getPackagesToPublish } from '../publish/getPackagesToPublish';
+import { validatePackageDependencies } from '../publish/validatePackageDependencies';
 import { BeachballError } from '../types/BeachballError';
+import type { ParsedOptions } from '../types/BeachballOptions';
 import type { BumpInfo } from '../types/BumpInfo';
 import type { ChangeCommandContext, CommandContext } from '../types/CommandContext';
-import { getScopedPackages } from '../monorepo/getScopedPackages';
-import { getChangedPackages } from '../changefile/getChangedPackages';
+import { areChangeFilesDeleted } from './areChangeFilesDeleted';
+import { isValidAuthType } from './isValidAuthType';
+import { isValidChangelogOptions } from './isValidChangelogOptions';
+import { isValidChangeType } from './isValidChangeType';
+import { isValidDependentChangeType } from './isValidDependentChangeType';
+import { isValidGroupedPackageOptions, isValidGroupOptions } from './isValidGroupOptions';
 
 export type ValidateOptions = {
   /**
@@ -76,7 +77,19 @@ export function validate(parsedOptions: ParsedOptions, validateOptions: Validate
     !env.isCI && console.warn('Changes in these files will not trigger a prompt for change descriptions');
   }
 
-  const originalPackageInfos = getPackageInfos(parsedOptions);
+  const rawPackageInfos = getRawPackageInfos(parsedOptions.options);
+  const { updates: migrationUpdates } = getMigrationIssues({
+    parsedOptions,
+    rawPackageInfos,
+    skipMigrations: [
+      'changelogJson', // skip additional filesystem check
+    ],
+  });
+  if (migrationUpdates.length) {
+    logValidationError(`The following config updates are needed for v3:\n${bulletedList(migrationUpdates)}`);
+  }
+
+  const originalPackageInfos = getPackageInfos(parsedOptions, rawPackageInfos);
 
   // options.all and options.package are marked with .conflicts() in optionDefinitions.
   // TODO ideally options invalid for command should also be handled in parsing
@@ -140,11 +153,6 @@ export function validate(parsedOptions: ParsedOptions, validateOptions: Validate
 
   if (options.groups && !isValidGroupedPackageOptions(originalPackageInfos, packageGroups)) {
     hasError = true; // the helper logs this
-  }
-
-  if (options.hooks?.prebump?.length ?? 0 > 3) {
-    logValidationError('prebump hook does not receive packageInfos - see the beachball v3 migration guide');
-    hasError = true;
   }
 
   const scopedPackages = getScopedPackages(options, originalPackageInfos);
