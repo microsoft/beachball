@@ -235,6 +235,21 @@ describe('gitFetch', () => {
     );
   });
 
+  it('includes additional refspecs', () => {
+    gitOverride = noOpSuccess;
+    const additionalRefspec = '0123456789abcdef';
+    const res = gitFetch({
+      ...commonOptions,
+      cwd: repo.rootPath,
+      additionalRefspecs: [additionalRefspec],
+      verbose: true,
+    });
+    expect(res).toMatchObject({ success: true });
+
+    expect(gitSpy).toHaveBeenCalledWith([...fetchArgs(), additionalRefspec], expect.anything());
+    expect(logs.mocks.log).toHaveBeenCalledWith(`${defaultLogPrefix} (${refspec()} ${additionalRefspec})...`);
+  });
+
   it('preserves the tracking ref after a real fetch', () => {
     // With a bare branch name like 'master' as the refspec source, git can fail to resolve it
     // on the remote and treat it as absent, pruning refs/remotes/origin/master (exit code 0).
