@@ -17,6 +17,11 @@ export type GitFetchParams = {
    * and the target branch need deepening).
    */
   branch: string | string[];
+  /**
+   * Additional refspecs or object IDs (such as a detached HEAD) whose histories should also be
+   * fetched or deepened.
+   */
+  additionalRefspecs?: string[];
   /** Set depth to this number of commits (mutually exclusive with `deepen` and `unshallow`) */
   depth?: number;
   /** Deepen a shallow clone by this number of commits (mutually exclusive with `depth` and `unshallow`) */
@@ -43,7 +48,17 @@ export type GitFetchParams = {
  * the remote branch is tracked or not in the local repository.
  */
 export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMessage?: string } {
-  const { remote, depth, deepen, unshallow, cwd, verbose, gitToken, env = process.env } = params;
+  const {
+    remote,
+    depth,
+    deepen,
+    unshallow,
+    cwd,
+    verbose,
+    gitToken,
+    additionalRefspecs = [],
+    env = process.env,
+  } = params;
   const branches = Array.isArray(params.branch) ? params.branch : [params.branch];
   const { shouldLog } = getGitEnv(verbose);
 
@@ -57,7 +72,8 @@ export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMess
 
   const extraArgs = depth ? [`--depth=${depth}`] : deepen ? [`--deepen=${deepen}`] : unshallow ? ['--unshallow'] : [];
 
-  // Be specific with each ref being fetched, so we don't have to worry about tracking configs.
+  // Use explicit refspecs so branch resolution doesn't depend on tracking config and --deepen
+  // applies to every requested history.
   // In git fetch <remote> +<src>:<dst>...
   // - The + means allow non-fast-forward updates (in case the remote was force pushed).
   // - <src> refs/heads/${branch} is resolved against the remote's advertised refs. The fully
@@ -65,7 +81,10 @@ export function gitFetch(params: GitFetchParams): GitProcessOutput & { errorMess
   //   causing git to treat the ref as absent and delete the local tracking ref.
   // - <dst> refs/remotes/${remote}/${branch} is resolved locally and only moves the tracking ref
   //   for the remote branch, not the local refs/heads/${branch} or its tracking config.
-  const resolvedRefspecs = branches.map(b => `+refs/heads/${b}:refs/remotes/${remote}/${b}`);
+  const resolvedRefspecs = [
+    ...branches.map(b => `+refs/heads/${b}:refs/remotes/${remote}/${b}`),
+    ...additionalRefspecs,
+  ];
 
   const branchLabel =
     branches.length > 1 ? `branches ${branches.map(b => `"${b}"`).join(', ')}` : `branch "${branches[0]}"`;

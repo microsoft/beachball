@@ -1,0 +1,6 @@
+{
+  "type": "none",
+  "comment": "Fix iterative deepening for detached HEAD",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com"
+}

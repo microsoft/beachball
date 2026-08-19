@@ -99,17 +99,26 @@ function deepenHistory(
 
   // git fetch --deepen only deepens the histories of the refs explicitly listed in the
   // refspec args, not other local refs. To find the common ancestor, both the target branch
-  // and HEAD (when on a different branch) need enough history to reach it. We pass both
-  // refspecs to a single git invocation so one --deepen / --unshallow covers both refs in one
-  // network round-trip.
+  // and HEAD (when on a different branch or detached) need enough history to reach it. We pass
+  // both refspecs to a single git invocation so one --deepen / --unshallow covers both refs in
+  // one network round-trip. (For detached head, include its commit ID directly.)
   const headBranch = getHeadBranch(cwd);
   const branchesToFetch = headBranch && headBranch !== remoteBranch ? [remoteBranch, headBranch] : [remoteBranch];
+  const additionalRefspecs = headBranch ? undefined : [getHeadCommit(cwd)];
 
   // Iteratively deepen the history
   const maxAttempts = 3;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     console.log(`Deepening by ${depth} more commits (attempt ${attempt}/${maxAttempts})...`);
-    const result = gitFetch({ remote, branch: branchesToFetch, deepen: depth, cwd, verbose, gitToken });
+    const result = gitFetch({
+      remote,
+      branch: branchesToFetch,
+      additionalRefspecs,
+      deepen: depth,
+      cwd,
+      verbose,
+      gitToken,
+    });
     if (!result.success) {
       throw new BeachballError(`Failed to fetch more history (see above for details)`);
     }
@@ -125,7 +134,15 @@ function deepenHistory(
 
   // No common commit was found and the repo is still shallow, so fully unshallow it
   console.log(`Still didn't find a common commit after deepening by ${depth * maxAttempts}. Unshallowing...`);
-  const result = gitFetch({ remote, branch: branchesToFetch, unshallow: true, cwd, verbose, gitToken });
+  const result = gitFetch({
+    remote,
+    branch: branchesToFetch,
+    additionalRefspecs,
+    unshallow: true,
+    cwd,
+    verbose,
+    gitToken,
+  });
   if (!result.success) {
     throw new BeachballError(`Failed to unshallow repo (see above for details)`);
   }
@@ -184,6 +201,10 @@ function getHeadBranch(cwd: string): string | undefined {
   const result = git(['rev-parse', '--abbrev-ref', 'HEAD'], { cwd });
   const branch = result.stdout.trim();
   return result.success && branch !== 'HEAD' ? branch : undefined;
+}
+
+function getHeadCommit(cwd: string): string {
+  return git(['rev-parse', 'HEAD'], { cwd }).stdout.trim();
 }
 
 function isShallowRepository(cwd: string): boolean {

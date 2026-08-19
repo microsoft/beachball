@@ -304,6 +304,25 @@ describe('ensureSharedHistory', () => {
     expect(filteredGitCalls()).toEqual([`fetch --no-tags --depth=2 origin ${defaultRefSpec}`, deepen, deepen, deepen]);
   });
 
+  it('deepens history from a detached HEAD', () => {
+    const repo = repositoryFactory.cloneRepository({ depth: 1, branch: testBranch, singleBranch: true });
+    const headCommit = repo.getCurrentHash();
+    repo.checkout('--detach');
+    gitSpy.mockClear();
+
+    ensureSharedHistory({
+      path: repo.rootPath,
+      branch: defaultRemoteBranchName,
+      fetch: true,
+      depth: 2,
+      verbose: true,
+    });
+
+    const deepen = `fetch --no-tags --deepen=2 origin ${defaultRefSpec} ${headCommit}`;
+    expect(filteredGitCalls()).toEqual([`fetch --no-tags --depth=2 origin ${defaultRefSpec}`, deepen, deepen, deepen]);
+    expect(logs.getMockLines('all')).not.toMatch('Unshallowing');
+  });
+
   it('unshallows if deepening attempts fail', () => {
     const repo = repositoryFactory.cloneRepository({ depth: 1, branch: testBranch, singleBranch: true });
     gitSpy.mockClear();
