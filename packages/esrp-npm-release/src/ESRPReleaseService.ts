@@ -11,7 +11,7 @@ import { getAadToken, type AccessToken, type GetAadTokenParams } from './auth/ge
 import { getKeyAndCertificatesFromPFX } from './auth/signing.ts';
 import {
   createNpmReleaseRequest,
-  redactReleaseRequest,
+  formatReleaseRequestForLog,
   type CreateNpmReleaseRequestMessageParams,
 } from './esrpApi/npmRelease.ts';
 import { esrpApiScope, getReleaseDetails, getReleaseStatus, submitRelease } from './esrpApi/releaseHttp.ts';
@@ -251,7 +251,7 @@ export class ESRPReleaseService {
       file: { path: filePath, sasBlobUrl },
     });
 
-    this.#logger.log(`Sending request to ESRP API: ${JSON.stringify(redactReleaseRequest(request), null, 2)}`);
+    this.#logger.log(`Sending request to ESRP API: ${formatReleaseRequestForLog(request)}`);
 
     const submitReleaseResult = await submitRelease({
       clientId: this.#clientId,
@@ -304,7 +304,7 @@ export class ESRPReleaseService {
         bearerToken: esrpAccessToken.token,
         releaseId: submitReleaseResult.operationId,
       });
-      this.#logger.log('Release details:', JSON.stringify(redactReleaseRequest(releaseDetails), null, 2));
+      this.#logger.log('Release details:', formatReleaseRequestForLog(releaseDetails));
     } catch (err) {
       this.#logger.warn(
         `Release ${submitReleaseResult.operationId} succeeded but fetching details failed; ` +
@@ -336,28 +336,79 @@ export class ESRPReleaseService {
   #checkReleaseStatus(releaseStatus: ReleaseResultMessage, releaseId: string): boolean {
     const releaseStr = JSON.stringify(releaseStatus, null, 2);
     const fullStatusApiResponse = `Full status API response: ${releaseStr}`;
+    const releaseErrorSummary =
+      releaseStatus.releaseError?.errorMessages?.map(message => `- ${message}`).join('\n') || '';
 
     if (releaseStatus.status === 'pass') {
       this.#logger.log(`Release ${releaseId} passed. Last status details: ${releaseStr}`);
       return true;
     }
 
-    // Check for a 404 on publish and give a specific error
-    const errorDetails = (releaseStatus.errorInfo || releaseStatus.errorinfo)?.details?.errors;
-    if (errorDetails && /^404.*?PUT.*?registry\.npmjs\.org/.test(errorDetails)) {
+    if (releaseStatus.status === 'failCanRetry') {
       throw new ReleaseError(
-        `Release failed with 404 on npm publish: ${errorDetails}\nThis usually indicates an auth issue, ` +
-          `such as expired credentials or missing permissions. Please contact the ESRP team for help.\n\n` +
-          fullStatusApiResponse
+        [`Release failed with a retryable error.`, releaseErrorSummary, fullStatusApiResponse]
+          .filter(Boolean)
+          .join('\n')
+      );
+    }
+
+    // Check for a 404 on publish and give a specific error
+    const publishError = getNpmPublishError(releaseStatus);
+    if (publishError) {
+      throw new ReleaseError(
+        `Release failed with 404 on npm publish: ${publishError}\nThis usually means the ESRP npm account ` +
+          `has not been added as a package/org owner, or possibly there was an auth issue (e.g. expired ` +
+          `credentials). Please verify npm package owners or contact the ESRP team for further help.\n\n` +
+          fullStatusApiResponse,
+        { retryable: false }
       );
     }
     // TODO: mismatch with values included in provided types
     if ((releaseStatus.status as unknown) === 'aborted' || releaseStatus.status === 'cancelled') {
-      throw new ReleaseError(`Release was aborted. ${fullStatusApiResponse}`);
+      throw new ReleaseError(
+        [`Release was aborted.`, releaseErrorSummary, fullStatusApiResponse].filter(Boolean).join('\n'),
+        { retryable: false }
+      );
     }
-    if (releaseStatus.status !== 'inprogress') {
-      throw new ReleaseError(`Unexpected release status "${releaseStatus.status}". ${fullStatusApiResponse}`);
+    if (releaseStatus.status !== 'inprogress' && releaseStatus.status !== 'pendingAnalysis') {
+      throw new ReleaseError(
+        [`Unexpected release status "${releaseStatus.status}".`, releaseErrorSummary, fullStatusApiResponse]
+          .filter(Boolean)
+          .join('\n'),
+        { retryable: false }
+      );
     }
     return false;
+  }
+}
+
+const npmPublish404Pattern = /^404.*?PUT.*?registry\.npmjs\.org/;
+
+function getNpmPublishError(releaseStatus: ReleaseResultMessage): string | undefined {
+  const topLevelError = (releaseStatus.errorInfo || releaseStatus.errorinfo)?.details?.errors;
+  if (topLevelError && npmPublish404Pattern.test(topLevelError)) {
+    return topLevelError;
+  }
+
+  // Based on the most recent observed shape for an npm 404:
+  // {
+  //   "activityType": "PackageManager",
+  //   "status": "Failed",
+  //   "errorMessages": [
+  //     "{\"code\":null,\"details\":{\"errors:\":\"404 Not Found - PUT https://registry.npmjs.org/some-pkg - Not found\"},\"innerError\":null}"
+  //   ],
+  // }
+  for (const message of releaseStatus.activities
+    ?.filter(activity => activity.activityType === 'PackageManager')
+    .flatMap(activity => activity.errorMessages || []) || []) {
+    try {
+      const activityError = JSON.parse(message) as { details?: Record<string, string> };
+      const error = activityError.details?.errors || activityError.details?.['errors:'];
+      if (error && npmPublish404Pattern.test(error)) {
+        return error;
+      }
+    } catch {
+      // Ignore non-JSON activity errors; the full response is included in the fallback error.
+    }
   }
 }

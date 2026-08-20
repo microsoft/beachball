@@ -3,6 +3,7 @@ export type LogMethod = 'log' | 'warn' | 'error';
 export class Logger {
   #prefix: string | undefined;
   #console: Pick<typeof console, LogMethod>;
+  #groupStartTime: number | undefined;
 
   public constructor(prefix?: string, consoleImpl?: Pick<typeof console, LogMethod>) {
     this.#prefix = prefix;
@@ -17,11 +18,20 @@ export class Logger {
   public startGroup(prefix: string | undefined, title: string): void {
     this.#console.log(`##[group]${title}`);
     this.#prefix = prefix;
+    this.#groupStartTime = Date.now();
   }
 
+  /**
+   * End the logging group, then log a separate line with the duration.
+   */
   public endGroup(): void {
-    this.#console.log('##[endgroup]');
+    const groupDuration = this.#groupStartTime && formatDuration(Date.now() - this.#groupStartTime);
+    this.#groupStartTime = undefined;
     this.#prefix = undefined;
+
+    this.#console.log(`##[endgroup]`);
+    groupDuration && this.#console.log(`completed in ${groupDuration}`);
+    this.#console.log('');
   }
 
   /** Log a prefixed message */
@@ -38,4 +48,16 @@ export class Logger {
   public error(...args: unknown[]): void {
     this.#console.error(`##vso[task.logissue type=error]`, ...this.prefix, ...args);
   }
+}
+
+function formatDuration(durationMs: number): string {
+  if (durationMs < 1_000) {
+    return `${durationMs}ms`;
+  }
+
+  const totalSeconds = Math.round(durationMs / 1_000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return minutes ? `${minutes}m ${seconds}s` : `${totalSeconds}s`;
 }

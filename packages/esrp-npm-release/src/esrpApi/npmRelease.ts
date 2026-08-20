@@ -134,3 +134,22 @@ export function redactReleaseRequest<TMessage extends Pick<ReleaseRequestMessage
   }));
   return message;
 }
+
+/** Redact a release message and format file hash arrays compactly for logging. */
+export function formatReleaseRequestForLog<TMessage extends Pick<ReleaseRequestMessage, 'files' | 'jwsToken'>>(
+  message: TMessage
+): string {
+  const redacted = redactReleaseRequest(message);
+  const hashes: (number[] | string)[] = [];
+  redacted.files = redacted.files?.map(file => {
+    const hashPlaceholder = `__ESRP_FILE_HASH_${hashes.length}__`;
+    hashes.push(file.hash);
+    return { ...file, hash: hashPlaceholder };
+  });
+
+  let formatted = JSON.stringify(redacted, null, 2);
+  hashes.forEach((hash, index) => {
+    formatted = formatted.replace(JSON.stringify(`__ESRP_FILE_HASH_${index}__`), JSON.stringify(hash));
+  });
+  return formatted;
+}

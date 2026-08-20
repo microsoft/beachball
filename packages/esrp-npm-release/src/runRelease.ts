@@ -109,7 +109,7 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
     }
 
     const layerPrefix = 'layer-' + layerNum;
-    logger.startGroup(layerPrefix, `Starting release for layer ${layerNum} of ${layers.length}`);
+    logger.startGroup(layerPrefix, `Releasing layer ${layerNum} of ${layers.length}`);
 
     const layerDir = path.join(env.packedPackagesPath, layerNum);
     const tgzFiles = fs
@@ -136,37 +136,61 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
       throw new ReleaseError(`Error creating zip file for layer ${layerNum}`, { cause: err });
     });
 
-    logger.log(`Submitting release for layer ${layerNum} via ESRP`);
-    // From testing, this succeeds even if the versions already exist in the registry,
-    // with no way to distinguish...
-    await releaseService.createRelease({
-      filePath: zipPath,
-      repoName,
-      releaseRequestParams: {
-        createdBy: env.esrp.createdBy,
-        driEmail: env.esrp.driEmail,
-        owners: env.esrp.owners,
-        approvers: env.esrp.approvers,
-        productInfo: {
-          name: env.esrp.productName,
-          // This is an arbitrary string, not used as the published version
-          version: `${env.ado.buildSourceVersion}-${layerNum}`,
-          description: `${env.esrp.productName} packages - ${layerNum}`,
+    await retryLayer(layerNum, logger, async () => {
+      logger.log(`Submitting release for layer ${layerNum} via ESRP`);
+      // From testing, this succeeds even if the versions already exist in the registry,
+      // with no way to distinguish...
+      await releaseService.createRelease({
+        filePath: zipPath,
+        repoName,
+        releaseRequestParams: {
+          createdBy: env.esrp.createdBy,
+          driEmail: env.esrp.driEmail,
+          owners: env.esrp.owners,
+          approvers: env.esrp.approvers,
+          productInfo: {
+            name: env.esrp.productName,
+            // This is an arbitrary string, not used as the published version
+            version: `${env.ado.buildSourceVersion}-${layerNum}`,
+            description: `${env.esrp.productName} packages - ${layerNum}`,
+          },
+          releaseTitle: env.esrp.productName,
+          npmTag: env.esrp.npmTag,
         },
-        releaseTitle: env.esrp.productName,
-        npmTag: env.esrp.npmTag,
-      },
-    });
-    logger.log('📦 Packages were successfully published to npm');
+      });
+      logger.log('📦 Packages were successfully published to npm');
 
-    // This is done AFTER piercing to prevent silently trying to re-publish the same versions
-    // if there's a failure in any later step (since ESRP won't error on re-publishes)
-    logger.log(`Marking layer as published in release state`);
-    await state.markPublished(layerNum);
+      // This is done AFTER piercing to prevent silently trying to re-publish the same versions
+      // if there's a failure in any later step (since ESRP won't error on re-publishes)
+      logger.log(`Marking layer as published in release state`);
+      await state.markPublished(layerNum);
+    });
 
     logger.endGroup();
-    logger.log(`✅ layer ${layerNum}`);
   }
 
   logger.log(`All ${state.publishedCount} artifacts published!`);
+}
+
+const maxLayerAttempts = 4;
+
+async function retryLayer(layerNum: string, logger: Logger, release: () => Promise<void>): Promise<void> {
+  for (let attempt = 1; attempt <= maxLayerAttempts; attempt++) {
+    try {
+      await release();
+      return;
+    } catch (error) {
+      if (!(error instanceof ReleaseError) || !error.retryable || attempt === maxLayerAttempts) {
+        throw error;
+      }
+
+      const baseDelay = 1000 * 2 ** (attempt - 1);
+      const delay = Math.floor(baseDelay / 2 + Math.random() * (baseDelay / 2));
+      logger.warn(
+        `Release attempt ${attempt} of ${maxLayerAttempts} for layer ${layerNum} failed; ` + `retrying in ${delay}ms:`,
+        error
+      );
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
 }

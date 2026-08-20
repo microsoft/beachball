@@ -85,12 +85,14 @@ describe('releaseHttp', () => {
     it('throws immediately on non-transient HTTP status, including status and body in message', async () => {
       fetchMock.mockResolvedValue(makeFetchResponse({ status: 403, body: 'auth error' }));
 
-      await expectError(
-        () => getReleaseStatus(defaultGetParams),
+      const err = (await expectError(
+        getReleaseStatus(defaultGetParams),
         ReleaseError,
         'Failed to get release status',
         /failed with status 403[\s\S]*auth error/
-      );
+      )) as ReleaseError;
+
+      expect(err.retryable).toBe(false);
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
@@ -112,27 +114,30 @@ describe('releaseHttp', () => {
       jest.useFakeTimers();
       fetchMock.mockResolvedValue(makeFetchResponse({ status: 500, body: 'internal server error' }));
 
-      const promise = getReleaseStatus(defaultGetParams).catch(e => e as unknown);
-      await jest.runAllTimersAsync();
-
-      const err = await promise;
-      expect(err).toBeInstanceOf(ReleaseError);
-      expect((err as ReleaseError).message).toBe('Failed to get release status');
-      expect(((err as ReleaseError).cause as Error).message).toMatch(
+      const promise = expectError(
+        getReleaseStatus(defaultGetParams),
+        ReleaseError,
+        'Failed to get release status',
         /failed after 10 attempts[\s\S]*status 500[\s\S]*internal server error/
       );
+      await jest.runAllTimersAsync();
+
+      const err = (await promise) as ReleaseError;
+      expect(err.retryable).toBe(true);
       expect(fetchMock).toHaveBeenCalledTimes(10);
     });
 
     it('throws when response body is not valid JSON', async () => {
       fetchMock.mockResolvedValue(makeFetchResponse({ body: 'not json' }));
 
-      await expectError(
-        () => getReleaseStatus(defaultGetParams),
+      const err = (await expectError(
+        getReleaseStatus(defaultGetParams),
         ReleaseError,
         'Failed to get release status',
         /did not return valid JSON[\s\S]*not json/
-      );
+      )) as ReleaseError;
+
+      expect(err.retryable).toBe(false);
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
@@ -154,25 +159,30 @@ describe('releaseHttp', () => {
       jest.useFakeTimers();
       fetchMock.mockRejectedValue(new Error('fetch failed'));
 
-      const promise = getReleaseStatus(defaultGetParams).catch(e => e as unknown);
+      const promise = expectError(
+        getReleaseStatus(defaultGetParams),
+        ReleaseError,
+        'Failed to get release status',
+        /failed after 10 attempts[\s\S]*fetch failed/
+      );
       await jest.runAllTimersAsync();
 
-      const err = await promise;
-      expect(err).toBeInstanceOf(ReleaseError);
-      expect((err as ReleaseError).message).toBe('Failed to get release status');
-      expect(((err as ReleaseError).cause as Error).message).toMatch(/failed after 10 attempts[\s\S]*fetch failed/);
+      const err = (await promise) as ReleaseError;
+      expect(err.retryable).toBe(true);
       expect(fetchMock).toHaveBeenCalledTimes(10);
     });
 
     it('throws immediately on non-retryable errors without retrying', async () => {
       fetchMock.mockRejectedValue(new Error('noooooooooooooo'));
 
-      await expectError(
-        () => getReleaseStatus(defaultGetParams),
+      const err = (await expectError(
+        getReleaseStatus(defaultGetParams),
         ReleaseError,
         'Failed to get release status',
         /noooooooooooooo/
-      );
+      )) as ReleaseError;
+
+      expect(err.retryable).toBe(false);
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
   });

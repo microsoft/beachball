@@ -183,13 +183,58 @@ describe('runRelease', () => {
     expect(mockReleaseStateCreate).toHaveBeenCalledWith(expect.objectContaining({ repoName: 'bare-repo' }));
   });
 
-  it('propagates failures from createRelease', async () => {
-    const originalError = new Error('oh no');
+  it('retries a failed layer and marks it published after a later attempt succeeds', async () => {
+    jest.useFakeTimers();
+    let firstAttemptStarted!: () => void;
+    const firstAttempt = new Promise<void>(resolve => (firstAttemptStarted = resolve));
+    releaseService.createRelease
+      .mockImplementationOnce(() => {
+        firstAttemptStarted();
+        return Promise.reject(new ReleaseError('temporary failure'));
+      })
+      .mockResolvedValueOnce(undefined);
+    const env = envWithTempPaths({ '1': ['pkg-a.tgz'] });
+
+    const release = runRelease({ env, logger });
+    await firstAttempt;
+    await jest.runAllTimersAsync();
+    await release;
+
+    expect(releaseService.createRelease).toHaveBeenCalledTimes(2);
+    expect(state.markPublished).toHaveBeenCalledTimes(1);
+    expect(state.markPublished).toHaveBeenCalledWith('1');
+    expect(logger.lines).toContainEqual(expect.stringContaining('attempt 1 of 4 for layer 1 failed'));
+  });
+
+  it('propagates a layer failure after four attempts', async () => {
+    jest.useFakeTimers();
+    let firstAttemptStarted!: () => void;
+    const firstAttempt = new Promise<void>(resolve => (firstAttemptStarted = resolve));
+    const originalError = new ReleaseError('oh no');
+    releaseService.createRelease.mockImplementation(() => {
+      firstAttemptStarted();
+      return Promise.reject(originalError);
+    });
+    const env = envWithTempPaths({ '1': ['pkg-a.tgz'] });
+
+    const release = runRelease({ env, logger }).catch(e => e as unknown);
+    await firstAttempt;
+    await jest.runAllTimersAsync();
+    const err = await release;
+
+    expect(err).toBe(originalError);
+    expect(releaseService.createRelease).toHaveBeenCalledTimes(4);
+    expect(state.markPublished).not.toHaveBeenCalled();
+  });
+
+  it('does not retry a layer after a non-retryable failure', async () => {
+    const originalError = new ReleaseError('invalid release', { retryable: false });
     releaseService.createRelease.mockRejectedValue(originalError);
     const env = envWithTempPaths({ '1': ['pkg-a.tgz'] });
 
     const err = await runRelease({ env, logger }).catch(e => e as unknown);
     expect(err).toBe(originalError);
+    expect(releaseService.createRelease).toHaveBeenCalledTimes(1);
     expect(state.markPublished).not.toHaveBeenCalled();
   });
 

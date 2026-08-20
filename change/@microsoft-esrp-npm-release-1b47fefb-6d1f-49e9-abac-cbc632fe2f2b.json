@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Improve logging, retries, and error handling",
+  "packageName": "@microsoft/esrp-npm-release",
+  "email": "elcraig@microsoft.com"
+}

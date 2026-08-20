@@ -228,6 +228,7 @@ export interface ReleaseResultMessage {
   lastModifiedAt?: string;
   operationId?: string;
   releaseError?: ReleaseError;
+  releaseVersion?: number;
   requestSubmittedAt?: string;
   routedRegion?: string;
   status?: StatusCode;

@@ -252,6 +252,14 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
     ]);
   });
 
+  it('continues polling while a release is pending analysis', async () => {
+    mockEsrpHttp.queueStatuses(['pendingAnalysis', 'pass']);
+
+    await runCreateRelease();
+
+    expect(mockEsrpHttp.getReleaseStatus).toHaveBeenCalledTimes(2);
+  });
+
   it.each([
     ['aborted', 'Release was aborted'],
     ['cancelled', 'Release was aborted'],
@@ -263,21 +271,66 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
     expect(blobClient.delete).toHaveBeenCalledTimes(1);
   });
 
+  it('marks failCanRetry as retryable', async () => {
+    mockEsrpHttp.queueStatuses(['failCanRetry']);
+
+    const err = (await expectError(
+      runCreateRelease(),
+      ReleaseError,
+      'Release failed with a retryable error'
+    )) as ReleaseError;
+
+    expect(err.retryable).toBe(true);
+  });
+
+  it('marks failDoNotRetry as non-retryable', async () => {
+    mockEsrpHttp.getReleaseStatus.mockResolvedValue({
+      status: 'failDoNotRetry',
+      releaseError: {
+        errorCode: 2201,
+        errorMessages: ['Release failed due to activity failure.', 'Failed Activity : Package Manager.'],
+      },
+    });
+
+    const err = (await expectError(runCreateRelease(), ReleaseError, [
+      'Unexpected release status "failDoNotRetry"',
+      /- Release failed due to activity failure\.\n- Failed Activity : Package Manager\./,
+    ])) as ReleaseError;
+
+    expect(err.retryable).toBe(false);
+  });
+
   it('throws a custom auth-focused message for npm registry 404 errors', async () => {
     mockEsrpHttp.getReleaseStatus.mockResolvedValue({
-      // Based on an actual failure response
       status: 'failDoNotRetry',
-      errorInfo: {
-        details: {
-          errors: '404 Not Found - PUT https://registry.npmjs.org/@microsoft%2fsome-lib - Not found',
-        },
+      releaseError: {
+        errorCode: 2201,
+        errorMessages: ['Release failed due to activity failure.', 'Failed Activity : Package Manager.'],
       },
+      activities: [
+        {
+          activityType: 'PackageManager',
+          name: 'Package Manager',
+          status: 'Failed',
+          errorCode: 1004,
+          // ESRP returns a JSON object as a string, including the observed "errors:" property typo.
+          errorMessages: [
+            JSON.stringify({
+              code: null,
+              details: {
+                'errors:': '404 Not Found - PUT https://registry.npmjs.org/@microsoft%2fsome-lib - Not found',
+              },
+              innerError: null,
+            }),
+          ],
+        },
+      ],
     });
 
     await expectError(
       () => runCreateRelease(),
       ReleaseError,
-      /Release failed with 404 on npm publish:[\s\S]*?Full status API response/
+      /Release failed with 404 on npm publish:[\s\S]*?Please verify npm package owners or contact the ESRP team for further help\.[\s\S]*?Full status API response/
     );
     expect(blobClient.delete).toHaveBeenCalledTimes(1);
   });

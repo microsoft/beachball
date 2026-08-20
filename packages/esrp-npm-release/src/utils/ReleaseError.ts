@@ -11,6 +11,8 @@
 export class ReleaseError extends Error {
   /** If true, detailed error info was already logged via console.error before throwing. */
   public alreadyLogged: boolean;
+  /** Whether retrying the current release layer may succeed. Defaults to true. */
+  public retryable: boolean;
 
   public constructor(
     message: string,
@@ -22,11 +24,14 @@ export class ReleaseError extends Error {
        * is not set.
        */
       cause?: unknown;
+      /** Whether retrying the current release layer may succeed. */
+      retryable?: boolean;
     }
   ) {
     super(message, { cause: options?.cause });
     this.name = 'ReleaseError';
     this.alreadyLogged = !!options?.alreadyLogged;
+    this.retryable = options?.retryable ?? true;
   }
 
   public getMessageWithCause(): string {

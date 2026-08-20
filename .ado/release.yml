@@ -217,7 +217,6 @@ extends:
               - ${{ each publish in parameters.npmPublishes }}:
                   - script: node "$(toolArtifactBin)"
                     displayName: '(${{ publish.groupName }}) npm publish using ESRP Release API'
-                    retryCountOnTaskFailure: 3
                     env:
                       PACKED_PACKAGES_PATH: $(${{ publish.artifactPathVariable }})
                       # ideally would be "beachball" but isn't used anywhere meaningful

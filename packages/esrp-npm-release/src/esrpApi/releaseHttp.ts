@@ -39,12 +39,12 @@ export async function submitRelease(
       body: releaseRequest,
     });
   } catch (err) {
-    throw new ReleaseError(`Failed to submit release`, { cause: err });
+    throw new ReleaseError(`Failed to submit release`, { cause: err, retryable: isRetryableHttpError(err) });
   }
 
   if (!response.operationId) {
     // probably impossible?
-    throw new ReleaseError('Missing operationId on submitReleaseResult');
+    throw new ReleaseError('Missing operationId on submitReleaseResult', { retryable: false });
   }
 
   return response as ReleaseSubmitResponse & Required<Pick<ReleaseSubmitResponse, 'operationId'>>;
@@ -64,7 +64,7 @@ export async function getReleaseStatus(params: ReleaseHttpParams): Promise<Relea
       method: 'GET',
     });
   } catch (err) {
-    throw new ReleaseError(`Failed to get release status`, { cause: err });
+    throw new ReleaseError(`Failed to get release status`, { cause: err, retryable: isRetryableHttpError(err) });
   }
 }
 
@@ -80,6 +80,18 @@ export function getReleaseDetails(params: ReleaseHttpParams): Promise<ReleaseDet
     bearerToken,
     method: 'GET',
   });
+}
+
+class HttpRequestError extends Error {
+  public readonly retryable: boolean;
+  public constructor(message: string, retryable: boolean, options?: ErrorOptions) {
+    super(message, options);
+    this.retryable = retryable;
+  }
+}
+
+function isRetryableHttpError(error: unknown): boolean {
+  return error instanceof HttpRequestError ? error.retryable : true;
 }
 
 async function doHttpRequest<TResult>(
@@ -123,8 +135,7 @@ async function doHttpRequest<TResult>(
           message
         )
       ) {
-        // Intentionally not a ReleaseError so caller can add more context
-        throw new Error(`Request to ${apiUrl} failed: ${message}`, { cause: err });
+        throw new HttpRequestError(`Request to ${apiUrl} failed: ${message}`, false, { cause: err });
       }
       lastError = message;
     }
@@ -134,14 +145,17 @@ async function doHttpRequest<TResult>(
       // ignore transient errors: 408 Request Timeout, 429 Too Many Requests, and any 5xx
       if (!(status === 408 || status === 429 || (status >= 500 && status < 600))) {
         // Intentionally not a ReleaseError so caller can add more context
-        throw new Error(`Request to ${apiUrl} failed with status ${status}:\n${responseText}`);
+        throw new HttpRequestError(`Request to ${apiUrl} failed with status ${status}:\n${responseText}`, false);
       } else {
         lastError = `status ${status}: ${responseText}`;
       }
     }
 
     if (run === maxRetries) {
-      throw new Error(`Request to ${apiUrl} failed after ${maxRetries} attempts. Last error:\n${lastError}`);
+      throw new HttpRequestError(
+        `Request to ${apiUrl} failed after ${maxRetries} attempts. Last error:\n${lastError}`,
+        true
+      );
     }
 
     // schedule a retry (maximum delay is ~3 seconds)
@@ -152,6 +166,9 @@ async function doHttpRequest<TResult>(
   try {
     return JSON.parse(responseText) as TResult;
   } catch {
-    throw new Error(`Request to ${apiUrl} succeeded but did not return valid JSON. Received:\n${responseText}`);
+    throw new HttpRequestError(
+      `Request to ${apiUrl} succeeded but did not return valid JSON. Received:\n${responseText}`,
+      false
+    );
   }
 }
