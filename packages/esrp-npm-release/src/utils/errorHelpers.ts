@@ -1,6 +1,6 @@
 import { RestError } from '@azure/storage-blob';
-import { ReleaseError } from './ReleaseError';
-import type { Logger } from './Logger';
+import { ReleaseError } from './ReleaseError.ts';
+import type { Logger } from './Logger.ts';
 
 /** Returns whether an HTTP status indicates a transient failure. */
 export function isTransientHttpStatus(statusCode: number | undefined): boolean {

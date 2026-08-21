@@ -148,6 +148,8 @@ async function doHttpRequest<TResult>(
         throw new HttpRequestError(`Request to ${apiUrl} failed: ${message}`, { retryable: false, cause: err });
       }
       lastError = message;
+      // Clear the response in case fetch() resolved but response.text() rejected on a network error
+      response = undefined;
     }
 
     if (response) {
