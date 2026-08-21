@@ -1,4 +1,4 @@
-import type { BlobServiceClient } from '@azure/storage-blob';
+import { RestError, type BlobServiceClient } from '@azure/storage-blob';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { expectError, setupTempDir } from '@microsoft/beachball-test-utilities';
 import jws from 'jws';
@@ -115,8 +115,30 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
   }
 
   async function expectReleaseError(message: string, originalError?: Error) {
-    await expectError(runCreateRelease(), ReleaseError, message, originalError);
+    return (await expectError(runCreateRelease(), ReleaseError, message, originalError)) as ReleaseError;
   }
+
+  it('retries transient initialization failures', async () => {
+    containerClient.createIfNotExists.mockClear();
+    containerClient.createIfNotExists.mockRejectedValueOnce(
+      new RestError('temporary container failure', { statusCode: 503 })
+    );
+
+    const create = ESRPReleaseService.create({
+      logger,
+      clientId: 'cid',
+      tenantId: 'tid',
+      authCertificatePfx: 'auth-pfx-not-parsed',
+      requestSigningCertificatePfx: testCert.pfxBase64,
+      stagingBlobServiceClient: blobServiceClient as unknown as BlobServiceClient,
+    });
+    create.catch(() => undefined);
+    await jest.runAllTimersAsync();
+    await create;
+
+    expect(containerClient.createIfNotExists).toHaveBeenCalledTimes(2);
+    expect(logger.lines).toContainEqual(expect.stringContaining('ESRP initialization attempt 1 of 4 failed'));
+  });
 
   it('acquires creds, uploads blob, signs+submits, polls until pass, deletes blob', async () => {
     logger.addPath(fileDir.getTempDir(), '<temp>');
@@ -221,6 +243,25 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
     expect(logger.lines.some(l => l.includes('AAD access token near expiry, refreshing'))).toBe(true);
   });
 
+  it('continues polling the accepted operation after a transient token refresh failure', async () => {
+    mockGetAadToken
+      .mockResolvedValueOnce({ token: 'aad-token-1', expiresOnTimestamp: Date.now() + 10_000 })
+      .mockRejectedValueOnce(new ReleaseError('temporary token failure', { retryable: true }))
+      .mockResolvedValueOnce({ token: 'aad-token-2', expiresOnTimestamp: Date.now() + 24 * 60 * 60 * 1000 });
+
+    await runCreateRelease();
+
+    expect(mockGetAadToken).toHaveBeenCalledTimes(3);
+    expect(mockEsrpHttp.submitRelease).toHaveBeenCalledTimes(1);
+    expect(mockEsrpHttp.getReleaseStatus).toHaveBeenCalledTimes(1);
+    expect(mockEsrpHttp.getReleaseStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ releaseId: 'mock-op-id', bearerToken: 'aad-token-2' })
+    );
+    expect(logger.lines).toContainEqual(
+      expect.stringContaining('Transient error polling release mock-op-id (will retry polling)')
+    );
+  });
+
   it('polls every 5 seconds', async () => {
     mockEsrpHttp.queueStatuses(['inprogress', 'inprogress', 'pass']);
 
@@ -252,6 +293,43 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
     ]);
   });
 
+  it('continues polling while a release is pending analysis', async () => {
+    mockEsrpHttp.queueStatuses(['pendingAnalysis', 'pass']);
+
+    await runCreateRelease();
+
+    expect(mockEsrpHttp.getReleaseStatus).toHaveBeenCalledTimes(2);
+  });
+
+  it('continues polling the accepted operation after a transient status failure', async () => {
+    mockEsrpHttp.getReleaseStatus
+      .mockRejectedValueOnce(new ReleaseError('temporary status failure', { retryable: true }))
+      .mockResolvedValueOnce({ status: 'pass' });
+
+    await runCreateRelease();
+
+    expect(mockEsrpHttp.submitRelease).toHaveBeenCalledTimes(1);
+    expect(mockEsrpHttp.getReleaseStatus).toHaveBeenCalledTimes(2);
+    expect(mockEsrpHttp.getReleaseStatus.mock.calls.map(([params]) => params.releaseId)).toEqual([
+      'mock-op-id',
+      'mock-op-id',
+    ]);
+    expect(logger.lines).toContainEqual(
+      expect.stringContaining('Transient error polling release mock-op-id (will retry polling)')
+    );
+  });
+
+  it('does not hide a non-retryable status failure', async () => {
+    const originalError = new ReleaseError('invalid status request', { retryable: false });
+    mockEsrpHttp.getReleaseStatus.mockRejectedValue(originalError);
+
+    const error = await runCreateRelease().catch(caught => caught as unknown);
+
+    expect(error).toBe(originalError);
+    expect(mockEsrpHttp.submitRelease).toHaveBeenCalledTimes(1);
+    expect(mockEsrpHttp.getReleaseStatus).toHaveBeenCalledTimes(1);
+  });
+
   it.each([
     ['aborted', 'Release was aborted'],
     ['cancelled', 'Release was aborted'],
@@ -263,35 +341,94 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
     expect(blobClient.delete).toHaveBeenCalledTimes(1);
   });
 
-  it('throws a custom auth-focused message for npm registry 404 errors', async () => {
+  it('retries the full release after failCanRetry', async () => {
+    mockEsrpHttp.queueStatuses(['failCanRetry', 'pass']);
+
+    await runCreateRelease();
+
+    expect(mockEsrpHttp.submitRelease).toHaveBeenCalledTimes(2);
+    expect(blobClient.uploadFile).toHaveBeenCalledTimes(2);
+    expect(blobClient.delete).toHaveBeenCalledTimes(2);
+    expect(logger.lines).toContainEqual(expect.stringContaining('Release attempt 1 of 4 failed'));
+  });
+
+  it('marks failDoNotRetry as non-retryable', async () => {
     mockEsrpHttp.getReleaseStatus.mockResolvedValue({
-      // Based on an actual failure response
       status: 'failDoNotRetry',
-      errorInfo: {
-        details: {
-          errors: '404 Not Found - PUT https://registry.npmjs.org/@microsoft%2fsome-lib - Not found',
+      releaseError: {
+        errorCode: 2201,
+        errorMessages: ['Release failed due to activity failure.', 'Failed Activity : Package Manager.'],
+      },
+    });
+
+    const err = (await expectError(runCreateRelease(), ReleaseError, [
+      'Unexpected release status "failDoNotRetry"',
+      /- Release failed due to activity failure\.\n- Failed Activity : Package Manager\./,
+    ])) as ReleaseError;
+
+    expect(err.retryable).toBe(false);
+  });
+
+  it.each<{ format: string; response: object }>([
+    {
+      format: 'legacy top-level errorInfo',
+      response: {
+        errorInfo: {
+          details: { errors: '404 Not Found - PUT https://registry.npmjs.org/@microsoft%2fsome-lib - Not found' },
         },
       },
+    },
+    {
+      format: 'PackageManager activity',
+      response: {
+        activities: [
+          {
+            activityType: 'PackageManager',
+            name: 'Package Manager',
+            status: 'Failed',
+            errorCode: 1004,
+            // ESRP returns a JSON object as a string, including the observed "errors:" property typo.
+            errorMessages: [
+              JSON.stringify({
+                code: null,
+                details: {
+                  'errors:': '404 Not Found - PUT https://registry.npmjs.org/@microsoft%2fsome-lib - Not found',
+                },
+                innerError: null,
+              }),
+            ],
+          },
+        ],
+      },
+    },
+  ])('throws a custom auth-focused message for npm registry 404 errors in $format format', async ({ response }) => {
+    mockEsrpHttp.getReleaseStatus.mockResolvedValue({
+      status: 'failDoNotRetry',
+      releaseError: {
+        errorCode: 2201,
+        errorMessages: ['Release failed due to activity failure.', 'Failed Activity : Package Manager.'],
+      },
+      ...response,
     });
 
     await expectError(
       () => runCreateRelease(),
       ReleaseError,
-      /Release failed with 404 on npm publish:[\s\S]*?Full status API response/
+      /Release failed with 404 on npm publish:[\s\S]*?Please verify npm package owners or contact the ESRP team for further help\.[\s\S]*?Full status API response/
     );
     expect(blobClient.delete).toHaveBeenCalledTimes(1);
   });
 
-  it('throws ReleaseError after polling timeout (720 iterations of inprogress)', async () => {
+  it('throws ReleaseError after 720 inprogress polls', async () => {
     mockEsrpHttp.getReleaseStatus.mockResolvedValue({ status: 'inprogress' });
 
     await expectReleaseError('Timed out waiting for release. Most recent status');
     expect(mockEsrpHttp.getReleaseStatus).toHaveBeenCalledTimes(720);
   });
 
-  it.each(['submitRelease', 'getReleaseStatus'] as const)('propagates %s failures', async method => {
-    const originalError = new ReleaseError(`${method} failed`);
-    mockEsrpHttp[method].mockRejectedValue(originalError);
+  it('propagates submitRelease failures', async () => {
+    const originalError = new ReleaseError('submitRelease failed', { retryable: false });
+    mockEsrpHttp.submitRelease.mockRejectedValue(originalError);
     const err = await runCreateRelease().catch(e => e as unknown);
     expect(err).toBe(originalError);
   });
@@ -306,10 +443,18 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
     );
   });
 
-  it('wraps SAS token generation failures with ReleaseError', async () => {
-    const originalError = new Error('sas failed');
+  it.each([
+    [503, true],
+    [403, false],
+  ])('classifies user delegation key status %s as retryable=%s', async (statusCode, retryable) => {
+    const originalError = new RestError('delegation key failed', { statusCode });
     blobServiceClient.getUserDelegationKey.mockRejectedValue(originalError);
-    await expectReleaseError('Error acquiring user delegation key for staging blob access', originalError);
+    const error = await expectReleaseError(
+      'Error acquiring user delegation key for staging blob access',
+      originalError
+    );
+
+    expect(error.retryable).toBe(retryable);
   });
 
   it('authenticates with a managed identity federated token when configured instead of a certificate', async () => {
@@ -343,10 +488,15 @@ describeIfOpenssl('ESRPReleaseService.createRelease', () => {
     await expectReleaseError('Error acquiring access token for ESRP API', originalError);
   });
 
-  it('wraps blob upload failures with ReleaseError', async () => {
-    const originalError = new Error('upload failed');
+  it.each([
+    [503, true],
+    [403, false],
+  ])('classifies blob upload status %s as retryable=%s', async (statusCode, retryable) => {
+    const originalError = new RestError('upload failed', { statusCode });
     blobClient.uploadFile.mockRejectedValue(originalError);
-    await expectReleaseError('Error uploading file to staging storage', originalError);
+    const error = await expectReleaseError('Error uploading file to staging storage', originalError);
+
+    expect(error.retryable).toBe(retryable);
   });
 
   it('logs blob deletion failure as a warning but preserves the original outcome', async () => {

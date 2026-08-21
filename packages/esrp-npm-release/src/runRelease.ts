@@ -43,14 +43,17 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
           logger.error(
             `Error acquiring token for staging storage account "${env.staging.storageAccountName}":\n${err.getMessageWithCause()}`
           );
-          throw new ReleaseError('Error acquiring token (see above)', { alreadyLogged: true });
+          throw new ReleaseError('Error acquiring token (see above)', {
+            alreadyLogged: true,
+            retryable: err.retryable,
+          });
         });
       },
     });
   } catch (err) {
     throw new ReleaseError(
       `Failed to initialize BlobServiceClient for staging storage account "${env.staging.storageAccountName}"`,
-      { cause: err }
+      { cause: err, retryable: false }
     );
   }
 
@@ -66,6 +69,7 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
     buildSourceVersion: env.ado.buildSourceVersion,
     productName: env.esrp.productName,
     npmTag: env.esrp.npmTag,
+    logger,
   });
   logger.log(`Release state loaded: ${state.publishedCount} layer(s) already published`);
 
@@ -109,7 +113,7 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
     }
 
     const layerPrefix = 'layer-' + layerNum;
-    logger.startGroup(layerPrefix, `Starting release for layer ${layerNum} of ${layers.length}`);
+    logger.startGroup(layerPrefix, `Releasing layer ${layerNum} of ${layers.length}`);
 
     const layerDir = path.join(env.packedPackagesPath, layerNum);
     const tgzFiles = fs
@@ -117,7 +121,9 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
       .filter(file => file.endsWith('.tgz'))
       .map(file => path.join(layerDir, file));
     if (!tgzFiles.length) {
-      throw new ReleaseError(`No .tgz files found in layer directory ${layerDir}`);
+      logger.warn(`No .tgz files found in layer directory ${layerDir}; skipping layer`);
+      logger.endGroup();
+      continue;
     }
 
     const zipPath = path.join(zipsDir, `${layerPrefix}-${Date.now()}.zip`);
@@ -133,7 +139,7 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
       }
       zipfile.end();
     }).catch(err => {
-      throw new ReleaseError(`Error creating zip file for layer ${layerNum}`, { cause: err });
+      throw new ReleaseError(`Error creating zip file for layer ${layerNum}`, { cause: err, retryable: false });
     });
 
     logger.log(`Submitting release for layer ${layerNum} via ESRP`);
@@ -159,13 +165,14 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
     });
     logger.log('📦 Packages were successfully published to npm');
 
-    // This is done AFTER piercing to prevent silently trying to re-publish the same versions
-    // if there's a failure in any later step (since ESRP won't error on re-publishes)
+    // TODO: ideally we would pierce the package into the feed here, but the build token may not have
+    // packaging "write" permissions
+
+    // Mark as published outside the retries so we only do it once.
     logger.log(`Marking layer as published in release state`);
     await state.markPublished(layerNum);
 
     logger.endGroup();
-    logger.log(`✅ layer ${layerNum}`);
   }
 
   logger.log(`All ${state.publishedCount} artifacts published!`);

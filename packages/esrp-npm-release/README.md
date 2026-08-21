@@ -33,6 +33,8 @@ For each layer, the tool:
 3. Calls the ESRP release API to publish the layer, waiting for it to complete before moving on to the next layer.
 4. Deletes the staged zip.
 
+The tool retries transient initialization failures and failed layer releases up to three times. Permanent or unrecognized errors, including the ESRP status `failDoNotRetry`, fail immediately. It's also safe to manually re-run the whole stage.
+
 The tool relies on the following inputs and resources:
 
 - [**Packed packages**](#packed-packages-format): Output folder from `beachball publish --pack-to-path <path>` or in the same format.
@@ -166,6 +168,8 @@ Running `beachball publish --pack-to-path <path>` produces a directory with this
 ```
 
 Each numbered directory is a **dependency-topological layer**: the packages in layer 1 have no internal dependencies, or none within the set of packages being published. Packages in layer `N` may only depend on packages in layers `1..N-1`. The tool releases layers in numeric order, so that by the time a layer is published, every internal dependency version it references is already on the registry.
+
+[More detailed example of the packed packages format](https://gist.github.com/ecraig12345/d197b9bd0dc704d242d53d35771933ff)
 
 ## Staging resource setup
 
@@ -555,7 +559,6 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
         # Run the tool (see "Tool inputs" below for details on each variable)
         - script: node '$(toolArtifactBin)'
           displayName: Publish using ESRP Release API
-          retryCountOnTaskFailure: 3
           env:
             PACKED_PACKAGES_PATH: $(packagesArtifactPath)
 
@@ -661,7 +664,6 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
         # Run the tool (see "Tool inputs" below for details on each variable)
         - script: node '$(toolArtifactBin)'
           displayName: Publish using ESRP Release API
-          retryCountOnTaskFailure: 3
           env:
             PACKED_PACKAGES_PATH: $(packagesArtifactPath)
 

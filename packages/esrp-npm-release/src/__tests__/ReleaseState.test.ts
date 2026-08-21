@@ -1,5 +1,5 @@
-import type { BlobServiceClient } from '@azure/storage-blob';
-import { describe, expect, it } from '@jest/globals';
+import { RestError, type BlobServiceClient } from '@azure/storage-blob';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { expectError } from '@microsoft/beachball-test-utilities';
 import {
   createMockBlobServiceClient,
@@ -7,15 +7,21 @@ import {
   createMockContainerClient,
   type MockBlockBlobClient,
 } from '../__fixtures__/mockAzure.ts';
+import { MockLogger } from '../__fixtures__/MockLogger.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
 import { ReleaseState } from '../utils/ReleaseState.ts';
 
 describe('ReleaseState', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   const params = {
     repoName: 'repo1',
     buildSourceVersion: 'abc',
     productName: 'prod1',
     npmTag: undefined,
+    logger: new MockLogger(),
   };
 
   describe('create', () => {
@@ -100,12 +106,16 @@ describe('ReleaseState', () => {
       );
     });
 
-    it('wraps errors from createIfNotExists with ReleaseError mentioning the container and account', async () => {
+    it.each([
+      [503, true],
+      [403, false],
+    ])('classifies status %s from createIfNotExists as retryable=%s', async (statusCode, retryable) => {
+      retryable && jest.useFakeTimers();
       const containerClient = createMockContainerClient({ accountName: 'myacct' });
-      const originalError = new Error('synthetic createIfNotExists failure');
+      const originalError = new RestError('synthetic createIfNotExists failure', { statusCode });
       containerClient.createIfNotExists.mockRejectedValue(originalError);
 
-      await expectError(
+      const errorPromise = expectError(
         () =>
           ReleaseState.create({
             blobServiceClient: createMockBlobServiceClient({
@@ -118,6 +128,11 @@ describe('ReleaseState', () => {
         'Error creating or accessing container "release-state" in storage account "myacct"',
         originalError
       );
+      retryable && (await jest.runAllTimersAsync());
+      const error = (await errorPromise) as ReleaseError;
+
+      expect(error.retryable).toBe(retryable);
+      expect(containerClient.createIfNotExists).toHaveBeenCalledTimes(retryable ? 4 : 1);
     });
 
     it('wraps errors from listBlobsFlat with ReleaseError mentioning the prefix', async () => {
@@ -163,9 +178,23 @@ describe('ReleaseState', () => {
       expect(state.publishedCount).toBe(1);
     });
 
-    it('wraps upload failures with ReleaseError mentioning the layer and account', async () => {
+    it('retries an upload failure', async () => {
+      jest.useFakeTimers();
+      const { state, blobClient } = await newState();
+      blobClient.upload.mockRejectedValueOnce(new RestError('temporary upload failure', { statusCode: 503 }));
+
+      const markPublished = state.markPublished('5');
+      await jest.runAllTimersAsync();
+      await markPublished;
+
+      expect(blobClient.upload).toHaveBeenCalledTimes(2);
+      expect(state.hasPublished('5')).toBe(true);
+    });
+
+    it('wraps upload failures after four attempts with ReleaseError mentioning the layer and account', async () => {
+      jest.useFakeTimers();
       const blobClient = createMockBlockBlobClient();
-      const originalError = new Error('synthetic upload failure');
+      const originalError = new RestError('synthetic upload failure', { statusCode: 503 });
       blobClient.upload.mockRejectedValue(originalError);
       const containerClient = createMockContainerClient({ accountName: 'myacct', blobClient });
       const state = await ReleaseState.create({
@@ -176,13 +205,36 @@ describe('ReleaseState', () => {
         ...params,
       });
 
-      await expectError(
+      const markPublished = expectError(
         () => state.markPublished('5'),
         ReleaseError,
-        'Error marking layer 5 as published in persisted release state (container "release-state" in storage account "myacct")',
+        'Error marking layer 5 as published in persisted release state ' +
+          '(container "release-state" in storage account "myacct")',
         originalError
       );
+      await jest.runAllTimersAsync();
+      await markPublished;
+
+      expect(blobClient.upload).toHaveBeenCalledTimes(4);
       // Did not record the layer as published since upload failed
+      expect(state.hasPublished('5')).toBe(false);
+    });
+
+    it('does not retry a permanent upload failure', async () => {
+      const { state, blobClient } = await newState();
+      const originalError = new RestError('forbidden', { statusCode: 403 });
+      blobClient.upload.mockRejectedValue(originalError);
+
+      const error = (await expectError(
+        () => state.markPublished('5'),
+        ReleaseError,
+        'Error marking layer 5 as published in persisted release state ' +
+          '(container "release-state" in storage account "mockaccount")',
+        originalError
+      )) as ReleaseError;
+
+      expect(error.retryable).toBe(false);
+      expect(blobClient.upload).toHaveBeenCalledTimes(1);
       expect(state.hasPublished('5')).toBe(false);
     });
   });

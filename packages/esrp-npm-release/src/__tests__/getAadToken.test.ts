@@ -8,8 +8,12 @@ import { ReleaseError } from '../utils/ReleaseError.ts';
 
 let lastAuthOptions: NodeAuthOptions | undefined;
 const acquireTokenByClientCredential = jest.fn<ConfidentialClientApplication['acquireTokenByClientCredential']>();
+const { ServerError, AuthError, ClientAuthErrorCodes } = await import('@azure/msal-node');
 
 jest.unstable_mockModule('@azure/msal-node', () => ({
+  ServerError,
+  AuthError,
+  ClientAuthErrorCodes,
   ConfidentialClientApplication: jest.fn((opts: { auth: NodeAuthOptions }) => {
     lastAuthOptions = opts.auth;
     return { acquireTokenByClientCredential };
@@ -122,16 +126,54 @@ describe('getAadToken', () => {
   });
 
   describe('error handling', () => {
-    it('wraps acquireTokenByClientCredential failures with ReleaseError preserving the cause', async () => {
-      const originalError = new Error('oh no');
+    it.each([
+      ['network error', new AuthError(ClientAuthErrorCodes.networkError, '')],
+      ['no network connectivity', new AuthError(ClientAuthErrorCodes.noNetworkConnectivity, '')],
+      ['request timeout', new ServerError('unknown', '', undefined, undefined, undefined, 408)],
+      ['throttling', new ServerError('unknown', '', undefined, undefined, undefined, 429)],
+      ['server HTTP error', new ServerError('unknown', '', undefined, undefined, undefined, 599)],
+    ])('marks transient MSAL %s failures as retryable', async (_description, originalError) => {
       acquireTokenByClientCredential.mockRejectedValue(originalError);
 
-      await expectError(
+      const error = (await expectError(
         () => getAadToken({ ...baseParams, auth: { idToken: 'tok' }, logger }),
         ReleaseError,
         `Failed to acquire token for client "client-id" in tenant "tenant-id" with scope ${JSON.stringify(scopes)}`,
         originalError
-      );
+      )) as ReleaseError;
+
+      expect(error.retryable).toBe(true);
+    });
+
+    it.each([
+      ['invalid client', new ServerError('invalid_client', '')],
+      ['invalid tenant', new ServerError('invalid_tenant', '')],
+      ['invalid scope', new ServerError('invalid_scope', '')],
+      ['non-transient HTTP error', new ServerError('unknown', '', undefined, undefined, undefined, 400)],
+      ['out-of-range HTTP status', new ServerError('unknown', '', undefined, undefined, undefined, 600)],
+    ])('marks permanent MSAL %s failures as non-retryable', async (_description, originalError) => {
+      acquireTokenByClientCredential.mockRejectedValue(originalError);
+
+      const error = (await expectError(
+        () => getAadToken({ ...baseParams, auth: { idToken: 'tok' }, logger }),
+        ReleaseError,
+        `Failed to acquire token for client "client-id" in tenant "tenant-id" with scope ${JSON.stringify(scopes)}`,
+        originalError
+      )) as ReleaseError;
+
+      expect(error.retryable).toBe(false);
+    });
+
+    it('marks unknown token acquisition failures as non-retryable', async () => {
+      acquireTokenByClientCredential.mockRejectedValue(new Error('oh no'));
+
+      const error = (await expectError(
+        () => getAadToken({ ...baseParams, auth: { idToken: 'tok' }, logger }),
+        ReleaseError,
+        'Failed to acquire token'
+      )) as ReleaseError;
+
+      expect(error.retryable).toBe(false);
     });
 
     it('throws ReleaseError when MSAL returns null (no token)', async () => {

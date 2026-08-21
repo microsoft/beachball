@@ -1,9 +1,17 @@
 import type { AccessToken } from '@azure/core-auth';
-import { ConfidentialClientApplication, type AuthenticationResult, type NodeAuthOptions } from '@azure/msal-node';
+import {
+  AuthError,
+  ClientAuthErrorCodes,
+  ConfidentialClientApplication,
+  ServerError,
+  type AuthenticationResult,
+  type NodeAuthOptions,
+} from '@azure/msal-node';
 import type { Logger } from '../utils/Logger.ts';
 import type { ReleaseHttpParams } from '../esrpApi/releaseHttp.ts';
 import { getKeyAndCertificatesFromPFX, getThumbprint } from './signing.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
+import { isTransientHttpStatus } from '../utils/errorHelpers.ts';
 
 export interface GetAadTokenParams extends Pick<ReleaseHttpParams, 'clientId'> {
   tenantId: string;
@@ -38,7 +46,7 @@ export async function getAadToken(params: GetAadTokenParams): Promise<AccessToke
         x5c: certificates[0],
       };
     } catch (err) {
-      throw new ReleaseError(`Error parsing cert info to acquire token`, { cause: err });
+      throw new ReleaseError(`Error parsing cert info to acquire token`, { cause: err, retryable: false });
     }
   }
 
@@ -48,11 +56,11 @@ export async function getAadToken(params: GetAadTokenParams): Promise<AccessToke
     const cca = new ConfidentialClientApplication({ auth: authOptions });
     result = await cca.acquireTokenByClientCredential({ scopes });
   } catch (ex) {
-    throw new ReleaseError(errorMessageBase, { cause: ex });
+    throw new ReleaseError(errorMessageBase, { cause: ex, retryable: isTransientMsalError(ex) });
   }
 
   if (!result || !result.expiresOn) {
-    throw new ReleaseError(`${errorMessageBase}: no result returned`);
+    throw new ReleaseError(`${errorMessageBase}: no result returned`, { retryable: false });
   }
 
   return {
@@ -60,4 +68,16 @@ export async function getAadToken(params: GetAadTokenParams): Promise<AccessToke
     expiresOnTimestamp: result.expiresOn.getTime(),
     refreshAfterTimestamp: result.refreshOn?.getTime(),
   };
+}
+
+function isTransientMsalError(error: unknown): boolean {
+  if (!(error instanceof AuthError)) {
+    return false;
+  }
+
+  return (
+    error.errorCode === ClientAuthErrorCodes.networkError ||
+    error.errorCode === ClientAuthErrorCodes.noNetworkConnectivity ||
+    (error instanceof ServerError && isTransientHttpStatus(error.status))
+  );
 }

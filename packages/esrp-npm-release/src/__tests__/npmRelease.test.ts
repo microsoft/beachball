@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
-import { createNpmReleaseRequest, redactReleaseRequest } from '../esrpApi/npmRelease.ts';
+import { createNpmReleaseRequest, formatReleaseRequestForLog, redactReleaseRequest } from '../esrpApi/npmRelease.ts';
 import { FileHashType, type ReleaseFileInfo, type ReleaseRequestMessage } from '../types/api.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
 
@@ -64,6 +64,27 @@ describe('redactReleaseRequest', () => {
     const redacted = redactReleaseRequest(msg);
     expect(redacted.files![0].tenantFileLocation).toBe(blobUrl);
     expect(redacted.files![0].sourceLocation.blobUrl).toBe(blobUrl);
+  });
+});
+
+describe('formatReleaseRequestForLog', () => {
+  it('formats file hashes on one line while retaining pretty JSON', () => {
+    const message = {
+      files: [
+        {
+          name: 'pkg.tgz',
+          hash: [141, 204, 103, 39],
+          tenantFileLocation: 'https://example.com/file',
+          tenantFileLocationType: 'AzureBlob' as const,
+          sourceLocation: { type: 'azureBlob' as const },
+        },
+      ],
+    };
+
+    const formatted = formatReleaseRequestForLog(message);
+
+    expect(formatted).toContain('\n  "files": [');
+    expect(formatted).toContain('"hash": [141,204,103,39]');
   });
 });
 

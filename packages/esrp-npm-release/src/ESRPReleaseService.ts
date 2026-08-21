@@ -11,7 +11,7 @@ import { getAadToken, type AccessToken, type GetAadTokenParams } from './auth/ge
 import { getKeyAndCertificatesFromPFX } from './auth/signing.ts';
 import {
   createNpmReleaseRequest,
-  redactReleaseRequest,
+  formatReleaseRequestForLog,
   type CreateNpmReleaseRequestMessageParams,
 } from './esrpApi/npmRelease.ts';
 import { esrpApiScope, getReleaseDetails, getReleaseStatus, submitRelease } from './esrpApi/releaseHttp.ts';
@@ -19,6 +19,7 @@ import type { ReleaseResultMessage } from './types/api.ts';
 import type { EsrpEnvOptions } from './types/EnvOptions.ts';
 import type { Logger } from './utils/Logger.ts';
 import { ReleaseError } from './utils/ReleaseError.ts';
+import { isRetryableAzureError, retryReleaseError } from './utils/errorHelpers.ts';
 
 interface CreateESRPReleaseServiceParams extends Pick<
   EsrpEnvOptions,
@@ -65,15 +66,34 @@ export class ESRPReleaseService {
    * (unclear if this would be an issue in practice).
    */
   public static async create(params: CreateESRPReleaseServiceParams): Promise<ESRPReleaseService> {
+    return retryReleaseError(
+      params.logger,
+      attempt => `ESRP initialization ${attempt}`,
+      () => this.#createAttempt(params)
+    );
+  }
+
+  static async #createAttempt(params: CreateESRPReleaseServiceParams): Promise<ESRPReleaseService> {
     const { logger } = params;
     let stagingContainerClient: ContainerClient;
     try {
       logger.log(`Getting client and ensuring staging container "${stagingContainerName}" exists`);
       stagingContainerClient = params.stagingBlobServiceClient.getContainerClient(stagingContainerName);
+    } catch (err) {
+      throw new ReleaseError(`Error initializing client for staging container "${stagingContainerName}"`, {
+        cause: err,
+        retryable: false,
+      });
+    }
+
+    try {
       // this async operation can't be done in the constructor
       await stagingContainerClient.createIfNotExists();
     } catch (err) {
-      throw new ReleaseError(`Error ensuring staging container "${stagingContainerName}" exists`, { cause: err });
+      throw new ReleaseError(`Error ensuring staging container "${stagingContainerName}" exists`, {
+        cause: err,
+        retryable: isRetryableAzureError(err),
+      });
     }
 
     try {
@@ -86,7 +106,10 @@ export class ESRPReleaseService {
         requestSigningCertificates: certificates,
       });
     } catch (err) {
-      throw new ReleaseError(`Error extracting request signing key and certificates from PFX`, { cause: err });
+      throw new ReleaseError(`Error extracting request signing key and certificates from PFX`, {
+        cause: err,
+        retryable: false,
+      });
     }
   }
 
@@ -110,14 +133,14 @@ export class ESRPReleaseService {
     this.#clientId = params.clientId;
     this.#tenantId = params.tenantId;
     if (params.authCertificatePfx && params.idToken) {
-      throw new ReleaseError('ESRP auth requires exactly one of authCertificatePfx or idToken');
+      throw new ReleaseError('ESRP auth requires exactly one of authCertificatePfx or idToken', { retryable: false });
     }
     if (params.idToken) {
       this.#esrpAuth = { idToken: params.idToken };
     } else if (params.authCertificatePfx) {
       this.#esrpAuth = { certPfxContent: params.authCertificatePfx };
     } else {
-      throw new ReleaseError('ESRP auth requires exactly one of authCertificatePfx or idToken');
+      throw new ReleaseError('ESRP auth requires exactly one of authCertificatePfx or idToken', { retryable: false });
     }
     this.#stagingBlobServiceClient = params.stagingBlobServiceClient;
     this.#stagingContainerClient = params.stagingContainerClient;
@@ -139,6 +162,14 @@ export class ESRPReleaseService {
    * after a given window (3 days as of writing).
    */
   public async createRelease(params: CreateReleaseParams): Promise<void> {
+    await retryReleaseError(
+      this.#logger,
+      attempt => `Release ${attempt}`,
+      () => this.#createReleaseAttempt(params)
+    );
+  }
+
+  async #createReleaseAttempt(params: CreateReleaseParams): Promise<void> {
     const { filePath, releaseRequestParams, repoName } = params;
 
     // Acquire fresh credentials for each release in case earlier slow operations caused
@@ -154,13 +185,16 @@ export class ESRPReleaseService {
     try {
       blobClient = this.#stagingContainerClient.getBlockBlobClient(blobName);
     } catch (err) {
-      throw new ReleaseError(`Error initializing blob client for staging upload`, { cause: err });
+      throw new ReleaseError(`Error initializing blob client for staging upload`, { cause: err, retryable: false });
     }
 
     try {
       this.#logger.log(`Uploading ${filePath} to ${blobClient.url}`);
       await blobClient.uploadFile(filePath).catch(err => {
-        throw new ReleaseError(`Error uploading file to staging storage`, { cause: err });
+        throw new ReleaseError(`Error uploading file to staging storage`, {
+          cause: err,
+          retryable: isRetryableAzureError(err),
+        });
       });
 
       await this.#submitAndPollRelease({
@@ -193,7 +227,10 @@ export class ESRPReleaseService {
         new Date(now + oneHour)
       );
     } catch (err) {
-      throw new ReleaseError(`Error acquiring user delegation key for staging blob access`, { cause: err });
+      throw new ReleaseError(`Error acquiring user delegation key for staging blob access`, {
+        cause: err,
+        retryable: isRetryableAzureError(err),
+      });
     }
   }
 
@@ -208,7 +245,10 @@ export class ESRPReleaseService {
       auth: this.#esrpAuth,
       logger: this.#logger,
     }).catch(err => {
-      throw new ReleaseError(`Error acquiring access token for ESRP API`, { cause: err });
+      throw new ReleaseError(`Error acquiring access token for ESRP API`, {
+        cause: err,
+        retryable: err instanceof ReleaseError && err.retryable,
+      });
     });
   }
 
@@ -251,7 +291,7 @@ export class ESRPReleaseService {
       file: { path: filePath, sasBlobUrl },
     });
 
-    this.#logger.log(`Sending request to ESRP API: ${JSON.stringify(redactReleaseRequest(request), null, 2)}`);
+    this.#logger.log(`Sending request to ESRP API: ${formatReleaseRequestForLog(request)}`);
 
     const submitReleaseResult = await submitRelease({
       clientId: this.#clientId,
@@ -267,16 +307,27 @@ export class ESRPReleaseService {
     for (let i = 0; i < 720; i++) {
       await new Promise(c => setTimeout(c, 5000));
 
-      // AAD client-credential tokens are typically valid for ~1 hour. Since polling can run
-      // for up to 60 minutes (and was preceded by upload + submit), the original token can
-      // expire mid-poll. Refresh proactively when within 5 minutes of expiry.
-      esrpAccessToken = await this.#refreshEsrpAccessTokenIfNeeded(esrpAccessToken);
+      try {
+        // AAD client-credential tokens are typically valid for ~1 hour. Since polling can run
+        // for up to 60 minutes (and was preceded by upload + submit), the original token can
+        // expire mid-poll. Refresh proactively when within 5 minutes of expiry.
+        esrpAccessToken = await this.#refreshEsrpAccessTokenIfNeeded(esrpAccessToken);
 
-      releaseStatus = await getReleaseStatus({
-        clientId: this.#clientId,
-        bearerToken: esrpAccessToken.token,
-        releaseId: submitReleaseResult.operationId,
-      });
+        releaseStatus = await getReleaseStatus({
+          clientId: this.#clientId,
+          bearerToken: esrpAccessToken.token,
+          releaseId: submitReleaseResult.operationId,
+        });
+      } catch (err) {
+        if (err instanceof ReleaseError && err.retryable) {
+          this.#logger.warn(
+            `Transient error polling release ${submitReleaseResult.operationId} (will retry polling):`,
+            err
+          );
+          continue;
+        }
+        throw err;
+      }
 
       // Log only on status changes to avoid spamming the log on every poll
       if (releaseStatus.status !== lastLoggedStatus) {
@@ -291,7 +342,9 @@ export class ESRPReleaseService {
 
     if (releaseStatus?.status !== 'pass') {
       throw new ReleaseError(
-        `Timed out waiting for release. Most recent status API response: ${JSON.stringify(releaseStatus, null, 2)}`
+        `Timed out waiting for release. Most recent status API response: ${JSON.stringify(releaseStatus, null, 2)}`,
+        // It's not clear what went wrong in this case, so require a manual re-run of the stage to retry
+        { retryable: false }
       );
     }
 
@@ -304,7 +357,7 @@ export class ESRPReleaseService {
         bearerToken: esrpAccessToken.token,
         releaseId: submitReleaseResult.operationId,
       });
-      this.#logger.log('Release details:', JSON.stringify(redactReleaseRequest(releaseDetails), null, 2));
+      this.#logger.log('Release details:', formatReleaseRequestForLog(releaseDetails));
     } catch (err) {
       this.#logger.warn(
         `Release ${submitReleaseResult.operationId} succeeded but fetching details failed; ` +
@@ -336,28 +389,80 @@ export class ESRPReleaseService {
   #checkReleaseStatus(releaseStatus: ReleaseResultMessage, releaseId: string): boolean {
     const releaseStr = JSON.stringify(releaseStatus, null, 2);
     const fullStatusApiResponse = `Full status API response: ${releaseStr}`;
+    const releaseErrorSummary =
+      releaseStatus.releaseError?.errorMessages?.map(message => `- ${message}`).join('\n') || '';
 
     if (releaseStatus.status === 'pass') {
       this.#logger.log(`Release ${releaseId} passed. Last status details: ${releaseStr}`);
       return true;
     }
 
-    // Check for a 404 on publish and give a specific error
-    const errorDetails = (releaseStatus.errorInfo || releaseStatus.errorinfo)?.details?.errors;
-    if (errorDetails && /^404.*?PUT.*?registry\.npmjs\.org/.test(errorDetails)) {
+    if (releaseStatus.status === 'failCanRetry') {
       throw new ReleaseError(
-        `Release failed with 404 on npm publish: ${errorDetails}\nThis usually indicates an auth issue, ` +
-          `such as expired credentials or missing permissions. Please contact the ESRP team for help.\n\n` +
-          fullStatusApiResponse
+        [`Release failed with a retryable error.`, releaseErrorSummary, fullStatusApiResponse]
+          .filter(Boolean)
+          .join('\n'),
+        { retryable: true }
+      );
+    }
+
+    // Check for a 404 on publish and give a specific error
+    const publishError = getNpmPublishError(releaseStatus);
+    if (publishError) {
+      throw new ReleaseError(
+        `Release failed with 404 on npm publish: ${publishError}\nThis usually means the ESRP npm account ` +
+          `has not been added as a package/org owner, or possibly there was an auth issue (e.g. expired ` +
+          `credentials). Please verify npm package owners or contact the ESRP team for further help.\n\n` +
+          fullStatusApiResponse,
+        { retryable: false }
       );
     }
     // TODO: mismatch with values included in provided types
     if ((releaseStatus.status as unknown) === 'aborted' || releaseStatus.status === 'cancelled') {
-      throw new ReleaseError(`Release was aborted. ${fullStatusApiResponse}`);
+      throw new ReleaseError(
+        [`Release was aborted.`, releaseErrorSummary, fullStatusApiResponse].filter(Boolean).join('\n'),
+        { retryable: false }
+      );
     }
-    if (releaseStatus.status !== 'inprogress') {
-      throw new ReleaseError(`Unexpected release status "${releaseStatus.status}". ${fullStatusApiResponse}`);
+    if (releaseStatus.status !== 'inprogress' && releaseStatus.status !== 'pendingAnalysis') {
+      throw new ReleaseError(
+        [`Unexpected release status "${releaseStatus.status}".`, releaseErrorSummary, fullStatusApiResponse]
+          .filter(Boolean)
+          .join('\n'),
+        { retryable: false }
+      );
     }
     return false;
+  }
+}
+
+const npmPublish404Pattern = /^404.*?PUT.*?registry\.npmjs\.org/;
+
+function getNpmPublishError(releaseStatus: ReleaseResultMessage): string | undefined {
+  const topLevelError = (releaseStatus.errorInfo || releaseStatus.errorinfo)?.details?.errors;
+  if (topLevelError && npmPublish404Pattern.test(topLevelError)) {
+    return topLevelError;
+  }
+
+  // Based on the most recent observed shape for an npm 404:
+  // {
+  //   "activityType": "PackageManager",
+  //   "status": "Failed",
+  //   "errorMessages": [
+  //     "{\"code\":null,\"details\":{\"errors:\":\"404 Not Found - PUT https://registry.npmjs.org/some-pkg - Not found\"},\"innerError\":null}"
+  //   ],
+  // }
+  for (const message of releaseStatus.activities
+    ?.filter(activity => activity.activityType === 'PackageManager')
+    .flatMap(activity => activity.errorMessages || []) || []) {
+    try {
+      const activityError = JSON.parse(message) as { details?: Record<string, string> };
+      const error = activityError.details?.errors || activityError.details?.['errors:'];
+      if (error && npmPublish404Pattern.test(error)) {
+        return error;
+      }
+    } catch {
+      // Ignore non-JSON activity errors; the full response is included in the fallback error.
+    }
   }
 }

@@ -11,10 +11,18 @@
 export class ReleaseError extends Error {
   /** If true, detailed error info was already logged via console.error before throwing. */
   public alreadyLogged: boolean;
+  /** Whether retrying the current release layer may succeed. */
+  public retryable: boolean;
 
   public constructor(
     message: string,
-    options?: {
+    options: {
+      /**
+       * Whether retrying the current release layer may succeed.
+       * Generally, network errors should be retryable.
+       * Things that might indicate invalid input, permission issues, or code bugs should not.
+       */
+      retryable: boolean;
       /** If true, the exit handler won't log anything */
       alreadyLogged?: boolean;
       /**
@@ -24,9 +32,10 @@ export class ReleaseError extends Error {
       cause?: unknown;
     }
   ) {
-    super(message, { cause: options?.cause });
+    super(message, { cause: options.cause });
     this.name = 'ReleaseError';
-    this.alreadyLogged = !!options?.alreadyLogged;
+    this.alreadyLogged = !!options.alreadyLogged;
+    this.retryable = options.retryable;
   }
 
   public getMessageWithCause(): string {

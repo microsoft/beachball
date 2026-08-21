@@ -33,6 +33,7 @@ await bundleNode({
     splitting: false,
   },
   unacceptableLicenseTest: license => unacceptableLicenseTest(license) && !extraLicenses.includes(license),
+  errorDupePackages: [/^@azure/, /^@actions/],
   excludeFromNotice: dep => dep.name.startsWith('@azure/') && dep.license === 'MIT',
 }).catch(err => {
   if (!(err instanceof BundleError && err.alreadyLogged)) {

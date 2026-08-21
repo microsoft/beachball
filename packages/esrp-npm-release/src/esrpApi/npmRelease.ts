@@ -61,7 +61,7 @@ export async function createNpmReleaseRequest(
     // Hash the file with a stream--most package tarballs are small, but some are not
     hash = await hashFileStream('sha256', file.path);
   } catch (err) {
-    throw new ReleaseError(`Failed to stat or hash file ${file.path}`, { cause: err });
+    throw new ReleaseError(`Failed to stat or hash file ${file.path}`, { cause: err, retryable: false });
   }
 
   const message: Omit<GeneratedReleaseRequestMessage, 'jwsToken'> = {
@@ -115,7 +115,7 @@ export async function createNpmReleaseRequest(
     });
     return { ...message, jwsToken };
   } catch (err) {
-    throw new ReleaseError(`Failed to generate JWS token for release request`, { cause: err });
+    throw new ReleaseError(`Failed to generate JWS token for release request`, { cause: err, retryable: false });
   }
 }
 
@@ -133,4 +133,23 @@ export function redactReleaseRequest<TMessage extends Pick<ReleaseRequestMessage
     },
   }));
   return message;
+}
+
+/** Redact a release message and format file hash arrays compactly for logging. */
+export function formatReleaseRequestForLog<TMessage extends Pick<ReleaseRequestMessage, 'files' | 'jwsToken'>>(
+  message: TMessage
+): string {
+  const redacted = redactReleaseRequest(message);
+  const hashes: (number[] | string)[] = [];
+  redacted.files = redacted.files?.map(file => {
+    const hashPlaceholder = `__ESRP_FILE_HASH_${hashes.length}__`;
+    hashes.push(file.hash);
+    return { ...file, hash: hashPlaceholder };
+  });
+
+  let formatted = JSON.stringify(redacted, null, 2);
+  hashes.forEach((hash, index) => {
+    formatted = formatted.replace(JSON.stringify(`__ESRP_FILE_HASH_${index}__`), JSON.stringify(hash));
+  });
+  return formatted;
 }
