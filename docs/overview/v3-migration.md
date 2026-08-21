@@ -154,15 +154,17 @@ The config file is now **only** resolved at the project root. Support for search
 
 ### New options
 
+- Support authenticating with a git token from [`BEACHBALL_GIT_TOKEN`](../concepts/ci-integration).
 - Add `getGitTag` option, a function used to generate per-package git tags.
 - Add `commitMessage` option, a function used to generate the commit message for the `change` and `publish` commands (overridden by `--message` for `publish`).
-- Support authenticating with a git token from [`BEACHBALL_GIT_TOKEN`](../concepts/ci-integration).
 
-### New commands
+### Add `beachball-auth-helper`
 
-- Add experimental `beachball publish-helpers update-lock-registry` command
+[`beachball-auth-helper`](../concepts/ci-integration/auth-helper) is a second binary within the `beachball` package that provides authentication-related utilities for CI workflows:
 
-<!-- - Add functionality for creating a GitHub app installation token from a key stored in an Azure key vault (create-github-app-token-via-key-vault fork) -->
+- `create-github-app-token`: Create a repository-scoped GitHub App installation token
+- `revoke-github-app-token`: Revoke a GitHub App installation token
+- `update-lock-registry`: For npm / yarn v1 only: Update lock file registry URLs to point to a private registry
 
 ### Other features
 

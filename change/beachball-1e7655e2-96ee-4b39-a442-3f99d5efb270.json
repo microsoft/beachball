@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add experimental `publish-helpers update-lock-registry` command",
+  "comment": "Add `beachball-auth-helper update-lock-registry` command",
   "packageName": "beachball",
   "email": "elcraig@microsoft.com",
   "dependentChangeType": "patch"

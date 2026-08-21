@@ -8,7 +8,6 @@ import { init } from './commands/init';
 import { migrate } from './commands/migrate';
 import { publish } from './commands/publish';
 import { sync } from './commands/sync';
-import { updateLockFileRegistry } from './commands/updateLockFileRegistry';
 
 import { getOptions } from './options/getOptions';
 import { validate } from './validation/validate';
@@ -94,10 +93,6 @@ const version = getPackageInfo(findPackageRoot(__dirname)!)?.version;
 
     case 'config list':
       configList(options, createBasicCommandContext(parsedOptions));
-      break;
-
-    case 'publish-helpers update-lock-registry':
-      updateLockFileRegistry(options);
       break;
 
     default:

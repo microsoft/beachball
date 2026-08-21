@@ -239,11 +239,8 @@ export const optionDefinitions: Record<
   ...makeOptions('npm', ['publish', 'canary', 'sync', 'init'], {
     registry: {
       short: 'r',
-      desc: cmd =>
-        cmd === 'publish-helpers update-lock-registry'
-          ? 'npm registry (must be set with option or config file)'
-          : 'npm registry (respects npm settings)',
-      commands: ['publish', 'canary', 'sync', 'init', 'publish-helpers update-lock-registry'],
+      desc: 'npm registry (respects npm settings)',
+      commands: ['publish', 'canary', 'sync', 'init'],
     },
     token: {
       short: 'n',

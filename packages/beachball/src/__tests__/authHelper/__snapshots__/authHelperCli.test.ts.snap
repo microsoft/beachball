@@ -55,7 +55,22 @@ Options:
 Commands:
   create-github-app-token [options]  Create a repository-scoped GitHub App installation token
   revoke-github-app-token [options]  Revoke a GitHub App installation token
+  update-lock-registry [options]     For npm / yarn v1 only: Update lock file registry URLs to point
+                                     to a private registry
   help [command]                     display help for command
+
+Full setup and examples: https://microsoft.github.io/beachball/concepts/ci-integration/auth-helper"
+`;
+
+exports[`authHelperCli shows help text for update-lock-registry 1`] = `
+"Usage: beachball-auth-helper update-lock-registry [options]
+
+For npm / yarn v1 only: Update lock file registry URLs to point to a private registry
+
+Options:
+  --registry <url>  Private npm registry URL
+  --revert          Restore lock file URLs to the default public registry
+  -h, --help        display help for command
 
 Full setup and examples: https://microsoft.github.io/beachball/concepts/ci-integration/auth-helper"
 `;

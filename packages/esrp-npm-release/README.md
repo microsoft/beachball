@@ -322,7 +322,7 @@ These package managers save resolved URLs in the lock file, which requires an ex
 1. In your pipeline, _after_ `npmAuthenticate` but _before_ installing dependencies, add a step to update the lock file:
 
    ```yml
-   - script: npx beachball@next publish-helpers update-lock-registry --registry '$(REGISTRY_URL)'
+   - script: npx --package beachball@next beachball-auth-helper update-lock-registry --registry '$(REGISTRY_URL)'
      displayName: Prepare npm registry settings
    ```
 
@@ -377,15 +377,15 @@ steps:
     inputs:
       workingFile: $(Build.SourcesDirectory)/.npmrc
 
-  # ONLY for npm / yarn v1: rewrite lock file URLs to the private registry.
-  # `npx beachball` is fetched from the private registry.
-  - script: npx beachball@next publish-helpers update-lock-registry --registry '$(REGISTRY_URL)'
-    displayName: (npm or yarn v1) Update registry in lock file
-
   # This isn't used, it's just a clear way to check that auth is working
   # (yarn install's auth errors can be very unclear)
   - script: yarn npm info beachball
     displayName: Get package to verify registry auth
+
+  # ONLY for npm / yarn v1: rewrite lock file URLs to the private registry.
+  # `npx` fetches the `beachball-auth-helper` binary from the `beachball` package in the private registry.
+  - script: npx --package beachball@next beachball-auth-helper update-lock-registry --registry '$(REGISTRY_URL)'
+    displayName: (npm or yarn v1) Update registry in lock file
 
   # Modify as appropriate
   - script: yarn --immutable
