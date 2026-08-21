@@ -1,6 +1,8 @@
 import type { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
 import type { AdoEnvOptions, EsrpEnvOptions } from '../types/EnvOptions.ts';
 import { ReleaseError } from './ReleaseError.ts';
+import { isRetryableAzureError, retryReleaseError } from './errorHelpers.ts';
+import type { Logger } from './Logger.ts';
 
 const stateContainerName = 'release-state';
 
@@ -29,6 +31,7 @@ export class ReleaseState {
   #publishedLayers: Set<string>;
   #containerClient: ContainerClient;
   #prefix: string;
+  #logger: Logger;
 
   /**
    * Initialize the ReleaseState from persisted state in Azure Blob Storage, loading the list of
@@ -41,39 +44,53 @@ export class ReleaseState {
         /** Repo name only (no organization) */
         repoName: string;
         blobServiceClient: BlobServiceClient;
+        logger: Logger;
       }
   ): Promise<ReleaseState> {
-    const { blobServiceClient, repoName, buildSourceVersion: sourceVersion, productName, npmTag } = params;
+    const { blobServiceClient, repoName, buildSourceVersion: sourceVersion, productName, npmTag, logger } = params;
     const desc = getContainerDesc(blobServiceClient.accountName);
 
-    let containerClient: ContainerClient;
-    try {
-      containerClient = blobServiceClient.getContainerClient(stateContainerName);
-    } catch (err) {
-      throw new ReleaseError(`Error initializing client for ${desc}`, { cause: err });
-    }
+    return await retryReleaseError(
+      logger,
+      attempt => `Release state initialization ${attempt}`,
+      async () => {
+        let containerClient: ContainerClient;
+        try {
+          containerClient = blobServiceClient.getContainerClient(stateContainerName);
+        } catch (err) {
+          throw new ReleaseError(`Error initializing client for ${desc}`, { cause: err, retryable: false });
+        }
 
-    await containerClient.createIfNotExists().catch(err => {
-      throw new ReleaseError(`Error creating or accessing ${desc}`, { cause: err });
-    });
+        await containerClient.createIfNotExists().catch(err => {
+          throw new ReleaseError(`Error creating or accessing ${desc}`, {
+            cause: err,
+            retryable: isRetryableAzureError(err),
+          });
+        });
 
-    const prefix = `${repoName}/${sourceVersion}/${productName}/${npmTag ? `${npmTag}/` : ''}`;
-    const publishedLayers = new Set<string>();
-    try {
-      for await (const blob of containerClient.listBlobsFlat({ prefix })) {
-        publishedLayers.add(blob.name.slice(prefix.length));
+        const prefix = `${repoName}/${sourceVersion}/${productName}/${npmTag ? `${npmTag}/` : ''}`;
+        const publishedLayers = new Set<string>();
+        try {
+          for await (const blob of containerClient.listBlobsFlat({ prefix })) {
+            publishedLayers.add(blob.name.slice(prefix.length));
+          }
+        } catch (err) {
+          throw new ReleaseError(`Error listing blobs with prefix "${prefix}" in ${desc}`, {
+            cause: err,
+            retryable: isRetryableAzureError(err),
+          });
+        }
+
+        return new ReleaseState(containerClient, prefix, publishedLayers, logger);
       }
-    } catch (err) {
-      throw new ReleaseError(`Error listing blobs with prefix "${prefix}" in ${desc}`, { cause: err });
-    }
-
-    return new ReleaseState(containerClient, prefix, publishedLayers);
+    );
   }
 
-  private constructor(containerClient: ContainerClient, prefix: string, publishedLayers: Set<string>) {
+  private constructor(containerClient: ContainerClient, prefix: string, publishedLayers: Set<string>, logger: Logger) {
     this.#containerClient = containerClient;
     this.#prefix = prefix;
     this.#publishedLayers = publishedLayers;
+    this.#logger = logger;
   }
 
   /** Number of layers published */
@@ -89,16 +106,22 @@ export class ReleaseState {
   /** Marks the layer as published (throws `ReleaseError` on any issue) */
   public async markPublished(layerNum: string): Promise<void> {
     const blobName = this.#prefix + layerNum;
-    try {
-      const blobClient = this.#containerClient.getBlockBlobClient(blobName);
-      await blobClient.upload('', 0);
-      this.#publishedLayers.add(layerNum);
-    } catch (err) {
-      throw new ReleaseError(
-        `Error marking layer ${layerNum} as published in persisted release state ` +
-          `(${getContainerDesc(this.#containerClient.accountName)})`,
-        { cause: err }
-      );
-    }
+    await retryReleaseError(
+      this.#logger,
+      attempt => `Persisting release state for layer ${layerNum} ${attempt}`,
+      async () => {
+        try {
+          const blobClient = this.#containerClient.getBlockBlobClient(blobName);
+          await blobClient.upload('', 0);
+          this.#publishedLayers.add(layerNum);
+        } catch (err) {
+          throw new ReleaseError(
+            `Error marking layer ${layerNum} as published in persisted release state ` +
+              `(${getContainerDesc(this.#containerClient.accountName)})`,
+            { cause: err, retryable: isRetryableAzureError(err) }
+          );
+        }
+      }
+    );
   }
 }

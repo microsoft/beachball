@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { createTestFileStructure, expectError, setupTempDir } from '@microsoft/beachball-test-utilities';
+import { createTestFileStructure, setupTempDir } from '@microsoft/beachball-test-utilities';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ESRPReleaseService } from '../ESRPReleaseService.ts';
@@ -14,6 +14,7 @@ import type { ReleaseState } from '../utils/ReleaseState.ts';
 //
 
 jest.unstable_mockModule('@azure/storage-blob', () => ({
+  RestError: jest.requireActual<typeof import('@azure/storage-blob')>('@azure/storage-blob').RestError,
   BlobServiceClient: class {
     public accountName = 'stagingaccount';
   },
@@ -25,8 +26,9 @@ jest.unstable_mockModule('../utils/ReleaseState.ts', () => ({
 }));
 
 const releaseService = { createRelease: jest.fn() } as unknown as jest.Mocked<typeof ESRPReleaseService.prototype>;
+const mockReleaseServiceCreate = jest.fn<typeof ESRPReleaseService.create>();
 jest.unstable_mockModule('../ESRPReleaseService.ts', () => ({
-  ESRPReleaseService: { create: () => releaseService },
+  ESRPReleaseService: { create: mockReleaseServiceCreate },
 }));
 
 jest.unstable_mockModule<typeof import('../auth/getAadToken.ts')>('../auth/getAadToken.ts', () => ({
@@ -82,6 +84,7 @@ describe('runRelease', () => {
     logger = new MockLogger();
     state = makeReleaseState();
     mockReleaseStateCreate.mockImplementation(() => Promise.resolve(state));
+    mockReleaseServiceCreate.mockResolvedValue(releaseService);
   });
 
   afterEach(() => {
@@ -183,47 +186,42 @@ describe('runRelease', () => {
     expect(mockReleaseStateCreate).toHaveBeenCalledWith(expect.objectContaining({ repoName: 'bare-repo' }));
   });
 
-  it('retries a failed layer and marks it published after a later attempt succeeds', async () => {
-    jest.useFakeTimers();
-    let firstAttemptStarted!: () => void;
-    const firstAttempt = new Promise<void>(resolve => (firstAttemptStarted = resolve));
-    releaseService.createRelease
-      .mockImplementationOnce(() => {
-        firstAttemptStarted();
-        return Promise.reject(new ReleaseError('temporary failure'));
-      })
-      .mockResolvedValueOnce(undefined);
-    const env = envWithTempPaths({ '1': ['pkg-a.tgz'] });
+  it('passes the logger used for release state retries', async () => {
+    await runRelease({ env: envWithTempPaths({}), logger });
 
-    const release = runRelease({ env, logger });
-    await firstAttempt;
-    await jest.runAllTimersAsync();
-    await release;
-
-    expect(releaseService.createRelease).toHaveBeenCalledTimes(2);
-    expect(state.markPublished).toHaveBeenCalledTimes(1);
-    expect(state.markPublished).toHaveBeenCalledWith('1');
-    expect(logger.lines).toContainEqual(expect.stringContaining('attempt 1 of 4 for layer 1 failed'));
+    expect(mockReleaseStateCreate).toHaveBeenCalledWith(expect.objectContaining({ logger }));
   });
 
-  it('propagates a layer failure after four attempts', async () => {
-    jest.useFakeTimers();
-    let firstAttemptStarted!: () => void;
-    const firstAttempt = new Promise<void>(resolve => (firstAttemptStarted = resolve));
-    const originalError = new ReleaseError('oh no');
-    releaseService.createRelease.mockImplementation(() => {
-      firstAttemptStarted();
-      return Promise.reject(originalError);
-    });
+  it('leaves initialization retries to ESRPReleaseService', async () => {
+    const originalError = new ReleaseError('temporary ESRP failure', { retryable: true });
+    mockReleaseServiceCreate.mockRejectedValue(originalError);
+
+    const error = await runRelease({ env: envWithTempPaths({}), logger }).catch(caught => caught as unknown);
+
+    expect(error).toBe(originalError);
+    expect(mockReleaseServiceCreate).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry a non-retryable initialization failure', async () => {
+    const originalError = new ReleaseError('invalid storage configuration', { retryable: false });
+    mockReleaseStateCreate.mockRejectedValue(originalError);
+
+    const error = await runRelease({ env: envWithTempPaths({}), logger }).catch(caught => caught as unknown);
+
+    expect(error).toBe(originalError);
+    expect(mockReleaseStateCreate).toHaveBeenCalledTimes(1);
+    expect(mockReleaseServiceCreate).not.toHaveBeenCalled();
+  });
+
+  it('leaves release retries to ESRPReleaseService', async () => {
+    const originalError = new ReleaseError('oh no', { retryable: true });
+    releaseService.createRelease.mockRejectedValue(originalError);
     const env = envWithTempPaths({ '1': ['pkg-a.tgz'] });
 
-    const release = runRelease({ env, logger }).catch(e => e as unknown);
-    await firstAttempt;
-    await jest.runAllTimersAsync();
-    const err = await release;
+    const err = await runRelease({ env, logger }).catch(e => e as unknown);
 
     expect(err).toBe(originalError);
-    expect(releaseService.createRelease).toHaveBeenCalledTimes(4);
+    expect(releaseService.createRelease).toHaveBeenCalledTimes(1);
     expect(state.markPublished).not.toHaveBeenCalled();
   });
 
@@ -236,6 +234,18 @@ describe('runRelease', () => {
     expect(err).toBe(originalError);
     expect(releaseService.createRelease).toHaveBeenCalledTimes(1);
     expect(state.markPublished).not.toHaveBeenCalled();
+  });
+
+  it('does not republish a layer if persisting its completed state fails', async () => {
+    const originalError = new ReleaseError('state write failed', { retryable: true });
+    state.markPublished.mockRejectedValue(originalError);
+    const env = envWithTempPaths({ '1': ['pkg-a.tgz'] });
+
+    const err = await runRelease({ env, logger }).catch(e => e as unknown);
+
+    expect(err).toBe(originalError);
+    expect(releaseService.createRelease).toHaveBeenCalledTimes(1);
+    expect(state.markPublished).toHaveBeenCalledTimes(1);
   });
 
   it('warns and succeeds when no layer directories are found', async () => {
@@ -278,20 +288,21 @@ describe('runRelease', () => {
     expect(logger.lines.some(l => l.includes('_manifest'))).toBe(false);
   });
 
-  it('throws when a layer directory contains no .tgz files', async () => {
+  it('warns and skips a layer directory containing no .tgz files', async () => {
     const env = envWithTempPaths({
       '1': ['pkg-a-1.0.0.tgz'],
       '2': ['README.md'], // no .tgz
     });
 
-    await expectError(
-      () => runRelease({ env, logger }),
-      ReleaseError,
-      /No \.tgz files found in layer directory.*[/\\]2$/
-    );
-    // Layer 1 was released before the failure was hit
+    await expect(runRelease({ env, logger })).resolves.toBeUndefined();
+
     expect(releaseService.createRelease).toHaveBeenCalledTimes(1);
     expect(state.markPublished).toHaveBeenCalledWith('1');
     expect(state.markPublished).not.toHaveBeenCalledWith('2');
+    expect(logger.mocks.warn).toHaveBeenCalledWith(
+      '##vso[task.logissue type=warning]',
+      '[layer-2]',
+      expect.stringMatching(/No \.tgz files found in layer directory.*[/\\]2; skipping layer$/)
+    );
   });
 });

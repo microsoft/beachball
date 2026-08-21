@@ -5,6 +5,7 @@ import type {
   ReleaseDetailsMessage,
 } from '../types/api.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
+import { isTransientHttpStatus } from '../utils/errorHelpers.ts';
 
 export interface ReleaseHttpParams {
   /** ESRP onboarded AAD app client ID */
@@ -24,6 +25,9 @@ const esrpBaseUrl = `https://${esrpApiDomain}/api/v3/releaseservices/clients/`;
 /**
  * Submit a release request.
  * Throws a `ReleaseError` if the request fails or the response can't be parsed.
+ *
+ * This only attempts to submit the request once: the meaning of a failed submit request is unclear,
+ * so the safest retry approach is for the user to re-run the stage.
  */
 export async function submitRelease(
   params: Omit<ReleaseHttpParams, 'releaseId'> & { releaseRequest: ReleaseRequestMessage }
@@ -39,7 +43,8 @@ export async function submitRelease(
       body: releaseRequest,
     });
   } catch (err) {
-    throw new ReleaseError(`Failed to submit release`, { cause: err, retryable: isRetryableHttpError(err) });
+    // see function comment for why it doesn't retry
+    throw new ReleaseError(`Failed to submit release`, { cause: err, retryable: false });
   }
 
   if (!response.operationId) {
@@ -53,6 +58,8 @@ export async function submitRelease(
 /**
  * Get the status of a release request.
  * Throws a `ReleaseError` if the request fails or the response can't be parsed.
+ *
+ * This will only attempt to get the status once, and callers can handle retryable errors.
  */
 export async function getReleaseStatus(params: ReleaseHttpParams): Promise<ReleaseResultMessage> {
   const { clientId, bearerToken, releaseId } = params;
@@ -64,12 +71,15 @@ export async function getReleaseStatus(params: ReleaseHttpParams): Promise<Relea
       method: 'GET',
     });
   } catch (err) {
-    throw new ReleaseError(`Failed to get release status`, { cause: err, retryable: isRetryableHttpError(err) });
+    throw new ReleaseError(`Failed to get release status`, {
+      cause: err,
+      retryable: err instanceof HttpRequestError && err.retryable,
+    });
   }
 }
 
 /**
- * Get the details of a release request.
+ * Get the details of a release request, with retries on transient request failures.
  * Throws an `Error` (not `ReleaseError`) if the request fails or the response can't be parsed.
  */
 export function getReleaseDetails(params: ReleaseHttpParams): Promise<ReleaseDetailsMessage> {
@@ -79,38 +89,39 @@ export function getReleaseDetails(params: ReleaseHttpParams): Promise<ReleaseDet
     apiUrl: `${esrpBaseUrl}${clientId}/workflows/release/operations/grd/${releaseId}`,
     bearerToken,
     method: 'GET',
+    maxAttempts: 3,
   });
 }
 
 class HttpRequestError extends Error {
   public readonly retryable: boolean;
-  public constructor(message: string, retryable: boolean, options?: ErrorOptions) {
+  public constructor(message: string, options: ErrorOptions & { retryable: boolean }) {
     super(message, options);
-    this.retryable = retryable;
+    this.retryable = options.retryable;
   }
 }
 
-function isRetryableHttpError(error: unknown): boolean {
-  return error instanceof HttpRequestError ? error.retryable : true;
-}
-
+/**
+ * Perform an HTTP request, optionally with automatic retries for transient errors.
+ */
 async function doHttpRequest<TResult>(
   params: Pick<ReleaseHttpParams, 'bearerToken'> & {
     apiUrl: string;
     method: 'GET' | 'POST';
     body?: object;
+    maxAttempts?: number;
   }
 ): Promise<TResult> {
-  const { apiUrl, bearerToken, method } = params;
+  const { apiUrl, bearerToken, method, maxAttempts = 1 } = params;
 
   const body = params.body && JSON.stringify(params.body);
 
-  const maxRetries = 10;
   let lastError = '';
   let responseText = '';
 
-  for (let run = 1; run <= maxRetries; run++) {
+  for (let run = 1; run <= maxAttempts; run++) {
     let response: Response | undefined;
+    const signal = AbortSignal.timeout(60_000);
     try {
       // start the request - resolves when headers are received, and rejects on initial network errors
       response = await fetch(apiUrl, {
@@ -120,7 +131,7 @@ async function doHttpRequest<TResult>(
           ...(body && { 'Content-Type': 'application/json' }),
         },
         ...(body && { body }),
-        signal: AbortSignal.timeout(60_000),
+        signal,
       });
       // wait for the whole response body
       responseText = await response.text();
@@ -131,30 +142,31 @@ async function doHttpRequest<TResult>(
       const message = (err as Error).message || String(err);
       // retry on transient errors, throw otherwise
       if (
-        !/fetch failed|terminated|aborted|timeout|TimeoutError|Timeout Error|RestError|Client network socket disconnected|socket hang up|ECONNRESET/i.test(
-          message
-        )
+        !signal.aborted &&
+        !/fetch failed|terminated|timeout|RestError|socket disconnected|socket hang up|ECONNRESET/i.test(message)
       ) {
-        throw new HttpRequestError(`Request to ${apiUrl} failed: ${message}`, false, { cause: err });
+        throw new HttpRequestError(`Request to ${apiUrl} failed: ${message}`, { retryable: false, cause: err });
       }
       lastError = message;
     }
 
     if (response) {
       const status = response.status;
-      // ignore transient errors: 408 Request Timeout, 429 Too Many Requests, and any 5xx
-      if (!(status === 408 || status === 429 || (status >= 500 && status < 600))) {
+      // ignore transient errors
+      if (!isTransientHttpStatus(status)) {
         // Intentionally not a ReleaseError so caller can add more context
-        throw new HttpRequestError(`Request to ${apiUrl} failed with status ${status}:\n${responseText}`, false);
+        throw new HttpRequestError(`Request to ${apiUrl} failed with status ${status}:\n${responseText}`, {
+          retryable: false,
+        });
       } else {
         lastError = `status ${status}: ${responseText}`;
       }
     }
 
-    if (run === maxRetries) {
+    if (run === maxAttempts) {
       throw new HttpRequestError(
-        `Request to ${apiUrl} failed after ${maxRetries} attempts. Last error:\n${lastError}`,
-        true
+        `Request to ${apiUrl} failed after ${maxAttempts} attempts. Last error:\n${lastError}`,
+        { retryable: true }
       );
     }
 
@@ -168,7 +180,7 @@ async function doHttpRequest<TResult>(
   } catch {
     throw new HttpRequestError(
       `Request to ${apiUrl} succeeded but did not return valid JSON. Received:\n${responseText}`,
-      false
+      { retryable: false }
     );
   }
 }

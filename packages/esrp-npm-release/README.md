@@ -33,7 +33,7 @@ For each layer, the tool:
 3. Calls the ESRP release API to publish the layer, waiting for it to complete before moving on to the next layer.
 4. Deletes the staged zip.
 
-If a layer release fails, the tool retries that layer up to three times, unless the status from ESRP was `failDoNotRetry` or there was an unrecognized error. It's also safe to manually re-run the whole stage.
+The tool retries transient initialization failures and failed layer releases up to three times. Permanent or unrecognized errors, including the ESRP status `failDoNotRetry`, fail immediately. It's also safe to manually re-run the whole stage.
 
 The tool relies on the following inputs and resources:
 

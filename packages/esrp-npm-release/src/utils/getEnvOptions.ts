@@ -69,7 +69,7 @@ export function getEnvOptions(env: NodeJS.ProcessEnv = process.env): EnvOptions 
   }
 
   if (validationErrors.length) {
-    throw new ReleaseError(validationErrors.join('\n\n'));
+    throw new ReleaseError(validationErrors.join('\n\n'), { retryable: false });
   }
   return result;
 }

@@ -19,6 +19,7 @@ import type { ReleaseResultMessage } from './types/api.ts';
 import type { EsrpEnvOptions } from './types/EnvOptions.ts';
 import type { Logger } from './utils/Logger.ts';
 import { ReleaseError } from './utils/ReleaseError.ts';
+import { isRetryableAzureError, retryReleaseError } from './utils/errorHelpers.ts';
 
 interface CreateESRPReleaseServiceParams extends Pick<
   EsrpEnvOptions,
@@ -65,15 +66,34 @@ export class ESRPReleaseService {
    * (unclear if this would be an issue in practice).
    */
   public static async create(params: CreateESRPReleaseServiceParams): Promise<ESRPReleaseService> {
+    return retryReleaseError(
+      params.logger,
+      attempt => `ESRP initialization ${attempt}`,
+      () => this.#createAttempt(params)
+    );
+  }
+
+  static async #createAttempt(params: CreateESRPReleaseServiceParams): Promise<ESRPReleaseService> {
     const { logger } = params;
     let stagingContainerClient: ContainerClient;
     try {
       logger.log(`Getting client and ensuring staging container "${stagingContainerName}" exists`);
       stagingContainerClient = params.stagingBlobServiceClient.getContainerClient(stagingContainerName);
+    } catch (err) {
+      throw new ReleaseError(`Error initializing client for staging container "${stagingContainerName}"`, {
+        cause: err,
+        retryable: false,
+      });
+    }
+
+    try {
       // this async operation can't be done in the constructor
       await stagingContainerClient.createIfNotExists();
     } catch (err) {
-      throw new ReleaseError(`Error ensuring staging container "${stagingContainerName}" exists`, { cause: err });
+      throw new ReleaseError(`Error ensuring staging container "${stagingContainerName}" exists`, {
+        cause: err,
+        retryable: isRetryableAzureError(err),
+      });
     }
 
     try {
@@ -86,7 +106,10 @@ export class ESRPReleaseService {
         requestSigningCertificates: certificates,
       });
     } catch (err) {
-      throw new ReleaseError(`Error extracting request signing key and certificates from PFX`, { cause: err });
+      throw new ReleaseError(`Error extracting request signing key and certificates from PFX`, {
+        cause: err,
+        retryable: false,
+      });
     }
   }
 
@@ -110,14 +133,14 @@ export class ESRPReleaseService {
     this.#clientId = params.clientId;
     this.#tenantId = params.tenantId;
     if (params.authCertificatePfx && params.idToken) {
-      throw new ReleaseError('ESRP auth requires exactly one of authCertificatePfx or idToken');
+      throw new ReleaseError('ESRP auth requires exactly one of authCertificatePfx or idToken', { retryable: false });
     }
     if (params.idToken) {
       this.#esrpAuth = { idToken: params.idToken };
     } else if (params.authCertificatePfx) {
       this.#esrpAuth = { certPfxContent: params.authCertificatePfx };
     } else {
-      throw new ReleaseError('ESRP auth requires exactly one of authCertificatePfx or idToken');
+      throw new ReleaseError('ESRP auth requires exactly one of authCertificatePfx or idToken', { retryable: false });
     }
     this.#stagingBlobServiceClient = params.stagingBlobServiceClient;
     this.#stagingContainerClient = params.stagingContainerClient;
@@ -139,6 +162,14 @@ export class ESRPReleaseService {
    * after a given window (3 days as of writing).
    */
   public async createRelease(params: CreateReleaseParams): Promise<void> {
+    await retryReleaseError(
+      this.#logger,
+      attempt => `Release ${attempt}`,
+      () => this.#createReleaseAttempt(params)
+    );
+  }
+
+  async #createReleaseAttempt(params: CreateReleaseParams): Promise<void> {
     const { filePath, releaseRequestParams, repoName } = params;
 
     // Acquire fresh credentials for each release in case earlier slow operations caused
@@ -154,13 +185,16 @@ export class ESRPReleaseService {
     try {
       blobClient = this.#stagingContainerClient.getBlockBlobClient(blobName);
     } catch (err) {
-      throw new ReleaseError(`Error initializing blob client for staging upload`, { cause: err });
+      throw new ReleaseError(`Error initializing blob client for staging upload`, { cause: err, retryable: false });
     }
 
     try {
       this.#logger.log(`Uploading ${filePath} to ${blobClient.url}`);
       await blobClient.uploadFile(filePath).catch(err => {
-        throw new ReleaseError(`Error uploading file to staging storage`, { cause: err });
+        throw new ReleaseError(`Error uploading file to staging storage`, {
+          cause: err,
+          retryable: isRetryableAzureError(err),
+        });
       });
 
       await this.#submitAndPollRelease({
@@ -193,7 +227,10 @@ export class ESRPReleaseService {
         new Date(now + oneHour)
       );
     } catch (err) {
-      throw new ReleaseError(`Error acquiring user delegation key for staging blob access`, { cause: err });
+      throw new ReleaseError(`Error acquiring user delegation key for staging blob access`, {
+        cause: err,
+        retryable: isRetryableAzureError(err),
+      });
     }
   }
 
@@ -208,7 +245,10 @@ export class ESRPReleaseService {
       auth: this.#esrpAuth,
       logger: this.#logger,
     }).catch(err => {
-      throw new ReleaseError(`Error acquiring access token for ESRP API`, { cause: err });
+      throw new ReleaseError(`Error acquiring access token for ESRP API`, {
+        cause: err,
+        retryable: err instanceof ReleaseError && err.retryable,
+      });
     });
   }
 
@@ -267,16 +307,27 @@ export class ESRPReleaseService {
     for (let i = 0; i < 720; i++) {
       await new Promise(c => setTimeout(c, 5000));
 
-      // AAD client-credential tokens are typically valid for ~1 hour. Since polling can run
-      // for up to 60 minutes (and was preceded by upload + submit), the original token can
-      // expire mid-poll. Refresh proactively when within 5 minutes of expiry.
-      esrpAccessToken = await this.#refreshEsrpAccessTokenIfNeeded(esrpAccessToken);
+      try {
+        // AAD client-credential tokens are typically valid for ~1 hour. Since polling can run
+        // for up to 60 minutes (and was preceded by upload + submit), the original token can
+        // expire mid-poll. Refresh proactively when within 5 minutes of expiry.
+        esrpAccessToken = await this.#refreshEsrpAccessTokenIfNeeded(esrpAccessToken);
 
-      releaseStatus = await getReleaseStatus({
-        clientId: this.#clientId,
-        bearerToken: esrpAccessToken.token,
-        releaseId: submitReleaseResult.operationId,
-      });
+        releaseStatus = await getReleaseStatus({
+          clientId: this.#clientId,
+          bearerToken: esrpAccessToken.token,
+          releaseId: submitReleaseResult.operationId,
+        });
+      } catch (err) {
+        if (err instanceof ReleaseError && err.retryable) {
+          this.#logger.warn(
+            `Transient error polling release ${submitReleaseResult.operationId} (will retry polling):`,
+            err
+          );
+          continue;
+        }
+        throw err;
+      }
 
       // Log only on status changes to avoid spamming the log on every poll
       if (releaseStatus.status !== lastLoggedStatus) {
@@ -291,7 +342,9 @@ export class ESRPReleaseService {
 
     if (releaseStatus?.status !== 'pass') {
       throw new ReleaseError(
-        `Timed out waiting for release. Most recent status API response: ${JSON.stringify(releaseStatus, null, 2)}`
+        `Timed out waiting for release. Most recent status API response: ${JSON.stringify(releaseStatus, null, 2)}`,
+        // It's not clear what went wrong in this case, so require a manual re-run of the stage to retry
+        { retryable: false }
       );
     }
 
@@ -348,7 +401,8 @@ export class ESRPReleaseService {
       throw new ReleaseError(
         [`Release failed with a retryable error.`, releaseErrorSummary, fullStatusApiResponse]
           .filter(Boolean)
-          .join('\n')
+          .join('\n'),
+        { retryable: true }
       );
     }
 

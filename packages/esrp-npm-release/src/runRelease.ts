@@ -43,14 +43,17 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
           logger.error(
             `Error acquiring token for staging storage account "${env.staging.storageAccountName}":\n${err.getMessageWithCause()}`
           );
-          throw new ReleaseError('Error acquiring token (see above)', { alreadyLogged: true });
+          throw new ReleaseError('Error acquiring token (see above)', {
+            alreadyLogged: true,
+            retryable: err.retryable,
+          });
         });
       },
     });
   } catch (err) {
     throw new ReleaseError(
       `Failed to initialize BlobServiceClient for staging storage account "${env.staging.storageAccountName}"`,
-      { cause: err }
+      { cause: err, retryable: false }
     );
   }
 
@@ -66,6 +69,7 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
     buildSourceVersion: env.ado.buildSourceVersion,
     productName: env.esrp.productName,
     npmTag: env.esrp.npmTag,
+    logger,
   });
   logger.log(`Release state loaded: ${state.publishedCount} layer(s) already published`);
 
@@ -117,7 +121,9 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
       .filter(file => file.endsWith('.tgz'))
       .map(file => path.join(layerDir, file));
     if (!tgzFiles.length) {
-      throw new ReleaseError(`No .tgz files found in layer directory ${layerDir}`);
+      logger.warn(`No .tgz files found in layer directory ${layerDir}; skipping layer`);
+      logger.endGroup();
+      continue;
     }
 
     const zipPath = path.join(zipsDir, `${layerPrefix}-${Date.now()}.zip`);
@@ -133,64 +139,41 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
       }
       zipfile.end();
     }).catch(err => {
-      throw new ReleaseError(`Error creating zip file for layer ${layerNum}`, { cause: err });
+      throw new ReleaseError(`Error creating zip file for layer ${layerNum}`, { cause: err, retryable: false });
     });
 
-    await retryLayer(layerNum, logger, async () => {
-      logger.log(`Submitting release for layer ${layerNum} via ESRP`);
-      // From testing, this succeeds even if the versions already exist in the registry,
-      // with no way to distinguish...
-      await releaseService.createRelease({
-        filePath: zipPath,
-        repoName,
-        releaseRequestParams: {
-          createdBy: env.esrp.createdBy,
-          driEmail: env.esrp.driEmail,
-          owners: env.esrp.owners,
-          approvers: env.esrp.approvers,
-          productInfo: {
-            name: env.esrp.productName,
-            // This is an arbitrary string, not used as the published version
-            version: `${env.ado.buildSourceVersion}-${layerNum}`,
-            description: `${env.esrp.productName} packages - ${layerNum}`,
-          },
-          releaseTitle: env.esrp.productName,
-          npmTag: env.esrp.npmTag,
+    logger.log(`Submitting release for layer ${layerNum} via ESRP`);
+    // From testing, this succeeds even if the versions already exist in the registry,
+    // with no way to distinguish...
+    await releaseService.createRelease({
+      filePath: zipPath,
+      repoName,
+      releaseRequestParams: {
+        createdBy: env.esrp.createdBy,
+        driEmail: env.esrp.driEmail,
+        owners: env.esrp.owners,
+        approvers: env.esrp.approvers,
+        productInfo: {
+          name: env.esrp.productName,
+          // This is an arbitrary string, not used as the published version
+          version: `${env.ado.buildSourceVersion}-${layerNum}`,
+          description: `${env.esrp.productName} packages - ${layerNum}`,
         },
-      });
-      logger.log('📦 Packages were successfully published to npm');
-
-      // This is done AFTER piercing to prevent silently trying to re-publish the same versions
-      // if there's a failure in any later step (since ESRP won't error on re-publishes)
-      logger.log(`Marking layer as published in release state`);
-      await state.markPublished(layerNum);
+        releaseTitle: env.esrp.productName,
+        npmTag: env.esrp.npmTag,
+      },
     });
+    logger.log('📦 Packages were successfully published to npm');
+
+    // TODO: ideally we would pierce the package into the feed here, but the build token may not have
+    // packaging "write" permissions
+
+    // Mark as published outside the retries so we only do it once.
+    logger.log(`Marking layer as published in release state`);
+    await state.markPublished(layerNum);
 
     logger.endGroup();
   }
 
   logger.log(`All ${state.publishedCount} artifacts published!`);
-}
-
-const maxLayerAttempts = 4;
-
-async function retryLayer(layerNum: string, logger: Logger, release: () => Promise<void>): Promise<void> {
-  for (let attempt = 1; attempt <= maxLayerAttempts; attempt++) {
-    try {
-      await release();
-      return;
-    } catch (error) {
-      if (!(error instanceof ReleaseError) || !error.retryable || attempt === maxLayerAttempts) {
-        throw error;
-      }
-
-      const baseDelay = 1000 * 2 ** (attempt - 1);
-      const delay = Math.floor(baseDelay / 2 + Math.random() * (baseDelay / 2));
-      logger.warn(
-        `Release attempt ${attempt} of ${maxLayerAttempts} for layer ${layerNum} failed; ` + `retrying in ${delay}ms:`,
-        error
-      );
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
 }
