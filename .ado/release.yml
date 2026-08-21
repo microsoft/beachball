@@ -46,6 +46,7 @@ variables:
   # TODO (release): remove all canary artifacts
   canaryArtifactName: packed-packages-canary
   releaseToolArtifactName: release-api-tool
+  tgzScanTestArtifactName: tgz-scan-test
 
 # Temporary workaround to publish two groups of packages with different versioning strategies
 # TODO (release): go back to a single publish step
@@ -98,6 +99,7 @@ extends:
               packagesArtifactPath: $(Build.StagingDirectory)/${{ variables.packagesArtifactName }}
               canaryArtifactPath: $(Build.StagingDirectory)/${{ variables.canaryArtifactName }}
               releaseToolArtifactPath: $(Build.StagingDirectory)/${{ variables.releaseToolArtifactName }}
+              tgzScanTestArtifactPath: $(Build.StagingDirectory)/${{ variables.tgzScanTestArtifactName }}
 
             templateContext:
               outputParentDirectory: $(Build.StagingDirectory)
@@ -111,6 +113,9 @@ extends:
                 - output: pipelineArtifact
                   artifactName: ${{ variables.releaseToolArtifactName }}
                   path: $(releaseToolArtifactPath)
+                - output: pipelineArtifact
+                  artifactName: ${{ variables.tgzScanTestArtifactName }}
+                  path: $(tgzScanTestArtifactPath)
 
             steps:
               - template: /.ado/templates/setup.yml@self
@@ -131,6 +136,14 @@ extends:
 
               - script: yarn beachball:release publish --no-push --pack-to-path "$(packagesArtifactPath)"
                 displayName: Pack packages (others)
+
+              - script: |
+                  mkdir -p "$(tgzScanTestArtifactPath)"
+                  echo "This file exists only inside the tgz scan test artifact." > "$(Agent.TempDirectory)/beachball-tgz-only-sentinel.txt"
+                  tar -czf "$(tgzScanTestArtifactPath)/tgz-expansion-test.tgz" \
+                    -C "$(Agent.TempDirectory)" beachball-tgz-only-sentinel.txt
+                  rm "$(Agent.TempDirectory)/beachball-tgz-only-sentinel.txt"
+                displayName: Create tgz scanning test artifact
 
               - script: |
                   mkdir -p '$(releaseToolArtifactPath)'
@@ -156,6 +169,7 @@ extends:
               packagesArtifactPath: $(Agent.BuildDirectory)/${{ variables.packagesArtifactName }}
               canaryArtifactPath: $(Agent.BuildDirectory)/${{ variables.canaryArtifactName }}
               releaseToolArtifactPath: $(Agent.BuildDirectory)/${{ variables.releaseToolArtifactName }}
+              tgzScanTestArtifactPath: $(Agent.BuildDirectory)/${{ variables.tgzScanTestArtifactName }}
               toolArtifactBin: $(releaseToolArtifactPath)/index.mjs
 
             templateContext:
@@ -171,6 +185,9 @@ extends:
                 - input: pipelineArtifact
                   artifactName: ${{ variables.releaseToolArtifactName }}
                   targetPath: $(releaseToolArtifactPath)
+                - input: pipelineArtifact
+                  artifactName: ${{ variables.tgzScanTestArtifactName }}
+                  targetPath: $(tgzScanTestArtifactPath)
 
             steps:
               - task: UseNode@1
@@ -184,6 +201,7 @@ extends:
                   ls -R '$(packagesArtifactPath)'
                   ls -R '$(canaryArtifactPath)'
                   ls -R '$(releaseToolArtifactPath)'
+                  ls -R '$(tgzScanTestArtifactPath)'
                 displayName: Show artifact contents
 
               # Get credentials that will be used to temporarily upload zips to ogxesrptempstorage
