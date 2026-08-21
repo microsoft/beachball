@@ -20,6 +20,7 @@ The available commands are:
 
 - [`create-github-app-token`](#create-github-app-token): create a GitHub App installation token.
 - [`revoke-github-app-token`](#revoke-github-app-token): revoke a previously created GitHub App installation token.
+- [`update-lock-registry`](#update-lock-registry): update npm or yarn v1 lock file URLs for a private registry.
 
 ### `create-github-app-token`
 
@@ -57,6 +58,20 @@ The `revoke-github-app-token` command revokes a token by calling `DELETE /instal
 | ----- | ----------- |
 | `TOKEN` (env var) | Installation token to revoke. |
 | `--github-api-url` | (optional) GitHub REST API URL (customizable for GitHub Enterprise). Defaults to `https://api.github.com`. |
+
+### `update-lock-registry`
+
+For npm or yarn v1, update public registry URLs in the repo's lock file to point to a private registry. This command is a no-op for other package managers, yarn v2 and later, or the default public registry. It errors if the lock file does not contain the expected registry URL.
+
+<!-- prettier-ignore -->
+| Input | Description |
+| ----- | ----------- |
+| `--registry` | Private npm registry URL. |
+| `--revert` | (optional) Restore lock file URLs to the default public registry. |
+
+```bash
+yarn beachball-auth-helper update-lock-registry --registry "https://registry.example.com/"
+```
 
 ## Usage: `create-github-app-token`
 

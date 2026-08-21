@@ -5,13 +5,16 @@ import { runAuthHelperCli, type CliContext } from '../../authHelper/authHelperCl
 import * as authModule from '../../authHelper/createAppToken';
 import { defaultGitHubApiUrl } from '../../authHelper/requestHelpers';
 import * as revokeModule from '../../authHelper/revokeAppToken';
+import { updateLockFileRegistry } from '../../authHelper/updateLockFileRegistry';
 
 jest.mock('../../authHelper/createAppToken');
 jest.mock('../../authHelper/revokeAppToken');
+jest.mock('../../authHelper/updateLockFileRegistry');
 jest.mock('node:fs');
 
 const { createAppToken } = jest.mocked(authModule);
 const { revokeAppToken } = jest.mocked(revokeModule);
+const mockUpdateLockFileRegistry = jest.mocked(updateLockFileRegistry);
 const mockAppendFileSync = jest.mocked(fs.appendFileSync);
 
 describe('authHelperCli', () => {
@@ -22,6 +25,7 @@ describe('authHelperCli', () => {
   function getContext(args: string[], env?: NodeJS.ProcessEnv): CliContext {
     return {
       argv: ['node', 'authHelperCli.js', ...args],
+      cwd: '/test/project',
       env: env || {},
       outputOptions: {
         writeOut: message => out.push(message.trim()),
@@ -43,7 +47,7 @@ describe('authHelperCli', () => {
     err = [];
   });
 
-  it.each(['top level', 'create-github-app-token', 'revoke-github-app-token'])(
+  it.each(['top level', 'create-github-app-token', 'revoke-github-app-token', 'update-lock-registry'])(
     'shows help text for %s',
     async command => {
       const context = getContext([...(command === 'top level' ? [] : [command]), '--help']);
@@ -253,6 +257,33 @@ describe('authHelperCli', () => {
     it('requires a token', async () => {
       const context = getContext(['revoke-github-app-token']);
       await expect(runAuthHelperCli(context)).rejects.toThrow(/--token/);
+    });
+  });
+
+  describe('update lock registry command', () => {
+    it('passes provided cwd through', async () => {
+      await runAuthHelperCli(getContext(['update-lock-registry', '--registry', 'https://registry.example.com/']));
+
+      expect(mockUpdateLockFileRegistry).toHaveBeenCalledWith({
+        cwd: '/test/project',
+        registry: 'https://registry.example.com/',
+      });
+    });
+
+    it('passes the revert option through', async () => {
+      await runAuthHelperCli(
+        getContext(['update-lock-registry', '--registry', 'https://registry.example.com/', '--revert'])
+      );
+
+      expect(mockUpdateLockFileRegistry).toHaveBeenCalledWith({
+        cwd: '/test/project',
+        registry: 'https://registry.example.com/',
+        revert: true,
+      });
+    });
+
+    it('requires a registry', async () => {
+      await expect(runAuthHelperCli(getContext(['update-lock-registry']))).rejects.toThrow(/--registry/);
     });
   });
 });

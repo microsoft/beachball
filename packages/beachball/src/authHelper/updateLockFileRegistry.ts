@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { BeachballError } from '../types/BeachballError';
+import { getWorkspaceManagerAndRoot } from 'workspace-tools';
 
 // registries MUST have a trailing slash
 const defaultNpmRegistry = 'https://registry.npmjs.org/';
@@ -20,25 +21,34 @@ const defaultYarnRegistry = 'https://registry.yarnpkg.com/';
  *   without modifying the lock file.
  */
 export function updateLockFileRegistry(
-  params: Pick<BeachballOptions, 'registry' | 'path'> & {
+  params: Pick<BeachballOptions, 'registry'> & {
+    /** Current working directory (will find the project root from here). */
+    cwd: string;
     /** If true, revert from `registry` to the default registry. Otherwise apply `registry` to the lock file. */
     revert?: boolean;
   }
 ): void {
-  const { path: cwd, revert } = params;
+  const { revert } = params;
+
   let registry = params.registry;
   if (!registry) {
     throw new BeachballError('The "registry" option is required to update lock files');
   }
   registry = registry.replace(/(?<!\/)$/, '/');
 
-  const managerFile = ['yarn.lock', 'package-lock.json'].find(file => fs.existsSync(path.join(cwd, file)));
-  if (!managerFile || (managerFile === 'yarn.lock' && fs.existsSync(path.join(cwd, '.yarnrc.yml')))) {
+  const workspace = getWorkspaceManagerAndRoot(params.cwd);
+  if (
+    !workspace ||
+    !['npm', 'yarn'].includes(workspace.manager) ||
+    (workspace.manager === 'yarn' && fs.existsSync(path.join(workspace.root, '.yarnrc.yml')))
+  ) {
     console.log('Skipping lock file update for current package manager which does not embed URLs');
     return;
   }
+  const { manager, root } = workspace;
 
-  const defaultRegistry = managerFile === 'yarn.lock' ? defaultYarnRegistry : defaultNpmRegistry;
+  const managerFile = manager === 'yarn' ? 'yarn.lock' : 'package-lock.json';
+  const defaultRegistry = manager === 'yarn' ? defaultYarnRegistry : defaultNpmRegistry;
   if (registry === defaultRegistry) {
     console.log('Skipping lock file update for default registry');
     return;
@@ -46,7 +56,7 @@ export function updateLockFileRegistry(
   const oldRegistry = revert ? registry : defaultRegistry;
   const newRegistry = revert ? defaultRegistry : registry;
 
-  const lockFilePath = path.join(cwd, managerFile);
+  const lockFilePath = path.join(root, managerFile);
   const lockFileContent = fs.readFileSync(lockFilePath, 'utf-8');
   if (!lockFileContent.includes(oldRegistry)) {
     throw new BeachballError(`Lock file ${lockFilePath} does not contain ${oldRegistry}`);

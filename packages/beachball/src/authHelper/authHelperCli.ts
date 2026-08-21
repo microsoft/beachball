@@ -1,5 +1,6 @@
 import { Command, InvalidArgumentError, Option, type OutputConfiguration } from 'commander';
 import fs from 'node:fs';
+import { updateLockFileRegistry } from './updateLockFileRegistry';
 import { BeachballError } from '../types/BeachballError';
 import { createAppToken } from './createAppToken';
 import { defaultGitHubApiUrl } from './requestHelpers';
@@ -13,6 +14,8 @@ const authHelperDocsUrl = 'https://microsoft.github.io/beachball/concepts/ci-int
 export interface CliContext {
   /** Full argv (including `node` and the script path), e.g. `process.argv`. */
   argv: string[];
+  /** Current working directory. */
+  cwd: string;
   /** Environment override for tests */
   env?: NodeJS.ProcessEnv;
   outputOptions?: OutputConfiguration;
@@ -145,6 +148,15 @@ Tokens expire after one hour. Create them immediately before use and revoke them
     .addOption(githubApiUrlOption())
     .action(async (options: RevokeAppTokenOptions) => {
       await revokeAppToken(options);
+    });
+
+  program
+    .command('update-lock-registry')
+    .description('For npm / yarn v1 only: Update lock file registry URLs to point to a private registry')
+    .addOption(new Option('--registry <url>', 'Private npm registry URL').makeOptionMandatory())
+    .addOption(new Option('--revert', 'Restore lock file URLs to the default public registry'))
+    .action((options: { registry: string; revert?: boolean }) => {
+      updateLockFileRegistry({ ...options, cwd: context.cwd });
     });
 
   return program;

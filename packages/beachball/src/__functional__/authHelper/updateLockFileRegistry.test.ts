@@ -1,9 +1,17 @@
-import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { createTestFileStructure, expectErrorSync, removeTempDir } from '@microsoft/beachball-test-utilities';
 import fs from 'node:fs';
 import path from 'node:path';
-import { updateLockFileRegistry } from '../../commands/updateLockFileRegistry';
+import { getWorkspaceManagerAndRoot } from 'workspace-tools';
+import { updateLockFileRegistry } from '../../authHelper/updateLockFileRegistry';
 import { BeachballError } from '../../types/BeachballError';
+
+jest.mock('workspace-tools', () => ({
+  ...jest.requireActual<typeof import('workspace-tools')>('workspace-tools'),
+  getWorkspaceManagerAndRoot: jest.fn(),
+}));
+
+const mockGetWorkspaceManagerAndRoot = jest.mocked(getWorkspaceManagerAndRoot);
 
 const fixturesDir = path.join(__dirname, '../../__fixtures__/lockfiles');
 
@@ -24,6 +32,10 @@ describe('updateLockFileRegistry', () => {
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
+  beforeEach(() => {
+    mockGetWorkspaceManagerAndRoot.mockReset().mockImplementation(() => ({ manager: 'npm', root: tempDir }));
+  });
+
   afterEach(() => {
     removeTempDir(tempDir);
     tempDir = '';
@@ -35,7 +47,7 @@ describe('updateLockFileRegistry', () => {
     tempDir = createTestFileStructure({});
 
     expectErrorSync(
-      () => updateLockFileRegistry({ path: tempDir, registry: '' }),
+      () => updateLockFileRegistry({ cwd: tempDir, registry: '' }),
       BeachballError,
       'The "registry" option is required'
     );
@@ -43,8 +55,9 @@ describe('updateLockFileRegistry', () => {
 
   it('skips yarn berry (yarn.lock alongside .yarnrc.yml)', () => {
     tempDir = createTestFileStructure({ 'yarn.lock': '', '.yarnrc.yml': 'nodeLinker: node-modules\n' });
+    mockGetWorkspaceManagerAndRoot.mockReturnValueOnce({ manager: 'yarn', root: tempDir });
 
-    updateLockFileRegistry({ path: tempDir, registry });
+    updateLockFileRegistry({ cwd: tempDir, registry });
     expect(consoleLogSpy).toHaveBeenCalledWith(
       'Skipping lock file update for current package manager which does not embed URLs'
     );
@@ -52,8 +65,19 @@ describe('updateLockFileRegistry', () => {
 
   it('skips pnpm (pnpm-lock.yaml does not embed default registry URLs)', () => {
     tempDir = createTestFileStructure({ 'pnpm-lock.yaml': '' });
+    mockGetWorkspaceManagerAndRoot.mockReturnValueOnce({ manager: 'pnpm', root: tempDir });
 
-    updateLockFileRegistry({ path: tempDir, registry });
+    updateLockFileRegistry({ cwd: tempDir, registry });
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      'Skipping lock file update for current package manager which does not embed URLs'
+    );
+  });
+
+  it('skips when the package manager cannot be determined', () => {
+    tempDir = createTestFileStructure({});
+    mockGetWorkspaceManagerAndRoot.mockReturnValueOnce(undefined);
+
+    updateLockFileRegistry({ cwd: tempDir, registry });
     expect(consoleLogSpy).toHaveBeenCalledWith(
       'Skipping lock file update for current package manager which does not embed URLs'
     );
@@ -63,7 +87,7 @@ describe('updateLockFileRegistry', () => {
     const original = readFixture('npm.package-lock.json.fixture');
     tempDir = createTestFileStructure({ 'package-lock.json': original });
 
-    updateLockFileRegistry({ path: tempDir, registry: npmjsRegistry });
+    updateLockFileRegistry({ cwd: tempDir, registry: npmjsRegistry });
     expect(consoleLogSpy).toHaveBeenCalledWith('Skipping lock file update for default registry');
   });
 
@@ -71,7 +95,7 @@ describe('updateLockFileRegistry', () => {
     const original = readFixture('npm.package-lock.json.fixture');
     tempDir = createTestFileStructure({ 'package-lock.json': original });
 
-    updateLockFileRegistry({ path: tempDir, registry: registry.replace(/\/$/, '') });
+    updateLockFileRegistry({ cwd: tempDir, registry: registry.replace(/\/$/, '') });
 
     const updated = read('package-lock.json');
     expect(updated).toBe(original.replaceAll(npmjsRegistry, registry));
@@ -81,7 +105,7 @@ describe('updateLockFileRegistry', () => {
     tempDir = createTestFileStructure({ 'package-lock.json': '{}\n' });
 
     expectErrorSync(
-      () => updateLockFileRegistry({ path: tempDir, registry }),
+      () => updateLockFileRegistry({ cwd: tempDir, registry }),
       BeachballError,
       'does not contain https://registry.npmjs.org/'
     );
@@ -89,9 +113,14 @@ describe('updateLockFileRegistry', () => {
 
   it('rewrites registry URLs in an npm package-lock.json', () => {
     const original = readFixture('npm.package-lock.json.fixture');
-    tempDir = createTestFileStructure({ 'package-lock.json': original });
+    tempDir = createTestFileStructure({
+      'package.json': '{ "workspaces": ["packages/*"] }',
+      'package-lock.json': original,
+      'packages/foo/package.json': '{ "name": "foo" }',
+    });
 
-    updateLockFileRegistry({ path: tempDir, registry });
+    updateLockFileRegistry({ cwd: path.join(tempDir, 'packages/foo'), registry });
+    expect(mockGetWorkspaceManagerAndRoot).toHaveBeenCalledWith(path.join(tempDir, 'packages/foo'));
 
     const updated = read('package-lock.json');
     expect(updated).toBe(original.replaceAll(npmjsRegistry, registry));
@@ -99,11 +128,26 @@ describe('updateLockFileRegistry', () => {
     expect(updated).toContain(`${registry}is-number/-/is-number-7.0.0.tgz`);
   });
 
+  it('updates a single-package npm repo', () => {
+    const original = readFixture('npm.package-lock.json.fixture');
+    tempDir = createTestFileStructure({
+      'package.json': '{ "name": "foo" }',
+      'package-lock.json': original,
+    });
+    mockGetWorkspaceManagerAndRoot.mockReturnValueOnce({ manager: 'npm', root: tempDir });
+
+    updateLockFileRegistry({ cwd: tempDir, registry });
+
+    expect(mockGetWorkspaceManagerAndRoot).toHaveBeenCalledWith(tempDir);
+    expect(read('package-lock.json')).toBe(original.replaceAll(npmjsRegistry, registry));
+  });
+
   it('rewrites registry URLs in a yarn v1 yarn.lock', () => {
     const original = readFixture('yarn-v1.yarn.lock.fixture');
     tempDir = createTestFileStructure({ 'yarn.lock': original });
+    mockGetWorkspaceManagerAndRoot.mockReturnValueOnce({ manager: 'yarn', root: tempDir });
 
-    updateLockFileRegistry({ path: tempDir, registry });
+    updateLockFileRegistry({ cwd: tempDir, registry });
 
     const updated = read('yarn.lock');
     expect(updated).toBe(original.replaceAll(yarnpkgRegistry, registry));
@@ -117,7 +161,7 @@ describe('updateLockFileRegistry', () => {
     const withPrivateRegistry = original.replaceAll(npmjsRegistry, registry);
     tempDir = createTestFileStructure({ 'package-lock.json': withPrivateRegistry });
 
-    updateLockFileRegistry({ path: tempDir, registry, revert: true });
+    updateLockFileRegistry({ cwd: tempDir, registry, revert: true });
 
     const updated = read('package-lock.json');
     expect(updated).toBe(original);
