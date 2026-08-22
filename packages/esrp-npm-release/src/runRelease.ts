@@ -113,7 +113,6 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
     }
 
     const layerPrefix = 'layer-' + layerNum;
-    logger.startGroup(layerPrefix, `Releasing layer ${layerNum} of ${layers.length}`);
 
     const layerDir = path.join(env.packedPackagesPath, layerNum);
     const tgzFiles = fs
@@ -121,10 +120,11 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
       .filter(file => file.endsWith('.tgz'))
       .map(file => path.join(layerDir, file));
     if (!tgzFiles.length) {
-      logger.warn(`No .tgz files found in layer directory ${layerDir}; skipping layer`);
-      logger.endGroup();
+      logger.warn(`No .tgz files found in layer directory ${layerDir}; skipping layer\n`);
       continue;
     }
+
+    logger.startGroup(layerPrefix, `Releasing layer ${layerNum} of ${layers.length} (${tgzFiles.length} package(s))`);
 
     const zipPath = path.join(zipsDir, `${layerPrefix}-${Date.now()}.zip`);
     logger.log(`Zipping layer contents to ${zipPath}`);
@@ -175,5 +175,5 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
     logger.endGroup();
   }
 
-  logger.log(`All ${state.publishedCount} artifacts published!`);
+  logger.log(`All ${state.publishedCount} layers published!`);
 }

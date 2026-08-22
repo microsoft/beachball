@@ -301,8 +301,7 @@ describe('runRelease', () => {
     expect(state.markPublished).not.toHaveBeenCalledWith('2');
     expect(logger.mocks.warn).toHaveBeenCalledWith(
       '##vso[task.logissue type=warning]',
-      '[layer-2]',
-      expect.stringMatching(/No \.tgz files found in layer directory.*[/\\]2; skipping layer$/)
+      expect.stringMatching(/No \.tgz files found in layer directory.*[/\\]2; skipping layer/)
     );
   });
 });
