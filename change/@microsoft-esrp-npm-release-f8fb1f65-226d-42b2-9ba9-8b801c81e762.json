@@ -1,6 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix exit handling for initial option errors",
-  "packageName": "@microsoft/esrp-npm-release",
-  "email": "elcraig@microsoft.com"
-}

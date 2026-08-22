@@ -1,6 +1,6 @@
 {
   "name": "@microsoft/esrp-npm-release",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
   "description": "ESRP npm release helper",
   "bin": "bin/esrp-npm-release.js",

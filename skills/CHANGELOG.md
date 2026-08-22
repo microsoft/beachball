@@ -1,8 +1,17 @@
 # Change Log - @microsoft/beachball-change-file-skill
 
-<!-- This log was last generated on Thu, 13 Aug 2026 03:44:19 GMT and should not be manually modified. -->
+<!-- This log was last generated on Sat, 22 Aug 2026 00:26:19 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 1.1.1
+
+Sat, 22 Aug 2026 00:26:19 GMT
+
+### Patches
+
+- Handle differences between beachball v2 and v3 change file format (elcraig@microsoft.com)
+- Handle new option `changeFile.includeEmail` (elcraig@microsoft.com)
 
 ## 1.1.0
 
