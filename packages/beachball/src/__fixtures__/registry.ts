@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck -- verdaccio tests are disabled to prevent outdated deps from being flagged
+/* eslint-disable */
 import { ConfigBuilder } from '@verdaccio/config';
 import { fork, type ChildProcess } from 'child_process';
 import fs from 'fs';

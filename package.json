@@ -16,6 +16,8 @@
   ],
   "scripts": {
     "beachball": "node ./packages/beachball/lib/cli.js",
+    "beachball:v3": "yarn workspace @microsoft/beachball-v3 run beachball",
+    "beachball-auth-helper:v3": "yarn workspace @microsoft/beachball-auth-helper-v3 run beachball-auth-helper",
     "build": "lage build",
     "bump": "yarn beachball bump",
     "change": "yarn beachball change",
@@ -52,22 +54,6 @@
     "typescript": "~5.2.0"
   },
   "resolutions": {
-    "@types/node@npm:*": "^14.0.0",
-    "handlebars@npm:4.7.8": "^4.7.9",
-    "js-yaml@npm:4.1.0": "^4.1.0",
-    "lodash": "^4.18.1",
-    "minimatch@npm:7.4.6": "^7.4.6",
-    "qs@npm:6.10.4": "^6.14.2",
-    "qs@npm:6.11.0": "^6.14.2",
-    "semver@npm:7.5.4": "^7.7.4",
-    "validator@npm:13.11.0": "^13.15.22"
-  },
-  "rationale": {
-    "resolutions": {
-      "lodash": "Unpin due to security issue",
-      "qs": "Unpin due to security issue",
-      "semver": "Unpin due to security issues",
-      "minimatch": "Unpin due to security issues"
-    }
+    "@types/node@npm:*": "^14.0.0"
   }
 }

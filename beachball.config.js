@@ -1,12 +1,11 @@
 // @ts-check
-/** @type {Partial<import('./packages/beachball/src/types/BeachballOptions').RepoOptions>}*/
+/** @type {import('./packages/beachball/src/index').BeachballConfig}*/
 const config = {
-  access: 'public',
   branch: 'v2',
   commit: false,
   disallowedChangeTypes: ['major'],
-  groupChanges: true,
   ignorePatterns: ['.*ignore', '.eslintrc.js', 'jest.*.js', 'src/__*/**/*'],
+  // NOTE: beachball no longer controls the npm dist-tag (see .ado/release.yml)
 };
 
 module.exports = config;

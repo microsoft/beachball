@@ -1,71 +1,197 @@
-# The release pipeline to publish NPM packages to npmjs.com via ESRP ("beachball - release")
-# Based on https://github.com/microsoft/node-api-dotnet/blob/main/.ado/release.yml
+# Pipeline: "beachball - release"
+# The release pipeline to build, test, and pack NPM packages, publish them via ESRP,
+# and push the resulting changes back to git.
 
-# Name of the run
-# NOTE: this is referenced in packages/beachball/src/env.ts as BUILD_BUILDNUMBER for some tests
-name: beachball-release-$(Date:yyyy-MM-dd).$(Rev:rr)
+name: beachball-v2-release-$(Date:yyyy-MM-dd).$(Rev:rr)
 
+pr: none
 trigger: none
 
 resources:
-  pipelines:
-    - pipeline: 'beachball_publish'
-      project: 'ISS'
-      source: 'beachball - prepublish'
-      trigger:
-        branches:
-          include:
-            - main
-            - user/elcraig/1es-pt-migration-publish
-
   repositories:
     - repository: OfficePipelineTemplates
       type: git
       name: 1ESPipelineTemplates/OfficePipelineTemplates
       ref: refs/tags/release
 
+variables:
+  - group: ogx-oss-release
+  - template: /.ado/templates/readonly-variables.yml
+    parameters:
+      variables:
+        tags: production
+        nodeVersion: 22
+        # Force multiline bash scripts to exit with an error if any line fails
+        # (includes ADO defaults plus errexit:errtrace)
+        SHELLOPTS: braceexpand:hashall:interactive-comments:errexit:errtrace
+
+        # TODO: change to "v2" once v3 is released
+        npmDistTag: latest
+
+        # Internal npm feed (with npmjs.org as upstream) for build/publish in 1ES PT
+        REGISTRY_URL: https://pkgs.dev.azure.com/office/_packaging/Office/npm/registry/
+        # Yarn v4 doesn't respect .npmrc, so set config with YARN_* env
+        YARN_NPM_REGISTRY_SERVER: $(REGISTRY_URL)
+        YARN_NPM_ALWAYS_AUTH: 1
+        YARN_NPMRC_AUTH_ENABLED: 1
+
+        packagesArtifactName: packed-packages
+
+        # Map in variable group values as readonly (with this syntax, they'll be empty strings if unset)
+        esrpReleaseAzureSubscription: $[variables.grp_esrpReleaseAzureSubscription]
+        esrpReleaseClientId: $[variables.grp_esrpReleaseClientId]
+        esrpReleaseKeyVaultName: $[variables.grp_esrpReleaseKeyVaultName]
+        esrpReleaseTenantId: $[variables.grp_esrpReleaseTenantId]
+        esrpSecretNameAuthCert: $[variables.grp_esrpSecretNameAuthCert]
+        esrpSecretNameSignCert: $[variables.grp_esrpSecretNameSignCert]
+        ghaClientId: $[variables.grp_ghaClientId]
+        ghaUserName: $[variables.grp_ghaUserName]
+        ghaUserEmail: $[variables.grp_ghaUserEmail]
+        ghaTokenAzureSubscription: $[variables.grp_ghaTokenAzureSubscription]
+        ghaTokenKeyId: $[variables.grp_ghaTokenKeyId]
+
 extends:
   template: v1/Office.Official.PipelineTemplate.yml@OfficePipelineTemplates
   parameters:
     pool:
       name: Azure-Pipelines-1ESPT-ExDShared
-      vmImage: windows-latest
+      # the auto-injected SDL source-analysis (Guardian) stage is Windows-only
+      image: windows-latest
       os: windows
+    featureFlags:
+      incrementalSDLSourceAnalysis: true
+    sdl:
+      codeql:
+        runSourceLanguagesInSourceAnalysis: true
+        enabledOnNonDefaultBranches: false
+    settings:
+      # If any job has `type: releaseJob`, it applies strict network isolation to the whole pipeline.
+      # Re-enable the access needed.
+      networkIsolationPolicy: AzureActiveDirectory,AzureKeyVault,AzureStorage,GitHub
 
     stages:
-      - stage: main_release
-        displayName: Publish packages
+      - stage: build
+        displayName: Build artifacts
         jobs:
-          - job: npmjs_com_job
-            displayName: NPM to npmjs.com
+          - job: build
+            displayName: Build, test, pack
+
+            pool:
+              name: Azure-Pipelines-1ESPT-ExDShared
+              image: ubuntu-latest
+              os: linux
+
+            workspace:
+              clean: all
+
+            variables:
+              packagesArtifactPath: $(Build.StagingDirectory)/${{ variables.packagesArtifactName }}
+
+            templateContext:
+              outputs:
+                - output: pipelineArtifact
+                  artifactName: ${{ variables.packagesArtifactName }}
+                  path: $(packagesArtifactPath)
+
+            steps:
+              - template: /.ado/templates/setup.yml@self
+
+              - script: yarn build --verbose
+                displayName: Build
+
+              - script: yarn test --verbose
+                displayName: Test
+
+              - script: mkdir -p '$(packagesArtifactPath)'
+                displayName: Create package artifact directories
+
+              - script: yarn beachball:v3 publish --no-push --pack-to-path '$(packagesArtifactPath)'
+                displayName: Pack packages
+
+              - script: ls -R '$(Build.StagingDirectory)'
+                displayName: Show all output files
+
+      - stage: publish
+        displayName: Publish
+        dependsOn: build
+        jobs:
+          - job: npm_publish
+            displayName: Publish npm packages
+
+            pool:
+              name: Azure-Pipelines-1ESPT-ExDShared
+              image: ubuntu-latest
+              os: linux
+
+            variables:
+              packagesArtifactPath: $(Agent.BuildDirectory)/${{ variables.packagesArtifactName }}
+
             templateContext:
               type: releaseJob
               isProduction: true
               inputs:
                 - input: pipelineArtifact
-                  pipeline: beachball_publish
-                  artifactName: published-packages
-                  targetPath: $(Pipeline.Workspace)\published-packages
+                  artifactName: ${{ variables.packagesArtifactName }}
+                  targetPath: $(packagesArtifactPath)
 
-            # Use ESRP Release to securely publish to npmjs.com.
             steps:
-              - script: dir /S $(Pipeline.Workspace)\published-packages
-                displayName: Show directory contents
+              - script: ls -R '$(packagesArtifactPath)'
+                displayName: Show artifact contents
 
-              - task: 'SFP.release-tasks.custom-build-release-task.EsrpRelease@9'
-                displayName: 'ESRP Release to npmjs.com'
+              - task: EsrpRelease@12
+                displayName: Publish to npm
                 inputs:
-                  connectedservicename: 'ESRP-JSHost3'
+                  connectedservicename: $(esrpReleaseAzureSubscription)
                   usemanagedidentity: false
-                  keyvaultname: 'OGX-JSHost-KV'
-                  authcertname: 'OGX-JSHost-Auth4'
-                  signcertname: 'OGX-JSHost-Sign3'
-                  clientid: '0a35e01f-eadf-420a-a2bf-def002ba898d'
-                  domaintenantid: 'cdc5aeea-15c5-4db6-b079-fcadd2505dc2'
+                  keyvaultname: $(esrpReleaseKeyVaultName)
+                  authcertname: $(esrpSecretNameAuthCert)
+                  signcertname: $(esrpSecretNameSignCert)
+                  clientid: $(esrpReleaseClientId)
+                  domaintenantid: $(esrpReleaseTenantId)
                   contenttype: npm
-                  folderlocation: $(Pipeline.Workspace)\published-packages
-                  owners: 'elcraig@microsoft.com'
-                  approvers: 'dannyvv@microsoft.com'
-                  # npm tag
-                  # potentially can also be inferred from the publishConfig field within the package.json file.
-                  productstate: 'test'
+                  productstate: $(npmDistTag)
+                  folderlocation: $(packagesArtifactPath)
+                  mainpublisher: ESRPRELPACMAN
+                  waitforreleasecompletion: true
+                  owners: elcraig@microsoft.com
+                  approvers: dannyvv@microsoft.com
+
+      # After a successful ESRP release, push the resulting changes (bumps, tags, changelogs) to git.
+      - stage: push
+        displayName: Push to git
+        dependsOn: publish
+        jobs:
+          - job: push
+            pool:
+              name: Azure-Pipelines-1ESPT-ExDShared
+              image: ubuntu-latest
+              os: linux
+            steps:
+              - template: /.ado/templates/setup.yml@self
+
+              - task: AzureCLI@2
+                name: createToken
+                displayName: Create GitHub App token
+                inputs:
+                  azureSubscription: $(ghaTokenAzureSubscription)
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    yarn beachball-auth-helper:v3 create-github-app-token \
+                      --app-client-id '$(ghaClientId)' \
+                      --key-id '$(ghaTokenKeyId)' \
+                      --repository '$(Build.Repository.Name)' \
+                      --permissions contents:write \
+                      --ci-output-name GITHUB_APP_TOKEN
+
+              # Run publish. Beachball reads `BEACHBALL_GIT_TOKEN` to authenticate the git push.
+              - script: yarn beachball:v3 publish --no-publish
+                displayName: Push package updates
+                env:
+                  BEACHBALL_GIT_TOKEN: $(createToken.GITHUB_APP_TOKEN)
+
+              - script: yarn beachball-auth-helper:v3 revoke-github-app-token
+                displayName: Revoke GitHub App token
+                condition: and(always(), ne(variables['createToken.GITHUB_APP_TOKEN'], ''))
+                env:
+                  TOKEN: $(createToken.GITHUB_APP_TOKEN)
