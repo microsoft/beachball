@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Minor logging updates",
+  "packageName": "@microsoft/esrp-npm-release",
+  "email": "elcraig@microsoft.com"
+}

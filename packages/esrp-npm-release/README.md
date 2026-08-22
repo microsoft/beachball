@@ -438,7 +438,7 @@ extends:
     settings:
       # If any job has `type: releaseJob`, it applies strict network isolation to the whole pipeline.
       # Re-enable the access needed.
-      networkIsolationPolicy: AzureActiveDirectory,AzureKeyVault,AzureResourceManager,AzureStorage,GitHub
+      networkIsolationPolicy: AzureActiveDirectory,AzureKeyVault,AzureStorage,GitHub
 
     stages:
       - stage: build
