@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeAll, afterAll, beforeEach, jest, afterEach } from '@jest/globals';
 import path from 'path';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
-import { Registry } from '../../__fixtures__/registry';
+import type { Registry as RegistryType } from '../../__fixtures__/registry';
 import { removeTempDir, tmpdir } from '../../__fixtures__/tmpdir';
 import * as npmModule from '../../packageManager/npm';
 import { packagePublish } from '../../packageManager/packagePublish';
@@ -71,11 +71,14 @@ describe('packagePublish', () => {
     removeTempDir(tempRoot);
   });
 
-  describe('with real local registry', () => {
-    let registry: Registry;
+  // Disabled due to removed verdaccio deps
+  // eslint-disable-next-line no-restricted-properties
+  describe.skip('with real local registry', () => {
+    let registry: RegistryType;
     let token: string;
 
     beforeAll(async () => {
+      const { Registry } = await import('../../__fixtures__/registry');
       registry = new Registry(__filename);
 
       // Get the token once upfront (unfortunately verdaccio doesn't support `npm token create`)
