@@ -68,6 +68,23 @@ describe('changelog renderers -', () => {
       expect(result).toMatchInlineSnapshot(`"- Awesome change (user1@example.com)"`);
     });
 
+    it.each<[string, string | undefined]>([
+      ['"beachball"', 'beachball'],
+      ['"email not defined"', 'email not defined'],
+      ['""', ''],
+      ['undefined', undefined],
+    ])('omits the author when it is %s', async (_, author) => {
+      const renderInfo = getRenderInfo();
+      const result = await renderEntry(getChangelogEntry({ author }), renderInfo);
+      expect(result).toEqual('- comment');
+    });
+
+    it('omits the author when unspecified', async () => {
+      const renderInfo = getRenderInfo();
+      const result = await renderEntry(getChangelogEntry({ author: undefined }), renderInfo);
+      expect(result).toMatchInlineSnapshot(`"- comment"`);
+    });
+
     it('escapes < outside of code blocks', async () => {
       const renderInfo = getRenderInfo();
       renderInfo.newVersionChangelog.comments.minor![0].comment = 'Add --config <file>';

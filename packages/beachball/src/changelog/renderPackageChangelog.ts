@@ -108,5 +108,7 @@ function _renderEntry(entry: ChangelogEntry): string {
     comment = comment.replace(/</g, '\\<');
   }
 
-  return entry.author === 'beachball' ? comment : `${comment} (${entry.author})`;
+  return !entry.author || entry.author === 'beachball' || entry.author === 'email not defined'
+    ? comment
+    : `${comment} (${entry.author})`;
 }
