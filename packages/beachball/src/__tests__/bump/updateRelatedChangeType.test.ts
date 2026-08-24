@@ -15,7 +15,7 @@ describe('updateRelatedChangeType', () => {
    */
   function callUpdateRelatedChangeType(
     options: Partial<Pick<BeachballOptions, 'bumpDeps'>> & {
-      changes: Array<Pick<ChangeInfo, 'packageName' | 'type' | 'dependentChangeType'>>;
+      changes: Array<Pick<ChangeInfo, 'packageName' | 'type'> & Partial<Pick<ChangeInfo, 'dependentChangeType'>>>;
       /**
        * All the packages used in this fixture, including any per-package beachball options.
        * Must include any dependencies (all versions are 1.0.0).
@@ -38,12 +38,15 @@ describe('updateRelatedChangeType', () => {
       throw new Error('calculatedChangeTypes must be specified if packageGroups is used');
     }
 
-    const changes: ChangeFileInfo[] = options.changes.map(change => ({
-      ...change,
-      comment: 'test comment',
-      commit: '0xdeadbeef',
-      email: 'test@dev.com',
-    }));
+    const changes: ChangeFileInfo[] = options.changes.map(
+      change =>
+        ({
+          ...change,
+          comment: 'test comment',
+          commit: '0xdeadbeef',
+          email: 'test@dev.com',
+        } as ChangeFileInfo)
+    );
 
     const packageInfos = makePackageInfos(packages);
 
@@ -81,6 +84,37 @@ describe('updateRelatedChangeType', () => {
     expect(bumpInfo.calculatedChangeTypes).toEqual({
       foo: 'patch',
       bar: 'minor',
+    });
+  });
+
+  // v3 behavior where dependentChangeType is optional
+  it('defaults dependentChangeType to patch when unspecified', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'foo', type: 'minor' }],
+      packages: {
+        bar: { dependencies: { foo: '1.0.0' } },
+        foo: {},
+      },
+    });
+
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      foo: 'minor',
+      bar: 'patch',
+    });
+  });
+
+  // v3 behavior where dependentChangeType is optional
+  it('does not bump dependents when type is none and dependentChangeType is unspecified', () => {
+    const bumpInfo = callUpdateRelatedChangeType({
+      changes: [{ packageName: 'foo', type: 'none' }],
+      packages: {
+        bar: { dependencies: { foo: '1.0.0' } },
+        foo: {},
+      },
+    });
+
+    expect(bumpInfo.calculatedChangeTypes).toEqual({
+      foo: 'none',
     });
   });
 

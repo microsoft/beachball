@@ -38,7 +38,10 @@ export function updateRelatedChangeType(params: {
   const { calculatedChangeTypes, packageGroups, packageInfos } = bumpInfo;
 
   // If dependentChangeType is none (or somehow unset), there's nothing to do.
-  const dependentChangeType = getMaxChangeType([change.dependentChangeType]);
+  // (Handle v3 format change files where dependentChangeType is optional.)
+  const dependentChangeType = getMaxChangeType([
+    change.dependentChangeType || (change.type === 'none' ? 'none' : 'patch'),
+  ]);
   if (dependentChangeType === 'none') {
     return;
   }
