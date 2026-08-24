@@ -1,0 +1,43 @@
+# Shared setup steps: check out the repo, install Node and dependencies, and configure the
+# private npm registry auth.
+
+steps:
+  - checkout: self
+    fetchTags: false
+
+  - task: UseNode@1
+    displayName: Install Node.js $(nodeVersion)
+    retryCountOnTaskFailure: 1
+    inputs:
+      version: $(nodeVersion).x
+      checkLatest: false
+
+  - script: |
+      git config user.name '$(ghaUserName)'
+      git config user.email '$(ghaUserEmail)'
+    displayName: Configure git user
+
+  - script: |
+      echo "node: `node -v`"
+      echo "yarn: `yarn -v`"
+      echo "npm: `npm -v`"
+      printenv | sort
+      git --no-pager config list
+    displayName: Show environment
+
+  # Configure npm to use the internal feed from REGISTRY_URL.
+  - script: echo 'registry=$(REGISTRY_URL)' >> .npmrc
+    displayName: Configure npm registry
+
+  - task: npmAuthenticate@0
+    displayName: npm authenticate
+    inputs:
+      workingFile: $(Build.SourcesDirectory)/.npmrc
+
+  # This isn't used, it's just a clear way to check that auth is working
+  # (yarn install's auth errors can be very unclear)
+  - script: yarn npm info beachball
+    displayName: Get package to verify yarn auth
+
+  - script: yarn --immutable
+    displayName: Install dependencies

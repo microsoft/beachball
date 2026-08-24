@@ -1,5 +1,4 @@
 import { describe, expect, it, beforeEach, jest } from '@jest/globals';
-// import fetch from 'npm-registry-fetch';
 import {
   _npmShowProperties,
   _packageContentTypeAccept,
@@ -7,19 +6,17 @@ import {
 } from '../../packageManager/getNpmPackageInfo';
 import { initMockLogs } from '../../__fixtures__/mockLogs';
 import * as npmModule from '../../packageManager/npm';
-import { env } from '../../env';
+import type { PackageManagerResult } from '../../packageManager/packageManager';
 
-// These tests fail on the ADO release build due to network restrictions
-// eslint-disable-next-line no-restricted-properties
-const maybeDescribe = env.isBeachballAdoRelease ? describe.skip : describe;
-maybeDescribe('getNpmPackageInfo', () => {
+describe('getNpmPackageInfo', () => {
   const npmSpy = jest.spyOn(npmModule, 'npm');
   // const fetchJsonSpy = jest.spyOn(fetch, 'json');
   const logs = initMockLogs();
   // These tests mostly get known packages from the public npm registry.
   // There's a tiny chance it could fail if the registry is down, but beachball's developer traffic
   // is low enough that it doesn't really matter.
-  const registry = 'https://registry.npmjs.org/';
+  // NOTE: For the release build, this uses the value set in release.yml.
+  const registry = process.env.REGISTRY_URL || 'https://registry.npmjs.org/';
   /** In the unlikely event that somebody publishes this package, it can be changed to different nonsense */
   const shouldNotExist = 'asdfsdfsadfsafsafdsafsdfsdafsfsdfsdafsadfsdfsdfasdfsaf';
 
@@ -29,8 +26,8 @@ maybeDescribe('getNpmPackageInfo', () => {
   });
 
   it.each<{ desc: string; name: string; knownVersion: string }>([
-    { desc: 'unscoped', name: 'beachball', knownVersion: '2.60.1' },
-    { desc: 'scoped', name: '@lage-run/cli', knownVersion: '0.33.0' },
+    { desc: 'unscoped', name: 'is-odd', knownVersion: '1.0.0' },
+    { desc: 'scoped', name: '@lage-run/grapher', knownVersion: '0.2.21' },
   ])('gets info for $desc package from public npm registry', async ({ name, knownVersion }) => {
     const timeout = 10000;
     const result = await getNpmPackageInfo(name, { registry, timeout, path: '' });
@@ -95,21 +92,19 @@ maybeDescribe('getNpmPackageInfo', () => {
 
   it('passes auth args', async () => {
     // Don't care about the result in this case
+    npmSpy.mockImplementationOnce(() =>
+      Promise.resolve({ success: false, stdout: '', stderr: '404' } as PackageManagerResult)
+    );
     await getNpmPackageInfo(shouldNotExist, { registry, token: 'fake', path: '' });
 
     expect(npmSpy).toHaveBeenCalledTimes(1);
-    expect(npmSpy).toHaveBeenCalledWith(
-      ['show', '--registry', registry, '--json', shouldNotExist, ..._npmShowProperties],
-      expect.objectContaining({ env: { ...process.env, 'npm_config_//registry.npmjs.org/:_authToken': 'fake' } })
-    );
-
-    // expect(fetchJsonSpy).toHaveBeenCalledTimes(1);
-    // expect(fetchJsonSpy).toHaveBeenCalledWith('/' + shouldNotExist, {
-    //   registry,
-    //   headers: { accept: _packageContentTypeAccept },
-    //   alwaysAuth: true,
-    //   '//registry.npmjs.org/:_authToken': 'fake',
-    // });
+    const [npmArgs, npmOpts] = npmSpy.mock.calls[0];
+    expect(npmArgs).toEqual(['show', '--registry', registry, '--json', shouldNotExist, ..._npmShowProperties]);
+    const shorthand = registry.replace('https://', '').replace(/\/$/, '');
+    expect(npmOpts.env).toEqual({
+      ...process.env,
+      [`npm_config_//${shorthand}/:_authToken`]: 'fake',
+    });
     // No warning since verbose wasn't enabled
     expect(logs.mocks.warn).not.toHaveBeenCalled();
   });
