@@ -17,7 +17,7 @@
   "scripts": {
     "beachball": "node ./packages/beachball/lib/cli.js",
     "beachball:v3": "yarn workspace @microsoft/beachball-v3 run beachball",
-    "beachball-auth-helper:v3": "yarn workspace @microsoft/beachball-auth-helper-v3 run beachball-auth-helper",
+    "beachball-auth-helper:v3": "yarn workspace @microsoft/beachball-v3 run beachball-auth-helper",
     "build": "lage build",
     "bump": "yarn beachball bump",
     "change": "yarn beachball change",

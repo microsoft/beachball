@@ -151,8 +151,6 @@ extends:
                   contenttype: npm
                   productstate: $(npmDistTag)
                   folderlocation: $(packagesArtifactPath)
-                  mainpublisher: ESRPRELPACMAN
-                  waitforreleasecompletion: true
                   owners: elcraig@microsoft.com
                   approvers: dannyvv@microsoft.com
 

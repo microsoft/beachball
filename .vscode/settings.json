@@ -7,6 +7,7 @@
   "eslint.enable": true,
   "files.trimTrailingWhitespace": true,
   "js/ts.preferences.quoteStyle": "single",
+  "js/ts.preferences.preferTypeOnlyAutoImports": true,
   "js/ts.tsdk.path": "node_modules/typescript/lib",
   "jest.runMode": "on-demand",
   "search.exclude": {
