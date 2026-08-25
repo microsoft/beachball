@@ -11,6 +11,7 @@ const path = require('path');
  */
 function getProjectOptions(projectOverrides) {
   return {
+    clearMocks: true,
     injectGlobals: false,
     roots: ['<rootDir>/src'],
     setupFilesAfterEnv: [path.resolve(__dirname, 'jestSetup.js')],
