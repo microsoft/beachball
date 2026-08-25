@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Omit missing author from changelog md",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

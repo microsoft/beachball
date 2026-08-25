@@ -1,8 +1,19 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Thu, 21 May 2026 00:59:31 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 25 Aug 2026 01:40:36 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.65.6
+
+Tue, 25 Aug 2026 01:40:36 GMT
+
+### Patches
+
+- Allow missing `dependentChangeType` in change files for compatibility with v3 (elcraig@microsoft.com)
+- Fix iterative deepening for detached HEAD (elcraig@microsoft.com)
+- Omit missing author from changelog md (elcraig@microsoft.com)
+- Fix skill name in change prompt (elcraig@microsoft.com)
 
 ## 2.65.5
 

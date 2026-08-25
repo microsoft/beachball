@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Allow missing `dependentChangeType` in change files for compatibility with v3",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix iterative deepening for detached HEAD",
-  "packageName": "beachball",
-  "email": "elcraig@microsoft.com",
-  "dependentChangeType": "patch"
-}
