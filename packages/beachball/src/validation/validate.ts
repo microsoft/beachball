@@ -20,6 +20,7 @@ import type { BumpInfo } from '../types/BumpInfo';
 import type { ChangeCommandContext, CommandContext } from '../types/CommandContext';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
 import { getChangedPackages } from '../changefile/getChangedPackages';
+import type { PackageGroups } from '../types/PackageInfo';
 
 export type ValidateOptions = {
   /**
@@ -134,12 +135,14 @@ export function validate(
     hasError = true; // the helper logs this
   }
 
+  let packageGroups: PackageGroups = {};
+
   if (options.groups && !isValidGroupOptions(options.groups)) {
     hasError = true; // the helper logs this
+  } else {
+    // this exits the process if any package belongs to multiple groups
+    packageGroups = getPackageGroups(originalPackageInfos, options.path, options.groups);
   }
-
-  // this exits the process if any package belongs to multiple groups
-  const packageGroups = getPackageGroups(originalPackageInfos, options.path, options.groups);
 
   if (options.groups && !isValidGroupedPackageOptions(originalPackageInfos, packageGroups)) {
     hasError = true; // the helper logs this
@@ -167,10 +170,7 @@ export function validate(
       hasError = true;
     }
 
-    if (!change.dependentChangeType) {
-      logValidationError(`dependentChangeType is missing in ${changeFile}`);
-      hasError = true;
-    } else if (!isValidDependentChangeType(change.dependentChangeType, disallowedChangeTypes)) {
+    if (!isValidDependentChangeType(change.dependentChangeType, disallowedChangeTypes)) {
       logValidationError(`Invalid dependentChangeType detected in ${changeFile}: "${change.dependentChangeType}"`);
       hasError = true;
     }

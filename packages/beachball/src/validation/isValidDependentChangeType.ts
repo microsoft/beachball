@@ -14,5 +14,9 @@ export function isValidDependentChangeType(
     return true;
   }
 
-  return SortedChangeTypes.includes(dependentChangeType) && !disallowedChangeTypes?.includes(dependentChangeType);
+  return (
+    // Allow v3 format where dependentChangeType is optional
+    !dependentChangeType ||
+    (SortedChangeTypes.includes(dependentChangeType) && !disallowedChangeTypes?.includes(dependentChangeType))
+  );
 }
