@@ -279,6 +279,21 @@ export interface RepoOptions {
    */
   publish: boolean;
   /**
+   * Run `npm publish`/`pack` from this directory for each package, instead of the package root.
+   * - If a string, it must be a relative path, and is resolved from each package root.
+   * - If a function, it may return either an absolute path, or a relative path from the package root.
+   */
+  publishRoot?:
+    | string
+    | ((params: {
+        /** Absolute path to the package root */
+        packagePath: string;
+        /** Package name */
+        name: string;
+        /** Resolved beachball options */
+        options: BeachballOptions;
+      }) => string);
+  /**
    * Instead of publishing to npm, pack packages to tgz files in numbered subfolders under this path,
    * based on dependency tree layers (leaves first). There will also be a file `versions.json` at
    * the top level with the versions of the packed packages in each layer. (Implies `publish: false`.)

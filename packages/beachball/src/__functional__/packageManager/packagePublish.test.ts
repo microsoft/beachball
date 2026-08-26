@@ -3,11 +3,13 @@ import { initMockLogs, Registry, removeTempDir, tmpdir, writeJson } from '@micro
 import path from 'node:path';
 import { mockSpawnSuccess, MockSubprocessError } from '../../__fixtures__/mockSpawnResult';
 import { env } from '../../env';
+import { getDefaultOptions } from '../../options/getDefaultOptions';
 import { getNpmPackageInfo } from '../../packageManager/getNpmPackageInfo';
 import type { npm } from '../../packageManager/npm';
 import * as npmModule from '../../packageManager/npm';
 import { packagePublish } from '../../packageManager/packagePublish';
 import type { PackageInfo } from '../../types/PackageInfo';
+import type { BeachballOptions } from '../../types/BeachballOptions';
 
 type PackagePublishOptions = Parameters<typeof packagePublish>[1];
 
@@ -35,7 +37,8 @@ describe('packagePublish', () => {
 
   const logs = initMockLogs();
 
-  const defaultOptions: Omit<PackagePublishOptions, 'path'> = {
+  const defaultOptions: PackagePublishOptions = {
+    ...getDefaultOptions(),
     npmReadConcurrency: 2,
     retries: 3,
     registry: 'http://fake-registry', // overwritten for real tests
@@ -207,6 +210,33 @@ describe('packagePublish', () => {
 
         [log] Published! - testbeachballpackage@0.6.0"
       `);
+    });
+
+    it('publishes from relative string publishRoot', async () => {
+      npmSpy.mockResolvedValue(mockSpawnSuccess());
+      const options: BeachballOptions = { ...defaultOptions, path: tempRoot, publishRoot: 'dist' };
+      await packagePublish(getTestPackageInfo(), options);
+
+      expect(npmSpy).toHaveBeenCalledWith(
+        expect.any(Array),
+        expect.objectContaining({ cwd: path.join(tempRoot, 'dist') })
+      );
+    });
+
+    it.each<[string, jest.MockedFunction<NonNullable<Exclude<BeachballOptions['publishRoot'], string>>>, string]>([
+      ['function returning relative path', jest.fn(() => 'dist'), 'dist'],
+      ['function returning absolute path', jest.fn(() => path.join(tempRoot, 'built')), 'built'],
+    ])('publishes from publishRoot: %s', async (_description, publishRoot, expectedDirectory) => {
+      npmSpy.mockResolvedValue(mockSpawnSuccess());
+
+      const options: BeachballOptions = { ...defaultOptions, path: tempRoot, publishRoot };
+      await packagePublish(getTestPackageInfo(), options);
+
+      expect(publishRoot).toHaveBeenCalledWith({ packagePath: tempRoot, name: testName, options });
+      expect(npmSpy).toHaveBeenCalledWith(
+        expect.any(Array),
+        expect.objectContaining({ cwd: path.join(tempRoot, expectedDirectory) })
+      );
     });
 
     it('performs retries', async () => {

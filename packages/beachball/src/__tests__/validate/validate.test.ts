@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { initMockLogs } from '@microsoft/beachball-test-utilities';
+import path from 'node:path';
 import * as wsTools from 'workspace-tools';
 import { generateChangeSet } from '../../__fixtures__/changeFiles';
 import type { PartialPackageInfos } from '../../__fixtures__/packageInfos';
@@ -188,6 +189,7 @@ describe('validate', () => {
   it.each<[Partial<BeachballOptions>, string]>([
     [{ authType: 'invalid' as AuthType }, 'ERROR: authType "invalid" is not valid'],
     [{ dependentChangeType: 'invalid' as ChangeType }, 'ERROR: dependentChangeType "invalid" is not valid'],
+    [{ publishRoot: path.resolve('dist') }, 'ERROR: publishRoot must be a relative path when specified as a string'],
     [{ type: 'invalid' as ChangeType }, 'ERROR: Change type "invalid" is not valid'],
   ] as const)('throws for invalid option %o', async (option, expectedError) => {
     await expect(validateWrapper({ repoOptions: option })).rejects.toThrow(BeachballError);

@@ -1,0 +1,6 @@
+{
+  "type": "minor",
+  "comment": "Add option `publishRoot` to customize the directory where `npm publish`/`npm pack` is run",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com"
+}

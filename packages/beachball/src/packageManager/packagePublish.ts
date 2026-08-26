@@ -1,7 +1,6 @@
 import path from 'node:path';
 import type { SpawnResult } from '../spawn';
 import type { BeachballOptions } from '../types/BeachballOptions';
-import type { NpmOptions } from '../types/NpmOptions';
 import type { PackageInfo } from '../types/PackageInfo';
 import { npm } from './npm';
 import { getNpmAuthEnv, getNpmPublishArgs } from './npmArgs';
@@ -10,20 +9,22 @@ import { getNpmAuthEnv, getNpmPublishArgs } from './npmArgs';
  * Attempt to publish the package with retries. Returns the result of the final npm publish call
  * (mainly for tests; the real code just checks `result.success`).
  */
-export async function packagePublish(
-  packageInfo: PackageInfo,
-  options: NpmOptions & Pick<BeachballOptions, 'retries'>
-): Promise<SpawnResult> {
+export async function packagePublish(packageInfo: PackageInfo, options: BeachballOptions): Promise<SpawnResult> {
   const publishArgs = getNpmPublishArgs(packageInfo, options);
   const authEnv = getNpmAuthEnv(options);
 
   const packageRoot = path.dirname(packageInfo.packageJsonPath);
+  const configuredPublishRoot =
+    typeof options.publishRoot === 'function'
+      ? options.publishRoot({ packagePath: packageRoot, name: packageInfo.name, options })
+      : options.publishRoot;
+  const publishRoot = configuredPublishRoot ? path.resolve(packageRoot, configuredPublishRoot) : packageRoot;
   const publishTag = publishArgs[publishArgs.indexOf('--tag') + 1];
   const packageSpec = `${packageInfo.name}@${packageInfo.version}`;
 
   console.log(`Publishing - ${packageSpec} with tag ${publishTag}`);
   console.log(`  publish command: ${publishArgs.join(' ')}`);
-  console.log(`  (cwd: ${packageRoot}${authEnv ? `, auth env var: ${Object.keys(authEnv)[0]}=****` : ''})\n`);
+  console.log(`  (cwd: ${publishRoot}${authEnv ? `, auth env var: ${Object.keys(authEnv)[0]}=****` : ''})\n`);
 
   let result: SpawnResult;
 
@@ -35,8 +36,7 @@ export async function packagePublish(
     }
 
     result = await npm(publishArgs, {
-      // Run npm publish in the package directory
-      cwd: packageRoot,
+      cwd: publishRoot,
       timeout: options.timeout,
       preferLocal: false,
       env: authEnv,
