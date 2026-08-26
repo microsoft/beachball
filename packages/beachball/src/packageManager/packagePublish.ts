@@ -1,7 +1,7 @@
-import path from 'node:path';
 import type { SpawnResult } from '../spawn';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfo } from '../types/PackageInfo';
+import { getPublishRoot } from './getPublishRoot';
 import { npm } from './npm';
 import { getNpmAuthEnv, getNpmPublishArgs } from './npmArgs';
 
@@ -13,12 +13,7 @@ export async function packagePublish(packageInfo: PackageInfo, options: Beachbal
   const publishArgs = getNpmPublishArgs(packageInfo, options);
   const authEnv = getNpmAuthEnv(options);
 
-  const packageRoot = path.dirname(packageInfo.packageJsonPath);
-  const configuredPublishRoot =
-    typeof options.publishRoot === 'function'
-      ? options.publishRoot({ packagePath: packageRoot, name: packageInfo.name, options })
-      : options.publishRoot;
-  const publishRoot = configuredPublishRoot ? path.resolve(packageRoot, configuredPublishRoot) : packageRoot;
+  const publishRoot = getPublishRoot(packageInfo, options);
   const publishTag = publishArgs[publishArgs.indexOf('--tag') + 1];
   const packageSpec = `${packageInfo.name}@${packageInfo.version}`;
 

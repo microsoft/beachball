@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfo } from '../types/PackageInfo';
+import { getPublishRoot } from './getPublishRoot';
 import { npm } from './npm';
 import { getNpmLogLevelArgs } from './npmArgs';
 
@@ -12,23 +13,18 @@ import { getNpmLogLevelArgs } from './npmArgs';
  */
 export async function packPackage(
   packageInfo: PackageInfo,
-  options: Required<Pick<BeachballOptions, 'packToPath'>> &
-    Pick<BeachballOptions, 'verbose'> & {
-      /** Array of layers of package names returned by `PGraph.getLayers()` */
-      layers: string[][];
-    }
+  options: BeachballOptions & Required<Pick<BeachballOptions, 'packToPath'>> & { layers: string[][] }
 ): Promise<boolean> {
   const { packToPath, verbose, layers } = options;
 
   const packArgs = ['pack', ...getNpmLogLevelArgs(verbose)];
 
-  const packageRoot = path.dirname(packageInfo.packageJsonPath);
+  const publishRoot = getPublishRoot(packageInfo, options);
   const packageSpec = `${packageInfo.name}@${packageInfo.version}`;
   console.log(`Packing - ${packageSpec}`);
-  console.log(`  (cwd: ${packageRoot})\n`);
+  console.log(`  (cwd: ${publishRoot})\n`);
 
-  // Run npm pack in the package directory
-  const result = await npm(packArgs, { cwd: packageRoot });
+  const result = await npm(packArgs, { cwd: publishRoot });
   // log afterwards instead of piping because we need to access the output to get the filename
   console.log((result.output || '') + '\n');
 
@@ -38,7 +34,7 @@ export async function packPackage(
   }
 
   const packFile = result.stdout.trim().split('\n').pop() || '';
-  const packFilePath = path.join(packageRoot, packFile);
+  const packFilePath = path.join(publishRoot, packFile);
   if (!packFile.endsWith('.tgz') || !fs.existsSync(packFilePath)) {
     console.error(`npm pack output for ${packageSpec} (above) did not end with a filename that exists\n`);
     return false;

@@ -285,11 +285,10 @@ export interface RepoOptions {
    */
   publishRoot?:
     | string
+    // If you need additional info added to the params, please open an issue
     | ((params: {
         /** Absolute path to the package root */
         packagePath: string;
-        /** Package name */
-        name: string;
         /** Resolved beachball options */
         options: BeachballOptions;
       }) => string);

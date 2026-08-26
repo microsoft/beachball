@@ -26,7 +26,7 @@ export type LayerVersionsJson = Record<string, string>[];
  * This will bump packages on the filesystem (`performBump`) first if `options.bump` is true.
  */
 export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOptions): Promise<void> {
-  const { packToPath, verbose } = options;
+  const { packToPath } = options;
   const verb = packToPath ? 'pack' : 'publish';
 
   // bumpInfo already reflects in-memory bumps, but they're only written to disk if bump=true
@@ -93,7 +93,7 @@ export async function publishToRegistry(bumpInfo: BumpInfo, options: BeachballOp
         const packageInfo = bumpInfo.packageInfos[pkgName];
         let success: boolean;
         if (packToPath) {
-          success = await packPackage(packageInfo, { packToPath, verbose, layers });
+          success = await packPackage(packageInfo, { ...options, packToPath, layers });
         } else {
           success = (await packagePublish(packageInfo, options)).success;
         }

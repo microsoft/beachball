@@ -232,7 +232,7 @@ describe('packagePublish', () => {
       const options: BeachballOptions = { ...defaultOptions, path: tempRoot, publishRoot };
       await packagePublish(getTestPackageInfo(), options);
 
-      expect(publishRoot).toHaveBeenCalledWith({ packagePath: tempRoot, name: testName, options });
+      expect(publishRoot).toHaveBeenCalledWith({ packagePath: tempRoot, options });
       expect(npmSpy).toHaveBeenCalledWith(
         expect.any(Array),
         expect.objectContaining({ cwd: path.join(tempRoot, expectedDirectory) })
