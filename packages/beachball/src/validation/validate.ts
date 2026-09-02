@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { getUntrackedChanges } from 'workspace-tools';
 import { bumpInMemory } from '../bump/bumpInMemory';
 import { getChangedPackages } from '../changefile/getChangedPackages';
@@ -117,6 +118,10 @@ export function validate(parsedOptions: ParsedOptions, validateOptions: Validate
 
   if (options.authType && !isValidAuthType(options.authType)) {
     logValidationError(`authType "${options.authType}" is not valid`);
+  }
+
+  if (typeof options.publishRoot === 'string' && path.isAbsolute(options.publishRoot)) {
+    logValidationError('publishRoot must be a relative path when specified as a string');
   }
 
   if (options.command === 'publish' && options.token !== undefined) {

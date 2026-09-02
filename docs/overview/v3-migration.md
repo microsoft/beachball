@@ -157,6 +157,7 @@ The config file is now **only** resolved at the project root. Support for search
 - Support authenticating with a git token from [`BEACHBALL_GIT_TOKEN`](../concepts/ci-integration).
 - Add `getGitTag` option, a function used to generate per-package git tags.
 - Add `commitMessage` option, a function used to generate the commit message for the `change` and `publish` commands (overridden by `--message` for `publish`).
+- Add `publishRoot` option to publish packages from a different directory, such as a build output directory.
 
 ### Add `beachball-auth-helper`
 

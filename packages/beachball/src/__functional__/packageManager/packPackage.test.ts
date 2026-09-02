@@ -4,8 +4,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { getMockNpmPackName, initNpmMock } from '../../__fixtures__/mockNpm';
 import { mockSpawnSuccess, MockSubprocessError } from '../../__fixtures__/mockSpawnResult';
+import { getDefaultOptions } from '../../options/getDefaultOptions';
 import type * as npmModuleType from '../../packageManager/npm';
 import { packPackage } from '../../packageManager/packPackage';
+import type { BeachballOptions } from '../../types/BeachballOptions';
 import type { PackageInfo } from '../../types/PackageInfo';
 
 // Spawning actual npm is slow, so mock it for most of these tests.
@@ -15,6 +17,7 @@ const { npm: actualNpm } = jest.requireActual<typeof npmModuleType>('../../packa
 
 describe('packPackage', () => {
   const npmMock = initNpmMock();
+  const defaultOptions = getDefaultOptions();
   let tempRoot: string;
   let tempPackageJsonPath = '';
   let tempPackPath: string;
@@ -54,6 +57,7 @@ describe('packPackage', () => {
     writeJson(tempPackageJsonPath, testPkg.json);
 
     const packResult = await packPackage(testPkg.info, {
+      ...defaultOptions,
       packToPath: tempPackPath,
       layers: [[testPkg.name]],
     });
@@ -73,11 +77,42 @@ describe('packPackage', () => {
     expect(allLogs).toMatch(`Packed ${testPkg.spec} to ${outFile}`);
   });
 
+  it.each(['string', 'function'] as const)('packs from %s publishRoot', async publishRootType => {
+    const testPkg = getTestPackage('testpkg');
+    const alternateRoot = path.join(tempRoot, 'dist');
+    fs.mkdirSync(alternateRoot);
+    writeJson(path.join(alternateRoot, 'package.json'), testPkg.json);
+
+    const publishRoot =
+      publishRootType === 'function'
+        ? jest.fn((_params: { packageRoot: string; options: BeachballOptions }) => 'dist')
+        : 'dist';
+    const options = {
+      ...defaultOptions,
+      packToPath: tempPackPath,
+      layers: [[testPkg.name]],
+      publishRoot,
+    };
+    const packResult = await packPackage(testPkg.info, options);
+
+    expect(packResult).toBe(true);
+    if (typeof publishRoot === 'function') {
+      expect(publishRoot).toHaveBeenCalledWith({ packageRoot: tempRoot, options });
+    }
+    expect(npmMock.mock).toHaveBeenCalledWith(
+      ['pack', '--loglevel', 'warn'],
+      expect.objectContaining({ cwd: alternateRoot })
+    );
+    expect(fs.existsSync(path.join(tempPackPath, '1', testPkg.packName))).toBe(true);
+    expect(fs.existsSync(path.join(alternateRoot, testPkg.packName))).toBe(false);
+  });
+
   it('packs scoped package', async () => {
     const testPkg = getTestPackage('@foo/bar');
     writeJson(tempPackageJsonPath, testPkg.json);
 
     const packResult = await packPackage(testPkg.info, {
+      ...defaultOptions,
       packToPath: tempPackPath,
       layers: [[testPkg.name]],
     });
@@ -106,6 +141,7 @@ describe('packPackage', () => {
     layers[1].push(testPkg.name);
 
     const packResult = await packPackage(testPkg.info, {
+      ...defaultOptions,
       packToPath: tempPackPath,
       layers,
     });
@@ -132,6 +168,7 @@ describe('packPackage', () => {
     layers[2].push(testPkg.name);
 
     const packResult = await packPackage(testPkg.info, {
+      ...defaultOptions,
       packToPath: tempPackPath,
       layers,
     });
@@ -155,6 +192,7 @@ describe('packPackage', () => {
     writeJson(tempPackageJsonPath, testPkg.json);
 
     const packResult = await packPackage(testPkg.info, {
+      ...defaultOptions,
       packToPath: tempPackPath,
       layers: [['otherpkg']],
     });
@@ -170,6 +208,7 @@ describe('packPackage', () => {
     npmMock.setCommandOverride('pack', () => Promise.resolve(new MockSubprocessError({ output: 'oh no' })));
 
     const packResult = await packPackage(testPkg.info, {
+      ...defaultOptions,
       packToPath: tempPackPath,
       layers: [[testPkg.name]],
     });
@@ -188,6 +227,7 @@ describe('packPackage', () => {
     npmMock.setCommandOverride('pack', () => Promise.resolve(mockSpawnSuccess({ output: 'not a file' })));
 
     const packResult = await packPackage(testPkg.info, {
+      ...defaultOptions,
       packToPath: tempPackPath,
       layers: [[testPkg.name]],
     });
@@ -206,6 +246,7 @@ describe('packPackage', () => {
     npmMock.setCommandOverride('pack', () => Promise.resolve(mockSpawnSuccess({ output: 'nope.tgz' })));
 
     const packResult = await packPackage(testPkg.info, {
+      ...defaultOptions,
       packToPath: tempPackPath,
       layers: [[testPkg.name]],
     });
@@ -229,6 +270,7 @@ describe('packPackage', () => {
     const origPath = path.join(tempRoot, testPkg.packName);
 
     const packResult = await packPackage(testPkg.info, {
+      ...defaultOptions,
       packToPath: tempPackPath,
       layers: [[testPkg.name]],
     });
@@ -256,6 +298,7 @@ describe('packPackage', () => {
       writeJson(tempPackageJsonPath, testPkg.json);
 
       const packResult = await packPackage(testPkg.info, {
+        ...defaultOptions,
         packToPath: tempPackPath,
         layers: [[testPkg.name]],
       });

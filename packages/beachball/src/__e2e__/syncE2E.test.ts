@@ -7,6 +7,7 @@ import { RepositoryFactory } from '../__fixtures__/repositoryFactory';
 import { sync, type SyncCommandContext } from '../commands/sync';
 import { getPackageInfos } from '../monorepo/getPackageInfos';
 import { getScopedPackages } from '../monorepo/getScopedPackages';
+import { getDefaultOptions } from '../options/getDefaultOptions';
 import { getOptions } from '../options/getOptions';
 import type { packagePublish } from '../packageManager/packagePublish';
 import type { RepoOptions } from '../types/BeachballOptions';
@@ -27,6 +28,7 @@ describe('sync command (e2e)', () => {
   let repo: Repository | undefined;
 
   const publishOptions: Parameters<typeof packagePublish>[1] = {
+    ...getDefaultOptions(),
     registry: 'https://fake',
     retries: 3,
     path: '',

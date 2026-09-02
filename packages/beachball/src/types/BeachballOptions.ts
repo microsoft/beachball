@@ -279,6 +279,23 @@ export interface RepoOptions {
    */
   publish: boolean;
   /**
+   * Run `npm publish`/`pack` from this directory for each package, instead of the package root.
+   * This is for **advanced scenarios only**; the user is responsible for ensuring that the directory
+   * contains all appropriate contents (likely via a prepublish hook), including `package.json`
+   * reflecting version bumps.
+   * - If a string, it must be a relative path, and is resolved from each package root.
+   * - If a function, it may return either an absolute path, or a relative path from the package root.
+   */
+  publishRoot?:
+    | string
+    // If you need additional info added to the params, please open an issue
+    | ((params: {
+        /** Absolute path to the package root */
+        packageRoot: string;
+        /** Resolved beachball options */
+        options: BeachballOptions;
+      }) => string);
+  /**
    * Instead of publishing to npm, pack packages to tgz files in numbered subfolders under this path,
    * based on dependency tree layers (leaves first). There will also be a file `versions.json` at
    * the top level with the versions of the packed packages in each layer. (Implies `publish: false`.)
@@ -392,13 +409,13 @@ export interface HooksOptions {
    * This allows for file modifications which will be reflected in the published package but not be
    * reflected in the repository. For changes which should also be committed, use `postbump`.
    *
-   * @param packagePath The path to the package directory
+   * @param packageRoot The path to the package root directory
    * @param name The name of the package as defined in package.json
    * @param bumpedVersion The **post-bump** version of the package to be published
    * @param packageInfos **Read-only** info about all packages in the repo after bumping
    */
   prepublish?: (
-    packagePath: string,
+    packageRoot: string,
     name: string,
     bumpedVersion: string,
     packageInfos: Readonly<PackageInfos>
@@ -408,13 +425,13 @@ export interface HooksOptions {
    * Runs for each package after the npm publish command (only for packages that were published).
    * Any file changes made in this step will **not** be committed or published.
    *
-   * @param packagePath The path to the package directory
+   * @param packageRoot The path to the package root directory
    * @param name The name of the package as defined in package.json
    * @param bumpedVersion The post-bump version of the package to be published
    * @param packageInfos **Read-only** info about all packages in the repo after bumping
    */
   postpublish?: (
-    packagePath: string,
+    packageRoot: string,
     name: string,
     bumpedVersion: string,
     packageInfos: Readonly<PackageInfos>
@@ -432,14 +449,14 @@ export interface HooksOptions {
    * File changes will be committed (`bump`) or published (`publish`), but will NOT modify
    * the in-memory version bumps which have already happened.
    *
-   * @param packagePath The path to the package directory
+   * @param packageRoot The path to the package root directory
    * @param name The name of the package as defined in package.json
    * @param bumpedVersion The **bumped version** of the package to be published. If you want the
    * original version prior to bumping, read it from `package.json`.
    * (The hook name `prebump` refers to the hook being called before updates are *written*.)
    */
   prebump?: (
-    packagePath: string,
+    packageRoot: string,
     name: string,
     // Using the bumped version seems to have been the intent in the original PR: https://github.com/microsoft/beachball/pull/608
     bumpedVersion: string
@@ -459,13 +476,13 @@ export interface HooksOptions {
    *
    * File changes will be committed (`bump`) or published (`publish`).
    *
-   * @param packagePath The path to the package directory
+   * @param packageRoot The path to the package root directory
    * @param name The name of the package as defined in package.json
    * @param bumpedVersion The **post-bump** version of the package to be published
    * @param packageInfos **Read-only** info about all packages in the repo after bumping
    */
   postbump?: (
-    packagePath: string,
+    packageRoot: string,
     name: string,
     bumpedVersion: string,
     packageInfos: Readonly<PackageInfos>
