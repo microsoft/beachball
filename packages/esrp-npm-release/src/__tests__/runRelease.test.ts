@@ -56,7 +56,7 @@ describe('runRelease', () => {
     } satisfies Partial<typeof state> as unknown as typeof state;
   }
 
-  function envWithTempPaths(layers: Record<string, string[]>) {
+  function envWithTempPaths(layers: Record<string, string[]>, topLevelFiles: string[] = []) {
     const temp = getTempDir();
     const agentTemp = path.join(temp, 'agent');
     fs.mkdirSync(agentTemp, { recursive: true });
@@ -71,6 +71,9 @@ describe('runRelease', () => {
       ),
       { tempDir: packedPath }
     );
+    for (const file of topLevelFiles) {
+      fs.writeFileSync(path.join(packedDir, file), '');
+    }
 
     const env = createMockEnv();
     env.packedPackagesPath = packedDir;
@@ -255,6 +258,22 @@ describe('runRelease', () => {
     expect(logger.mocks.warn).toHaveBeenCalledTimes(1);
     expect(logger.lines).toContainEqual(expect.stringContaining('No layer directories found'));
     expect(releaseService.createRelease).not.toHaveBeenCalled();
+  });
+
+  it('releases top-level .tgz files as a single layer when no layer directories are found', async () => {
+    const env = envWithTempPaths({}, ['pkg-a-1.0.0.tgz', 'pkg-b-2.0.0.tgz', 'README.md']);
+
+    await runRelease({ env, logger });
+
+    expect(releaseService.createRelease).toHaveBeenCalledTimes(1);
+    expect(releaseService.createRelease.mock.calls[0][0].releaseRequestParams.productInfo.version).toEqual(
+      'commit-1-1'
+    );
+    expect(state.markPublished).toHaveBeenCalledWith('1');
+    expect(logger.lines.filter(line => line.includes('- pkg-'))).toEqual([
+      expect.stringContaining('pkg-a-1.0.0.tgz'),
+      expect.stringContaining('pkg-b-2.0.0.tgz'),
+    ]);
   });
 
   it('only includes .tgz files in the layer zips (ignores other files)', async () => {

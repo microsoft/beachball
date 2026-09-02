@@ -8,7 +8,6 @@
 # https://github.com/microsoft/node-api-dotnet/blob/main/.ado/publish.yml
 # https://github.com/microsoft/fluentui/blob/master/azure-pipelines.release.yml
 #
-#
 # NOTE: ESRP release should probably be in a job with `type: releaseJob`. This applies stricter
 # network isolation policies to the entire pipeline by default, which are overridden below so the
 # build/push steps work. This isn't ideal, but the current design of a git push stage which runs
@@ -18,7 +17,6 @@
 # gate on the release pipeline, since the whole pipeline the artifact comes from hasn't succeeded yet.)
 
 # Name of the run
-# NOTE: this is referenced in packages/beachball/src/env.ts as BUILD_BUILDNUMBER for some tests
 name: beachball-release-$(Date:yyyy-MM-dd).$(Rev:rr)
 
 # This script must never be triggered from YAML settings for security reasons.
@@ -147,24 +145,24 @@ extends:
               - script: yarn test --verbose
                 displayName: Test
 
-              - script: mkdir -p "$(canaryArtifactPath)" "$(packagesArtifactPath)"
+              - script: mkdir -p '$(canaryArtifactPath)' '$(packagesArtifactPath)'
                 displayName: Create package artifact directories
 
-              - script: yarn beachball:release canary --pack-to-path "$(canaryArtifactPath)"
+              - script: yarn beachball:release canary --pack-to-path '$(canaryArtifactPath)'
                 displayName: Pack packages (canary)
 
-              - script: yarn beachball:release publish --no-push --pack-to-path "$(packagesArtifactPath)"
+              - script: yarn beachball:release publish --no-push --pack-to-path '$(packagesArtifactPath)'
                 displayName: Pack packages (others)
 
               - script: |
-                  mkdir -p "$(tgzScanTestArtifactPath)"
-                  rm -rf "$(Agent.TempDirectory)/tgz-expansion-test"
-                  mkdir -p "$(Agent.TempDirectory)/tgz-expansion-test"
-                  echo "console.log(require('@microsoft/fake-package'))" > "$(Agent.TempDirectory)/tgz-expansion-test/tgz-main.js"
-                  echo '{ "name": "tgz-sentinel", "version": "1.0.0", "main": "tgz-main.js", "dependencies": { "@microsoft/fake-package": "1.0.0" } }' > "$(Agent.TempDirectory)/tgz-expansion-test/package.json"
-                  tar -czf "$(tgzScanTestArtifactPath)/tgz-expansion-test.tgz" \
-                    -C "$(Agent.TempDirectory)/tgz-expansion-test" .
-                  rm -rf "$(Agent.TempDirectory)/tgz-expansion-test"
+                  mkdir -p '$(tgzScanTestArtifactPath)'
+                  rm -rf '$(Agent.TempDirectory)/tgz-expansion-test'
+                  mkdir -p '$(Agent.TempDirectory)/tgz-expansion-test'
+                  echo "console.log(require('@microsoft/fake-package'))" > '$(Agent.TempDirectory)/tgz-expansion-test/tgz-main.js'
+                  echo '{ "name": "tgz-sentinel", "version": "1.0.0", "main": "tgz-main.js", "dependencies": { "@microsoft/fake-package": "1.0.0" } }' > '$(Agent.TempDirectory)/tgz-expansion-test/package.json'
+                  tar -czf '$(tgzScanTestArtifactPath)/tgz-expansion-test.tgz' \
+                    -C '$(Agent.TempDirectory)/tgz-expansion-test' .
+                  rm -rf '$(Agent.TempDirectory)/tgz-expansion-test'
                 displayName: Create tgz scanning test artifact
 
               - script: |
@@ -256,7 +254,7 @@ extends:
               # Publish each set of packed packages under its npm dist-tag.
               # (Beachball doesn't really need ordered publishing, but we want to test the helper.)
               - ${{ each publish in parameters.npmPublishes }}:
-                  - script: node "$(toolArtifactBin)"
+                  - script: node '$(toolArtifactBin)'
                     displayName: '(${{ publish.groupName }}) npm publish using ESRP Release API'
                     env:
                       PACKED_PACKAGES_PATH: $(${{ publish.artifactPathVariable }})

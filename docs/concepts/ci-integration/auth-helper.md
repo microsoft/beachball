@@ -11,7 +11,7 @@ The `beachball` package provides a `beachball-auth-helper` CLI with authenticati
 ## Prerequisites
 
 - Node 22.18 or later
-- `beachball` npm package
+- `beachball` npm package **(does NOT require using other `beachball` features)**
 - For Azure Key Vault signing (`create-github-app-token` `--key-id` option), the `az` Azure CLI must be available and already authenticated
 
 ## CLI commands
@@ -24,11 +24,13 @@ The available commands are:
 
 ### `create-github-app-token`
 
-Create a repository-scoped GitHub App installation token which can be used to authenticate API requests or git operations. The CLI signs a JWT using the app's private key (stored in Azure Key Vault or a secret), discovers the repository app installation, and creates a token. See the [GitHub App setup steps](#github-app-setup) and [usage examples](#usage-create-github-app-token) for more details.
+Create a repository-scoped GitHub App installation token which can be used to authenticate API requests or git operations. The command signs a JWT using the app's private key (stored in Azure Key Vault or a secret), discovers the repository app installation, and creates a token. For Azure Key Vault, this uses `az keyvault key sign` to reduce npm package dependencies.
+
+See the [GitHub App setup steps](#github-app-setup) and [usage examples](#usage-create-github-app-token) for more details.
 
 The generated token is valid for one hour, but it's best to immediately call [`revoke-github-app-token`](#revoke-github-app-token) when finished.
 
-This CLI takes inspiration from [`microsoft/create-github-app-token-via-key-vault`](https://github.com/microsoft/create-github-app-token-via-key-vault) and [`actions/create-github-app-token`](https://github.com/actions/create-github-app-token). Either of those might be easier to use if running via GitHub Actions.
+(This CLI takes inspiration from [`microsoft/create-github-app-token-via-key-vault`](https://github.com/microsoft/create-github-app-token-via-key-vault) and [`actions/create-github-app-token`](https://github.com/actions/create-github-app-token). Either of those might be easier to use if running via GitHub Actions.)
 
 #### Options
 
@@ -184,16 +186,19 @@ steps:
 
 The `create-github-app-token` command uses a GitHub App as an **identity with permissions** (similar to an Azure managed identity or service principal); the app doesn't need any logic. Set up an app in your repository as follows:
 
-1. [Create a GitHub App](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app) with the relevant permissions (no logic or endpoints needed), and install it in the repository that should receive tokens.
-2. Navigate to the app settings page:
+1. [Create a GitHub App](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app) with the relevant permissions (no logic or endpoints needed).
+   - For teams at Microsoft, see [instructions to transfer the app](https://docs.opensource.microsoft.com/github/apps/approvals/#github-apps-to-address-reduced-pat-lifetimes).
+1. Navigate to the app settings page:
    - **Org-owned app:** GitHub → your org → Settings → Developer settings → GitHub Apps → your app → Edit.
    - **User-owned app:** GitHub → your profile Settings → Developer settings → GitHub Apps → your app.
-3. On the app settings page:
+1. On the app settings page:
    - Generate a private key for the app (the file is automatically downloaded).
    - Copy the app's **Client ID** value to use as `--app-client-id` later. This typically starts with `Iv1` or `Iv2` and is distinct from the numeric "App ID" shown on the same page. It does _not_ need to be treated as a secret.
-4. Choose where to store the app's private key:
+1. In your GitHub repo, install the app and give it permission to bypass any relevant branch policies.
+   - For teams at Microsoft, see [instructions to install the app](https://docs.opensource.microsoft.com/github/apps/approvals/#github-app-approval-process).
+1. Choose where to store the app's private key:
    - **Azure Key Vault** + `--key-id` (more secure): the private key is stored in the key vault and only used via `az keyvault key sign`. The key ID is passed to the CLI as `--key-id`. [Full instructions below](#azure-resource-setup).
-   - **CI secret** + `PRIVATE_KEY`: Store the PEM-encoded private key as a CI secret, and pass it to the CLI as `PRIVATE_KEY`. In GitHub Actions, you should [use an environment](../ci-integration#storing-secrets) to restrict access.
+   - **CI secret** + `PRIVATE_KEY`: Store the PEM-encoded private key as a secret (use an [environment secret](../ci-integration#storing-secrets) for GitHub Actions to restrict access), and pass it to the CLI as `PRIVATE_KEY`.
 
 ## Azure resource setup
 

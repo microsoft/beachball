@@ -91,11 +91,20 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
   fs.mkdirSync(zipsDir, { recursive: true });
 
   logger.log(`Reading packed packages from ${env.packedPackagesPath}`);
-  const layers = fs
-    .readdirSync(env.packedPackagesPath)
-    .sort()
+  const packedEntries = fs.readdirSync(env.packedPackagesPath).sort();
+  const layers = packedEntries
     // Skip non-numeric entries (such as SBOM "_manifest") and non-directories
     .filter(name => /^\d+$/.test(name) && fs.statSync(path.join(env.packedPackagesPath, name)).isDirectory());
+  const topLevelTgzFiles = layers.length
+    ? []
+    : packedEntries
+        .filter(name => name.endsWith('.tgz') && fs.statSync(path.join(env.packedPackagesPath, name)).isFile())
+        .map(name => path.join(env.packedPackagesPath, name));
+
+  if (topLevelTgzFiles.length) {
+    logger.log(`No layer directories found; releasing ${topLevelTgzFiles.length} top-level package(s) as layer 1`);
+    layers.push('1');
+  }
 
   if (!layers.length) {
     // An empty artifact is expected when there were no packages that needed publishing,
@@ -114,11 +123,13 @@ export async function runRelease({ env, logger }: RunReleaseOptions): Promise<vo
 
     const layerPrefix = 'layer-' + layerNum;
 
-    const layerDir = path.join(env.packedPackagesPath, layerNum);
-    const tgzFiles = fs
-      .readdirSync(layerDir)
-      .filter(file => file.endsWith('.tgz'))
-      .map(file => path.join(layerDir, file));
+    const layerDir = topLevelTgzFiles.length ? env.packedPackagesPath : path.join(env.packedPackagesPath, layerNum);
+    const tgzFiles = topLevelTgzFiles.length
+      ? topLevelTgzFiles
+      : fs
+          .readdirSync(layerDir)
+          .filter(file => file.endsWith('.tgz'))
+          .map(file => path.join(layerDir, file));
     if (!tgzFiles.length) {
       logger.warn(`No .tgz files found in layer directory ${layerDir}; skipping layer\n`);
       continue;
