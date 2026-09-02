@@ -42,7 +42,7 @@ describe('getPublishRoot', () => {
     const options = getOptions(publishRoot);
 
     expect(getPublishRoot(packageInfo, options)).toBe(path.join(packageRoot, 'dist'));
-    expect(publishRoot).toHaveBeenCalledWith({ packagePath: packageRoot, options });
+    expect(publishRoot).toHaveBeenCalledWith({ packageRoot: packageRoot, options });
   });
 
   it('uses an absolute function result', () => {

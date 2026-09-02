@@ -85,7 +85,7 @@ describe('packPackage', () => {
 
     const publishRoot =
       publishRootType === 'function'
-        ? jest.fn((_params: { packagePath: string; options: BeachballOptions }) => 'dist')
+        ? jest.fn((_params: { packageRoot: string; options: BeachballOptions }) => 'dist')
         : 'dist';
     const options = {
       ...defaultOptions,
@@ -97,7 +97,7 @@ describe('packPackage', () => {
 
     expect(packResult).toBe(true);
     if (typeof publishRoot === 'function') {
-      expect(publishRoot).toHaveBeenCalledWith({ packagePath: tempRoot, options });
+      expect(publishRoot).toHaveBeenCalledWith({ packageRoot: tempRoot, options });
     }
     expect(npmMock.mock).toHaveBeenCalledWith(
       ['pack', '--loglevel', 'warn'],

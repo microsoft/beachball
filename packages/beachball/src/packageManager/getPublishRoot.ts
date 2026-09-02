@@ -12,9 +12,7 @@ import { BeachballError } from '../types/BeachballError';
 export function getPublishRoot(packageInfo: PackageInfo, options: BeachballOptions): string {
   const packageRoot = path.dirname(packageInfo.packageJsonPath);
   const configuredPublishRoot =
-    typeof options.publishRoot === 'function'
-      ? options.publishRoot({ packagePath: packageRoot, options })
-      : options.publishRoot;
+    typeof options.publishRoot === 'function' ? options.publishRoot({ packageRoot, options }) : options.publishRoot;
 
   if (configuredPublishRoot) {
     const publishRoot = path.resolve(packageRoot, configuredPublishRoot);
