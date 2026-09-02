@@ -1,6 +1,8 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { PackageInfo } from '../types/PackageInfo';
+import { BeachballError } from '../types/BeachballError';
 
 /**
  * Get the directory to run `npm publish` or `npm pack` from for a package.
@@ -14,5 +16,14 @@ export function getPublishRoot(packageInfo: PackageInfo, options: BeachballOptio
       ? options.publishRoot({ packagePath: packageRoot, options })
       : options.publishRoot;
 
-  return configuredPublishRoot ? path.resolve(packageRoot, configuredPublishRoot) : packageRoot;
+  if (configuredPublishRoot) {
+    const publishRoot = path.resolve(packageRoot, configuredPublishRoot);
+    const packageJsonPath = path.join(publishRoot, 'package.json');
+    if (!fs.existsSync(packageJsonPath)) {
+      throw new BeachballError(`publishRoot does not have package.json: ${publishRoot}`);
+    }
+    return publishRoot;
+  }
+
+  return packageRoot;
 }

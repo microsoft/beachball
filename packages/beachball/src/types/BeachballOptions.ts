@@ -280,6 +280,9 @@ export interface RepoOptions {
   publish: boolean;
   /**
    * Run `npm publish`/`pack` from this directory for each package, instead of the package root.
+   * This is for **advanced scenarios only**; the user is responsible for ensuring that the directory
+   * contains all appropriate contents (likely via a prepublish hook), including `package.json`
+   * reflecting version bumps.
    * - If a string, it must be a relative path, and is resolved from each package root.
    * - If a function, it may return either an absolute path, or a relative path from the package root.
    */
