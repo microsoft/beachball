@@ -1,5 +1,8 @@
 export interface EnvOptions {
-  /** Path to the directory of packed .tgz files organized into numbered layer subdirectories */
+  /**
+   * Path to the directory of packed .tgz files organized into numbered layer subdirectories.
+   * A flat directory of .tgz files is also accepted and will be released as a single layer.
+   */
   packedPackagesPath: string;
 
   esrp: EsrpEnvOptions;

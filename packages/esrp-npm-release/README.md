@@ -3,6 +3,8 @@
 Tool for teams within Microsoft who would like to use ESRP to release npm packages in **dependency-topological order**: always publishing a package's internal dependencies before publishing the package itself. Especially in larger repos with many package consumers, this ordering is critical to ensure that if publishing fails partway through, there are never published packages with dangling references to nonexistent versions (which would cause installation failures in consuming repos).
 
 > **When _not_ to use this tool:** This tool [requires extra setup](#staging-resource-setup) (below) and isn't owned by the ESRP team. For single packages or smaller monorepos where your team hasn't hit issues with publish ordering, you should use the official `EsrpRelease` task for simplicity. Or if you care about ordering but only have a few packages, it might be reasonable to manually group them and run the `EsrpRelease` task multiple times.
+>
+> Note that the [pipeline setup](#pipeline-setup) (including internal feed setup) described below is also applicable to repos using the `EsrpRelease` task; just omit any "staging" resources or steps, and you don't need to use a special folder layout for packed packages (though the special layout should work with the task).
 
 ## Contents
 
@@ -64,7 +66,7 @@ See setup steps in later sections and [sample pipelines](#publish-stage) at the 
 <!-- prettier-ignore -->
 | Variable | Description |
 | -------- | ----------- |
-| `PACKED_PACKAGES_PATH` | Path to the [packed packages](#packed-packages-format) directory. |
+| `PACKED_PACKAGES_PATH` | Path to the [packed packages](#packed-packages-format) directory. A flat directory of `.tgz` files is also accepted and will be released as a single layer. |
 | `ESRP_PRODUCT_NAME` | Friendly product name for the release. This is **not** used as a published package name, just in the ESRP Release UI (and by the tool as a state key). |
 | `ESRP_NPM_TAG` | _Optional._ npm dist-tag for the published packages. Defaults to `latest` or uses each package's `publishConfig`. |
 

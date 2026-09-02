@@ -8,7 +8,7 @@ import { getNpmPackageInfo } from '../../packageManager/getNpmPackageInfo';
 // (They fail on the ADO release build due to network restrictions.)
 // TODO: use the configured registry from the machine
 // eslint-disable-next-line no-restricted-properties
-const maybeDescribe = env.isBeachballAdoRelease ? describe.skip : describe;
+const maybeDescribe = env.isAzurePipelines ? describe.skip : describe;
 
 maybeDescribe('getNpmPackageInfo (real registry)', () => {
   const fetchSpy = jest.spyOn(globalThis, 'fetch');
