@@ -66,7 +66,7 @@ See setup steps in later sections and [sample pipelines](#publish-stage) at the 
 <!-- prettier-ignore -->
 | Variable | Description |
 | -------- | ----------- |
-| `PACKED_PACKAGES_PATH` | Path to the [packed packages](#packed-packages-format) directory. |
+| `PACKED_PACKAGES_PATH` | Path to the [packed packages](#packed-packages-format) directory. A flat directory of `.tgz` files is also accepted and will be released as a single layer. |
 | `ESRP_PRODUCT_NAME` | Friendly product name for the release. This is **not** used as a published package name, just in the ESRP Release UI (and by the tool as a state key). |
 | `ESRP_NPM_TAG` | _Optional._ npm dist-tag for the published packages. Defaults to `latest` or uses each package's `publishConfig`. |
 
