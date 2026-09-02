@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { initMockLogs, Registry, removeTempDir, tmpdir, writeJson } from '@microsoft/beachball-test-utilities';
+import fs from 'node:fs';
 import path from 'node:path';
 import { mockSpawnSuccess, MockSubprocessError } from '../../__fixtures__/mockSpawnResult';
 import { env } from '../../env';
@@ -52,22 +53,16 @@ describe('packagePublish', () => {
     };
   }
 
-  beforeAll(() => {
+  beforeEach(() => {
     // Create a test package.json in a temporary location for use in tests.
     tempRoot = tmpdir();
     tempPackageJsonPath = path.join(tempRoot, 'package.json');
     writeJson(tempPackageJsonPath, testPackage);
-  });
-
-  beforeEach(() => {
     npmSpy = jest.spyOn(npmModule, 'npm');
   });
 
   afterEach(() => {
     npmSpy.mockRestore();
-  });
-
-  afterAll(() => {
     removeTempDir(tempRoot);
   });
 
@@ -82,11 +77,6 @@ describe('packagePublish', () => {
       await registry.start();
       token = await registry.getToken();
       registry.stop();
-
-      // Create a test package.json in a temporary location for use in tests.
-      tempRoot = tmpdir();
-      tempPackageJsonPath = path.join(tempRoot, 'package.json');
-      writeJson(tempPackageJsonPath, testPackage);
     });
 
     beforeEach(async () => {
@@ -95,7 +85,6 @@ describe('packagePublish', () => {
     });
 
     afterEach(() => {
-      npmSpy.mockRestore();
       // no-op if already logged out
       registry.logout();
       registry.stop();
@@ -103,7 +92,6 @@ describe('packagePublish', () => {
 
     afterAll(() => {
       registry.cleanUp();
-      removeTempDir(tempRoot);
     });
 
     // Do a basic publishing test against the real registry
@@ -214,13 +202,14 @@ describe('packagePublish', () => {
 
     it('publishes from relative string publishRoot', async () => {
       npmSpy.mockResolvedValue(mockSpawnSuccess());
+      const expectedPublishRoot = path.join(tempRoot, 'dist');
+      fs.mkdirSync(expectedPublishRoot);
+      writeJson(path.join(expectedPublishRoot, 'package.json'), testPackage);
+
       const options: BeachballOptions = { ...defaultOptions, path: tempRoot, publishRoot: 'dist' };
       await packagePublish(getTestPackageInfo(), options);
 
-      expect(npmSpy).toHaveBeenCalledWith(
-        expect.any(Array),
-        expect.objectContaining({ cwd: path.join(tempRoot, 'dist') })
-      );
+      expect(npmSpy).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ cwd: expectedPublishRoot }));
     });
 
     it.each<[string, jest.MockedFunction<NonNullable<Exclude<BeachballOptions['publishRoot'], string>>>, string]>([
@@ -228,15 +217,15 @@ describe('packagePublish', () => {
       ['function returning absolute path', jest.fn(() => path.join(tempRoot, 'built')), 'built'],
     ])('publishes from publishRoot: %s', async (_description, publishRoot, expectedDirectory) => {
       npmSpy.mockResolvedValue(mockSpawnSuccess());
+      const expectedPublishRoot = path.join(tempRoot, expectedDirectory);
+      fs.mkdirSync(expectedPublishRoot);
+      writeJson(path.join(expectedPublishRoot, 'package.json'), testPackage);
 
       const options: BeachballOptions = { ...defaultOptions, path: tempRoot, publishRoot };
       await packagePublish(getTestPackageInfo(), options);
 
       expect(publishRoot).toHaveBeenCalledWith({ packagePath: tempRoot, options });
-      expect(npmSpy).toHaveBeenCalledWith(
-        expect.any(Array),
-        expect.objectContaining({ cwd: path.join(tempRoot, expectedDirectory) })
-      );
+      expect(npmSpy).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ cwd: expectedPublishRoot }));
     });
 
     it('performs retries', async () => {
