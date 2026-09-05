@@ -5,6 +5,23 @@ import { BeachballError } from '../types/BeachballError';
 import type { BeachballOptions, PackageOptions, RepoOptions, VersionGroupOptions } from '../types/BeachballOptions';
 import type { BasicCommandContext } from '../types/CommandContext';
 
+type GroupOptionName = Exclude<keyof VersionGroupOptions, 'name' | 'include' | 'exclude'>;
+const groupOptionsKeys: Record<string, true> = {
+  disallowedChangeTypes: true,
+} satisfies Record<GroupOptionName, true>;
+
+interface ConfigNameTree {
+  [key: string]: true | ConfigNameTree;
+}
+
+type ConfigNames<T> = {
+  [Key in keyof T]-?: NonNullable<T[Key]> extends readonly unknown[] | ((...args: never[]) => unknown)
+    ? true
+    : NonNullable<T[Key]> extends object
+    ? ConfigNames<NonNullable<T[Key]>>
+    : true;
+};
+
 /** Keys that can be overridden per-package (exhaustive via Record) */
 const packageOptionKeys: Record<string, true> = {
   tag: true,
@@ -14,18 +31,32 @@ const packageOptionKeys: Record<string, true> = {
   shouldPublish: true,
 } satisfies Record<keyof PackageOptions, true>;
 
-/** Keys from RepoOptions (the full set of valid config file settings, exhaustive via Record) */
-const repoOptionKeys: Record<string, true> = {
+/** The full set of valid config file settings (recursively exhaustive) */
+const validConfigNames: ConfigNameTree = {
   access: true,
   authType: true,
   branch: true,
   bump: true,
   bumpDeps: true,
   canaryName: true,
-  changeFilePrompt: true,
+  changeFilePrompt: { changePrompt: true },
   changehint: true,
   changeDir: true,
-  changelog: true,
+  changelog: {
+    groups: true,
+    renderPackageChangelog: true,
+    customRenderers: {
+      renderHeader: true,
+      renderChangeTypeSection: true,
+      renderChangeTypeHeader: true,
+      renderEntries: true,
+      renderEntry: true,
+    },
+    renderMainHeader: true,
+    uniqueFilenames: true,
+    maxVersions: true,
+    includeCommitHashes: true,
+  },
   commit: true,
   concurrency: true,
   npmReadConcurrency: true,
@@ -37,7 +68,7 @@ const repoOptionKeys: Record<string, true> = {
   generateChangelog: true,
   groups: true,
   gitTags: true,
-  hooks: true,
+  hooks: { prepublish: true, postpublish: true, prebump: true, postbump: true, precommit: true },
   ignorePatterns: true,
   keepChangeFiles: true,
   message: true,
@@ -54,23 +85,11 @@ const repoOptionKeys: Record<string, true> = {
   tag: true,
   timeout: true,
   gitTimeout: true,
-  transform: true,
+  transform: { changeFiles: true },
   groupChanges: true,
   depth: true,
   new: true,
-} satisfies Record<keyof RepoOptions, true>;
-
-type GroupOptionName = Exclude<keyof VersionGroupOptions, 'name' | 'include' | 'exclude'>;
-const groupOptionsKeys: Record<string, true> = {
-  disallowedChangeTypes: true,
-} satisfies Record<GroupOptionName, true>;
-
-/** All valid config names that can be queried */
-const validConfigNames = new Set<string>([
-  ...Object.keys(repoOptionKeys),
-  ...Object.keys(packageOptionKeys),
-  ...Object.keys(groupOptionsKeys),
-]);
+} satisfies ConfigNames<RepoOptions>;
 
 /**
  * Handles the `beachball config get <name>` command.
@@ -90,14 +109,7 @@ export function configGet(options: BeachballOptions, context: BasicCommandContex
   }
 
   const name = extraArgs[1];
-  if (!validConfigNames.has(name)) {
-    const suggestion = findSimilar(name, [...validConfigNames]);
-    throw new BeachballError(
-      suggestion
-        ? `Unknown config setting: "${name}" - did you mean "${suggestion}"?`
-        : `Unknown config setting: "${name}"`
-    );
-  }
+  validateConfigName(name);
 
   // Validate any provided package names
   const packageNames = Array.isArray(options.package) ? options.package : options.package ? [options.package] : [];
@@ -133,7 +145,7 @@ function printForPackages(
   context: BasicCommandContext
 ): void {
   const { originalPackageInfos: packageInfos, packageGroups } = context;
-  const mainValue = (options as unknown as Record<string, unknown>)[name];
+  const mainValue = getConfigValue(options, name);
 
   const results: Record<string, unknown> = {};
   for (const pkgName of packageNames) {
@@ -158,7 +170,7 @@ function printForPackages(
 /** Print the repo-level value of a setting, plus any package or group overrides */
 function printDefault(name: string, options: BeachballOptions, context: BasicCommandContext): void {
   const { originalPackageInfos: packageInfos, scopedPackages, packageGroups } = context;
-  const mainValue = (options as unknown as Record<string, unknown>)[name];
+  const mainValue = getConfigValue(options, name);
 
   // Collect package overrides
   const pkgOverrides: Record<string, unknown> = {};
@@ -201,6 +213,36 @@ function printDefault(name: string, options: BeachballOptions, context: BasicCom
   if (hasGroupOverrides) {
     console.log('\nGroup overrides:');
     console.log(formatValue(groupOverrides, { level: 1 }));
+  }
+}
+
+function getConfigValue(options: BeachballOptions, name: string): unknown {
+  let value: unknown = options;
+  for (const key of name.split('.')) {
+    if (typeof value !== 'object' || value === null) {
+      return undefined;
+    }
+    value = (value as Record<string, unknown>)[key];
+  }
+  return value;
+}
+
+function validateConfigName(name: string): void {
+  const keys = name.split('.');
+  let validNames = validConfigNames;
+
+  for (const [index, key] of keys.entries()) {
+    if (!Object.prototype.hasOwnProperty.call(validNames, key)) {
+      const similarKey = findSimilar(key, Object.keys(validNames));
+      const suggestion = similarKey ? [...keys.slice(0, index), similarKey].join('.') : undefined;
+      throw new BeachballError(
+        suggestion
+          ? `Unknown config setting: "${name}" - did you mean "${suggestion}"?`
+          : `Unknown config setting: "${name}"`
+      );
+    }
+    const childNames = validNames[key];
+    validNames = typeof childNames === 'object' ? childNames : {};
   }
 }
 

@@ -70,6 +70,17 @@ describe('configGet', () => {
         'Unknown config setting: "branc" - did you mean "branch"?'
       );
     });
+
+    it('validates and suggests dotted config names within their parent', async () => {
+      await expectBeachballError(
+        () => configGetArgs(['get', 'changelog.maxVer']),
+        'Unknown config setting: "changelog.maxVer" - did you mean "changelog.maxVersions"?'
+      );
+      await expectBeachballError(
+        () => configGetArgs(['get', 'changelog.prepublish']),
+        'Unknown config setting: "changelog.prepublish"'
+      );
+    });
   });
 
   describe('basic values', () => {
@@ -96,6 +107,28 @@ describe('configGet', () => {
     it('displays an empty string config value', () => {
       configGetWrapper('tag', { options: { tag: '' } });
       expect(logs.getMockLines('log')).toBe('""');
+    });
+
+    it('displays a dotted config value', () => {
+      configGetWrapper('changelog.maxVersions', { options: { changelog: { maxVersions: 2 } } });
+      expect(logs.getMockLines('log')).toBe('2');
+    });
+
+    it('displays an unset dotted config value', () => {
+      configGetWrapper('changelog.maxVersions', { options: {} });
+      expect(logs.getMockLines('log')).toBe('undefined');
+    });
+
+    it('displays a deeply nested config value', () => {
+      configGetWrapper('changelog.customRenderers.renderEntry', {
+        options: { changelog: { customRenderers: { renderEntry: () => '' } } },
+      });
+      expect(logs.getMockLines('log')).toBe('(Function)');
+    });
+
+    it('displays an unset deeply nested config value', () => {
+      configGetWrapper('changelog.customRenderers.renderEntry', { options: {} });
+      expect(logs.getMockLines('log')).toBe('undefined');
     });
   });
 
