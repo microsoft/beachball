@@ -12,12 +12,23 @@ The `config` command has two subcommands: `get` and `list`. (There's no plan to 
 
 ## `config get <name>`
 
-Get the value of a specific config setting. If the setting can be overridden per-package or per-group, any overrides are also shown.
+Get the value of a specific config setting. Use dot notation to get a nested setting. If the setting can be overridden per-package or per-group, any overrides are also shown.
 
 ```bash
 $ beachball config get branch
 # "origin/main"
 
+# Nested key of an object:
+$ beachball config get changeFile.includeEmail
+# false
+
+# All keys of an object:
+$ beachball config get changelog
+# maxVersions: 10
+# includeCommitHashes: false
+
+
+# Values at multiple levels:
 $ beachball config get disallowedChangeTypes
 # Main value: null
 
