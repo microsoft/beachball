@@ -18,7 +18,7 @@ type ConfigNames<T> = {
 };
 
 /** The full set of valid config file settings (recursively exhaustive) */
-const validConfigNames: ConfigNameTree = {
+const repoConfigNames: ConfigNameTree = {
   access: true,
   authType: true,
   branch: true,
@@ -56,7 +56,13 @@ const validConfigNames: ConfigNameTree = {
   getGitTag: true,
   groups: true,
   gitTags: true,
-  hooks: { prepublish: true, postpublish: true, prebump: true, postbump: true, precommit: true },
+  hooks: {
+    prepublish: true,
+    postpublish: true,
+    prebump: true,
+    postbump: true,
+    precommit: true,
+  },
   ignorePatterns: true,
   keepChangeFiles: true,
   message: true,
@@ -78,19 +84,20 @@ const validConfigNames: ConfigNameTree = {
   depth: true,
 } satisfies ConfigNames<RepoOptions>;
 
+/** Only group options that override repo options are relevant for `config get` */
 type GroupOptionName = Exclude<keyof VersionGroupOptions, 'name' | 'include' | 'exclude'>;
-const groupOptionsKeys: Record<string, true> = {
+const groupOptionsKeys: ConfigNameTree = {
   disallowedChangeTypes: true,
-} satisfies Record<GroupOptionName, true>;
+} satisfies ConfigNames<Pick<VersionGroupOptions, GroupOptionName>>;
 
-/** Keys that can be overridden per-package (exhaustive via Record) */
-const packageOptionKeys: Record<string, true> = {
+/** Keys that can be set or overridden per-package */
+const packageOptionKeys: ConfigNameTree = {
   tag: true,
   defaultNpmTag: true,
   disallowedChangeTypes: true,
   gitTags: true,
   shouldPublish: true,
-} satisfies Record<keyof PackageOptions, true>;
+} satisfies ConfigNames<PackageOptions>;
 
 /**
  * Handles the `beachball config get <name>` command.
@@ -221,9 +228,8 @@ function printDefault(name: string, options: BeachballOptions, context: BasicCom
 function getConfigValue(options: BeachballOptions, name: string): unknown {
   let value: unknown = options;
   for (const key of name.split('.')) {
-    if (typeof value !== 'object' || value === null) {
-      return undefined;
-    }
+    if (value === null) return null;
+    if (typeof value !== 'object') return undefined;
     value = (value as Record<string, unknown>)[key];
   }
   return value;
@@ -231,7 +237,7 @@ function getConfigValue(options: BeachballOptions, name: string): unknown {
 
 function validateConfigName(name: string): void {
   const keys = name.split('.');
-  let validNames = validConfigNames;
+  let validNames = { ...packageOptionKeys, ...groupOptionsKeys, ...repoConfigNames };
 
   for (const [index, key] of keys.entries()) {
     if (!Object.hasOwn(validNames, key)) {

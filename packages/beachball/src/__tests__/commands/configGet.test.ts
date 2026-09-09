@@ -134,6 +134,30 @@ describe('configGet', () => {
       configGetWrapper('changelog.customRenderers.renderEntry', { options: {} });
       expect(logs.getMockLines('log')).toBe('undefined');
     });
+
+    it('displays a null value', () => {
+      configGetWrapper('disallowedChangeTypes', { options: { disallowedChangeTypes: null } });
+      expect(logs.getMockLines('log')).toBe('null');
+    });
+  });
+
+  describe('packageOptions', () => {
+    it('shows a package-only option', () => {
+      configGetWrapper('shouldPublish', {
+        options: {},
+        packageInfos: {
+          'pkg-a': { beachball: { shouldPublish: false } },
+          'pkg-b': {},
+        },
+      });
+      const output = logs.getMockLines('log');
+      expect(output).toMatchInlineSnapshot(`
+        "Main value: undefined
+
+        Package overrides:
+          pkg-a: false"
+      `);
+    });
   });
 
   describe('packageOptions overrides', () => {
@@ -152,6 +176,22 @@ describe('configGet', () => {
 
         Package overrides:
           pkg-a: ["major", "minor"]"
+      `);
+    });
+
+    it('shows a null package option override', () => {
+      configGetWrapper('disallowedChangeTypes', {
+        options: { disallowedChangeTypes: ['major'] },
+        packageInfos: {
+          'pkg-a': { beachball: { disallowedChangeTypes: null } },
+        },
+      });
+      const output = logs.getMockLines('log');
+      expect(output).toMatchInlineSnapshot(`
+        "Main value: ["major"]
+
+        Package overrides:
+          pkg-a: null"
       `);
     });
 
