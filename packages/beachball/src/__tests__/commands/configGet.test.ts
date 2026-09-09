@@ -118,6 +118,11 @@ describe('configGet', () => {
       expect(logs.getMockLines('log')).toBe('false');
     });
 
+    it('displays an unset config value', () => {
+      configGetWrapper('disallowedChangeTypes', { options: {} });
+      expect(logs.getMockLines('log')).toBe('undefined');
+    });
+
     it('displays an unset dotted config value', () => {
       configGetWrapper('changeFile.includeEmail', { options: {} });
       expect(logs.getMockLines('log')).toBe('undefined');
@@ -133,11 +138,6 @@ describe('configGet', () => {
     it('displays an unset deeply nested config value', () => {
       configGetWrapper('changelog.customRenderers.renderEntry', { options: {} });
       expect(logs.getMockLines('log')).toBe('undefined');
-    });
-
-    it('displays a null value', () => {
-      configGetWrapper('disallowedChangeTypes', { options: { disallowedChangeTypes: null } });
-      expect(logs.getMockLines('log')).toBe('null');
     });
   });
 

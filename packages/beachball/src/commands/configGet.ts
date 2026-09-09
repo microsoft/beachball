@@ -228,8 +228,9 @@ function printDefault(name: string, options: BeachballOptions, context: BasicCom
 function getConfigValue(options: BeachballOptions, name: string): unknown {
   let value: unknown = options;
   for (const key of name.split('.')) {
-    if (value === null) return null;
-    if (typeof value !== 'object') return undefined;
+    if (typeof value !== 'object' || value === null) {
+      return undefined;
+    }
     value = (value as Record<string, unknown>)[key];
   }
   return value;
