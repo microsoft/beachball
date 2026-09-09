@@ -1,8 +1,16 @@
 # Change Log - beachball
 
-<!-- This log was last generated on Tue, 25 Aug 2026 01:40:36 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 09 Sep 2026 03:05:57 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 2.66.0
+
+Wed, 09 Sep 2026 03:05:57 GMT
+
+### Minor changes
+
+- Support dotted names in `config get` (elcraig@microsoft.com)
 
 ## 2.65.6
 
