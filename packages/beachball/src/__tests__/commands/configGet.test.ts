@@ -118,6 +118,11 @@ describe('configGet', () => {
       expect(logs.getMockLines('log')).toBe('false');
     });
 
+    it('displays an unset config value', () => {
+      configGetWrapper('disallowedChangeTypes', { options: {} });
+      expect(logs.getMockLines('log')).toBe('undefined');
+    });
+
     it('displays an unset dotted config value', () => {
       configGetWrapper('changeFile.includeEmail', { options: {} });
       expect(logs.getMockLines('log')).toBe('undefined');
@@ -133,6 +138,25 @@ describe('configGet', () => {
     it('displays an unset deeply nested config value', () => {
       configGetWrapper('changelog.customRenderers.renderEntry', { options: {} });
       expect(logs.getMockLines('log')).toBe('undefined');
+    });
+  });
+
+  describe('packageOptions', () => {
+    it('shows a package-only option', () => {
+      configGetWrapper('shouldPublish', {
+        options: {},
+        packageInfos: {
+          'pkg-a': { beachball: { shouldPublish: false } },
+          'pkg-b': {},
+        },
+      });
+      const output = logs.getMockLines('log');
+      expect(output).toMatchInlineSnapshot(`
+        "Main value: undefined
+
+        Package overrides:
+          pkg-a: false"
+      `);
     });
   });
 
@@ -152,6 +176,22 @@ describe('configGet', () => {
 
         Package overrides:
           pkg-a: ["major", "minor"]"
+      `);
+    });
+
+    it('shows a null package option override', () => {
+      configGetWrapper('disallowedChangeTypes', {
+        options: { disallowedChangeTypes: ['major'] },
+        packageInfos: {
+          'pkg-a': { beachball: { disallowedChangeTypes: null } },
+        },
+      });
+      const output = logs.getMockLines('log');
+      expect(output).toMatchInlineSnapshot(`
+        "Main value: ["major"]
+
+        Package overrides:
+          pkg-a: null"
       `);
     });
 
