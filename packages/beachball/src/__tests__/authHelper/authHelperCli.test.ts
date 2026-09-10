@@ -103,14 +103,37 @@ describe('authHelperCli', () => {
       expect(out).toEqual([mockToken]);
     });
 
-    it('does not read non-secret options from environment variables', async () => {
+    it('reads options from environment variables', async () => {
       const context = getContext(['create-github-app-token'], {
         APP_CLIENT_ID: 'Iv1.client',
         KEY_ID: 'key-id',
         REPOSITORY: 'org/repo',
+        PERMISSIONS: 'contents:read,pull_requests:write',
+        CI_OUTPUT_NAME: 'MY_TOKEN',
+        GITHUB_API_URL: 'https://ghe.example.com/api/v3',
+        TF_BUILD: 'true',
       });
-      await expect(runAuthHelperCli(context)).rejects.toThrow(CommanderError);
-      expect(err[0]).toMatch(/required option '--app-client-id <id>' not specified/);
+      await runAuthHelperCli(context);
+
+      expect(createAppToken).toHaveBeenCalledWith({
+        appClientId: 'Iv1.client',
+        githubApiUrl: 'https://ghe.example.com/api/v3',
+        keyInfo: { keyId: 'key-id' },
+        permissions: { contents: 'read', pull_requests: 'write' },
+        repository: { owner: 'org', name: 'repo' },
+      });
+      expect(out).toEqual([`##vso[task.setvariable variable=MY_TOKEN;isSecret=true;isOutput=true]${mockToken}`]);
+    });
+
+    it('prefers flags over environment variables', async () => {
+      const context = getContext([...requiredArgs], {
+        APP_CLIENT_ID: 'Iv1.environment',
+        KEY_ID: 'environment-key-id',
+        REPOSITORY: 'environment/repo',
+      });
+      await runAuthHelperCli(context);
+
+      expect(createAppToken).toHaveBeenCalledWith({ ...defaults, keyInfo: { keyId: 'key-id' } });
     });
 
     it('parses permissions', async () => {
@@ -251,6 +274,19 @@ describe('authHelperCli', () => {
       expect(revokeAppToken).toHaveBeenCalledWith({
         githubApiUrl: 'https://ghe.example.com/api/v3',
         token: 'ghs_revoke_me',
+      });
+    });
+
+    it('reads the GitHub API URL from GITHUB_API_URL', async () => {
+      const context = getContext(['revoke-github-app-token'], {
+        GITHUB_API_URL: 'https://ghe.example.com/api/v3',
+        TOKEN: 'ghs_from_env',
+      });
+      await runAuthHelperCli(context);
+
+      expect(revokeAppToken).toHaveBeenCalledWith({
+        githubApiUrl: 'https://ghe.example.com/api/v3',
+        token: 'ghs_from_env',
       });
     });
 

@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "(delete for release) Update auth helper to accept env vars",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com"
+}
