@@ -299,12 +299,12 @@ extends:
                   scriptType: bash
                   scriptLocation: inlineScript
                   inlineScript: yarn beachball-auth-helper create-github-app-token
-                  env:
-                    APP_CLIENT_ID: $(ghaClientId)
-                    APP_KEY_ID: $(ghaTokenKeyId)
-                    REPOSITORY: $(Build.Repository.Name)
-                    PERMISSIONS: contents:write
-                    CI_OUTPUT_NAME: GITHUB_APP_TOKEN
+                env:
+                  APP_CLIENT_ID: $(ghaClientId)
+                  APP_KEY_ID: $(ghaTokenKeyId)
+                  REPOSITORY: $(Build.Repository.Name)
+                  PERMISSIONS: contents:write
+                  CI_OUTPUT_NAME: GITHUB_APP_TOKEN
 
               # Run publish. Beachball reads `BEACHBALL_GIT_TOKEN` to authenticate the git push.
               - script: yarn beachball:release publish --no-publish

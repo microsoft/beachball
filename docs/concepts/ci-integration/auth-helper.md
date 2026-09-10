@@ -163,13 +163,13 @@ steps:
       azureSubscription: <your service connection name>
       scriptType: bash
       scriptLocation: inlineScript
-      inlineScript: |
-        yarn beachball-auth-helper create-github-app-token \
-          --app-client-id "<app client id>" \
-          --key-id "<key vault key URL>" \
-          --repository "$(Build.Repository.Name)" \
-          --permissions "<perms>" \
-          --ci-output-name MY_TOKEN
+      inlineScript: yarn beachball-auth-helper create-github-app-token
+    env:
+      APP_CLIENT_ID: <app client id>
+      APP_KEY_ID: <key vault key URL>
+      REPOSITORY: $(Build.Repository.Name)
+      PERMISSIONS: <perms>
+      CI_OUTPUT_NAME: MY_TOKEN
 
   # some script that uses the token
   - script: node scripts/use-token.js

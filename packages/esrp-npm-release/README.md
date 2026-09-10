@@ -725,12 +725,12 @@ If your repo has traditionally pushed packages directly back to GitHub with a pe
             scriptType: bash
             scriptLocation: inlineScript
             inlineScript: yarn beachball-auth-helper create-github-app-token
-            env:
-              APP_CLIENT_ID: <GitHub App client ID>
-              APP_KEY_ID: <key vault key URL>
-              REPOSITORY: $(Build.Repository.Name)
-              PERMISSIONS: contents:write
-              CI_OUTPUT_NAME: GITHUB_APP_TOKEN
+          env:
+            APP_CLIENT_ID: <GitHub App client ID>
+            APP_KEY_ID: <key vault key URL>
+            REPOSITORY: $(Build.Repository.Name)
+            PERMISSIONS: contents:write
+            CI_OUTPUT_NAME: GITHUB_APP_TOKEN
 
         # Run publish without publishing to npm. Beachball reads `BEACHBALL_GIT_TOKEN` to authenticate the git push.
         # Update the command as needed for your repo.
