@@ -166,7 +166,7 @@ steps:
       inlineScript: yarn beachball-auth-helper create-github-app-token
     env:
       APP_CLIENT_ID: <app client id>
-      APP_KEY_ID: <key vault key URL>
+      KEY_ID: <key vault key URL>
       REPOSITORY: $(Build.Repository.Name)
       PERMISSIONS: <perms>
       CI_OUTPUT_NAME: MY_TOKEN
