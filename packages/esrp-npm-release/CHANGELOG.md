@@ -1,8 +1,17 @@
 # Change Log - @microsoft/esrp-npm-release
 
-<!-- This log was last generated on Sat, 22 Aug 2026 00:26:19 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 10 Sep 2026 14:53:03 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 0.1.3
+
+Thu, 10 Sep 2026 14:53:03 GMT
+
+### Patches
+
+- Minor logging updates (elcraig@microsoft.com)
+- If no layer folders are found, look for tgz files at the top level of the path (elcraig@microsoft.com)
 
 ## 0.1.2
 

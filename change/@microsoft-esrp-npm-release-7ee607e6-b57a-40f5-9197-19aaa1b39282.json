@@ -1,6 +1,0 @@
-{
-  "type": "patch",
-  "comment": "If no layer folders are found, look for tgz files at the top level of the path",
-  "packageName": "@microsoft/esrp-npm-release",
-  "email": "elcraig@microsoft.com"
-}
