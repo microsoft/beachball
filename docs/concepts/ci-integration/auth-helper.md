@@ -34,32 +34,34 @@ The generated token is valid for one hour, but it's best to immediately call [`r
 
 #### Options
 
-Exactly one **signing source** is required: either `--key-id` (Azure key vault key ID) or `PRIVATE_KEY` (PEM-encoded GitHub App private key), as configured in the [GitHub App setup steps](#github-app-setup). If using `--key-id`, the `az` CLI must be on `PATH` and authenticated first.
+Exactly one **signing source** is required: either `--key-id`/`KEY_ID` (Azure key vault key ID) or `PRIVATE_KEY` (PEM-encoded GitHub App private key), as configured in the [GitHub App setup steps](#github-app-setup). If using a key ID, the `az` CLI must be on `PATH` and authenticated first.
 
-By default, the token is written to stdout. Use `--ci-output-name` in CI to save it as a task/step output.
+Each option can be provided as a flag or through the uppercase environment variable listed below. Flags take precedence over environment variables.
+
+By default, the token is written to stdout. Use `--ci-output-name`/`CI_OUTPUT_NAME` in CI to save it as a task/step output.
 
 Besides `PRIVATE_KEY`, none of the other inputs need to be handled as secrets.
 
 <!-- prettier-ignore -->
-| Input | Required | Description |
-| ----- | -------- | ----------- |
-| `--app-client-id` | Yes | GitHub App client ID. See [GitHub App setup steps](#github-app-setup) for where to find it in the UI. |
-| `--key-id` | One signing source | Azure Key Vault key ID, e.g. `https://my-vault.vault.azure.net/keys/my-github-app-key` - see [Azure resource setup](#azure-resource-setup). The `az` CLI must be on `PATH` and authenticated to use this option. |
-| `PRIVATE_KEY` (env var) | One signing source | PEM-encoded GitHub App private key. Escaped newlines (`\\n`) in the private key are converted to actual newlines. |
-| `--repository` | Yes | Repository for the app installation and token scope, in `owner/repo` format. |
-| `--permissions` | | Comma-separated `permission:level` entries, such as `contents:read, pull_requests:write` (see [valid `permissions` properties and values](https://docs.github.com/en/rest/apps/apps?apiVersion=2026-03-10#create-an-installation-access-token-for-an-app)). Omit to inherit the installation perms. Requested perms cannot exceed those granted to the app installation. Spaces are ignored. |
-| `--ci-output-name` | | Instead of writing the token to stdout, save it as an Azure Pipelines secret step output or masked GitHub Actions step output. Must be a valid environment variable name. |
-| `--github-api-url` | | GitHub REST API URL (customizable for GitHub Enterprise). Defaults to `https://api.github.com`. |
+| Flag | Env var | Required | Description |
+| ---- | ------- | -------- | ----------- |
+| `--app-client-id` | `APP_CLIENT_ID` | Yes | GitHub App client ID. See [GitHub App setup steps](#github-app-setup) for where to find it in the UI. |
+| `--key-id` | `KEY_ID` | One signing source | Azure Key Vault key ID, e.g. `https://my-vault.vault.azure.net/keys/my-github-app-key` - see [Azure resource setup](#azure-resource-setup). The `az` CLI must be on `PATH` and authenticated to use this option. |
+| | `PRIVATE_KEY` | One signing source | PEM-encoded GitHub App private key. Escaped newlines (`\\n`) in the private key are converted to actual newlines. |
+| `--repository` | `REPOSITORY` | Yes | Repository for the app installation and token scope, in `owner/repo` format. |
+| `--permissions` | `PERMISSIONS` | | Comma-separated `permission:level` entries, such as `contents:read, pull_requests:write` (see [valid `permissions` properties and values](https://docs.github.com/en/rest/apps/apps?apiVersion=2026-03-10#create-an-installation-access-token-for-an-app)). Omit to inherit the installation perms. Requested perms cannot exceed those granted to the app installation. Spaces are ignored. |
+| `--ci-output-name` | `CI_OUTPUT_NAME` | | Instead of writing the token to stdout, save it as an Azure Pipelines secret step output or masked GitHub Actions step output. Must be a valid environment variable name. |
+| `--github-api-url` | `GITHUB_API_URL` | | GitHub REST API URL (customizable for GitHub Enterprise). Defaults to `https://api.github.com`. |
 
 ### `revoke-github-app-token`
 
 The `revoke-github-app-token` command revokes a token by calling `DELETE /installation/token`. The token authenticates its own revocation. Run this command in an always-running cleanup step (as shown in the [usage examples](#usage-create-github-app-token)) so the token is revoked even if an earlier step fails.
 
 <!-- prettier-ignore -->
-| Input | Description |
-| ----- | ----------- |
-| `TOKEN` (env var) | Installation token to revoke. |
-| `--github-api-url` | (optional) GitHub REST API URL (customizable for GitHub Enterprise). Defaults to `https://api.github.com`. |
+| Flag | Env var | Description |
+| ---- | ------- | ----------- |
+| | `TOKEN` | Installation token to revoke. |
+| `--github-api-url` | `GITHUB_API_URL` | (optional) GitHub REST API URL (customizable for GitHub Enterprise). Defaults to `https://api.github.com`. |
 
 ### `update-lock-registry`
 
@@ -124,14 +126,13 @@ steps:
   # and pass --key-id instead.
   - name: Create GitHub App token
     id: app-token
-    run: |
-      yarn beachball-auth-helper create-github-app-token \
-        --repository "${{ github.repository }}" \
-        --app-client-id "<app client id>" \
-        --permissions "<perms>" \
-        --ci-output-name MY_TOKEN
+    run: yarn beachball-auth-helper create-github-app-token
     env:
+      APP_CLIENT_ID: <app client id>
+      CI_OUTPUT_NAME: MY_TOKEN
       PRIVATE_KEY: ${{ secrets.MY_GITHUB_APP_PRIVATE_KEY }}
+      PERMISSIONS: <perms>
+      REPOSITORY: ${{ github.repository }}
 
   - name: Use token
     run: node scripts/use-token.js
@@ -162,13 +163,13 @@ steps:
       azureSubscription: <your service connection name>
       scriptType: bash
       scriptLocation: inlineScript
-      inlineScript: |
-        yarn beachball-auth-helper create-github-app-token \
-          --app-client-id "<app client id>" \
-          --key-id "<key vault key URL>" \
-          --repository "$(Build.Repository.Name)" \
-          --permissions "<perms>" \
-          --ci-output-name MY_TOKEN
+      inlineScript: yarn beachball-auth-helper create-github-app-token
+    env:
+      APP_CLIENT_ID: <app client id>
+      KEY_ID: <key vault key URL>
+      REPOSITORY: $(Build.Repository.Name)
+      PERMISSIONS: <perms>
+      CI_OUTPUT_NAME: MY_TOKEN
 
   # some script that uses the token
   - script: node scripts/use-token.js

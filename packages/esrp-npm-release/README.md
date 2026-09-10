@@ -439,8 +439,8 @@ extends:
 
     settings:
       # If any job has `type: releaseJob`, it applies strict network isolation to the whole pipeline.
-      # Re-enable the access needed.
-      networkIsolationPolicy: AzureActiveDirectory,AzureKeyVault,AzureStorage,GitHub
+      # Re-enable the access needed. (For some reason DefaultDeny actually enables contacting ADO...)
+      networkIsolationPolicy: DefaultDeny,AzureActiveDirectory,AzureKeyVault,AzureStorage,GitHub
 
     stages:
       - stage: build
@@ -724,13 +724,13 @@ If your repo has traditionally pushed packages directly back to GitHub with a pe
             azureSubscription: <GitHub App service connection name>
             scriptType: bash
             scriptLocation: inlineScript
-            inlineScript: |
-              yarn beachball-auth-helper create-github-app-token \
-                --app-client-id <GitHub App client ID> \
-                --key-id "<key vault key URL>" \
-                --repository "$(Build.Repository.Name)" \
-                --permissions contents:write \
-                --ci-output-name GITHUB_APP_TOKEN
+            inlineScript: yarn beachball-auth-helper create-github-app-token
+          env:
+            APP_CLIENT_ID: <GitHub App client ID>
+            KEY_ID: <key vault key URL>
+            REPOSITORY: $(Build.Repository.Name)
+            PERMISSIONS: contents:write
+            CI_OUTPUT_NAME: GITHUB_APP_TOKEN
 
         # Run publish without publishing to npm. Beachball reads `BEACHBALL_GIT_TOKEN` to authenticate the git push.
         # Update the command as needed for your repo.
