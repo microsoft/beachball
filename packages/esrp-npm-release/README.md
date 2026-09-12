@@ -72,16 +72,16 @@ See setup steps in later sections and [sample pipelines](#publish-stage) at the 
 
 ### Contact info
 
-`ESRP_USER` is optional and provides a default value for all the other fields in this group (so those become optional if it's set).
+`ESRP_USER` is optional and provides comma-separated default values for all the other fields in this group (so those become optional if it's set).
 
 <!-- prettier-ignore -->
 | Variable | Description |
 | -------- | ----------- |
-| `ESRP_USER` | _Optional._ Default value for the fields below. |
-| `ESRP_CREATED_BY` | Email of the user creating the release. |
-| `ESRP_DRI_EMAIL` | Email of the DRI for the team creating the release. |
-| `ESRP_OWNERS` | Owner email(s), comma-separated. |
-| `ESRP_APPROVERS` | Approver email(s), comma-separated (all non-mandatory and auto-approved). |
+| `ESRP_USER` | _Optional._ Comma-separated individual user emails (DL/SG not supported) used as default values for the fields below. The first email is used as `ESRP_CREATED_BY`. |
+| `ESRP_CREATED_BY` | Email of the user creating the release. DL/SG not supported. |
+| `ESRP_DRI_EMAIL` | DRI email(s) for the team creating the release, comma-separated. This _does_ support DL/SG. |
+| `ESRP_OWNERS` | Individual owner email(s), comma-separated. DL/SG not supported. |
+| `ESRP_APPROVERS` | Individual approver email(s), comma-separated (all non-mandatory and auto-approved). DL/SG not supported. |
 
 ### ESRP resources
 
@@ -92,8 +92,8 @@ ESRP resources are set up per their guides. Correspondence with official `EsrpRe
 | -------- | ----------- |
 | `ESRP_TENANT_ID` | Production tenant ID for your ESRP app registration or managed identity. (`EsrpRelease` task: `domaintenantid`) |
 | `ESRP_CLIENT_ID` | Client ID for your ESRP app registration or ESRP-allowlisted managed identity. (`EsrpRelease` task: `clientid`) |
-| `ESRP_AUTH_CERT` | Base64-encoded PFX certificate for authenticating to ESRP AAD. Set exactly one of this and `ESRP_ID_TOKEN`. |
-| `ESRP_ID_TOKEN` | Federated ID token for authenticating as an ESRP-allowlisted managed identity. Set exactly one of this and `ESRP_AUTH_CERT`. |
+| `ESRP_AUTH_CERT` | Base64-encoded PFX certificate for authenticating to ESRP AAD. Set exactly one of this or `ESRP_ID_TOKEN`. |
+| `ESRP_ID_TOKEN` | Federated ID token for authenticating as an ESRP-allowlisted managed identity. Set exactly one of this or `ESRP_AUTH_CERT`. |
 | `ESRP_REQUEST_SIGNING_CERT` | Base64-encoded PFX certificate for signing JWS release requests. Required for both authentication methods. |
 
 The request signing certificate and optional auth certificate are typically retrieved by a prior `AzureKeyVault` task step (as shown in the [example pipeline](#publish-stage)):
@@ -580,11 +580,11 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
             # Release info (must be unique per invocation if publishing multiple times per build)
             ESRP_PRODUCT_NAME: <friendly product name>
             ESRP_NPM_TAG: <npm dist-tag> # optional
-            ESRP_USER: <email>
-            ESRP_CREATED_BY: <email> # optional if ESRP_USER is set
-            ESRP_APPROVERS: <email> # optional if ESRP_USER is set
-            ESRP_OWNERS: <email> # optional if ESRP_USER is set
-            ESRP_DRI_EMAIL: <email> # optional if ESRP_USER is set
+            ESRP_USER: <user email(s), comma-separated>
+            ESRP_CREATED_BY: <user email> # optional if ESRP_USER is set
+            ESRP_APPROVERS: <user email(s), comma-separated> # optional if ESRP_USER is set
+            ESRP_OWNERS: <user email(s), comma-separated> # optional if ESRP_USER is set
+            ESRP_DRI_EMAIL: <email(s), comma-separated> # optional if ESRP_USER is set
 ```
 
 </details>
@@ -685,11 +685,11 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
             # Release info (must be unique per invocation if publishing multiple times per build)
             ESRP_PRODUCT_NAME: <friendly product name>
             ESRP_NPM_TAG: <npm dist-tag> # optional
-            ESRP_USER: <email>
-            ESRP_CREATED_BY: <email> # optional if ESRP_USER is set
-            ESRP_APPROVERS: <email> # optional if ESRP_USER is set
-            ESRP_OWNERS: <email> # optional if ESRP_USER is set
-            ESRP_DRI_EMAIL: <email> # optional if ESRP_USER is set
+            ESRP_USER: <user email(s), comma-separated>
+            ESRP_CREATED_BY: <user email> # optional if ESRP_USER is set
+            ESRP_APPROVERS: <user email(s), comma-separated> # optional if ESRP_USER is set
+            ESRP_OWNERS: <user email(s), comma-separated> # optional if ESRP_USER is set
+            ESRP_DRI_EMAIL: <email(s), comma-separated> # optional if ESRP_USER is set
 ```
 
 </details>

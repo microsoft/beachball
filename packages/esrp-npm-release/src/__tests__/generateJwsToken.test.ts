@@ -1,7 +1,10 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import jws from 'jws';
 import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
-import { generateJwsToken } from '../auth/generateJwsToken.ts';
+import { generateJwsToken, type ReleaseJwsHeader } from '../auth/generateJwsToken.ts';
+import type { ReleaseRequestMessage } from '../types/api.ts';
+
+type ReleaseJwsSignature = Omit<jws.Signature, 'header'> & { header: ReleaseJwsHeader };
 
 // eslint-disable-next-line no-restricted-properties -- intentional skip when openssl is unavailable
 const describeIfOpenssl = (await isOpensslAvailable()) ? describe : describe.skip;
@@ -14,15 +17,15 @@ describeIfOpenssl('generateJwsToken', () => {
   });
 
   /** `jws.decode` returns `null | undefined` for invalid tokens; throw to keep test types simple. */
-  function decodeOrThrow(token: string): jws.Signature {
+  function decodeOrThrow(token: string): ReleaseJwsSignature {
     const decoded = jws.decode(token);
     if (!decoded) throw new Error('Could not decode JWS token');
-    return decoded;
+    return decoded as ReleaseJwsSignature;
   }
 
   function makeToken(): string {
     return generateJwsToken({
-      releaseRequest: { driEmail: ['dri@example.com'] },
+      releaseRequest: { driEmail: ['dri@example.com'] } as ReleaseRequestMessage,
       certificates: [testCert.leafCertPem],
       privateKey: testCert.keyPem,
     });
@@ -35,17 +38,17 @@ describeIfOpenssl('generateJwsToken', () => {
 
   it("includes the leaf cert's hex SHA1 thumbprint as x5t", () => {
     const decoded = decodeOrThrow(makeToken());
-    expect((decoded.header as Record<string, unknown>).x5t).toBe(testCert.sha1ThumbprintHex);
+    expect(decoded.header.x5t).toBe(testCert.sha1ThumbprintHex);
   });
 
   it('includes the certificate chain as a "."-separated x5c (non-standard ESRP format)', () => {
     const decoded = decodeOrThrow(makeToken());
-    const x5c = (decoded.header as Record<string, unknown>).x5c as string;
+    const x5c = decoded.header.x5c;
     expect(typeof x5c).toBe('string');
     // Single-cert chain so no separator should appear
-    expect(x5c.includes('.')).toBe(false);
+    expect(x5c?.includes('.')).toBe(false);
     // The base64url-decoded value matches the leaf cert DER
-    const der = Buffer.from(x5c, 'base64url').toString('hex');
+    const der = Buffer.from(x5c!, 'base64url').toString('hex');
     const certDer = Buffer.from(
       testCert.leafCertPem.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\s+/g, ''),
       'base64'
@@ -55,13 +58,13 @@ describeIfOpenssl('generateJwsToken', () => {
 
   it('joins multi-certificate chains with "." in leaf-then-CA order', () => {
     const token = generateJwsToken({
-      releaseRequest: { driEmail: ['test@example.com'] },
+      releaseRequest: { driEmail: ['test@example.com'] } as ReleaseRequestMessage,
       certificates: [testCert.leafCertPem, testCert.caCertPem],
       privateKey: testCert.keyPem,
     });
     const decoded = decodeOrThrow(token);
-    const x5c = (decoded.header as Record<string, unknown>).x5c as string;
-    const parts = x5c.split('.');
+    const x5c = decoded.header.x5c;
+    const parts = x5c!.split('.');
     expect(parts).toHaveLength(2);
 
     const leafDer = Buffer.from(parts[0], 'base64url').toString('hex');
@@ -81,14 +84,14 @@ describeIfOpenssl('generateJwsToken', () => {
   it('sets exp using .NET ticks (greater than Date.now() in milliseconds)', () => {
     const now = Date.now();
     const decoded = decodeOrThrow(makeToken());
-    const exp = (decoded.header as Record<string, unknown>).exp as number;
+    const exp = decoded.header.exp;
     // .NET ticks since 1/1/0001, which is far larger than any reasonable ms-since-epoch.
     expect(exp).toBeGreaterThan(now);
     expect(exp).toBeGreaterThan(621355968000000000);
   });
 
   it('serializes the release request as the JWS payload', () => {
-    const releaseRequest = { driEmail: ['custom@test.com'] };
+    const releaseRequest = { driEmail: ['custom@test.com'] } as ReleaseRequestMessage;
     const token = generateJwsToken({
       releaseRequest,
       certificates: [testCert.leafCertPem],
