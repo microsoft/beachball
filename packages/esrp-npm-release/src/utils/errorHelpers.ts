@@ -17,8 +17,9 @@ export function isRetryableAzureError(error: unknown): boolean {
 
   return (
     error instanceof RestError &&
-    // Note: PARSE_ERROR is considered non-retryable because it means the request was received,
-    // but something went wrong parsing the response, so the state is indeterminate.
+    // Note: PARSE_ERROR is considered non-retryable (unless the accompanying status is transient)
+    // because it means the request was received, but something went wrong parsing the response, so
+    // the state is indeterminate.
     (error.code === RestError.REQUEST_SEND_ERROR || isTransientHttpStatus(error.statusCode))
   );
 }
