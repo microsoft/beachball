@@ -23,8 +23,9 @@ export function getEnvOptions(env: NodeJS.ProcessEnv = process.env): EnvOptions 
     return '';
   }
 
-  // ESRP_USER serves as a fallback default for the contact email fields below
-  const defaultUser = getEnv('ESRP_USER', { isOptional: true });
+  // ESRP_USER contains individual users and serves as a fallback for the contact email fields below
+  const defaultUsers = getEnv('ESRP_USER', { isOptional: true });
+  const defaultCreatedBy = defaultUsers && splitString(defaultUsers)[0];
 
   const result: EnvOptions = {
     packedPackagesPath: getEnv('PACKED_PACKAGES_PATH'),
@@ -32,10 +33,10 @@ export function getEnvOptions(env: NodeJS.ProcessEnv = process.env): EnvOptions 
       productName: getEnv('ESRP_PRODUCT_NAME'),
       // skip if unspecified so ESRP will read publishConfig
       npmTag: getEnv('ESRP_NPM_TAG', { isOptional: true }),
-      createdBy: getEnv('ESRP_CREATED_BY', { defaultValue: defaultUser }),
-      driEmail: [getEnv('ESRP_DRI_EMAIL', { defaultValue: defaultUser })],
-      owners: splitString(getEnv('ESRP_OWNERS', { defaultValue: defaultUser })),
-      approvers: splitString(getEnv('ESRP_APPROVERS', { defaultValue: defaultUser })),
+      createdBy: getEnv('ESRP_CREATED_BY', { defaultValue: defaultCreatedBy }),
+      driEmail: splitString(getEnv('ESRP_DRI_EMAIL', { defaultValue: defaultUsers })),
+      owners: splitString(getEnv('ESRP_OWNERS', { defaultValue: defaultUsers })),
+      approvers: splitString(getEnv('ESRP_APPROVERS', { defaultValue: defaultUsers })),
       tenantId: getEnv('ESRP_TENANT_ID'),
       clientId: getEnv('ESRP_CLIENT_ID'),
       authCertificatePfx: getEnv('ESRP_AUTH_CERT', { isOptional: true }),

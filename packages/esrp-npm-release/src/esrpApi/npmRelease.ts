@@ -23,13 +23,13 @@ export type GeneratedReleaseRequestMessage = ReleaseRequestMessage &
 
 export interface CreateNpmReleaseRequestMessageParams {
   correlationId: string;
-  /** email of the DRI for the team creating this release */
+  /** email of the DRI for the team creating this release, possibly used if a release request fails */
   driEmail: string[];
   /** created by email */
   createdBy: string;
-  /** owner emails */
+  /** individual owner emails (DL/SG not supported) */
   owners: string[];
-  /** approver emails (all non-mandatory and auto-approved) */
+  /** individual approver emails (DL/SG not supported; all are non-mandatory and auto-approved) */
   approvers: string[];
   /** your release title */
   releaseTitle: string;
@@ -101,7 +101,7 @@ export async function createNpmReleaseRequest(
         tenantFileLocationType: 'AzureBlob',
         sourceLocation: { type: 'azureBlob', blobUrl: file.sasBlobUrl },
         hashType: FileHashType.sha256,
-        hash: Array.from(hash),
+        hash: hash.toString('base64'),
         sizeInBytes: size,
       },
     ],
@@ -135,21 +135,9 @@ export function redactReleaseRequest<TMessage extends Pick<ReleaseRequestMessage
   return message;
 }
 
-/** Redact a release message and format file hash arrays compactly for logging. */
+/** Redact a release message and format it for logging. */
 export function formatReleaseRequestForLog<TMessage extends Pick<ReleaseRequestMessage, 'files' | 'jwsToken'>>(
   message: TMessage
 ): string {
-  const redacted = redactReleaseRequest(message);
-  const hashes: (number[] | string)[] = [];
-  redacted.files = redacted.files?.map(file => {
-    const hashPlaceholder = `__ESRP_FILE_HASH_${hashes.length}__`;
-    hashes.push(file.hash);
-    return { ...file, hash: hashPlaceholder };
-  });
-
-  let formatted = JSON.stringify(redacted, null, 2);
-  hashes.forEach((hash, index) => {
-    formatted = formatted.replace(JSON.stringify(`__ESRP_FILE_HASH_${index}__`), JSON.stringify(hash));
-  });
-  return formatted;
+  return JSON.stringify(redactReleaseRequest(message), null, 2);
 }

@@ -27,9 +27,9 @@ export interface EsrpEnvOptions {
   createdBy: string;
   /** Email of the DRI for the team creating the release */
   driEmail: string[];
-  /** Owner emails */
+  /** Individual owner emails (DL/SG not supported) */
   owners: string[];
-  /** Approver emails (all non-mandatory and auto-approved) */
+  /** Individual approver emails (DL/SG not supported; all are non-mandatory and auto-approved) */
   approvers: string[];
 
   /** Production tenant ID used for your ESRP app registration or managed identity */

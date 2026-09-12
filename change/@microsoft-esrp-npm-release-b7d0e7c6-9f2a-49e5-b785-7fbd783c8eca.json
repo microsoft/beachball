@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Retry submit release on transient errors",
+  "packageName": "@microsoft/esrp-npm-release",
+  "email": "elcraig@microsoft.com"
+}

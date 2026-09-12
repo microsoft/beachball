@@ -51,21 +51,18 @@ describe('releaseHttp', () => {
       });
     });
 
-    it.each([
-      ['a transient HTTP response', () => makeFetchResponse({ status: 503, body: 'unavailable' })],
-      ['a network error', () => Promise.reject(new Error('fetch failed'))],
-    ])('does not retry or mark %s as retryable', async (_description, getFailure) => {
+    it('retries transient failures up to three attempts', async () => {
       jest.useFakeTimers();
-      fetchMock.mockImplementation(() => Promise.resolve(getFailure()).then(result => result));
+      fetchMock
+        .mockResolvedValueOnce(makeFetchResponse({ status: 503, body: 'unavailable' }))
+        .mockRejectedValueOnce(new Error('fetch failed'))
+        .mockResolvedValueOnce(makeFetchResponse({ body: '{"operationId":"op-1"}' }));
 
-      const error = (await expectError(
-        submitRelease({ ...defaultParams, releaseRequest: mockRequest }),
-        ReleaseError,
-        'Failed to submit release'
-      )) as ReleaseError;
+      const promise = submitRelease({ ...defaultParams, releaseRequest: mockRequest });
+      await jest.runAllTimersAsync();
 
-      expect(error.retryable).toBe(false);
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      await expect(promise).resolves.toEqual({ operationId: 'op-1' });
+      expect(fetchMock).toHaveBeenCalledTimes(3);
     });
   });
 
