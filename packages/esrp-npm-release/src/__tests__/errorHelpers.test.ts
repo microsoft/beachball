@@ -19,8 +19,8 @@ describe('isRetryableAzureError', () => {
     expect(isRetryableAzureError(new ReleaseError('token failure', { retryable }))).toBe(retryable);
   });
 
-  it.each([RestError.REQUEST_SEND_ERROR, RestError.PARSE_ERROR])('retries pipeline error %s', code => {
-    expect(isRetryableAzureError(new RestError('pipeline failure', { code }))).toBe(true);
+  it('retries pipeline error REQUEST_SEND_ERROR', () => {
+    expect(isRetryableAzureError(new RestError('pipeline failure', { code: RestError.REQUEST_SEND_ERROR }))).toBe(true);
   });
 
   it.each([408, 429, 500, 503, 599])('retries HTTP status %s', statusCode => {

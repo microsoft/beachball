@@ -25,9 +25,7 @@ const esrpBaseUrl = `https://${esrpApiDomain}/api/v3/releaseservices/clients/`;
 /**
  * Submit a release request.
  * Throws a `ReleaseError` if the request fails or the response can't be parsed.
- *
- * This only attempts to submit the request once: the meaning of a failed submit request is unclear,
- * so the safest retry approach is for the user to re-run the stage.
+ * Retries transient request failures up to three attempts.
  */
 export async function submitRelease(
   params: Omit<ReleaseHttpParams, 'releaseId'> & { releaseRequest: ReleaseRequestMessage }
@@ -41,9 +39,9 @@ export async function submitRelease(
       bearerToken,
       method: 'POST',
       body: releaseRequest,
+      maxAttempts: 3,
     });
   } catch (err) {
-    // see function comment for why it doesn't retry
     throw new ReleaseError(`Failed to submit release`, { cause: err, retryable: false });
   }
 
