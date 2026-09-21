@@ -31,7 +31,6 @@ resources:
       ref: refs/tags/release
 
 variables:
-  - group: ogx-oss-release
   - template: /.ado/templates/readonly-variables.yml
     parameters:
       variables:
@@ -54,19 +53,6 @@ variables:
         releaseToolArtifactName: release-api-tool
         tgzScanTestArtifactName: tgz-scan-test
 
-        # Map in variable group values as readonly (with this syntax, they'll be empty strings if unset)
-        esrpReleaseAzureSubscription: $[variables.grp_esrpReleaseAzureSubscription]
-        esrpReleaseClientId: $[variables.grp_esrpReleaseClientId]
-        esrpReleaseKeyVaultName: $[variables.grp_esrpReleaseKeyVaultName]
-        esrpReleaseTenantId: $[variables.grp_esrpReleaseTenantId]
-        esrpStagingAzureSubscription: $[variables.grp_esrpStagingAzureSubscription]
-        esrpStagingStorageAccount: $[variables.grp_esrpStagingStorageAccount]
-        ghaClientId: $[variables.grp_ghaClientId]
-        ghaTokenAzureSubscription: $[variables.grp_ghaTokenAzureSubscription]
-        ghaTokenKeyId: $[variables.grp_ghaTokenKeyId]
-        ghaUserName: $[variables.grp_ghaUserName]
-        ghaUserEmail: $[variables.grp_ghaUserEmail]
-
 # Temporary workaround to publish two groups of packages with different versioning strategies
 # TODO (release): go back to a single publish step
 parameters:
@@ -74,10 +60,10 @@ parameters:
     type: object
     default:
       - groupName: canary
-        artifactPathVariable: canaryArtifactPath
+        artifactPathVariable: CANARY_ARTIFACT_PATH
         npmTag: next
       - groupName: others
-        artifactPathVariable: packagesArtifactPath
+        artifactPathVariable: PACKAGES_ARTIFACT_PATH
         npmTag: latest
 
 extends:
@@ -115,26 +101,27 @@ extends:
               clean: all
 
             variables:
-              packagesArtifactPath: $(Build.StagingDirectory)/${{ variables.packagesArtifactName }}
-              canaryArtifactPath: $(Build.StagingDirectory)/${{ variables.canaryArtifactName }}
-              releaseToolArtifactPath: $(Build.StagingDirectory)/${{ variables.releaseToolArtifactName }}
-              tgzScanTestArtifactPath: $(Build.StagingDirectory)/${{ variables.tgzScanTestArtifactName }}
+              OUTPUT_PARENT_PATH: $(Build.StagingDirectory)
+              PACKAGES_ARTIFACT_PATH: $(OUTPUT_PARENT_PATH)/${{ variables.packagesArtifactName }}
+              CANARY_ARTIFACT_PATH: $(OUTPUT_PARENT_PATH)/${{ variables.canaryArtifactName }}
+              RELEASE_TOOL_ARTIFACT_PATH: $(OUTPUT_PARENT_PATH)/${{ variables.releaseToolArtifactName }}
+              TGZ_SCAN_TEST_ARTIFACT_PATH: $(OUTPUT_PARENT_PATH)/${{ variables.tgzScanTestArtifactName }}
 
             templateContext:
-              outputParentDirectory: $(Build.StagingDirectory)
+              outputParentDirectory: $(OUTPUT_PARENT_PATH)
               outputs:
                 - output: pipelineArtifact
                   artifactName: ${{ variables.packagesArtifactName }}
-                  path: $(packagesArtifactPath)
+                  path: $(PACKAGES_ARTIFACT_PATH)
                 - output: pipelineArtifact
                   artifactName: ${{ variables.canaryArtifactName }}
-                  path: $(canaryArtifactPath)
+                  path: $(CANARY_ARTIFACT_PATH)
                 - output: pipelineArtifact
                   artifactName: ${{ variables.releaseToolArtifactName }}
-                  path: $(releaseToolArtifactPath)
+                  path: $(RELEASE_TOOL_ARTIFACT_PATH)
                 - output: pipelineArtifact
                   artifactName: ${{ variables.tgzScanTestArtifactName }}
-                  path: $(tgzScanTestArtifactPath)
+                  path: $(TGZ_SCAN_TEST_ARTIFACT_PATH)
 
             steps:
               - template: /.ado/templates/setup.yml@self
@@ -145,32 +132,34 @@ extends:
               - script: yarn test --verbose
                 displayName: Test
 
-              - script: mkdir -p '$(canaryArtifactPath)' '$(packagesArtifactPath)'
+              - script: mkdir -p "$CANARY_ARTIFACT_PATH" "$PACKAGES_ARTIFACT_PATH"
                 displayName: Create package artifact directories
 
-              - script: yarn beachball:release canary --pack-to-path '$(canaryArtifactPath)'
+              - script: yarn beachball:release canary --pack-to-path "$CANARY_ARTIFACT_PATH"
                 displayName: Pack packages (canary)
 
-              - script: yarn beachball:release publish --no-push --pack-to-path '$(packagesArtifactPath)'
+              - script: yarn beachball:release publish --no-push --pack-to-path "$PACKAGES_ARTIFACT_PATH"
                 displayName: Pack packages (others)
 
               - script: |
-                  mkdir -p '$(tgzScanTestArtifactPath)'
-                  rm -rf '$(Agent.TempDirectory)/tgz-expansion-test'
-                  mkdir -p '$(Agent.TempDirectory)/tgz-expansion-test'
-                  echo "console.log(require('@microsoft/fake-package'))" > '$(Agent.TempDirectory)/tgz-expansion-test/tgz-main.js'
-                  echo '{ "name": "tgz-sentinel", "version": "1.0.0", "main": "tgz-main.js", "dependencies": { "@microsoft/fake-package": "1.0.0" } }' > '$(Agent.TempDirectory)/tgz-expansion-test/package.json'
-                  tar -czf '$(tgzScanTestArtifactPath)/tgz-expansion-test.tgz' \
-                    -C '$(Agent.TempDirectory)/tgz-expansion-test' .
-                  rm -rf '$(Agent.TempDirectory)/tgz-expansion-test'
+                  mkdir -p "$TGZ_SCAN_TEST_ARTIFACT_PATH"
+                  rm -rf "$TGZ_DIR"
+                  mkdir -p "$TGZ_DIR"
+                  echo "console.log(require('@microsoft/fake-package'))" > "$TGZ_DIR/tgz-main.js"
+                  echo '{ "name": "tgz-sentinel", "version": "1.0.0", "main": "tgz-main.js", "dependencies": { "@microsoft/fake-package": "1.0.0" } }' > "$TGZ_DIR/package.json"
+                  tar -czf "$TGZ_SCAN_TEST_ARTIFACT_PATH/tgz-expansion-test.tgz" \
+                    -C "$TGZ_DIR" .
+                  rm -rf "$TGZ_DIR"
                 displayName: Create tgz scanning test artifact
+                env:
+                  TGZ_DIR: $(Agent.TempDirectory)/tgz-expansion-test
 
               - script: |
-                  mkdir -p '$(releaseToolArtifactPath)'
-                  cp -r packages/esrp-npm-release/dist/index.mjs '$(releaseToolArtifactPath)'
+                  mkdir -p "$RELEASE_TOOL_ARTIFACT_PATH"
+                  cp -r packages/esrp-npm-release/dist/index.mjs "$RELEASE_TOOL_ARTIFACT_PATH"
                 displayName: Copy release API tool to staging directory
 
-              - script: ls -R '$(Build.StagingDirectory)'
+              - script: ls -R "$OUTPUT_PARENT_PATH"
                 displayName: Show all output files
 
       - stage: publish
@@ -186,11 +175,10 @@ extends:
               os: linux
 
             variables:
-              packagesArtifactPath: $(Agent.BuildDirectory)/${{ variables.packagesArtifactName }}
-              canaryArtifactPath: $(Agent.BuildDirectory)/${{ variables.canaryArtifactName }}
-              releaseToolArtifactPath: $(Agent.BuildDirectory)/${{ variables.releaseToolArtifactName }}
-              tgzScanTestArtifactPath: $(Agent.BuildDirectory)/${{ variables.tgzScanTestArtifactName }}
-              toolArtifactBin: $(releaseToolArtifactPath)/index.mjs
+              PACKAGES_ARTIFACT_PATH: $(Agent.BuildDirectory)/${{ variables.packagesArtifactName }}
+              CANARY_ARTIFACT_PATH: $(Agent.BuildDirectory)/${{ variables.canaryArtifactName }}
+              RELEASE_TOOL_ARTIFACT_PATH: $(Agent.BuildDirectory)/${{ variables.releaseToolArtifactName }}
+              TGZ_SCAN_TEST_ARTIFACT_PATH: $(Agent.BuildDirectory)/${{ variables.tgzScanTestArtifactName }}
 
             templateContext:
               type: releaseJob
@@ -198,16 +186,16 @@ extends:
               inputs:
                 - input: pipelineArtifact
                   artifactName: ${{ variables.packagesArtifactName }}
-                  targetPath: $(packagesArtifactPath)
+                  targetPath: $(PACKAGES_ARTIFACT_PATH)
                 - input: pipelineArtifact
                   artifactName: ${{ variables.canaryArtifactName }}
-                  targetPath: $(canaryArtifactPath)
+                  targetPath: $(CANARY_ARTIFACT_PATH)
                 - input: pipelineArtifact
                   artifactName: ${{ variables.releaseToolArtifactName }}
-                  targetPath: $(releaseToolArtifactPath)
+                  targetPath: $(RELEASE_TOOL_ARTIFACT_PATH)
                 - input: pipelineArtifact
                   artifactName: ${{ variables.tgzScanTestArtifactName }}
-                  targetPath: $(tgzScanTestArtifactPath)
+                  targetPath: $(TGZ_SCAN_TEST_ARTIFACT_PATH)
 
             steps:
               - task: UseNode@1
@@ -218,10 +206,9 @@ extends:
                   checkLatest: false
 
               - script: |
-                  ls -R '$(packagesArtifactPath)'
-                  ls -R '$(canaryArtifactPath)'
-                  ls -R '$(releaseToolArtifactPath)'
-                  ls -R '$(tgzScanTestArtifactPath)'
+                  ls -R "$PACKAGES_ARTIFACT_PATH"
+                  ls -R "$CANARY_ARTIFACT_PATH"
+                  ls -R "$RELEASE_TOOL_ARTIFACT_PATH"
                 displayName: Show artifact contents
 
               # Get credentials that will be used to temporarily upload zips to ogxesrptempstorage
@@ -230,7 +217,7 @@ extends:
                 displayName: Get credentials for staging blob storage
                 inputs:
                   # this is the service connection name
-                  azureSubscription: $(esrpStagingAzureSubscription)
+                  azureSubscription: ogx-esrp-infra-bot
                   scriptType: bash
                   scriptLocation: inlineScript
                   addSpnToEnvironment: true
@@ -244,17 +231,16 @@ extends:
                 displayName: Get ESRP certificates from Key Vault
                 inputs:
                   # torus service connection name ("connectedservicename" from EsrpRelease task)
-                  azureSubscription: $(esrpReleaseAzureSubscription)
+                  azureSubscription: ESRP-JSHost3
                   # "keyvaultname" from EsrpRelease task
-                  KeyVaultName: $(esrpReleaseKeyVaultName)
+                  KeyVaultName: OGX-JSHost-KV
                   # "authcertname" and "signcertname" from EsrpRelease task
-                  # (can't specify these in variables since they're used as secret names in the next step)
                   SecretsFilter: OGX-JSHost-Auth4,OGX-JSHost-Sign3
 
               # Publish each set of packed packages under its npm dist-tag.
               # (Beachball doesn't really need ordered publishing, but we want to test the helper.)
               - ${{ each publish in parameters.npmPublishes }}:
-                  - script: node '$(toolArtifactBin)'
+                  - script: node "$RELEASE_TOOL_ARTIFACT_PATH/index.mjs"
                     displayName: '(${{ publish.groupName }}) npm publish using ESRP Release API'
                     env:
                       PACKED_PACKAGES_PATH: $(${{ publish.artifactPathVariable }})
@@ -263,13 +249,13 @@ extends:
                       ESRP_NPM_TAG: ${{ publish.npmTag }}
                       ESRP_USER: elcraig@microsoft.com
                       ESRP_APPROVERS: dannyvv@microsoft.com
-                      # torus tenant ID ("domaintenantid" from EsrpRelease task, same as service connection esrpReleaseAzureSubscription)
-                      ESRP_TENANT_ID: $(esrpReleaseTenantId)
-                      # "clientid" from EsrpRelease task
-                      ESRP_CLIENT_ID: $(esrpReleaseClientId)
+                      # "OGX JSHost" ESRP client ID ("clientid" from EsrpRelease task)
+                      ESRP_CLIENT_ID: 0a35e01f-eadf-420a-a2bf-def002ba898d
+                      # torus tenant ID ("domaintenantid" from EsrpRelease task)
+                      ESRP_TENANT_ID: cdc5aeea-15c5-4db6-b079-fcadd2505dc2
                       ESRP_AUTH_CERT: $(OGX-JSHost-Auth4)
                       ESRP_REQUEST_SIGNING_CERT: $(OGX-JSHost-Sign3)
-                      STAGING_STORAGE_ACCOUNT_NAME: $(esrpStagingStorageAccount)
+                      STAGING_STORAGE_ACCOUNT_NAME: ogxesrptempstorage
                       STAGING_CLIENT_ID: $(STAGING_CLIENT_ID)
                       STAGING_TENANT_ID: $(STAGING_TENANT_ID)
                       STAGING_ID_TOKEN: $(STAGING_ID_TOKEN)
@@ -295,13 +281,13 @@ extends:
                 name: createToken
                 displayName: Create GitHub App token
                 inputs:
-                  azureSubscription: $(ghaTokenAzureSubscription)
+                  azureSubscription: ogx-oss-release-bot
                   scriptType: bash
                   scriptLocation: inlineScript
                   inlineScript: yarn beachball-auth-helper create-github-app-token
                 env:
-                  APP_CLIENT_ID: $(ghaClientId)
-                  KEY_ID: $(ghaTokenKeyId)
+                  APP_CLIENT_ID: Iv23ligBoU5jc9SIFnGR
+                  KEY_ID: https://ogx-oss-release-keyvault.vault.azure.net/keys/office-ogx-auth-helper-key
                   REPOSITORY: $(Build.Repository.Name)
                   PERMISSIONS: contents:write
                   CI_OUTPUT_NAME: GITHUB_APP_TOKEN
