@@ -13,8 +13,8 @@ steps:
       checkLatest: false
 
   - script: |
-      git config user.name '$(ghaUserName)'
-      git config user.email '$(ghaUserEmail)'
+      git config user.name "OGX bot"
+      git config user.email "257645319+office-ogx-auth-helper[bot]@users.noreply.github.com"
     displayName: Configure git user
 
   - script: |
@@ -26,7 +26,7 @@ steps:
     displayName: Show environment
 
   # Configure npm to use the internal feed from REGISTRY_URL.
-  - script: echo 'registry=$(REGISTRY_URL)' >> .npmrc
+  - script: echo "registry=$REGISTRY_URL" >> .npmrc
     displayName: Configure npm registry
 
   - task: npmAuthenticate@0

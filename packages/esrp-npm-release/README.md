@@ -72,16 +72,16 @@ See setup steps in later sections and [sample pipelines](#publish-stage) at the 
 
 ### Contact info
 
-`ESRP_USER` is optional and provides a default value for all the other fields in this group (so those become optional if it's set).
+`ESRP_USER` is optional and provides comma-separated default values for all the other fields in this group (so those become optional if it's set).
 
 <!-- prettier-ignore -->
 | Variable | Description |
 | -------- | ----------- |
-| `ESRP_USER` | _Optional._ Default value for the fields below. |
-| `ESRP_CREATED_BY` | Email of the user creating the release. |
-| `ESRP_DRI_EMAIL` | Email of the DRI for the team creating the release. |
-| `ESRP_OWNERS` | Owner email(s), comma-separated. |
-| `ESRP_APPROVERS` | Approver email(s), comma-separated (all non-mandatory and auto-approved). |
+| `ESRP_USER` | _Optional._ Comma-separated individual user emails (DL/SG not supported) used as default values for the fields below. The first email is used as `ESRP_CREATED_BY`. |
+| `ESRP_CREATED_BY` | Email of the user creating the release. DL/SG not supported. |
+| `ESRP_DRI_EMAIL` | DRI email(s) for the team creating the release, comma-separated. This _does_ support DL/SG. |
+| `ESRP_OWNERS` | Individual owner email(s), comma-separated. DL/SG not supported. |
+| `ESRP_APPROVERS` | Individual approver email(s), comma-separated (all non-mandatory and auto-approved). DL/SG not supported. |
 
 ### ESRP resources
 
@@ -92,8 +92,8 @@ ESRP resources are set up per their guides. Correspondence with official `EsrpRe
 | -------- | ----------- |
 | `ESRP_TENANT_ID` | Production tenant ID for your ESRP app registration or managed identity. (`EsrpRelease` task: `domaintenantid`) |
 | `ESRP_CLIENT_ID` | Client ID for your ESRP app registration or ESRP-allowlisted managed identity. (`EsrpRelease` task: `clientid`) |
-| `ESRP_AUTH_CERT` | Base64-encoded PFX certificate for authenticating to ESRP AAD. Set exactly one of this and `ESRP_ID_TOKEN`. |
-| `ESRP_ID_TOKEN` | Federated ID token for authenticating as an ESRP-allowlisted managed identity. Set exactly one of this and `ESRP_AUTH_CERT`. |
+| `ESRP_AUTH_CERT` | Base64-encoded PFX certificate for authenticating to ESRP AAD. Set exactly one of this or `ESRP_ID_TOKEN`. |
+| `ESRP_ID_TOKEN` | Federated ID token for authenticating as an ESRP-allowlisted managed identity. Set exactly one of this or `ESRP_AUTH_CERT`. |
 | `ESRP_REQUEST_SIGNING_CERT` | Base64-encoded PFX certificate for signing JWS release requests. Required for both authentication methods. |
 
 The request signing certificate and optional auth certificate are typically retrieved by a prior `AzureKeyVault` task step (as shown in the [example pipeline](#publish-stage)):
@@ -369,9 +369,8 @@ steps:
     displayName: Install Node.js ${{ parameters.nodeVersion }}
     inputs:
       version: ${{ parameters.nodeVersion }}.x
-      checkLatest: false
 
-  - script: echo 'registry=$(REGISTRY_URL)' >> .npmrc
+  - script: echo "registry=$REGISTRY_URL" >> .npmrc
     displayName: Configure npm registry
 
   - task: npmAuthenticate@0
@@ -386,7 +385,7 @@ steps:
 
   # ONLY for npm / yarn v1: rewrite lock file URLs to the private registry.
   # `npx` fetches the `beachball-auth-helper` binary from the `beachball` package in the private registry.
-  - script: npx --package beachball@next beachball-auth-helper update-lock-registry --registry '$(REGISTRY_URL)'
+  - script: npx --package beachball@next beachball-auth-helper update-lock-registry --registry "$REGISTRY_URL"
     displayName: (npm or yarn v1) Update registry in lock file
 
   # Modify as appropriate
@@ -459,18 +458,18 @@ extends:
               clean: all
 
             variables:
-              packagesArtifactPath: $(Build.StagingDirectory)/${{ variables.packagesArtifactName }}
-              releaseToolArtifactPath: $(Build.StagingDirectory)/${{ variables.releaseToolArtifactName }}
+              PACKAGES_ARTIFACT_PATH: $(Build.StagingDirectory)/${{ variables.packagesArtifactName }}
+              RELEASE_TOOL_ARTIFACT_PATH: $(Build.StagingDirectory)/${{ variables.releaseToolArtifactName }}
 
             templateContext:
               outputParentDirectory: $(Build.StagingDirectory)
               outputs:
                 - output: pipelineArtifact
                   artifactName: ${{ variables.packagesArtifactName }}
-                  path: $(packagesArtifactPath)
+                  path: $(PACKAGES_ARTIFACT_PATH)
                 - output: pipelineArtifact
                   artifactName: ${{ variables.releaseToolArtifactName }}
-                  path: $(releaseToolArtifactPath)
+                  path: $(RELEASE_TOOL_ARTIFACT_PATH)
 
             steps:
               - template: /.ado/templates/setup.yml@self
@@ -482,14 +481,14 @@ extends:
               # Bump and pack packages (update command as needed).
               # This could also run some other script that outputs packages in the same format.
               - script: |
-                  mkdir -p '$(packagesArtifactPath)'
-                  yarn beachball publish --no-push --pack-to-path '$(packagesArtifactPath)'
+                  mkdir -p "$PACKAGES_ARTIFACT_PATH"
+                  yarn beachball publish --no-push --pack-to-path "$PACKAGES_ARTIFACT_PATH"
                 displayName: Pack packages
 
               # Update as needed for your install layout
               - script: |
-                  mkdir -p '$(releaseToolArtifactPath)'
-                  cp -r '$(Build.SourcesDirectory)/node_modules/@microsoft/esrp-npm-release/dist/index.mjs' '$(releaseToolArtifactPath)'
+                  mkdir -p "$RELEASE_TOOL_ARTIFACT_PATH"
+                  cp -r "$BUILD_SOURCESDIRECTORY/node_modules/@microsoft/esrp-npm-release/dist/index.mjs" "$RELEASE_TOOL_ARTIFACT_PATH"
                 displayName: Copy release API tool to staging directory
 ```
 
@@ -515,9 +514,8 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
         os: linux
 
       variables:
-        packagesArtifactPath: $(Agent.BuildDirectory)/${{ variables.packagesArtifactName }}
-        releaseToolArtifactPath: $(Agent.BuildDirectory)/${{ variables.releaseToolArtifactName }}
-        toolArtifactBin: $(releaseToolArtifactPath)/index.mjs
+        PACKAGES_ARTIFACT_PATH: $(Agent.BuildDirectory)/${{ variables.packagesArtifactName }}
+        RELEASE_TOOL_ARTIFACT_PATH: $(Agent.BuildDirectory)/${{ variables.releaseToolArtifactName }}
 
       templateContext:
         type: releaseJob
@@ -525,10 +523,10 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
         inputs:
           - input: pipelineArtifact
             artifactName: ${{ variables.packagesArtifactName }}
-            targetPath: $(packagesArtifactPath)
+            targetPath: $(PACKAGES_ARTIFACT_PATH)
           - input: pipelineArtifact
             artifactName: ${{ variables.releaseToolArtifactName }}
-            targetPath: $(releaseToolArtifactPath)
+            targetPath: $(RELEASE_TOOL_ARTIFACT_PATH)
 
       steps:
         - task: UseNode@1
@@ -559,10 +557,10 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
             SecretsFilter: <auth cert name>,<request signing cert name>
 
         # Run the tool (see "Tool inputs" below for details on each variable)
-        - script: node '$(toolArtifactBin)'
+        - script: node "$RELEASE_TOOL_ARTIFACT_PATH/index.mjs"
           displayName: Publish using ESRP Release API
           env:
-            PACKED_PACKAGES_PATH: $(packagesArtifactPath)
+            PACKED_PACKAGES_PATH: $(PACKAGES_ARTIFACT_PATH)
 
             # Staging storage credentials
             STAGING_STORAGE_ACCOUNT_NAME: <storage account name>
@@ -580,11 +578,11 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
             # Release info (must be unique per invocation if publishing multiple times per build)
             ESRP_PRODUCT_NAME: <friendly product name>
             ESRP_NPM_TAG: <npm dist-tag> # optional
-            ESRP_USER: <email>
-            ESRP_CREATED_BY: <email> # optional if ESRP_USER is set
-            ESRP_APPROVERS: <email> # optional if ESRP_USER is set
-            ESRP_OWNERS: <email> # optional if ESRP_USER is set
-            ESRP_DRI_EMAIL: <email> # optional if ESRP_USER is set
+            ESRP_USER: <user email(s), comma-separated>
+            ESRP_CREATED_BY: <user email> # optional if ESRP_USER is set
+            ESRP_APPROVERS: <user email(s), comma-separated> # optional if ESRP_USER is set
+            ESRP_OWNERS: <user email(s), comma-separated> # optional if ESRP_USER is set
+            ESRP_DRI_EMAIL: <email(s), comma-separated> # optional if ESRP_USER is set
 ```
 
 </details>
@@ -609,9 +607,9 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
         os: linux
 
       variables:
-        packagesArtifactPath: $(Agent.BuildDirectory)/${{ variables.packagesArtifactName }}
-        releaseToolArtifactPath: $(Agent.BuildDirectory)/${{ variables.releaseToolArtifactName }}
-        toolArtifactBin: $(releaseToolArtifactPath)/index.mjs
+        PACKAGES_ARTIFACT_PATH: $(Agent.BuildDirectory)/${{ variables.packagesArtifactName }}
+        RELEASE_TOOL_ARTIFACT_PATH: $(Agent.BuildDirectory)/${{ variables.releaseToolArtifactName }}
+        TOOL_ARTIFACT_BIN: $(RELEASE_TOOL_ARTIFACT_PATH)/index.mjs
 
       templateContext:
         type: releaseJob
@@ -619,10 +617,10 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
         inputs:
           - input: pipelineArtifact
             artifactName: ${{ variables.packagesArtifactName }}
-            targetPath: $(packagesArtifactPath)
+            targetPath: $(PACKAGES_ARTIFACT_PATH)
           - input: pipelineArtifact
             artifactName: ${{ variables.releaseToolArtifactName }}
-            targetPath: $(releaseToolArtifactPath)
+            targetPath: $(RELEASE_TOOL_ARTIFACT_PATH)
 
       steps:
         - task: UseNode@1
@@ -664,10 +662,10 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
               echo "##vso[task.setvariable variable=ESRP_ID_TOKEN;issecret=true]$idToken"
 
         # Run the tool (see "Tool inputs" below for details on each variable)
-        - script: node '$(toolArtifactBin)'
+        - script: node '$(TOOL_ARTIFACT_BIN)'
           displayName: Publish using ESRP Release API
           env:
-            PACKED_PACKAGES_PATH: $(packagesArtifactPath)
+            PACKED_PACKAGES_PATH: $(PACKAGES_ARTIFACT_PATH)
 
             # Staging storage credentials
             STAGING_STORAGE_ACCOUNT_NAME: <storage account name>
@@ -685,11 +683,11 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
             # Release info (must be unique per invocation if publishing multiple times per build)
             ESRP_PRODUCT_NAME: <friendly product name>
             ESRP_NPM_TAG: <npm dist-tag> # optional
-            ESRP_USER: <email>
-            ESRP_CREATED_BY: <email> # optional if ESRP_USER is set
-            ESRP_APPROVERS: <email> # optional if ESRP_USER is set
-            ESRP_OWNERS: <email> # optional if ESRP_USER is set
-            ESRP_DRI_EMAIL: <email> # optional if ESRP_USER is set
+            ESRP_USER: <user email(s), comma-separated>
+            ESRP_CREATED_BY: <user email> # optional if ESRP_USER is set
+            ESRP_APPROVERS: <user email(s), comma-separated> # optional if ESRP_USER is set
+            ESRP_OWNERS: <user email(s), comma-separated> # optional if ESRP_USER is set
+            ESRP_DRI_EMAIL: <email(s), comma-separated> # optional if ESRP_USER is set
 ```
 
 </details>

@@ -40,7 +40,7 @@ describe('getEnvOptions', () => {
   it('uses ESRP_USER as fallback for createdBy/driEmail/owners/approvers when those are unset', () => {
     const env = getEnvOptions(
       createMockProcessEnv({
-        ESRP_USER: 'fallback@example.com',
+        ESRP_USER: 'first@example.com, second@example.com',
         ESRP_CREATED_BY: undefined,
         ESRP_DRI_EMAIL: undefined,
         ESRP_OWNERS: undefined,
@@ -48,10 +48,10 @@ describe('getEnvOptions', () => {
       })
     );
 
-    expect(env.esrp.createdBy).toBe('fallback@example.com');
-    expect(env.esrp.driEmail).toEqual(['fallback@example.com']);
-    expect(env.esrp.owners).toEqual(['fallback@example.com']);
-    expect(env.esrp.approvers).toEqual(['fallback@example.com']);
+    expect(env.esrp.createdBy).toBe('first@example.com');
+    expect(env.esrp.driEmail).toEqual(['first@example.com', 'second@example.com']);
+    expect(env.esrp.owners).toEqual(['first@example.com', 'second@example.com']);
+    expect(env.esrp.approvers).toEqual(['first@example.com', 'second@example.com']);
   });
 
   it('prefers explicit values over ESRP_USER fallback', () => {
@@ -59,12 +59,14 @@ describe('getEnvOptions', () => {
       createMockProcessEnv({
         ESRP_USER: 'fallback@example.com',
         ESRP_CREATED_BY: 'creator@example.com',
+        ESRP_DRI_EMAIL: 'dri-a@example.com,dri-b@example.com',
         ESRP_OWNERS: 'a@example.com,b@example.com',
         ESRP_APPROVERS: 'c@example.com,d@example.com',
       })
     );
 
     expect(env.esrp.createdBy).toBe('creator@example.com');
+    expect(env.esrp.driEmail).toEqual(['dri-a@example.com', 'dri-b@example.com']);
     expect(env.esrp.owners).toEqual(['a@example.com', 'b@example.com']);
     expect(env.esrp.approvers).toEqual(['c@example.com', 'd@example.com']);
   });

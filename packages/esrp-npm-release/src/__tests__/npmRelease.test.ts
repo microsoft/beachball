@@ -5,27 +5,32 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { generateTestCert, isOpensslAvailable, type TestCert } from '../__fixtures__/testCert.ts';
 import { createNpmReleaseRequest, formatReleaseRequestForLog, redactReleaseRequest } from '../esrpApi/npmRelease.ts';
-import { FileHashType, type ReleaseFileInfo, type ReleaseRequestMessage } from '../types/api.ts';
+import { FileHashType, type ReleaseRequestMessage } from '../types/api.ts';
 import { ReleaseError } from '../utils/ReleaseError.ts';
 
 // eslint-disable-next-line no-restricted-properties -- intentional skip when openssl is unavailable
 const describeIfOpenssl = (await isOpensslAvailable()) ? describe : describe.skip;
 
+const blobUrl = 'https://acct.blob.core.windows.net/staging/someblob';
+const blobSasUrl = `${blobUrl}?sv=2021-01-01&sig=SECRET&se=2099-01-01T00:00:00Z`;
+
+/** Build a minimal ReleaseRequestMessage shape with potentially-sensitive fields populated. */
+function makeMessage(): ReleaseRequestMessage {
+  return {
+    driEmail: ['dri@example.com'],
+    jwsToken: 'abc123.payload.signature',
+    files: [
+      {
+        name: 'pkg.tgz',
+        hash: 'jcxnJw==',
+        tenantFileLocation: blobSasUrl,
+        sourceLocation: { type: 'azureBlob', blobUrl: blobSasUrl },
+      },
+    ],
+  } as ReleaseRequestMessage;
+}
+
 describe('redactReleaseRequest', () => {
-  const blobUrl = 'https://acct.blob.core.windows.net/staging/someblob';
-  const blobSasUrl = `${blobUrl}?sv=2021-01-01&sig=SECRET&se=2099-01-01T00:00:00Z`;
-
-  /** Build a minimal ReleaseRequestMessage shape with potentially-sensitive fields populated. */
-  function makeMessage(): ReleaseRequestMessage {
-    return {
-      driEmail: ['dri@example.com'],
-      jwsToken: 'abc123.payload.signature',
-      files: [
-        { name: 'pkg.tgz', tenantFileLocation: blobSasUrl, sourceLocation: { type: 'azureBlob', blobUrl: blobSasUrl } },
-      ] as ReleaseFileInfo[],
-    };
-  }
-
   it('replaces the JWS token with "***"', () => {
     const redacted = redactReleaseRequest(makeMessage());
     expect(redacted.jwsToken).toBe('***');
@@ -68,23 +73,10 @@ describe('redactReleaseRequest', () => {
 });
 
 describe('formatReleaseRequestForLog', () => {
-  it('formats file hashes on one line while retaining pretty JSON', () => {
-    const message = {
-      files: [
-        {
-          name: 'pkg.tgz',
-          hash: [141, 204, 103, 39],
-          tenantFileLocation: 'https://example.com/file',
-          tenantFileLocationType: 'AzureBlob' as const,
-          sourceLocation: { type: 'azureBlob' as const },
-        },
-      ],
-    };
-
-    const formatted = formatReleaseRequestForLog(message);
-
-    expect(formatted).toContain('\n  "files": [');
-    expect(formatted).toContain('"hash": [141,204,103,39]');
+  it('formats as pretty JSON and redacts secrets', () => {
+    const formatted = formatReleaseRequestForLog(makeMessage());
+    expect(formatted).not.toContain('SECRET');
+    expect(formatted).toContain('{\n'); // uses pretty formatting (newlines)
   });
 });
 
@@ -154,7 +146,7 @@ describeIfOpenssl('createNpmReleaseRequest', () => {
           tenantFileLocationType: 'AzureBlob',
           sourceLocation: { type: 'azureBlob', blobUrl: params.file.sasBlobUrl },
           hashType: FileHashType.sha256,
-          hash: Array.from(crypto.createHash('sha256').update('hello world').digest()),
+          hash: crypto.createHash('sha256').update('hello world').digest('base64'),
           sizeInBytes: 11,
         },
       ],

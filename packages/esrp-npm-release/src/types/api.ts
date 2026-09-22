@@ -1,4 +1,7 @@
-// These types are derived from the ESRP OpenAPI specification
+// These types are derived from the ESRP OpenAPI specification.
+// It doesn't appear to correctly specify which properties are required or optional, so what's below
+// is the best guess based on what's been observed for usage with npm.
+// Enum format also appears to be flexible with casing or numeric/string in some cases.
 
 // Enums (in a format that allows running TS in Node natively)
 
@@ -23,46 +26,41 @@ export type StatusCode = (typeof StatusCode)[keyof typeof StatusCode];
 
 export const FileHashType = Object.freeze({
   sha256: 0,
-  sha1: 1,
 });
 export type FileHashType = (typeof FileHashType)[keyof typeof FileHashType];
 
-export const FileLocationType = Object.freeze({
-  AzureBlob: 'azureBlob',
-});
-export type FileLocationType = (typeof FileLocationType)[keyof typeof FileLocationType];
+export type FileLocationType = 'azureBlob';
 
 // Interfaces
 
 export interface UserInfo {
-  /** user email */
-  userPrincipalName?: string;
+  /** Individual user email (DL/SG not supported) */
+  userPrincipalName: string;
 }
 
 export interface ApproverInfo {
-  approver?: UserInfo;
+  /** Individual user (DL/SG not supported) */
+  approver: UserInfo;
   isAutoApproved?: boolean;
   isMandatory?: boolean;
 }
 
 export interface OwnerInfo {
-  owner?: UserInfo;
+  /** Individual user (DL/SG not supported) */
+  owner: UserInfo;
 }
 
 export interface AccessPermissionsInfo {
-  /** @example 'ESRPRelTest' */
+  /** Your team's publisher value, e.g. `ESRPRELPACMAN` (npm), `ESRPRelTest` */
   mainPublisher?: string;
-  /** @deprecated */
-  releasePublishers?: string[];
   /** @example { AllDownloadEntities: ['CBDSTEST'] } */
   channelDownloadEntityDetails?: Record<string, string[]>;
 }
 
 export interface FileLocation {
   type: FileLocationType;
-  // these are not marked with NullValueHandling annotations, but aren't always provided in reality (not sure about blobUrl)
-  /** blob URL for type AzureBlob */
-  blobUrl?: string;
+  /** blob SAS URL */
+  blobUrl: string;
   /** URI */
   uncPath?: string;
   /** URI */
@@ -75,17 +73,20 @@ export interface FileDownloadDetails {
 }
 
 export interface ReleaseFileInfo {
+  /** Arbitrary file name */
   name: string;
-  /** sha256 hash of file (array of bytes or a string) */
-  hash: number[] | string;
+  /** sha256 hash of file as a base64 string */
+  hash: string;
+  /** file blob location */
   sourceLocation: FileLocation;
-  sizeInBytes?: number;
-  hashType?: FileHashType;
+  sizeInBytes: number;
+  hashType: FileHashType;
   fileId?: unknown;
   distributionRelativePath?: string;
   partNumber?: string;
   friendlyFileName?: string;
-  tenantFileLocationType: 'AzureBlob' | '1';
+  tenantFileLocationType: 'AzureBlob';
+  /** blob SAS URL for updated file */
   tenantFileLocation: string;
   signedEngineeringCopyLocation?: string;
   encryptedDistributionBlobLocation?: string;
@@ -100,35 +101,38 @@ export interface ReleaseFileInfo {
 }
 
 export interface ReleaseInfo {
-  title?: string;
-  minimumNumberOfApprovers?: number;
-  /**
-   * @example { ReleaseContentType: 'sw electronic' }
-   * @example { ReleaseContentType: 'InstallPackage' }
-   * @example { ReleaseContentType: 'npm', IsRsm: 'false' }
-   */
-  properties?: Record<string, string>;
+  title: string;
+  minimumNumberOfApprovers: number;
+  properties:
+    | {
+        /** may be case-insensitive; other values may exist */
+        ReleaseContentType: 'sw electronic' | 'InstallPackage' | 'npm';
+        IsRsm: 'false';
+      }
+    | Record<string, string>;
   isRevision?: boolean;
   revisionNumber?: string;
 }
 
 export interface ProductInfo {
   /** Name of the product */
-  name?: string;
+  name: string;
   /** Version of the product (for npm, this is arbitrary, not the package version) */
-  version?: string;
+  version: string;
   /** Description of the product */
-  description?: string;
+  description: string;
 }
 
 export interface RoutingInfo {
   /**
    * intent per onboarding
+   * - `'packagedistribution'` or `'PackageDistribution'` for publishing to npm or other package manager
    * - `'Product Release'` for compliance or download center
-   * - `'filedownloadlinkgeneration'` for static link release
-   * - `'packagedistribution'` for npm release
+   * - `'filedownloadlinkgeneration'` or `'FileLinkGeneration'` for static link release
+   * - `'Winget'` for publishing to Windows Package Manager
    */
-  intent?: string;
+  intent: string;
+  /** `'npm'` for npm */
   contentType?: string;
   contentOrigin?: string;
   /** for npm releases, this is the dist-tag */
@@ -163,23 +167,40 @@ export interface DownloadCenterInfo {
 }
 
 export interface ReleaseRequestMessage {
-  /** email of the DRI for the team creating this release */
+  /**
+   * email(s) of the DRI for the team creating this release, possibly used if a release request fails
+   * (supports DL/SG)
+   */
   driEmail?: string[];
   groupId?: string;
+  /** your unique correlation ID for this release request */
   customerCorrelationId?: string;
+  /** same as `customerCorrelationId` */
   esrpCorrelationId?: string;
   contextData?: Record<string, string>;
-  releaseInfo?: ReleaseInfo;
-  productInfo?: ProductInfo;
+  /** release title, content type, etc */
+  releaseInfo: ReleaseInfo;
+  /** product name, version, description */
+  productInfo: ProductInfo;
+  /** files to release */
   files?: ReleaseFileInfo[];
-  routingInfo?: RoutingInfo;
-  createdBy?: UserInfo;
-  owners?: OwnerInfo[];
-  approvers?: ApproverInfo[];
+  /** info about how to handle the release */
+  routingInfo: RoutingInfo;
+  /** created by user (DL/SG not supported) */
+  createdBy: UserInfo;
+  /** individual owners (DL/SG not supported) */
+  owners: OwnerInfo[];
+  /** individual approvers (DL/SG not supported; all are non-mandatory and auto-approved) */
+  approvers: ApproverInfo[];
+  /** publisher and channel info */
   accessPermissionsInfo?: AccessPermissionsInfo;
-  jwsToken?: string;
   publisherId?: string;
   downloadCenterInfo?: DownloadCenterInfo;
+  /**
+   * JSON Web Signature token for the release request (must generate before sending).
+   * This is created with the request signing certificate from initial options.
+   */
+  jwsToken?: string;
 }
 
 export interface ReleaseSubmitResponse {
