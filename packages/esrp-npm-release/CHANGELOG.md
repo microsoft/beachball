@@ -1,8 +1,17 @@
 # Change Log - @microsoft/esrp-npm-release
 
-<!-- This log was last generated on Thu, 10 Sep 2026 14:53:03 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 22 Sep 2026 05:25:00 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 0.1.4
+
+Tue, 22 Sep 2026 05:25:00 GMT
+
+### Patches
+
+- Accept multiple emails as ESRP_USER and clarify docs (elcraig@microsoft.com)
+- Retry submit release on transient errors (elcraig@microsoft.com)
 
 ## 0.1.3
 
