@@ -54,6 +54,6 @@
     "@types/semver": "catalog:dev",
     "cross-env": "catalog:dev",
     "strip-ansi": "^6.0.1",
-    "undici": "^8.9.0"
+    "undici": "^8.10.2"
   }
 }
