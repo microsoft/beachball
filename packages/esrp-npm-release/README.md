@@ -72,16 +72,15 @@ See setup steps in later sections and [sample pipelines](#publish-stage) at the 
 
 ### Contact info
 
-`ESRP_USER` is optional and provides comma-separated default values for all the other fields in this group (so those become optional if it's set).
+All fields accepting email(s) can be comma-, semicolon-, newline-, or space-separated.
 
 <!-- prettier-ignore -->
 | Variable | Description |
 | -------- | ----------- |
-| `ESRP_USER` | _Optional._ Comma-separated individual user emails (DL/SG not supported) used as default values for the fields below. The first email is used as `ESRP_CREATED_BY`. |
-| `ESRP_CREATED_BY` | Email of the user creating the release. DL/SG not supported. |
-| `ESRP_DRI_EMAIL` | DRI email(s) for the team creating the release, comma-separated. This _does_ support DL/SG. |
-| `ESRP_OWNERS` | Individual owner email(s), comma-separated. DL/SG not supported. |
-| `ESRP_APPROVERS` | Individual approver email(s), comma-separated (all non-mandatory and auto-approved). DL/SG not supported. |
+| `ESRP_OWNERS` | Individual owner email(s). DL/SG not supported. If `ESRP_CREATED_BY` is not specified, it defaults to the first email. |
+| `ESRP_APPROVERS` | Individual approver email(s) (all auto-approved). DL/SG not supported. |
+| `ESRP_CREATED_BY` | _Optional._ Email of the user creating the release. Defaults to the first `ESRP_OWNERS` value. DL/SG not supported. |
+| `ESRP_DRI_EMAIL` | _Optional._ DRI email(s) for the team creating the release. This _does_ support DL/SG. |
 
 ### ESRP resources
 
@@ -578,11 +577,8 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
             # Release info (must be unique per invocation if publishing multiple times per build)
             ESRP_PRODUCT_NAME: <friendly product name>
             ESRP_NPM_TAG: <npm dist-tag> # optional
-            ESRP_USER: <user email(s), comma-separated>
-            ESRP_CREATED_BY: <user email> # optional if ESRP_USER is set
-            ESRP_APPROVERS: <user email(s), comma-separated> # optional if ESRP_USER is set
-            ESRP_OWNERS: <user email(s), comma-separated> # optional if ESRP_USER is set
-            ESRP_DRI_EMAIL: <email(s), comma-separated> # optional if ESRP_USER is set
+            ESRP_APPROVERS: <user email(s)>
+            ESRP_OWNERS: <user email(s)>
 ```
 
 </details>
@@ -683,11 +679,8 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
             # Release info (must be unique per invocation if publishing multiple times per build)
             ESRP_PRODUCT_NAME: <friendly product name>
             ESRP_NPM_TAG: <npm dist-tag> # optional
-            ESRP_USER: <user email(s), comma-separated>
-            ESRP_CREATED_BY: <user email> # optional if ESRP_USER is set
-            ESRP_APPROVERS: <user email(s), comma-separated> # optional if ESRP_USER is set
-            ESRP_OWNERS: <user email(s), comma-separated> # optional if ESRP_USER is set
-            ESRP_DRI_EMAIL: <email(s), comma-separated> # optional if ESRP_USER is set
+            ESRP_OWNERS: <user email(s)>
+            ESRP_APPROVERS: <user email(s)>
 ```
 
 </details>

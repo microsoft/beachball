@@ -9,7 +9,6 @@ export type GeneratedReleaseRequestMessage = ReleaseRequestMessage &
   Required<
     Pick<
       ReleaseRequestMessage,
-      | 'driEmail'
       | 'createdBy'
       | 'owners'
       | 'approvers'
@@ -24,7 +23,7 @@ export type GeneratedReleaseRequestMessage = ReleaseRequestMessage &
 export interface CreateNpmReleaseRequestMessageParams {
   correlationId: string;
   /** email of the DRI for the team creating this release, possibly used if a release request fails */
-  driEmail: string[];
+  driEmail?: string[];
   /** created by email */
   createdBy: string;
   /** individual owner emails (DL/SG not supported) */
@@ -67,7 +66,7 @@ export async function createNpmReleaseRequest(
   const message: Omit<GeneratedReleaseRequestMessage, 'jwsToken'> = {
     esrpCorrelationId: params.correlationId,
     customerCorrelationId: params.correlationId,
-    driEmail: params.driEmail,
+    ...(params.driEmail && { driEmail: params.driEmail }),
     createdBy: { userPrincipalName: params.createdBy },
     owners: params.owners.map(email => ({ owner: { userPrincipalName: email } })),
     approvers: params.approvers.map(email => ({

@@ -14,9 +14,9 @@ describe('getEnvOptions', () => {
         productName: 'TestProduct',
         npmTag: undefined,
         createdBy: 'test@example.com',
-        driEmail: ['test@example.com'],
+        driEmail: undefined,
         owners: ['test@example.com'],
-        approvers: ['test@example.com'],
+        approvers: ['approver@example.com'],
         tenantId: 'esrp-tenant',
         clientId: 'esrp-client',
         authCertificatePfx: 'mock-auth-pfx',
@@ -37,31 +37,67 @@ describe('getEnvOptions', () => {
     });
   });
 
-  it('uses ESRP_USER as fallback for createdBy/driEmail/owners/approvers when those are unset', () => {
+  it.each([
+    ['spaces', ' '],
+    ['tabs', '\t'],
+    ['newlines', '\n'],
+    ['commas', ','],
+    ['semicolons', ';'],
+    ['mixed separators', ' \t,\n; '],
+  ])('splits ESRP_OWNERS on %s', (_name, separator) => {
     const env = getEnvOptions(
       createMockProcessEnv({
-        ESRP_USER: 'first@example.com, second@example.com',
+        ESRP_OWNERS: `first@example.com${separator}second@example.com`,
         ESRP_CREATED_BY: undefined,
         ESRP_DRI_EMAIL: undefined,
-        ESRP_OWNERS: undefined,
-        ESRP_APPROVERS: undefined,
       })
     );
 
     expect(env.esrp.createdBy).toBe('first@example.com');
-    expect(env.esrp.driEmail).toEqual(['first@example.com', 'second@example.com']);
+    expect(env.esrp.driEmail).toBeUndefined();
     expect(env.esrp.owners).toEqual(['first@example.com', 'second@example.com']);
-    expect(env.esrp.approvers).toEqual(['first@example.com', 'second@example.com']);
+    expect(env.esrp.approvers).toEqual(['approver@example.com']);
   });
 
-  it('prefers explicit values over ESRP_USER fallback', () => {
+  it('accepts ESRP_USER as a fallback alias', () => {
     const env = getEnvOptions(
       createMockProcessEnv({
-        ESRP_USER: 'fallback@example.com',
+        ESRP_USER: 'legacy@example.com',
+        ESRP_CREATED_BY: undefined,
+        ESRP_DRI_EMAIL: undefined,
+        ESRP_OWNERS: undefined,
+      })
+    );
+
+    expect(env.esrp.createdBy).toBe('legacy@example.com');
+    expect(env.esrp.driEmail).toBeUndefined();
+    expect(env.esrp.owners).toEqual(['legacy@example.com']);
+    expect(env.esrp.approvers).toEqual(['approver@example.com']);
+  });
+
+  it('prefers ESRP_OWNERS over ESRP_USER', () => {
+    const env = getEnvOptions(
+      createMockProcessEnv({
+        ESRP_OWNERS: 'preferred@example.com',
+        ESRP_USER: 'legacy@example.com',
+        ESRP_CREATED_BY: undefined,
+        ESRP_DRI_EMAIL: undefined,
+      })
+    );
+
+    expect(env.esrp.createdBy).toBe('preferred@example.com');
+    expect(env.esrp.driEmail).toBeUndefined();
+    expect(env.esrp.owners).toEqual(['preferred@example.com']);
+    expect(env.esrp.approvers).toEqual(['approver@example.com']);
+  });
+
+  it('prefers explicit values over ESRP_OWNERS defaults', () => {
+    const env = getEnvOptions(
+      createMockProcessEnv({
         ESRP_CREATED_BY: 'creator@example.com',
-        ESRP_DRI_EMAIL: 'dri-a@example.com,dri-b@example.com',
+        ESRP_DRI_EMAIL: 'dri-a@example.com\ndri-b@example.com',
         ESRP_OWNERS: 'a@example.com,b@example.com',
-        ESRP_APPROVERS: 'c@example.com,d@example.com',
+        ESRP_APPROVERS: 'c@example.com\nd@example.com',
       })
     );
 
@@ -94,18 +130,7 @@ describe('getEnvOptions', () => {
     ]);
   });
 
-  it('requires no ESRP_USER when individual user fields are all set', () => {
-    const env = createMockProcessEnv({
-      ESRP_USER: undefined,
-      ESRP_CREATED_BY: 'a@example.com',
-      ESRP_DRI_EMAIL: 'b@example.com',
-      ESRP_OWNERS: 'c@example.com',
-      ESRP_APPROVERS: 'd@example.com',
-    });
-    expect(() => getEnvOptions(env)).not.toThrow();
-  });
-
-  it('throws when ESRP_USER and individual user fields are all unset', () => {
+  it('throws when ESRP_OWNERS and ESRP_USER are both unset', () => {
     const env = createMockProcessEnv({
       ESRP_USER: undefined,
       ESRP_CREATED_BY: undefined,
@@ -114,11 +139,7 @@ describe('getEnvOptions', () => {
       ESRP_APPROVERS: undefined,
     });
 
-    expectErrorSync(
-      () => getEnvOptions(env),
-      ReleaseError,
-      'ESRP_CREATED_BY, ESRP_DRI_EMAIL, ESRP_OWNERS, ESRP_APPROVERS'
-    );
+    expectErrorSync(() => getEnvOptions(env), ReleaseError, 'ESRP_OWNERS, ESRP_CREATED_BY, ESRP_APPROVERS');
   });
 
   describe('ESRP authentication', () => {

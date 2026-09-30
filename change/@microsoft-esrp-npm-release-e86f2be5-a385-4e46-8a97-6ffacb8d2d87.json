@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Use ESRP_OWNERS as the source for default values, and deprecate ESRP_USER. All email fields also accept all common separator types.",
+  "packageName": "@microsoft/esrp-npm-release",
+  "email": "elcraig@microsoft.com"
+}

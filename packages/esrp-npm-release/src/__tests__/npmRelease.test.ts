@@ -154,6 +154,13 @@ describeIfOpenssl('createNpmReleaseRequest', () => {
     });
   });
 
+  it('omits driEmail when it is not specified', async () => {
+    const filePath = makeFile('pkg.tgz', 'hello world');
+    const result = await createNpmReleaseRequest({ ...baseParams(filePath), driEmail: undefined });
+
+    expect(result).not.toHaveProperty('driEmail');
+  });
+
   it('includes productState when npmTag is provided', async () => {
     const filePath = makeFile('tagged.tgz', 'x');
     const result = await createNpmReleaseRequest({ ...baseParams(filePath), npmTag: 'beta' });

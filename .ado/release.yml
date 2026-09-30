@@ -247,7 +247,7 @@ extends:
                       # ideally would be "beachball" but isn't used anywhere meaningful
                       ESRP_PRODUCT_NAME: beachball-${{ publish.groupName }}
                       ESRP_NPM_TAG: ${{ publish.npmTag }}
-                      ESRP_USER: elcraig@microsoft.com
+                      ESRP_OWNERS: elcraig@microsoft.com
                       ESRP_APPROVERS: dannyvv@microsoft.com
                       # "OGX JSHost" ESRP client ID ("clientid" from EsrpRelease task)
                       ESRP_CLIENT_ID: 0a35e01f-eadf-420a-a2bf-def002ba898d
