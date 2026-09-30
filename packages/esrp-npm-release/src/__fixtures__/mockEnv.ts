@@ -36,7 +36,8 @@ export function createMockProcessEnv(overrides: Partial<NodeJS.ProcessEnv> = {})
   return {
     PACKED_PACKAGES_PATH: '/tmp/packed',
     ESRP_PRODUCT_NAME: 'TestProduct',
-    ESRP_USER: 'test@example.com',
+    ESRP_OWNERS: 'test@example.com',
+    ESRP_APPROVERS: 'approver@example.com',
     ESRP_TENANT_ID: 'esrp-tenant',
     ESRP_CLIENT_ID: 'esrp-client',
     ESRP_AUTH_CERT: 'mock-auth-pfx',

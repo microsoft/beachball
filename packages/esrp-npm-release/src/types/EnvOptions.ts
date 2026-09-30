@@ -25,8 +25,8 @@ export interface EsrpEnvOptions {
   npmTag: string | undefined;
   /** Email of the user creating the release */
   createdBy: string;
-  /** Email of the DRI for the team creating the release */
-  driEmail: string[];
+  /** Optional email of the DRI for the team creating the release */
+  driEmail: string[] | undefined;
   /** Individual owner emails (DL/SG not supported) */
   owners: string[];
   /** Individual approver emails (DL/SG not supported; all are non-mandatory and auto-approved) */
