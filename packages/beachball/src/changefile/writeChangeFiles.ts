@@ -9,7 +9,7 @@ import type { ChangeFileInfo } from '../types/ChangeInfo';
 
 /**
  * Loops through the `changes` and writes out a list of change files
- * @returns List of changefile paths, mainly for testing purposes.
+ * @returns List of absolute changefile paths, mainly for testing purposes.
  */
 export function writeChangeFiles(
   changes: ChangeFileInfo[],

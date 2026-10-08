@@ -27,7 +27,7 @@ const mockPerformBump = _performBump as jest.MockedFunction<typeof _performBump>
 const mockTagPackages = _tagPackages as jest.MockedFunction<typeof _tagPackages>;
 const wsToolsMocks = wsTools as jest.Mocked<typeof wsTools>;
 
-describe('bumpAndPush', () => {
+describe('bumpAndPush (unit)', () => {
   const logs = initMockLogs();
 
   const fakeRoot = path.resolve('/fake/root');
@@ -63,7 +63,11 @@ describe('bumpAndPush', () => {
     } as GitProcessOutput;
   }
 
-  async function callBumpAndPush(optionOverrides?: Partial<BeachballOptions>, maxRetries?: number) {
+  async function callBumpAndPush(
+    optionOverrides?: Partial<BeachballOptions>,
+    maxRetries?: number,
+    packageTags: BumpInfo['packageTags'] = {}
+  ) {
     const { options } = await getOptions({
       cwd: fakeRoot,
       argv: [],
@@ -82,7 +86,7 @@ describe('bumpAndPush', () => {
       dependentChangedBy: {},
       packageGroups: {},
       scopedPackages: new Set(['foo', 'bar']),
-      packageTags: {},
+      packageTags,
     };
     return bumpAndPush(bumpInfo, publishBranch, options, maxRetries);
   }
@@ -134,6 +138,74 @@ describe('bumpAndPush', () => {
     expect(getFetchCallOptions()?.env).toBeUndefined();
     // The extraheader config read should not happen when there's no token
     expect(getWsToolsGitCalls().join('\n')).not.toContain('extraheader');
+  });
+
+  it('uses --follow-tags for default tags and explicitly force-pushes custom tags', async () => {
+    await callBumpAndPush({}, undefined, {
+      foo: [{ tag: 'foo_v1.1.0' }, { tag: 'foo_v1', isCustom: true }],
+      '@scope/bar': [{ tag: '@scope/bar_v2.0.0' }, { tag: '@scope/bar_v2', isCustom: true }],
+      skipped: undefined,
+    });
+
+    const pushCall = getExecaCalls().find(call => call.startsWith('git push '));
+    expect(pushCall?.split(' ')).toEqual([
+      'git',
+      'push',
+      '--no-verify',
+      '--follow-tags',
+      '--verbose',
+      'origin',
+      'HEAD:master',
+      '+refs/tags/foo_v1:refs/tags/foo_v1',
+      '+refs/tags/@scope/bar_v2:refs/tags/@scope/bar_v2',
+    ]);
+  });
+
+  it('does not explicitly push default version tags', async () => {
+    await callBumpAndPush({}, undefined, {
+      foo: [{ tag: 'foo_v1.1.0' }],
+      bar: [{ tag: 'bar_v2.0.0', isCustom: false }],
+    });
+
+    expect(getExecaCalls().filter(call => call.startsWith('git push '))).toEqual([
+      'git push --no-verify --follow-tags --verbose origin HEAD:master',
+    ]);
+  });
+
+  it('dedupes shared tags across packages', async () => {
+    await callBumpAndPush({}, undefined, {
+      foo: [{ tag: 'beta', isCustom: true }],
+      bar: [{ tag: 'beta', isCustom: true }],
+    });
+
+    expect(getExecaCalls().filter(call => call.startsWith('git push '))).toEqual([
+      'git push --no-verify --follow-tags --verbose origin HEAD:master +refs/tags/beta:refs/tags/beta',
+    ]);
+  });
+
+  it.each([true, false, undefined])(
+    'force-pushes a shared tag if any entry marks it custom (first entry isCustom=%p)',
+    async isCustom => {
+      await callBumpAndPush({}, undefined, {
+        foo: [{ tag: 'foo_v1.1.0', isCustom }],
+        bar: [{ tag: 'foo_v1.1.0', isCustom: !isCustom }],
+      });
+      expect(getExecaCalls().filter(call => call.startsWith('git push '))).toEqual([
+        'git push --no-verify --follow-tags --verbose origin HEAD:master +refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0',
+      ]);
+    }
+  );
+
+  it('does not push undefined or empty tag entries', async () => {
+    await callBumpAndPush({}, undefined, {
+      foo: undefined,
+      bar: [],
+      baz: [{ tag: '', isCustom: true }],
+    });
+
+    expect(getExecaCalls().filter(call => call.startsWith('git push '))).toEqual([
+      'git push --no-verify --follow-tags --verbose origin HEAD:master',
+    ]);
   });
 
   it('injects git auth via GIT_CONFIG_* env on fetch and push when gitToken is set', async () => {

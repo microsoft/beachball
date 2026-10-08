@@ -228,8 +228,10 @@ export interface RepoOptions {
   gitTags: boolean;
   /**
    * Get package-specific git tag(s). Return `null` to skip tagging this package.
-   * If returning an array, the first tag should be the most specific to this package.
-   * (Tags will only be created once if multiple packages return the same tag.)
+   * If returning an array, the first tag should be the **most specific** to this package.
+   *
+   * Tags will only be created once if multiple packages return the same tag.
+   * Tags differing from `defaultTag` are force-pushed to update existing remote tags.
    *
    * Note that if this is set and returns a value for a package, it overrides `gitTags: false`.
    *
@@ -337,8 +339,7 @@ export interface RepoOptions {
    * WARNING: Setting this to `''` causes a fallback to `defaultNpmTag` or `'latest'`.
    * It's **not possible** to publish a package without a dist-tag.
    *
-   * If this has a non-default value, a corresponding git tag will also be created on publish,
-   * unless `gitTags` is disabled.
+   * This does NOT create a corresponding git tag. Use `getGitTag` for custom git tags.
    */
   tag?: string;
   /** Timeout for npm operations (other than install, which is expected to take longer) */

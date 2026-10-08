@@ -25,7 +25,7 @@ export function getPackageChangelogs(
 
   for (const { change, changeFile } of changeFileChangeInfos) {
     const { packageName, type: changeType, dependentChangeType, email, ...rest } = change;
-    changelogs[packageName] ??= createPackageChangelog(packageInfos[packageName], packageTags[packageName]?.[0]);
+    changelogs[packageName] ??= createPackageChangelog(packageInfos[packageName], packageTags[packageName]?.[0]?.tag);
 
     if (includeCommitHashes && !changeFileCommits.has(changeFile)) {
       changeFileCommits.set(
@@ -61,7 +61,7 @@ export function getPackageChangelogs(
       continue;
     }
 
-    changelogs[dependent] ??= createPackageChangelog(packageInfos[dependent], packageTags[dependent]?.[0]);
+    changelogs[dependent] ??= createPackageChangelog(packageInfos[dependent], packageTags[dependent]?.[0]?.tag);
 
     changelogs[dependent].comments ??= {};
     changelogs[dependent].comments[changeType] ??= [];

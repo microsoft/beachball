@@ -88,7 +88,7 @@ To change the `disallowedChangeTypes` for package `foo`, you could add the follo
 | `disallowedChangeTypes` | `string[]` | | repo, package | What change types are disallowed |
 | `fetch` | `boolean` | `true` | repo | Fetch from remote before doing diff comparisons |
 | `generateChangelog` | `boolean \| 'md' \| 'json'` | `'md'` | repo | Whether to generate `CHANGELOG.md/json` (`'md'` or `'json'` to generate only that type) |
-| `getGitTag` | `(pkg, defaultTag) => string \| string[] \| null` | | repo | Get package-specific git tag(s); return `null` to skip tagging a package |
+| `getGitTag` | `(pkg, defaultTag) => string \| string[] \| null` | | repo | Get package-specific git tag(s); return `null` to skip tagging a package. Tags differing from `defaultTag` are force-pushed to update existing remote tags; default version tags are assumed to be unique. |
 | `gitTags` | `boolean` | `true` | repo, package | Whether to create git tags for published packages (eg: `foo_v1.0.1`). Note that `getGitTag` is still respected, overriding this option on a per-package basis. |
 | `groups` | [`VersionGroupOptions[]`][3] | | repo | Bump these packages together ([see details][3]) |
 | `groupChanges` | `boolean` | `false` | repo | Write multiple changes to a single change file |
@@ -105,7 +105,7 @@ To change the `disallowedChangeTypes` for package `foo`, you could add the follo
 | `retries` | `number` | `3` | repo | Number of retries for a package publish before failing |
 | `scope` | `string[]` | | repo | Only consider package paths matching these patterns ([see details](#scoping)) |
 | `shouldPublish` | `false \| undefined` | | package | In most cases you should use `private: true` in `package.json` instead. This option skips the `npm publish` (or `pack`) step for this package, but it's still bumped, tagged, and gets changelog entries. Does not work to force publishing. |
-| `tag` | `string` | see notes | repo, package | `dist-tag` for npm when published. Defaults to `defaultNpmTag` or `'latest'` (npm does NOT allow publishing packages without a `dist-tag`). |
+| `tag` | `string` | see notes | repo, package | `dist-tag` for npm when published. Defaults to `defaultNpmTag` or `'latest'` (npm does NOT allow publishing packages without a `dist-tag`). Does not create a corresponding git tag. |
 | `transform` | [`TransformOptions`][4] | | repo | Transformations for change files |
 
 [1]: https://github.com/microsoft/beachball/blob/main/packages/beachball/src/types/ChangeFileOptions.ts

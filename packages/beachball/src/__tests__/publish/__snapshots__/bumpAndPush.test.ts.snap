@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`bumpAndPush retries on fetch failure then succeeds 2`] = `
+exports[`bumpAndPush (unit) retries on fetch failure then succeeds 2`] = `
 "[log] --------------------------------------------------------------------------------
 [log] Bumping versions and pushing to git (attempt 1/5)
 [log] Reverting
@@ -45,7 +45,7 @@ Pushing to origin/master...
 [log] Command completed: git push --no-verify --follow-tags --verbose origin HEAD:master"
 `;
 
-exports[`bumpAndPush succeeds on first attempt 1`] = `
+exports[`bumpAndPush (unit) succeeds on first attempt 1`] = `
 "[log] --------------------------------------------------------------------------------
 [log] Bumping versions and pushing to git (attempt 1/5)
 [log] Reverting
@@ -82,7 +82,7 @@ Pushing to origin/master...
 [log] Command completed: git push --no-verify --follow-tags --verbose origin HEAD:master"
 `;
 
-exports[`bumpAndPush throws and calls displayManualRecovery after all retries exhausted 1`] = `
+exports[`bumpAndPush (unit) throws and calls displayManualRecovery after all retries exhausted 1`] = `
 "[log] --------------------------------------------------------------------------------
 [log] Bumping versions and pushing to git (attempt 1/3)
 [log] Reverting

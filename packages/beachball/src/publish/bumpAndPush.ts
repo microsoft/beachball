@@ -30,6 +30,17 @@ export async function bumpAndPush(
   const { path: cwd, branch, depth, gitTimeout } = options;
   const { remote, remoteBranch } = getRemoteBranch(options);
 
+  // Force push any custom tags (see isCustom comment)
+  const tagRefspecs = new Set<string>();
+  for (const entries of Object.values(bumpInfo.packageTags)) {
+    for (const { tag, isCustom } of entries ?? []) {
+      if (tag && isCustom) {
+        const ref = `refs/tags/${tag}`;
+        tagRefspecs.add(`+${ref}:${ref}`);
+      }
+    }
+  }
+
   // Resolve the commit message: an explicit `--message` (or `message` config value) takes
   // precedence, then the `commitMessage` config function, then the default.
   const commitMessage =
@@ -90,7 +101,7 @@ export async function bumpAndPush(
     console.log(`\nPushing to ${branch}...`);
 
     const pushResult = await gitAsync(
-      ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`],
+      ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`, ...tagRefspecs],
       { cwd, verbose, timeout: gitTimeout, ...(authEnv && { env: authEnv }) }
     );
     if (pushResult.success) {

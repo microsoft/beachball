@@ -2,7 +2,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@j
 import { initMockLogs } from '@microsoft/beachball-test-utilities';
 import { getBranchName, getCurrentHash } from 'workspace-tools';
 import { generateChangeFiles } from '../../__fixtures__/changeFiles';
-import { defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
+import { defaultBranchName, defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 import { deepFreezeProperties } from '../../__fixtures__/object';
 import type { Repository } from '../../__fixtures__/repository';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
@@ -37,10 +37,10 @@ describe('publish command', () => {
   let monorepoFactory: RepositoryFactory;
   let repo: Repository | undefined;
 
-  async function getOptions(repoOptions?: Partial<RepoOptions>) {
+  async function getOptions(repoOptions?: Partial<RepoOptions>, extraArgv?: string[]) {
     const parsedOptions = await _getOptions({
       cwd: repo!.rootPath,
-      argv: ['node', 'beachball', 'publish', '--yes'],
+      argv: ['node', 'beachball', 'publish', '--yes', ...(extraArgv || [])],
       env: {},
       testRepoOptions: {
         branch: defaultRemoteBranchName,
@@ -84,6 +84,28 @@ describe('publish command', () => {
   afterEach(() => {
     jest.resetAllMocks();
     repo = undefined;
+  });
+
+  it('does nothing with --no-publish --no-push', async () => {
+    repo = singleRepoFactory.cloneRepository();
+
+    const { options, parsedOptions } = await getOptions(undefined, ['--no-publish', '--no-push']);
+
+    generateChangeFiles(['foo'], options);
+    const originalHash = repo.getCurrentHash();
+    const originalRemoteRefs = repo.getRemoteRefs();
+    expect(repo.status()).toEqual([]);
+
+    await publishWrapper(parsedOptions);
+
+    expect(mockPublishToRegistry).not.toHaveBeenCalled();
+    expect(mockBumpAndPush).not.toHaveBeenCalled();
+
+    expect(repo.getCurrentHash()).toBe(originalHash);
+    expect(repo.status()).toEqual([]);
+    expect(repo.getBranches()).toEqual([defaultBranchName]);
+    expect(repo.getTags()).toEqual([]);
+    expect(repo.getRemoteRefs()).toEqual(originalRemoteRefs);
   });
 
   it('bumps and pushes when enabled', async () => {

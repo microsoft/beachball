@@ -103,7 +103,7 @@ async function writeGroupedChangelog(
     const groupedChangelog = mergeChangelogs(
       group.changelogs,
       group.mainPackage,
-      packageTags[group.mainPackage.name]?.[0]
+      packageTags[group.mainPackage.name]?.[0]?.tag
     );
     if (groupedChangelog) {
       await writeChangelogFiles({
