@@ -27,7 +27,7 @@ const mockPerformBump = _performBump as jest.MockedFunction<typeof _performBump>
 const mockTagPackages = _tagPackages as jest.MockedFunction<typeof _tagPackages>;
 const wsToolsMocks = wsTools as jest.Mocked<typeof wsTools>;
 
-describe('bumpAndPush', () => {
+describe('bumpAndPush (unit)', () => {
   const logs = initMockLogs();
 
   const fakeRoot = path.resolve('/fake/root');
@@ -63,7 +63,14 @@ describe('bumpAndPush', () => {
     } as GitProcessOutput;
   }
 
-  async function callBumpAndPush(optionOverrides?: Partial<BeachballOptions>, maxRetries?: number) {
+  async function callBumpAndPush(
+    optionOverrides?: Partial<BeachballOptions>,
+    maxRetries?: number,
+    packageTags: BumpInfo['packageTags'] = {
+      foo: [{ tag: 'foo_v1.1.0' }],
+      bar: [{ tag: 'bar_v2.0.0' }],
+    }
+  ) {
     const { options } = await getOptions({
       cwd: fakeRoot,
       argv: [],
@@ -82,7 +89,7 @@ describe('bumpAndPush', () => {
       dependentChangedBy: {},
       packageGroups: {},
       scopedPackages: new Set(['foo', 'bar']),
-      packageTags: {},
+      packageTags,
     };
     return bumpAndPush(bumpInfo, publishBranch, options, maxRetries);
   }
@@ -120,7 +127,8 @@ describe('bumpAndPush', () => {
       'git commit -m apply package updates',
       'git checkout origin/master',
       'git merge -X ours publish_12345',
-      'git push --no-verify --follow-tags --verbose origin HEAD:master',
+      'git push --no-verify --no-follow-tags origin HEAD:master',
+      'git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0',
     ]);
 
     // Beachball's logs are its UI, so snapshots are essentially "visual regression" tests
@@ -134,6 +142,90 @@ describe('bumpAndPush', () => {
     expect(getFetchCallOptions()?.env).toBeUndefined();
     // The extraheader config read should not happen when there's no token
     expect(getWsToolsGitCalls().join('\n')).not.toContain('extraheader');
+  });
+
+  it('uses --follow-tags for default tags and explicitly force-pushes custom tags', async () => {
+    await callBumpAndPush({}, undefined, {
+      foo: [{ tag: 'foo_v1.1.0' }, { tag: 'foo_v1', isCustom: true }],
+      '@scope/bar': [{ tag: '@scope/bar_v2.0.0' }, { tag: '@scope/bar_v2', isCustom: true }],
+      skipped: undefined,
+    });
+
+    expect(getExecaCalls().filter(call => call.startsWith('git push '))).toEqual([
+      'git push --no-verify --no-follow-tags origin HEAD:master',
+      'git push --no-verify --follow-tags origin +refs/tags/foo_v1:refs/tags/foo_v1 +refs/tags/@scope/bar_v2:refs/tags/@scope/bar_v2',
+    ]);
+  });
+
+  it('explicitly pushes only the first default tag when there are no custom tags', async () => {
+    await callBumpAndPush({}, undefined, {
+      skipped: undefined,
+      empty: [],
+      blank: [{ tag: '' }],
+      foo: [{ tag: 'foo_v1.1.0' }],
+      bar: [{ tag: 'bar_v2.0.0', isCustom: false }],
+    });
+
+    expect(getExecaCalls().filter(call => call.startsWith('git push '))).toEqual([
+      'git push --no-verify --no-follow-tags origin HEAD:master',
+      'git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0',
+    ]);
+  });
+
+  it('dedupes shared tags across packages', async () => {
+    await callBumpAndPush({}, undefined, {
+      foo: [{ tag: 'beta', isCustom: true }],
+      bar: [{ tag: 'beta', isCustom: true }],
+    });
+
+    expect(getExecaCalls().filter(call => call.startsWith('git push '))).toEqual([
+      'git push --no-verify --no-follow-tags origin HEAD:master',
+      'git push --no-verify --follow-tags origin +refs/tags/beta:refs/tags/beta',
+    ]);
+  });
+
+  it.each([true, false, undefined])(
+    'force-pushes a shared tag if any entry marks it custom (first entry isCustom=%p)',
+    async isCustom => {
+      await callBumpAndPush({}, undefined, {
+        foo: [{ tag: 'foo_v1.1.0', isCustom }],
+        bar: [{ tag: 'foo_v1.1.0', isCustom: !isCustom }],
+      });
+      expect(getExecaCalls().filter(call => call.startsWith('git push '))).toEqual([
+        'git push --no-verify --no-follow-tags origin HEAD:master',
+        'git push --no-verify --follow-tags origin +refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0',
+      ]);
+    }
+  );
+
+  it('does not push undefined or empty tag entries', async () => {
+    await callBumpAndPush({}, undefined, {
+      foo: undefined,
+      bar: [],
+      baz: [{ tag: '', isCustom: true }],
+    });
+
+    expect(getExecaCalls().filter(call => call.startsWith('git push '))).toEqual([
+      'git push --no-verify --no-follow-tags origin HEAD:master',
+    ]);
+  });
+
+  it('skips the tag push when no packages have tags', async () => {
+    await callBumpAndPush({}, undefined, {});
+
+    expect(getExecaCalls().filter(call => call.startsWith('git push '))).toEqual([
+      'git push --no-verify --no-follow-tags origin HEAD:master',
+    ]);
+  });
+
+  it('passes the same authentication and timeout options to both pushes', async () => {
+    await callBumpAndPush({ gitToken: 'my-token', gitTimeout: 12345 });
+
+    const pushOptions = mockSpawn.mock.calls.filter(([, args]) => args?.[0] === 'push').map(([, , opts]) => opts);
+    expect(pushOptions).toHaveLength(2);
+    expect(pushOptions[0]?.timeout).toBe(12345);
+    expect(pushOptions[0]?.env).toBeTruthy();
+    expect(pushOptions[1]).toEqual(pushOptions[0]);
   });
 
   it('injects git auth via GIT_CONFIG_* env on fetch and push when gitToken is set', async () => {
@@ -229,7 +321,7 @@ describe('bumpAndPush', () => {
   it('retries on push failure then succeeds', async () => {
     let pushCount = 0;
     mockSpawn.mockImplementation(async (_cmd, args) => {
-      if (args?.[0] === 'push') {
+      if (args?.[0] === 'push' && args.includes('--no-follow-tags')) {
         pushCount++;
         if (pushCount === 1) return new MockSubprocessError({ output: 'push rejected' });
       }
@@ -241,10 +333,15 @@ describe('bumpAndPush', () => {
     expect(wsToolsMocks.revertLocalChanges).toHaveBeenCalledTimes(2);
     expect(mockPerformBump).toHaveBeenCalledTimes(2);
     expect(mockTagPackages).toHaveBeenCalledTimes(2);
+    expect(getExecaCalls().filter(call => call.startsWith('git push '))).toEqual([
+      'git push --no-verify --no-follow-tags origin HEAD:master',
+      'git push --no-verify --no-follow-tags origin HEAD:master',
+      'git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0',
+    ]);
 
     expect(logs.getMockLines('warn')).toMatchInlineSnapshot(`
       "push rejected
-      Command failed (code 1): git push --no-verify --follow-tags --verbose origin HEAD:master
+      Command failed (code 1): git push --no-verify --no-follow-tags origin HEAD:master
       [WARN 1/5]: Pushing to origin/master has failed! (see above for details)"
     `);
   });
@@ -252,7 +349,7 @@ describe('bumpAndPush', () => {
   it('shows timeout message on push timeout', async () => {
     let pushCount = 0;
     mockSpawn.mockImplementation(async (_cmd, args) => {
-      if (args?.[0] === 'push') {
+      if (args?.[0] === 'push' && args.includes('--no-follow-tags')) {
         pushCount++;
         if (pushCount === 1) return new MockSubprocessError({ output: 'push timed out', timedOut: true });
       }
@@ -263,9 +360,75 @@ describe('bumpAndPush', () => {
 
     expect(logs.getMockLines('warn')).toMatchInlineSnapshot(`
       "push timed out
-      Command failed (timed out): git push --no-verify --follow-tags --verbose origin HEAD:master
+      Command failed (timed out): git push --no-verify --no-follow-tags origin HEAD:master
       [WARN 1/5]: Pushing to origin/master has timed out! (see above for details)"
     `);
+  });
+
+  it('never pushes tags when the branch push fails all retries', async () => {
+    mockSpawn.mockImplementation(async (_cmd, args) => {
+      if (args?.[0] === 'push') return new MockSubprocessError({ output: 'push rejected' });
+      return mockSpawnSuccess();
+    });
+
+    await expect(callBumpAndPush({}, 2)).rejects.toThrow('Failed to bump and push after 2 attempts');
+
+    expect(getExecaCalls().filter(call => call.startsWith('git push '))).toEqual([
+      'git push --no-verify --no-follow-tags origin HEAD:master',
+      'git push --no-verify --no-follow-tags origin HEAD:master',
+    ]);
+  });
+
+  it.each([false, true])('retries only the tag push after a failure (timedOut=%p)', async timedOut => {
+    let tagPushCount = 0;
+    mockSpawn.mockImplementation(async (_cmd, args) => {
+      if (args?.[0] === 'push' && args.includes('--follow-tags')) {
+        tagPushCount++;
+        if (tagPushCount < 3) return new MockSubprocessError({ output: 'tag push error', timedOut });
+      }
+      return mockSpawnSuccess();
+    });
+
+    await callBumpAndPush({}, 3);
+
+    expect(wsToolsMocks.revertLocalChanges).toHaveBeenCalledTimes(1);
+    expect(mockPerformBump).toHaveBeenCalledTimes(1);
+    expect(mockTagPackages).toHaveBeenCalledTimes(1);
+    expect(getExecaCalls().filter(call => call.startsWith('git push '))).toEqual([
+      'git push --no-verify --no-follow-tags origin HEAD:master',
+      'git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0',
+      'git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0',
+      'git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0',
+    ]);
+    expect(logs.getMockLines('warn')).toContain(
+      `[WARN 1/3]: Pushing git tags to origin has ${timedOut ? 'timed out' : 'failed'}!`
+    );
+    expect(logs.getMockLines('warn')).toContain(
+      `[WARN 2/3]: Pushing git tags to origin has ${timedOut ? 'timed out' : 'failed'}!`
+    );
+  });
+
+  it('reports tag push failure after retries without repeating the bump or branch push', async () => {
+    mockSpawn.mockImplementation(async (_cmd, args) => {
+      if (args?.[0] === 'push' && args.includes('--follow-tags')) {
+        return new MockSubprocessError({ output: 'tag push rejected' });
+      }
+      return mockSpawnSuccess();
+    });
+
+    await expect(callBumpAndPush({}, 2)).rejects.toThrow(
+      'Pushed to origin/master, but failed to push git tags after 2 attempts'
+    );
+
+    expect(wsToolsMocks.revertLocalChanges).toHaveBeenCalledTimes(1);
+    expect(mockPerformBump).toHaveBeenCalledTimes(1);
+    expect(mockTagPackages).toHaveBeenCalledTimes(1);
+    expect(getExecaCalls().filter(call => call.startsWith('git push '))).toEqual([
+      'git push --no-verify --no-follow-tags origin HEAD:master',
+      'git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0',
+      'git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0',
+    ]);
+    expect(logs.getMockLines('error')).toBe('');
   });
 
   it('uses custom commitMessage function for the publish commit', async () => {

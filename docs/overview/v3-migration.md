@@ -69,6 +69,18 @@ CLI parsing moved from `yargs-parser` to `commander`. Most behavior is preserved
 - If you rely on `CHANGELOG.json`, set `generateChangelog: true` in your config.
 - If you don't, delete any existing `CHANGELOG.json` files (`beachball migrate` won't do this automatically).
 
+### git tag updates
+
+In v2, a top-level `tag` value other than `'latest'` also created a git tag with the same name when `gitTags` was enabled. However, the tag was not force-pushed, so once it existed on the remote, it wasn't updated to track subsequent releases.
+
+In v3:
+
+- `tag` only controls the npm dist-tag and no longer automatically creates a corresponding git tag (npm publishing behavior is unchanged).
+- Non-default tags returned by `getGitTag` are now force-pushed; default version tags continue to use `--follow-tags`.
+- Tags are pushed only after the branch push succeeds.
+
+If you want a moving git tag, the closest alternative would be to return a second tag from `getGitTag` for only your main entry point package.
+
 ### `registry` and `access` respect npm settings
 
 In v2, Beachball defaulted `registry` to `https://registry.npmjs.org/` and `access` to `restricted`.

@@ -58,13 +58,23 @@ export type BumpInfo = {
    *
    * - `undefined` or not set for a package means no tag will be created (`gitTags` disabled
    *   for the package and no `getGitTag` override, or `getGitTag` returned `null`).
-   * - When defined, this is a non-empty array of tag strings. The first entry is the "primary"
-   *   tag used in changelog metadata; all entries are created as git tags by `tagPackages`.
+   * - When defined, this is a non-empty array of tags. The first entry is the "primary"
+   *   tag used in changelog metadata. All entries are created as git tags by `tagPackages`.
    *
    * This is computed once at the end of `bumpInMemory` so that changelog generation and
    * `tagPackages` agree on what tag(s) will exist.
    */
-  packageTags: { readonly [pkgName: string]: readonly string[] | undefined };
+  packageTags: { readonly [pkgName: string]: readonly PackageTag[] | undefined };
+};
+
+export type PackageTag = {
+  readonly tag: string;
+  /**
+   * Whether this differs from the default `${name}_v${version}` tag.
+   * Any custom tags will be force-pushed, under the assumption that they may be intended to
+   * follow a specific package across versions.
+   */
+  readonly isCustom?: boolean;
 };
 
 /** Dependents cache (child points to parents): if A depends on B, then `{ B: [A] }` */

@@ -1,0 +1,6 @@
+{
+  "type": "major",
+  "comment": "BREAKING: Don't create a git tag for non-default `tag` (npm dist-tag). Also, force-push non-default tags returned by `getGitTag` to ensure any tags that are intended to follow subsequent releases are correctly updated, and only push tags after pushing the branch succeeds.",
+  "packageName": "beachball",
+  "email": "elcraig@microsoft.com"
+}

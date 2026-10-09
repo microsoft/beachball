@@ -17,8 +17,8 @@ import { validate } from '../validation/validate';
 
 // These tests are slow, so they should only cover E2E publishing scenarios that can't be fully
 // covered by lower-level tests (such as publishToRegistry or bumping functional tests), and a
-// few all-up scenarios as sanity checks. Tests specific to git or npm scenarios should
-// potentially go in publishGit.test.ts or publishNpm.test.ts instead.
+// few all-up scenarios as sanity checks. Git scenarios should go in bumpAndPush functional
+// tests where possible, and npm scenarios should potentially go in publishNpm.test.ts instead.
 //
 // Spawning actual npm to run commands against a fake registry is extremely slow, so mock it for
 // this test (packagePublish covers the more complete npm registry scenario).
@@ -75,38 +75,83 @@ describe('publish command (e2e)', () => {
     repo = undefined;
   });
 
-  it('publishes a single package', async () => {
-    repositoryFactory = new RepositoryFactory('single');
-    repo = repositoryFactory.cloneRepository();
+  // This test documents a mix of reasonable and odd behavior with option combinations
+  // (will be fixed in a future change)
+  it.each([['publish'], ['publish --no-push'], ['publish --no-publish']])(
+    'handles single-package publishing with %s',
+    async command => {
+      const argv = command.split(' ').slice(1);
+      const publishes = !argv.includes('--no-publish');
+      const pushes = !argv.includes('--no-push');
 
-    // Using fetch: false in tests where it's irrelevant should be a bit faster.
-    // Use a git observer to verify that no fetch occurs.
-    const { options, parsedOptions } = await getOptions({ fetch: false });
+      repositoryFactory = new RepositoryFactory('single');
+      repo = repositoryFactory.cloneRepository();
 
-    generateChangeFiles(['foo'], options);
-    repo.push();
+      const { options, parsedOptions } = await getOptions(undefined, argv);
 
-    addGitObserver(args => {
-      // no fetch when flag set to false
-      expect(args[0]).not.toBe('fetch');
-    });
+      generateChangeFiles(['foo'], options);
+      repo.push();
 
-    await publishWrapper(parsedOptions);
+      const originalHash = repo.getCurrentHash();
+      const originalPackage = readJson<PackageJson>(repo.pathTo('package.json'));
+      expect(repo.status()).toEqual([]);
 
-    const publishedFoo = npmMock.getPublishedVersions('foo');
-    expect(publishedFoo).toEqual({
-      versions: ['1.1.0'],
-      'dist-tags': { latest: '1.1.0' },
-    });
+      await publishWrapper(parsedOptions);
 
-    repo.checkout(defaultBranchName);
-    repo.pull();
-    expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
+      // Package is published to npm if --publish (default)
+      if (publishes) {
+        expect(npmMock.getPublishedVersions('foo')).toEqual({ versions: ['1.1.0'], 'dist-tags': { latest: '1.1.0' } });
+      } else {
+        expect(npmMock.getPublishedVersions('foo')).toBeUndefined();
+      }
 
-    // Also verify it's correct on disk
-    const newPackageInfos = getPackageInfos(parsedOptions);
-    expect(newPackageInfos.foo.version).toBe('1.1.0');
-  });
+      // Check before pulling: cleanup restores the original branch, but does not advance its HEAD.
+      expect(repo.getCurrentBranch()).toBe(defaultBranchName);
+      expect(repo.getBranches()).toEqual([defaultBranchName]);
+      // No tags added pointing to original commit
+      expect(repo.getCurrentTags()).toEqual([]);
+      // COMMITTED state hasn't changed (there may be uncommitted changes, below)
+      expect(repo.getCurrentHash()).toBe(originalHash);
+      expect(JSON.parse(repo.git(['show', 'HEAD:package.json']).stdout)).toEqual(originalPackage);
+
+      // Get the actual remote refs after publishing
+      const remoteRefs = repo.getRemoteRefs();
+      const remoteHash = remoteRefs.branches?.[defaultBranchName] ?? '';
+
+      if (pushes) {
+        // --push (default): the bump is committed and pushed, AND local state is reverted
+        // (same hash + empty status => local state has been reverted)
+        expect(repo.status()).toEqual([]);
+        // tag exists locally
+        expect(repo.getTags()).toEqual(['foo_v1.1.0']);
+        // remote branch and tags are updated
+        expect(remoteRefs).toEqual({
+          branches: { [defaultBranchName]: expect.not.stringContaining(originalHash) },
+          tags: { 'foo_v1.1.0': expect.anything() },
+        });
+        // local ref of remote is already updated
+        expect(repo.git(['rev-parse', defaultRemoteBranchName]).stdout.trim()).toEqual(remoteHash);
+
+        // Only if --push: pull and check the updated contents
+        repo.pull();
+        expect(repo.getCurrentHash()).toBe(remoteHash);
+        expect(readJson<PackageJson>(repo.pathTo('package.json')).version).toBe('1.1.0');
+        expect(getChangeFiles(options)).toEqual([]);
+        expect(fs.readFileSync(repo.pathTo('CHANGELOG.md'), 'utf8')).toContain('1.1.0');
+        expect(repo.getCurrentTags()).toEqual(['foo_v1.1.0']);
+      } else {
+        // --no-push: the bump is not committed and is left in the local tree
+        // (this is the main case where behavior should be reconsidered)
+        expect(readJson<PackageJson>(repo.pathTo('package.json')).version).toEqual('1.1.0');
+        expect(repo.status()).toEqual([expect.stringContaining(' D change/'), ' M package.json', '?? CHANGELOG.md']);
+        // no tags created
+        expect(repo.getTags()).toEqual([]);
+        // remote branch not updated, no tags created
+        expect(remoteRefs).toEqual({ branches: { [defaultBranchName]: originalHash } });
+        // because there were no remote updates, it's not necessary to pull and re-check
+      }
+    }
+  );
 
   it('can perform a successful npm publish in detached HEAD', async () => {
     repositoryFactory = new RepositoryFactory('single');
@@ -256,6 +301,11 @@ describe('publish command (e2e)', () => {
     expect(repositoryFactory.fixture.folders.packages.foo.dependencies!.bar).toBeTruthy();
     expect(repositoryFactory.fixture.folders.packages.bar.dependencies!.baz).toBeTruthy();
     repo.push();
+
+    addGitObserver(args => {
+      // no fetch when flag set to false
+      expect(args[0]).not.toBe('fetch');
+    });
 
     // For this test, run validate first to simulate what the CLI does
     validate(parsedOptions, { checkDependencies: true });

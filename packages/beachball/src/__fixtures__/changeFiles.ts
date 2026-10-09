@@ -70,12 +70,13 @@ export function generateChangeSet(changes: (string | PartialChangeFile)[]): Chan
  * - `email: 'test@test.com'`
  *
  * @param changes Array of package names or partial change files (which must include `packageName`).
+ * @returns Array of absolute paths to the written change files.
  */
 export function generateChangeFiles(
   changes: (string | PartialChangeFile)[],
   options: Parameters<typeof writeChangeFiles>[1]
-): void {
-  writeChangeFiles(generateChanges(changes), options);
+): string[] {
+  return writeChangeFiles(generateChanges(changes), options);
 }
 
 /** Get full paths to existing change files under `cwd` */

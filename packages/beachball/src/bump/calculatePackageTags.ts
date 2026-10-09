@@ -1,5 +1,5 @@
 import type { BeachballOptions } from '../types/BeachballOptions';
-import type { BumpInfo } from '../types/BumpInfo';
+import type { BumpInfo, PackageTag } from '../types/BumpInfo';
 import { getPackageOption } from '../options/getPackageOption';
 import { getPackagesToPublish } from '../publish/getPackagesToPublish';
 
@@ -12,20 +12,16 @@ export function generateTag(name: string, version: string): string {
  * Calculate the git tag(s) that will be created for each package in `bumpInfo.packageInfos`,
  * based on `gitTags`/`getGitTag` options and per-package overrides.
  *
- * For each package, the result is either:
- * - `undefined` if no git tag will be created (gitTags disabled and no `getGitTag` override,
- *   or `getGitTag` returned `null`)
- * - An array of one or more tag strings. The first entry is the "primary" tag used in changelogs;
- *   all entries will be created as git tags at publish time.
+ * See `BumpInfo['packageTags']` for return value info.
  */
 export function calculatePackageTags(
   bumpInfo: Pick<BumpInfo, 'modifiedPackages' | 'packageInfos' | 'calculatedChangeTypes' | 'scopedPackages'>,
   options: Pick<BeachballOptions, 'gitTags' | 'getGitTag'>
-): { [pkgName: string]: string[] | undefined } {
+): BumpInfo['packageTags'] {
   const { getGitTag } = options;
   const { packageInfos } = bumpInfo;
 
-  const packageTags: { [pkgName: string]: string[] | undefined } = {};
+  const packageTags: { [pkgName: string]: PackageTag[] | undefined } = {};
   // Only generate tags for the packages that are being bumped.
   // For this step, ignore shouldPublish=false.
   const packagesToPublish = getPackagesToPublish(bumpInfo, { ignoreShouldPublish: true });
@@ -40,11 +36,11 @@ export function calculatePackageTags(
       if (customTags) {
         const tagsArray = Array.isArray(customTags) ? customTags : [customTags];
         if (tagsArray.length) {
-          packageTags[pkgName] = tagsArray;
+          packageTags[pkgName] = tagsArray.map(tag => (tag === defaultTag ? { tag } : { tag, isCustom: true }));
         }
       }
     } else if (shouldTag) {
-      packageTags[pkgName] = [defaultTag];
+      packageTags[pkgName] = [{ tag: defaultTag }];
     }
   }
 

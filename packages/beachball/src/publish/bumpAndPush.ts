@@ -16,6 +16,7 @@ const verbose = true;
 
 /**
  * Bump versions locally, commit, optionally tag, and push to git.
+ * Push the branch before tags, retrying tag failures without repeating the bump.
  *
  * This should NOT mutate `bumpInfo`.
  *
@@ -29,6 +30,26 @@ export async function bumpAndPush(
 ): Promise<void> {
   const { path: cwd, branch, depth, gitTimeout } = options;
   const { remote, remoteBranch } = getRemoteBranch(options);
+
+  // Force push any custom tags (see isCustom comment)
+  const tagRefspecs = new Set<string>();
+  let firstDefaultTag: string | undefined;
+  for (const entries of Object.values(bumpInfo.packageTags)) {
+    for (const { tag, isCustom } of entries ?? []) {
+      if (tag) {
+        const ref = `refs/tags/${tag}`;
+        if (isCustom) {
+          tagRefspecs.add(`+${ref}:${ref}`);
+        } else {
+          firstDefaultTag ??= ref;
+        }
+      }
+    }
+  }
+  // Tag pushes need an explicit refspec to avoid pushing the default branch.
+  if (!tagRefspecs.size && firstDefaultTag) {
+    tagRefspecs.add(`${firstDefaultTag}:${firstDefaultTag}`);
+  }
 
   // Resolve the commit message: an explicit `--message` (or `message` config value) takes
   // precedence, then the `commitMessage` config function, then the default.
@@ -44,9 +65,18 @@ export async function bumpAndPush(
   // DO NOT log this value since it contains the encoded token.
   const authEnv = getGitAuthEnv({ ...options, remote, env: process.env, operation: 'push' });
 
+  // control verbose git output with options.verbose, but always show verbose helper output
+  const gitPush = async (args: string[]) =>
+    gitAsync(['push', '--no-verify', ...(options.verbose ? ['--verbose'] : []), ...args], {
+      cwd,
+      verbose,
+      timeout: gitTimeout,
+      ...(authEnv && { env: authEnv }),
+    });
+
   /** Log a warning which includes the attempt number */
-  const logRetryWarning = (text: string, details = '(see above for details)') =>
-    console.warn(`[WARN ${tryNumber}/${bumpPushRetries}]: ${text} ${details}`);
+  const logRetryWarning = (text: string, attemptNumber = tryNumber, details = '(see above for details)') =>
+    console.warn(`[WARN ${attemptNumber}/${bumpPushRetries}]: ${text} ${details}`);
 
   while (tryNumber < bumpPushRetries && !completed) {
     tryNumber++;
@@ -89,10 +119,7 @@ export async function bumpAndPush(
     // push
     console.log(`\nPushing to ${branch}...`);
 
-    const pushResult = await gitAsync(
-      ['push', '--no-verify', '--follow-tags', '--verbose', remote, `HEAD:${remoteBranch}`],
-      { cwd, verbose, timeout: gitTimeout, ...(authEnv && { env: authEnv }) }
-    );
+    const pushResult = await gitPush(['--no-follow-tags', remote, `HEAD:${remoteBranch}`]);
     if (pushResult.success) {
       completed = true;
     } else if (pushResult.timedOut) {
@@ -108,6 +135,26 @@ export async function bumpAndPush(
     throw new BeachballError(`Failed to bump and push after ${bumpPushRetries} attempts`, {
       alreadyLogged: true,
     });
+  }
+
+  if (tagRefspecs.size) {
+    let tagTryNumber = 0;
+    while (tagTryNumber < bumpPushRetries) {
+      tagTryNumber++;
+      console.log(
+        `\nPushing all created git tags to ${remote} with --follow-tags (attempt ${tagTryNumber}/${bumpPushRetries})...`
+      );
+      const pushResult = await gitPush(['--follow-tags', remote, ...tagRefspecs]);
+      if (pushResult.success) {
+        return;
+      }
+      logRetryWarning(
+        `Pushing git tags to ${remote} has ${pushResult.timedOut ? 'timed out' : 'failed'}!`,
+        tagTryNumber
+      );
+    }
+
+    throw new BeachballError(`Pushed to ${branch}, but failed to push git tags after ${bumpPushRetries} attempts`);
   }
 }
 

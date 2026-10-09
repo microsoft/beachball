@@ -13,6 +13,7 @@
   "search.exclude": {
     "**/docs/v2": true,
     "**/node_modules": true,
+    "**/coverage": true,
     "**/lib": true,
     "**/dist": true,
     "**/.cache": true, // vuepress

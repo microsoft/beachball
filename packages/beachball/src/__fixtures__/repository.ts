@@ -2,7 +2,7 @@ import { expect } from '@jest/globals';
 import { removeTempDir, tmpdir, updateJson } from '@microsoft/beachball-test-utilities';
 import fs from 'node:fs';
 import path from 'node:path';
-import { git, type GitProcessOutput } from 'workspace-tools';
+import { getCurrentHash, git, type GitOptions, type GitProcessOutput } from 'workspace-tools';
 import {
   defaultBranchName,
   defaultRemoteBranchName,
@@ -32,6 +32,11 @@ export type RepositoryCloneOptions = {
    * - If undefined, don't set either option.
    */
   singleBranch?: boolean;
+};
+
+type RepositoryRemoteRefs = {
+  branches?: Record<string, string>;
+  tags?: Record<string, string>;
 };
 
 /**
@@ -116,14 +121,16 @@ export class Repository {
   }
 
   /** Git helper that throws on error */
-  public git(args: string[], options?: Partial<Parameters<typeof git>[1]>): GitProcessOutput {
-    const gitResult = git(args, { cwd: this.rootPath, ...options });
-    if (!gitResult.success) {
-      throw new Error(`git command failed: git ${args.join(' ')}
-${gitResult.stdout.toString()}
-${gitResult.stderr.toString()}`);
-    }
-    return gitResult;
+  public git(args: string[], options?: Partial<GitOptions>): GitProcessOutput {
+    return git(args, { cwd: this.rootPath, throwOnError: true, ...options });
+  }
+
+  /** Git helper that returns trimmed output lines and throws on error */
+  public gitOutput(args: string[], options?: Partial<GitOptions>): string[] {
+    return this.git(args, options)
+      .stdout.split('\n')
+      .map(line => line.trimEnd())
+      .filter(Boolean);
   }
 
   /**
@@ -181,20 +188,66 @@ ${gitResult.stderr.toString()}`);
 
   /** Get the current HEAD sha1 */
   public getCurrentHash(): string {
-    const result = this.git(['rev-parse', 'HEAD']);
-    return result.stdout.trim();
+    return getCurrentHash({ cwd: this.rootPath, throwOnError: true }) || '';
+  }
+
+  /** Get the current branch name, or empty if not on a branch */
+  public getCurrentBranch(): string {
+    return this.git(['branch', '--show-current']).stdout.trim();
+  }
+
+  /** Get all local branches, sorted */
+  public getBranches(): string[] {
+    return this.gitOutput(['branch', '--format=%(refname:short)']).sort();
+  }
+
+  /**
+   * Get branches and tags from the default remote.
+   * @returns Branch and tag names mapped to target hashes, omitting empty groups.
+   */
+  public getRemoteRefs(): RepositoryRemoteRefs {
+    const branchPrefix = 'refs/heads/';
+    const tagPrefix = 'refs/tags/';
+    const refs: Record<string, string> = {};
+    for (const line of this.gitOutput(['ls-remote', defaultRemoteName, `${branchPrefix}*`, `${tagPrefix}*`])) {
+      const parts = line.split('\t');
+      const [hash, refName] = parts;
+      if (parts.length !== 2 || !hash || !refName) {
+        throw new Error(`Unexpected git ls-remote output: ${line}`);
+      }
+      refs[refName] = hash;
+    }
+    // Replace annotated tag object hashes with peeled target hashes, removing the ^{} entries.
+    for (const [refName, hash] of Object.entries(refs)) {
+      if (refName.endsWith('^{}')) {
+        refs[refName.slice(0, -3)] = hash;
+        delete refs[refName];
+      }
+    }
+    const remoteRefs: RepositoryRemoteRefs = {};
+    for (const [refName, hash] of Object.entries(refs)) {
+      if (refName.startsWith(branchPrefix)) {
+        (remoteRefs.branches ??= {})[refName.slice(branchPrefix.length)] = hash;
+      } else if (refName.startsWith(tagPrefix)) {
+        (remoteRefs.tags ??= {})[refName.slice(tagPrefix.length)] = hash;
+      }
+    }
+    return remoteRefs;
+  }
+
+  /** Get all local tags, sorted */
+  public getTags(): string[] {
+    return this.gitOutput(['tag', '--list']).sort();
   }
 
   /** Get sorted list of tags pointing to the current HEAD commit */
   public getCurrentTags(): string[] {
-    const tagsResult = this.git(['tag', '--points-at', 'HEAD']);
-    const trimmedResult = tagsResult.stdout.trim();
-    return trimmedResult ? trimmedResult.split('\n').sort() : [];
+    return this.gitOutput(['tag', '--points-at', 'HEAD']).sort();
   }
 
-  /** Get status with `--porcelain` */
-  public status(): string {
-    return this.git(['status', '--porcelain']).stdout.trim();
+  /** Get status lines with `--porcelain`, sorted */
+  public status(): string[] {
+    return this.gitOutput(['status', '--porcelain']).sort();
   }
 
   /** Check out a branch. Args can be the name and/or any options. */

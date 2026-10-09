@@ -100,6 +100,17 @@ describe('publishToRegistry', () => {
     `);
   });
 
+  it('publishes using a non-default npm dist-tag', async () => {
+    const bumpInfo = makeBumpInfo({ foo: { version: '1.1.0' } });
+
+    await publishToRegistry(bumpInfo, { ...defaultOptions, tag: 'beta' });
+
+    expect(npmMock.getPublishedVersions('foo')).toEqual({
+      versions: ['1.1.0'],
+      'dist-tags': { beta: '1.1.0' },
+    });
+  });
+
   it('publishes multiple packages in dependency order', async () => {
     const bumpInfo = makeBumpInfo({
       app: { dependencies: { lib: '1.0.0' } },

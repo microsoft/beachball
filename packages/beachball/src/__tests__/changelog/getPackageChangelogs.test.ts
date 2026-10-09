@@ -38,7 +38,7 @@ describe('getPackageChangelogs', () => {
     const packageInfos = makePackageInfos(bumpInfo.packageInfos);
     const packageTags =
       bumpInfo.packageTags ??
-      Object.fromEntries(Object.values(packageInfos).map(p => [p.name, [generateTag(p.name, p.version)]]));
+      Object.fromEntries(Object.values(packageInfos).map(p => [p.name, [{ tag: generateTag(p.name, p.version) }]]));
     return getPackageChangelogs(
       {
         packageInfos,
@@ -139,7 +139,9 @@ describe('getPackageChangelogs', () => {
       packageInfos: { foo: { version: '1.0.0' } },
       calculatedChangeTypes: { foo: 'patch' },
       changes: ['foo'],
-      packageTags: { foo: ['primary-tag', 'secondary-tag', 'tertiary-tag'] },
+      packageTags: {
+        foo: [{ tag: 'primary-tag', isCustom: true }, { tag: 'foo_v1.0.0' }, { tag: 'tertiary-tag', isCustom: true }],
+      },
     });
 
     expect(changelogs.foo.tag).toBe('primary-tag');

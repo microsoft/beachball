@@ -156,7 +156,7 @@ describe('change command', () => {
     await mockStdin.sendByChar('stage me please\n');
     await changePromise;
 
-    expect(repo.status()).toMatch(/^A  change/);
+    expect(repo.status()[0]).toMatch(/^A  change/);
     expect(logs.mocks.log).toHaveBeenLastCalledWith(expect.stringMatching(/^git staged these change files:/));
 
     const changeFiles = getChangeFiles(options);
@@ -183,7 +183,7 @@ describe('change command', () => {
     await changePromise;
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith(expect.stringMatching(/^git committed these change files:/));
-    expect(repo.status()).toBe('');
+    expect(repo.status()).toEqual([]);
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
@@ -211,7 +211,7 @@ describe('change command', () => {
     await changePromise;
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith(expect.stringMatching(/^git committed these change files:/));
-    expect(repo.status()).toBe('');
+    expect(repo.status()).toEqual([]);
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
@@ -239,7 +239,7 @@ describe('change command', () => {
     await mockStdin.sendByChar('stage me please\n'); // custom message
     await changePromise;
 
-    expect(repo.status()).toMatch(/^A  change/);
+    expect(repo.status()[0]).toMatch(/^A  change/);
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);
@@ -272,7 +272,7 @@ describe('change command', () => {
     await changePromise;
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith(expect.stringMatching(/^git committed these change files:/));
-    expect(repo.status()).toBe('');
+    expect(repo.status()).toEqual([]);
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(2);
@@ -308,7 +308,7 @@ describe('change command', () => {
     await changePromise;
 
     expect(logs.mocks.log).toHaveBeenLastCalledWith(expect.stringMatching(/^git committed these change files:/));
-    expect(repo.status()).toBe('');
+    expect(repo.status()).toEqual([]);
 
     const changeFiles = getChangeFiles(options);
     expect(changeFiles).toHaveLength(1);

@@ -2,6 +2,7 @@ import prompts from 'prompts';
 import { getBranchName, getCurrentHash, git, gitFailFast } from 'workspace-tools';
 import { bumpInMemory } from '../bump/bumpInMemory';
 import { bumpAndPush } from '../publish/bumpAndPush';
+import { createPublishBranch } from '../publish/createPublishBranch';
 import { publishToRegistry } from '../publish/publishToRegistry';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import type { BumpInfo } from '../types/BumpInfo';
@@ -68,10 +69,7 @@ export async function publish(options: BeachballOptions, context: CommandContext
   }
 
   // checkout publish branch
-  const publishBranch = `publish_${Date.now()}`;
-
-  console.log(`Creating temporary publish branch ${publishBranch}\n`);
-  gitFailFast(['checkout', '-b', publishBranch], { cwd });
+  const publishBranch = createPublishBranch(cwd);
 
   if (!context.bumpInfo) {
     // This only applies for legacy usage (not by beachball directly)

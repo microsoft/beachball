@@ -53,8 +53,8 @@ describe('calculatePackageTags', () => {
   it('uses default tag when gitTags is true', () => {
     const params = makeCalcParams({ foo: { version: '1.0.0' }, bar: { version: '2.0.0' } });
     expect(calculatePackageTags(params, { gitTags: true })).toEqual({
-      foo: ['foo_v1.0.0'],
-      bar: ['bar_v2.0.0'],
+      foo: [{ tag: 'foo_v1.0.0' }],
+      bar: [{ tag: 'bar_v2.0.0' }],
     });
   });
 
@@ -63,26 +63,69 @@ describe('calculatePackageTags', () => {
     expect(calculatePackageTags(params, { gitTags: false })).toEqual({});
   });
 
+  it.each([undefined, '', 'latest', 'beta'])('does not create a git tag for npm dist-tag %p', tag => {
+    const params = makeCalcParams({ foo: { version: '1.0.0' } });
+    const options = { gitTags: true, tag };
+    expect(calculatePackageTags(params, options)).toEqual({
+      foo: [{ tag: 'foo_v1.0.0' }],
+    });
+  });
+
+  it('does not create a git tag for the npm dist-tag without package tags', () => {
+    const params = makeCalcParams({});
+    const options = { gitTags: true, tag: 'beta' };
+    expect(calculatePackageTags(params, options)).toEqual({});
+  });
+
+  it('does not create a git tag for the npm dist-tag when getGitTag skips package tags', () => {
+    const params = makeCalcParams({ foo: { version: '1.0.0' } });
+    const options = { gitTags: true, tag: 'beta', getGitTag: () => null };
+    expect(calculatePackageTags(params, options)).toEqual({});
+  });
+
   it('respects per-package gitTags override', () => {
     const params = makeCalcParams({
       foo: { version: '1.0.0', beachball: { gitTags: true } },
       bar: { version: '2.0.0', beachball: { gitTags: false } },
     });
-    expect(calculatePackageTags(params, { gitTags: false })).toEqual({ foo: ['foo_v1.0.0'] });
+    expect(calculatePackageTags(params, { gitTags: false })).toEqual({
+      foo: [{ tag: 'foo_v1.0.0' }],
+    });
   });
 
   it('uses getGitTag to generate custom tags', () => {
     const params = makeCalcParams({ foo: { version: '1.0.0' } });
-    expect(
-      calculatePackageTags(params, { gitTags: true, getGitTag: (_pkg, defaultTag) => `custom-${defaultTag}` })
-    ).toEqual({ foo: ['custom-foo_v1.0.0'] });
+    const result = calculatePackageTags(params, {
+      gitTags: true,
+      getGitTag: (_pkg, defaultTag) => `custom-${defaultTag}`,
+    });
+    expect(result).toEqual({ foo: [{ tag: 'custom-foo_v1.0.0', isCustom: true }] });
   });
 
   it('uses getGitTag returning multiple tags', () => {
     const params = makeCalcParams({ foo: { version: '2.0.0' } });
     expect(calculatePackageTags(params, { gitTags: true, getGitTag: () => ['tag-a', 'tag-b'] })).toEqual({
-      foo: ['tag-a', 'tag-b'],
+      foo: [
+        { tag: 'tag-a', isCustom: true },
+        { tag: 'tag-b', isCustom: true },
+      ],
     });
+  });
+
+  it('identifies the default tag among custom tags regardless of its position', () => {
+    const params = makeCalcParams({ foo: { version: '2.0.0' } });
+    const result = calculatePackageTags(params, {
+      gitTags: true,
+      getGitTag: (_pkg, defaultTag) => ['primary-tag', defaultTag, 'secondary-tag'],
+    });
+    expect(result).toEqual({
+      foo: [{ tag: 'primary-tag', isCustom: true }, { tag: 'foo_v2.0.0' }, { tag: 'secondary-tag', isCustom: true }],
+    });
+  });
+
+  it('uses getGitTag returning an empty array to skip tagging', () => {
+    const params = makeCalcParams({ foo: { version: '1.0.0' } });
+    expect(calculatePackageTags(params, { gitTags: true, getGitTag: () => [] })).toEqual({});
   });
 
   it('uses getGitTag returning null to skip tagging', () => {
@@ -93,7 +136,7 @@ describe('calculatePackageTags', () => {
   it('getGitTag overrides gitTags=false for packages', () => {
     const params = makeCalcParams({ foo: { version: '1.0.0' } }, { cliOptions: { gitTags: false } });
     expect(calculatePackageTags(params, { gitTags: false, getGitTag: (_pkg, defaultTag) => defaultTag })).toEqual({
-      foo: ['foo_v1.0.0'],
+      foo: [{ tag: 'foo_v1.0.0' }],
     });
   });
 
@@ -102,7 +145,9 @@ describe('calculatePackageTags', () => {
       { foo: { version: '1.0.0' }, bar: { version: '2.0.0' } },
       { changeTypes: { foo: 'none', bar: 'patch' } }
     );
-    expect(calculatePackageTags(params, { gitTags: true })).toEqual({ bar: ['bar_v2.0.0'] });
+    expect(calculatePackageTags(params, { gitTags: true })).toEqual({
+      bar: [{ tag: 'bar_v2.0.0' }],
+    });
   });
 
   it('skips private packages', () => {
@@ -110,17 +155,23 @@ describe('calculatePackageTags', () => {
       foo: { version: '1.0.0', private: true },
       bar: { version: '2.0.0' },
     });
-    expect(calculatePackageTags(params, { gitTags: true })).toEqual({ bar: ['bar_v2.0.0'] });
+    expect(calculatePackageTags(params, { gitTags: true })).toEqual({
+      bar: [{ tag: 'bar_v2.0.0' }],
+    });
   });
 
   it('skips out-of-scope packages', () => {
     const params = makeCalcParams({ foo: { version: '1.0.0' }, bar: { version: '2.0.0' } }, { scoped: ['bar'] });
-    expect(calculatePackageTags(params, { gitTags: true })).toEqual({ bar: ['bar_v2.0.0'] });
+    expect(calculatePackageTags(params, { gitTags: true })).toEqual({
+      bar: [{ tag: 'bar_v2.0.0' }],
+    });
   });
 
   it('skips packages that are not in modifiedPackages', () => {
     const params = makeCalcParams({ foo: { version: '1.0.0' }, bar: { version: '2.0.0' } }, { modified: ['foo'] });
-    expect(calculatePackageTags(params, { gitTags: true })).toEqual({ foo: ['foo_v1.0.0'] });
+    expect(calculatePackageTags(params, { gitTags: true })).toEqual({
+      foo: [{ tag: 'foo_v1.0.0' }],
+    });
   });
 
   it('does not invoke getGitTag for skipped packages', () => {

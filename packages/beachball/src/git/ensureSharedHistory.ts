@@ -1,4 +1,4 @@
-import { git } from 'workspace-tools';
+import { getBranchName, getCurrentHash, git } from 'workspace-tools';
 import type { BeachballOptions } from '../types/BeachballOptions';
 import { gitFetch, type GitFetchParams } from './fetch';
 import { getRemoteBranch, type RemoteBranch } from './getRemoteBranch';
@@ -104,7 +104,8 @@ function deepenHistory(
   // one network round-trip. (For detached head, include its commit ID directly.)
   const headBranch = getHeadBranch(cwd);
   const branchesToFetch = headBranch && headBranch !== remoteBranch ? [remoteBranch, headBranch] : [remoteBranch];
-  const additionalRefspecs = headBranch ? undefined : [getHeadCommit(cwd)];
+  const currentHash = getCurrentHash({ cwd });
+  const additionalRefspecs = headBranch || !currentHash ? undefined : [currentHash];
 
   // Iteratively deepen the history
   const maxAttempts = 3;
@@ -198,13 +199,8 @@ ${bulletedList(mitigationSteps)}
 
 /** Returns the current branch name, or undefined if in detached HEAD state */
 function getHeadBranch(cwd: string): string | undefined {
-  const result = git(['rev-parse', '--abbrev-ref', 'HEAD'], { cwd });
-  const branch = result.stdout.trim();
-  return result.success && branch !== 'HEAD' ? branch : undefined;
-}
-
-function getHeadCommit(cwd: string): string {
-  return git(['rev-parse', 'HEAD'], { cwd }).stdout.trim();
+  const branch = getBranchName({ cwd });
+  return branch && branch !== 'HEAD' ? branch : undefined;
 }
 
 function isShallowRepository(cwd: string): boolean {
