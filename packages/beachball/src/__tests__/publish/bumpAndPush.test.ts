@@ -384,12 +384,12 @@ describe('bumpAndPush (unit)', () => {
     mockSpawn.mockImplementation(async (_cmd, args) => {
       if (args?.[0] === 'push' && args.includes('--follow-tags')) {
         tagPushCount++;
-        if (tagPushCount === 1) return new MockSubprocessError({ output: 'tag push error', timedOut });
+        if (tagPushCount < 3) return new MockSubprocessError({ output: 'tag push error', timedOut });
       }
       return mockSpawnSuccess();
     });
 
-    await callBumpAndPush({}, 2);
+    await callBumpAndPush({}, 3);
 
     expect(wsToolsMocks.revertLocalChanges).toHaveBeenCalledTimes(1);
     expect(mockPerformBump).toHaveBeenCalledTimes(1);
@@ -398,9 +398,13 @@ describe('bumpAndPush (unit)', () => {
       'git push --no-verify --no-follow-tags origin HEAD:master',
       'git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0',
       'git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0',
+      'git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0',
     ]);
-    expect(logs.getMockLines('warn')).toBe(
-      `tag push error\nCommand failed (${timedOut ? 'timed out' : 'code 1'}): git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0\n[WARN 1/2]: Pushing git tags to origin has ${timedOut ? 'timed out' : 'failed'}! (see above for details)`
+    expect(logs.getMockLines('warn')).toContain(
+      `[WARN 1/3]: Pushing git tags to origin has ${timedOut ? 'timed out' : 'failed'}!`
+    );
+    expect(logs.getMockLines('warn')).toContain(
+      `[WARN 2/3]: Pushing git tags to origin has ${timedOut ? 'timed out' : 'failed'}!`
     );
   });
 

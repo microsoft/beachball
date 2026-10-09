@@ -75,8 +75,8 @@ export async function bumpAndPush(
     });
 
   /** Log a warning which includes the attempt number */
-  const logRetryWarning = (text: string, details = '(see above for details)') =>
-    console.warn(`[WARN ${tryNumber}/${bumpPushRetries}]: ${text} ${details}`);
+  const logRetryWarning = (text: string, attemptNumber = tryNumber, details = '(see above for details)') =>
+    console.warn(`[WARN ${attemptNumber}/${bumpPushRetries}]: ${text} ${details}`);
 
   while (tryNumber < bumpPushRetries && !completed) {
     tryNumber++;
@@ -148,7 +148,10 @@ export async function bumpAndPush(
       if (pushResult.success) {
         return;
       }
-      logRetryWarning(`Pushing git tags to ${remote} has ${pushResult.timedOut ? 'timed out' : 'failed'}!`);
+      logRetryWarning(
+        `Pushing git tags to ${remote} has ${pushResult.timedOut ? 'timed out' : 'failed'}!`,
+        tagTryNumber
+      );
     }
 
     throw new BeachballError(`Pushed to ${branch}, but failed to push git tags after ${bumpPushRetries} attempts`);
