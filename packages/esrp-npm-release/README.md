@@ -353,7 +353,11 @@ There are no currently known extra steps if using `pnpm`.
 
 ### Linking YAML file to Azure DevOps
 
-After creating the relevant resources and your [pipeline YAML file](#example-pipeline-yaml), you'll need to link it to Azure DevOps.
+After creating the relevant resources and your [pipeline YAML file](#example-pipeline-yaml), you'll need to link it to Azure DevOps. Typically this is done via Start Right (see internal docs). Notes:
+
+- You must be elevated to GitHub repo admin when creating the link between the ADO pipeline and the YAML file.
+- Be sure to classify the pipeline as "Production" since it releases code to npm.
+- After creating the pipeline, be sure to change it to "Use app connection" when prompted, so the pipeline doesn't authenticate as you.
 
 ## Example pipeline YAML
 
