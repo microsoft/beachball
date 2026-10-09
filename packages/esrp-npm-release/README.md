@@ -18,9 +18,15 @@ Tool for teams within Microsoft who would like to use ESRP to release npm packag
     - [Managed identity and roles](#managed-identity-and-roles)
   - [3. Create a service connection](#3-create-the-service-connection)
 - [Pipeline setup](#pipeline-setup)
-  - [Prerequisite: Service connections](#prerequisite-service-connections)
-  - [Prerequisite: Internal feed setup](#prerequisite-internal-feed-setup)
-  - [Example pipeline YAML](#example-pipeline-yaml)
+  - [ESRP onboarding](#esrp-onboarding)
+  - [Service connections](#service-connections)
+  - [Internal feed setup](#internal-feed-setup)
+  - [Linking YAML file to Azure DevOps](#linking-yaml-file-to-azure-devops)
+- [Example pipeline YAML](#example-pipeline-yaml)
+  - [Setup template](#setup-template)
+  - [Common setup and build stage](#common-setup-and-build-stage)
+  - [Publish stage](#publish-stage)
+  - [Push stage (optional)](#push-stage-optional)
 
 ## Overview
 
@@ -41,15 +47,14 @@ The tool relies on the following inputs and resources:
 
 - [**Packed packages**](#packed-packages-format): Output folder from `beachball publish --pack-to-path <path>` or in the same format.
   - ⚠️ If using `beachball`, you should upgrade to a **v3 prerelease (`beachball@next`)** to take advantage of certain new features, including better registry config handling. [See migration guide.](https://microsoft.github.io/beachball/overview/v3-migration)
-- **ESRP Azure resources** configured per their guides (see docs on eng.ms):
-  - **ESRP-onboarded identity** in a production tenant (need client ID and tenant ID): either an app registration with an authentication certificate, or an ESRP-allowlisted managed identity authenticated using workload identity federation
-  - **Production tenant key vault** storing the request signing certificate and, when using certificate authentication, the ESRP auth certificate (PFX format, base64-encoded)
-  - **Production tenant managed identity** with access to the key vault
-  - **ADO Azure Resource Manager service connection** using the managed identity
+- [**ESRP resources**](#esrp-onboarding) following standard onboarding procedures:
+  - ESRP-onboarded identity in a production tenant (need client ID and tenant ID)
+  - Production tenant key vault storing certificates
+  - Production tenant managed identity with access to the key vault, and a corresponding ADO service connection
 - [**Staging resources**](#staging-resource-setup) specific to this tool (see below for setup details):
-  - **Azure Blob Storage account** in your team's subscription (usually in the corp tenant) to temporarily host zips of packages
-  - **Managed identity** with the right RBAC roles on the storage account (used to create user delegation keys for blob access)
-  - **ADO Azure Resource Manager service connection** using the managed identity
+  - Azure Blob Storage account in your team's subscription (usually in the corp tenant) to temporarily host zips of packages
+  - Managed identity with the right RBAC roles on the storage account (used to create user delegation keys for blob access)
+  - ADO Azure Resource Manager service connection using the managed identity
 
 Credit for the original staging and API integration approach goes to the [VS Code team](https://github.com/microsoft/vscode/blob/main/build/azure-pipelines/common/publish.ts).
 
@@ -264,14 +269,25 @@ The release stage (later) passes the connection's name to `AzureCLI@2` as `azure
 
 This tool is designed to run in an Azure DevOps pipeline, presumably using 1ES Pipeline Templates. The typical setup has one stage or pipeline which builds the code and outputs an artifact with the packed packages and release API, and a second stage or pipeline which consumes those artifacts and runs the release tool.
 
-### Prerequisite: Service connections
+### ESRP onboarding
+
+See [ESRP OSS publishing docs](https://eng.ms/docs/microsoft-security/identity/trust-and-security-services/tss-release-distribute/tss-release-esrp-parent/oss-publishing/releasing-open-source) for onboarding info. For purposes of this tool, you'll need:
+
+- **ESRP-onboarded identity** in a production tenant (need client ID and tenant ID): either an app registration with an authentication certificate, or an ESRP-allowlisted managed identity authenticated using workload identity federation.
+- **Production tenant key vault** storing the request signing certificate and, when using certificate authentication, the ESRP auth certificate (PFX format, base64-encoded)
+- **Production tenant managed identity** with access to the key vault
+- **ADO Azure Resource Manager service connection** using the managed identity to access the key vault
+
+Due to the complexity of setting up and maintaining an ESRP registration, it's recommended to see if your engineering systems team or a sibling team has already set one up that you can reuse.
+
+### Service connections
 
 The pipeline typically uses two Azure Resource Manager service connections:
 
-- **ESRP (production tenant)**: access to the key vault containing the request signing certificate and, for certificate authentication, the ESRP auth certificate. For managed identity authentication, this service connection must use the ESRP-allowlisted identity so its federated token can be passed to the tool. (See [overview](#overview) and [ESRP resource inputs](#esrp-resources).)
+- **ESRP (production tenant)**: access to the key vault containing the request signing certificate and, for certificate authentication, the ESRP auth certificate. For managed identity authentication, this service connection must use the ESRP-allowlisted identity so its federated token can be passed to the tool. (See [ESRP onboarding](#esrp-onboarding) and [ESRP resource inputs](#esrp-resources).)
 - **Staging**: access to staging blob storage (see [staging service connection](#3-create-the-service-connection) and [staging resource inputs](#staging-resources))
 
-### Prerequisite: Internal feed setup
+### Internal feed setup
 
 If your repo normally installs packages from `registry.npmjs.org` or `registry.yarnpkg.com`, you'll need to set up an internal feed for the publish build only, since 1ES PT official templates restrict access to public npm.
 
@@ -335,7 +351,11 @@ There are no currently known extra steps if using `pnpm`.
 
 (Notes: `pnpm`'s `pnpm-lock.yaml` omits tarball URLs for the default registry, and reconstructs them from the `.npmrc` registry at install time. It only stores absolute URLs for non-default registries. `pnpm install --frozen-lockfile` respects the `.npmrc` registry without modifying the lock file. Post-bump, `pnpm install --lockfile-only` _should_ skip registry access provided that `workspace:` deps are used internally.)
 
-### Example pipeline YAML
+### Linking YAML file to Azure DevOps
+
+After creating the relevant resources and your [pipeline YAML file](#example-pipeline-yaml), you'll need to link it to Azure DevOps.
+
+## Example pipeline YAML
 
 The typical release process using this tool has multiple parts, which could be either stages or separate pipelines depending on your desired setup:
 
@@ -347,7 +367,7 @@ In 1ES PT, the presence of a production release job applies stricter network iso
 
 The examples below cover a **single pipeline**. Start with the shared setup and build stage, then append one of the publish stages depending on how you authenticate to ESRP. Be sure to **fill in all the `<placeholders>`!** See https://github.com/microsoft/beachball/blob/main/.ado/release.yml for a full example, which also pushes updates to GitHub. (For an example of separate pipelines, see this [build pipeline](https://github.com/microsoft/node-api-dotnet/blob/main/.ado/publish.yml) and [publish/release pipeline](https://github.com/microsoft/node-api-dotnet/blob/main/.ado/release.yml). Ignore the parts targeting non-Node platforms.)
 
-#### Setup template
+### Setup template
 
 If your pipeline includes a push stage, it's helpful to put the setup steps between the build and push stages in a shared `setup.yml` template. (These steps can go inline with the build stage if you don't have a push stage.)
 
@@ -394,9 +414,9 @@ steps:
 
 </details>
 
-#### Shared pipeline setup and build stage
+### Common setup and build stage
 
-<details><summary>Expand for shared pipeline setup and build stage</summary>
+<details><summary>Expand for top-level pipeline setup and build stage</summary>
 
 ```yml
 # Build number/name - modify as desired
@@ -493,9 +513,13 @@ extends:
 
 </details>
 
-#### Publish stage
+### Publish stage
 
-Add one of the following publish stages to the pipeline (under `extends.parameters.stages`):
+Add one of the following publish stages to the pipeline (under `extends.parameters.stages`). The stage is tagged as `type: releaseJob` and `isProduction: true`, which means it can't check out code or install dependencies; it can only download the previously-created artifacts.
+
+If this stage fails partway through, it should be **safe to re-run** unless the error from ESRP is `failDoNotRetry` (but see note below about 404 errors from npm). The tool's internal state tracking ensures successful layers are not re-submitted. If a layer fails partway through and is re-submitted, the ESRP service will _silently skip_ the package versions that already exist in the registry.
+
+Note that a 404 error from npm typically indicates a permission issue. For an existing package, the most likely cause is that the npm accounts `@microsoft1es` and `@microsoft-oss-releases` have not been added as organization or package owners.
 
 <details><summary>Publish stage using an authentication certificate</summary>
 
@@ -685,7 +709,7 @@ Add one of the following publish stages to the pipeline (under `extends.paramete
 
 </details>
 
-#### Push stage
+### Push stage (optional)
 
 If your repo has traditionally pushed packages directly back to GitHub with a personal access token, you can instead use a GitHub app token and the [`beachball-auth-helper` CLI](https://microsoft.github.io/beachball/concepts/ci-integration/auth-helper).
 
