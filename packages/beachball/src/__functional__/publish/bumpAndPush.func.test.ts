@@ -7,6 +7,7 @@ import { generateChangeFiles, getChangeFiles, readSingleChangeFile } from '../..
 import { defaultBranchName, defaultRemoteBranchName } from '../../__fixtures__/gitDefaults';
 import { RepositoryFactory } from '../../__fixtures__/repositoryFactory';
 import { bumpInMemory } from '../../bump/bumpInMemory';
+import * as gitAsyncModule from '../../git/gitAsync';
 import { createCommandContext } from '../../monorepo/createCommandContext';
 import { getOptions as _getOptions } from '../../options/getOptions';
 import { bumpAndPush } from '../../publish/bumpAndPush';
@@ -16,7 +17,8 @@ import type { RepoOptions } from '../../types/BeachballOptions';
 describe('bumpAndPush (functional)', () => {
   let repositoryFactory: RepositoryFactory | undefined;
 
-  initMockLogs();
+  // Recreate console spies after restoreAllMocks runs in afterEach.
+  initMockLogs({ mockBeforeEach: true });
 
   async function getOptions(cwd: string, repoOptions?: Partial<RepoOptions>) {
     return _getOptions({
@@ -37,6 +39,7 @@ describe('bumpAndPush (functional)', () => {
   }
 
   afterEach(() => {
+    jest.restoreAllMocks();
     repositoryFactory?.cleanUp();
     repositoryFactory = undefined;
   });
@@ -77,6 +80,39 @@ describe('bumpAndPush (functional)', () => {
       },
     });
     expect(getPackageInfo(newRepo.rootPath)?.version).toBe('1.1.0');
+  });
+
+  it('follows default tags after pushing the branch', async () => {
+    repositoryFactory = new RepositoryFactory('monorepo');
+    const repo = repositoryFactory.cloneRepository();
+    repo.git(['config', 'push.followTags', 'true']);
+    const parsedOptions = await getOptions(repo.rootPath, { fetch: false });
+    const { options } = parsedOptions;
+    generateChangeFiles(['foo', 'bar'], options);
+    repo.push();
+
+    // Capture intermediate remote state after each push, not just the final state.
+    const gitAsync = gitAsyncModule.gitAsync;
+    const remoteRefs: ReturnType<typeof repo.getRemoteRefs>[] = [];
+    jest.spyOn(gitAsyncModule, 'gitAsync').mockImplementation(async (args, gitOptions) => {
+      const result = await gitAsync(args, gitOptions);
+      args[0] === 'push' && remoteRefs.push(repo.getRemoteRefs());
+      return result;
+    });
+
+    const publishBranch = createPublishBranch(repo.rootPath);
+    const bumpInfo = bumpInMemory(options, createCommandContext(parsedOptions));
+    await bumpAndPush(bumpInfo, publishBranch, options);
+
+    const publishedHash = repo.getCurrentHash();
+    // Separate pushes must update the branch without tags first, then add the tags.
+    expect(remoteRefs).toEqual([
+      { branches: { [defaultBranchName]: publishedHash } },
+      {
+        branches: { [defaultBranchName]: publishedHash },
+        tags: { 'foo_v1.1.0': publishedHash, 'bar_v1.4.0': publishedHash },
+      },
+    ]);
   });
 
   it('can handle a merge when there are change files present', async () => {

@@ -40,9 +40,14 @@ Merging publish_12345 into origin/master...
 Creating git tags for new versions...
 [log]
 Pushing to origin/master...
-[log] Running: git push --no-verify --follow-tags --verbose origin HEAD:master
+[log] Running: git push --no-verify --no-follow-tags origin HEAD:master
 [log]
-[log] Command completed: git push --no-verify --follow-tags --verbose origin HEAD:master"
+[log] Command completed: git push --no-verify --no-follow-tags origin HEAD:master
+[log]
+Pushing all created git tags to origin with --follow-tags (attempt 1/5)...
+[log] Running: git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0
+[log]
+[log] Command completed: git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0"
 `;
 
 exports[`bumpAndPush (unit) succeeds on first attempt 1`] = `
@@ -77,9 +82,14 @@ Merging publish_12345 into origin/master...
 Creating git tags for new versions...
 [log]
 Pushing to origin/master...
-[log] Running: git push --no-verify --follow-tags --verbose origin HEAD:master
+[log] Running: git push --no-verify --no-follow-tags origin HEAD:master
 [log]
-[log] Command completed: git push --no-verify --follow-tags --verbose origin HEAD:master"
+[log] Command completed: git push --no-verify --no-follow-tags origin HEAD:master
+[log]
+Pushing all created git tags to origin with --follow-tags (attempt 1/5)...
+[log] Running: git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0
+[log]
+[log] Command completed: git push --no-verify --follow-tags origin refs/tags/foo_v1.1.0:refs/tags/foo_v1.1.0"
 `;
 
 exports[`bumpAndPush (unit) throws and calls displayManualRecovery after all retries exhausted 1`] = `
