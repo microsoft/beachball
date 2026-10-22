@@ -1,8 +1,16 @@
 # Change Log - @microsoft/beachball-action-should-release
 
-<!-- This log was last generated on Sat, 22 Aug 2026 00:26:19 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 22 Oct 2026 23:49:20 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.1.5
+
+Thu, 22 Oct 2026 23:49:20 GMT
+
+### Patches
+
+- Update dependencies (elcraig@microsoft.com)
 
 ## 3.1.4
 
