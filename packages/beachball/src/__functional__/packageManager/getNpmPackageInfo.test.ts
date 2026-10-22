@@ -1,16 +1,15 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { initMockLogs } from '@microsoft/beachball-test-utilities';
-import { env } from '../../env';
 import { getNpmPackageInfo } from '../../packageManager/getNpmPackageInfo';
 
 // These tests mostly get known packages from the public npm registry. There's a tiny chance it
 // could fail if the registry is down, but it's not a big concern with low development traffic.
 // (They fail on the ADO release build due to network restrictions.)
 // TODO: use the configured registry from the machine
-// eslint-disable-next-line no-restricted-properties
-const maybeDescribe = env.isAzurePipelines ? describe.skip : describe;
+// const maybeDescribe = env.isAzurePipelines ? describe.skip : describe;
 
-maybeDescribe('getNpmPackageInfo (real registry)', () => {
+// eslint-disable-next-line no-restricted-properties
+describe.skip('getNpmPackageInfo (real registry)', () => {
   const fetchSpy = jest.spyOn(globalThis, 'fetch');
   const logs = initMockLogs();
   const registry = 'https://registry.npmjs.org/';

@@ -14,17 +14,20 @@
     "@vuepress/plugin-redirect": "^2.0.0-rc.131",
     "@vuepress/plugin-search": "^2.0.0-rc.61",
     "@vuepress/theme-default": "^2.0.0-rc",
-    "mermaid": "^11.16.1",
+    "mermaid": "^12.0.0",
     "sass-embedded": "^1.81.0",
     "vuepress": "^2.0.0-rc"
   },
   "resolutions": {
     "@types/node@npm:*": "^22.0.0",
+    "argparse@npm:1.0.10/sprintf-js": "ignore:",
     "lodash-es@npm:4.17.21": "^4.18.1",
-    "lodash-es@npm:4.17.23": "^4.18.1"
+    "lodash-es@npm:4.17.23": "^4.18.1",
+    "node-gyp": "ignore:"
   },
   "rationale": {
     "resolutions": {
+      "argparse/sprintf-js": "remove nested dep with security issue (gray-matter => js-yaml v3 => only uses argparse in unused CLI)",
       "lodash-es": "Unpin due to security issue"
     }
   },
