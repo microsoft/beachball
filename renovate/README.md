@@ -931,7 +931,7 @@ Adds post-upgrade tasks to generate Beachball change files.
   "packageRules": [
     {
       "matchManagers": ["npm"],
-      "matchUpdateTypes": ["!lockFileMaintenance"],
+      "matchUpdateTypes": ["major", "minor", "patch", "pin", "rollback", "replacement"],
       "postUpgradeTasks": {
         "commands": [
           "git add --all",
