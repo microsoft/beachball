@@ -52,3 +52,26 @@ index 1c08a19959747f6fce3dec04674a83cc67fc56e9..0e50551c55bc31af35e8f5ce8cdd3743
              plugins: [
                  licensePlugin({
                      packageName: packageJson.name,
+diff --git a/lib/utils/findRealPackageJson.js b/lib/utils/findRealPackageJson.js
+index 2ceba9a90db74a0ddfba4a656ab887fbc234966a..9bfb910018f3bc30f8e4b141a3c7fc6fb929d1b3 100644
+--- a/lib/utils/findRealPackageJson.js
++++ b/lib/utils/findRealPackageJson.js
+@@ -2,13 +2,15 @@ import fs from 'fs';
+ import path from 'path';
+ /**
+  * Find the actual package.json (the one with a name) for the current file.
+- * This implementation accounts for intermediate package.json files with just a "type", no name.
++ * Use the node_modules package boundary when available to ignore nested package.json files.
+  * @param cache Optional cache if iterating over multiple files which may be from the same package
+  */
+ export function findRealPackageJson(fileRealpath, cache = new Map()) {
+     const root = path.parse(fileRealpath).root;
+-    // Start with the path itself in case it's already a directory
+-    let dir = fileRealpath;
++    const parts = fileRealpath.split(path.sep);
++    const nodeModulesIndex = parts.lastIndexOf('node_modules');
++    const packageEnd = nodeModulesIndex + (parts[nodeModulesIndex + 1]?.startsWith('@') ? 3 : 2);
++    let dir = nodeModulesIndex === -1 ? fileRealpath : parts.slice(0, packageEnd).join(path.sep);
+     const dirs = [];
+     while (dir !== root) {
+         dirs.push(dir);

@@ -1,0 +1,6 @@
+{
+  "type": "none",
+  "comment": "temporarily pin dep (same version)",
+  "packageName": "@microsoft/beachball-yarn-plugin-npmrc",
+  "email": "elcraig@microsoft.com"
+}
