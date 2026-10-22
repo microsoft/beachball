@@ -11,8 +11,13 @@
     "depcheck": "yarn run -T depcheck .",
     "lint": "yarn run -T eslint --color --max-warnings=0 src"
   },
-  "dependencies": {
+  "devDependencies": {
+    "@microsoft/beachball-scripts": "workspace:^",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/resolve": "^1.20.6",
+    "@types/tmp": "^0.2.6",
     "@verdaccio/config": "^8.2.0",
+    "@verdaccio/types": "^13.0.0",
     "get-port": "^7.0.0",
     "normalized-tmpdir": "^1.1.0",
     "resolve": "^1.22.12",
@@ -20,12 +25,5 @@
     "verdaccio": "^6.5.2",
     "verdaccio-auth-memory": "^13.0.0",
     "verdaccio-memory": "^10.4.3"
-  },
-  "devDependencies": {
-    "@microsoft/beachball-scripts": "workspace:^",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/resolve": "^1.20.6",
-    "@types/tmp": "^0.2.6",
-    "@verdaccio/types": "^13.0.0"
   }
 }

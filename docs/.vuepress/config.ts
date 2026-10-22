@@ -10,7 +10,13 @@ export default defineUserConfig({
   title: 'beachball',
   description: 'The Sunniest Semantic Version Bumper',
   base: '/beachball/',
-  bundler: viteBundler(),
+  bundler: viteBundler({
+    viteOptions: {
+      optimizeDeps: {
+        include: ['mermaid'],
+      },
+    },
+  }),
   theme: defaultTheme({
     contributors: false, // don't show contributors on each page
     navbar: [

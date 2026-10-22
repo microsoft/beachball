@@ -60,21 +60,24 @@
     "lodash": "^4.18.1",
     "node-gyp": "ignore:",
     "qs@~6.15.1": "^6.15.1",
+    "depcheck/js-yaml": "^4.3.2",
+    "@istanbuljs/load-nyc-config/js-yaml": "^4.3.2",
     "@cypress/request/uuid@^8.3.2": "^14.0.0",
     "@verdaccio/core/ajv@8.17.1": "^8.18.0",
     "@verdaccio/core/ajv@8.18.0": "^8.18.0",
+    "verdaccio/compression@1.8.1": "^1.8.2",
     "verdaccio/express@4.22.1": "^4.22.1",
     "verdaccio-audit/express@4.22.1": "^4.22.1",
     "@verdaccio/middleware/express@4.22.1": "^4.22.1",
+    "@verdaccio/hooks/handlebars@4.7.9": "^4.7.10",
+    "@verdaccio/config/js-yaml@5.4.1": "^5.4.1",
     "@verdaccio/core/minimatch@7.4.6": "^7.4.9",
     "verdaccio/minimatch@7.4.6": "^7.4.9",
     "verdaccio-memory/minimatch@7.4.6": "^7.4.9"
   },
   "rationale": {
     "resolutions": {
-      "lodash": "Unpin due to security issue",
-      "*/express": "Unpin to allow regular security updates",
-      "*/qs": "Unpin due to security issue",
+      "*/js-yaml": "update to get rid of bad nested dep js-yaml v3 => argparse v1 => sprintf-js (js-yaml is not needed in our usage)",
       "*/uuid": "update due to security issue (only node version update breaks)"
     }
   },
