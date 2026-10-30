@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@azure/core-auth": "^1.10.1",
-    "@azure/msal-node": "^5.1.5",
+    "@azure/msal-node": "^7.0.0",
     "@azure/storage-blob": "^12.31.0",
     "@microsoft/beachball-scripts": "workspace:^",
     "@microsoft/beachball-test-utilities": "workspace:^",
