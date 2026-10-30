@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Ignore `ignore:` deps",
+  "packageName": "@microsoft/beachball-yarn-plugin-engines",
+  "email": "elcraig@microsoft.com"
+}

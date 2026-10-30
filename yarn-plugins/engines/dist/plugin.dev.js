@@ -199,7 +199,7 @@ var plugin = (() => {
         optionalDependencies.delete(descriptorHash);
       }
       const devirtDescriptor = import_core.structUtils.isVirtualDescriptor(descriptor) ? import_core.structUtils.devirtualizeDescriptor(descriptor) : descriptor;
-      if (devirtDescriptor.range.startsWith("workspace:") || ignorePackages.includes(pkgName) || processedDependencies.has(descriptorHash) || dependenciesQueue.includes(descriptorHash)) {
+      if (devirtDescriptor.range.startsWith("workspace:") || devirtDescriptor.range.startsWith("ignore:") || ignorePackages.includes(pkgName) || processedDependencies.has(descriptorHash) || dependenciesQueue.includes(descriptorHash)) {
         return;
       }
       dependenciesQueue.push(descriptorHash);
