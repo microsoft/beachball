@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import {
   Configuration,
   LinkType,
@@ -13,7 +13,8 @@ import {
   type Locator,
   type Package,
 } from '@yarnpkg/core';
-import { Filename, PortablePath, ppath, xfs } from '@yarnpkg/fslib';
+import { Filename, NodeFS, PortablePath, ppath, xfs } from '@yarnpkg/fslib';
+import path from 'node:path';
 import plugin from './index.ts';
 import { EnginesProbeLinker } from './linker.ts';
 
@@ -34,8 +35,13 @@ function makePackage(locator: Locator, manifest: Manifest): Package {
 }
 
 /** Creates a linked project with one public workspace and one dependency. */
-function createTestProject({ range = 'npm:^10.0.0', repoRange = '>=20.0.0', loose = false } = {}) {
-  const cwd = PortablePath.root;
+function createTestProject({
+  range = 'npm:^10.0.0',
+  repoRange = '>=20.0.0',
+  loose = false,
+  cwd = PortablePath.root,
+  dependencyName = 'node-gyp',
+} = {}) {
   const configuration = Configuration.create(
     cwd,
     new Map([
@@ -62,14 +68,14 @@ function createTestProject({ range = 'npm:^10.0.0', repoRange = '>=20.0.0', loos
     name: 'test-package',
     version: '1.0.0',
     engines: { node: repoRange },
-    dependencies: { 'node-gyp': range },
+    dependencies: { [dependencyName]: range },
   });
   const locator = structUtils.makeLocator(structUtils.parseIdent('test-package'), 'workspace:.');
   const workspace = Object.assign(new Workspace(cwd, { project }), { manifest, anchoredLocator: locator });
   project.workspaces.push(workspace);
   project.workspacesByCwd.set(cwd, workspace);
   project.storedPackages.set(locator.locatorHash, makePackage(locator, manifest));
-  const descriptor = structUtils.makeDescriptor(structUtils.parseIdent('node-gyp'), range);
+  const descriptor = structUtils.makeDescriptor(structUtils.parseIdent(dependencyName), range);
   project.storedDescriptors.set(descriptor.descriptorHash, descriptor);
 
   const probeLinker = new EnginesProbeLinker();
@@ -84,6 +90,10 @@ function createTestProject({ range = 'npm:^10.0.0', repoRange = '>=20.0.0', loos
 }
 
 describe('validateProjectAfterInstall', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it.each([
     { description: 'reports an unresolved npm dependency', range: 'npm:^10.0.0', ignored: false },
     { description: 'skips an ignore: dependency', range: 'ignore:', ignored: true },
@@ -174,5 +184,88 @@ describe('validateProjectAfterInstall', () => {
       }
       expect(reportWarning).not.toHaveBeenCalled();
     });
+  });
+
+  it.each([
+    {
+      description: 'falls back to node_modules on POSIX',
+      cwd: '/repo' as PortablePath,
+      nativeJoin: path.posix.join.bind(path.posix),
+      virtual: false,
+      exists: true,
+    },
+    {
+      description: 'falls back to a portable node_modules path on Windows',
+      cwd: '/C:/repo' as PortablePath,
+      nativeJoin: path.win32.join.bind(path.win32),
+      virtual: false,
+      exists: true,
+    },
+    {
+      description: 'falls back on Windows after both virtual and devirtualized lookups fail',
+      cwd: '/C:/repo' as PortablePath,
+      nativeJoin: path.win32.join.bind(path.win32),
+      virtual: true,
+      exists: true,
+    },
+    {
+      description: 'reports a missing package when the node_modules fallback does not exist',
+      cwd: '/C:/repo' as PortablePath,
+      nativeJoin: path.win32.join.bind(path.win32),
+      virtual: false,
+      exists: false,
+    },
+  ])('$description', async ({ cwd, nativeJoin, virtual, exists }) => {
+    const dependencyName = '@babel/plugin-syntax-async-generators';
+    const { configuration, project, descriptor, linker, report, reportError, reportWarning } = createTestProject({
+      cwd,
+      dependencyName,
+    });
+    const manifest = new Manifest();
+    manifest.load({ name: dependencyName, version: '7.8.4', engines: { node: '>=24.0.0' } });
+    const locator = structUtils.makeLocator(descriptor, 'npm:7.8.4');
+    const pkg = makePackage(
+      virtual ? structUtils.makeLocator(descriptor, 'virtual:peer#npm:7.8.4') : locator,
+      manifest
+    );
+    project.storedResolutions.set(descriptor.descriptorHash, pkg.locatorHash);
+    project.storedPackages.set(pkg.locatorHash, pkg);
+    const location = `${cwd}/node_modules/${dependencyName}` as PortablePath;
+    const findPackageLocation = jest.spyOn(linker, 'findPackageLocation').mockRejectedValue(new Error('Not found'));
+    const existsSync = jest.spyOn(NodeFS.prototype, 'existsSync').mockReturnValue(exists);
+    const findManifest = jest.spyOn(Manifest, 'tryFind').mockResolvedValue(manifest);
+    const portableJoin = ppath.join.bind(ppath);
+    jest.spyOn(ppath, 'join').mockImplementation(portableJoin);
+    jest.spyOn(path, 'join').mockImplementation(nativeJoin);
+
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    await (plugin.hooks as Hooks).validateProjectAfterInstall?.(project, report);
+
+    expect(findPackageLocation).toHaveBeenCalledTimes(virtual ? 2 : 1);
+    expect(findPackageLocation).toHaveBeenNthCalledWith(1, pkg, { project, report });
+    if (virtual) {
+      expect(findPackageLocation).toHaveBeenNthCalledWith(2, locator, { project, report });
+    }
+    expect(existsSync.mock.calls).toEqual([[location]]);
+    if (exists) {
+      expect(findManifest).toHaveBeenCalledTimes(1);
+      expect(findManifest).toHaveBeenCalledWith(location, { baseFs: expect.any(NodeFS) });
+      expect(reportError.mock.calls).toEqual([
+        [
+          0,
+          '[yarn-plugin-engines] The following packages require Node >=24.0.0, which does not match the repo requirement >=20.0.0:\n' +
+            `  - ${structUtils.prettyLocator(configuration, pkg)}`,
+        ],
+      ]);
+    } else {
+      expect(findManifest).not.toHaveBeenCalled();
+      expect(reportError.mock.calls).toEqual([
+        [
+          0,
+          `[yarn-plugin-engines] Could not find location for ${structUtils.prettyDescriptor(configuration, descriptor)}`,
+        ],
+      ]);
+    }
+    expect(reportWarning).not.toHaveBeenCalled();
   });
 });
