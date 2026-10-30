@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update dependency commander to v15",
+  "packageName": "beachball",
+  "email": "renovate@whitesourcesoftware.com",
+  "dependentChangeType": "patch"
+}
