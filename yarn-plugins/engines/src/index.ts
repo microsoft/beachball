@@ -181,6 +181,7 @@ const validateProjectAfterInstall: NonNullable<Hooks['validateProjectAfterInstal
       : descriptor;
     if (
       devirtDescriptor.range.startsWith('workspace:') ||
+      devirtDescriptor.range.startsWith('ignore:') ||
       ignorePackages.includes(pkgName) ||
       processedDependencies.has(descriptorHash) ||
       dependenciesQueue.includes(descriptorHash)

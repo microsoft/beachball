@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Update undici",
+  "packageName": "@microsoft/beachball-action-should-release",
+  "email": "elcraig@microsoft.com"
+}
