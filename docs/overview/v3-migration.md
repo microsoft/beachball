@@ -49,9 +49,9 @@ Otherwise, the command will list specific config updates that are needed. The co
 
 Many of the config-related changes below are detected by `beachball migrate` or automatic validation.
 
-### Require Node.js 22.18+
+### Require Node.js 22.19+
 
-beachball v3 requires **Node.js 22.18.0** or newer, and its published output uses ES2024 syntax. This also allows support for [TypeScript or ESM config files](#config-loading-changes).
+beachball v3 requires **Node.js 22.23.4** or newer, and its published output uses ES2024 syntax. This also allows support for [TypeScript or ESM config files](#config-loading-changes).
 
 ### CLI option parsing changes
 

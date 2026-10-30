@@ -14,7 +14,7 @@
   },
   "bin": "./bin/proper-changelog.js",
   "engines": {
-    "node": ">=22.18.0"
+    "node": ">=22.23.4"
   },
   "files": [
     "bin",

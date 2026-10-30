@@ -6,7 +6,7 @@ Trust these instructions. Only search the codebase if information here is incomp
 
 Beachball is a CLI tool for automating semantic version bumping, changelog generation, and npm publishing in monorepos and single-package repos. This repo is a **Yarn 4 monorepo** of ~2,000 files. The main deliverable is the `beachball` npm package.
 
-- **Runtime:** Node.js `>=22.18.0` (repo developed on Node 22; CI also runs Node 24). TypeScript files can be run directly with `node` (no extra flags).
+- **Runtime:** Node.js `>=22.23.4` (repo developed on Node 22; CI also runs Node 24). TypeScript files can be run directly with `node` (no extra flags).
 - **Language:** TypeScript `~6.0`. The `beachball` and `p-graph` package output is CommonJS (other packages use ESM).
 - **Package manager:** Yarn 4 (Berry), `nodeLinker: node-modules`. Some dependency versions are shared via Yarn catalogs (`catalogs` in [.yarnrc.yml](./.yarnrc.yml)). Never use `npm install`.
 - **Task runner:** [lage](https://microsoft.github.io/lage/) orchestrates `build`, `test`, `lint` across workspaces (config: [lage.config.js](./lage.config.js)).

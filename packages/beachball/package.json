@@ -17,7 +17,7 @@
     "beachball-auth-helper": "./bin/beachball-auth-helper.js"
   },
   "engines": {
-    "node": ">=22.18.0"
+    "node": ">=22.23.4"
   },
   "files": [
     "bin",

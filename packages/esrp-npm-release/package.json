@@ -14,7 +14,7 @@
   },
   "type": "module",
   "engines": {
-    "node": ">=22.18.0"
+    "node": ">=22.23.4"
   },
   "files": [
     "bicep",
@@ -30,9 +30,9 @@
     "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' yarn run -T jest"
   },
   "devDependencies": {
-    "@azure/core-auth": "^1.10.1",
-    "@azure/msal-node": "^7.0.0",
-    "@azure/storage-blob": "^12.31.0",
+    "@azure/core-auth": "^1.11.0",
+    "@azure/msal-node": "^7.1.1",
+    "@azure/storage-blob": "^12.34.0",
     "@microsoft/beachball-scripts": "workspace:^",
     "@microsoft/beachball-test-utilities": "workspace:^",
     "@types/jws": "^3.2.11",

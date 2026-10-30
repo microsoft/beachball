@@ -94,7 +94,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/core-auth@npm:^1.10.0, @azure/core-auth@npm:^1.10.1, @azure/core-auth@npm:^1.9.0":
+"@azure/core-auth@npm:^1.10.0, @azure/core-auth@npm:^1.11.0, @azure/core-auth@npm:^1.9.0":
   version: 1.11.0
   resolution: "@azure/core-auth@npm:1.11.0"
   dependencies:
@@ -215,7 +215,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/msal-node@npm:^7.0.0":
+"@azure/msal-node@npm:^7.1.1":
   version: 7.1.1
   resolution: "@azure/msal-node@npm:7.1.1"
   dependencies:
@@ -225,7 +225,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/storage-blob@npm:^12.31.0":
+"@azure/storage-blob@npm:^12.34.0":
   version: 12.34.0
   resolution: "@azure/storage-blob@npm:12.34.0"
   dependencies:
@@ -1654,9 +1654,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@microsoft/esrp-npm-release@workspace:packages/esrp-npm-release"
   dependencies:
-    "@azure/core-auth": "npm:^1.10.1"
-    "@azure/msal-node": "npm:^7.0.0"
-    "@azure/storage-blob": "npm:^12.31.0"
+    "@azure/core-auth": "npm:^1.11.0"
+    "@azure/msal-node": "npm:^7.1.1"
+    "@azure/storage-blob": "npm:^12.34.0"
     "@microsoft/beachball-scripts": "workspace:^"
     "@microsoft/beachball-test-utilities": "workspace:^"
     "@types/jws": "npm:^3.2.11"
