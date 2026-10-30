@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update dependency @azure/msal-node to v7 [SECURITY]",
-  "packageName": "@microsoft/esrp-npm-release",
-  "email": "email not defined",
-  "dependentChangeType": "patch"
-}

@@ -1,8 +1,17 @@
 # Change Log - @microsoft/beachball-yarn-plugin-engines
 
-<!-- This log was last generated on Thu, 13 Aug 2026 03:44:19 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 30 Oct 2026 22:53:28 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 0.3.2
+
+Fri, 30 Oct 2026 22:53:28 GMT
+
+### Patches
+
+- Ignore `ignore:` deps (elcraig@microsoft.com)
+- Fix Windows path resolution issue (elcraig@microsoft.com)
 
 ## 0.3.1
 
