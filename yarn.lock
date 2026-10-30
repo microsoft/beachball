@@ -208,20 +208,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/msal-common@npm:16.13.0":
-  version: 16.13.0
-  resolution: "@azure/msal-common@npm:16.13.0"
-  checksum: 10c0/cc2857f24bae5ac9693760a9b23c5c6f19a86ae5df16d236e85616a545e6bb15a8b7a587df9c024b43a5386485a84b662574c42cffafef9746e56135f61f654c
+"@azure/msal-common@npm:16.14.2":
+  version: 16.14.2
+  resolution: "@azure/msal-common@npm:16.14.2"
+  checksum: 10c0/7861c6ef3eea5cfa67ad8d8cabc79e9d27ba4f6d5d8cdf4ae950e2739abea3d8f80fffb1440a1840a3ff1655c90da8d3bf3be2c4d3898cab1e62bd610da5d971
   languageName: node
   linkType: hard
 
-"@azure/msal-node@npm:^5.1.5":
-  version: 5.6.0
-  resolution: "@azure/msal-node@npm:5.6.0"
+"@azure/msal-node@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "@azure/msal-node@npm:7.1.0"
   dependencies:
-    "@azure/msal-common": "npm:16.13.0"
+    "@azure/msal-common": "npm:16.14.2"
     jsonwebtoken: "npm:^9.0.0"
-  checksum: 10c0/57e788bb884aa032b66ecfa339c4660b20e63ec91f25774db47b2e043ba6d5f969d66cd80c24bd4f2735388cef6acc2aba79a9b86da18aed2dbe856c88f49df2
+  checksum: 10c0/165f829f7cefebadead0b47c1be66e83d5e0e9ba0f15779ffcdc55653ab10fa533dbcc11082c8ff1ac3f9ed3ef264c19b3d8f78530e3e1d5af18e8ddb4249ee6
   languageName: node
   linkType: hard
 
@@ -1655,7 +1655,7 @@ __metadata:
   resolution: "@microsoft/esrp-npm-release@workspace:packages/esrp-npm-release"
   dependencies:
     "@azure/core-auth": "npm:^1.10.1"
-    "@azure/msal-node": "npm:^5.1.5"
+    "@azure/msal-node": "npm:^7.1.0"
     "@azure/storage-blob": "npm:^12.31.0"
     "@microsoft/beachball-scripts": "workspace:^"
     "@microsoft/beachball-test-utilities": "workspace:^"
