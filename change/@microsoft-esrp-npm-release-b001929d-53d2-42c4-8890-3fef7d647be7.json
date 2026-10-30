@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Require Node 22.23.4",
+  "packageName": "@microsoft/esrp-npm-release",
+  "email": "elcraig@microsoft.com"
+}

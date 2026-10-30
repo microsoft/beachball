@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Require Node 22.23.4",
+  "packageName": "proper-changelog",
+  "email": "elcraig@microsoft.com"
+}

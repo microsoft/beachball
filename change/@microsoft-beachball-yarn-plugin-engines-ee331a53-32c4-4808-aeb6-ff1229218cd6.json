@@ -1,0 +1,6 @@
+{
+  "comment": "Fix Windows path resolution issue",
+  "type": "patch",
+  "packageName": "@microsoft/beachball-yarn-plugin-engines",
+  "email": "elcraig@microsoft.com"
+}

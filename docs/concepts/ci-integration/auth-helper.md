@@ -10,7 +10,7 @@ The `beachball` package provides a `beachball-auth-helper` CLI with authenticati
 
 ## Prerequisites
 
-- Node 22.18 or later
+- Node 22.23.4 or later
 - `beachball` npm package **(does NOT require using other `beachball` features)**
 - For Azure Key Vault signing (`create-github-app-token` `--key-id` option), the `az` Azure CLI must be available and already authenticated
 

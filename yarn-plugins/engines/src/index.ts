@@ -14,8 +14,7 @@ import {
   type Report,
   type miscUtils,
 } from '@yarnpkg/core';
-import { NodeFS, type PortablePath } from '@yarnpkg/fslib';
-import path from 'node:path';
+import { NodeFS, ppath, type PortablePath } from '@yarnpkg/fslib';
 import semver from 'semver';
 import { EnginesProbeLinker } from './linker.ts';
 import { isRangeSatisfied, parseRange } from './ranges.ts';
@@ -336,10 +335,10 @@ async function findPackageLocation(
   }
 
   // Fallback: look in node_modules by package name
-  const nmPath = path.join(project.cwd, 'node_modules', structUtils.stringifyIdent(pkg));
-  if (nodeFs.existsSync(nmPath as PortablePath)) {
+  const nmPath = ppath.join(project.cwd, 'node_modules', structUtils.stringifyIdent(pkg) as PortablePath);
+  if (nodeFs.existsSync(nmPath)) {
     verboseWarning(`Falling back to node_modules path for ${prettyPkg}: ${nmPath}`);
-    return nmPath as PortablePath;
+    return nmPath;
   }
 
   return undefined;
