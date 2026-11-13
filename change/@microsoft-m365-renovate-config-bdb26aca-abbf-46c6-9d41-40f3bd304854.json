@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Update dependencyDashboard format",
+  "packageName": "@microsoft/m365-renovate-config",
+  "email": "elcraig@microsoft.com"
+}
