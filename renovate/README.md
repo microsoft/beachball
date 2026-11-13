@@ -413,7 +413,9 @@ Require dependency dashboard approval for major upgrades, 0.x upgrades, and mino
 
 ```json
 {
-  "dependencyDashboard": true,
+  "dependencyDashboard": {
+    "enabled": true
+  },
   "major": {
     "dependencyDashboardApproval": true
   },
