@@ -154,7 +154,7 @@ This preset includes all the other presets which are generally recommended:
     },
     {
       "matchManagers": ["npm"],
-      "minimumReleaseAge": "7 days"
+      "minimumReleaseAge": "8 days"
     }
   ]
 }
