@@ -105,6 +105,21 @@ describe('changelog renderers -', () => {
           - Boring change (user2@example.com)"
       `);
     });
+
+    it('renders the released child version while passing the package name to custom entry renderers', async () => {
+      const renderInfo = getGroupedRenderInfo();
+      renderInfo.groupedPackageVersions = new Map([
+        ['foo', '1.2.3'],
+        ['bar', '2.0.0-beta.1'],
+      ]);
+      renderInfo.renderers.renderEntry = entry => `- ${entry.package}`;
+      expect(await renderEntries('minor', renderInfo)).toMatchInlineSnapshot(`
+        "- \`bar@2.0.0-beta.1\`
+          - bar
+        - \`foo\`
+          - foo"
+      `);
+    });
   });
 
   describe('renderChangeTypeHeader', () => {

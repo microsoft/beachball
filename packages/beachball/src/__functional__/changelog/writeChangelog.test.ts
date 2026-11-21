@@ -348,7 +348,7 @@ describe('writeChangelog', () => {
     const groupedText = readChangelogMd(repo.rootPath);
     expect(groupedText).not.toContain('Bump');
     expect(groupedText).toMatch(/- `foo`.*\n  - foo comment 2.*\n  - foo comment/);
-    expect(groupedText).toMatch(/- `baz`.*\n  - baz comment/);
+    expect(groupedText).toMatch(/- `baz@1\.4\.0`.*\n  - baz comment/);
     expect(groupedText).toMatchSnapshot('grouped CHANGELOG.md');
 
     // Validate grouped CHANGELOG.json
@@ -389,7 +389,7 @@ describe('writeChangelog', () => {
     // packages/foo changelog should be grouped, not regular.
     // We can verify this by just looking for the bar entry.
     const groupedChangelogMd = readChangelogMd(repo.pathTo('packages/foo'));
-    expect(groupedChangelogMd).toContain('- `bar`\n  - bar comment');
+    expect(groupedChangelogMd).toContain('- `bar@1.4.0`\n  - bar comment');
 
     const groupedJson = readChangelogJson(repo.pathTo('packages/foo'));
     expect(groupedJson).toEqual({ name: 'foo', entries: [expect.anything()] });

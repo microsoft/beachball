@@ -98,7 +98,7 @@ Tue, 19 Nov 2024 08:03:08 GMT
 - `foo`
   - some change (example@example.com)
   - other change (example@example.com)
-- `bar`
+- `bar@2.1.0`
   - bar change (example@example.com)
 ```
 

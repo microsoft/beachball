@@ -116,6 +116,9 @@ export interface PackageChangelogRenderInfo {
   /** True if this is a grouped changelog. */
   isGrouped: boolean;
 
+  /** Released versions of the packages contributing entries to this grouped changelog. */
+  groupedPackageVersions?: ReadonlyMap<string, string>;
+
   /**
    * Renderers for individual elements of the changelog.
    * If any custom renderers were provided in `ChangelogOptions.customRenderers`, they will be included here.
@@ -181,7 +184,7 @@ export interface ChangelogRenderers {
    * ```txt
    * - `foo`
    *   - Really interesting change (user1@microsoft.com)
-   * - `bar`
+   * - `bar@2.1.0`
    *   - Boring change (user2@microsoft.com)
    * ```
    */

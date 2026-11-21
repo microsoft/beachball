@@ -76,7 +76,10 @@ async function _renderEntries(changeType: ChangeType, renderInfo: PackageChangel
     for (const [pkgName, pkgEntries] of Object.entries(entriesByPackage)) {
       const entriesText = (await _renderEntriesBasic(pkgEntries, renderInfo)).map(entry => `  ${entry}`).join('\n');
 
-      packagesText.push(`- \`${pkgName}\`\n${entriesText}`);
+      const version =
+        pkgName === renderInfo.newVersionChangelog.name ? undefined : renderInfo.groupedPackageVersions?.get(pkgName);
+      const label = version ? `${pkgName}@${version}` : pkgName;
+      packagesText.push(`- \`${label}\`\n${entriesText}`);
     }
     return packagesText.join('\n');
   }

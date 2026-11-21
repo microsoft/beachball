@@ -1,0 +1,6 @@
+{
+  "packageName": "beachball",
+  "type": "patch",
+  "comment": "Show the released version of each child package in grouped Markdown changelogs.",
+  "email": "businessyashas@gmail.com"
+}
