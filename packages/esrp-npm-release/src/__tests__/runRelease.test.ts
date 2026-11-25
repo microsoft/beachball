@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+import { RestError } from '@azure/storage-blob';
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { createTestFileStructure, setupTempDir } from '@microsoft/beachball-test-utilities';
 import fs from 'node:fs';
@@ -14,7 +15,7 @@ import type { ReleaseState } from '../utils/ReleaseState.ts';
 //
 
 jest.unstable_mockModule('@azure/storage-blob', () => ({
-  RestError: jest.requireActual<typeof import('@azure/storage-blob')>('@azure/storage-blob').RestError,
+  RestError,
   BlobServiceClient: class {
     public accountName = 'stagingaccount';
   },
