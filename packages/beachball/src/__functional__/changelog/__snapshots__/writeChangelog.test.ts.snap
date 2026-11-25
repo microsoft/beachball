@@ -90,7 +90,7 @@ exports[`writeChangelog generates grouped changelog in monorepo: grouped CHANGEL
 - \`foo\`
   - foo comment 2 (test@test.com)
   - foo comment (test@test.com)
-- \`baz\`
+- \`baz@1.4.0\`
   - baz comment (test@test.com)
 "
 `;

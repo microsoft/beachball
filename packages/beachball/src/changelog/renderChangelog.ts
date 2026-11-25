@@ -55,6 +55,7 @@ export async function renderChangelog(renderOptions: MarkdownChangelogRenderOpti
       previousJson,
       newVersionChangelog,
       isGrouped,
+      groupedPackageVersions: renderOptions.groupedPackageVersions,
       renderers: {
         ...defaultRenderers,
         ...customRenderers,

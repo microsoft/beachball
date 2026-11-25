@@ -37,7 +37,6 @@ export async function writeChangelog(
         options,
         newVersionChangelog: changelogs[pkg],
         changelogAbsDir: packagePath,
-        isGrouped: false,
       });
     }
   }
@@ -110,7 +109,7 @@ async function writeGroupedChangelog(
         options,
         newVersionChangelog: groupedChangelog,
         changelogAbsDir: groupAbsDir,
-        isGrouped: true,
+        groupedPackageVersions: new Map(group.changelogs.map(({ name, version }) => [name, version])),
       });
     }
   }
@@ -127,9 +126,9 @@ async function writeChangelogFiles(params: {
   options: Pick<BeachballOptions, 'generateChangelog' | 'changelog' | 'path'>;
   newVersionChangelog: PackageChangelog;
   changelogAbsDir: string;
-  isGrouped: boolean;
+  groupedPackageVersions?: ReadonlyMap<string, string>;
 }): Promise<void> {
-  const { options, newVersionChangelog, changelogAbsDir, isGrouped } = params;
+  const { options, newVersionChangelog, changelogAbsDir, groupedPackageVersions } = params;
 
   const changelogPaths = prepareChangelogPaths({ options, changelogAbsDir, packageName: newVersionChangelog.name });
 
@@ -166,7 +165,8 @@ async function writeChangelogFiles(params: {
       previousJson,
       previousContent,
       newVersionChangelog,
-      isGrouped,
+      isGrouped: !!groupedPackageVersions,
+      groupedPackageVersions,
       changelogOptions: options.changelog || {},
     });
 
