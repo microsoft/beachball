@@ -1,0 +1,6 @@
+{
+  "packageName": "@microsoft/beachball-action-should-release",
+  "type": "patch",
+  "comment": "Update bundled dependencies to improve brace expansion handling.",
+  "email": "5864305+ecraig12345@users.noreply.github.com"
+}
